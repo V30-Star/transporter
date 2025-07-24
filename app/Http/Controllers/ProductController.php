@@ -1,0 +1,146 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Product;
+use App\Models\Groupproduct;  // Add this import to get the groups
+use App\Models\Merek;         // If you have a model for "Merek"
+use App\Models\Satuan;
+use Illuminate\Http\Request;
+
+class ProductController extends Controller
+{
+    public function index(Request $request)
+    {
+        $filterBy = in_array($request->filter_by, ['fproductcode', 'fproductname'])
+            ? $request->filter_by
+            : 'fproductcode';
+
+        $search = $request->search;
+
+        $products = Product::when($search, function ($q) use ($filterBy, $search) {
+            $q->where($filterBy, 'ILIKE', '%' . $search . '%');
+        })
+            ->orderBy('fproductid', 'desc')
+            ->paginate(10)
+            ->withQueryString();
+
+        return view('product.index', compact('products', 'filterBy', 'search'));
+    }
+
+    public function create()
+    {
+        // Get the group products and brands to pass to the view
+        $groups = Groupproduct::all();  // Fetch all group products
+        $merks = Merek::all();  // Fetch all brands, assuming Merek is the brand model\
+        $satuan = Satuan::all();  // Fetch all units, assuming Satuan is the unit model
+
+        return view('product.create', compact('groups', 'merks', 'satuan'));
+    }
+
+    public function store(Request $request)
+    {
+        // Validate the incoming request
+        $validated = $request->validate([
+            'fproductcode' => 'required|string',
+            'fproductname' => 'required|string',
+            'ftype' => 'required|string',
+            'fbarcode' => 'required|string',
+            'fgroupcode' => 'required', // Validate the Group Produk field
+            'fmerek' => 'required', // Validate the Merek field
+            'fsatuankecil' => 'required', // Validate Satuan 1 field
+            'fsatuanbesar' => 'required', // Validate Satuan 2 field
+            'fsatuanbesar2' => 'required', // Validate Satuan 3 field
+            'fsatuandefault' => 'required|in:1,2,3', // Validate Satuan Default field
+            'fqtykecil' => 'required|numeric', // Validate quantity for Satuan 1
+            'fqtykecil2' => 'required|numeric', // Validate quantity for Satuan 3
+            'fhpp' => 'nullable|numeric', // Validate if nonactive is checked
+            'fhargasatuankecillevel1' => 'nullable|numeric', // Validate if nonactive is checked
+            'fhargasatuankecillevel2' => 'nullable|numeric', // Validate if nonactive is checked
+            'fhargasatuankecillevel3' => 'nullable|numeric', // Validate if nonactive is checked
+            'fhargajuallevel1' => 'nullable|numeric', // Validate if nonactive is checked
+            'fhargajuallevel2' => 'nullable|numeric', // Validate if nonactive is checked
+            'fhargajuallevel3' => 'nullable|numeric', // Validate if nonactive is checked
+            'fminstock' => 'nullable|numeric', // Validate if nonactive is checked
+        ]);
+
+        // Add default values for the required fields
+        $validated['fcreatedby'] = "User yang membuat"; // You can replace this with the authenticated user's name
+        $validated['fupdatedby'] = $validated['fcreatedby']; // Same for the updatedby field
+        $validated['fcreatedat'] = now(); // Use the current time
+        $validated['fupdatedat'] = now(); // Use the current time
+
+        // Handle the checkbox for 'fnonactive' (1 = checked, 0 = unchecked)
+        $validated['fnonactive'] = $request->has('fnonactive') ? 1 : 0;
+        
+        // Create the new Product
+        Product::create($validated);
+
+        return redirect()
+            ->route('product.index')
+            ->with('success', 'Product berhasil ditambahkan.');
+    }
+
+    public function edit($id)
+    {
+        $product = Product::findOrFail($id);
+        $groups = Groupproduct::all();
+        $merks = Merek::all();
+        $satuan = Satuan::all();
+
+        return view('product.edit', compact('product', 'groups', 'merks', 'satuan'));
+    }
+
+    public function update(Request $request, $fproductid)
+    {
+        // Validate the incoming data
+        $validated = $request->validate([
+            'fproductcode' => "required|string|unique:msproduct,fproductcode,{$fproductid},fproductid",
+            'fproductname' => 'required|string',
+            'ftype' => 'required|string',
+            'fbarcode' => 'required|string',
+            'fgroupcode' => 'required', // Validate the Group Produk field
+            'fmerek' => 'required', // Validate the Merek field
+            'fsatuankecil' => 'required', // Validate Satuan 1 field
+            'fsatuanbesar' => 'required', // Validate Satuan 2 field
+            'fsatuanbesar2' => 'required', // Validate Satuan 3 field
+            'fsatuandefault' => 'required|in:1,2,3', // Validate Satuan Default field
+            'fqtykecil' => 'required|numeric', // Validate quantity for Satuan 1
+            'fqtykecil2' => 'required|numeric', // Validate quantity for Satuan 3
+            'fhpp' => 'nullable|numeric', // Validate if nonactive is checked
+            'fhargasatuankecillevel1' => 'nullable|numeric', // Validate if nonactive is checked
+            'fhargasatuankecillevel2' => 'nullable|numeric', // Validate if nonactive is checked
+            'fhargasatuankecillevel3' => 'nullable|numeric', // Validate if nonactive is checked
+            'fhargajuallevel1' => 'nullable|numeric', // Validate if nonactive is checked
+            'fhargajuallevel2' => 'nullable|numeric', // Validate if nonactive is checked
+            'fhargajuallevel3' => 'nullable|numeric', // Validate if nonactive is checked
+            'fminstock' => 'nullable|numeric', // Validate if nonactive is checked
+        ]);
+
+        $validated['fcreatedby'] = "User yang membuat"; // You can replace this with the authenticated user's name
+        $validated['fupdatedby'] = $validated['fcreatedby']; // Same for the updatedby field
+        $validated['fcreatedat'] = now(); // Use the current time
+        $validated['fupdatedat'] = now(); // Use the current time
+
+        // Handle the checkbox for 'fnonactive' (1 = checked, 0 = unchecked)
+        $validated['fnonactive'] = $request->has('fnonactive') ? 1 : 0;
+        // Find and update the Product
+        $product = Product::findOrFail($fproductid);
+        $product->update($validated);
+
+        return redirect()
+            ->route('product.index')
+            ->with('success', 'Product berhasil di-update.');
+    }
+
+    public function destroy($fproductid)
+    {
+        // Find and delete the Product
+        $product = Product::findOrFail($fproductid);
+        $product->delete();
+
+        return redirect()
+            ->route('product.index')
+            ->with('success', 'Product berhasil dihapus.');
+    }
+}

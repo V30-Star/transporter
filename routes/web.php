@@ -1,0 +1,151 @@
+<?php
+
+use App\Http\Controllers\AccountController;
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\GroupcustomerController;
+use App\Http\Controllers\GroupproductController;
+use App\Http\Controllers\GudangController;
+use App\Http\Controllers\MerekController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\RekeningController;
+use App\Http\Controllers\WilayahController;
+use App\Http\Controllers\RuteController;
+use App\Http\Controllers\SalesmanController;
+use App\Http\Controllers\SatuanController;
+use App\Http\Controllers\SubaccountController;
+use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\SysUserController;
+
+        Route::get('/', function () {
+            return view('welcome');
+        });
+
+        // Semua route di bawah hanya untuk user yang sudah login
+        Route::middleware('auth')->group(function () {
+
+        // Dashboard
+        Route::get('/dashboard', function () {
+            return view('dashboard');
+        })->name('dashboard');
+
+        // Settings page
+        Route::get('/settings', function () {
+            return view('settings');
+        })->name('settings');
+
+        // Profile routes
+        Route::get('/profile', [ProfileController::class, 'edit'])->name('profile');
+        Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+        Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+        // Master Menu Routes
+        Route::prefix('master')->group(function () {
+
+        Route::get('/customer', [CustomerController::class, 'index'])->name('customer.index');
+        Route::post('/customer',        [CustomerController::class, 'store'])->name('customer.store');
+        Route::get('/customer/create', [CustomerController::class, 'create'])->name('customer.create');
+        Route::get('/customer/{fcustomerid}/edit', [CustomerController::class, 'edit'])->name('customer.edit');
+        Route::patch('/customer/{fcustomerid}', [CustomerController::class, 'update'])->name('customer.update');
+        Route::delete('/customer/{fcustomerid}', [CustomerController::class, 'destroy'])->name('customer.destroy');
+
+        Route::get('/groupcustomer', [GroupcustomerController::class, 'index'])->name('groupcustomer.index');
+        Route::post('/groupcustomer',        [GroupcustomerController::class, 'store'])->name('groupcustomer.store');
+        Route::get('/groupcustomer/create', [GroupcustomerController::class, 'create'])->name('groupcustomer.create');
+        Route::get('/groupcustomer/{fgroupid}/edit', [GroupcustomerController::class, 'edit'])->name('groupcustomer.edit');
+        Route::patch('/groupcustomer/{fgroupid}', [GroupcustomerController::class, 'update'])->name('groupcustomer.update');
+        Route::delete('/groupcustomer/{fgroupid}', [GroupcustomerController::class, 'destroy'])->name('groupcustomer.destroy');
+
+        // SysUser Routes
+        Route::get('/sysuser', [SysUserController::class, 'index'])->name('sysuser.index');
+        Route::post('/sysuser',        [SysUserController::class, 'store'])->name('sysuser.store');
+        Route::get('/sysuser/create', [SysUserController::class, 'create'])->name('sysuser.create');
+        Route::get('/sysuser/{fuid}/edit', [SysUserController::class, 'edit'])->name('sysuser.edit');
+        Route::patch('/sysuser/{fuid}', [SysUserController::class, 'update'])->name('sysuser.update');
+        Route::delete('/sysuser/{fuid}', [SysUserController::class, 'destroy'])->name('sysuser.destroy');
+
+        Route::get('/wilayah', [WilayahController::class, 'index'])->name('wilayah.index');
+        Route::post('/wilayah',        [WilayahController::class, 'store'])->name('wilayah.store');
+        Route::get('/wilayah/create', [WilayahController::class, 'create'])->name('wilayah.create');
+        Route::get('/wilayah/{fwilayahid}/edit', [WilayahController::class, 'edit'])->name('wilayah.edit');
+        Route::patch('/wilayah/{fwilayahid}', [WilayahController::class, 'update'])->name('wilayah.update');
+        Route::delete('/wilayah/{fwilayahid}', [WilayahController::class, 'destroy'])->name('wilayah.destroy');
+
+        Route::get('/salesman', [SalesmanController::class, 'index'])->name('salesman.index');
+        Route::post('/salesman',        [SalesmanController::class, 'store'])->name('salesman.store');
+        Route::get('/salesman/create', [SalesmanController::class, 'create'])->name('salesman.create');
+        Route::get('/salesman/{fsalesmanid}/edit', [SalesmanController::class, 'edit'])->name('salesman.edit');
+        Route::patch('/salesman/{fsalesmanid}', [SalesmanController::class, 'update'])->name('salesman.update');
+        Route::delete('/salesman/{fsalesmanid}', [SalesmanController::class, 'destroy'])->name('salesman.destroy');
+
+        Route::get('/satuan', [SatuanController::class, 'index'])->name('satuan.index');
+        Route::post('/satuan',        [SatuanController::class, 'store'])->name('satuan.store');
+        Route::get('/satuan/create', [SatuanController::class, 'create'])->name('satuan.create');
+        Route::get('/satuan/{fsatuanid}/edit', [SatuanController::class, 'edit'])->name('satuan.edit');
+        Route::patch('/satuan/{fsatuanid}', [SatuanController::class, 'update'])->name('satuan.update');
+        Route::delete('/satuan/{fsatuanid}', [SatuanController::class, 'destroy'])->name('satuan.destroy');
+
+        Route::get('/merek', [MerekController::class, 'index'])->name('merek.index');
+        Route::post('/merek',        [MerekController::class, 'store'])->name('merek.store');
+        Route::get('/merek/create', [MerekController::class, 'create'])->name('merek.create');
+        Route::get('/merek/{fmerekid}/edit', [MerekController::class, 'edit'])->name('merek.edit');
+        Route::patch('/merek/{fmerekid}', [MerekController::class, 'update'])->name('merek.update');
+        Route::delete('/merek/{fmerekid}', [MerekController::class, 'destroy'])->name('merek.destroy');
+
+        Route::get('/gudang', action: [GudangController::class, 'index'])->name('gudang.index');
+        Route::post('/gudang',        [GudangController::class, 'store'])->name('gudang.store');
+        Route::get('/gudang/create', [GudangController::class, 'create'])->name('gudang.create');
+        Route::get('/gudang/{fgudangid}/edit', [GudangController::class, 'edit'])->name('gudang.edit');
+        Route::patch('/gudang/{fgudangid}', [GudangController::class, 'update'])->name('gudang.update');
+        Route::delete('/gudang/{fgudangid}', [GudangController::class, 'destroy'])->name('gudang.destroy');
+
+        Route::get('/groupproduct', action: [GroupproductController::class, 'index'])->name('groupproduct.index');
+        Route::post('/groupproduct',        [GroupproductController::class, 'store'])->name('groupproduct.store');
+        Route::get('/groupproduct/create', [GroupproductController::class, 'create'])->name('groupproduct.create');
+        Route::get('/groupproduct/{fgroupid}/edit', [GroupproductController::class, 'edit'])->name('groupproduct.edit');
+        Route::patch('/groupproduct/{fgroupid}', [GroupproductController::class, 'update'])->name('groupproduct.update');
+        Route::delete('/groupproduct/{fgroupid}', [GroupproductController::class, 'destroy'])->name('groupproduct.destroy');
+
+        Route::get('/product', action: [ProductController::class, 'index'])->name('product.index');
+        Route::post('/product',        [ProductController::class, 'store'])->name('product.store');
+        Route::get('/product/create', [ProductController::class, 'create'])->name('product.create');
+        Route::get('/product/{fproductid}/edit', [ProductController::class, 'edit'])->name('product.edit');
+        Route::patch('/product/{fproductid}', [ProductController::class, 'update'])->name('product.update');
+        Route::delete('/product/{fproductid}', [ProductController::class, 'destroy'])->name('product.destroy');
+
+        Route::get('/supplier', action: [SupplierController::class, 'index'])->name('supplier.index');
+        Route::post('/supplier',        [SupplierController::class, 'store'])->name('supplier.store');
+        Route::get('/supplier/create', [SupplierController::class, 'create'])->name('supplier.create');
+        Route::get('/supplier/{fproductid}/edit', [SupplierController::class, 'edit'])->name('supplier.edit');
+        Route::patch('/supplier/{fproductid}', [SupplierController::class, 'update'])->name('supplier.update');
+        Route::delete('/supplier/{fproductid}', [SupplierController::class, 'destroy'])->name('supplier.destroy');
+
+        Route::get('/subaccount', action: [SubaccountController::class, 'index'])->name('subaccount.index');
+        Route::post('/subaccount',        [SubaccountController::class, 'store'])->name('subaccount.store');
+        Route::get('/subaccount/create', [SubaccountController::class, 'create'])->name('subaccount.create');
+        Route::get('/subaccount/{fsubaccountid}/edit', [SubaccountController::class, 'edit'])->name('subaccount.edit');
+        Route::patch('/subaccount/{fsubaccountid}', [SubaccountController::class, 'update'])->name('subaccount.update');
+        Route::delete('/subaccount/{fsubaccountid}', [SubaccountController::class, 'destroy'])->name('subaccount.destroy');
+        
+        Route::get('/rekening', action: [RekeningController::class, 'index'])->name('rekening.index');
+        Route::post('/rekening',        [RekeningController::class, 'store'])->name('rekening.store');
+        Route::get('/rekening/create', [RekeningController::class, 'create'])->name('rekening.create');
+        Route::get('/rekening/{frekeningid}/edit', [RekeningController::class, 'edit'])->name('rekening.edit');
+        Route::patch('/rekening/{frekeningid}', [RekeningController::class, 'update'])->name('rekening.update');
+        Route::delete('/rekening/{frekeningid}', [RekeningController::class, 'destroy'])->name('rekening.destroy');
+
+        Route::get('/account', action: [AccountController::class, 'index'])->name('account.index');
+        Route::post('/account',        [AccountController::class, 'store'])->name('account.store');
+        Route::get('/account/create', [AccountController::class, 'create'])->name('account.create');
+        Route::get('/account/{faccid}/edit', [AccountController::class, 'edit'])->name('account.edit');
+        Route::patch('/account/{faccid}', [AccountController::class, 'update'])->name('account.update');
+        Route::delete('/account/{faccid}', [AccountController::class, 'destroy'])->name('account.destroy');
+
+        Route::get('/rute', [RuteController::class, 'index'])->name('rute.index');
+        Route::get('/customer/create', [CustomerController::class, 'create'])->name('customer.create');
+
+    });
+});
+
+require __DIR__.'/auth.php';
