@@ -31,6 +31,21 @@ class CustomerController extends Controller
 
         return view('master.customer.index', compact('customers', 'filterBy', 'search'));
     }
+    private function generateCustomerCode(): string
+    {
+        $lastCode = Customer::where('fcustomercode', 'like', 'C-%')
+            ->orderByRaw("CAST(SUBSTRING(fcustomercode FROM 3) AS INTEGER) DESC")
+            ->value('fcustomercode');
+
+        if (!$lastCode) {
+            return 'C-01';
+        }
+
+        $number = (int)substr($lastCode, 2);
+        $newNumber = $number + 1;
+
+        return 'C-' . str_pad($newNumber, 2, '0', STR_PAD_LEFT);
+    }
 
     // Create method to return the customer creation form
     public function create()
@@ -39,8 +54,9 @@ class CustomerController extends Controller
         $salesman = Salesman::all();  // Fetch all group products
         $wilayah = Wilayah::all();  // Fetch all group products
         $rekening = Rekening::all();  // Fetch all group products
+        $newCustomerCode = $this->generateCustomerCode();
 
-        return view('master.customer.create', compact('groups', 'salesman', 'wilayah', 'rekening'));
+        return view('master.customer.create', compact('groups', 'salesman', 'wilayah', 'rekening', 'newCustomerCode'));
     }
 
     // Store method to save the new customer in the database
@@ -48,7 +64,7 @@ class CustomerController extends Controller
     {
         // Validate incoming request data
         $validated = $request->validate([
-            'fcustomercode' => 'required|string|max:10',  // Validate customer code (max 10 chars)
+            'fcustomercode' => 'nullable|string|max:10',  // Validate customer code (max 10 chars)
             'fcustomername' => 'required|string|max:50', // Validate customer name (max 50 chars)
             'fgroup' => 'required', // Validate the Group Produk field
             'fsalesman' => 'required', // Validate the Group Produk field
@@ -63,9 +79,11 @@ class CustomerController extends Controller
             'ftempo' => 'required', // Validate Satuan Default field
             'fmaxtempo' => 'required', // Validate Satuan Default field
             'flimit' => 'required', // Validate Satuan Default field
+            'faddress' => 'required', // Validate Satuan Default field
             'fkirimaddress1' => 'required', // Validate Satuan Default field
             'fkirimaddress2' => 'required', // Validate Satuan Default field
             'fkirimaddress3' => 'required', // Validate Satuan Default field
+            'ftaxaddress' => 'required', // Validate Satuan Default field
             'fhargalevel' => 'required|in:0,1,2', // Validate Satuan Default field
             'fkontakperson' => 'required', // Validate Satuan Default field
             'fjabatan' => 'required', // Validate Satuan Default field
@@ -76,6 +94,10 @@ class CustomerController extends Controller
             // 'fphone' => 'nullable|string|max:20', // Validate phone number
             // 'faddress' => 'nullable|string|max:255', // Validate address
         ]);
+
+        if (empty($request->fcustomercode)) {
+            $validated['fcustomercode'] = $this->generateCustomerCode();
+        }
 
         // Add default values for the required fields
         $validated['fcreatedby'] = "admin";  // Use the authenticated user's ID

@@ -6,14 +6,48 @@
     <style>
         input:focus,
         select:focus,
-        textarea:focus {
+        textarea:focus,
+        .select2-container--default .select2-selection--single:focus {
             outline: none;
             border-color: #2563eb;
             box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
         }
+
+        .select2-container--default .select2-selection--single {
+            border: 1px solid #000000 !important;
+            /* Black border */
+            border-radius: 0.375rem;
+            height: 42px;
+            padding: 0.5rem 0.75rem;
+            width: 100% !important;
+            background-color: white;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 40px;
+        }
+
+        .select2-dropdown {
+            border: 1px solid #000000 !important;
+            border-radius: 0.375rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .select2-results__option {
+            padding: 8px 12px;
+        }
+
+        .select2-results__option--highlighted {
+            background-color: #2563eb !important;
+            color: white !important;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            color: #000000 !important;
+        }
     </style>
 
-    <div x-data="{ open: true, selected: 'surat' }">
+    <div x-data="{ open: true, selected: 'alamatsurat' }">
         <div x-show="open" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" x-cloak>
             <div class="bg-white w-full max-w-5xl p-6 rounded shadow relative overflow-y-auto max-h-screen">
                 <!-- Tombol X -->
@@ -31,10 +65,21 @@
                 <form action="{{ route('customer.store') }}" method="POST">
                     @csrf
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium">Kode Customer</label>
-                            <input type="text" name="fcustomercode" class="w-full border rounded px-3 py-2"
-                                placeholder="Masukkan Kode Customer">
+                        <div x-data="{ autoCode: true }" class="flex items-center gap-4">
+                            <!-- Input Kode Customer -->
+                            <div class="flex-1">
+                                <label class="block text-sm font-medium">Kode Customer</label>
+                                <input type="text" name="fcustomercode" class="w-full border rounded px-3 py-2"
+                                    placeholder="Masukkan Kode Customer" :disabled="autoCode"
+                                    :value="autoCode ? '{{ $newCustomerCode }}' : '{{ old('fcustomercode') }}'"
+                                    :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
+                            </div>
+
+                            <!-- Checkbox Auto Generate -->
+                            <label class="inline-flex items-center mt-6">
+                                <input type="checkbox" x-model="autoCode" class="form-checkbox text-indigo-600" checked>
+                                <span class="ml-2 text-sm text-gray-700">Auto</span>
+                            </label>
                         </div>
 
                         <div>
@@ -145,39 +190,52 @@
                         <div class="md:col-span-2">
                             <label class="block text-sm font-medium mb-2">Alamat</label>
                             <div class="flex space-x-2 mb-4">
+                                <button type="button" @click="selected = 'alamatsurat'"
+                                    :class="selected === 'alamatsurat' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'"
+                                    class="px-4 py-2 rounded border">Alamat Surat</button>
                                 <button type="button" @click="selected = 'alamat1'"
                                     :class="selected === 'alamat1' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'"
-                                    class="px-4 py-2 rounded border">Alamat 1</button>
-                                <button type="button" @click="selected = 'alamat2'"
-                                    :class="selected === 'alamat2' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'"
-                                    class="px-4 py-2 rounded border">Alamat 2</button>
-                                <button type="button" @click="selected = 'alamat3'"
-                                    :class="selected === 'alamat3' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'"
-                                    class="px-4 py-2 rounded border">Alamat 3</button>
+                                    class="px-4 py-2 rounded border">Alamat Kirim</button>
+                                <button type="button" @click="selected = 'alamatpajak'"
+                                    :class="selected === 'alamatpajak' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'"
+                                    class="px-4 py-2 rounded border">Alamat Pajak</button>
                             </div>
-
+                            <div x-show="selected === 'alamatsurat'">
+                                <textarea class="w-full border rounded px-3 py-2 @error('faddress') is-invalid @enderror" name="faddress" id="faddress"
+                                    placeholder="Masukkan Alamat Surat" cols="10" rows="6">{{ old('faddress') }}</textarea>
+                                @error('faddress')
+                                    <div class="invalid-feedback">
+                                        {{ $message }}
+                                    </div>
+                                @enderror
+                            </div>
                             <div x-show="selected === 'alamat1'">
-                                <textarea class="w-full border rounded px-3 py-2 @error('fkirimaddress1') is-invalid @enderror" name="fkirimaddress1"
-                                    id="fkirimaddress1" placeholder="Masukkan Alamat Kirim 1" cols="10" rows="6">{{ old('fkirimaddress1') }}</textarea>
+                                <textarea class="w-full border rounded px-3 py-2 mb-4 @error('fkirimaddress1') is-invalid @enderror"
+                                    name="fkirimaddress1" id="fkirimaddress1" placeholder="Masukkan Alamat Kirim 1" cols="10" rows="6">{{ old('fkirimaddress1') }}</textarea>
                                 @error('fkirimaddress1')
                                     <div class="invalid-feedback">
                                         {{ $message }}
                                     </div>
                                 @enderror
-                            </div>
-                            <div x-show="selected === 'alamat2'">
-                                <textarea class="w-full border rounded px-3 py-2 @error('fkirimaddress2') is-invalid @enderror" name="fkirimaddress2"
-                                    id="fkirimaddress2" placeholder="Masukkan Alamat Kirim 2" cols="10" rows="6">{{ old('fkirimaddress2') }}</textarea>
+                                <textarea class="w-full border rounded px-3 py-2 mb-4 @error('fkirimaddress2') is-invalid @enderror"
+                                    name="fkirimaddress2" id="fkirimaddress2" placeholder="Masukkan Alamat Kirim 2" cols="10" rows="6">{{ old('fkirimaddress2') }}</textarea>
                                 @error('fkirimaddress2')
                                     <div class="invalid-feedback">
                                         {{ $message }}
                                     </div>
                                 @enderror
-                            </div>
-                            <div x-show="selected === 'alamat3'">
-                                <textarea class="w-full border rounded px-3 py-2 @error('fkirimaddress3') is-invalid @enderror" name="fkirimaddress3"
-                                    id="fkirimaddress3" placeholder="Masukkan Alamat Kirim 3" cols="10" rows="6">{{ old('fkirimaddress3') }}</textarea>
+                                <textarea class="w-full border rounded px-3 py-2 mb-4 @error('fkirimaddress3') is-invalid @enderror"
+                                    name="fkirimaddress3" id="fkirimaddress3" placeholder="Masukkan Alamat Kirim 3" cols="10" rows="6">{{ old('fkirimaddress3') }}</textarea>
                                 @error('fkirimaddress3')
+                                    <div class="invalid-feedback">
+                                        {{ $message }}
+                                    </div>
+                                @enderror
+                            </div>
+                            <div x-show="selected === 'alamatpajak'">
+                                <textarea class="w-full border rounded px-3 py-2 @error('ftaxaddress') is-invalid @enderror" name="ftaxaddress"
+                                    id="ftaxaddress" placeholder="Masukkan Alamat Pajak" cols="10" rows="6">{{ old('ftaxaddress') }}</textarea>
+                                @error('ftaxaddress')
                                     <div class="invalid-feedback">
                                         {{ $message }}
                                     </div>
@@ -344,51 +402,24 @@
                             Keluar
                         </button>
                     </div>
+                </form>
             </div>
-            </form>
         </div>
-    </div>
     </div>
 @endsection
 
-<!-- Include Select2 CSS -->
-<link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet" />
-
-<!-- Include jQuery (required by Select2) -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
-<!-- Include Select2 JS -->
-<script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
-
 <script>
     $(document).ready(function() {
-        $('#groupSelect').select2({
-            placeholder: '-- Pilih Group Produk --',
-            allowClear: true
-        });
-    });
-</script>
-<script>
-    $(document).ready(function() {
-        $('#salesmanSelect').select2({
-            placeholder: '-- Pilih Salesman --',
-            allowClear: true
-        });
-    });
-</script>
-<script>
-    $(document).ready(function() {
-        $('#wilayahSelect').select2({
-            placeholder: '-- Pilih Wilayah --',
-            allowClear: true
-        });
-    });
-</script>
-<script>
-    $(document).ready(function() {
-        $('#frekening').select2({
-            placeholder: '-- Pilih Rekening --',
-            allowClear: true
+        $('#groupSelect, #salesmanSelect, #wilayahSelect, #frekening').select2({
+            width: '100%',
+            placeholder: function() {
+                return $(this).data('placeholder') || '-- Pilih --';
+            },
+            dropdownAutoWidth: true
         });
     });
 </script>

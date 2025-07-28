@@ -6,10 +6,43 @@
     <style>
         input:focus,
         select:focus,
-        textarea:focus {
+        textarea:focus,
+        .select2-container--default .select2-selection--single:focus {
             outline: none;
             border-color: #2563eb;
             box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+        }
+
+        .select2-container--default .select2-selection--single {
+            border: 1px solid #000000 !important;
+            border-radius: 0.375rem;
+            height: 42px;
+            padding: 0.5rem 0.75rem;
+            width: 100% !important;
+            background-color: white;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 40px;
+        }
+
+        .select2-dropdown {
+            border: 1px solid #000000 !important;
+            border-radius: 0.375rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .select2-results__option {
+            padding: 8px 12px;
+        }
+
+        .select2-results__option--highlighted {
+            background-color: #2563eb !important;
+            color: white !important;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            color: #000000 !important;
         }
     </style>
 
@@ -51,14 +84,21 @@
                             @enderror
                         </div>
 
-                        <!-- Kode Product -->
-                        <div class="mt-2 w-1/3">
-                            <label class="block text-sm font-medium">Kode Product</label>
-                            <input type="text" name="fproductcode" value="{{ old('fproductcode') }}"
-                                class="w-full border rounded px-3 py-2 @error('fproductcode') border-red-500 @enderror">
-                            @error('fproductcode')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
+                        <div x-data="{ autoCode: true }" class="flex items-center gap-4">
+                            <!-- Input Kode Product -->
+                            <div class="mt-2 w-1/3">
+                                <label class="block text-sm font-medium">Kode Product</label>
+                                <input type="text" name="fproductcode" class="w-full border rounded px-3 py-2"
+                                    placeholder="Masukkan Kode Product" :disabled="autoCode"
+                                    :value="autoCode ? '{{ $newProductCode }}' : '{{ old('fproductcode') }}'"
+                                    :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
+                            </div>
+
+                            <!-- Checkbox Auto Generate -->
+                            <label class="inline-flex items-center mt-6">
+                                <input type="checkbox" x-model="autoCode" class="form-checkbox text-indigo-600" checked>
+                                <span class="ml-2 text-sm text-gray-700">Auto</span>
+                            </label>
                         </div>
 
                         <!-- Nama Product -->
@@ -104,7 +144,7 @@
                         <div class="mt-2 w-1/4">
                             <label class="block text-sm font-medium">Satuan Kecil</label>
                             <select class="w-full border rounded px-3 py-2 @error('fsatuankecil') border-red-500 @enderror"
-                                name="fsatuankecil" id="fsatuankecil" onchange="changeUnit()">
+                                name="fsatuankecil" id="fsatuankecil">
                                 <option value="" selected> Pilih Satuan 1</option>
                                 @foreach ($satuan as $satu)
                                     <option value="{{ $satu->fsatuancode }}">
@@ -121,7 +161,7 @@
 
                         {{-- Satuan 2 --}}
                         <div class="mt-2">
-                            <div class="flex items-end gap-4"> <!-- Tambahkan flex container dengan gap -->
+                            <div class="flex items-end gap-4">
                                 <!-- Satuan 2 Select -->
                                 <div class="w-1/3">
                                     <label class="block text-sm font-medium">Satuan 2</label>
@@ -159,7 +199,7 @@
 
                         {{-- Satuan 3 --}}
                         <div class="mt-2">
-                            <div class="flex items-end gap-4"> <!-- Flex container for horizontal alignment -->
+                            <div class="flex items-end gap-4">
                                 <!-- Satuan 3 Select -->
                                 <div class="w-1/3">
                                     <label class="block text-sm font-medium">Satuan 3</label>
@@ -375,29 +415,25 @@
     </div>
 @endsection
 
-<!-- Include Select2 CSS -->
-<link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet" />
-
-<!-- Include jQuery (required by Select2) -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-<!-- Include Select2 JS -->
-<script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 <script>
     $(document).ready(function() {
-        $('#groupSelect').select2({
-            placeholder: '-- Pilih Group Produk --',
-            allowClear: true
+        $('#groupSelect, #merkSelect, #fsatuankecil, #fsatuanbesar, #fsatuanbesar2').select2({
+            width: '100%',
+            placeholder: function() {
+                return $(this).data('placeholder') || '-- Pilih --';
+            },
         });
-    });
-</script>
 
-<script>
-    $(document).ready(function() {
+        $('#groupSelect').select2({
+            placeholder: '-- Pilih Group Produk --'
+        });
+
         $('#merkSelect').select2({
-            placeholder: '-- Pilih Merek --',
-            allowClear: true
+            placeholder: '-- Pilih Merek --'
         });
     });
 </script>

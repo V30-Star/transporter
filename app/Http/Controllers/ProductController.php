@@ -27,6 +27,21 @@ class ProductController extends Controller
 
         return view('product.index', compact('products', 'filterBy', 'search'));
     }
+    private function generateProductCode(): string
+    {
+        $lastCode = Product::where('fproductcode', 'like', 'C-%')
+            ->orderByRaw("CAST(SUBSTRING(fproductcode FROM 3) AS INTEGER) DESC")
+            ->value('fproductcode');
+
+        if (!$lastCode) {
+            return 'C-01';
+        }
+
+        $number = (int)substr($lastCode, 2);
+        $newNumber = $number + 1;
+
+        return 'C-' . str_pad($newNumber, 2, '0', STR_PAD_LEFT);
+    }
 
     public function create()
     {
@@ -34,15 +49,16 @@ class ProductController extends Controller
         $groups = Groupproduct::all();  // Fetch all group products
         $merks = Merek::all();  // Fetch all brands, assuming Merek is the brand model\
         $satuan = Satuan::all();  // Fetch all units, assuming Satuan is the unit model
+        $newProductCode = $this->generateProductCode();
 
-        return view('product.create', compact('groups', 'merks', 'satuan'));
+        return view('product.create', compact('groups', 'merks', 'satuan', 'newProductCode'));
     }
 
     public function store(Request $request)
     {
         // Validate the incoming request
         $validated = $request->validate([
-            'fproductcode' => 'required|string',
+            'fproductcode' => 'nullable|string',
             'fproductname' => 'required|string',
             'ftype' => 'required|string',
             'fbarcode' => 'required|string',
@@ -63,6 +79,10 @@ class ProductController extends Controller
             'fhargajuallevel3' => 'nullable|numeric', // Validate if nonactive is checked
             'fminstock' => 'nullable|numeric', // Validate if nonactive is checked
         ]);
+
+        if (empty($request->fproductcode)) {
+            $validated['fproductcode'] = $this->generateProductCode();
+        }
 
         // Add default values for the required fields
         $validated['fcreatedby'] = "User yang membuat"; // You can replace this with the authenticated user's name
