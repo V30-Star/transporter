@@ -31,14 +31,22 @@ class SysUserController extends Controller
     {
         $validated = $request->validate([
             'fname' => 'required|string|max:100',
-            'fsysuserid' => 'required|string',
+            'fsysuserid' => 'required|string|unique:sysuser,fsysuserid',
             'password' => 'required|string|min:6|confirmed',
             'fsalesman' => 'nullable|string|size:1', 
-            'account_level' => 'required|string|in:User,Admin', 
+            'fuserlevel'    => 'required|string|in:User,Admin',
+            'fcabang'       => 'required|string',
+        ], [
+            'fsysuserid.unique' => 'Username sudah digunakan, silakan pilih username lain.',
+            'fname.required' => 'Nama harus diisi.',
+            'fsysuserid.required' => 'Username harus diisi.',
+            'password.required' => 'Password harus diisi.',
+            'fuserlevel.required' => 'Level akun harus User atau Admin.',
+            'fcabang.required' => 'Cabang harus diisi.',
         ]);
 
         $validated['fcabang'] = $request->fcabang ?? '-';
-        $validated['fuserlevel'] = $validated['account_level'] == 'Admin' ? '2' : '1';
+        $validated['fuserlevel'] = $validated['fuserlevel'] == 'Admin' ? '2' : '1';
         $validated['fuserid'] = "User yang membuat";
         $validated['created_at'] = now(); 
         $validated['updated_at'] = now(); 
@@ -70,12 +78,19 @@ class SysUserController extends Controller
     {
         // Validate incoming request
         $validated = $request->validate([
-            'fsysuserid'    => 'string',
+            'fsysuserid'    => 'required|string|unique:sysuser,fsysuserid',
             'fname'         => 'required|string',
             'password'      => 'nullable|string|confirmed', 
             'fsalesman'     => 'nullable|string|size:1', // Nullable
             'fuserlevel'    => 'required|string|size:1',
             'fcabang'       => 'required|string',
+        ], [
+            'fsysuserid.unique' => 'Username sudah digunakan, silakan pilih username lain.',
+            'fname.required' => 'Nama harus diisi.',
+            'fsysuserid.required' => 'Username harus diisi.',
+            'password.required' => 'Password harus diisi.',
+            'fuserlevel.required' => 'Level akun harus User atau Admin.',
+            'fcabang.required' => 'Cabang harus diisi.',
         ]);
 
         // Find and update the sysuser

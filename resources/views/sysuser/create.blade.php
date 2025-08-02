@@ -104,16 +104,17 @@
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
                         </div>
+
                         <!-- Account Level -->
                         <div>
                             <label class="block text-sm font-medium">Account Level</label>
-                            <select name="account_level"
-                                class="w-full border rounded px-3 py-2 @error('account_level') border-red-500 @enderror">
-                                <option value="User" {{ old('account_level') == 'User' ? 'selected' : '' }}>User</option>
-                                <option value="Admin" {{ old('account_level') == 'Admin' ? 'selected' : '' }}>Admin
+                            <select name="fuserlevel"
+                                class="w-full border rounded px-3 py-2 @error('fuserlevel') border-red-500 @enderror">
+                                <option value="User" {{ old('fuserlevel') == 'User' ? 'selected' : '' }}>User</option>
+                                <option value="Admin" {{ old('fuserlevel') == 'Admin' ? 'selected' : '' }}>Admin
                                 </option>
                             </select>
-                            @error('account_level')
+                            @error('fuserlevel')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
                         </div>

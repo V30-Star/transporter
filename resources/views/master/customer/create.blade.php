@@ -4,6 +4,13 @@
 
 @section('content')
     <style>
+        .invalid-feedback {
+            color: #f87171;
+            font-size: 0.875rem;
+            margin-top: 4px;
+            padding-left: 10px;
+        }
+
         input:focus,
         select:focus,
         textarea:focus,
@@ -84,7 +91,15 @@
 
                         <div>
                             <label class="block text-sm font-medium">Nama Customer</label>
-                            <input type="text" name="fcustomername" class="w-full border rounded px-3 py-2">
+                            <input type="text"
+                                class="w-full border rounded px-3 py-2 @error('fcustomername') is-invalid @enderror"
+                                name="fcustomername" id="fcustomername" placeholder="Masukkan Nama Customer"
+                                value="{{ old('fcustomername') }}">
+                            @error('fcustomername')
+                                <div class="invalid-feedback">
+                                    {{ $message }}
+                                </div>
+                            @enderror
                         </div>
 
                         <div>
@@ -201,8 +216,8 @@
                                     class="px-4 py-2 rounded border">Alamat Pajak</button>
                             </div>
                             <div x-show="selected === 'alamatsurat'">
-                                <textarea class="w-full border rounded px-3 py-2 @error('faddress') is-invalid @enderror" name="faddress" id="faddress"
-                                    placeholder="Masukkan Alamat Surat" cols="10" rows="6">{{ old('faddress') }}</textarea>
+                                <textarea class="w-full border rounded px-3 py-2 @error('faddress') is-invalid @enderror" name="faddress"
+                                    id="faddress" placeholder="Masukkan Alamat Surat" cols="10" rows="6">{{ old('faddress') }}</textarea>
                                 @error('faddress')
                                     <div class="invalid-feedback">
                                         {{ $message }}
@@ -255,6 +270,7 @@
                                 </div>
                             @enderror
                         </div>
+
                         <div>
                             <label class="block text-sm font-medium">Fax</label>
                             <input type="number"
@@ -267,6 +283,7 @@
                                 </div>
                             @enderror
                         </div>
+
                         <div class="md:col-span-2">
                             <label class="block text-sm font-medium">Email</label>
                             <input type="email"

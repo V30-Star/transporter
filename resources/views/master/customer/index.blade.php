@@ -32,26 +32,28 @@
         <table class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
-                    <th class="border px-2 py-1">Kode Customer</th>
-                    <th class="border px-2 py-1">Nama Customer</th>
-                    <th class="border px-2 py-1">Wilayah</th>
-                    <th class="border px-2 py-1">Alamat</th>
-                    <th class="border px-2 py-1">Kota</th>
-                    <th class="border px-2 py-1">Jadwal Mingguan</th>
-                    <th class="border px-2 py-1">Hari</th>
+                    <th class="border px-2 py-1">Faktur #</th>
+                    <th class="border px-2 py-1">Customer</th>
+                    <th class="border px-2 py-1">Tanggal Jual</th>
+                    <th class="border px-2 py-1">Harga Jual</th>
+                    <th class="border px-2 py-1">Qty</th>
+                    <th class="border px-2 py-1">Satuan</th>
+                    <th class="border px-2 py-1">Ref. PO</th>
+                    <th class="border px-2 py-1">Description</th>
                     <th class="border px-2 py-1">Aksi</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($customers as $customer)
                     <tr class="hover:bg-gray-50">
-                        <td class="border px-2 py-1">{{ $customer->fcustomercode }}</td>
-                        <td class="border px-2 py-1">{{ $customer->fcustomername }}</td>
-                        <td class="border px-2 py-1">{{ $customer->fwilayah }}</td>
-                        <td class="border px-2 py-1">{{ $customer->faddress }}</td>
                         <td class="border px-2 py-1">{{ $customer->fcity }}</td>
-                        <td class="border px-2 py-1">{{ $customer->fjadwaltukarfaktur }}</td>
-                        <td class="border px-2 py-1">{{ $customer->fday }}</td>
+                        <td class="border px-2 py-1">{{ $customer->fcustomername }}</td>
+                        <td class="border px-2 py-1">{{ $customer->fcity }}</td>
+                        <td class="border px-2 py-1">{{ $customer->fcity }}</td>
+                        <td class="border px-2 py-1">{{ $customer->fcity }}</td>
+                        <td class="border px-2 py-1">{{ $customer->fcity }}</td>
+                        <td class="border px-2 py-1">{{ $customer->fcity }}</td>
+                        <td class="border px-2 py-1">{{ $customer->fcity }}</td>
                         <td class="border px-2 py-1 space-x-2">
                             <!-- Edit Button -->
                             <a href="{{ route('customer.edit', $customer->fcustomerid) }}">

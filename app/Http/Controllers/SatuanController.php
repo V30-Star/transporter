@@ -35,6 +35,11 @@ class SatuanController extends Controller
         $validated = $request->validate([
             'fsatuancode' => 'required|string|unique:mssatuan,fsatuancode',
             'fsatuanname' => 'required|string',
+        ],
+        [
+            'fsatuancode.unique' => 'Kode Satuan sudah ada.',
+            'fsatuancode.required' => 'Kode Satuan harus diisi.',
+            'fsatuanname.required' => 'Nama Satuan harus diisi.',
         ]);
 
         // Add default values for the required fields
@@ -44,7 +49,7 @@ class SatuanController extends Controller
         $validated['fupdatedat'] = now(); // Use the current time
 
         // Handle the checkbox for 'fnonactive' (1 = checked, 0 = unchecked)
-        $validated['fnonactive'] = $request->has('fnonactive') ? 1 : 0;
+        $validated['fnonactive'] = '0';
 
         // Create the new Satuan
         Satuan::create($validated);
@@ -71,10 +76,14 @@ class SatuanController extends Controller
         $validated = $request->validate([
             'fsatuancode' => "required|string|unique:mssatuan,fsatuancode,{$fsatuanid},fsatuanid",
             'fsatuanname' => 'required|string',
+        ],
+        [
+            'fsatuancode.unique' => 'Kode Satuan sudah ada.',
+            'fsatuancode.required' => 'Kode Satuan harus diisi.',
+            'fsatuanname.required' => 'Nama Satuan harus diisi.',
         ]);
 
-        // Handle the checkbox for 'fnonactive' (1 = checked, 0 = unchecked)
-        $validated['fnonactive'] = $request->has('fnonactive') ? 1 : 0;
+        $validated['fnonactive'] = '0';
 
         // Cari dan update
         $satuan = Satuan::findOrFail($fsatuanid);

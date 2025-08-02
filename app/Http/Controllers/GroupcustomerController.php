@@ -31,6 +31,10 @@ class GroupcustomerController extends Controller
         $validated = $request->validate([
             'fgroupcode' => 'required|string|unique:msgroupcustomer,fgroupcode',
             'fgroupname' => 'required|string',
+        ], [
+            'fgroupcode.required' => 'Kode Group harus diisi.',
+            'fgroupname.required' => 'Nama Group harus diisi.',
+            'fgroupcode.unique' => 'Kode Group sudah digunakan, silakan pilih kode lain.',
         ]);
 
         // Menambahkan nilai default untuk kolom yang tidak ada dalam form
@@ -38,7 +42,7 @@ class GroupcustomerController extends Controller
         $validated['fupdatedby'] = 'User yang membuat'; // bisa diganti dengan user yang sedang login
         $validated['fcreatedat'] = now(); // Menggunakan waktu sekarang
         $validated['fupdatedat'] = now(); // Menggunakan waktu sekarang
-        $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0'; // Menangani checkbox
+        $validated['fnonactive'] = '0'; // Menangani checkbox
 
         // Menyimpan data grup customer
         Groupcustomer::create($validated);
@@ -63,12 +67,16 @@ class GroupcustomerController extends Controller
         $validated = $request->validate([
             'fgroupcode' => "required|string|unique:msgroupcustomer,fgroupcode,{$fgroupid},fgroupid",
             'fgroupname' => 'required|string',
+        ],[
+            'fgroupcode.required' => 'Kode Group harus diisi.',
+            'fgroupname.required' => 'Nama Group harus diisi.',
+            'fgroupcode.unique' => 'Kode Group sudah digunakan, silakan pilih kode lain.',
         ]);
 
         // Menambahkan nilai default untuk kolom yang tidak ada dalam form
         $validated['fupdatedby'] = 'User yang mengupdate'; // bisa diganti dengan user yang sedang login
         $validated['fupdatedat'] = now(); // Menggunakan waktu sekarang
-        $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0'; // Menangani checkbox
+        $validated['fnonactive'] = '0'; // Menangani checkbox
 
         // Mengambil data grup customer berdasarkan ID dan mengupdate
         $groupCustomer = Groupcustomer::findOrFail($fgroupid);

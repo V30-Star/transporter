@@ -35,9 +35,6 @@
                 <tr>
                     <th class="border px-2 py-1">Kode Wilayah</th>
                     <th class="border px-2 py-1">Nama Wilayah</th>
-                    <th class="border px-2 py-1">Status (Nonaktifkan)</th>
-                    <th class="border px-2 py-1">Tanggal Dibuat</th>
-                    {{-- <th class="border px-2 py-1">Dibuat Oleh</th> --}}
                     <th class="border px-2 py-1">Aksi</th>
                 </tr>
             </thead>
@@ -46,15 +43,7 @@
                     <tr class="hover:bg-gray-50">
                         <td class="border px-2 py-1">{{ $item->fwilayahcode }}</td>
                         <td class="border px-2 py-1">{{ $item->fwilayahname }}</td>
-                        <td class="border px-2 py-1">
-                            {{-- Display fnonactive as a checkbox --}}
-                            <input type="checkbox" disabled {{ $item->fnonactive == 1 ? 'checked' : '' }}>
-                        </td>
-                        <td class="border px-2 py-1">{{ \Carbon\Carbon::parse($item->fcreatedat)->format('d M Y H:i') }}
-                        </td>
-                        {{-- <td class="border px-2 py-1">{{ $item->fcreatedby }}</td> --}}
                         <td class="border px-2 py-1 space-x-2">
-                            <!-- Edit Button -->
                             <a href="{{ route('wilayah.edit', $item->fwilayahid) }}">
                                 <button
                                     class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
@@ -63,7 +52,6 @@
                                 </button>
                             </a>
 
-                            <!-- Delete Button (with modal confirmation) -->
                             <button @click="openDelete('{{ route('wilayah.destroy', $item->fwilayahid) }}')"
                                 class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
                                 <x-heroicon-o-trash class="w-4 h-4 mr-1" />

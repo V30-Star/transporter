@@ -25,12 +25,12 @@ class LoginRequest extends FormRequest
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
     public function rules()
-{
-    return [
-        'fsysuserid' => ['required', 'string'],
-        'password' => ['required', 'string'],
-    ];
-}
+    {
+        return [
+            'fsysuserid' => ['required', 'string'],
+            'password' => ['required', 'string'],
+        ];
+    }
 
     /**
      * Attempt to authenticate the request's credentials.

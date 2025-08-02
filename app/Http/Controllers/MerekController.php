@@ -35,6 +35,11 @@ class MerekController extends Controller
         $validated = $request->validate([
             'fmerekcode' => 'required|string|unique:msmerek,fmerekcode',
             'fmerekname' => 'required|string',
+        ],
+        [
+            'fmerekcode.required' => 'Kode Merek harus diisi.',
+            'fmerekname.required' => 'Nama Merek harus diisi.',
+            'fmerekcode.unique' => 'Kode Merek sudah ada, silakan gunakan kode lain.',
         ]);
 
         // Add default values for the required fields
@@ -43,8 +48,7 @@ class MerekController extends Controller
         $validated['fcreatedat'] = now(); // Use the current time
         $validated['fupdatedat'] = now(); // Use the current time
 
-        // Handle the checkbox for 'fnonactive' (1 = checked, 0 = unchecked)
-        $validated['fnonactive'] = $request->has('fnonactive') ? 1 : 0;
+        $validated['fnonactive'] = '0';
 
         // Create the new Merek
         Merek::create($validated);
@@ -71,10 +75,14 @@ class MerekController extends Controller
         $validated = $request->validate([
             'fmerekcode' => "required|string|unique:msmerek,fmerekcode,{$fmerekid},fmerekid",
             'fmerekname' => 'required|string',
+        ],
+        [
+            'fmerekcode.required' => 'Kode Merek harus diisi.',
+            'fmerekname.required' => 'Nama Merek harus diisi.',
+            'fmerekcode.unique' => 'Kode Merek sudah ada, silakan gunakan kode lain.',
         ]);
 
-        // Handle the checkbox for 'fnonactive' (1 = checked, 0 = unchecked)
-        $validated['fnonactive'] = $request->has('fnonactive') ? 1 : 0;
+        $validated['fnonactive'] = '0';
 
         // Cari dan update
         $merek = Merek::findOrFail($fmerekid);

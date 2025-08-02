@@ -26,8 +26,7 @@ class GudangController extends Controller
 
         return view('gudang.index', compact('gudangs', 'filterBy', 'search'));
     }
-
-
+    
     public function create()
     {
         // Fetch all cabang records for the dropdown
@@ -44,6 +43,13 @@ class GudangController extends Controller
             'fgudangname' => 'required|string',
             'faddress' => 'required|string',
             'fcabangkode' => 'required|string', // Ensure the cabang code is validated and passed
+        ],
+        [
+            'fgudangcode.unique' => 'Kode Gudang sudah ada.',
+            'fgudangcode.required' => 'Kode Gudang harus diisi.',
+            'fgudangname.required' => 'Nama Gudang harus diisi.',
+            'faddress.required' => 'Alamat Gudang harus diisi.',
+            'fcabangkode.required' => 'Kode Cabang harus dipilih.',
         ]);
 
         // Add default values for the required fields
@@ -52,8 +58,7 @@ class GudangController extends Controller
         $validated['fcreatedat'] = now(); // Use the current time
         $validated['fupdatedat'] = now(); // Use the current time
 
-        // Handle the checkbox for 'fnonactive' (1 = checked, 0 = unchecked)
-        $validated['fnonactive'] = $request->has('fnonactive') ? 1 : 0;
+        $validated['fnonactive'] = '0';
 
         // Create the new Gudang, including the `fcabangkode` field
         Gudang::create($validated);
@@ -86,10 +91,16 @@ class GudangController extends Controller
             'fgudangname' => 'required|string',
             'faddress' => 'required|string',
             'fcabangkode' => 'required|string', // Ensure the cabang code is validated and passed
+        ],
+        [
+            'fgudangcode.unique' => 'Kode Gudang sudah ada.',
+            'fgudangcode.required' => 'Kode Gudang harus diisi.',
+            'fgudangname.required' => 'Nama Gudang harus diisi.',
+            'faddress.required' => 'Alamat Gudang harus diisi.',
+            'fcabangkode.required' => 'Kode Cabang harus dipilih.',
         ]);
 
-        // Handle the checkbox for 'fnonactive' (1 = checked, 0 = unchecked)
-        $validated['fnonactive'] = $request->has('fnonactive') ? 1 : 0;
+        $validated['fnonactive'] = '0';
 
         // Cari dan update
         $gudang = Gudang::findOrFail($fgudangid);

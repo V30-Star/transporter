@@ -25,7 +25,7 @@
                 <div class="mb-6 border-b pb-4">
                     <h2 class="text-2xl font-semibold text-gray-800 flex items-center space-x-2">
                         <x-heroicon-o-plus-circle class="w-6 h-6 text-blue-600" />
-                        <span>Tambah Product</span>
+                        <span>Edit Product</span>
                     </h2>
                 </div>
                 <form action="{{ route('product.update', $product->fproductid) }}" method="POST">
@@ -117,7 +117,7 @@
                                 @endforeach
                             </select>
                             @error('fsatuankecil')
-                                <div class="invalid-feedback">
+                                <div class="text-red-600 text-sm mt-1">
                                     {{ $message }}
                                 </div>
                             @enderror
@@ -141,7 +141,7 @@
                                         @endforeach
                                     </select>
                                     @error('fsatuanbesar')
-                                        <div class="invalid-feedback">
+                                        <div class="text-red-600 text-sm mt-1">
                                             {{ $message }}
                                         </div>
                                     @enderror
@@ -155,7 +155,7 @@
                                         name="fqtykecil" id="fqtykecil"
                                         value="{{ old('fqtykecil', $product->fqtykecil) }}">
                                     @error('fqtykecil')
-                                        <div class="invalid-feedback">
+                                        <div class="text-red-600 text-sm mt-1">
                                             {{ $message }}
                                         </div>
                                     @enderror
@@ -219,7 +219,7 @@
                                 </option>
                             </select>
                             @error('fsatuandefault')
-                                <div class="invalid-feedback">
+                                <div class="text-red-600 text-sm mt-1">
                                     {{ $message }}
                                 </div>
                             @enderror
@@ -246,7 +246,7 @@
                                         name="fhargasatuankecillevel1" id="fhargasatuankecillevel1"
                                         value="{{ old('fhargasatuankecillevel1', $product->fhargasatuankecillevel1) }}">
                                     @error('fhargasatuankecillevel1')
-                                        <div class="invalid-feedback">
+                                        <div class="text-red-600 text-sm mt-1">
                                             {{ $message }}
                                         </div>
                                     @enderror
@@ -263,7 +263,7 @@
                                         name="fhargasatuankecillevel2" id="fhargasatuankecillevel2"
                                         value="{{ old('fhargasatuankecillevel2', $product->fhargasatuankecillevel2) }}">
                                     @error('fhargasatuankecillevel2')
-                                        <div class="invalid-feedback">
+                                        <div class="text-red-600 text-sm mt-1">
                                             {{ $message }}
                                         </div>
                                     @enderror
@@ -280,7 +280,7 @@
                                         name="fhargasatuankecillevel3" id="fhargasatuankecillevel3"
                                         value="{{ old('fhargasatuankecillevel3', $product->fhargasatuankecillevel3) }}">
                                     @error('fhargasatuankecillevel3')
-                                        <div class="invalid-feedback">
+                                        <div class="text-red-600 text-sm mt-1">
                                             {{ $message }}
                                         </div>
                                     @enderror
@@ -299,7 +299,7 @@
                                         name="fhargajuallevel1" id="fhargajuallevel1"
                                         value="{{ old('fhargajuallevel1', $product->fhargajuallevel1) }}">
                                     @error('fhargajuallevel1')
-                                        <div class="invalid-feedback">
+                                        <div class="text-red-600 text-sm mt-1">
                                             {{ $message }}
                                         </div>
                                     @enderror
@@ -316,7 +316,7 @@
                                         name="fhargajuallevel2" id="fhargajuallevel2"
                                         value="{{ old('fhargajuallevel2', $product->fhargajuallevel2) }}">
                                     @error('fhargajuallevel2')
-                                        <div class="invalid-feedback">
+                                        <div class="text-red-600 text-sm mt-1">
                                             {{ $message }}
                                         </div>
                                     @enderror
@@ -333,7 +333,7 @@
                                         name="fhargajuallevel3" id="fhargajuallevel3"
                                         value="{{ old('fhargajuallevel3', $product->fhargajuallevel3) }}">
                                     @error('fhargajuallevel3')
-                                        <div class="invalid-feedback">
+                                        <div class="text-red-600 text-sm mt-1">
                                             {{ $message }}
                                         </div>
                                     @enderror
@@ -362,7 +362,7 @@
                                     Jasa</option>
                             </select>
                             @error('ftype')
-                                <div class="invalid-feedback">
+                                <div class="text-red-600 text-sm mt-1">
                                     {{ $message }}
                                 </div>
                             @enderror
@@ -391,13 +391,8 @@
     </div>
 @endsection
 
-<!-- Include Select2 CSS -->
 <link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet" />
-
-<!-- Include jQuery (required by Select2) -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-<!-- Include Select2 JS -->
 <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
 
 <script>

@@ -153,7 +153,7 @@
                                 @endforeach
                             </select>
                             @error('fsatuankecil')
-                                <div class="invalid-feedback">
+                                <div class="text-red-600 text-sm mt-1">
                                     {{ $message }}
                                 </div>
                             @enderror
@@ -176,7 +176,7 @@
                                         @endforeach
                                     </select>
                                     @error('fsatuanbesar')
-                                        <div class="invalid-feedback">
+                                        <div class="text-red-600 text-sm mt-1">
                                             {{ $message }}
                                         </div>
                                     @enderror
@@ -189,7 +189,7 @@
                                         class="w-full border rounded px-3 py-2 @error('fqtykecil') border-red-500 @enderror"
                                         name="fqtykecil" id="fqtykecil" value="{{ old('fqtykecil') }}">
                                     @error('fqtykecil')
-                                        <div class="invalid-feedback">
+                                        <div class="text-red-600 text-sm mt-1">
                                             {{ $message }}
                                         </div>
                                     @enderror

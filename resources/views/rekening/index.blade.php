@@ -36,9 +36,6 @@
                 <tr>
                     <th class="border px-2 py-1">Kode Rekening</th>
                     <th class="border px-2 py-1">Nama Rekening</th>
-                    <th class="border px-2 py-1">Status (Nonaktifkan)</th>
-                    <th class="border px-2 py-1">Tanggal Dibuat</th>
-                    <th class="border px-2 py-1">Dibuat Oleh</th>
                     <th class="border px-2 py-1">Aksi</th>
                 </tr>
             </thead>
@@ -47,12 +44,6 @@
                     <tr class="hover:bg-gray-50">
                         <td class="border px-2 py-1">{{ $item->frekeningcode }}</td>
                         <td class="border px-2 py-1">{{ $item->frekeningname }}</td>
-                        <td class="border px-2 py-1">
-                            <input type="checkbox" disabled {{ $item->fnonactive == '1' ? 'checked' : '' }}>
-                        </td>
-                        <td class="border px-2 py-1">{{ \Carbon\Carbon::parse($item->fcreatedat)->format('d M Y H:i') }}
-                        </td>
-                        <td class="border px-2 py-1">{{ $item->fcreatedby }}</td>
                         <td class="border px-2 py-1 space-x-2">
                             <!-- Edit Button -->
                             <a href="{{ route('rekening.edit', $item->frekeningid) }}">

@@ -42,6 +42,14 @@ class AccountController extends Controller
             'fnormal' => 'required|in:1,2', // Ensure 'fnormal' is either 1 (Debet) or 2 (Kredit)
             'fend' => 'required|in:1,2', // Ensure 'fend' is either 1 (Detil) or 2 (Header)
             'fuserlevel' => 'required|in:1,2,3', // Ensure 'fuserlevel' is 1 (User), 2 (Supervisor), or 3 (Admin)
+        ],
+        [
+            'faccount.required' => 'Kode account harus diisi.',
+            'faccname.required' => 'Nama account harus diisi.',
+            'faccount.unique' => 'Kode account sudah ada.',
+            'faccount.max' => 'Kode account maksimal 10 karakter.',
+            'faccname.max' => 'Nama account maksimal 50 karakter.',
+            'finitjurnal.max' => 'Inisial jurnal maksimal 2 karakter.',
         ]);
 
         // Add default values for the required fields
@@ -50,8 +58,7 @@ class AccountController extends Controller
         $validated['fcreatedat'] = now(); // Set current time
         $validated['fupdatedat'] = now(); // Set current time
 
-        // Handle the checkbox for 'fnonactive' (1 = checked, 0 = unchecked)
-        $validated['fnonactive'] = $request->has('fnonactive') ? 1 : 0;
+        $validated['fnonactive'] = '0';
 
         // Handle 'fhavesubaccount' logic: set it to 1 if checked, else 0
         $validated['fhavesubaccount'] = $request->has('fhavesubaccount') ? 1 : 0;
@@ -102,12 +109,19 @@ class AccountController extends Controller
             'finitjurnal' => 'nullable|string|max:2', // Validate initial journal (max 2 chars)
             'fend' => 'required|in:1,2', // Ensure 'fend' is either 1 (Detil) or 2 (Header)
             'fuserlevel' => 'required|in:1,2,3', // Ensure 'fuserlevel' is 1 (User), 2 (Supervisor), or 3 (Admin)
+        ],
+        [
+            'faccount.required' => 'Kode account harus diisi.',
+            'faccname.required' => 'Nama account harus diisi.',
+            'faccount.unique' => 'Kode account sudah ada.',
+            'faccount.max' => 'Kode account maksimal 10 karakter.',
+            'faccname.max' => 'Nama account maksimal 50 karakter.',
+            'finitjurnal.max' => 'Inisial jurnal maksimal 2 karakter.',
         ]);
 
         // Handle the checkbox for 'fnonactive' (1 = checked, 0 = unchecked)
-        $validated['fnonactive'] = $request->has('fnonactive') ? 1 : 0;
+        $validated['fnonactive'] = '0';
 
-        // Handle 'fhavesubaccount' logic: set it to 1 if checked, else 0
         $validated['fhavesubaccount'] = $request->has('fhavesubaccount') ? 1 : 0;
 
         // Handle 'ftypesubaccount' logic if a sub-account is checked

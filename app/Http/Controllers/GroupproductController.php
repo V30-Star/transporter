@@ -35,6 +35,11 @@ class GroupproductController extends Controller
         $validated = $request->validate([
             'fgroupcode' => 'required|string|unique:msgroupproduct,fgroupcode',
             'fgroupname' => 'required|string',
+        ],
+        [
+            'fgroupcode.unique' => 'Kode grup produk sudah ada.',
+            'fgroupcode.required' => 'Kode grup produk harus diisi.',
+            'fgroupname.required' => 'Nama grup produk harus diisi.',
         ]);
 
         // Add default values for the required fields
@@ -43,8 +48,7 @@ class GroupproductController extends Controller
         $validated['fcreatedat'] = now(); // Use the current time
         $validated['fupdatedat'] = now(); // Use the current time
 
-        // Handle the checkbox for 'fnonactive' (1 = checked, 0 = unchecked)
-        $validated['fnonactive'] = $request->has('fnonactive') ? 1 : 0;
+        $validated['fnonactive'] = '0';
 
         // Create the new Groupproduct
         Groupproduct::create($validated);
@@ -68,10 +72,14 @@ class GroupproductController extends Controller
         $validated = $request->validate([
             'fgroupcode' => "required|string|unique:msgroupproduct,fgroupcode,{$fgroupid},fgroupid",
             'fgroupname' => 'required|string',
+        ],
+        [
+            'fgroupcode.unique' => 'Kode grup produk sudah ada.',
+            'fgroupcode.required' => 'Kode grup produk harus diisi.',
+            'fgroupname.required' => 'Nama grup produk harus diisi.',
         ]);
 
-        // Handle the checkbox for 'fnonactive' (1 = checked, 0 = unchecked)
-        $validated['fnonactive'] = $request->has('fnonactive') ? 1 : 0;
+        $validated['fnonactive'] = '0';
 
         // Find and update the Groupproduct
         $groupproduct = Groupproduct::findOrFail($fgroupid);

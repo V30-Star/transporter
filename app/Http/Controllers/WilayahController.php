@@ -34,6 +34,10 @@ class WilayahController extends Controller
         $validated = $request->validate([
             'fwilayahcode' => 'required|string|unique:mswilayah,fwilayahcode',
             'fwilayahname' => 'required|string',
+        ],[
+            'fwilayahcode.required' => 'Kode wilayah harus diisi.',
+            'fwilayahname.required' => 'Nama wilayah harus diisi.',
+            'fwilayahcode.unique' => 'Kode wilayah sudah ada, silakan gunakan kode lain.',
         ]);
 
         // Add default values for the required fields
@@ -70,6 +74,10 @@ class WilayahController extends Controller
         $validated = $request->validate([
             'fwilayahcode' => "required|string|unique:mswilayah,fwilayahcode,{$fwilayahid},fwilayahid",
             'fwilayahname' => 'required|string',
+        ],[
+            'fwilayahcode.required' => 'Kode wilayah harus diisi.',
+            'fwilayahname.required' => 'Nama wilayah harus diisi.',
+            'fwilayahcode.unique' => 'Kode wilayah sudah ada, silakan gunakan kode lain.',
         ]);
 
         // Handle the checkbox for 'fnonactive' (1 = checked, 0 = unchecked)

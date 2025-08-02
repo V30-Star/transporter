@@ -35,6 +35,11 @@ class SubaccountController extends Controller
         $validated = $request->validate([
             'fsubaccountcode' => 'required|string|unique:mssubaccount,fsubaccountcode',
             'fsubaccountname' => 'required|string',
+        ],
+        [
+            'fsubaccountcode.required' => 'Kode subaccount harus diisi.',
+            'fsubaccountname.required' => 'Nama subaccount harus diisi.',
+            'fsubaccountcode.unique' => 'Kode subaccount sudah ada.',
         ]);
 
         // Add default values for the required fields
@@ -43,8 +48,7 @@ class SubaccountController extends Controller
         $validated['fcreatedat'] = now(); // Use the current time
         $validated['fupdatedat'] = now(); // Use the current time
 
-        // Handle the checkbox for 'fnonactive' (1 = checked, 0 = unchecked)
-        $validated['fnonactive'] = $request->has('fnonactive') ? 1 : 0;
+        $validated['fnonactive'] = '0';
 
         // Create the new Subaccount
         Subaccount::create($validated);
@@ -71,10 +75,14 @@ class SubaccountController extends Controller
         $validated = $request->validate([
             'fsubaccountcode' => "required|string|unique:mssubaccount,fsubaccountcode,{$fsubaccountid},fsubaccountid",
             'fsubaccountname' => 'required|string',
+        ],
+        [
+            'fsubaccountcode.required' => 'Kode subaccount harus diisi.',
+            'fsubaccountname.required' => 'Nama subaccount harus diisi.',
+            'fsubaccountcode.unique' => 'Kode subaccount sudah ada.',
         ]);
 
-        // Handle the checkbox for 'fnonactive' (1 = checked, 0 = unchecked)
-        $validated['fnonactive'] = $request->has('fnonactive') ? 1 : 0;
+        $validated['fnonactive'] = '0';
 
         // Cari dan update
         $subaccount = Subaccount::findOrFail($fsubaccountid);

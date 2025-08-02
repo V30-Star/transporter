@@ -35,6 +35,11 @@ class SalesmanController extends Controller
         $validated = $request->validate([
             'fsalesmancode' => 'required|string|unique:mssalesman,fsalesmancode',
             'fsalesmanname' => 'required|string',
+        ],
+        [
+            'fsalesmancode.required' => 'Kode Salesman wajib diisi.',
+            'fsalesmancode.unique' => 'Kode Salesman sudah ada.',
+            'fsalesmanname.required' => 'Nama Salesman wajib diisi.',
         ]);
 
         // Add default values for the required fields
@@ -43,8 +48,7 @@ class SalesmanController extends Controller
         $validated['fcreatedat'] = now(); // Use the current time
         $validated['fupdatedat'] = now(); // Use the current time
 
-        // Handle the checkbox for 'fnonactive' (1 = checked, 0 = unchecked)
-        $validated['fnonactive'] = $request->has('fnonactive') ? 1 : 0;
+        $validated['fnonactive'] = '0';
 
         // Create the new Salesman
         Salesman::create($validated);
@@ -71,10 +75,14 @@ class SalesmanController extends Controller
         $validated = $request->validate([
             'fsalesmancode' => "required|string|unique:mssalesman,fsalesmancode,{$fsalesmanid},fsalesmanid",
             'fsalesmanname' => 'required|string',
+        ],
+        [
+            'fsalesmancode.required' => 'Kode Salesman wajib diisi.',
+            'fsalesmancode.unique' => 'Kode Salesman sudah ada.',
+            'fsalesmanname.required' => 'Nama Salesman wajib diisi.',
         ]);
 
-        // Handle the checkbox for 'fnonactive' (1 = checked, 0 = unchecked)
-        $validated['fnonactive'] = $request->has('fnonactive') ? 1 : 0;
+        $validated['fnonactive'] = '0';
 
         // Cari dan update
         $salesman = Salesman::findOrFail($fsalesmanid);

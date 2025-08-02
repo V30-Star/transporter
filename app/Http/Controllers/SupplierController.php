@@ -40,6 +40,16 @@ class SupplierController extends Controller
             'ftelp' => 'required|string',
             'ffax' => 'required|string',
             'fcurr' => 'required|string',
+        ],
+        [
+            'fsuppliercode.unique' => 'Kode Supplier sudah ada.',
+            'fsuppliercode.required' => 'Kode Supplier harus diisi.',
+            'fsuppliername.required' => 'Nama Supplier harus diisi.',
+            'fnpwp.required' => 'NPWP harus diisi.',
+            'faddress.required' => 'Alamat harus diisi.',
+            'ftelp.required' => 'Telepon harus diisi.',
+            'ffax.required' => 'Fax harus diisi.',
+            'fcurr.required' => 'Mata Uang harus diisi.',
         ]);
 
         // Add default values for the required fields
@@ -48,8 +58,7 @@ class SupplierController extends Controller
         $validated['fcreatedat'] = now(); // Use the current time
         $validated['fupdatedat'] = now(); // Use the current time
 
-        // Handle the checkbox for 'fnonactive' (1 = checked, 0 = unchecked)
-        $validated['fnonactive'] = $request->has('fnonactive') ? 1 : 0;
+        $validated['fnonactive'] = '0';
 
         // Create the new Supplier
         Supplier::create($validated);
@@ -79,10 +88,19 @@ class SupplierController extends Controller
             'ftelp' => 'required|string',
             'ffax' => 'required|string',
             'fcurr' => 'required|string', // Validate the currency field (fcurr)
+        ],
+        [
+            'fsuppliercode.unique' => 'Kode Supplier sudah ada.',
+            'fsuppliercode.required' => 'Kode Supplier harus diisi.',
+            'fsuppliername.required' => 'Nama Supplier harus diisi.',
+            'fnpwp.required' => 'NPWP harus diisi.',
+            'faddress.required' => 'Alamat harus diisi.',
+            'ftelp.required' => 'Telepon harus diisi.',
+            'ffax.required' => 'Fax harus diisi.',
+            'fcurr.required' => 'Mata Uang harus diisi.',
         ]);
 
-        // Handle the checkbox for 'fnonactive' (1 = checked, 0 = unchecked)
-        $validated['fnonactive'] = $request->has('fnonactive') ? 1 : 0;
+        $validated['fnonactive'] = '0';
 
         // Find and update the Supplier
         $supplier = Supplier::findOrFail($fsupplierid);

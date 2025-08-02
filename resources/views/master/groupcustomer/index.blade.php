@@ -25,7 +25,6 @@
                     <tr>
                         <th class="border px-2 py-1">Kode Group</th>
                         <th class="border px-2 py-1">Nama Group</th>
-                        <th class="border px-2 py-1">Status (Nonaktifkan)</th>
                         <th class="border px-2 py-1">Aksi</th>
                     </tr>
                 </thead>
@@ -34,9 +33,6 @@
                         <tr class="hover:bg-gray-50">
                             <td class="border px-2 py-1">{{ $item->fgroupcode }}</td>
                             <td class="border px-2 py-1">{{ $item->fgroupname }}</td>
-                            <td class="border px-2 py-1">
-                                <input type="checkbox" disabled {{ $item->fnonactive == '1' ? 'checked' : '' }}>
-                            </td>
                             <td class="border px-2 py-1 space-x-2">
                                 <!-- Edit Button -->
                                 <a href="{{ route('groupcustomer.edit', $item->fgroupid) }}">
@@ -88,7 +84,6 @@
             </div>
 
         </div>
-
 
         <div class="mt-4">
             {{ $groupCustomers->links() }}

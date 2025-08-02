@@ -35,9 +35,6 @@
                 <tr>
                     <th class="border px-2 py-1">Kode Satuan</th>
                     <th class="border px-2 py-1">Nama Satuan</th>
-                    <th class="border px-2 py-1">Tanggal Dibuat</th>
-                    <th class="border px-2 py-1">Dibuat Oleh</th>
-                    <th class="border px-2 py-1">Status (Nonaktifkan)</th>
                     <th class="border px-2 py-1">Aksi</th>
                 </tr>
             </thead>
@@ -46,12 +43,6 @@
                     <tr class="hover:bg-gray-50">
                         <td class="border px-2 py-1">{{ $item->fsatuancode }}</td>
                         <td class="border px-2 py-1">{{ $item->fsatuanname }}</td>
-                        <td class="border px-2 py-1">{{ \Carbon\Carbon::parse($item->fcreatedat)->format('d M Y H:i') }}
-                        </td>
-                        <td class="border px-2 py-1">{{ $item->fcreatedby }}</td>
-                        <td class="border px-2 py-1">
-                            <input type="checkbox" disabled {{ $item->fnonactive == '1' ? 'checked' : '' }}>
-                        </td>
                         <td class="border px-2 py-1 space-x-2">
                             <!-- Edit Button -->
                             <a href="{{ route('satuan.edit', $item->fsatuanid) }}">

@@ -125,14 +125,6 @@
                         </select>
                     </div>
 
-                    <!-- Nonaktifkan Account Checkbox -->
-                    <div class="mt-4">
-                        <label for="fnonactive" class="flex items-center space-x-2">
-                            <input type="checkbox" name="fnonactive" id="fnonactive" class="form-checkbox"
-                                {{ old('fnonactive') ? 'checked' : '' }}>
-                            <span class="text-sm">Nonaktifkan Account</span>
-                        </label>
-                    </div>
                     <input type="hidden" name="faccupline" value='IDR'>
                     <input type="hidden" name="fcurrency" value='IDR'>
                     {{-- <input type="hidden" name="fcreatedby" value="{{ auth()->user()->fsysuserid }}">

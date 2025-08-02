@@ -50,10 +50,10 @@ class CustomerController extends Controller
     // Create method to return the customer creation form
     public function create()
     {
-        $groups = Groupproduct::all();  // Fetch all group products
-        $salesman = Salesman::all();  // Fetch all group products
-        $wilayah = Wilayah::all();  // Fetch all group products
-        $rekening = Rekening::all();  // Fetch all group products
+        $groups = Groupproduct::all(); 
+        $salesman = Salesman::all(); 
+        $wilayah = Wilayah::all(); 
+        $rekening = Rekening::all(); 
         $newCustomerCode = $this->generateCustomerCode();
 
         return view('master.customer.create', compact('groups', 'salesman', 'wilayah', 'rekening', 'newCustomerCode'));
@@ -89,10 +89,6 @@ class CustomerController extends Controller
             'fjabatan' => 'required', // Validate Satuan Default field
             'frekening' => 'required', // Validate Satuan Default field
             'fmemo' => '', // Validate Satuan Default field
-
-            // 'femail' => 'nullable|email|max:100', // Validate email
-            // 'fphone' => 'nullable|string|max:20', // Validate phone number
-            // 'faddress' => 'nullable|string|max:255', // Validate address
         ]);
 
         if (empty($request->fcustomercode)) {
@@ -124,34 +120,61 @@ class CustomerController extends Controller
     {
         // Find Customer by primary key
         $customer = Customer::findOrFail($fcustomerid);
+        $groups = Groupproduct::all();  
+        $salesman = Salesman::all();  
+        $wilayah = Wilayah::all();  
+        $rekening = Rekening::all();  
+        $newCustomerCode = $this->generateCustomerCode();
 
-        return view('customer.edit', compact('customer'));
+        return view('master.customer.edit', compact('customer', 'groups', 'salesman', 'wilayah', 'rekening', 'newCustomerCode'));
     }
 
     // Update method to save the updated customer data in the database
     public function update(Request $request, $fcustomerid)
     {
-        // Validate incoming request data
         $validated = $request->validate([
-            'fcustomercode' => "required|string|unique:mscustomer,fcustomercode,{$fcustomerid},fcustomerid", // Exclude current customer from unique check
             'fcustomername' => 'required|string|max:50', // Validate customer name (max 50 chars)
-            'femail' => 'nullable|email|max:100', // Validate email
-            'fphone' => 'nullable|string|max:20', // Validate phone number
-            'faddress' => 'nullable|string|max:255', // Validate address
+            'fgroup' => 'required', // Validate the Group Produk field
+            'fsalesman' => 'required', // Validate the Group Produk field
+            'fwilayah' => 'required', // Validate the Group Produk field
+            'fnpwp' => 'required', // Validate the Group Produk field
+            'fnik' => 'required', // Validate the Group Produk field
+            'fjadwaltukarfaktur' => 'required|in:Setiap Minggu,Setiap Bulan,Sesuai Permintaan', // Validate Satuan Default field
+            'fkodefp' => 'required', // Validate Satuan Default field
+            'ftelp' => 'required', // Validate Satuan Default field
+            'ffax' => 'required', // Validate Satuan Default field
+            'femail' => 'required', // Validate Satuan Default field
+            'ftempo' => 'required', // Validate Satuan Default field
+            'fmaxtempo' => 'required', // Validate Satuan Default field
+            'flimit' => 'required', // Validate Satuan Default field
+            'faddress' => 'required', // Validate Satuan Default field
+            'fkirimaddress1' => 'required', // Validate Satuan Default field
+            'fkirimaddress2' => 'required', // Validate Satuan Default field
+            'fkirimaddress3' => 'required', // Validate Satuan Default field
+            'ftaxaddress' => 'required', // Validate Satuan Default field
+            'fhargalevel' => 'required|in:0,1,2', // Validate Satuan Default field
+            'fkontakperson' => 'required', // Validate Satuan Default field
+            'fjabatan' => 'required', // Validate Satuan Default field
+            'frekening' => 'required', // Validate Satuan Default field
+            'fmemo' => '', // Validate Satuan Default field
         ]);
+        $customer = Customer::findOrFail($fcustomerid);
+        $validated['fcustomercode'] = $request->fcustomercode ?? $customer->fcustomercode;
+        $validated['fcreatedby'] = "admin";  // Use the authenticated user's ID
+        $validated['fupdatedby'] = $validated['fcreatedby']; // Same for the updatedby field
+        $validated['fcreatedat'] = now(); // Set current time
+        $validated['fupdatedat'] = now(); // Set current time
 
         // Handle the checkbox for 'fnonactive' (1 = checked, 0 = unchecked)
         $validated['fnonactive'] = $request->has('fnonactive') ? 1 : 0;
 
-        // Directly set 'fcurrency' to 'IDR'
+        // Directly set 'fcurrency' to 'IDR' or other applicable value
         $validated['fcurrency'] = 'IDR';
-
         // Find Customer and update
-        $customer = Customer::findOrFail($fcustomerid);
         $customer->update($validated);
 
         return redirect()
-            ->route('master.customer.index')
+            ->route('customer.index')
             ->with('success', 'Customer berhasil di-update.');
     }
 
@@ -163,7 +186,7 @@ class CustomerController extends Controller
         $customer->delete();
 
         return redirect()
-            ->route('master.customer.index')
+            ->route('customer.index')
             ->with('success', 'Customer berhasil dihapus.');
     }
 }

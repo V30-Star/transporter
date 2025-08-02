@@ -33,24 +33,22 @@
         <table class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
-                    <th class="border px-2 py-1">Kode Supplier</th>
                     <th class="border px-2 py-1">Nama Supplier</th>
-                    <th class="border px-2 py-1">NPWP</th>
-                    <th class="border px-2 py-1">Alamat</th>
-                    <th class="border px-2 py-1">Status (Nonaktifkan)</th>
+                    <th class="border px-2 py-1">Tanggal Beli</th>
+                    <th class="border px-2 py-1">Harga Beli</th>
+                    <th class="border px-2 py-1">Qty</th>
+                    <th class="border px-2 py-1">Satuan</th>
                     <th class="border px-2 py-1">Aksi</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($suppliers as $item)
                     <tr class="hover:bg-gray-50">
-                        <td class="border px-2 py-1">{{ $item->fsuppliercode }}</td>
                         <td class="border px-2 py-1">{{ $item->fsuppliername }}</td>
-                        <td class="border px-2 py-1">{{ $item->fnpwp }}</td>
-                        <td class="border px-2 py-1">{{ $item->faddress }}</td>
-                        <td class="border px-2 py-1">
-                            <input type="checkbox" disabled {{ $item->fnonactive == '1' ? 'checked' : '' }}>
-                        </td>
+                        <td class="border px-2 py-1">{{ $item->fkontakperson }}</td>
+                        <td class="border px-2 py-1">{{ $item->fkontakperson }}</td>
+                        <td class="border px-2 py-1">{{ $item->fkontakperson }}</td>
+                        <td class="border px-2 py-1">{{ $item->fkontakperson }}</td>
                         <td class="border px-2 py-1 space-x-2">
                             <!-- Edit Button -->
                             <a href="{{ route('supplier.edit', $item->fsupplierid) }}">

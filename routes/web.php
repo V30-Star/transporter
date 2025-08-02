@@ -10,6 +10,7 @@ use App\Http\Controllers\GudangController;
 use App\Http\Controllers\MerekController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\RekeningController;
+use App\Http\Controllers\RoleAccessController;
 use App\Http\Controllers\WilayahController;
 use App\Http\Controllers\RuteController;
 use App\Http\Controllers\SalesmanController;
@@ -141,9 +142,12 @@ use App\Http\Controllers\SysUserController;
         Route::get('/account/{faccid}/edit', [AccountController::class, 'edit'])->name('account.edit');
         Route::patch('/account/{faccid}', [AccountController::class, 'update'])->name('account.update');
         Route::delete('/account/{faccid}', [AccountController::class, 'destroy'])->name('account.destroy');
+        
+        Route::get('/roleaccess', action: [RoleAccessController::class, 'index'])->name('roleaccess.index');
 
         Route::get('/rute', [RuteController::class, 'index'])->name('rute.index');
         Route::get('/customer/create', [CustomerController::class, 'create'])->name('customer.create');
+
 
     });
 });

@@ -29,14 +29,6 @@
                 </div>
             </div>
 
-            <div class="mt-4">
-                <label for="fnonactive" class="flex items-center space-x-2">
-                    <input type="checkbox" name="fnonactive" id="fnonactive" class="form-checkbox"
-                        {{ old('fnonactive') ? 'checked' : '' }}>
-                    <span class="text-sm">Nonaktifkan Group</span>
-                </label>
-            </div>
-
             <div class="mt-6 flex justify-center space-x-4">
                 <!-- Simpan -->
                 <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">

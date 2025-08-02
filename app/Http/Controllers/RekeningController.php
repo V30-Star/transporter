@@ -38,6 +38,11 @@ class RekeningController extends Controller
         $validated = $request->validate([
             'frekeningcode' => 'required|string|unique:msrekening,frekeningcode',
             'frekeningname' => 'required|string',
+        ],
+        [
+            'frekeningcode.required' => 'Kode rekening harus diisi.',
+            'frekeningname.required' => 'Nama rekening harus diisi.',
+            'frekeningcode.unique' => 'Kode rekening sudah ada.',
         ]);
 
         // Add default values for created and updated fields
@@ -46,8 +51,7 @@ class RekeningController extends Controller
         $validated['fcreatedat'] = now(); // Set current time
         $validated['fupdatedat'] = now(); // Set current time
 
-        // Handle 'fnonactive' checkbox (1 = checked, 0 = unchecked)
-        $validated['fnonactive'] = $request->has('fnonactive') ? 1 : 0;
+        $validated['fnonactive'] = '0';
 
         // Create new Rekening record
         Rekening::create($validated);
@@ -71,10 +75,14 @@ class RekeningController extends Controller
         $validated = $request->validate([
             'frekeningcode' => "required|string|unique:msrekening,frekeningcode,{$frekeningid},frekeningid",
             'frekeningname' => 'required|string',
+        ],
+        [
+            'frekeningcode.required' => 'Kode rekening harus diisi.',
+            'frekeningname.required' => 'Nama rekening harus diisi.',
+            'frekeningcode.unique' => 'Kode rekening sudah ada.',
         ]);
 
-        // Handle 'fnonactive' checkbox
-        $validated['fnonactive'] = $request->has('fnonactive') ? 1 : 0;
+        $validated['fnonactive'] = '0';
 
         // Find Rekening and update
         $rekening = Rekening::findOrFail($frekeningid);

@@ -34,11 +34,10 @@
         <table class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
-                    <th class="border px-2 py-1">Kode Account</th>
+                    <th class="border px-2 py-1">Account #</th>
                     <th class="border px-2 py-1">Nama Account</th>
-                    <th class="border px-2 py-1">Status (Nonaktifkan)</th>
-                    <th class="border px-2 py-1">Tanggal Dibuat</th>
-                    <th class="border px-2 py-1">Dibuat Oleh</th>
+                    <th class="border px-2 py-1">Type</th>
+                    <th class="border px-2 py-1">Saldo Normal</th>
                     <th class="border px-2 py-1">Aksi</th>
                 </tr>
             </thead>
@@ -47,12 +46,9 @@
                     <tr class="hover:bg-gray-50">
                         <td class="border px-2 py-1">{{ $account->faccount }}</td>
                         <td class="border px-2 py-1">{{ $account->faccname }}</td>
-                        <td class="border px-2 py-1">
-                            <input type="checkbox" disabled {{ $account->fnonactive == '1' ? 'checked' : '' }}>
+                        <td class="border px-2 py-1">{{ $account->fend == 1 ? 'Detil' : 'Header' }}
                         </td>
-                        <td class="border px-2 py-1">{{ \Carbon\Carbon::parse($account->fcreatedat)->format('d M Y H:i') }}
-                        </td>
-                        <td class="border px-2 py-1">{{ $account->fcreatedby }}</td>
+                        <td class="border px-2 py-1">{{ $account->fnormal == 1 ? 'Debet' : 'Kredit' }}</td>
                         <td class="border px-2 py-1 space-x-2">
                             <!-- Edit Button -->
                             <a href="{{ route('account.edit', $account->faccid) }}">
