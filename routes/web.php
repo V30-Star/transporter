@@ -19,30 +19,30 @@ use App\Http\Controllers\SubaccountController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\SysUserController;
 
-        Route::get('/', function () {
-            return view('welcome');
-        });
+Route::get('/', function () {
+    return view('welcome');
+});
 
-        // Semua route di bawah hanya untuk user yang sudah login
-        Route::middleware('auth')->group(function () {
+// Semua route di bawah hanya untuk user yang sudah login
+Route::middleware('auth')->group(function () {
 
-        // Dashboard
-        Route::get('/dashboard', function () {
-            return view('dashboard');
-        })->name('dashboard');
+    // Dashboard
+    Route::get('/dashboard', function () {
+        return view('dashboard');
+    })->name('dashboard');
 
-        // Settings page
-        Route::get('/settings', function () {
-            return view('settings');
-        })->name('settings');
+    // Settings page
+    Route::get('/settings', function () {
+        return view('settings');
+    })->name('settings');
 
-        // Profile routes
-        Route::get('/profile', [ProfileController::class, 'edit'])->name('profile');
-        Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-        Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    // Profile routes
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-        // Master Menu Routes
-        Route::prefix('master')->group(function () {
+    // Master Menu Routes
+    Route::prefix('master')->group(function () {
 
         Route::get('/customer', [CustomerController::class, 'index'])->name('customer.index');
         Route::post('/customer',        [CustomerController::class, 'store'])->name('customer.store');
@@ -128,7 +128,7 @@ use App\Http\Controllers\SysUserController;
         Route::get('/subaccount/{fsubaccountid}/edit', [SubaccountController::class, 'edit'])->name('subaccount.edit');
         Route::patch('/subaccount/{fsubaccountid}', [SubaccountController::class, 'update'])->name('subaccount.update');
         Route::delete('/subaccount/{fsubaccountid}', [SubaccountController::class, 'destroy'])->name('subaccount.destroy');
-        
+
         Route::get('/rekening', action: [RekeningController::class, 'index'])->name('rekening.index');
         Route::post('/rekening',        [RekeningController::class, 'store'])->name('rekening.store');
         Route::get('/rekening/create', [RekeningController::class, 'create'])->name('rekening.create');
@@ -142,14 +142,12 @@ use App\Http\Controllers\SysUserController;
         Route::get('/account/{faccid}/edit', [AccountController::class, 'edit'])->name('account.edit');
         Route::patch('/account/{faccid}', [AccountController::class, 'update'])->name('account.update');
         Route::delete('/account/{faccid}', [AccountController::class, 'destroy'])->name('account.destroy');
-        
-        Route::get('/roleaccess', action: [RoleAccessController::class, 'index'])->name('roleaccess.index');
 
-        Route::get('/rute', [RuteController::class, 'index'])->name('rute.index');
+        Route::get('/roleaccess/{fuid}', [RoleAccessController::class, 'index'])->name('roleaccess.index');
+        Route::post('/roleaccess', [RoleAccessController::class, 'store'])->name('roleaccess.store');
+
         Route::get('/customer/create', [CustomerController::class, 'create'])->name('customer.create');
-
-
     });
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

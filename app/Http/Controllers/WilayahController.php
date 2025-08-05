@@ -6,8 +6,27 @@ use Illuminate\Http\Request;
 
 class WilayahController extends Controller
 {
+    // protected $permission = [];
+
+    public function __construct()
+    {
+        // Load restricted permissions from session
+        $restrictedPermissions = session('user_restricted_permissions', []);
+        
+        // Convert the permissions string into an array
+        $this->restrictedPermission = $restrictedPermissions ? explode(',', $restrictedPermissions) : [];
+    }
+
     public function index(Request $request)
     {
+        // Check if the user is RESTRICTED from 'viewWilayah' permission
+        // Jika user ADA di restricted list, maka TIDAK BISA akses
+        if (in_array('viewWilayah', $this->restrictedPermission)) {
+            return redirect('dashboard')->with('error', 'You do not have permission to view this page');
+        }
+
+        // Jika TIDAK ADA di restricted list, maka BISA akses
+        // Continue with the regular logic for the 'Wilayah' page
         $filterBy = in_array($request->filter_by, ['fwilayahcode', 'fwilayahname'])
             ? $request->filter_by
             : 'fwilayahcode';
@@ -15,17 +34,20 @@ class WilayahController extends Controller
         $search = $request->search;
 
         $wilayahs = Wilayah::when($search, function($q) use ($filterBy, $search) {
-                $q->where($filterBy, 'ILIKE', '%'.$search.'%');
-            })
-            ->orderBy('fwilayahid', 'desc')
-            ->paginate(10)
-            ->withQueryString(); 
+            $q->where($filterBy, 'ILIKE', '%'.$search.'%');
+        })
+        ->orderBy('fwilayahid', 'desc')
+        ->paginate(10)
+        ->withQueryString();
 
         return view('master.wilayah.index', compact('wilayahs', 'filterBy', 'search'));
     }
-
     public function create()
     {
+        if (in_array('createWilayah', $this->restrictedPermission)) {
+            return redirect('dashboard')->with('error', 'You do not have permission to view this page');
+        }
+
         return view('master.wilayah.create');
     }
 
@@ -59,6 +81,9 @@ class WilayahController extends Controller
 
     public function edit($fwilayahid)
     {
+        if (in_array('updateWilayah', $this->restrictedPermission)) {
+            return redirect('dashboard')->with('error', 'You do not have permission to view this page');
+        }
         // Ambil data berdasarkan PK fwilayahid
         $wilayah = Wilayah::findOrFail($fwilayahid);
 
@@ -94,6 +119,9 @@ class WilayahController extends Controller
 
     public function destroy($fwilayahid)
     {
+        if (in_array('deleteWilayah', $this->restrictedPermission)) {
+            return redirect('dashboard')->with('error', 'You do not have permission to view this page');
+        }
         $wilayah = Wilayah::findOrFail($fwilayahid);
         $wilayah->delete();
 

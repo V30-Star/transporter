@@ -18,9 +18,9 @@
         {{--  Search & Filter Form  --}}
         <form method="GET" action="{{ route('wilayah.index') }}"
             class="flex flex-wrap justify-between items-center mb-4 gap-2">
-            <div class="flex items-center space-x-2">
+            <div class="flex items-center space-x-2 w-full">
                 <label class="font-semibold">Search:</label>
-                <input type="text" name="search" value="{{ $search }}" class="border rounded px-2 py-1"
+                <input type="text" name="search" value="{{ $search }}" class="border rounded px-2 py-1 w-1/4"
                     placeholder="Cari...">
                 <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
                     Cari

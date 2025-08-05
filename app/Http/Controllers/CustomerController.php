@@ -89,6 +89,31 @@ class CustomerController extends Controller
             'fjabatan' => 'required', // Validate Satuan Default field
             'frekening' => 'required', // Validate Satuan Default field
             'fmemo' => '', // Validate Satuan Default field
+        ], [
+            'fcustomercode.max' => 'Kode Customer tidak boleh lebih dari 10 karakter.',
+            'fcustomername.required' => 'Nama Customer harus diisi.',
+            'fgroup.required' => 'Group Produk harus dipilih.',
+            'fsalesman.required' => 'Salesman harus dipilih.',
+            'fwilayah.required' => 'Wilayah harus dipilih.',
+            'fnpwp.required' => 'NPWP harus diisi.',
+            'fnik.required' => 'NIK harus diisi.',
+            'fjadwaltukarfaktur.required' => 'Jadwal Tukar Faktur harus dipilih.',
+            'fkodefp.required' => 'Kode FP harus diisi.',
+            'ftelp.required' => 'Telepon harus diisi.',
+            'ffax.required' => 'Fax harus diisi.',
+            'femail.required' => 'Email harus diisi.',
+            'ftempo.required' => 'Tempo harus diisi.',
+            'fmaxtempo.required' => 'Maksimal Tempo harus diisi.',
+            'flimit.required' => 'Limit harus diisi.',
+            'faddress.required' => 'Alamat harus diisi.',
+            'fkirimaddress1.required' => 'Alamat Kirim 1 harus diisi.',
+            'fkirimaddress2.required' => 'Alamat Kirim 2 harus diisi.',
+            'fkirimaddress3.required' => 'Alamat Kirim 3 harus diisi.',
+            'ftaxaddress.required' => 'Alamat Pajak harus diisi.',
+            'fhargalevel.required' => 'Level Harga harus dipilih.',
+            'fkontakperson.required' => 'Kontak Person harus diisi.',
+            'fjabatan.required' => 'Jabatan Kontak Person harus diisi.',
+            'frekening.required' => 'Rekening harus dipilih.'
         ]);
 
         if (empty($request->fcustomercode)) {
@@ -102,7 +127,7 @@ class CustomerController extends Controller
         $validated['fupdatedat'] = now(); // Set current time
 
         // Handle the checkbox for 'fnonactive' (1 = checked, 0 = unchecked)
-        $validated['fnonactive'] = $request->has('fnonactive') ? 1 : 0;
+        $validated['fnonactive'] = '0';
 
         // Directly set 'fcurrency' to 'IDR' or other applicable value
         $validated['fcurrency'] = 'IDR';
@@ -157,6 +182,30 @@ class CustomerController extends Controller
             'fjabatan' => 'required', // Validate Satuan Default field
             'frekening' => 'required', // Validate Satuan Default field
             'fmemo' => '', // Validate Satuan Default field
+        ], [
+            'fcustomername.required' => 'Nama Customer harus diisi.',
+            'fgroup.required' => 'Group Produk harus dipilih.',
+            'fsalesman.required' => 'Salesman harus dipilih.',
+            'fwilayah.required' => 'Wilayah harus dipilih.',
+            'fnpwp.required' => 'NPWP harus diisi.',
+            'fnik.required' => 'NIK harus diisi.',
+            'fjadwaltukarfaktur.required' => 'Jadwal Tukar Faktur harus dipilih.',
+            'fkodefp.required' => 'Kode FP harus diisi.',
+            'ftelp.required' => 'Telepon harus diisi.',
+            'ffax.required' => 'Fax harus diisi.',
+            'femail.required' => 'Email harus diisi.',
+            'ftempo.required' => 'Tempo harus diisi.',
+            'fmaxtempo.required' => 'Maksimal Tempo harus diisi.',
+            'flimit.required' => 'Limit harus diisi.',
+            'faddress.required' => 'Alamat harus diisi.',
+            'fkirimaddress1.required' => 'Alamat Kirim 1 harus diisi.',
+            'fkirimaddress2.required' => 'Alamat Kirim 2 harus diisi.',
+            'fkirimaddress3.required' => 'Alamat Kirim 3 harus diisi.',
+            'ftaxaddress.required' => 'Alamat Pajak harus diisi.',
+            'fhargalevel.required' => 'Level Harga harus dipilih.',
+            'fkontakperson.required' => 'Kontak Person harus diisi.',
+            'fjabatan.required' => 'Jabatan Kontak Person harus diisi.',
+            'frekening.required' => 'Rekening harus dipilih.'
         ]);
         $customer = Customer::findOrFail($fcustomerid);
         $validated['fcustomercode'] = $request->fcustomercode ?? $customer->fcustomercode;
@@ -166,7 +215,7 @@ class CustomerController extends Controller
         $validated['fupdatedat'] = now(); // Set current time
 
         // Handle the checkbox for 'fnonactive' (1 = checked, 0 = unchecked)
-        $validated['fnonactive'] = $request->has('fnonactive') ? 1 : 0;
+        $validated['fnonactive'] = '0';
 
         // Directly set 'fcurrency' to 'IDR' or other applicable value
         $validated['fcurrency'] = 'IDR';

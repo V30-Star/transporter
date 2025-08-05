@@ -152,14 +152,6 @@
                         </a>
                     </li>
 
-                    <li>
-                        <a href="{{ route('roleaccess.index') }}"
-                            class="flex items-center p-2 text-white rounded-lg hover:bg-gray-700">
-                            <x-heroicon-o-user class="w-5 h-5" />
-                            <span class="ml-3">Role Access</span>
-                        </a>
-                    </li>
-
                 </ul>
             </li>
 

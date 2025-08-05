@@ -4,76 +4,67 @@
 
 @section('content')
     <div class="container-fluid">
-        <div class="row">
-            <div class="col-md-12">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
                 <div class="card shadow-sm">
-                    <div class="card-header bg-primary text-white">
+                    <div class="card-header bg-primary text-black">
                         <h3 class="card-title">Kelola Akses Role</h3>
                     </div>
                     <div class="card-body">
-                        <div class="row">
-                            <!-- Left Column: Jabatan & Akses Role Form -->
-                            <div class="col-md-6">
-                                <div class="form-group mb-4">
-                                    <label for="jabatan" class="font-weight-bold">Jabatan</label>
-                                    <select id="jabatan" class="form-control">
-                                        <option value="">Pilih Jabatan</option>
-                                        <!-- Populate Jabatan options dynamically from the database -->
-                                    </select>
-                                </div>
+                        <form action="{{ route('roleaccess.store') }}" method="POST">
+                            @csrf <!-- CSRF Token for security -->
 
-                                <div class="form-group mb-4">
-                                    <label class="font-weight-bold">Akses</label>
-                                    <table class="table table-bordered">
-                                        <thead class="thead-light">
-                                            <tr>
-                                                <th>Akses</th>
-                                                <th>Create</th>
-                                                <th>View</th>
-                                                <th>Update</th>
-                                                <th>Delete</th>
-                                                <th>Download</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                                <td>Arsip Dokumen</td>
-                                                <td><input type="checkbox" name="akses[]" value="create"
-                                                        class="form-check-input"></td>
-                                                <td><input type="checkbox" name="akses[]" value="view"
-                                                        class="form-check-input"></td>
-                                                <td><input type="checkbox" name="akses[]" value="update"
-                                                        class="form-check-input"></td>
-                                                <td><input type="checkbox" name="akses[]" value="delete"
-                                                        class="form-check-input"></td>
-                                                <td><input type="checkbox" name="akses[]" value="download"
-                                                        class="form-check-input"></td>
-                                            </tr>
-                                            <tr>
-                                                <td>Unit Kerja</td>
-                                                <td><input type="checkbox" name="akses[]" value="create"
-                                                        class="form-check-input"></td>
-                                                <td><input type="checkbox" name="akses[]" value="view"
-                                                        class="form-check-input"></td>
-                                                <td><input type="checkbox" name="akses[]" value="update"
-                                                        class="form-check-input"></td>
-                                                <td><input type="checkbox" name="akses[]" value="delete"
-                                                        class="form-check-input"></td>
-                                                <td><input type="checkbox" name="akses[]" value="download"
-                                                        class="form-check-input"></td>
-                                            </tr>
-                                            <!-- More rows can be added here -->
-                                        </tbody>
-                                    </table>
-                                </div>
-
-                                <div class="form-group mb-4">
-                                    <button class="btn btn-success btn-block">Save</button>
-                                </div>
+                            <!-- Display fsysuserid (readonly) -->
+                            <div class="form-group mb-4">
+                                <label for="fuserid" class="form-label">User</label>
+                                <input type="text" name="fuserid" id="fuserid" class="form-control" readonly
+                                    value="{{ $user->fsysuserid }}">
                             </div>
-                        </div>
+
+                            <!-- Hidden field for fuid -->
+                            <input type="hidden" name="fuid" value="{{ $user->fuid }}">
+
+                            <!-- Permissions Table -->
+                            <div class="form-group mb-4">
+                                <label class="form-label">Akses</label>
+                                <table class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>Akses</th>
+                                            <th>View</th>
+                                            <th>Create</th>
+                                            <th>Update</th>
+                                            <th>Delete</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Wilayah</td>
+                                            <td><input type="checkbox" name="permission[]" value="viewWilayah"
+                                                    {{ isset($roleAccess) && in_array('viewWilayah', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                            </td>
+                                            <td><input type="checkbox" name="permission[]" value="createWilayah"
+                                                    {{ isset($roleAccess) && in_array('createWilayah', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                            </td>
+                                            <td><input type="checkbox" name="permission[]" value="updateWilayah"
+                                                    {{ isset($roleAccess) && in_array('updateWilayah', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                            </td>
+                                            <td><input type="checkbox" name="permission[]" value="deleteWilayah"
+                                                    {{ isset($roleAccess) && in_array('deleteWilayah', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Save Button -->
+                            <div class="form-group mb-4">
+                                <button class="btn btn-success btn-block" type="submit">Save</button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
         </div>
-    @endsection
+    </div>
+@endsection
