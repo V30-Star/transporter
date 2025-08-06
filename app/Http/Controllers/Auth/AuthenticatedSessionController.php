@@ -57,7 +57,7 @@ class AuthenticatedSessionController extends Controller
             'fsysuserid' => __('auth.failed'),
         ]);
     }
-    
+
     /**
      * Destroy an authenticated session.
      */

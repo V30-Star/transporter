@@ -50,19 +50,22 @@
                     </li>
 
                     <!-- Wilayah -->
-                    <li>
-                        <a href="{{ route('wilayah.index') }}"
-                            class="flex items-center p-2 text-white rounded hover:bg-gray-700">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
-                                stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M12 12c2.21 0 4-1.79 4-4S14.21 4 12 4s-4 1.79-4 4 1.79 4 4 4z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M12 14c-4 0-8 2-8 4v2h16v-2c0-2-4-4-8-4z" />
-                            </svg>
-                            <span class="ml-3">Wilayah</span>
-                        </a>
-                    </li>
+                    <!-- Wilayah Menu Item -->
+                    @unless (in_array('viewWilayah', explode(',', session('user_restricted_permissions', ''))))
+                        <li>
+                            <a href="{{ route('wilayah.index') }}"
+                                class="flex items-center p-2 text-white rounded hover:bg-gray-700">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 12c2.21 0 4-1.79 4-4S14.21 4 12 4s-4 1.79-4 4 1.79 4 4 4z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 14c-4 0-8 2-8 4v2h16v-2c0-2-4-4-8-4z" />
+                                </svg>
+                                <span class="ml-3">Wilayah</span>
+                            </a>
+                        </li>
+                    @endunless
 
                     <li>
                         <a href="{{ route('sysuser.index') }}"

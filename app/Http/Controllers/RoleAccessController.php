@@ -53,6 +53,6 @@ class RoleAccessController extends Controller
 
         // Redirect back after saving or updating
         return redirect()->route('roleaccess.index', ['fuid' => $request->fuid])
-            ->with('success', 'Role Access Restriction berhasil disimpan.');
+            ->with('success', 'Set Menu berhasil disimpan.');
     }
 }
