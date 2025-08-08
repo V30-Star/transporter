@@ -134,10 +134,6 @@
                                     <input type="checkbox" name="permission[]" value="deleteSysuser" id="deleteSysuser"
                                         {{ isset($roleAccess) && in_array('deleteSysuser', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
-                                <td class="text-center">
-                                    <input type="checkbox" name="permission[]" value="roleaccess" id="roleaccess"
-                                        {{ isset($roleAccess) && in_array('roleaccess', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
-                                </td>
                             </tr>
                             <tr>
                                 <td>Salesman</td>
@@ -344,6 +340,17 @@
                                 <td class="text-center">
                                     <input type="checkbox" name="permission[]" value="deleteAccount" id="deleteAccount"
                                         {{ isset($roleAccess) && in_array('deleteAccount', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Wewenang User</td>
+                                <td class="text-center">-</td>
+                                <td class="text-center">-</td>
+                                <td class="text-center">-</td>
+                                <td class="text-center">-</td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="roleaccess" id="roleaccess"
+                                        {{ isset($roleAccess) && in_array('roleaccess', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
                             </tr>
                         </tbody>
