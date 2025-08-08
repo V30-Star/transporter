@@ -30,6 +30,14 @@
         </div>
     </div>
 
+    @php
+        $canCreate = !in_array('createSysuser', explode(',', session('user_restricted_permissions', '')));
+        $canEdit = !in_array('updateSysuser', explode(',', session('user_restricted_permissions', '')));
+        $canDelete = !in_array('deleteSysuser', explode(',', session('user_restricted_permissions', '')));
+        $canRoleAccess = !in_array('roleaccess', explode(',', session('user_restricted_permissions', '')));
+        $showActionsColumn = $canEdit || $canDelete || $canRoleAccess;
+    @endphp
+
     <!-- Table -->
     <table class="min-w-full border text-sm">
         <thead class="bg-gray-100">
@@ -39,7 +47,9 @@
                 <th class="border px-2 py-1">Waktu</th>
                 <th class="border px-2 py-1">Fuserid</th>
                 <th class="border px-2 py-1">Cabang</th>
-                <th class="border px-2 py-1">Aksi</th> <!-- Add Actions Column -->
+                @if ($showActionsColumn)
+                    <th class="border px-2 py-1">Aksi</th>
+                @endif
             </tr>
         </thead>
         <tbody>
@@ -51,32 +61,37 @@
                     <td class="border px-2 py-1">{{ $sysuser->fuserid ?? 'N/A' }}</td>
                     <td class="border px-2 py-1">{{ $sysuser->fcabang }}</td>
 
-                    <!-- Actions Column -->
-                    <td class="border px-2 py-1">
-                        <!-- Edit Button -->
-                        <a href="{{ route('sysuser.edit', $sysuser->fuid) }}">
-                            <button
-                                class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
-                                <x-heroicon-o-pencil-square class="w-4 h-4 mr-1" />
-                                Edit
-                            </button>
-                        </a>
+                    @if ($showActionsColumn)
+                        <td class="border px-2 py-1">
+                            @if ($canEdit)
+                                <a href="{{ route('sysuser.edit', $sysuser->fuid) }}">
+                                    <button
+                                        class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
+                                        <x-heroicon-o-pencil-square class="w-4 h-4 mr-1" />
+                                        Edit
+                                    </button>
+                                </a>
+                            @endif
 
-                        <button @click="openDelete('{{ route('sysuser.destroy', $sysuser->fuid) }}')"
-                            class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
-                            <x-heroicon-o-trash class="w-4 h-4 mr-1" />
-                            Hapus
-                        </button>
+                            @if ($canDelete)
+                                <button @click="openDelete('{{ route('sysuser.destroy', $sysuser->fuid) }}')"
+                                    class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                                    <x-heroicon-o-trash class="w-4 h-4 mr-1" />
+                                    Hapus
+                                </button>
+                            @endif
 
-                        <a href="{{ route('roleaccess.index', $sysuser->fuid) }}">
-                            <button
-                                class="inline-flex items-center bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-                                <x-heroicon-o-key class="w-4 h-4 mr-1" />
-                                Role Access
-                            </button>
-                        </a>
-
-                    </td>
+                            @if ($canRoleAccess)
+                                <a href="{{ route('roleaccess.index', $sysuser->fuid) }}">
+                                    <button
+                                        class="inline-flex items-center bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                                        <x-heroicon-o-key class="w-4 h-4 mr-1" />
+                                        Set Menu
+                                    </button>
+                                </a>
+                            @endif
+                        </td>
+                    @endif
                 </tr>
             @empty
                 <tr>
@@ -118,11 +133,13 @@
     <div class="mt-4 flex justify-between items-center">
         <!-- Left Buttons -->
         <div class="space-x-2">
-            <a href="{{ route('sysuser.create') }}"
-                class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                <x-heroicon-o-plus class="w-4 h-4 mr-1" />
-                Baru
-            </a>
+            @if ($canCreate)
+                <a href="{{ route('sysuser.create') }}"
+                    class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                    <x-heroicon-o-plus class="w-4 h-4 mr-1" />
+                    Baru
+                </a>
+            @endif
         </div>
 
         <!-- Pagination -->

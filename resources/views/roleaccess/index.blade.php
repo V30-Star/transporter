@@ -48,6 +48,7 @@
                                 <th>Create</th>
                                 <th>Update</th>
                                 <th>Delete</th>
+                                <th>Wewenang User</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -71,6 +72,278 @@
                                 <td class="text-center">
                                     <input type="checkbox" name="permission[]" value="deleteWilayah" id="deleteWilayah"
                                         {{ isset($roleAccess) && in_array('deleteWilayah', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Customer</td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="viewCustomer" id="viewCustomer"
+                                        {{ isset($roleAccess) && in_array('viewCustomer', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="createCustomer" id="createCustomer"
+                                        {{ isset($roleAccess) && in_array('createCustomer', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="updateCustomer" id="updateCustomer"
+                                        {{ isset($roleAccess) && in_array('updateCustomer', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="deleteCustomer" id="deleteCustomer"
+                                        {{ isset($roleAccess) && in_array('deleteCustomer', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Group Customer</td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="viewGroupCustomer"
+                                        id="viewGroupCustomer"
+                                        {{ isset($roleAccess) && in_array('viewGroupCustomer', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="createGroupCustomer"
+                                        id="createGroupCustomer"
+                                        {{ isset($roleAccess) && in_array('createGroupCustomer', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="updateGroupCustomer"
+                                        id="updateGroupCustomer"
+                                        {{ isset($roleAccess) && in_array('updateGroupCustomer', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="deleteGroupCustomer"
+                                        id="deleteGroupCustomer"
+                                        {{ isset($roleAccess) && in_array('deleteGroupCustomer', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Sys User</td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="viewSysuser" id="viewSysuser"
+                                        {{ isset($roleAccess) && in_array('viewSysuser', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="createSysuser" id="createSysuser"
+                                        {{ isset($roleAccess) && in_array('createSysuser', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="updateSysuser" id="updateSysuser"
+                                        {{ isset($roleAccess) && in_array('updateSysuser', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="deleteSysuser" id="deleteSysuser"
+                                        {{ isset($roleAccess) && in_array('deleteSysuser', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="roleaccess" id="roleaccess"
+                                        {{ isset($roleAccess) && in_array('roleaccess', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Salesman</td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="viewSalesman" id="viewSalesman"
+                                        {{ isset($roleAccess) && in_array('viewSalesman', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="createSalesman"
+                                        id="createSalesman"
+                                        {{ isset($roleAccess) && in_array('createSalesman', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="updateSalesman"
+                                        id="updateSalesman"
+                                        {{ isset($roleAccess) && in_array('updateSalesman', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="deleteSalesman"
+                                        id="deleteSalesman"
+                                        {{ isset($roleAccess) && in_array('deleteSalesman', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Satuan</td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="viewSatuan" id="viewSatuan"
+                                        {{ isset($roleAccess) && in_array('viewSatuan', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="createSatuan" id="createSatuan"
+                                        {{ isset($roleAccess) && in_array('createSatuan', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="updateSatuan" id="updateSatuan"
+                                        {{ isset($roleAccess) && in_array('updateSatuan', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="deleteSatuan" id="deleteSatuan"
+                                        {{ isset($roleAccess) && in_array('deleteSatuan', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Merek</td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="viewMerek" id="viewMerek"
+                                        {{ isset($roleAccess) && in_array('viewMerek', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="createMerek" id="createMerek"
+                                        {{ isset($roleAccess) && in_array('createMerek', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="updateMerek" id="updateMerek"
+                                        {{ isset($roleAccess) && in_array('updateMerek', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="deleteMerek" id="deleteMerek"
+                                        {{ isset($roleAccess) && in_array('deleteMerek', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Gudang</td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="viewGudang" id="viewGudang"
+                                        {{ isset($roleAccess) && in_array('viewGudang', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="createGudang" id="createGudang"
+                                        {{ isset($roleAccess) && in_array('createGudang', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="updateGudang" id="updateGudang"
+                                        {{ isset($roleAccess) && in_array('updateGudang', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="deleteGudang" id="deleteGudang"
+                                        {{ isset($roleAccess) && in_array('deleteGudang', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Group Product</td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="viewGroupProduct"
+                                        id="viewGroupProduct"
+                                        {{ isset($roleAccess) && in_array('viewGroupProduct', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="createGroupProduct"
+                                        id="createGroupProduct"
+                                        {{ isset($roleAccess) && in_array('createGroupProduct', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="updateGroupProduct"
+                                        id="updateGroupProduct"
+                                        {{ isset($roleAccess) && in_array('updateGroupProduct', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="deleteGroupProduct"
+                                        id="deleteGroupProduct"
+                                        {{ isset($roleAccess) && in_array('deleteGroupProduct', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Product</td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="viewProduct" id="viewProduct"
+                                        {{ isset($roleAccess) && in_array('viewProduct', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="createProduct" id="createProduct"
+                                        {{ isset($roleAccess) && in_array('createProduct', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="updateProduct" id="updateProduct"
+                                        {{ isset($roleAccess) && in_array('updateProduct', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="deleteProduct" id="deleteProduct"
+                                        {{ isset($roleAccess) && in_array('deleteProduct', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Supplier</td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="viewSupplier" id="viewSupplier"
+                                        {{ isset($roleAccess) && in_array('viewSupplier', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="createSupplier"
+                                        id="createSupplier"
+                                        {{ isset($roleAccess) && in_array('createSupplier', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="updateSupplier"
+                                        id="updateSupplier"
+                                        {{ isset($roleAccess) && in_array('updateSupplier', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="deleteSupplier"
+                                        id="deleteSupplier"
+                                        {{ isset($roleAccess) && in_array('deleteSupplier', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Rekening</td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="viewRekening" id="viewRekening"
+                                        {{ isset($roleAccess) && in_array('viewRekening', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="createRekening"
+                                        id="createRekening"
+                                        {{ isset($roleAccess) && in_array('createRekening', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="updateRekening"
+                                        id="updateRekening"
+                                        {{ isset($roleAccess) && in_array('updateRekening', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="deleteRekening"
+                                        id="deleteRekening"
+                                        {{ isset($roleAccess) && in_array('deleteRekening', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Sub Account</td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="viewSubAccount"
+                                        id="viewSubAccount"
+                                        {{ isset($roleAccess) && in_array('viewSubAccount', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="createSubAccount"
+                                        id="createSubAccount"
+                                        {{ isset($roleAccess) && in_array('createSubAccount', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="updateSubAccount"
+                                        id="updateSubAccount"
+                                        {{ isset($roleAccess) && in_array('updateSubAccount', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="deleteSubAccount"
+                                        id="deleteSubAccount"
+                                        {{ isset($roleAccess) && in_array('deleteSubAccount', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Account</td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="viewAccount" id="viewAccount"
+                                        {{ isset($roleAccess) && in_array('viewAccount', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="createAccount" id="createAccount"
+                                        {{ isset($roleAccess) && in_array('createAccount', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="updateAccount" id="updateAccount"
+                                        {{ isset($roleAccess) && in_array('updateAccount', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="deleteAccount" id="deleteAccount"
+                                        {{ isset($roleAccess) && in_array('deleteAccount', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
                             </tr>
                         </tbody>

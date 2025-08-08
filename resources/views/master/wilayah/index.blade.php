@@ -15,7 +15,6 @@
             this.deleteUrl = null;
         }
     }" class="bg-white rounded shadow p-4">
-        {{--  Search & Filter Form  --}}
         <form method="GET" action="{{ route('wilayah.index') }}"
             class="flex flex-wrap justify-between items-center mb-4 gap-2">
             <div class="flex items-center space-x-2 w-full">
@@ -28,7 +27,6 @@
             </div>
         </form>
 
-        {{-- Check if any action buttons are available --}}
         @php
             $canCreate = !in_array('createWilayah', explode(',', session('user_restricted_permissions', '')));
             $canEdit = !in_array('updateWilayah', explode(',', session('user_restricted_permissions', '')));

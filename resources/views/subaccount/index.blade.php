@@ -26,8 +26,14 @@
                     Cari
                 </button>
             </div>
-
         </form>
+
+        @php
+            $canCreate = !in_array('createSubAccount', explode(',', session('user_restricted_permissions', '')));
+            $canEdit = !in_array('updateSubAccount', explode(',', session('user_restricted_permissions', '')));
+            $canDelete = !in_array('deleteSubAccount', explode(',', session('user_restricted_permissions', '')));
+            $showActionsColumn = $canEdit || $canDelete;
+        @endphp
 
         {{--  Table Data  --}}
         <table class="min-w-full border text-sm">
@@ -35,7 +41,9 @@
                 <tr>
                     <th class="border px-2 py-1">Kode Subaccount</th>
                     <th class="border px-2 py-1">Nama Subaccount</th>
-                    <th class="border px-2 py-1">Aksi</th>
+                    @if ($showActionsColumn)
+                        <th class="border px-2 py-1">Aksi</th>
+                    @endif
                 </tr>
             </thead>
             <tbody>
@@ -43,23 +51,28 @@
                     <tr class="hover:bg-gray-50">
                         <td class="border px-2 py-1">{{ $item->fsubaccountcode }}</td>
                         <td class="border px-2 py-1">{{ $item->fsubaccountname }}</td>
-                        <td class="border px-2 py-1 space-x-2">
-                            <!-- Edit Button -->
-                            <a href="{{ route('subaccount.edit', $item->fsubaccountid) }}">
-                                <button
-                                    class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
-                                    <x-heroicon-o-pencil-square class="w-4 h-4 mr-1" />
-                                    Edit
-                                </button>
-                            </a>
 
-                            <!-- Delete Button (with modal confirmation) -->
-                            <button @click="openDelete('{{ route('subaccount.destroy', $item->fsubaccountid) }}')"
-                                class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
-                                <x-heroicon-o-trash class="w-4 h-4 mr-1" />
-                                Hapus
-                            </button>
-                        </td>
+                        @if ($showActionsColumn)
+                            <td class="border px-2 py-1 space-x-2">
+                                @if ($canEdit)
+                                    <a href="{{ route('subaccount.edit', $item->fsubaccountid) }}">
+                                        <button
+                                            class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
+                                            <x-heroicon-o-pencil-square class="w-4 h-4 mr-1" />
+                                            Edit
+                                        </button>
+                                    </a>
+                                @endif
+
+                                @if ($canDelete)
+                                    <button @click="openDelete('{{ route('subaccount.destroy', $item->fsubaccountid) }}')"
+                                        class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                                        <x-heroicon-o-trash class="w-4 h-4 mr-1" />
+                                        Hapus
+                                    </button>
+                                @endif
+                            </td>
+                        @endif
                     </tr>
                 @empty
                     <tr>
@@ -98,11 +111,13 @@
 
         <div class="mt-4 flex justify-between items-center">
             <div class="space-x-2">
-                <a href="{{ route('subaccount.create') }}"
-                    class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                    <x-heroicon-o-plus class="w-4 h-4 mr-1" />
-                    Baru
-                </a>
+                @if ($canCreate)
+                    <a href="{{ route('subaccount.create') }}"
+                        class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                        <x-heroicon-o-plus class="w-4 h-4 mr-1" />
+                        Baru
+                    </a>
+                @endif
             </div>
             <div class="flex items-center space-x-2">
                 <button class="px-3 py-1 rounded border hover:bg-gray-100 disabled:opacity-50" disabled>
