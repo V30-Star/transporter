@@ -29,9 +29,9 @@
         </form>
 
         @php
-            $canCreate = !in_array('createSalesman', explode(',', session('user_restricted_permissions', '')));
-            $canEdit = !in_array('updateSalesman', explode(',', session('user_restricted_permissions', '')));
-            $canDelete = !in_array('deleteSalesman', explode(',', session('user_restricted_permissions', '')));
+            $canCreate = in_array('createSalesman', explode(',', session('user_restricted_permissions', '')));
+            $canEdit = in_array('updateSalesman', explode(',', session('user_restricted_permissions', '')));
+            $canDelete = in_array('deleteSalesman', explode(',', session('user_restricted_permissions', '')));
             $showActionsColumn = $canEdit || $canDelete;
         @endphp
 

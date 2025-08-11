@@ -29,9 +29,9 @@
         </form>
 
         @php
-            $canCreate = !in_array('createGroupProduct', explode(',', session('user_restricted_permissions', '')));
-            $canEdit = !in_array('updateGroupProduct', explode(',', session('user_restricted_permissions', '')));
-            $canDelete = !in_array('deleteGroupProduct', explode(',', session('user_restricted_permissions', '')));
+            $canCreate = in_array('createGroupProduct', explode(',', session('user_restricted_permissions', '')));
+            $canEdit = in_array('updateGroupProduct', explode(',', session('user_restricted_permissions', '')));
+            $canDelete = in_array('deleteGroupProduct', explode(',', session('user_restricted_permissions', '')));
             $showActionsColumn = $canEdit || $canDelete;
         @endphp
 

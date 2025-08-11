@@ -31,10 +31,10 @@
     </div>
 
     @php
-        $canCreate = !in_array('createSysuser', explode(',', session('user_restricted_permissions', '')));
-        $canEdit = !in_array('updateSysuser', explode(',', session('user_restricted_permissions', '')));
-        $canDelete = !in_array('deleteSysuser', explode(',', session('user_restricted_permissions', '')));
-        $canRoleAccess = !in_array('roleaccess', explode(',', session('user_restricted_permissions', '')));
+        $canCreate = in_array('createSysuser', explode(',', session('user_restricted_permissions', '')));
+        $canEdit = in_array('updateSysuser', explode(',', session('user_restricted_permissions', '')));
+        $canDelete = in_array('deleteSysuser', explode(',', session('user_restricted_permissions', '')));
+        $canRoleAccess = in_array('roleaccess', explode(',', session('user_restricted_permissions', '')));
         $showActionsColumn = $canEdit || $canDelete || $canRoleAccess;
     @endphp
 

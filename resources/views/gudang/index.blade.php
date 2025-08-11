@@ -30,9 +30,9 @@
         </form>
 
         @php
-            $canCreate = !in_array('createGudang', explode(',', session('user_restricted_permissions', '')));
-            $canEdit = !in_array('updateGudang', explode(',', session('user_restricted_permissions', '')));
-            $canDelete = !in_array('deleteGudang', explode(',', session('user_restricted_permissions', '')));
+            $canCreate = in_array('createGudang', explode(',', session('user_restricted_permissions', '')));
+            $canEdit = in_array('updateGudang', explode(',', session('user_restricted_permissions', '')));
+            $canDelete = in_array('deleteGudang', explode(',', session('user_restricted_permissions', '')));
             $showActionsColumn = $canEdit || $canDelete;
         @endphp
 

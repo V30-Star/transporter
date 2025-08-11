@@ -31,9 +31,9 @@
         </form>
 
         @php
-            $canCreate = !in_array('createAccount', explode(',', session('user_restricted_permissions', '')));
-            $canEdit = !in_array('updateAccount', explode(',', session('user_restricted_permissions', '')));
-            $canDelete = !in_array('deleteAccount', explode(',', session('user_restricted_permissions', '')));
+            $canCreate = in_array('createAccount', explode(',', session('user_restricted_permissions', '')));
+            $canEdit = in_array('updateAccount', explode(',', session('user_restricted_permissions', '')));
+            $canDelete = in_array('deleteAccount', explode(',', session('user_restricted_permissions', '')));
             $showActionsColumn = $canEdit || $canDelete;
         @endphp
 

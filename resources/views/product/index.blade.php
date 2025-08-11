@@ -34,9 +34,9 @@
             </form>
 
             @php
-                $canCreate = !in_array('createProduct', explode(',', session('user_restricted_permissions', '')));
-                $canEdit = !in_array('updateProduct', explode(',', session('user_restricted_permissions', '')));
-                $canDelete = !in_array('deleteProduct', explode(',', session('user_restricted_permissions', '')));
+                $canCreate = in_array('createProduct', explode(',', session('user_restricted_permissions', '')));
+                $canEdit = in_array('updateProduct', explode(',', session('user_restricted_permissions', '')));
+                $canDelete = in_array('deleteProduct', explode(',', session('user_restricted_permissions', '')));
                 $showActionsColumn = $canEdit || $canDelete;
             @endphp
 

@@ -29,9 +29,9 @@
         </form>
 
         @php
-            $canCreate = !in_array('createMerek', explode(',', session('user_restricted_permissions', '')));
-            $canEdit = !in_array('updateMerek', explode(',', session('user_restricted_permissions', '')));
-            $canDelete = !in_array('deleteMerek', explode(',', session('user_restricted_permissions', '')));
+            $canCreate = in_array('createMerek', explode(',', session('user_restricted_permissions', '')));
+            $canEdit = in_array('updateMerek', explode(',', session('user_restricted_permissions', '')));
+            $canDelete = in_array('deleteMerek', explode(',', session('user_restricted_permissions', '')));
             $showActionsColumn = $canEdit || $canDelete;
         @endphp
 

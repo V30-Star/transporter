@@ -29,9 +29,9 @@
         </form>
 
         @php
-            $canCreate = !in_array('createSupplier', explode(',', session('user_restricted_permissions', '')));
-            $canEdit = !in_array('updateSupplier', explode(',', session('user_restricted_permissions', '')));
-            $canDelete = !in_array('deleteSupplier', explode(',', session('user_restricted_permissions', '')));
+            $canCreate = in_array('createSupplier', explode(',', session('user_restricted_permissions', '')));
+            $canEdit = in_array('updateSupplier', explode(',', session('user_restricted_permissions', '')));
+            $canDelete = in_array('deleteSupplier', explode(',', session('user_restricted_permissions', '')));
             $showActionsColumn = $canEdit || $canDelete;
         @endphp
 

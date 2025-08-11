@@ -22,9 +22,9 @@
         <div x-data="{ showDeleteModal: false, deleteUrl: '' }">
 
             @php
-                $canCreate = !in_array('createGroupCustomer', explode(',', session('user_restricted_permissions', '')));
-                $canEdit = !in_array('updateGroupCustomer', explode(',', session('user_restricted_permissions', '')));
-                $canDelete = !in_array('deleteGroupCustomer', explode(',', session('user_restricted_permissions', '')));
+                $canCreate = in_array('createGroupCustomer', explode(',', session('user_restricted_permissions', '')));
+                $canEdit = in_array('updateGroupCustomer', explode(',', session('user_restricted_permissions', '')));
+                $canDelete = in_array('deleteGroupCustomer', explode(',', session('user_restricted_permissions', '')));
                 $showActionsColumn = $canEdit || $canDelete;
             @endphp
 

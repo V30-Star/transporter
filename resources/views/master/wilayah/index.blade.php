@@ -28,9 +28,9 @@
         </form>
 
         @php
-            $canCreate = !in_array('createWilayah', explode(',', session('user_restricted_permissions', '')));
-            $canEdit = !in_array('updateWilayah', explode(',', session('user_restricted_permissions', '')));
-            $canDelete = !in_array('deleteWilayah', explode(',', session('user_restricted_permissions', '')));
+            $canCreate = in_array('createWilayah', explode(',', session('user_restricted_permissions', '')));
+            $canEdit = in_array('updateWilayah', explode(',', session('user_restricted_permissions', '')));
+            $canDelete = in_array('deleteWilayah', explode(',', session('user_restricted_permissions', '')));
             $showActionsColumn = $canEdit || $canDelete;
         @endphp
 
