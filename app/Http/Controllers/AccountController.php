@@ -17,9 +17,9 @@ class AccountController extends Controller
         $search = $request->search;
 
         // Query with search functionality
-        $accounts = Account::when($search, function($q) use ($filterBy, $search) {
-                $q->where($filterBy, 'ILIKE', '%'.$search.'%');
-            })
+        $accounts = Account::when($search, function ($q) use ($filterBy, $search) {
+            $q->where($filterBy, 'ILIKE', '%' . $search . '%');
+        })
             ->orderBy('faccid', 'desc')
             ->paginate(10)
             ->withQueryString();
@@ -35,28 +35,28 @@ class AccountController extends Controller
     public function store(Request $request)
     {
         // Validate incoming request data
-        $validated = $request->validate([
-            'faccount' => 'required|string|unique:account,faccount|max:10',  // Validate account code (max 10 chars)
-            'faccname' => 'required|string|max:50', // Validate account name (max 50 chars)
-            'finitjurnal' => 'nullable|string|max:2', // Validate initial journal (max 2 chars)
-            'fnormal' => 'required|in:1,2', // Ensure 'fnormal' is either 1 (Debet) or 2 (Kredit)
-            'fend' => 'required|in:1,2', // Ensure 'fend' is either 1 (Detil) or 2 (Header)
-            'fuserlevel' => 'required|in:1,2,3', // Ensure 'fuserlevel' is 1 (User), 2 (Supervisor), or 3 (Admin)
-        ],
-        [
-            'faccount.required' => 'Kode account harus diisi.',
-            'faccname.required' => 'Nama account harus diisi.',
-            'faccount.unique' => 'Kode account sudah ada.',
-            'faccount.max' => 'Kode account maksimal 10 karakter.',
-            'faccname.max' => 'Nama account maksimal 50 karakter.',
-            'finitjurnal.max' => 'Inisial jurnal maksimal 2 karakter.',
-        ]);
+        $validated = $request->validate(
+            [
+                'faccount' => 'required|string|unique:account,faccount|max:10',  // Validate account code (max 10 chars)
+                'faccname' => 'required|string|max:50', // Validate account name (max 50 chars)
+                'finitjurnal' => 'nullable|string|max:2', // Validate initial journal (max 2 chars)
+                'fnormal' => 'required|in:1,2', // Ensure 'fnormal' is either 1 (Debet) or 2 (Kredit)
+                'fend' => 'required|in:1,2', // Ensure 'fend' is either 1 (Detil) or 2 (Header)
+                'fuserlevel' => 'required|in:1,2,3', // Ensure 'fuserlevel' is 1 (User), 2 (Supervisor), or 3 (Admin)
+            ],
+            [
+                'faccount.required' => 'Kode account harus diisi.',
+                'faccname.required' => 'Nama account harus diisi.',
+                'faccount.unique' => 'Kode account sudah ada.',
+                'faccount.max' => 'Kode account maksimal 10 karakter.',
+                'faccname.max' => 'Nama account maksimal 50 karakter.',
+                'finitjurnal.max' => 'Inisial jurnal maksimal 2 karakter.',
+            ]
+        );
 
         // Add default values for the required fields
-        $validated['fcreatedby'] = "admin";  // Use the authenticated user's ID
-        $validated['fupdatedby'] = $validated['fcreatedby']; // Same for the updatedby field
+        $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null;  // Use the authenticated user's ID
         $validated['fcreatedat'] = now(); // Set current time
-        $validated['fupdatedat'] = now(); // Set current time
 
         $validated['fnonactive'] = '0';
 
@@ -66,8 +66,7 @@ class AccountController extends Controller
         // Handle 'ftypesubaccount' logic if a sub-account is checked
         if ($request->has('fhavesubaccount')) {
             // Ensure subaccount type is set as a single character (S, C, P)
-            $validated['ftypesubaccount'] = $request->input('ftypesubaccount') == 'Sub Account' ? 'S' :
-                                            ($request->input('ftypesubaccount') == 'Customer' ? 'C' : 'P');
+            $validated['ftypesubaccount'] = $request->input('ftypesubaccount') == 'Sub Account' ? 'S' : ($request->input('ftypesubaccount') == 'Customer' ? 'C' : 'P');
         } else {
             // Ensure subaccount type is disabled
             $validated['ftypesubaccount'] = '0';
@@ -102,33 +101,36 @@ class AccountController extends Controller
     public function update(Request $request, $faccid)
     {
         // Validate incoming request data
-        $validated = $request->validate([
-            'faccount' => "required|string|unique:account,faccount,{$faccid},faccid", // Exclude current account from unique check
-            'faccname' => 'required|string|max:50', // Validate account name (max 50 chars)
-            'fnormal' => 'required|in:1,2', // Ensure 'fnormal' is either 1 (Debet) or 2 (Kredit)
-            'finitjurnal' => 'nullable|string|max:2', // Validate initial journal (max 2 chars)
-            'fend' => 'required|in:1,2', // Ensure 'fend' is either 1 (Detil) or 2 (Header)
-            'fuserlevel' => 'required|in:1,2,3', // Ensure 'fuserlevel' is 1 (User), 2 (Supervisor), or 3 (Admin)
-        ],
-        [
-            'faccount.required' => 'Kode account harus diisi.',
-            'faccname.required' => 'Nama account harus diisi.',
-            'faccount.unique' => 'Kode account sudah ada.',
-            'faccount.max' => 'Kode account maksimal 10 karakter.',
-            'faccname.max' => 'Nama account maksimal 50 karakter.',
-            'finitjurnal.max' => 'Inisial jurnal maksimal 2 karakter.',
-        ]);
+        $validated = $request->validate(
+            [
+                'faccount' => "required|string|unique:account,faccount,{$faccid},faccid", // Exclude current account from unique check
+                'faccname' => 'required|string|max:50', // Validate account name (max 50 chars)
+                'fnormal' => 'required|in:1,2', // Ensure 'fnormal' is either 1 (Debet) or 2 (Kredit)
+                'finitjurnal' => 'nullable|string|max:2', // Validate initial journal (max 2 chars)
+                'fend' => 'required|in:1,2', // Ensure 'fend' is either 1 (Detil) or 2 (Header)
+                'fuserlevel' => 'required|in:1,2,3', // Ensure 'fuserlevel' is 1 (User), 2 (Supervisor), or 3 (Admin)
+            ],
+            [
+                'faccount.required' => 'Kode account harus diisi.',
+                'faccname.required' => 'Nama account harus diisi.',
+                'faccount.unique' => 'Kode account sudah ada.',
+                'faccount.max' => 'Kode account maksimal 10 karakter.',
+                'faccname.max' => 'Nama account maksimal 50 karakter.',
+                'finitjurnal.max' => 'Inisial jurnal maksimal 2 karakter.',
+            ]
+        );
 
         // Handle the checkbox for 'fnonactive' (1 = checked, 0 = unchecked)
         $validated['fnonactive'] = '0';
+        $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null; // Use the authenticated user's ID
+        $validated['fupdatedat'] = now(); // Set current time
 
         $validated['fhavesubaccount'] = $request->has('fhavesubaccount') ? 1 : 0;
 
         // Handle 'ftypesubaccount' logic if a sub-account is checked
         if ($request->has('fhavesubaccount')) {
             // Ensure subaccount type is set as a single character (S, C, P)
-            $validated['ftypesubaccount'] = $request->input('ftypesubaccount') == 'Sub Account' ? 'S' :
-                                            ($request->input('ftypesubaccount') == 'Customer' ? 'C' : 'P');
+            $validated['ftypesubaccount'] = $request->input('ftypesubaccount') == 'Sub Account' ? 'S' : ($request->input('ftypesubaccount') == 'Customer' ? 'C' : 'P');
         } else {
             // Ensure subaccount type is disabled
             $validated['ftypesubaccount'] = '0';

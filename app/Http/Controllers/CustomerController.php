@@ -22,9 +22,9 @@ class CustomerController extends Controller
         $search = $request->search;
 
         // Query with search functionality
-        $customers = Customer::when($search, function($q) use ($filterBy, $search) {
-                $q->where($filterBy, 'ILIKE', '%'.$search.'%');
-            })
+        $customers = Customer::when($search, function ($q) use ($filterBy, $search) {
+            $q->where($filterBy, 'ILIKE', '%' . $search . '%');
+        })
             ->orderBy('fcustomerid', 'desc')
             ->paginate(10)
             ->withQueryString();
@@ -50,10 +50,10 @@ class CustomerController extends Controller
     // Create method to return the customer creation form
     public function create()
     {
-        $groups = Groupproduct::all(); 
-        $salesman = Salesman::all(); 
-        $wilayah = Wilayah::all(); 
-        $rekening = Rekening::all(); 
+        $groups = Groupproduct::all();
+        $salesman = Salesman::all();
+        $wilayah = Wilayah::all();
+        $rekening = Rekening::all();
         $newCustomerCode = $this->generateCustomerCode();
 
         return view('master.customer.create', compact('groups', 'salesman', 'wilayah', 'rekening', 'newCustomerCode'));
@@ -120,19 +120,15 @@ class CustomerController extends Controller
             $validated['fcustomercode'] = $this->generateCustomerCode();
         }
 
-        // Add default values for the required fields
-        $validated['fcreatedby'] = "admin";  // Use the authenticated user's ID
-        $validated['fupdatedby'] = $validated['fcreatedby']; // Same for the updatedby field
-        $validated['fcreatedat'] = now(); // Set current time
-        $validated['fupdatedat'] = now(); // Set current time
+        $validated['fapproval'] = auth('sysuser')->user()->fname ?? null;
 
-        // Handle the checkbox for 'fnonactive' (1 = checked, 0 = unchecked)
+        $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null;
+        $validated['fcreatedat'] = now();
+
         $validated['fnonactive'] = '0';
 
-        // Directly set 'fcurrency' to 'IDR' or other applicable value
         $validated['fcurrency'] = 'IDR';
 
-        // Create the new Customer record
         Customer::create($validated);
 
         return redirect()
@@ -145,10 +141,10 @@ class CustomerController extends Controller
     {
         // Find Customer by primary key
         $customer = Customer::findOrFail($fcustomerid);
-        $groups = Groupproduct::all();  
-        $salesman = Salesman::all();  
-        $wilayah = Wilayah::all();  
-        $rekening = Rekening::all();  
+        $groups = Groupproduct::all();
+        $salesman = Salesman::all();
+        $wilayah = Wilayah::all();
+        $rekening = Rekening::all();
         $newCustomerCode = $this->generateCustomerCode();
 
         return view('master.customer.edit', compact('customer', 'groups', 'salesman', 'wilayah', 'rekening', 'newCustomerCode'));
@@ -209,17 +205,19 @@ class CustomerController extends Controller
         ]);
         $customer = Customer::findOrFail($fcustomerid);
         $validated['fcustomercode'] = $request->fcustomercode ?? $customer->fcustomercode;
-        $validated['fcreatedby'] = "admin";  // Use the authenticated user's ID
-        $validated['fupdatedby'] = $validated['fcreatedby']; // Same for the updatedby field
-        $validated['fcreatedat'] = now(); // Set current time
-        $validated['fupdatedat'] = now(); // Set current time
+        
+        $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
+        $validated['fupdatedat'] = now();
 
-        // Handle the checkbox for 'fnonactive' (1 = checked, 0 = unchecked)
+        if ($request->has('approve_now')) {
+            $validated['fapproval'] = auth('sysuser')->user()->fname ?? null;
+        } else {
+            $validated['fapproval'] = null;
+        }
+
         $validated['fnonactive'] = '0';
 
-        // Directly set 'fcurrency' to 'IDR' or other applicable value
         $validated['fcurrency'] = 'IDR';
-        // Find Customer and update
         $customer->update($validated);
 
         return redirect()

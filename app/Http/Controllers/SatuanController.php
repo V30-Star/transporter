@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Satuan;    
+use App\Models\Satuan;
 use Illuminate\Http\Request;
 
 class SatuanController extends Controller
@@ -15,12 +15,12 @@ class SatuanController extends Controller
 
         $search = $request->search;
 
-        $satuans = Satuan::when($search, function($q) use ($filterBy, $search) {
-                $q->where($filterBy, 'ILIKE', '%'.$search.'%');
-            })
+        $satuans = Satuan::when($search, function ($q) use ($filterBy, $search) {
+            $q->where($filterBy, 'ILIKE', '%' . $search . '%');
+        })
             ->orderBy('fsatuanid', 'desc')
             ->paginate(10)
-            ->withQueryString(); 
+            ->withQueryString();
 
         return view('satuan.index', compact('satuans', 'filterBy', 'search'));
     }
@@ -32,21 +32,21 @@ class SatuanController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'fsatuancode' => 'required|string|unique:mssatuan,fsatuancode',
-            'fsatuanname' => 'required|string',
-        ],
-        [
-            'fsatuancode.unique' => 'Kode Satuan sudah ada.',
-            'fsatuancode.required' => 'Kode Satuan harus diisi.',
-            'fsatuanname.required' => 'Nama Satuan harus diisi.',
-        ]);
+        $validated = $request->validate(
+            [
+                'fsatuancode' => 'required|string|unique:mssatuan,fsatuancode',
+                'fsatuanname' => 'required|string',
+            ],
+            [
+                'fsatuancode.unique' => 'Kode Satuan sudah ada.',
+                'fsatuancode.required' => 'Kode Satuan harus diisi.',
+                'fsatuanname.required' => 'Nama Satuan harus diisi.',
+            ]
+        );
 
         // Add default values for the required fields
-        $validated['fcreatedby'] = "User yang membuat"; // Use the authenticated user's name or 'system' as default
-        $validated['fupdatedby'] = $validated['fcreatedby']; // Same for the updatedby field
+        $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null; // Use the authenticated user's name or 'system' as default
         $validated['fcreatedat'] = now(); // Use the current time
-        $validated['fupdatedat'] = now(); // Use the current time
 
         // Handle the checkbox for 'fnonactive' (1 = checked, 0 = unchecked)
         $validated['fnonactive'] = '0';
@@ -73,17 +73,22 @@ class SatuanController extends Controller
     public function update(Request $request, $fsatuanid)
     {
         // Validasi
-        $validated = $request->validate([
-            'fsatuancode' => "required|string|unique:mssatuan,fsatuancode,{$fsatuanid},fsatuanid",
-            'fsatuanname' => 'required|string',
-        ],
-        [
-            'fsatuancode.unique' => 'Kode Satuan sudah ada.',
-            'fsatuancode.required' => 'Kode Satuan harus diisi.',
-            'fsatuanname.required' => 'Nama Satuan harus diisi.',
-        ]);
+        $validated = $request->validate(
+            [
+                'fsatuancode' => "required|string|unique:mssatuan,fsatuancode,{$fsatuanid},fsatuanid",
+                'fsatuanname' => 'required|string',
+            ],
+            [
+                'fsatuancode.unique' => 'Kode Satuan sudah ada.',
+                'fsatuancode.required' => 'Kode Satuan harus diisi.',
+                'fsatuanname.required' => 'Nama Satuan harus diisi.',
+            ]
+        );
 
         $validated['fnonactive'] = '0';
+
+        $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
+        $validated['fupdatedat'] = now();
 
         // Cari dan update
         $satuan = Satuan::findOrFail($fsatuanid);

@@ -46,10 +46,8 @@ class RekeningController extends Controller
         ]);
 
         // Add default values for created and updated fields
-        $validated['fcreatedby'] = "User yang membuat"; // Or use the authenticated user's name
-        $validated['fupdatedby'] = $validated['fcreatedby']; // Same for the updatedby field
+        $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null; // Or use the authenticated user's name
         $validated['fcreatedat'] = now(); // Set current time
-        $validated['fupdatedat'] = now(); // Set current time
 
         $validated['fnonactive'] = '0';
 
@@ -83,6 +81,8 @@ class RekeningController extends Controller
         ]);
 
         $validated['fnonactive'] = '0';
+        $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null; // Or use the authenticated user's name
+        $validated['fupdatedat'] = now(); // Set current time
 
         // Find Rekening and update
         $rekening = Rekening::findOrFail($frekeningid);

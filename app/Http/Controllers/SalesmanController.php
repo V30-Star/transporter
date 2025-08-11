@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Salesman;    
+use App\Models\Salesman;
 use Illuminate\Http\Request;
 
 class SalesmanController extends Controller
@@ -15,12 +15,12 @@ class SalesmanController extends Controller
 
         $search = $request->search;
 
-        $salesmen = Salesman::when($search, function($q) use ($filterBy, $search) {
-                $q->where($filterBy, 'ILIKE', '%'.$search.'%');
-            })
+        $salesmen = Salesman::when($search, function ($q) use ($filterBy, $search) {
+            $q->where($filterBy, 'ILIKE', '%' . $search . '%');
+        })
             ->orderBy('fsalesmanid', 'desc')
             ->paginate(10)
-            ->withQueryString(); 
+            ->withQueryString();
 
         return view('salesman.index', compact('salesmen', 'filterBy', 'search'));
     }
@@ -32,21 +32,21 @@ class SalesmanController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'fsalesmancode' => 'required|string|unique:mssalesman,fsalesmancode',
-            'fsalesmanname' => 'required|string',
-        ],
-        [
-            'fsalesmancode.required' => 'Kode Salesman wajib diisi.',
-            'fsalesmancode.unique' => 'Kode Salesman sudah ada.',
-            'fsalesmanname.required' => 'Nama Salesman wajib diisi.',
-        ]);
+        $validated = $request->validate(
+            [
+                'fsalesmancode' => 'required|string|unique:mssalesman,fsalesmancode',
+                'fsalesmanname' => 'required|string',
+            ],
+            [
+                'fsalesmancode.required' => 'Kode Salesman wajib diisi.',
+                'fsalesmancode.unique' => 'Kode Salesman sudah ada.',
+                'fsalesmanname.required' => 'Nama Salesman wajib diisi.',
+            ]
+        );
 
         // Add default values for the required fields
-        $validated['fcreatedby'] = "User yang membuat"; // Use the authenticated user's name or 'system' as default
-        $validated['fupdatedby'] = $validated['fcreatedby']; // Same for the updatedby field
+        $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null; // Use the authenticated user's name or 'system' as default
         $validated['fcreatedat'] = now(); // Use the current time
-        $validated['fupdatedat'] = now(); // Use the current time
 
         $validated['fnonactive'] = '0';
 
@@ -72,17 +72,21 @@ class SalesmanController extends Controller
     public function update(Request $request, $fsalesmanid)
     {
         // Validasi
-        $validated = $request->validate([
-            'fsalesmancode' => "required|string|unique:mssalesman,fsalesmancode,{$fsalesmanid},fsalesmanid",
-            'fsalesmanname' => 'required|string',
-        ],
-        [
-            'fsalesmancode.required' => 'Kode Salesman wajib diisi.',
-            'fsalesmancode.unique' => 'Kode Salesman sudah ada.',
-            'fsalesmanname.required' => 'Nama Salesman wajib diisi.',
-        ]);
+        $validated = $request->validate(
+            [
+                'fsalesmancode' => "required|string|unique:mssalesman,fsalesmancode,{$fsalesmanid},fsalesmanid",
+                'fsalesmanname' => 'required|string',
+            ],
+            [
+                'fsalesmancode.required' => 'Kode Salesman wajib diisi.',
+                'fsalesmancode.unique' => 'Kode Salesman sudah ada.',
+                'fsalesmanname.required' => 'Nama Salesman wajib diisi.',
+            ]
+        );
 
         $validated['fnonactive'] = '0';
+        $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null; // Use the authenticated user's name or 'system' as default
+        $validated['fupdatedat'] = now(); // Use the current time
 
         // Cari dan update
         $salesman = Salesman::findOrFail($fsalesmanid);

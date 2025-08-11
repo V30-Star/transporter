@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Sysuser;
-use Illuminate\Support\Facades\Hash;  
+use Illuminate\Support\Facades\Hash;
 
 class SysUserController extends Controller
 {
@@ -15,8 +15,8 @@ class SysUserController extends Controller
 
         $sysusers = Sysuser::when($search, function ($query, $search) {
             return $query->whereRaw('LOWER(fsysuserid) LIKE ?', ['%' . strtolower($search) . '%'])
-                         ->orWhereRaw('LOWER(fname) LIKE ?', ['%' . strtolower($search) . '%'])
-                         ->orWhereRaw('LOWER(fcabang) LIKE ?', ['%' . strtolower($search) . '%']);
+                ->orWhereRaw('LOWER(fname) LIKE ?', ['%' . strtolower($search) . '%'])
+                ->orWhereRaw('LOWER(fcabang) LIKE ?', ['%' . strtolower($search) . '%']);
         })->paginate(10);
 
         return view('sysuser.index', compact('sysusers', 'search'));
@@ -33,7 +33,7 @@ class SysUserController extends Controller
             'fname' => 'required|string|max:100',
             'fsysuserid' => 'required|string|unique:sysuser,fsysuserid',
             'password' => 'required|string|min:6|confirmed',
-            'fsalesman' => 'nullable|string|size:1', 
+            'fsalesman' => 'nullable|string|size:1',
             'fuserlevel'    => 'required|string|in:User,Admin',
             'fcabang'       => 'required|string',
         ], [
@@ -47,12 +47,11 @@ class SysUserController extends Controller
 
         $validated['fcabang'] = $request->fcabang ?? '-';
         $validated['fuserlevel'] = $validated['fuserlevel'] == 'Admin' ? '2' : '1';
-        $validated['fuserid'] = "User yang membuat";
-        $validated['created_at'] = now(); 
-        $validated['updated_at'] = now(); 
-        
+        $validated['fuserid'] = auth('sysuser')->user()->fname ?? null;
+        $validated['created_at'] = now();
+
         $validated['fsalesman'] = $request->has('fsalesman') ? '1' : '0';
-        
+
         $validated['password'] = Hash::make($validated['password']);
 
         try {
@@ -80,7 +79,7 @@ class SysUserController extends Controller
         $validated = $request->validate([
             'fsysuserid'    => 'required|string|unique:sysuser,fsysuserid',
             'fname'         => 'required|string',
-            'password'      => 'nullable|string|confirmed', 
+            'password'      => 'nullable|string|confirmed',
             'fsalesman'     => 'nullable|string|size:1', // Nullable
             'fuserlevel'    => 'required|string|size:1',
             'fcabang'       => 'required|string',
@@ -103,7 +102,7 @@ class SysUserController extends Controller
             unset($validated['password']); // Remove password if not filled
         }
 
-        // Set the updated_at field to the current timestamp
+        $validated['fuserid'] = auth('sysuser')->user()->fname ?? null;
         $validated['updated_at'] = now();
 
         // Update the sysuser with the validated data

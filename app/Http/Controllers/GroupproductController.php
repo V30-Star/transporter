@@ -32,21 +32,21 @@ class GroupproductController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'fgroupcode' => 'required|string|unique:msgroupproduct,fgroupcode',
-            'fgroupname' => 'required|string',
-        ],
-        [
-            'fgroupcode.unique' => 'Kode grup produk sudah ada.',
-            'fgroupcode.required' => 'Kode grup produk harus diisi.',
-            'fgroupname.required' => 'Nama grup produk harus diisi.',
-        ]);
+        $validated = $request->validate(
+            [
+                'fgroupcode' => 'required|string|unique:msgroupproduct,fgroupcode',
+                'fgroupname' => 'required|string',
+            ],
+            [
+                'fgroupcode.unique' => 'Kode grup produk sudah ada.',
+                'fgroupcode.required' => 'Kode grup produk harus diisi.',
+                'fgroupname.required' => 'Nama grup produk harus diisi.',
+            ]
+        );
 
         // Add default values for the required fields
-        $validated['fcreatedby'] = "User yang membuat"; // Use the authenticated user's name or 'system' as default
-        $validated['fupdatedby'] = $validated['fcreatedby']; // Same for the updatedby field
+        $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null; // Use the authenticated user's name or 'system' as default
         $validated['fcreatedat'] = now(); // Use the current time
-        $validated['fupdatedat'] = now(); // Use the current time
 
         $validated['fnonactive'] = '0';
 
@@ -69,17 +69,21 @@ class GroupproductController extends Controller
     public function update(Request $request, $fgroupid)
     {
         // Validate the incoming data
-        $validated = $request->validate([
-            'fgroupcode' => "required|string|unique:msgroupproduct,fgroupcode,{$fgroupid},fgroupid",
-            'fgroupname' => 'required|string',
-        ],
-        [
-            'fgroupcode.unique' => 'Kode grup produk sudah ada.',
-            'fgroupcode.required' => 'Kode grup produk harus diisi.',
-            'fgroupname.required' => 'Nama grup produk harus diisi.',
-        ]);
+        $validated = $request->validate(
+            [
+                'fgroupcode' => "required|string|unique:msgroupproduct,fgroupcode,{$fgroupid},fgroupid",
+                'fgroupname' => 'required|string',
+            ],
+            [
+                'fgroupcode.unique' => 'Kode grup produk sudah ada.',
+                'fgroupcode.required' => 'Kode grup produk harus diisi.',
+                'fgroupname.required' => 'Nama grup produk harus diisi.',
+            ]
+        );
 
         $validated['fnonactive'] = '0';
+        $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null; // Use the authenticated user's name or 'system' as default
+        $validated['fupdatedat'] = now(); // Use the current time
 
         // Find and update the Groupproduct
         $groupproduct = Groupproduct::findOrFail($fgroupid);

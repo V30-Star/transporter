@@ -57,55 +57,56 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         // Validate the incoming request
-        $validated = $request->validate([
-            'fproductcode' => 'nullable|string',
-            'fproductname' => 'required|string',
-            'ftype' => 'required|string',
-            'fbarcode' => 'required|string',
-            'fgroupcode' => 'required', // Validate the Group Produk field
-            'fmerek' => 'required', // Validate the Merek field
-            'fsatuankecil' => 'required', // Validate Satuan 1 field
-            'fsatuanbesar' => 'required', // Validate Satuan 2 field
-            'fsatuanbesar2' => 'required', // Validate Satuan 3 field
-            'fsatuandefault' => 'required|in:1,2,3', // Validate Satuan Default field
-            'fqtykecil' => 'required|numeric', // Validate quantity for Satuan 1
-            'fqtykecil2' => 'required|numeric', // Validate quantity for Satuan 3
-            'fhpp' => 'nullable|numeric', // Validate if nonactive is checked
-            'fhargasatuankecillevel1' => 'nullable|numeric', // Validate if nonactive is checked
-            'fhargasatuankecillevel2' => 'nullable|numeric', // Validate if nonactive is checked
-            'fhargasatuankecillevel3' => 'nullable|numeric', // Validate if nonactive is checked
-            'fhargajuallevel1' => 'nullable|numeric', // Validate if nonactive is checked
-            'fhargajuallevel2' => 'nullable|numeric', // Validate if nonactive is checked
-            'fhargajuallevel3' => 'nullable|numeric', // Validate if nonactive is checked
-            'fminstock' => 'nullable|numeric', // Validate if nonactive is checked
-        ],
-        [
-            'fproductcode.unique' => 'Kode Produk sudah ada, silakan gunakan kode yang lain.',
-            'fproductname.required' => 'Nama Produk harus diisi.',
-            'ftype.required' => 'Tipe Produk harus diisi.',
-            'fbarcode.required' => 'Barcode Produk harus diisi.',
-            'fgroupcode.required' => 'Group Produk harus dipilih.',
-            'fmerek.required' => 'Merek harus dipilih.',
-            'fsatuankecil.required' => 'Satuan Kecil harus dipilih.',
-            'fsatuanbesar.required' => 'Satuan Besar harus dipilih.',
-            'fsatuanbesar2.required' => 'Satuan Besar 2 harus dipilih.',
-            'fsatuandefault.required' => 'Satuan Default harus dipilih.',
-            'fqtykecil.required' => 'Qty Kecil harus diisi.',
-            'fqtykecil2.required' => 'Qty Kecil 2 harus diisi.',
-        ]);
+        $validated = $request->validate(
+            [
+                'fproductcode' => 'nullable|string',
+                'fproductname' => 'required|string',
+                'ftype' => 'required|string',
+                'fbarcode' => 'required|string',
+                'fgroupcode' => 'required', // Validate the Group Produk field
+                'fmerek' => 'required', // Validate the Merek field
+                'fsatuankecil' => 'required', // Validate Satuan 1 field
+                'fsatuanbesar' => 'required', // Validate Satuan 2 field
+                'fsatuanbesar2' => 'required', // Validate Satuan 3 field
+                'fsatuandefault' => 'required|in:1,2,3', // Validate Satuan Default field
+                'fqtykecil' => 'required|numeric', // Validate quantity for Satuan 1
+                'fqtykecil2' => 'required|numeric', // Validate quantity for Satuan 3
+                'fhpp' => 'nullable|numeric', // Validate if nonactive is checked
+                'fhargasatuankecillevel1' => 'nullable|numeric', // Validate if nonactive is checked
+                'fhargasatuankecillevel2' => 'nullable|numeric', // Validate if nonactive is checked
+                'fhargasatuankecillevel3' => 'nullable|numeric', // Validate if nonactive is checked
+                'fhargajuallevel1' => 'nullable|numeric', // Validate if nonactive is checked
+                'fhargajuallevel2' => 'nullable|numeric', // Validate if nonactive is checked
+                'fhargajuallevel3' => 'nullable|numeric', // Validate if nonactive is checked
+                'fminstock' => 'nullable|numeric', // Validate if nonactive is checked
+            ],
+            [
+                'fproductcode.unique' => 'Kode Produk sudah ada, silakan gunakan kode yang lain.',
+                'fproductname.required' => 'Nama Produk harus diisi.',
+                'ftype.required' => 'Tipe Produk harus diisi.',
+                'fbarcode.required' => 'Barcode Produk harus diisi.',
+                'fgroupcode.required' => 'Group Produk harus dipilih.',
+                'fmerek.required' => 'Merek harus dipilih.',
+                'fsatuankecil.required' => 'Satuan Kecil harus dipilih.',
+                'fsatuanbesar.required' => 'Satuan Besar harus dipilih.',
+                'fsatuanbesar2.required' => 'Satuan Besar 2 harus dipilih.',
+                'fsatuandefault.required' => 'Satuan Default harus dipilih.',
+                'fqtykecil.required' => 'Qty Kecil harus diisi.',
+                'fqtykecil2.required' => 'Qty Kecil 2 harus diisi.',
+            ]
+        );
 
         if (empty($request->fproductcode)) {
             $validated['fproductcode'] = $this->generateProductCode();
         }
 
-        // Add default values for the required fields
-        $validated['fcreatedby'] = "User yang membuat"; // You can replace this with the authenticated user's name
-        $validated['fupdatedby'] = $validated['fcreatedby']; // Same for the updatedby field
+        $validated['fapproval'] = auth('sysuser')->user()->fname ?? null;
+
+        $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null;
         $validated['fcreatedat'] = now(); // Use the current time
-        $validated['fupdatedat'] = now(); // Use the current time
 
         $validated['fnonactive'] = '0';
-        
+
         // Create the new Product
         Product::create($validated);
 
@@ -127,50 +128,55 @@ class ProductController extends Controller
     public function update(Request $request, $fproductid)
     {
         // Validate the incoming data
-        $validated = $request->validate([
-            'fproductcode' => "required|string|unique:msproduct,fproductcode,{$fproductid},fproductid",
-            'fproductname' => 'required|string',
-            'ftype' => 'required|string',
-            'fbarcode' => 'required|string',
-            'fgroupcode' => 'required', // Validate the Group Produk field
-            'fmerek' => 'required', // Validate the Merek field
-            'fsatuankecil' => 'required', // Validate Satuan 1 field
-            'fsatuanbesar' => 'required', // Validate Satuan 2 field
-            'fsatuanbesar2' => 'required', // Validate Satuan 3 field
-            'fsatuandefault' => 'required|in:1,2,3', // Validate Satuan Default field
-            'fqtykecil' => 'required|numeric', // Validate quantity for Satuan 1
-            'fqtykecil2' => 'required|numeric', // Validate quantity for Satuan 3
-            'fhpp' => 'nullable|numeric', // Validate if nonactive is checked
-            'fhargasatuankecillevel1' => 'nullable|numeric', // Validate if nonactive is checked
-            'fhargasatuankecillevel2' => 'nullable|numeric', // Validate if nonactive is checked
-            'fhargasatuankecillevel3' => 'nullable|numeric', // Validate if nonactive is checked
-            'fhargajuallevel1' => 'nullable|numeric', // Validate if nonactive is checked
-            'fhargajuallevel2' => 'nullable|numeric', // Validate if nonactive is checked
-            'fhargajuallevel3' => 'nullable|numeric', // Validate if nonactive is checked
-            'fminstock' => 'nullable|numeric', // Validate if nonactive is checked
-        ],
-        [
-            'fproductcode.unique' => 'Kode Produk sudah ada, silakan gunakan kode yang lain.',
-            'fproductname.required' => 'Nama Produk harus diisi.',
-            'ftype.required' => 'Tipe Produk harus diisi.',
-            'fbarcode.required' => 'Barcode Produk harus diisi.',
-            'fgroupcode.required' => 'Group Produk harus dipilih.',
-            'fmerek.required' => 'Merek harus dipilih.',
-            'fsatuankecil.required' => 'Satuan Kecil harus dipilih.',
-            'fsatuanbesar.required' => 'Satuan Besar harus dipilih.',
-            'fsatuanbesar2.required' => 'Satuan Besar 2 harus dipilih.',
-            'fsatuandefault.required' => 'Satuan Default harus dipilih.',
-            'fqtykecil.required' => 'Qty Kecil harus diisi.',
-            'fqtykecil2.required' => 'Qty Kecil 2 harus diisi.',
-        ]);
+        $validated = $request->validate(
+            [
+                'fproductcode' => "required|string|unique:msproduct,fproductcode,{$fproductid},fproductid",
+                'fproductname' => 'required|string',
+                'ftype' => 'required|string',
+                'fbarcode' => 'required|string',
+                'fgroupcode' => 'required', // Validate the Group Produk field
+                'fmerek' => 'required', // Validate the Merek field
+                'fsatuankecil' => 'required', // Validate Satuan 1 field
+                'fsatuanbesar' => 'required', // Validate Satuan 2 field
+                'fsatuanbesar2' => 'required', // Validate Satuan 3 field
+                'fsatuandefault' => 'required|in:1,2,3', // Validate Satuan Default field
+                'fqtykecil' => 'required|numeric', // Validate quantity for Satuan 1
+                'fqtykecil2' => 'required|numeric', // Validate quantity for Satuan 3
+                'fhpp' => 'nullable|numeric', // Validate if nonactive is checked
+                'fhargasatuankecillevel1' => 'nullable|numeric', // Validate if nonactive is checked
+                'fhargasatuankecillevel2' => 'nullable|numeric', // Validate if nonactive is checked
+                'fhargasatuankecillevel3' => 'nullable|numeric', // Validate if nonactive is checked
+                'fhargajuallevel1' => 'nullable|numeric', // Validate if nonactive is checked
+                'fhargajuallevel2' => 'nullable|numeric', // Validate if nonactive is checked
+                'fhargajuallevel3' => 'nullable|numeric', // Validate if nonactive is checked
+                'fminstock' => 'nullable|numeric', // Validate if nonactive is checked
+            ],
+            [
+                'fproductcode.unique' => 'Kode Produk sudah ada, silakan gunakan kode yang lain.',
+                'fproductname.required' => 'Nama Produk harus diisi.',
+                'ftype.required' => 'Tipe Produk harus diisi.',
+                'fbarcode.required' => 'Barcode Produk harus diisi.',
+                'fgroupcode.required' => 'Group Produk harus dipilih.',
+                'fmerek.required' => 'Merek harus dipilih.',
+                'fsatuankecil.required' => 'Satuan Kecil harus dipilih.',
+                'fsatuanbesar.required' => 'Satuan Besar harus dipilih.',
+                'fsatuanbesar2.required' => 'Satuan Besar 2 harus dipilih.',
+                'fsatuandefault.required' => 'Satuan Default harus dipilih.',
+                'fqtykecil.required' => 'Qty Kecil harus diisi.',
+                'fqtykecil2.required' => 'Qty Kecil 2 harus diisi.',
+            ]
+        );
 
-        $validated['fcreatedby'] = "User yang membuat"; // You can replace this with the authenticated user's name
-        $validated['fupdatedby'] = $validated['fcreatedby']; // Same for the updatedby field
-        $validated['fcreatedat'] = now(); // Use the current time
+        if ($request->has('approve_now')) {
+            $validated['fapproval'] = auth('sysuser')->user()->fname ?? null;
+        } else {
+            $validated['fapproval'] = null;
+        }
+
+        $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
         $validated['fupdatedat'] = now(); // Use the current time
 
         $validated['fnonactive'] = '0';
-        // Find and update the Product
         $product = Product::findOrFail($fproductid);
         $product->update($validated);
 

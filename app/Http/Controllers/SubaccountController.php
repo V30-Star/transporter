@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Subaccount;    
+use App\Models\Subaccount;
 use Illuminate\Http\Request;
 
 class SubaccountController extends Controller
@@ -15,12 +15,12 @@ class SubaccountController extends Controller
 
         $search = $request->search;
 
-        $subaccounts = Subaccount::when($search, function($q) use ($filterBy, $search) {
-                $q->where($filterBy, 'ILIKE', '%'.$search.'%');
-            })
+        $subaccounts = Subaccount::when($search, function ($q) use ($filterBy, $search) {
+            $q->where($filterBy, 'ILIKE', '%' . $search . '%');
+        })
             ->orderBy('fsubaccountid', 'desc')
             ->paginate(10)
-            ->withQueryString(); 
+            ->withQueryString();
 
         return view('subaccount.index', compact('subaccounts', 'filterBy', 'search'));
     }
@@ -32,21 +32,21 @@ class SubaccountController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'fsubaccountcode' => 'required|string|unique:mssubaccount,fsubaccountcode',
-            'fsubaccountname' => 'required|string',
-        ],
-        [
-            'fsubaccountcode.required' => 'Kode subaccount harus diisi.',
-            'fsubaccountname.required' => 'Nama subaccount harus diisi.',
-            'fsubaccountcode.unique' => 'Kode subaccount sudah ada.',
-        ]);
+        $validated = $request->validate(
+            [
+                'fsubaccountcode' => 'required|string|unique:mssubaccount,fsubaccountcode',
+                'fsubaccountname' => 'required|string',
+            ],
+            [
+                'fsubaccountcode.required' => 'Kode subaccount harus diisi.',
+                'fsubaccountname.required' => 'Nama subaccount harus diisi.',
+                'fsubaccountcode.unique' => 'Kode subaccount sudah ada.',
+            ]
+        );
 
         // Add default values for the required fields
-        $validated['fcreatedby'] = "User yang membuat"; // Use the authenticated user's name or 'system' as default
-        $validated['fupdatedby'] = $validated['fcreatedby']; // Same for the updatedby field
+        $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null; // Use the authenticated user's name or 'system' as default
         $validated['fcreatedat'] = now(); // Use the current time
-        $validated['fupdatedat'] = now(); // Use the current time
 
         $validated['fnonactive'] = '0';
 
@@ -72,19 +72,22 @@ class SubaccountController extends Controller
     public function update(Request $request, $fsubaccountid)
     {
         // Validasi
-        $validated = $request->validate([
-            'fsubaccountcode' => "required|string|unique:mssubaccount,fsubaccountcode,{$fsubaccountid},fsubaccountid",
-            'fsubaccountname' => 'required|string',
-        ],
-        [
-            'fsubaccountcode.required' => 'Kode subaccount harus diisi.',
-            'fsubaccountname.required' => 'Nama subaccount harus diisi.',
-            'fsubaccountcode.unique' => 'Kode subaccount sudah ada.',
-        ]);
+        $validated = $request->validate(
+            [
+                'fsubaccountcode' => "required|string|unique:mssubaccount,fsubaccountcode,{$fsubaccountid},fsubaccountid",
+                'fsubaccountname' => 'required|string',
+            ],
+            [
+                'fsubaccountcode.required' => 'Kode subaccount harus diisi.',
+                'fsubaccountname.required' => 'Nama subaccount harus diisi.',
+                'fsubaccountcode.unique' => 'Kode subaccount sudah ada.',
+            ]
+        );
 
         $validated['fnonactive'] = '0';
+        $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null; // Use the authenticated user's name or 'system' as default
+        $validated['fupdatedat'] = now(); // Use the current time
 
-        // Cari dan update
         $subaccount = Subaccount::findOrFail($fsubaccountid);
         $subaccount->update($validated);
 

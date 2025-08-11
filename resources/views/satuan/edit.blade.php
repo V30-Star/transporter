@@ -14,7 +14,8 @@
                 <div>
                     <label class="block text-sm font-medium">Kode Satuan</label>
                     <input type="text" name="fsatuancode" value="{{ old('fsatuancode', $satuan->fsatuancode) }}"
-                        class="w-full border rounded px-3 py-2 @error('fsatuancode') border-red-500 @enderror">
+                        class="w-full border rounded px-3 py-2 @error('fsatuancode') border-red-500 @enderror"
+                        maxlength="3">
                     @error('fsatuancode')
                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                     @enderror

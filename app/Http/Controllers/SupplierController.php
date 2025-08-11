@@ -53,10 +53,8 @@ class SupplierController extends Controller
         ]);
 
         // Add default values for the required fields
-        $validated['fcreatedby'] = "User yang membuat"; // Use the authenticated user's name or 'system' as default
-        $validated['fupdatedby'] = $validated['fcreatedby']; // Same for the updatedby field
+        $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null; // Use the authenticated user's name or 'system' as default
         $validated['fcreatedat'] = now(); // Use the current time
-        $validated['fupdatedat'] = now(); // Use the current time
 
         $validated['fnonactive'] = '0';
 
@@ -101,6 +99,8 @@ class SupplierController extends Controller
         ]);
 
         $validated['fnonactive'] = '0';
+        $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null; // Use the authenticated user's name or 'system' as default
+        $validated['fupdatedat'] = now(); // Use the current time
 
         // Find and update the Supplier
         $supplier = Supplier::findOrFail($fsupplierid);

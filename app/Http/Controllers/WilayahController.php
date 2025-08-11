@@ -53,10 +53,8 @@ class WilayahController extends Controller
             'fwilayahcode.unique' => 'Kode wilayah sudah ada, silakan gunakan kode lain.',
         ]);
 
-        $validated['fcreatedby'] = "User yang membuat";
-        $validated['fupdatedby'] = $validated['fcreatedby'];
+        $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null;
         $validated['fcreatedat'] = now();
-        $validated['fupdatedat'] = now();
 
         $validated['fnonactive'] = '0';
 
@@ -86,6 +84,8 @@ class WilayahController extends Controller
         ]);
 
         $validated['fnonactive'] = '0';
+        $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
+        $validated['fupdatedat'] = now();
 
         $wilayah = Wilayah::findOrFail($fwilayahid);
         $wilayah->update($validated);
