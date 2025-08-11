@@ -56,6 +56,7 @@ class AccountController extends Controller
 
         // Add default values for the required fields
         $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null;  // Use the authenticated user's ID
+        $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? 'system';  // Fallback jika tidak ada
         $validated['fcreatedat'] = now(); // Set current time
 
         $validated['fnonactive'] = '0';

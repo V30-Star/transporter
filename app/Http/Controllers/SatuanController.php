@@ -46,6 +46,7 @@ class SatuanController extends Controller
 
         // Add default values for the required fields
         $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null; // Use the authenticated user's name or 'system' as default
+        $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? 'system';  // Fallback jika tidak ada
         $validated['fcreatedat'] = now(); // Use the current time
 
         // Handle the checkbox for 'fnonactive' (1 = checked, 0 = unchecked)

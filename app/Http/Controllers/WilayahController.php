@@ -54,6 +54,7 @@ class WilayahController extends Controller
         ]);
 
         $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null;
+        $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? 'system';  // Fallback jika tidak ada
         $validated['fcreatedat'] = now();
 
         $validated['fnonactive'] = '0';

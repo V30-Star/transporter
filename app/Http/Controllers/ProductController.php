@@ -71,7 +71,7 @@ class ProductController extends Controller
                 'fsatuandefault' => 'required|in:1,2,3', // Validate Satuan Default field
                 'fqtykecil' => 'required|numeric', // Validate quantity for Satuan 1
                 'fqtykecil2' => 'required|numeric', // Validate quantity for Satuan 3
-                'fhpp' => 'nullable|numeric', // Validate if nonactive is checked
+                'fhpp' => 'nullable', // Validate if nonactive is checked
                 'fhargasatuankecillevel1' => 'nullable|numeric', // Validate if nonactive is checked
                 'fhargasatuankecillevel2' => 'nullable|numeric', // Validate if nonactive is checked
                 'fhargasatuankecillevel3' => 'nullable|numeric', // Validate if nonactive is checked
@@ -103,6 +103,7 @@ class ProductController extends Controller
         $validated['fapproval'] = auth('sysuser')->user()->fname ?? null;
 
         $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null;
+        $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? 'system';  // Fallback jika tidak ada
         $validated['fcreatedat'] = now(); // Use the current time
 
         $validated['fnonactive'] = '0';
@@ -142,7 +143,7 @@ class ProductController extends Controller
                 'fsatuandefault' => 'required|in:1,2,3', // Validate Satuan Default field
                 'fqtykecil' => 'required|numeric', // Validate quantity for Satuan 1
                 'fqtykecil2' => 'required|numeric', // Validate quantity for Satuan 3
-                'fhpp' => 'nullable|numeric', // Validate if nonactive is checked
+                'fhpp' => 'nullable', // Validate if nonactive is checked
                 'fhargasatuankecillevel1' => 'nullable|numeric', // Validate if nonactive is checked
                 'fhargasatuankecillevel2' => 'nullable|numeric', // Validate if nonactive is checked
                 'fhargasatuankecillevel3' => 'nullable|numeric', // Validate if nonactive is checked

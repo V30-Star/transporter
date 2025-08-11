@@ -289,7 +289,8 @@
                         <!-- Harga Pokok Produksi -->
                         <div class="mt-2 w-1/4">
                             <label class="block text-sm font-medium">Harga Pokok Produksi</label>
-                            <input type="text" name="fhpp" value="{{ old('fhpp', $product->fhpp) }}"
+                            <input type="text" name="fhpp" id="fhpp"
+                                value="{{ old('fhpp', $product->fhpp) }}"
                                 class="w-full border rounded px-3 py-2 @error('fhpp') border-red-500 @enderror">
                             @error('fhpp')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -302,7 +303,7 @@
                                 <label for="fhargasatuankecillevel1" class="block text-sm font-medium">HJ. Kecil Level
                                     1</label>
                                 <div class="d-flex">
-                                    <input type="number"
+                                    <input type="text"
                                         class="w-1/4 border rounded px-3 py-2 @error('fhargasatuankecillevel1') is-invalid @enderror"
                                         name="fhargasatuankecillevel1" id="fhargasatuankecillevel1"
                                         value="{{ old('fhargasatuankecillevel1', $product->fhargasatuankecillevel1) }}">
@@ -319,7 +320,7 @@
                                 <label for="fhargasatuankecillevel2" class="block text-sm font-medium">HJ. Kecil Level
                                     2</label>
                                 <div class="d-flex">
-                                    <input type="number"
+                                    <input type="text"
                                         class="w-1/4 border rounded px-3 py-2 @error('fhargasatuankecillevel2') is-invalid @enderror"
                                         name="fhargasatuankecillevel2" id="fhargasatuankecillevel2"
                                         value="{{ old('fhargasatuankecillevel2', $product->fhargasatuankecillevel2) }}">
@@ -336,7 +337,7 @@
                                 <label for="fhargasatuankecillevel3" class="block text-sm font-medium">HJ. Kecil Level
                                     3</label>
                                 <div class="d-flex">
-                                    <input type="number"
+                                    <input type="text"
                                         class="w-1/4 border rounded px-3 py-2 @error('fhargasatuankecillevel3') is-invalid @enderror"
                                         name="fhargasatuankecillevel3" id="fhargasatuankecillevel3"
                                         value="{{ old('fhargasatuankecillevel3', $product->fhargasatuankecillevel3) }}">
@@ -355,7 +356,7 @@
                                 <label for="fhargajuallevel1" class="block text-sm font-medium">HJ. Besar Level
                                     1</label>
                                 <div class="d-flex">
-                                    <input type="number"
+                                    <input type="text"
                                         class="w-1/4 border rounded px-3 py-2 @error('fhargajuallevel1') is-invalid @enderror"
                                         name="fhargajuallevel1" id="fhargajuallevel1"
                                         value="{{ old('fhargajuallevel1', $product->fhargajuallevel1) }}">
@@ -372,7 +373,7 @@
                                 <label for="fhargajuallevel2" class="block text-sm font-medium">HJ. Besar Level
                                     2</label>
                                 <div class="d-flex">
-                                    <input type="number"
+                                    <input type="text"
                                         class="w-1/4 border rounded px-3 py-2 @error('fhargajuallevel2') is-invalid @enderror"
                                         name="fhargajuallevel2" id="fhargajuallevel2"
                                         value="{{ old('fhargajuallevel2', $product->fhargajuallevel2) }}">
@@ -389,7 +390,7 @@
                                 <label for="fhargajuallevel3" class="block text-sm font-medium">HJ. Besar Level
                                     3</label>
                                 <div class="d-flex">
-                                    <input type="number"
+                                    <input type="text"
                                         class="w-1/4 border rounded px-3 py-2 @error('fhargajuallevel3') is-invalid @enderror"
                                         name="fhargajuallevel3" id="fhargajuallevel3"
                                         value="{{ old('fhargajuallevel3', $product->fhargajuallevel3) }}">
@@ -468,6 +469,8 @@
 <link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet" />
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/autonumeric/4.8.1/autoNumeric.min.js"></script>
+
 
 <script>
     $(document).ready(function() {
@@ -475,6 +478,21 @@
             placeholder: '-- Pilih Group Produk --',
             allowClear: true
         });
+
+        let fhpp = new AutoNumeric('#fhpp', 'commaDecimalCharDotSeparator');
+        let fhargasatuankecillevel1 = new AutoNumeric('#fhargasatuankecillevel1',
+            'commaDecimalCharDotSeparator');
+        let hargasatuankecillevel2 = new AutoNumeric('#fhargasatuankecillevel2',
+            'commaDecimalCharDotSeparator');
+        let hargasatuankecillevel3 = new AutoNumeric('#fhargasatuankecillevel3',
+            'commaDecimalCharDotSeparator');
+        let hargajuallevel1 = new AutoNumeric('#fhargajuallevel1', 'commaDecimalCharDotSeparator');
+        let hargajuallevel2 = new AutoNumeric('#fhargajuallevel2', 'commaDecimalCharDotSeparator');
+        let hargajuallevel3 = new AutoNumeric('#fhargajuallevel3', 'commaDecimalCharDotSeparator');
+        let hargajual2level1 = new AutoNumeric('#fhargajual2level1', 'commaDecimalCharDotSeparator');
+        let hargajual2level2 = new AutoNumeric('#fhargajual2level2', 'commaDecimalCharDotSeparator');
+        let hargajual2level3 = new AutoNumeric('#fhargajual2level3', 'commaDecimalCharDotSeparator');
+
     });
 </script>
 

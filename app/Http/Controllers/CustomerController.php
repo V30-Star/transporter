@@ -123,6 +123,7 @@ class CustomerController extends Controller
         $validated['fapproval'] = auth('sysuser')->user()->fname ?? null;
 
         $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null;
+        $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? 'system';  // Fallback jika tidak ada
         $validated['fcreatedat'] = now();
 
         $validated['fnonactive'] = '0';
@@ -205,7 +206,7 @@ class CustomerController extends Controller
         ]);
         $customer = Customer::findOrFail($fcustomerid);
         $validated['fcustomercode'] = $request->fcustomercode ?? $customer->fcustomercode;
-        
+
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
         $validated['fupdatedat'] = now();
 
