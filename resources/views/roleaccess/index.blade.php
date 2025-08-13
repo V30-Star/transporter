@@ -38,6 +38,24 @@
                 <!-- Hidden field for fuid -->
                 <input type="hidden" name="fuid" value="{{ $user->fuid }}">
 
+                {{-- ...above your Permissions Table --}}
+                <div class="form-group mb-4 flex items-end gap-2">
+                    <div class="flex-1">
+                        <label for="copy_from_user" class="form-label">Copy permissions from user</label>
+                        <select id="copy_from_user" class="form-control">
+                            <option value="">-- Choose user --</option>
+                            @foreach ($allUsers as $u)
+                                <option value="{{ $u->fuid }}">{{ $u->fsysuserid }} — {{ $u->fname }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <button type="button" onclick="copyFromUser()"
+                        class="inline-flex items-center bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
+                        Copy
+                    </button>
+                </div>
+
                 <!-- Permissions Table -->
                 <div class="form-group mb-4">
                     <table class="table table-bordered w-40">
@@ -599,7 +617,7 @@
         function checkAllCheckboxes() {
             var checkboxes = document.querySelectorAll('input[type="checkbox"]');
             checkboxes.forEach(function(checkbox) {
-                checkbox.checked = true; 
+                checkbox.checked = true;
             });
         }
 
@@ -610,4 +628,33 @@
             });
         }
     </script>
+
+    <script>
+        async function copyFromUser() {
+            const select = document.getElementById('copy_from_user');
+            const sourceFuid = select.value;
+            if (!sourceFuid) return;
+
+            const url = "{{ route('roleaccess.permissions', ['fuid' => '__FUID__']) }}".replace('__FUID__',
+            sourceFuid);
+
+            try {
+                const res = await fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                if (!res.ok) throw new Error('Failed to load permissions');
+                const data = await res.json();
+
+                const selected = new Set(data.permissions || []);
+                document.querySelectorAll('input[type="checkbox"][name="permission[]"]').forEach(cb => {
+                    cb.checked = selected.has(cb.value);
+                });
+            } catch (e) {
+                alert(e.message || 'Could not copy permissions.');
+            }
+        }
+    </script>
+
 @endsection

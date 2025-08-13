@@ -145,6 +145,13 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/roleaccess/{fuid}', [RoleAccessController::class, 'index'])->name('roleaccess.index');
         Route::post('/roleaccess', [RoleAccessController::class, 'store'])->name('roleaccess.store');
+        // AJAX untuk tombol "Copy"
+        Route::get('/roleaccess/{fuid}/permissions', [RoleAccessController::class, 'getPermissions'])
+            ->name('roleaccess.permissions');
+
+        // One-click "Clone & Save"
+        Route::post('/roleaccess/clone', [RoleAccessController::class, 'cloneToUser'])
+            ->name('roleaccess.clone');
 
         Route::get('/customer/create', [CustomerController::class, 'create'])->name('customer.create');
     });

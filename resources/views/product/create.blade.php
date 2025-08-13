@@ -248,7 +248,7 @@
                                     <label class="block text-sm font-medium">Isi</label>
                                     <input type="number"
                                         class="w-full border rounded px-3 py-2 @error('fqtykecil') border-red-500 @enderror"
-                                        name="fqtykecil" id="fqtykecil" value="{{ old('fqtykecil') }}">
+                                        name="fqtykecil" id="fqtykecil" value="{{ old('fqtykecil', 0) }}">
                                     @error('fqtykecil')
                                         <div class="text-red-600 text-sm mt-1">
                                             {{ $message }}
@@ -286,7 +286,7 @@
                                     <label class="block text-sm font-medium">Isi</label>
                                     <input type="number"
                                         class="w-full border rounded px-3 py-2 @error('fqtykecil2') border-red-500 @enderror"
-                                        name="fqtykecil2" id="fqtykecil2" value="{{ old('fqtykecil2') }}">
+                                        name="fqtykecil2" id="fqtykecil2" value="{{ old('fqtykecil2', 0) }}">
                                     @error('fqtykecil2')
                                         <div class="text-red-600 text-sm mt-1">
                                             {{ $message }}
@@ -312,10 +312,10 @@
                             @enderror
                         </div>
 
-                        <!-- Harga Pokok Produksi -->
+                        <!-- Harga Pokok Penjualan -->
                         <div class="mt-2 w-1/4">
-                            <label class="block text-sm font-medium">Harga Pokok Produksi</label>
-                            <input type="text" name="fhpp" id="fhpp" value="{{ old('fhpp') }}"
+                            <label class="block text-sm font-medium">Harga Pokok Penjualan</label>
+                            <input type="text" name="fhpp" id="fhpp" value="{{ old('fhpp', 0) }}"
                                 class="w-full border rounded px-3 py-2 @error('fhpp') border-red-500 @enderror">
                             @error('fhpp')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -329,7 +329,7 @@
                                     1</label>
                                 <div class="d-flex">
                                     <input type="text"
-                                        class="w-1/4 border rounded px-3 py-2 @error('fhargasatuankecillevel1') is-invalid @enderror"
+                                        class="w-1/2 border rounded px-3 py-2 @error('fhargasatuankecillevel1') is-invalid @enderror"
                                         name="fhargasatuankecillevel1" id="fhargasatuankecillevel1"
                                         value="{{ old('fhargasatuankecillevel1', 0) }}">
                                     @error('fhargasatuankecillevel1')
@@ -346,7 +346,7 @@
                                     2</label>
                                 <div class="d-flex">
                                     <input type="text"
-                                        class="w-1/4 border rounded px-3 py-2 @error('fhargasatuankecillevel2') is-invalid @enderror"
+                                        class="w-1/2 border rounded px-3 py-2 @error('fhargasatuankecillevel2') is-invalid @enderror"
                                         name="fhargasatuankecillevel2" id="fhargasatuankecillevel2"
                                         value="{{ old('fhargasatuankecillevel2', 0) }}">
                                     @error('fhargasatuankecillevel2')
@@ -363,7 +363,7 @@
                                     3</label>
                                 <div class="d-flex">
                                     <input type="text"
-                                        class="w-1/4 border rounded px-3 py-2 @error('fhargasatuankecillevel3') is-invalid @enderror"
+                                        class="w-1/2 border rounded px-3 py-2 @error('fhargasatuankecillevel3') is-invalid @enderror"
                                         name="fhargasatuankecillevel3" id="fhargasatuankecillevel3"
                                         value="{{ old('fhargasatuankecillevel3', 0) }}">
                                     @error('fhargasatuankecillevel3')
@@ -382,7 +382,7 @@
                                     1</label>
                                 <div class="d-flex">
                                     <input type="text"
-                                        class="w-1/4 border rounded px-3 py-2 @error('fhargajuallevel1') is-invalid @enderror"
+                                        class="w-1/2 border rounded px-3 py-2 @error('fhargajuallevel1') is-invalid @enderror"
                                         name="fhargajuallevel1" id="fhargajuallevel1"
                                         value="{{ old('fhargajuallevel1', 0) }}">
                                     @error('fhargajuallevel1')
@@ -399,7 +399,7 @@
                                     2</label>
                                 <div class="d-flex">
                                     <input type="text"
-                                        class="w-1/4 border rounded px-3 py-2 @error('fhargajuallevel2') is-invalid @enderror"
+                                        class="w-1/2 border rounded px-3 py-2 @error('fhargajuallevel2') is-invalid @enderror"
                                         name="fhargajuallevel2" id="fhargajuallevel2"
                                         value="{{ old('fhargajuallevel2', 0) }}">
                                     @error('fhargajuallevel2')
@@ -416,7 +416,7 @@
                                     3</label>
                                 <div class="d-flex">
                                     <input type="text"
-                                        class="w-1/4 border rounded px-3 py-2 @error('fhargajuallevel3') is-invalid @enderror"
+                                        class="w-1/2 border rounded px-3 py-2 @error('fhargajuallevel3') is-invalid @enderror"
                                         name="fhargajuallevel3" id="fhargajuallevel3"
                                         value="{{ old('fhargajuallevel3', 0) }}">
                                     @error('fhargajuallevel3')
@@ -431,7 +431,7 @@
                         <!-- Min.Stok -->
                         <div class="mt-2 w-1/4">
                             <label class="block text-sm font-medium">Min.Stok</label>
-                            <input type="text" name="fminstock" value="{{ old('fminstock') }}"
+                            <input type="text" name="fminstock" value="{{ old('fminstock', 0) }}"
                                 class="w-full border rounded px-3 py-2 @error('fminstock') border-red-500 @enderror">
                             @error('fminstock')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
