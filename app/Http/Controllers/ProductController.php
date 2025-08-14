@@ -61,24 +61,24 @@ class ProductController extends Controller
             [
                 'fproductcode' => 'nullable|string',
                 'fproductname' => 'required|string',
-                'ftype' => 'required|string',
-                'fbarcode' => 'required|string',
+                'ftype' => 'string',
+                'fbarcode' => 'string',
                 'fgroupcode' => 'required', // Validate the Group Produk field
-                'fmerek' => 'required', // Validate the Merek field
-                'fsatuankecil' => 'required', // Validate Satuan 1 field
-                'fsatuanbesar' => 'required', // Validate Satuan 2 field
-                'fsatuanbesar2' => 'required', // Validate Satuan 3 field
-                'fsatuandefault' => 'required|in:1,2,3', // Validate Satuan Default field
-                'fqtykecil' => 'required|numeric', // Validate quantity for Satuan 1
-                'fqtykecil2' => 'required|numeric', // Validate quantity for Satuan 3
-                'fhpp' => 'nullable', // Validate if nonactive is checked
-                'fhargasatuankecillevel1' => 'nullable|numeric', // Validate if nonactive is checked
-                'fhargasatuankecillevel2' => 'nullable|numeric', // Validate if nonactive is checked
-                'fhargasatuankecillevel3' => 'nullable|numeric', // Validate if nonactive is checked
-                'fhargajuallevel1' => 'nullable|numeric', // Validate if nonactive is checked
-                'fhargajuallevel2' => 'nullable|numeric', // Validate if nonactive is checked
-                'fhargajuallevel3' => 'nullable|numeric', // Validate if nonactive is checked
-                'fminstock' => 'nullable|numeric', // Validate if nonactive is checked
+                'fmerek' => '', // Validate the Merek field
+                'fsatuankecil' => '', // Validate Satuan 1 field
+                'fsatuanbesar' => '', // Validate Satuan 2 field
+                'fsatuanbesar2' => '', // Validate Satuan 3 field
+                'fsatuandefault' => 'in:1,2,3', // Validate Satuan Default field
+                'fqtykecil' => 'numeric', // Validate quantity for Satuan 1
+                'fqtykecil2' => 'numeric', // Validate quantity for Satuan 3
+                'fhpp' => '', // Validate if nonactive is checked
+                'fhargasatuankecillevel1' => '', // Validate if nonactive is checked
+                'fhargasatuankecillevel2' => '', // Validate if nonactive is checked
+                'fhargasatuankecillevel3' => '', // Validate if nonactive is checked
+                'fhargajuallevel1' => '', // Validate if nonactive is checked
+                'fhargajuallevel2' => '', // Validate if nonactive is checked
+                'fhargajuallevel3' => '', // Validate if nonactive is checked
+                'fminstock' => 'numeric', // Validate if nonactive is checked
             ],
             [
                 'fproductcode.unique' => 'Kode Produk sudah ada, silakan gunakan kode yang lain.',
@@ -93,6 +93,12 @@ class ProductController extends Controller
                 'fsatuandefault.required' => 'Satuan Default harus dipilih.',
                 'fqtykecil.required' => 'Qty Kecil harus diisi.',
                 'fqtykecil2.required' => 'Qty Kecil 2 harus diisi.',
+                'fhargasatuankecillevel1.required' => 'Harga Satuan 1 harus diisi.',
+                'fhargasatuankecillevel2.required' => 'Harga Satuan 2 harus diisi.',
+                'fhargasatuankecillevel3.required' => 'Harga Satuan 3 harus diisi.',
+                'fhargajuallevel1.required' => 'Harga Satuan 1 harus diisi.',
+                'fhargajuallevel2.required' => 'Harga Satuan 2 harus diisi.',
+                'fminstock.required' => 'Harga Satuan 3 harus diisi.',
             ]
         );
 
@@ -133,24 +139,24 @@ class ProductController extends Controller
             [
                 'fproductcode' => "required|string|unique:msproduct,fproductcode,{$fproductid},fproductid",
                 'fproductname' => 'required|string',
-                'ftype' => 'required|string',
-                'fbarcode' => 'required|string',
+                'ftype' => 'string',
+                'fbarcode' => 'string',
                 'fgroupcode' => 'required', // Validate the Group Produk field
-                'fmerek' => 'required', // Validate the Merek field
-                'fsatuankecil' => 'required', // Validate Satuan 1 field
-                'fsatuanbesar' => 'required', // Validate Satuan 2 field
-                'fsatuanbesar2' => 'required', // Validate Satuan 3 field
-                'fsatuandefault' => 'required|in:1,2,3', // Validate Satuan Default field
-                'fqtykecil' => 'required|numeric', // Validate quantity for Satuan 1
-                'fqtykecil2' => 'required|numeric', // Validate quantity for Satuan 3
-                'fhpp' => 'nullable', // Validate if nonactive is checked
-                'fhargasatuankecillevel1' => 'nullable|numeric', // Validate if nonactive is checked
-                'fhargasatuankecillevel2' => 'nullable|numeric', // Validate if nonactive is checked
-                'fhargasatuankecillevel3' => 'nullable|numeric', // Validate if nonactive is checked
-                'fhargajuallevel1' => 'nullable|numeric', // Validate if nonactive is checked
-                'fhargajuallevel2' => 'nullable|numeric', // Validate if nonactive is checked
-                'fhargajuallevel3' => 'nullable|numeric', // Validate if nonactive is checked
-                'fminstock' => 'nullable|numeric', // Validate if nonactive is checked
+                'fmerek' => '', // Validate the Merek field
+                'fsatuankecil' => '', // Validate Satuan 1 field
+                'fsatuanbesar' => '', // Validate Satuan 2 field
+                'fsatuanbesar2' => '', // Validate Satuan 3 field
+                'fsatuandefault' => 'in:1,2,3', // Validate Satuan Default field
+                'fqtykecil' => 'numeric', // Validate quantity for Satuan 1
+                'fqtykecil2' => 'numeric', // Validate quantity for Satuan 3
+                'fhpp' => '', // Validate if nonactive is checked
+                'fhargasatuankecillevel1' => '', // Validate if nonactive is checked
+                'fhargasatuankecillevel2' => '', // Validate if nonactive is checked
+                'fhargasatuankecillevel3' => '', // Validate if nonactive is checked
+                'fhargajuallevel1' => '', // Validate if nonactive is checked
+                'fhargajuallevel2' => '', // Validate if nonactive is checked
+                'fhargajuallevel3' => '', // Validate if nonactive is checked
+                'fminstock' => 'numeric', // Validate if nonactive is checked
             ],
             [
                 'fproductcode.unique' => 'Kode Produk sudah ada, silakan gunakan kode yang lain.',
@@ -165,6 +171,12 @@ class ProductController extends Controller
                 'fsatuandefault.required' => 'Satuan Default harus dipilih.',
                 'fqtykecil.required' => 'Qty Kecil harus diisi.',
                 'fqtykecil2.required' => 'Qty Kecil 2 harus diisi.',
+                'fhargasatuankecillevel1.required' => 'Harga Satuan 1 harus diisi.',
+                'fhargasatuankecillevel2.required' => 'Harga Satuan 2 harus diisi.',
+                'fhargasatuankecillevel3.required' => 'Harga Satuan 3 harus diisi.',
+                'fhargajuallevel1.required' => 'Harga Satuan 1 harus diisi.',
+                'fhargajuallevel2.required' => 'Harga Satuan 2 harus diisi.',
+                'fminstock.required' => 'Harga Satuan 3 harus diisi.',
             ]
         );
 
