@@ -4,8 +4,6 @@
 
 @section('content')
     <div class="bg-white rounded shadow p-4">
-        <h2 class="text-2xl font-semibold mb-6">Daftar Group Customer</h2>
-
         {{-- Search & Filter Form --}}
         <form method="GET" action="{{ route('groupcustomer.index') }}"
             class="flex flex-wrap justify-between items-center mb-4 gap-2">

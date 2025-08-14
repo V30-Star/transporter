@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Master Groupproduct')
+@section('title', 'Master Group Product')
 
 @section('content')
     <div x-data="{
