@@ -3,14 +3,14 @@
 @section('title', 'Edit Rekening')
 
 @section('content')
-    <div class="bg-white rounded shadow p-4 max-w-2xl mx-auto">
+    <div class="bg-white rounded shadow p-6 md:p-8 max-w-[700px] mx-auto">
         <h2 class="text-2xl font-semibold mb-6">Edit Rekening</h2>
 
         <form action="{{ route('rekening.update', $rekening->frekeningid) }}" method="POST">
             @csrf
             @method('PATCH')
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="space-y-4 mt-4">
                 <!-- Rekening Code -->
                 <div>
                     <label class="block text-sm font-medium">Kode Rekening</label>

@@ -3,14 +3,14 @@
 @section('title', 'Edit Salesman')
 
 @section('content')
-    <div class="bg-white rounded shadow p-4 max-w-2xl mx-auto">
+    <div class="bg-white rounded shadow p-6 md:p-8 max-w-[700px] mx-auto">
         <h2 class="text-2xl font-semibold mb-6">Edit Salesman</h2>
 
         <form action="{{ route('salesman.update', $salesman->fsalesmanid) }}" method="POST">
             @csrf
             @method('PATCH')
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="space-y-4 mt-4">
                 <div>
                     <label class="block text-sm font-medium">Kode Salesman</label>
                     <input type="text" name="fsalesmancode" value="{{ old('fsalesmancode', $salesman->fsalesmancode) }}"

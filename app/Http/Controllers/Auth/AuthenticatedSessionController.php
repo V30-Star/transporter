@@ -53,9 +53,9 @@ class AuthenticatedSessionController extends Controller
             return redirect()->intended(RouteServiceProvider::HOME);
         }
 
-        return back()->withErrors([
-            'fsysuserid' => __('auth.failed'),
-        ]);
+        return back()
+            ->withErrors(['password' => 'Username atau password salah.'])
+            ->onlyInput('fsysuserid');
     }
 
     /**

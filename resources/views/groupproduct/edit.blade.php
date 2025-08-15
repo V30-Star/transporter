@@ -1,16 +1,16 @@
 @extends('layouts.app')
 
-@section('title', 'Edit Groupproduct')
+@section('title', 'Edit Group Product')
 
 @section('content')
-    <div class="bg-white rounded shadow p-4 max-w-2xl mx-auto">
-        <h2 class="text-2xl font-semibold mb-6">Edit Groupproduct</h2>
+    <div class="bg-white rounded shadow p-6 md:p-8 max-w-[700px] mx-auto">
+        <h2 class="text-2xl font-semibold mb-6">Edit Group Product</h2>
 
         <form action="{{ route('groupproduct.update', $groupproduct->fgroupid) }}" method="POST">
             @csrf
             @method('PATCH')
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="space-y-4 mt-4">
                 <div>
                     <label class="block text-sm font-medium">Kode Group</label>
                     <input type="text" name="fgroupcode" value="{{ old('fgroupcode', $groupproduct->fgroupcode) }}"

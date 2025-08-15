@@ -3,7 +3,7 @@
 @section('title', 'Edit Account')
 
 @section('content')
-    <div class="bg-white rounded shadow p-4 max-w-2xl mx-auto">
+    <div class="bg-white rounded shadow p-6 md:p-8 max-w-5xl mx-auto">
         <h2 class="text-2xl font-semibold mb-6">Edit Account</h2>
 
         <form action="{{ route('account.update', $account->faccid) }}" method="POST">

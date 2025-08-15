@@ -12,7 +12,7 @@
         this.deleteUrl = null;
     }
 }">
-    @section('title', 'Master Customer')
+    @section('title', 'Master Sysuser')
 
     @section('content')
         <div class="bg-white rounded shadow p-4">

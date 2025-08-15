@@ -35,10 +35,6 @@ class WilayahController extends Controller
     }
     public function create()
     {
-        if (in_array('createWilayah', $this->restrictedPermission)) {
-            return redirect('dashboard')->with('error', 'You do not have permission to view this page');
-        }
-
         return view('master.wilayah.create');
     }
 

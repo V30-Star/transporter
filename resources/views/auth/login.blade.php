@@ -5,20 +5,17 @@
     <form method="POST" action="{{ route('login') }}">
         @csrf
 
-        <!-- Email Address -->
         <div class="mb-4">
             <label for="fsysuserid" class="block text-gray-700 text-sm font-bold mb-2">Username</label>
             <input id="fsysuserid" class="w-full px-3 py-2 border rounded-md" type="text" name="fsysuserid"
-                :value="old('fsysuserid')" required autofocus>
+                value="{{ old('fsysuserid') }}" required autofocus>
+            <x-input-error :messages="$errors->get('fsysuserid')" class="mt-2" />
         </div>
 
-        <!-- Password -->
         <div class="mt-4">
             <x-input-label class="block text-gray-700 text-sm font-bold mb-2" for="password" :value="__('Password')" />
-
             <input id="password" class="w-full px-3 py-2 border rounded-md bg-white" type="password" name="password"
                 required autocomplete="current-password">
-
             <x-input-error :messages="$errors->get('password')" class="mt-2" />
         </div>
 
