@@ -5,8 +5,10 @@
 @section('content')
     <div x-data="{ open: true }">
         <div class="bg-white rounded shadow p-6 md:p-8 max-w-[700px] mx-auto">
-            <h2 class="text-2xl font-semibold mb-6">Tambah Group Customer</h2>
-
+            <h2 class="text-2xl font-semibold text-gray-800 flex items-center space-x-2">
+                <x-heroicon-o-user-plus class="w-6 h-6 text-blue-600" />
+                <span>Tambah Group Customer</span>
+            </h2>
             <form action="{{ route('groupcustomer.store') }}" method="POST">
                 @csrf
 
