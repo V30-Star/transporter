@@ -1,4 +1,4 @@
-<div class="w-64 bg-black text-white shadow-md">
+<div class="w-64 flex-shrink-0 bg-black text-white shadow-md overflow-y-auto">
     <div class="p-4 border-b">
         <h2 class="text-xl font-semibold">Laravel</h2>
     </div>

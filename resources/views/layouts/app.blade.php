@@ -31,13 +31,14 @@
     </head>
 
     <body class="bg-gray-100" style="font-family: 'Lato', sans-serif;">
-        <div class="flex h-screen">
+        <div class="flex min-h-screen">
 
-            <!-- Sidebar -->
-            <x-sidebar />
+            <div class="w-64 flex-shrink-0 bg-black text-white shadow-md overflow-y-auto">
+                <x-sidebar />
+            </div>
 
             <!-- Main Content -->
-            <div class="flex-1 overflow-auto flex flex-col">
+            <div class="flex-1 min-w-0 overflow-auto flex flex-col">
 
                 <!-- Header -->
                 <header class="bg-white shadow-sm p-4 flex justify-between items-center">
