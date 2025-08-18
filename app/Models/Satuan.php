@@ -15,12 +15,12 @@ class Satuan extends Model
     const CREATED_AT = 'fcreatedat';
     const UPDATED_AT = 'fupdatedat';
 
-    public function scopeSearch($query, $search) {
+    public function scopeSearch($query, $search)
+    {
         $query->when($search ?? false, function ($query, $search) {
             $query->where(function ($query) use ($search) {
-                $query->whereAny(['fsatuanid', 'fsatuancode'], 'like', '%' . $search . '%');
+                $query->whereAny(['fsatuanid', 'fsatuancode', 'fsatuanname'], 'like', '%' . $search . '%');
             });
         });
     }
 }
-

@@ -18,7 +18,7 @@ class Salesman extends Model
     public function scopeSearch($query, $search) {
         $query->when($search ?? false, function ($query, $search) {
             $query->where(function ($query) use ($search) {
-                $query->whereAny(['fsalesmanid', 'fsalesmanname'], 'like', '%' . $search . '%');
+                $query->whereAny(['fsalesmancode', 'fsalesmanname'], 'like', '%' . $search . '%');
             });
         });
     }

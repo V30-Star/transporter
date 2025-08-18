@@ -1,10 +1,10 @@
 @extends('layouts.app')
 
-@section('title', 'Edit Salesman')
+@section('title', 'Master Salesman')
 
 @section('content')
     <div class="bg-white rounded shadow p-6 md:p-8 max-w-[700px] mx-auto">
-        <h2 class="text-2xl font-semibold mb-6">Edit Salesman</h2>
+        <h2 class="text-2xl font-semibold mb-6">Salesman Edit</h2>
 
         <form action="{{ route('salesman.update', $salesman->fsalesmanid) }}" method="POST">
             @csrf

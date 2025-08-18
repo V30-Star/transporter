@@ -1,10 +1,10 @@
 @extends('layouts.app')
 
-@section('title', 'Edit Account')
+@section('title', 'Master Account')
 
 @section('content')
     <div class="bg-white rounded shadow p-6 md:p-8 max-w-5xl mx-auto">
-        <h2 class="text-2xl font-semibold mb-6">Edit Account</h2>
+        <h2 class="text-2xl font-semibold mb-6">Account Edit</h2>
 
         <form action="{{ route('account.update', $account->faccid) }}" method="POST">
             @csrf

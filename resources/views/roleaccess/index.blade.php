@@ -45,7 +45,7 @@
                         <select id="copy_from_user" class="form-control">
                             <option value="">-- Choose user --</option>
                             @foreach ($allUsers as $u)
-                                <option value="{{ $u->fuid }}">{{ $u->fsysuserid }} — {{ $u->fname }}</option>
+                                <option value="{{ $u->fuid }}">{{ $u->fsysuserid }}</option>
                             @endforeach
                         </select>
                     </div>

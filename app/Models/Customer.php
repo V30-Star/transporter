@@ -27,7 +27,7 @@ class Customer extends Model
     {
         return $query->when($search, function ($query) use ($search) {
             $query->where(function ($query) use ($search) {
-                $query->where('fcustomerid', 'ILIKE', '%'.$search.'%')
+                $query->where('fcustomercode', 'ILIKE', '%'.$search.'%')
                       ->orWhere('fcustomername', 'ILIKE', '%'.$search.'%');
             });
         });

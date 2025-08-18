@@ -1,10 +1,10 @@
 @extends('layouts.app')
 
-@section('title', 'Edit Satuan')
+@section('title', 'Master Satuan')
 
 @section('content')
     <div class="bg-white rounded shadow p-6 md:p-8 max-w-[700px] mx-auto">
-        <h2 class="text-2xl font-semibold mb-6">Edit Satuan</h2>
+        <h2 class="text-2xl font-semibold mb-6">Satuan Edit</h2>
 
         <form action="{{ route('satuan.update', $satuan->fsatuanid) }}" method="POST">
             @csrf

@@ -1,10 +1,10 @@
 @extends('layouts.app')
 
-@section('title', 'Edit Wilayah')
+@section('title', 'Master Wilayah')
 
 @section('content')
     <div class="bg-white rounded shadow p-6 md:p-8 max-w-[700px] mx-auto">
-        <h2 class="text-2xl font-semibold mb-6">Edit Wilayah</h2>
+        <h2 class="text-2xl font-semibold mb-6">Wilayah Edit</h2>
 
         <form action="{{ route('wilayah.update', $wilayah->fwilayahid) }}" method="POST">
             @csrf

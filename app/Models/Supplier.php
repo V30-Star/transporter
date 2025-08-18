@@ -28,8 +28,7 @@ class Supplier extends Model
         $query->when($search ?? false, function ($query, $search) {
             $query->where(function ($query) use ($search) {
                 $query->where('fsuppliercode', 'like', '%' . $search . '%')
-                    ->orWhere('fsuppliername', 'like', '%' . $search . '%')
-                    ->orWhere('fnpwp', 'like', '%' . $search . '%');
+                    ->orWhere('fsuppliername', 'like', '%' . $search . '%');
             });
         });
     }

@@ -17,4 +17,13 @@ class Cabang extends Model
 
     // Disable timestamps if not used
     public $timestamps = false;
+    public function scopeSearch($query, $search)
+    {
+        return $query->when($search, function ($query) use ($search) {
+            $query->where(function ($query) use ($search) {
+                $query->where('fcabangkode', 'ILIKE', '%' . $search . '%')
+                    ->orWhere('fcabangname', 'ILIKE', '%' . $search . '%');
+            });
+        });
+    }
 }

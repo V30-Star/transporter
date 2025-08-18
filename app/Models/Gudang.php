@@ -27,4 +27,13 @@ class Gudang extends Model
     {
         return $this->belongsTo(Cabang::class, 'fcabangkode', 'fcabangkode');
     }
+    public function scopeSearch($query, $search)
+    {
+        return $query->when($search, function ($query) use ($search) {
+            $query->where(function ($query) use ($search) {
+                $query->where('fgudangcode', 'ILIKE', '%' . $search . '%')
+                    ->orWhere('fgudangname', 'ILIKE', '%' . $search . '%');
+            });
+        });
+    }
 }

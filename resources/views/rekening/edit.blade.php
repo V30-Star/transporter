@@ -1,10 +1,10 @@
 @extends('layouts.app')
 
-@section('title', 'Edit Rekening')
+@section('title', 'Master Rekening')
 
 @section('content')
     <div class="bg-white rounded shadow p-6 md:p-8 max-w-[700px] mx-auto">
-        <h2 class="text-2xl font-semibold mb-6">Edit Rekening</h2>
+        <h2 class="text-2xl font-semibold mb-6">Rekening Edit</h2>
 
         <form action="{{ route('rekening.update', $rekening->frekeningid) }}" method="POST">
             @csrf

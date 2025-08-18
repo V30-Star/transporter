@@ -1,10 +1,10 @@
 @extends('layouts.app')
 
-@section('title', 'Edit Gudang')
+@section('title', 'Master Gudang')
 
 @section('content')
     <div class="bg-white rounded shadow p-6 md:p-8 max-w-[700px] mx-auto">
-        <h2 class="text-2xl font-semibold mb-6">Edit Gudang</h2>
+        <h2 class="text-2xl font-semibold mb-6">Gudang Edit</h2>
 
         <form action="{{ route('gudang.update', $gudang->fgudangid) }}" method="POST">
             @csrf

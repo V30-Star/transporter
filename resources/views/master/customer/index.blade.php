@@ -39,13 +39,13 @@
         <table class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
-                    <th class="border px-2 py-1">Faktur #</th>
-                    <th class="border px-2 py-1">Customer</th>
-                    <th class="border px-2 py-1">Tanggal Jual</th>
-                    <th class="border px-2 py-1">Harga Jual</th>
-                    <th class="border px-2 py-1">Qty</th>
-                    <th class="border px-2 py-1">Satuan</th>
-                    <th class="border px-2 py-1">Ref. PO</th>
+                    <th class="border px-2 py-1">Kode Customer</th>
+                    <th class="border px-2 py-1">Nama Customer</th>
+                    <th class="border px-2 py-1">Wilayah</th>
+                    <th class="border px-2 py-1">Alamat</th>
+                    <th class="border px-2 py-1">Kota</th>
+                    <th class="border px-2 py-1">Jadwal Mingguan</th>
+                    <th class="border px-2 py-1">Hari</th>
                     <th class="border px-2 py-1">Description</th>
                     @if ($showActionsColumn)
                         <th class="border px-2 py-1">Aksi</th>

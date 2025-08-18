@@ -1,10 +1,10 @@
 @extends('layouts.app')
 
-@section('title', 'Edit Group Customer')
+@section('title', 'Master Group Customer')
 
 @section('content')
     <div class="bg-white rounded shadow p-6 md:p-8 max-w-2xl mx-auto">
-        <h2 class="text-2xl font-semibold mb-6">Edit Group Customer</h2>
+        <h2 class="text-2xl font-semibold mb-6">Group Customer Edit</h2>
 
         <form action="{{ route('groupcustomer.update', $groupCustomer->fgroupid) }}" method="POST">
             @csrf

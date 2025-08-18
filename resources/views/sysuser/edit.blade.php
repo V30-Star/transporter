@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Edit Sysuser')
+@section('title', 'Master Sysuser')
 
 @section('content')
     <style>
@@ -17,7 +17,7 @@
         <div class="bg-white rounded shadow p-6 md:p-8 max-w-5xl mx-auto">
             <h2 class="text-2xl font-semibold text-gray-800 flex items-center space-x-2">
                 <x-heroicon-o-user-plus class="w-6 h-6 text-blue-600" />
-                <span>Edit Sysuser</span>
+                <span>Sysuser Edit</span>
             </h2>
             <form action="{{ route('sysuser.update', $sysuser->fuid) }}" method="POST">
                 @csrf
