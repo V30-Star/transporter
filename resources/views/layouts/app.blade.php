@@ -10,17 +10,17 @@
             [x-cloak] {
                 display: none !important
             }
-        </style> 
-        @vite(['resources/css/app.css', 'resources/js/app.js']) 
-        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-        {{-- <script src="https://cdn.tailwindcss.com"></script> --}}
+        </style>
+
         @vite(['resources/css/app.css', 'resources/js/app.js'])
-        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> 
+
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
         <link href="https://fonts.googleapis.com/css2?family=Lato&display=swap" rel="stylesheet">
         <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/css/select2.min.css" rel="stylesheet" />
         <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/js/select2.full.min.js"></script>
-
         <style>
             body {
                 font-family: 'Lato', sans-serif;
@@ -53,7 +53,7 @@
                                 <span class="text-gray-700 hidden sm:inline">{{ Auth::user()->name }}</span>
                             </button>
 
-                            <div x-show="open" @click.away="open = false"
+                            <div x-show="open" @click.outside="open = false"
                                 class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-20" x-cloak>
                                 <form method="POST" action="{{ route('logout') }}">
                                     @csrf
