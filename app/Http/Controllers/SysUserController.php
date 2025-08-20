@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\Salesman;
 use Illuminate\Http\Request;
 use App\Models\Sysuser;
 use Illuminate\Support\Facades\Hash;
@@ -24,7 +25,10 @@ class SysUserController extends Controller
 
     public function create()
     {
-        return view('sysuser.create');
+
+        $salesman = Salesman::where('fnonactive', 1)->get();
+
+        return view('sysuser.create', compact('salesman'));
     }
 
     public function store(Request $request)
@@ -33,9 +37,9 @@ class SysUserController extends Controller
             'fname' => 'required|string|max:100',
             'fsysuserid' => 'required|string|unique:sysuser,fsysuserid',
             'password' => 'required|string|min:6|confirmed',
-            'fsalesman' => 'nullable|string|size:1',
-            'fuserlevel'    => 'required|string|in:User,Admin',
-            'fcabang'       => 'required|string',
+            'fsalesman' => 'nullable',
+            'fuserlevel' => 'required|string|in:User,Admin',
+            'fcabang' => 'required|string',
         ], [
             'fsysuserid.unique' => 'Username sudah digunakan, silakan pilih username lain.',
             'fname.required' => 'Nama harus diisi.',
@@ -50,7 +54,7 @@ class SysUserController extends Controller
         $validated['fuserid'] = auth('sysuser')->user()->fname ?? null;
         $validated['created_at'] = now();
 
-        $validated['fsalesman'] = $request->has('fsalesman') ? '1' : '0';
+        $validated['fsalesman'] = $request->fsalesman;
 
         $validated['password'] = Hash::make($validated['password']);
 
@@ -64,25 +68,26 @@ class SysUserController extends Controller
         }
     }
 
+
     public function edit($fuid)
     {
         // Find the sysuser by fuid (primary key)
         $sysuser = Sysuser::findOrFail($fuid);
+        $salesman = Salesman::where('fnonactive', 1)->get();
 
         // Pass the sysuser to the edit view
-        return view('sysuser.edit', compact('sysuser'));
+        return view('sysuser.edit', compact('sysuser', 'salesman'));
     }
 
     public function update(Request $request, $fuid)
     {
-        // Validate incoming request
         $validated = $request->validate([
-            'fsysuserid'    => 'required|string|unique:sysuser,fsysuserid',
-            'fname'         => 'required|string',
-            'password'      => 'nullable|string|confirmed',
-            'fsalesman'     => 'nullable|string|size:1', // Nullable
-            'fuserlevel'    => 'required|string|size:1',
-            'fcabang'       => 'required|string',
+            'fsysuserid' => 'required|string|unique:sysuser,fsysuserid,' . $fuid . ',fuid',
+            'fname' => 'required|string',
+            'password' => 'nullable|string|confirmed',
+            'fsalesman' => 'nullable',
+            'fuserlevel' => 'required|string|size:1',
+            'fcabang' => 'required|string',
         ], [
             'fsysuserid.unique' => 'Username sudah digunakan, silakan pilih username lain.',
             'fname.required' => 'Nama harus diisi.',
@@ -91,6 +96,7 @@ class SysUserController extends Controller
             'fuserlevel.required' => 'Level akun harus User atau Admin.',
             'fcabang.required' => 'Cabang harus diisi.',
         ]);
+
 
         // Find and update the sysuser
         $sysuser = Sysuser::findOrFail($fuid);

@@ -46,9 +46,9 @@ class ProductController extends Controller
     public function create()
     {
         // Get the group products and brands to pass to the view
-        $groups = Groupproduct::all();  // Fetch all group products
-        $merks = Merek::all();  // Fetch all brands, assuming Merek is the brand model\
-        $satuan = Satuan::all();  // Fetch all units, assuming Satuan is the unit model
+        $groups = Groupproduct::where('fnonactive', 1)->get();
+        $merks = Merek::where('fnonactive', 1)->get();
+        $satuan = Satuan::where('fnonactive', 1)->get();
         $newProductCode = $this->generateProductCode();
 
         return view('product.create', compact('groups', 'merks', 'satuan', 'newProductCode'));
@@ -112,7 +112,7 @@ class ProductController extends Controller
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? 'system';  // Fallback jika tidak ada
         $validated['fcreatedat'] = now(); // Use the current time
 
-        $validated['fnonactive'] = '0';
+        $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
 
         // Create the new Product
         Product::create($validated);
@@ -125,9 +125,9 @@ class ProductController extends Controller
     public function edit($id)
     {
         $product = Product::findOrFail($id);
-        $groups = Groupproduct::all();
-        $merks = Merek::all();
-        $satuan = Satuan::all();
+        $groups = Groupproduct::where('fnonactive', 1)->get();
+        $merks = Merek::where('fnonactive', 1)->get();
+        $satuan = Satuan::where('fnonactive', 1)->get();
 
         return view('product.edit', compact('product', 'groups', 'merks', 'satuan'));
     }
@@ -189,7 +189,7 @@ class ProductController extends Controller
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
         $validated['fupdatedat'] = now(); // Use the current time
 
-        $validated['fnonactive'] = '0';
+        $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
         $product = Product::findOrFail($fproductid);
         $product->update($validated);
 

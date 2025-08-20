@@ -53,7 +53,7 @@ class WilayahController extends Controller
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? 'system';  // Fallback jika tidak ada
         $validated['fcreatedat'] = now();
 
-        $validated['fnonactive'] = '0';
+        $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
 
         Wilayah::create($validated);
 
@@ -80,7 +80,7 @@ class WilayahController extends Controller
             'fwilayahcode.unique' => 'Kode wilayah sudah ada, silakan gunakan kode lain.',
         ]);
 
-        $validated['fnonactive'] = '0';
+        $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
         $validated['fupdatedat'] = now();
 

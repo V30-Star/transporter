@@ -3,10 +3,66 @@
 @section('title', 'Master Group Customer')
 
 @section('content')
+
+    <style>
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            border-radius: 50%;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: 0.4s;
+        }
+
+        input:checked+.slider {
+            background-color: #4CAF50;
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(26px);
+        }
+
+        .slider.round {
+            border-radius: 34px;
+        }
+
+        .slider.round:before {
+            border-radius: 50%;
+        }
+    </style>
+
     <div x-data="{ open: true }">
         <div class="bg-white rounded shadow p-6 md:p-8 max-w-[700px] mx-auto">
             <h2 class="text-2xl font-semibold text-gray-800 flex items-center space-x-2">
-                <x-heroicon-o-user-plus class="w-6 h-6 text-blue-600" />
+                <x-heroicon-o-squares-2x2 class="w-8 h-8 text-blue-600" />
                 <span>Group Customer Baru</span>
             </h2>
             <form action="{{ route('groupcustomer.store') }}" method="POST">
@@ -30,6 +86,15 @@
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
                     </div>
+                    <div class="md:col-span-2 flex justify-center items-center space-x-2">
+                        <label class="block text-sm font-medium">Status</label>
+                        <label class="switch">
+                            <input type="checkbox" name="fnonactive" id="statusToggle"
+                                {{ old('fnonactive') == '1' ? 'checked' : '' }}>
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+
                 </div>
 
                 <div class="mt-6 flex justify-center space-x-4">

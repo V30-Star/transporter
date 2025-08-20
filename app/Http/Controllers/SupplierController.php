@@ -15,12 +15,12 @@ class SupplierController extends Controller
 
         $search = $request->search;
 
-        $suppliers = Supplier::when($search, function($q) use ($filterBy, $search) {
-                $q->where($filterBy, 'ILIKE', '%'.$search.'%');
-            })
+        $suppliers = Supplier::when($search, function ($q) use ($filterBy, $search) {
+            $q->where($filterBy, 'ILIKE', '%' . $search . '%');
+        })
             ->orderBy('fsupplierid', 'desc')
             ->paginate(10)
-            ->withQueryString(); 
+            ->withQueryString();
 
         return view('supplier.index', compact('suppliers', 'filterBy', 'search'));
     }
@@ -32,32 +32,34 @@ class SupplierController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'fsuppliercode' => 'required|string|unique:mssupplier,fsuppliercode',
-            'fsuppliername' => 'required|string',
-            'fnpwp' => 'required|string',
-            'faddress' => 'required|string',
-            'ftelp' => 'required|string',
-            'ffax' => 'required|string',
-            'fcurr' => 'required|string',
-        ],
-        [
-            'fsuppliercode.unique' => 'Kode Supplier sudah ada.',
-            'fsuppliercode.required' => 'Kode Supplier harus diisi.',
-            'fsuppliername.required' => 'Nama Supplier harus diisi.',
-            'fnpwp.required' => 'NPWP harus diisi.',
-            'faddress.required' => 'Alamat harus diisi.',
-            'ftelp.required' => 'Telepon harus diisi.',
-            'ffax.required' => 'Fax harus diisi.',
-            'fcurr.required' => 'Mata Uang harus diisi.',
-        ]);
+        $validated = $request->validate(
+            [
+                'fsuppliercode' => 'required|string|unique:mssupplier,fsuppliercode',
+                'fsuppliername' => 'required|string',
+                'fnpwp' => 'required|string',
+                'faddress' => 'required|string',
+                'ftelp' => 'required|string',
+                'ffax' => 'required|string',
+                'fcurr' => 'required|string',
+            ],
+            [
+                'fsuppliercode.unique' => 'Kode Supplier sudah ada.',
+                'fsuppliercode.required' => 'Kode Supplier harus diisi.',
+                'fsuppliername.required' => 'Nama Supplier harus diisi.',
+                'fnpwp.required' => 'NPWP harus diisi.',
+                'faddress.required' => 'Alamat harus diisi.',
+                'ftelp.required' => 'Telepon harus diisi.',
+                'ffax.required' => 'Fax harus diisi.',
+                'fcurr.required' => 'Mata Uang harus diisi.',
+            ]
+        );
 
         // Add default values for the required fields
         $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null; // Use the authenticated user's name or 'system' as default
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? 'system';  // Fallback jika tidak ada
         $validated['fcreatedat'] = now(); // Use the current time
 
-        $validated['fnonactive'] = '0';
+        $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
 
         // Create the new Supplier
         Supplier::create($validated);
@@ -79,27 +81,29 @@ class SupplierController extends Controller
     public function update(Request $request, $fsupplierid)
     {
         // Validate the incoming data
-        $validated = $request->validate([
-            'fsuppliercode' => "required|string|unique:mssupplier,fsuppliercode,{$fsupplierid},fsupplierid",
-            'fsuppliername' => 'required|string',
-            'fnpwp' => 'required|string',
-            'faddress' => 'required|string',
-            'ftelp' => 'required|string',
-            'ffax' => 'required|string',
-            'fcurr' => 'required|string', // Validate the currency field (fcurr)
-        ],
-        [
-            'fsuppliercode.unique' => 'Kode Supplier sudah ada.',
-            'fsuppliercode.required' => 'Kode Supplier harus diisi.',
-            'fsuppliername.required' => 'Nama Supplier harus diisi.',
-            'fnpwp.required' => 'NPWP harus diisi.',
-            'faddress.required' => 'Alamat harus diisi.',
-            'ftelp.required' => 'Telepon harus diisi.',
-            'ffax.required' => 'Fax harus diisi.',
-            'fcurr.required' => 'Mata Uang harus diisi.',
-        ]);
+        $validated = $request->validate(
+            [
+                'fsuppliercode' => "required|string|unique:mssupplier,fsuppliercode,{$fsupplierid},fsupplierid",
+                'fsuppliername' => 'required|string',
+                'fnpwp' => 'required|string',
+                'faddress' => 'required|string',
+                'ftelp' => 'required|string',
+                'ffax' => 'required|string',
+                'fcurr' => 'required|string', // Validate the currency field (fcurr)
+            ],
+            [
+                'fsuppliercode.unique' => 'Kode Supplier sudah ada.',
+                'fsuppliercode.required' => 'Kode Supplier harus diisi.',
+                'fsuppliername.required' => 'Nama Supplier harus diisi.',
+                'fnpwp.required' => 'NPWP harus diisi.',
+                'faddress.required' => 'Alamat harus diisi.',
+                'ftelp.required' => 'Telepon harus diisi.',
+                'ffax.required' => 'Fax harus diisi.',
+                'fcurr.required' => 'Mata Uang harus diisi.',
+            ]
+        );
 
-        $validated['fnonactive'] = '0';
+        $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null; // Use the authenticated user's name or 'system' as default
         $validated['fupdatedat'] = now(); // Use the current time
 

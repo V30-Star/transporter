@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Rekening;    
+use App\Models\Rekening;
 use Illuminate\Http\Request;
 
 class RekeningController extends Controller
@@ -17,12 +17,12 @@ class RekeningController extends Controller
         $search = $request->search;
 
         // Query with search functionality
-        $rekening = Rekening::when($search, function($q) use ($filterBy, $search) {
-                $q->where($filterBy, 'ILIKE', '%'.$search.'%');
-            })
+        $rekening = Rekening::when($search, function ($q) use ($filterBy, $search) {
+            $q->where($filterBy, 'ILIKE', '%' . $search . '%');
+        })
             ->orderBy('frekeningid', 'desc')
             ->paginate(10)
-            ->withQueryString(); 
+            ->withQueryString();
 
         return view('rekening.index', compact('rekening', 'filterBy', 'search'));
     }
@@ -35,22 +35,24 @@ class RekeningController extends Controller
     public function store(Request $request)
     {
         // Validate incoming request data
-        $validated = $request->validate([
-            'frekeningcode' => 'required|string|unique:msrekening,frekeningcode',
-            'frekeningname' => 'required|string',
-        ],
-        [
-            'frekeningcode.required' => 'Kode rekening harus diisi.',
-            'frekeningname.required' => 'Nama rekening harus diisi.',
-            'frekeningcode.unique' => 'Kode rekening sudah ada.',
-        ]);
+        $validated = $request->validate(
+            [
+                'frekeningcode' => 'required|string|unique:msrekening,frekeningcode',
+                'frekeningname' => 'required|string',
+            ],
+            [
+                'frekeningcode.required' => 'Kode rekening harus diisi.',
+                'frekeningname.required' => 'Nama rekening harus diisi.',
+                'frekeningcode.unique' => 'Kode rekening sudah ada.',
+            ]
+        );
 
         // Add default values for created and updated fields
         $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null; // Or use the authenticated user's name
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? 'system';  // Fallback jika tidak ada
         $validated['fcreatedat'] = now(); // Set current time
 
-        $validated['fnonactive'] = '0';
+        $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
 
         // Create new Rekening record
         Rekening::create($validated);
@@ -71,17 +73,19 @@ class RekeningController extends Controller
     public function update(Request $request, $frekeningid)
     {
         // Validate incoming request data
-        $validated = $request->validate([
-            'frekeningcode' => "required|string|unique:msrekening,frekeningcode,{$frekeningid},frekeningid",
-            'frekeningname' => 'required|string',
-        ],
-        [
-            'frekeningcode.required' => 'Kode rekening harus diisi.',
-            'frekeningname.required' => 'Nama rekening harus diisi.',
-            'frekeningcode.unique' => 'Kode rekening sudah ada.',
-        ]);
+        $validated = $request->validate(
+            [
+                'frekeningcode' => "required|string|unique:msrekening,frekeningcode,{$frekeningid},frekeningid",
+                'frekeningname' => 'required|string',
+            ],
+            [
+                'frekeningcode.required' => 'Kode rekening harus diisi.',
+                'frekeningname.required' => 'Nama rekening harus diisi.',
+                'frekeningcode.unique' => 'Kode rekening sudah ada.',
+            ]
+        );
 
-        $validated['fnonactive'] = '0';
+        $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null; // Or use the authenticated user's name
         $validated['fupdatedat'] = now(); // Set current time
 

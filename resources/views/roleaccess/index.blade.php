@@ -179,33 +179,33 @@
 
                             <tr>
                                 <th colspan="2" style="background-color: #f0f0f0; font-weight: bold;">
-                                    Sys User Menu
+                                    Wewenang User Menu
                                 </th>
                             </tr>
 
                             <tr>
-                                <td>SysuserView</td>
+                                <td>WewenangUserView</td>
                                 <td class="text-center">
                                     <input type="checkbox" name="permission[]" value="viewSysuser" id="viewSysuser"
                                         {{ isset($roleAccess) && in_array('viewSysuser', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
                             </tr>
                             <tr>
-                                <td>SysuserCreate</td>
+                                <td>WewenangUserCreate</td>
                                 <td class="text-center">
                                     <input type="checkbox" name="permission[]" value="createSysuser" id="createSysuser"
                                         {{ isset($roleAccess) && in_array('createSysuser', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
                             </tr>
                             <tr>
-                                <td>SysuserUpdate</td>
+                                <td>WewenangUserUpdate</td>
                                 <td class="text-center">
                                     <input type="checkbox" name="permission[]" value="updateSysuser" id="updateSysuser"
                                         {{ isset($roleAccess) && in_array('updateSysuser', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
                             </tr>
                             <tr>
-                                <td>SysuserDelete</td>
+                                <td>WewenangUserDelete</td>
                                 <td class="text-center">
                                     <input type="checkbox" name="permission[]" value="deleteSysuser" id="deleteSysuser"
                                         {{ isset($roleAccess) && in_array('deleteSysuser', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
@@ -362,7 +362,7 @@
                             </tr>
 
                             <tr>
-                                <td>GroupProductView</td>
+                                <td>GroupProdukView</td>
                                 <td class="text-center">
                                     <input type="checkbox" name="permission[]" value="viewGroupProduct"
                                         id="viewGroupProduct"
@@ -370,7 +370,7 @@
                                 </td>
                             </tr>
                             <tr>
-                                <td>GroupProductCreate</td>
+                                <td>GroupProdukCreate</td>
                                 <td class="text-center">
                                     <input type="checkbox" name="permission[]" value="createGroupProduct"
                                         id="createGroupProduct"
@@ -378,7 +378,7 @@
                                 </td>
                             </tr>
                             <tr>
-                                <td>GroupProductUpdate</td>
+                                <td>GroupProdukUpdate</td>
                                 <td class="text-center">
                                     <input type="checkbox" name="permission[]" value="updateGroupProduct"
                                         id="updateGroupProduct"
@@ -386,7 +386,7 @@
                                 </td>
                             </tr>
                             <tr>
-                                <td>GroupProductDelete</td>
+                                <td>GroupProdukDelete</td>
                                 <td class="text-center">
                                     <input type="checkbox" name="permission[]" value="deleteGroupProduct"
                                         id="deleteGroupProduct"

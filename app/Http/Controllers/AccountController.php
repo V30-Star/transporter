@@ -59,7 +59,7 @@ class AccountController extends Controller
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? 'system';  // Fallback jika tidak ada
         $validated['fcreatedat'] = now(); // Set current time
 
-        $validated['fnonactive'] = '0';
+        $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
 
         // Handle 'fhavesubaccount' logic: set it to 1 if checked, else 0
         $validated['fhavesubaccount'] = $request->has('fhavesubaccount') ? 1 : 0;
@@ -122,7 +122,7 @@ class AccountController extends Controller
         );
 
         // Handle the checkbox for 'fnonactive' (1 = checked, 0 = unchecked)
-        $validated['fnonactive'] = '0';
+        $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null; // Use the authenticated user's ID
         $validated['fupdatedat'] = now(); // Set current time
 

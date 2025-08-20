@@ -77,13 +77,15 @@
     <div x-data="{ open: true }">
         <div class="bg-white rounded shadow p-6 md:p-8 max-w-5xl mx-auto">
             <h2 class="text-2xl font-semibold text-gray-800 flex items-center space-x-2">
-                <x-heroicon-o-plus-circle class="w-6 h-6 text-blue-600" />
+                <x-heroicon-o-cube class="w-8 h-8 text-blue-600" />
                 <span>Product Edit</span>
             </h2>
             <form action="{{ route('product.update', $product->fproductid) }}" method="POST">
                 @csrf
                 @method('PATCH')
-
+                @php
+                    $isApproved = !empty($product->fapproval);
+                @endphp
                 <div>
                     <!-- Group Produk Dropdown -->
                     <div class="mt-4 w-1/4">
@@ -114,6 +116,25 @@
                         @enderror
                     </div>
 
+                    <!-- Merek Dropdown -->
+                    <div class="mt-2 w-1/4">
+                        <label class="block text-sm font-medium">Merek</label>
+                        <select name="fmerek"
+                            class="w-full border rounded px-3 py-2 @error('fmerek') border-red-500 @enderror"
+                            id="merkSelect">
+                            <option value="">-- Pilih Merek --</option>
+                            @foreach ($merks as $merk)
+                                <option value="{{ $merk->fmerekid }}"
+                                    {{ old('fmerek', $product->fmerek) == $merk->fmerekid ? 'selected' : '' }}>
+                                    {{ $merk->fmerekname }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('fmerek')
+                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
                     <!-- Nama Product -->
                     <div class="mt-2 w-1/2">
                         <label class="block text-sm font-medium">Nama Product</label>
@@ -130,25 +151,6 @@
                         <input type="text" name="fbarcode" value="{{ old('fbarcode', $product->fbarcode) }}"
                             class="w-full border rounded px-3 py-2 @error('fbarcode') border-red-500 @enderror">
                         @error('fbarcode')
-                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <!-- Merek Dropdown -->
-                    <div class="mt-2 w-1/4">
-                        <label class="block text-sm font-medium">Merek</label>
-                        <select name="fmerek"
-                            class="w-full border rounded px-3 py-2 @error('fmerek') border-red-500 @enderror"
-                            id="merkSelect">
-                            <option value="">-- Pilih Merek --</option>
-                            @foreach ($merks as $merk)
-                                <option value="{{ $merk->fmerekid }}"
-                                    {{ old('fmerek', $product->fmerek) == $merk->fmerekid ? 'selected' : '' }}>
-                                    {{ $merk->fmerekname }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('fmerek')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
                     </div>
@@ -175,8 +177,7 @@
 
                     {{-- Satuan 2 --}}
                     <div class="mt-2">
-                        <div class="flex items-end gap-4"> <!-- Tambahkan flex container dengan gap -->
-                            <!-- Satuan 2 Select -->
+                        <div class="flex items-end gap-4">
                             <div class="w-1/3">
                                 <label class="block text-sm font-medium">Satuan 2</label>
                                 <select
@@ -197,7 +198,6 @@
                                 @enderror
                             </div>
 
-                            <!-- Isi Input -->
                             <div class="w-1/6">
                                 <label class="block text-sm font-medium">Isi</label>
                                 <input type="number"
@@ -214,8 +214,7 @@
 
                     {{-- Satuan 3 --}}
                     <div class="mt-2">
-                        <div class="flex items-end gap-4"> <!-- Flex container for horizontal alignment -->
-                            <!-- Satuan 3 Select -->
+                        <div class="flex items-end gap-4">
                             <div class="w-1/3">
                                 <label class="block text-sm font-medium">Satuan 3</label>
                                 <select
@@ -236,7 +235,6 @@
                                 @enderror
                             </div>
 
-                            <!-- Isi Input -->
                             <div class="w-1/6">
                                 <label class="block text-sm font-medium">Isi</label>
                                 <input type="number"
@@ -291,7 +289,7 @@
                                 1</label>
                             <div class="d-flex">
                                 <input type="text"
-                                    class="w-1/4 border rounded px-3 py-2 @error('fhargasatuankecillevel1') is-invalid @enderror"
+                                    class="w-1/10 border rounded px-3 py-2 @error('fhargasatuankecillevel1') is-invalid @enderror"
                                     name="fhargasatuankecillevel1" id="fhargasatuankecillevel1"
                                     value="{{ old('fhargasatuankecillevel1', $product->fhargasatuankecillevel1) }}">
                                 @error('fhargasatuankecillevel1')
@@ -308,7 +306,7 @@
                                 2</label>
                             <div class="d-flex">
                                 <input type="text"
-                                    class="w-1/4 border rounded px-3 py-2 @error('fhargasatuankecillevel2') is-invalid @enderror"
+                                    class="w-1/10 border rounded px-3 py-2 @error('fhargasatuankecillevel2') is-invalid @enderror"
                                     name="fhargasatuankecillevel2" id="fhargasatuankecillevel2"
                                     value="{{ old('fhargasatuankecillevel2', $product->fhargasatuankecillevel2) }}">
                                 @error('fhargasatuankecillevel2')
@@ -325,7 +323,7 @@
                                 3</label>
                             <div class="d-flex">
                                 <input type="text"
-                                    class="w-1/4 border rounded px-3 py-2 @error('fhargasatuankecillevel3') is-invalid @enderror"
+                                    class="w-1/10 border rounded px-3 py-2 @error('fhargasatuankecillevel3') is-invalid @enderror"
                                     name="fhargasatuankecillevel3" id="fhargasatuankecillevel3"
                                     value="{{ old('fhargasatuankecillevel3', $product->fhargasatuankecillevel3) }}">
                                 @error('fhargasatuankecillevel3')
@@ -344,7 +342,7 @@
                                 1</label>
                             <div class="d-flex">
                                 <input type="text"
-                                    class="w-1/4 border rounded px-3 py-2 @error('fhargajuallevel1') is-invalid @enderror"
+                                    class="w-1/10 border rounded px-3 py-2 @error('fhargajuallevel1') is-invalid @enderror"
                                     name="fhargajuallevel1" id="fhargajuallevel1"
                                     value="{{ old('fhargajuallevel1', $product->fhargajuallevel1) }}">
                                 @error('fhargajuallevel1')
@@ -361,7 +359,7 @@
                                 2</label>
                             <div class="d-flex">
                                 <input type="text"
-                                    class="w-1/4 border rounded px-3 py-2 @error('fhargajuallevel2') is-invalid @enderror"
+                                    class="w-1/10 border rounded px-3 py-2 @error('fhargajuallevel2') is-invalid @enderror"
                                     name="fhargajuallevel2" id="fhargajuallevel2"
                                     value="{{ old('fhargajuallevel2', $product->fhargajuallevel2) }}">
                                 @error('fhargajuallevel2')
@@ -378,7 +376,7 @@
                                 3</label>
                             <div class="d-flex">
                                 <input type="text"
-                                    class="w-1/4 border rounded px-3 py-2 @error('fhargajuallevel3') is-invalid @enderror"
+                                    class="w-1/10 border rounded px-3 py-2 @error('fhargajuallevel3') is-invalid @enderror"
                                     name="fhargajuallevel3" id="fhargajuallevel3"
                                     value="{{ old('fhargajuallevel3', $product->fhargajuallevel3) }}">
                                 @error('fhargajuallevel3')
@@ -416,19 +414,28 @@
                             </div>
                         @enderror
                     </div>
+
                     <div class="md:col-span-2 flex justify-center items-center space-x-2">
-                        <label class="block text-sm font-medium">Approval</label>
+                        <fieldset {{ $isApproved ? 'disabled' : '' }}>
+                            <div class="flex items-center space-x-2">
+                                <label class="text-sm font-medium">Approval</label>
+                                <label class="switch">
+                                    <input type="checkbox" name="approve_now" id="approvalToggle"
+                                        {{ !empty($product->fapproval) ? 'checked' : '' }}>
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+                        </fieldset>
 
-                        <label class="switch">
-                            <input type="checkbox" name="approve_now" id="approvalToggle"
-                                {{ !empty($product->fapproval) ? 'checked' : '' }}>
-                            <span class="slider round"></span>
-                        </label>
-
+                        <div class="flex items-center space-x-2">
+                            <label class="text-sm font-medium">Status</label>
+                            <label class="switch">
+                                <input type="checkbox" name="fnonactive" id="statusToggle"
+                                    {{ old('fnonactive', $product->fnonactive) == '1' ? 'checked' : '' }}>
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
                     </div>
-                    <span class="text-sm text-gray-600 md:col-span-2 flex justify-center items-center space-x-2">
-                        Approver: <strong>{{ $product->fapproval ?? '—' }}</strong>
-                    </span>
                 </div>
 
                 <!-- Tombol Aksi -->
@@ -447,6 +454,17 @@
                         Keluar
                     </button>
                 </div>
+                <br>
+                <hr>
+                <br>
+                <span class="text-sm text-gray-600 md:col-span-2 flex justify-between items-center">
+                    <strong>{{ auth()->user()->fname ?? '—' }}</strong>
+
+                    <span class="ml-2 text-right">
+                        {{ now()->format('d M Y, H:i') }}
+                        , Terakhir di Update oleh: <strong>{{ $product->fupdatedby ?? '—' }}</strong>
+                    </span>
+                </span>
             </form>
         </div>
     </div>
@@ -487,6 +505,60 @@
         $('#merkSelect').select2({
             placeholder: '-- Pilih Merek --',
             allowClear: true
+        });
+    });
+</script>
+
+<style>
+    hr {
+        border: 0;
+        border-top: 2px dashed #000000;
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
+</style>
+
+<script>
+    function updateTime() {
+        const now = new Date();
+        const formattedTime = now.toLocaleString('en-GB', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+        document.getElementById('current-time').textContent = `${formattedTime}`;
+    }
+
+    setInterval(updateTime, 1000);
+    updateTime();
+</script>
+
+
+<script>
+    $(document).ready(function() {
+        $('#fsatuanbesar').on('change', function() {
+            var selectedOption = this.options[this.selectedIndex];
+            var fsatuanname = selectedOption.getAttribute('data-name');
+
+            if (fsatuanname) {
+                $('#fsatuanname-label').text(fsatuanname);
+            } else {
+                $('#fsatuanname-label').text('Tidak ada pilihan');
+            }
+        });
+
+        $('#fsatuanbesar2').on('change', function() {
+            var selectedOption = this.options[this.selectedIndex];
+            var fsatuanname = selectedOption.getAttribute('data-name');
+
+            if (fsatuanname) {
+                $('#fsatuanname-label-2').text(fsatuanname);
+            } else {
+                $('#fsatuanname-label-2').text('Tidak ada pilihan');
+            }
         });
     });
 </script>

@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Merek;    
+use App\Models\Merek;
 use Illuminate\Http\Request;
 
 class MerekController extends Controller
@@ -15,12 +15,12 @@ class MerekController extends Controller
 
         $search = $request->search;
 
-        $mereks = Merek::when($search, function($q) use ($filterBy, $search) {
-                $q->where($filterBy, 'ILIKE', '%'.$search.'%');
-            })
+        $mereks = Merek::when($search, function ($q) use ($filterBy, $search) {
+            $q->where($filterBy, 'ILIKE', '%' . $search . '%');
+        })
             ->orderBy('fmerekid', 'desc')
             ->paginate(10)
-            ->withQueryString(); 
+            ->withQueryString();
 
         return view('merek.index', compact('mereks', 'filterBy', 'search'));
     }
@@ -32,22 +32,24 @@ class MerekController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'fmerekcode' => 'required|string|unique:msmerek,fmerekcode',
-            'fmerekname' => 'required|string',
-        ],
-        [
-            'fmerekcode.required' => 'Kode Merek harus diisi.',
-            'fmerekname.required' => 'Nama Merek harus diisi.',
-            'fmerekcode.unique' => 'Kode Merek sudah ada, silakan gunakan kode lain.',
-        ]);
+        $validated = $request->validate(
+            [
+                'fmerekcode' => 'required|string|unique:msmerek,fmerekcode',
+                'fmerekname' => 'required|string',
+            ],
+            [
+                'fmerekcode.required' => 'Kode Merek harus diisi.',
+                'fmerekname.required' => 'Nama Merek harus diisi.',
+                'fmerekcode.unique' => 'Kode Merek sudah ada, silakan gunakan kode lain.',
+            ]
+        );
 
         // Add default values for the required fields
         $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null; // Use the authenticated user's name or 'system' as default
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? 'system';  // Fallback jika tidak ada
         $validated['fcreatedat'] = now(); // Use the current time
 
-        $validated['fnonactive'] = '0';
+        $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
 
         // Create the new Merek
         Merek::create($validated);
@@ -71,17 +73,19 @@ class MerekController extends Controller
     public function update(Request $request, $fmerekid)
     {
         // Validasi
-        $validated = $request->validate([
-            'fmerekcode' => "required|string|unique:msmerek,fmerekcode,{$fmerekid},fmerekid",
-            'fmerekname' => 'required|string',
-        ],
-        [
-            'fmerekcode.required' => 'Kode Merek harus diisi.',
-            'fmerekname.required' => 'Nama Merek harus diisi.',
-            'fmerekcode.unique' => 'Kode Merek sudah ada, silakan gunakan kode lain.',
-        ]);
+        $validated = $request->validate(
+            [
+                'fmerekcode' => "required|string|unique:msmerek,fmerekcode,{$fmerekid},fmerekid",
+                'fmerekname' => 'required|string',
+            ],
+            [
+                'fmerekcode.required' => 'Kode Merek harus diisi.',
+                'fmerekname.required' => 'Nama Merek harus diisi.',
+                'fmerekcode.unique' => 'Kode Merek sudah ada, silakan gunakan kode lain.',
+            ]
+        );
 
-        $validated['fnonactive'] = '0';
+        $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null; // Use the authenticated user's name or 'system' as default
         $validated['fupdatedat'] = now(); // Use the current time
 

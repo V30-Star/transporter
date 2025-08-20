@@ -119,7 +119,7 @@
     <div x-data="{ open: true, selected: 'alamatsurat' }">
         <div class="bg-white rounded shadow p-6 md:p-8 max-w-5xl mx-auto">
             <h2 class="text-2xl font-semibold text-gray-800 flex items-center space-x-2">
-                <x-heroicon-o-user-plus class="w-6 h-6 text-blue-600" />
+                <x-heroicon-o-user-group class="w-8 h-8 text-blue-600" />
                 <span>Customer Baru</span>
             </h2>
             <form action="{{ route('customer.store') }}" method="POST">
@@ -131,7 +131,7 @@
                             <label class="block text-sm font-medium">Kode Customer</label>
                             <input type="text" name="fcustomercode" class="w-full border rounded px-3 py-2"
                                 placeholder="Masukkan Kode Customer" :disabled="autoCode"
-                                :value="autoCode ? '{{ $newCustomerCode }}' : '{{ old('fcustomercode') }}'"
+                                :value="autoCode ? '' : '{{ old('fcustomercode') }}'"
                                 :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
                         </div>
 
@@ -453,6 +453,13 @@
                         <label class="switch">
                             <input type="checkbox" name="fapproval" id="approvalToggle"
                                 {{ session('fapproval') ? 'checked' : '' }}>
+                            <span class="slider round"></span>
+                        </label>
+
+                        <label class="block text-sm font-medium">Status</label>
+                        <label class="switch">
+                            <input type="checkbox" name="fnonactive" id="statusToggle"
+                                {{ old('fnonactive') == '1' ? 'checked' : '' }}>
                             <span class="slider round"></span>
                         </label>
                     </div>

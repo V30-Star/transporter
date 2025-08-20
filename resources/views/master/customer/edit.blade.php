@@ -119,7 +119,7 @@
     <div x-data="{ open: true, selected: 'alamatsurat' }">
         <div class="bg-white rounded shadow p-6 md:p-8 max-w-5xl mx-auto">
             <h2 class="text-2xl font-semibold text-gray-800 flex items-center space-x-2">
-                <x-heroicon-o-user-plus class="w-6 h-6 text-blue-600" />
+                <x-heroicon-o-user-group class="w-8 h-8 text-blue-600" />
                 <span>Customer Edit</span>
             </h2>
             <form action="{{ route('customer.update', $customer->fcustomerid) }}" method="POST">
@@ -468,17 +468,19 @@
 
                     <div class="md:col-span-2 flex justify-center items-center space-x-2">
                         <label class="block text-sm font-medium">Approval</label>
-
                         <label class="switch">
                             <input type="checkbox" name="approve_now" id="approvalToggle"
                                 {{ !empty($customer->fapproval) ? 'checked' : '' }}>
                             <span class="slider round"></span>
                         </label>
 
+                        <label class="block text-sm font-medium">Status</label>
+                        <label class="switch">
+                            <input type="checkbox" name="fnonactive" id="statusToggle"
+                                {{ old('fnonactive', $customer->fnonactive) == '1' ? 'checked' : '' }}>
+                            <span class="slider round"></span>
+                        </label>
                     </div>
-                    <span class="text-sm text-gray-600 md:col-span-2 flex justify-center items-center space-x-2">
-                        Approver: <strong>{{ $customer->fapproval ?? '—' }}</strong>
-                    </span>
                 </div>
 
                 <div class="mt-6 flex justify-center space-x-4">
@@ -496,10 +498,31 @@
                         Kembali
                     </button>
                 </div>
+                <br>
+                <hr>
+                <br>
+                <span class="text-sm text-gray-600 md:col-span-2 flex justify-between items-center">
+                    <strong>{{ auth()->user()->fname ?? '—' }}</strong>
+
+                    <span class="ml-2 text-right">
+                        {{ now()->format('d M Y, H:i') }}
+                        , Terakhir di Update oleh: <strong>{{ $customer->fupdatedby ?? '—' }}</strong>
+                    </span>
+                </span>
+
             </form>
         </div>
     </div>
 @endsection
+
+<style>
+    hr {
+        border: 0;
+        border-top: 2px dashed #000000;
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
+</style>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
@@ -515,4 +538,22 @@
             dropdownAutoWidth: true
         });
     });
+</script>
+
+<script>
+    function updateTime() {
+        const now = new Date();
+        const formattedTime = now.toLocaleString('en-GB', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+        document.getElementById('current-time').textContent = `${formattedTime}`;
+    }
+
+    setInterval(updateTime, 1000);
+    updateTime();
 </script>

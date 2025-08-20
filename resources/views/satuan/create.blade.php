@@ -16,7 +16,7 @@
     <div x-data="{ open: true, selected: 'surat' }">
         <div class="bg-white rounded shadow p-6 md:p-8 max-w-[700px] mx-auto">
             <h2 class="text-2xl font-semibold text-gray-800 flex items-center space-x-2">
-                <x-heroicon-o-plus-circle class="w-6 h-6 text-blue-600" />
+                <x-heroicon-o-scale class="w-8 h-8 text-blue-600" />
                 <span>Satuan Baru</span>
             </h2>
             <form action="{{ route('satuan.store') }}" method="POST">
@@ -39,6 +39,14 @@
                         @error('fsatuanname')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
+                    </div>
+                    <div class="md:col-span-2 flex justify-center items-center space-x-2">
+                        <label class="block text-sm font-medium">Status</label>
+                        <label class="switch">
+                            <input type="checkbox" name="fnonactive" id="statusToggle"
+                                {{ old('fnonactive') == '1' ? 'checked' : '' }}>
+                            <span class="slider round"></span>
+                        </label>
                     </div>
                 </div>
 

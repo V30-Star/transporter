@@ -48,8 +48,6 @@
                         <th class="border px-2 py-1">Nama Product</th>
                         <th class="border px-2 py-1">Tipe</th>
                         <th class="border px-2 py-1">Status (Nonaktifkan)</th>
-                        <th class="border px-2 py-1">Tanggal Dibuat</th>
-                        <th class="border px-2 py-1">Dibuat Oleh</th>
                         @if ($showActionsColumn)
                             <th class="border px-2 py-1">Aksi</th>
                         @endif
@@ -64,9 +62,6 @@
                             <td class="border px-2 py-1">
                                 <input type="checkbox" disabled {{ $item->fnonactive == '1' ? 'checked' : '' }}>
                             </td>
-                            <td class="border px-2 py-1">{{ \Carbon\Carbon::parse($item->fcreatedat)->format('d M Y H:i') }}
-                            </td>
-                            <td class="border px-2 py-1">{{ $item->fcreatedby }}</td>
                             @if ($showActionsColumn)
                                 <td class="border px-2 py-1 space-x-2">
                                     @if ($canEdit)

@@ -14,18 +14,17 @@
     </style>
 
     <div x-data="{ open: true, selected: 'surat' }">
-        <div class="bg-white rounded shadow p-6 md:p-8 max-w-5xl mx-auto">
+        <div class="bg-white rounded shadow p-6 md:p-8 max-w-lg mx-auto">
             <h2 class="text-2xl font-semibold text-gray-800 flex items-center space-x-2">
-                <x-heroicon-o-user-plus class="w-6 h-6 text-blue-600" />
+                <x-heroicon-o-user-circle class="w-8 h-8 text-blue-600" />
                 <span>Sysuser Baru</span>
             </h2>
             <form action="{{ route('sysuser.store') }}" method="POST">
                 @csrf
-                {{-- <input type="hidden" name="fsysuserid" value="{{ old('fsysuserid', 'USR' . time()) }}"> --}}
                 <input type="hidden" name="created_at" value="{{ now()->format('Y-m-d H:i:s') }}">
                 <input type="hidden" name="fuserid" value="{{ auth()->user()->id ?? 'system' }}">
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div class="space-y-4 mt-4">
                     <!-- Nama Lengkap -->
                     <div>
                         <label class="block text-sm font-medium">Nama Lengkap</label>
@@ -66,7 +65,6 @@
                         @enderror
                     </div>
 
-                    <!-- Tambahkan di bagian grid setelah confirm password -->
                     <div>
                         <label class="block text-sm font-medium">Cabang</label>
                         <input type="text" name="fcabang" value="{{ old('fcabang', '-') }}"
@@ -76,29 +74,29 @@
                         @enderror
                     </div>
 
-                    <!-- Type (Dropdown with User and Admin) -->
-                    {{-- <div>
-                            <label class="block text-sm font-medium">Type</label>
-                            <select name="type"
-                                class="w-full border rounded px-3 py-2 @error('type') border-red-500 @enderror">
-                                <option value="User" {{ old('type') == 'User' ? 'selected' : '' }}>User</option>
-                                <option value="Admin" {{ old('type') == 'Admin' ? 'selected' : '' }}>Admin</option>
-                            </select>
-                            @error('type')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div> --}}
-
-                    <!-- Salesman (Checkbox) -->
-                    <div>
+                    <div x-data="{ salesman: false }">
                         <label class="flex items-center space-x-2">
-                            <input type="checkbox" name="fsalesman" value="1" {{ old('fsalesman') ? 'checked' : '' }}
-                                class="rounded text-blue-600">
+                            <input type="checkbox" x-model="salesman" class="rounded text-blue-600">
                             <span class="text-sm font-medium">Salesman</span>
                         </label>
-                        @error('fsalesman')
-                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                        @enderror
+
+                        <div x-show="salesman" x-transition>
+                            <label class="block text-sm font-medium">Salesman Level</label>
+                            <select name="fsalesman"
+                                class="w-full border rounded px-3 py-2 @error('fsalesman') border-red-500 @enderror"
+                                id="salesmanSelect">
+                                <option value="">-- Pilih Salesman --</option>
+                                @foreach ($salesman as $salesmans)
+                                    <option value="{{ $salesmans->fsalesmanid }}"
+                                        {{ old('fsalesman') == $salesmans->fsalesmanid ? 'selected' : '' }}>
+                                        {{ $salesmans->fsalesmancode }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('fsalesman')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
                     </div>
 
                     <!-- Account Level -->

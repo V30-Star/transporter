@@ -41,7 +41,7 @@ class GroupcustomerController extends Controller
         $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null; // bisa diganti dengan user yang sedang login
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? 'system';  // Fallback jika tidak ada
         $validated['fcreatedat'] = now(); // Menggunakan waktu sekarang
-        $validated['fnonactive'] = '0'; // Menangani checkbox
+        $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
 
         // Menyimpan data grup customer
         Groupcustomer::create($validated);
@@ -73,7 +73,7 @@ class GroupcustomerController extends Controller
 
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
         $validated['fupdatedat'] = now(); // Menggunakan waktu sekarang
-        $validated['fnonactive'] = '0'; // Menangani checkbox
+        $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
 
         // Mengambil data grup customer berdasarkan ID dan mengupdate
         $groupCustomer = Groupcustomer::findOrFail($fgroupid);

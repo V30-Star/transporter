@@ -14,16 +14,16 @@
     </style>
 
     <div x-data="{ open: true, selected: 'surat' }">
-        <div class="bg-white rounded shadow p-6 md:p-8 max-w-5xl mx-auto">
+        <div class="bg-white rounded shadow p-6 md:p-8 max-w-lg mx-auto">
             <h2 class="text-2xl font-semibold text-gray-800 flex items-center space-x-2">
-                <x-heroicon-o-user-plus class="w-6 h-6 text-blue-600" />
+                <x-heroicon-o-user-circle class="w-8 h-8 text-blue-600" />
                 <span>Sysuser Edit</span>
             </h2>
             <form action="{{ route('sysuser.update', $sysuser->fuid) }}" method="POST">
                 @csrf
                 @method('PATCH')
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div class="space-y-4 mt-4">
                     <!-- Nama Lengkap -->
                     <div>
                         <label class="block text-sm font-medium">Nama Lengkap</label>
@@ -64,17 +64,29 @@
                         @enderror
                     </div>
 
-                    <!-- Salesman (Checkbox) -->
-                    <div>
+                    <div x-data="{ salesman: {{ $sysuser->fsalesman ? 'true' : 'false' }} }">
                         <label class="flex items-center space-x-2">
-                            <input type="checkbox" name="fsalesman" value="1"
-                                {{ old('fsalesman', $sysuser->fsalesman) == '1' ? 'checked' : '' }}
-                                class="rounded text-blue-600">
+                            <input type="checkbox" x-model="salesman" class="rounded text-blue-600">
                             <span class="text-sm font-medium">Salesman</span>
                         </label>
-                        @error('fsalesman')
-                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                        @enderror
+
+                        <div x-show="salesman" x-transition>
+                            <label class="block text-sm font-medium">Salesman Level</label>
+                            <select name="fsalesman"
+                                class="w-full border rounded px-3 py-2 @error('fsalesman') border-red-500 @enderror"
+                                id="salesmanSelect">
+                                <option value="">-- Pilih Salesman --</option>
+                                @foreach ($salesman as $salesmans)
+                                    <option value="{{ $salesmans->fsalesmanid }}"
+                                        {{ old('fsalesman', $sysuser->fsalesman) == $salesmans->fsalesmanid ? 'selected' : '' }}>
+                                        {{ $salesmans->fsalesmancode }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('fsalesman')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
                     </div>
 
                     <!-- Account Level -->
@@ -122,7 +134,46 @@
                         Kembali
                     </button>
                 </div>
+                <br>
+                <hr>
+                <br>
+                <span class="text-sm text-gray-600 md:col-span-2 flex justify-between items-center">
+                    <strong>{{ auth()->user()->fname ?? '—' }}</strong>
+
+                    <span class="ml-2 text-right">
+                        {{ now()->format('d M Y, H:i') }}
+                        , Terakhir di Update oleh: <strong>{{ $customer->fupdatedby ?? '—' }}</strong>
+                    </span>
+                </span>
             </form>
         </div>
     </div>
 @endsection
+
+
+<style>
+    hr {
+        border: 0;
+        border-top: 2px dashed #000000;
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
+</style>
+
+<script>
+    function updateTime() {
+        const now = new Date();
+        const formattedTime = now.toLocaleString('en-GB', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+        document.getElementById('current-time').textContent = `${formattedTime}`;
+    }
+
+    setInterval(updateTime, 1000);
+    updateTime();
+</script>

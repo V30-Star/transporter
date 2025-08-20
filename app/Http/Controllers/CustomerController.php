@@ -50,10 +50,10 @@ class CustomerController extends Controller
     // Create method to return the customer creation form
     public function create()
     {
-        $groups = Groupproduct::all();
-        $salesman = Salesman::all();
-        $wilayah = Wilayah::all();
-        $rekening = Rekening::all();
+        $groups = Groupproduct::where('fnonactive', 1)->get();
+        $salesman = Salesman::where('fnonactive', 1)->get();
+        $wilayah = Wilayah::where('fnonactive', 1)->get();
+        $rekening = Rekening::where('fnonactive', 1)->get();
         $newCustomerCode = $this->generateCustomerCode();
 
         return view('master.customer.create', compact('groups', 'salesman', 'wilayah', 'rekening', 'newCustomerCode'));
@@ -126,7 +126,7 @@ class CustomerController extends Controller
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? 'system';  // Fallback jika tidak ada
         $validated['fcreatedat'] = now();
 
-        $validated['fnonactive'] = '0';
+        $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
 
         $validated['fcurrency'] = 'IDR';
 
@@ -142,10 +142,10 @@ class CustomerController extends Controller
     {
         // Find Customer by primary key
         $customer = Customer::findOrFail($fcustomerid);
-        $groups = Groupproduct::all();
-        $salesman = Salesman::all();
-        $wilayah = Wilayah::all();
-        $rekening = Rekening::all();
+        $groups = Groupproduct::where('fnonactive', 1)->get();
+        $salesman = Salesman::where('fnonactive', 1)->get();
+        $wilayah = Wilayah::where('fnonactive', 1)->get();
+        $rekening = Rekening::where('fnonactive', 1)->get();
         $newCustomerCode = $this->generateCustomerCode();
 
         return view('master.customer.edit', compact('customer', 'groups', 'salesman', 'wilayah', 'rekening', 'newCustomerCode'));
@@ -216,7 +216,7 @@ class CustomerController extends Controller
             $validated['fapproval'] = null;
         }
 
-        $validated['fnonactive'] = '0';
+        $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
 
         $validated['fcurrency'] = 'IDR';
         $customer->update($validated);

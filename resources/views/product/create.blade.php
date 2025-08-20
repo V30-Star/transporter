@@ -110,7 +110,7 @@
     <div x-data="{ open: true }">
         <div class="bg-white rounded shadow p-6 md:p-8 max-w-5xl mx-auto">
             <h2 class="text-2xl font-semibold text-gray-800 flex items-center space-x-2">
-                <x-heroicon-o-plus-circle class="w-6 h-6 text-blue-600" />
+                <x-heroicon-o-cube class="w-8 h-8 text-blue-600" />
                 <span>Product Baru</span>
             </h2>
             <form action="{{ route('product.store') }}" method="POST">
@@ -142,7 +142,7 @@
                             <label class="block text-sm font-medium">Kode Product</label>
                             <input type="text" name="fproductcode" class="w-full border rounded px-3 py-2"
                                 placeholder="Masukkan Kode Product" :disabled="autoCode"
-                                :value="autoCode ? '{{ $newProductCode }}' : '{{ old('fproductcode') }}'"
+                                :value="autoCode ? '' : '{{ old('fproductcode') }}'"
                                 :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
                         </div>
 
@@ -151,6 +151,25 @@
                             <input type="checkbox" x-model="autoCode" class="form-checkbox text-indigo-600" checked>
                             <span class="ml-2 text-sm text-gray-700">Auto</span>
                         </label>
+                    </div>
+
+                    <!-- Merek Dropdown -->
+                    <div class="mt-2 w-1/4">
+                        <label class="block text-sm font-medium">Merek</label>
+                        <select name="fmerek"
+                            class="w-full border rounded px-3 py-2 @error('fmerek') border-red-500 @enderror"
+                            id="merkSelect">
+                            <option value="">-- Pilih Merek --</option>
+                            @foreach ($merks as $merk)
+                                <option value="{{ $merk->fmerekid }}"
+                                    {{ old('fmerek') == $merk->fmerekid ? 'selected' : '' }}>
+                                    {{ $merk->fmerekname }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('fmerek')
+                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
 
                     <!-- Nama Product -->
@@ -169,25 +188,6 @@
                         <input type="text" name="fbarcode" value="{{ old('fbarcode') }}"
                             class="w-full border rounded px-3 py-2 @error('fbarcode') border-red-500 @enderror">
                         @error('fbarcode')
-                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <!-- Merek Dropdown -->
-                    <div class="mt-2 w-1/4">
-                        <label class="block text-sm font-medium">Merek</label>
-                        <select name="fmerek"
-                            class="w-full border rounded px-3 py-2 @error('fmerek') border-red-500 @enderror"
-                            id="merkSelect">
-                            <option value="">-- Pilih Merek --</option>
-                            @foreach ($merks as $merk)
-                                <option value="{{ $merk->fmerekid }}"
-                                    {{ old('fmerek') == $merk->fmerekid ? 'selected' : '' }}>
-                                    {{ $merk->fmerekname }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('fmerek')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
                     </div>
@@ -214,15 +214,15 @@
                     {{-- Satuan 2 --}}
                     <div class="mt-2">
                         <div class="flex items-end gap-4">
-                            <!-- Satuan 2 Select -->
                             <div class="w-1/3">
                                 <label class="block text-sm font-medium">Satuan 2</label>
                                 <select
-                                    class="w-full border rounded px-3 py-2 @error('fsatuanbesar') border-red-500 @enderror"
-                                    name="fsatuanbesar" id="fsatuanbesar">
+                                    class="w-full border rounded px-3 py-2 @error('fsatuanbesar') border-red-500 @enderror select2-hidden-accessible"
+                                    name="fsatuanbesar" id="fsatuanbesar" data-select2-id="select2-data-fsatuanbesar"
+                                    tabindex="-1" aria-hidden="true">
                                     <option value="" selected>Pilih Satuan 2</option>
                                     @foreach ($satuan as $satu)
-                                        <option value="{{ $satu->fsatuancode }}">
+                                        <option value="{{ $satu->fsatuancode }}" data-name="{{ $satu->fsatuanname }}">
                                             {{ $satu->fsatuancode }}
                                         </option>
                                     @endforeach
@@ -234,7 +234,6 @@
                                 @enderror
                             </div>
 
-                            <!-- Isi Input -->
                             <div class="w-1/6">
                                 <label class="block text-sm font-medium">Isi</label>
                                 <input type="number"
@@ -246,21 +245,26 @@
                                     </div>
                                 @enderror
                             </div>
+
+                            <div class="w-1/6">
+                                <label id="fsatuanname-label"
+                                    class="block text-sm font-medium text-red-500 font-bold"></label>
+                            </div>
                         </div>
                     </div>
 
                     {{-- Satuan 3 --}}
                     <div class="mt-2">
                         <div class="flex items-end gap-4">
-                            <!-- Satuan 3 Select -->
                             <div class="w-1/3">
                                 <label class="block text-sm font-medium">Satuan 3</label>
                                 <select
-                                    class="w-full border rounded px-3 py-2 @error('fsatuanbesar2') border-red-500 @enderror"
-                                    name="fsatuanbesar2" id="fsatuanbesar2">
+                                    class="w-full border rounded px-3 py-2 @error('fsatuanbesar2') border-red-500 @enderror select2-hidden-accessible"
+                                    name="fsatuanbesar2" id="fsatuanbesar2" data-select2-id="select2-data-fsatuanbesar2"
+                                    tabindex="-1" aria-hidden="true">
                                     <option value="" selected>Pilih Satuan 3</option>
                                     @foreach ($satuan as $satu)
-                                        <option value="{{ $satu->fsatuancode }}">
+                                        <option value="{{ $satu->fsatuancode }}" data-name="{{ $satu->fsatuanname }}">
                                             {{ $satu->fsatuancode }}
                                         </option>
                                     @endforeach
@@ -283,6 +287,11 @@
                                         {{ $message }}
                                     </div>
                                 @enderror
+                            </div>
+
+                            <div class="w-1/6">
+                                <label id="fsatuanname-label-2"
+                                    class="block text-sm font-medium text-red-500 font-bold"></label>
                             </div>
                         </div>
                     </div>
@@ -320,7 +329,7 @@
                                 1</label>
                             <div class="d-flex">
                                 <input type="text"
-                                    class="w-1/2 border rounded px-3 py-2 @error('fhargasatuankecillevel1') is-invalid @enderror"
+                                    class="w-1/10 border rounded px-3 py-2 @error('fhargasatuankecillevel1') is-invalid @enderror"
                                     name="fhargasatuankecillevel1" id="fhargasatuankecillevel1"
                                     value="{{ old('fhargasatuankecillevel1', 0) }}">
                                 @error('fhargasatuankecillevel1')
@@ -337,7 +346,7 @@
                                 2</label>
                             <div class="d-flex">
                                 <input type="text"
-                                    class="w-1/2 border rounded px-3 py-2 @error('fhargasatuankecillevel2') is-invalid @enderror"
+                                    class="w-1/10 border rounded px-3 py-2 @error('fhargasatuankecillevel2') is-invalid @enderror"
                                     name="fhargasatuankecillevel2" id="fhargasatuankecillevel2"
                                     value="{{ old('fhargasatuankecillevel2', 0) }}">
                                 @error('fhargasatuankecillevel2')
@@ -354,7 +363,7 @@
                                 3</label>
                             <div class="d-flex">
                                 <input type="text"
-                                    class="w-1/2 border rounded px-3 py-2 @error('fhargasatuankecillevel3') is-invalid @enderror"
+                                    class="w-1/10 border rounded px-3 py-2 @error('fhargasatuankecillevel3') is-invalid @enderror"
                                     name="fhargasatuankecillevel3" id="fhargasatuankecillevel3"
                                     value="{{ old('fhargasatuankecillevel3', 0) }}">
                                 @error('fhargasatuankecillevel3')
@@ -373,7 +382,7 @@
                                 1</label>
                             <div class="d-flex">
                                 <input type="text"
-                                    class="w-1/2 border rounded px-3 py-2 @error('fhargajuallevel1') is-invalid @enderror"
+                                    class="w-1/10 border rounded px-3 py-2 @error('fhargajuallevel1') is-invalid @enderror"
                                     name="fhargajuallevel1" id="fhargajuallevel1"
                                     value="{{ old('fhargajuallevel1', 0) }}">
                                 @error('fhargajuallevel1')
@@ -390,7 +399,7 @@
                                 2</label>
                             <div class="d-flex">
                                 <input type="text"
-                                    class="w-1/2 border rounded px-3 py-2 @error('fhargajuallevel2') is-invalid @enderror"
+                                    class="w-1/10 border rounded px-3 py-2 @error('fhargajuallevel2') is-invalid @enderror"
                                     name="fhargajuallevel2" id="fhargajuallevel2"
                                     value="{{ old('fhargajuallevel2', 0) }}">
                                 @error('fhargajuallevel2')
@@ -407,7 +416,7 @@
                                 3</label>
                             <div class="d-flex">
                                 <input type="text"
-                                    class="w-1/2 border rounded px-3 py-2 @error('fhargajuallevel3') is-invalid @enderror"
+                                    class="w-1/10 border rounded px-3 py-2 @error('fhargajuallevel3') is-invalid @enderror"
                                     name="fhargajuallevel3" id="fhargajuallevel3"
                                     value="{{ old('fhargajuallevel3', 0) }}">
                                 @error('fhargajuallevel3')
@@ -448,6 +457,13 @@
                         <label class="switch">
                             <input type="checkbox" name="fapproval" id="approvalToggle"
                                 {{ session('fapproval') ? 'checked' : '' }}>
+                            <span class="slider round"></span>
+                        </label>
+
+                        <label class="block text-sm font-medium">Status</label>
+                        <label class="switch">
+                            <input type="checkbox" name="fnonactive" id="statusToggle"
+                                {{ old('fnonactive') == '1' ? 'checked' : '' }}>
                             <span class="slider round"></span>
                         </label>
                     </div>
@@ -506,9 +522,32 @@
         let hargajuallevel1 = new AutoNumeric('#fhargajuallevel1', 'commaDecimalCharDotSeparator');
         let hargajuallevel2 = new AutoNumeric('#fhargajuallevel2', 'commaDecimalCharDotSeparator');
         let hargajuallevel3 = new AutoNumeric('#fhargajuallevel3', 'commaDecimalCharDotSeparator');
-        let hargajual2level1 = new AutoNumeric('#fhargajual2level1', 'commaDecimalCharDotSeparator');
-        let hargajual2level2 = new AutoNumeric('#fhargajual2level2', 'commaDecimalCharDotSeparator');
-        let hargajual2level3 = new AutoNumeric('#fhargajual2level3', 'commaDecimalCharDotSeparator');
+    });
+</script>
 
+<script>
+    $(document).ready(function() {
+        $('#fsatuanbesar').on('change', function() {
+            var selectedOption = this.options[this.selectedIndex];
+            var fsatuanname = selectedOption.getAttribute('data-name');
+
+            if (fsatuanname) {
+                $('#fsatuanname-label').text(fsatuanname);
+            } else {
+                $('#fsatuanname-label').text('Tidak ada pilihan');
+            }
+        });
+
+        $('#fsatuanbesar2').on('change', function() {
+            var selectedOption = this.options[this.selectedIndex];
+            var fsatuanname = selectedOption.getAttribute('data-name');
+
+            if (fsatuanname) {
+                $('#fsatuanname-label-2').text(
+                    fsatuanname);
+            } else {
+                $('#fsatuanname-label-2').text('Tidak ada pilihan');
+            }
+        });
     });
 </script>
