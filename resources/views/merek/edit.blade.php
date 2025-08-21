@@ -86,16 +86,14 @@
                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                     @enderror
                 </div>
-                <span class="text-sm text-gray-600 md:col-span-2 flex justify-between items-center">
-                    <strong>{{ auth()->user()->fname ?? '—' }}</strong>
-
-                    <span class="ml-2 text-right">
-                        {{ now()->format('d M Y, H:i') }}
-                        , Terakhir di Update oleh: <strong>{{ $merek->fupdatedby ?? '—' }}</strong>
-                    </span>
-                </span>
+                <br>
+                <div class="md:col-span-2 flex justify-center items-center space-x-2">
+                    <input type="checkbox" name="fnonactive" id="statusToggle" class="form-checkbox h-5 w-5 text-indigo-600"
+                        {{ old('fnonactive', $merek->fnonactive) == '1' ? 'checked' : '' }}>
+                    <label class="block text-sm font-medium">Non Aktif</label>
+                </div>
             </div>
-
+            <br>
             <div class="mt-6 flex justify-center space-x-4">
                 <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
                     <x-heroicon-o-check class="w-5 h-5 mr-2" />
@@ -114,7 +112,7 @@
             <span class="text-sm text-gray-600 md:col-span-2 flex justify-between items-center">
                 <strong>{{ auth()->user()->fname ?? '—' }}</strong>
 
-                <span class="ml-2 text-right">
+                <span class="ml-2 text-right" id="current-time">
                     {{ now()->format('d M Y, H:i') }}
                     , Terakhir di Update oleh: <strong>{{ $merek->fupdatedby ?? '—' }}</strong>
                 </span>
@@ -134,19 +132,27 @@
 </style>
 
 <script>
-    function updateTime() {
-        const now = new Date();
-        const formattedTime = now.toLocaleString('en-GB', {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit'
-        });
-        document.getElementById('current-time').textContent = `${formattedTime}`;
-    }
+    document.addEventListener('DOMContentLoaded', function() {
+        function updateTime() {
+            const now = new Date();
+            const formattedTime = now.toLocaleString('en-GB', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            const currentTimeElement = document.getElementById('current-time');
 
-    setInterval(updateTime, 1000);
-    updateTime();
+            if (currentTimeElement) {
+                currentTimeElement.textContent = formattedTime;
+            } else {
+                console.error("Element with ID 'current-time' not found.");
+            }
+        }
+
+        setInterval(updateTime, 1000);
+        updateTime();
+    });
 </script>

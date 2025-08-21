@@ -3,6 +3,7 @@
 @section('title', 'Master Customer')
 
 @section('content')
+
     <style>
         /* The switch - the outer box */
         .switch {
@@ -473,13 +474,13 @@
                                 {{ !empty($customer->fapproval) ? 'checked' : '' }}>
                             <span class="slider round"></span>
                         </label>
-
-                        <label class="block text-sm font-medium">Status</label>
-                        <label class="switch">
-                            <input type="checkbox" name="fnonactive" id="statusToggle"
-                                {{ old('fnonactive', $customer->fnonactive) == '1' ? 'checked' : '' }}>
-                            <span class="slider round"></span>
-                        </label>
+                    </div>
+                    <br>
+                    <div class="md:col-span-2 flex justify-center items-center space-x-2">
+                        <input type="checkbox" name="fnonactive" id="statusToggle"
+                            class="form-checkbox h-5 w-5 text-indigo-600"
+                            {{ old('fnonactive', $customer->fnonactive) == '1' ? 'checked' : '' }}>
+                        <label class="block text-sm font-medium">Non Aktif</label>
                     </div>
                 </div>
 
@@ -504,7 +505,7 @@
                 <span class="text-sm text-gray-600 md:col-span-2 flex justify-between items-center">
                     <strong>{{ auth()->user()->fname ?? '—' }}</strong>
 
-                    <span class="ml-2 text-right">
+                    <span class="ml-2 text-right" id="current-time">
                         {{ now()->format('d M Y, H:i') }}
                         , Terakhir di Update oleh: <strong>{{ $customer->fupdatedby ?? '—' }}</strong>
                     </span>
@@ -541,19 +542,27 @@
 </script>
 
 <script>
-    function updateTime() {
-        const now = new Date();
-        const formattedTime = now.toLocaleString('en-GB', {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit'
-        });
-        document.getElementById('current-time').textContent = `${formattedTime}`;
-    }
+    document.addEventListener('DOMContentLoaded', function() {
+        function updateTime() {
+            const now = new Date();
+            const formattedTime = now.toLocaleString('en-GB', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            const currentTimeElement = document.getElementById('current-time');
 
-    setInterval(updateTime, 1000);
-    updateTime();
+            if (currentTimeElement) {
+                currentTimeElement.textContent = formattedTime;
+            } else {
+                console.error("Element with ID 'current-time' not found.");
+            }
+        }
+
+        setInterval(updateTime, 1000);
+        updateTime();
+    });
 </script>

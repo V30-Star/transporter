@@ -4,7 +4,6 @@
 
 @section('content')
     <style>
-        /* The switch - the outer box */
         .switch {
             position: relative;
             display: inline-block;
@@ -64,6 +63,7 @@
             border-radius: 50%;
         }
     </style>
+
     <style>
         input:focus,
         select:focus,
@@ -182,10 +182,11 @@
                                 <label class="block text-sm font-medium">Satuan 2</label>
                                 <select
                                     class="w-full border rounded px-3 py-2 @error('fsatuanbesar') border-red-500 @enderror"
-                                    name="fsatuanbesar" id="fsatuanbesar">
+                                    name="fsatuanbesar" id="fsatuanbesar" data-select2-id="select2-data-fsatuanbesar"
+                                    tabindex="-1" aria-hidden="true">>
                                     <option value="" selected>Pilih Satuan 2</option>
                                     @foreach ($satuan as $satu)
-                                        <option value="{{ $satu->fsatuancode }}"
+                                        <option value="{{ $satu->fsatuancode }}" data-name="{{ $satu->fsatuanname }}"
                                             {{ old('fsatuanbesar', $product->fsatuanbesar) == $satu->fsatuancode ? 'selected' : '' }}>
                                             {{ $satu->fsatuancode }}
                                         </option>
@@ -209,6 +210,10 @@
                                     </div>
                                 @enderror
                             </div>
+                            <div class="w-1/6">
+                                <label id="fsatuanname-label"
+                                    class="block text-sm font-medium text-red-500 font-bold"></label>
+                            </div>
                         </div>
                     </div>
 
@@ -219,10 +224,11 @@
                                 <label class="block text-sm font-medium">Satuan 3</label>
                                 <select
                                     class="w-full border rounded px-3 py-2 @error('fsatuanbesar2') border-red-500 @enderror"
-                                    name="fsatuanbesar2" id="fsatuanbesar2">
+                                    name="fsatuanbesar2" id="fsatuanbesar2" data-select2-id="select2-data-fsatuanbesar2"
+                                    tabindex="-1" aria-hidden="true">
                                     <option value="" selected>Pilih Satuan 3</option>
                                     @foreach ($satuan as $satu)
-                                        <option value="{{ $satu->fsatuancode }}"
+                                        <option value="{{ $satu->fsatuancode }}" data-name="{{ $satu->fsatuanname }}"
                                             {{ old('fsatuanbesar2', $product->fsatuanbesar2) == $satu->fsatuancode ? 'selected' : '' }}>
                                             {{ $satu->fsatuancode }}
                                         </option>
@@ -246,6 +252,10 @@
                                         {{ $message }}
                                     </div>
                                 @enderror
+                            </div>
+                            <div class="w-1/6">
+                                <label id="fsatuanname-label-2"
+                                    class="block text-sm font-medium text-red-500 font-bold"></label>
                             </div>
                         </div>
                     </div>
@@ -426,18 +436,16 @@
                                 </label>
                             </div>
                         </fieldset>
-
-                        <div class="flex items-center space-x-2">
-                            <label class="text-sm font-medium">Status</label>
-                            <label class="switch">
-                                <input type="checkbox" name="fnonactive" id="statusToggle"
-                                    {{ old('fnonactive', $product->fnonactive) == '1' ? 'checked' : '' }}>
-                                <span class="slider round"></span>
-                            </label>
-                        </div>
+                    </div>
+                    <br>
+                    <div class="md:col-span-2 flex justify-center items-center space-x-2">
+                        <input type="checkbox" name="fnonactive" id="statusToggle"
+                            class="form-checkbox h-5 w-5 text-indigo-600"
+                            {{ old('fnonactive', $product->fnonactive) == '1' ? 'checked' : '' }}>
+                        <label class="block text-sm font-medium">Non Aktif</label>
                     </div>
                 </div>
-
+                <br>
                 <!-- Tombol Aksi -->
                 <div class="mt-6 flex justify-center space-x-4">
                     <!-- Simpan -->
@@ -460,7 +468,7 @@
                 <span class="text-sm text-gray-600 md:col-span-2 flex justify-between items-center">
                     <strong>{{ auth()->user()->fname ?? '—' }}</strong>
 
-                    <span class="ml-2 text-right">
+                    <span class="ml-2 text-right" id="current-time">
                         {{ now()->format('d M Y, H:i') }}
                         , Terakhir di Update oleh: <strong>{{ $product->fupdatedby ?? '—' }}</strong>
                     </span>
@@ -493,9 +501,6 @@
         let hargajuallevel1 = new AutoNumeric('#fhargajuallevel1', 'commaDecimalCharDotSeparator');
         let hargajuallevel2 = new AutoNumeric('#fhargajuallevel2', 'commaDecimalCharDotSeparator');
         let hargajuallevel3 = new AutoNumeric('#fhargajuallevel3', 'commaDecimalCharDotSeparator');
-        let hargajual2level1 = new AutoNumeric('#fhargajual2level1', 'commaDecimalCharDotSeparator');
-        let hargajual2level2 = new AutoNumeric('#fhargajual2level2', 'commaDecimalCharDotSeparator');
-        let hargajual2level3 = new AutoNumeric('#fhargajual2level3', 'commaDecimalCharDotSeparator');
 
     });
 </script>
@@ -519,46 +524,55 @@
 </style>
 
 <script>
-    function updateTime() {
-        const now = new Date();
-        const formattedTime = now.toLocaleString('en-GB', {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit'
-        });
-        document.getElementById('current-time').textContent = `${formattedTime}`;
-    }
+    document.addEventListener('DOMContentLoaded', function() {
+        function updateTime() {
+            const now = new Date();
+            const formattedTime = now.toLocaleString('en-GB', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            const currentTimeElement = document.getElementById('current-time');
 
-    setInterval(updateTime, 1000);
-    updateTime();
+            if (currentTimeElement) {
+                currentTimeElement.textContent = formattedTime;
+            } else {
+                console.error("Element with ID 'current-time' not found.");
+            }
+        }
+
+        setInterval(updateTime, 1000);
+        updateTime();
+    });
 </script>
 
-
 <script>
-    $(document).ready(function() {
-        $('#fsatuanbesar').on('change', function() {
-            var selectedOption = this.options[this.selectedIndex];
-            var fsatuanname = selectedOption.getAttribute('data-name');
+    document.addEventListener('DOMContentLoaded', function() {
+        const fsatuankecil = document.getElementById('fsatuankecil');
+        const fsatuanbesar = document.getElementById('fsatuanbesar');
+        const fsatuanbesar2 = document.getElementById('fsatuanbesar2');
+        const fqtykecil = document.getElementById('fqtykecil');
+        const fqtykecil2 = document.getElementById('fqtykecil2');
 
-            if (fsatuanname) {
-                $('#fsatuanname-label').text(fsatuanname);
+        function toggleFields() {
+            if (fsatuankecil.value !== "") {
+                fsatuanbesar.disabled = false;
+                fsatuanbesar2.disabled = false;
+                fqtykecil.disabled = false;
+                fqtykecil2.disabled = false;
             } else {
-                $('#fsatuanname-label').text('Tidak ada pilihan');
+                fsatuanbesar.disabled = true;
+                fsatuanbesar2.disabled = true;
+                fqtykecil.disabled = true;
+                fqtykecil2.disabled = true;
             }
-        });
+        }
 
-        $('#fsatuanbesar2').on('change', function() {
-            var selectedOption = this.options[this.selectedIndex];
-            var fsatuanname = selectedOption.getAttribute('data-name');
+        fsatuankecil.addEventListener('change', toggleFields);
 
-            if (fsatuanname) {
-                $('#fsatuanname-label-2').text(fsatuanname);
-            } else {
-                $('#fsatuanname-label-2').text('Tidak ada pilihan');
-            }
-        });
+        toggleFields();
     });
 </script>

@@ -12,60 +12,6 @@
             box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
         }
     </style>
-    <style>
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 60px;
-            height: 34px;
-        }
-
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #ccc;
-            transition: 0.4s;
-            border-radius: 34px;
-        }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 26px;
-            width: 26px;
-            border-radius: 50%;
-            left: 4px;
-            bottom: 4px;
-            background-color: white;
-            transition: 0.4s;
-        }
-
-        input:checked+.slider {
-            background-color: #4CAF50;
-        }
-
-        input:checked+.slider:before {
-            transform: translateX(26px);
-        }
-
-        .slider.round {
-            border-radius: 34px;
-        }
-
-        .slider.round:before {
-            border-radius: 50%;
-        }
-    </style>
 
     <div x-data="{ open: true, selected: 'surat' }">
         <div class="bg-white rounded shadow p-6 md:p-8 max-w-[700px] mx-auto">
@@ -93,16 +39,14 @@
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
                     </div>
+                    <br>
                     <div class="md:col-span-2 flex justify-center items-center space-x-2">
-                        <label class="block text-sm font-medium">Status</label>
-                        <label class="switch">
-                            <input type="checkbox" name="fnonactive" id="statusToggle"
-                                {{ old('fnonactive') == '1' ? 'checked' : '' }}>
-                            <span class="slider round"></span>
-                        </label>
+                        <input type="checkbox" name="fnonactive" id="statusToggle"
+                            class="form-checkbox h-5 w-5 text-indigo-600" {{ old('fnonactive') == '1' ? 'checked' : '' }}>
+                        <label class="block text-sm font-medium">Non Aktif</label>
                     </div>
                 </div>
-
+                <br>
                 <!-- Tombol Aksi -->
                 <div class="mt-6 flex justify-center space-x-4">
                     <!-- Simpan -->

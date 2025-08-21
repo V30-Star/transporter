@@ -7,7 +7,7 @@
         {{-- Search & Filter Form --}}
         <form method="GET" action="{{ route('groupcustomer.index') }}"
             class="flex flex-wrap justify-between items-center mb-4 gap-2">
-            <div class="flex items-center space-x-3 w-full">
+            <div class="flex items-center space-x-2 w-full">
                 <label class="font-semibold">Search:</label>
                 <input type="text" name="search" value="{{ $search }}" class="border rounded px-2 py-1 w-1/4"
                     placeholder="Cari Group Customer...">

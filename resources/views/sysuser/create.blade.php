@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Master Sysuser')
+@section('title', 'Master Wewenang User')
 
 @section('content')
     <style>
@@ -17,7 +17,7 @@
         <div class="bg-white rounded shadow p-6 md:p-8 max-w-lg mx-auto">
             <h2 class="text-2xl font-semibold text-gray-800 flex items-center space-x-2">
                 <x-heroicon-o-user-circle class="w-8 h-8 text-blue-600" />
-                <span>Sysuser Baru</span>
+                <span>Wewenang User - Baru</span>
             </h2>
             <form action="{{ route('sysuser.store') }}" method="POST">
                 @csrf
@@ -81,11 +81,11 @@
                         </label>
 
                         <div x-show="salesman" x-transition>
-                            <label class="block text-sm font-medium">Salesman Level</label>
+                            <label class="block text-sm font-medium">Nama Salesman</label>
                             <select name="fsalesman"
                                 class="w-full border rounded px-3 py-2 @error('fsalesman') border-red-500 @enderror"
                                 id="salesmanSelect">
-                                <option value="">-- Pilih Salesman --</option>
+                                <option value="">-- Pilih Nama Salesman --</option>
                                 @foreach ($salesman as $salesmans)
                                     <option value="{{ $salesmans->fsalesmanid }}"
                                         {{ old('fsalesman') == $salesmans->fsalesmanid ? 'selected' : '' }}>

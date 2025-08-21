@@ -46,9 +46,9 @@ class ProductController extends Controller
     public function create()
     {
         // Get the group products and brands to pass to the view
-        $groups = Groupproduct::where('fnonactive', 1)->get();
-        $merks = Merek::where('fnonactive', 1)->get();
-        $satuan = Satuan::where('fnonactive', 1)->get();
+        $groups = Groupproduct::where('fnonactive', 0)->get();
+        $merks = Merek::where('fnonactive', 0)->get();
+        $satuan = Satuan::where('fnonactive', 0)->get();
         $newProductCode = $this->generateProductCode();
 
         return view('product.create', compact('groups', 'merks', 'satuan', 'newProductCode'));
@@ -125,9 +125,9 @@ class ProductController extends Controller
     public function edit($id)
     {
         $product = Product::findOrFail($id);
-        $groups = Groupproduct::where('fnonactive', 1)->get();
-        $merks = Merek::where('fnonactive', 1)->get();
-        $satuan = Satuan::where('fnonactive', 1)->get();
+        $groups = Groupproduct::where('fnonactive', 0)->get();
+        $merks = Merek::where('fnonactive', 0)->get();
+        $satuan = Satuan::where('fnonactive', 0)->get();
 
         return view('product.edit', compact('product', 'groups', 'merks', 'satuan'));
     }

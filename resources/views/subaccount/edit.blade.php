@@ -35,16 +35,14 @@
                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                     @enderror
                 </div>
+                <br>
                 <div class="md:col-span-2 flex justify-center items-center space-x-2">
-                    <label class="block text-sm font-medium">Status</label>
-                    <label class="switch">
-                        <input type="checkbox" name="fnonactive" id="statusToggle"
-                            {{ old('fnonactive', $subaccount->fnonactive) == '1' ? 'checked' : '' }}>
-                        <span class="slider round"></span>
-                    </label>
+                    <input type="checkbox" name="fnonactive" id="statusToggle" class="form-checkbox h-5 w-5 text-indigo-600"
+                        {{ old('fnonactive', $subaccount->fnonactive) == '1' ? 'checked' : '' }}>
+                    <label class="block text-sm font-medium">Non Aktif</label>
                 </div>
             </div>
-
+            <br>
             <!-- Action Buttons -->
             <div class="mt-6 flex justify-center space-x-4">
                 <!-- Save Button -->
@@ -85,19 +83,27 @@
 </style>
 
 <script>
-    function updateTime() {
-        const now = new Date();
-        const formattedTime = now.toLocaleString('en-GB', {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit'
-        });
-        document.getElementById('current-time').textContent = `${formattedTime}`;
-    }
+    document.addEventListener('DOMContentLoaded', function() {
+        function updateTime() {
+            const now = new Date();
+            const formattedTime = now.toLocaleString('en-GB', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            const currentTimeElement = document.getElementById('current-time');
 
-    setInterval(updateTime, 1000);
-    updateTime();
+            if (currentTimeElement) {
+                currentTimeElement.textContent = formattedTime;
+            } else {
+                console.error("Element with ID 'current-time' not found.");
+            }
+        }
+
+        setInterval(updateTime, 1000);
+        updateTime();
+    });
 </script>

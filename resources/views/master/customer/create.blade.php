@@ -3,6 +3,7 @@
 @section('title', 'Master Customer')
 
 @section('content')
+
     <style>
         /* The switch - the outer box */
         .switch {
@@ -455,16 +456,15 @@
                                 {{ session('fapproval') ? 'checked' : '' }}>
                             <span class="slider round"></span>
                         </label>
-
-                        <label class="block text-sm font-medium">Status</label>
-                        <label class="switch">
-                            <input type="checkbox" name="fnonactive" id="statusToggle"
-                                {{ old('fnonactive') == '1' ? 'checked' : '' }}>
-                            <span class="slider round"></span>
-                        </label>
+                    </div>
+                    <br>
+                    <div class="md:col-span-2 flex justify-center items-center space-x-2">
+                        <input type="checkbox" name="fnonactive" id="statusToggle"
+                            class="form-checkbox h-5 w-5 text-indigo-600" {{ old('fnonactive') == '1' ? 'checked' : '' }}>
+                        <label class="block text-sm font-medium">Non Aktif</label>
                     </div>
                 </div>
-
+                <br>
                 <!-- Tombol Aksi -->
                 <div class="mt-6 flex justify-center space-x-4">
                     <!-- Simpan -->

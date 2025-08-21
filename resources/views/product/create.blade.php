@@ -196,8 +196,8 @@
                     <div class="mt-2 w-1/4">
                         <label class="block text-sm font-medium">Satuan Kecil</label>
                         <select class="w-full border rounded px-3 py-2 @error('fsatuankecil') border-red-500 @enderror"
-                            name="fsatuankecil" id="fsatuankecil">
-                            <option value="" selected> Pilih Satuan 1</option>
+                            name="fsatuankecil" id="fsatuankecil" onchange="checkSatuan();">
+                            <option value="" selected>Pilih Satuan 1</option>
                             @foreach ($satuan as $satu)
                                 <option value="{{ $satu->fsatuancode }}">
                                     {{ $satu->fsatuancode }}
@@ -205,9 +205,7 @@
                             @endforeach
                         </select>
                         @error('fsatuankecil')
-                            <div class="text-red-600 text-sm mt-1">
-                                {{ $message }}
-                            </div>
+                            <div class="text-red-600 text-sm mt-1">{{ $message }}</div>
                         @enderror
                     </div>
 
@@ -217,9 +215,8 @@
                             <div class="w-1/3">
                                 <label class="block text-sm font-medium">Satuan 2</label>
                                 <select
-                                    class="w-full border rounded px-3 py-2 @error('fsatuanbesar') border-red-500 @enderror select2-hidden-accessible"
-                                    name="fsatuanbesar" id="fsatuanbesar" data-select2-id="select2-data-fsatuanbesar"
-                                    tabindex="-1" aria-hidden="true">
+                                    class="w-full border rounded px-3 py-2 @error('fsatuanbesar') border-red-500 @enderror"
+                                    name="fsatuanbesar" id="fsatuanbesar" disabled>
                                     <option value="" selected>Pilih Satuan 2</option>
                                     @foreach ($satuan as $satu)
                                         <option value="{{ $satu->fsatuancode }}" data-name="{{ $satu->fsatuanname }}">
@@ -228,27 +225,18 @@
                                     @endforeach
                                 </select>
                                 @error('fsatuanbesar')
-                                    <div class="text-red-600 text-sm mt-1">
-                                        {{ $message }}
-                                    </div>
+                                    <div class="text-red-600 text-sm mt-1">{{ $message }}</div>
                                 @enderror
                             </div>
 
                             <div class="w-1/6">
                                 <label class="block text-sm font-medium">Isi</label>
-                                <input type="number"
+                                <input type="number" name="fqtykecil" id="fqtykecil" value="{{ old('fqtykecil', 0) }}"
                                     class="w-full border rounded px-3 py-2 @error('fqtykecil') border-red-500 @enderror"
-                                    name="fqtykecil" id="fqtykecil" value="{{ old('fqtykecil', 0) }}">
+                                    disabled>
                                 @error('fqtykecil')
-                                    <div class="text-red-600 text-sm mt-1">
-                                        {{ $message }}
-                                    </div>
+                                    <div class="text-red-600 text-sm mt-1">{{ $message }}</div>
                                 @enderror
-                            </div>
-
-                            <div class="w-1/6">
-                                <label id="fsatuanname-label"
-                                    class="block text-sm font-medium text-red-500 font-bold"></label>
                             </div>
                         </div>
                     </div>
@@ -259,9 +247,8 @@
                             <div class="w-1/3">
                                 <label class="block text-sm font-medium">Satuan 3</label>
                                 <select
-                                    class="w-full border rounded px-3 py-2 @error('fsatuanbesar2') border-red-500 @enderror select2-hidden-accessible"
-                                    name="fsatuanbesar2" id="fsatuanbesar2" data-select2-id="select2-data-fsatuanbesar2"
-                                    tabindex="-1" aria-hidden="true">
+                                    class="w-full border rounded px-3 py-2 @error('fsatuanbesar2') border-red-500 @enderror"
+                                    name="fsatuanbesar2" id="fsatuanbesar2" disabled>
                                     <option value="" selected>Pilih Satuan 3</option>
                                     @foreach ($satuan as $satu)
                                         <option value="{{ $satu->fsatuancode }}" data-name="{{ $satu->fsatuanname }}">
@@ -270,28 +257,18 @@
                                     @endforeach
                                 </select>
                                 @error('fsatuanbesar2')
-                                    <div class="text-red-600 text-sm mt-1">
-                                        {{ $message }}
-                                    </div>
+                                    <div class="text-red-600 text-sm mt-1">{{ $message }}</div>
                                 @enderror
                             </div>
 
-                            <!-- Isi Input -->
                             <div class="w-1/6">
                                 <label class="block text-sm font-medium">Isi</label>
-                                <input type="number"
+                                <input type="number" name="fqtykecil2" id="fqtykecil2" value="{{ old('fqtykecil2', 0) }}"
                                     class="w-full border rounded px-3 py-2 @error('fqtykecil2') border-red-500 @enderror"
-                                    name="fqtykecil2" id="fqtykecil2" value="{{ old('fqtykecil2', 0) }}">
+                                    disabled>
                                 @error('fqtykecil2')
-                                    <div class="text-red-600 text-sm mt-1">
-                                        {{ $message }}
-                                    </div>
+                                    <div class="text-red-600 text-sm mt-1">{{ $message }}</div>
                                 @enderror
-                            </div>
-
-                            <div class="w-1/6">
-                                <label id="fsatuanname-label-2"
-                                    class="block text-sm font-medium text-red-500 font-bold"></label>
                             </div>
                         </div>
                     </div>
@@ -459,15 +436,16 @@
                                 {{ session('fapproval') ? 'checked' : '' }}>
                             <span class="slider round"></span>
                         </label>
-
-                        <label class="block text-sm font-medium">Status</label>
-                        <label class="switch">
-                            <input type="checkbox" name="fnonactive" id="statusToggle"
-                                {{ old('fnonactive') == '1' ? 'checked' : '' }}>
-                            <span class="slider round"></span>
-                        </label>
+                    </div>
+                    <br>
+                    <div class="md:col-span-2 flex justify-center items-center space-x-2">
+                        <input type="checkbox" name="fnonactive" id="statusToggle"
+                            class="form-checkbox h-5 w-5 text-indigo-600" {{ old('fnonactive') == '1' ? 'checked' : '' }}>
+                        <label class="block text-sm font-medium">Non Aktif</label>
                     </div>
                 </div>
+
+                <br>
 
                 <!-- Tombol Aksi -->
                 <div class="mt-6 flex justify-center space-x-4">
@@ -549,5 +527,31 @@
                 $('#fsatuanname-label-2').text('Tidak ada pilihan');
             }
         });
+    });
+</script>
+
+<script>
+    function checkSatuan() {
+        const fsatuankecil = document.getElementById('fsatuankecil').value;
+        const fsatuanbesar = document.getElementById('fsatuanbesar');
+        const fsatuanbesar2 = document.getElementById('fsatuanbesar2');
+        const fqtykecil = document.getElementById('fqtykecil');
+        const fqtykecil2 = document.getElementById('fqtykecil2');
+
+        if (fsatuankecil !== "") {
+            fsatuanbesar.disabled = false;
+            fsatuanbesar2.disabled = false;
+            fqtykecil.disabled = false;
+            fqtykecil2.disabled = false;
+        } else {
+            fsatuanbesar.disabled = true;
+            fsatuanbesar2.disabled = true;
+            fqtykecil.disabled = true;
+            fqtykecil2.disabled = true;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        checkSatuan();
     });
 </script>

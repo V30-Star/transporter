@@ -26,7 +26,7 @@ class SysUserController extends Controller
     public function create()
     {
 
-        $salesman = Salesman::where('fnonactive', 1)->get();
+        $salesman = Salesman::where('fnonactive', 0)->get();
 
         return view('sysuser.create', compact('salesman'));
     }
@@ -73,7 +73,7 @@ class SysUserController extends Controller
     {
         // Find the sysuser by fuid (primary key)
         $sysuser = Sysuser::findOrFail($fuid);
-        $salesman = Salesman::where('fnonactive', 1)->get();
+        $salesman = Salesman::where('fnonactive', 0)->get();
 
         // Pass the sysuser to the edit view
         return view('sysuser.edit', compact('sysuser', 'salesman'));

@@ -30,7 +30,7 @@ class GudangController extends Controller
     public function create()
     {
         // Fetch all cabang records for the dropdown
-        $cabangOptions = Cabang::where('fnonactive', 1)->get();
+        $cabangOptions = Cabang::where('fnonactive', 0)->get();
 
         // Return the create view with the cabangOptions data
         return view('gudang.create', compact('cabangOptions'));
@@ -75,7 +75,7 @@ class GudangController extends Controller
         $gudang = Gudang::findOrFail($fgudangid);
 
         // Fetch all cabang records for the dropdown
-        $cabangOptions = Cabang::where('fnonactive', 1)->get();
+        $cabangOptions = Cabang::where('fnonactive', 0)->get();
 
         // Return the edit view with the Gudang data and cabangOptions
         return view('gudang.edit', compact('gudang', 'cabangOptions'));

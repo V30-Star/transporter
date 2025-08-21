@@ -94,16 +94,14 @@
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
                     </div>
+                    <br>
                     <div class="md:col-span-2 flex justify-center items-center space-x-2">
-                        <label class="block text-sm font-medium">Status</label>
-                        <label class="switch">
-                            <input type="checkbox" name="fnonactive" id="statusToggle"
-                                {{ old('fnonactive') == '1' ? 'checked' : '' }}>
-                            <span class="slider round"></span>
-                        </label>
+                        <input type="checkbox" name="fnonactive" id="statusToggle"
+                            class="form-checkbox h-5 w-5 text-indigo-600" {{ old('fnonactive') == '1' ? 'checked' : '' }}>
+                        <label class="block text-sm font-medium">Non Aktif</label>
                     </div>
                 </div>
-
+                <br>
                 <!-- Tombol Aksi -->
                 <div class="mt-6 flex justify-center space-x-4">
                     <!-- Simpan -->

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Master Sysuser')
+@section('title', 'Master Wewenang User')
 
 @section('content')
     <style>
@@ -17,7 +17,7 @@
         <div class="bg-white rounded shadow p-6 md:p-8 max-w-lg mx-auto">
             <h2 class="text-2xl font-semibold text-gray-800 flex items-center space-x-2">
                 <x-heroicon-o-user-circle class="w-8 h-8 text-blue-600" />
-                <span>Sysuser Edit</span>
+                <span>Wewenang User - Edit</span>
             </h2>
             <form action="{{ route('sysuser.update', $sysuser->fuid) }}" method="POST">
                 @csrf
@@ -140,9 +140,9 @@
                 <span class="text-sm text-gray-600 md:col-span-2 flex justify-between items-center">
                     <strong>{{ auth()->user()->fname ?? '—' }}</strong>
 
-                    <span class="ml-2 text-right">
+                    <span class="ml-2 text-right" id="current-time">
                         {{ now()->format('d M Y, H:i') }}
-                        , Terakhir di Update oleh: <strong>{{ $customer->fupdatedby ?? '—' }}</strong>
+                        , Terakhir di Update oleh: <strong>{{ $sysuser->fupdatedby ?? '—' }}</strong>
                     </span>
                 </span>
             </form>
@@ -161,19 +161,27 @@
 </style>
 
 <script>
-    function updateTime() {
-        const now = new Date();
-        const formattedTime = now.toLocaleString('en-GB', {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit'
-        });
-        document.getElementById('current-time').textContent = `${formattedTime}`;
-    }
+    document.addEventListener('DOMContentLoaded', function() {
+        function updateTime() {
+            const now = new Date();
+            const formattedTime = now.toLocaleString('en-GB', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            const currentTimeElement = document.getElementById('current-time');
 
-    setInterval(updateTime, 1000);
-    updateTime();
+            if (currentTimeElement) {
+                currentTimeElement.textContent = formattedTime;
+            } else {
+                console.error("Element with ID 'current-time' not found.");
+            }
+        }
+
+        setInterval(updateTime, 1000);
+        updateTime();
+    });
 </script>

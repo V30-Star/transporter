@@ -50,10 +50,10 @@ class CustomerController extends Controller
     // Create method to return the customer creation form
     public function create()
     {
-        $groups = Groupproduct::where('fnonactive', 1)->get();
-        $salesman = Salesman::where('fnonactive', 1)->get();
-        $wilayah = Wilayah::where('fnonactive', 1)->get();
-        $rekening = Rekening::where('fnonactive', 1)->get();
+        $groups = Groupproduct::where('fnonactive', 0)->get();
+        $salesman = Salesman::where('fnonactive', 0)->get();
+        $wilayah = Wilayah::where('fnonactive', 0)->get();
+        $rekening = Rekening::where('fnonactive', 0)->get();
         $newCustomerCode = $this->generateCustomerCode();
 
         return view('master.customer.create', compact('groups', 'salesman', 'wilayah', 'rekening', 'newCustomerCode'));
@@ -142,10 +142,10 @@ class CustomerController extends Controller
     {
         // Find Customer by primary key
         $customer = Customer::findOrFail($fcustomerid);
-        $groups = Groupproduct::where('fnonactive', 1)->get();
-        $salesman = Salesman::where('fnonactive', 1)->get();
-        $wilayah = Wilayah::where('fnonactive', 1)->get();
-        $rekening = Rekening::where('fnonactive', 1)->get();
+        $groups = Groupproduct::where('fnonactive', 0)->get();
+        $salesman = Salesman::where('fnonactive', 0)->get();
+        $wilayah = Wilayah::where('fnonactive', 0)->get();
+        $rekening = Rekening::where('fnonactive', 0)->get();
         $newCustomerCode = $this->generateCustomerCode();
 
         return view('master.customer.edit', compact('customer', 'groups', 'salesman', 'wilayah', 'rekening', 'newCustomerCode'));
