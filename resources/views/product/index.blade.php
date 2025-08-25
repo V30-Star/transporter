@@ -46,8 +46,8 @@
                     <tr>
                         <th class="border px-2 py-1">Kode Product</th>
                         <th class="border px-2 py-1">Nama Product</th>
-                        <th class="border px-2 py-1">Tipe</th>
-                        <th class="border px-2 py-1">Status (Nonaktifkan)</th>
+                        <th class="border px-2 py-1">Satuan</th>
+                        <th class="border px-2 py-1">Stok</th>
                         @if ($showActionsColumn)
                             <th class="border px-2 py-1">Aksi</th>
                         @endif
@@ -58,10 +58,8 @@
                         <tr class="hover:bg-gray-50">
                             <td class="border px-2 py-1">{{ $item->fproductcode }}</td>
                             <td class="border px-2 py-1">{{ $item->fproductname }}</td>
-                            <td class="border px-2 py-1">{{ $item->ftype }}</td>
-                            <td class="border px-2 py-1">
-                                <input type="checkbox" disabled {{ $item->fnonactive == '1' ? 'checked' : '' }}>
-                            </td>
+                            <td class="border px-2 py-1">{{ $item->fsatuankecil }}</td>
+                            <td class="border px-2 py-1">{{ $item->fminstock }}</td>
                             @if ($showActionsColumn)
                                 <td class="border px-2 py-1 space-x-2">
                                     @if ($canEdit)

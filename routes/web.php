@@ -18,6 +18,7 @@ use App\Http\Controllers\SatuanController;
 use App\Http\Controllers\SubaccountController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\SysUserController;
+use App\Http\Controllers\Tr_prhController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -142,6 +143,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/account/{faccid}/edit', [AccountController::class, 'edit'])->name('account.edit');
         Route::patch('/account/{faccid}', [AccountController::class, 'update'])->name('account.update');
         Route::delete('/account/{faccid}', [AccountController::class, 'destroy'])->name('account.destroy');
+
+        Route::get('/tr_prh', action: [Tr_prhController::class, 'index'])->name('tr_prh.index');
+        Route::post('/tr_prh',        [Tr_prhController::class, 'store'])->name('tr_prh.store');
+        Route::get('/tr_prh/create', [Tr_prhController::class, 'create'])->name('tr_prh.create');
+        Route::get('/tr_prh/{fprid}/edit', [Tr_prhController::class, 'edit'])->name('tr_prh.edit');
+        Route::patch('/tr_prh/{fprid}', [Tr_prhController::class, 'update'])->name('tr_prh.update');
+        Route::delete('/tr_prh/{fprid}', [Tr_prhController::class, 'destroy'])->name('tr_prh.destroy');
 
         Route::get('/roleaccess/{fuid}', [RoleAccessController::class, 'index'])->name('roleaccess.index');
         Route::post('/roleaccess', [RoleAccessController::class, 'store'])->name('roleaccess.store');

@@ -164,6 +164,16 @@
                             </a>
                         </li>
                     @endif
+
+                    {{-- @if (in_array('viewTr_prh', explode(',', session('user_restricted_permissions', '')))) --}}
+                        <li>
+                            <a href="{{ route('tr_prh.index') }}"
+                                class="flex items-center p-2 text-white rounded-lg hover:bg-gray-700">
+                                <x-heroicon-o-banknotes class="w-5 h-5" />
+                                <span class="ml-3">Permintaan Pembelian</span>
+                            </a>
+                        </li>
+                    {{-- @endif --}}
                 </ul>
             </li>
         </ul>

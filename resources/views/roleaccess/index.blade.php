@@ -581,6 +581,41 @@
 
                             <tr>
                                 <th colspan="2" style="background-color: #f0f0f0; font-weight: bold;">
+                                    Permintaan Pembelian Menu
+                                </th>
+                            </tr>
+
+                            <tr>
+                                <td>PermintaanPembelianView</td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="viewTr_prh" id="viewTr_prh"
+                                        {{ isset($roleAccess) && in_array('viewTr_prh', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>PermintaanPembelianCreate</td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="createTr_prh" id="createTr_prh"
+                                        {{ isset($roleAccess) && in_array('createTr_prh', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>PermintaanPembelianUpdate</td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="updateTr_prh" id="updateTr_prh"
+                                        {{ isset($roleAccess) && in_array('updateTr_prh', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>PermintaanPembelianDelete</td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="deleteTr_prh" id="deleteTr_prh"
+                                        {{ isset($roleAccess) && in_array('deleteTr_prh', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <th colspan="2" style="background-color: #f0f0f0; font-weight: bold;">
                                     Wewenang User Menu
                                 </th>
                             </tr>
@@ -636,7 +671,7 @@
             if (!sourceFuid) return;
 
             const url = "{{ route('roleaccess.permissions', ['fuid' => '__FUID__']) }}".replace('__FUID__',
-            sourceFuid);
+                sourceFuid);
 
             try {
                 const res = await fetch(url, {
