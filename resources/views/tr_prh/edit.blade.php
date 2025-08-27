@@ -128,7 +128,7 @@
                                                 <option value="">-- pilih kode --</option>
                                                 @foreach ($products as $p)
                                                     <option value="{{ $p->fproductcode }}"
-                                                        {{ old('fitemcode', $detail->fprdcode) == $p->fproductcode ? 'selected' : '' }}>
+                                                        {{ (is_array(old('fitemcode')) ? old('fitemcode')[0] : old('fitemcode', $detail->fprdcode)) == $p->fproductcode ? 'selected' : '' }}>
                                                         {{ $p->fproductcode }}
                                                     </option>
                                                 @endforeach
@@ -143,7 +143,7 @@
                                                 <option value="">-- pilih produk --</option>
                                                 @foreach ($products as $product)
                                                     <option value="{{ $product->fproductcode }}"
-                                                        {{ old('fitemcode', $detail->fprdcode) == $product->fproductcode ? 'selected' : '' }}>
+                                                        {{ (is_array(old('fitemname')) ? old('fitemname')[0] : old('fitemname', $detail->fprdname)) == $product->fproductcode ? 'selected' : '' }}>
                                                         {{ $product->fproductname }}
                                                     </option>
                                                 @endforeach
@@ -154,7 +154,8 @@
                                         <div class="col-span-1 p-1">
                                             <input type="text" class="w-full border rounded px-2 py-1"
                                                 x-model="row.fdesc" name="fdesc[]" placeholder="(Memo)"
-                                                value="{{ old('fdesc', $detail->fdesc) }}" @input="checkAutoAdd(idx)">
+                                                value="{{ old('fdesc') ? old('fdesc')[0] : $detail->fdesc }}"
+                                                @input="checkAutoAdd(idx)">
                                         </div>
 
                                         <!-- Satuan (fsatuan) -->
@@ -173,14 +174,17 @@
                                             <input type="number" min="1" step="1"
                                                 class="w-full border rounded px-2 py-1 text-right"
                                                 x-model.number="row.fqty" name="fqty[]" placeholder="0"
-                                                value="{{ old('fqty', $detail->fqty) }}">
+                                                value="{{ old('fqty') ? old('fqty')[0] : $detail->fqty }}">
                                         </div>
 
                                         <div class="col-span-2 p-1">
                                             <input type="text" class="w-full border rounded px-2 py-1"
                                                 x-model="row.fketdt" name="fketdt[]" placeholder="Keterangan"
-                                                value="{{ old('fketdt', $detail->fketdt) }}" @input="checkAutoAdd(idx)">
+                                                value="{{ old('fketdt') ? old('fketdt')[0] : $detail->fketdt }}"
+                                                @input="checkAutoAdd(idx)">
                                         </div>
+
+
                                         <div class="col-span-1 p-1 flex items-center justify-center">
                                             <button type="button" @click="delAt(idx)" :disabled="idx === 0"
                                                 :class="idx === 0 ?
@@ -196,16 +200,13 @@
                         </div>
                     @endforeach
 
-                    <!-- Ensure that fclose gets a value of 0 when not checked -->
-                    <input type="hidden" name="fclose" value="0">
-
                     <div class="md:col-span-2 flex justify-center items-center space-x-2">
                         <input type="checkbox" name="fclose" id="statusToggle"
-                            class="form-checkbox h-5 w-5 text-indigo-600"
+                            class="form-checkbox h-5 w-5 text-indigo-600" value="1"
                             {{ old('fclose', $tr_prh->fclose) == '1' ? 'checked' : '' }}>
                         <label class="block text-sm font-medium">Closed</label>
                     </div>
-                    
+
                     <div class="md:col-span-2 flex justify-center items-center space-x-2">
                         <fieldset {{ $isApproved ? 'disabled' : '' }}>
                             <div class="flex items-center space-x-2">

@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class Tr_prhController extends Controller
 {
@@ -250,8 +251,11 @@ class Tr_prhController extends Controller
 
   public function update(Request $request, $fprid)
   {
+    // Log the incoming request data
+    Log::debug('Update Request Data:', $request->all());
+
     // Validate incoming data
-    $request->validate([
+    $validator = Validator::make($request->all(), [
       'fprdate' => ['required', 'date'],
       'fsupplier' => ['required', 'string', 'max:10'],
       'fneeddate' => ['nullable', 'date'],
@@ -262,13 +266,19 @@ class Tr_prhController extends Controller
       'fitemcode.*' => ['nullable', 'string', 'max:50'],
       'fsatuan' => ['array'],
       'fsatuan.*' => ['nullable', 'string', 'max:20'],
-      'fqty' => '',
-      'fqty.*' => '',
+      'fqty' => 'array',
+      'fqty.*' => 'nullable|integer|min:1',
       'fdesc' => ['array'],
       'fdesc.*' => ['nullable', 'string'],
       'fketdt' => ['array'],
       'fketdt.*' => ['nullable', 'string', 'max:50'],
     ]);
+
+    // If validation fails, log errors and return to previous page
+    if ($validator->fails()) {
+      Log::debug('Validation errors:', $validator->errors()->all());
+      return back()->withErrors($validator)->withInput();
+    }
 
     // Get form data
     $fprno = $request->filled('fprno') ? $request->fprno : $this->generatetr_prh_Code();
@@ -277,19 +287,35 @@ class Tr_prhController extends Controller
     $fduedate = $request->filled('fduedate') ? Carbon::parse($request->fduedate)->startOfDay() : null;
     $userName = Auth::user()->fname;
 
-    // Ensure that fclose value is either 1 or 0
-    $fclose = $request->has('fclose') && $request->fclose === '1' ? '1' : '0';
+    Log::debug('Updating Tr_prh with SQL:', [
+      'fprno' => $fprno,
+      'fprdate' => $fprdate,
+      'fsupplier' => $request->fsupplier,
+      'fket' => $request->fket,
+      'fbranchcode' => $request->fbranchcode,
+    ]);
 
-    // Prepare detail rows for insertion
-    $codes = $request->input('fitemcode', []);
-    $sats = $request->input('fsatuan', []);
-    $qtys = $request->input('fqty', []);
-    $descs = $request->input('fdesc', []);
-    $ketdts = $request->input('fketdt', []);
+    DB::enableQueryLog(); // Enable query log
 
-    // Prepare for validation of quantities
-    $validator = Validator::make([], []);
+    $codes = array_filter($request->input('fitemcode', []), function ($value) {
+      return !is_null($value);
+    });
+    $sats = array_filter($request->input('fsatuan', []), function ($value) {
+      return !is_null($value);
+    });
+    $qtys = array_filter($request->input('fqty', []), function ($value) {
+      return !is_null($value);
+    });
+    $descs = array_filter($request->input('fdesc', []), function ($value) {
+      return !is_null($value);
+    });
+    $ketdts = array_filter($request->input('fketdt', []), function ($value) {
+      return !is_null($value);
+    });
+
+    // Validate quantities against stock
     $stocks = Product::whereIn('fproductcode', $codes)->pluck('fminstock', 'fproductcode');
+    $validator = Validator::make([], []);
 
     foreach ($codes as $i => $code) {
       $max = (int)($stocks[$code] ?? 0);
@@ -304,14 +330,15 @@ class Tr_prhController extends Controller
     }
 
     if ($validator->fails()) {
+      Log::debug('Validation errors after quantity check:', $validator->errors()->all());
       return back()->withErrors($validator)->withInput();
     }
 
+    // Log the detailRows before updating Tr_prd
     $detailRows = [];
     $now = now();
     $rowCount = max(count($codes), count($sats), count($qtys), count($descs), count($ketdts));
 
-    // Prepare the rows for insertion
     for ($i = 0; $i < $rowCount; $i++) {
       $code = trim($codes[$i] ?? '');
       $sat = trim($sats[$i] ?? '');
@@ -321,7 +348,7 @@ class Tr_prhController extends Controller
 
       if ($code !== '' && $sat !== '' && is_numeric($qty) && $qty >= 1) {
         $detailRows[] = [
-          'fprnoid' => $fprno, // Maintain fprnoid as is
+          'fprnoid' => $fprno,
           'fprdcode' => $code,
           'fqty' => (int)$qty,
           'fqtyremain' => (int)$qty,
@@ -335,17 +362,22 @@ class Tr_prhController extends Controller
       }
     }
 
+    // Log the detailRows array
+    Log::debug('Detail rows to be inserted:', $detailRows);
+
+    // Ensure that there is at least one detail row
     if (empty($detailRows)) {
+      Log::debug('No detail rows found.');
       return back()->withInput()->withErrors(['detail' => 'Minimal satu item detail dengan Kode, Satuan, dan Qty ≥ 1.']);
     }
 
-    DB::transaction(function () use ($request, $fprno, $fprdate, $fneeddate, $fduedate, $userName, $detailRows, $codes, $qtys, $fclose) {
-      // Update Tr_prh without changing fprnoid
+    DB::transaction(function () use ($request, $fprno, $fprdate, $fneeddate, $fduedate, $userName, $detailRows, $codes, $qtys) {
+      // Update Tr_prh header
       Tr_prh::where('fprno', $fprno)->update([
         'fprdate' => $fprdate,
         'fsupplier' => $request->fsupplier,
         'fprdin' => '0',
-        'fclose' => $fclose, // Ensure fclose is set to 1 or 0
+        'fclose' => $request->has('fclose') ? '1' : '0',
         'fket' => $request->fket,
         'fbranchcode' => $request->fbranchcode,
         'fupdatedat' => now(),
@@ -353,12 +385,29 @@ class Tr_prhController extends Controller
         'fduedate' => $fduedate,
         'fuserid' => $userName,
       ]);
-      Tr_prd::insert($detailRows);
 
-      // Update the product stock
+      Log::debug('Tr_prh update executed successfully.');
+
+      // Update Tr_prd details
+      foreach ($detailRows as $row) {
+        Log::debug('Updating Tr_prd detail:', $row);
+        Tr_prd::where('fprnoid', $fprno)
+          ->where('fprdcode', $row['fprdcode'])
+          ->update([
+            'fqty' => $row['fqty'],
+            'fqtyremain' => $row['fqtyremain'],
+            'fsatuan' => $row['fsatuan'],
+            'fdesc' => $row['fdesc'],
+            'fketdt' => $row['fketdt'],
+            'fupdatedat' => now(),
+          ]);
+      }
+
+      // Update product stock
       foreach ($codes as $i => $code) {
         $qty = (int)($qtys[$i] ?? 0);
         if ($qty > 0) {
+          Log::debug('Updating product stock for code:', ['code' => $code]);
           DB::table('msproduct')
             ->where('fproductcode', $code)
             ->update([
@@ -372,7 +421,7 @@ class Tr_prhController extends Controller
     return redirect()->route('tr_prh.index')
       ->with('success', 'Permintaan pembelian berhasil diperbarui.');
   }
-
+  
   public function destroy($fsatuanid)
   {
     $satuan = Tr_prh::findOrFail($fsatuanid);
