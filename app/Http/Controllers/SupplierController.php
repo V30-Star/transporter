@@ -127,4 +127,32 @@ class SupplierController extends Controller
             ->route('supplier.index')
             ->with('success', 'Supplier berhasil dihapus.');
     }
+    public function browse(Request $request)
+    {
+        $q = trim((string) $request->get('q', ''));
+        $perPage = (int) $request->get('per_page', 10);
+        $perPage = max(1, min($perPage, 100));
+
+        $query = Supplier::query()
+            ->select('fsupplierid', 'fsuppliercode', 'fsuppliername', 'ftelp')
+            // exclude non-active if you use 'Y' to mark inactive
+            ->where(function ($w) {
+                $w->whereNull('fnonactive')->orWhere('fnonactive', '!=', 'Y');
+            });
+
+        if ($q !== '') {
+            // Postgres case-insensitive search
+            $like = '%' . str_replace(['%', '_'], ['\\%', '\\_'], $q) . '%';
+            $query->where(function ($w) use ($like) {
+                $w->where('fsuppliercode', 'ilike', $like)
+                    ->orWhere('fsuppliername', 'ilike', $like);
+            });
+        }
+
+        $paginated = $query
+            ->orderBy('fsuppliercode')   // adjust if you prefer name
+            ->paginate($perPage);
+
+        return response()->json($paginated);
+    }
 }

@@ -154,7 +154,7 @@ Route::middleware('auth')->group(function () {
         // routes/web.php
         Route::get('/products/browse', [\App\Http\Controllers\ProductBrowseController::class, 'index'])
             ->name('products.browse');
-
+        Route::get('/suppliers/browse', [SupplierController::class, 'browse'])->name('suppliers.browse');
 
         Route::get('/roleaccess/{fuid}', [RoleAccessController::class, 'index'])->name('roleaccess.index');
         Route::post('/roleaccess', [RoleAccessController::class, 'store'])->name('roleaccess.store');
