@@ -110,8 +110,7 @@
                         <label class="block text-sm font-medium mb-1">PR#</label>
                         <div class="flex items-center gap-3">
                             <input type="text" name="fprno" class="w-full border rounded px-3 py-2"
-                                :disabled="autoCode"
-                                :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
+                                :disabled="autoCode" :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
                             <label class="inline-flex items-center select-none">
                                 <input type="checkbox" x-model="autoCode" class="form-checkbox text-indigo-600" checked>
                                 <span class="ml-2 text-sm text-gray-700">Auto</span>
@@ -276,11 +275,11 @@
                                 <div class="flex justify-end gap-3 pt-2">
                                     <button type="button" @click="saveCurrent()"
                                         class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
-                                        Add Item
+                                        Tambah Item
                                     </button>
                                     <button type="button" @click="resetForm()"
                                         class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
-                                        Clear
+                                        Bersihkan
                                     </button>
                                 </div>
                             </div>
@@ -294,39 +293,122 @@
                                     <thead class="bg-gray-100">
                                         <tr>
                                             <th class="p-2 text-left">#</th>
-                                            <th class="p-2 text-left">Kode Product</th>
-                                            <th class="p-2 text-left">Nama Product</th>
+                                            <th class="p-2 text-left">Kode Produk</th>
+                                            <th class="p-2 text-left">Nama Produk</th>
                                             <th class="p-2 text-left">Satuan</th>
                                             <th class="p-2 text-right">Qty</th>
                                             <th class="p-2 text-left">Desc</th>
-                                            <th class="p-2 text-left">Keterangan</th>
+                                            <th class="p-2 text-left">Keterangan Item</th>
                                             <th class="p-2 text-center">Aksi</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <tr x-show="savedItems.length === 0" x-cloak>
                                             <td colspan="8" class="p-4 text-center text-sm text-gray-500">
-                                                Belum ada item. Isi form di atas lalu klik <b>Add Item</b>.
+                                                Belum ada item. Isi form di atas lalu klik <b>Tambah Item</b>.
                                             </td>
                                         </tr>
 
                                         <template x-for="(it, i) in savedItems" :key="it.uid">
                                             <tr class="border-t">
+                                                <!-- # -->
                                                 <td class="p-2" x-text="i + 1"></td>
+
+                                                <!-- Kode & Nama (read-only selalu) -->
                                                 <td class="p-2 font-mono" x-text="it.fitemcode"></td>
                                                 <td class="p-2" x-text="it.fitemname"></td>
-                                                <td class="p-2" x-text="it.fsatuan"></td>
-                                                <td class="p-2 text-right" x-text="it.fqty"></td>
-                                                <td class="p-2" x-text="it.fdesc || '-'"></td>
-                                                <td class="p-2" x-text="it.fketdt || '-'"></td>
-                                                <td class="p-2 text-center">
-                                                    <button type="button" @click="removeSaved(i)"
-                                                        class="px-3 py-1 rounded text-xs bg-red-100 text-red-600 hover:bg-red-200">
-                                                        Hapus
-                                                    </button>
+
+                                                <!-- Satuan -->
+                                                <td class="p-2">
+                                                    <!-- mode view -->
+                                                    <span x-show="editingIndex !== i" x-text="it.fsatuan"></span>
+
+                                                    <!-- mode edit -->
+                                                    <div x-show="editingIndex === i">
+                                                        <template x-if="editUnits.length > 1">
+                                                            <select class="border rounded px-2 py-1 w-full"
+                                                                x-model="editForm.fsatuan">
+                                                                <template x-for="u in editUnits" :key="u">
+                                                                    <option :value="u" x-text="u">
+                                                                    </option>
+                                                                </template>
+                                                            </select>
+                                                        </template>
+                                                        <template x-if="editUnits.length <= 1">
+                                                            <input type="text"
+                                                                class="border rounded px-2 py-1 w-full bg-gray-100 text-gray-600"
+                                                                :value="editForm.fsatuan" disabled>
+                                                        </template>
+                                                    </div>
                                                 </td>
 
-                                                <!-- hidden inputs -->
+                                                <!-- Qty -->
+                                                <td class="p-2 text-right">
+                                                    <!-- mode view -->
+                                                    <span x-show="editingIndex !== i" x-text="it.fqty"></span>
+
+                                                    <!-- mode edit -->
+                                                    <div x-show="editingIndex === i">
+                                                        <input type="number"
+                                                            class="border rounded px-2 py-1 w-28 text-right"
+                                                            :min="1"
+                                                            :max="editMaxqty > 0 ? editMaxqty : null" step="1"
+                                                            x-model.number="editForm.fqty" @input="enforceEditQty()"
+                                                            :placeholder="editMaxqty > 0 ? `Maks: ${editMaxqty}` : ''"
+                                                            :title="editMaxqty > 0 ? `Maks: ${editMaxqty}` : ''">
+                                                    </div>
+                                                </td>
+
+                                                <!-- Desc -->
+                                                <td class="p-2">
+                                                    <!-- view -->
+                                                    <span x-show="editingIndex !== i" x-text="it.fdesc || '-'"></span>
+
+                                                    <!-- edit -->
+                                                    <input x-show="editingIndex === i" type="text"
+                                                        class="border rounded px-2 py-1 w-full" x-model="editForm.fdesc">
+                                                </td>
+
+                                                <!-- Ket -->
+                                                <td class="p-2">
+                                                    <!-- view -->
+                                                    <span x-show="editingIndex !== i" x-text="it.fketdt || '-'"></span>
+
+                                                    <!-- edit -->
+                                                    <input x-show="editingIndex === i" type="text"
+                                                        class="border rounded px-2 py-1 w-full" x-model="editForm.fketdt">
+                                                </td>
+
+                                                <!-- Aksi -->
+                                                <td class="p-2 text-center">
+                                                    <!-- mode view -->
+                                                    <div x-show="editingIndex !== i"
+                                                        class="flex items-center justify-center gap-2">
+                                                        <button type="button" @click="startEdit(i)"
+                                                            class="px-3 py-1 rounded text-xs bg-amber-100 text-amber-700 hover:bg-amber-200">
+                                                            Edit
+                                                        </button>
+                                                        <button type="button" @click="removeSaved(i)"
+                                                            class="px-3 py-1 rounded text-xs bg-red-100 text-red-600 hover:bg-red-200">
+                                                            Hapus
+                                                        </button>
+                                                    </div>
+
+                                                    <!-- mode edit -->
+                                                    <div x-show="editingIndex === i"
+                                                        class="flex items-center justify-center gap-2">
+                                                        <button type="button" @click="applyEdit(i)"
+                                                            class="px-3 py-1 rounded text-xs bg-emerald-600 text-white hover:bg-emerald-700">
+                                                            Simpan
+                                                        </button>
+                                                        <button type="button" @click="cancelEdit()"
+                                                            class="px-3 py-1 rounded text-xs bg-gray-100 text-gray-700 hover:bg-gray-200">
+                                                            Batal
+                                                        </button>
+                                                    </div>
+                                                </td>
+
+                                                <!-- hidden inputs (biarkan) -->
                                                 <td class="hidden">
                                                     <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
                                                     <input type="hidden" name="fitemname[]" :value="it.fitemname">
@@ -456,7 +538,7 @@
                         <div class="absolute inset-0 bg-black/40" @click="close()"></div>
                         <div class="relative bg-white rounded-2xl shadow-xl w-[92vw] max-w-5xl max-h-[85vh] flex flex-col">
                             <div class="p-4 border-b flex items-center gap-3">
-                                <h3 class="text-lg font-semibold">Browse Product</h3>
+                                <h3 class="text-lg font-semibold">Browse Produk</h3>
                                 <div class="ml-auto flex items-center gap-2">
                                     <input type="text" x-model="keyword" @keydown.enter.prevent="search()"
                                         placeholder="Cari kode / nama…" class="border rounded px-3 py-2 w-64">
@@ -747,6 +829,7 @@
 
     function detailProduk() {
         return {
+            // form input atas
             form: {
                 fitemcode: '',
                 fitemname: '',
@@ -757,10 +840,24 @@
                 fketdt: '',
                 maxqty: 0
             },
+
+            // state utama
             savedItems: [],
             dupeModalOpen: false,
             dupeCandidate: null,
 
+            // ===== inline edit state =====
+            editingIndex: null,
+            editForm: {
+                fsatuan: '',
+                fqty: 1,
+                fdesc: '',
+                fketdt: ''
+            },
+            editUnits: [],
+            editMaxqty: 0,
+
+            // ===== methods =====
             resetForm() {
                 this.form = {
                     fitemcode: '',
@@ -809,9 +906,7 @@
             },
 
             confirmDupe() {
-                if (this.dupeCandidate) {
-                    this.savedItems.push(this.dupeCandidate);
-                }
+                if (this.dupeCandidate) this.savedItems.push(this.dupeCandidate);
                 this.dupeCandidate = null;
                 this.dupeModalOpen = false;
                 this.resetForm();
@@ -828,6 +923,7 @@
             onCodeTyped() {
                 const key = (this.form.fitemcode || '').trim();
                 const meta = window.PRODUCT_MAP[key] || null;
+
                 if (!meta) {
                     this.form.fitemname = '';
                     this.form.units = [];
@@ -836,11 +932,16 @@
                     this.form.fqty = '';
                     return;
                 }
+
                 this.form.fitemname = meta.name || '';
-                const cleanUnits = Array.from(new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(
-                    Boolean)));
+                const cleanUnits = Array.from(new Set(
+                    (meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean)
+                ));
                 this.form.units = cleanUnits;
-                if (!this.form.units.includes(this.form.fsatuan)) this.form.fsatuan = this.form.units[0] || '';
+                if (!this.form.units.includes(this.form.fsatuan)) {
+                    this.form.fsatuan = this.form.units[0] || '';
+                }
+
                 this.form.maxqty = Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0;
                 if (this.form.maxqty > 0) {
                     if (!this.form.fqty || +this.form.fqty < 1) this.form.fqty = 1;
@@ -853,13 +954,18 @@
             applyChosenProduct(p) {
                 const code = (p.fproductcode || '').toString();
                 const name = (p.fproductname || '').toString();
-                const units = Array.from(new Set([p.fsatuankecil, p.fsatuanbesar, p.fsatuanbesar2]
-                    .map(u => (u ?? '').toString().trim()).filter(Boolean)));
+                const units = Array.from(new Set(
+                    [p.fsatuankecil, p.fsatuanbesar, p.fsatuanbesar2]
+                    .map(u => (u ?? '').toString().trim())
+                    .filter(Boolean)
+                ));
 
                 this.form.fitemcode = code;
                 this.form.fitemname = name;
                 this.form.units = units;
-                if (!this.form.units.includes(this.form.fsatuan)) this.form.fsatuan = this.form.units[0] || '';
+                if (!this.form.units.includes(this.form.fsatuan)) {
+                    this.form.fsatuan = this.form.units[0] || '';
+                }
 
                 const stock = Number.isFinite(+p.fminstock) ? +p.fminstock : 0;
                 this.form.maxqty = stock > 0 ? stock : 0;
@@ -881,10 +987,12 @@
                 if (this.form.maxqty > 0 && n > this.form.maxqty) this.form.fqty = this.form.maxqty;
             },
 
+            // modal browse product (trigger)
             openBrowse() {
                 window.dispatchEvent(new CustomEvent('browse-open'));
             },
 
+            // dengar event pilih produk
             init() {
                 window.addEventListener('product-chosen', (e) => {
                     const {
@@ -893,7 +1001,82 @@
                     if (!product) return;
                     this.applyChosenProduct(product);
                 });
-            }
+            },
+
+            // ===== inline edit methods =====
+            startEdit(i) {
+                const it = this.savedItems[i];
+                this.editingIndex = i;
+
+                const meta = window.PRODUCT_MAP[it.fitemcode] || {
+                    units: [],
+                    stock: 0
+                };
+                const cleanUnits = Array.from(new Set((meta.units || [])
+                    .map(u => (u ?? '').toString().trim())
+                    .filter(Boolean)
+                ));
+
+                this.editUnits = cleanUnits;
+                this.editMaxqty = Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0;
+
+                this.editForm = {
+                    fsatuan: it.fsatuan,
+                    fqty: Number(it.fqty) || 1,
+                    fdesc: it.fdesc || '',
+                    fketdt: it.fketdt || ''
+                };
+
+                if (this.editUnits.length && !this.editUnits.includes(this.editForm.fsatuan)) {
+                    this.editForm.fsatuan = this.editUnits[0];
+                }
+                this.enforceEditQty();
+            },
+
+            cancelEdit() {
+                this.editingIndex = null;
+                this.editForm = {
+                    fsatuan: '',
+                    fqty: 1,
+                    fdesc: '',
+                    fketdt: ''
+                };
+                this.editUnits = [];
+                this.editMaxqty = 0;
+            },
+
+            applyEdit(i) {
+                if (!this.editForm.fsatuan) {
+                    alert('Satuan harus diisi.');
+                    return;
+                }
+                if (!this.editForm.fqty || +this.editForm.fqty < 1) {
+                    alert('Qty minimal 1.');
+                    return;
+                }
+                if (this.editMaxqty > 0 && +this.editForm.fqty > this.editMaxqty) {
+                    alert('Qty melebihi stok maksimum.');
+                    return;
+                }
+
+                const it = this.savedItems[i];
+                it.fsatuan = this.editForm.fsatuan;
+                it.fqty = +this.editForm.fqty;
+                it.fdesc = this.editForm.fdesc || '';
+                it.fketdt = this.editForm.fketdt || '';
+
+                this.cancelEdit();
+            },
+
+            enforceEditQty() {
+                const n = +this.editForm.fqty;
+                if (!Number.isFinite(n)) {
+                    this.editForm.fqty = '';
+                    return;
+                }
+                if (n < 1) this.editForm.fqty = 1;
+                if (this.editMaxqty > 0 && n > this.editMaxqty) this.editForm.fqty = this.editMaxqty;
+            },
         }
     }
 </script>
