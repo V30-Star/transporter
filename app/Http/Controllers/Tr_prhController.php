@@ -32,27 +32,80 @@ class Tr_prhController extends Controller
     return view('tr_prh.index', compact('tr_prh', 'filterBy', 'search'));
   }
 
-  private function generatetr_prh_Code(): string
+  private function generatetr_prh_Code(?Carbon $onDate = null, $branch = null): string
   {
-    $lastCode = Tr_prh::where('fprno', 'like', 'C-%')
-      ->orderByRaw("CAST(SUBSTRING(fprno FROM 3) AS INTEGER) DESC")
-      ->value('fprno');
+    $date = $onDate ?: now();
 
-    if (!$lastCode) {
-      return 'C-01';
+    $branch = $branch
+      ?? Auth::guard('sysuser')->user()?->fcabang
+      ?? Auth::user()?->fcabang
+      ?? null;
+
+    $kodeCabang = null;
+
+    if ($branch !== null) {
+      $needle = trim((string)$branch);
+
+      if (is_numeric($needle)) {
+        $kodeCabang = DB::table('mscabang')
+          ->where('fcabangid', (int)$needle)
+          ->value('fcabangkode');
+      } else {
+        // cocokkan case-insensitive
+        $kodeCabang = DB::table('mscabang')
+          ->whereRaw('LOWER(fcabangkode) = LOWER(?)', [$needle])
+          ->value('fcabangkode');
+
+        if (!$kodeCabang) {
+          $kodeCabang = DB::table('mscabang')
+            ->whereRaw('LOWER(fcabangname) = LOWER(?)', [$needle])
+            ->value('fcabangkode');
+        }
+      }
     }
 
-    $number = (int)substr($lastCode, 2);
-    $newNumber = $number + 1;
+    if (!$kodeCabang) {
+      $kodeCabang = 'NA'; // fallback
+    }
 
-    return 'C-' . str_pad($newNumber, 2, '0', STR_PAD_LEFT);
+    $prefix = sprintf('PR.%s.%s.%s.', trim($kodeCabang), $date->format('y'), $date->format('m'));
+
+    return DB::transaction(function () use ($prefix) {
+      $last = \App\Models\Tr_prh::where('fprno', 'like', $prefix . '%')
+        ->lockForUpdate()
+        ->orderByDesc('fprno')
+        ->first();
+
+      $lastNum = 0;
+      if ($last && ($pos = strrpos($last->fprno, '.')) !== false) {
+        $lastNum = (int)substr($last->fprno, $pos + 1);
+      }
+
+      $next = str_pad((string)($lastNum + 1), 4, '0', STR_PAD_LEFT);
+      return $prefix . $next; // PR.JK.25.08.0001
+    });
   }
 
   public function create()
   {
     $supplier        = Supplier::all();
-    $fcabang         = Auth::user()->fcabang ?? null;
-    $newtr_prh_code  = $this->generatetr_prh_Code();
+
+    $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
+
+    $branch = DB::table('mscabang')
+      ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int)$raw))
+      ->when(
+        !is_numeric($raw),
+        fn($q) => $q
+          ->where('fcabangkode', $raw)
+          ->orWhere('fcabangname', $raw)
+      )
+      ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
+
+    $fcabang       = $branch->fcabangname ?? (string)$raw;   // untuk tampilan
+    $fbranchcode   = $branch->fcabangkode ?? (string)$raw;   // untuk hidden post (JK)
+
+    $newtr_prh_code = $this->generatetr_prh_Code(now(), $fbranchcode);
 
     $products = Product::select(
       'fproductid',
@@ -65,7 +118,13 @@ class Tr_prhController extends Controller
     )->orderBy('fproductname')
       ->get();
 
-    return view('tr_prh.create', compact('newtr_prh_code', 'supplier', 'fcabang', 'products'));
+    return view('tr_prh.create', [
+      'newtr_prh_code' => $newtr_prh_code,
+      'supplier'       => $supplier,
+      'fcabang'        => $fcabang,
+      'fbranchcode'    => $fbranchcode,
+      'products'       => $products,
+    ]);
   }
 
   public function store(Request $request)
@@ -89,12 +148,17 @@ class Tr_prhController extends Controller
       'fketdt.*'    => ['nullable', 'string', 'max:50'],
     ], [
       'fprdate.required'   => 'Tanggal PR wajib diisi.',
-      'fsupplier.required' => 'Supplier wajib dipilih.',
     ]);
 
-    $fprno = $request->filled('fprno') ? $request->fprno : $this->generatetr_prh_Code();
+    $fprdate = Carbon::parse($request->fprdate)->startOfDay();
 
-    $fprdate   = Carbon::parse($request->fprdate)->startOfDay();
+    // biarkan apa adanya (bisa "JK", "Jakarta", atau angka id)
+    $branchFromForm = $request->input('fbranchcode');  // no cast
+
+    $fprno = $request->filled('fprno')
+      ? $request->fprno
+      : $this->generatetr_prh_Code($fprdate, $branchFromForm);
+
     $fneeddate = $request->filled('fneeddate') ? Carbon::parse($request->fneeddate)->startOfDay() : null;
     $fduedate  = $request->filled('fduedate')  ? Carbon::parse($request->fduedate)->startOfDay()  : null;
 
