@@ -71,8 +71,8 @@ class Tr_prhController extends Controller
   public function store(Request $request)
   {
     $request->validate([
-      'fprdate'   => ['required', 'date'],
-      'fsupplier' => ['required', 'string', 'max:10'],
+      'fprdate'   => ['nullable', 'date'],
+      'fsupplier' => ['nullable', 'string', 'max:10'],
       'fneeddate' => ['nullable', 'date'],
       'fduedate'  => ['nullable', 'date'],
       'fket'      => ['nullable', 'string', 'max:300'],
@@ -160,6 +160,39 @@ class Tr_prhController extends Controller
     if (empty($detailRows)) {
       return back()->withInput()
         ->withErrors(['detail' => 'Minimal satu item detail dengan Kode, Satuan, dan Qty ≥ 1.']);
+    }
+
+    // ====== 2) TAMBAHKAN validasi berbasis data tabel (hidden inputs row_*) ======
+    $rowPrdate   = $request->input('row_prdate', []);
+    $rowSupplier = $request->input('row_supplier', []);
+
+    // helper ambil pertama yang tidak kosong
+    $firstNonEmpty = function (array $arr) {
+      foreach ($arr as $v) {
+        $t = trim((string)($v ?? ''));
+        if ($t !== '') return $t;
+      }
+      return '';
+    };
+
+    $hdrPrdate   = $firstNonEmpty($rowPrdate);
+    $hdrSupplier = $firstNonEmpty($rowSupplier);
+
+    // jika di tabel kosong, lempar error sesuai pesan lama
+    if ($hdrPrdate === '') {
+      $validator->errors()->add('fprdate', 'Tanggal PR wajib diisi.');
+    }
+    if ($hdrSupplier === '') {
+      $validator->errors()->add('fsupplier', 'Supplier wajib dipilih.');
+    }
+
+    // (opsional) konsistensi agar semua baris tabel punya header yang sama
+    $uniq = fn(array $arr) => collect($arr)->filter(fn($v) => trim((string)$v) !== '')->unique()->values();
+    if ($uniq($rowSupplier)->count() > 1) {
+      $validator->errors()->add('fsupplier', 'Supplier pada baris-baris tabel harus sama.');
+    }
+    if ($uniq($rowPrdate)->count() > 1) {
+      $validator->errors()->add('fprdate', 'Tanggal PR pada baris-baris tabel harus sama.');
     }
 
     DB::transaction(function () use ($request, $fprno, $fprdate, $fneeddate, $fduedate, $userName, $detailRows, $codes, $qtys) {
@@ -421,7 +454,7 @@ class Tr_prhController extends Controller
     return redirect()->route('tr_prh.index')
       ->with('success', 'Permintaan pembelian berhasil diperbarui.');
   }
-  
+
   public function destroy($fsatuanid)
   {
     $satuan = Tr_prh::findOrFail($fsatuanid);
