@@ -368,113 +368,190 @@
 
                     <br>
 
-                    <!-- LIST ITEM: versi card -->
                     <div x-data="detailProduk()" class="mt-6 space-y-4">
-                        <template x-for="(row, idx) in items" :key="row.uid">
-                            <div class="rounded-lg border shadow-sm overflow-hidden">
-                                <!-- header per-item -->
-                                <div class="bg-gray-50 border-b px-4 py-2 flex items-center justify-between">
-                                    <div class="font-medium text-gray-700">
-                                        Input Item Barang
-                                        <span class="text-xs text-gray-500">#<span x-text="idx+1"></span></span>
+                        <!-- SINGLE CARD (tanpa loop) -->
+                        <div class="rounded-lg border shadow-sm overflow-hidden">
+                            <div class="bg-gray-50 border-b px-4 py-2 flex items-center justify-between">
+                                <div class="font-medium text-gray-700">Input Item Barang </div>
+                            </div>
+
+                            <div class="p-4 space-y-4">
+                                <!-- Baris 1 -->
+                                <div class="grid grid-cols-12 gap-3">
+                                    <!-- Kode + Browse -->
+                                    <div class="col-span-12 md:col-span-4">
+                                        <label class="block text-sm font-medium mb-1">Kode Produk</label>
+                                        <div class="flex">
+                                            <input type="text" class="flex-1 border rounded-l px-3 py-2"
+                                                x-model.trim="form.fitemcode" @input="onCodeTyped()">
+                                            <button type="button" @click="openBrowse()"
+                                                class="border border-l-0 rounded-r px-3 py-2 bg-white hover:bg-gray-50"
+                                                title="Cari Produk">
+                                                <x-heroicon-o-magnifying-glass class="w-5 h-5" />
+                                            </button>
+                                            <a href="{{ route('product.create') }}" target="_blank" rel="noopener"
+                                                class="border border-l-0 rounded-r px-3 py-2 bg-white hover:bg-gray-50"
+                                                title="Tambah Produk (buka tab baru)">
+                                                <x-heroicon-o-plus class="w-5 h-5" />
+                                            </a>
+                                        </div>
                                     </div>
-                                    <button type="button" @click="delAt(idx)" :disabled="idx === 0"
-                                        :class="idx === 0 ?
-                                            'h-8 px-3 rounded bg-gray-100 text-gray-400 text-xs cursor-not-allowed' :
-                                            'h-8 px-3 rounded bg-red-100 text-red-600 text-xs hover:bg-red-200'">
-                                        Hapus
+
+                                    <!-- Nama (disabled) -->
+                                    <div class="col-span-12 md:col-span-5">
+                                        <label class="block text-sm font-medium mb-1">Nama Produk</label>
+                                        <input type="text"
+                                            class="w-full border rounded px-3 py-2 bg-gray-100 text-gray-600"
+                                            :value="form.fitemname" disabled>
+                                    </div>
+
+                                    <!-- Qty -->
+                                    <div class="col-span-12 md:col-span-3">
+                                        <label class="block text-sm font-medium mb-1">Qty.</label>
+                                        <input type="number" :min="1"
+                                            :max="form.maxqty > 0 ? form.maxqty : null" step="1"
+                                            class="w-full border rounded px-3 py-2 text-right" x-model.number="form.fqty"
+                                            @input="enforceQty()">
+                                        <p class="text-[11px] text-gray-500 mt-1" x-show="form.maxqty > 0">
+                                            Maks: <span x-text="form.maxqty"></span>
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <!-- Baris 2 -->
+                                <div class="grid grid-cols-12 gap-3">
+                                    <!-- Satuan -->
+                                    <div class="col-span-12 md:col-span-3">
+                                        <label class="block text-sm font-medium mb-1">Satuan</label>
+
+                                        <template x-if="form.units.length > 1">
+                                            <select class="w-full border rounded px-3 py-2" x-model="form.fsatuan">
+                                                <template x-for="u in form.units" :key="u">
+                                                    <option :value="u" x-text="u"></option>
+                                                </template>
+                                            </select>
+                                        </template>
+
+                                        <template x-if="form.units.length <= 1">
+                                            <div>
+                                                <input type="text"
+                                                    class="w-full border rounded px-3 py-2 bg-gray-100 text-gray-600"
+                                                    :value="form.fsatuan || '-'" disabled>
+                                            </div>
+                                        </template>
+                                    </div>
+
+                                    <!-- Desc -->
+                                    <div class="col-span-12 md:col-span-4">
+                                        <label class="block text-sm font-medium mb-1">Desc.</label>
+                                        <input type="text" class="w-full border rounded px-3 py-2"
+                                            x-model="form.fdesc">
+                                    </div>
+
+                                    <!-- Keterangan -->
+                                    <div class="col-span-12 md:col-span-5">
+                                        <label class="block text-sm font-medium mb-1">Keterangan</label>
+                                        <input type="text" class="w-full border rounded px-3 py-2"
+                                            x-model="form.fketdt">
+                                    </div>
+                                </div>
+                                <!-- Tombol di kanan bawah -->
+                                <div class="flex justify-end gap-3 mt-3">
+                                    <button type="button" @click="saveCurrent()"
+                                        class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
+                                        Save
+                                    </button>
+                                    <button type="button" @click="resetForm()"
+                                        class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
+                                        Clear
                                     </button>
                                 </div>
-
-                                <!-- isi form -->
-                                <div class="p-4 space-y-4">
-                                    <!-- Baris 1 -->
-                                    <div class="grid grid-cols-12 gap-3">
-                                        <!-- Kode + Browse -->
-                                        <div class="col-span-12 md:col-span-4">
-                                            <label class="block text-sm font-medium mb-1">Kode Produk</label>
-                                            <div class="flex">
-                                                <input type="text" class="flex-1 border rounded-l px-3 py-2"
-                                                    x-model.trim="row.fitemcode" name="fitemcode[]"
-                                                    @input="onCodeTyped(row)">
-                                                <button type="button" @click="openBrowse(idx)"
-                                                    class="border border-l-0 rounded-r px-3 py-2 bg-white hover:bg-gray-50"
-                                                    title="Cari Produk">
-                                                    <x-heroicon-o-magnifying-glass class="w-5 h-5" />
-                                                </button>
-                                                <a href="{{ route('product.create') }}" target="_blank" rel="noopener"
-                                                    class="border border-l-0 rounded-r px-3 py-2 bg-white hover:bg-gray-50"
-                                                    title="Tambah Produk (buka tab baru)">
-                                                    <x-heroicon-o-plus class="w-5 h-5" />
-                                                </a>
-                                            </div>
-                                        </div>
-
-                                        <!-- Nama (disabled) -->
-                                        <div class="col-span-12 md:col-span-5">
-                                            <label class="block text-sm font-medium mb-1">Nama Produk</label>
-                                            <input type="text"
-                                                class="w-full border rounded px-3 py-2 bg-gray-100 text-gray-600"
-                                                :value="row.fitemname" disabled>
-                                            <input type="hidden" name="fitemname[]" :value="row.fitemname">
-                                        </div>
-
-                                        <!-- Qty -->
-                                        <div class="col-span-12 md:col-span-3">
-                                            <label class="block text-sm font-medium mb-1">Qty.</label>
-                                            <input type="number" :min="1"
-                                                :max="row.maxqty > 0 ? row.maxqty : null" step="1"
-                                                class="w-full border rounded px-3 py-2 text-right"
-                                                x-model.number="row.fqty" name="fqty[]"
-                                                @input="enforceQty(row); checkAutoAdd(idx)">
-                                            <p class="text-[11px] text-gray-500 mt-1" x-show="row.maxqty > 0">
-                                                Maks: <span x-text="row.maxqty"></span>
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <!-- Baris 2 -->
-                                    <div class="grid grid-cols-12 gap-3">
-                                        <!-- Satuan: dropdown jika >1 -->
-                                        <div class="col-span-12 md:col-span-3">
-                                            <label class="block text-sm font-medium mb-1">Satuan</label>
-
-                                            <template x-if="row.units.length > 1">
-                                                <select class="w-full border rounded px-3 py-2" name="fsatuan[]"
-                                                    x-model="row.fsatuan">
-                                                    <template x-for="u in row.units" :key="u">
-                                                        <option :value="u" x-text="u"></option>
-                                                    </template>
-                                                </select>
-                                            </template>
-
-                                            <template x-if="row.units.length <= 1">
-                                                <div>
-                                                    <input type="text"
-                                                        class="w-full border rounded px-3 py-2 bg-gray-100 text-gray-600"
-                                                        :value="row.fsatuan || '-'" disabled>
-                                                    <input type="hidden" name="fsatuan[]" :value="row.fsatuan">
-                                                </div>
-                                            </template>
-                                        </div>
-
-                                        <!-- Desc -->
-                                        <div class="col-span-12 md:col-span-4">
-                                            <label class="block text-sm font-medium mb-1">Desc.</label>
-                                            <input type="text" class="w-full border rounded px-3 py-2"
-                                                x-model="row.fdesc" name="fdesc[]" @input="checkAutoAdd(idx)">
-                                        </div>
-
-                                        <!-- Keterangan -->
-                                        <div class="col-span-12 md:col-span-5">
-                                            <label class="block text-sm font-medium mb-1">Keterangan</label>
-                                            <input type="text" class="w-full border rounded px-3 py-2"
-                                                x-model="row.fketdt" name="fketdt[]" @input="checkAutoAdd(idx)">
-                                        </div>
-                                    </div>
-                                </div>
                             </div>
-                        </template>
+                        </div>
+
+                        <!-- RINGKASAN ITEM TERSIMPAN -->
+                        <div class="mt-6">
+                            <h3 class="text-base font-semibold text-gray-800 mb-2">Ringkasan Item</h3>
+
+                            <div x-show="savedItems.length === 0" class="text-sm text-gray-500">
+                                Belum ada item. Isi form di atas lalu klik <b>Save</b>.
+                            </div>
+
+                            <div x-show="savedItems.length > 0" class="overflow-auto border rounded">
+                                <table class="min-w-full text-sm">
+                                    <thead class="bg-gray-100">
+                                        <tr>
+                                            <th class="p-2 text-left">#</th>
+                                            <th class="p-2 text-left">PR#</th>
+                                            <th class="p-2 text-left">Supplier</th>
+                                            <th class="p-2 text-left">Tanggal</th>
+                                            <th class="p-2 text-left">Tanggal Dibutuhkan</th>
+                                            <th class="p-2 text-left">Tanggal Paling Lambat</th>
+                                            <th class="p-2 text-left">Kode Product</th>
+                                            <th class="p-2 text-left">Nama Nama Product</th>
+                                            <th class="p-2 text-left">Satuan</th>
+                                            <th class="p-2 text-right">Qty</th>
+                                            <th class="p-2 text-left">Desc</th>
+                                            <th class="p-2 text-left">Ket PR</th>
+                                            <th class="p-2 text-left">Ket Item</th>
+                                            <th class="p-2 text-center">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <template x-for="(it, i) in savedItems" :key="it.uid">
+                                            <tr class="border-t">
+                                                <td class="p-2" x-text="i+1"></td>
+
+                                                <!-- header columns -->
+                                                <td class="p-2 font-mono" x-text="it._prno || '-'"></td>
+                                                <td class="p-2" x-text="it._supplierNm || it._supplier || '-'"></td>
+                                                <td class="p-2" x-text="it._prdate || '-'"></td>
+                                                <td class="p-2" x-text="it._needdate || '-'"></td>
+                                                <td class="p-2" x-text="it._duedate || '-'"></td>
+
+                                                <!-- item columns -->
+                                                <td class="p-2 font-mono" x-text="it.fitemcode"></td>
+                                                <td class="p-2" x-text="it.fitemname"></td>
+                                                <td class="p-2" x-text="it.fsatuan"></td>
+                                                <td class="p-2 text-right" x-text="it.fqty"></td>
+                                                <td class="p-2" x-text="it.fdesc || '-'"></td>
+                                                <td class="p-2" x-text="it._ketHeader || '-'"></td>
+                                                <td class="p-2" x-text="it.fketdt || '-'"></td>
+
+                                                <td class="p-2 text-center">
+                                                    <button type="button" @click="removeSaved(i)"
+                                                        class="px-3 py-1 rounded text-xs bg-red-100 text-red-600 hover:bg-red-200">
+                                                        Hapus
+                                                    </button>
+                                                </td>
+
+                                                <!-- hidden inputs agar ikut submit -->
+                                                <td class="hidden">
+                                                    <!-- header fields per-row -->
+                                                    <input type="hidden" name="row_prno[]" :value="it._prno">
+                                                    <input type="hidden" name="row_supplier[]" :value="it._supplier">
+                                                    <!-- kode -->
+                                                    <input type="hidden" name="row_supplier_nm[]"
+                                                        :value="it._supplierNm"> <!-- label (opsional) -->
+                                                    <input type="hidden" name="row_prdate[]" :value="it._prdate">
+                                                    <input type="hidden" name="row_needdate[]" :value="it._needdate">
+                                                    <input type="hidden" name="row_duedate[]" :value="it._duedate">
+                                                    <input type="hidden" name="row_ketheader[]" :value="it._ketHeader">
+
+                                                    <!-- item fields per-row -->
+                                                    <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
+                                                    <input type="hidden" name="fitemname[]" :value="it.fitemname">
+                                                    <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
+                                                    <input type="hidden" name="fqty[]" :value="it.fqty">
+                                                    <input type="hidden" name="fdesc[]" :value="it.fdesc">
+                                                    <input type="hidden" name="fketdt[]" :value="it.fketdt">
+                                                </td>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- MODAL BROWSE PRODUCT (1x, global) -->
@@ -612,14 +689,12 @@
     function productBrowser() {
         return {
             open: false,
-            targetIndex: null,
             keyword: '',
             page: 1,
             lastPage: 1,
             perPage: 10,
             total: 0,
             rows: [],
-
             apiUrl() {
                 const u = new URL("{{ route('products.browse') }}", window.location.origin);
                 u.searchParams.set('q', this.keyword || '');
@@ -647,15 +722,13 @@
                     this.total = 0;
                 }
             },
-            openFor(index) {
-                this.targetIndex = index;
+            openBrowse() {
                 this.open = true;
                 this.page = 1;
                 this.fetch();
             },
             close() {
                 this.open = false;
-                this.targetIndex = null;
                 this.keyword = '';
                 this.rows = [];
             },
@@ -678,153 +751,238 @@
             choose(p) {
                 window.dispatchEvent(new CustomEvent('product-chosen', {
                     detail: {
-                        index: this.targetIndex,
                         product: p
                     }
                 }));
                 this.close();
             },
             init() {
-                window.addEventListener('browse-open', (e) => {
-                    const i = e.detail && e.detail.index;
-                    if (Number.isInteger(i)) this.openFor(i);
-                }, {
+                window.addEventListener('browse-open', () => this.openBrowse(), {
                     passive: true
                 });
             }
         }
     }
+</script>
 
+<script>
     function detailProduk() {
         return {
-            items: [{
-                uid: cryptoRandom(),
+            form: {
                 fitemcode: '',
                 fitemname: '',
                 units: [],
-                fdesc: '',
                 fsatuan: '',
                 fqty: '',
+                fdesc: '',
                 fketdt: '',
                 maxqty: 0
-            }],
+            },
+            savedItems: [],
 
-            addItem() {
-                this.items.push({
-                    uid: cryptoRandom(),
+            // === Ambil nilai field header (atas) ===
+            getHeaderValues() {
+                const prno = document.querySelector('input[name="fprno"]')?.value?.trim() || '';
+                const prdate = document.querySelector('input[name="fprdate"]')?.value || '';
+                const needdate = document.querySelector('input[name="fneeddate"]')?.value || '';
+                const duedate = document.querySelector('input[name="fduedate"]')?.value || '';
+                const ketHeader = document.querySelector('textarea[name="fket"]')?.value?.trim() || '';
+
+                const sel = document.getElementById('supplierSelect');
+                const supplierLabel = sel?.selectedOptions?.[0]?.text?.trim() || '';
+                const supplierCode = document.getElementById('supplierCodeHidden')?.value?.trim() || '';
+
+                return {
+                    prno,
+                    supplierCode,
+                    supplierLabel,
+                    prdate,
+                    needdate,
+                    duedate,
+                    ketHeader
+                };
+            },
+
+            // === Kosongkan field header setelah Save ===
+            clearHeaderFields() {
+                const fprno = document.querySelector('input[name="fprno"]');
+                const prdate = document.querySelector('input[name="fprdate"]');
+                const needdate = document.querySelector('input[name="fneeddate"]');
+                const duedate = document.querySelector('input[name="fduedate"]');
+                const ketHeader = document.querySelector('textarea[name="fket"]');
+
+                const sel = document.getElementById('supplierSelect');
+                const hid = document.getElementById('supplierCodeHidden');
+
+                if (fprno && !fprno.disabled) fprno.value = '';
+                if (prdate) prdate.value = '';
+                if (needdate) needdate.value = '';
+                if (duedate) duedate.value = '';
+                if (ketHeader) ketHeader.value = '';
+
+                if (sel) {
+                    sel.selectedIndex = -1; // kosongkan tampilan supplier
+                    sel.dispatchEvent(new Event('change'));
+                }
+                if (hid) hid.value = ''; // kosongkan kode supplier (untuk submit)
+            },
+
+            // === Reset form item (card) ===
+            resetForm() {
+                this.form = {
                     fitemcode: '',
                     fitemname: '',
                     units: [],
-                    fdesc: '',
                     fsatuan: '',
                     fqty: '',
+                    fdesc: '',
                     fketdt: '',
                     maxqty: 0
+                };
+            },
+
+            // === Simpan 1 baris item + attach header ===
+            saveCurrent() {
+                const r = this.form;
+                if (!r.fitemcode) return alert('Kode Produk belum diisi.');
+                if (!r.fitemname) return alert('Nama Produk belum terisi.');
+                if (!r.fsatuan) return alert('Satuan belum dipilih.');
+                if (!r.fqty || +r.fqty <= 0) return alert('Qty harus > 0.');
+
+                // ambil field header
+                const h = this.getHeaderValues();
+
+                // deteksi duplikat yang memperhitungkan header
+                const dupe = this.savedItems.find(it =>
+                    it.fitemcode === r.fitemcode &&
+                    it.fsatuan === r.fsatuan &&
+                    (it.fdesc || '') === (r.fdesc || '') &&
+                    (it.fketdt || '') === (r.fketdt || '') &&
+                    it._prno === h.prno &&
+                    it._supplier === h.supplierCode &&
+                    it._prdate === h.prdate &&
+                    it._needdate === h.needdate &&
+                    it._duedate === h.duedate &&
+                    (it._ketHeader || '') === (h.ketHeader || '')
+                );
+                if (dupe && !confirm('Item dengan header yang sama sudah ada. Tambahkan lagi sebagai baris baru?'))
+                    return;
+
+                // push ke list
+                this.savedItems.push({
+                    uid: cryptoRandom(),
+
+                    // item detail
+                    fitemcode: r.fitemcode,
+                    fitemname: r.fitemname,
+                    fsatuan: r.fsatuan,
+                    fqty: +r.fqty,
+                    fdesc: r.fdesc || '',
+                    fketdt: r.fketdt || '',
+
+                    // header attach
+                    _prno: h.prno,
+                    _supplier: h.supplierCode, // kode untuk submit
+                    _supplierNm: h.supplierLabel, // label untuk tampil
+                    _prdate: h.prdate,
+                    _needdate: h.needdate,
+                    _duedate: h.duedate,
+                    _ketHeader: h.ketHeader
                 });
-            },
-            delAt(i) {
-                if (i === 0) return;
-                this.items.splice(i, 1);
+
+                // bersihkan form item + header
+                this.resetForm();
+                this.clearHeaderFields();
             },
 
-            onCodeTyped(row) {
-                const key = (row.fitemcode || '').trim();
+            // === Hapus baris di ringkasan ===
+            removeSaved(i) {
+                this.savedItems.splice(i, 1);
+            },
+
+            // === Ketik kode produk manual ===
+            onCodeTyped() {
+                const key = (this.form.fitemcode || '').trim();
                 const meta = window.PRODUCT_MAP[key] || null;
-
                 if (!meta) {
-                    row.fitemname = '';
-                    row.units = [];
-                    row.fsatuan = '';
-                    row.maxqty = 0;
+                    this.form.fitemname = '';
+                    this.form.units = [];
+                    this.form.fsatuan = '';
+                    this.form.maxqty = 0;
                     return;
                 }
+                this.form.fitemname = meta.name || '';
 
-                row.fitemname = meta.name || '';
-                const cleanUnits = Array.from(new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(
-                    Boolean)));
-                row.units = cleanUnits;
-
-                if (!row.units.includes(row.fsatuan)) row.fsatuan = row.units[0] || '';
-
-                row.maxqty = Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0;
-
-                if (row.maxqty > 0) {
-                    if (!row.fqty || +row.fqty < 1) row.fqty = 1;
-                    if (+row.fqty > row.maxqty) row.fqty = row.maxqty;
-                } else {
-                    row.fqty = '';
+                const cleanUnits = Array.from(new Set(
+                    (meta.units || [])
+                    .map(u => (u ?? '').toString().trim())
+                    .filter(Boolean)
+                ));
+                this.form.units = cleanUnits;
+                if (!this.form.units.includes(this.form.fsatuan)) {
+                    this.form.fsatuan = this.form.units[0] || '';
                 }
 
-                this.checkAutoAdd(this.items.indexOf(row));
+                this.form.maxqty = Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0;
+                if (this.form.maxqty > 0) {
+                    if (!this.form.fqty || +this.form.fqty < 1) this.form.fqty = 1;
+                    if (+this.form.fqty > this.form.maxqty) this.form.fqty = this.form.maxqty;
+                } else {
+                    this.form.fqty = '';
+                }
             },
 
-            applyChosenProduct(row, p) {
+            // === Apply produk dari modal browse ===
+            applyChosenProduct(p) {
                 const code = (p.fproductcode || '').toString();
                 const name = (p.fproductname || '').toString();
+                const units = Array.from(new Set(
+                    [p.fsatuankecil, p.fsatuanbesar, p.fsatuanbesar2]
+                    .map(u => (u ?? '').toString().trim())
+                    .filter(Boolean)
+                ));
 
-                const units = Array.from(new Set([p.fsatuankecil, p.fsatuanbesar, p.fsatuanbesar2].map(u => (u ?? '')
-                    .toString().trim()).filter(Boolean)));
-
-                row.fitemcode = code;
-                row.fitemname = name;
-                row.units = units;
-
-                if (!row.units.includes(row.fsatuan)) row.fsatuan = row.units[0] || '';
+                this.form.fitemcode = code;
+                this.form.fitemname = name;
+                this.form.units = units;
+                if (!this.form.units.includes(this.form.fsatuan)) {
+                    this.form.fsatuan = this.form.units[0] || '';
+                }
 
                 const stock = Number.isFinite(+p.fminstock) ? +p.fminstock : 0;
-                row.maxqty = stock > 0 ? stock : 0;
-
-                if (row.maxqty > 0) {
-                    if (!row.fqty || +row.fqty < 1) row.fqty = 1;
-                    if (+row.fqty > row.maxqty) row.fqty = row.maxqty;
+                this.form.maxqty = stock > 0 ? stock : 0;
+                if (this.form.maxqty > 0) {
+                    if (!this.form.fqty || +this.form.fqty < 1) this.form.fqty = 1;
+                    if (+this.form.fqty > this.form.maxqty) this.form.fqty = this.form.maxqty;
                 } else {
-                    row.fqty = '';
+                    this.form.fqty = '';
                 }
-
-                this.checkAutoAdd(this.items.indexOf(row));
             },
 
-            enforceQty(row) {
-                const n = +row.fqty;
+            // === Paksa qty dalam batas ===
+            enforceQty() {
+                const n = +this.form.fqty;
                 if (!Number.isFinite(n)) {
-                    row.fqty = '';
+                    this.form.fqty = '';
                     return;
                 }
-                if (n < 1) row.fqty = 1;
-                if (row.maxqty > 0 && n > row.maxqty) row.fqty = row.maxqty;
+                if (n < 1) this.form.fqty = 1;
+                if (this.form.maxqty > 0 && n > this.form.maxqty) this.form.fqty = this.form.maxqty;
             },
 
-            checkAutoAdd(idx) {
-                if (idx === this.items.length - 1) {
-                    const r = this.items[idx];
-                    if (r.fitemcode && r.fsatuan && r.fqty) this.addItem();
-                }
+            // === Buka modal browse product ===
+            openBrowse() {
+                window.dispatchEvent(new CustomEvent('browse-open'));
             },
 
-            openBrowse(idx) {
-                window.dispatchEvent(new CustomEvent('browse-open', {
-                    detail: {
-                        index: idx
-                    }
-                }));
-            },
-
+            // === Init: dengarkan event pilih produk dari modal ===
             init() {
-                window.addEventListener('keydown', (e) => {
-                    if (e.key === 'F2') {
-                        e.preventDefault();
-                        this.addItem();
-                    }
-                });
-
                 window.addEventListener('product-chosen', (e) => {
                     const {
-                        index,
                         product
                     } = e.detail || {};
-                    if (index == null || !this.items[index] || !product) return;
-                    const row = this.items[index];
-                    this.applyChosenProduct(row, product);
+                    if (!product) return;
+                    this.applyChosenProduct(product);
                 });
             }
         }
