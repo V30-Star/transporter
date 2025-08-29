@@ -67,8 +67,16 @@
 
                     <div>
                         <label class="block text-sm font-medium">Cabang</label>
-                        <input type="text" name="fcabang" value="{{ old('fcabang', '-') }}"
-                            class="w-full border rounded px-3 py-2 @error('fcabang') border-red-500 @enderror">
+                        <select name="fcabang"
+                            class="w-full border rounded px-3 py-2 @error('fcabang') border-red-500 @enderror" required>
+                            <option value="">-- Pilih Cabang --</option>
+                            @foreach ($cabangs as $c)
+                                <option value="{{ $c->fcabangkode }}"
+                                    {{ old('fcabang') == $c->fcabangkode ? 'selected' : '' }}>
+                                    {{ $c->fcabangkode }} - {{ $c->fcabangname }}
+                                </option>
+                            @endforeach
+                        </select>
                         @error('fcabang')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror

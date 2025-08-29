@@ -94,12 +94,9 @@
                         <label class="block text-sm font-medium">Account Level</label>
                         <select name="fuserlevel"
                             class="w-full border rounded px-3 py-2 @error('fuserlevel') border-red-500 @enderror">
-                            <option value="0" {{ old('fuserlevel', $sysuser->fuserlevel) == '0' ? 'selected' : '' }}>
-                                User</option>
-                            <option value="1" {{ old('fuserlevel', $sysuser->fuserlevel) == '1' ? 'selected' : '' }}>
-                                Supervisor</option>
-                            <option value="2" {{ old('fuserlevel', $sysuser->fuserlevel) == '2' ? 'selected' : '' }}>
-                                Admin</option>
+                            <option value="User" {{ old('fuserlevel') == 'User' ? 'selected' : '' }}>User</option>
+                            <option value="Admin" {{ old('fuserlevel') == 'Admin' ? 'selected' : '' }}>Admin
+                            </option>
                         </select>
                         @error('fuserlevel')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -109,13 +106,20 @@
                     <!-- Cabang -->
                     <div>
                         <label class="block text-sm font-medium">Cabang</label>
-                        <input type="text" name="fcabang" value="{{ old('fcabang', $sysuser->fcabang) }}"
-                            class="w-full border rounded px-3 py-2 @error('fcabang') border-red-500 @enderror">
+                        <select name="fcabang"
+                            class="w-full border rounded px-3 py-2 @error('fcabang') border-red-500 @enderror" required>
+                            <option value="">-- Pilih Cabang --</option>
+                            @foreach ($cabangs as $c)
+                                <option value="{{ $c->fcabangkode }}"
+                                    {{ old('fcabang', $sysuser->fcabang) == $c->fcabangkode ? 'selected' : '' }}>
+                                    {{ $c->fcabangkode }} - {{ $c->fcabangname }}
+                                </option>
+                            @endforeach
+                        </select>
                         @error('fcabang')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
                     </div>
-
                 </div>
 
                 <!-- Action Buttons -->

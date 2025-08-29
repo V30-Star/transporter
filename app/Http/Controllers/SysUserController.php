@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\Cabang;
 use App\Models\Salesman;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Models\Sysuser;
 use Illuminate\Support\Facades\Hash;
 
@@ -27,8 +29,12 @@ class SysUserController extends Controller
     {
 
         $salesman = Salesman::where('fnonactive', 0)->get();
+        $cabangs = DB::table('mscabang')
+            ->select('fcabangkode', 'fcabangname')
+            ->orderBy('fcabangkode')
+            ->get();
 
-        return view('sysuser.create', compact('salesman'));
+        return view('sysuser.create', compact('salesman', 'cabangs'));
     }
 
     public function store(Request $request)
@@ -38,8 +44,8 @@ class SysUserController extends Controller
             'fsysuserid' => 'required|string|unique:sysuser,fsysuserid',
             'password' => 'required|string|min:6|confirmed',
             'fsalesman' => 'nullable',
-            'fuserlevel' => 'required|string|in:User,Admin',
-            'fcabang' => 'required|string',
+            'fuserlevel' => 'string|in:User,Admin',
+            'fcabang' => 'string',
         ], [
             'fsysuserid.unique' => 'Username sudah digunakan, silakan pilih username lain.',
             'fname.required' => 'Nama harus diisi.',
@@ -68,15 +74,19 @@ class SysUserController extends Controller
         }
     }
 
-
     public function edit($fuid)
     {
         // Find the sysuser by fuid (primary key)
         $sysuser = Sysuser::findOrFail($fuid);
         $salesman = Salesman::where('fnonactive', 0)->get();
 
+        $cabangs = DB::table('mscabang')
+            ->select('fcabangkode', 'fcabangname')
+            ->orderBy('fcabangkode')
+            ->get();
+
         // Pass the sysuser to the edit view
-        return view('sysuser.edit', compact('sysuser', 'salesman'));
+        return view('sysuser.edit', compact('sysuser', 'salesman', 'cabangs'));
     }
 
     public function update(Request $request, $fuid)
@@ -86,8 +96,8 @@ class SysUserController extends Controller
             'fname' => 'required|string',
             'password' => 'nullable|string|confirmed',
             'fsalesman' => 'nullable',
-            'fuserlevel' => 'required|string|size:1',
-            'fcabang' => 'required|string',
+            'fuserlevel' => 'string|in:User,Admin',
+            'fcabang' => 'string',
         ], [
             'fsysuserid.unique' => 'Username sudah digunakan, silakan pilih username lain.',
             'fname.required' => 'Nama harus diisi.',
@@ -107,10 +117,12 @@ class SysUserController extends Controller
         } else {
             unset($validated['password']); // Remove password if not filled
         }
-
+        $validated['fcabang'] = $request->fcabang ?? '-';
+        $validated['fuserlevel'] = $validated['fuserlevel'] == 'Admin' ? '2' : '1';
         $validated['fuserid'] = auth('sysuser')->user()->fname ?? null;
         $validated['updated_at'] = now();
-
+        $validated['fsalesman'] = $request->fsalesman;
+        
         // Update the sysuser with the validated data
         $sysuser->update($validated);
 

@@ -469,6 +469,32 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- MODAL ERROR VALIDASI -->
+                        <div x-show="errorModalOpen" x-cloak class="fixed inset-0 z-[75] flex items-center justify-center"
+                            x-transition.opacity>
+                            <div class="absolute inset-0 bg-black/50" @click="closeErrorModal()"></div>
+                            <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden"
+                                x-transition.scale>
+                                <div class="px-5 py-4 border-b flex items-center">
+                                    <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-red-500 mr-2" />
+                                    <h3 class="text-lg font-semibold text-gray-800">Validasi Item</h3>
+                                </div>
+                                <div class="px-5 py-4">
+                                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                                        <template x-for="(msg, idx) in errorMessages" :key="idx">
+                                            <li x-text="msg"></li>
+                                        </template>
+                                    </ul>
+                                </div>
+                                <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
+                                    <button type="button" @click="closeErrorModal()"
+                                        class="h-9 px-4 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
+                                        OK
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- MODAL BROWSE SUPPLIER -->
@@ -622,16 +648,6 @@
                     </button>
                 </div>
             </form>
-
-            @if ($errors->any())
-                <div class="alert alert-danger mt-6">
-                    <ul class="list-disc pl-5 text-sm text-red-700">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
         </div>
     </div>
 @endsection
@@ -873,10 +889,17 @@
 
             saveCurrent() {
                 const r = this.form;
-                if (!r.fitemcode) return alert('Kode Produk belum diisi.');
-                if (!r.fitemname) return alert('Nama Produk belum terisi.');
-                if (!r.fsatuan) return alert('Satuan belum dipilih.');
-                if (!r.fqty || +r.fqty <= 0) return alert('Qty harus > 0.');
+
+                const errs = [];
+                if (!r.fitemcode) errs.push('Kode Produk belum diisi.');
+                if (!r.fitemname) errs.push('Nama Produk belum terisi.');
+                if (!r.fsatuan) errs.push('Satuan belum dipilih.');
+                if (!r.fqty || +r.fqty <= 0) errs.push('Qty harus > 0.');
+
+                if (errs.length) {
+                    this.showErrorModal(errs);
+                    return;
+                }
 
                 const dupe = this.savedItems.find(it =>
                     it.fitemcode === r.fitemcode &&
@@ -918,6 +941,18 @@
 
             removeSaved(i) {
                 this.savedItems.splice(i, 1);
+            },
+
+            // ==== error modal ====
+            errorModalOpen: false,
+            errorMessages: [],
+            showErrorModal(msgs) {
+                this.errorMessages = Array.isArray(msgs) ? msgs : [String(msgs)];
+                this.errorModalOpen = true;
+            },
+            closeErrorModal() {
+                this.errorModalOpen = false;
+                this.errorMessages = [];
             },
 
             onCodeTyped() {
