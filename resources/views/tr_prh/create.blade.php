@@ -85,7 +85,7 @@
     </style>
 
     <div x-data="{ open: true }">
-        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[900px] mx-auto">
+        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
             <h2 class="text-2xl font-semibold text-gray-800 flex items-center gap-2">
                 <x-heroicon-o-scale class="w-8 h-8 text-blue-600" />
                 <span>Permintaan Pembelian Baru</span>
@@ -93,119 +93,110 @@
 
             <form action="{{ route('tr_prh.store') }}" method="POST" class="mt-6">
                 @csrf
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
 
-                    <!-- ====== K O L O M   K I R I ====== -->
-                    <div class="space-y-5">
-                        <!-- Cabang (sejajar dgn Tanggal) -->
-                        <div>
-                            <label class="block text-sm font-medium">Cabang User</label>
-                            {{-- ini hanya untuk tampilan --}}
-                            <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
-                                value="{{ $fcabang }}" disabled>
-                            {{-- INI YANG DI-POST: kirim KODE cabang (mis. JK) --}}
-                            <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
-                        </div>
+                    <!-- Row 1 -->
+                    <!-- Cabang -->
+                    <div class="lg:col-span-4">
+                        <label class="block text-sm font-medium">Cabang</label>
+                        <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
+                            value="{{ $fcabang }}" disabled>
+                        <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
+                    </div>
 
-                        <!-- PR No. + Auto -->
-                        <div x-data="{ autoCode: true }">
-                            <label class="block text-sm font-medium mb-1">PR#</label>
-                            <div class="flex items-center gap-3">
-                                <input type="text" name="fprno" class="w-full border rounded px-3 py-2"
-                                    :disabled="autoCode"
-                                    :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
-                                <label class="inline-flex items-center select-none">
-                                    <input type="checkbox" x-model="autoCode" class="form-checkbox text-indigo-600" checked>
-                                    <span class="ml-2 text-sm text-gray-700">Auto</span>
-                                </label>
-                            </div>
-                        </div>
-
-                        <!-- Supplier -->
-                        <div>
-                            <label class="block text-sm font-medium mb-1">Supplier</label>
-                            <div class="flex">
-                                <div class="relative flex-1">
-                                    <select id="supplierSelect" name="fsupplier_view"
-                                        class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
-                                        disabled>
-                                        <option value=""></option>
-                                        @foreach ($supplier as $suppliers)
-                                            <option value="{{ $suppliers->fsupplierid }}"
-                                                {{ old('fsupplier') == $suppliers->fsupplierid ? 'selected' : '' }}>
-                                                {{ $suppliers->fsuppliercode }} - {{ $suppliers->fsuppliername }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    <div class="absolute inset-0" role="button" aria-label="Browse supplier"
-                                        @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"></div>
-                                </div>
-
-                                <input type="hidden" name="fsupplier" id="supplierCodeHidden"
-                                    value="{{ old('fsupplier') }}">
-
-                                <button type="button"
-                                    @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"
-                                    class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
-                                    title="Browse Supplier">
-                                    <x-heroicon-o-magnifying-glass class="w-5 h-5" />
-                                </button>
-
-                                <a href="{{ route('supplier.create') }}" target="_blank" rel="noopener"
-                                    class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
-                                    title="Tambah Supplier (tab baru)">
-                                    <x-heroicon-o-plus class="w-5 h-5" />
-                                </a>
-                            </div>
-                            @error('fsupplier')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
+                    <!-- PR# + Auto -->
+                    <div class="lg:col-span-4" x-data="{ autoCode: true }">
+                        <label class="block text-sm font-medium mb-1">PR#</label>
+                        <div class="flex items-center gap-3">
+                            <input type="text" name="fprno" class="w-full border rounded px-3 py-2"
+                                :disabled="autoCode" :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
+                            <label class="inline-flex items-center select-none whitespace-nowrap">
+                                <input type="checkbox" x-model="autoCode" class="form-checkbox text-indigo-600" checked>
+                                <span class="ml-2 text-sm text-gray-700">Auto</span>
+                            </label>
                         </div>
                     </div>
 
-                    <!-- ====== K O L O M   K A N A N ====== -->
-                    <div class="space-y-5">
-                        <!-- Tanggal -->
-                        <div>
-                            <label class="block text-sm font-medium">Tanggal</label>
-                            <input type="date" name="fprdate" value="{{ old('fprdate') ?? date('Y-m-d') }}"
-                                class="w-full border rounded px-3 py-2 @error('fprdate') border-red-500 @enderror">
-                            @error('fprdate')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
+                    <!-- Supplier -->
+                    <div class="lg:col-span-4">
+                        <label class="block text-sm font-medium mb-1">Supplier</label>
+                        <div class="flex">
+                            <div class="relative flex-1">
+                                <select id="supplierSelect" name="fsupplier_view"
+                                    class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
+                                    disabled>
+                                    <option value=""></option>
+                                    @foreach ($supplier as $suppliers)
+                                        <option value="{{ $suppliers->fsupplierid }}"
+                                            {{ old('fsupplier') == $suppliers->fsupplierid ? 'selected' : '' }}>
+                                            {{ $suppliers->fsuppliercode }} - {{ $suppliers->fsuppliername }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <div class="absolute inset-0" role="button" aria-label="Browse supplier"
+                                    @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"></div>
+                            </div>
 
-                        <!-- Tanggal Dibutuhkan -->
-                        <div>
-                            <label class="block text-sm font-medium">Tanggal Dibutuhkan</label>
-                            <input type="date" name="fneeddate" value="{{ old('fneeddate') ?? date('Y-m-d') }}"
-                                class="w-full border rounded px-3 py-2 @error('fneeddate') border-red-500 @enderror">
-                            @error('fneeddate')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
+                            <input type="hidden" name="fsupplier" id="supplierCodeHidden" value="{{ old('fsupplier') }}">
 
-                        <!-- Tanggal Paling Lambat -->
-                        <div>
-                            <label class="block text-sm font-medium">Tanggal Paling Lambat</label>
-                            <input type="date" name="fduedate" value="{{ old('fduedate') ?? date('Y-m-d') }}"
-                                class="w-full border rounded px-3 py-2 @error('fduedate') border-red-500 @enderror">
-                            @error('fduedate')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
+                            <button type="button" @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"
+                                class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
+                                title="Browse Supplier">
+                                <x-heroicon-o-magnifying-glass class="w-5 h-5" />
+                            </button>
+                            <a href="{{ route('supplier.create') }}" target="_blank" rel="noopener"
+                                class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
+                                title="Tambah Supplier (tab baru)">
+                                <x-heroicon-o-plus class="w-5 h-5" />
+                            </a>
                         </div>
+                        @error('fsupplier')
+                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
 
-                    <!-- Keterangan (full width, di bawah 2 kolom) -->
-                    <div class="md:col-span-2">
+                    <!-- Row 2 -->
+                    <!-- Tanggal -->
+                    <div class="lg:col-span-4">
+                        <label class="block text-sm font-medium">Tanggal</label>
+                        <input type="date" name="fprdate" value="{{ old('fprdate') ?? date('Y-m-d') }}"
+                            class="w-full border rounded px-3 py-2 @error('fprdate') border-red-500 @enderror">
+                        @error('fprdate')
+                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <!-- Tanggal Dibutuhkan -->
+                    <div class="lg:col-span-4">
+                        <label class="block text-sm font-medium">Tanggal Dibutuhkan</label>
+                        <input type="date" name="fneeddate" value="{{ old('fneeddate') ?? date('Y-m-d') }}"
+                            class="w-full border rounded px-3 py-2 @error('fneeddate') border-red-500 @enderror">
+                        @error('fneeddate')
+                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <!-- Tanggal Paling Lambat -->
+                    <div class="lg:col-span-4">
+                        <label class="block text-sm font-medium">Tanggal Paling Lambat</label>
+                        <input type="date" name="fduedate" value="{{ old('fduedate') ?? date('Y-m-d') }}"
+                            class="w-full border rounded px-3 py-2 @error('fduedate') border-red-500 @enderror">
+                        @error('fduedate')
+                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <!-- Keterangan (full baris) -->
+                    <div class="lg:col-span-12">
                         <label class="block text-sm font-medium">Keterangan</label>
-                        <textarea name="fket" rows="4" class="w-full border rounded px-3 py-2 @error('fket') border-red-500 @enderror"
+                        <textarea name="fket" rows="3" class="w-full border rounded px-3 py-2 @error('fket') border-red-500 @enderror"
                             placeholder="Tulis keterangan tambahan di sini...">{{ old('fket') }}</textarea>
                         @error('fket')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
                     </div>
                 </div>
+
 
                 <!-- DETAIL PRODUK -->
                 <div x-data="detailProduk()" class="mt-6 space-y-4">
@@ -215,52 +206,49 @@
                         </div>
 
                         <div class="p-4">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="grid grid-cols-1 md:grid-cols-10 gap-4 items-end">
 
-                                <!-- Kode + Browse -->
-                                <div>
+                                <!-- Kode Produk -->
+                                <div class="md:col-span-2">
                                     <label class="block text-sm font-medium mb-1">Kode Produk</label>
                                     <div class="flex">
-                                        <input type="text" class="flex-1 border rounded-l px-3 py-2"
+                                        <input type="text" class="flex-1 border rounded-l px-2 py-1"
                                             x-model.trim="form.fitemcode" @input="onCodeTyped()">
                                         <button type="button" @click="openBrowse()"
-                                            class="border border-l-0 px-3 py-2 bg-white hover:bg-gray-50"
+                                            class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
                                             title="Cari Produk">
-                                            <x-heroicon-o-magnifying-glass class="w-5 h-5" />
+                                            <x-heroicon-o-magnifying-glass class="w-4 h-4" />
                                         </button>
                                         <a href="{{ route('product.create') }}" target="_blank" rel="noopener"
-                                            class="border border-l-0 rounded-r px-3 py-2 bg-white hover:bg-gray-50"
-                                            title="Tambah Produk (buka tab baru)">
-                                            <x-heroicon-o-plus class="w-5 h-5" />
+                                            class="border border-l-0 rounded-r px-2 py-1 bg-white hover:bg-gray-50"
+                                            title="Tambah Produk">
+                                            <x-heroicon-o-plus class="w-4 h-4" />
                                         </a>
                                     </div>
                                 </div>
 
-                                <!-- Nama -->
-                                <div>
+                                <!-- Nama Produk -->
+                                <div class="md:col-span-3">
                                     <label class="block text-sm font-medium mb-1">Nama Produk</label>
                                     <input type="text"
-                                        class="w-full border rounded px-3 py-2 bg-gray-100 text-gray-600"
+                                        class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
                                         :value="form.fitemname" disabled>
                                 </div>
 
                                 <!-- Qty -->
-                                <div>
+                                <div class="md:col-span-1">
                                     <label class="block text-sm font-medium mb-1">Qty</label>
                                     <input type="number" :min="1"
                                         :max="form.maxqty > 0 ? form.maxqty : null" step="1"
-                                        class="w-full border rounded px-3 py-2 text-right" x-model.number="form.fqty"
+                                        class="w-full border rounded px-2 py-1 text-right" x-model.number="form.fqty"
                                         @input="enforceQty()">
-                                    <p class="text-[11px] text-gray-500 mt-1" x-show="form.maxqty > 0">
-                                        Maks: <span x-text="form.maxqty"></span>
-                                    </p>
                                 </div>
 
                                 <!-- Satuan -->
-                                <div>
+                                <div class="md:col-span-1">
                                     <label class="block text-sm font-medium mb-1">Satuan</label>
                                     <template x-if="form.units.length > 1">
-                                        <select class="w-full border rounded px-3 py-2" x-model="form.fsatuan">
+                                        <select class="w-full border rounded px-2 py-1" x-model="form.fsatuan">
                                             <template x-for="u in form.units" :key="u">
                                                 <option :value="u" x-text="u"></option>
                                             </template>
@@ -268,33 +256,31 @@
                                     </template>
                                     <template x-if="form.units.length <= 1">
                                         <input type="text"
-                                            class="w-full border rounded px-3 py-2 bg-gray-100 text-gray-600"
+                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
                                             :value="form.fsatuan || '-'" disabled>
                                     </template>
                                 </div>
 
-                                <!-- Desc -->
-                                <div>
-                                    <label class="block text-sm font-medium mb-1">Desc</label>
-                                    <input type="text" class="w-full border rounded px-3 py-2" x-model="form.fdesc">
+                                <!-- Keterangan -->
+                                <div class="md:col-span-2">
+                                    <label class="block text-sm font-medium mb-1">Keterangan</label>
+                                    <input type="text" class="w-full border rounded px-2 py-1" x-model="form.fketdt">
                                 </div>
 
-                                <!-- Ket Item -->
-                                <div>
-                                    <label class="block text-sm font-medium mb-1">Keterangan Item</label>
-                                    <input type="text" class="w-full border rounded px-3 py-2" x-model="form.fketdt">
-                                </div>
-
-                                <!-- Tombol (full width, span 2) -->
-                                <div class="md:col-span-2 flex justify-end gap-3 pt-2">
+                                <!-- Tombol Tambah + Clear -->
+                                <div class="md:col-span-1 flex gap-2">
                                     <button type="button" @click="saveCurrent()"
-                                        class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
-                                        Tambah Item
+                                        class="h-8 px-3 rounded bg-emerald-600 text-white text-xs font-medium hover:bg-emerald-700">
+                                        Tambah
                                     </button>
                                     <button type="button" @click="resetForm()"
-                                        class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
-                                        Bersihkan
+                                        class="h-8 px-3 rounded bg-gray-100 text-gray-700 text-xs font-medium hover:bg-gray-200">
+                                        Clear
                                     </button>
+                                </div>
+                                <div class="md:col-start-3 md:col-span-4">
+                                    <label class="block text-sm font-medium mb-1">Desc</label>
+                                    <textarea rows="2" class="w-full border rounded px-2 py-1" x-model="form.fdesc"></textarea>
                                 </div>
                             </div>
                         </div>
