@@ -119,10 +119,6 @@
 
     <div x-data="{ open: true, selected: 'alamatsurat' }">
         <div class="bg-white rounded shadow p-6 md:p-8 max-w-5xl mx-auto">
-            <h2 class="text-2xl font-semibold text-gray-800 flex items-center space-x-2">
-                <x-heroicon-o-user-group class="w-8 h-8 text-blue-600" />
-                <span>Customer Baru</span>
-            </h2>
             <form action="{{ route('customer.store') }}" method="POST">
                 @csrf
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">

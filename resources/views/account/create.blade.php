@@ -15,10 +15,6 @@
 
     <div x-data="{ open: true, selected: 'rekening', subAccount: false }">
         <div class="bg-white rounded shadow p-6 md:p-8 max-w-5xl mx-auto">
-            <h2 class="text-2xl font-semibold text-gray-800 flex items-center space-x-2">
-                <x-heroicon-o-banknotes class="w-8 h-8 text-blue-600" />
-                <span>Account Baru</span>
-            </h2>
             <form action="{{ route('account.store') }}" method="POST">
                 @csrf
 

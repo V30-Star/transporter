@@ -15,10 +15,6 @@
 
     <div x-data="{ open: true, selected: 'surat' }">
         <div class="bg-white rounded shadow p-6 md:p-8 max-w-lg mx-auto">
-            <h2 class="text-2xl font-semibold text-gray-800 flex items-center space-x-2">
-                <x-heroicon-o-user-circle class="w-8 h-8 text-blue-600" />
-                <span>Wewenang User - Edit</span>
-            </h2>
             <form action="{{ route('sysuser.update', $sysuser->fuid) }}" method="POST">
                 @csrf
                 @method('PATCH')

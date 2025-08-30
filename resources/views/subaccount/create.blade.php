@@ -70,11 +70,6 @@
 
     <div x-data="{ open: true, selected: 'subaccount' }">
         <div class="bg-white rounded shadow p-6 md:p-8 max-w-[700px] mx-auto">
-            <h2 class="text-2xl font-semibold text-gray-800 flex items-center space-x-2">
-                <x-heroicon-o-document-duplicate class="w-8 h-8 text-blue-600" />
-                <span>Subaccount Baru</span>
-            </h2>
-
             <form action="{{ route('subaccount.store') }}" method="POST">
                 @csrf
 

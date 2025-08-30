@@ -15,10 +15,6 @@
 
     <div x-data="{ open: true, selected: 'surat' }">
         <div class="bg-white rounded shadow p-6 md:p-8 max-w-5xl mx-auto">
-            <h2 class="text-2xl font-semibold text-gray-800 flex items-center space-x-2">
-                <x-heroicon-o-truck class="w-8 h-8 text-blue-600" />
-                <span>Supplier Baru</span>
-            </h2>
             <form action="{{ route('supplier.store') }}" method="POST">
                 @csrf
 

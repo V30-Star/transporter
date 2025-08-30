@@ -86,11 +86,6 @@
 
     <div x-data="{ open: true }">
         <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
-            <h2 class="text-2xl font-semibold text-gray-800 flex items-center gap-2">
-                <x-heroicon-o-scale class="w-8 h-8 text-blue-600" />
-                <span>Permintaan Pembelian Baru</span>
-            </h2>
-
             <form action="{{ route('tr_prh.store') }}" method="POST" class="mt-6">
                 @csrf
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
@@ -213,7 +208,8 @@
                                     <label class="block text-sm font-medium mb-1">Kode Produk</label>
                                     <div class="flex">
                                         <input type="text" class="flex-1 border rounded-l px-2 py-1"
-                                            x-model.trim="form.fitemcode" @input="onCodeTyped()">
+                                            x-model.trim="form.fitemcode" @input="onCodeTyped()"
+                                            @keydown.enter.prevent="$refs.qtyInput?.focus()" x-ref="codeInput">
                                         <button type="button" @click="openBrowse()"
                                             class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
                                             title="Cari Produk">
@@ -241,7 +237,7 @@
                                     <input type="number" :min="1"
                                         :max="form.maxqty > 0 ? form.maxqty : null" step="1"
                                         class="w-full border rounded px-2 py-1 text-right" x-model.number="form.fqty"
-                                        @input="enforceQty()">
+                                        x-ref="qtyInput" @input="enforceQty()">
                                 </div>
 
                                 <!-- Satuan -->
@@ -927,6 +923,8 @@
 
                 this.savedItems.push(candidate);
                 this.resetForm();
+
+                this.$nextTick(() => this.$refs.codeInput?.focus());
             },
 
             confirmDupe() {
@@ -934,6 +932,8 @@
                 this.dupeCandidate = null;
                 this.dupeModalOpen = false;
                 this.resetForm();
+
+                this.$nextTick(() => this.$refs.codeInput?.focus());
             },
             cancelDupe() {
                 this.dupeCandidate = null;
@@ -985,6 +985,7 @@
                 } else {
                     this.form.fqty = '';
                 }
+                this.$nextTick(() => this.$refs.qtyInput?.focus());
             },
 
             applyChosenProduct(p) {
@@ -1011,6 +1012,7 @@
                 } else {
                     this.form.fqty = '';
                 }
+                this.$nextTick(() => this.$refs.qtyInput?.focus());
             },
 
             enforceQty() {
