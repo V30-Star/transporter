@@ -93,100 +93,111 @@
 
             <form action="{{ route('tr_prh.store') }}" method="POST" class="mt-6">
                 @csrf
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-                <div class="space-y-5">
-                    <!-- Cabang -->
-                    <div class="w-full">
-                        <label class="block text-sm font-medium">Cabang User</label>
-                        {{-- ini hanya untuk tampilan --}}
-                        <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
-                            value="{{ $fcabang }}" disabled>
-                        {{-- INI YANG DI-POST: kirim KODE cabang (mis. JK) --}}
-                        <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
-                    </div>
-
-                    <!-- PR No. + Auto -->
-                    <div x-data="{ autoCode: true }" class="w-full">
-                        <label class="block text-sm font-medium mb-1">PR#</label>
-                        <div class="flex items-center gap-3">
-                            <input type="text" name="fprno" class="w-full border rounded px-3 py-2"
-                                :disabled="autoCode" :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
-                            <label class="inline-flex items-center select-none">
-                                <input type="checkbox" x-model="autoCode" class="form-checkbox text-indigo-600" checked>
-                                <span class="ml-2 text-sm text-gray-700">Auto</span>
-                            </label>
+                    <!-- ====== K O L O M   K I R I ====== -->
+                    <div class="space-y-5">
+                        <!-- Cabang (sejajar dgn Tanggal) -->
+                        <div>
+                            <label class="block text-sm font-medium">Cabang User</label>
+                            {{-- ini hanya untuk tampilan --}}
+                            <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
+                                value="{{ $fcabang }}" disabled>
+                            {{-- INI YANG DI-POST: kirim KODE cabang (mis. JK) --}}
+                            <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
                         </div>
-                    </div>
 
-                    <!-- Supplier (tampil vertikal, non-edit langsung; pilih via modal) -->
-                    <div class="w-full">
-                        <label class="block text-sm font-medium mb-1">Supplier</label>
-                        <div class="flex">
-                            <div class="relative flex-1">
-                                <select id="supplierSelect" name="fsupplier_view"
-                                    class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
-                                    disabled>
-                                    <option value=""></option>
-                                    @foreach ($supplier as $suppliers)
-                                        <option value="{{ $suppliers->fsupplierid }}"
-                                            {{ old('fsupplier') == $suppliers->fsupplierid ? 'selected' : '' }}>
-                                            {{ $suppliers->fsuppliercode }} - {{ $suppliers->fsuppliername }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                <div class="absolute inset-0" role="button" aria-label="Browse supplier"
-                                    @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"></div>
+                        <!-- PR No. + Auto -->
+                        <div x-data="{ autoCode: true }">
+                            <label class="block text-sm font-medium mb-1">PR#</label>
+                            <div class="flex items-center gap-3">
+                                <input type="text" name="fprno" class="w-full border rounded px-3 py-2"
+                                    :disabled="autoCode"
+                                    :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
+                                <label class="inline-flex items-center select-none">
+                                    <input type="checkbox" x-model="autoCode" class="form-checkbox text-indigo-600" checked>
+                                    <span class="ml-2 text-sm text-gray-700">Auto</span>
+                                </label>
                             </div>
-
-                            <input type="hidden" name="fsupplier" id="supplierCodeHidden" value="{{ old('fsupplier') }}">
-
-                            <button type="button" @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"
-                                class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
-                                title="Browse Supplier">
-                                <x-heroicon-o-magnifying-glass class="w-5 h-5" />
-                            </button>
-
-                            <a href="{{ route('supplier.create') }}" target="_blank" rel="noopener"
-                                class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
-                                title="Tambah Supplier (tab baru)">
-                                <x-heroicon-o-plus class="w-5 h-5" />
-                            </a>
                         </div>
-                        @error('fsupplier')
-                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                        @enderror
+
+                        <!-- Supplier -->
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Supplier</label>
+                            <div class="flex">
+                                <div class="relative flex-1">
+                                    <select id="supplierSelect" name="fsupplier_view"
+                                        class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
+                                        disabled>
+                                        <option value=""></option>
+                                        @foreach ($supplier as $suppliers)
+                                            <option value="{{ $suppliers->fsupplierid }}"
+                                                {{ old('fsupplier') == $suppliers->fsupplierid ? 'selected' : '' }}>
+                                                {{ $suppliers->fsuppliercode }} - {{ $suppliers->fsuppliername }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <div class="absolute inset-0" role="button" aria-label="Browse supplier"
+                                        @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"></div>
+                                </div>
+
+                                <input type="hidden" name="fsupplier" id="supplierCodeHidden"
+                                    value="{{ old('fsupplier') }}">
+
+                                <button type="button"
+                                    @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"
+                                    class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
+                                    title="Browse Supplier">
+                                    <x-heroicon-o-magnifying-glass class="w-5 h-5" />
+                                </button>
+
+                                <a href="{{ route('supplier.create') }}" target="_blank" rel="noopener"
+                                    class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
+                                    title="Tambah Supplier (tab baru)">
+                                    <x-heroicon-o-plus class="w-5 h-5" />
+                                </a>
+                            </div>
+                            @error('fsupplier')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
                     </div>
 
-                    <!-- Tanggal -->
-                    <div class="w-full">
-                        <label class="block text-sm font-medium">Tanggal</label>
-                        <input type="date" name="fprdate" value="{{ old('fprdate') ?? date('Y-m-d') }}"
-                            class="w-full border rounded px-3 py-2 @error('fprdate') border-red-500 @enderror">
-                        @error('fprdate')
-                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                        @enderror
+                    <!-- ====== K O L O M   K A N A N ====== -->
+                    <div class="space-y-5">
+                        <!-- Tanggal -->
+                        <div>
+                            <label class="block text-sm font-medium">Tanggal</label>
+                            <input type="date" name="fprdate" value="{{ old('fprdate') ?? date('Y-m-d') }}"
+                                class="w-full border rounded px-3 py-2 @error('fprdate') border-red-500 @enderror">
+                            @error('fprdate')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <!-- Tanggal Dibutuhkan -->
+                        <div>
+                            <label class="block text-sm font-medium">Tanggal Dibutuhkan</label>
+                            <input type="date" name="fneeddate" value="{{ old('fneeddate') ?? date('Y-m-d') }}"
+                                class="w-full border rounded px-3 py-2 @error('fneeddate') border-red-500 @enderror">
+                            @error('fneeddate')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <!-- Tanggal Paling Lambat -->
+                        <div>
+                            <label class="block text-sm font-medium">Tanggal Paling Lambat</label>
+                            <input type="date" name="fduedate" value="{{ old('fduedate') ?? date('Y-m-d') }}"
+                                class="w-full border rounded px-3 py-2 @error('fduedate') border-red-500 @enderror">
+                            @error('fduedate')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
                     </div>
 
-                    <div class="w-full">
-                        <label class="block text-sm font-medium">Tanggal Dibutuhkan</label>
-                        <input type="date" name="fneeddate" value="{{ old('fneeddate') ?? date('Y-m-d') }}"
-                            class="w-full border rounded px-3 py-2 @error('fneeddate') border-red-500 @enderror">
-                        @error('fneeddate')
-                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div class="w-full">
-                        <label class="block text-sm font-medium">Tanggal Paling Lambat</label>
-                        <input type="date" name="fduedate" value="{{ old('fduedate') ?? date('Y-m-d') }}"
-                            class="w-full border rounded px-3 py-2 @error('fduedate') border-red-500 @enderror">
-                        @error('fduedate')
-                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <!-- Keterangan -->
-                    <div class="w-full">
+                    <!-- Keterangan (full width, di bawah 2 kolom) -->
+                    <div class="md:col-span-2">
                         <label class="block text-sm font-medium">Keterangan</label>
                         <textarea name="fket" rows="4" class="w-full border rounded px-3 py-2 @error('fket') border-red-500 @enderror"
                             placeholder="Tulis keterangan tambahan di sini...">{{ old('fket') }}</textarea>
@@ -194,23 +205,26 @@
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
                     </div>
+                </div>
 
-                    <!-- DETAIL PRODUK -->
-                    <div x-data="detailProduk()" class="mt-6 space-y-4">
-                        <div class="rounded-lg border shadow-sm overflow-hidden">
-                            <div class="bg-gray-50 border-b px-4 py-2">
-                                <div class="font-medium text-gray-700">Input Item Barang</div>
-                            </div>
+                <!-- DETAIL PRODUK -->
+                <div x-data="detailProduk()" class="mt-6 space-y-4">
+                    <div class="rounded-lg border shadow-sm overflow-hidden">
+                        <div class="bg-gray-50 border-b px-4 py-2">
+                            <div class="font-medium text-gray-700">Input Item Barang</div>
+                        </div>
 
-                            <div class="p-4 space-y-4">
+                        <div class="p-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
                                 <!-- Kode + Browse -->
-                                <div class="w-full">
+                                <div>
                                     <label class="block text-sm font-medium mb-1">Kode Produk</label>
                                     <div class="flex">
                                         <input type="text" class="flex-1 border rounded-l px-3 py-2"
                                             x-model.trim="form.fitemcode" @input="onCodeTyped()">
                                         <button type="button" @click="openBrowse()"
-                                            class="border border-l-0 rounded-r px-3 py-2 bg-white hover:bg-gray-50"
+                                            class="border border-l-0 px-3 py-2 bg-white hover:bg-gray-50"
                                             title="Cari Produk">
                                             <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                                         </button>
@@ -223,7 +237,7 @@
                                 </div>
 
                                 <!-- Nama -->
-                                <div class="w-full">
+                                <div>
                                     <label class="block text-sm font-medium mb-1">Nama Produk</label>
                                     <input type="text"
                                         class="w-full border rounded px-3 py-2 bg-gray-100 text-gray-600"
@@ -231,7 +245,7 @@
                                 </div>
 
                                 <!-- Qty -->
-                                <div class="w-full">
+                                <div>
                                     <label class="block text-sm font-medium mb-1">Qty</label>
                                     <input type="number" :min="1"
                                         :max="form.maxqty > 0 ? form.maxqty : null" step="1"
@@ -243,7 +257,7 @@
                                 </div>
 
                                 <!-- Satuan -->
-                                <div class="w-full">
+                                <div>
                                     <label class="block text-sm font-medium mb-1">Satuan</label>
                                     <template x-if="form.units.length > 1">
                                         <select class="w-full border rounded px-3 py-2" x-model="form.fsatuan">
@@ -260,19 +274,19 @@
                                 </div>
 
                                 <!-- Desc -->
-                                <div class="w-full">
+                                <div>
                                     <label class="block text-sm font-medium mb-1">Desc</label>
                                     <input type="text" class="w-full border rounded px-3 py-2" x-model="form.fdesc">
                                 </div>
 
                                 <!-- Ket Item -->
-                                <div class="w-full">
+                                <div>
                                     <label class="block text-sm font-medium mb-1">Keterangan Item</label>
                                     <input type="text" class="w-full border rounded px-3 py-2" x-model="form.fketdt">
                                 </div>
 
-                                <!-- Tombol -->
-                                <div class="flex justify-end gap-3 pt-2">
+                                <!-- Tombol (full width, span 2) -->
+                                <div class="md:col-span-2 flex justify-end gap-3 pt-2">
                                     <button type="button" @click="saveCurrent()"
                                         class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
                                         Tambah Item
@@ -284,356 +298,357 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        <!-- Ringkasan -->
-                        <div class="space-y-2">
-                            <h3 class="text-base font-semibold text-gray-800">Ringkasan Detail Item</h3>
-                            <div class="overflow-auto border rounded">
-                                <table class="min-w-full text-sm">
-                                    <thead class="bg-gray-100">
-                                        <tr>
-                                            <th class="p-2 text-left">#</th>
-                                            <th class="p-2 text-left">Kode Produk</th>
-                                            <th class="p-2 text-left">Nama Produk</th>
-                                            <th class="p-2 text-left">Satuan</th>
-                                            <th class="p-2 text-right">Qty</th>
-                                            <th class="p-2 text-left">Desc</th>
-                                            <th class="p-2 text-left">Keterangan Item</th>
-                                            <th class="p-2 text-center">Aksi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr x-show="savedItems.length === 0" x-cloak>
-                                            <td colspan="8" class="p-4 text-center text-sm text-gray-500">
-                                                Belum ada item. Isi form di atas lalu klik <b>Tambah Item</b>.
+                    <!-- Ringkasan -->
+                    <div class="space-y-2">
+                        <h3 class="text-base font-semibold text-gray-800">Ringkasan Detail Item</h3>
+                        <div class="overflow-auto border rounded">
+                            <table class="min-w-full text-sm">
+                                <thead class="bg-gray-100">
+                                    <tr>
+                                        <th class="p-2 text-left">#</th>
+                                        <th class="p-2 text-left">Kode Produk</th>
+                                        <th class="p-2 text-left">Nama Produk</th>
+                                        <th class="p-2 text-left">Satuan</th>
+                                        <th class="p-2 text-right">Qty</th>
+                                        <th class="p-2 text-left">Desc</th>
+                                        <th class="p-2 text-left">Keterangan Item</th>
+                                        <th class="p-2 text-center">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr x-show="savedItems.length === 0" x-cloak>
+                                        <td colspan="8" class="p-4 text-center text-sm text-gray-500">
+                                            Belum ada item. Isi form di atas lalu klik <b>Tambah Item</b>.
+                                        </td>
+                                    </tr>
+
+                                    <template x-for="(it, i) in savedItems" :key="it.uid">
+                                        <tr class="border-t">
+                                            <!-- # -->
+                                            <td class="p-2" x-text="i + 1"></td>
+
+                                            <!-- Kode & Nama (read-only selalu) -->
+                                            <td class="p-2 font-mono" x-text="it.fitemcode"></td>
+                                            <td class="p-2" x-text="it.fitemname"></td>
+
+                                            <!-- Satuan -->
+                                            <td class="p-2">
+                                                <!-- mode view -->
+                                                <span x-show="editingIndex !== i" x-text="it.fsatuan"></span>
+
+                                                <!-- mode edit -->
+                                                <div x-show="editingIndex === i">
+                                                    <template x-if="editUnits.length > 1">
+                                                        <select class="border rounded px-2 py-1 w-full"
+                                                            x-model="editForm.fsatuan">
+                                                            <template x-for="u in editUnits" :key="u">
+                                                                <option :value="u" x-text="u">
+                                                                </option>
+                                                            </template>
+                                                        </select>
+                                                    </template>
+                                                    <template x-if="editUnits.length <= 1">
+                                                        <input type="text"
+                                                            class="border rounded px-2 py-1 w-full bg-gray-100 text-gray-600"
+                                                            :value="editForm.fsatuan" disabled>
+                                                    </template>
+                                                </div>
+                                            </td>
+
+                                            <!-- Qty -->
+                                            <td class="p-2 text-right">
+                                                <!-- mode view -->
+                                                <span x-show="editingIndex !== i" x-text="it.fqty"></span>
+
+                                                <!-- mode edit -->
+                                                <div x-show="editingIndex === i">
+                                                    <input type="number" class="border rounded px-2 py-1 w-28 text-right"
+                                                        :min="1" :max="editMaxqty > 0 ? editMaxqty : null"
+                                                        step="1" x-model.number="editForm.fqty"
+                                                        @input="enforceEditQty()"
+                                                        :placeholder="editMaxqty > 0 ? `Maks: ${editMaxqty}` : ''"
+                                                        :title="editMaxqty > 0 ? `Maks: ${editMaxqty}` : ''">
+                                                </div>
+                                            </td>
+
+                                            <!-- Desc -->
+                                            <td class="p-2">
+                                                <!-- view -->
+                                                <span x-show="editingIndex !== i" x-text="it.fdesc || '-'"></span>
+
+                                                <!-- edit -->
+                                                <input x-show="editingIndex === i" type="text"
+                                                    class="border rounded px-2 py-1 w-full" x-model="editForm.fdesc">
+                                            </td>
+
+                                            <!-- Ket -->
+                                            <td class="p-2">
+                                                <!-- view -->
+                                                <span x-show="editingIndex !== i" x-text="it.fketdt || '-'"></span>
+
+                                                <!-- edit -->
+                                                <input x-show="editingIndex === i" type="text"
+                                                    class="border rounded px-2 py-1 w-full" x-model="editForm.fketdt">
+                                            </td>
+
+                                            <!-- Aksi -->
+                                            <td class="p-2 text-center">
+                                                <!-- mode view -->
+                                                <div x-show="editingIndex !== i"
+                                                    class="flex items-center justify-center gap-2">
+                                                    <button type="button" @click="startEdit(i)"
+                                                        class="px-3 py-1 rounded text-xs bg-amber-100 text-amber-700 hover:bg-amber-200">
+                                                        Edit
+                                                    </button>
+                                                    <button type="button" @click="removeSaved(i)"
+                                                        class="px-3 py-1 rounded text-xs bg-red-100 text-red-600 hover:bg-red-200">
+                                                        Hapus
+                                                    </button>
+                                                </div>
+
+                                                <!-- mode edit -->
+                                                <div x-show="editingIndex === i"
+                                                    class="flex items-center justify-center gap-2">
+                                                    <button type="button" @click="applyEdit(i)"
+                                                        class="px-3 py-1 rounded text-xs bg-emerald-600 text-white hover:bg-emerald-700">
+                                                        Simpan
+                                                    </button>
+                                                    <button type="button" @click="cancelEdit()"
+                                                        class="px-3 py-1 rounded text-xs bg-gray-100 text-gray-700 hover:bg-gray-200">
+                                                        Batal
+                                                    </button>
+                                                </div>
+                                            </td>
+
+                                            <!-- hidden inputs (biarkan) -->
+                                            <td class="hidden">
+                                                <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
+                                                <input type="hidden" name="fitemname[]" :value="it.fitemname">
+                                                <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
+                                                <input type="hidden" name="fqty[]" :value="it.fqty">
+                                                <input type="hidden" name="fdesc[]" :value="it.fdesc">
+                                                <input type="hidden" name="fketdt[]" :value="it.fketdt">
                                             </td>
                                         </tr>
-
-                                        <template x-for="(it, i) in savedItems" :key="it.uid">
-                                            <tr class="border-t">
-                                                <!-- # -->
-                                                <td class="p-2" x-text="i + 1"></td>
-
-                                                <!-- Kode & Nama (read-only selalu) -->
-                                                <td class="p-2 font-mono" x-text="it.fitemcode"></td>
-                                                <td class="p-2" x-text="it.fitemname"></td>
-
-                                                <!-- Satuan -->
-                                                <td class="p-2">
-                                                    <!-- mode view -->
-                                                    <span x-show="editingIndex !== i" x-text="it.fsatuan"></span>
-
-                                                    <!-- mode edit -->
-                                                    <div x-show="editingIndex === i">
-                                                        <template x-if="editUnits.length > 1">
-                                                            <select class="border rounded px-2 py-1 w-full"
-                                                                x-model="editForm.fsatuan">
-                                                                <template x-for="u in editUnits" :key="u">
-                                                                    <option :value="u" x-text="u">
-                                                                    </option>
-                                                                </template>
-                                                            </select>
-                                                        </template>
-                                                        <template x-if="editUnits.length <= 1">
-                                                            <input type="text"
-                                                                class="border rounded px-2 py-1 w-full bg-gray-100 text-gray-600"
-                                                                :value="editForm.fsatuan" disabled>
-                                                        </template>
-                                                    </div>
-                                                </td>
-
-                                                <!-- Qty -->
-                                                <td class="p-2 text-right">
-                                                    <!-- mode view -->
-                                                    <span x-show="editingIndex !== i" x-text="it.fqty"></span>
-
-                                                    <!-- mode edit -->
-                                                    <div x-show="editingIndex === i">
-                                                        <input type="number"
-                                                            class="border rounded px-2 py-1 w-28 text-right"
-                                                            :min="1"
-                                                            :max="editMaxqty > 0 ? editMaxqty : null" step="1"
-                                                            x-model.number="editForm.fqty" @input="enforceEditQty()"
-                                                            :placeholder="editMaxqty > 0 ? `Maks: ${editMaxqty}` : ''"
-                                                            :title="editMaxqty > 0 ? `Maks: ${editMaxqty}` : ''">
-                                                    </div>
-                                                </td>
-
-                                                <!-- Desc -->
-                                                <td class="p-2">
-                                                    <!-- view -->
-                                                    <span x-show="editingIndex !== i" x-text="it.fdesc || '-'"></span>
-
-                                                    <!-- edit -->
-                                                    <input x-show="editingIndex === i" type="text"
-                                                        class="border rounded px-2 py-1 w-full" x-model="editForm.fdesc">
-                                                </td>
-
-                                                <!-- Ket -->
-                                                <td class="p-2">
-                                                    <!-- view -->
-                                                    <span x-show="editingIndex !== i" x-text="it.fketdt || '-'"></span>
-
-                                                    <!-- edit -->
-                                                    <input x-show="editingIndex === i" type="text"
-                                                        class="border rounded px-2 py-1 w-full" x-model="editForm.fketdt">
-                                                </td>
-
-                                                <!-- Aksi -->
-                                                <td class="p-2 text-center">
-                                                    <!-- mode view -->
-                                                    <div x-show="editingIndex !== i"
-                                                        class="flex items-center justify-center gap-2">
-                                                        <button type="button" @click="startEdit(i)"
-                                                            class="px-3 py-1 rounded text-xs bg-amber-100 text-amber-700 hover:bg-amber-200">
-                                                            Edit
-                                                        </button>
-                                                        <button type="button" @click="removeSaved(i)"
-                                                            class="px-3 py-1 rounded text-xs bg-red-100 text-red-600 hover:bg-red-200">
-                                                            Hapus
-                                                        </button>
-                                                    </div>
-
-                                                    <!-- mode edit -->
-                                                    <div x-show="editingIndex === i"
-                                                        class="flex items-center justify-center gap-2">
-                                                        <button type="button" @click="applyEdit(i)"
-                                                            class="px-3 py-1 rounded text-xs bg-emerald-600 text-white hover:bg-emerald-700">
-                                                            Simpan
-                                                        </button>
-                                                        <button type="button" @click="cancelEdit()"
-                                                            class="px-3 py-1 rounded text-xs bg-gray-100 text-gray-700 hover:bg-gray-200">
-                                                            Batal
-                                                        </button>
-                                                    </div>
-                                                </td>
-
-                                                <!-- hidden inputs (biarkan) -->
-                                                <td class="hidden">
-                                                    <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
-                                                    <input type="hidden" name="fitemname[]" :value="it.fitemname">
-                                                    <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
-                                                    <input type="hidden" name="fqty[]" :value="it.fqty">
-                                                    <input type="hidden" name="fdesc[]" :value="it.fdesc">
-                                                    <input type="hidden" name="fketdt[]" :value="it.fketdt">
-                                                </td>
-                                            </tr>
-                                        </template>
-                                    </tbody>
-                                </table>
-                            </div>
+                                    </template>
+                                </tbody>
+                            </table>
                         </div>
+                    </div>
 
-                        <!-- MODAL DUPLIKAT -->
-                        <div x-show="dupeModalOpen" x-cloak class="fixed inset-0 z-[70] flex items-center justify-center"
-                            x-transition.opacity>
-                            <div class="absolute inset-0 bg-black/50" @click="cancelDupe()"></div>
-                            <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden"
-                                x-transition.scale>
-                                <div class="px-5 py-4 border-b flex items-center">
-                                    <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-amber-500 mr-2" />
-                                    <h3 class="text-lg font-semibold text-gray-800">Item Duplikat</h3>
-                                </div>
-                                <div class="px-5 py-4 space-y-3">
-                                    <p class="text-sm text-gray-700">
-                                        Item dengan kombinasi <b>kode, satuan, deskripsi</b> dan <b>ket item</b> yang sama
-                                        sudah ada.
-                                    </p>
-                                    <div class="bg-gray-50 rounded-lg p-3 text-sm text-gray-700 space-y-1">
-                                        <div><span class="text-gray-500">Kode:</span> <span class="font-mono"
-                                                x-text="dupeCandidate?.fitemcode"></span></div>
-                                        <div><span class="text-gray-500">Nama:</span> <span
-                                                x-text="dupeCandidate?.fitemname"></span></div>
-                                        <div class="flex gap-6">
-                                            <div><span class="text-gray-500">Satuan:</span> <span
-                                                    x-text="dupeCandidate?.fsatuan"></span></div>
-                                            <div><span class="text-gray-500">Qty:</span> <span
-                                                    x-text="dupeCandidate?.fqty"></span></div>
-                                        </div>
-                                        <div><span class="text-gray-500">Desc:</span> <span
-                                                x-text="dupeCandidate?.fdesc || '-'"></span></div>
-                                        <div><span class="text-gray-500">Ket Item:</span> <span
-                                                x-text="dupeCandidate?.fketdt || '-'"></span></div>
+                    <!-- MODAL DUPLIKAT -->
+                    <div x-show="dupeModalOpen" x-cloak class="fixed inset-0 z-[70] flex items-center justify-center"
+                        x-transition.opacity>
+                        <div class="absolute inset-0 bg-black/50" @click="cancelDupe()"></div>
+                        <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden"
+                            x-transition.scale>
+                            <div class="px-5 py-4 border-b flex items-center">
+                                <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-amber-500 mr-2" />
+                                <h3 class="text-lg font-semibold text-gray-800">Item Duplikat</h3>
+                            </div>
+                            <div class="px-5 py-4 space-y-3">
+                                <p class="text-sm text-gray-700">
+                                    Item dengan kombinasi <b>kode, satuan, deskripsi</b> dan <b>ket item</b> yang sama
+                                    sudah ada.
+                                </p>
+                                <div class="bg-gray-50 rounded-lg p-3 text-sm text-gray-700 space-y-1">
+                                    <div><span class="text-gray-500">Kode:</span> <span class="font-mono"
+                                            x-text="dupeCandidate?.fitemcode"></span></div>
+                                    <div><span class="text-gray-500">Nama:</span> <span
+                                            x-text="dupeCandidate?.fitemname"></span></div>
+                                    <div class="flex gap-6">
+                                        <div><span class="text-gray-500">Satuan:</span> <span
+                                                x-text="dupeCandidate?.fsatuan"></span></div>
+                                        <div><span class="text-gray-500">Qty:</span> <span
+                                                x-text="dupeCandidate?.fqty"></span></div>
                                     </div>
-                                    <p class="text-sm text-gray-700">Tambahkan lagi sebagai baris baru?</p>
+                                    <div><span class="text-gray-500">Desc:</span> <span
+                                            x-text="dupeCandidate?.fdesc || '-'"></span></div>
+                                    <div><span class="text-gray-500">Ket Item:</span> <span
+                                            x-text="dupeCandidate?.fketdt || '-'"></span></div>
                                 </div>
-                                <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
-                                    <button type="button" @click="cancelDupe()"
-                                        class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
-                                        Batal
-                                    </button>
-                                    <button type="button" @click="confirmDupe()"
-                                        class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
-                                        Tambahkan
-                                    </button>
-                                </div>
+                                <p class="text-sm text-gray-700">Tambahkan lagi sebagai baris baru?</p>
                             </div>
-                        </div>
-
-                        <!-- MODAL ERROR VALIDASI -->
-                        <div x-show="errorModalOpen" x-cloak class="fixed inset-0 z-[75] flex items-center justify-center"
-                            x-transition.opacity>
-                            <div class="absolute inset-0 bg-black/50" @click="closeErrorModal()"></div>
-                            <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden"
-                                x-transition.scale>
-                                <div class="px-5 py-4 border-b flex items-center">
-                                    <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-red-500 mr-2" />
-                                    <h3 class="text-lg font-semibold text-gray-800">Validasi Item</h3>
-                                </div>
-                                <div class="px-5 py-4">
-                                    <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
-                                        <template x-for="(msg, idx) in errorMessages" :key="idx">
-                                            <li x-text="msg"></li>
-                                        </template>
-                                    </ul>
-                                </div>
-                                <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
-                                    <button type="button" @click="closeErrorModal()"
-                                        class="h-9 px-4 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
-                                        OK
-                                    </button>
-                                </div>
+                            <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
+                                <button type="button" @click="cancelDupe()"
+                                    class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
+                                    Batal
+                                </button>
+                                <button type="button" @click="confirmDupe()"
+                                    class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
+                                    Tambahkan
+                                </button>
                             </div>
                         </div>
                     </div>
 
-                    <!-- MODAL BROWSE SUPPLIER -->
-                    <div x-data="supplierBrowser()" x-show="open" x-cloak x-transition.opacity
-                        class="fixed inset-0 z-50 flex items-center justify-center">
-                        <div class="absolute inset-0 bg-black/40" @click="close()"></div>
-                        <div class="relative bg-white rounded-2xl shadow-xl w-[92vw] max-w-4xl max-h-[85vh] flex flex-col">
-                            <div class="p-4 border-b flex items-center gap-3">
-                                <h3 class="text-lg font-semibold">Browse Supplier</h3>
-                                <div class="ml-auto flex items-center gap-2">
-                                    <input type="text" x-model="keyword" @keydown.enter.prevent="search()"
-                                        placeholder="Cari kode / nama…" class="border rounded px-3 py-2 w-64">
-                                    <button type="button" @click="search()"
-                                        class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Search</button>
-                                </div>
+                    <!-- MODAL ERROR VALIDASI -->
+                    <div x-show="errorModalOpen" x-cloak class="fixed inset-0 z-[75] flex items-center justify-center"
+                        x-transition.opacity>
+                        <div class="absolute inset-0 bg-black/50" @click="closeErrorModal()"></div>
+                        <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden"
+                            x-transition.scale>
+                            <div class="px-5 py-4 border-b flex items-center">
+                                <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-red-500 mr-2" />
+                                <h3 class="text-lg font-semibold text-gray-800">Validasi Item</h3>
                             </div>
-                            <div class="p-0 overflow-auto">
-                                <table class="min-w-full text-sm">
-                                    <thead class="bg-gray-100 sticky top-0">
-                                        <tr>
-                                            <th class="text-left p-2">Supplier (Kode - Nama)</th>
-                                            <th class="text-left p-2 w-40">Telepon</th>
-                                            <th class="text-center p-2 w-28">Aksi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <template x-for="s in rows" :key="s.fsupplierid">
-                                            <tr class="border-b hover:bg-gray-50">
-                                                <td class="p-2" x-text="`${s.fsuppliercode} - ${s.fsuppliername}`">
-                                                </td>
-                                                <td class="p-2" x-text="s.ftelp || '-'"></td>
-                                                <td class="p-2 text-center">
-                                                    <button type="button" @click="choose(s)"
-                                                        class="px-3 py-1 rounded text-xs bg-emerald-600 hover:bg-emerald-700 text-white">Pilih</button>
-                                                </td>
-                                            </tr>
-                                        </template>
-                                        <tr x-show="rows.length === 0">
-                                            <td colspan="3" class="p-4 text-center text-gray-500">Tidak ada data.</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                            <div class="px-5 py-4">
+                                <ul class="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                                    <template x-for="(msg, idx) in errorMessages" :key="idx">
+                                        <li x-text="msg"></li>
+                                    </template>
+                                </ul>
                             </div>
-                            <div class="p-3 border-t flex items-center gap-2">
-                                <div class="text-sm text-gray-600">
-                                    <span x-text="`Page ${page} / ${lastPage} • Total ${total}`"></span>
-                                </div>
-                                <div class="ml-auto flex items-center gap-2">
-                                    <button type="button" @click="prev()" :disabled="page <= 1"
-                                        :class="page <= 1 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' :
-                                            'bg-gray-100 hover:bg-gray-200'"
-                                        class="px-3 py-1 rounded border">Prev</button>
-                                    <button type="button" @click="next()" :disabled="page >= lastPage"
-                                        :class="page >= lastPage ? 'bg-gray-200 text-gray-400 cursor-not-allowed' :
-                                            'bg-gray-100 hover:bg-gray-200'"
-                                        class="px-3 py-1 rounded border">Next</button>
-                                    <button type="button" @click="close()"
-                                        class="px-3 py-1 rounded border bg-gray-100 hover:bg-gray-200">Close</button>
-                                </div>
+                            <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
+                                <button type="button" @click="closeErrorModal()"
+                                    class="h-9 px-4 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
+                                    OK
+                                </button>
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <!-- MODAL BROWSE PRODUCT -->
-                    <div x-data="productBrowser()" x-show="open" x-cloak x-transition.opacity
-                        class="fixed inset-0 z-50 flex items-center justify-center">
-                        <div class="absolute inset-0 bg-black/40" @click="close()"></div>
-                        <div class="relative bg-white rounded-2xl shadow-xl w-[92vw] max-w-5xl max-h-[85vh] flex flex-col">
-                            <div class="p-4 border-b flex items-center gap-3">
-                                <h3 class="text-lg font-semibold">Browse Produk</h3>
-                                <div class="ml-auto flex items-center gap-2">
-                                    <input type="text" x-model="keyword" @keydown.enter.prevent="search()"
-                                        placeholder="Cari kode / nama…" class="border rounded px-3 py-2 w-64">
-                                    <button type="button" @click="search()"
-                                        class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Search</button>
-                                </div>
+                <!-- MODAL BROWSE SUPPLIER -->
+                <div x-data="supplierBrowser()" x-show="open" x-cloak x-transition.opacity
+                    class="fixed inset-0 z-50 flex items-center justify-center">
+                    <div class="absolute inset-0 bg-black/40" @click="close()"></div>
+                    <div class="relative bg-white rounded-2xl shadow-xl w-[92vw] max-w-4xl max-h-[85vh] flex flex-col">
+                        <div class="p-4 border-b flex items-center gap-3">
+                            <h3 class="text-lg font-semibold">Browse Supplier</h3>
+                            <div class="ml-auto flex items-center gap-2">
+                                <input type="text" x-model="keyword" @keydown.enter.prevent="search()"
+                                    placeholder="Cari kode / nama…" class="border rounded px-3 py-2 w-64">
+                                <button type="button" @click="search()"
+                                    class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Search</button>
                             </div>
-                            <div class="p-0 overflow-auto">
-                                <table class="min-w-full text-sm">
-                                    <thead class="bg-gray-100 sticky top-0">
-                                        <tr>
-                                            <th class="text-left p-2 w-40">Kode</th>
-                                            <th class="text-left p-2">Nama</th>
-                                            <th class="text-left p-2 w-48">Satuan</th>
-                                            <th class="text-center p-2 w-28">Stock</th>
-                                            <th class="text-center p-2 w-28">Aksi</th>
+                        </div>
+                        <div class="p-0 overflow-auto">
+                            <table class="min-w-full text-sm">
+                                <thead class="bg-gray-100 sticky top-0">
+                                    <tr>
+                                        <th class="text-left p-2">Supplier (Kode - Nama)</th>
+                                        <th class="text-left p-2 w-40">Telepon</th>
+                                        <th class="text-center p-2 w-28">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template x-for="s in rows" :key="s.fsupplierid">
+                                        <tr class="border-b hover:bg-gray-50">
+                                            <td class="p-2" x-text="`${s.fsuppliercode} - ${s.fsuppliername}`">
+                                            </td>
+                                            <td class="p-2" x-text="s.ftelp || '-'"></td>
+                                            <td class="p-2 text-center">
+                                                <button type="button" @click="choose(s)"
+                                                    class="px-3 py-1 rounded text-xs bg-emerald-600 hover:bg-emerald-700 text-white">Pilih</button>
+                                            </td>
                                         </tr>
-                                    </thead>
-                                    <tbody>
-                                        <template x-for="p in rows" :key="p.fproductcode">
-                                            <tr class="border-b hover:bg-gray-50">
-                                                <td class="p-2 font-mono" x-text="p.fproductcode"></td>
-                                                <td class="p-2" x-text="p.fproductname"></td>
-                                                <td class="p-2">
-                                                    <span
-                                                        x-text="[p.fsatuankecil, p.fsatuanbesar, p.fsatuanbesar2].filter(Boolean).join(' / ')"></span>
-                                                </td>
-                                                <td class="p-2 text-center" x-text="p.fminstock"></td>
-                                                <td class="p-2 text-center">
-                                                    <button type="button" @click="choose(p)"
-                                                        class="px-3 py-1 rounded text-xs bg-emerald-600 hover:bg-emerald-700 text-white">Pilih</button>
-                                                </td>
-                                            </tr>
-                                        </template>
-                                        <tr x-show="rows.length === 0">
-                                            <td colspan="5" class="p-4 text-center text-gray-500">Tidak ada data.</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                                    </template>
+                                    <tr x-show="rows.length === 0">
+                                        <td colspan="3" class="p-4 text-center text-gray-500">Tidak ada data.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="p-3 border-t flex items-center gap-2">
+                            <div class="text-sm text-gray-600">
+                                <span x-text="`Page ${page} / ${lastPage} • Total ${total}`"></span>
                             </div>
-                            <div class="p-3 border-t flex items-center gap-2">
-                                <div class="text-sm text-gray-600">
-                                    <span x-text="`Page ${page} / ${lastPage} • Total ${total}`"></span>
-                                </div>
-                                <div class="ml-auto flex items-center gap-2">
-                                    <button type="button" @click="prev()" :disabled="page <= 1"
-                                        :class="page <= 1 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' :
-                                            'bg-gray-100 hover:bg-gray-200'"
-                                        class="px-3 py-1 rounded border">Prev</button>
-                                    <button type="button" @click="next()" :disabled="page >= lastPage"
-                                        :class="page >= lastPage ? 'bg-gray-200 text-gray-400 cursor-not-allowed' :
-                                            'bg-gray-100 hover:bg-gray-200'"
-                                        class="px-3 py-1 rounded border">Next</button>
-                                    <button type="button" @click="close()"
-                                        class="px-3 py-1 rounded border bg-gray-100 hover:bg-gray-200">Close</button>
-                                </div>
+                            <div class="ml-auto flex items-center gap-2">
+                                <button type="button" @click="prev()" :disabled="page <= 1"
+                                    :class="page <= 1 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' :
+                                        'bg-gray-100 hover:bg-gray-200'"
+                                    class="px-3 py-1 rounded border">Prev</button>
+                                <button type="button" @click="next()" :disabled="page >= lastPage"
+                                    :class="page >= lastPage ? 'bg-gray-200 text-gray-400 cursor-not-allowed' :
+                                        'bg-gray-100 hover:bg-gray-200'"
+                                    class="px-3 py-1 rounded border">Next</button>
+                                <button type="button" @click="close()"
+                                    class="px-3 py-1 rounded border bg-gray-100 hover:bg-gray-200">Close</button>
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Approval (tetap di bawah, vertikal) -->
-                    <div class="md:col-span-2 flex justify-center items-center space-x-2">
-                        <label class="block text-sm font-medium">Approval</label>
-                        <label class="switch">
-                            <input type="checkbox" name="fapproval" id="approvalToggle"
-                                {{ session('fapproval') ? 'checked' : '' }}>
-                            <span class="slider round"></span>
-                        </label>
+                <!-- MODAL BROWSE PRODUCT -->
+                <div x-data="productBrowser()" x-show="open" x-cloak x-transition.opacity
+                    class="fixed inset-0 z-50 flex items-center justify-center">
+                    <div class="absolute inset-0 bg-black/40" @click="close()"></div>
+                    <div class="relative bg-white rounded-2xl shadow-xl w-[92vw] max-w-5xl max-h-[85vh] flex flex-col">
+                        <div class="p-4 border-b flex items-center gap-3">
+                            <h3 class="text-lg font-semibold">Browse Produk</h3>
+                            <div class="ml-auto flex items-center gap-2">
+                                <input type="text" x-model="keyword" @keydown.enter.prevent="search()"
+                                    placeholder="Cari kode / nama…" class="border rounded px-3 py-2 w-64">
+                                <button type="button" @click="search()"
+                                    class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Search</button>
+                            </div>
+                        </div>
+                        <div class="p-0 overflow-auto">
+                            <table class="min-w-full text-sm">
+                                <thead class="bg-gray-100 sticky top-0">
+                                    <tr>
+                                        <th class="text-left p-2 w-40">Kode</th>
+                                        <th class="text-left p-2">Nama</th>
+                                        <th class="text-left p-2 w-48">Satuan</th>
+                                        <th class="text-center p-2 w-28">Stock</th>
+                                        <th class="text-center p-2 w-28">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template x-for="p in rows" :key="p.fproductcode">
+                                        <tr class="border-b hover:bg-gray-50">
+                                            <td class="p-2 font-mono" x-text="p.fproductcode"></td>
+                                            <td class="p-2" x-text="p.fproductname"></td>
+                                            <td class="p-2">
+                                                <span
+                                                    x-text="[p.fsatuankecil, p.fsatuanbesar, p.fsatuanbesar2].filter(Boolean).join(' / ')"></span>
+                                            </td>
+                                            <td class="p-2 text-center" x-text="p.fminstock"></td>
+                                            <td class="p-2 text-center">
+                                                <button type="button" @click="choose(p)"
+                                                    class="px-3 py-1 rounded text-xs bg-emerald-600 hover:bg-emerald-700 text-white">Pilih</button>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                    <tr x-show="rows.length === 0">
+                                        <td colspan="5" class="p-4 text-center text-gray-500">Tidak ada data.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="p-3 border-t flex items-center gap-2">
+                            <div class="text-sm text-gray-600">
+                                <span x-text="`Page ${page} / ${lastPage} • Total ${total}`"></span>
+                            </div>
+                            <div class="ml-auto flex items-center gap-2">
+                                <button type="button" @click="prev()" :disabled="page <= 1"
+                                    :class="page <= 1 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' :
+                                        'bg-gray-100 hover:bg-gray-200'"
+                                    class="px-3 py-1 rounded border">Prev</button>
+                                <button type="button" @click="next()" :disabled="page >= lastPage"
+                                    :class="page >= lastPage ? 'bg-gray-200 text-gray-400 cursor-not-allowed' :
+                                        'bg-gray-100 hover:bg-gray-200'"
+                                    class="px-3 py-1 rounded border">Next</button>
+                                <button type="button" @click="close()"
+                                    class="px-3 py-1 rounded border bg-gray-100 hover:bg-gray-200">Close</button>
+                            </div>
+                        </div>
                     </div>
+                </div>
+
+                <br>
+
+                <!-- Approval (tetap di bawah, vertikal) -->
+                <div class="md:col-span-2 flex justify-center items-center space-x-2">
+                    <label class="block text-sm font-medium">Approval</label>
+                    <label class="switch">
+                        <input type="checkbox" name="fapproval" id="approvalToggle"
+                            {{ session('fapproval') ? 'checked' : '' }}>
+                        <span class="slider round"></span>
+                    </label>
                 </div>
 
                 <!-- Tombol Aksi -->
