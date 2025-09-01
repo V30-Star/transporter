@@ -71,6 +71,17 @@
         #supplierSelect::-ms-expand {
             display: none
         }
+
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        /* Hilangkan panah di input number (Firefox) */
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
     </style>
 
     <div x-data="{ open: true }">
@@ -198,7 +209,16 @@
                                     <tr class="border-t align-top">
                                         <td class="p-2" x-text="i + 1"></td>
                                         <td class="p-2 font-mono" x-text="it.fitemcode"></td>
-                                        <td class="p-2 text-gray-800" x-text="it.fitemname"></td>
+                                        <td class="p-2 text-gray-800">
+                                            <div x-text="it.fitemname"></div>
+                                            <div x-show="it.fdesc" class="mt-1 text-xs">
+                                                <span
+                                                    class="inline-block px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 mr-2">
+                                                    Deskripsi
+                                                </span>
+                                                <span class="align-middle text-gray-600" x-text="it.fdesc"></span>
+                                            </div>
+                                        </td>
                                         <td class="p-2" x-text="it.fsatuan"></td>
                                         <td class="p-2 text-right" x-text="it.fqty"></td>
                                         <td class="p-2" x-text="it.fketdt || '-'"></td>
@@ -226,11 +246,16 @@
                                     <tr class="border-b">
                                         <td class="p-0"></td> <!-- # -->
                                         <td class="p-0"></td> <!-- Kode -->
-                                        <td class="p-2"> <!-- Nama Produk -->
+                                        <!-- Deskripsi HANYA di kolom Nama Produk -->
+                                        <td class="p-2">
                                             <textarea x-model="it.fdesc" rows="2" class="w-full border rounded px-2 py-1"
                                                 placeholder="Deskripsi (opsional)"></textarea>
                                         </td>
-                                        <td class="p-0"></td> <!-- Aksi (kosong) -->
+                                        <!-- Kolom sisanya kosong supaya total 7 kolom -->
+                                        <td class="p-0"></td> <!-- Satuan -->
+                                        <td class="p-0"></td> <!-- Qty -->
+                                        <td class="p-0"></td> <!-- Ket Item -->
+                                        <td class="p-0"></td> <!-- Aksi -->
                                     </tr>
                                 </template>
 
@@ -282,7 +307,8 @@
                                     <td class="p-2 text-right">
                                         <input type="number" class="border rounded px-2 py-1 w-24 text-right"
                                             min="1" :max="editRow.maxqty || null" step="1"
-                                            x-model.number="editRow.fqty" x-ref="editQty" @input="enforceQtyRow(editRow)"
+                                            x-model.number="editRow.fqty" x-ref="editQty" @focus="$event.target.select()"
+                                            @input="enforceQtyRow(editRow)"
                                             @keydown.enter.prevent="$refs.editKet?.focus()">
                                     </td>
 
@@ -311,8 +337,10 @@
                                             placeholder="Deskripsi (opsional)"></textarea>
                                     </td>
                                     <td class="p-0"></td>
+                                    <td class="p-0"></td>
+                                    <td class="p-0"></td>
+                                    <td class="p-0"></td>
                                 </tr>
-
 
                                 <!-- ROW DRAFT UTAMA -->
                                 <tr class="border-t bg-green-50 align-top">
@@ -362,7 +390,8 @@
                                     <td class="p-2 text-right">
                                         <input type="number" class="border rounded px-2 py-1 w-24 text-right"
                                             min="1" :max="draft.maxqty || null" step="1"
-                                            x-model.number="draft.fqty" x-ref="draftQty" @input="enforceQtyRow(draft)"
+                                            x-model.number="draft.fqty" x-ref="draftQty" @focus="$event.target.select()"
+                                            @input="enforceQtyRow(draft)"
                                             @keydown.enter.prevent="$refs.draftKet?.focus()">
                                     </td>
 
@@ -388,6 +417,9 @@
                                         <textarea x-model="draft.fdesc" rows="2" class="w-full border rounded px-2 py-1"
                                             placeholder="Deskripsi (opsional)"></textarea>
                                     </td>
+                                    <td class="p-0"></td>
+                                    <td class="p-0"></td>
+                                    <td class="p-0"></td>
                                     <td class="p-0"></td>
                                 </tr>
                             </tbody>
