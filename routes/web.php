@@ -150,6 +150,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/tr_prh/{fprid}/edit', [Tr_prhController::class, 'edit'])->name('tr_prh.edit');
         Route::patch('/tr_prh/{fprid}', [Tr_prhController::class, 'update'])->name('tr_prh.update');
         Route::delete('/tr_prh/{fprid}', [Tr_prhController::class, 'destroy'])->name('tr_prh.destroy');
+        Route::get('/tr_prh/{fprno}/print', [Tr_prhController::class, 'print'])
+            ->name('tr_prh.print');
 
         // routes/web.php
         Route::get('/products/browse', [\App\Http\Controllers\ProductBrowseController::class, 'index'])

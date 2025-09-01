@@ -86,6 +86,48 @@ class Tr_prhController extends Controller
     });
   }
 
+  public function print(string $fprno)
+  {
+    // subquery aman mengikuti $table dari model Supplier
+    $supplierSub = Supplier::select('fsuppliercode', 'fsuppliername');
+
+    $hdr = Tr_prh::query()
+      ->leftJoinSub($supplierSub, 's', function ($join) {
+        $join->on('s.fsuppliercode', '=', 'tr_prh.fsupplier'); // kalau menyimpan KODE
+        // jika yang disimpan adalah ID, ganti ke:
+        // $join->on('s.fsupplierid', '=', 'tr_prh.fsupplier');
+      })
+      ->leftJoin('mscabang as c', 'c.fcabangkode', '=', 'tr_prh.fbranchcode')
+      ->where('tr_prh.fprno', $fprno)
+      ->first([
+        'tr_prh.*',
+        's.fsuppliername as supplier_name',
+        'c.fcabangname as cabang_name',
+      ]);
+
+    abort_if(!$hdr, 404);
+
+    $dt = Tr_prd::query()
+      ->leftJoin('msproduct as p', 'p.fproductcode', '=', 'tr_prd.fprdcode')
+      ->where('tr_prd.fprnoid', $hdr->fprno)
+      ->orderBy('tr_prd.fprdcode')
+      ->get([
+        'tr_prd.*',
+        'p.fproductname as product_name',
+        'p.fminstock as stock',
+      ]);
+
+    $fmt = fn($d) => $d ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y') : '-';
+
+    return view('tr_prh.print', [
+      'hdr' => $hdr,
+      'dt'  => $dt,
+      'fmt' => $fmt,
+      'company_name' => config('app.company_name', 'PT.DEMO VERSION'),
+      'company_city' => config('app.company_city', 'Tangerang'),
+    ]);
+  }
+
   public function create()
   {
     $supplier        = Supplier::all();

@@ -164,18 +164,33 @@
                             </a>
                         </li>
                     @endif
+                </ul>
+            </li>
+
+            <li x-data="{ open: false }">
+                <button @click="open = !open"
+                    class="flex items-center w-full p-2 text-white rounded-lg hover:bg-gray-700 focus:outline-none">
+                    <x-heroicon-o-folder class="w-5 h-5" />
+                    <span class="ml-3 flex-1 text-left">Transaksi Pembelian</span>
+                    <svg :class="{ 'rotate-180': open }" class="w-4 h-4 transition-transform" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+                <ul x-show="open" x-transition class="ml-6 mt-2 space-y-1" x-cloak>
 
                     {{-- @if (in_array('viewTr_prh', explode(',', session('user_restricted_permissions', '')))) --}}
-                        <li>
-                            <a href="{{ route('tr_prh.index') }}"
-                                class="flex items-center p-2 text-white rounded-lg hover:bg-gray-700">
-                                <x-heroicon-o-banknotes class="w-5 h-5" />
-                                <span class="ml-3">Permintaan Pembelian</span>
-                            </a>
-                        </li>
+                    <li>
+                        <a href="{{ route('tr_prh.index') }}"
+                            class="flex items-center p-2 text-white rounded-lg hover:bg-gray-700">
+                            <x-heroicon-o-banknotes class="w-5 h-5" />
+                            <span class="ml-3">Permintaan Pembelian</span>
+                        </a>
+                    </li>
                     {{-- @endif --}}
                 </ul>
             </li>
+
         </ul>
     </nav>
 </div>

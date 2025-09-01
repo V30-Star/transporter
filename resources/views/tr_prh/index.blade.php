@@ -70,6 +70,13 @@
                                 <x-heroicon-o-trash class="w-4 h-4 mr-1" />
                                 Hapus
                             </button>
+
+                            <a href="{{ route('tr_prh.print', $item->fprno) }}"
+                                class="inline-flex items-center px-3 py-1 rounded bg-gray-100 hover:bg-gray-200"
+                                title="Print PR" target="_blank" rel="noopener">
+                                <x-heroicon-o-printer class="w-4 h-4 mr-1" /> Print
+                            </a>
+
                             {{-- @endif --}}
                         </td>
                         {{-- @endif --}}
