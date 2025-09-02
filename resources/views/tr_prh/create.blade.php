@@ -159,7 +159,7 @@
 
                     <div class="lg:col-span-4">
                         <label class="block text-sm font-medium">Tanggal Dibutuhkan</label>
-                        <input type="date" name="fneeddate" value="{{ old('fneeddate') ?? date('Y-m-d') }}"
+                        <input type="date" name="fneeddate" value="{{ old('fneeddate', '') }}"
                             class="w-full border rounded px-3 py-2 @error('fneeddate') border-red-500 @enderror">
                         @error('fneeddate')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -168,7 +168,7 @@
 
                     <div class="lg:col-span-4">
                         <label class="block text-sm font-medium">Tanggal Paling Lambat</label>
-                        <input type="date" name="fduedate" value="{{ old('fduedate') ?? date('Y-m-d') }}"
+                        <input type="date" name="fduedate" value="{{ old('fduedate', '') }}"
                             class="w-full border rounded px-3 py-2 @error('fduedate') border-red-500 @enderror">
                         @error('fduedate')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
