@@ -87,13 +87,25 @@
         <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
             <form action="{{ route('tr_prh.update', $tr_prh->fprid) }}" method="POST" class="mt-6" x-data="{ showNoItems: false }"
                 @submit.prevent="
-        const n = Number(document.getElementById('itemsCount')?.value || 0);
-        if(n<1){ showNoItems=true } else { $el.submit() }
-      ">
+                window.__prh_flush_ok = true;
+                window.dispatchEvent(new CustomEvent('prh-before-submit'));
+                if (!window.__prh_flush_ok) return;
+
+                const n = Number(document.getElementById('itemsCount')?.value || 0);
+                if (n < 1) { showNoItems = true; return; }
+
+                // Tunda submit sampai DOM update selesai
+                $nextTick(() => { $el.submit() });
+                ">
                 @csrf
                 @method('PATCH')
                 @php
-                    $isApproved = !empty($tr_prh->fapproval);
+                    // anggap "approved" kalau sudah ada fuserapproved ATAU fapproval=1
+                    $isApproved = !empty($tr_prh->fuserapproved) || (int) $tr_prh->fapproval === 1;
+                @endphp
+
+                @php
+                    $fmt = fn($d) => $d ? \Illuminate\Support\Carbon::parse($d)->format('Y-m-d') : '';
                 @endphp
 
                 {{-- HEADER FORM --}}
@@ -153,8 +165,7 @@
 
                     <div class="lg:col-span-4">
                         <label class="block text-sm font-medium">Tanggal</label>
-                        <input type="date" name="fprdate"
-                            value="{{ old('fprdate', optional($tr_prh->fprdate)->format('Y-m-d')) }}"
+                        <input type="date" name="fprdate" value="{{ old('fprdate', $fmt($tr_prh->fprdate)) }}"
                             class="w-full border rounded px-3 py-2 @error('fprdate') border-red-500 @enderror">
                         @error('fprdate')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -163,8 +174,7 @@
 
                     <div class="lg:col-span-4">
                         <label class="block text-sm font-medium">Tanggal Dibutuhkan</label>
-                        <input type="date" name="fneeddate"
-                            value="{{ old('fneeddate', optional($tr_prh->fneeddate)->format('Y-m-d')) }}"
+                        <input type="date" name="fneeddate" value="{{ old('fneeddate', $fmt($tr_prh->fneeddate)) }}"
                             class="w-full border rounded px-3 py-2 @error('fneeddate') border-red-500 @enderror">
                         @error('fneeddate')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -173,8 +183,7 @@
 
                     <div class="lg:col-span-4">
                         <label class="block text-sm font-medium">Tanggal Paling Lambat</label>
-                        <input type="date" name="fduedate"
-                            value="{{ old('fduedate', optional($tr_prh->fduedate)->format('Y-m-d')) }}"
+                        <input type="date" name="fduedate" value="{{ old('fduedate', $fmt($tr_prh->fduedate)) }}"
                             class="w-full border rounded px-3 py-2 @error('fduedate') border-red-500 @enderror">
                         @error('fduedate')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -239,12 +248,12 @@
 
                                         <!-- hidden inputs -->
                                         <td class="hidden">
-                                            <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
-                                            <input type="hidden" name="fitemname[]" :value="it.fitemname">
-                                            <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
-                                            <input type="hidden" name="fqty[]" :value="it.fqty">
-                                            <input type="hidden" name="fdesc[]" :value="it.fdesc">
-                                            <input type="hidden" name="fketdt[]" :value="it.fketdt">
+                                            <input type="hidden" name="fitemcode[]" x-model="it.fitemcode">
+                                            <input type="hidden" name="fitemname[]" x-model="it.fitemname">
+                                            <input type="hidden" name="fsatuan[]" x-model="it.fsatuan">
+                                            <input type="hidden" name="fqty[]" x-model="it.fqty">
+                                            <input type="hidden" name="fdesc[]" x-model="it.fdesc">
+                                            <input type="hidden" name="fketdt[]" x-model="it.fketdt">
                                         </td>
                                     </tr>
 
@@ -611,12 +620,25 @@
                 <fieldset {{ $isApproved ? 'disabled' : '' }}>
                     <div class="md:col-span-2 flex justify-center items-center space-x-2 mt-6">
                         <label class="text-sm font-medium">Approval</label>
+
+                        {{-- default 0 supaya unchecked tetap terkirim --}}
+                        <input type="hidden" name="fapproval" value="0">
+
                         <label class="switch">
-                            <input type="checkbox" name="approve_now" id="approvalToggle"
-                                {{ $tr_prh->fapproval ? 'checked' : '' }}>
+                            <input type="checkbox" name="fapproval" id="approvalToggle" value="1"
+                                {{ $isApproved ? 'checked' : '' }}>
                             <span class="slider round"></span>
                         </label>
                     </div>
+
+                    @if ($isApproved)
+                        <div class="text-xs text-gray-600 text-center mt-2">
+                            Disetujui oleh: <strong>{{ $tr_prh->fuserapproved }}</strong>
+                            @if (!empty($tr_prh->fdateapproved))
+                                pada {{ \Carbon\Carbon::parse($tr_prh->fdateapproved)->format('d-m-Y H:i') }}
+                            @endif
+                        </div>
+                    @endif
                 </fieldset>
 
                 <div class="mt-8 flex justify-center gap-4">
@@ -1180,7 +1202,20 @@
                 }, {
                     passive: true
                 });
-            }
+                window.addEventListener('prh-before-submit', () => {
+                    if (this.editingIndex !== null) {
+                        // Validasi dulu; kalau belum lengkap, blok submit dan beri alert
+                        if (!this.isComplete(this.editRow)) {
+                            alert('Lengkapi data item yang sedang diedit dulu.');
+                            window.__prh_flush_ok = false;
+                            return;
+                        }
+                        this.applyEdit(); // salin ke savedItems -> hidden inputs ikut update
+                    }
+                }, {
+                    passive: true
+                });
+            },
         }
     }
 </script>

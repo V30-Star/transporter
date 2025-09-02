@@ -399,7 +399,7 @@ class Tr_prhController extends Controller
 
     // Validasi header & detail
     $validator = Validator::make($request->all(), [
-      'fprdate'    => ['required', 'date'],
+      'fprdate'     => ['nullable', 'date'],   // was required; make nullable so we can keep old when blank
       'fsupplier'  => ['required', 'string', 'max:10'],
       'fneeddate'  => ['nullable', 'date'],
       'fduedate'   => ['nullable', 'date'],
@@ -415,25 +415,32 @@ class Tr_prhController extends Controller
       'fdesc.*'    => ['nullable', 'string'],
       'fketdt'     => ['array'],
       'fketdt.*'   => ['nullable', 'string', 'max:50'],
+      'fapproval' => ['nullable', 'boolean'],
     ]);
 
-    if ($validator->fails()) {
-      Log::debug('Validation errors:', $validator->errors()->all());
-      return back()->withErrors($validator)->withInput();
-    }
-
     // Parse tanggal
-    $fprdate   = Carbon::parse($request->fprdate)->startOfDay();
-    $fneeddate = $request->filled('fneeddate') ? Carbon::parse($request->fneeddate)->startOfDay() : null;
-    $fduedate  = $request->filled('fduedate') ? Carbon::parse($request->fduedate)->startOfDay() : null;
+    $fprdate   = $request->filled('fprdate')
+      ? Carbon::parse($request->fprdate)->startOfDay()
+      : $header->fprdate;
+    $fneeddate = $request->has('fneeddate') && $request->fneeddate !== ''
+      ? Carbon::parse($request->fneeddate)->startOfDay()
+      : $header->fneeddate;
+
+    $fduedate  = $request->has('fduedate') && $request->fduedate !== ''
+      ? Carbon::parse($request->fduedate)->startOfDay()
+      : $header->fduedate;
+
     $userName  = Auth::user()->fname ?? 'system';
 
-    // Ambil arrays detail
-    $codes  = array_values(array_filter($request->input('fitemcode', []), fn($v) => !is_null($v)));
-    $sats   = array_values(array_filter($request->input('fsatuan', []), fn($v) => !is_null($v)));
-    $qtys   = array_values(array_filter($request->input('fqty', []), fn($v) => !is_null($v)));
-    $descs  = array_values(array_filter($request->input('fdesc', []), fn($v) => !is_null($v)));
-    $ketdts = array_values(array_filter($request->input('fketdt', []), fn($v) => !is_null($v)));
+    $actor        = auth('sysuser')->user()->fname ?? (Auth::user()->fname ?? 'system');
+    $approveNow   = $request->boolean('fapproval');               // 0/1 -> bool
+    $wasApproved  = !empty($header->fuserapproved) || (int)$header->fapproval === 1;
+
+    $codes  = $request->input('fitemcode', []);
+    $sats   = $request->input('fsatuan', []);
+    $qtys   = $request->input('fqty', []);
+    $descs  = $request->input('fdesc', []);
+    $ketdts = $request->input('fketdt', []);
 
     // Cek stok vs qty
     $stocks = Product::whereIn('fproductcode', $codes)->pluck('fminstock', 'fproductcode');
@@ -457,14 +464,15 @@ class Tr_prhController extends Controller
     $detailRows = [];
     $now = now();
     $rowCount = max(count($codes), count($sats), count($qtys), count($descs), count($ketdts));
+
     for ($i = 0; $i < $rowCount; $i++) {
-      $code = trim($codes[$i] ?? '');
-      $sat  = trim($sats[$i] ?? '');
-      $qty  = $qtys[$i] ?? null;
+      $code = trim((string)($codes[$i]  ?? ''));
+      $sat  = trim((string)($sats[$i]   ?? ''));
+      $qty  = $qtys[$i]  ?? null;
       $desc = $descs[$i] ?? null;
       $ket  = $ketdts[$i] ?? null;
 
-      if ($code !== '' && $sat !== '' && is_numeric($qty) && $qty >= 1) {
+      if ($code !== '' && $sat !== '' && is_numeric($qty) && (int)$qty >= 1) {
         $detailRows[] = [
           'fprnoid'    => $fprno,
           'fprdcode'   => $code,
@@ -477,6 +485,11 @@ class Tr_prhController extends Controller
           'fdesc'      => $desc,
           'fuserid'    => $userName,
         ];
+        if (!$wasApproved && $approveNow) {
+          $setHeader['fapproval']     = 1;
+          $setHeader['fuserapproved'] = $actor;
+          $setHeader['fdateapproved'] = now();
+        }
       }
     }
     if (empty($detailRows)) {
@@ -499,7 +512,6 @@ class Tr_prhController extends Controller
         'fuserid'     => $userName,
       ]);
 
-      // Update detail baris-per-baris (jika baris belum ada, kamu bisa ubah ke upsert)
       foreach ($detailRows as $row) {
         Tr_prd::where('fprnoid', $fprno)
           ->where('fprdcode', $row['fprdcode'])
