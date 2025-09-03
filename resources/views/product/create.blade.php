@@ -7,15 +7,12 @@
     <script src="https://code.jquery.com/ui/1.13.3/jquery-ui.min.js"></script>
 
     <style>
-        /* supaya dropdown autocomplete nongol di atas modal/select2 */
         .ui-autocomplete {
             z-index: 9999;
             max-height: 240px;
             overflow-y: auto;
             overflow-x: hidden;
         }
-    </style>
-    <style>
         /* The switch - the outer box */
         .switch {
             position: relative;
@@ -543,14 +540,12 @@
                 }
             });
 
-            // 🔧 cukup pakai focus saja (klik tidak perlu, biar tidak double request)
             $inp.on("focus", function() {
                 if (!$(".ui-autocomplete:visible").length) {
                     $(this).autocomplete("search", $(this).val() || "");
                 }
             });
 
-            // opsional: buka dengan ArrowDown saat sudah fokus
             $inp.on("keydown", function(e) {
                 if (e.key === "ArrowDown" && !$(".ui-autocomplete:visible").length) {
                     $(this).autocomplete("search", $(this).val() || "");

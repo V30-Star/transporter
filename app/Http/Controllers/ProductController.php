@@ -13,20 +13,50 @@ class ProductController extends Controller
 {
     public function index(Request $request)
     {
-        $filterBy = in_array($request->filter_by, ['fproductcode', 'fproductname'])
-            ? $request->filter_by
-            : 'fproductcode';
+        $search = trim((string) $request->search);
 
-        $search = $request->search;
-
-        $products = Product::when($search, function ($q) use ($filterBy, $search) {
-            $q->where($filterBy, 'ILIKE', '%' . $search . '%');
+        $products = Product::when($search !== '', function ($q) use ($search) {
+            $q->where(function ($qq) use ($search) {
+                $qq->where('fproductcode', 'ILIKE', "%{$search}%")
+                    ->orWhere('fproductname', 'ILIKE', "%{$search}%");
+            });
         })
             ->orderBy('fproductid', 'desc')
             ->paginate(10)
             ->withQueryString();
 
-        return view('product.index', compact('products', 'filterBy', 'search'));
+        // ambil permission seperti di Blade
+        $canCreate = in_array('createProduct', explode(',', session('user_restricted_permissions', '')));
+        $canEdit   = in_array('updateProduct', explode(',', session('user_restricted_permissions', '')));
+        $canDelete = in_array('deleteProduct', explode(',', session('user_restricted_permissions', '')));
+
+        if ($request->ajax()) {
+            // kirim field yang dipakai tabel + url aksi
+            $rows = collect($products->items())->map(function ($p) {
+                return [
+                    'fproductid'    => $p->fproductid,
+                    'fproductcode'  => $p->fproductcode,
+                    'fproductname'  => $p->fproductname,
+                    'fsatuankecil'  => $p->fsatuankecil,
+                    'fminstock'     => $p->fminstock,
+                    'edit_url'      => route('product.edit', $p->fproductid),
+                    'destroy_url'   => route('product.destroy', $p->fproductid),
+                ];
+            });
+
+            return response()->json([
+                'data'  => $rows,
+                'perms' => ['can_edit' => $canEdit, 'can_delete' => $canDelete],
+                'links' => [
+                    'prev'          => $products->previousPageUrl(),
+                    'next'          => $products->nextPageUrl(),
+                    'current_page'  => $products->currentPage(),
+                    'last_page'     => $products->lastPage(),
+                ],
+            ]);
+        }
+
+        return view('product.index', compact('products', 'search'));
     }
 
     public function suggestNames(Request $request)

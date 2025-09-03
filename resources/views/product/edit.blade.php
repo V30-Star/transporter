@@ -3,7 +3,17 @@
 @section('title', 'Master Product')
 
 @section('content')
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.3/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/ui/1.13.3/jquery-ui.min.js"></script>
+
     <style>
+        .ui-autocomplete {
+            z-index: 9999;
+            max-height: 240px;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
         .switch {
             position: relative;
             display: inline-block;
@@ -67,15 +77,49 @@
     <style>
         input:focus,
         select:focus,
-        textarea:focus {
+        textarea:focus,
+        .select2-container--default .select2-selection--single:focus {
             outline: none;
             border-color: #2563eb;
             box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
         }
+
+        .select2-container--default .select2-selection--single {
+            border: 1px solid #000000 !important;
+            border-radius: 0.375rem;
+            height: 42px;
+            padding: 0.5rem 0.75rem;
+            width: 100% !important;
+            background-color: white;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 40px;
+        }
+
+        .select2-dropdown {
+            border: 1px solid #000000 !important;
+            border-radius: 0.375rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .select2-results__option {
+            padding: 8px 12px;
+        }
+
+        .select2-results__option--highlighted {
+            background-color: #2563eb !important;
+            color: white !important;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            color: #000000 !important;
+        }
     </style>
 
+
     <div x-data="{ open: true }">
-        <div class="bg-white rounded shadow p-6 md:p-8 max-w-5xl mx-auto">
+        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1500px] w-full mx-auto">
             <form action="{{ route('product.update', $product->fproductid) }}" method="POST">
                 @csrf
                 @method('PATCH')
@@ -134,7 +178,8 @@
                     <!-- Nama Product -->
                     <div class="mt-2 w-1/2">
                         <label class="block text-sm font-medium">Nama Product</label>
-                        <input type="text" name="fproductname" value="{{ old('fproductname', $product->fproductname) }}"
+                        <input type="text" name="fproductname" id="fproductname"
+                            value="{{ old('fproductname', $product->fproductname) }}"
                             class="w-full border rounded px-3 py-2 @error('fproductname') border-red-500 @enderror">
                         @error('fproductname')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -497,6 +542,53 @@
         let hargajuallevel1 = new AutoNumeric('#fhargajuallevel1', 'commaDecimalCharDotSeparator');
         let hargajuallevel2 = new AutoNumeric('#fhargajuallevel2', 'commaDecimalCharDotSeparator');
         let hargajuallevel3 = new AutoNumeric('#fhargajuallevel3', 'commaDecimalCharDotSeparator');
+
+        $(function() {
+            const $inp = $("#fproductname");
+            let lastXHR = null;
+            const localCache = {};
+
+            $inp.autocomplete({
+                source: function(request, response) {
+                    const term = request.term || "";
+
+                    if (localCache[term]) {
+                        response(localCache[term]);
+                        return;
+                    }
+
+                    if (lastXHR && lastXHR.readyState !== 4) lastXHR.abort();
+
+                    lastXHR = $.getJSON("{{ route('product.name.suggest') }}", {
+                        term
+                    }, function(data) {
+                        localCache[term] = data;
+                        response(data);
+                    });
+                },
+                minLength: 0,
+                delay: 0,
+                select: function(event, ui) {
+                    $(this).val(ui.item.value);
+                    return false;
+                },
+                open: function() {
+                    $(".ui-autocomplete").css("width", $inp.outerWidth());
+                }
+            });
+
+            $inp.on("focus", function() {
+                if (!$(".ui-autocomplete:visible").length) {
+                    $(this).autocomplete("search", $(this).val() || "");
+                }
+            });
+
+            $inp.on("keydown", function(e) {
+                if (e.key === "ArrowDown" && !$(".ui-autocomplete:visible").length) {
+                    $(this).autocomplete("search", $(this).val() || "");
+                }
+            });
+        });
 
     });
 </script>

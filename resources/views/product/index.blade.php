@@ -14,22 +14,21 @@
             this.showDeleteModal = false;
             this.deleteUrl = null;
         }
-    }" class="bg-white rounded shadow p-4">
+    }" x-on:open-delete.window="openDelete($event.detail)" class="bg-white rounded shadow p-4">
+
         <div x-data="{
-            activeTable: 'null', // Default tampilkan tabel stok
-            toggleTable(table) {
-                this.activeTable = table; // Ganti tabel aktif sesuai pilihan
-            }
+            activeTable: 'null',
+            toggleTable(table) { this.activeTable = table; }
         }" class="bg-white rounded shadow p-4">
 
-            {{--  Search & Filter Form  --}}
-            <form method="GET" action="{{ route('product.index') }}"
+            {{-- Search Live (AJAX) --}}
+            <form id="searchForm" method="GET" action="{{ route('product.index') }}"
                 class="flex flex-wrap justify-between items-center mb-4 gap-2">
                 <div class="flex items-center space-x-2 w-full">
                     <label class="font-semibold">Search:</label>
-                    <input type="text" name="search" value="{{ $search }}" class="border rounded px-2 py-1 w-1/4"
-                        placeholder="Cari...">
-                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Cari</button>
+                    <input id="searchInput" type="text" name="search" value="{{ $search }}"
+                        class="border rounded px-2 py-1 w-1/4" placeholder="Cari...">
+                    <button id="searchBtn" type="submit" class="hidden">Cari</button>
                 </div>
             </form>
 
@@ -40,7 +39,7 @@
                 $showActionsColumn = $canEdit || $canDelete;
             @endphp
 
-            {{--  Table Data Produk --}}
+            {{-- Table Data Produk --}}
             <table class="min-w-full border text-sm">
                 <thead class="bg-gray-100">
                     <tr>
@@ -53,7 +52,7 @@
                         @endif
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="tableBody">
                     @forelse($products as $item)
                         <tr class="hover:bg-gray-50">
                             <td class="border px-2 py-1">{{ $item->fproductcode }}</td>
@@ -66,17 +65,14 @@
                                         <a href="{{ route('product.edit', $item->fproductid) }}">
                                             <button
                                                 class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
-                                                <x-heroicon-o-pencil-square class="w-4 h-4 mr-1" />
-                                                Edit
+                                                <x-heroicon-o-pencil-square class="w-4 h-4 mr-1" /> Edit
                                             </button>
                                         </a>
                                     @endif
-
                                     @if ($canDelete)
                                         <button @click="openDelete('{{ route('product.destroy', $item->fproductid) }}')"
                                             class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
-                                            <x-heroicon-o-trash class="w-4 h-4 mr-1" />
-                                            Hapus
+                                            <x-heroicon-o-trash class="w-4 h-4 mr-1" /> Hapus
                                         </button>
                                     @endif
                                 </td>
@@ -84,30 +80,37 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="text-center py-4">Tidak ada data.</td>
+                            <td colspan="{{ $showActionsColumn ? 5 : 4 }}" class="text-center py-4">Tidak ada data.</td>
                         </tr>
                     @endforelse
                 </tbody>
             </table>
-            <div class="mt-4 flex justify-between items-center">
+
+            {{-- Pagination (akan di-update via JS juga) --}}
+            <div id="pagination" class="mt-4 flex justify-between items-center">
                 <div class="space-x-2">
                     @if ($canCreate)
                         <a href="{{ route('product.create') }}"
                             class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                            <x-heroicon-o-plus class="w-4 h-4 mr-1" />
-                            Baru
+                            <x-heroicon-o-plus class="w-4 h-4 mr-1" /> Baru
                         </a>
                     @endif
                 </div>
+
                 <div class="flex items-center space-x-2">
-                    <button class="px-3 py-1 rounded border hover:bg-gray-100 disabled:opacity-50" disabled>
-                        &larr;
-                    </button>
-                    <span class="text-sm">Page {{ $products->currentPage() }} of {{ $products->lastPage() }}</span>
-                    <button class="px-3 py-1 rounded border hover:bg-gray-100"
-                        {{ $products->hasMorePages() ? '' : 'disabled' }}>
-                        &rarr;
-                    </button>
+                    <button id="prevBtn"
+                        class="px-3 py-1 rounded border hover:bg-gray-100 {{ $products->onFirstPage() ? 'opacity-50' : '' }}"
+                        {{ $products->onFirstPage() ? 'disabled' : '' }}
+                        data-page="{{ $products->previousPageUrl() ?? '' }}">&larr;</button>
+
+                    <span id="pageInfo" class="text-sm">
+                        Page {{ $products->currentPage() }} of {{ $products->lastPage() }}
+                    </span>
+
+                    <button id="nextBtn"
+                        class="px-3 py-1 rounded border hover:bg-gray-100 {{ $products->hasMorePages() ? '' : 'opacity-50' }}"
+                        {{ $products->hasMorePages() ? '' : 'disabled' }}
+                        data-page="{{ $products->nextPageUrl() ?? '' }}">&rarr;</button>
                 </div>
             </div>
 
@@ -234,3 +237,126 @@
             </div>
         </div>
     @endsection
+
+    @push('scripts')
+        <script>
+            (function() {
+                const form = document.getElementById('searchForm');
+                const input = document.getElementById('searchInput');
+                const tbody = document.getElementById('tableBody');
+                const prevBtn = document.getElementById('prevBtn');
+                const nextBtn = document.getElementById('nextBtn');
+                const pageInfo = document.getElementById('pageInfo');
+                let timer = null,
+                    lastAbort = null;
+                let perms = {
+                    can_edit: {!! json_encode(in_array('updateProduct', explode(',', session('user_restricted_permissions', '')))) !!},
+                    can_delete: {!! json_encode(in_array('deleteProduct', explode(',', session('user_restricted_permissions', '')))) !!}
+                };
+
+                // helper buka modal hapus -> kirim event ke Alpine
+                window.openDeleteModal = function(url) {
+                    window.dispatchEvent(new CustomEvent('open-delete', {
+                        detail: url
+                    }));
+                };
+
+                function rowHtml(item) {
+                    let actions = '';
+                    if (perms.can_edit) {
+                        actions += `
+        <a href="${item.edit_url}"
+           class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
+           Edit
+        </a>`;
+                    }
+                    if (perms.can_delete) {
+                        actions += `
+        <button onclick="window.openDeleteModal('${item.destroy_url}')"
+                class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 ml-2">
+          Hapus
+        </button>`;
+                    }
+                    const aksiTd = actions ? `<td class="border px-2 py-1">${actions}</td>` : '';
+
+                    return `
+      <tr class="hover:bg-gray-50">
+        <td class="border px-2 py-1">${item.fproductcode ?? ''}</td>
+        <td class="border px-2 py-1">${item.fproductname ?? ''}</td>
+        <td class="border px-2 py-1">${item.fsatuankecil ?? ''}</td>
+        <td class="border px-2 py-1">${item.fminstock ?? 0}</td>
+        ${aksiTd}
+      </tr>`;
+                }
+
+                function render(json) {
+                    if (!json || !json.data) return;
+
+                    // update perms dari server (jaga-jaga kalau berubah)
+                    if (json.perms) perms = json.perms;
+
+                    if (json.data.length === 0) {
+                        const colCount = document.querySelector('thead tr').children.length;
+                        tbody.innerHTML =
+                        `<tr><td colspan="${colCount}" class="text-center py-4">Tidak ada data.</td></tr>`;
+                    } else {
+                        tbody.innerHTML = json.data.map(rowHtml).join('');
+                    }
+
+                    // pagination
+                    prevBtn.dataset.page = json.links.prev || '';
+                    nextBtn.dataset.page = json.links.next || '';
+                    prevBtn.disabled = !json.links.prev;
+                    nextBtn.disabled = !json.links.next;
+                    prevBtn.classList.toggle('opacity-50', !json.links.prev);
+                    nextBtn.classList.toggle('opacity-50', !json.links.next);
+                    pageInfo.textContent = `Page ${json.links.current_page} of ${json.links.last_page}`;
+                }
+
+                function fetchTable(url) {
+                    if (lastAbort) lastAbort.abort();
+                    lastAbort = new AbortController();
+                    fetch(url, {
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            signal: lastAbort.signal
+                        })
+                        .then(r => r.json())
+                        .then(render)
+                        .catch(err => {
+                            if (err.name !== 'AbortError') console.error(err);
+                        });
+                }
+
+                function buildUrl(baseUrl = null) {
+                    if (baseUrl) {
+                        const u = new URL(baseUrl, window.location.origin);
+                        u.searchParams.set('search', input.value || '');
+                        return u.toString();
+                    }
+                    const base = form.getAttribute('action');
+                    const params = new URLSearchParams(new FormData(form));
+                    params.delete('page');
+                    return `${base}?${params.toString()}`;
+                }
+
+                // live search
+                input.addEventListener('input', () => {
+                    clearTimeout(timer);
+                    timer = setTimeout(() => fetchTable(buildUrl()), 300);
+                });
+                input.addEventListener('keydown', e => {
+                    if (e.key === 'Enter') e.preventDefault();
+                });
+
+                // pagination ajax
+                document.getElementById('pagination').addEventListener('click', e => {
+                    if (e.target.tagName === 'BUTTON' && e.target.dataset.page) {
+                        e.preventDefault();
+                        fetchTable(buildUrl(e.target.dataset.page));
+                    }
+                });
+            })();
+        </script>
+    @endpush
