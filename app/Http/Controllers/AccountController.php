@@ -111,7 +111,7 @@ class AccountController extends Controller
                 'faccupline'  => 'nullable|integer|exists:account,faccid', // <— ganti ke faccid
                 'finitjurnal'  => 'nullable|string|max:2',
                 'fnormal'      => 'required|in:1,2',
-                'fend'         => 'required|in:1,2',
+                'fend'         => 'required|in:1,0',
                 'fuserlevel'   => 'required|in:1,2,3',
                 'fhavesubaccount'  => 'sometimes|boolean',
                 'ftypesubaccount'  => 'nullable|in:Sub Account,Customer,Supplier',
@@ -180,7 +180,7 @@ class AccountController extends Controller
                 'faccname'     => 'required|string|max:50',
                 'fnormal'      => 'required|in:1,2',
                 'finitjurnal'  => 'nullable|string|max:2',
-                'fend'         => 'required|in:1,2',
+                'fend'         => 'required|in:1,0',
                 'fuserlevel'   => 'required|in:1,2,3',
                 'faccupline'   => [
                     'nullable',

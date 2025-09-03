@@ -85,7 +85,7 @@
                     <label for="fend" class="block text-sm font-medium">Account Type</label>
                     <select name="fend" id="fend" class="w-full border rounded px-3 py-2">
                         <option value="1" {{ old('fend') == '1' ? 'selected' : '' }}>Detil</option>
-                        <option value="2" {{ old('fend') == '2' ? 'selected' : '' }}>Header</option>
+                        <option value="0" {{ old('fend') == '0' ? 'selected' : '' }}>Header</option>
                     </select>
                 </div>
 
