@@ -182,14 +182,11 @@ class AccountController extends Controller
                 'finitjurnal'  => 'nullable|string|max:2',
                 'fend'         => 'required|in:1,2',
                 'fuserlevel'   => 'required|in:1,2,3',
-
-                // TERIMA & VALIDASI faccupline (nullable)
-                // Pastikan yang dipilih ada di tabel account dan bertipe header (misal fend = 0)
                 'faccupline'   => [
                     'nullable',
                     'integer',
                     Rule::exists('account', 'faccid')->where(fn($q) => $q->where('fend', 0)),
-                    Rule::notIn([$faccid]), // opsional: jangan boleh header = dirinya sendiri
+                    Rule::notIn([$faccid]), 
                 ],
             ],
             [
