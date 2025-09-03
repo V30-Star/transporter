@@ -3,6 +3,18 @@
 @section('title', 'Master Product')
 
 @section('content')
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.3/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/ui/1.13.3/jquery-ui.min.js"></script>
+
+    <style>
+        /* supaya dropdown autocomplete nongol di atas modal/select2 */
+        .ui-autocomplete {
+            z-index: 9999;
+            max-height: 240px;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+    </style>
     <style>
         /* The switch - the outer box */
         .switch {
@@ -108,7 +120,7 @@
     </style>
 
     <div x-data="{ open: true }">
-        <div class="bg-white rounded shadow p-6 md:p-8 max-w-5xl mx-auto">
+        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1500px] w-full mx-auto">
             <form action="{{ route('product.store') }}" method="POST">
                 @csrf
 
@@ -171,7 +183,7 @@
                     <!-- Nama Product -->
                     <div class="mt-2 w-1/2">
                         <label class="block text-sm font-medium">Nama Product</label>
-                        <input type="text" name="fproductname" value="{{ old('fproductname') }}"
+                        <input type="text" name="fproductname" id="fproductname" value="{{ old('fproductname') }}"
                             class="w-full border rounded px-3 py-2 @error('fproductname') border-red-500 @enderror">
                         @error('fproductname')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -496,6 +508,55 @@
         let hargajuallevel1 = new AutoNumeric('#fhargajuallevel1', 'commaDecimalCharDotSeparator');
         let hargajuallevel2 = new AutoNumeric('#fhargajuallevel2', 'commaDecimalCharDotSeparator');
         let hargajuallevel3 = new AutoNumeric('#fhargajuallevel3', 'commaDecimalCharDotSeparator');
+
+        $(function() {
+            const $inp = $("#fproductname");
+            let lastXHR = null;
+            const localCache = {};
+
+            $inp.autocomplete({
+                source: function(request, response) {
+                    const term = request.term || "";
+
+                    if (localCache[term]) {
+                        response(localCache[term]);
+                        return;
+                    }
+
+                    if (lastXHR && lastXHR.readyState !== 4) lastXHR.abort();
+
+                    lastXHR = $.getJSON("{{ route('product.name.suggest') }}", {
+                        term
+                    }, function(data) {
+                        localCache[term] = data;
+                        response(data);
+                    });
+                },
+                minLength: 0,
+                delay: 0,
+                select: function(event, ui) {
+                    $(this).val(ui.item.value);
+                    return false;
+                },
+                open: function() {
+                    $(".ui-autocomplete").css("width", $inp.outerWidth());
+                }
+            });
+
+            // 🔧 cukup pakai focus saja (klik tidak perlu, biar tidak double request)
+            $inp.on("focus", function() {
+                if (!$(".ui-autocomplete:visible").length) {
+                    $(this).autocomplete("search", $(this).val() || "");
+                }
+            });
+
+            // opsional: buka dengan ArrowDown saat sudah fokus
+            $inp.on("keydown", function(e) {
+                if (e.key === "ArrowDown" && !$(".ui-autocomplete:visible").length) {
+                    $(this).autocomplete("search", $(this).val() || "");
+                }
+            });
+        });
     });
 </script>
 

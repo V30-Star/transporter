@@ -7,6 +7,7 @@ use App\Models\Groupproduct;  // Add this import to get the groups
 use App\Models\Merek;         // If you have a model for "Merek"
 use App\Models\Satuan;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ProductController extends Controller
 {
@@ -27,6 +28,25 @@ class ProductController extends Controller
 
         return view('product.index', compact('products', 'filterBy', 'search'));
     }
+
+    public function suggestNames(Request $request)
+    {
+        $term = (string) $request->get('term', '');
+
+        $q = DB::table('msproduct')->whereNotNull('fproductname');
+
+        if ($term !== '') {
+            $q->where('fproductname', 'ILIKE', "%{$term}%");
+        }
+
+        $names = $q->distinct()
+            ->orderBy('fproductname')
+            ->limit(15)
+            ->pluck('fproductname');
+
+        return response()->json($names);
+    }
+
     private function generateProductCode(): string
     {
         $lastCode = Product::where('fproductcode', 'like', 'C-%')
