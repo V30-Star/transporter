@@ -9,22 +9,58 @@ class RekeningController extends Controller
 {
     public function index(Request $request)
     {
-        // Set default filter and search query
-        $filterBy = in_array($request->filter_by, ['frekeningcode', 'frekeningid', 'frekeningname'])
-            ? $request->filter_by
-            : 'frekeningcode';
+        $search   = trim((string) $request->search);
+        $filterBy = $request->filter_by ?? 'all'; // all | frekeningcode | frekeningid | frekeningname
 
-        $search = $request->search;
-
-        // Query with search functionality
-        $rekening = Rekening::when($search, function ($q) use ($filterBy, $search) {
-            $q->where($filterBy, 'ILIKE', '%' . $search . '%');
+        $rekening = Rekening::when($search !== '', function ($q) use ($search, $filterBy) {
+            $q->where(function ($qq) use ($search, $filterBy) {
+                if ($filterBy === 'frekeningcode') {
+                    $qq->where('frekeningcode', 'ILIKE', "%{$search}%");
+                } elseif ($filterBy === 'frekeningid') {
+                    $qq->whereRaw('CAST(frekeningid AS TEXT) ILIKE ?', ["%{$search}%"]);
+                } elseif ($filterBy === 'frekeningname') {
+                    $qq->where('frekeningname', 'ILIKE', "%{$search}%");
+                } else { // all
+                    $qq->where('frekeningcode', 'ILIKE', "%{$search}%")
+                        ->orWhereRaw('CAST(frekeningid AS TEXT) ILIKE ?', ["%{$search}%"])
+                        ->orWhere('frekeningname', 'ILIKE', "%{$search}%");
+                }
+            });
         })
             ->orderBy('frekeningid', 'desc')
             ->paginate(10)
             ->withQueryString();
 
-        return view('rekening.index', compact('rekening', 'filterBy', 'search'));
+        // permission flags
+        $canCreate = in_array('createRekening', explode(',', session('user_restricted_permissions', '')));
+        $canEdit   = in_array('updateRekening', explode(',', session('user_restricted_permissions', '')));
+        $canDelete = in_array('deleteRekening', explode(',', session('user_restricted_permissions', '')));
+
+        // Jika request AJAX (live search/pagination), balikin JSON
+        if ($request->ajax()) {
+            $rows = collect($rekening->items())->map(function ($r) {
+                return [
+                    'frekeningid'   => $r->frekeningid,
+                    'frekeningcode' => $r->frekeningcode,
+                    'frekeningname' => $r->frekeningname,
+                    'edit_url'      => route('rekening.edit', $r->frekeningid),
+                    'destroy_url'   => route('rekening.destroy', $r->frekeningid),
+                ];
+            });
+
+            return response()->json([
+                'data'  => $rows,
+                'perms' => ['can_create' => $canCreate, 'can_edit' => $canEdit, 'can_delete' => $canDelete],
+                'links' => [
+                    'prev'         => $rekening->previousPageUrl(),
+                    'next'         => $rekening->nextPageUrl(),
+                    'current_page' => $rekening->currentPage(),
+                    'last_page'    => $rekening->lastPage(),
+                ],
+            ]);
+        }
+
+        return view('rekening.index', compact('rekening', 'filterBy', 'search', 'canCreate', 'canEdit', 'canDelete'));
     }
 
     public function create()

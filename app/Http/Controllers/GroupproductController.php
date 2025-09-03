@@ -9,20 +9,56 @@ class GroupproductController extends Controller
 {
     public function index(Request $request)
     {
-        $filterBy = in_array($request->filter_by, ['fgroupcode', 'fgroupname'])
-            ? $request->filter_by
-            : 'fgroupcode';
+        $search   = trim((string) $request->search);
+        $filterBy = $request->filter_by ?? 'all'; // 'all' | 'fgroupcode' | 'fgroupname'
 
-        $search = $request->search;
-
-        $groupproducts = Groupproduct::when($search, function ($q) use ($filterBy, $search) {
-            $q->where($filterBy, 'ILIKE', '%' . $search . '%');
+        $groupproducts = Groupproduct::when($search !== '', function ($q) use ($search, $filterBy) {
+            $q->where(function ($qq) use ($search, $filterBy) {
+                if ($filterBy === 'fgroupcode') {
+                    $qq->where('fgroupcode', 'ILIKE', "%{$search}%");
+                } elseif ($filterBy === 'fgroupname') {
+                    $qq->where('fgroupname', 'ILIKE', "%{$search}%");
+                } else { // 'all'
+                    $qq->where('fgroupcode', 'ILIKE', "%{$search}%")
+                        ->orWhere('fgroupname', 'ILIKE', "%{$search}%");
+                }
+            });
         })
             ->orderBy('fgroupid', 'desc')
             ->paginate(10)
             ->withQueryString();
 
-        return view('groupproduct.index', compact('groupproducts', 'filterBy', 'search'));
+        // permissions (sesuaikan penamaan dengan app kamu)
+        $canCreate = in_array('createGroupProduct', explode(',', session('user_restricted_permissions', '')));
+        $canEdit   = in_array('updateGroupProduct', explode(',', session('user_restricted_permissions', '')));
+        $canDelete = in_array('deleteGroupProduct', explode(',', session('user_restricted_permissions', '')));
+
+        // Response AJAX untuk live search/pagination
+        if ($request->ajax()) {
+            $rows = collect($groupproducts->items())->map(function ($gp) {
+                return [
+                    'fgroupid'   => $gp->fgroupid,
+                    'fgroupcode' => $gp->fgroupcode,
+                    'fgroupname' => $gp->fgroupname,
+                    'edit_url'   => route('groupproduct.edit', $gp->fgroupid),
+                    'destroy_url' => route('groupproduct.destroy', $gp->fgroupid),
+                ];
+            });
+
+            return response()->json([
+                'data'  => $rows,
+                'perms' => ['can_create' => $canCreate, 'can_edit' => $canEdit, 'can_delete' => $canDelete],
+                'links' => [
+                    'prev'         => $groupproducts->previousPageUrl(),
+                    'next'         => $groupproducts->nextPageUrl(),
+                    'current_page' => $groupproducts->currentPage(),
+                    'last_page'    => $groupproducts->lastPage(),
+                ],
+            ]);
+        }
+
+        // Render awal
+        return view('groupproduct.index', compact('groupproducts', 'filterBy', 'search', 'canCreate', 'canEdit', 'canDelete'));
     }
 
     public function create()

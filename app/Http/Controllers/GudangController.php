@@ -10,21 +10,64 @@ class GudangController extends Controller
 {
     public function index(Request $request)
     {
-        $filterBy = in_array($request->filter_by, ['fgudangcode', 'fgudangid', 'fgudangname'])
-            ? $request->filter_by
-            : 'fgudangcode';
+        $search   = trim((string) $request->search);
+        $filterBy = $request->filter_by ?? 'all'; // 'all' | 'fgudangcode' | 'fgudangid' | 'fgudangname'
 
-        $search = $request->search;
-
-        $gudangs = Gudang::with('cabang') // Eager load the cabang relationship
-            ->when($search, function ($q) use ($filterBy, $search) {
-                $q->where($filterBy, 'ILIKE', '%' . $search . '%');
+        $gudangs = Gudang::with('cabang') // eager load relasi cabang
+            ->when($search !== '', function ($q) use ($search, $filterBy) {
+                $q->where(function ($qq) use ($search, $filterBy) {
+                    if ($filterBy === 'fgudangcode') {
+                        $qq->where('fgudangcode', 'ILIKE', "%{$search}%");
+                    } elseif ($filterBy === 'fgudangid') {
+                        $qq->whereRaw('CAST(fgudangid AS TEXT) ILIKE ?', ["%{$search}%"]);
+                    } elseif ($filterBy === 'fgudangname') {
+                        $qq->where('fgudangname', 'ILIKE', "%{$search}%");
+                    } else { // 'all'
+                        $qq->where('fgudangcode', 'ILIKE', "%{$search}%")
+                            ->orWhereRaw('CAST(fgudangid AS TEXT) ILIKE ?', ["%{$search}%"])
+                            ->orWhere('fgudangname', 'ILIKE', "%{$search}%");
+                    }
+                });
             })
             ->orderBy('fgudangid', 'desc')
             ->paginate(10)
             ->withQueryString();
 
-        return view('gudang.index', compact('gudangs', 'filterBy', 'search'));
+        // permissions
+        $canCreate = in_array('createGudang', explode(',', session('user_restricted_permissions', '')));
+        $canEdit   = in_array('updateGudang', explode(',', session('user_restricted_permissions', '')));
+        $canDelete = in_array('deleteGudang', explode(',', session('user_restricted_permissions', '')));
+
+        // Respon AJAX
+        if ($request->ajax()) {
+            $rows = collect($gudangs->items())->map(function ($g) {
+                return [
+                    'fgudangid'   => $g->fgudangid,
+                    'fgudangcode' => $g->fgudangcode,
+                    'fgudangname' => $g->fgudangname,
+                    // contoh data relasi cabang (sesuaikan field yang kamu butuh)
+                    'cabang_code' => optional($g->cabang)->fcabangcode ?? null,
+                    'cabang_name' => optional($g->cabang)->fcabangname ?? null,
+
+                    'edit_url'    => route('gudang.edit', $g->fgudangid),
+                    'destroy_url' => route('gudang.destroy', $g->fgudangid),
+                ];
+            });
+
+            return response()->json([
+                'data'  => $rows,
+                'perms' => ['can_create' => $canCreate, 'can_edit' => $canEdit, 'can_delete' => $canDelete],
+                'links' => [
+                    'prev'         => $gudangs->previousPageUrl(),
+                    'next'         => $gudangs->nextPageUrl(),
+                    'current_page' => $gudangs->currentPage(),
+                    'last_page'    => $gudangs->lastPage(),
+                ],
+            ]);
+        }
+
+        // Render awal (Blade)
+        return view('gudang.index', compact('gudangs', 'filterBy', 'search', 'canCreate', 'canEdit', 'canDelete'));
     }
 
     public function create()

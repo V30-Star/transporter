@@ -9,20 +9,60 @@ class MerekController extends Controller
 {
     public function index(Request $request)
     {
-        $filterBy = in_array($request->filter_by, ['fmerekcode', 'fmerekid', 'fmerekname'])
-            ? $request->filter_by
-            : 'fmerekcode';
+        $search   = trim((string) $request->search);
+        $filterBy = $request->filter_by ?? 'all'; // 'all' | 'fmerekcode' | 'fmerekid' | 'fmerekname'
 
-        $search = $request->search;
-
-        $mereks = Merek::when($search, function ($q) use ($filterBy, $search) {
-            $q->where($filterBy, 'ILIKE', '%' . $search . '%');
+        $mereks = Merek::when($search !== '', function ($q) use ($search, $filterBy) {
+            $q->where(function ($qq) use ($search, $filterBy) {
+                if ($filterBy === 'fmerekcode') {
+                    $qq->where('fmerekcode', 'ILIKE', "%{$search}%");
+                } elseif ($filterBy === 'fmerekid') {
+                    // jika numeric dan mau cari mengandung, cast ke text
+                    $qq->whereRaw('CAST(fmerekid AS TEXT) ILIKE ?', ["%{$search}%"]);
+                } elseif ($filterBy === 'fmerekname') {
+                    $qq->where('fmerekname', 'ILIKE', "%{$search}%");
+                } else { // 'all'
+                    $qq->where('fmerekcode', 'ILIKE', "%{$search}%")
+                        ->orWhereRaw('CAST(fmerekid AS TEXT) ILIKE ?', ["%{$search}%"])
+                        ->orWhere('fmerekname', 'ILIKE', "%{$search}%");
+                }
+            });
         })
             ->orderBy('fmerekid', 'desc')
             ->paginate(10)
             ->withQueryString();
 
-        return view('merek.index', compact('mereks', 'filterBy', 'search'));
+        // permissions (samakan penamaannya dengan app kamu)
+        $canCreate = in_array('createMerek', explode(',', session('user_restricted_permissions', '')));
+        $canEdit   = in_array('updateMerek', explode(',', session('user_restricted_permissions', '')));
+        $canDelete = in_array('deleteMerek', explode(',', session('user_restricted_permissions', '')));
+
+        // Respon AJAX untuk live search/pagination
+        if ($request->ajax()) {
+            $rows = collect($mereks->items())->map(function ($m) {
+                return [
+                    'fmerekid'   => $m->fmerekid,
+                    'fmerekcode' => $m->fmerekcode,
+                    'fmerekname' => $m->fmerekname,
+                    'edit_url'   => route('merek.edit', $m->fmerekid),
+                    'destroy_url' => route('merek.destroy', $m->fmerekid),
+                ];
+            });
+
+            return response()->json([
+                'data'  => $rows,
+                'perms' => ['can_create' => $canCreate, 'can_edit' => $canEdit, 'can_delete' => $canDelete],
+                'links' => [
+                    'prev'         => $mereks->previousPageUrl(),
+                    'next'         => $mereks->nextPageUrl(),
+                    'current_page' => $mereks->currentPage(),
+                    'last_page'    => $mereks->lastPage(),
+                ],
+            ]);
+        }
+
+        // Render awal (Blade)
+        return view('merek.index', compact('mereks', 'filterBy', 'search', 'canCreate', 'canEdit', 'canDelete'));
     }
 
     public function create()

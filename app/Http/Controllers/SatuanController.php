@@ -9,20 +9,60 @@ class SatuanController extends Controller
 {
     public function index(Request $request)
     {
-        $filterBy = in_array($request->filter_by, ['fsatuancode', 'fsatuanid', 'fsatuanname'])
-            ? $request->filter_by
-            : 'fsatuancode';
+        $search   = trim((string) $request->search);
+        $filterBy = $request->filter_by ?? 'all'; // 'all' | 'fsatuancode' | 'fsatuanid' | 'fsatuanname'
 
-        $search = $request->search;
-
-        $satuans = Satuan::when($search, function ($q) use ($filterBy, $search) {
-            $q->where($filterBy, 'ILIKE', '%' . $search . '%');
+        $satuans = Satuan::when($search !== '', function ($q) use ($search, $filterBy) {
+            $q->where(function ($qq) use ($search, $filterBy) {
+                if ($filterBy === 'fsatuancode') {
+                    $qq->where('fsatuancode', 'ILIKE', "%{$search}%");
+                } elseif ($filterBy === 'fsatuanid') {
+                    // jika fsatuanid numeric, bisa pakai where cast to text atau = jika angka persis
+                    $qq->whereRaw('CAST(fsatuanid AS TEXT) ILIKE ?', ["%{$search}%"]);
+                } elseif ($filterBy === 'fsatuanname') {
+                    $qq->where('fsatuanname', 'ILIKE', "%{$search}%");
+                } else { // 'all'
+                    $qq->where('fsatuancode', 'ILIKE', "%{$search}%")
+                        ->orWhereRaw('CAST(fsatuanid AS TEXT) ILIKE ?', ["%{$search}%"])
+                        ->orWhere('fsatuanname', 'ILIKE', "%{$search}%");
+                }
+            });
         })
             ->orderBy('fsatuanid', 'desc')
             ->paginate(10)
             ->withQueryString();
 
-        return view('satuan.index', compact('satuans', 'filterBy', 'search'));
+        // permissions (samakan dengan konvensi app kamu)
+        $canCreate = in_array('createSatuan', explode(',', session('user_restricted_permissions', '')));
+        $canEdit   = in_array('updateSatuan', explode(',', session('user_restricted_permissions', '')));
+        $canDelete = in_array('deleteSatuan', explode(',', session('user_restricted_permissions', '')));
+
+        // AJAX response
+        if ($request->ajax()) {
+            $rows = collect($satuans->items())->map(function ($s) {
+                return [
+                    'fsatuanid'   => $s->fsatuanid,
+                    'fsatuancode' => $s->fsatuancode,
+                    'fsatuanname' => $s->fsatuanname,
+                    'edit_url'    => route('satuan.edit', $s->fsatuanid),
+                    'destroy_url' => route('satuan.destroy', $s->fsatuanid),
+                ];
+            });
+
+            return response()->json([
+                'data'  => $rows,
+                'perms' => ['can_create' => $canCreate, 'can_edit' => $canEdit, 'can_delete' => $canDelete],
+                'links' => [
+                    'prev'         => $satuans->previousPageUrl(),
+                    'next'         => $satuans->nextPageUrl(),
+                    'current_page' => $satuans->currentPage(),
+                    'last_page'    => $satuans->lastPage(),
+                ],
+            ]);
+        }
+
+        // render awal
+        return view('satuan.index', compact('satuans', 'filterBy', 'search', 'canCreate', 'canEdit', 'canDelete'));
     }
 
     public function create()

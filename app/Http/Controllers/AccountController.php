@@ -9,27 +9,64 @@ class AccountController extends Controller
 {
     public function index(Request $request)
     {
-        // Set default filter and search query
-        $filterBy = in_array($request->filter_by, ['faccount', 'faccname'])
-            ? $request->filter_by
-            : 'faccount';
+        $search   = trim((string) $request->search);
+        $filterBy = $request->filter_by ?? 'all'; // all | faccount | faccname
 
-        $search = $request->search;
-
-        // Query with search functionality
-        $accounts = Account::when($search, function ($q) use ($filterBy, $search) {
-            $q->where($filterBy, 'ILIKE', '%' . $search . '%');
+        $accounts = Account::when($search !== '', function ($q) use ($search, $filterBy) {
+            $q->where(function ($qq) use ($search, $filterBy) {
+                if ($filterBy === 'faccount') {
+                    $qq->where('faccount', 'ILIKE', "%{$search}%");
+                } elseif ($filterBy === 'faccname') {
+                    $qq->where('faccname', 'ILIKE', "%{$search}%");
+                } else { // all
+                    $qq->where('faccount', 'ILIKE', "%{$search}%")
+                        ->orWhere('faccname', 'ILIKE', "%{$search}%");
+                }
+            });
         })
             ->orderBy('faccid', 'desc')
             ->paginate(10)
             ->withQueryString();
 
-        return view('account.index', compact('accounts', 'filterBy', 'search'));
+        // permissions (sesuaikan penamaan dengan app kamu)
+        $canCreate = in_array('createAccount', explode(',', session('user_restricted_permissions', '')));
+        $canEdit   = in_array('updateAccount', explode(',', session('user_restricted_permissions', '')));
+        $canDelete = in_array('deleteAccount', explode(',', session('user_restricted_permissions', '')));
+
+        // Response AJAX untuk live search/pagination
+        if ($request->ajax()) {
+            $rows = collect($accounts->items())->map(function ($a) {
+                return [
+                    'faccid'   => $a->faccid,
+                    'faccount' => $a->faccount,
+                    'faccname' => $a->faccname,
+                    'edit_url'    => route('account.edit', $a->faccid),
+                    'destroy_url' => route('account.destroy', $a->faccid),
+                ];
+            });
+
+            return response()->json([
+                'data'  => $rows,
+                'perms' => ['can_create' => $canCreate, 'can_edit' => $canEdit, 'can_delete' => $canDelete],
+                'links' => [
+                    'prev'         => $accounts->previousPageUrl(),
+                    'next'         => $accounts->nextPageUrl(),
+                    'current_page' => $accounts->currentPage(),
+                    'last_page'    => $accounts->lastPage(),
+                ],
+            ]);
+        }
+
+        // Render awal
+        return view('account.index', compact('accounts', 'filterBy', 'search', 'canCreate', 'canEdit', 'canDelete'));
     }
 
     public function create()
     {
-        return view('account.create');
+
+        $accounts = Account::where('fend', 0)->get();
+
+        return view('account.create', compact('accounts'));
     }
 
     public function store(Request $request)
@@ -39,6 +76,7 @@ class AccountController extends Controller
             [
                 'faccount' => 'required|string|unique:account,faccount|max:10',  // Validate account code (max 10 chars)
                 'faccname' => 'required|string|max:50', // Validate account name (max 50 chars)
+                'faccupline' => 'max:10', // Validate account name (max 50 chars)
                 'finitjurnal' => 'nullable|string|max:2', // Validate initial journal (max 2 chars)
                 'fnormal' => 'required|in:1,2', // Ensure 'fnormal' is either 1 (Debet) or 2 (Kredit)
                 'fend' => 'required|in:1,2', // Ensure 'fend' is either 1 (Detil) or 2 (Header)
@@ -76,6 +114,7 @@ class AccountController extends Controller
         // Handle fnormal field, map 'Debet' (1) and 'Kredit' (2) correctly
         $validated['fnormal'] = $request->input('fnormal');
         $validated['fend'] = $request->input('fend');
+        $validated['faccupline'] = $request->input('faccupline');
 
         // Handle fuserlevel, map 'User' (1), 'Supervisor' (2), and 'Admin' (3)
         $validated['fuserlevel'] = $request->input('fuserlevel');

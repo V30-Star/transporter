@@ -18,21 +18,55 @@ class WilayahController extends Controller
 
     public function index(Request $request)
     {
-        $filterBy = in_array($request->filter_by, ['fwilayahcode', 'fwilayahname'])
-            ? $request->filter_by
-            : 'fwilayahcode';
+        $search   = trim((string) $request->search);
+        $filterBy = $request->filter_by ?? 'all'; 
 
-        $search = $request->search;
-
-        $wilayahs = Wilayah::when($search, function ($q) use ($filterBy, $search) {
-            $q->where($filterBy, 'ILIKE', '%' . $search . '%');
+        $wilayahs = Wilayah::when($search !== '', function ($q) use ($search, $filterBy) {
+            $q->where(function ($qq) use ($search, $filterBy) {
+                if ($filterBy === 'fwilayahcode') {
+                    $qq->where('fwilayahcode', 'ILIKE', "%{$search}%");
+                } elseif ($filterBy === 'fwilayahname') {
+                    $qq->where('fwilayahname', 'ILIKE', "%{$search}%");
+                } else {
+                    $qq->where('fwilayahcode', 'ILIKE', "%{$search}%")
+                        ->orWhere('fwilayahname', 'ILIKE', "%{$search}%");
+                }
+            });
         })
             ->orderBy('fwilayahid', 'desc')
             ->paginate(10)
             ->withQueryString();
 
-        return view('master.wilayah.index', compact('wilayahs', 'filterBy', 'search'));
+        $canCreate = in_array('createWilayah', explode(',', session('user_restricted_permissions', '')));
+        $canEdit   = in_array('updateWilayah', explode(',', session('user_restricted_permissions', '')));
+        $canDelete = in_array('deleteWilayah', explode(',', session('user_restricted_permissions', '')));
+
+        if ($request->ajax()) {
+            $rows = collect($wilayahs->items())->map(function ($w) {
+                return [
+                    'fwilayahid'   => $w->fwilayahid,
+                    'fwilayahcode' => $w->fwilayahcode,
+                    'fwilayahname' => $w->fwilayahname,
+                    'edit_url'     => route('wilayah.edit', $w->fwilayahid),
+                    'destroy_url'  => route('wilayah.destroy', $w->fwilayahid),
+                ];
+            });
+
+            return response()->json([
+                'data'  => $rows,
+                'perms' => ['can_create' => $canCreate, 'can_edit' => $canEdit, 'can_delete' => $canDelete],
+                'links' => [
+                    'prev'         => $wilayahs->previousPageUrl(),
+                    'next'         => $wilayahs->nextPageUrl(),
+                    'current_page' => $wilayahs->currentPage(),
+                    'last_page'    => $wilayahs->lastPage(),
+                ],
+            ]);
+        }
+
+        return view('master.wilayah.index', compact('wilayahs', 'filterBy', 'search', 'canCreate', 'canEdit', 'canDelete'));
     }
+
     public function create()
     {
         return view('master.wilayah.create');

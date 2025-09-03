@@ -9,20 +9,56 @@ class SupplierController extends Controller
 {
     public function index(Request $request)
     {
-        $filterBy = in_array($request->filter_by, ['fsuppliercode', 'fsuppliername'])
-            ? $request->filter_by
-            : 'fsuppliercode';
+        $search   = trim((string) $request->search);
+        $filterBy = $request->filter_by ?? 'all'; // 'all' | 'fsuppliercode' | 'fsuppliername'
 
-        $search = $request->search;
-
-        $suppliers = Supplier::when($search, function ($q) use ($filterBy, $search) {
-            $q->where($filterBy, 'ILIKE', '%' . $search . '%');
+        $suppliers = Supplier::when($search !== '', function ($q) use ($search, $filterBy) {
+            $q->where(function ($qq) use ($search, $filterBy) {
+                if ($filterBy === 'fsuppliercode') {
+                    $qq->where('fsuppliercode', 'ILIKE', "%{$search}%");
+                } elseif ($filterBy === 'fsuppliername') {
+                    $qq->where('fsuppliername', 'ILIKE', "%{$search}%");
+                } else { // 'all'
+                    $qq->where('fsuppliercode', 'ILIKE', "%{$search}%")
+                        ->orWhere('fsuppliername', 'ILIKE', "%{$search}%");
+                }
+            });
         })
             ->orderBy('fsupplierid', 'desc')
             ->paginate(10)
             ->withQueryString();
 
-        return view('supplier.index', compact('suppliers', 'filterBy', 'search'));
+        // permissions (sesuaikan penamaan dengan app kamu)
+        $canCreate = in_array('createSupplier', explode(',', session('user_restricted_permissions', '')));
+        $canEdit   = in_array('updateSupplier', explode(',', session('user_restricted_permissions', '')));
+        $canDelete = in_array('deleteSupplier', explode(',', session('user_restricted_permissions', '')));
+
+        // Response AJAX
+        if ($request->ajax()) {
+            $rows = collect($suppliers->items())->map(function ($s) {
+                return [
+                    'fsupplierid'   => $s->fsupplierid,
+                    'fsuppliercode' => $s->fsuppliercode,
+                    'fsuppliername' => $s->fsuppliername,
+                    'edit_url'      => route('supplier.edit', $s->fsupplierid),
+                    'destroy_url'   => route('supplier.destroy', $s->fsupplierid),
+                ];
+            });
+
+            return response()->json([
+                'data'  => $rows,
+                'perms' => ['can_create' => $canCreate, 'can_edit' => $canEdit, 'can_delete' => $canDelete],
+                'links' => [
+                    'prev'         => $suppliers->previousPageUrl(),
+                    'next'         => $suppliers->nextPageUrl(),
+                    'current_page' => $suppliers->currentPage(),
+                    'last_page'    => $suppliers->lastPage(),
+                ],
+            ]);
+        }
+
+        // Render awal
+        return view('supplier.index', compact('suppliers', 'filterBy', 'search', 'canCreate', 'canEdit', 'canDelete'));
     }
 
     public function create()

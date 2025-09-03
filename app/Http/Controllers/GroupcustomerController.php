@@ -9,16 +9,50 @@ class GroupcustomerController extends Controller
 {
     public function index(Request $request)
     {
-        // Ambil parameter pencarian jika ada
-        $search = $request->input('search');
+        $search = trim((string) $request->search);
 
-        // Ambil data grup customer dengan pencarian
-        $groupCustomers = Groupcustomer::search($search)->paginate(10);
+        $groupCustomers = Groupcustomer::when($search, function ($q) use ($search) {
+            $q->where('fgroupcode', 'ILIKE', "%{$search}%")
+                ->orWhere('fgroupname', 'ILIKE', "%{$search}%");
+        })
+            ->orderBy('fgroupid', 'desc')
+            ->paginate(10)
+            ->withQueryString();
 
-        // Kembalikan ke view dengan data grup customer dan pencarian
-        return view('master.groupcustomer.index', compact('groupCustomers', 'search'));
+        $canCreate = in_array('createGroupCustomer', explode(',', session('user_restricted_permissions', '')));
+        $canEdit   = in_array('updateGroupCustomer', explode(',', session('user_restricted_permissions', '')));
+        $canDelete = in_array('deleteGroupCustomer', explode(',', session('user_restricted_permissions', '')));
+
+        // Kalau request AJAX -> kirim JSON
+        if ($request->ajax()) {
+            $rows = collect($groupCustomers->items())->map(function ($gc) {
+                return [
+                    'fgroupid'   => $gc->fgroupid,
+                    'fgroupcode' => $gc->fgroupcode,
+                    'fgroupname' => $gc->fgroupname,
+                    'edit_url'   => route('groupcustomer.edit', $gc->fgroupid),
+                    'destroy_url' => route('groupcustomer.destroy', $gc->fgroupid),
+                ];
+            });
+
+            return response()->json([
+                'data'  => $rows,
+                'perms' => ['can_create' => $canCreate, 'can_edit' => $canEdit, 'can_delete' => $canDelete],
+                'links' => [
+                    'prev'         => $groupCustomers->previousPageUrl(),
+                    'next'         => $groupCustomers->nextPageUrl(),
+                    'current_page' => $groupCustomers->currentPage(),
+                    'last_page'    => $groupCustomers->lastPage(),
+                ],
+            ]);
+        }
+
+        return view(
+            'master.groupcustomer.index',
+            compact('groupCustomers', 'search', 'canCreate', 'canEdit', 'canDelete')
+        );
     }
-
+    
     public function create()
     {
         // Menampilkan form untuk menambah grup customer baru

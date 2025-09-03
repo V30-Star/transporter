@@ -14,23 +14,62 @@ class CustomerController extends Controller
     // Index method to list all customers with search functionality
     public function index(Request $request)
     {
-        // Set default filter and search query
-        $filterBy = in_array($request->filter_by, ['fcustomercode', 'fcustomername'])
-            ? $request->filter_by
-            : 'fcustomercode';
+        // Ambil query
+        $search   = trim((string) $request->search);
+        $filterBy = $request->filter_by ?? 'all'; // all | fcustomercode | fcustomername
 
-        $search = $request->search;
-
-        // Query with search functionality
-        $customers = Customer::when($search, function ($q) use ($filterBy, $search) {
-            $q->where($filterBy, 'ILIKE', '%' . $search . '%');
+        // Query dasar + filter
+        $customers = Customer::when($search !== '', function ($q) use ($search, $filterBy) {
+            $q->where(function ($qq) use ($search, $filterBy) {
+                if ($filterBy === 'fcustomercode') {
+                    $qq->where('fcustomercode', 'ILIKE', "%{$search}%");
+                } elseif ($filterBy === 'fcustomername') {
+                    $qq->where('fcustomername', 'ILIKE', "%{$search}%");
+                } else { // 'all' -> kode ATAU nama
+                    $qq->where('fcustomercode', 'ILIKE', "%{$search}%")
+                        ->orWhere('fcustomername', 'ILIKE', "%{$search}%");
+                }
+            });
         })
             ->orderBy('fcustomerid', 'desc')
             ->paginate(10)
             ->withQueryString();
 
-        return view('master.customer.index', compact('customers', 'filterBy', 'search'));
+        // Permission sama pola seperti halaman produk
+        $canCreate = in_array('createCustomer', explode(',', session('user_restricted_permissions', '')));
+        $canEdit   = in_array('updateCustomer', explode(',', session('user_restricted_permissions', '')));
+        $canDelete = in_array('deleteCustomer', explode(',', session('user_restricted_permissions', '')));
+
+        // Kalau AJAX (live search/pagination), kirim JSON ringkas
+        if ($request->ajax()) {
+            $rows = collect($customers->items())->map(function ($c) {
+                return [
+                    'fcustomerid'   => $c->fcustomerid,
+                    'fcustomercode' => $c->fcustomercode,
+                    'fcustomername' => $c->fcustomername,
+                    'faddress'      => $c->faddress ?? null,   // kalau kamu tampilkan
+                    'fphone'        => $c->fphone ?? null,     // kalau kamu tampilkan
+                    'edit_url'      => route('customer.edit', $c->fcustomerid),
+                    'destroy_url'   => route('customer.destroy', $c->fcustomerid),
+                ];
+            });
+
+            return response()->json([
+                'data'  => $rows,
+                'perms' => ['can_create' => $canCreate, 'can_edit' => $canEdit, 'can_delete' => $canDelete],
+                'links' => [
+                    'prev'          => $customers->previousPageUrl(),
+                    'next'          => $customers->nextPageUrl(),
+                    'current_page'  => $customers->currentPage(),
+                    'last_page'     => $customers->lastPage(),
+                ],
+            ]);
+        }
+
+        // Normal render (first load)
+        return view('master.customer.index', compact('customers', 'filterBy', 'search', 'canCreate', 'canEdit', 'canDelete'));
     }
+
     private function generateCustomerCode(): string
     {
         $lastCode = Customer::where('fcustomercode', 'like', 'C-%')

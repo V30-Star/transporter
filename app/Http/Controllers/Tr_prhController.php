@@ -17,19 +17,57 @@ class Tr_prhController extends Controller
 {
   public function index(Request $request)
   {
-    $filterBy = in_array($request->filter_by, ['fprno', 'fprdin'])
-      ? $request->filter_by
-      : 'fprno';
+    $search   = trim((string) $request->search);
+    $filterBy = $request->filter_by ?? 'all'; // all | fprno | fprdin
 
-    $search = $request->search;
-    $tr_prh = Tr_prh::when($search, function ($q) use ($filterBy, $search) {
-      $q->where($filterBy, 'ILIKE', '%' . $search . '%');
+    $tr_prh = Tr_prh::when($search !== '', function ($q) use ($search, $filterBy) {
+      $q->where(function ($qq) use ($search, $filterBy) {
+        if ($filterBy === 'fprno') {
+          $qq->where('fprno', 'ILIKE', "%{$search}%");
+        } elseif ($filterBy === 'fprdin') {
+          $qq->where('fprdin', 'ILIKE', "%{$search}%");
+        } else { // all
+          $qq->where('fprno',  'ILIKE', "%{$search}%")
+            ->orWhere('fprdin', 'ILIKE', "%{$search}%");
+        }
+      });
     })
       ->orderBy('fprid', 'desc')
       ->paginate(10)
       ->withQueryString();
 
-    return view('tr_prh.index', compact('tr_prh', 'filterBy', 'search'));
+    // permissions (ganti nama sesuai yang dipakai di app kamu)
+    $canCreate = in_array('createTrPrh', explode(',', session('user_restricted_permissions', '')));
+    $canEdit   = in_array('updateTrPrh', explode(',', session('user_restricted_permissions', '')));
+    $canDelete = in_array('deleteTrPrh', explode(',', session('user_restricted_permissions', '')));
+
+    // Response AJAX
+    if ($request->ajax()) {
+      $rows = collect($tr_prh->items())->map(function ($t) {
+        return [
+          'fprid'  => $t->fprid,
+          'fprno'  => $t->fprno,
+          'fprdin' => $t->fprdin,
+          'edit_url'    => route('tr_prh.edit', $t->fprid),
+          'destroy_url' => route('tr_prh.destroy', $t->fprid),
+          'print_url'   => route('tr_prh.print', $t->fprno), // ← tambah ini
+        ];
+      });
+
+      return response()->json([
+        'data'  => $rows,
+        'perms' => ['can_create' => true, 'can_edit' => true, 'can_delete' => true],
+        'links' => [
+          'prev'         => $tr_prh->previousPageUrl(),
+          'next'         => $tr_prh->nextPageUrl(),
+          'current_page' => $tr_prh->currentPage(),
+          'last_page'    => $tr_prh->lastPage(),
+        ],
+      ]);
+    }
+
+    // Render awal
+    return view('tr_prh.index', compact('tr_prh', 'filterBy', 'search', 'canCreate', 'canEdit', 'canDelete'));
   }
 
   private function generatetr_prh_Code(?Carbon $onDate = null, $branch = null): string

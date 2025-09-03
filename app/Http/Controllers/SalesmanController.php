@@ -9,20 +9,57 @@ class SalesmanController extends Controller
 {
     public function index(Request $request)
     {
-        $filterBy = in_array($request->filter_by, ['fsalesmancode', 'fsalesmanname'])
-            ? $request->filter_by
-            : 'fsalesmancode';
+        $search   = trim((string) $request->search);
+        $filterBy = $request->filter_by ?? 'all'; // 'all' | 'fsalesmancode' | 'fsalesmanname'
 
-        $search = $request->search;
-
-        $salesmen = Salesman::when($search, function ($q) use ($filterBy, $search) {
-            $q->where($filterBy, 'ILIKE', '%' . $search . '%');
+        $salesmen = Salesman::when($search !== '', function ($q) use ($search, $filterBy) {
+            $q->where(function ($qq) use ($search, $filterBy) {
+                if ($filterBy === 'fsalesmancode') {
+                    $qq->where('fsalesmancode', 'ILIKE', "%{$search}%");
+                } elseif ($filterBy === 'fsalesmanname') {
+                    $qq->where('fsalesmanname', 'ILIKE', "%{$search}%");
+                } else { // 'all'
+                    $qq->where('fsalesmancode', 'ILIKE', "%{$search}%")
+                        ->orWhere('fsalesmanname', 'ILIKE', "%{$search}%");
+                }
+            });
         })
             ->orderBy('fsalesmanid', 'desc')
             ->paginate(10)
             ->withQueryString();
 
-        return view('salesman.index', compact('salesmen', 'filterBy', 'search'));
+        // permissions (samakan dengan konvensi app kamu)
+        $canCreate = in_array('createSalesman', explode(',', session('user_restricted_permissions', '')));
+        $canEdit   = in_array('updateSalesman', explode(',', session('user_restricted_permissions', '')));
+        $canDelete = in_array('deleteSalesman', explode(',', session('user_restricted_permissions', '')));
+
+        // AJAX response untuk live search/pagination
+        if ($request->ajax()) {
+            $rows = collect($salesmen->items())->map(function ($s) {
+                return [
+                    'fsalesmanid'   => $s->fsalesmanid,
+                    'fsalesmancode' => $s->fsalesmancode,
+                    'fsalesmanname' => $s->fsalesmanname,
+                    // tambahkan kolom lain jika ditampilkan di tabel
+                    'edit_url'      => route('salesman.edit', $s->fsalesmanid),
+                    'destroy_url'   => route('salesman.destroy', $s->fsalesmanid),
+                ];
+            });
+
+            return response()->json([
+                'data'  => $rows,
+                'perms' => ['can_create' => $canCreate, 'can_edit' => $canEdit, 'can_delete' => $canDelete],
+                'links' => [
+                    'prev'         => $salesmen->previousPageUrl(),
+                    'next'         => $salesmen->nextPageUrl(),
+                    'current_page' => $salesmen->currentPage(),
+                    'last_page'    => $salesmen->lastPage(),
+                ],
+            ]);
+        }
+
+        // render awal
+        return view('salesman.index', compact('salesmen', 'filterBy', 'search', 'canCreate', 'canEdit', 'canDelete'));
     }
 
     public function create()

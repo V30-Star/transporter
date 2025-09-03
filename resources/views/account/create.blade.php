@@ -18,7 +18,23 @@
             <form action="{{ route('account.store') }}" method="POST">
                 @csrf
 
-                <!-- Account Code -->
+                <div class="border-b pb-6 mb-6">
+                    <h2 class="text-lg font-semibold text-gray-700 mb-4">Account Header</h2>
+                    <div>
+                        <label for="faccupline" class="block text-sm font-medium">Pilih Account Header</label>
+                        <select name="faccupline" id="faccupline"
+                            class="w-full border rounded px-3 py-2 @error('faccupline') border-red-500 @enderror">
+                            @foreach ($accounts as $header)
+                                <option value="{{ $header->id }}" {{ old('faccupline') == $header->id ? 'selected' : '' }}>
+                                    {{ $header->faccount }} - {{ $header->faccname }}
+                                </option>
+                            @endforeach 
+                        </select>
+                        @error('faccupline')
+                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </div>
                 <div class="mt-4">
                     <label class="block text-sm font-medium">Account #</label>
                     <input type="text" name="faccount" value="{{ old('faccount') }}"
@@ -29,7 +45,6 @@
                     @enderror
                 </div>
 
-                <!-- Account Name -->
                 <div class="mt-4">
                     <label class="block text-sm font-medium">Account Name</label>
                     <input type="text" name="faccname" value="{{ old('faccname') }}"
@@ -39,7 +54,6 @@
                     @enderror
                 </div>
 
-                <!-- Saldo Normal (Normal Balance) -->
                 <div class="mt-4">
                     <label for="fnormal" class="block text-sm font-medium">Saldo Normal</label>
                     <select name="fnormal" id="fnormal" class="w-full border rounded px-3 py-2">
@@ -48,7 +62,6 @@
                     </select>
                 </div>
 
-                <!-- Account Type -->
                 <div class="mt-4">
                     <label for="fend" class="block text-sm font-medium">Account Type</label>
                     <select name="fend" id="fend" class="w-full border rounded px-3 py-2">
@@ -57,22 +70,19 @@
                     </select>
                 </div>
 
-                <div x-data="{ subAccount: {{ old('fhavesubaccount', 0) }} }">
-                    <!-- Sub Account Checkbox -->
+                <div x-data="{ subAccount: {{ old('fhavesubaccount', 0) ? 'true' : 'false' }} }">
                     <div class="mt-4">
                         <label for="fhavesubaccount" class="flex items-center space-x-2">
                             <input type="checkbox" name="fhavesubaccount" id="fhavesubaccount" value="1"
-                                x-model="subAccount"
-                                @change="subAccount ? $refs.ftypesubaccount.removeAttribute('disabled') : $refs.ftypesubaccount.setAttribute('disabled', true)">
+                                x-model="subAccount" {{ old('fhavesubaccount') ? 'checked' : '' }}>
                             <span class="text-sm">Ada Sub Account?</span>
                         </label>
                     </div>
 
-                    <!-- Type Field (Always visible, but disabled when checkbox is unchecked) -->
                     <div class="mt-4">
                         <label for="ftypesubaccount" class="block text-sm font-medium">Type</label>
                         <select name="ftypesubaccount" id="ftypesubaccount" class="w-full border rounded px-3 py-2"
-                            x-ref="ftypesubaccount" :disabled="!subAccount" :class="!subAccount ? 'bg-gray-200' : ''">
+                            :disabled="!subAccount" :class="!subAccount ? 'bg-gray-200' : ''">
                             <option value="Sub Account" {{ old('ftypesubaccount') == 'Sub Account' ? 'selected' : '' }}>
                                 Sub Account
                             </option>
@@ -86,7 +96,6 @@
                     </div>
                 </div>
 
-                <!-- Initial Jurnal# -->
                 <div class="mt-4">
                     <label class="block text-sm font-medium">Initial Jurnal#</label>
                     <input type="text" name="finitjurnal" value="{{ old('finitjurnal') }}"
@@ -98,7 +107,6 @@
                     <p class="text-red-600 text-sm mt-1">** Khusus Jurnal Kas/Bank</p>
                 </div>
 
-                <!-- User Level -->
                 <div class="mt-4">
                     <label for="fuserlevel" class="block text-sm font-medium">User Level</label>
                     <select name="fuserlevel" id="fuserlevel" class="w-full border rounded px-3 py-2">
@@ -111,9 +119,10 @@
                 </div>
                 <br>
                 <div class="md:col-span-2 flex justify-center items-center space-x-2">
-                    <input type="checkbox" name="fnonactive" id="statusToggle" class="form-checkbox h-5 w-5 text-indigo-600"
-                        {{ old('fnonactive') == '1' ? 'checked' : '' }}>
-                    <label class="block text-sm font-medium">Non Aktif</label>
+                    <input type="checkbox" name="fnonactive_checkbox" id="statusToggle"
+                        class="form-checkbox h-5 w-5 text-indigo-600" value="1"
+                        {{ old('fnonactive_checkbox') == '1' ? 'checked' : '' }}>
+                    <label for="statusToggle" class="block text-sm font-medium">Non Aktif</label>
                 </div>
                 <input type="hidden" name="faccupline" value='IDR'>
                 <input type="hidden" name="fcurrency" value='IDR'>
@@ -121,16 +130,13 @@
                     <input type="hidden" name="fupdatedby" value="{{ auth()->user()->fsysuserid }}"> --}}
                 <input type="hidden" name="fnonactive" value='0'>
                 <br>
-                <!-- Action Buttons -->
                 <div class="mt-6 flex justify-center space-x-4">
-                    <!-- Save Button -->
                     <button type="submit"
                         class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
                         <x-heroicon-o-check class="w-5 h-5 mr-2" />
                         Simpan
                     </button>
 
-                    <!-- Cancel Button -->
                     <button type="button" @click="window.location.href='{{ route('account.index') }}'"
                         class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
                         <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" />
