@@ -18,23 +18,42 @@
             <form action="{{ route('account.store') }}" method="POST">
                 @csrf
 
-                <div class="border-b pb-6 mb-6">
-                    <h2 class="text-lg font-semibold text-gray-700 mb-4">Account Header</h2>
-                    <div>
-                        <label for="faccupline" class="block text-sm font-medium">Pilih Account Header</label>
-                        <select name="faccupline" id="faccupline"
-                            class="w-full border rounded px-3 py-2 @error('faccupline') border-red-500 @enderror">
-                            @foreach ($accounts as $header)
-                                <option value="{{ $header->id }}" {{ old('faccupline') == $header->id ? 'selected' : '' }}>
-                                    {{ $header->faccount }} - {{ $header->faccname }}
-                                </option>
-                            @endforeach 
-                        </select>
-                        @error('faccupline')
-                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                        @enderror
+                {{-- Account Header (Browse) --}}
+                <div class="mt-4 lg:col-span-4">
+                    <label class="block text-sm font-medium mb-1">Account Header</label>
+                    <div class="flex">
+                        <div class="relative flex-1">
+                            <select id="accHeaderSelect" name="faccupline_view"
+                                class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
+                                disabled>
+                                <option value=""></option>
+                                @foreach ($accounts as $header)
+                                    <option value="{{ $header->faccid }}"
+                                        {{ old('faccupline') == $header->faccid ? 'selected' : '' }}>
+                                        {{ $header->faccount }} - {{ $header->faccname }}
+                                    </option>
+                                @endforeach
+                            </select>
+
+                            <input type="hidden" name="faccupline" id="accHeaderHidden" value="{{ old('faccupline') }}">
+
+                            {{-- overlay klik untuk buka modal --}}
+                            <div class="absolute inset-0" role="button" aria-label="Browse Account Header"
+                                @click="window.dispatchEvent(new CustomEvent('acc-header-browse-open'))"></div>
+                        </div>
+
+                        {{-- tombol browse --}}
+                        <button type="button" @click="window.dispatchEvent(new CustomEvent('acc-header-browse-open'))"
+                            class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r"
+                            title="Browse Account Header">
+                            <x-heroicon-o-magnifying-glass class="w-5 h-5" />
+                        </button>
                     </div>
+                    @error('faccupline')
+                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
+
                 <div class="mt-4">
                     <label class="block text-sm font-medium">Account #</label>
                     <input type="text" name="faccount" value="{{ old('faccount') }}"
@@ -124,10 +143,7 @@
                         {{ old('fnonactive_checkbox') == '1' ? 'checked' : '' }}>
                     <label for="statusToggle" class="block text-sm font-medium">Non Aktif</label>
                 </div>
-                <input type="hidden" name="faccupline" value='IDR'>
                 <input type="hidden" name="fcurrency" value='IDR'>
-                {{-- <input type="hidden" name="fcreatedby" value="{{ auth()->user()->fsysuserid }}">
-                    <input type="hidden" name="fupdatedby" value="{{ auth()->user()->fsysuserid }}"> --}}
                 <input type="hidden" name="fnonactive" value='0'>
                 <br>
                 <div class="mt-6 flex justify-center space-x-4">
@@ -146,4 +162,163 @@
             </form>
         </div>
     </div>
+
+    <div x-data="accHeaderBrowser()" x-init="init()" x-show="open" x-cloak x-transition.opacity
+        class="fixed inset-0 z-50 flex items-center justify-center">
+        <div class="absolute inset-0 bg-black/40" @click="close()"></div>
+        <div class="relative bg-white rounded-2xl shadow-xl w-[92vw] max-w-4xl max-h-[85vh] flex flex-col">
+            <div class="p-4 border-b flex items-center gap-3">
+                <h3 class="text-lg font-semibold">Browse Account Header</h3>
+                <div class="ml-auto flex items-center gap-2">
+                    <input type="text" x-model="keyword" @keydown.enter.prevent="search()"
+                        placeholder="Cari kode / nama…" class="border rounded px-3 py-2 w-64">
+                    <button type="button" @click="search()"
+                        class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                        Search
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-0 overflow-auto">
+                <table class="min-w-full text-sm">
+                    <thead class="bg-gray-100 sticky top-0">
+                        <tr>
+                            <th class="text-left p-2">Account (Kode - Nama)</th>
+                            <th class="text-center p-2 w-28">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template x-for="row in rows" :key="row.id">
+                            <tr class="border-b hover:bg-gray-50">
+                                <td class="p-2" x-text="`${row.faccount} - ${row.faccname}`"></td>
+                                <td class="p-2 text-center">
+                                    <button type="button" @click="choose(row)"
+                                        class="px-3 py-1 rounded text-xs bg-emerald-600 hover:bg-emerald-700 text-white">
+                                        Pilih
+                                    </button>
+                                </td>
+                            </tr>
+                        </template>
+                        <tr x-show="rows.length === 0">
+                            <td colspan="2" class="p-4 text-center text-gray-500">Tidak ada data.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="p-3 border-t flex items-center gap-2">
+                <div class="text-sm text-gray-600">
+                    <span x-text="`Page ${page} / ${lastPage} • Total ${total}`"></span>
+                </div>
+                <div class="ml-auto flex items-center gap-2">
+                    <button type="button" @click="prev()" :disabled="page <= 1" class="px-3 py-1 rounded border"
+                        :class="page <= 1 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-gray-100 hover:bg-gray-200'">
+                        Prev
+                    </button>
+                    <button type="button" @click="next()" :disabled="page >= lastPage" class="px-3 py-1 rounded border"
+                        :class="page >= lastPage ? 'bg-gray-200 text-gray-400 cursor-not-allowed' :
+                            'bg-gray-100 hover:bg-gray-200'">
+                        Next
+                    </button>
+                    <button type="button" @click="close()"
+                        class="px-3 py-1 rounded border bg-gray-100 hover:bg-gray-200">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function accHeaderBrowser() {
+            return {
+                open: false,
+                keyword: '',
+                page: 1,
+                lastPage: 1,
+                perPage: 10,
+                total: 0,
+                rows: [],
+                apiUrl() {
+                    const u = new URL("{{ route('accounts.browse') }}", window.location.origin);
+                    u.searchParams.set('q', this.keyword || '');
+                    u.searchParams.set('per_page', this.perPage);
+                    u.searchParams.set('page', this.page);
+                    return u.toString();
+                },
+                async fetch() {
+                    try {
+                        const res = await fetch(this.apiUrl(), {
+                            headers: {
+                                'Accept': 'application/json'
+                            }
+                        });
+                        const j = await res.json();
+                        this.rows = j.data || [];
+                        this.page = j.current_page || 1;
+                        this.lastPage = j.last_page || 1;
+                        this.total = j.total || 0;
+                    } catch (e) {
+                        this.rows = [];
+                        this.page = 1;
+                        this.lastPage = 1;
+                        this.total = 0;
+                    }
+                },
+                openBrowse() {
+                    this.open = true;
+                    this.page = 1;
+                    this.fetch();
+                },
+                close() {
+                    this.open = false;
+                    this.keyword = '';
+                    this.rows = [];
+                },
+                search() {
+                    this.page = 1;
+                    this.fetch();
+                },
+                prev() {
+                    if (this.page > 1) {
+                        this.page--;
+                        this.fetch();
+                    }
+                },
+                next() {
+                    if (this.page < this.lastPage) {
+                        this.page++;
+                        this.fetch();
+                    }
+                },
+                choose(row) {
+                    const sel = document.getElementById('accHeaderSelect');
+                    const hid = document.getElementById('accHeaderHidden');
+                    if (!sel) {
+                        this.close();
+                        return;
+                    }
+
+                    const label = `${row.faccount} - ${row.faccname}`;
+                    let opt = [...sel.options].find(o => o.value == String(row.id));
+                    if (!opt) {
+                        opt = new Option(label, row.id, true, true);
+                        sel.add(opt);
+                    } else {
+                        opt.text = label;
+                        opt.selected = true;
+                    }
+                    sel.dispatchEvent(new Event('change'));
+                    if (hid) hid.value = row.id;
+                    this.close();
+                },
+                init() {
+                    window.addEventListener('acc-header-browse-open', () => this.openBrowse(), {
+                        passive: true
+                    });
+                }
+            }
+        }
+    </script>
+
 @endsection

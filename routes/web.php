@@ -159,7 +159,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/suppliers/browse', [SupplierController::class, 'browse'])->name('suppliers.browse');
 
         Route::get('/product-name-suggest', [ProductController::class, 'suggestNames'])
-            ->name('product.name.suggest'); 
+            ->name('product.name.suggest');
+
+        Route::get('/accounts/browse', [AccountController::class, 'browse'])
+            ->name('accounts.browse');
 
         Route::get('/roleaccess/{fuid}', [RoleAccessController::class, 'index'])->name('roleaccess.index');
         Route::post('/roleaccess', [RoleAccessController::class, 'store'])->name('roleaccess.store');

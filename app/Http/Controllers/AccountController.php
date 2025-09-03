@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Account;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class AccountController extends Controller
 {
@@ -61,138 +62,174 @@ class AccountController extends Controller
         return view('account.index', compact('accounts', 'filterBy', 'search', 'canCreate', 'canEdit', 'canDelete'));
     }
 
+    public function browse(Request $request)
+    {
+        $q       = trim($request->get('q', ''));
+        $perPage = (int)($request->get('per_page', 10)) ?: 10;
+
+        // Header = 1 (sesuai skema kamu). Kalau ada historis 0, bisa whereIn([0,1]).
+        $query = Account::query()->where('fend', 0);
+
+        if ($q !== '') {
+            $query->where(function ($w) use ($q) {
+                $w->where('faccount', 'like', "%{$q}%")
+                    ->orWhere('faccname', 'like', "%{$q}%");
+            });
+        }
+
+        $result = $query->orderBy('faccount')->paginate($perPage);
+
+        // penting: mapping faccid -> id agar frontend tetap pakai row.id
+        $result->getCollection()->transform(function ($row) {
+            return [
+                'id'       => $row->faccid,     // <— pakai faccid
+                'faccount' => $row->faccount,
+                'faccname' => $row->faccname,
+            ];
+        });
+
+        return response()->json($result);
+    }
+
+
     public function create()
     {
 
-        $accounts = Account::where('fend', 0)->get();
-
+        $accounts = Account::where('fend', 0) // header
+            ->orderBy('faccount')
+            ->limit(50)
+            ->get();
         return view('account.create', compact('accounts'));
     }
 
     public function store(Request $request)
     {
-        // Validate incoming request data
         $validated = $request->validate(
             [
-                'faccount' => 'required|string|unique:account,faccount|max:10',  // Validate account code (max 10 chars)
-                'faccname' => 'required|string|max:50', // Validate account name (max 50 chars)
-                'faccupline' => 'max:10', // Validate account name (max 50 chars)
-                'finitjurnal' => 'nullable|string|max:2', // Validate initial journal (max 2 chars)
-                'fnormal' => 'required|in:1,2', // Ensure 'fnormal' is either 1 (Debet) or 2 (Kredit)
-                'fend' => 'required|in:1,2', // Ensure 'fend' is either 1 (Detil) or 2 (Header)
-                'fuserlevel' => 'required|in:1,2,3', // Ensure 'fuserlevel' is 1 (User), 2 (Supervisor), or 3 (Admin)
+                'faccount'     => 'required|string|unique:account,faccount|max:10',
+                'faccname'     => 'required|string|max:50',
+                'faccupline'  => 'nullable|integer|exists:account,faccid', // <— ganti ke faccid
+                'finitjurnal'  => 'nullable|string|max:2',
+                'fnormal'      => 'required|in:1,2',
+                'fend'         => 'required|in:1,2',
+                'fuserlevel'   => 'required|in:1,2,3',
+                'fhavesubaccount'  => 'sometimes|boolean',
+                'ftypesubaccount'  => 'nullable|in:Sub Account,Customer,Supplier',
             ],
             [
                 'faccount.required' => 'Kode account harus diisi.',
                 'faccname.required' => 'Nama account harus diisi.',
-                'faccount.unique' => 'Kode account sudah ada.',
-                'faccount.max' => 'Kode account maksimal 10 karakter.',
-                'faccname.max' => 'Nama account maksimal 50 karakter.',
-                'finitjurnal.max' => 'Inisial jurnal maksimal 2 karakter.',
+                'faccount.unique'   => 'Kode account sudah ada.',
+                'faccount.max'      => 'Kode account maksimal 10 karakter.',
+                'faccname.max'      => 'Nama account maksimal 50 karakter.',
+                'finitjurnal.max'   => 'Inisial jurnal maksimal 2 karakter.',
+                'faccupline.exists' => 'Account header tidak valid.',
             ]
         );
 
-        // Add default values for the required fields
-        $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null;  // Use the authenticated user's ID
-        $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? 'system';  // Fallback jika tidak ada
-        $validated['fcreatedat'] = now(); // Set current time
+        $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null;
+        $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? 'system';
+        $validated['fcreatedat'] = now();
 
-        $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
+        // Non aktif (checkbox)
+        $validated['fnonactive'] = $request->boolean('fnonactive_checkbox') ? '1' : '0';
 
-        // Handle 'fhavesubaccount' logic: set it to 1 if checked, else 0
-        $validated['fhavesubaccount'] = $request->has('fhavesubaccount') ? 1 : 0;
+        // Sub account
+        $hasSub = $request->boolean('fhavesubaccount');
+        $validated['fhavesubaccount'] = $hasSub ? 1 : 0;
+        $validated['ftypesubaccount'] = $hasSub
+            ? ($request->input('ftypesubaccount') === 'Sub Account' ? 'S' : ($request->input('ftypesubaccount') === 'Customer' ? 'C' : 'P'))
+            : '0';
 
-        // Handle 'ftypesubaccount' logic if a sub-account is checked
-        if ($request->has('fhavesubaccount')) {
-            // Ensure subaccount type is set as a single character (S, C, P)
-            $validated['ftypesubaccount'] = $request->input('ftypesubaccount') == 'Sub Account' ? 'S' : ($request->input('ftypesubaccount') == 'Customer' ? 'C' : 'P');
-        } else {
-            // Ensure subaccount type is disabled
-            $validated['ftypesubaccount'] = '0';
-        }
+        // Map select lain
+        $validated['fnormal']    = $request->input('fnormal');
+        $validated['fend']       = $request->input('fend');
+        // faccupline sudah dari hidden (id header)
+        // currency tetap IDR
+        $validated['fcurrency']  = 'IDR';
 
-        // Handle fnormal field, map 'Debet' (1) and 'Kredit' (2) correctly
-        $validated['fnormal'] = $request->input('fnormal');
-        $validated['fend'] = $request->input('fend');
-        $validated['faccupline'] = $request->input('faccupline');
-
-        // Handle fuserlevel, map 'User' (1), 'Supervisor' (2), and 'Admin' (3)
-        $validated['fuserlevel'] = $request->input('fuserlevel');
-
-        // Directly set 'fcurrency' to 'IDR'
-        $validated['fcurrency'] = 'IDR';
-
-        // Create the new Account record
         Account::create($validated);
 
-        return redirect()
-            ->route('account.index')
-            ->with('success', 'Account berhasil ditambahkan.');
+        return redirect()->route('account.index')->with('success', 'Account berhasil ditambahkan.');
     }
 
     public function edit($faccid)
     {
-        // Find Account by primary key
-        $account = Account::findOrFail($faccid);
+        $account  = Account::findOrFail($faccid);
 
-        return view('account.edit', compact('account'));
+        // preload 50 header untuk dropdown view
+        $headers  = Account::where('fend', 0)
+            ->orderBy('faccount')
+            ->limit(50)
+            ->get();
+
+        // header yang sedang terset di record ini (jika ada)
+        $selectedHeader = null;
+        if (!empty($account->faccupline)) {
+            $selectedHeader = Account::find($account->faccupline); // faccupline menyimpan faccid header
+        }
+
+        return view('account.edit', compact('account', 'headers', 'selectedHeader'));
     }
 
     public function update(Request $request, $faccid)
     {
-        // Validate incoming request data
         $validated = $request->validate(
             [
-                'faccount' => "required|string|unique:account,faccount,{$faccid},faccid", // Exclude current account from unique check
-                'faccname' => 'required|string|max:50', // Validate account name (max 50 chars)
-                'fnormal' => 'required|in:1,2', // Ensure 'fnormal' is either 1 (Debet) or 2 (Kredit)
-                'finitjurnal' => 'nullable|string|max:2', // Validate initial journal (max 2 chars)
-                'fend' => 'required|in:1,2', // Ensure 'fend' is either 1 (Detil) or 2 (Header)
-                'fuserlevel' => 'required|in:1,2,3', // Ensure 'fuserlevel' is 1 (User), 2 (Supervisor), or 3 (Admin)
+                'faccount'     => "required|string|unique:account,faccount,{$faccid},faccid|max:10",
+                'faccname'     => 'required|string|max:50',
+                'fnormal'      => 'required|in:1,2',
+                'finitjurnal'  => 'nullable|string|max:2',
+                'fend'         => 'required|in:1,2',
+                'fuserlevel'   => 'required|in:1,2,3',
+
+                // TERIMA & VALIDASI faccupline (nullable)
+                // Pastikan yang dipilih ada di tabel account dan bertipe header (misal fend = 0)
+                'faccupline'   => [
+                    'nullable',
+                    'integer',
+                    Rule::exists('account', 'faccid')->where(fn($q) => $q->where('fend', 0)),
+                    Rule::notIn([$faccid]), // opsional: jangan boleh header = dirinya sendiri
+                ],
             ],
             [
                 'faccount.required' => 'Kode account harus diisi.',
+                'faccount.unique'   => 'Kode account sudah ada.',
+                'faccount.max'      => 'Kode account maksimal 10 karakter.',
                 'faccname.required' => 'Nama account harus diisi.',
-                'faccount.unique' => 'Kode account sudah ada.',
-                'faccount.max' => 'Kode account maksimal 10 karakter.',
-                'faccname.max' => 'Nama account maksimal 50 karakter.',
-                'finitjurnal.max' => 'Inisial jurnal maksimal 2 karakter.',
+                'faccname.max'      => 'Nama account maksimal 50 karakter.',
+                'finitjurnal.max'   => 'Inisial jurnal maksimal 2 karakter.',
+                'faccupline.exists' => 'Account header tidak valid.',
             ]
         );
 
-        // Handle the checkbox for 'fnonactive' (1 = checked, 0 = unchecked)
-        $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
-        $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null; // Use the authenticated user's ID
-        $validated['fupdatedat'] = now(); // Set current time
+        // Checkbox & metadata
+        $validated['fnonactive']  = $request->has('fnonactive') ? '1' : '0';
+        $validated['fupdatedby']  = auth('sysuser')->user()->fname ?? null;
+        $validated['fupdatedat']  = now();
 
+        // Sub account
         $validated['fhavesubaccount'] = $request->has('fhavesubaccount') ? 1 : 0;
+        $validated['ftypesubaccount'] = $validated['fhavesubaccount']
+            ? ($request->input('ftypesubaccount') === 'Sub Account' ? 'S'
+                : ($request->input('ftypesubaccount') === 'Customer' ? 'C' : 'P'))
+            : '0';
 
-        // Handle 'ftypesubaccount' logic if a sub-account is checked
-        if ($request->has('fhavesubaccount')) {
-            // Ensure subaccount type is set as a single character (S, C, P)
-            $validated['ftypesubaccount'] = $request->input('ftypesubaccount') == 'Sub Account' ? 'S' : ($request->input('ftypesubaccount') == 'Customer' ? 'C' : 'P');
-        } else {
-            // Ensure subaccount type is disabled
-            $validated['ftypesubaccount'] = '0';
-        }
-
-        // Handle fnormal field, map 'Debet' (1) and 'Kredit' (2) correctly
-        $validated['fnormal'] = $request->input('fnormal');
-        $validated['fend'] = $request->input('fend');
-
-        // Handle fuserlevel, map 'User' (1), 'Supervisor' (2), and 'Admin' (3)
+        // Map select lain
+        $validated['fnormal']   = $request->input('fnormal');
+        $validated['fend']      = $request->input('fend');
         $validated['fuserlevel'] = $request->input('fuserlevel');
-
-        // Directly set 'fcurrency' to 'IDR'
         $validated['fcurrency'] = 'IDR';
 
-        // Find Account and update
+        // PENTING: simpan faccupline (boleh null)
+        $validated['faccupline'] = $request->filled('faccupline')
+            ? (int) $request->input('faccupline')
+            : null;
+
         $account = Account::findOrFail($faccid);
         $account->update($validated);
 
-        return redirect()
-            ->route('account.index')
-            ->with('success', 'Account berhasil di-update.');
+        return redirect()->route('account.index')->with('success', 'Account berhasil di-update.');
     }
 
     public function destroy($faccid)
