@@ -173,6 +173,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/roleaccess/clone', [RoleAccessController::class, 'cloneToUser'])
             ->name('roleaccess.clone');
 
+        Route::post('/merek/ajax-store', [MerekController::class, 'ajaxStore'])
+            ->name('merek.store.ajax');
+
         Route::get('/customer/create', [CustomerController::class, 'create'])->name('customer.create');
     });
 });
