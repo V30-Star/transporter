@@ -561,7 +561,7 @@
                     }
                 })
                 .done((res) => {
-n                    if (res && res.name && res.id) {
+                   if (res && res.name && res.id) {
                         const opt = new Option(res.name, res.id, true, true);
                         $('#merkSelect').append(opt).trigger('change');
                         this.open = false;
