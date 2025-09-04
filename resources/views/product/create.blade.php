@@ -595,7 +595,7 @@
             <div class="space-y-4 mt-2">
                 <div>
                     <label class="block text-sm font-medium">Kode Merek</label>
-                    <input type="text" x-model="form.fmerekcode" class="w-full border rounded px-3 py-2"
+                    <input type="text" x-model="form.fmerekcode" class="w-full border rounded px-3 py-2" maxlength="10"
                         :class="errors.fmerekcode ? 'border-red-500' : ''">
                     <template x-if="errors.fmerekcode">
                         <p class="text-red-600 text-sm mt-1" x-text="errors.fmerekcode[0]"></p>
