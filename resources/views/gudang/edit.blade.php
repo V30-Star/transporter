@@ -57,7 +57,7 @@
                     @enderror
                 </div>
                 <br>
-                <div class="flex justify-center mt-4">
+                <div class="md:col-span-2 flex flex-col items-center space-y-4">
                     <label for="statusToggle"
                         class="flex items-center justify-between w-40 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition">
                         <span class="text-sm font-medium">Non Aktif</span>

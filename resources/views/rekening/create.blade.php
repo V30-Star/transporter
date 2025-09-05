@@ -39,9 +39,13 @@
                     </div>
                     <br>
                     <div class="md:col-span-2 flex justify-center items-center space-x-2">
-                        <input type="checkbox" name="fnonactive" id="statusToggle"
-                            class="form-checkbox h-5 w-5 text-indigo-600" {{ old('fnonactive') == '1' ? 'checked' : '' }}>
-                        <label class="block text-sm font-medium">Non Aktif</label>
+                        <label for="statusToggle"
+                            class="flex items-center justify-between w-40 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition">
+                            <span class="text-sm font-medium">Non Aktif</span>
+                            <input type="checkbox" name="fnonactive" id="statusToggle"
+                                class="h-5 w-5 text-green-600 rounded focus:ring-green-500"
+                                {{ old('fnonactive') == '1' ? 'checked' : '' }}>
+                        </label>
                     </div>
                 </div>
                 <br>

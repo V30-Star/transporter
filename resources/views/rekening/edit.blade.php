@@ -60,8 +60,8 @@
             <hr>
             <br>
             @php
-                $lastUpdate = $customer->fupdatedat ?: $customer->fcreatedat;
-                $isUpdated = !empty($customer->fupdatedat);
+                $lastUpdate = $rekening->fupdatedat ?: $rekening->fcreatedat;
+                $isUpdated = !empty($rekening->fupdatedat);
             @endphp
 
             <span class="text-sm text-gray-600 md:col-span-2 flex justify-between items-center">
