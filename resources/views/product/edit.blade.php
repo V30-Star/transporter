@@ -118,7 +118,7 @@
     </style>
 
 
-    <div x-data="{ open: true }">
+    <div x-data="{ open: false, keyword: '', rows: [], page: 1, lastPage: 1, total: 0 }">
         <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1500px] w-full mx-auto">
             <form action="{{ route('product.update', $product->fproductid) }}" method="POST">
                 @csrf
@@ -128,19 +128,35 @@
                 @endphp
                 <div>
                     <!-- Group Produk Dropdown -->
-                    <div class="mt-4 w-1/4">
+                    <div class="mt-2 w-1/2" x-data="{ isEditable: false }">
                         <label class="block text-sm font-medium">Group Produk</label>
-                        <select name="fgroupcode"
-                            class="w-full border rounded px-3 py-2 @error('fgroupcode') border-red-500 @enderror"
-                            id="groupSelect">
-                            <option value="">-- Pilih Group Produk --</option>
-                            @foreach ($groups as $group)
-                                <option value="{{ $group->fgroupid }}"
-                                    {{ old('fgroupcode', $product->fgroupcode) == $group->fgroupid ? 'selected' : '' }}>
-                                    {{ $group->fgroupname }}
-                                </option>
-                            @endforeach
-                        </select>
+                        <div class="flex items-center gap-2">
+                            <select name="fgroupcodeSelect" :disabled="!isEditable"
+                                class="w-full border rounded px-3 py-2 @error('fgroupcode') border-red-500 @enderror"
+                                id="groupSelect">
+                                <option value=""></option>
+                                @foreach ($groups as $group)
+                                    <option value="{{ $group->fgroupid }}"
+                                        {{ old('fgroupcode', $product->fgroupcode) == $group->fgroupid ? 'selected' : '' }}>
+                                        {{ $group->fgroupname }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <input type="hidden" name="fgroupcode" value="{{ old('fgroupcode', $product->fgroupcode) }}">
+
+                            <!-- Add Group Produk (Icon Button) -->
+                            <button type="button" @click="isEditable = true; $dispatch('open-group-modal')"
+                                class="whitespace-nowrap bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700">
+                                <i class="fa fa-plus"></i>
+                            </button>
+
+                            <!-- Browse Group (Icon Button) -->
+                            <button type="button" @click="isEditable = false; $dispatch('groupproduct-browse-open')"
+                                class="whitespace-nowrap bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700">
+                                <i class="fa fa-search"></i>
+                            </button>
+                        </div>
+
                         @error('fgroupcode')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
@@ -157,22 +173,71 @@
                     </div>
 
                     <!-- Merek Dropdown -->
-                    <div class="mt-2 w-1/4">
+                    <div class="mt-2 w-1/2" x-data="{ isMerekEditable: false }">
                         <label class="block text-sm font-medium">Merek</label>
-                        <select name="fmerek"
-                            class="w-full border rounded px-3 py-2 @error('fmerek') border-red-500 @enderror"
-                            id="merkSelect">
-                            <option value="">-- Pilih Merek --</option>
-                            @foreach ($merks as $merk)
-                                <option value="{{ $merk->fmerekid }}"
-                                    {{ old('fmerek', $product->fmerek) == $merk->fmerekid ? 'selected' : '' }}>
-                                    {{ $merk->fmerekname }}
-                                </option>
-                            @endforeach
-                        </select>
+                        <div class="flex items-center gap-2">
+                            <select name="fmerekSelect" :disabled="!isMerekEditable"
+                                class="w-full border rounded px-3 py-2 @error('fmerek') border-red-500 @enderror"
+                                id="merkSelect">
+                                <option value=""></option>
+                                @foreach ($merks as $merk)
+                                    <option value="{{ $merk->fmerekid }}"
+                                        {{ old('fmerek', $product->fmerek) == $merk->fmerekid ? 'selected' : '' }}>
+                                        {{ $merk->fmerekname }}
+                                    </option>
+                                @endforeach
+                            </select>
+
+                            <input type="hidden" name="fmerek" id="fmerek" value="{{ old('fmerek') }}">
+
+                            <!-- Button Tambah Merek -->
+                            <button type="button" @click="isMerekEditable = true; $dispatch('open-merk-modal')"
+                                class="whitespace-nowrap bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700">
+                                <i class="fa fa-plus"></i>
+                            </button>
+
+                            <!-- Button Browse Merek -->
+                            <button type="button" @click="isMerekEditable = false; $dispatch('merek-browse-open')"
+                                class="whitespace-nowrap bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700">
+                                <i class="fa fa-search"></i>
+                            </button>
+                        </div>
                         @error('fmerek')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
+                    </div>
+
+                    <div x-show="open" x-transition.opacity x-cloak
+                        class="fixed inset-0 z-50 flex items-center justify-center">
+                        <div class="absolute inset-0 bg-black/40" @click="open = false"></div>
+                        <div class="relative bg-white rounded-2xl shadow-xl w-[92vw] max-w-4xl max-h-[85vh] flex flex-col">
+                            <div class="p-4 border-b flex items-center gap-3">
+                                <h3 class="text-lg font-semibold">Browse Merek</h3>
+                                <div class="ml-auto flex items-center gap-2">
+                                    <input type="text" x-model="keyword" @keydown.enter.prevent="search()"
+                                        placeholder="Cari kode / nama…" class="border rounded px-3 py-2 w-64">
+                                    <button type="button" @click="search()"
+                                        class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Search</button>
+                                </div>
+                            </div>
+
+                            <div class="p-3 border-t flex items-center gap-2">
+                                <div class="text-sm text-gray-600"><span
+                                        x-text="`Page ${page} / ${lastPage} • Total ${total}`"></span></div>
+                                <div class="ml-auto flex items-center gap-2">
+                                    <button type="button" @click="prev()" :disabled="page <= 1"
+                                        class="px-3 py-1 rounded border"
+                                        :class="page <= 1 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' :
+                                            'bg-gray-100 hover:bg-gray-200'">Prev</button>
+                                    <button type="button" @click="next()" :disabled="page >= lastPage"
+                                        class="px-3 py-1 rounded border"
+                                        :class="page >= lastPage ? 'bg-gray-200 text-gray-400 cursor-not-allowed' :
+                                            'bg-gray-100 hover:bg-gray-200'">Next</button>
+                                    <button type="button" @click="open = false"
+                                        class="px-3 py-1 rounded border bg-gray-100 hover:bg-gray-200">Close</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Nama Product -->
@@ -479,11 +544,14 @@
                         </fieldset>
                     </div>
                     <br>
-                    <div class="md:col-span-2 flex justify-center items-center space-x-2">
-                        <input type="checkbox" name="fnonactive" id="statusToggle"
-                            class="form-checkbox h-5 w-5 text-indigo-600"
-                            {{ old('fnonactive', $product->fnonactive) == '1' ? 'checked' : '' }}>
-                        <label class="block text-sm font-medium">Non Aktif</label>
+                    <div class="flex justify-center mt-4">
+                        <label for="statusToggle"
+                            class="flex items-center justify-between w-40 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition">
+                            <span class="text-sm font-medium">Non Aktif</span>
+                            <input type="checkbox" name="fnonactive" id="statusToggle"
+                                class="h-5 w-5 text-green-600 rounded focus:ring-green-500"
+                                {{ old('fnonactive', $product->fnonactive) == '1' ? 'checked' : '' }}>
+                        </label>
                     </div>
                 </div>
                 <br>
@@ -506,15 +574,284 @@
                 <br>
                 <hr>
                 <br>
-                <span class="text-sm text-gray-600 md:col-span-2 flex justify-between items-center">
-                    <strong>{{ auth()->user()->fname ?? '—' }}</strong>
+                @php
+                    $lastUpdate = $product->fupdatedat ?: $product->fcreatedat;
+                    $isUpdated = !empty($product->fupdatedat);
+                @endphp
 
-                    <span class="ml-2 text-right" id="current-time">
-                        {{ now()->format('d M Y, H:i') }}
-                        , Terakhir di Update oleh: <strong>{{ $product->fupdatedby ?? '—' }}</strong>
+                <span class="text-sm text-gray-600 md:col-span-2 flex justify-between items-center">
+                    <strong>{{ auth('sysuser')->user()->fname ?? '—' }}</strong>
+
+                    <span class="ml-2 text-right">
+                        {{ \Carbon\Carbon::parse($lastUpdate)->timezone('Asia/Jakarta')->format('d M Y, H:i:s') }}
                     </span>
                 </span>
             </form>
+        </div>
+    </div>
+
+    <div x-data="{
+        open: false,
+        loading: false,
+        errors: {},
+        form: { fmerekcode: '', fmerekname: '', fnonactive: false },
+        saveData() {
+            this.loading = true;
+            this.errors = {};
+    
+            $.ajax({
+                    url: '{{ route('merek.store.ajax') }}',
+                    type: 'POST',
+                    headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                    data: {
+                        fmerekcode: this.form.fmerekcode,
+                        fmerekname: this.form.fmerekname,
+                        fnonactive: this.form.fnonactive ? 1 : 0
+                    }
+                })
+                .done((res) => {
+                    if (res && res.name && res.id) {
+                        const opt = new Option(res.name, res.id, true, true);
+                        $('#merkSelect').append(opt).trigger('change');
+                        this.open = false;
+                        this.form.fmerekcode = '';
+                        this.form.fmerekname = '';
+                        this.form.fnonactive = false;
+                    } else {
+                        alert('Response format is incorrect or missing expected data.');
+                    }
+                    this.loading = false;
+                })
+                .fail((xhr) => {
+                    this.loading = false;
+                    if (xhr.status === 422) {
+                        this.errors = xhr.responseJSON?.errors || {};
+                    } else {
+                        alert('Gagal menyimpan merek.');
+                    }
+                });
+        }
+    }" x-on:open-merk-modal.window="open = true; errors = {}; loading = false;" x-show="open"
+        style="display:none" class="fixed inset-0 z-[10000] flex items-center justify-center">
+
+        <!-- backdrop -->
+        <div class="absolute inset-0 bg-black/50" @click="open = false"></div>
+
+        <!-- card -->
+        <div class="relative bg-white w-full max-w-lg rounded-lg shadow-lg p-6">
+            <h3 class="text-lg font-semibold mb-4">Tambah Merek</h3>
+
+            <div class="space-y-4 mt-2">
+                <div>
+                    <label class="block text-sm font-medium">Kode Merek</label>
+                    <input type="text" x-model="form.fmerekcode" class="w-full border rounded px-3 py-2"
+                        maxlength="10" :class="errors.fmerekcode ? 'border-red-500' : ''">
+                    <template x-if="errors.fmerekcode">
+                        <p class="text-red-600 text-sm mt-1" x-text="errors.fmerekcode[0]"></p>
+                    </template>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium">Nama Merek</label>
+                    <input type="text" x-model="form.fmerekname" class="w-full border rounded px-3 py-2"
+                        :class="errors.fmerekname ? 'border-red-500' : ''">
+                    <template x-if="errors.fmerekname">
+                        <p class="text-red-600 text-sm mt-1" x-text="errors.fmerekname[0]"></p>
+                    </template>
+                </div>
+
+                <div class="md:col-span-2 flex items-center gap-2">
+                    <input type="checkbox" x-model="form.fnonactive" id="modal_fnonactive"
+                        class="form-checkbox h-5 w-5 text-indigo-600">
+                    <label for="modal_fnonactive" class="block text-sm font-medium">Non Aktif</label>
+                </div>
+            </div>
+
+            <div class="mt-6 flex justify-end gap-3">
+                <button type="button" @click="open=false"
+                    class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Batal</button>
+
+                <!-- FIXED BUTTON - Single button with all elements inside -->
+                <button type="button" @click="saveData()"
+                    class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 flex items-center gap-2 disabled:opacity-60"
+                    :disabled="loading">
+
+                    <svg x-show="loading" class="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
+                            opacity=".25"></circle>
+                        <path d="M4 12a8 8 0 018-8" stroke="currentColor" stroke-width="4" opacity=".75"></path>
+                    </svg>
+                    <span x-text="loading ? 'Menyimpan...' : 'Simpan'"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- MODAL BROWSE GROUP PRODUCT -->
+    <div x-data="groupBrowser()" x-show="open" x-cloak x-transition.opacity
+        class="fixed inset-0 z-[9998] flex items-center justify-center">
+        <div class="absolute inset-0 bg-black/40" @click="close()"></div>
+        <div class="relative bg-white rounded-2xl shadow-xl w-[92vw] max-w-4xl max-h-[85vh] flex flex-col">
+            <div class="p-4 border-b flex items-center gap-3">
+                <h3 class="text-lg font-semibold">Browse Group Product</h3>
+                <div class="ml-auto flex items-center gap-2">
+                    <input type="text" x-model="keyword" @keydown.enter.prevent="search()"
+                        placeholder="Cari kode / nama…" class="border rounded px-3 py-2 w-64">
+                    <button type="button" @click="search()"
+                        class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Search</button>
+                </div>
+            </div>
+
+            <div class="p-0 overflow-auto">
+                <table class="min-w-full text-sm">
+                    <thead class="bg-gray-100 sticky top-0">
+                        <tr>
+                            <th class="text-left p-2 w-40">Kode</th>
+                            <th class="text-left p-2">Nama Group</th>
+                            <th class="text-center p-2 w-28">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template x-for="g in rows" :key="g.fgroupid">
+                            <tr class="border-b hover:bg-gray-50">
+                                <td class="p-2 font-mono" x-text="g.fgroupcode"></td>
+                                <td class="p-2" x-text="g.fgroupname"></td>
+                                <td class="p-2 text-center">
+                                    <button type="button" @click="choose(g)"
+                                        class="px-3 py-1 rounded text-xs bg-emerald-600 hover:bg-emerald-700 text-white">Pilih</button>
+                                </td>
+                            </tr>
+                        </template>
+                        <tr x-show="rows.length === 0">
+                            <td colspan="3" class="p-4 text-center text-gray-500">Tidak ada data.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="p-3 border-t flex items-center gap-2">
+                <div class="text-sm text-gray-600" x-text="`Page ${page} / ${lastPage} • Total ${total}`"></div>
+                <div class="ml-auto flex items-center gap-2">
+                    <button type="button" @click="prev()" :disabled="page <= 1" class="px-3 py-1 rounded border"
+                        :class="page <= 1 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-gray-100 hover:bg-gray-200'">
+                        Prev
+                    </button>
+                    <button type="button" @click="next()" :disabled="page >= lastPage" class="px-3 py-1 rounded border"
+                        :class="page >= lastPage ? 'bg-gray-200 text-gray-400 cursor-not-allowed' :
+                            'bg-gray-100 hover:bg-gray-200'">
+                        Next
+                    </button>
+                    <button type="button" @click="close()"
+                        class="px-3 py-1 rounded border bg-gray-100 hover:bg-gray-200">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div x-data="groupProductModal()" x-show="openGroupModal" x-cloak x-transition.opacity
+        class="fixed inset-0 z-[9999] flex items-center justify-center">
+        <div class="absolute inset-0 bg-black/50" @click="closeGroupModal()"></div>
+        <div class="relative bg-white rounded-2xl shadow-xl w-[92vw] max-w-4xl p-6">
+            <h3 class="text-lg font-semibold mb-4">Tambah Group Produk</h3>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium">Kode Group Produk</label>
+                    <input type="text" x-model="form.fgroupcode" class="w-full border rounded px-3 py-2"
+                        maxlength="50" placeholder="Kode Group Produk">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium">Nama Group Produk</label>
+                    <input type="text" x-model="form.fgroupname" class="w-full border rounded px-3 py-2"
+                        maxlength="100" placeholder="Nama Group Produk">
+                </div>
+                <div class="md:col-span-2 flex items-center gap-2">
+                    <input type="checkbox" x-model="form.fnonactive" id="modal_fnonactive"
+                        class="form-checkbox h-5 w-5 text-indigo-600">
+                    <label for="modal_fnonactive" class="block text-sm font-medium">Non Aktif</label>
+                </div>
+            </div>
+
+            <div class="mt-6 flex justify-end gap-3">
+                <button type="button" @click="closeGroupModal()"
+                    class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Batal</button>
+                <button type="button" @click="saveData()"
+                    class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 flex items-center gap-2 disabled:opacity-60"
+                    :disabled="loading">
+                    <svg x-show="loading" class="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
+                            opacity=".25"></circle>
+                        <path d="M4 12a8 8 0 018-8" stroke="currentColor" stroke-width="4" opacity=".75"></path>
+                    </svg>
+                    <span x-text="loading ? 'Menyimpan...' : 'Simpan'"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL BROWSE MEREK -->
+    <div x-data="merekBrowser()" x-show="open" x-cloak x-transition.opacity
+        class="fixed inset-0 z-[9999] flex items-center justify-center">
+        <div class="absolute inset-0 bg-black/40" @click="close()"></div>
+        <div class="relative bg-white rounded-2xl shadow-xl w-[92vw] max-w-4xl max-h-[85vh] flex flex-col">
+            <div class="p-4 border-b flex items-center gap-3">
+                <h3 class="text-lg font-semibold">Browse Merek</h3>
+                <div class="ml-auto flex items-center gap-2">
+                    <input type="text" x-model="keyword" @keydown.enter.prevent="search()"
+                        placeholder="Cari kode / nama…" class="border rounded px-3 py-2 w-64">
+                    <button type="button" @click="search()"
+                        class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Search</button>
+                </div>
+            </div>
+
+            <div class="p-0 overflow-auto">
+                <table class="min-w-full text-sm">
+                    <thead class="bg-gray-100 sticky top-0">
+                        <tr>
+                            <th class="text-left p-2">Merek (Kode - Nama)</th>
+                            <th class="text-center p-2 w-28">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template x-for="m in rows" :key="m.fmerekid">
+                            <tr class="border-b hover:bg-gray-50">
+                                <td class="p-2" x-text="`${m.fmerekcode} - ${m.fmerekname}`"></td>
+                                <td class="p-2 text-center">
+                                    <button type="button" @click="choose(m)"
+                                        class="px-3 py-1 rounded text-xs bg-emerald-600 hover:bg-emerald-700 text-white">
+                                        Pilih
+                                    </button>
+                                </td>
+                            </tr>
+                        </template>
+                        <tr x-show="rows.length === 0">
+                            <td colspan="2" class="p-4 text-center text-gray-500">Tidak ada data.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="p-3 border-t flex items-center gap-2">
+                <div class="text-sm text-gray-600" x-text="`Page ${page} / ${lastPage} • Total ${total}`"></div>
+                <div class="ml-auto flex items-center gap-2">
+                    <button type="button" @click="prev()" :disabled="page <= 1" class="px-3 py-1 rounded border"
+                        :class="page <= 1 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-gray-100 hover:bg-gray-200'">
+                        Prev
+                    </button>
+                    <button type="button" @click="next()" :disabled="page >= lastPage" class="px-3 py-1 rounded border"
+                        :class="page >= lastPage ? 'bg-gray-200 text-gray-400 cursor-not-allowed' :
+                            'bg-gray-100 hover:bg-gray-200'">
+                        Next
+                    </button>
+                    <button type="button" @click="close()"
+                        class="px-3 py-1 rounded border bg-gray-100 hover:bg-gray-200">
+                        Close
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 @endsection
@@ -528,7 +865,12 @@
 <script>
     $(document).ready(function() {
         $('#groupSelect').select2({
-            placeholder: '-- Pilih Group Produk --',
+            placeholder: '',
+            allowClear: true
+        });
+
+        $('#merkSelect').select2({
+            placeholder: '',
             allowClear: true
         });
 
@@ -593,15 +935,6 @@
     });
 </script>
 
-<script>
-    $(document).ready(function() {
-        $('#merkSelect').select2({
-            placeholder: '-- Pilih Merek --',
-            allowClear: true
-        });
-    });
-</script>
-
 <style>
     hr {
         border: 0;
@@ -610,32 +943,6 @@
         margin-bottom: 20px;
     }
 </style>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        function updateTime() {
-            const now = new Date();
-            const formattedTime = now.toLocaleString('en-GB', {
-                day: '2-digit',
-                month: 'short',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
-            });
-            const currentTimeElement = document.getElementById('current-time');
-
-            if (currentTimeElement) {
-                currentTimeElement.textContent = formattedTime;
-            } else {
-                console.error("Element with ID 'current-time' not found.");
-            }
-        }
-
-        setInterval(updateTime, 1000);
-        updateTime();
-    });
-</script>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -663,4 +970,246 @@
 
         toggleFields();
     });
+</script>
+
+<script>
+    function chooseMerek(merek) {
+        // Set value to the select dropdown
+        document.querySelector('#merkSelect').value = merek.fmerekid;
+
+        // Optionally trigger 'change' event if needed
+        $(document).find('#merkSelect').trigger('change');
+
+        // Close the modal
+        this.open = false;
+    }
+
+    function merekBrowser() {
+        return {
+            open: false,
+            keyword: '',
+            page: 1,
+            lastPage: 1,
+            perPage: 10,
+            total: 0,
+            rows: [],
+            apiUrl() {
+                const u = new URL("{{ route('mereks.browse') }}", window.location.origin);
+                u.searchParams.set('q', this.keyword || '');
+                u.searchParams.set('per_page', this.perPage);
+                u.searchParams.set('page', this.page);
+                return u.toString();
+            },
+            async fetch() {
+                try {
+                    const res = await fetch(this.apiUrl(), {
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    });
+                    const j = await res.json();
+                    this.rows = j.data || [];
+                    this.page = j.current_page || 1;
+                    this.lastPage = j.last_page || 1;
+                    this.total = j.total || 0;
+                } catch (e) {
+                    this.rows = [];
+                    this.page = 1;
+                    this.lastPage = 1;
+                    this.total = 0;
+                }
+            },
+            search() {
+                this.page = 1;
+                this.fetch();
+            },
+            prev() {
+                if (this.page > 1) {
+                    this.page--;
+                    this.fetch();
+                }
+            },
+            next() {
+                if (this.page < this.lastPage) {
+                    this.page++;
+                    this.fetch();
+                }
+            },
+            openBrowse() {
+                this.open = true;
+                this.page = 1;
+                this.fetch();
+            },
+            close() {
+                this.open = false;
+                this.keyword = '';
+                this.rows = [];
+            },
+            choose(m) {
+                const $sel = $('#merkSelect');
+                // pastikan option ada
+                if ($sel.find(`option[value="${m.fmerekid}"]`).length === 0) {
+                    const opt = new Option(m.fmerekname, m.fmerekid, true, true);
+                    $sel.append(opt);
+                }
+                $sel.val(m.fmerekid).trigger('change');
+                $('input[name="fmerek"]').val(m.fmerekid);
+                this.close();
+            },
+            init() {
+                // buka modal saat tombol Browse Merek di-klik
+                window.addEventListener('merek-browse-open', () => this.openBrowse(), {
+                    passive: true
+                });
+            }
+        }
+    }
+
+    function groupBrowser() {
+        return {
+            open: false,
+            keyword: '',
+            page: 1,
+            lastPage: 1,
+            perPage: 10,
+            total: 0,
+            rows: [],
+            apiUrl() {
+                const u = new URL("{{ route('groupproducts.browse') }}", window.location.origin);
+                u.searchParams.set('q', this.keyword || '');
+                u.searchParams.set('per_page', this.perPage);
+                u.searchParams.set('page', this.page);
+                return u.toString();
+            },
+            async fetch() {
+                try {
+                    const res = await fetch(this.apiUrl(), {
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    });
+                    const j = await res.json();
+                    this.rows = j.data || [];
+                    this.page = j.current_page || 1;
+                    this.lastPage = j.last_page || 1;
+                    this.total = j.total || 0;
+                } catch (e) {
+                    this.rows = [];
+                    this.page = 1;
+                    this.lastPage = 1;
+                    this.total = 0;
+                }
+            },
+            search() {
+                this.page = 1;
+                this.fetch();
+            },
+            prev() {
+                if (this.page > 1) {
+                    this.page--;
+                    this.fetch();
+                }
+            },
+            next() {
+                if (this.page < this.lastPage) {
+                    this.page++;
+                    this.fetch();
+                }
+            },
+            openBrowse() {
+                this.open = true;
+                this.page = 1;
+                this.fetch();
+            },
+            close() {
+                this.open = false;
+                this.keyword = '';
+                this.rows = [];
+            },
+            choose(g) {
+                // Set value to the group select field
+                const $sel = $('#groupSelect');
+
+                // Make sure the option is present, if not, add it
+                if ($sel.find(`option[value="${g.fgroupid}"]`).length === 0) {
+                    const opt = new Option(g.fgroupname, g.fgroupid, true, true);
+                    $sel.append(opt);
+                }
+
+                // Set the selected value to the dropdown
+                $sel.val(g.fgroupid).trigger('change'); // Triggers 'change' to update any dynamic behavior
+
+                // Also update the hidden input field 'fgroupcode' directly if needed
+                $('input[name="fgroupcode"]').val(g.fgroupid);
+
+                this.close(); // Close the modal after selecting
+            },
+            init() {
+                // Buka modal Browse Group Produk
+                window.addEventListener('groupproduct-browse-open', () => this.openBrowse(), {
+                    passive: true
+                });
+            }
+        }
+    }
+
+    function groupProductModal() {
+        return {
+            openGroupModal: false,
+            form: {
+                fgroupcode: '',
+                fgroupname: '',
+                fnonactive: false,
+            },
+            loading: false,
+            saveData() {
+                this.loading = true;
+                $.ajax({
+                        url: '{{ route('groupproduct.store.ajax') }}',
+                        type: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        data: {
+                            fgroupcode: this.form.fgroupcode,
+                            fgroupname: this.form.fgroupname,
+                            fnonactive: this.form.fnonactive ? 1 : 0
+                        }
+                    })
+                    .done((res) => {
+                        if (res && res.name && res.id) {
+                            const opt = new Option(res.name, res.id, true, true);
+                            $('#groupSelect').append(opt).trigger('change');
+                            this.closeGroupModal();
+                        } else {
+                            alert('Response format is incorrect or missing expected data.');
+                        }
+                        this.loading = false;
+                    })
+                    .fail((xhr) => {
+                        this.loading = false;
+                        if (xhr.status === 422) {
+                            this.errors = xhr.responseJSON?.errors || {};
+                        } else {
+                            alert('Gagal menyimpan group produk.');
+                        }
+                    });
+            },
+            closeGroupModal() {
+                this.openGroupModal = false;
+                this.form.fgroupcode = '';
+                this.form.fgroupname = '';
+                this.form.fnonactive = false;
+            },
+            openGroupProductModal() {
+                this.openGroupModal = true;
+            },
+            init() {
+                // Buka modal Add Group Produk
+                window.addEventListener('open-group-modal', () => this.openGroupProductModal(), {
+                    passive: true
+                });
+            }
+        }
+    }
 </script>

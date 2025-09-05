@@ -137,12 +137,16 @@
                 <br>
                 <hr>
                 <br>
-                <span class="text-sm text-gray-600 md:col-span-2 flex justify-between items-center">
-                    <strong>{{ auth()->user()->fname ?? '—' }}</strong>
+                @php
+                    $lastUpdate = $sysuser->fupdatedat ?: $sysuser->fcreatedat;
+                    $isUpdated = !empty($sysuser->fupdatedat);
+                @endphp
 
-                    <span class="ml-2 text-right" id="current-time">
-                        {{ now()->format('d M Y, H:i') }}
-                        , Terakhir di Update oleh: <strong>{{ $sysuser->fupdatedby ?? '—' }}</strong>
+                <span class="text-sm text-gray-600 md:col-span-2 flex justify-between items-center">
+                    <strong>{{ auth('sysuser')->user()->fname ?? '—' }}</strong>
+
+                    <span class="ml-2 text-right">
+                        {{ \Carbon\Carbon::parse($lastUpdate)->timezone('Asia/Jakarta')->format('d M Y, H:i:s') }}
                     </span>
                 </span>
             </form>
@@ -159,29 +163,3 @@
         margin-bottom: 20px;
     }
 </style>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        function updateTime() {
-            const now = new Date();
-            const formattedTime = now.toLocaleString('en-GB', {
-                day: '2-digit',
-                month: 'short',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
-            });
-            const currentTimeElement = document.getElementById('current-time');
-
-            if (currentTimeElement) {
-                currentTimeElement.textContent = formattedTime;
-            } else {
-                console.error("Element with ID 'current-time' not found.");
-            }
-        }
-
-        setInterval(updateTime, 1000);
-        updateTime();
-    });
-</script>

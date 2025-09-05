@@ -113,8 +113,8 @@ class ProductController extends Controller
                 'fproductname' => 'required|string',
                 'ftype' => 'string',
                 'fbarcode' => 'string',
-                'fgroupcode' => 'required', // Validate the Group Produk field
-                'fmerek' => '', // Validate the Merek field
+                'fgroupcode' => 'required', // Validate that fgroupcode exists in groups table
+                'fmerek' => 'required', // Validate the Merek field
                 'fsatuankecil' => '', // Validate Satuan 1 field
                 'fsatuanbesar' => '', // Validate Satuan 2 field
                 'fsatuanbesar2' => '', // Validate Satuan 3 field
@@ -191,8 +191,8 @@ class ProductController extends Controller
                 'fproductname' => 'required|string',
                 'ftype' => 'string',
                 'fbarcode' => 'string',
-                'fgroupcode' => 'required', // Validate the Group Produk field
-                'fmerek' => '', // Validate the Merek field
+                'fgroupcode' => 'required', // Validate that fgroupcode exists in groups table
+                'fmerek' => 'required', // Validate the Merek field
                 'fsatuankecil' => '', // Validate Satuan 1 field
                 'fsatuanbesar' => '', // Validate Satuan 2 field
                 'fsatuanbesar2' => '', // Validate Satuan 3 field

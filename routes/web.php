@@ -156,6 +156,12 @@ Route::middleware('auth')->group(function () {
         // routes/web.php
         Route::get('/products/browse', [\App\Http\Controllers\ProductBrowseController::class, 'index'])
             ->name('products.browse');
+
+        Route::get('/groupproducts/browse', [GroupproductController::class, 'browse'])
+            ->name('groupproducts.browse');
+
+        Route::get('/mereks/browse', [MerekController::class, 'browse'])->name('mereks.browse');
+
         Route::get('/suppliers/browse', [SupplierController::class, 'browse'])->name('suppliers.browse');
 
         Route::get('/product-name-suggest', [ProductController::class, 'suggestNames'])
@@ -175,6 +181,10 @@ Route::middleware('auth')->group(function () {
 
         Route::post('/merek/ajax-store', [MerekController::class, 'ajaxStore'])
             ->name('merek.store.ajax');
+
+        Route::post('/groupproducts/ajax-store', [GroupproductController::class, 'ajaxStore'])
+            ->name('groupproduct.store.ajax');
+
 
         Route::get('/customer/create', [CustomerController::class, 'create'])->name('customer.create');
     });

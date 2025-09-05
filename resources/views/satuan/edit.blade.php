@@ -12,8 +12,7 @@
                 <div>
                     <label class="block text-sm font-medium">Kode Satuan</label>
                     <input type="text" name="fsatuancode" value="{{ old('fsatuancode', $satuan->fsatuancode) }}"
-                        class="w-full border rounded px-3 py-2 @error('fsatuancode') border-red-500 @enderror"
-                        maxlength="3">
+                        class="w-full border rounded px-3 py-2 @error('fsatuancode') border-red-500 @enderror" maxlength="3">
                     @error('fsatuancode')
                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                     @enderror
@@ -28,10 +27,14 @@
                     @enderror
                 </div>
                 <br>
-                <div class="md:col-span-2 flex justify-center items-center space-x-2">
-                    <input type="checkbox" name="fnonactive" id="statusToggle" class="form-checkbox h-5 w-5 text-indigo-600"
-                        {{ old('fnonactive', $satuan->fnonactive) == '1' ? 'checked' : '' }}>
-                    <label class="block text-sm font-medium">Non Aktif</label>
+                <div class="flex justify-center mt-4">
+                    <label for="statusToggle"
+                        class="flex items-center justify-between w-40 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition">
+                        <span class="text-sm font-medium">Non Aktif</span>
+                        <input type="checkbox" name="fnonactive" id="statusToggle"
+                            class="h-5 w-5 text-green-600 rounded focus:ring-green-500"
+                            {{ old('fnonactive', $satuan->fnonactive) == '1' ? 'checked' : '' }}>
+                    </label>
                 </div>
             </div>
             <br>
@@ -50,12 +53,16 @@
             <br>
             <hr>
             <br>
-            <span class="text-sm text-gray-600 md:col-span-2 flex justify-between items-center">
-                <strong>{{ auth()->user()->fname ?? '—' }}</strong>
+            @php
+                $lastUpdate = $satuan->fupdatedat ?: $satuan->fcreatedat;
+                $isUpdated = !empty($satuan->fupdatedat);
+            @endphp
 
-                <span class="ml-2 text-right" id="current-time">
-                    {{ now()->format('d M Y, H:i') }}
-                    , Terakhir di Update oleh: <strong>{{ $satuan->fupdatedby ?? '—' }}</strong>
+            <span class="text-sm text-gray-600 md:col-span-2 flex justify-between items-center">
+                <strong>{{ auth('sysuser')->user()->fname ?? '—' }}</strong>
+
+                <span class="ml-2 text-right">
+                    {{ \Carbon\Carbon::parse($lastUpdate)->timezone('Asia/Jakarta')->format('d M Y, H:i:s') }}
                 </span>
             </span>
         </form>
@@ -70,29 +77,3 @@
         margin-bottom: 20px;
     }
 </style>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        function updateTime() {
-            const now = new Date();
-            const formattedTime = now.toLocaleString('en-GB', {
-                day: '2-digit',
-                month: 'short',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
-            });
-            const currentTimeElement = document.getElementById('current-time');
-
-            if (currentTimeElement) {
-                currentTimeElement.textContent = formattedTime;
-            } else {
-                console.error("Element with ID 'current-time' not found.");
-            }
-        }
-
-        setInterval(updateTime, 1000);
-        updateTime();
-    });
-</script>

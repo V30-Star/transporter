@@ -141,4 +141,62 @@ class GroupproductController extends Controller
             ->route('groupproduct.index')
             ->with('success', 'Groupproduct berhasil dihapus.');
     }
+
+    public function browse(Request $request)
+    {
+        $q = trim((string) $request->get('q', ''));
+        $perPage = (int) $request->get('per_page', 10);
+        $perPage = max(1, min($perPage, 100));
+
+        $query = Groupproduct::query()
+            ->select('fgroupid', 'fgroupcode', 'fgroupname', 'fnonactive');
+
+        // Jika ingin exclude non-active (sesuaikan definisi non aktif Anda)
+        $query->where(function ($w) {
+            $w->whereNull('fnonactive')
+                ->orWhere('fnonactive', '!=', '1')
+                ->orWhere('fnonactive', '!=', 'Y');
+        });
+
+        if ($q !== '') {
+            // Jika Postgres: pakai ILIKE, jika MySQL: LIKE (case-insensitive tergantung collation)
+            $like = '%' . str_replace(['%', '_'], ['\\%', '\\_'], $q) . '%';
+            $query->where(function ($w) use ($like) {
+                // ganti 'ilike' jika pakai PostgreSQL
+                $w->where('fgroupcode', 'like', $like)
+                    ->orWhere('fgroupname', 'like', $like);
+            });
+        }
+
+        $paginated = $query->orderBy('fgroupcode')->paginate($perPage);
+
+        return response()->json($paginated);
+    }
+    public function ajaxStore(Request $request)
+    {
+        $data = $request->validate([
+            'fgroupcode' => ['required', 'string', 'max:50', 'unique:msgroupproduct,fgroupcode'],
+            'fgroupname' => ['required', 'string', 'max:100'],
+            'fnonactive' => ['nullable', 'in:0,1'],
+        ]);
+
+        $userName = optional(auth('sysuser')->user())->fname ?? 'system';
+        $now = now();
+
+        // Create the new Group Product
+        $groupProduct = Groupproduct::create([
+            'fgroupcode' => $data['fgroupcode'],
+            'fgroupname' => $data['fgroupname'],
+            'fnonactive' => $request->boolean('fnonactive') ? 1 : 0,
+            'fcreatedby' => $userName,
+            'fupdatedby' => $userName,
+            'fcreatedat' => $now,
+            'fupdatedat' => $now,
+        ]);
+
+        return response()->json([
+            'id'   => $groupProduct->fgroupid,
+            'name' => $groupProduct->fgroupname,
+        ], 201);
+    }
 }
