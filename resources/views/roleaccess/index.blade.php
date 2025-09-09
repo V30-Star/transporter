@@ -627,6 +627,20 @@
                                         {{ isset($roleAccess) && in_array('roleaccess', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
                             </tr>
+
+                            <tr>
+                                <th colspan="2" style="background-color: #f0f0f0; font-weight: bold;">
+                                    Approval Setting
+                                </th>
+                            </tr>
+
+                            <tr>
+                                <td>Approval Permintaan Pembelian</td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="approvalpr" id="approvalpr"
+                                        {{ isset($roleAccess) && in_array('approvalpr', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>

@@ -70,69 +70,71 @@
         <div class="flex-1 min-w-0 overflow-auto flex flex-col">
 
             <!-- Header -->
-            <!-- Header -->
             <header class="bg-white shadow-sm p-4 flex justify-between items-center">
                 <!-- Left: Page Title -->
                 <h2 class="text-xl font-semibold text-gray-800">@yield('title', 'Dashboard')</h2>
 
                 <!-- Right: Clock + User -->
-                <div class="flex items-center gap-4">
+                <div class="flex flex-col items-end gap-1 ml-auto"> <!-- Added ml-auto to align right -->
+                    <!-- User Info Above the Date -->
+                    @auth
+                        <div class="text-sm text-gray-600 font-medium mr-4">
+                            <!-- Added margin-right (mr-4) to create space -->
+                            <span>{{ Auth::user()->fname }} | {{ Auth::user()->fsysuserid }}</span>
+                        </div>
+                    @endauth
+
                     <!-- Jakarta Clock -->
                     <div x-data="{
                         display: '',
                         update() {
                             const dt = new Date();
-                            const parts = new Intl.DateTimeFormat('id-ID', {
-                                timeZone: 'Asia/Jakarta',
-                                day: '2-digit',
-                                month: '2-digit',
-                                year: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                                second: '2-digit',
-                                hour12: false
-                            }).formatToParts(dt);
                     
-                            const get = (t) => parts.find(p => p.type === t)?.value || '';
-                            const day = get('day');
-                            const month = get('month');
-                            const year = get('year');
-                            const hour = get('hour');
-                            const minute = get('minute');
-                            const second = get('second');
+                            const months = [
+                                'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+                                'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+                            ];
+                    
+                            const day = dt.getDate();
+                            const month = months[dt.getMonth()];
+                            const year = dt.getFullYear();
+                            const hour = dt.getHours().toString().padStart(2, '0');
+                            const minute = dt.getMinutes().toString().padStart(2, '0');
+                            const second = dt.getSeconds().toString().padStart(2, '0');
                     
                             this.display = `${day} ${month} ${year} | ${hour}:${minute}:${second}`;
                         },
                         init() {
                             this.update();
-                            setInterval(() => this.update(), 1000); // update setiap detik
+                            setInterval(() => this.update(), 1000); // update every second
                         }
-                    }" x-init="init()" class="text-sm text-gray-600 font-medium"
+                    }" x-init="init()" class="text-sm text-gray-600 font-medium mr-4"
                         x-text="display"></div>
-
-                    <!-- User Dropdown -->
-                    @auth
-                        <div x-data="{ open: false }" class="relative">
-                            <button @click="open = !open" class="flex items-center space-x-2 focus:outline-none">
-                                <img src="https://ui-avatars.com/api/?name={{ urlencode(Auth::user()->name) }}"
-                                    class="w-8 h-8 rounded-full" alt="avatar">
-                                <span class="text-gray-700 hidden sm:inline">{{ Auth::user()->name }}</span>
-                            </button>
-
-                            <div x-show="open" @click.outside="open = false"
-                                class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-20" x-cloak>
-                                <form method="POST" action="{{ route('logout') }}">
-                                    @csrf
-                                    <button type="submit"
-                                        class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                        Logout
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    @endauth
                 </div>
+
+                <!-- User Dropdown -->
+                @auth
+                    <div x-data="{ open: false }" class="relative">
+                        <button @click="open = !open" class="flex items-center space-x-2 focus:outline-none">
+                            <img src="https://ui-avatars.com/api/?name={{ urlencode(Auth::user()->name) }}"
+                                class="w-8 h-8 rounded-full" alt="avatar">
+                            <span class="text-gray-700 hidden sm:inline">{{ Auth::user()->name }}</span>
+                        </button>
+
+                        <div x-show="open" @click.outside="open = false"
+                            class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-20" x-cloak>
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit"
+                                    class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    Logout
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                @endauth
             </header>
+
             @if (session('success'))
                 <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-2 rounded mb-4">
                     {{ session('success') }}

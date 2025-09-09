@@ -12,6 +12,9 @@ use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Mail\ApprovalEmail;
+use Illuminate\Support\Facades\Mail;
+
 
 class Tr_prhController extends Controller
 {
@@ -131,9 +134,7 @@ class Tr_prhController extends Controller
 
     $hdr = Tr_prh::query()
       ->leftJoinSub($supplierSub, 's', function ($join) {
-        $join->on('s.fsuppliercode', '=', 'tr_prh.fsupplier'); // kalau menyimpan KODE
-        // jika yang disimpan adalah ID, ganti ke:
-        // $join->on('s.fsupplierid', '=', 'tr_prh.fsupplier');
+        $join->on('s.fsuppliercode', '=', 'tr_prh.fsupplier');
       })
       ->leftJoin('mscabang as c', 'c.fcabangkode', '=', 'tr_prh.fbranchcode')
       ->where('tr_prh.fprno', $fprno)
@@ -182,6 +183,8 @@ class Tr_prhController extends Controller
       )
       ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
 
+    $canApproval = in_array('approvalpr', explode(',', session('user_restricted_permissions', '')));
+
     $fcabang       = $branch->fcabangname ?? (string)$raw;   // untuk tampilan
     $fbranchcode   = $branch->fcabangkode ?? (string)$raw;   // untuk hidden post (JK)
 
@@ -200,6 +203,7 @@ class Tr_prhController extends Controller
 
     return view('tr_prh.create', [
       'newtr_prh_code' => $newtr_prh_code,
+      'perms' => ['can_approval' => $canApproval],
       'supplier'       => $supplier,
       'fcabang'        => $fcabang,
       'fbranchcode'    => $fbranchcode,
@@ -209,6 +213,7 @@ class Tr_prhController extends Controller
 
   public function store(Request $request)
   {
+    // Validasi request
     $request->validate([
       'fprdate'   => ['nullable', 'date'],
       'fsupplier' => ['nullable', 'string', 'max:10'],
@@ -219,6 +224,7 @@ class Tr_prhController extends Controller
       'fitemcode'   => ['array'],
       'fitemcode.*' => ['nullable', 'string', 'max:50'],
       'fsatuan'     => ['array'],
+      'fapproval' => ['nullable'],
       'fsatuan.*'   => ['nullable', 'string', 'max:20'],
       'fqty'        => '',
       'fqty.*'      => '',
@@ -230,30 +236,33 @@ class Tr_prhController extends Controller
       'fprdate.required'   => 'Tanggal PR wajib diisi.',
     ]);
 
+    // Proses tanggal PR
     $fprdate = Carbon::parse($request->fprdate)->startOfDay();
-
-    // biarkan apa adanya (bisa "JK", "Jakarta", atau angka id)
     $branchFromForm = $request->input('fbranchcode');  // no cast
 
+    // Jika tidak ada kode PR, buat kode baru
     $fprno = $request->filled('fprno')
       ? $request->fprno
       : $this->generatetr_prh_Code($fprdate, $branchFromForm);
 
+    // Proses tanggal lainnya
     $fneeddate = $request->filled('fneeddate') ? Carbon::parse($request->fneeddate)->startOfDay() : null;
     $fduedate  = $request->filled('fduedate')  ? Carbon::parse($request->fduedate)->startOfDay()  : null;
 
     $authUser    = auth('sysuser')->user();
     $userName    = $authUser->fname ?? null;
 
+    // Ambil data item
     $codes   = $request->input('fitemcode', []);
     $sats    = $request->input('fsatuan', []);
     $qtys  = $request->input('fqty', []);
     $descs   = $request->input('fdesc', []);
     $ketdts  = $request->input('fketdt', []);
 
-    $validator = Validator::make([], []);
+    // Cek stok produk
     $stocks = Product::whereIn('fproductcode', $codes)->pluck('fminstock', 'fproductcode');
 
+    $validator = Validator::make([], []);
     foreach ($codes as $i => $code) {
       $code = trim($code ?? '');
       if ($code === '') continue;
@@ -273,14 +282,15 @@ class Tr_prhController extends Controller
       return back()->withErrors($validator)->withInput();
     }
 
+    // Membuat detail rows
     $detailRows = [];
     $now = now();
 
     $rowCount = max(count($codes), count($sats), count($qtys), count($descs), count($ketdts));
 
     for ($i = 0; $i < $rowCount; $i++) {
-      $code  = trim($codes[$i]  ?? '');
-      $sat   = trim($sats[$i]   ?? '');
+      $code  = trim($codes[$i] ?? '');
+      $sat   = trim($sats[$i] ?? '');
       $qty   = $qtys[$i]        ?? null;
       $desc  = $descs[$i]       ?? null;
       $ketdt = $ketdts[$i]      ?? null;
@@ -306,41 +316,11 @@ class Tr_prhController extends Controller
         ->withErrors(['detail' => 'Minimal satu item detail dengan Kode, Satuan, dan Qty ≥ 1.']);
     }
 
-    // ====== 2) TAMBAHKAN validasi berbasis data tabel (hidden inputs row_*) ======
-    $rowPrdate   = $request->input('row_prdate', []);
-    $rowSupplier = $request->input('row_supplier', []);
-
-    // helper ambil pertama yang tidak kosong
-    $firstNonEmpty = function (array $arr) {
-      foreach ($arr as $v) {
-        $t = trim((string)($v ?? ''));
-        if ($t !== '') return $t;
-      }
-      return '';
-    };
-
-    $hdrPrdate   = $firstNonEmpty($rowPrdate);
-    $hdrSupplier = $firstNonEmpty($rowSupplier);
-
-    // jika di tabel kosong, lempar error sesuai pesan lama
-    if ($hdrPrdate === '') {
-      $validator->errors()->add('fprdate', 'Tanggal PR wajib diisi.');
-    }
-    if ($hdrSupplier === '') {
-      $validator->errors()->add('fsupplier', 'Supplier wajib dipilih.');
-    }
-
-    // (opsional) konsistensi agar semua baris tabel punya header yang sama
-    $uniq = fn(array $arr) => collect($arr)->filter(fn($v) => trim((string)$v) !== '')->unique()->values();
-    if ($uniq($rowSupplier)->count() > 1) {
-      $validator->errors()->add('fsupplier', 'Supplier pada baris-baris tabel harus sama.');
-    }
-    if ($uniq($rowPrdate)->count() > 1) {
-      $validator->errors()->add('fprdate', 'Tanggal PR pada baris-baris tabel harus sama.');
-    }
-
+    // Menyimpan data header dan detail dalam transaksi
     DB::transaction(function () use ($request, $fprno, $fprdate, $fneeddate, $fduedate, $userName, $detailRows, $codes, $qtys) {
-      Tr_prh::create([
+      // Menyimpan data header
+      $isApproval = (int)($request->input('fapproval', 0)); // 1 jika dicentang, 0 jika tidak
+      $tr_prh = Tr_prh::create([
         'fprno'         => $fprno,
         'fprdate'       => $fprdate,
         'fsupplier'     => $request->fsupplier,
@@ -355,10 +335,13 @@ class Tr_prhController extends Controller
         'fuserapproved' => $request->has('fuserapproved') ? $userName : null,
         'fdateapproved' => $request->has('fuserapproved') ? now() : null,
         'fupdatedat'    => null,
+        'fapproval'     => $isApproval,
       ]);
 
+      // Menyimpan detail barang
       Tr_prd::insert($detailRows);
 
+      // Update stok produk
       foreach ($codes as $i => $code) {
         $qty = (int)($qtys[$i] ?? 0);
         if ($qty > 0) {
@@ -369,6 +352,24 @@ class Tr_prhController extends Controller
               'fupdatedat' => now(),
             ]);
         }
+      }
+
+      if ($isApproval === 1) {
+        $hdr = Tr_prh::where('fprno', $fprno)->first();
+        $dt = Tr_prd::query()
+          ->leftJoin('msproduct as p', 'p.fproductcode', '=', 'tr_prd.fprdcode')
+          ->where('tr_prd.fprnoid', $hdr->fprno)
+          ->orderBy('tr_prd.fprdcode')
+          ->get([
+            'tr_prd.*',
+            'p.fproductname as product_name',
+            'p.fminstock as stock',
+          ]);
+
+        $productName = $dt->pluck('fprdcode')->implode(', ');
+        $approver = auth('sysuser')->user()->fname;
+
+        Mail::to('vierybiliam8@gmail.com')->send(new ApprovalEmail($hdr, $dt, $productName, $approver));
       }
     });
 

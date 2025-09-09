@@ -612,14 +612,25 @@
                     </div>
                 </div>
 
+                @php
+                    $canApproval = in_array('approvalpr', explode(',', session('user_restricted_permissions', '')));
+                @endphp
+
+
                 {{-- APPROVAL & ACTIONS --}}
                 <div class="md:col-span-2 flex justify-center items-center space-x-2 mt-6">
-                    <label class="block text-sm font-medium">Approval</label>
-                    <label class="switch">
-                        <input type="checkbox" name="fapproval" id="approvalToggle"
-                            {{ session('fapproval') ? 'checked' : '' }}>
-                        <span class="slider"></span>
-                    </label>
+                    @if ($canApproval)
+                        <label class="block text-sm font-medium">Approval</label>
+
+                        {{-- fallback 0 saat checkbox tidak dicentang --}}
+                        <input type="hidden" name="fapproval" value="0">
+
+                        <label class="switch">
+                            <input type="checkbox" name="fapproval" id="approvalToggle" value="1"
+                                {{ old('fapproval', session('fapproval') ? 1 : 0) ? 'checked' : '' }}>
+                            <span class="slider"></span>
+                        </label>
+                    @endif
                 </div>
 
                 <div class="mt-8 flex justify-center gap-4">

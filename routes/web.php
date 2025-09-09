@@ -19,6 +19,7 @@ use App\Http\Controllers\SubaccountController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\SysUserController;
 use App\Http\Controllers\Tr_prhController;
+use App\Http\Controllers\ApprovalController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -189,5 +190,18 @@ Route::middleware('auth')->group(function () {
         Route::get('/customer/create', [CustomerController::class, 'create'])->name('customer.create');
     });
 });
+
+Route::get('/approval-page', [ApprovalController::class, 'showApprovalPage'])
+    ->name('approval.page');
+
+Route::post('/approve/{fprno}', [ApprovalController::class, 'approveRequest'])
+    ->name('approval.submit');
+
+Route::post('/reject/{fprno}', [ApprovalController::class, 'rejectRequest'])
+    ->where('fprno', '[A-Za-z0-9\.\-]+')
+    ->name('approval.reject');
+
+Route::get('/approval/info/{fprno}', [ApprovalController::class, 'infoApprovalPage'])
+    ->name('approval.info');
 
 require __DIR__ . '/auth.php';
