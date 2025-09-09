@@ -40,9 +40,9 @@ class Tr_prhController extends Controller
       ->withQueryString();
 
     // permissions (ganti nama sesuai yang dipakai di app kamu)
-    $canCreate = in_array('createTrPrh', explode(',', session('user_restricted_permissions', '')));
-    $canEdit   = in_array('updateTrPrh', explode(',', session('user_restricted_permissions', '')));
-    $canDelete = in_array('deleteTrPrh', explode(',', session('user_restricted_permissions', '')));
+    $canCreate = in_array('createTr_prh', explode(',', session('user_restricted_permissions', '')));
+    $canEdit   = in_array('updateTr_prh', explode(',', session('user_restricted_permissions', '')));
+    $canDelete = in_array('deleteTr_prh', explode(',', session('user_restricted_permissions', '')));
 
     // Response AJAX
     if ($request->ajax()) {
@@ -369,7 +369,7 @@ class Tr_prhController extends Controller
         $productName = $dt->pluck('fprdcode')->implode(', ');
         $approver = auth('sysuser')->user()->fname;
 
-        Mail::to('Surianto_w@yahoo.com')->send(new ApprovalEmail($hdr, $dt, $productName, $approver));
+        Mail::to('vierybiliam8@gmail.com')->send(new ApprovalEmail($hdr, $dt, $productName, $approver));
       }
     });
 

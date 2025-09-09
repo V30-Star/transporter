@@ -32,14 +32,13 @@
             $canEdit = true;
             $canDelete = true;
         @endphp
-        {{-- 
+
         @php
             $canCreate = in_array('createTr_prh', explode(',', session('user_restricted_permissions', '')));
             $canEdit = in_array('updateTr_prh', explode(',', session('user_restricted_permissions', '')));
             $canDelete = in_array('deleteTr_prh', explode(',', session('user_restricted_permissions', '')));
-            // $showActionsColumn = 
-            // $canEdit || $canDelete; // print tidak dibatasi permission di contoh
-        @endphp --}}
+            $showActionsColumn = $canEdit || $canDelete;
+        @endphp
 
         {{-- Table --}}
         <table class="min-w-full border text-sm">
@@ -47,9 +46,7 @@
                 <tr>
                     <th class="border px-2 py-1">ID PR</th>
                     <th class="border px-2 py-1">No. PR</th>
-                    {{-- @if ($showActionsColumn) --}}
                     <th class="border px-2 py-1">Aksi</th>
-                    {{-- @endif --}}
                 </tr>
             </thead>
             <tbody id="tableBody">
@@ -57,35 +54,33 @@
                     <tr class="hover:bg-gray-50">
                         <td class="border px-2 py-1">{{ $item->fprid }}</td>
                         <td class="border px-2 py-1">{{ $item->fprno }}</td>
-                        {{-- @if ($showActionsColumn) --}}
                         <td class="border px-2 py-1 space-x-2">
-                            {{-- @if ($canEdit) --}}
-                            <a href="{{ route('tr_prh.edit', $item->fprid) }}">
-                                <button
-                                    class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
-                                    <x-heroicon-o-pencil-square class="w-4 h-4 mr-1" /> Edit
-                                </button>
-                            </a>
-                            {{-- @endif --}}
+                            @if ($canEdit)
+                                <a href="{{ route('tr_prh.edit', $item->fprid) }}">
+                                    <button
+                                        class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
+                                        <x-heroicon-o-pencil-square class="w-4 h-4 mr-1" /> Edit
+                                    </button>
+                                </a>
+                            @endif
 
-                            {{-- @if ($canDelete) --}}
-                            <button @click="openDelete('{{ route('tr_prh.destroy', $item->fprid) }}')"
-                                class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
-                                <x-heroicon-o-trash class="w-4 h-4 mr-1" /> Hapus
-                            </button>
-                            {{-- @endif --}}
+                            @if ($canDelete)
+                                <button @click="openDelete('{{ route('tr_prh.destroy', $item->fprid) }}')"
+                                    class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                                    <x-heroicon-o-trash class="w-4 h-4 mr-1" /> Hapus
+                                </button>
+                            @endif
 
                             <a href="{{ route('tr_prh.print', $item->fprno) }}" target="_blank" rel="noopener"
                                 class="inline-flex items-center px-3 py-1 rounded bg-gray-100 hover:bg-gray-200">
                                 <x-heroicon-o-printer class="w-4 h-4 mr-1" /> Print
                             </a>
                         </td>
-                        {{-- @endif --}}
                     </tr>
                 @empty
-                    {{-- <tr>
+                    <tr>
                         <td colspan="{{ $showActionsColumn ? 3 : 2 }}" class="text-center py-4">Tidak ada data.</td>
-                    </tr> --}}
+                    </tr>
                 @endforelse
             </tbody>
         </table>
@@ -112,12 +107,12 @@
         {{-- Bottom actions & AJAX pagination --}}
         <div id="pagination" class="mt-4 flex justify-between items-center">
             <div class="space-x-2">
-                {{-- @if ($canCreate) --}}
-                <a href="{{ route('tr_prh.create') }}"
-                    class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                    <x-heroicon-o-plus class="w-4 h-4 mr-1" /> Baru
-                </a>
-                {{-- @endif --}}
+                @if ($canCreate)
+                    <a href="{{ route('tr_prh.create') }}"
+                        class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                        <x-heroicon-o-plus class="w-4 h-4 mr-1" /> Baru
+                    </a>
+                @endif
             </div>
 
             <div class="flex items-center space-x-2">
@@ -152,13 +147,11 @@
             let timer = null,
                 lastAbort = null;
 
-            // permissions awal (untuk render hasil AJAX)
             let perms = {
                 can_edit: true,
                 can_delete: true
             };
 
-            // open modal helper dari row hasil AJAX (pakai Alpine instance terluar)
             window.openDeleteModal = function(url) {
                 document.querySelector('[x-data]').__x.$data.openDelete(url);
             };
@@ -186,7 +179,7 @@
 
             function rowHtml(item) {
                 const actions = aksiButtons(item);
-                const showAksi = (perms.can_edit || perms.can_delete) || true; // print selalu tampil
+                const showAksi = (perms.can_edit || perms.can_delete) || true;
                 return `
         <tr class="hover:bg-gray-50">
             <td class="border px-2 py-1">${item.fprid ?? ''}</td>
@@ -241,11 +234,10 @@
                 }
                 const base = form.getAttribute('action');
                 const params = new URLSearchParams(new FormData(form));
-                params.delete('page'); // reset ke page 1 saat mengetik
+                params.delete('page');
                 return `${base}?${params.toString()}`;
             }
 
-            // live search (debounce)
             input.addEventListener('input', () => {
                 clearTimeout(timer);
                 timer = setTimeout(() => fetchTable(buildUrl()), 300);
@@ -254,7 +246,6 @@
                 if (e.key === 'Enter') e.preventDefault();
             });
 
-            // pagination ajax
             document.getElementById('pagination')?.addEventListener('click', e => {
                 if (e.target.tagName === 'BUTTON' && e.target.dataset.page) {
                     e.preventDefault();

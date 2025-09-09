@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 use App\Providers\RouteServiceProvider;
 use App\Models\RoleAccess; // Pastikan RoleAccess model diimport
+use App\Models\LogUser; // Pastikan RoleAccess model diimport
 
 class AuthenticatedSessionController extends Controller
 {
@@ -50,6 +51,14 @@ class AuthenticatedSessionController extends Controller
                 'fcabang' => $user->fcabang,
             ]);
 
+            LogUser::create([
+                'ip'          => $request->ip(),
+                'akun'        => $user->fsysuserid,
+                'komp'        => gethostname(),
+                'login_date'  => now(),
+                'log_out_date' => null,
+            ]);
+
             return redirect()->intended(RouteServiceProvider::HOME);
         }
 
@@ -64,6 +73,14 @@ class AuthenticatedSessionController extends Controller
     public function destroy(Request $request): RedirectResponse
     {
         Auth::guard('web')->logout();
+
+        $user = auth('sysuser')->user();
+
+        LogUser::where('akun', $user->fsysuserid)
+            ->whereNull('log_out_date')
+            ->latest('login_date')
+            ->first()
+            ?->update(['log_out_date' => now()]);
 
         $request->session()->invalidate();
 
