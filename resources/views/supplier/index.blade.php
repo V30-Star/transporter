@@ -6,10 +6,14 @@
     <div x-data="{
         showDeleteModal: false,
         deleteUrl: null,
-        openDelete(url) { this.deleteUrl = url;
-            this.showDeleteModal = true },
-        closeDelete() { this.showDeleteModal = false;
-            this.deleteUrl = null }
+        openDelete(url) {
+            this.deleteUrl = url;
+            this.showDeleteModal = true
+        },
+        closeDelete() {
+            this.showDeleteModal = false;
+            this.deleteUrl = null
+        }
     }" class="bg-white rounded shadow p-4">
 
         {{-- Search (Live) --}}
@@ -49,7 +53,9 @@
                         <td class="border px-2 py-1">{{ $item->fsuppliername }}</td>
                         <td class="border px-2 py-1">{{ $item->fkontakperson ?? '-' }}</td>
                         <td class="border px-2 py-1">{{ $item->ftelp ?? '-' }}</td>
-                        <td class="border px-2 py-1">{{ $item->faddress ?? '-' }}</td>
+                        <td class="border px-2 py-1">
+                            {{ strlen(trim($item->faddress ?? '')) ? $item->faddress : '-' }}
+                        </td>
                         <td class="border px-2 py-1">{{ $item->fcity ?? '-' }}</td>
 
                         @if ($showActionsColumn)
@@ -194,7 +200,7 @@
                 if (json.data.length === 0) {
                     const colCount = document.querySelector('thead tr').children.length;
                     tbody.innerHTML =
-                    `<tr><td colspan="${colCount}" class="text-center py-4">Tidak ada data.</td></tr>`;
+                        `<tr><td colspan="${colCount}" class="text-center py-4">Tidak ada data.</td></tr>`;
                 } else {
                     tbody.innerHTML = json.data.map(rowHtml).join('');
                 }
