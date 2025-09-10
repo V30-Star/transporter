@@ -28,6 +28,10 @@ class SupplierController extends Controller
             ->paginate(10)
             ->withQueryString();
 
+        foreach ($suppliers as $supplier) {
+            $supplier->faddress = trim($supplier->faddress ?? '');
+        }
+
         // permissions (sesuaikan penamaan dengan app kamu)
         $canCreate = in_array('createSupplier', explode(',', session('user_restricted_permissions', '')));
         $canEdit   = in_array('updateSupplier', explode(',', session('user_restricted_permissions', '')));

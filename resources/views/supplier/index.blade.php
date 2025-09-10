@@ -54,7 +54,7 @@
                         <td class="border px-2 py-1">{{ $item->fkontakperson ?? '-' }}</td>
                         <td class="border px-2 py-1">{{ $item->ftelp ?? '-' }}</td>
                         <td class="border px-2 py-1">
-                            {{ strlen(trim($item->faddress ?? '')) ? $item->faddress : '-' }}
+                            {{ !empty(trim($item->faddress)) ? $item->faddress : '-' }}
                         </td>
                         <td class="border px-2 py-1">{{ $item->fcity ?? '-' }}</td>
 
