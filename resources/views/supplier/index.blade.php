@@ -48,7 +48,7 @@
                         <td class="border px-2 py-1">{{ $item->fsuppliercode }}</td>
                         <td class="border px-2 py-1">{{ $item->fsuppliername }}</td>
                         <td class="border px-2 py-1">{{ $item->fkontakperson ?? '-' }}</td>
-                        <td class="border px-2 py-1">{{ $item->fphone ?? '-' }}</td>
+                        <td class="border px-2 py-1">{{ $item->ftelp ?? '-' }}</td>
                         <td class="border px-2 py-1">{{ $item->faddress ?? '-' }}</td>
                         <td class="border px-2 py-1">{{ $item->fcity ?? '-' }}</td>
 

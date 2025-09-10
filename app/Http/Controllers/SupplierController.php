@@ -10,7 +10,7 @@ class SupplierController extends Controller
     public function index(Request $request)
     {
         $search   = trim((string) $request->search);
-        $filterBy = $request->filter_by ?? 'all'; // 'all' | 'fsuppliercode' | 'fsuppliername'
+        $filterBy = $request->filter_by ?? 'all';
 
         $suppliers = Supplier::when($search !== '', function ($q) use ($search, $filterBy) {
             $q->where(function ($qq) use ($search, $filterBy) {
@@ -74,9 +74,14 @@ class SupplierController extends Controller
                 'fsuppliername' => 'required|string',
                 'fnpwp' => 'required|string',
                 'faddress' => 'required|string',
+                'fkontakperson' => '',
                 'ftelp' => 'required|string',
                 'ffax' => 'required|string',
                 'fcurr' => 'required|string',
+                'fjabatan' => '',
+                'ftempo' => '',
+                'fcity' => '',
+                'fmemo' => '',
             ],
             [
                 'fsuppliercode.unique' => 'Kode Supplier sudah ada.',
@@ -122,10 +127,15 @@ class SupplierController extends Controller
                 'fsuppliercode' => "required|string|unique:mssupplier,fsuppliercode,{$fsupplierid},fsupplierid",
                 'fsuppliername' => 'required|string',
                 'fnpwp' => 'required|string',
+                'fkontakperson' => '',
+                'fjabatan' => '',
+                'ftempo' => '',
+                'fmemo' => '',
                 'faddress' => 'required|string',
                 'ftelp' => 'required|string',
                 'ffax' => 'required|string',
                 'fcurr' => 'required|string', // Validate the currency field (fcurr)
+                'fcity' => '', // Validate the currency field (fcurr)
             ],
             [
                 'fsuppliercode.unique' => 'Kode Supplier sudah ada.',

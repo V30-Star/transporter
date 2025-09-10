@@ -25,7 +25,7 @@ class AccountController extends Controller
                 }
             });
         })
-            ->orderBy('faccid', 'desc')
+            ->orderBy('faccount', 'asc')
             ->paginate(10)
             ->withQueryString();
 
@@ -110,7 +110,7 @@ class AccountController extends Controller
                 'faccname'     => 'required|string|max:50',
                 'faccupline'  => 'nullable|integer|exists:account,faccid', // <— ganti ke faccid
                 'finitjurnal'  => 'nullable|string|max:2',
-                'fnormal'      => 'required|in:1,2',
+                'fnormal'      => 'required|in:D',
                 'fend'         => 'required|in:1,0',
                 'fuserlevel'   => 'required|in:1,2,3',
                 'fhavesubaccount'  => 'sometimes|boolean',
@@ -178,7 +178,7 @@ class AccountController extends Controller
             [
                 'faccount'     => "required|string|unique:account,faccount,{$faccid},faccid|max:10",
                 'faccname'     => 'required|string|max:50',
-                'fnormal'      => 'required|in:1,2',
+                'fnormal'      => 'required|in:D',
                 'finitjurnal'  => 'nullable|string|max:2',
                 'fend'         => 'required|in:1,0',
                 'fuserlevel'   => 'required|in:1,2,3',
@@ -186,7 +186,7 @@ class AccountController extends Controller
                     'nullable',
                     'integer',
                     Rule::exists('account', 'faccid')->where(fn($q) => $q->where('fend', 0)),
-                    Rule::notIn([$faccid]), 
+                    Rule::notIn([$faccid]),
                 ],
             ],
             [

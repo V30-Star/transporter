@@ -75,7 +75,8 @@
                 <div>
                     <label class="block text-sm font-medium">Jatuh Tempo</label>
                     <input type="number" name="ftempo" value="{{ old('ftempo', $supplier->ftempo) }}"
-                        class="w-full border rounded px-3 py-2 @error('ftempo') border-red-500 @enderror">
+                        class="w-full border rounded px-3 py-2 @error('ftempo') border-red-500 @enderror" min="0"
+                        max="999" step="1" oninput="this.value = this.value.replace(/[^0-9]/g,'').slice(0,3)">
                     @error('ftempo')
                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                     @enderror
