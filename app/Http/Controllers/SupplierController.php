@@ -24,7 +24,7 @@ class SupplierController extends Controller
                 }
             });
         })
-            ->orderBy('fsupplierid', 'desc')
+            ->orderBy('fsuppliercode', 'asc')
             ->paginate(10)
             ->withQueryString();
 
@@ -44,6 +44,10 @@ class SupplierController extends Controller
                     'fsupplierid'   => $s->fsupplierid,
                     'fsuppliercode' => $s->fsuppliercode,
                     'fsuppliername' => $s->fsuppliername,
+                    'faddress'      => $s->faddress,
+                    'ftelp'         => $s->ftelp,
+                    'fcity'         => $s->fcity,
+                    'fkontakperson' => $s->fkontakperson,
                     'edit_url'      => route('supplier.edit', $s->fsupplierid),
                     'destroy_url'   => route('supplier.destroy', $s->fsupplierid),
                 ];
