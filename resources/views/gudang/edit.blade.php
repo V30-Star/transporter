@@ -4,7 +4,7 @@
 
 @section('content')
     <div class="bg-white rounded shadow p-6 md:p-8 max-w-[700px] mx-auto">
-        <form action="{{ route('gudang.update', $gudang->fgudangid) }}" method="POST">
+        <form action="{{ route('gudang.update', $gudang->fwhid) }}" method="POST">
             @csrf
             @method('PATCH')
 
@@ -12,17 +12,17 @@
                 <!-- Field 1: Cabang (Dropdown) -->
                 <div>
                     <label class="block text-sm font-medium">Cabang</label>
-                    <select name="fcabangkode"
-                        class="w-full border rounded px-3 py-2 @error('fcabangkode') border-red-500 @enderror">
+                    <select name="fbranchcode"
+                        class="w-full border rounded px-3 py-2 @error('fbranchcode') border-red-500 @enderror">
                         <option value="">Pilih Cabang</option>
                         @foreach ($cabangOptions as $cabang)
-                            <option value="{{ $cabang->fcabangkode }}"
-                                {{ old('fcabangkode', $gudang->fcabangkode) == $cabang->fcabangkode ? 'selected' : '' }}>
+                            <option value="{{ $cabang->fbranchcode }}"
+                                {{ old('fbranchcode', $gudang->fbranchcode) == $cabang->fbranchcode ? 'selected' : '' }}>
                                 {{ $cabang->fcabangname }}
                             </option>
                         @endforeach
                     </select>
-                    @error('fcabangkode')
+                    @error('fbranchcode')
                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                     @enderror
                 </div>
@@ -30,9 +30,9 @@
                 <!-- Field 2: Kode Gudang -->
                 <div>
                     <label class="block text-sm font-medium">Kode Gudang</label>
-                    <input type="text" name="fgudangcode" value="{{ old('fgudangcode', $gudang->fgudangcode) }}"
-                        class="w-full border rounded px-3 py-2 @error('fgudangcode') border-red-500 @enderror">
-                    @error('fgudangcode')
+                    <input type="text" name="fwhcode" value="{{ old('fwhcode', $gudang->fwhcode) }}"
+                        class="w-full border rounded px-3 py-2 @error('fwhcode') border-red-500 @enderror">
+                    @error('fwhcode')
                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                     @enderror
                 </div>
@@ -40,9 +40,9 @@
                 <!-- Field 3: Nama Gudang -->
                 <div>
                     <label class="block text-sm font-medium">Nama Gudang</label>
-                    <input type="text" name="fgudangname" value="{{ old('fgudangname', $gudang->fgudangname) }}"
-                        class="w-full border rounded px-3 py-2 @error('fgudangname') border-red-500 @enderror">
-                    @error('fgudangname')
+                    <input type="text" name="fwhname" value="{{ old('fwhname', $gudang->fwhname) }}"
+                        class="w-full border rounded px-3 py-2 @error('fwhname') border-red-500 @enderror">
+                    @error('fwhname')
                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                     @enderror
                 </div>

@@ -13,7 +13,7 @@ class ProductBrowseController extends Controller
     $perPage = (int) $request->get('per_page', 10);
     $perPage = $perPage > 0 && $perPage <= 100 ? $perPage : 10;
 
-    $builder = DB::table('msproduct')
+    $builder = DB::table('msprd')
       ->select([
         'fproductcode',
         'fproductname',

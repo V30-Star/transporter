@@ -1,12 +1,12 @@
 <?php
 
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\Tr_pohController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\GroupcustomerController;
 use App\Http\Controllers\GroupproductController;
-use App\Http\Controllers\GudangController;
 use App\Http\Controllers\MerekController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\RekeningController;
@@ -20,6 +20,7 @@ use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\SysUserController;
 use App\Http\Controllers\Tr_prhController;
 use App\Http\Controllers\ApprovalController;
+use App\Http\Controllers\WhController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -96,12 +97,12 @@ Route::middleware('auth')->group(function () {
         Route::patch('/merek/{fmerekid}', [MerekController::class, 'update'])->name('merek.update');
         Route::delete('/merek/{fmerekid}', [MerekController::class, 'destroy'])->name('merek.destroy');
 
-        Route::get('/gudang', action: [GudangController::class, 'index'])->name('gudang.index');
-        Route::post('/gudang',        [GudangController::class, 'store'])->name('gudang.store');
-        Route::get('/gudang/create', [GudangController::class, 'create'])->name('gudang.create');
-        Route::get('/gudang/{fgudangid}/edit', [GudangController::class, 'edit'])->name('gudang.edit');
-        Route::patch('/gudang/{fgudangid}', [GudangController::class, 'update'])->name('gudang.update');
-        Route::delete('/gudang/{fgudangid}', [GudangController::class, 'destroy'])->name('gudang.destroy');
+        Route::get('/gudang', action: [WhController::class, 'index'])->name('gudang.index');
+        Route::post('/gudang',        [WhController::class, 'store'])->name('gudang.store');
+        Route::get('/gudang/create', [WhController::class, 'create'])->name('gudang.create');
+        Route::get('/gudang/{fwhid}/edit', [WhController::class, 'edit'])->name('gudang.edit');
+        Route::patch('/gudang/{fwhid}', [WhController::class, 'update'])->name('gudang.update');
+        Route::delete('/gudang/{fwhid}', [WhController::class, 'destroy'])->name('gudang.destroy');
 
         Route::get('/groupproduct', action: [GroupproductController::class, 'index'])->name('groupproduct.index');
         Route::post('/groupproduct',        [GroupproductController::class, 'store'])->name('groupproduct.store');
@@ -153,6 +154,15 @@ Route::middleware('auth')->group(function () {
         Route::delete('/tr_prh/{fprid}', [Tr_prhController::class, 'destroy'])->name('tr_prh.destroy');
         Route::get('/tr_prh/{fprno}/print', [Tr_prhController::class, 'print'])
             ->name('tr_prh.print');
+
+        Route::get('/tr_poh', action: [Tr_pohController::class, 'index'])->name('tr_poh.index');
+        Route::post('/tr_poh',        [Tr_pohController::class, 'store'])->name('tr_poh.store');
+        Route::get('/tr_poh/create', [Tr_pohController::class, 'create'])->name('tr_poh.create');
+        Route::get('/tr_poh/{fprid}/edit', [Tr_pohController::class, 'edit'])->name('tr_poh.edit');
+        Route::patch('/tr_poh/{fprid}', [Tr_pohController::class, 'update'])->name('tr_poh.update');
+        Route::delete('/tr_poh/{fprid}', [Tr_pohController::class, 'destroy'])->name('tr_poh.destroy');
+        Route::get('/tr_poh/{fprno}/print', [Tr_pohController::class, 'print'])
+            ->name('tr_poh.print');
 
         // routes/web.php
         Route::get('/products/browse', [\App\Http\Controllers\ProductBrowseController::class, 'index'])

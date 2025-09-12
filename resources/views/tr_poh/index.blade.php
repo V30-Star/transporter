@@ -1,18 +1,23 @@
 @extends('layouts.app')
 
-@section('title', 'Master Gudang')
+@section('title', 'Permintaan Order')
 
 @section('content')
     <div x-data="{
         showDeleteModal: false,
         deleteUrl: null,
-        openDelete(url) { this.deleteUrl = url;
-            this.showDeleteModal = true },
-        closeDelete() { this.showDeleteModal = false;
-            this.deleteUrl = null }
-    }" x-on:open-delete.window="openDelete($event.detail)" class="bg-white rounded shadow p-4">
+        openDelete(url) {
+            this.deleteUrl = url;
+            this.showDeleteModal = true
+        },
+        closeDelete() {
+            this.showDeleteModal = false;
+            this.deleteUrl = null
+        }
+    }" class="bg-white rounded shadow p-4">
+
         {{-- Search (Live) --}}
-        <form id="searchForm" method="GET" action="{{ route('gudang.index') }}"
+        <form id="searchForm" method="GET" action="{{ route('tr_poh.index') }}"
             class="flex flex-wrap justify-between items-center mb-4 gap-2">
             <div class="flex items-center space-x-2 w-full">
                 <label class="font-semibold">Search:</label>
@@ -23,9 +28,15 @@
         </form>
 
         @php
-            $canCreate = in_array('createGudang', explode(',', session('user_restricted_permissions', '')));
-            $canEdit = in_array('updateGudang', explode(',', session('user_restricted_permissions', '')));
-            $canDelete = in_array('deleteGudang', explode(',', session('user_restricted_permissions', '')));
+            $canCreate = true;
+            $canEdit = true;
+            $canDelete = true;
+        @endphp
+
+        @php
+            $canCreate = in_array('createTr_poh', explode(',', session('user_restricted_permissions', '')));
+            $canEdit = in_array('updateTr_poh', explode(',', session('user_restricted_permissions', '')));
+            $canDelete = in_array('deleteTr_poh', explode(',', session('user_restricted_permissions', '')));
             $showActionsColumn = $canEdit || $canDelete;
         @endphp
 
@@ -33,45 +44,42 @@
         <table class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
-                    <th class="border px-2 py-1">Cabang</th>
-                    <th class="border px-2 py-1">Kode Gudang</th>
-                    <th class="border px-2 py-1">Nama Gudang</th>
-                    <th class="border px-2 py-1">Alamat</th>
-                    @if ($showActionsColumn)
-                        <th class="border px-2 py-1">Aksi</th>
-                    @endif
+                    <th class="border px-2 py-1">ID PR</th>
+                    <th class="border px-2 py-1">No. PR</th>
+                    <th class="border px-2 py-1">Aksi</th>
                 </tr>
             </thead>
             <tbody id="tableBody">
-                @forelse($gudangs as $item)
+                @forelse($tr_poh as $item)
                     <tr class="hover:bg-gray-50">
-                        <td class="border px-2 py-1">{{ $item->cabang->fcabangname ?? 'N/A' }}</td>
-                        <td class="border px-2 py-1">{{ $item->fwhcode }}</td>
-                        <td class="border px-2 py-1">{{ $item->fwhname }}</td>
-                        <td class="border px-2 py-1">{{ $item->faddress }}</td>
-                        @if ($showActionsColumn)
-                            <td class="border px-2 py-1 space-x-2">
-                                @if ($canEdit)
-                                    <a href="{{ route('gudang.edit', $item->fwhid) }}">
-                                        <button
-                                            class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
-                                            <x-heroicon-o-pencil-square class="w-4 h-4 mr-1" /> Edit
-                                        </button>
-                                    </a>
-                                @endif
-                                @if ($canDelete)
+                        <td class="border px-2 py-1">{{ $item->fprid }}</td>
+                        <td class="border px-2 py-1">{{ $item->fprno }}</td>
+                        <td class="border px-2 py-1 space-x-2">
+                            {{-- @if ($canEdit) --}}
+                                <a href="{{ route('tr_poh.edit', $item->fprid) }}">
                                     <button
-                                        @click="$dispatch('open-delete', '{{ route('gudang.destroy', $item->fwhid) }}')"
-                                        class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
-                                        <x-heroicon-o-trash class="w-4 h-4 mr-1" /> Hapus
+                                        class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
+                                        <x-heroicon-o-pencil-square class="w-4 h-4 mr-1" /> Edit
                                     </button>
-                                @endif
-                            </td>
-                        @endif
+                                </a>
+                            {{-- @endif --}}
+
+                            {{-- @if ($canDelete) --}}
+                                <button @click="openDelete('{{ route('tr_poh.destroy', $item->fprid) }}')"
+                                    class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                                    <x-heroicon-o-trash class="w-4 h-4 mr-1" /> Hapus
+                                </button>
+                            {{-- @endif --}}
+
+                            <a href="{{ route('tr_poh.print', $item->fprno) }}" target="_blank" rel="noopener"
+                                class="inline-flex items-center px-3 py-1 rounded bg-gray-100 hover:bg-gray-200">
+                                <x-heroicon-o-printer class="w-4 h-4 mr-1" /> Print
+                            </a>
+                        </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="{{ $showActionsColumn ? 5 : 4 }}" class="text-center py-4">Tidak ada data.</td>
+                        <td colspan="{{ $showActionsColumn ? 3 : 2 }}" class="text-center py-4">Tidak ada data.</td>
                     </tr>
                 @endforelse
             </tbody>
@@ -96,30 +104,31 @@
             </div>
         </div>
 
-        {{-- Bottom actions + Pagination (AJAX aware) --}}
+        {{-- Bottom actions & AJAX pagination --}}
         <div id="pagination" class="mt-4 flex justify-between items-center">
             <div class="space-x-2">
-                @if ($canCreate)
-                    <a href="{{ route('gudang.create') }}"
+                {{-- @if ($canCreate) --}}
+                    <a href="{{ route('tr_poh.create') }}"
                         class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
                         <x-heroicon-o-plus class="w-4 h-4 mr-1" /> Baru
                     </a>
-                @endif
+                {{-- @endif --}}
             </div>
+
             <div class="flex items-center space-x-2">
                 <button id="prevBtn"
-                    class="px-3 py-1 rounded border hover:bg-gray-100 {{ $gudangs->onFirstPage() ? 'opacity-50' : '' }}"
-                    {{ $gudangs->onFirstPage() ? 'disabled' : '' }}
-                    data-page="{{ $gudangs->previousPageUrl() ?? '' }}">&larr;</button>
+                    class="px-3 py-1 rounded border hover:bg-gray-100 {{ $tr_poh->onFirstPage() ? 'opacity-50' : '' }}"
+                    {{ $tr_poh->onFirstPage() ? 'disabled' : '' }}
+                    data-page="{{ $tr_poh->previousPageUrl() ?? '' }}">&larr;</button>
 
                 <span id="pageInfo" class="text-sm">
-                    Page {{ $gudangs->currentPage() }} of {{ $gudangs->lastPage() }}
+                    Page {{ $tr_poh->currentPage() }} of {{ $tr_poh->lastPage() }}
                 </span>
 
                 <button id="nextBtn"
-                    class="px-3 py-1 rounded border hover:bg-gray-100 {{ $gudangs->hasMorePages() ? '' : 'opacity-50' }}"
-                    {{ $gudangs->hasMorePages() ? '' : 'disabled' }}
-                    data-page="{{ $gudangs->nextPageUrl() ?? '' }}">&rarr;</button>
+                    class="px-3 py-1 rounded border hover:bg-gray-100 {{ $tr_poh->hasMorePages() ? '' : 'opacity-50' }}"
+                    {{ $tr_poh->hasMorePages() ? '' : 'disabled' }}
+                    data-page="{{ $tr_poh->nextPageUrl() ?? '' }}">&rarr;</button>
             </div>
         </div>
     </div>
@@ -138,47 +147,45 @@
             let timer = null,
                 lastAbort = null;
 
-            // izins from server (bisa di-update dari JSON response)
             let perms = {
-                can_edit: {!! json_encode($canEdit) !!},
-                can_delete: {!! json_encode($canDelete) !!}
+                can_edit: true,
+                can_delete: true
             };
 
-            // helper buka modal hapus dari hasil AJAX
             window.openDeleteModal = function(url) {
-                window.dispatchEvent(new CustomEvent('open-delete', {
-                    detail: url
-                }));
+                document.querySelector('[x-data]').__x.$data.openDelete(url);
             };
 
             function aksiButtons(item) {
                 let html = '';
                 if (perms.can_edit) {
                     html += `<a href="${item.edit_url}"
-                  class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
-                  Edit
-               </a>`;
+                      class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
+                      Edit
+                     </a>`;
                 }
                 if (perms.can_delete) {
                     html += `<button onclick="window.openDeleteModal('${item.destroy_url}')"
-                  class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 ml-2">
-                  Hapus
-               </button>`;
+                         class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 ml-2">
+                         Hapus
+                     </button>`;
                 }
+                html += `<a href="${item.print_url ?? '#'}" target="_blank" rel="noopener"
+                    class="inline-flex items-center px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 ml-2">
+                    Print
+                    </a>`;
                 return html;
             }
 
             function rowHtml(item) {
                 const actions = aksiButtons(item);
+                const showAksi = (perms.can_edit || perms.can_delete) || true;
                 return `
-      <tr class="hover:bg-gray-50">
-        <td class="border px-2 py-1">${item.cabang_name ?? 'N/A'}</td>
-        <td class="border px-2 py-1">${item.fgudangcode ?? ''}</td>
-        <td class="border px-2 py-1">${item.fgudangname ?? ''}</td>
-        <td class="border px-2 py-1">${item.faddress ?? ''}</td>
-        ${(perms.can_edit || perms.can_delete) ? `<td class="border px-2 py-1">${actions}</td>` : ''}
-      </tr>
-    `;
+        <tr class="hover:bg-gray-50">
+            <td class="border px-2 py-1">${item.fprid ?? ''}</td>
+            <td class="border px-2 py-1">${item.fprno ?? ''}</td>
+            ${ showAksi ? `<td class="border px-2 py-1">${actions}</td>` : '' }
+        </tr>`;
             }
 
             function render(json) {
@@ -189,12 +196,11 @@
                 if (json.data.length === 0) {
                     const colCount = document.querySelector('thead tr').children.length;
                     tbody.innerHTML =
-                    `<tr><td colspan="${colCount}" class="text-center py-4">Tidak ada data.</td></tr>`;
+                        `<tr><td colspan="${colCount}" class="text-center py-4">Tidak ada data.</td></tr>`;
                 } else {
                     tbody.innerHTML = json.data.map(rowHtml).join('');
                 }
 
-                // pagination state
                 prevBtn.dataset.page = json.links.prev || '';
                 nextBtn.dataset.page = json.links.next || '';
                 prevBtn.disabled = !json.links.prev;
@@ -228,22 +234,18 @@
                 }
                 const base = form.getAttribute('action');
                 const params = new URLSearchParams(new FormData(form));
-                params.delete('page'); // reset ke page 1 saat ngetik
+                params.delete('page');
                 return `${base}?${params.toString()}`;
             }
 
-            // live search (debounce)
             input.addEventListener('input', () => {
                 clearTimeout(timer);
                 timer = setTimeout(() => fetchTable(buildUrl()), 300);
             });
-
-            // cegah submit Enter
             input.addEventListener('keydown', e => {
                 if (e.key === 'Enter') e.preventDefault();
             });
 
-            // pagination ajax
             document.getElementById('pagination')?.addEventListener('click', e => {
                 if (e.target.tagName === 'BUTTON' && e.target.dataset.page) {
                     e.preventDefault();

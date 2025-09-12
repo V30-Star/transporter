@@ -16,14 +16,14 @@ use App\Mail\ApprovalEmail;
 use Illuminate\Support\Facades\Mail;
 
 
-class Tr_prhController extends Controller
+class Tr_pohController extends Controller
 {
   public function index(Request $request)
   {
     $search   = trim((string) $request->search);
     $filterBy = $request->filter_by ?? 'all'; // all | fprno | fprdin
 
-    $tr_prh = Tr_prh::when($search !== '', function ($q) use ($search, $filterBy) {
+    $tr_poh = Tr_prh::when($search !== '', function ($q) use ($search, $filterBy) {
       $q->where(function ($qq) use ($search, $filterBy) {
         if ($filterBy === 'fprno') {
           $qq->where('fprno', 'ILIKE', "%{$search}%");
@@ -46,14 +46,14 @@ class Tr_prhController extends Controller
 
     // Response AJAX
     if ($request->ajax()) {
-      $rows = collect($tr_prh->items())->map(function ($t) {
+      $rows = collect($tr_poh->items())->map(function ($t) {
         return [
           'fprid'  => $t->fprid,
           'fprno'  => $t->fprno,
           'fprdin' => $t->fprdin,
-          'edit_url'    => route('tr_prh.edit', $t->fprid),
-          'destroy_url' => route('tr_prh.destroy', $t->fprid),
-          'print_url'   => route('tr_prh.print', $t->fprno), // ← tambah ini
+          'edit_url'    => route('tr_poh.edit', $t->fprid),
+          'destroy_url' => route('tr_poh.destroy', $t->fprid),
+          'print_url'   => route('tr_poh.print', $t->fprno), // ← tambah ini
         ];
       });
 
@@ -61,16 +61,16 @@ class Tr_prhController extends Controller
         'data'  => $rows,
         'perms' => ['can_create' => true, 'can_edit' => true, 'can_delete' => true],
         'links' => [
-          'prev'         => $tr_prh->previousPageUrl(),
-          'next'         => $tr_prh->nextPageUrl(),
-          'current_page' => $tr_prh->currentPage(),
-          'last_page'    => $tr_prh->lastPage(),
+          'prev'         => $tr_poh->previousPageUrl(),
+          'next'         => $tr_poh->nextPageUrl(),
+          'current_page' => $tr_poh->currentPage(),
+          'last_page'    => $tr_poh->lastPage(),
         ],
       ]);
     }
 
     // Render awal
-    return view('tr_prh.index', compact('tr_prh', 'filterBy', 'search', 'canCreate', 'canEdit', 'canDelete'));
+    return view('tr_poh.index', compact('tr_poh', 'filterBy', 'search', 'canCreate', 'canEdit', 'canDelete'));
   }
 
   private function generatetr_prh_Code(?Carbon $onDate = null, $branch = null): string
@@ -134,12 +134,12 @@ class Tr_prhController extends Controller
 
     $hdr = Tr_prh::query()
       ->leftJoinSub($supplierSub, 's', function ($join) {
-        $join->on('s.fsuppliercode', '=', 'tr_prh.fsupplier');
+        $join->on('s.fsuppliercode', '=', 'tr_poh.fsupplier');
       })
-      ->leftJoin('mscabang as c', 'c.fcabangkode', '=', 'tr_prh.fbranchcode')
-      ->where('tr_prh.fprno', $fprno)
+      ->leftJoin('mscabang as c', 'c.fcabangkode', '=', 'tr_poh.fbranchcode')
+      ->where('tr_poh.fprno', $fprno)
       ->first([
-        'tr_prh.*',
+        'tr_poh.*',
         's.fsuppliername as supplier_name',
         'c.fcabangname as cabang_name',
       ]);
@@ -158,7 +158,7 @@ class Tr_prhController extends Controller
 
     $fmt = fn($d) => $d ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y') : '-';
 
-    return view('tr_prh.print', [
+    return view('tr_poh.print', [
       'hdr' => $hdr,
       'dt'  => $dt,
       'fmt' => $fmt,
@@ -201,7 +201,7 @@ class Tr_prhController extends Controller
     )->orderBy('fproductname')
       ->get();
 
-    return view('tr_prh.create', [
+    return view('tr_poh.create', [
       'newtr_prh_code' => $newtr_prh_code,
       'perms' => ['can_approval' => $canApproval],
       'supplier'       => $supplier,
@@ -320,7 +320,7 @@ class Tr_prhController extends Controller
     DB::transaction(function () use ($request, $fprno, $fprdate, $fneeddate, $fduedate, $userName, $detailRows, $codes, $qtys) {
       // Menyimpan data header
       $isApproval = (int)($request->input('fapproval', 0)); // 1 jika dicentang, 0 jika tidak
-      $tr_prh = Tr_prh::create([
+      $tr_poh = Tr_prh::create([
         'fprno'         => $fprno,
         'fprdate'       => $fprdate,
         'fsupplier'     => $request->fsupplier,
@@ -373,7 +373,7 @@ class Tr_prhController extends Controller
       }
     });
 
-    return redirect()->route('tr_prh.index')
+    return redirect()->route('tr_poh.index')
       ->with('success', 'Permintaan pembelian berhasil ditambahkan.');
   }
 
@@ -394,7 +394,7 @@ class Tr_prhController extends Controller
     $fbranchcode = $branch->fcabangkode ?? (string) $raw;   // hidden post
 
     // >>> MUAT HEADER + DETAIL BERDASARKAN fprid
-    $tr_prh = Tr_prh::with(['details' => function ($q) {
+    $tr_poh = Tr_prh::with(['details' => function ($q) {
       $q->orderBy('fprdcode');
     }])->where('fprid', $fprid)->firstOrFail();
 
@@ -420,13 +420,13 @@ class Tr_prhController extends Controller
       ];
     })->toArray();
 
-    return view('tr_prh.edit', [
+    return view('tr_poh.edit', [
       'supplier'     => $supplier,
       'fcabang'      => $fcabang,
       'fbranchcode'  => $fbranchcode,
       'products'     => $products,
       'productMap'   => $productMap, // jika dipakai di Blade
-      'tr_prh'       => $tr_prh,     // <<— PENTING
+      'tr_poh'       => $tr_poh,     // <<— PENTING
     ]);
   }
 
@@ -578,7 +578,7 @@ class Tr_prhController extends Controller
       }
     });
 
-    return redirect()->route('tr_prh.index')->with('success', 'Permintaan pembelian berhasil diperbarui.');
+    return redirect()->route('tr_poh.index')->with('success', 'Permintaan pembelian berhasil diperbarui.');
   }
 
   public function destroy($fsatuanid)
@@ -587,7 +587,7 @@ class Tr_prhController extends Controller
     $satuan->delete();
 
     return redirect()
-      ->route('tr_prh.index')
+      ->route('tr_poh.index')
       ->with('success', 'Satuan berhasil dihapus.');
   }
 }

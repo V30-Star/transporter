@@ -63,7 +63,7 @@ class ProductController extends Controller
     {
         $term = (string) $request->get('term', '');
 
-        $q = DB::table('msproduct')->whereNotNull('fproductname');
+        $q = DB::table('msprd')->whereNotNull('fproductname');
 
         if ($term !== '') {
             $q->where('fproductname', 'ILIKE', "%{$term}%");
@@ -187,7 +187,7 @@ class ProductController extends Controller
         // Validate the incoming data
         $validated = $request->validate(
             [
-                'fproductcode' => "required|string|unique:msproduct,fproductcode,{$fproductid},fproductid",
+                'fproductcode' => "required|string|unique:msprd,fproductcode,{$fproductid},fproductid",
                 'fproductname' => 'required|string',
                 'ftype' => 'string',
                 'fbarcode' => 'string',
