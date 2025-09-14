@@ -18,12 +18,12 @@ class ApprovalController extends Controller
     $hdr = Tr_prh::where('fprno', $fprno)->first();
     if (!$hdr) return redirect()->route('tr_prh.index')->with('error', 'Permintaan Pembelian tidak ditemukan.');
     $dt = Tr_prd::query()
-      ->leftJoin('msprd as p', 'p.fproductcode', '=', 'tr_prd.fprdcode')
+      ->leftJoin('msprd as p', 'p.fprdcode', '=', 'tr_prd.fprdcode')
       ->where('tr_prd.fprnoid', $hdr->fprno)
       ->orderBy('tr_prd.fprdcode')
       ->get([
         'tr_prd.*',
-        'p.fproductname as product_name',
+        'p.fprdname as product_name',
         'p.fminstock as stock',
       ]);
     return view('approvalPage', compact('hdr', 'dt'))
@@ -74,7 +74,7 @@ class ApprovalController extends Controller
   public function infoApprovalPage(string $fprno)
   {
     $pr = Tr_prh::where('fprno', $fprno)->firstOrFail();
-    
+
     return view('infoApprovalPage', compact('pr'));
   }
 }

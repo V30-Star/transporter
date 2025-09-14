@@ -55,14 +55,14 @@
                 <tbody id="tableBody">
                     @forelse($products as $item)
                         <tr class="hover:bg-gray-50">
-                            <td class="border px-2 py-1">{{ $item->fproductcode }}</td>
-                            <td class="border px-2 py-1">{{ $item->fproductname }}</td>
+                            <td class="border px-2 py-1">{{ $item->fprdcode }}</td>
+                            <td class="border px-2 py-1">{{ $item->fprdname }}</td>
                             <td class="border px-2 py-1">{{ $item->fsatuankecil }}</td>
                             <td class="border px-2 py-1">{{ $item->fminstock }}</td>
                             @if ($showActionsColumn)
                                 <td class="border px-2 py-1 space-x-2">
                                     @if ($canEdit)
-                                        <a href="{{ route('product.edit', $item->fproductid) }}">
+                                        <a href="{{ route('product.edit', $item->fprdid) }}">
                                             <button
                                                 class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
                                                 <x-heroicon-o-pencil-square class="w-4 h-4 mr-1" /> Edit
@@ -70,7 +70,7 @@
                                         </a>
                                     @endif
                                     @if ($canDelete)
-                                        <button @click="openDelete('{{ route('product.destroy', $item->fproductid) }}')"
+                                        <button @click="openDelete('{{ route('product.destroy', $item->fprdid) }}')"
                                             class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
                                             <x-heroicon-o-trash class="w-4 h-4 mr-1" /> Hapus
                                         </button>
@@ -145,8 +145,8 @@
                     <tbody>
                         @foreach ($products as $item)
                             <tr>
-                                <td class="border px-2 py-1">{{ $item->fproductcode }}</td>
-                                <td class="border px-2 py-1">{{ $item->fproductname }}</td>
+                                <td class="border px-2 py-1">{{ $item->fprdcode }}</td>
+                                <td class="border px-2 py-1">{{ $item->fprdname }}</td>
                                 <td class="border px-2 py-1">{{ $item->fstok }}</td>
                                 <td class="border px-2 py-1">{{ $item->fsatuan }}</td>
                             </tr>
@@ -174,8 +174,8 @@
                     <tbody>
                         @foreach ($products as $item)
                             <tr>
-                                <td class="border px-2 py-1">{{ $item->fproductcode }}</td>
-                                <td class="border px-2 py-1">{{ $item->fproductname }}</td>
+                                <td class="border px-2 py-1">{{ $item->fprdcode }}</td>
+                                <td class="border px-2 py-1">{{ $item->fprdname }}</td>
                                 <td class="border px-2 py-1">{{ $item->fstok }}</td>
                                 <td class="border px-2 py-1">{{ $item->fsatuan }}</td>
                                 <td class="border px-2 py-1">{{ $item->fsatuan }}</td>
@@ -204,8 +204,8 @@
                     <tbody>
                         @foreach ($products as $item)
                             <tr>
-                                <td class="border px-2 py-1">{{ $item->fproductcode }}</td>
-                                <td class="border px-2 py-1">{{ $item->fproductname }}</td>
+                                <td class="border px-2 py-1">{{ $item->fprdcode }}</td>
+                                <td class="border px-2 py-1">{{ $item->fprdname }}</td>
                                 <td class="border px-2 py-1">{{ $item->fstok }}</td>
                                 <td class="border px-2 py-1">{{ $item->fsatuan }}</td>
                                 <td class="border px-2 py-1">{{ $item->fsatuan }}</td>
@@ -281,8 +281,8 @@
 
                     return `
       <tr class="hover:bg-gray-50">
-        <td class="border px-2 py-1">${item.fproductcode ?? ''}</td>
-        <td class="border px-2 py-1">${item.fproductname ?? ''}</td>
+        <td class="border px-2 py-1">${item.fprdcode ?? ''}</td>
+        <td class="border px-2 py-1">${item.fprdname ?? ''}</td>
         <td class="border px-2 py-1">${item.fsatuankecil ?? ''}</td>
         <td class="border px-2 py-1">${item.fminstock ?? 0}</td>
         ${aksiTd}
@@ -298,7 +298,7 @@
                     if (json.data.length === 0) {
                         const colCount = document.querySelector('thead tr').children.length;
                         tbody.innerHTML =
-                        `<tr><td colspan="${colCount}" class="text-center py-4">Tidak ada data.</td></tr>`;
+                            `<tr><td colspan="${colCount}" class="text-center py-4">Tidak ada data.</td></tr>`;
                     } else {
                         tbody.innerHTML = json.data.map(rowHtml).join('');
                     }

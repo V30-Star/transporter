@@ -114,16 +114,16 @@ Route::middleware('auth')->group(function () {
         Route::get('/product', action: [ProductController::class, 'index'])->name('product.index');
         Route::post('/product',        [ProductController::class, 'store'])->name('product.store');
         Route::get('/product/create', [ProductController::class, 'create'])->name('product.create');
-        Route::get('/product/{fproductid}/edit', [ProductController::class, 'edit'])->name('product.edit');
-        Route::patch('/product/{fproductid}', [ProductController::class, 'update'])->name('product.update');
-        Route::delete('/product/{fproductid}', [ProductController::class, 'destroy'])->name('product.destroy');
+        Route::get('/product/{fprdid}/edit', [ProductController::class, 'edit'])->name('product.edit');
+        Route::patch('/product/{fprdid}', [ProductController::class, 'update'])->name('product.update');
+        Route::delete('/product/{fprdid}', [ProductController::class, 'destroy'])->name('product.destroy');
 
         Route::get('/supplier', action: [SupplierController::class, 'index'])->name('supplier.index');
         Route::post('/supplier',        [SupplierController::class, 'store'])->name('supplier.store');
         Route::get('/supplier/create', [SupplierController::class, 'create'])->name('supplier.create');
-        Route::get('/supplier/{fproductid}/edit', [SupplierController::class, 'edit'])->name('supplier.edit');
-        Route::patch('/supplier/{fproductid}', [SupplierController::class, 'update'])->name('supplier.update');
-        Route::delete('/supplier/{fproductid}', [SupplierController::class, 'destroy'])->name('supplier.destroy');
+        Route::get('/supplier/{fprdid}/edit', [SupplierController::class, 'edit'])->name('supplier.edit');
+        Route::patch('/supplier/{fprdid}', [SupplierController::class, 'update'])->name('supplier.update');
+        Route::delete('/supplier/{fprdid}', [SupplierController::class, 'destroy'])->name('supplier.destroy');
 
         Route::get('/subaccount', action: [SubaccountController::class, 'index'])->name('subaccount.index');
         Route::post('/subaccount',        [SubaccountController::class, 'store'])->name('subaccount.store');

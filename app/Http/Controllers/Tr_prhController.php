@@ -147,12 +147,12 @@ class Tr_prhController extends Controller
     abort_if(!$hdr, 404);
 
     $dt = Tr_prd::query()
-      ->leftJoin('msprd as p', 'p.fproductcode', '=', 'tr_prd.fprdcode')
+      ->leftJoin('msprd as p', 'p.fprdcode', '=', 'tr_prd.fprdcode')
       ->where('tr_prd.fprnoid', $hdr->fprno)
       ->orderBy('tr_prd.fprdcode')
       ->get([
         'tr_prd.*',
-        'p.fproductname as product_name',
+        'p.fprdname as product_name',
         'p.fminstock as stock',
       ]);
 
@@ -191,14 +191,14 @@ class Tr_prhController extends Controller
     $newtr_prh_code = $this->generatetr_prh_Code(now(), $fbranchcode);
 
     $products = Product::select(
-      'fproductid',
-      'fproductcode',
-      'fproductname',
+      'fprdid',
+      'fprdcode',
+      'fprdname',
       'fsatuankecil',
       'fsatuanbesar',
       'fsatuanbesar2',
       'fminstock'
-    )->orderBy('fproductname')
+    )->orderBy('fprdname')
       ->get();
 
     return view('tr_prh.create', [
@@ -260,7 +260,7 @@ class Tr_prhController extends Controller
     $ketdts  = $request->input('fketdt', []);
 
     // Cek stok produk
-    $stocks = Product::whereIn('fproductcode', $codes)->pluck('fminstock', 'fproductcode');
+    $stocks = Product::whereIn('fprdcode', $codes)->pluck('fminstock', 'fprdcode');
 
     $validator = Validator::make([], []);
     foreach ($codes as $i => $code) {
@@ -346,7 +346,7 @@ class Tr_prhController extends Controller
         $qty = (int)($qtys[$i] ?? 0);
         if ($qty > 0) {
           DB::table('msprd')
-            ->where('fproductcode', $code)
+            ->where('fprdcode', $code)
             ->update([
               'fminstock' => DB::raw("CAST(fminstock AS INTEGER) - $qty"),
               'fupdatedat' => now(),
@@ -357,12 +357,12 @@ class Tr_prhController extends Controller
       if ($isApproval === 1) {
         $hdr = Tr_prh::where('fprno', $fprno)->first();
         $dt = Tr_prd::query()
-          ->leftJoin('msprd as p', 'p.fproductcode', '=', 'tr_prd.fprdcode')
+          ->leftJoin('msprd as p', 'p.fprdcode', '=', 'tr_prd.fprdcode')
           ->where('tr_prd.fprnoid', $hdr->fprno)
           ->orderBy('tr_prd.fprdcode')
           ->get([
             'tr_prd.*',
-            'p.fproductname as product_name',
+            'p.fprdname as product_name',
             'p.fminstock as stock',
           ]);
 
@@ -400,20 +400,20 @@ class Tr_prhController extends Controller
 
     // Data produk untuk dropdown & map satuan
     $products = Product::select(
-      'fproductid',
-      'fproductcode',
-      'fproductname',
+      'fprdid',
+      'fprdcode',
+      'fprdname',
       'fsatuankecil',
       'fsatuanbesar',
       'fsatuanbesar2',
       'fminstock'
-    )->orderBy('fproductname')->get();
+    )->orderBy('fprdname')->get();
 
     // (opsional) productMap server-side jika ingin dipakai di Blade
     $productMap = $products->mapWithKeys(function ($p) {
       return [
-        $p->fproductcode => [
-          'name'  => $p->fproductname,
+        $p->fprdcode => [
+          'name'  => $p->fprdname,
           'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
           'stock' => $p->fminstock ?? 0,
         ],
@@ -482,7 +482,7 @@ class Tr_prhController extends Controller
     $ketdts = $request->input('fketdt', []);
 
     // Cek stok vs qty
-    $stocks = Product::whereIn('fproductcode', $codes)->pluck('fminstock', 'fproductcode');
+    $stocks = Product::whereIn('fprdcode', $codes)->pluck('fminstock', 'fprdcode');
     $extraValidator = Validator::make([], []);
     foreach ($codes as $i => $code) {
       $max = (int)($stocks[$code] ?? 0);
@@ -569,7 +569,7 @@ class Tr_prhController extends Controller
         $qty = (int)($qtys[$i] ?? 0);
         if ($qty > 0) {
           DB::table('msprd')
-            ->where('fproductcode', $code)
+            ->where('fprdcode', $code)
             ->update([
               'fminstock'  => DB::raw("CAST(fminstock AS INTEGER) - $qty"),
               'fupdatedat' => now(),

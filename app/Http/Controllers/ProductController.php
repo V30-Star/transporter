@@ -17,11 +17,11 @@ class ProductController extends Controller
 
         $products = Product::when($search !== '', function ($q) use ($search) {
             $q->where(function ($qq) use ($search) {
-                $qq->where('fproductcode', 'ILIKE', "%{$search}%")
-                    ->orWhere('fproductname', 'ILIKE', "%{$search}%");
+                $qq->where('fprdcode', 'ILIKE', "%{$search}%")
+                    ->orWhere('fprdname', 'ILIKE', "%{$search}%");
             });
         })
-            ->orderBy('fproductid', 'desc')
+            ->orderBy('fprdid', 'desc')
             ->paginate(10)
             ->withQueryString();
 
@@ -34,13 +34,13 @@ class ProductController extends Controller
             // kirim field yang dipakai tabel + url aksi
             $rows = collect($products->items())->map(function ($p) {
                 return [
-                    'fproductid'    => $p->fproductid,
-                    'fproductcode'  => $p->fproductcode,
-                    'fproductname'  => $p->fproductname,
+                    'fprdid'    => $p->fprdid,
+                    'fprdcode'  => $p->fprdcode,
+                    'fprdname'  => $p->fprdname,
                     'fsatuankecil'  => $p->fsatuankecil,
                     'fminstock'     => $p->fminstock,
-                    'edit_url'      => route('product.edit', $p->fproductid),
-                    'destroy_url'   => route('product.destroy', $p->fproductid),
+                    'edit_url'      => route('product.edit', $p->fprdid),
+                    'destroy_url'   => route('product.destroy', $p->fprdid),
                 ];
             });
 
@@ -63,25 +63,25 @@ class ProductController extends Controller
     {
         $term = (string) $request->get('term', '');
 
-        $q = DB::table('msprd')->whereNotNull('fproductname');
+        $q = DB::table('msprd')->whereNotNull('fprdname');
 
         if ($term !== '') {
-            $q->where('fproductname', 'ILIKE', "%{$term}%");
+            $q->where('fprdname', 'ILIKE', "%{$term}%");
         }
 
         $names = $q->distinct()
-            ->orderBy('fproductname')
+            ->orderBy('fprdname')
             ->limit(15)
-            ->pluck('fproductname');
+            ->pluck('fprdname');
 
         return response()->json($names);
     }
 
     private function generateProductCode(): string
     {
-        $lastCode = Product::where('fproductcode', 'like', 'C-%')
-            ->orderByRaw("CAST(SUBSTRING(fproductcode FROM 3) AS INTEGER) DESC")
-            ->value('fproductcode');
+        $lastCode = Product::where('fprdcode', 'like', 'C-%')
+            ->orderByRaw("CAST(SUBSTRING(fprdcode FROM 3) AS INTEGER) DESC")
+            ->value('fprdcode');
 
         if (!$lastCode) {
             return 'C-01';
@@ -109,8 +109,8 @@ class ProductController extends Controller
         // Validate the incoming request
         $validated = $request->validate(
             [
-                'fproductcode' => 'nullable|string',
-                'fproductname' => 'required|string',
+                'fprdcode' => 'nullable|string',
+                'fprdname' => 'required|string',
                 'ftype' => 'string',
                 'fbarcode' => 'string',
                 'fgroupcode' => 'required', // Validate that fgroupcode exists in groups table
@@ -131,8 +131,8 @@ class ProductController extends Controller
                 'fminstock' => 'numeric', // Validate if nonactive is checked
             ],
             [
-                'fproductcode.unique' => 'Kode Produk sudah ada, silakan gunakan kode yang lain.',
-                'fproductname.required' => 'Nama Produk harus diisi.',
+                'fprdcode.unique' => 'Kode Produk sudah ada, silakan gunakan kode yang lain.',
+                'fprdname.required' => 'Nama Produk harus diisi.',
                 'ftype.required' => 'Tipe Produk harus diisi.',
                 'fbarcode.required' => 'Barcode Produk harus diisi.',
                 'fgroupcode.required' => 'Group Produk harus dipilih.',
@@ -152,8 +152,8 @@ class ProductController extends Controller
             ]
         );
 
-        if (empty($request->fproductcode)) {
-            $validated['fproductcode'] = $this->generateProductCode();
+        if (empty($request->fprdcode)) {
+            $validated['fprdcode'] = $this->generateProductCode();
         }
 
         $validated['fapproval'] = auth('sysuser')->user()->fname ?? null;
@@ -182,13 +182,13 @@ class ProductController extends Controller
         return view('product.edit', compact('product', 'groups', 'merks', 'satuan'));
     }
 
-    public function update(Request $request, $fproductid)
+    public function update(Request $request, $fprdid)
     {
         // Validate the incoming data
         $validated = $request->validate(
             [
-                'fproductcode' => "required|string|unique:msprd,fproductcode,{$fproductid},fproductid",
-                'fproductname' => 'required|string',
+                'fprdcode' => "required|string|unique:msprd,fprdcode,{$fprdid},fprdid",
+                'fprdname' => 'required|string',
                 'ftype' => 'string',
                 'fbarcode' => 'string',
                 'fgroupcode' => 'required', // Validate that fgroupcode exists in groups table
@@ -209,8 +209,8 @@ class ProductController extends Controller
                 'fminstock' => 'numeric', // Validate if nonactive is checked
             ],
             [
-                'fproductcode.unique' => 'Kode Produk sudah ada, silakan gunakan kode yang lain.',
-                'fproductname.required' => 'Nama Produk harus diisi.',
+                'fprdcode.unique' => 'Kode Produk sudah ada, silakan gunakan kode yang lain.',
+                'fprdname.required' => 'Nama Produk harus diisi.',
                 'ftype.required' => 'Tipe Produk harus diisi.',
                 'fbarcode.required' => 'Barcode Produk harus diisi.',
                 'fgroupcode.required' => 'Group Produk harus dipilih.',
@@ -240,7 +240,7 @@ class ProductController extends Controller
         $validated['fupdatedat'] = now(); // Use the current time
 
         $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
-        $product = Product::findOrFail($fproductid);
+        $product = Product::findOrFail($fprdid);
         $product->update($validated);
 
         return redirect()
@@ -248,10 +248,10 @@ class ProductController extends Controller
             ->with('success', 'Product berhasil di-update.');
     }
 
-    public function destroy($fproductid)
+    public function destroy($fprdid)
     {
         // Find and delete the Product
-        $product = Product::findOrFail($fproductid);
+        $product = Product::findOrFail($fprdid);
         $product->delete();
 
         return redirect()

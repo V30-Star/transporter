@@ -522,9 +522,9 @@
                         <div class="col-span-8">
                             <!-- biarkan textarea Deskripsi milikmu di sini -->
                             <!-- contoh:
-        <label class="block text-sm font-medium mb-1">Deskripsi</label>
-        <textarea x-model="formDesc" rows="4" class="w-full border rounded px-3 py-2"></textarea>
-        -->
+                <label class="block text-sm font-medium mb-1">Deskripsi</label>
+                <textarea x-model="formDesc" rows="4" class="w-full border rounded px-3 py-2"></textarea>
+                -->
                         </div>
 
                         <!-- Kanan: panel totals -->
@@ -711,10 +711,10 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <template x-for="p in rows" :key="p.fproductcode">
+                                    <template x-for="p in rows" :key="p.fprdcode">
                                         <tr class="border-b hover:bg-gray-50">
-                                            <td class="p-2 font-mono" x-text="p.fproductcode"></td>
-                                            <td class="p-2" x-text="p.fproductname"></td>
+                                            <td class="p-2 font-mono" x-text="p.fprdcode"></td>
+                                            <td class="p-2" x-text="p.fprdname"></td>
                                             <td class="p-2">
                                                 <span x-text="p.fsatuanbesar || '-'"></span>
                                             </td>
@@ -792,8 +792,8 @@
     // Map produk untuk auto-fill tabel
     window.PRODUCT_MAP = {
         @foreach ($products as $p)
-            "{{ $p->fproductcode }}": {
-                name: @json($p->fproductname),
+            "{{ $p->fprdcode }}": {
+                name: @json($p->fprdname),
                 units: @json(array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2]))),
                 stock: @json($p->fminstock ?? 0)
             },
@@ -1145,7 +1145,7 @@
                     } = e.detail || {};
                     if (!product) return;
                     const apply = (row) => {
-                        row.fitemcode = (product.fproductcode || '').toString();
+                        row.fitemcode = (product.fprdcode || '').toString();
                         this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
                         if (!row.fqty) row.fqty = 1;
                         this.recalc(row);

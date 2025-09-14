@@ -164,9 +164,9 @@
                         <!-- Input Kode Product -->
                         <div class="mt-2 w-1/3">
                             <label class="block text-sm font-medium">Kode Product</label>
-                            <input type="text" name="fproductcode" class="w-full border rounded px-3 py-2"
+                            <input type="text" name="fprdcode" class="w-full border rounded px-3 py-2"
                                 placeholder="Masukkan Kode Product" :disabled="autoCode"
-                                :value="autoCode ? '' : '{{ old('fproductcode') }}'"
+                                :value="autoCode ? '' : '{{ old('fprdcode') }}'"
                                 :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
                         </div>
 
@@ -251,9 +251,9 @@
                 <!-- Nama Product -->
                 <div class="mt-2 w-1/2">
                     <label class="block text-sm font-medium">Nama Product</label>
-                    <input type="text" name="fproductname" id="fproductname" value="{{ old('fproductname') }}"
-                        class="w-full border rounded px-3 py-2 @error('fproductname') border-red-500 @enderror">
-                    @error('fproductname')
+                    <input type="text" name="fprdname" id="fprdname" value="{{ old('fprdname') }}"
+                        class="w-full border rounded px-3 py-2 @error('fprdname') border-red-500 @enderror">
+                    @error('fprdname')
                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                     @enderror
                 </div>
@@ -846,7 +846,7 @@
 
         // Product Name Autocomplete
         $(function() {
-            const $inp = $("#fproductname");
+            const $inp = $("#fprdname");
             let lastXHR = null;
             const localCache = {};
 

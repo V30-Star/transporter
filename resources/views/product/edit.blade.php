@@ -120,7 +120,7 @@
 
     <div x-data="{ open: false, keyword: '', rows: [], page: 1, lastPage: 1, total: 0 }">
         <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1500px] w-full mx-auto">
-            <form action="{{ route('product.update', $product->fproductid) }}" method="POST">
+            <form action="{{ route('product.update', $product->fprdid) }}" method="POST">
                 @csrf
                 @method('PATCH')
                 @php
@@ -165,9 +165,9 @@
                     <!-- Kode Product -->
                     <div class="mt-2 w-1/3">
                         <label class="block text-sm font-medium">Kode Product</label>
-                        <input type="text" name="fproductcode" value="{{ old('fproductcode', $product->fproductcode) }}"
-                            class="w-full border rounded px-3 py-2 @error('fproductcode') border-red-500 @enderror">
-                        @error('fproductcode')
+                        <input type="text" name="fprdcode" value="{{ old('fprdcode', $product->fprdcode) }}"
+                            class="w-full border rounded px-3 py-2 @error('fprdcode') border-red-500 @enderror">
+                        @error('fprdcode')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
                     </div>
@@ -243,10 +243,10 @@
                     <!-- Nama Product -->
                     <div class="mt-2 w-1/2">
                         <label class="block text-sm font-medium">Nama Product</label>
-                        <input type="text" name="fproductname" id="fproductname"
-                            value="{{ old('fproductname', $product->fproductname) }}"
-                            class="w-full border rounded px-3 py-2 @error('fproductname') border-red-500 @enderror">
-                        @error('fproductname')
+                        <input type="text" name="fprdname" id="fprdname"
+                            value="{{ old('fprdname', $product->fprdname) }}"
+                            class="w-full border rounded px-3 py-2 @error('fprdname') border-red-500 @enderror">
+                        @error('fprdname')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
                     </div>
@@ -886,7 +886,7 @@
         let hargajuallevel3 = new AutoNumeric('#fhargajuallevel3', 'commaDecimalCharDotSeparator');
 
         $(function() {
-            const $inp = $("#fproductname");
+            const $inp = $("#fprdname");
             let lastXHR = null;
             const localCache = {};
 

@@ -15,8 +15,8 @@ class ProductBrowseController extends Controller
 
     $builder = DB::table('msprd')
       ->select([
-        'fproductcode',
-        'fproductname',
+        'fprdcode',
+        'fprdname',
         'fsatuankecil',
         'fsatuanbesar',
         'fsatuanbesar2',
@@ -31,12 +31,12 @@ class ProductBrowseController extends Controller
 
     if ($q !== '') {
       $builder->where(function ($w) use ($q) {
-        $w->where('fproductcode', 'like', "%{$q}%")
-          ->orWhere('fproductname', 'like', "%{$q}%");
+        $w->where('fprdcode', 'like', "%{$q}%")
+          ->orWhere('fprdname', 'like', "%{$q}%");
       });
     }
 
-    $data = $builder->orderBy('fproductname')->paginate($perPage);
+    $data = $builder->orderBy('fprdname')->paginate($perPage);
 
     return response()->json([
       'data' => $data->items(),

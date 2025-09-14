@@ -13,10 +13,10 @@ class Product extends Model
     protected $table = 'msprd';
 
     // Define the primary key if it's not the default 'id'
-    protected $primaryKey = 'fproductid';
+    protected $primaryKey = 'fprdid';
 
-    // Guard the 'fproductid' as it is the primary key and should not be mass-assigned
-    protected $guarded = ['fproductid'];
+    // Guard the 'fprdid' as it is the primary key and should not be mass-assigned
+    protected $guarded = ['fprdid'];
 
     // Define custom timestamps if using custom field names for created_at and updated_at
     const CREATED_AT = 'fcreatedat';
@@ -27,8 +27,8 @@ class Product extends Model
     {
         $query->when($search ?? false, function ($query, $search) {
             $query->where(function ($query) use ($search) {
-                $query->where('fproductcode', 'like', '%' . $search . '%')
-                    ->orWhere('fproductname', 'like', '%' . $search . '%');
+                $query->where('fprdcode', 'like', '%' . $search . '%')
+                    ->orWhere('fprdname', 'like', '%' . $search . '%');
             });
         });
     }
