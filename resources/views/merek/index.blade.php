@@ -6,10 +6,14 @@
     <div x-data="{
         showDeleteModal: false,
         deleteUrl: null,
-        openDelete(url) { this.deleteUrl = url;
-            this.showDeleteModal = true },
-        closeDelete() { this.showDeleteModal = false;
-            this.deleteUrl = null }
+        openDelete(url) {
+            this.deleteUrl = url;
+            this.showDeleteModal = true
+        },
+        closeDelete() {
+            this.showDeleteModal = false;
+            this.deleteUrl = null
+        }
     }" x-on:open-delete.window="openDelete($event.detail)" class="bg-white rounded shadow p-4">
         {{-- Search (Live) --}}
         <form id="searchForm" method="GET" action="{{ route('merek.index') }}"
@@ -33,8 +37,18 @@
         <table class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
-                    <th class="border px-2 py-1">Kode Merek</th>
-                    <th class="border px-2 py-1">Nama Merek</th>
+                    <th class="border px-2 py-1 cursor-pointer sortCol" data-sort-by="fmerekcode">
+                        <div class="flex items-center gap-1">
+                            <span>Kode Merek</span>
+                            <span id="icon-fmerekcode" class="text-xs opacity-50">↕</span>
+                        </div>
+                    </th>
+                    <th class="border px-2 py-1 cursor-pointer sortCol" data-sort-by="fmerekname">
+                        <div class="flex items-center gap-1">
+                            <span>Nama Merek</span>
+                            <span id="icon-fmerekname" class="text-xs opacity-50">↕</span>
+                        </div>
+                    </th>
                     @if ($showActionsColumn)
                         <th class="border px-2 py-1">Aksi</th>
                     @endif
@@ -147,19 +161,23 @@
                 can_delete: {!! json_encode($canDelete) !!}
             };
 
+            // state sort awal dari server (fallback ke fmerekid desc)
+            const sortState = {
+                by: {!! isset($sortBy) ? json_encode($sortBy) : '"fmerekid"' !!},
+                dir: {!! isset($sortDir) ? json_encode($sortDir) : '"desc"' !!}
+            };
+
             function aksiButtons(item) {
                 let html = '';
                 if (perms.can_edit) {
-                    html += `<a href="${item.edit_url}"
-                  class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
-                  Edit
-               </a>`;
+                    html +=
+                        `<a href="${item.edit_url}"
+                class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">Edit</a>`;
                 }
                 if (perms.can_delete) {
-                    html += `<button onclick="window.openDeleteModal('${item.destroy_url}')"
-                  class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 ml-2">
-                  Hapus
-               </button>`;
+                    html +=
+                        `<button onclick="window.openDeleteModal('${item.destroy_url}')"
+                class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 ml-2">Hapus</button>`;
                 }
                 return html;
             }
@@ -167,12 +185,26 @@
             function rowHtml(item) {
                 const actions = aksiButtons(item);
                 return `
-      <tr class="hover:bg-gray-50">
-        <td class="border px-2 py-1">${item.fmerekcode ?? ''}</td>
-        <td class="border px-2 py-1">${item.fmerekname ?? ''}</td>
-        ${(perms.can_edit || perms.can_delete) ? `<td class="border px-2 py-1">${actions}</td>` : ''}
-      </tr>
-    `;
+            <tr class="hover:bg-gray-50">
+                <td class="border px-2 py-1">${item.fmerekcode ?? ''}</td>
+                <td class="border px-2 py-1">${item.fmerekname ?? ''}</td>
+                ${(perms.can_edit || perms.can_delete) ? `<td class="border px-2 py-1">${actions}</td>` : ''}
+            </tr>
+        `;
+            }
+
+            function applySortIcons() {
+                ['fmerekcode', 'fmerekname'].forEach(col => {
+                    const el = document.getElementById('icon-' + col);
+                    if (!el) return;
+                    el.textContent = '↕';
+                    el.classList.add('opacity-50');
+                });
+                const active = document.getElementById('icon-' + sortState.by);
+                if (active) {
+                    active.textContent = (sortState.dir === 'asc') ? '↑' : '↓';
+                    active.classList.remove('opacity-50');
+                }
             }
 
             function render(json) {
@@ -180,10 +212,11 @@
 
                 if (json.perms) perms = json.perms; // sinkron izin dari server
 
-                if (json.data.length === 0) {
+                // rows
+                if (!json.data.length) {
                     const colCount = document.querySelector('thead tr').children.length;
                     tbody.innerHTML =
-                    `<tr><td colspan="${colCount}" class="text-center py-4">Tidak ada data.</td></tr>`;
+                        `<tr><td colspan="${colCount}" class="text-center py-4">Tidak ada data.</td></tr>`;
                 } else {
                     tbody.innerHTML = json.data.map(rowHtml).join('');
                 }
@@ -196,6 +229,20 @@
                 prevBtn.classList.toggle('opacity-50', !json.links.prev);
                 nextBtn.classList.toggle('opacity-50', !json.links.next);
                 pageInfo.textContent = `Page ${json.links.current_page} of ${json.links.last_page}`;
+
+                // update sort dari server bila ada
+                if (json.sort && json.sort.by) {
+                    sortState.by = json.sort.by;
+                    sortState.dir = json.sort.dir || 'desc';
+                }
+                applySortIcons();
+
+                // opsional: sinkron URL address bar (tanpa reload)
+                const qs = new URLSearchParams(new FormData(form));
+                qs.set('page', json.links.current_page);
+                qs.set('sort_by', sortState.by);
+                qs.set('sort_dir', sortState.dir);
+                history.replaceState({}, '', `${form.action}?${qs.toString()}`);
             }
 
             function fetchTable(url) {
@@ -215,15 +262,13 @@
             }
 
             function buildUrl(baseUrl = null) {
-                if (baseUrl) {
-                    const u = new URL(baseUrl, window.location.origin);
-                    u.searchParams.set('search', input.value || '');
-                    return u.toString();
-                }
-                const base = form.getAttribute('action');
-                const params = new URLSearchParams(new FormData(form));
-                params.delete('page'); // reset ke page 1 saat ngetik
-                return `${base}?${params.toString()}`;
+                const base = baseUrl ? new URL(baseUrl, window.location.origin) :
+                    new URL(form.getAttribute('action'), window.location.origin);
+                base.searchParams.set('search', input?.value || '');
+                base.searchParams.set('sort_by', sortState.by);
+                base.searchParams.set('sort_dir', sortState.dir);
+                if (!baseUrl) base.searchParams.delete('page'); // reset page saat bukan pagination
+                return base.toString();
             }
 
             // live search (debounce)
@@ -237,13 +282,32 @@
                 if (e.key === 'Enter') e.preventDefault();
             });
 
-            // pagination ajax
+            // klik header untuk sort (tanpa reload)
+            document.querySelectorAll('.sortCol').forEach(th => {
+                th.addEventListener('click', () => {
+                    const col = th.dataset.sortBy;
+                    if (!col) return;
+                    if (sortState.by === col) {
+                        sortState.dir = (sortState.dir === 'asc') ? 'desc' : 'asc';
+                    } else {
+                        sortState.by = col;
+                        sortState.dir = 'asc'; // awalnya asc saat ganti kolom
+                    }
+                    applySortIcons();
+                    fetchTable(buildUrl());
+                });
+            });
+
+            // pagination AJAX
             document.getElementById('pagination')?.addEventListener('click', e => {
                 if (e.target.tagName === 'BUTTON' && e.target.dataset.page) {
                     e.preventDefault();
                     fetchTable(buildUrl(e.target.dataset.page));
                 }
             });
+
+            // init ikon saat load
+            applySortIcons();
         })();
     </script>
 @endpush

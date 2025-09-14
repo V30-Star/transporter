@@ -44,8 +44,18 @@
         <table class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
-                    <th class="border px-2 py-1">ID PR</th>
-                    <th class="border px-2 py-1">No. PR</th>
+                    <th class="border px-2 py-1 cursor-pointer sortCol" data-sort-by="fprid">
+                        <div class="flex items-center gap-1">
+                            <span>ID PR</span>
+                            <span id="icon-fprid" class="text-xs opacity-50">↕</span>
+                        </div>
+                    </th>
+                    <th class="border px-2 py-1 cursor-pointer sortCol" data-sort-by="fprno">
+                        <div class="flex items-center gap-1">
+                            <span>No. PR</span>
+                            <span id="icon-fprno" class="text-xs opacity-50">↕</span>
+                        </div>
+                    </th>
                     <th class="border px-2 py-1">Aksi</th>
                 </tr>
             </thead>
@@ -152,8 +162,14 @@
                 can_delete: true
             };
 
+            // state sort awal (fallback fprid desc)
+            const sortState = {
+                by: {!! isset($sortBy) ? json_encode($sortBy) : '"fprid"' !!},
+                dir: {!! isset($sortDir) ? json_encode($sortDir) : '"desc"' !!}
+            };
+
             window.openDeleteModal = function(url) {
-                document.querySelector('[x-data]').__x.$data.openDelete(url);
+                document.querySelector('[x-data]')?.__x?.$data?.openDelete?.(url);
             };
 
             function aksiButtons(item) {
@@ -171,21 +187,32 @@
                      </button>`;
                 }
                 html += `<a href="${item.print_url ?? '#'}" target="_blank" rel="noopener"
-                    class="inline-flex items-center px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 ml-2">
-                    Print
-                    </a>`;
+                 class="inline-flex items-center px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 ml-2">Print</a>`;
                 return html;
             }
 
             function rowHtml(item) {
                 const actions = aksiButtons(item);
-                const showAksi = (perms.can_edit || perms.can_delete) || true;
                 return `
         <tr class="hover:bg-gray-50">
             <td class="border px-2 py-1">${item.fprid ?? ''}</td>
             <td class="border px-2 py-1">${item.fprno ?? ''}</td>
-            ${ showAksi ? `<td class="border px-2 py-1">${actions}</td>` : '' }
+            <td class="border px-2 py-1">${actions}</td>
         </tr>`;
+            }
+
+            function applySortIcons() {
+                ['fprid', 'fprno'].forEach(col => {
+                    const el = document.getElementById('icon-' + col);
+                    if (!el) return;
+                    el.textContent = '↕';
+                    el.classList.add('opacity-50');
+                });
+                const active = document.getElementById('icon-' + sortState.by);
+                if (active) {
+                    active.textContent = (sortState.dir === 'asc') ? '↑' : '↓';
+                    active.classList.remove('opacity-50');
+                }
             }
 
             function render(json) {
@@ -193,7 +220,7 @@
 
                 if (json.perms) perms = json.perms;
 
-                if (json.data.length === 0) {
+                if (!json.data.length) {
                     const colCount = document.querySelector('thead tr').children.length;
                     tbody.innerHTML =
                         `<tr><td colspan="${colCount}" class="text-center py-4">Tidak ada data.</td></tr>`;
@@ -208,11 +235,25 @@
                 prevBtn.classList.toggle('opacity-50', !json.links.prev);
                 nextBtn.classList.toggle('opacity-50', !json.links.next);
                 pageInfo.textContent = `Page ${json.links.current_page} of ${json.links.last_page}`;
+
+                if (json.sort && json.sort.by) {
+                    sortState.by = json.sort.by;
+                    sortState.dir = json.sort.dir || 'desc';
+                }
+                applySortIcons();
+
+                // (opsional) sync URL tanpa reload
+                const qs = new URLSearchParams(new FormData(form));
+                qs.set('page', json.links.current_page);
+                qs.set('sort_by', sortState.by);
+                qs.set('sort_dir', sortState.dir);
+                history.replaceState({}, '', `${form.action}?${qs.toString()}`);
             }
 
             function fetchTable(url) {
                 if (lastAbort) lastAbort.abort();
                 lastAbort = new AbortController();
+
                 fetch(url, {
                         headers: {
                             'X-Requested-With': 'XMLHttpRequest'
@@ -227,17 +268,16 @@
             }
 
             function buildUrl(baseUrl = null) {
-                if (baseUrl) {
-                    const u = new URL(baseUrl, window.location.origin);
-                    u.searchParams.set('search', input.value || '');
-                    return u.toString();
-                }
-                const base = form.getAttribute('action');
-                const params = new URLSearchParams(new FormData(form));
-                params.delete('page');
-                return `${base}?${params.toString()}`;
+                const base = baseUrl ? new URL(baseUrl, window.location.origin) :
+                    new URL(form.getAttribute('action'), window.location.origin);
+                base.searchParams.set('search', input?.value || '');
+                base.searchParams.set('sort_by', sortState.by);
+                base.searchParams.set('sort_dir', sortState.dir);
+                if (!baseUrl) base.searchParams.delete('page'); // reset ke page 1 saat bukan pagination
+                return base.toString();
             }
 
+            // live search (debounce)
             input.addEventListener('input', () => {
                 clearTimeout(timer);
                 timer = setTimeout(() => fetchTable(buildUrl()), 300);
@@ -246,12 +286,31 @@
                 if (e.key === 'Enter') e.preventDefault();
             });
 
+            // klik header → toggle sort
+            document.querySelectorAll('.sortCol').forEach(th => {
+                th.addEventListener('click', () => {
+                    const col = th.dataset.sortBy;
+                    if (!col) return;
+                    if (sortState.by === col) {
+                        sortState.dir = (sortState.dir === 'asc') ? 'desc' : 'asc';
+                    } else {
+                        sortState.by = col;
+                        sortState.dir = 'asc';
+                    }
+                    applySortIcons();
+                    fetchTable(buildUrl());
+                });
+            });
+
+            // pagination ajax
             document.getElementById('pagination')?.addEventListener('click', e => {
                 if (e.target.tagName === 'BUTTON' && e.target.dataset.page) {
                     e.preventDefault();
                     fetchTable(buildUrl(e.target.dataset.page));
                 }
             });
+
+            applySortIcons();
         })();
     </script>
 @endpush

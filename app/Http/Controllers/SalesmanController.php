@@ -12,6 +12,11 @@ class SalesmanController extends Controller
         $search   = trim((string) $request->search);
         $filterBy = $request->filter_by ?? 'all'; // 'all' | 'fsalesmancode' | 'fsalesmanname'
 
+        // sorting (default by id desc)
+        $allowedSorts = ['fsalesmancode', 'fsalesmanname', 'fsalesmanid'];
+        $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fsalesmanid';
+        $sortDir = $request->sort_dir === 'asc' ? 'asc' : 'desc';
+
         $salesmen = Salesman::when($search !== '', function ($q) use ($search, $filterBy) {
             $q->where(function ($qq) use ($search, $filterBy) {
                 if ($filterBy === 'fsalesmancode') {
@@ -24,23 +29,23 @@ class SalesmanController extends Controller
                 }
             });
         })
-            ->orderBy('fsalesmanid', 'desc')
+            ->orderBy($sortBy, $sortDir)
+            ->orderBy('fsalesmanid', 'desc') // tie-breaker
             ->paginate(10)
             ->withQueryString();
 
-        // permissions (samakan dengan konvensi app kamu)
+        // permissions
         $canCreate = in_array('createSalesman', explode(',', session('user_restricted_permissions', '')));
         $canEdit   = in_array('updateSalesman', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deleteSalesman', explode(',', session('user_restricted_permissions', '')));
 
-        // AJAX response untuk live search/pagination
+        // AJAX response
         if ($request->ajax()) {
             $rows = collect($salesmen->items())->map(function ($s) {
                 return [
                     'fsalesmanid'   => $s->fsalesmanid,
                     'fsalesmancode' => $s->fsalesmancode,
                     'fsalesmanname' => $s->fsalesmanname,
-                    // tambahkan kolom lain jika ditampilkan di tabel
                     'edit_url'      => route('salesman.edit', $s->fsalesmanid),
                     'destroy_url'   => route('salesman.destroy', $s->fsalesmanid),
                 ];
@@ -55,11 +60,20 @@ class SalesmanController extends Controller
                     'current_page' => $salesmen->currentPage(),
                     'last_page'    => $salesmen->lastPage(),
                 ],
+                'sort' => ['by' => $sortBy, 'dir' => $sortDir], // penting buat update ikon
             ]);
         }
 
-        // render awal
-        return view('salesman.index', compact('salesmen', 'filterBy', 'search', 'canCreate', 'canEdit', 'canDelete'));
+        return view('salesman.index', compact(
+            'salesmen',
+            'filterBy',
+            'search',
+            'canCreate',
+            'canEdit',
+            'canDelete',
+            'sortBy',
+            'sortDir'
+        ));
     }
 
     public function create()

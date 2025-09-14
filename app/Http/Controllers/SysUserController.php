@@ -16,6 +16,11 @@ class SysUserController extends Controller
     {
         $search = trim((string) $request->input('search'));
 
+        // sorting
+        $allowedSorts = ['fsysuserid', 'fname', 'created_at', 'fuserid', 'fcabang'];
+        $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fsysuserid';
+        $sortDir = $request->sort_dir === 'asc' ? 'asc' : 'desc';
+
         $sysusers = Sysuser::when($search !== '', function ($q) use ($search) {
             $q->where(function ($qq) use ($search) {
                 $qq->where('fsysuserid', 'ILIKE', "%{$search}%")
@@ -23,17 +28,18 @@ class SysUserController extends Controller
                     ->orWhere('fcabang',    'ILIKE', "%{$search}%");
             });
         })
-            ->orderBy('fsysuserid') // atau field lain sesuai kebutuhan
+            ->orderBy($sortBy, $sortDir)
+            ->orderBy('fsysuserid', 'asc') // tie-breaker stabil
             ->paginate(10)
             ->withQueryString();
 
-        // Permissions (samakan dengan konvensi lain; sesuaikan jika naming berbeda di app kamu)
-        $canCreate = in_array('createSysuser', explode(',', session('user_restricted_permissions', '')));
-        $canEdit   = in_array('updateSysuser', explode(',', session('user_restricted_permissions', '')));
-        $canDelete = in_array('deleteSysuser', explode(',', session('user_restricted_permissions', '')));
-        $canRoleAccess = in_array('roleaccess', explode(',', session('user_restricted_permissions', '')));
+        // Permissions
+        $perms       = explode(',', (string) session('user_restricted_permissions', ''));
+        $canCreate   = in_array('createSysuser', $perms, true);
+        $canEdit     = in_array('updateSysuser', $perms, true);
+        $canDelete   = in_array('deleteSysuser', $perms, true);
+        $canRoleAccess = in_array('roleaccess', $perms, true);
 
-        // Respon AJAX untuk live search/pagination
         if ($request->ajax()) {
             $rows = collect($sysusers->items())->map(function ($u) {
                 return [
@@ -50,18 +56,33 @@ class SysUserController extends Controller
 
             return response()->json([
                 'data'  => $rows,
-                'perms' => ['can_create' => $canCreate, 'can_edit' => $canEdit, 'can_delete' => $canDelete, 'can_role_access' => $canRoleAccess],
+                'perms' => [
+                    'can_create'      => $canCreate,
+                    'can_edit'        => $canEdit,
+                    'can_delete'      => $canDelete,
+                    'can_role_access' => $canRoleAccess
+                ],
                 'links' => [
                     'prev'         => $sysusers->previousPageUrl(),
                     'next'         => $sysusers->nextPageUrl(),
                     'current_page' => $sysusers->currentPage(),
                     'last_page'    => $sysusers->lastPage(),
                 ],
+                // penting: kirim state sort ke front-end
+                'sort' => ['by' => $sortBy, 'dir' => $sortDir],
             ]);
         }
 
-        // Render awal (Blade)
-        return view('sysuser.index', compact('sysusers', 'search', 'canCreate', 'canEdit', 'canDelete', 'canRoleAccess'));
+        return view('sysuser.index', compact(
+            'sysusers',
+            'search',
+            'canCreate',
+            'canEdit',
+            'canDelete',
+            'canRoleAccess',
+            'sortBy',
+            'sortDir'
+        ));
     }
 
     public function create()

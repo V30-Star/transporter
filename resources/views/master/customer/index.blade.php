@@ -6,10 +6,14 @@
     <div x-data="{
         showDeleteModal: false,
         deleteUrl: null,
-        openDelete(url) { this.deleteUrl = url;
-            this.showDeleteModal = true },
-        closeDelete() { this.deleteUrl = null;
-            this.showDeleteModal = false }
+        openDelete(url) {
+            this.deleteUrl = url;
+            this.showDeleteModal = true
+        },
+        closeDelete() {
+            this.deleteUrl = null;
+            this.showDeleteModal = false
+        }
     }" x-on:open-delete.window="openDelete($event.detail)" class="bg-white rounded shadow p-4">
         {{-- Search --}}
         <form id="searchForm" method="GET" action="{{ route('customer.index') }}"
@@ -33,8 +37,18 @@
         <table class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
-                    <th class="border px-2 py-1">Kode Customer</th>
-                    <th class="border px-2 py-1">Nama Customer</th>
+                    <th class="border px-2 py-1 cursor-pointer sortCol" data-sort-by="fcustomercode">
+                        <div class="flex items-center gap-1">
+                            <span>Kode Customer</span>
+                            <span id="icon-fcustomercode" class="text-xs opacity-50">↕</span>
+                        </div>
+                    </th>
+                    <th class="border px-2 py-1 cursor-pointer sortCol" data-sort-by="fcustomername">
+                        <div class="flex items-center gap-1">
+                            <span>Nama Customer</span>
+                            <span id="icon-fcustomername" class="text-xs opacity-50">↕</span>
+                        </div>
+                    </th>
                     <th class="border px-2 py-1">Wilayah</th>
                     <th class="border px-2 py-1">Alamat</th>
                     <th class="border px-2 py-1">Kota</th>
@@ -138,16 +152,22 @@
             const pageInfo = document.getElementById('pageInfo');
             let timer = null,
                 lastAbort = null;
+
             let perms = {
                 can_edit: {!! json_encode($canEdit) !!},
                 can_delete: {!! json_encode($canDelete) !!}
+            };
+
+            const sortState = {
+                by: {!! isset($sortBy) ? json_encode($sortBy) : '"fcustomerid"' !!},
+                dir: {!! isset($sortDir) ? json_encode($sortDir) : '"desc"' !!}
             };
 
             window.openDeleteModal = url => {
                 window.dispatchEvent(new CustomEvent('open-delete', {
                     detail: url
                 }));
-            }
+            };
 
             function rowHtml(c) {
                 let actions = '';
@@ -160,23 +180,39 @@
                         `<button onclick="window.openDeleteModal('${c.destroy_url}')" class="inline-flex items-center bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 ml-2">Hapus</button>`;
                 }
                 return `<tr class="hover:bg-gray-50">
-      <td class="border px-2 py-1">${c.fcustomercode ?? ''}</td>
-      <td class="border px-2 py-1">${c.fcustomername ?? ''}</td>
-      <td class="border px-2 py-1">${c.fregion ?? ''}</td>
-      <td class="border px-2 py-1">${c.faddress ?? ''}</td>
-      <td class="border px-2 py-1">${c.fcity ?? ''}</td>
-      <td class="border px-2 py-1">${c.fweeklyschedule ?? ''}</td>
-      <td class="border px-2 py-1">${c.fday ?? ''}</td>
-      <td class="border px-2 py-1">${c.fdesc ?? ''}</td>
-      ${actions?`<td class="border px-2 py-1">${actions}</td>`:''}
-    </tr>`;
+            <td class="border px-2 py-1">${c.fcustomercode ?? ''}</td>
+            <td class="border px-2 py-1">${c.fcustomername ?? ''}</td>
+            <td class="border px-2 py-1">${c.fregion ?? ''}</td>
+            <td class="border px-2 py-1">${c.faddress ?? ''}</td>
+            <td class="border px-2 py-1">${c.fcity ?? ''}</td>
+            <td class="border px-2 py-1">${c.fweeklyschedule ?? ''}</td>
+            <td class="border px-2 py-1">${c.fday ?? ''}</td>
+            <td class="border px-2 py-1">${c.fdesc ?? ''}</td>
+            ${actions?`<td class="border px-2 py-1">${actions}</td>`:''}
+        </tr>`;
+            }
+
+            function applySortIcons() {
+                ['fcustomercode', 'fcustomername'].forEach(col => {
+                    const el = document.getElementById('icon-' + col);
+                    if (!el) return;
+                    el.textContent = '↕';
+                    el.classList.add('opacity-50');
+                });
+                const active = document.getElementById('icon-' + sortState.by);
+                if (active) {
+                    active.textContent = (sortState.dir === 'asc') ? '↑' : '↓';
+                    active.classList.remove('opacity-50');
+                }
             }
 
             function render(json) {
                 if (!json || !json.data) return;
                 if (json.perms) perms = json.perms;
+
                 tbody.innerHTML = json.data.length ? json.data.map(rowHtml).join('') :
                     `<tr><td colspan="9" class="text-center py-4">Tidak ada data.</td></tr>`;
+
                 prevBtn.dataset.page = json.links.prev || '';
                 nextBtn.dataset.page = json.links.next || '';
                 prevBtn.disabled = !json.links.prev;
@@ -184,6 +220,12 @@
                 prevBtn.classList.toggle('opacity-50', !json.links.prev);
                 nextBtn.classList.toggle('opacity-50', !json.links.next);
                 pageInfo.textContent = `Page ${json.links.current_page} of ${json.links.last_page}`;
+
+                if (json.sort && json.sort.by) {
+                    sortState.by = json.sort.by;
+                    sortState.dir = json.sort.dir || 'desc';
+                }
+                applySortIcons();
             }
 
             function fetchTable(url) {
@@ -195,21 +237,20 @@
                         },
                         signal: lastAbort.signal
                     })
-                    .then(r => r.json()).then(render).catch(e => {
+                    .then(r => r.json()).then(render)
+                    .catch(e => {
                         if (e.name !== 'AbortError') console.error(e)
                     });
             }
 
             function buildUrl(baseUrl = null) {
-                if (baseUrl) {
-                    const u = new URL(baseUrl, window.location.origin);
-                    u.searchParams.set('search', input.value || '');
-                    return u.toString();
-                }
-                const base = form.getAttribute('action');
-                const params = new URLSearchParams(new FormData(form));
-                params.delete('page');
-                return `${base}?${params.toString()}`;
+                const base = baseUrl ? new URL(baseUrl, window.location.origin) :
+                    new URL(form.getAttribute('action'), window.location.origin);
+                base.searchParams.set('search', input?.value || '');
+                base.searchParams.set('sort_by', sortState.by);
+                base.searchParams.set('sort_dir', sortState.dir);
+                if (!baseUrl) base.searchParams.delete('page');
+                return base.toString();
             }
 
             input.addEventListener('input', () => {
@@ -219,12 +260,30 @@
             input.addEventListener('keydown', e => {
                 if (e.key === 'Enter') e.preventDefault();
             });
-            document.getElementById('pagination').addEventListener('click', e => {
+
+            document.querySelectorAll('.sortCol').forEach(th => {
+                th.addEventListener('click', () => {
+                    const col = th.dataset.sortBy;
+                    if (!col) return;
+                    if (sortState.by === col) {
+                        sortState.dir = (sortState.dir === 'asc') ? 'desc' : 'asc';
+                    } else {
+                        sortState.by = col;
+                        sortState.dir = 'asc';
+                    }
+                    applySortIcons();
+                    fetchTable(buildUrl());
+                });
+            });
+
+            document.getElementById('pagination')?.addEventListener('click', e => {
                 if (e.target.tagName === 'BUTTON' && e.target.dataset.page) {
                     e.preventDefault();
                     fetchTable(buildUrl(e.target.dataset.page));
                 }
             });
+
+            applySortIcons();
         })();
     </script>
 @endpush

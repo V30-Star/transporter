@@ -12,6 +12,11 @@ class RekeningController extends Controller
         $search   = trim((string) $request->search);
         $filterBy = $request->filter_by ?? 'all'; // all | frekeningcode | frekeningid | frekeningname
 
+        // Sorting
+        $allowedSorts = ['frekeningcode', 'frekeningname', 'frekeningid'];
+        $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'frekeningid';
+        $sortDir = $request->sort_dir === 'asc' ? 'asc' : 'desc';
+
         $rekening = Rekening::when($search !== '', function ($q) use ($search, $filterBy) {
             $q->where(function ($qq) use ($search, $filterBy) {
                 if ($filterBy === 'frekeningcode') {
@@ -27,7 +32,8 @@ class RekeningController extends Controller
                 }
             });
         })
-            ->orderBy('frekeningid', 'desc')
+            ->orderBy($sortBy, $sortDir)
+            ->orderBy('frekeningid', 'desc') // tie-breaker
             ->paginate(10)
             ->withQueryString();
 
@@ -36,7 +42,7 @@ class RekeningController extends Controller
         $canEdit   = in_array('updateRekening', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deleteRekening', explode(',', session('user_restricted_permissions', '')));
 
-        // Jika request AJAX (live search/pagination), balikin JSON
+        // AJAX response
         if ($request->ajax()) {
             $rows = collect($rekening->items())->map(function ($r) {
                 return [
@@ -57,10 +63,20 @@ class RekeningController extends Controller
                     'current_page' => $rekening->currentPage(),
                     'last_page'    => $rekening->lastPage(),
                 ],
+                'sort' => ['by' => $sortBy, 'dir' => $sortDir], // penting untuk front-end
             ]);
         }
 
-        return view('rekening.index', compact('rekening', 'filterBy', 'search', 'canCreate', 'canEdit', 'canDelete'));
+        return view('rekening.index', compact(
+            'rekening',
+            'filterBy',
+            'search',
+            'canCreate',
+            'canEdit',
+            'canDelete',
+            'sortBy',
+            'sortDir'
+        ));
     }
 
     public function create()

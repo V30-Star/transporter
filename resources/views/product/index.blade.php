@@ -43,10 +43,30 @@
             <table class="min-w-full border text-sm">
                 <thead class="bg-gray-100">
                     <tr>
-                        <th class="border px-2 py-1">Kode Product</th>
-                        <th class="border px-2 py-1">Nama Product</th>
-                        <th class="border px-2 py-1">Satuan</th>
-                        <th class="border px-2 py-1">Stok</th>
+                        <th class="border px-2 py-1 cursor-pointer sortCol" data-sort-by="fprdcode">
+                            <div class="flex items-center gap-1">
+                                <span>Kode Product</span>
+                                <span id="icon-fprdcode" class="text-xs opacity-50">↕</span>
+                            </div>
+                        </th>
+                        <th class="border px-2 py-1 cursor-pointer sortCol" data-sort-by="fprdname">
+                            <div class="flex items-center gap-1">
+                                <span>Nama Product</span>
+                                <span id="icon-fprdname" class="text-xs opacity-50">↕</span>
+                            </div>
+                        </th>
+                        <th class="border px-2 py-1 cursor-pointer sortCol" data-sort-by="fsatuankecil">
+                            <div class="flex items-center gap-1">
+                                <span>Satuan</span>
+                                <span id="icon-fsatuankecil" class="text-xs opacity-50">↕</span>
+                            </div>
+                        </th>
+                        <th class="border px-2 py-1 cursor-pointer sortCol" data-sort-by="fminstock">
+                            <div class="flex items-center gap-1">
+                                <span>Stok</span>
+                                <span id="icon-fminstock" class="text-xs opacity-50">↕</span>
+                            </div>
+                        </th>
                         @if ($showActionsColumn)
                             <th class="border px-2 py-1">Aksi</th>
                         @endif
@@ -237,7 +257,6 @@
             </div>
         </div>
     @endsection
-
     @push('scripts')
         <script>
             (function() {
@@ -247,11 +266,19 @@
                 const prevBtn = document.getElementById('prevBtn');
                 const nextBtn = document.getElementById('nextBtn');
                 const pageInfo = document.getElementById('pageInfo');
+
                 let timer = null,
                     lastAbort = null;
+
                 let perms = {
                     can_edit: {!! json_encode(in_array('updateProduct', explode(',', session('user_restricted_permissions', '')))) !!},
                     can_delete: {!! json_encode(in_array('deleteProduct', explode(',', session('user_restricted_permissions', '')))) !!}
+                };
+
+                // state sort awal dari server (fallback: fprdid desc)
+                const sortState = {
+                    by: {!! isset($sortBy) ? json_encode($sortBy) : '"fprdid"' !!},
+                    dir: {!! isset($sortDir) ? json_encode($sortDir) : '"desc"' !!}
                 };
 
                 // helper buka modal hapus -> kirim event ke Alpine
@@ -265,34 +292,47 @@
                     let actions = '';
                     if (perms.can_edit) {
                         actions += `
-        <a href="${item.edit_url}"
-           class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
-           Edit
-        </a>`;
+                <a href="${item.edit_url}"
+                   class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
+                   Edit
+                </a>`;
                     }
                     if (perms.can_delete) {
                         actions += `
-        <button onclick="window.openDeleteModal('${item.destroy_url}')"
-                class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 ml-2">
-          Hapus
-        </button>`;
+                <button onclick="window.openDeleteModal('${item.destroy_url}')"
+                        class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 ml-2">
+                  Hapus
+                </button>`;
                     }
                     const aksiTd = actions ? `<td class="border px-2 py-1">${actions}</td>` : '';
 
                     return `
-      <tr class="hover:bg-gray-50">
-        <td class="border px-2 py-1">${item.fprdcode ?? ''}</td>
-        <td class="border px-2 py-1">${item.fprdname ?? ''}</td>
-        <td class="border px-2 py-1">${item.fsatuankecil ?? ''}</td>
-        <td class="border px-2 py-1">${item.fminstock ?? 0}</td>
-        ${aksiTd}
-      </tr>`;
+        <tr class="hover:bg-gray-50">
+            <td class="border px-2 py-1">${item.fprdcode ?? ''}</td>
+            <td class="border px-2 py-1">${item.fprdname ?? ''}</td>
+            <td class="border px-2 py-1">${item.fsatuankecil ?? ''}</td>
+            <td class="border px-2 py-1">${item.fminstock ?? 0}</td>
+            ${aksiTd}
+        </tr>`;
+                }
+
+                function applySortIcons() {
+                    ['fprdcode', 'fprdname', 'fsatuankecil', 'fminstock'].forEach(col => {
+                        const el = document.getElementById('icon-' + col);
+                        if (!el) return;
+                        el.textContent = '↕';
+                        el.classList.add('opacity-50');
+                    });
+                    const active = document.getElementById('icon-' + sortState.by);
+                    if (active) {
+                        active.textContent = (sortState.dir === 'asc') ? '↑' : '↓';
+                        active.classList.remove('opacity-50');
+                    }
                 }
 
                 function render(json) {
                     if (!json || !json.data) return;
 
-                    // update perms dari server (jaga-jaga kalau berubah)
                     if (json.perms) perms = json.perms;
 
                     if (json.data.length === 0) {
@@ -311,6 +351,20 @@
                     prevBtn.classList.toggle('opacity-50', !json.links.prev);
                     nextBtn.classList.toggle('opacity-50', !json.links.next);
                     pageInfo.textContent = `Page ${json.links.current_page} of ${json.links.last_page}`;
+
+                    // sync sort state dari server bila ada
+                    if (json.sort && json.sort.by) {
+                        sortState.by = json.sort.by;
+                        sortState.dir = json.sort.dir || 'desc';
+                    }
+                    applySortIcons();
+
+                    // (opsional) sinkronkan URL tanpa reload
+                    const qs = new URLSearchParams(new FormData(form));
+                    qs.set('page', json.links.current_page);
+                    qs.set('sort_by', sortState.by);
+                    qs.set('sort_dir', sortState.dir);
+                    history.replaceState({}, '', `${form.action}?${qs.toString()}`);
                 }
 
                 function fetchTable(url) {
@@ -330,15 +384,13 @@
                 }
 
                 function buildUrl(baseUrl = null) {
-                    if (baseUrl) {
-                        const u = new URL(baseUrl, window.location.origin);
-                        u.searchParams.set('search', input.value || '');
-                        return u.toString();
-                    }
-                    const base = form.getAttribute('action');
-                    const params = new URLSearchParams(new FormData(form));
-                    params.delete('page');
-                    return `${base}?${params.toString()}`;
+                    const base = baseUrl ? new URL(baseUrl, window.location.origin) :
+                        new URL(form.getAttribute('action'), window.location.origin);
+                    base.searchParams.set('search', input?.value || '');
+                    base.searchParams.set('sort_by', sortState.by);
+                    base.searchParams.set('sort_dir', sortState.dir);
+                    if (!baseUrl) base.searchParams.delete('page'); // reset halaman saat bukan pagination
+                    return base.toString();
                 }
 
                 // live search
@@ -350,13 +402,32 @@
                     if (e.key === 'Enter') e.preventDefault();
                 });
 
+                // klik header → toggle sort
+                document.querySelectorAll('.sortCol').forEach(th => {
+                    th.addEventListener('click', () => {
+                        const col = th.dataset.sortBy;
+                        if (!col) return;
+                        if (sortState.by === col) {
+                            sortState.dir = (sortState.dir === 'asc') ? 'desc' : 'asc';
+                        } else {
+                            sortState.by = col;
+                            sortState.dir = 'asc';
+                        }
+                        applySortIcons();
+                        fetchTable(buildUrl());
+                    });
+                });
+
                 // pagination ajax
-                document.getElementById('pagination').addEventListener('click', e => {
+                document.getElementById('pagination')?.addEventListener('click', e => {
                     if (e.target.tagName === 'BUTTON' && e.target.dataset.page) {
                         e.preventDefault();
                         fetchTable(buildUrl(e.target.dataset.page));
                     }
                 });
+
+                // set ikon saat load
+                applySortIcons();
             })();
         </script>
     @endpush

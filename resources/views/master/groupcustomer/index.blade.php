@@ -6,10 +6,14 @@
     <div x-data="{
         showDeleteModal: false,
         deleteUrl: null,
-        openDelete(url) { this.deleteUrl = url;
-            this.showDeleteModal = true },
-        closeDelete() { this.deleteUrl = null;
-            this.showDeleteModal = false }
+        openDelete(url) {
+            this.deleteUrl = url;
+            this.showDeleteModal = true
+        },
+        closeDelete() {
+            this.deleteUrl = null;
+            this.showDeleteModal = false
+        }
     }" x-on:open-delete.window="openDelete($event.detail)" class="bg-white rounded shadow p-4">
 
         {{-- Search --}}
@@ -30,8 +34,18 @@
         <table class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
-                    <th class="border px-2 py-1">Kode Group</th>
-                    <th class="border px-2 py-1">Nama Group</th>
+                    <th class="border px-2 py-1 cursor-pointer sortCol" data-sort-by="fgroupcode">
+                        <div class="flex items-center gap-1">
+                            <span>Kode Group</span>
+                            <span id="icon-fgroupcode" class="text-xs opacity-50">↕</span>
+                        </div>
+                    </th>
+                    <th class="border px-2 py-1 cursor-pointer sortCol" data-sort-by="fgroupname">
+                        <div class="flex items-center gap-1">
+                            <span>Nama Group</span>
+                            <span id="icon-fgroupname" class="text-xs opacity-50">↕</span>
+                        </div>
+                    </th>
                     @if ($showActionsColumn)
                         <th class="border px-2 py-1">Aksi</th>
                     @endif
@@ -110,7 +124,6 @@
         </div>
     </div>
 @endsection
-
 @push('scripts')
     <script>
         (function() {
@@ -122,39 +135,66 @@
             const pageInfo = document.getElementById('pageInfo');
             let timer = null,
                 lastAbort = null;
+
+            // permissions awal (bisa di-override dari JSON)
             let perms = {
                 can_edit: {!! json_encode($canEdit) !!},
                 can_delete: {!! json_encode($canDelete) !!}
+            };
+
+            // state sorting (fallback dari server)
+            const sortState = {
+                by: {!! isset($sortBy) ? json_encode($sortBy) : '"fgroupid"' !!},
+                dir: {!! isset($sortDir) ? json_encode($sortDir) : '"desc"' !!}
             };
 
             window.openDeleteModal = url => {
                 window.dispatchEvent(new CustomEvent('open-delete', {
                     detail: url
                 }));
-            }
+            };
 
             function rowHtml(gc) {
                 let actions = '';
                 if (perms.can_edit) {
                     actions +=
-                        `<a href="${gc.edit_url}" class="inline-flex items-center bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600">Edit</a>`;
+                        `<a href="${gc.edit_url}"
+                class="inline-flex items-center bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600">Edit</a>`;
                 }
                 if (perms.can_delete) {
                     actions +=
-                        `<button onclick="window.openDeleteModal('${gc.destroy_url}')" class="inline-flex items-center bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 ml-2">Hapus</button>`;
+                        `<button onclick="window.openDeleteModal('${gc.destroy_url}')"
+                class="inline-flex items-center bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 ml-2">Hapus</button>`;
                 }
                 return `<tr class="hover:bg-gray-50">
-      <td class="border px-2 py-1">${gc.fgroupcode??''}</td>
-      <td class="border px-2 py-1">${gc.fgroupname??''}</td>
-      ${actions?`<td class="border px-2 py-1">${actions}</td>`:''}
-    </tr>`;
+            <td class="border px-2 py-1">${gc.fgroupcode ?? ''}</td>
+            <td class="border px-2 py-1">${gc.fgroupname ?? ''}</td>
+            ${actions ? `<td class="border px-2 py-1">${actions}</td>` : ''}
+        </tr>`;
+            }
+
+            function applySortIcons() {
+                ['fgroupcode', 'fgroupname'].forEach(col => {
+                    const el = document.getElementById('icon-' + col);
+                    if (!el) return;
+                    el.textContent = '↕';
+                    el.classList.add('opacity-50');
+                });
+                const active = document.getElementById('icon-' + sortState.by);
+                if (active) {
+                    active.textContent = (sortState.dir === 'asc') ? '↑' : '↓';
+                    active.classList.remove('opacity-50');
+                }
             }
 
             function render(json) {
                 if (!json || !json.data) return;
                 if (json.perms) perms = json.perms;
-                tbody.innerHTML = json.data.length ? json.data.map(rowHtml).join('') :
+
+                tbody.innerHTML = json.data.length ?
+                    json.data.map(rowHtml).join('') :
                     `<tr><td colspan="3" class="text-center py-4">Tidak ada data.</td></tr>`;
+
                 prevBtn.dataset.page = json.links.prev || '';
                 nextBtn.dataset.page = json.links.next || '';
                 prevBtn.disabled = !json.links.prev;
@@ -162,6 +202,19 @@
                 prevBtn.classList.toggle('opacity-50', !json.links.prev);
                 nextBtn.classList.toggle('opacity-50', !json.links.next);
                 pageInfo.textContent = `Page ${json.links.current_page} of ${json.links.last_page}`;
+
+                if (json.sort && json.sort.by) {
+                    sortState.by = json.sort.by;
+                    sortState.dir = json.sort.dir || 'desc';
+                }
+                applySortIcons();
+
+                // opsional: update URL address bar (tanpa reload)
+                const qs = new URLSearchParams(new FormData(form));
+                qs.set('page', json.links.current_page);
+                qs.set('sort_by', sortState.by);
+                qs.set('sort_dir', sortState.dir);
+                history.replaceState({}, '', `${form.action}?${qs.toString()}`);
             }
 
             function fetchTable(url) {
@@ -173,24 +226,24 @@
                         },
                         signal: lastAbort.signal
                     })
-                    .then(r => r.json()).then(render)
+                    .then(r => r.json())
+                    .then(render)
                     .catch(e => {
                         if (e.name !== 'AbortError') console.error(e)
                     });
             }
 
             function buildUrl(baseUrl = null) {
-                if (baseUrl) {
-                    const u = new URL(baseUrl, window.location.origin);
-                    u.searchParams.set('search', input.value || '');
-                    return u.toString();
-                }
-                const base = form.getAttribute('action');
-                const params = new URLSearchParams(new FormData(form));
-                params.delete('page');
-                return `${base}?${params.toString()}`;
+                const base = baseUrl ? new URL(baseUrl, window.location.origin) :
+                    new URL(form.getAttribute('action'), window.location.origin);
+                base.searchParams.set('search', input?.value || '');
+                base.searchParams.set('sort_by', sortState.by);
+                base.searchParams.set('sort_dir', sortState.dir);
+                if (!baseUrl) base.searchParams.delete('page'); // reset page kalau bukan pagination
+                return base.toString();
             }
 
+            // live search (debounce)
             input.addEventListener('input', () => {
                 clearTimeout(timer);
                 timer = setTimeout(() => fetchTable(buildUrl()), 300);
@@ -198,12 +251,33 @@
             input.addEventListener('keydown', e => {
                 if (e.key === 'Enter') e.preventDefault();
             });
-            document.getElementById('pagination').addEventListener('click', e => {
+
+            // klik header → toggle sort
+            document.querySelectorAll('.sortCol').forEach(th => {
+                th.addEventListener('click', () => {
+                    const col = th.dataset.sortBy;
+                    if (!col) return;
+                    if (sortState.by === col) {
+                        sortState.dir = (sortState.dir === 'asc') ? 'desc' : 'asc';
+                    } else {
+                        sortState.by = col;
+                        sortState.dir = 'asc';
+                    }
+                    applySortIcons();
+                    fetchTable(buildUrl());
+                });
+            });
+
+            // pagination ajax
+            document.getElementById('pagination')?.addEventListener('click', e => {
                 if (e.target.tagName === 'BUTTON' && e.target.dataset.page) {
                     e.preventDefault();
                     fetchTable(buildUrl(e.target.dataset.page));
                 }
             });
+
+            // init ikon
+            applySortIcons();
         })();
     </script>
 @endpush

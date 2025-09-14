@@ -13,7 +13,12 @@ class ProductController extends Controller
 {
     public function index(Request $request)
     {
-        $search = trim((string) $request->search);
+        $search   = trim((string) $request->search);
+
+        // Sorting
+        $allowedSorts = ['fprdcode', 'fprdname', 'fsatuankecil', 'fminstock', 'fprdid'];
+        $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fprdid';
+        $sortDir = $request->sort_dir === 'asc' ? 'asc' : 'desc';
 
         $products = Product::when($search !== '', function ($q) use ($search) {
             $q->where(function ($qq) use ($search) {
@@ -21,26 +26,26 @@ class ProductController extends Controller
                     ->orWhere('fprdname', 'ILIKE', "%{$search}%");
             });
         })
-            ->orderBy('fprdid', 'desc')
+            ->orderBy($sortBy, $sortDir)
+            ->orderBy('fprdid', 'desc') // tie-breaker
             ->paginate(10)
             ->withQueryString();
 
-        // ambil permission seperti di Blade
+        // permissions
         $canCreate = in_array('createProduct', explode(',', session('user_restricted_permissions', '')));
         $canEdit   = in_array('updateProduct', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deleteProduct', explode(',', session('user_restricted_permissions', '')));
 
         if ($request->ajax()) {
-            // kirim field yang dipakai tabel + url aksi
             $rows = collect($products->items())->map(function ($p) {
                 return [
-                    'fprdid'    => $p->fprdid,
-                    'fprdcode'  => $p->fprdcode,
-                    'fprdname'  => $p->fprdname,
-                    'fsatuankecil'  => $p->fsatuankecil,
-                    'fminstock'     => $p->fminstock,
-                    'edit_url'      => route('product.edit', $p->fprdid),
-                    'destroy_url'   => route('product.destroy', $p->fprdid),
+                    'fprdid'       => $p->fprdid,
+                    'fprdcode'     => $p->fprdcode,
+                    'fprdname'     => $p->fprdname,
+                    'fsatuankecil' => $p->fsatuankecil,
+                    'fminstock'    => $p->fminstock,
+                    'edit_url'     => route('product.edit', $p->fprdid),
+                    'destroy_url'  => route('product.destroy', $p->fprdid),
                 ];
             });
 
@@ -53,10 +58,11 @@ class ProductController extends Controller
                     'current_page'  => $products->currentPage(),
                     'last_page'     => $products->lastPage(),
                 ],
+                'sort' => ['by' => $sortBy, 'dir' => $sortDir],
             ]);
         }
 
-        return view('product.index', compact('products', 'search'));
+        return view('product.index', compact('products', 'search', 'canCreate', 'canEdit', 'canDelete', 'sortBy', 'sortDir'));
     }
 
     public function suggestNames(Request $request)

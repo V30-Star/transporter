@@ -12,12 +12,16 @@ class MerekController extends Controller
         $search   = trim((string) $request->search);
         $filterBy = $request->filter_by ?? 'all'; // 'all' | 'fmerekcode' | 'fmerekid' | 'fmerekname'
 
+        // Sorting
+        $allowedSorts = ['fmerekcode', 'fmerekname', 'fmerekid'];
+        $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fmerekid';
+        $sortDir = $request->sort_dir === 'asc' ? 'asc' : 'desc';
+
         $mereks = Merek::when($search !== '', function ($q) use ($search, $filterBy) {
             $q->where(function ($qq) use ($search, $filterBy) {
                 if ($filterBy === 'fmerekcode') {
                     $qq->where('fmerekcode', 'ILIKE', "%{$search}%");
                 } elseif ($filterBy === 'fmerekid') {
-                    // jika numeric dan mau cari mengandung, cast ke text
                     $qq->whereRaw('CAST(fmerekid AS TEXT) ILIKE ?', ["%{$search}%"]);
                 } elseif ($filterBy === 'fmerekname') {
                     $qq->where('fmerekname', 'ILIKE', "%{$search}%");
@@ -28,23 +32,24 @@ class MerekController extends Controller
                 }
             });
         })
-            ->orderBy('fmerekid', 'desc')
+            ->orderBy($sortBy, $sortDir)
+            ->orderBy('fmerekid', 'desc') // tie-breaker
             ->paginate(10)
             ->withQueryString();
 
-        // permissions (samakan penamaannya dengan app kamu)
+        // permissions
         $canCreate = in_array('createMerek', explode(',', session('user_restricted_permissions', '')));
         $canEdit   = in_array('updateMerek', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deleteMerek', explode(',', session('user_restricted_permissions', '')));
 
-        // Respon AJAX untuk live search/pagination
+        // AJAX response
         if ($request->ajax()) {
             $rows = collect($mereks->items())->map(function ($m) {
                 return [
-                    'fmerekid'   => $m->fmerekid,
-                    'fmerekcode' => $m->fmerekcode,
-                    'fmerekname' => $m->fmerekname,
-                    'edit_url'   => route('merek.edit', $m->fmerekid),
+                    'fmerekid'    => $m->fmerekid,
+                    'fmerekcode'  => $m->fmerekcode,
+                    'fmerekname'  => $m->fmerekname,
+                    'edit_url'    => route('merek.edit', $m->fmerekid),
                     'destroy_url' => route('merek.destroy', $m->fmerekid),
                 ];
             });
@@ -58,11 +63,12 @@ class MerekController extends Controller
                     'current_page' => $mereks->currentPage(),
                     'last_page'    => $mereks->lastPage(),
                 ],
+                'sort' => ['by' => $sortBy, 'dir' => $sortDir], // penting utk ikon & state front-end
             ]);
         }
 
-        // Render awal (Blade)
-        return view('merek.index', compact('mereks', 'filterBy', 'search', 'canCreate', 'canEdit', 'canDelete'));
+        // Render awal
+        return view('merek.index', compact('mereks', 'filterBy', 'search', 'canCreate', 'canEdit', 'canDelete', 'sortBy', 'sortDir'));
     }
 
     public function ajaxStore(Request $request)

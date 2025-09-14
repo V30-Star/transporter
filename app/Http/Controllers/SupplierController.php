@@ -12,6 +12,11 @@ class SupplierController extends Controller
         $search   = trim((string) $request->search);
         $filterBy = $request->filter_by ?? 'all';
 
+        // Sorting
+        $allowedSorts = ['fsuppliercode', 'fsuppliername', 'fsupplierid'];
+        $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fsupplierid';
+        $sortDir = $request->sort_dir === 'asc' ? 'asc' : 'desc';
+
         $suppliers = Supplier::when($search !== '', function ($q) use ($search, $filterBy) {
             $q->where(function ($qq) use ($search, $filterBy) {
                 if ($filterBy === 'fsuppliercode') {
@@ -24,7 +29,8 @@ class SupplierController extends Controller
                 }
             });
         })
-            ->orderBy('fsuppliercode', 'asc')
+            ->orderBy($sortBy, $sortDir)
+            ->orderBy('fsupplierid', 'desc') // tie-breaker
             ->paginate(10)
             ->withQueryString();
 
@@ -32,12 +38,12 @@ class SupplierController extends Controller
             $supplier->faddress = trim($supplier->faddress ?? '');
         }
 
-        // permissions (sesuaikan penamaan dengan app kamu)
+        // permissions
         $canCreate = in_array('createSupplier', explode(',', session('user_restricted_permissions', '')));
         $canEdit   = in_array('updateSupplier', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deleteSupplier', explode(',', session('user_restricted_permissions', '')));
 
-        // Response AJAX
+        // AJAX response
         if ($request->ajax()) {
             $rows = collect($suppliers->items())->map(function ($s) {
                 return [
@@ -62,11 +68,21 @@ class SupplierController extends Controller
                     'current_page' => $suppliers->currentPage(),
                     'last_page'    => $suppliers->lastPage(),
                 ],
+                'sort' => ['by' => $sortBy, 'dir' => $sortDir],
             ]);
         }
 
         // Render awal
-        return view('supplier.index', compact('suppliers', 'filterBy', 'search', 'canCreate', 'canEdit', 'canDelete'));
+        return view('supplier.index', compact(
+            'suppliers',
+            'filterBy',
+            'search',
+            'canCreate',
+            'canEdit',
+            'canDelete',
+            'sortBy',
+            'sortDir'
+        ));
     }
 
     public function create()

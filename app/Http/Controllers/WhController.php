@@ -13,6 +13,11 @@ class WhController extends Controller
         $search   = trim((string) $request->search);
         $filterBy = $request->filter_by ?? 'all';
 
+        // Sorting (klik header)
+        $allowedSorts = ['fwhcode', 'fwhname', 'fwhid']; // tambahkan kolom lain jika perlu
+        $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fwhid';
+        $sortDir = $request->sort_dir === 'asc' ? 'asc' : 'desc';
+
         $gudangs = Wh::with('cabang')
             ->when($search !== '', function ($q) use ($search, $filterBy) {
                 $q->where(function ($qq) use ($search, $filterBy) {
@@ -29,7 +34,8 @@ class WhController extends Controller
                     }
                 });
             })
-            ->orderBy('fwhid', 'desc')
+            ->orderBy($sortBy, $sortDir)
+            ->orderBy('fwhid', 'desc') // tie-breaker
             ->paginate(10)
             ->withQueryString();
 
@@ -42,12 +48,12 @@ class WhController extends Controller
         if ($request->ajax()) {
             $rows = collect($gudangs->items())->map(function ($g) {
                 return [
-                    'fwhid'   => $g->fwhid,
-                    'fwhcode' => $g->fwhcode,
-                    'fwhname' => $g->fwhname,
-                    'cabang_code' => optional($g->cabang)->fcabangkode   ?? null,
+                    'fwhid'       => $g->fwhid,
+                    'fwhcode'     => $g->fwhcode,
+                    'fwhname'     => $g->fwhname,
+                    'cabang_code' => optional($g->cabang)->fcabangkode ?? null,
                     'cabang_name' => optional($g->cabang)->fcabangname ?? null,
-
+                    'faddress'    => $g->faddress ?? null, // kalau ada kolom alamat di tabel wh
                     'edit_url'    => route('gudang.edit', $g->fwhid),
                     'destroy_url' => route('gudang.destroy', $g->fwhid),
                 ];
@@ -62,11 +68,21 @@ class WhController extends Controller
                     'current_page' => $gudangs->currentPage(),
                     'last_page'    => $gudangs->lastPage(),
                 ],
+                'sort' => ['by' => $sortBy, 'dir' => $sortDir], // penting untuk ikon di front-end
             ]);
         }
 
         // Render awal (Blade)
-        return view('gudang.index', compact('gudangs', 'filterBy', 'search', 'canCreate', 'canEdit', 'canDelete'));
+        return view('gudang.index', compact(
+            'gudangs',
+            'filterBy',
+            'search',
+            'canCreate',
+            'canEdit',
+            'canDelete',
+            'sortBy',
+            'sortDir'
+        ));
     }
 
     public function create()

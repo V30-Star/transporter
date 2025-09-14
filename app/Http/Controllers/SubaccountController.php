@@ -12,6 +12,11 @@ class SubaccountController extends Controller
         $search   = trim((string) $request->search);
         $filterBy = $request->filter_by ?? 'all'; // all | fsubaccountcode | fsubaccountid | fsubaccountname
 
+        // Sorting
+        $allowedSorts = ['fsubaccountcode', 'fsubaccountname', 'fsubaccountid'];
+        $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fsubaccountid';
+        $sortDir = $request->sort_dir === 'asc' ? 'asc' : 'desc';
+
         $subaccounts = Subaccount::when($search !== '', function ($q) use ($search, $filterBy) {
             $q->where(function ($qq) use ($search, $filterBy) {
                 if ($filterBy === 'fsubaccountcode') {
@@ -27,7 +32,8 @@ class SubaccountController extends Controller
                 }
             });
         })
-            ->orderBy('fsubaccountid', 'desc')
+            ->orderBy($sortBy, $sortDir)
+            ->orderBy('fsubaccountid', 'desc') // tie-breaker
             ->paginate(10)
             ->withQueryString();
 
@@ -36,7 +42,7 @@ class SubaccountController extends Controller
         $canEdit   = in_array('updateSubAccount', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deleteSubAccount', explode(',', session('user_restricted_permissions', '')));
 
-        // Jika request AJAX (live search/pagination), balikin JSON
+        // AJAX response
         if ($request->ajax()) {
             $rows = collect($subaccounts->items())->map(function ($s) {
                 return [
@@ -57,10 +63,20 @@ class SubaccountController extends Controller
                     'current_page' => $subaccounts->currentPage(),
                     'last_page'    => $subaccounts->lastPage(),
                 ],
+                'sort' => ['by' => $sortBy, 'dir' => $sortDir], // untuk ikon & state front-end
             ]);
         }
 
-        return view('subaccount.index', compact('subaccounts', 'filterBy', 'search', 'canCreate', 'canEdit', 'canDelete'));
+        return view('subaccount.index', compact(
+            'subaccounts',
+            'filterBy',
+            'search',
+            'canCreate',
+            'canEdit',
+            'canDelete',
+            'sortBy',
+            'sortDir'
+        ));
     }
 
     public function create()

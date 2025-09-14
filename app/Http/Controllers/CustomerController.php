@@ -14,41 +14,47 @@ class CustomerController extends Controller
     // Index method to list all customers with search functionality
     public function index(Request $request)
     {
-        // Ambil query
         $search   = trim((string) $request->search);
-        $filterBy = $request->filter_by ?? 'all'; // all | fcustomercode | fcustomername
+        $filterBy = $request->filter_by ?? 'all';
 
-        // Query dasar + filter
+        // Sorting
+        $allowedSorts = ['fcustomercode', 'fcustomername', 'fcustomerid'];
+        $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fcustomerid';
+        $sortDir = $request->sort_dir === 'asc' ? 'asc' : 'desc';
+
         $customers = Customer::when($search !== '', function ($q) use ($search, $filterBy) {
             $q->where(function ($qq) use ($search, $filterBy) {
                 if ($filterBy === 'fcustomercode') {
                     $qq->where('fcustomercode', 'ILIKE', "%{$search}%");
                 } elseif ($filterBy === 'fcustomername') {
                     $qq->where('fcustomername', 'ILIKE', "%{$search}%");
-                } else { // 'all' -> kode ATAU nama
+                } else {
                     $qq->where('fcustomercode', 'ILIKE', "%{$search}%")
                         ->orWhere('fcustomername', 'ILIKE', "%{$search}%");
                 }
             });
         })
-            ->orderBy('fcustomerid', 'desc')
+            ->orderBy($sortBy, $sortDir)
+            ->orderBy('fcustomerid', 'desc') // tie-breaker
             ->paginate(10)
             ->withQueryString();
 
-        // Permission sama pola seperti halaman produk
         $canCreate = in_array('createCustomer', explode(',', session('user_restricted_permissions', '')));
         $canEdit   = in_array('updateCustomer', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deleteCustomer', explode(',', session('user_restricted_permissions', '')));
 
-        // Kalau AJAX (live search/pagination), kirim JSON ringkas
         if ($request->ajax()) {
             $rows = collect($customers->items())->map(function ($c) {
                 return [
                     'fcustomerid'   => $c->fcustomerid,
                     'fcustomercode' => $c->fcustomercode,
                     'fcustomername' => $c->fcustomername,
-                    'faddress'      => $c->faddress ?? null,   // kalau kamu tampilkan
-                    'fphone'        => $c->fphone ?? null,     // kalau kamu tampilkan
+                    'fregion'       => $c->fregion ?? '',
+                    'faddress'      => $c->faddress ?? '',
+                    'fcity'         => $c->fcity ?? '',
+                    'fweeklyschedule' => $c->fweeklyschedule ?? '',
+                    'fday'          => $c->fday ?? '',
+                    'fdesc'         => $c->fdesc ?? '',
                     'edit_url'      => route('customer.edit', $c->fcustomerid),
                     'destroy_url'   => route('customer.destroy', $c->fcustomerid),
                 ];
@@ -58,16 +64,25 @@ class CustomerController extends Controller
                 'data'  => $rows,
                 'perms' => ['can_create' => $canCreate, 'can_edit' => $canEdit, 'can_delete' => $canDelete],
                 'links' => [
-                    'prev'          => $customers->previousPageUrl(),
-                    'next'          => $customers->nextPageUrl(),
-                    'current_page'  => $customers->currentPage(),
-                    'last_page'     => $customers->lastPage(),
+                    'prev'         => $customers->previousPageUrl(),
+                    'next'         => $customers->nextPageUrl(),
+                    'current_page' => $customers->currentPage(),
+                    'last_page'    => $customers->lastPage(),
                 ],
+                'sort' => ['by' => $sortBy, 'dir' => $sortDir],
             ]);
         }
 
-        // Normal render (first load)
-        return view('master.customer.index', compact('customers', 'filterBy', 'search', 'canCreate', 'canEdit', 'canDelete'));
+        return view('master.customer.index', compact(
+            'customers',
+            'filterBy',
+            'search',
+            'canCreate',
+            'canEdit',
+            'canDelete',
+            'sortBy',
+            'sortDir'
+        ));
     }
 
     private function generateCustomerCode(): string

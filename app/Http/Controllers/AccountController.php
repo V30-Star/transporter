@@ -13,6 +13,11 @@ class AccountController extends Controller
         $search   = trim((string) $request->search);
         $filterBy = $request->filter_by ?? 'all'; // all | faccount | faccname
 
+        // Sorting
+        $allowedSorts = ['faccount', 'faccname', 'faccid'];
+        $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'faccount';
+        $sortDir = $request->sort_dir === 'desc' ? 'desc' : 'asc';
+
         $accounts = Account::when($search !== '', function ($q) use ($search, $filterBy) {
             $q->where(function ($qq) use ($search, $filterBy) {
                 if ($filterBy === 'faccount') {
@@ -25,22 +30,24 @@ class AccountController extends Controller
                 }
             });
         })
-            ->orderBy('faccount', 'asc')
+            ->orderBy($sortBy, $sortDir)
+            ->orderBy('faccid', 'asc') // tie-breaker stabil
             ->paginate(10)
             ->withQueryString();
 
-        // permissions (sesuaikan penamaan dengan app kamu)
+        // permissions
         $canCreate = in_array('createAccount', explode(',', session('user_restricted_permissions', '')));
         $canEdit   = in_array('updateAccount', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deleteAccount', explode(',', session('user_restricted_permissions', '')));
 
-        // Response AJAX untuk live search/pagination
         if ($request->ajax()) {
             $rows = collect($accounts->items())->map(function ($a) {
                 return [
                     'faccid'   => $a->faccid,
                     'faccount' => $a->faccount,
                     'faccname' => $a->faccname,
+                    'fend'     => $a->fend,     // 1=Detil, 0=Header (atau sesuai schema)
+                    'fnormal'  => $a->fnormal,  // 1=Debet, 0=Kredit (atau sesuai schema)
                     'edit_url'    => route('account.edit', $a->faccid),
                     'destroy_url' => route('account.destroy', $a->faccid),
                 ];
@@ -55,11 +62,20 @@ class AccountController extends Controller
                     'current_page' => $accounts->currentPage(),
                     'last_page'    => $accounts->lastPage(),
                 ],
+                'sort' => ['by' => $sortBy, 'dir' => $sortDir],
             ]);
         }
 
-        // Render awal
-        return view('account.index', compact('accounts', 'filterBy', 'search', 'canCreate', 'canEdit', 'canDelete'));
+        return view('account.index', compact(
+            'accounts',
+            'filterBy',
+            'search',
+            'canCreate',
+            'canEdit',
+            'canDelete',
+            'sortBy',
+            'sortDir'
+        ));
     }
 
     public function browse(Request $request)

@@ -11,11 +11,17 @@ class GroupcustomerController extends Controller
     {
         $search = trim((string) $request->search);
 
-        $groupCustomers = Groupcustomer::when($search, function ($q) use ($search) {
+        // Sorting
+        $allowedSorts = ['fgroupcode', 'fgroupname', 'fgroupid'];
+        $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fgroupid';
+        $sortDir = $request->sort_dir === 'asc' ? 'asc' : 'desc';
+
+        $groupCustomers = Groupcustomer::when($search !== '', function ($q) use ($search) {
             $q->where('fgroupcode', 'ILIKE', "%{$search}%")
                 ->orWhere('fgroupname', 'ILIKE', "%{$search}%");
         })
-            ->orderBy('fgroupid', 'desc')
+            ->orderBy($sortBy, $sortDir)
+            ->orderBy('fgroupid', 'desc') // tie-breaker stabil
             ->paginate(10)
             ->withQueryString();
 
@@ -23,14 +29,13 @@ class GroupcustomerController extends Controller
         $canEdit   = in_array('updateGroupCustomer', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deleteGroupCustomer', explode(',', session('user_restricted_permissions', '')));
 
-        // Kalau request AJAX -> kirim JSON
         if ($request->ajax()) {
             $rows = collect($groupCustomers->items())->map(function ($gc) {
                 return [
-                    'fgroupid'   => $gc->fgroupid,
-                    'fgroupcode' => $gc->fgroupcode,
-                    'fgroupname' => $gc->fgroupname,
-                    'edit_url'   => route('groupcustomer.edit', $gc->fgroupid),
+                    'fgroupid'    => $gc->fgroupid,
+                    'fgroupcode'  => $gc->fgroupcode,
+                    'fgroupname'  => $gc->fgroupname,
+                    'edit_url'    => route('groupcustomer.edit', $gc->fgroupid),
                     'destroy_url' => route('groupcustomer.destroy', $gc->fgroupid),
                 ];
             });
@@ -44,15 +49,21 @@ class GroupcustomerController extends Controller
                     'current_page' => $groupCustomers->currentPage(),
                     'last_page'    => $groupCustomers->lastPage(),
                 ],
+                'sort' => ['by' => $sortBy, 'dir' => $sortDir],
             ]);
         }
 
-        return view(
-            'master.groupcustomer.index',
-            compact('groupCustomers', 'search', 'canCreate', 'canEdit', 'canDelete')
-        );
+        return view('master.groupcustomer.index', compact(
+            'groupCustomers',
+            'search',
+            'canCreate',
+            'canEdit',
+            'canDelete',
+            'sortBy',
+            'sortDir'
+        ));
     }
-    
+
     public function create()
     {
         // Menampilkan form untuk menambah grup customer baru

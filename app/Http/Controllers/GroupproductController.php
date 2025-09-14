@@ -12,28 +12,34 @@ class GroupproductController extends Controller
         $search   = trim((string) $request->search);
         $filterBy = $request->filter_by ?? 'all'; // 'all' | 'fgroupcode' | 'fgroupname'
 
+        // Sorting
+        $allowedSorts = ['fgroupcode', 'fgroupname', 'fgroupid'];
+        $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fgroupid';
+        $sortDir = $request->sort_dir === 'asc' ? 'asc' : 'desc';
+
         $groupproducts = Groupproduct::when($search !== '', function ($q) use ($search, $filterBy) {
             $q->where(function ($qq) use ($search, $filterBy) {
                 if ($filterBy === 'fgroupcode') {
                     $qq->where('fgroupcode', 'ILIKE', "%{$search}%");
                 } elseif ($filterBy === 'fgroupname') {
                     $qq->where('fgroupname', 'ILIKE', "%{$search}%");
-                } else { // 'all'
+                } else {
                     $qq->where('fgroupcode', 'ILIKE', "%{$search}%")
                         ->orWhere('fgroupname', 'ILIKE', "%{$search}%");
                 }
             });
         })
-            ->orderBy('fgroupid', 'desc')
+            ->orderBy($sortBy, $sortDir)
+            ->orderBy('fgroupid', 'desc') // tie-breaker
             ->paginate(10)
             ->withQueryString();
 
-        // permissions (sesuaikan penamaan dengan app kamu)
+        // permissions
         $canCreate = in_array('createGroupProduct', explode(',', session('user_restricted_permissions', '')));
         $canEdit   = in_array('updateGroupProduct', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deleteGroupProduct', explode(',', session('user_restricted_permissions', '')));
 
-        // Response AJAX untuk live search/pagination
+        // Response AJAX
         if ($request->ajax()) {
             $rows = collect($groupproducts->items())->map(function ($gp) {
                 return [
@@ -47,18 +53,26 @@ class GroupproductController extends Controller
 
             return response()->json([
                 'data'  => $rows,
-                'perms' => ['can_create' => $canCreate, 'can_edit' => $canEdit, 'can_delete' => $canDelete],
+                'perms' => [
+                    'can_create' => $canCreate,
+                    'can_edit'   => $canEdit,
+                    'can_delete' => $canDelete
+                ],
                 'links' => [
                     'prev'         => $groupproducts->previousPageUrl(),
                     'next'         => $groupproducts->nextPageUrl(),
                     'current_page' => $groupproducts->currentPage(),
                     'last_page'    => $groupproducts->lastPage(),
                 ],
+                'sort' => ['by' => $sortBy, 'dir' => $sortDir],
             ]);
         }
 
         // Render awal
-        return view('groupproduct.index', compact('groupproducts', 'filterBy', 'search', 'canCreate', 'canEdit', 'canDelete'));
+        return view(
+            'groupproduct.index',
+            compact('groupproducts', 'filterBy', 'search', 'canCreate', 'canEdit', 'canDelete', 'sortBy', 'sortDir')
+        );
     }
 
     public function create()

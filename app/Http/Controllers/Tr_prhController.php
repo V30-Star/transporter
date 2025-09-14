@@ -23,6 +23,11 @@ class Tr_prhController extends Controller
     $search   = trim((string) $request->search);
     $filterBy = $request->filter_by ?? 'all'; // all | fprno | fprdin
 
+    // Sorting
+    $allowedSorts = ['fprid', 'fprno', 'fprdin'];
+    $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fprid';
+    $sortDir = $request->sort_dir === 'asc' ? 'asc' : 'desc';
+
     $tr_prh = Tr_prh::when($search !== '', function ($q) use ($search, $filterBy) {
       $q->where(function ($qq) use ($search, $filterBy) {
         if ($filterBy === 'fprno') {
@@ -35,42 +40,42 @@ class Tr_prhController extends Controller
         }
       });
     })
-      ->orderBy('fprid', 'desc')
+      ->orderBy($sortBy, $sortDir)
+      ->orderBy('fprid', 'desc') // tie-breaker
       ->paginate(10)
       ->withQueryString();
 
-    // permissions (ganti nama sesuai yang dipakai di app kamu)
+    // permissions (ganti sesuai app jika perlu)
     $canCreate = in_array('createTr_prh', explode(',', session('user_restricted_permissions', '')));
     $canEdit   = in_array('updateTr_prh', explode(',', session('user_restricted_permissions', '')));
     $canDelete = in_array('deleteTr_prh', explode(',', session('user_restricted_permissions', '')));
 
-    // Response AJAX
     if ($request->ajax()) {
       $rows = collect($tr_prh->items())->map(function ($t) {
         return [
-          'fprid'  => $t->fprid,
-          'fprno'  => $t->fprno,
-          'fprdin' => $t->fprdin,
+          'fprid'       => $t->fprid,
+          'fprno'       => $t->fprno,
+          'fprdin'      => $t->fprdin,
           'edit_url'    => route('tr_prh.edit', $t->fprid),
           'destroy_url' => route('tr_prh.destroy', $t->fprid),
-          'print_url'   => route('tr_prh.print', $t->fprno), // ← tambah ini
+          'print_url'   => route('tr_prh.print', $t->fprno),
         ];
       });
 
       return response()->json([
         'data'  => $rows,
-        'perms' => ['can_create' => true, 'can_edit' => true, 'can_delete' => true],
+        'perms' => ['can_create' => $canCreate, 'can_edit' => $canEdit, 'can_delete' => $canDelete],
         'links' => [
           'prev'         => $tr_prh->previousPageUrl(),
           'next'         => $tr_prh->nextPageUrl(),
           'current_page' => $tr_prh->currentPage(),
           'last_page'    => $tr_prh->lastPage(),
         ],
+        'sort' => ['by' => $sortBy, 'dir' => $sortDir],
       ]);
     }
 
-    // Render awal
-    return view('tr_prh.index', compact('tr_prh', 'filterBy', 'search', 'canCreate', 'canEdit', 'canDelete'));
+    return view('tr_prh.index', compact('tr_prh', 'filterBy', 'search', 'canCreate', 'canEdit', 'canDelete', 'sortBy', 'sortDir'));
   }
 
   private function generatetr_prh_Code(?Carbon $onDate = null, $branch = null): string

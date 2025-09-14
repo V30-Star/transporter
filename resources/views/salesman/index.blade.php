@@ -6,10 +6,14 @@
     <div x-data="{
         showDeleteModal: false,
         deleteUrl: null,
-        openDelete(url) { this.deleteUrl = url;
-            this.showDeleteModal = true },
-        closeDelete() { this.showDeleteModal = false;
-            this.deleteUrl = null }
+        openDelete(url) {
+            this.deleteUrl = url;
+            this.showDeleteModal = true
+        },
+        closeDelete() {
+            this.showDeleteModal = false;
+            this.deleteUrl = null
+        }
     }" x-on:open-delete.window="openDelete($event.detail)" class="bg-white rounded shadow p-4">
         {{-- Search Live (AJAX) --}}
         <form id="searchForm" method="GET" action="{{ route('salesman.index') }}"
@@ -33,8 +37,18 @@
         <table class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
-                    <th class="border px-2 py-1">Kode Salesman</th>
-                    <th class="border px-2 py-1">Nama Salesman</th>
+                    <th class="border px-2 py-1 cursor-pointer sortCol" data-sort-by="fsalesmancode">
+                        <div class="flex items-center gap-1">
+                            <span>Kode Salesman</span>
+                            <span id="icon-fsalesmancode" class="text-xs opacity-50">↕</span>
+                        </div>
+                    </th>
+                    <th class="border px-2 py-1 cursor-pointer sortCol" data-sort-by="fsalesmanname">
+                        <div class="flex items-center gap-1">
+                            <span>Nama Salesman</span>
+                            <span id="icon-fsalesmanname" class="text-xs opacity-50">↕</span>
+                        </div>
+                    </th>
                     @if ($showActionsColumn)
                         <th class="border px-2 py-1">Aksi</th>
                     @endif
@@ -125,12 +139,12 @@
         </div>
     </div>
 @endsection
-
 @push('scripts')
     <script>
         (function() {
             const form = document.getElementById('searchForm');
             const input = document.getElementById('searchInput');
+            const filter = document.getElementById('filterBy'); // jika ada
             const tbody = document.getElementById('tableBody');
             const prevBtn = document.getElementById('prevBtn');
             const nextBtn = document.getElementById('nextBtn');
@@ -139,14 +153,20 @@
             let timer = null,
                 lastAbort = null;
 
-            // izinkan tombol hapus dari hasil AJAX memicu modal Alpine
+            // state sort awal (fallback dari server)
+            const sortState = {
+                by: {!! isset($sortBy) ? json_encode($sortBy) : '"fsalesmanid"' !!},
+                dir: {!! isset($sortDir) ? json_encode($sortDir) : '"desc"' !!}
+            };
+
+            // modal hapus (tetap)
             window.openDeleteModal = function(url) {
                 window.dispatchEvent(new CustomEvent('open-delete', {
                     detail: url
                 }));
             };
 
-            // permission awal dari server (akan di-override jika JSON mengirim perms)
+            // permission awal
             let perms = {
                 can_edit: {!! json_encode($canEdit) !!},
                 can_delete: {!! json_encode($canDelete) !!}
@@ -156,15 +176,15 @@
                 let html = '';
                 if (perms.can_edit) {
                     html += `<a href="${item.edit_url}"
-                        class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
-                        Edit
-                     </a>`;
+                class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
+                Edit
+            </a>`;
                 }
                 if (perms.can_delete) {
                     html += `<button onclick="window.openDeleteModal('${item.destroy_url}')"
-                          class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 ml-2">
-                        Hapus
-                     </button>`;
+                class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 ml-2">
+                Hapus
+            </button>`;
                 }
                 return html;
             }
@@ -180,10 +200,23 @@
         `;
             }
 
+            function applySortIcons() {
+                ['fsalesmancode', 'fsalesmanname'].forEach(col => {
+                    const el = document.getElementById('icon-' + col);
+                    if (!el) return;
+                    el.textContent = '↕';
+                    el.classList.add('opacity-50');
+                });
+                const active = document.getElementById('icon-' + sortState.by);
+                if (active) {
+                    active.textContent = (sortState.dir === 'asc') ? '↑' : '↓';
+                    active.classList.remove('opacity-50');
+                }
+            }
+
             function render(json) {
                 if (!json || !json.data) return;
 
-                // update permission dari server jika dikirim
                 if (json.perms) perms = json.perms;
 
                 if (json.data.length === 0) {
@@ -194,7 +227,6 @@
                     tbody.innerHTML = json.data.map(rowHtml).join('');
                 }
 
-                // update pagination
                 prevBtn.dataset.page = json.links.prev || '';
                 nextBtn.dataset.page = json.links.next || '';
                 prevBtn.disabled = !json.links.prev;
@@ -202,6 +234,19 @@
                 prevBtn.classList.toggle('opacity-50', !json.links.prev);
                 nextBtn.classList.toggle('opacity-50', !json.links.next);
                 pageInfo.textContent = `Page ${json.links.current_page} of ${json.links.last_page}`;
+
+                if (json.sort && json.sort.by) {
+                    sortState.by = json.sort.by;
+                    sortState.dir = json.sort.dir || 'desc';
+                }
+                applySortIcons();
+
+                // opsional: sinkron URL address bar
+                const qs = new URLSearchParams(new FormData(form));
+                qs.set('page', json.links.current_page);
+                qs.set('sort_by', sortState.by);
+                qs.set('sort_dir', sortState.dir);
+                history.replaceState({}, '', `${form.action}?${qs.toString()}`);
             }
 
             function fetchTable(url) {
@@ -222,15 +267,14 @@
             }
 
             function buildUrl(baseUrl = null) {
-                if (baseUrl) {
-                    const u = new URL(baseUrl, window.location.origin);
-                    u.searchParams.set('search', input.value || '');
-                    return u.toString();
-                }
-                const base = form.getAttribute('action');
-                const params = new URLSearchParams(new FormData(form));
-                params.delete('page'); // reset ke page 1 saat mengetik
-                return `${base}?${params.toString()}`;
+                const base = baseUrl ? new URL(baseUrl, window.location.origin) :
+                    new URL(form.getAttribute('action'), window.location.origin);
+                base.searchParams.set('search', input?.value || '');
+                if (filter) base.searchParams.set('filter_by', filter.value || 'fsalesmancode');
+                base.searchParams.set('sort_by', sortState.by);
+                base.searchParams.set('sort_dir', sortState.dir);
+                if (!baseUrl) base.searchParams.delete('page');
+                return base.toString();
             }
 
             // live search (debounce)
@@ -239,9 +283,25 @@
                 timer = setTimeout(() => fetchTable(buildUrl()), 300);
             });
 
-            // cegah submit via Enter
+            // cegah Enter submit
             input.addEventListener('keydown', e => {
                 if (e.key === 'Enter') e.preventDefault();
+            });
+
+            // klik header untuk sort (tanpa refresh)
+            document.querySelectorAll('.sortCol').forEach(th => {
+                th.addEventListener('click', () => {
+                    const col = th.dataset.sortBy;
+                    if (!col) return;
+                    if (sortState.by === col) {
+                        sortState.dir = (sortState.dir === 'asc') ? 'desc' : 'asc';
+                    } else {
+                        sortState.by = col;
+                        sortState.dir = 'asc';
+                    }
+                    applySortIcons();
+                    fetchTable(buildUrl());
+                });
             });
 
             // pagination ajax
@@ -251,6 +311,9 @@
                     fetchTable(buildUrl(e.target.dataset.page));
                 }
             });
+
+            // init ikon
+            applySortIcons();
         })();
     </script>
 @endpush

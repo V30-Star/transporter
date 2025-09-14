@@ -19,7 +19,12 @@ class WilayahController extends Controller
     public function index(Request $request)
     {
         $search   = trim((string) $request->search);
-        $filterBy = $request->filter_by ?? 'all'; 
+        $filterBy = $request->filter_by ?? 'all';
+
+        // Sorting
+        $allowedSorts = ['fwilayahcode', 'fwilayahname', 'fwilayahid'];
+        $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fwilayahid';
+        $sortDir = $request->sort_dir === 'asc' ? 'asc' : 'desc';
 
         $wilayahs = Wilayah::when($search !== '', function ($q) use ($search, $filterBy) {
             $q->where(function ($qq) use ($search, $filterBy) {
@@ -33,7 +38,8 @@ class WilayahController extends Controller
                 }
             });
         })
-            ->orderBy('fwilayahid', 'desc')
+            ->orderBy($sortBy, $sortDir)
+            ->orderBy('fwilayahid', 'desc') // tie-breaker
             ->paginate(10)
             ->withQueryString();
 
@@ -61,10 +67,20 @@ class WilayahController extends Controller
                     'current_page' => $wilayahs->currentPage(),
                     'last_page'    => $wilayahs->lastPage(),
                 ],
+                'sort' => ['by' => $sortBy, 'dir' => $sortDir],
             ]);
         }
 
-        return view('master.wilayah.index', compact('wilayahs', 'filterBy', 'search', 'canCreate', 'canEdit', 'canDelete'));
+        return view('master.wilayah.index', compact(
+            'wilayahs',
+            'filterBy',
+            'search',
+            'canCreate',
+            'canEdit',
+            'canDelete',
+            'sortBy',
+            'sortDir'
+        ));
     }
 
     public function create()
