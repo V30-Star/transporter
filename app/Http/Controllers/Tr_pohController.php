@@ -9,12 +9,12 @@ use App\Models\Product;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Mail\ApprovalEmail;
 use Illuminate\Support\Facades\Mail;
-
+use Illuminate\Support\Str;
+use Carbon\Carbon; // sekalian biar aman untuk tanggal
 
 class Tr_pohController extends Controller
 {
@@ -23,18 +23,21 @@ class Tr_pohController extends Controller
     $search   = trim((string) $request->search);
     $filterBy = $request->filter_by ?? 'all'; // all | fprno | fprdin
 
-    $tr_poh = Tr_prh::when($search !== '', function ($q) use ($search, $filterBy) {
-      $q->where(function ($qq) use ($search, $filterBy) {
-        if ($filterBy === 'fprno') {
-          $qq->where('fprno', 'ILIKE', "%{$search}%");
-        } elseif ($filterBy === 'fprdin') {
-          $qq->where('fprdin', 'ILIKE', "%{$search}%");
-        } else { // all
-          $qq->where('fprno',  'ILIKE', "%{$search}%")
-            ->orWhere('fprdin', 'ILIKE', "%{$search}%");
-        }
-      });
-    })
+    $tr_poh = Tr_prh::select(['fprid', 'fprno', 'fsupplier', 'fprdate', 'fprdin'])
+      ->where('fapproval', 2)
+      ->where('fprdin', 0)
+      ->when($search !== '', function ($q) use ($search, $filterBy) {
+        $q->where(function ($qq) use ($search, $filterBy) {
+          if ($filterBy === 'fprno') {
+            $qq->where('fprno', 'ILIKE', "%{$search}%");
+          } elseif ($filterBy === 'fprdin') {
+            $qq->where('fprdin', 'ILIKE', "%{$search}%");
+          } else {
+            $qq->where('fprno',  'ILIKE', "%{$search}%")
+              ->orWhere('fprdin', 'ILIKE', "%{$search}%");
+          }
+        });
+      })
       ->orderBy('fprid', 'desc')
       ->paginate(10)
       ->withQueryString();
@@ -51,6 +54,8 @@ class Tr_pohController extends Controller
           'fprid'  => $t->fprid,
           'fprno'  => $t->fprno,
           'fprdin' => $t->fprdin,
+          'fsupplier' => trim($t->fsupplier ?? ''),
+          'fprdate' => $t->fprdate ? \Carbon\Carbon::parse($t->fprdate)->format('Y-m-d H:i:s') : 'No Date',
           'edit_url'    => route('tr_poh.edit', $t->fprid),
           'destroy_url' => route('tr_poh.destroy', $t->fprid),
           'print_url'   => route('tr_poh.print', $t->fprno), // ← tambah ini
@@ -71,6 +76,73 @@ class Tr_pohController extends Controller
 
     // Render awal
     return view('tr_poh.index', compact('tr_poh', 'filterBy', 'search', 'canCreate', 'canEdit', 'canDelete'));
+  }
+
+  // app/Http/Controllers/Tr_pohController.php
+  public function items($id, Request $request)
+  {
+    // 1) Header PR
+    $header = DB::table('tr_prh')
+      ->select('fprid', 'fprno', 'fsupplier', 'fprdate')
+      ->where('fprid', $id)
+      ->first();
+
+    if (!$header) {
+      return response()->json(['message' => 'PR not found'], 404);
+    }
+
+    // 2) Ambil detail dari tr_prd; join ke msprd hanya untuk nama produk
+    $rows = DB::table('tr_prd as d')
+      ->leftJoin('msprd as p', 'p.fprdcode', '=', 'd.fprdcode')
+      ->where('d.fprnoid', '=', (string) $header->fprno) // pastikan type string
+      ->get([
+        'd.fprdcode as fitemcode',
+        DB::raw("COALESCE(p.fprdname, '') as fitemname"),
+        'd.fsatuan as fsatuan', // <-- ambil dari tr_prd, bukan msprd
+        'd.fqty',
+        'd.fprice',
+        DB::raw("COALESCE(d.fdesc, d.fketdt, '') as fdesc"), // pakai fdesc kalau ada, fallback ke fketdt
+      ]);
+
+    // 3) Map untuk frontend
+    $items = $rows->map(function ($r) use ($header) {
+      $qty   = (float) ($r->fqty ?? 0);
+      $price = (float) ($r->fprice ?? 0);
+      $total = $qty * $price;
+
+      return [
+        'fitemcode' => (string) ($r->fitemcode ?? ''),
+        'fitemname' => (string) ($r->fitemname ?? ''),
+        'fsatuan'   => (string) ($r->fsatuan   ?? ''),
+        'frefpr'    => (string) ($header->fprno ?? ''),
+
+        'fqty'      => $qty,
+        'fterima'   => 0,
+        'fprice'    => $price,
+        'fdisc'     => 0,
+        'ftotal'    => $total,
+
+        'fdesc'     => (string) ($r->fdesc ?? ''),
+        'fketdt'    => '',
+
+        'units'     => array_values(array_filter([(string) ($r->fsatuan ?? '')])),
+      ];
+    });
+
+    // 4) Return  
+    $fprdate = $header->fprdate
+      ? (is_string($header->fprdate) ? $header->fprdate : \Carbon\Carbon::parse($header->fprdate)->toDateTimeString())
+      : null;
+
+    return response()->json([
+      'header' => [
+        'fprid'     => $header->fprid,
+        'fprno'     => $header->fprno,
+        'fsupplier' => $header->fsupplier,
+        'fprdate'   => $fprdate,
+      ],
+      'items' => $items,
+    ]);
   }
 
   private function generatetr_prh_Code(?Carbon $onDate = null, $branch = null): string

@@ -165,6 +165,10 @@ Route::middleware('auth')->group(function () {
             ->name('tr_poh.print');
 
         // routes/web.php
+        Route::get('/master/tr_poh/{id}/items', [Tr_pohController::class, 'items'])
+            ->name('tr_poh.items');
+
+        // routes/web.php
         Route::get('/products/browse', [\App\Http\Controllers\ProductBrowseController::class, 'index'])
             ->name('products.browse');
 

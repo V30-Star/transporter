@@ -284,7 +284,7 @@
                                 </template>
 
                                 <!-- ROW EDIT UTAMA -->
-                                <tr x-show="editingIndex !== null" class="border-t bg-green-50 align-top" x-cloak>
+                                <tr x-show="editingIndex !== null" class="border-t align-top" x-cloak>
                                     <!-- # -->
                                     <td class="p-2" x-text="(editingIndex ?? 0) + 1"></td>
 
@@ -386,7 +386,7 @@
                                 </tr>
 
                                 <!-- ROW EDIT DESC -->
-                                <tr x-show="editingIndex !== null" class="bg-green-50 border-b" x-cloak>
+                                <tr x-show="editingIndex !== null" class="border-b" x-cloak>
                                     <td class="p-0"></td>
                                     <td class="p-0"></td>
                                     <td class="p-2">
@@ -401,7 +401,7 @@
                                 </tr>
 
                                 <!-- ROW DRAFT UTAMA -->
-                                <tr class="border-t bg-green-50 align-top">
+                                <tr class="border-t align-top">
                                     <!-- # -->
                                     <td class="p-2" x-text="savedItems.length + 1"></td>
 
@@ -501,7 +501,7 @@
                                 </tr>
 
                                 <!-- ROW DRAFT DESC -->
-                                <tr class="bg-green-50 border-b">
+                                <tr class="border-b">
                                     <td class="p-0"></td>
                                     <td class="p-0"></td>
                                     <td class="p-2">
@@ -517,52 +517,241 @@
                             </tbody>
                         </table>
                     </div>
-                    <div class="mt-3 grid grid-cols-12 gap-4 items-start">
-                        <!-- Kiri: pakai area Deskripsi yang sudah ada -->
-                        <div class="col-span-8">
-                            <!-- biarkan textarea Deskripsi milikmu di sini -->
-                            <!-- contoh:
-                <label class="block text-sm font-medium mb-1">Deskripsi</label>
-                <textarea x-model="formDesc" rows="4" class="w-full border rounded px-3 py-2"></textarea>
-                -->
-                        </div>
-
-                        <!-- Kanan: panel totals -->
-                        <div class="col-span-4">
-                            <div class="rounded-lg border bg-gray-50 p-3 space-y-2">
-                                <div class="flex items-center justify-between">
-                                    <span class="text-sm text-gray-700">Total Harga</span>
-                                    <span class="min-w-[140px] text-right font-medium" x-text="fmtMoney(subtotal)"></span>
-                                </div>
-
-                                <div class="flex items-center justify-between">
-                                    <label class="text-sm text-gray-700">PPN</label>
-                                    <div class="flex items-center gap-2">
-                                        <input type="number" min="0" max="100" step="0.01"
-                                            x-model.number="ppnRate" class="w-20 border rounded px-2 py-1 text-right" />
-                                        <span class="text-sm">%</span>
+                    <!-- ===== Trigger: Add tr_prh dari panel kanan ===== -->
+                    <div x-data="prhFormModal()" class="mt-3">
+                        <div class="mt-3 flex justify-between items-start gap-4">
+                            <div class="w-full flex justify-start mb-3">
+                                <button type="button" @click="openModal()"
+                                    class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                            d="M12 4.5v15m7.5-7.5h-15" />
+                                    </svg>
+                                    Tambah Penerimaan (PR)
+                                </button>
+                            </div>
+                            <!-- Kanan: Panel Totals -->
+                            <div class="w-1/2">
+                                <div class="rounded-lg border bg-gray-50 p-3 space-y-2">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm text-gray-700">Total Harga</span>
                                         <span class="min-w-[140px] text-right font-medium"
-                                            x-text="fmtMoney(ppnAmount)"></span>
+                                            x-text="fmtMoney(subtotal)"></span>
+                                    </div>
+
+                                    <div class="flex items-center justify-between">
+                                        <label class="text-sm text-gray-700">PPN</label>
+                                        <div class="flex items-center gap-2">
+                                            <input type="number" min="0" max="100" step="0.01"
+                                                x-model.number="ppnRate"
+                                                class="w-20 border rounded px-2 py-1 text-right" />
+                                            <span class="text-sm">%</span>
+                                            <span class="min-w-[140px] text-right font-medium"
+                                                x-text="fmtMoney(ppnAmount)"></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="border-t my-1"></div>
+
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm font-semibold text-gray-800">Grand Total</span>
+                                        <span class="min-w-[140px] text-right text-lg font-semibold"
+                                            x-text="fmtMoney(grandTotal)"></span>
                                     </div>
                                 </div>
 
-                                <div class="border-t my-1"></div>
+                                <!-- Hidden inputs for submit -->
+                                <input type="hidden" name="subtotal" :value="subtotal">
+                                <input type="hidden" name="ppn_rate" :value="ppnRate">
+                                <input type="hidden" name="ppn_amount" :value="ppnAmount">
+                                <input type="hidden" name="grand_total" :value="grandTotal">
+                            </div>
+                        </div>
+                        <!-- Modal backdrop -->
+                        <div x-show="show" x-transition.opacity class="fixed inset-0 z-40 bg-black/50"
+                            @keydown.escape.window="closeModal()"></div>
 
-                                <div class="flex items-center justify-between">
-                                    <span class="text-sm font-semibold text-gray-800">Grand Total</span>
-                                    <span class="min-w-[140px] text-right text-lg font-semibold"
-                                        x-text="fmtMoney(grandTotal)"></span>
+                        <!-- Modal panel PR-->
+                        <div x-show="show" x-transition
+                            class="fixed inset-0 z-50 flex items-start justify-center p-4 md:p-8" aria-modal="true"
+                            role="dialog">
+                            <div class="w-full max-w-3xl rounded-xl bg-white shadow-xl">
+                                <div class="flex items-center justify-between border-b px-4 py-3">
+                                    <h3 class="text-lg font-semibold">Pilih Permintaan (PR)</h3>
+                                    <button @click="closeModal()" class="rounded p-1 hover:bg-gray-100">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                                d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
+
+                                <div class="px-4 py-3 space-y-3">
+                                    <!-- Search -->
+                                    <div class="flex items-center gap-2">
+                                        <input type="text" x-model.debounce.400ms="search" @input="goToPage(1)"
+                                            class="w-full rounded-lg border px-3 py-2"
+                                            placeholder="Cari fprno / fsupplier / tanggal...">
+                                        <select x-model.number="perPage" @change="goToPage(1)"
+                                            class="rounded-lg border px-2 py-2">
+                                            <option value="10">10</option>
+                                            <option value="25">25</option>
+                                            <option value="50">50</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Table -->
+                                    <div class="overflow-auto border rounded">
+                                        <table class="min-w-full text-sm">
+                                            <thead class="bg-gray-100">
+                                                <tr>
+                                                    <th class="p-2 text-left w-48">PR No</th>
+                                                    <th class="p-2 text-left w-48">Supplier</th>
+                                                    <th class="p-2 text-left w-48">Tanggal</th>
+                                                    <th class="p-2 text-right w-24">Aksi</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <template x-for="row in rows" :key="row.fprid">
+                                                    <tr class="border-t">
+                                                        <td class="p-2" x-text="row.fprno"></td>
+                                                        <td class="p-2" x-text="row.fsupplier || '-'"></td>
+                                                        <td class="p-2" x-text="formatDate(row.fprdate)"></td>
+                                                        <td class="p-2 text-right">
+                                                            <button @click="pick(row)"
+                                                                class="inline-flex items-center gap-1 rounded bg-emerald-600 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-emerald-700">
+                                                                Pilih
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                </template>
+
+                                                <tr x-show="loading">
+                                                    <td colspan="4" class="p-4 text-center text-gray-500">
+                                                        Loading...
+                                                    </td>
+                                                </tr>
+                                                <tr x-show="!loading && rows.length === 0">
+                                                    <td colspan="4" class="p-4 text-center text-gray-500">Tidak ada
+                                                        data</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <!-- Pagination -->
+                                    <div class="flex items-center justify-between">
+                                        <div class="text-sm text-gray-600">
+                                            <span x-text="`Page ${currentPage} / ${lastPage}`"></span>
+                                            <span x-text="` • Total: ${total}`"></span>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <button @click="goToPage(1)" :disabled="currentPage <= 1"
+                                                class="rounded border px-2 py-1 disabled:opacity-50">« First</button>
+                                            <button @click="goToPage(currentPage-1)" :disabled="currentPage <= 1"
+                                                class="rounded border px-2 py-1 disabled:opacity-50">‹ Prev</button>
+                                            <button @click="goToPage(currentPage+1)" :disabled="currentPage >= lastPage"
+                                                class="rounded border px-2 py-1 disabled:opacity-50">Next ›</button>
+                                            <button @click="goToPage(lastPage)" :disabled="currentPage >= lastPage"
+                                                class="rounded border px-2 py-1 disabled:opacity-50">Last »</button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-
-                            <!-- (opsional) hidden inputs untuk submit -->
-                            <input type="hidden" name="subtotal" :value="subtotal">
-                            <input type="hidden" name="ppn_rate" :value="ppnRate">
-                            <input type="hidden" name="ppn_amount" :value="ppnAmount">
-                            <input type="hidden" name="grand_total" :value="grandTotal">
                         </div>
                     </div>
 
+                    <script>
+                        // Penting: attach ke window agar bisa dipanggil dari x-data="prhFormModal()"
+                        window.prhFormModal = function() {
+                            return {
+                                show: false,
+                                rows: [],
+                                search: '',
+                                perPage: 10,
+                                currentPage: 1,
+                                lastPage: 1,
+                                total: 0,
+                                loading: false,
+
+                                openModal() {
+                                    this.show = true;
+                                    this.goToPage(1);
+                                },
+                                closeModal() {
+                                    this.show = false;
+                                },
+
+                                async fetchData() {
+                                    this.loading = true;
+                                    try {
+                                        const params = new URLSearchParams({
+                                            search: this.search ?? '',
+                                            per_page: this.perPage,
+                                            page: this.currentPage,
+                                        });
+
+                                        const res = await fetch(`{{ route('tr_poh.index') }}?` + params.toString(), {
+                                            headers: {
+                                                'X-Requested-With': 'XMLHttpRequest'
+                                            }
+                                        });
+                                        const json = await res.json();
+
+                                        this.rows = json.data ?? [];
+
+                                        // dukung 2 skema response (top-level atau di links)
+                                        this.currentPage = (json.current_page ?? json.links?.current_page) ?? 1;
+                                        this.lastPage = (json.last_page ?? json.links?.last_page) ?? 1;
+                                        this.total = (json.total ?? json.links?.total) ?? (json.data_total ?? 0);
+                                    } catch (e) {
+                                        this.rows = [];
+                                    } finally {
+                                        this.loading = false;
+                                    }
+                                },
+
+                                goToPage(p) {
+                                    if (p < 1) p = 1;
+                                    this.currentPage = p;
+                                    this.fetchData();
+                                },
+
+                                formatDate(s) {
+                                    if (!s || s === 'No Date') return '-';
+                                    const d = new Date(s);
+                                    if (isNaN(d)) return '-';
+                                    const pad = n => n.toString().padStart(2, '0');
+                                    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+                                },
+
+                                async pick(row) {
+                                    try {
+                                        const url = `{{ route('tr_poh.items', ['id' => 'PR_ID_PLACEHOLDER']) }}`.replace(
+                                            'PR_ID_PLACEHOLDER', row.fprid);
+                                        const res = await fetch(url, {
+                                            headers: {
+                                                'X-Requested-With': 'XMLHttpRequest'
+                                            }
+                                        });
+                                        const json = await res.json();
+
+                                        // kirim ke itemsTable
+                                        window.dispatchEvent(new CustomEvent('pr-picked', {
+                                            detail: json
+                                        })); // {header, items}
+
+                                        this.closeModal(); // <- penting: pakai closeModal(), bukan close()
+                                    } catch (e) {
+                                        console.error(e);
+                                        alert('Gagal mengambil detail PR');
+                                    }
+                                }
+                            }
+                        }
+                    </script>
 
                     <!-- MODAL DESC (di dalam itemsTable) -->
                     <div x-show="showDescModal" x-cloak class="fixed inset-0 z-[95] flex items-center justify-center"
@@ -599,7 +788,7 @@
                 </div>
 
                 {{-- MODAL ERROR: belum ada item --}}
-                <div x-show="showNoItems" x-cloak class="fixed inset-0 z-[90] flex items-center justify-center"
+                <div x-show="showNoItems && savedItems.length === 0" x-cloak class="fixed inset-0 z-[90] flex items-center justify-center"
                     x-transition.opacity>
                     <div class="absolute inset-0 bg-black/50" @click="showNoItems=false"></div>
 
@@ -652,7 +841,8 @@
                                 <tbody>
                                     <template x-for="s in rows" :key="s.fsupplierid">
                                         <tr class="border-b hover:bg-gray-50">
-                                            <td class="p-2" x-text="`${s.fsuppliercode} - ${s.fsuppliername}`"></td>
+                                            <td class="p-2" x-text="`${s.fsuppliercode} - ${s.fsuppliername}`">
+                                            </td>
                                             <td class="p-2" x-text="s.ftelp || '-'"></td>
                                             <td class="p-2 text-center">
                                                 <button type="button" @click="choose(s)"
@@ -999,8 +1189,8 @@
     // Tabel inline
     function itemsTable() {
         return {
+            showNoItems: false,
             savedItems: [],
-
             draft: newRow(),
             editingIndex: null,
             editRow: newRow(),
@@ -1051,6 +1241,64 @@
                 return row.fitemcode && row.fitemname && row.fsatuan && Number(row.fqty) > 0;
             },
 
+            onPrPicked(e) {
+                const {
+                    header,
+                    items
+                } = e.detail || {};
+                if (!items || !Array.isArray(items)) return;
+
+                this.addManyFromPR(header, items);
+            },
+
+            addManyFromPR(header, items) {
+                // Cegah duplikat berdasarkan kombinasi kode+refPR
+                const key = (it) => `${it.fitemcode}::${it.frefpr ?? ''}`;
+
+                const existing = new Set(this.savedItems.map(it => key(it)));
+
+                items.forEach(src => {
+                    const row = {
+                        uid: (crypto.randomUUID ? crypto.randomUUID() : (Date.now().toString(36) + Math
+                            .random().toString(36).slice(2))),
+                        fitemcode: src.fitemcode ?? '', // pastikan string, bukan null
+                        fitemname: src.fitemname ?? '',
+                        fsatuan: src.fsatuan ?? '',
+                        frefpr: src.frefpr ?? (header?.fprno ?? ''),
+                        fqty: Number(src.fqty ?? 0),
+                        fterima: Number(src.fterima ?? 0),
+                        fprice: Number(src.fprice ?? 0),
+                        fdisc: Number(src.fdisc ?? 0),
+                        ftotal: Number(src.ftotal ?? 0),
+                        fdesc: src.fdesc ?? '',
+                        fketdt: src.fketdt ?? '',
+                        units: Array.isArray(src.units) && src.units.length ? src.units : [src.fsatuan]
+                            .filter(Boolean),
+                    };
+
+                    this.recalc(row);
+
+                    if (!existing.has(key(row))) {
+                        this.savedItems.push(row); // <- ini yang memicu render baris
+                        existing.add(key(row));
+                    }
+                });
+
+                if (this.savedItems.length > 0) this.showNoItems = false;
+
+                this.recalcTotals?.();
+            },
+
+            // contoh recalc(total baris)
+            recalc(r) {
+                const qty = Number(r.fqty || 0);
+                const price = Number(r.fprice || 0);
+                const disc = Number(r.fdisc || 0);
+                const sub = qty * price;
+                const discA = sub * (disc / 100);
+                r.ftotal = Math.max(0, sub - discA);
+            },
+
             addIfComplete() {
                 const r = this.draft;
                 if (!this.isComplete(r)) {
@@ -1077,9 +1325,11 @@
                     ...r,
                     uid: cryptoRandom()
                 });
+                this.showNoItems = false;
                 this.resetDraft();
                 this.$nextTick(() => this.$refs.draftCode?.focus());
                 this.syncDescList?.();
+                this.showNoItems = false;
             },
 
             edit(i) {
@@ -1116,6 +1366,13 @@
             resetDraft() {
                 this.draft = newRow();
             },
+            onSubmit($event) {
+                if (this.savedItems.length === 0) {
+                    $event.preventDefault();
+                    this.showNoItems = true;
+                    return;
+                }
+            },
 
             // navigasi enter dari kode -> unit/qty tetap seperti milikmu
             handleEnterOnCode(where) {
@@ -1138,7 +1395,12 @@
             applyDesc() {},
 
             init() {
-                // event pilih produk via modal browse (biarkan seperti milikmu)
+                // 1) PR dipilih dari modal PR
+                window.addEventListener('pr-picked', this.onPrPicked.bind(this), {
+                    passive: true
+                });
+
+                // 2) Produk dipilih dari modal browse produk
                 window.addEventListener('product-chosen', (e) => {
                     const {
                         product
@@ -1193,7 +1455,8 @@
         }
 
         function cryptoRandom() {
-            return (window.crypto?.getRandomValues ? [...window.crypto.getRandomValues(new Uint32Array(2))].map(n => n
+            return (window.crypto?.getRandomValues ? [...window.crypto.getRandomValues(new Uint32Array(2))].map(n =>
+                    n
                     .toString(16)).join('') :
                 Math.random().toString(36).slice(2)) + Date.now();
         }
