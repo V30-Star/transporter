@@ -164,11 +164,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/tr_poh/{fprno}/print', [Tr_pohController::class, 'print'])
             ->name('tr_poh.print');
 
-        // routes/web.php
-        Route::get('/master/tr_poh/{id}/items', [Tr_pohController::class, 'items'])
-            ->name('tr_poh.items');
+        Route::get('/tr-poh/pickable', [Tr_pohController::class, 'pickable'])
+            ->name('tr_poh.pickable'); // sumber data modal
 
-        // routes/web.php
+        Route::get('/tr-poh/{id}/items', [Tr_pohController::class, 'items'])
+            ->name('tr_poh.items');    // endpoint ambil header+items PR
+
         Route::get('/products/browse', [\App\Http\Controllers\ProductBrowseController::class, 'index'])
             ->name('products.browse');
 

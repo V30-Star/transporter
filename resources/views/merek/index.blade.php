@@ -40,13 +40,13 @@
                     <th class="border px-2 py-1 cursor-pointer sortCol" data-sort-by="fmerekcode">
                         <div class="flex items-center gap-1">
                             <span>Kode Merek</span>
-                            <span id="icon-fmerekcode" class="text-xs opacity-50">↕</span>
+                            <span id="icon-fmerekcode" class="text-lg font-semibold text-green-600">⇅</span>
                         </div>
                     </th>
                     <th class="border px-2 py-1 cursor-pointer sortCol" data-sort-by="fmerekname">
                         <div class="flex items-center gap-1">
                             <span>Nama Merek</span>
-                            <span id="icon-fmerekname" class="text-xs opacity-50">↕</span>
+                            <span id="icon-fmerekname" class="text-lg font-semibold text-green-600">⇅</span>
                         </div>
                     </th>
                     @if ($showActionsColumn)

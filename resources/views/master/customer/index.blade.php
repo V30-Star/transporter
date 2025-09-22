@@ -40,13 +40,13 @@
                     <th class="border px-2 py-1 cursor-pointer sortCol" data-sort-by="fcustomercode">
                         <div class="flex items-center gap-1">
                             <span>Kode Customer</span>
-                            <span id="icon-fcustomercode" class="text-xs opacity-50">↕</span>
+                            <span id="icon-fcustomercode" class="text-lg font-semibold text-green-600">⇅</span>
                         </div>
                     </th>
                     <th class="border px-2 py-1 cursor-pointer sortCol" data-sort-by="fcustomername">
                         <div class="flex items-center gap-1">
                             <span>Nama Customer</span>
-                            <span id="icon-fcustomername" class="text-xs opacity-50">↕</span>
+                            <span id="icon-fcustomername" class="text-lg font-semibold text-green-600">⇅</span>
                         </div>
                     </th>
                     <th class="border px-2 py-1">Wilayah</th>

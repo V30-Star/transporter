@@ -41,31 +41,31 @@
                     <th class="border px-2 py-1 cursor-pointer sortCol" data-sort-by="fsysuserid">
                         <div class="flex items-center gap-1">
                             <span>User Id</span>
-                            <span id="icon-fsysuserid" class="text-xs opacity-50">↕</span>
+                            <span id="icon-fsysuserid" class="text-lg font-semibold text-green-600">⇅</span>
                         </div>
                     </th>
                     <th class="border px-2 py-1 cursor-pointer sortCol" data-sort-by="fname">
                         <div class="flex items-center gap-1">
                             <span>Nama User</span>
-                            <span id="icon-fname" class="text-xs opacity-50">↕</span>
+                            <span id="icon-fname" class="text-lg font-semibold text-green-600">⇅</span>
                         </div>
                     </th>
                     <th class="border px-2 py-1 cursor-pointer sortCol" data-sort-by="created_at">
                         <div class="flex items-center gap-1">
                             <span>Waktu</span>
-                            <span id="icon-created_at" class="text-xs opacity-50">↕</span>
+                            <span id="icon-created_at" class="text-lg font-semibold text-green-600">⇅</span>
                         </div>
                     </th>
                     <th class="border px-2 py-1 cursor-pointer sortCol" data-sort-by="fuserid">
                         <div class="flex items-center gap-1">
                             <span>Fuserid</span>
-                            <span id="icon-fuserid" class="text-xs opacity-50">↕</span>
+                            <span id="icon-fuserid" class="text-lg font-semibold text-green-600">⇅</span>
                         </div>
                     </th>
                     <th class="border px-2 py-1 cursor-pointer sortCol" data-sort-by="fcabang">
                         <div class="flex items-center gap-1">
                             <span>Cabang</span>
-                            <span id="icon-fcabang" class="text-xs opacity-50">↕</span>
+                            <span id="icon-fcabang" class="text-lg font-semibold text-green-600">⇅</span>
                         </div>
                     </th>
                     @if ($showActionsColumn)

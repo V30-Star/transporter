@@ -86,7 +86,7 @@
 
     <div x-data="{ open: true }">
         <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
-            <form action="{{ route('tr_prh.store') }}" method="POST" class="mt-6" x-data="{ showNoItems: false }"
+            <form action="{{ route('tr_poh.store') }}" method="POST" class="mt-6" x-data="{ showNoItems: false }"
                 @submit.prevent="
         const n = Number(document.getElementById('itemsCount')?.value || 0);
         if (n < 1) { showNoItems = true } else { $el.submit() }
@@ -105,7 +105,7 @@
                     <div class="lg:col-span-4" x-data="{ autoCode: true }">
                         <label class="block text-sm font-medium mb-1">PO#</label>
                         <div class="flex items-center gap-3">
-                            <input type="text" name="fprno" class="w-full border rounded px-3 py-2"
+                            <input type="text" name="fpono" class="w-full border rounded px-3 py-2"
                                 :disabled="autoCode" :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
                             <label class="inline-flex items-center select-none">
                                 <input type="checkbox" x-model="autoCode" checked>
@@ -150,38 +150,38 @@
 
                     <div class="lg:col-span-4">
                         <label class="block text-sm font-medium">Tanggal</label>
-                        <input type="date" name="fprdate" value="{{ old('fprdate') ?? date('Y-m-d') }}"
-                            class="w-full border rounded px-3 py-2 @error('fprdate') border-red-500 @enderror">
-                        @error('fprdate')
+                        <input type="date" name="fpodate" value="{{ old('fpodate') ?? date('Y-m-d') }}"
+                            class="w-full border rounded px-3 py-2 @error('fpodate') border-red-500 @enderror">
+                        @error('fpodate')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
                     </div>
 
                     <div class="lg:col-span-4">
                         <label class="block text-sm font-medium">Tgl. Kirim</label>
-                        <input type="date" name="fneeddate" value="{{ old('fneeddate', '') }}"
-                            class="w-full border rounded px-3 py-2 @error('fneeddate') border-red-500 @enderror">
-                        @error('fneeddate')
+                        <input type="date" name="fkirimdate" value="{{ old('fkirimdate', '') }}"
+                            class="w-full border rounded px-3 py-2 @error('fkirimdate') border-red-500 @enderror">
+                        @error('fkirimdate')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
                     </div>
 
-                    <div class="lg:col-span-4">
+                    {{-- <div class="lg:col-span-4">
                         <label class="block text-sm font-medium mb-1">Tempo</label>
                         <div class="flex items-center">
-                            <input type="number" name="fduedate" value="{{ old('fduedate', 0) }}"
-                                class="w-full border rounded px-3 py-2 @error('fduedate') border-red-500 @enderror">
+                            <input type="number" name="ftempohr" value="{{ old('ftempohr', 0) }}"
+                                class="w-full border rounded px-3 py-2 @error('ftempohr') border-red-500 @enderror">
                             <span class="ml-2">Hari</span>
                         </div>
-                        @error('fduedate')
+                        @error('ftempohr')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
-                    </div>
+                    </div> --}}
 
-                    <div class="lg:col-span-4">
-                        <input id="ppn" type="checkbox" name="ppn" value="1"
+                    <div class="lg:col-span-5">
+                        <input id="fincludeppn" type="checkbox" name="fincludeppn" value="1"
                             class="h-4 w-4 text-blue-600 border-gray-300 rounded">
-                        <label for="ppn" class="ml-2 text-sm font-medium text-gray-700">
+                        <label for="fincludeppn" class="ml-2 text-sm font-medium text-gray-700">
                             Harga Termasuk <span class="font-bold">PPN</span>
                         </label>
                     </div>
@@ -232,8 +232,8 @@
                                                 <span class="align-middle text-gray-600" x-text="it.fdesc"></span>
                                             </div>
                                         </td>
-                                        <td class="p-2" x-text="it.fsatuan"></td>
-                                        <td class="p-2" x-text="it.frefpr || '-'"></td>
+                                        <td class="p-2" x-text="it.fuom"></td>
+                                        <td class="p-2" x-text="it.fprno || '-'"></td>
                                         <td class="p-2 text-right" x-text="fmt(it.fqty)"></td>
                                         <td class="p-2 text-right" x-text="fmt(it.fterima)"></td>
                                         <td class="p-2 text-right" x-text="fmt(it.fprice)"></td>
@@ -253,6 +253,8 @@
                                             <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
                                             <input type="hidden" name="fitemname[]" :value="it.fitemname">
                                             <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
+                                            <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
+                                            <input type="hidden" name="fnouref[]" :value="it.fnouref">
                                             <input type="hidden" name="frefpr[]" :value="it.frefpr">
                                             <input type="hidden" name="fqty[]" :value="it.fqty">
                                             <input type="hidden" name="fterima[]" :value="it.fterima">
@@ -517,6 +519,7 @@
                             </tbody>
                         </table>
                     </div>
+
                     <!-- ===== Trigger: Add tr_prh dari panel kanan ===== -->
                     <div x-data="prhFormModal()" class="mt-3">
                         <div class="mt-3 flex justify-between items-start gap-4">
@@ -537,15 +540,15 @@
                                     <div class="flex items-center justify-between">
                                         <span class="text-sm text-gray-700">Total Harga</span>
                                         <span class="min-w-[140px] text-right font-medium"
-                                            x-text="fmtMoney(subtotal)"></span>
+                                            x-text="fmtMoney(totalHarga)"></span>
                                     </div>
 
                                     <div class="flex items-center justify-between">
                                         <label class="text-sm text-gray-700">PPN</label>
                                         <div class="flex items-center gap-2">
                                             <input type="number" min="0" max="100" step="0.01"
-                                                x-model.number="ppnRate"
-                                                class="w-20 border rounded px-2 py-1 text-right" />
+                                                x-model.number="ppnRate" class="w-20 border rounded px-2 py-1 text-right"
+                                                @input="calculatePPN()">
                                             <span class="text-sm">%</span>
                                             <span class="min-w-[140px] text-right font-medium"
                                                 x-text="fmtMoney(ppnAmount)"></span>
@@ -562,10 +565,10 @@
                                 </div>
 
                                 <!-- Hidden inputs for submit -->
-                                <input type="hidden" name="subtotal" :value="subtotal">
-                                <input type="hidden" name="ppn_rate" :value="ppnRate">
-                                <input type="hidden" name="ppn_amount" :value="ppnAmount">
-                                <input type="hidden" name="grand_total" :value="grandTotal">
+                                <input type="hidden" name="famountponet" :value="totalHarga">
+                                <input type="hidden" name="" :value="ppnAmount">
+                                <input type="hidden" name="famountpo" :value="grandTotal">
+                                <input type="hidden" name="famountpopajak" :value="ppnRate">
                             </div>
                         </div>
                         <!-- Modal backdrop -->
@@ -579,13 +582,6 @@
                             <div class="w-full max-w-3xl rounded-xl bg-white shadow-xl">
                                 <div class="flex items-center justify-between border-b px-4 py-3">
                                     <h3 class="text-lg font-semibold">Pilih Permintaan (PR)</h3>
-                                    <button @click="closeModal()" class="rounded p-1 hover:bg-gray-100">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
-                                            viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                                d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
-                                    </button>
                                 </div>
 
                                 <div class="px-4 py-3 space-y-3">
@@ -593,13 +589,28 @@
                                     <div class="flex items-center gap-2">
                                         <input type="text" x-model.debounce.400ms="search" @input="goToPage(1)"
                                             class="w-full rounded-lg border px-3 py-2"
-                                            placeholder="Cari fprno / fsupplier / tanggal...">
-                                        <select x-model.number="perPage" @change="goToPage(1)"
-                                            class="rounded-lg border px-2 py-2">
-                                            <option value="10">10</option>
-                                            <option value="25">25</option>
-                                            <option value="50">50</option>
-                                        </select>
+                                            placeholder="Cari fpono / fsupplier / tanggal...">
+                                        <div class="relative">
+                                            <select x-model.number="perPage" @change="goToPage(1)"
+                                                class="h-10 w-24 rounded-lg border border-gray-300 bg-white pl-3 pr-8 text-sm
+                                                    focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500
+                                                    hover:border-gray-400
+                                                    appearance-none [background:none]">
+                                                <option value="10">10</option>
+                                                <option value="25">25</option>
+                                                <option value="50">50</option>
+                                            </select>
+
+                                            <!-- Chevron custom -->
+                                            <svg class="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500"
+                                                xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                                                fill="currentColor">
+                                                <path fill-rule="evenodd"
+                                                    d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z"
+                                                    clip-rule="evenodd" />
+                                            </svg>
+                                        </div>
+
                                     </div>
 
                                     <!-- Table -->
@@ -620,7 +631,7 @@
                                                         <td class="p-2" x-text="row.fsupplier || '-'"></td>
                                                         <td class="p-2" x-text="formatDate(row.fprdate)"></td>
                                                         <td class="p-2 text-right">
-                                                            <button @click="pick(row)"
+                                                            <button @click.prevent="pick(row)"
                                                                 class="inline-flex items-center gap-1 rounded bg-emerald-600 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-emerald-700">
                                                                 Pilih
                                                             </button>
@@ -658,100 +669,16 @@
                                                 class="rounded border px-2 py-1 disabled:opacity-50">Last »</button>
                                         </div>
                                     </div>
+                                    <div class="flex justify-end gap-2 border-t pt-3">
+                                        <button type="button" @click="closeModal()"
+                                            class="rounded bg-gray-200 px-4 py-2 text-sm font-medium hover:bg-gray-300">
+                                            Kembali
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-
-                    <script>
-                        // Penting: attach ke window agar bisa dipanggil dari x-data="prhFormModal()"
-                        window.prhFormModal = function() {
-                            return {
-                                show: false,
-                                rows: [],
-                                search: '',
-                                perPage: 10,
-                                currentPage: 1,
-                                lastPage: 1,
-                                total: 0,
-                                loading: false,
-
-                                openModal() {
-                                    this.show = true;
-                                    this.goToPage(1);
-                                },
-                                closeModal() {
-                                    this.show = false;
-                                },
-
-                                async fetchData() {
-                                    this.loading = true;
-                                    try {
-                                        const params = new URLSearchParams({
-                                            search: this.search ?? '',
-                                            per_page: this.perPage,
-                                            page: this.currentPage,
-                                        });
-
-                                        const res = await fetch(`{{ route('tr_poh.index') }}?` + params.toString(), {
-                                            headers: {
-                                                'X-Requested-With': 'XMLHttpRequest'
-                                            }
-                                        });
-                                        const json = await res.json();
-
-                                        this.rows = json.data ?? [];
-
-                                        // dukung 2 skema response (top-level atau di links)
-                                        this.currentPage = (json.current_page ?? json.links?.current_page) ?? 1;
-                                        this.lastPage = (json.last_page ?? json.links?.last_page) ?? 1;
-                                        this.total = (json.total ?? json.links?.total) ?? (json.data_total ?? 0);
-                                    } catch (e) {
-                                        this.rows = [];
-                                    } finally {
-                                        this.loading = false;
-                                    }
-                                },
-
-                                goToPage(p) {
-                                    if (p < 1) p = 1;
-                                    this.currentPage = p;
-                                    this.fetchData();
-                                },
-
-                                formatDate(s) {
-                                    if (!s || s === 'No Date') return '-';
-                                    const d = new Date(s);
-                                    if (isNaN(d)) return '-';
-                                    const pad = n => n.toString().padStart(2, '0');
-                                    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-                                },
-
-                                async pick(row) {
-                                    try {
-                                        const url = `{{ route('tr_poh.items', ['id' => 'PR_ID_PLACEHOLDER']) }}`.replace(
-                                            'PR_ID_PLACEHOLDER', row.fprid);
-                                        const res = await fetch(url, {
-                                            headers: {
-                                                'X-Requested-With': 'XMLHttpRequest'
-                                            }
-                                        });
-                                        const json = await res.json();
-
-                                        // kirim ke itemsTable
-                                        window.dispatchEvent(new CustomEvent('pr-picked', {
-                                            detail: json
-                                        })); // {header, items}
-
-                                        this.closeModal(); // <- penting: pakai closeModal(), bukan close()
-                                    } catch (e) {
-                                        console.error(e);
-                                        alert('Gagal mengambil detail PR');
-                                    }
-                                }
-                            }
-                        }
-                    </script>
 
                     <!-- MODAL DESC (di dalam itemsTable) -->
                     <div x-show="showDescModal" x-cloak class="fixed inset-0 z-[95] flex items-center justify-center"
@@ -788,8 +715,8 @@
                 </div>
 
                 {{-- MODAL ERROR: belum ada item --}}
-                <div x-show="showNoItems && savedItems.length === 0" x-cloak class="fixed inset-0 z-[90] flex items-center justify-center"
-                    x-transition.opacity>
+                <div x-show="showNoItems && savedItems.length === 0" x-cloak
+                    class="fixed inset-0 z-[90] flex items-center justify-center" x-transition.opacity>
                     <div class="absolute inset-0 bg-black/50" @click="showNoItems=false"></div>
 
                     <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden"
@@ -966,7 +893,7 @@
                         class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
                         <x-heroicon-o-check class="w-5 h-5 mr-2" /> Simpan
                     </button>
-                    <button type="button" @click="window.location.href='{{ route('tr_prh.index') }}'"
+                    <button type="button" @click="window.location.href='{{ route('tr_poh.index') }}'"
                         class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
                         <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" /> Keluar
                     </button>
@@ -1186,7 +1113,6 @@
         });
     });
 
-    // Tabel inline
     function itemsTable() {
         return {
             showNoItems: false,
@@ -1195,12 +1121,30 @@
             editingIndex: null,
             editRow: newRow(),
 
-            // ===== Helpers =====
-            fmt(n) { // format angka sederhana
+            totalHarga: 0, // Total harga before PPN
+            ppnRate: 0, // PPN rate (percentage)
+            ppnAmount: 0, // Amount of PPN calculated
+            grandTotal: 0, // Final grand total after adding PPN
+
+            fmt(n) {
                 if (n === null || n === undefined || n === '') return '-';
                 const v = Number(n);
                 if (!isFinite(v)) return '-';
-                return v.toLocaleString(); // ganti sesuai kebutuhan (IDR dll)
+
+                // Jika angka adalah bulat, hilangkan desimal
+                if (Number.isInteger(v)) {
+                    return v.toLocaleString('id-ID'); // Format sebagai angka bulat
+                } else {
+                    return v.toLocaleString('id-ID', {
+                        style: 'currency',
+                        currency: 'IDR'
+                    }); // Jika angka desimal, tampilkan dalam format mata uang
+                }
+            },
+
+            // Adding missing fmtMoney function
+            fmtMoney(value) {
+                return this.fmt(value); // reuse fmt function for currency formatting
             },
 
             recalc(row) {
@@ -1211,12 +1155,31 @@
                 row.fdisc = Math.min(100, Math.max(0, +row.fdisc || 0));
                 // Total berdasarkan QTY (bukan "Terima")
                 row.ftotal = +(row.fqty * row.fprice * (1 - row.fdisc / 100)).toFixed(2);
+
+                // Recalculate totals after item recalculation
+                this.recalcTotals();
+            },
+
+            recalcTotals() {
+                // Calculate total price before PPN
+                this.totalHarga = this.savedItems.reduce((sum, item) => sum + item.ftotal, 0);
+
+                // Recalculate PPN and grand total
+                this.calculatePPN();
+            },
+
+            calculatePPN() {
+                // Calculate PPN amount based on the totalHarga and input PPN rate
+                this.ppnAmount = this.totalHarga * (this.ppnRate / 100);
+                // Calculate Grand Total
+                this.grandTotal = this.totalHarga + this.ppnAmount;
             },
 
             productMeta(code) {
                 const key = (code || '').trim();
                 return window.PRODUCT_MAP?.[key] || null;
             },
+
             hydrateRowFromMeta(row, meta) {
                 if (!meta) {
                     row.fitemname = '';
@@ -1232,12 +1195,12 @@
                 const stock = Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0;
                 row.maxqty = stock;
             },
+
             onCodeTypedRow(row) {
                 this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
             },
 
             isComplete(row) {
-                // harga boleh 0; disc boleh 0
                 return row.fitemcode && row.fitemname && row.fsatuan && Number(row.fqty) > 0;
             },
 
@@ -1248,25 +1211,30 @@
                 } = e.detail || {};
                 if (!items || !Array.isArray(items)) return;
 
+                this.resetDraft();
+
                 this.addManyFromPR(header, items);
+            },
+            resetDraft() {
+                this.draft = newRow(); // Reset draft data yang sedang diproses
+                // Jika perlu, Anda bisa mengatur elemen-elemen input untuk fokus lagi
+                this.$nextTick(() => this.$refs.draftCode?.focus());
             },
 
             addManyFromPR(header, items) {
-                // Cegah duplikat berdasarkan kombinasi kode+refPR
-                const key = (it) => `${it.fitemcode}::${it.frefpr ?? ''}`;
-
-                const existing = new Set(this.savedItems.map(it => key(it)));
+                const existing = new Set(this.savedItems.map(it => `${it.fitemcode}::${it.frefdtno}`));
 
                 items.forEach(src => {
                     const row = {
-                        uid: (crypto.randomUUID ? crypto.randomUUID() : (Date.now().toString(36) + Math
-                            .random().toString(36).slice(2))),
-                        fitemcode: src.fitemcode ?? '', // pastikan string, bukan null
+                        uid: cryptoRandom(),
+                        fitemcode: src.fitemcode ?? '',
                         fitemname: src.fitemname ?? '',
                         fsatuan: src.fsatuan ?? '',
-                        frefpr: src.frefpr ?? (header?.fprno ?? ''),
+                        frefdtno: src.frefdtno ?? '', // Menggunakan frefdtno sebagai pengganti frefpr
+                        fnouref: src.fnouref ?? '',
+                        frefpr: src.frefpr ?? (header?.fpono ?? ''),
                         fqty: Number(src.fqty ?? 0),
-                        fterima: Number(src.fterima ?? 0),
+                        fterima: Number(src.ferima ?? 0),
                         fprice: Number(src.fprice ?? 0),
                         fdisc: Number(src.fdisc ?? 0),
                         ftotal: Number(src.ftotal ?? 0),
@@ -1275,28 +1243,13 @@
                         units: Array.isArray(src.units) && src.units.length ? src.units : [src.fsatuan]
                             .filter(Boolean),
                     };
-
-                    this.recalc(row);
-
-                    if (!existing.has(key(row))) {
-                        this.savedItems.push(row); // <- ini yang memicu render baris
-                        existing.add(key(row));
+                    if (!existing.has(`${row.fitemcode}::${row.frefdtno}`)) {
+                        this.savedItems.push(row); // Tambahkan item jika belum ada
+                        existing.add(`${row.fitemcode}::${row.frefdtno}`);
                     }
                 });
 
-                if (this.savedItems.length > 0) this.showNoItems = false;
-
-                this.recalcTotals?.();
-            },
-
-            // contoh recalc(total baris)
-            recalc(r) {
-                const qty = Number(r.fqty || 0);
-                const price = Number(r.fprice || 0);
-                const disc = Number(r.fdisc || 0);
-                const sub = qty * price;
-                const discA = sub * (disc / 100);
-                r.ftotal = Math.max(0, sub - discA);
+                this.recalcTotals();
             },
 
             addIfComplete() {
@@ -1310,10 +1263,8 @@
                     return;
                 }
 
-                // hitung total sebelum push
                 this.recalc(r);
 
-                // dupe detector (opsional: abaikan fdesc/ket)
                 const dupe = this.savedItems.find(it => it.fitemcode === r.fitemcode && it.fsatuan === r.fsatuan && (it
                     .frefpr || '') === (r.frefpr || ''));
                 if (dupe) {
@@ -1326,10 +1277,12 @@
                     uid: cryptoRandom()
                 });
                 this.showNoItems = false;
-                this.resetDraft();
+                this.resetDraft(); // Reset draft setelah item ditambahkan
                 this.$nextTick(() => this.$refs.draftCode?.focus());
                 this.syncDescList?.();
                 this.showNoItems = false;
+
+                this.recalcTotals();
             },
 
             edit(i) {
@@ -1340,6 +1293,7 @@
                 this.hydrateRowFromMeta(this.editRow, this.productMeta(this.editRow.fitemcode));
                 this.$nextTick(() => this.$refs.editQty?.focus());
             },
+
             applyEdit() {
                 const r = this.editRow;
                 if (!this.isComplete(r)) {
@@ -1352,7 +1306,11 @@
                 });
                 this.cancelEdit();
                 this.syncDescList?.();
+
+                // Recalculate totals after applying edit
+                this.recalcTotals();
             },
+
             cancelEdit() {
                 this.editingIndex = null;
                 this.editRow = newRow();
@@ -1366,6 +1324,7 @@
             resetDraft() {
                 this.draft = newRow();
             },
+
             onSubmit($event) {
                 if (this.savedItems.length === 0) {
                     $event.preventDefault();
@@ -1374,7 +1333,7 @@
                 }
             },
 
-            // navigasi enter dari kode -> unit/qty tetap seperti milikmu
+            // Handle enter for navigating fields (similar to your current logic)
             handleEnterOnCode(where) {
                 if (where === 'edit') {
                     if (this.editRow.units.length > 1) this.$refs.editUnit?.focus();
@@ -1385,7 +1344,7 @@
                 }
             },
 
-            // modal deskripsi: biarkan kode milikmu (tak diubah)
+            // Modal description (keeping this part as is)
             showDescModal: false,
             descTarget: 'draft',
             descSavedIndex: null,
@@ -1395,12 +1354,12 @@
             applyDesc() {},
 
             init() {
-                // 1) PR dipilih dari modal PR
+                // Listen for PR picked from modal PR
                 window.addEventListener('pr-picked', this.onPrPicked.bind(this), {
                     passive: true
                 });
 
-                // 2) Produk dipilih dari modal browse produk
+                // Listen for product picked from product modal
                 window.addEventListener('product-chosen', (e) => {
                     const {
                         product
@@ -1442,6 +1401,8 @@
                 fitemname: '',
                 units: [],
                 fsatuan: '',
+                frefdtno: '',
+                fnouref: '',
                 frefpr: '',
                 fqty: 0,
                 fterima: 0,
@@ -1455,10 +1416,103 @@
         }
 
         function cryptoRandom() {
-            return (window.crypto?.getRandomValues ? [...window.crypto.getRandomValues(new Uint32Array(2))].map(n =>
-                    n
-                    .toString(16)).join('') :
-                Math.random().toString(36).slice(2)) + Date.now();
+            return (window.crypto?.getRandomValues ? [...window.crypto.getRandomValues(new Uint32Array(2))].map(n => n
+                .toString(16)).join('') : Math.random().toString(36).slice(2)) + Date.now();
         }
     }
+</script>
+
+<script>
+    window.prhFormModal = function() {
+        return {
+            show: false,
+            rows: [],
+            search: '',
+            perPage: 10,
+            currentPage: 1,
+            lastPage: 1,
+            total: 0,
+            loading: false,
+
+            openModal() {
+                this.show = true;
+                this.goToPage(1);
+            },
+            closeModal() {
+                this.show = false;
+            },
+
+            async fetchData() {
+                this.loading = true;
+                try {
+                    const params = new URLSearchParams({
+                        search: this.search ?? '',
+                        per_page: this.perPage,
+                        page: this.currentPage,
+                    });
+
+                    const res = await fetch(`{{ route('tr_poh.pickable') }}?` + params.toString(), {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+                    const json = await res.json();
+
+                    this.rows = json.data ?? [];
+                    // support 2 schemas
+                    this.currentPage = (json.current_page ?? json.links?.current_page) ?? 1;
+                    this.lastPage = (json.last_page ?? json.links?.last_page) ?? 1;
+                    this.total = (json.total ?? json.links?.total) ?? (json.data_total ?? 0);
+                } catch (e) {
+                    console.error(e);
+                    this.rows = [];
+                } finally {
+                    this.loading = false;
+                }
+            },
+
+            goToPage(p) {
+                if (p < 1) p = 1;
+                this.currentPage = p;
+                this.fetchData();
+            },
+
+            formatDate(s) {
+                if (!s || s === 'No Date') return '-';
+                const d = new Date(s);
+                if (isNaN(d)) return '-';
+                const pad = n => n.toString().padStart(2, '0');
+                return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+            },
+
+            async pick(row) {
+                try {
+                    const url = `{{ route('tr_poh.items', ['id' => 'PR_ID_PLACEHOLDER']) }}`
+                        .replace('PR_ID_PLACEHOLDER', row.fprid);
+
+                    const res = await fetch(url, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+
+                    const json = await res.json();
+
+                    // Menambahkan item dari PR yang dipilih ke dalam savedItems
+                    this.addManyFromPR(row, json
+                        .items); // Pastikan data diteruskan dengan benar ke addManyFromPR
+
+                    window.dispatchEvent(new CustomEvent('pr-picked', {
+                        detail: json
+                    }));
+
+                    this.closeModal(); // Setelah menambah item, tutup modal
+                } catch (e) {
+                    console.error(e);
+                    alert('Gagal mengambil detail PR');
+                }
+            },
+
+        };
+    };
 </script>

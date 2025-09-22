@@ -41,13 +41,13 @@
                     <th class="border px-2 py-1 cursor-pointer sortCol" data-sort-by="fwilayahcode">
                         <div class="flex items-center gap-1">
                             <span>Kode Wilayah</span>
-                            <span id="icon-fwilayahcode" class="text-xs opacity-50">↕</span>
+                            <span id="icon-fwilayahcode" class="text-lg font-semibold text-green-600">⇅</span>
                         </div>
                     </th>
                     <th class="border px-2 py-1 cursor-pointer sortCol" data-sort-by="fwilayahname">
                         <div class="flex items-center gap-1">
                             <span>Nama Wilayah</span>
-                            <span id="icon-fwilayahname" class="text-xs opacity-50">↕</span>
+                            <span id="icon-fwilayahname" class="text-lg font-semibold text-green-600">⇅</span>
                         </div>
                     </th>
                     @if ($showActionsColumn)

@@ -47,13 +47,13 @@
                     <th class="border px-2 py-1 cursor-pointer sortCol" data-sort-by="fprid">
                         <div class="flex items-center gap-1">
                             <span>ID PR</span>
-                            <span id="icon-fprid" class="text-xs opacity-50">↕</span>
+                            <span id="icon-fprid" class="text-lg font-semibold">⇅</span>
                         </div>
                     </th>
                     <th class="border px-2 py-1 cursor-pointer sortCol" data-sort-by="fprno">
                         <div class="flex items-center gap-1">
                             <span>No. PR</span>
-                            <span id="icon-fprno" class="text-xs opacity-50">↕</span>
+                            <span id="icon-fprno" class="text-lg font-semibold">⇅</span>
                         </div>
                     </th>
                     <th class="border px-2 py-1">Aksi</th>

@@ -40,13 +40,13 @@
                     <th class="border px-2 py-1 cursor-pointer sortCol" data-sort-by="fsatuancode">
                         <div class="flex items-center gap-1">
                             <span>Kode Satuan</span>
-                            <span id="icon-fsatuancode" class="text-lg font-semibold">⇅</span>
+                            <span id="icon-fsatuancode" class="text-lg font-semibold text-green-600">⇅</span>
                         </div>
                     </th>
                     <th class="border px-2 py-1 cursor-pointer sortCol" data-sort-by="fsatuanname">
                         <div class="flex items-center gap-1">
                             <span>Nama Satuan</span>
-                            <span id="icon-fsatuanname" class="text-lg font-semibold">⇅</span>
+                            <span id="icon-fsatuanname" class="text-lg font-semibold text-green-600">⇅</span>
                         </div>
                     </th>
                     @if ($showActionsColumn)

@@ -38,13 +38,13 @@
                     <th class="border px-2 py-1 cursor-pointer sortCol" data-sort-by="fsuppliercode">
                         <div class="flex items-center gap-1">
                             <span>Kode Supplier</span>
-                            <span id="icon-fsuppliercode" class="text-xs opacity-50">↕</span>
+                            <span id="icon-fsuppliercode" class="text-lg font-semibold text-green-600">⇅</span>
                         </div>
                     </th>
                     <th class="border px-2 py-1 cursor-pointer sortCol" data-sort-by="fsuppliername">
                         <div class="flex items-center gap-1">
                             <span>Nama Supplier</span>
-                            <span id="icon-fsuppliername" class="text-xs opacity-50">↕</span>
+                            <span id="icon-fsuppliername" class="text-lg font-semibold text-green-600">⇅</span>
                         </div>
                     </th>
                     <th class="border px-2 py-1">Kontak</th>

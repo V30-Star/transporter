@@ -58,7 +58,7 @@
             display: none !important
         }
 
-        /* select supplier tanpa caret (view-only select) */
+        /* select supplier tanpa caret */
         #supplierSelect,
         #supplierSelect:disabled {
             -webkit-appearance: none !important;
@@ -75,38 +75,23 @@
         input[type=number]::-webkit-inner-spin-button,
         input[type=number]::-webkit-outer-spin-button {
             -webkit-appearance: none;
-            margin: 0
+            margin: 0;
         }
 
+        /* Hilangkan panah di input number (Firefox) */
         input[type=number] {
-            -moz-appearance: textfield
+            -moz-appearance: textfield;
         }
     </style>
 
     <div x-data="{ open: true }">
         <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
-            <form action="{{ route('tr_prh.update', $tr_prh->fprid) }}" method="POST" class="mt-6" x-data="{ showNoItems: false }"
+            <form action="{{ route('tr_poh.store') }}" method="POST" class="mt-6" x-data="{ showNoItems: false }"
                 @submit.prevent="
-                window.__prh_flush_ok = true;
-                window.dispatchEvent(new CustomEvent('prh-before-submit'));
-                if (!window.__prh_flush_ok) return;
-
-                const n = Number(document.getElementById('itemsCount')?.value || 0);
-                if (n < 1) { showNoItems = true; return; }
-
-                // Tunda submit sampai DOM update selesai
-                $nextTick(() => { $el.submit() });
-                ">
+        const n = Number(document.getElementById('itemsCount')?.value || 0);
+        if (n < 1) { showNoItems = true } else { $el.submit() }
+      ">
                 @csrf
-                @method('PATCH')
-                @php
-                    // anggap "approved" kalau sudah ada fuserapproved ATAU fapproval=1
-                    $isApproved = !empty($tr_prh->fuserapproved) || (int) $tr_prh->fapproval === 1;
-                @endphp
-
-                @php
-                    $fmt = fn($d) => $d ? \Illuminate\Support\Carbon::parse($d)->format('Y-m-d') : '';
-                @endphp
 
                 {{-- HEADER FORM --}}
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
@@ -117,16 +102,18 @@
                         <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
                     </div>
 
-                    <div class="lg:col-span-4">
-                        <label class="block text-sm font-medium mb-1">PR#</label>
+                    <div class="lg:col-span-4" x-data="{ autoCode: true }">
+                        <label class="block text-sm font-medium mb-1">PO#</label>
                         <div class="flex items-center gap-3">
-                            <input type="text" name="fprno"
-                                class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
-                                value="{{ $tr_prh->fprno }}" disabled>
+                            <input type="text" name="fpono" class="w-full border rounded px-3 py-2"
+                                :disabled="autoCode" :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
+                            <label class="inline-flex items-center select-none">
+                                <input type="checkbox" x-model="autoCode" checked>
+                                <span class="ml-2 text-sm text-gray-700">Auto</span>
+                            </label>
                         </div>
                     </div>
 
-                    {{-- Supplier (browse seperti create) --}}
                     <div class="lg:col-span-4">
                         <label class="block text-sm font-medium mb-1">Supplier</label>
                         <div class="flex">
@@ -137,7 +124,7 @@
                                     <option value=""></option>
                                     @foreach ($supplier as $sup)
                                         <option value="{{ $sup->fsupplierid }}"
-                                            {{ old('fsupplier', $tr_prh->fsupplier) == $sup->fsupplierid ? 'selected' : '' }}>
+                                            {{ old('fsupplier', $tr_poh->fsupplier) == $sup->fsupplierid ? 'selected' : '' }}>
                                             {{ $sup->fsuppliercode }} - {{ $sup->fsuppliername }}
                                         </option>
                                     @endforeach
@@ -145,9 +132,12 @@
                                 <div class="absolute inset-0" role="button" aria-label="Browse supplier"
                                     @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"></div>
                             </div>
-                            {{-- kirim ID supplier ke server --}}
+
+                            {{-- Hidden input untuk menyimpan ID supplier --}}
                             <input type="hidden" name="fsupplier" id="supplierCodeHidden"
-                                value="{{ old('fsupplier', $tr_prh->fsupplier) }}">
+                                value="{{ old('fsupplier', $tr_poh->fsupplier) }}">
+
+                            <!-- Tombol untuk memilih supplier -->
                             <button type="button" @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"
                                 class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
                                 title="Browse Supplier">
@@ -165,43 +155,55 @@
 
                     <div class="lg:col-span-4">
                         <label class="block text-sm font-medium">Tanggal</label>
-                        <input type="date" name="fprdate" value="{{ old('fprdate', $fmt($tr_prh->fprdate)) }}"
-                            class="w-full border rounded px-3 py-2 @error('fprdate') border-red-500 @enderror">
-                        @error('fprdate')
+                        <input type="date" name="fpodate" value="{{ old('fpodate') ?? date('Y-m-d') }}"
+                            class="w-full border rounded px-3 py-2 @error('fpodate') border-red-500 @enderror">
+                        @error('fpodate')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
                     </div>
 
                     <div class="lg:col-span-4">
-                        <label class="block text-sm font-medium">Tanggal Dibutuhkan</label>
-                        <input type="date" name="fneeddate" value="{{ old('fneeddate', $fmt($tr_prh->fneeddate)) }}"
-                            class="w-full border rounded px-3 py-2 @error('fneeddate') border-red-500 @enderror">
-                        @error('fneeddate')
+                        <label class="block text-sm font-medium">Tgl. Kirim</label>
+                        <input type="date" name="fkirimdate" value="{{ old('fkirimdate', '') }}"
+                            class="w-full border rounded px-3 py-2 @error('fkirimdate') border-red-500 @enderror">
+                        @error('fkirimdate')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
                     </div>
 
-                    <div class="lg:col-span-4">
-                        <label class="block text-sm font-medium">Tanggal Paling Lambat</label>
-                        <input type="date" name="fduedate" value="{{ old('fduedate', $fmt($tr_prh->fduedate)) }}"
-                            class="w-full border rounded px-3 py-2 @error('fduedate') border-red-500 @enderror">
-                        @error('fduedate')
+                    {{-- <div class="lg:col-span-4">
+                        <label class="block text-sm font-medium mb-1">Tempo</label>
+                        <div class="flex items-center">
+                            <input type="number" name="ftempohr" value="{{ old('ftempohr', 0) }}"
+                                class="w-full border rounded px-3 py-2 @error('ftempohr') border-red-500 @enderror">
+                            <span class="ml-2">Hari</span>
+                        </div>
+                        @error('ftempohr')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
+                    </div> --}}
+
+                    <div class="lg:col-span-5">
+                        <input id="fincludeppn" type="checkbox" name="fincludeppn" value="1"
+                            class="h-4 w-4 text-blue-600 border-gray-300 rounded"
+                            {{ old('fincludeppn') ? 'checked' : '' }}>
+                        <label for="fincludeppn" class="ml-2 text-sm font-medium text-gray-700">
+                            Harga Termasuk <span class="font-bold">PPN</span>
+                        </label>
                     </div>
 
                     <div class="lg:col-span-12">
                         <label class="block text-sm font-medium">Keterangan</label>
                         <textarea name="fket" rows="3" class="w-full border rounded px-3 py-2 @error('fket') border-red-500 @enderror"
-                            placeholder="Tulis keterangan tambahan di sini...">{{ old('fket', $tr_prh->fket) }}</textarea>
+                            placeholder="Tulis keterangan tambahan di sini...">{{ old('fket') }}</textarea>
                         @error('fket')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
                     </div>
                 </div>
 
-                {{-- DETAIL ITEM (tabel inline, sama seperti create, tapi prefill dari details) --}}
-                <div x-data="itemsTable()" x-init="initFromServer()" class="mt-6 space-y-2">
+                {{-- DETAIL ITEM (tabel input) --}}
+                <div x-data="itemsTable()" x-init="init()" class="mt-6 space-y-2">
                     <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
 
                     <div class="overflow-auto border rounded">
@@ -212,8 +214,12 @@
                                     <th class="p-2 text-left w-44">Kode Produk</th>
                                     <th class="p-2 text-left">Nama Produk</th>
                                     <th class="p-2 text-left w-40">Satuan</th>
+                                    <th class="p-2 text-left w-56">Ref.PR#</th>
                                     <th class="p-2 text-right w-28">Qty</th>
-                                    <th class="p-2 text-left w-56">Ket Item</th>
+                                    <th class="p-2 text-right w-28">Terima</th>
+                                    <th class="p-2 text-right w-28">@ Harga</th>
+                                    <th class="p-2 text-right w-28">Disc. %</th>
+                                    <th class="p-2 text-right w-32">Total Harga</th>
                                     <th class="p-2 text-center w-28">Aksi</th>
                                 </tr>
                             </thead>
@@ -228,15 +234,17 @@
                                             <div x-text="it.fitemname"></div>
                                             <div x-show="it.fdesc" class="mt-1 text-xs">
                                                 <span
-                                                    class="inline-block px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 mr-2">
-                                                    Deskripsi
-                                                </span>
+                                                    class="inline-block px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 mr-2">Deskripsi</span>
                                                 <span class="align-middle text-gray-600" x-text="it.fdesc"></span>
                                             </div>
                                         </td>
-                                        <td class="p-2" x-text="it.fsatuan"></td>
-                                        <td class="p-2 text-right" x-text="it.fqty"></td>
-                                        <td class="p-2" x-text="it.fketdt || '-'"></td>
+                                        <td class="p-2" x-text="it.fuom"></td>
+                                        <td class="p-2" x-text="it.fprno || '-'"></td>
+                                        <td class="p-2 text-right" x-text="fmt(it.fqty)"></td>
+                                        <td class="p-2 text-right" x-text="fmt(it.fterima)"></td>
+                                        <td class="p-2 text-right" x-text="fmt(it.fprice)"></td>
+                                        <td class="p-2 text-right" x-text="fmt(it.fdisc)"></td>
+                                        <td class="p-2 text-right" x-text="fmt(it.ftotal)"></td>
                                         <td class="p-2 text-center">
                                             <div class="flex items-center justify-center gap-2 flex-wrap">
                                                 <button type="button" @click="edit(i)"
@@ -248,12 +256,19 @@
 
                                         <!-- hidden inputs -->
                                         <td class="hidden">
-                                            <input type="hidden" name="fitemcode[]" x-model="it.fitemcode">
-                                            <input type="hidden" name="fitemname[]" x-model="it.fitemname">
-                                            <input type="hidden" name="fsatuan[]" x-model="it.fsatuan">
-                                            <input type="hidden" name="fqty[]" x-model="it.fqty">
-                                            <input type="hidden" name="fdesc[]" x-model="it.fdesc">
-                                            <input type="hidden" name="fketdt[]" x-model="it.fketdt">
+                                            <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
+                                            <input type="hidden" name="fitemname[]" :value="it.fitemname">
+                                            <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
+                                            <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
+                                            <input type="hidden" name="fnouref[]" :value="it.fnouref">
+                                            <input type="hidden" name="frefpr[]" :value="it.frefpr">
+                                            <input type="hidden" name="fqty[]" :value="it.fqty">
+                                            <input type="hidden" name="fterima[]" :value="it.fterima">
+                                            <input type="hidden" name="fprice[]" :value="it.fprice">
+                                            <input type="hidden" name="fdisc[]" :value="it.fdisc">
+                                            <input type="hidden" name="ftotal[]" :value="it.ftotal">
+                                            <input type="hidden" name="fdesc[]" :value="it.fdesc">
+                                            <input type="hidden" name="fketdt[]" :value="it.fketdt">
                                         </td>
                                     </tr>
 
@@ -269,13 +284,19 @@
                                         <td class="p-0"></td>
                                         <td class="p-0"></td>
                                         <td class="p-0"></td>
+                                        <td class="p-0"></td>
+                                        <td class="p-0"></td>
+                                        <td class="p-0"></td>
+                                        <td class="p-0"></td>
                                     </tr>
                                 </template>
 
                                 <!-- ROW EDIT UTAMA -->
-                                <tr x-show="editingIndex !== null" class="border-t bg-amber-50 align-top" x-cloak>
+                                <tr x-show="editingIndex !== null" class="border-t align-top" x-cloak>
+                                    <!-- # -->
                                     <td class="p-2" x-text="(editingIndex ?? 0) + 1"></td>
 
+                                    <!-- Kode Produk -->
                                     <td class="p-2">
                                         <div class="flex">
                                             <input type="text" class="flex-1 border rounded-l px-2 py-1 font-mono"
@@ -295,16 +316,19 @@
                                         </div>
                                     </td>
 
+                                    <!-- Nama Produk (readonly) -->
                                     <td class="p-2">
                                         <input type="text"
                                             class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
                                             :value="editRow.fitemname" disabled>
                                     </td>
 
+                                    <!-- Satuan -->
                                     <td class="p-2">
                                         <template x-if="editRow.units.length > 1">
                                             <select class="w-full border rounded px-2 py-1" x-ref="editUnit"
-                                                x-model="editRow.fsatuan" @keydown.enter.prevent="$refs.editQty?.focus()">
+                                                x-model="editRow.fsatuan"
+                                                @keydown.enter.prevent="$refs.editRefPr?.focus()">
                                                 <template x-for="u in editRow.units" :key="u">
                                                     <option :value="u" x-text="u"></option>
                                                 </template>
@@ -317,20 +341,48 @@
                                         </template>
                                     </td>
 
-                                    <td class="p-2 text-right">
-                                        <input type="number" class="border rounded px-2 py-1 w-24 text-right"
-                                            min="1" :max="editRow.maxqty || null" step="1"
-                                            x-model.number="editRow.fqty" x-ref="editQty" @focus="$event.target.select()"
-                                            @input="enforceQtyRow(editRow)"
-                                            @keydown.enter.prevent="$refs.editKet?.focus()">
+                                    <!-- Ref.PR# -->
+                                    <td class="p-2">
+                                        <input type="text" class="w-full border rounded px-2 py-1" x-ref="editRefPr"
+                                            x-model.trim="editRow.frefpr" @keydown.enter.prevent="$refs.editQty?.focus()"
+                                            placeholder="Ref PR">
                                     </td>
 
-                                    <td class="p-2">
-                                        <input type="text" class="border rounded px-2 py-1 w-full"
-                                            x-model="editRow.fketdt" x-ref="editKet"
+                                    <!-- Qty -->
+                                    <td class="p-2 text-right">
+                                        <input type="number" class="border rounded px-2 py-1 w-24 text-right"
+                                            min="0" step="1" x-ref="editQty" x-model.number="editRow.fqty"
+                                            @input="recalc(editRow)" @keydown.enter.prevent="$refs.editTerima?.focus()">
+                                    </td>
+
+                                    <!-- Terima -->
+                                    <td class="p-2 text-right">
+                                        <input type="number" class="border rounded px-2 py-1 w-24 text-right"
+                                            min="0" step="1" x-ref="editTerima"
+                                            x-model.number="editRow.fterima" @input="recalc(editRow)"
+                                            @keydown.enter.prevent="$refs.editPrice?.focus()">
+                                    </td>
+
+                                    <!-- @ Harga -->
+                                    <td class="p-2 text-right">
+                                        <input type="number" class="border rounded px-2 py-1 w-28 text-right"
+                                            min="0" step="0.01" x-ref="editPrice"
+                                            x-model.number="editRow.fprice" @input="recalc(editRow)"
+                                            @keydown.enter.prevent="$refs.editDisc?.focus()">
+                                    </td>
+
+                                    <!-- Disc.% -->
+                                    <td class="p-2 text-right">
+                                        <input type="number" class="border rounded px-2 py-1 w-24 text-right"
+                                            min="0" max="100" step="0.01" x-ref="editDisc"
+                                            x-model.number="editRow.fdisc" @input="recalc(editRow)"
                                             @keydown.enter.prevent="applyEdit()">
                                     </td>
 
+                                    <!-- Total Harga (readonly) -->
+                                    <td class="p-2 text-right" x-text="fmt(editRow.ftotal)"></td>
+
+                                    <!-- Aksi -->
                                     <td class="p-2 text-center">
                                         <div class="flex items-center justify-center gap-2 flex-wrap">
                                             <button type="button" @click="applyEdit()"
@@ -342,7 +394,7 @@
                                 </tr>
 
                                 <!-- ROW EDIT DESC -->
-                                <tr x-show="editingIndex !== null" class="bg-amber-50 border-b" x-cloak>
+                                <tr x-show="editingIndex !== null" class="border-b" x-cloak>
                                     <td class="p-0"></td>
                                     <td class="p-0"></td>
                                     <td class="p-2">
@@ -353,12 +405,15 @@
                                     <td class="p-0"></td>
                                     <td class="p-0"></td>
                                     <td class="p-0"></td>
+                                    <td class="p-0"></td>
                                 </tr>
 
                                 <!-- ROW DRAFT UTAMA -->
-                                <tr class="border-t bg-green-50 align-top">
+                                <tr class="border-t align-top">
+                                    <!-- # -->
                                     <td class="p-2" x-text="savedItems.length + 1"></td>
 
+                                    <!-- Kode Produk -->
                                     <td class="p-2">
                                         <div class="flex">
                                             <input type="text" class="flex-1 border rounded-l px-2 py-1 font-mono"
@@ -378,16 +433,19 @@
                                         </div>
                                     </td>
 
+                                    <!-- Nama Produk (readonly) -->
                                     <td class="p-2">
                                         <input type="text"
                                             class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
                                             :value="draft.fitemname" disabled>
                                     </td>
 
+                                    <!-- Satuan -->
                                     <td class="p-2">
                                         <template x-if="draft.units.length > 1">
                                             <select class="w-full border rounded px-2 py-1" x-ref="draftUnit"
-                                                x-model="draft.fsatuan" @keydown.enter.prevent="$refs.draftQty?.focus()">
+                                                x-model="draft.fsatuan"
+                                                @keydown.enter.prevent="$refs.draftRefPr?.focus()">
                                                 <template x-for="u in draft.units" :key="u">
                                                     <option :value="u" x-text="u"></option>
                                                 </template>
@@ -400,20 +458,48 @@
                                         </template>
                                     </td>
 
-                                    <td class="p-2 text-right">
-                                        <input type="number" class="border rounded px-2 py-1 w-24 text-right"
-                                            min="1" :max="draft.maxqty || null" step="1"
-                                            x-model.number="draft.fqty" x-ref="draftQty" @focus="$event.target.select()"
-                                            @input="enforceQtyRow(draft)"
-                                            @keydown.enter.prevent="$refs.draftKet?.focus()">
+                                    <!-- Ref.PR# -->
+                                    <td class="p-2">
+                                        <input type="text" class="w-full border rounded px-2 py-1" x-ref="draftRefPr"
+                                            x-model.trim="draft.frefpr" @keydown.enter.prevent="$refs.draftQty?.focus()"
+                                            placeholder="Ref PR">
                                     </td>
 
-                                    <td class="p-2">
-                                        <input type="text" class="border rounded px-2 py-1 w-full"
-                                            x-model="draft.fketdt" x-ref="draftKet"
+                                    <!-- Qty -->
+                                    <td class="p-2 text-right">
+                                        <input type="number" class="border rounded px-2 py-1 w-24 text-right"
+                                            min="0" step="1" x-ref="draftQty" x-model.number="draft.fqty"
+                                            @input="recalc(draft)" @keydown.enter.prevent="$refs.draftTerima?.focus()">
+                                    </td>
+
+                                    <!-- Terima -->
+                                    <td class="p-2 text-right">
+                                        <input type="number" class="border rounded px-2 py-1 w-24 text-right"
+                                            min="0" step="1" x-ref="draftTerima"
+                                            x-model.number="draft.fterima" @input="recalc(draft)"
+                                            @keydown.enter.prevent="$refs.draftPrice?.focus()">
+                                    </td>
+
+                                    <!-- @ Harga -->
+                                    <td class="p-2 text-right">
+                                        <input type="number" class="border rounded px-2 py-1 w-28 text-right"
+                                            min="0" step="0.01" x-ref="draftPrice"
+                                            x-model.number="draft.fprice" @input="recalc(draft)"
+                                            @keydown.enter.prevent="$refs.draftDisc?.focus()">
+                                    </td>
+
+                                    <!-- Disc.% -->
+                                    <td class="p-2 text-right">
+                                        <input type="number" class="border rounded px-2 py-1 w-24 text-right"
+                                            min="0" max="100" step="0.01" x-ref="draftDisc"
+                                            x-model.number="draft.fdisc" @input="recalc(draft)"
                                             @keydown.enter.prevent="addIfComplete()">
                                     </td>
 
+                                    <!-- Total Harga (readonly) -->
+                                    <td class="p-2 text-right" x-text="fmt(draft.ftotal)"></td>
+
+                                    <!-- Aksi -->
                                     <td class="p-2 text-center">
                                         <div class="flex items-center justify-center gap-2 flex-wrap">
                                             <button type="button" @click="addIfComplete()"
@@ -423,7 +509,7 @@
                                 </tr>
 
                                 <!-- ROW DRAFT DESC -->
-                                <tr class="bg-green-50 border-b">
+                                <tr class="border-b">
                                     <td class="p-0"></td>
                                     <td class="p-0"></td>
                                     <td class="p-2">
@@ -434,31 +520,199 @@
                                     <td class="p-0"></td>
                                     <td class="p-0"></td>
                                     <td class="p-0"></td>
+                                    <td class="p-0"></td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
 
-                    <!-- MODAL DESC -->
+                    <!-- ===== Trigger: Add tr_poh dari panel kanan ===== -->
+                    <div x-data="prhFormModal()" class="mt-3">
+                        <div class="mt-3 flex justify-between items-start gap-4">
+                            <div class="w-full flex justify-start mb-3">
+                                <button type="button" @click="openModal()"
+                                    class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                            d="M12 4.5v15m7.5-7.5h-15" />
+                                    </svg>
+                                    Tambah Penerimaan (PR)
+                                </button>
+                            </div>
+                            <!-- Kanan: Panel Totals -->
+                            <div class="w-1/2">
+                                <div class="rounded-lg border bg-gray-50 p-3 space-y-2">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm text-gray-700">Total Harga</span>
+                                        <span class="min-w-[140px] text-right font-medium"
+                                            x-text="fmtMoney(totalHarga)"></span>
+                                    </div>
+
+                                    <div class="flex items-center justify-between">
+                                        <label class="text-sm text-gray-700">PPN</label>
+                                        <div class="flex items-center gap-2">
+                                            <input type="number" min="0" max="100" step="0.01"
+                                                x-model.number="ppnRate" class="w-20 border rounded px-2 py-1 text-right"
+                                                @input="calculatePPN()">
+                                            <span class="text-sm">%</span>
+                                            <span class="min-w-[140px] text-right font-medium"
+                                                x-text="fmtMoney(ppnAmount)"></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="border-t my-1"></div>
+
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm font-semibold text-gray-800">Grand Total</span>
+                                        <span class="min-w-[140px] text-right text-lg font-semibold"
+                                            x-text="fmtMoney(grandTotal)"></span>
+                                    </div>
+                                </div>
+
+                                <!-- Hidden inputs for submit -->
+                                <input type="hidden" name="famountponet" :value="totalHarga">
+                                <input type="hidden" name="" :value="ppnAmount">
+                                <input type="hidden" name="famountpo" :value="grandTotal">
+                                <input type="hidden" name="famountpopajak" :value="ppnRate">
+                            </div>
+                        </div>
+                        <!-- Modal backdrop -->
+                        <div x-show="show" x-transition.opacity class="fixed inset-0 z-40 bg-black/50"
+                            @keydown.escape.window="closeModal()"></div>
+
+                        <!-- Modal panel PR-->
+                        <div x-show="show" x-transition
+                            class="fixed inset-0 z-50 flex items-start justify-center p-4 md:p-8" aria-modal="true"
+                            role="dialog">
+                            <div class="w-full max-w-3xl rounded-xl bg-white shadow-xl">
+                                <div class="flex items-center justify-between border-b px-4 py-3">
+                                    <h3 class="text-lg font-semibold">Pilih Permintaan (PR)</h3>
+                                </div>
+
+                                <div class="px-4 py-3 space-y-3">
+                                    <!-- Search -->
+                                    <div class="flex items-center gap-2">
+                                        <input type="text" x-model.debounce.400ms="search" @input="goToPage(1)"
+                                            class="w-full rounded-lg border px-3 py-2"
+                                            placeholder="Cari fpono / fsupplier / tanggal...">
+                                        <div class="relative">
+                                            <select x-model.number="perPage" @change="goToPage(1)"
+                                                class="h-10 w-24 rounded-lg border border-gray-300 bg-white pl-3 pr-8 text-sm
+                                                    focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500
+                                                    hover:border-gray-400
+                                                    appearance-none [background:none]">
+                                                <option value="10">10</option>
+                                                <option value="25">25</option>
+                                                <option value="50">50</option>
+                                            </select>
+
+                                            <!-- Chevron custom -->
+                                            <svg class="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500"
+                                                xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                                                fill="currentColor">
+                                                <path fill-rule="evenodd"
+                                                    d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z"
+                                                    clip-rule="evenodd" />
+                                            </svg>
+                                        </div>
+
+                                    </div>
+
+                                    <!-- Table -->
+                                    <div class="overflow-auto border rounded">
+                                        <table class="min-w-full text-sm">
+                                            <thead class="bg-gray-100">
+                                                <tr>
+                                                    <th class="p-2 text-left w-48">PR No</th>
+                                                    <th class="p-2 text-left w-48">Supplier</th>
+                                                    <th class="p-2 text-left w-48">Tanggal</th>
+                                                    <th class="p-2 text-right w-24">Aksi</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <template x-for="row in rows" :key="row.fprid">
+                                                    <tr class="border-t">
+                                                        <td class="p-2" x-text="row.fprno"></td>
+                                                        <td class="p-2" x-text="row.fsupplier || '-'"></td>
+                                                        <td class="p-2" x-text="formatDate(row.fprdate)"></td>
+                                                        <td class="p-2 text-right">
+                                                            <button @click.prevent="pick(row)"
+                                                                class="inline-flex items-center gap-1 rounded bg-emerald-600 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-emerald-700">
+                                                                Pilih
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                </template>
+
+                                                <tr x-show="loading">
+                                                    <td colspan="4" class="p-4 text-center text-gray-500">
+                                                        Loading...
+                                                    </td>
+                                                </tr>
+                                                <tr x-show="!loading && rows.length === 0">
+                                                    <td colspan="4" class="p-4 text-center text-gray-500">Tidak ada
+                                                        data</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <!-- Pagination -->
+                                    <div class="flex items-center justify-between">
+                                        <div class="text-sm text-gray-600">
+                                            <span x-text="`Page ${currentPage} / ${lastPage}`"></span>
+                                            <span x-text="` • Total: ${total}`"></span>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <button @click="goToPage(1)" :disabled="currentPage <= 1"
+                                                class="rounded border px-2 py-1 disabled:opacity-50">« First</button>
+                                            <button @click="goToPage(currentPage-1)" :disabled="currentPage <= 1"
+                                                class="rounded border px-2 py-1 disabled:opacity-50">‹ Prev</button>
+                                            <button @click="goToPage(currentPage+1)" :disabled="currentPage >= lastPage"
+                                                class="rounded border px-2 py-1 disabled:opacity-50">Next ›</button>
+                                            <button @click="goToPage(lastPage)" :disabled="currentPage >= lastPage"
+                                                class="rounded border px-2 py-1 disabled:opacity-50">Last »</button>
+                                        </div>
+                                    </div>
+                                    <div class="flex justify-end gap-2 border-t pt-3">
+                                        <button type="button" @click="closeModal()"
+                                            class="rounded bg-gray-200 px-4 py-2 text-sm font-medium hover:bg-gray-300">
+                                            Kembali
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MODAL DESC (di dalam itemsTable) -->
                     <div x-show="showDescModal" x-cloak class="fixed inset-0 z-[95] flex items-center justify-center"
                         x-transition.opacity>
                         <div class="absolute inset-0 bg-black/50" @click="closeDesc()"></div>
+
                         <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
                             x-transition.scale>
                             <div class="px-5 py-4 border-b flex items-center">
                                 <x-heroicon-o-document-text class="w-6 h-6 text-blue-600 mr-2" />
                                 <h3 class="text-lg font-semibold text-gray-800">Isi Deskripsi Item</h3>
                             </div>
+
                             <div class="px-5 py-4 space-y-2">
                                 <label class="block text-sm text-gray-700">Deskripsi</label>
                                 <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2"
                                     placeholder="Tulis deskripsi item di sini..."></textarea>
                             </div>
+
                             <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
                                 <button type="button" @click="closeDesc()"
-                                    class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">Batal</button>
+                                    class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
+                                    Batal
+                                </button>
                                 <button type="button" @click="applyDesc()"
-                                    class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">Simpan</button>
+                                    class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
+                                    Simpan
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -467,22 +721,29 @@
                 </div>
 
                 {{-- MODAL ERROR: belum ada item --}}
-                <div x-show="showNoItems" x-cloak class="fixed inset-0 z-[90] flex items-center justify-center"
-                    x-transition.opacity>
+                <div x-show="showNoItems && savedItems.length === 0" x-cloak
+                    class="fixed inset-0 z-[90] flex items-center justify-center" x-transition.opacity>
                     <div class="absolute inset-0 bg-black/50" @click="showNoItems=false"></div>
+
                     <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden"
                         x-transition.scale>
                         <div class="px-5 py-4 border-b flex items-center">
                             <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-red-500 mr-2" />
                             <h3 class="text-lg font-semibold text-gray-800">Tidak Ada Item</h3>
                         </div>
+
                         <div class="px-5 py-4">
-                            <p class="text-sm text-gray-700">Anda belum menambahkan item apa pun pada tabel. Silakan isi
-                                baris “Detail Item” terlebih dahulu.</p>
+                            <p class="text-sm text-gray-700">
+                                Anda belum menambahkan item apa pun pada tabel. Silakan isi baris “Detail Item” terlebih
+                                dahulu.
+                            </p>
                         </div>
+
                         <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
                             <button type="button" @click="showNoItems=false"
-                                class="h-9 px-4 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">OK</button>
+                                class="h-9 px-4 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
+                                OK
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -513,7 +774,8 @@
                                 <tbody>
                                     <template x-for="s in rows" :key="s.fsupplierid">
                                         <tr class="border-b hover:bg-gray-50">
-                                            <td class="p-2" x-text="`${s.fsuppliercode} - ${s.fsuppliername}`"></td>
+                                            <td class="p-2" x-text="`${s.fsuppliercode} - ${s.fsuppliername}`">
+                                            </td>
                                             <td class="p-2" x-text="s.ftelp || '-'"></td>
                                             <td class="p-2 text-center">
                                                 <button type="button" @click="choose(s)"
@@ -576,7 +838,9 @@
                                         <tr class="border-b hover:bg-gray-50">
                                             <td class="p-2 font-mono" x-text="p.fprdcode"></td>
                                             <td class="p-2" x-text="p.fprdname"></td>
-                                            <td class="p-2"><span x-text="p.fsatuanbesar || '-'"></span></td>
+                                            <td class="p-2">
+                                                <span x-text="p.fsatuanbesar || '-'"></span>
+                                            </td>
                                             <td class="p-2 text-center" x-text="p.fminstock"></td>
                                             <td class="p-2 text-center">
                                                 <button type="button" @click="choose(p)"
@@ -609,47 +873,33 @@
                     </div>
                 </div>
 
-                {{-- STATUS & ACTIONS --}}
+                @php
+                    $canApproval = in_array('approvalpr', explode(',', session('user_restricted_permissions', '')));
+                @endphp
+
+
+                {{-- APPROVAL & ACTIONS --}}
                 <div class="md:col-span-2 flex justify-center items-center space-x-2 mt-6">
-                    <label for="statusToggle"
-                        class="flex items-center justify-between w-40 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition">
-                        <span class="text-sm font-medium">Tutup</span>
-                        <input type="checkbox" name="fnonactive" id="statusToggle"
-                            class="h-5 w-5 text-green-600 rounded focus:ring-green-500"
-                            {{ old('fnonactive') == '1' ? 'checked' : '' }}>
-                    </label>
-                </div>
+                    @if ($canApproval)
+                        <label class="block text-sm font-medium">Approval</label>
 
-                <fieldset {{ $isApproved ? 'disabled' : '' }}>
-                    <div class="md:col-span-2 flex justify-center items-center space-x-2 mt-6">
-                        <label class="text-sm font-medium">Approval</label>
-
-                        {{-- default 0 supaya unchecked tetap terkirim --}}
+                        {{-- fallback 0 saat checkbox tidak dicentang --}}
                         <input type="hidden" name="fapproval" value="0">
 
                         <label class="switch">
                             <input type="checkbox" name="fapproval" id="approvalToggle" value="1"
-                                {{ $isApproved ? 'checked' : '' }}>
-                            <span class="slider round"></span>
+                                {{ old('fapproval', session('fapproval') ? 1 : 0) ? 'checked' : '' }}>
+                            <span class="slider"></span>
                         </label>
-                    </div>
-
-                    @if ($isApproved)
-                        <div class="text-xs text-gray-600 text-center mt-2">
-                            Disetujui oleh: <strong>{{ $tr_prh->fuserapproved }}</strong>
-                            @if (!empty($tr_prh->fdateapproved))
-                                pada {{ \Carbon\Carbon::parse($tr_prh->fdateapproved)->format('d-m-Y H:i') }}
-                            @endif
-                        </div>
                     @endif
-                </fieldset>
+                </div>
 
                 <div class="mt-8 flex justify-center gap-4">
                     <button type="submit"
                         class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
                         <x-heroicon-o-check class="w-5 h-5 mr-2" /> Simpan
                     </button>
-                    <button type="button" @click="window.location.href='{{ route('tr_prh.index') }}'"
+                    <button type="button" @click="window.location.href='{{ route('tr_poh.index') }}'"
                         class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
                         <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" /> Keluar
                     </button>
@@ -657,6 +907,7 @@
             </form>
         </div>
     </div>
+
 @endsection
 
 {{-- DATA & SCRIPTS --}}
@@ -672,21 +923,6 @@
         @endforeach
     };
 
-    // Seed items dari server (details)
-    window.INIT_ITEMS = [
-        @foreach ($tr_prh->details as $d)
-            {
-                uid: null, // akan diisi cryptoRandom()
-                fitemcode: @json($d->fprdcode),
-                fitemname: @json($d->fprdname),
-                fsatuan: @json($d->fsatuan),
-                fqty: {{ (int) $d->fqty }},
-                fdesc: @json($d->fdesc ?? ''),
-                fketdt: @json($d->fketdt ?? ''),
-            },
-        @endforeach
-    ];
-
     // id unik
     window.cryptoRandom = function() {
         try {
@@ -699,7 +935,7 @@
         return 'r' + (Date.now().toString(16) + Math.random().toString(16).slice(2));
     };
 
-    // Modal supplier (sama dengan create)
+    // Modal supplier
     function supplierBrowser() {
         return {
             open: false,
@@ -764,9 +1000,6 @@
             choose(s) {
                 const sel = document.getElementById('supplierSelect');
                 const hid = document.getElementById('supplierCodeHidden');
-
-                if (hid) hid.value = s.fsupplierid;
-                this.close();
                 if (!sel) {
                     this.close();
                     return;
@@ -781,7 +1014,7 @@
                     opt.selected = true;
                 }
                 sel.dispatchEvent(new Event('change'));
-                if (hid) hid.value = s.fsupplierid; // simpan ID supplier (konsisten dengan old/fsupplier)
+                if (hid) hid.value = s.fsuppliercode;
                 this.close();
             },
             init() {
@@ -792,7 +1025,7 @@
         }
     }
 
-    // Modal produk (sama dengan create)
+    // Modal produk
     function productBrowser() {
         return {
             open: false,
@@ -872,61 +1105,87 @@
         }
     }
 
-    // Alpine store untuk desc (optional, sama seperti create)
     document.addEventListener('alpine:init', () => {
         Alpine.store('prh', {
+            // desc yang sedang dipreview
             descPreview: {
                 uid: null,
                 index: null,
                 label: '',
                 text: ''
             },
+            // optional: daftar semua desc
             descList: []
         });
     });
 
-    // Tabel inline (re-use dari create, plus initFromServer)
     function itemsTable() {
         return {
+            showNoItems: false,
             savedItems: [],
-            draft: {
-                fitemcode: '',
-                fitemname: '',
-                units: [],
-                fsatuan: '',
-                fqty: '',
-                fdesc: '',
-                fketdt: '',
-                maxqty: 0
-            },
+            draft: newRow(),
             editingIndex: null,
-            editRow: {
-                fitemcode: '',
-                fitemname: '',
-                units: [],
-                fsatuan: '',
-                fqty: 1,
-                fdesc: '',
-                fketdt: '',
-                maxqty: 0
+            editRow: newRow(),
+
+            totalHarga: 0, // Total harga before PPN
+            ppnRate: 0, // PPN rate (percentage)
+            ppnAmount: 0, // Amount of PPN calculated
+            grandTotal: 0, // Final grand total after adding PPN
+
+            fmt(n) {
+                if (n === null || n === undefined || n === '') return '-';
+                const v = Number(n);
+                if (!isFinite(v)) return '-';
+
+                // Jika angka adalah bulat, hilangkan desimal
+                if (Number.isInteger(v)) {
+                    return v.toLocaleString('id-ID'); // Format sebagai angka bulat
+                } else {
+                    return v.toLocaleString('id-ID', {
+                        style: 'currency',
+                        currency: 'IDR'
+                    }); // Jika angka desimal, tampilkan dalam format mata uang
+                }
             },
 
-            resetDraft() {
-                this.draft = {
-                    fitemcode: '',
-                    fitemname: '',
-                    units: [],
-                    fsatuan: '',
-                    fqty: '',
-                    fdesc: '',
-                    fketdt: '',
-                    maxqty: 0
-                };
+            // Adding missing fmtMoney function
+            fmtMoney(value) {
+                return this.fmt(value); // reuse fmt function for currency formatting
             },
+
+            recalc(row) {
+                // Normalisasi & guard rails
+                row.fqty = Math.max(0, +row.fqty || 0);
+                row.fterima = Math.max(0, +row.fterima || 0);
+                row.fprice = Math.max(0, +row.fprice || 0);
+                row.fdisc = Math.min(100, Math.max(0, +row.fdisc || 0));
+                // Total berdasarkan QTY (bukan "Terima")
+                row.ftotal = +(row.fqty * row.fprice * (1 - row.fdisc / 100)).toFixed(2);
+
+                // Recalculate totals after item recalculation
+                this.recalcTotals();
+            },
+
+            recalcTotals() {
+                // Calculate total price before PPN
+                this.totalHarga = this.savedItems.reduce((sum, item) => sum + item.ftotal, 0);
+
+                // Recalculate PPN and grand total
+                this.calculatePPN();
+            },
+
+            calculatePPN() {
+                // Calculate PPN amount based on the totalHarga and input PPN rate
+                this.ppnAmount = this.totalHarga * (this.ppnRate / 100);
+                // Calculate Grand Total
+                this.grandTotal = this.totalHarga + this.ppnAmount;
+            },
+
             productMeta(code) {
                 const key = (code || '').trim();
-                return window.PRODUCT_MAP[key] || null;
+                return window.PRODUCT_MAP?.[key] || null;
             },
+
             hydrateRowFromMeta(row, meta) {
                 if (!meta) {
                     row.fitemname = '';
@@ -942,20 +1201,61 @@
                 const stock = Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0;
                 row.maxqty = stock;
             },
+
             onCodeTypedRow(row) {
                 this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
             },
-            enforceQtyRow(row) {
-                const n = +row.fqty;
-                if (!Number.isFinite(n)) {
-                    row.fqty = '';
-                    return;
-                }
-                if (n < 1) row.fqty = 1;
-                if (row.maxqty > 0 && n > row.maxqty) row.fqty = row.maxqty;
-            },
+
             isComplete(row) {
                 return row.fitemcode && row.fitemname && row.fsatuan && Number(row.fqty) > 0;
+            },
+
+            onPrPicked(e) {
+                const {
+                    header,
+                    items
+                } = e.detail || {};
+                if (!items || !Array.isArray(items)) return;
+
+                this.resetDraft();
+
+                this.addManyFromPR(header, items);
+            },
+            resetDraft() {
+                this.draft = newRow(); // Reset draft data yang sedang diproses
+                // Jika perlu, Anda bisa mengatur elemen-elemen input untuk fokus lagi
+                this.$nextTick(() => this.$refs.draftCode?.focus());
+            },
+
+            addManyFromPR(header, items) {
+                const existing = new Set(this.savedItems.map(it => `${it.fitemcode}::${it.frefdtno}`));
+
+                items.forEach(src => {
+                    const row = {
+                        uid: cryptoRandom(),
+                        fitemcode: src.fitemcode ?? '',
+                        fitemname: src.fitemname ?? '',
+                        fsatuan: src.fsatuan ?? '',
+                        frefdtno: src.frefdtno ?? '', // Menggunakan frefdtno sebagai pengganti frefpr
+                        fnouref: src.fnouref ?? '',
+                        frefpr: src.frefpr ?? (header?.fpono ?? ''),
+                        fqty: Number(src.fqty ?? 0),
+                        fterima: Number(src.ferima ?? 0),
+                        fprice: Number(src.fprice ?? 0),
+                        fdisc: Number(src.fdisc ?? 0),
+                        ftotal: Number(src.ftotal ?? 0),
+                        fdesc: src.fdesc ?? '',
+                        fketdt: src.fketdt ?? '',
+                        units: Array.isArray(src.units) && src.units.length ? src.units : [src.fsatuan]
+                            .filter(Boolean),
+                    };
+                    if (!existing.has(`${row.fitemcode}::${row.frefdtno}`)) {
+                        this.savedItems.push(row); // Tambahkan item jika belum ada
+                        existing.add(`${row.fitemcode}::${row.frefdtno}`);
+                    }
+                });
+
+                this.recalcTotals();
             },
 
             addIfComplete() {
@@ -968,161 +1268,79 @@
                     if (!(Number(r.fqty) > 0)) return this.$refs.draftQty?.focus();
                     return;
                 }
-                const dupe = this.savedItems.find(it =>
-                    it.fitemcode === r.fitemcode && it.fsatuan === r.fsatuan &&
-                    (it.fdesc || '') === (r.fdesc || '') && (it.fketdt || '') === (r.fketdt || '')
-                );
+
+                this.recalc(r);
+
+                const dupe = this.savedItems.find(it => it.fitemcode === r.fitemcode && it.fsatuan === r.fsatuan && (it
+                    .frefpr || '') === (r.frefpr || ''));
                 if (dupe) {
                     alert('Item sama sudah ada.');
                     return;
                 }
 
                 this.savedItems.push({
-                    uid: cryptoRandom(),
-                    fitemcode: r.fitemcode,
-                    fitemname: r.fitemname,
-                    fsatuan: r.fsatuan,
-                    fqty: +r.fqty,
-                    fdesc: r.fdesc || '',
-                    fketdt: r.fketdt || ''
+                    ...r,
+                    uid: cryptoRandom()
                 });
-
-                this.resetDraft();
+                this.showNoItems = false;
+                this.resetDraft(); // Reset draft setelah item ditambahkan
                 this.$nextTick(() => this.$refs.draftCode?.focus());
-                this.syncDescList(); // <= tambahkan ini
+                this.syncDescList?.();
+                this.showNoItems = false;
+
+                this.recalcTotals();
             },
 
-            initFromServer() {
-                // 1) Ambil data detail dari server (dibawa blade ke window.INIT_ITEMS)
-                const rows = Array.isArray(window.INIT_ITEMS) ? window.INIT_ITEMS : [];
-
-                this.savedItems = rows.map((r) => {
-                    const it = {
-                        uid: cryptoRandom(),
-                        fitemcode: (r.fitemcode || '').toString(),
-                        fitemname: r.fitemname || '',
-                        fsatuan: r.fsatuan || '',
-                        fqty: Number(r.fqty) || 0,
-                        fdesc: r.fdesc || '',
-                        fketdt: r.fketdt || '',
-                        units: [],
-                        maxqty: 0,
-                    };
-
-                    // 2) Hydrate dari PRODUCT_MAP (seperti saat create)
-                    const meta = this.productMeta(it.fitemcode);
-                    this.hydrateRowFromMeta(it, meta);
-
-                    // 3) Pastikan qty sesuai rules (min 1, max stok kalau ada)
-                    this.enforceQtyRow(it);
-
-                    return it;
-                });
-
-                // 4) Sinkron daftar deskripsi untuk preview/list
-                this.syncDescList();
-                this.init();
-            },
-
-            // === Deskripsi via Modal ===
-            showDescModal: false,
-            descTarget: 'draft', // 'draft' | 'edit' | 'saved'
-            descSavedIndex: null, // index untuk 'saved'
-            descValue: '',
-            descPreview: '', // untuk ditampilkan di luar card
-
-            openDesc(where, idx = null, currentVal = '') {
-                this.descTarget = where;
-                this.descSavedIndex = (where === 'saved' ? idx : null);
-                this.descValue = currentVal || '';
-                this.showDescModal = true;
-
-                // set preview sementara (sebelum disimpan) biar user tahu baris mana
-                let meta = {
-                    uid: null,
-                    index: null,
-                    label: '',
-                    text: this.descValue
+            edit(i) {
+                this.editingIndex = i;
+                this.editRow = {
+                    ...this.savedItems[i]
                 };
-                if (where === 'saved' && idx !== null) {
-                    const it = this.savedItems[idx];
-                    meta = {
-                        uid: it.uid,
-                        index: idx + 1,
-                        label: this.labelOf(it),
-                        text: this.descValue
-                    };
-                } else if (where === 'edit') {
-                    meta = {
-                        uid: 'editing',
-                        index: (this.editingIndex ?? 0) + 1,
-                        label: this.labelOf(this.editRow),
-                        text: this.descValue
-                    };
-                } else {
-                    meta = {
-                        uid: 'draft',
-                        index: this.savedItems.length + 1,
-                        label: this.labelOf(this.draft),
-                        text: this.descValue
-                    };
+                this.hydrateRowFromMeta(this.editRow, this.productMeta(this.editRow.fitemcode));
+                this.$nextTick(() => this.$refs.editQty?.focus());
+            },
+
+            applyEdit() {
+                const r = this.editRow;
+                if (!this.isComplete(r)) {
+                    alert('Lengkapi data item.');
+                    return;
                 }
-                Alpine.store('prh').descPreview = meta;
-            },
-            closeDesc() {
-                this.showDescModal = false;
-            },
-            applyDesc() {
-                const val = (this.descValue || '').trim();
+                this.recalc(r);
+                this.savedItems.splice(this.editingIndex, 1, {
+                    ...r
+                });
+                this.cancelEdit();
+                this.syncDescList?.();
 
-                if (this.descTarget === 'draft') {
-                    this.draft.fdesc = val;
-                    Alpine.store('prh').descPreview = {
-                        uid: 'draft',
-                        index: this.savedItems.length + 1,
-                        label: this.labelOf(this.draft),
-                        text: val
-                    };
-                } else if (this.descTarget === 'edit') {
-                    this.editRow.fdesc = val;
-                    Alpine.store('prh').descPreview = {
-                        uid: 'editing',
-                        index: (this.editingIndex ?? 0) + 1,
-                        label: this.labelOf(this.editRow),
-                        text: val
-                    };
-                } else if (this.descTarget === 'saved' && this.descSavedIndex !== null) {
-                    const it = this.savedItems[this.descSavedIndex];
-                    it.fdesc = val;
-                    Alpine.store('prh').descPreview = {
-                        uid: it.uid,
-                        index: this.descSavedIndex + 1,
-                        label: this.labelOf(it),
-                        text: val
-                    };
+                // Recalculate totals after applying edit
+                this.recalcTotals();
+            },
+
+            cancelEdit() {
+                this.editingIndex = null;
+                this.editRow = newRow();
+            },
+
+            removeSaved(i) {
+                this.savedItems.splice(i, 1);
+                this.syncDescList?.();
+            },
+
+            resetDraft() {
+                this.draft = newRow();
+            },
+
+            onSubmit($event) {
+                if (this.savedItems.length === 0) {
+                    $event.preventDefault();
+                    this.showNoItems = true;
+                    return;
                 }
-
-                this.showDescModal = false;
-                this.syncDescList(); // update daftar semua desc
             },
 
-            labelOf(row) {
-                // bebas: pakai kode - nama atau apa pun
-                return [row.fitemcode, row.fitemname].filter(Boolean).join(' — ');
-            },
-            syncDescList() {
-                Alpine.store('prh').descList = this.savedItems
-                    .map((it, i) => ({
-                        uid: it.uid,
-                        index: i + 1,
-                        label: this.labelOf(it),
-                        text: it.fdesc || ''
-                    }))
-                    .filter(x => x.text); // hanya yang ada deskripsi
-            },
-
+            // Handle enter for navigating fields (similar to your current logic)
             handleEnterOnCode(where) {
-                // Pindah fokus dari Kode -> (Unit jika >1) else -> Qty
                 if (where === 'edit') {
                     if (this.editRow.units.length > 1) this.$refs.editUnit?.focus();
                     else this.$refs.editQty?.focus();
@@ -1132,58 +1350,22 @@
                 }
             },
 
-            edit(i) {
-                const it = this.savedItems[i];
-                this.editingIndex = i;
-                this.editRow = {
-                    fitemcode: it.fitemcode,
-                    fitemname: it.fitemname,
-                    units: [],
-                    fsatuan: it.fsatuan,
-                    fqty: it.fqty,
-                    fdesc: it.fdesc,
-                    fketdt: it.fketdt,
-                    maxqty: 0
-                };
-                this.hydrateRowFromMeta(this.editRow, this.productMeta(this.editRow.fitemcode));
-                this.enforceQtyRow(this.editRow);
-                this.$nextTick(() => this.$refs.editQty?.focus());
-            },
-            cancelEdit() {
-                this.editingIndex = null;
-            },
-            applyEdit() {
-                const r = this.editRow;
-                if (!this.isComplete(r)) {
-                    alert('Lengkapi data item.');
-                    return;
-                }
-                const it = this.savedItems[this.editingIndex];
-                it.fitemcode = r.fitemcode;
-                it.fitemname = r.fitemname;
-                it.fsatuan = r.fsatuan;
-                it.fqty = +r.fqty;
-                it.fdesc = r.fdesc || '';
-                it.fketdt = r.fketdt || '';
-                this.cancelEdit();
-                this.syncDescList(); // <= tambahkan ini
-            },
-            removeSaved(i) {
-                this.savedItems.splice(i, 1);
-                this.syncDescList(); // <= tambahkan ini
-            },
-
-            browseTarget: 'draft',
-            openBrowseFor(where) {
-                this.browseTarget = (where === 'edit' ? 'edit' : 'draft');
-                window.dispatchEvent(new CustomEvent('browse-open', {
-                    detail: {
-                        forEdit: this.browseTarget === 'edit'
-                    }
-                }));
-            },
+            // Modal description (keeping this part as is)
+            showDescModal: false,
+            descTarget: 'draft',
+            descSavedIndex: null,
+            descValue: '',
+            openDesc() {},
+            closeDesc() {},
+            applyDesc() {},
 
             init() {
+                // Listen for PR picked from modal PR
+                window.addEventListener('pr-picked', this.onPrPicked.bind(this), {
+                    passive: true
+                });
+
+                // Listen for product picked from product modal
                 window.addEventListener('product-chosen', (e) => {
                     const {
                         product
@@ -1192,8 +1374,8 @@
                     const apply = (row) => {
                         row.fitemcode = (product.fprdcode || '').toString();
                         this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
-                        row.fqty = row.maxqty > 0 ? Math.min(+row.fqty || 1, row.maxqty) : (+row
-                            .fqty || 1);
+                        if (!row.fqty) row.fqty = 1;
+                        this.recalc(row);
                     };
                     if (this.browseTarget === 'edit') {
                         apply(this.editRow);
@@ -1205,20 +1387,138 @@
                 }, {
                     passive: true
                 });
-                window.addEventListener('prh-before-submit', () => {
-                    if (this.editingIndex !== null) {
-                        // Validasi dulu; kalau belum lengkap, blok submit dan beri alert
-                        if (!this.isComplete(this.editRow)) {
-                            alert('Lengkapi data item yang sedang diedit dulu.');
-                            window.__prh_flush_ok = false;
-                            return;
-                        }
-                        this.applyEdit(); // salin ke savedItems -> hidden inputs ikut update
-                    }
-                }, {
-                    passive: true
-                });
             },
+
+            browseTarget: 'draft',
+            openBrowseFor(where) {
+                this.browseTarget = (where === 'edit' ? 'edit' : 'draft');
+                window.dispatchEvent(new CustomEvent('browse-open', {
+                    detail: {
+                        forEdit: this.browseTarget === 'edit'
+                    }
+                }));
+            },
+        };
+
+        function newRow() {
+            return {
+                uid: null,
+                fitemcode: '',
+                fitemname: '',
+                units: [],
+                fsatuan: '',
+                frefdtno: '',
+                fnouref: '',
+                frefpr: '',
+                fqty: 0,
+                fterima: 0,
+                fprice: 0,
+                fdisc: 0,
+                ftotal: 0,
+                fdesc: '',
+                fketdt: '',
+                maxqty: 0,
+            };
+        }
+
+        function cryptoRandom() {
+            return (window.crypto?.getRandomValues ? [...window.crypto.getRandomValues(new Uint32Array(2))].map(n => n
+                .toString(16)).join('') : Math.random().toString(36).slice(2)) + Date.now();
         }
     }
+</script>
+
+<script>
+    window.prhFormModal = function() {
+        return {
+            show: false,
+            rows: [],
+            search: '',
+            perPage: 10,
+            currentPage: 1,
+            lastPage: 1,
+            total: 0,
+            loading: false,
+
+            openModal() {
+                this.show = true;
+                this.goToPage(1);
+            },
+            closeModal() {
+                this.show = false;
+            },
+
+            async fetchData() {
+                this.loading = true;
+                try {
+                    const params = new URLSearchParams({
+                        search: this.search ?? '',
+                        per_page: this.perPage,
+                        page: this.currentPage,
+                    });
+
+                    const res = await fetch(`{{ route('tr_poh.pickable') }}?` + params.toString(), {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+                    const json = await res.json();
+
+                    this.rows = json.data ?? [];
+                    // support 2 schemas
+                    this.currentPage = (json.current_page ?? json.links?.current_page) ?? 1;
+                    this.lastPage = (json.last_page ?? json.links?.last_page) ?? 1;
+                    this.total = (json.total ?? json.links?.total) ?? (json.data_total ?? 0);
+                } catch (e) {
+                    console.error(e);
+                    this.rows = [];
+                } finally {
+                    this.loading = false;
+                }
+            },
+
+            goToPage(p) {
+                if (p < 1) p = 1;
+                this.currentPage = p;
+                this.fetchData();
+            },
+
+            formatDate(s) {
+                if (!s || s === 'No Date') return '-';
+                const d = new Date(s);
+                if (isNaN(d)) return '-';
+                const pad = n => n.toString().padStart(2, '0');
+                return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+            },
+
+            async pick(row) {
+                try {
+                    const url = `{{ route('tr_poh.items', ['id' => 'PR_ID_PLACEHOLDER']) }}`
+                        .replace('PR_ID_PLACEHOLDER', row.fprid);
+
+                    const res = await fetch(url, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+
+                    const json = await res.json();
+
+                    // Menambahkan item dari PR yang dipilih ke dalam savedItems
+                    this.addManyFromPR(row, json
+                        .items); // Pastikan data diteruskan dengan benar ke addManyFromPR
+
+                    window.dispatchEvent(new CustomEvent('pr-picked', {
+                        detail: json
+                    }));
+
+                    this.closeModal(); // Setelah menambah item, tutup modal
+                } catch (e) {
+                    console.error(e);
+                    alert('Gagal mengambil detail PR');
+                }
+            },
+
+        };
+    };
 </script>

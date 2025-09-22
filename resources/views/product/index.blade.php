@@ -46,25 +46,25 @@
                         <th class="border px-2 py-1 cursor-pointer sortCol" data-sort-by="fprdcode">
                             <div class="flex items-center gap-1">
                                 <span>Kode Product</span>
-                                <span id="icon-fprdcode" class="text-xs opacity-50">↕</span>
+                                <span id="icon-fprdcode" class="text-lg font-semibold text-green-600">⇅</span>
                             </div>
                         </th>
                         <th class="border px-2 py-1 cursor-pointer sortCol" data-sort-by="fprdname">
                             <div class="flex items-center gap-1">
                                 <span>Nama Product</span>
-                                <span id="icon-fprdname" class="text-xs opacity-50">↕</span>
+                                <span id="icon-fprdname" class="text-lg font-semibold text-green-600">⇅</span>
                             </div>
                         </th>
                         <th class="border px-2 py-1 cursor-pointer sortCol" data-sort-by="fsatuankecil">
                             <div class="flex items-center gap-1">
                                 <span>Satuan</span>
-                                <span id="icon-fsatuankecil" class="text-xs opacity-50">↕</span>
+                                <span id="icon-fsatuankecil" class="text-lg font-semibold text-green-600">⇅</span>
                             </div>
                         </th>
                         <th class="border px-2 py-1 cursor-pointer sortCol" data-sort-by="fminstock">
                             <div class="flex items-center gap-1">
                                 <span>Stok</span>
-                                <span id="icon-fminstock" class="text-xs opacity-50">↕</span>
+                                <span id="icon-fminstock" class="text-lg font-semibold text-green-600">⇅</span>
                             </div>
                         </th>
                         @if ($showActionsColumn)

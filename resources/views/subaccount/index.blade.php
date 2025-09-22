@@ -41,13 +41,13 @@
                     <th class="border px-2 py-1 cursor-pointer sortCol" data-sort-by="fsubaccountcode">
                         <div class="flex items-center gap-1">
                             <span>Kode Subaccount</span>
-                            <span id="icon-fsubaccountcode" class="text-xs opacity-50">↕</span>
+                            <span id="icon-fsubaccountcode" class="text-lg font-semibold text-green-600">⇅</span>
                         </div>
                     </th>
                     <th class="border px-2 py-1 cursor-pointer sortCol" data-sort-by="fsubaccountname">
                         <div class="flex items-center gap-1">
                             <span>Nama Subaccount</span>
-                            <span id="icon-fsubaccountname" class="text-xs opacity-50">↕</span>
+                            <span id="icon-fsubaccountname" class="text-lg font-semibold text-green-600">⇅</span>
                         </div>
                     </th>
                     @if ($showActionsColumn)

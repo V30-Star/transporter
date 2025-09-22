@@ -40,13 +40,13 @@
                     <th class="border px-2 py-1 cursor-pointer sortCol" data-sort-by="fsalesmancode">
                         <div class="flex items-center gap-1">
                             <span>Kode Salesman</span>
-                            <span id="icon-fsalesmancode" class="text-xs opacity-50">↕</span>
+                            <span id="icon-fsalesmancode" class="text-lg font-semibold text-green-600">⇅</span>
                         </div>
                     </th>
                     <th class="border px-2 py-1 cursor-pointer sortCol" data-sort-by="fsalesmanname">
                         <div class="flex items-center gap-1">
                             <span>Nama Salesman</span>
-                            <span id="icon-fsalesmanname" class="text-xs opacity-50">↕</span>
+                            <span id="icon-fsalesmanname" class="text-lg font-semibold text-green-600">⇅</span>
                         </div>
                     </th>
                     @if ($showActionsColumn)
@@ -222,7 +222,7 @@
                 if (json.data.length === 0) {
                     const colCount = document.querySelector('thead tr').children.length;
                     tbody.innerHTML =
-                    `<tr><td colspan="${colCount}" class="text-center py-4">Tidak ada data.</td></tr>`;
+                        `<tr><td colspan="${colCount}" class="text-center py-4">Tidak ada data.</td></tr>`;
                 } else {
                     tbody.innerHTML = json.data.map(rowHtml).join('');
                 }

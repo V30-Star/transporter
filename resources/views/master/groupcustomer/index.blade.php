@@ -37,13 +37,13 @@
                     <th class="border px-2 py-1 cursor-pointer sortCol" data-sort-by="fgroupcode">
                         <div class="flex items-center gap-1">
                             <span>Kode Group</span>
-                            <span id="icon-fgroupcode" class="text-xs opacity-50">↕</span>
+                            <span id="icon-fgroupcode" class="text-lg font-semibold text-green-600">⇅</span>
                         </div>
                     </th>
                     <th class="border px-2 py-1 cursor-pointer sortCol" data-sort-by="fgroupname">
                         <div class="flex items-center gap-1">
                             <span>Nama Group</span>
-                            <span id="icon-fgroupname" class="text-xs opacity-50">↕</span>
+                            <span id="icon-fgroupname" class="text-lg font-semibold text-green-600">⇅</span>
                         </div>
                     </th>
                     @if ($showActionsColumn)

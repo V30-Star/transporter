@@ -42,14 +42,14 @@
                     <th class="border px-2 py-1 cursor-pointer sortCol" data-sort-by="fwhcode">
                         <div class="flex items-center gap-1">
                             <span>Kode Gudang</span>
-                            <span id="icon-fwhcode" class="text-xs opacity-50">↕</span>
+                            <span id="icon-fwhcode" class="text-lg font-semibold text-green-600">⇅</span>
                         </div>
                     </th>
 
                     <th class="border px-2 py-1 cursor-pointer sortCol" data-sort-by="fwhname">
                         <div class="flex items-center gap-1">
                             <span>Nama Gudang</span>
-                            <span id="icon-fwhname" class="text-xs opacity-50">↕</span>
+                            <span id="icon-fwhname" class="text-lg font-semibold text-green-600">⇅</span>
                         </div>
                     </th>
 

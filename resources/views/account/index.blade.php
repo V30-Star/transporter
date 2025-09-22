@@ -41,13 +41,13 @@
                     <th class="border px-2 py-1 cursor-pointer sortCol" data-sort-by="faccount">
                         <div class="flex items-center gap-1">
                             <span>Account #</span>
-                            <span id="icon-faccount" class="text-xs opacity-50">↕</span>
+                            <span id="icon-faccount" class="text-lg font-semibold text-green-600">⇅</span>
                         </div>
                     </th>
                     <th class="border px-2 py-1 cursor-pointer sortCol" data-sort-by="faccname">
                         <div class="flex items-center gap-1">
                             <span>Nama Account</span>
-                            <span id="icon-faccname" class="text-xs opacity-50">↕</span>
+                            <span id="icon-faccname" class="text-lg font-semibold text-green-600">⇅</span>
                         </div>
                     </th>
                     <th class="border px-2 py-1">Type</th>
