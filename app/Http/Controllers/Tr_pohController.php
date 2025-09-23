@@ -551,19 +551,25 @@ class Tr_pohController extends Controller
     $fcabang     = $branch->fcabangname ?? (string) $raw;   // tampilan
     $fbranchcode = $branch->fcabangkode ?? (string) $raw;   // hidden post
 
-    $tr_poh = Tr_poh::with(['details' => fn($q) => $q->orderBy('fpodid')])
+    // Join tr_pod and msprd to fetch product details
+    $tr_poh = Tr_poh::with(['details' => function ($q) {
+      $q->orderBy('fpodid')
+        ->join('msprd', 'msprd.fprdcode', '=', 'tr_pod.fprdcode')  // Join msprd table
+        ->select('tr_pod.*', 'msprd.fprdname', 'tr_pod.fpono'); // Select fpono from tr_pod
+    }])
       ->where('fpohdid', $fpohdid)
       ->firstOrFail();
 
+    // Map the data for savedItems
     $savedItems = $tr_poh->details->map(function ($d) {
       return [
         'uid'       => $d->fpodid,                   // untuk :key
-        'fitemcode' => $d->fitemcode ?? '',
-        'fitemname' => $d->fitemname ?? '',
+        'fitemcode' => $d->fprdcode ?? '',
+        'fitemname' => $d->fprdname ?? '',  // Now fprdname will be available here
         'fsatuan'   => $d->fsatuan ?? '',
         'fuom'      => $d->fsatuan ?? '',            // kolom tampilan
         'fprno'     => $d->frefpr ?? '-',            // tampilan
-        'frefpr'    => $d->frefpr ?? null,           // hidden
+        'frefpr'    => $d->fpono ?? null,           // Now frefpr comes from fpono
         'frefdtno'  => $d->frefdtno ?? null,
         'fnouref'   => $d->fnouref ?? null,
         'fqty'      => (int)($d->fqty ?? 0),
@@ -577,6 +583,7 @@ class Tr_pohController extends Controller
       ];
     })->values();
 
+    // Fetch all products for product mapping
     $products = Product::select(
       'fprdid',
       'fprdcode',
@@ -587,6 +594,7 @@ class Tr_pohController extends Controller
       'fminstock'
     )->orderBy('fprdname')->get();
 
+    // Prepare the product map for frontend
     $productMap = $products->mapWithKeys(function ($p) {
       return [
         $p->fprdcode => [
@@ -597,6 +605,7 @@ class Tr_pohController extends Controller
       ];
     })->toArray();
 
+    // Pass the data to the view
     return view('tr_poh.edit', [
       'supplier'     => $supplier,
       'fcabang'      => $fcabang,
@@ -604,7 +613,7 @@ class Tr_pohController extends Controller
       'products'     => $products,
       'productMap'   => $productMap,
       'tr_poh'       => $tr_poh,
-      'savedItems'  => $savedItems,
+      'savedItems'   => $savedItems,
     ]);
   }
 

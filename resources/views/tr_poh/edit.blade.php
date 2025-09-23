@@ -280,7 +280,8 @@
                     </div>
                 </div>
 
-                <div x-data="itemsTable()" x-init="init(); recalcTotals()" class="mt-6 space-y-2">
+                <div x-data="itemsTable()" x-init="init();
+                recalcTotals()" class="mt-6 space-y-2">
                     <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
 
                     <div class="overflow-auto border rounded">
@@ -316,7 +317,7 @@
                                             </div>
                                         </td>
                                         <td class="p-2" x-text="it.fuom"></td>
-                                        <td class="p-2" x-text="it.fprno || '-'"></td>
+                                        <td class="p-2" x-text="it.fpono || '-'"></td>
                                         <td class="p-2 text-right" x-text="fmt(it.fqty)"></td>
                                         <td class="p-2 text-right" x-text="fmt(it.fterima)"></td>
                                         <td class="p-2 text-right" x-text="fmt(it.fprice)"></td>
@@ -614,7 +615,7 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                             d="M12 4.5v15m7.5-7.5h-15" />
                                     </svg>
-                                    Tambah Penerimaan (PR)
+                                    Add PR
                                 </button>
                             </div>
                             <!-- Kanan: Panel Totals -->
@@ -664,7 +665,7 @@
                             role="dialog">
                             <div class="w-full max-w-3xl rounded-xl bg-white shadow-xl">
                                 <div class="flex items-center justify-between border-b px-4 py-3">
-                                    <h3 class="text-lg font-semibold">Pilih Permintaan (PR)</h3>
+                                    <h3 class="text-lg font-semibold">Add PR</h3>
                                 </div>
 
                                 <div class="px-4 py-3 space-y-3">
@@ -710,7 +711,7 @@
                                             <tbody>
                                                 <template x-for="row in rows" :key="row.fprid">
                                                     <tr class="border-t">
-                                                        <td class="p-2" x-text="row.fprno"></td>
+                                                        <td class="p-2" x-text="row.fpono"></td>
                                                         <td class="p-2" x-text="row.fsupplier || '-'"></td>
                                                         <td class="p-2" x-text="formatDate(row.fprdate)"></td>
                                                         <td class="p-2 text-right">
