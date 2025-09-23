@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Tr_prh;
 use App\Models\Tr_prd;
+use App\Models\Tr_poh;
 use App\Models\Supplier;
 use App\Models\Product;
 use Illuminate\Support\Facades\Auth;
@@ -463,7 +464,7 @@ class Tr_pohController extends Controller
       return back()->withInput()->withErrors(['detail' => 'Minimal satu item valid (Kode, Satuan, Qty > 0).']);
     }
 
-    $ppnAmount  = $request->input('famountpopajak', 0);  // ambil langsung dari hidden input
+    $ppnAmount  = $request->input('famountpopajak', 0);
 
     DB::transaction(function () use ($request, $fpodate, $fkirimdate, $fincludeppn, $userid, $now, &$rowsPod, &$fpono, $totalHarga, $ppnAmount, $grandTotal) {
       if (empty($fpono)) {
@@ -498,18 +499,23 @@ class Tr_pohController extends Controller
         $fpono = $prefix . str_pad((string)$next, 4, '0', STR_PAD_LEFT);
       }
 
+      $fcurrency = $request->input('fcurrency', 'IDR');   // default IDR
+      $frate     = $request->input('frate', 15500);       // default 15500 kalau IDR
+
       DB::table('tr_poh')->insert([
-        'fpono'       => $fpono,
-        'fpodate'     => $fpodate,
-        'fkirimdate'  => $fkirimdate,
-        'fsupplier'   => $request->input('fsupplier'),
-        'fincludeppn' => $fincludeppn,
-        'fket'        => $request->input('fket'),
-        'fuserid'     => $userid,
-        'fdatetime'   => $now,
-        'famountponet'     => round($totalHarga, 2), // subtotal (sebelum PPN)
-        'famountpopajak'   => $ppnAmount,             // PPN (langsung dari inputan)
-        'famountpo'       => $grandTotal,           // Grand Total masuk sini
+        'fpono'          => $fpono,
+        'fpodate'        => $fpodate,
+        'fkirimdate'     => $fkirimdate,
+        'fcurrency'      => $fcurrency,
+        'frate'          => $frate,
+        'fsupplier'      => $request->input('fsupplier'),
+        'fincludeppn'    => $fincludeppn,
+        'fket'           => $request->input('fket'),
+        'fuserid'        => $userid,
+        'fdatetime'      => $now,
+        'famountponet'   => round($totalHarga, 2),
+        'famountpopajak' => $ppnAmount,
+        'famountpo'      => $grandTotal,
       ]);
 
       // === siapkan fnou berurutan & insert detail ===
@@ -529,7 +535,7 @@ class Tr_pohController extends Controller
       ->with('success', "PO {$fpono} tersimpan, detail masuk ke TR_POD.");
   }
 
-  public function edit($fprid)
+  public function edit($fpohdid)
   {
     $supplier = Supplier::all();
 
@@ -545,12 +551,32 @@ class Tr_pohController extends Controller
     $fcabang     = $branch->fcabangname ?? (string) $raw;   // tampilan
     $fbranchcode = $branch->fcabangkode ?? (string) $raw;   // hidden post
 
-    // >>> MUAT HEADER + DETAIL BERDASARKAN fprid
-    $tr_poh = Tr_prh::with(['details' => function ($q) {
-      $q->orderBy('fprdcode');
-    }])->where('fprid', $fprid)->firstOrFail();
+    $tr_poh = Tr_poh::with(['details' => fn($q) => $q->orderBy('fpodid')])
+      ->where('fpohdid', $fpohdid)
+      ->firstOrFail();
 
-    // Data produk untuk dropdown & map satuan
+    $savedItems = $tr_poh->details->map(function ($d) {
+      return [
+        'uid'       => $d->fpodid,                   // untuk :key
+        'fitemcode' => $d->fitemcode ?? '',
+        'fitemname' => $d->fitemname ?? '',
+        'fsatuan'   => $d->fsatuan ?? '',
+        'fuom'      => $d->fsatuan ?? '',            // kolom tampilan
+        'fprno'     => $d->frefpr ?? '-',            // tampilan
+        'frefpr'    => $d->frefpr ?? null,           // hidden
+        'frefdtno'  => $d->frefdtno ?? null,
+        'fnouref'   => $d->fnouref ?? null,
+        'fqty'      => (int)($d->fqty ?? 0),
+        'fterima'   => (int)($d->fterima ?? 0),
+        'fprice'    => (float)($d->fprice ?? 0),
+        'fdisc'     => (float)($d->fdisc ?? 0),
+        'ftotal'    => (float)($d->ftotal ?? 0),
+        'fdesc'     => $d->fdesc ?? '',
+        'fketdt'    => $d->fketdt ?? '',
+        'units'     => [],                           // opsional; bisa diisi dari PRODUCT_MAP
+      ];
+    })->values();
+
     $products = Product::select(
       'fprdid',
       'fprdcode',
@@ -561,7 +587,6 @@ class Tr_pohController extends Controller
       'fminstock'
     )->orderBy('fprdname')->get();
 
-    // (opsional) productMap server-side jika ingin dipakai di Blade
     $productMap = $products->mapWithKeys(function ($p) {
       return [
         $p->fprdcode => [
@@ -577,8 +602,9 @@ class Tr_pohController extends Controller
       'fcabang'      => $fcabang,
       'fbranchcode'  => $fbranchcode,
       'products'     => $products,
-      'productMap'   => $productMap, // jika dipakai di Blade
-      'tr_poh'       => $tr_poh,     // <<— PENTING
+      'productMap'   => $productMap,
+      'tr_poh'       => $tr_poh,
+      'savedItems'  => $savedItems,
     ]);
   }
 

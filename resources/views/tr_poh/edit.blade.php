@@ -122,22 +122,17 @@
                                     class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
                                     disabled>
                                     <option value=""></option>
-                                    @foreach ($supplier as $sup)
-                                        <option value="{{ $sup->fsupplierid }}"
-                                            {{ old('fsupplier', $tr_poh->fsupplier) == $sup->fsupplierid ? 'selected' : '' }}>
-                                            {{ $sup->fsuppliercode }} - {{ $sup->fsuppliername }}
+                                    @foreach ($supplier as $suppliers)
+                                        <option value="{{ $suppliers->fsupplierid }}"
+                                            {{ old('fsupplier') == $suppliers->fsupplierid ? 'selected' : '' }}>
+                                            {{ $suppliers->fsuppliercode }} - {{ $suppliers->fsuppliername }}
                                         </option>
                                     @endforeach
                                 </select>
                                 <div class="absolute inset-0" role="button" aria-label="Browse supplier"
                                     @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"></div>
                             </div>
-
-                            {{-- Hidden input untuk menyimpan ID supplier --}}
-                            <input type="hidden" name="fsupplier" id="supplierCodeHidden"
-                                value="{{ old('fsupplier', $tr_poh->fsupplier) }}">
-
-                            <!-- Tombol untuk memilih supplier -->
+                            <input type="hidden" name="fsupplier" id="supplierCodeHidden" value="{{ old('fsupplier') }}">
                             <button type="button" @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"
                                 class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
                                 title="Browse Supplier">
@@ -176,17 +171,99 @@
                         <div class="flex items-center">
                             <input type="number" name="ftempohr" value="{{ old('ftempohr', 0) }}"
                                 class="w-full border rounded px-3 py-2 @error('ftempohr') border-red-500 @enderror">
-                            <span class="ml-2">Hari</span>
                         </div>
                         @error('ftempohr')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
                     </div> --}}
 
+
+                    {{-- ===== Currency & Rate ===== --}}
+                    <div x-data="ratesForm()" class="lg:col-span-8 grid grid-cols-1 lg:grid-cols-8 gap-4">
+
+                        {{-- Currency --}}
+                        <div class="lg:col-span-4">
+                            <label class="block text-sm font-medium">Currency</label>
+                            <select name="fcurrency" x-model="currency" @change="applyDefaultIfNeeded()"
+                                class="w-full border rounded px-3 py-2 @error('fcurrency') border-red-500 @enderror">
+                                <option value="IDR"
+                                    {{ old('fcurrency', $tr_poh->fcurrency ?? 'IDR') === 'IDR' ? 'selected' : '' }}>IDR
+                                </option>
+                                <option value="USD"
+                                    {{ old('fcurrency', $tr_poh->fcurrency ?? 'IDR') === 'USD' ? 'selected' : '' }}>USD
+                                </option>
+                            </select>
+                            @error('fcurrency')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        {{-- Editable: 1 USD = X IDR --}}
+                        <div class="lg:col-span-4">
+                            <label class="block text-sm font-medium">Rate (1 USD = ? IDR)</label>
+                            <input type="number" step="0.0001" min="0" name="frate_display"
+                                x-model.number="rateUsdIdr"
+                                class="w-full border rounded px-3 py-2 @error('frate') border-red-500 @enderror"
+                                placeholder="Contoh: 15500"
+                                value="{{ old('frate', $tr_poh->frate ?? 15500) }}"><!-- fallback kalau Alpine mati -->
+                            @error('frate')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        {{-- Read-only mirrors --}}
+                        <div class="lg:col-span-8">
+                            <div class="flex flex-wrap items-center gap-2 text-sm">
+                                <span class="inline-flex items-center gap-2 rounded border px-2 py-1 bg-gray-50">
+                                    <span class="font-medium">1 USD</span>
+                                    <span>=</span>
+                                    <span x-text="fmt(rateUsdIdr, 4)"></span>
+                                    <span class="text-gray-600">IDR</span>
+                                </span>
+
+                                <span class="inline-flex items-center gap-2 rounded border px-2 py-1 bg-gray-50">
+                                    <span class="font-medium">1 IDR</span>
+                                    <span>=</span>
+                                    <span x-text="fmt(invRate, 8)"></span>
+                                    <span class="text-gray-600">USD</span>
+                                </span>
+                            </div>
+                        </div>
+
+                        {{-- Hidden real rate for backend --}}
+                        <input type="hidden" name="frate" :value="rateUsdIdr">
+                    </div>
+
+                    <script>
+                        function ratesForm() {
+                            return {
+                                // use old() first (when validation fails), otherwise DB values from $tr_poh, else defaults
+                                currency: @json(old('fcurrency', $tr_poh->fcurrency ?? 'IDR')),
+                                rateUsdIdr: Number(@json(old('frate', $tr_poh->frate ?? 15500))),
+
+                                get invRate() {
+                                    return this.rateUsdIdr > 0 ? 1 / this.rateUsdIdr : 0;
+                                },
+
+                                fmt(n, dec = 2) {
+                                    return Number(n || 0).toLocaleString('id-ID', {
+                                        minimumFractionDigits: dec,
+                                        maximumFractionDigits: dec
+                                    });
+                                },
+
+                                applyDefaultIfNeeded() {
+                                    if (this.currency === 'IDR' && (!this.rateUsdIdr || this.rateUsdIdr <= 0)) {
+                                        this.rateUsdIdr = 15500;
+                                    }
+                                }
+                            }
+                        }
+                    </script>
+
                     <div class="lg:col-span-5">
                         <input id="fincludeppn" type="checkbox" name="fincludeppn" value="1"
-                            class="h-4 w-4 text-blue-600 border-gray-300 rounded"
-                            {{ old('fincludeppn') ? 'checked' : '' }}>
+                            class="h-4 w-4 text-blue-600 border-gray-300 rounded">
                         <label for="fincludeppn" class="ml-2 text-sm font-medium text-gray-700">
                             Harga Termasuk <span class="font-bold">PPN</span>
                         </label>
@@ -194,7 +271,8 @@
 
                     <div class="lg:col-span-12">
                         <label class="block text-sm font-medium">Keterangan</label>
-                        <textarea name="fket" rows="3" class="w-full border rounded px-3 py-2 @error('fket') border-red-500 @enderror"
+                        <textarea name="fket" rows="3"
+                            class="w-full border rounded px-3 py-2 @error('fket') border-red-500 @enderror"
                             placeholder="Tulis keterangan tambahan di sini...">{{ old('fket') }}</textarea>
                         @error('fket')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -202,8 +280,7 @@
                     </div>
                 </div>
 
-                {{-- DETAIL ITEM (tabel input) --}}
-                <div x-data="itemsTable()" x-init="init()" class="mt-6 space-y-2">
+                <div x-data="itemsTable()" x-init="init(); recalcTotals()" class="mt-6 space-y-2">
                     <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
 
                     <div class="overflow-auto border rounded">
@@ -211,15 +288,15 @@
                             <thead class="bg-gray-100">
                                 <tr>
                                     <th class="p-2 text-left w-10">#</th>
-                                    <th class="p-2 text-left w-44">Kode Produk</th>
-                                    <th class="p-2 text-left">Nama Produk</th>
-                                    <th class="p-2 text-left w-40">Satuan</th>
-                                    <th class="p-2 text-left w-56">Ref.PR#</th>
-                                    <th class="p-2 text-right w-28">Qty</th>
-                                    <th class="p-2 text-right w-28">Terima</th>
-                                    <th class="p-2 text-right w-28">@ Harga</th>
-                                    <th class="p-2 text-right w-28">Disc. %</th>
-                                    <th class="p-2 text-right w-32">Total Harga</th>
+                                    <th class="p-2 text-left w-40">Kode Produk</th>
+                                    <th class="p-2 text-left w-72">Nama Produk</th>
+                                    <th class="p-2 text-left w-28">Satuan</th>
+                                    <th class="p-2 text-left w-36">Ref.PR#</th>
+                                    <th class="p-2 text-right w-24 whitespace-nowrap">Qty</th>
+                                    <th class="p-2 text-right w-28 whitespace-nowrap">Terima</th>
+                                    <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
+                                    <th class="p-2 text-right w-24 whitespace-nowrap">Disc. %</th>
+                                    <th class="p-2 text-right w-36 whitespace-nowrap">Total Harga</th>
                                     <th class="p-2 text-center w-28">Aksi</th>
                                 </tr>
                             </thead>
@@ -526,7 +603,7 @@
                         </table>
                     </div>
 
-                    <!-- ===== Trigger: Add tr_poh dari panel kanan ===== -->
+                    <!-- ===== Trigger: Add tr_prh dari panel kanan ===== -->
                     <div x-data="prhFormModal()" class="mt-3">
                         <div class="mt-3 flex justify-between items-start gap-4">
                             <div class="w-full flex justify-start mb-3">
@@ -1122,7 +1199,7 @@
     function itemsTable() {
         return {
             showNoItems: false,
-            savedItems: [],
+            savedItems: @json($savedItems ?? []),
             draft: newRow(),
             editingIndex: null,
             editRow: newRow(),
