@@ -158,10 +158,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/tr_poh', action: [Tr_pohController::class, 'index'])->name('tr_poh.index');
         Route::post('/tr_poh',        [Tr_pohController::class, 'store'])->name('tr_poh.store');
         Route::get('/tr_poh/create', [Tr_pohController::class, 'create'])->name('tr_poh.create');
-        Route::get('/tr_poh/{fprid}/edit', [Tr_pohController::class, 'edit'])->name('tr_poh.edit');
-        Route::patch('/tr_poh/{fprid}', [Tr_pohController::class, 'update'])->name('tr_poh.update');
-        Route::delete('/tr_poh/{fprid}', [Tr_pohController::class, 'destroy'])->name('tr_poh.destroy');
-        Route::get('/tr_poh/{fprno}/print', [Tr_pohController::class, 'print'])
+        Route::get('/tr_poh/{fpohdid}/edit', [Tr_pohController::class, 'edit'])->name('tr_poh.edit');
+        Route::patch('/tr_poh/{fpohdid}', [Tr_pohController::class, 'update'])->name('tr_poh.update');
+        Route::delete('/tr_poh/{fpohdid}', [Tr_pohController::class, 'destroy'])->name('tr_poh.destroy');
+        Route::get('/tr_poh/{fpohdid}/print', [Tr_pohController::class, 'print'])
             ->name('tr_poh.print');
 
         Route::get('/tr-poh/pickable', [Tr_pohController::class, 'pickable'])

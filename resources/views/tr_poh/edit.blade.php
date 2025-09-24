@@ -86,12 +86,13 @@
 
     <div x-data="{ open: true }">
         <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
-            <form action="{{ route('tr_poh.store') }}" method="POST" class="mt-6" x-data="{ showNoItems: false }"
+            <form action="{{ route('tr_poh.update', $tr_poh->fpohdid) }}" method="POST" class="mt-6" x-data="{ showNoItems: false }"
                 @submit.prevent="
         const n = Number(document.getElementById('itemsCount')?.value || 0);
         if (n < 1) { showNoItems = true } else { $el.submit() }
       ">
                 @csrf
+                @method('PATCH')
 
                 {{-- HEADER FORM --}}
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
@@ -122,17 +123,18 @@
                                     class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
                                     disabled>
                                     <option value=""></option>
-                                    @foreach ($supplier as $suppliers)
-                                        <option value="{{ $suppliers->fsupplierid }}"
-                                            {{ old('fsupplier') == $suppliers->fsupplierid ? 'selected' : '' }}>
-                                            {{ $suppliers->fsuppliercode }} - {{ $suppliers->fsuppliername }}
+                                    @foreach ($supplier as $s)
+                                        <option value="{{ $s->fsuppliercode }}"
+                                            {{ old('fsupplier', $selectedSupplierCode) == $s->fsuppliercode ? 'selected' : '' }}>
+                                            {{ $s->fsuppliercode }} - {{ $s->fsuppliername }}
                                         </option>
                                     @endforeach
                                 </select>
                                 <div class="absolute inset-0" role="button" aria-label="Browse supplier"
                                     @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"></div>
                             </div>
-                            <input type="hidden" name="fsupplier" id="supplierCodeHidden" value="{{ old('fsupplier') }}">
+                            <input type="hidden" name="fsupplier" id="supplierCodeHidden"
+                                value="{{ old('fsupplier', $selectedSupplierCode) }}">
                             <button type="button" @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"
                                 class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
                                 title="Browse Supplier">
@@ -316,7 +318,7 @@
                                                 <span class="align-middle text-gray-600" x-text="it.fdesc"></span>
                                             </div>
                                         </td>
-                                        <td class="p-2" x-text="it.fuom"></td>
+                                        <td class="p-2" x-text="it.fsatuan"></td>
                                         <td class="p-2" x-text="it.fpono || '-'"></td>
                                         <td class="p-2 text-right" x-text="fmt(it.fqty)"></td>
                                         <td class="p-2 text-right" x-text="fmt(it.fterima)"></td>
@@ -628,17 +630,15 @@
                                     </div>
 
                                     <div class="flex items-center justify-between">
-                                        <label class="text-sm text-gray-700">PPN</label>
-                                        <div class="flex items-center gap-2">
-                                            <input type="number" min="0" max="100" step="0.01"
-                                                x-model.number="ppnRate" class="w-20 border rounded px-2 py-1 text-right"
-                                                @input="calculatePPN()">
-                                            <span class="text-sm">%</span>
+                                        <label class="text-sm text-gray-700">PPN (%)</label>
+                                        <div class="flex items-center gap-3">
+                                            <input type="number" name="famountpajak" x-model.number="ppnAmount"
+                                                value="{{ old('famountpajak', $ppnAmount ?? 0) }}" step="0.01"
+                                                class="w-28 border rounded px-2 py-1 text-right" placeholder="11" />
                                             <span class="min-w-[140px] text-right font-medium"
-                                                x-text="fmtMoney(ppnAmount)"></span>
+                                                x-text="fmtMoney((totalHarga * ppnAmount / 100))"></span>
                                         </div>
                                     </div>
-
                                     <div class="border-t my-1"></div>
 
                                     <div class="flex items-center justify-between">
@@ -711,7 +711,7 @@
                                             <tbody>
                                                 <template x-for="row in rows" :key="row.fprid">
                                                     <tr class="border-t">
-                                                        <td class="p-2" x-text="row.fpono"></td>
+                                                        <td class="p-2" x-text="row.fprno"></td>
                                                         <td class="p-2" x-text="row.fsupplier || '-'"></td>
                                                         <td class="p-2" x-text="formatDate(row.fprdate)"></td>
                                                         <td class="p-2 text-right">
@@ -1207,8 +1207,12 @@
 
             totalHarga: 0, // Total harga before PPN
             ppnRate: 0, // PPN rate (percentage)
-            ppnAmount: 0, // Amount of PPN calculated
-            grandTotal: 0, // Final grand total after adding PPN
+            ppnAmount: @json($ppnAmount ?? 0),
+            grandTotal: @json($famountpo ?? 0), // Mengambil nilai famountpo dari DB
+
+            fmtMoney(value) {
+                return this.fmt(value); // format uang
+            },
 
             fmt(n) {
                 if (n === null || n === undefined || n === '') return '-';
@@ -1225,38 +1229,31 @@
                     }); // Jika angka desimal, tampilkan dalam format mata uang
                 }
             },
-
-            // Adding missing fmtMoney function
-            fmtMoney(value) {
-                return this.fmt(value); // reuse fmt function for currency formatting
-            },
-
             recalc(row) {
                 // Normalisasi & guard rails
                 row.fqty = Math.max(0, +row.fqty || 0);
                 row.fterima = Math.max(0, +row.fterima || 0);
                 row.fprice = Math.max(0, +row.fprice || 0);
                 row.fdisc = Math.min(100, Math.max(0, +row.fdisc || 0));
-                // Total berdasarkan QTY (bukan "Terima")
                 row.ftotal = +(row.fqty * row.fprice * (1 - row.fdisc / 100)).toFixed(2);
 
-                // Recalculate totals after item recalculation
                 this.recalcTotals();
             },
 
             recalcTotals() {
-                // Calculate total price before PPN
-                this.totalHarga = this.savedItems.reduce((sum, item) => sum + item.ftotal, 0);
-
-                // Recalculate PPN and grand total
-                this.calculatePPN();
+                // jumlahkan dari famount (ftotal) per item
+                this.totalHarga = this.savedItems.reduce((sum, it) => sum + (+it.ftotal || 0), 0);
+                // grand total = total + PPN (dihitung sebagai persentase)
+                const ppnValue = (+this.totalHarga || 0) * (+this.ppnAmount || 0) / 100;
+                this.grandTotal = (+this.totalHarga || 0) + ppnValue;
             },
 
             calculatePPN() {
-                // Calculate PPN amount based on the totalHarga and input PPN rate
-                this.ppnAmount = this.totalHarga * (this.ppnRate / 100);
-                // Calculate Grand Total
-                this.grandTotal = this.totalHarga + this.ppnAmount;
+                const t = +this.totalHarga || 0;
+                const ppnPercent = +this.ppnAmount || 0;
+                const ppnValue = t * ppnPercent / 100;
+                this.ppnRate = ppnPercent; // display-only
+                this.grandTotal = t + ppnValue;
             },
 
             productMeta(code) {
@@ -1276,6 +1273,7 @@
                 const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
                 row.units = units;
                 if (!units.includes(row.fsatuan)) row.fsatuan = units[0] || '';
+                row.fsatuan = row.fsatuan;
                 const stock = Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0;
                 row.maxqty = stock;
             },
@@ -1300,8 +1298,7 @@
                 this.addManyFromPR(header, items);
             },
             resetDraft() {
-                this.draft = newRow(); // Reset draft data yang sedang diproses
-                // Jika perlu, Anda bisa mengatur elemen-elemen input untuk fokus lagi
+                this.draft = newRow();
                 this.$nextTick(() => this.$refs.draftCode?.focus());
             },
 
@@ -1313,10 +1310,12 @@
                         uid: cryptoRandom(),
                         fitemcode: src.fitemcode ?? '',
                         fitemname: src.fitemname ?? '',
-                        fsatuan: src.fsatuan ?? '',
-                        frefdtno: src.frefdtno ?? '', // Menggunakan frefdtno sebagai pengganti frefpr
+                        fsatuan: (src.fsatuan ?? ''),
+                        frefdtno: src.frefdtno ?? '',
                         fnouref: src.fnouref ?? '',
-                        frefpr: src.frefpr ?? (header?.fpono ?? ''),
+                        frefpr: src.frefpr ?? '',
+                        fpono: header?.fpono ?? src.fpono ?? '',
+                        fprnoid: src.fprnoid ?? header?.fprnoid ?? '',
                         fqty: Number(src.fqty ?? 0),
                         fterima: Number(src.ferima ?? 0),
                         fprice: Number(src.fprice ?? 0),
@@ -1328,7 +1327,7 @@
                             .filter(Boolean),
                     };
                     if (!existing.has(`${row.fitemcode}::${row.frefdtno}`)) {
-                        this.savedItems.push(row); // Tambahkan item jika belum ada
+                        this.savedItems.push(row);
                         existing.add(`${row.fitemcode}::${row.frefdtno}`);
                     }
                 });
@@ -1391,7 +1390,6 @@
                 this.cancelEdit();
                 this.syncDescList?.();
 
-                // Recalculate totals after applying edit
                 this.recalcTotals();
             },
 
@@ -1428,7 +1426,6 @@
                 }
             },
 
-            // Modal description (keeping this part as is)
             showDescModal: false,
             descTarget: 'draft',
             descSavedIndex: null,
@@ -1464,6 +1461,10 @@
                     }
                 }, {
                     passive: true
+                });
+                this.$watch('ppnAmount', () => {
+                    const ppnValue = (+this.totalHarga || 0) * (+this.ppnAmount || 0) / 100;
+                    this.grandTotal = (+this.totalHarga || 0) + ppnValue;
                 });
             },
 
@@ -1582,15 +1583,14 @@
 
                     const json = await res.json();
 
-                    // Menambahkan item dari PR yang dipilih ke dalam savedItems
                     this.addManyFromPR(row, json
-                        .items); // Pastikan data diteruskan dengan benar ke addManyFromPR
+                        .items);
 
                     window.dispatchEvent(new CustomEvent('pr-picked', {
                         detail: json
                     }));
 
-                    this.closeModal(); // Setelah menambah item, tutup modal
+                    this.closeModal();
                 } catch (e) {
                     console.error(e);
                     alert('Gagal mengambil detail PR');

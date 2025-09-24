@@ -310,8 +310,8 @@
                                                 <span class="align-middle text-gray-600" x-text="it.fdesc"></span>
                                             </div>
                                         </td>
-                                        <td class="p-2" x-text="it.fuom"></td>
-                                        <td class="p-2" x-text="it.fprno || '-'"></td>
+                                        <td class="p-2" x-text="it.fsatuan"></td>
+                                        <td class="p-2" x-text="it.fprnoid || '-'"></td>
                                         <td class="p-2 text-right" x-text="fmt(it.fqty)"></td>
                                         <td class="p-2 text-right" x-text="fmt(it.fterima)"></td>
                                         <td class="p-2 text-right" x-text="fmt(it.fprice)"></td>
@@ -1247,9 +1247,7 @@
             },
 
             calculatePPN() {
-                // Calculate PPN amount based on the totalHarga and input PPN rate
                 this.ppnAmount = this.totalHarga * (this.ppnRate / 100);
-                // Calculate Grand Total
                 this.grandTotal = this.totalHarga + this.ppnAmount;
             },
 
@@ -1270,6 +1268,7 @@
                 const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
                 row.units = units;
                 if (!units.includes(row.fsatuan)) row.fsatuan = units[0] || '';
+                row.fsatuan = row.fsatuan; 
                 const stock = Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0;
                 row.maxqty = stock;
             },
@@ -1294,8 +1293,7 @@
                 this.addManyFromPR(header, items);
             },
             resetDraft() {
-                this.draft = newRow(); // Reset draft data yang sedang diproses
-                // Jika perlu, Anda bisa mengatur elemen-elemen input untuk fokus lagi
+                this.draft = newRow();
                 this.$nextTick(() => this.$refs.draftCode?.focus());
             },
 
@@ -1308,9 +1306,11 @@
                         fitemcode: src.fitemcode ?? '',
                         fitemname: src.fitemname ?? '',
                         fsatuan: src.fsatuan ?? '',
-                        frefdtno: src.frefdtno ?? '', // Menggunakan frefdtno sebagai pengganti frefpr
+                        fsatuan: (src.fsatuan ?? ''), 
+                        frefdtno: src.frefdtno ?? '',
                         fnouref: src.fnouref ?? '',
                         frefpr: src.frefpr ?? (header?.fpono ?? ''),
+                        fprnoid: src.fprnoid ?? header?.fprnoid ?? '', 
                         fqty: Number(src.fqty ?? 0),
                         fterima: Number(src.ferima ?? 0),
                         fprice: Number(src.fprice ?? 0),
@@ -1322,7 +1322,7 @@
                             .filter(Boolean),
                     };
                     if (!existing.has(`${row.fitemcode}::${row.frefdtno}`)) {
-                        this.savedItems.push(row); // Tambahkan item jika belum ada
+                        this.savedItems.push(row); 
                         existing.add(`${row.fitemcode}::${row.frefdtno}`);
                     }
                 });
@@ -1422,7 +1422,6 @@
                 }
             },
 
-            // Modal description (keeping this part as is)
             showDescModal: false,
             descTarget: 'draft',
             descSavedIndex: null,
@@ -1537,7 +1536,6 @@
                     const json = await res.json();
 
                     this.rows = json.data ?? [];
-                    // support 2 schemas
                     this.currentPage = (json.current_page ?? json.links?.current_page) ?? 1;
                     this.lastPage = (json.last_page ?? json.links?.last_page) ?? 1;
                     this.total = (json.total ?? json.links?.total) ?? (json.data_total ?? 0);
@@ -1576,15 +1574,14 @@
 
                     const json = await res.json();
 
-                    // Menambahkan item dari PR yang dipilih ke dalam savedItems
                     this.addManyFromPR(row, json
-                        .items); // Pastikan data diteruskan dengan benar ke addManyFromPR
+                        .items);
 
                     window.dispatchEvent(new CustomEvent('pr-picked', {
                         detail: json
                     }));
 
-                    this.closeModal(); // Setelah menambah item, tutup modal
+                    this.closeModal();
                 } catch (e) {
                     console.error(e);
                     alert('Gagal mengambil detail PR');
