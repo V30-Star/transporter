@@ -44,16 +44,26 @@
         <table class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
-                    <th class="border px-2 py-1">ID PR</th>
-                    <th class="border px-2 py-1">No. PR</th>
+                    <th class="border px-2 py-1">No. PO</th>
+                    <th class="border px-2 py-1">Tanggal</th>
+                    <th class="border px-2 py-1">Kode Supplier</th>
+                    <th class="border px-2 py-1">Nama Supplier</th>
+                    <th class="border px-2 py-1">Total Harga</th>
+                    <th class="border px-2 py-1">Status</th>
+                    <th class="border px-2 py-1">User ID</th>
                     <th class="border px-2 py-1">Aksi</th>
                 </tr>
             </thead>
             <tbody id="tableBody">
                 @forelse($tr_poh as $item)
                     <tr class="hover:bg-gray-50">
-                        <td class="border px-2 py-1">{{ $item->fpohdid }}</td>
                         <td class="border px-2 py-1">{{ $item->fpono }}</td>
+                        <td class="border px-2 py-1">{{ $item->fpodate }}</td>
+                        <td class="border px-2 py-1">{{ $item->fsupplier }}</td>
+                        <td class="border px-2 py-1">{{ $item->fsuppliername }}</td>
+                        <td class="border px-2 py-1">{{ $item->famountpo }}</td>
+                        <td class="border px-2 py-1">-</td>
+                        <td class="border px-2 py-1">{{ $item->fuserid }}</td>
                         <td class="border px-2 py-1 space-x-2">
                             {{-- @if ($canEdit) --}}
                                 <a href="{{ route('tr_poh.edit', $item->fpohdid) }}">

@@ -38,6 +38,7 @@ class Tr_pohController extends Controller
     // Ambil header dari tr_poh, join dengan agregasi detail
     $tr_poh = DB::table('tr_poh')
       ->leftJoinSub($detailAgg, 'd', 'd.fpono', '=', 'tr_poh.fpono')
+      ->leftJoin('mssupplier', 'mssupplier.fsuppliercode', '=', 'tr_poh.fsupplier') // JOIN dengan mssupplier
       ->when($search !== '', function ($q) use ($search, $filterBy) {
         $q->where(function ($qq) use ($search, $filterBy) {
           if ($filterBy === 'fpono') {
@@ -56,7 +57,10 @@ class Tr_pohController extends Controller
         'tr_poh.fpohdid',
         'tr_poh.fpono',
         'tr_poh.fsupplier',
+        'mssupplier.fsuppliername',
         'tr_poh.fpodate',
+        'tr_poh.famountpo', 
+        'tr_poh.fuserid', 
         DB::raw('COALESCE(d.item_count, 0) AS item_count'),
       ])
       ->paginate(10)
@@ -78,6 +82,7 @@ class Tr_pohController extends Controller
           'fprid'      => $fpono,           // <- alias id agar :key="row.fprid" tetap aman
           'fpono'      => $fpono,
           'fsupplier'  => trim($t->fsupplier ?? ''),
+          'fsuppliername' => $t->fsuppliername ?? '',
           'fpodate'    => $fpodate,
           'item_count' => (int)($t->item_count ?? 0),
 
@@ -338,17 +343,15 @@ class Tr_pohController extends Controller
       'fincludeppn'  => ['nullable'],
       'fket'         => ['nullable', 'string', 'max:300'],
       'fbranchcode'  => ['nullable', 'string', 'max:20'],
-
+      'ftempohr'     => ['nullable', 'string', 'max:3'],
       'fitemcode'    => ['required', 'array', 'min:1'],
       'fitemcode.*'  => ['required', 'string', 'max:50'],
-
       'fsatuan'      => ['nullable', 'array'],
       'fsatuan.*'    => ['nullable', 'string', 'max:5'],
       'frefdtno'      => ['nullable'],
       'frefdtno.*'    => ['nullable'],
       'fnouref'      => ['nullable'],
       'fnouref.*'    => ['nullable'],
-
       'fqty'         => ['required', 'array'],
       'fqty.*'       => ['numeric', 'min:0'],
       'fprice'       => ['nullable', 'array'],
@@ -497,12 +500,14 @@ class Tr_pohController extends Controller
 
       $fcurrency = $request->input('fcurrency', 'IDR');   // default IDR
       $frate     = $request->input('frate', 15500);       // default 15500 kalau IDR
+      $ftempohr     = $request->input('ftempohr', 0);       // default 15500 kalau IDR
 
       DB::table('tr_poh')->insert([
         'fpono'          => $fpono,
         'fpodate'        => $fpodate,
         'fkirimdate'     => $fkirimdate,
         'fcurrency'      => $fcurrency,
+        'ftempohr'       => $ftempohr,
         'frate'          => $frate,
         'fsupplier'      => $request->input('fsupplier'),
         'fincludeppn'    => $fincludeppn,
