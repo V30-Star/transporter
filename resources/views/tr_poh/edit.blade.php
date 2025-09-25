@@ -85,7 +85,7 @@
     </style>
 
     <div x-data="{ open: true }">
-        <div x-data="{ includePPN: false, ppnRate: 0, ppnAmount: 0, totalHarga: 100000 }" class="lg:col-span-5">
+        <div x-data="{ includePPN: {{ old('fincludeppn', $tr_poh->fincludeppn ?? 0) ? 'true' : 'false' }}, ppnRate: 0, ppnAmount: 0, totalHarga: 100000 }" class="lg:col-span-5">
             <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
                 <form action="{{ route('tr_poh.update', $tr_poh->fpohdid) }}" method="POST" class="mt-6"
                     x-data="{ showNoItems: false }"
@@ -285,7 +285,8 @@
 
                         <div class="lg:col-span-5">
                             <input id="fincludeppn" type="checkbox" name="fincludeppn" value="1"
-                                x-model="includePPN" class="h-4 w-4 text-blue-600 border-gray-300 rounded">
+                                x-model="includePPN" class="h-4 w-4 text-blue-600 border-gray-300 rounded"
+                                {{ old('fincludeppn', $tr_poh->fincludeppn ?? 0) ? 'checked' : '' }}>
                             <label for="fincludeppn" class="ml-2 text-sm font-medium text-gray-700">
                                 Harga Termasuk <span class="font-bold">PPN</span>
                             </label>
@@ -648,35 +649,20 @@
                                         <div class="flex items-center justify-between">
                                             <span class="text-sm text-gray-700">Total Harga</span>
                                             <span class="min-w-[140px] text-right font-medium"
-                                                x-text="fmtMoney(totalHarga)"></span>
+                                                x-text="rupiah(totalHarga)"></span>
                                         </div>
 
-                                        <!-- PPN aktif (editable) -->
-                                        <div class="flex items-center justify-between" x-show="includePPN">
-                                            <label class="text-sm text-gray-700">PPN (%)</label>
+                                        <div class="flex items-center justify-between">
+                                            <label class="text-sm text-gray-700">PPN</label>
                                             <div class="flex items-center gap-2">
                                                 <input type="number" min="0" max="100" step="0.01"
-                                                    name="ppn_rate" x-model.number="ppnRate"
-                                                    value="{{ old('ppn_rate', $ppnRate ?? 0) }}"
-                                                    class="w-20 border rounded px-2 py-1 text-right" placeholder="0" />
+                                                    x-model.number="ppnRate" :disabled="!includePPN"
+                                                    class="w-20 border rounded px-2 py-1 text-right transition-opacity"
+                                                    :class="includePPN ? 'bg-white opacity-100' :
+                                                        'bg-gray-100 opacity-60 cursor-not-allowed'">
                                                 <span class="text-sm">%</span>
                                                 <span class="min-w-[140px] text-right font-medium"
-                                                    x-text="fmtMoney(ppnAmount)"></span>
-                                            </div>
-                                        </div>
-
-                                        <!-- PPN nonaktif (readonly) -->
-                                        <div class="flex items-center justify-between" x-show="!includePPN">
-                                            <label class="text-sm text-gray-700">PPN (%)</label>
-                                            <div class="flex items-center gap-2">
-                                                <!-- hidden agar ppn_rate tetap terkirim -->
-                                                <input type="hidden" name="ppn_rate" :value="ppnRate">
-                                                <input type="number" min="0" max="100" step="0.01"
-                                                    x-model.number="ppnRate"
-                                                    class="w-20 border rounded px-2 py-1 text-right bg-gray-100" readonly>
-                                                <span class="text-sm">%</span>
-                                                <span class="min-w-[140px] text-right font-medium"
-                                                    x-text="fmtMoney(ppnAmount)"></span>
+                                                    x-text="rupiah(ppnAmount)"></span>
                                             </div>
                                         </div>
 
@@ -685,7 +671,7 @@
                                         <div class="flex items-center justify-between">
                                             <span class="text-sm font-semibold text-gray-800">Grand Total</span>
                                             <span class="min-w-[140px] text-right text-lg font-semibold"
-                                                x-text="fmtMoney(grandTotal)"></span>
+                                                x-text="rupiah(grandTotal)"></span>
                                         </div>
                                     </div>
 
@@ -1303,7 +1289,7 @@
             editRow: newRow(),
 
             totalHarga: 0,
-            ppnRate: 0,
+            ppnRate: 11,
             grandTotal: @json($famountpo ?? 0),
 
             initialGrandTotal: @json($famountpo ?? 0),
@@ -1343,6 +1329,15 @@
                 }
             },
 
+            rupiah(n) {
+                const v = Number(n || 0);
+                if (!isFinite(v)) return 'Rp -';
+                return 'Rp ' + v.toLocaleString('id-ID', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            },
+
             recalc(row) {
                 row.fqty = Math.max(0, +row.fqty || 0);
                 row.fterima = Math.max(0, +row.fterima || 0);
@@ -1354,13 +1349,11 @@
 
             recalcTotals() {
                 this.totalHarga = this.savedItems.reduce((sum, it) => sum + (+it.ftotal || 0), 0);
-                // Grand total akan otomatis terhitung via getter
             },
 
             calculatePPN() {
-                const t = +this.totalHarga || 0;
-                const ppnValue = t * ppnPercent / 100;
-                this.grandTotal = t + ppnValue;
+                this.ppnAmount = this.includePPN ? (this.totalHarga * (this.ppnRate / 100)) : 0;
+                this.grandTotal = this.totalHarga + this.ppnAmount;
             },
 
             productMeta(code) {
@@ -1410,7 +1403,10 @@
             },
 
             addManyFromPR(header, items) {
-                const existing = new Set(this.savedItems.map(it => `${it.fitemcode}::${it.frefdtno}`));
+                const existing = new Set(this.getCurrentItemKeys()); // gunakan helper
+
+                let added = 0,
+                    duplicates = [];
 
                 items.forEach(src => {
                     const row = {
@@ -1433,12 +1429,24 @@
                         units: Array.isArray(src.units) && src.units.length ? src.units : [src.fsatuan]
                             .filter(Boolean),
                     };
-                    if (!existing.has(`${row.fitemcode}::${row.frefdtno}`)) {
-                        this.savedItems.push(row);
-                        existing.add(`${row.fitemcode}::${row.frefdtno}`);
-                    }
-                });
+                    const key = this.itemKey({
+                        fitemcode: row.fitemcode,
+                        frefdtno: row.frefdtno
+                    });
 
+                    if (existing.has(key)) {
+                        duplicates.push({
+                            key,
+                            code: row.fitemcode,
+                            ref: row.frefdtno
+                        });
+                        return;
+                    }
+
+                    this.savedItems.push(row);
+                    existing.add(key);
+                    added++;
+                });
                 this.recalcTotals();
             },
 
@@ -1541,8 +1549,19 @@
             closeDesc() {},
             applyDesc() {},
 
+            itemKey(it) {
+                return `${(it.fitemcode ?? '').toString().trim()}::${(it.frefdtno ?? '').toString().trim()}`;
+            },
+
+            getCurrentItemKeys() {
+                return this.savedItems.map(it => this.itemKey(it));
+            },
+
             init() {
-                // Listen for PR picked from modal PR
+                this.$watch('includePPN', () => this.recalcTotals());
+                this.$watch('ppnRate', () => this.recalcTotals());
+
+                window.getCurrentItemKeys = () => this.getCurrentItemKeys();
                 window.addEventListener('pr-picked', this.onPrPicked.bind(this), {
                     passive: true
                 });
@@ -1683,7 +1702,6 @@
                     const json = await res.json();
 
                     this.rows = json.data ?? [];
-                    // support 2 schemas
                     this.currentPage = (json.current_page ?? json.links?.current_page) ?? 1;
                     this.lastPage = (json.last_page ?? json.links?.last_page) ?? 1;
                     this.total = (json.total ?? json.links?.total) ?? (json.data_total ?? 0);

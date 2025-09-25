@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Tr_prh;
 use App\Models\Tr_prd;
 use App\Models\Tr_poh;
+use App\Models\Tr_pod;
 use App\Models\Supplier;
 use App\Models\Product;
 use Illuminate\Support\Facades\Auth;
@@ -348,6 +349,7 @@ class Tr_pohController extends Controller
       'fitemcode.*'  => ['required', 'string', 'max:50'],
       'fsatuan'      => ['nullable', 'array'],
       'fsatuan.*'    => ['nullable', 'string', 'max:5'],
+      'fapproval' => ['nullable'],
       'frefdtno'      => ['nullable'],
       'frefdtno.*'    => ['nullable'],
       'fnouref'      => ['nullable'],
@@ -501,6 +503,7 @@ class Tr_pohController extends Controller
       $fcurrency = $request->input('fcurrency', 'IDR');   // default IDR
       $frate     = $request->input('frate', 15500);       // default 15500 kalau IDR
       $ftempohr     = $request->input('ftempohr', 0);       // default 15500 kalau IDR
+      $isApproval = (int)($request->input('fapproval', 0)); // 1 jika dicentang, 0 jika tidak
 
       DB::table('tr_poh')->insert([
         'fpono'          => $fpono,
@@ -517,7 +520,26 @@ class Tr_pohController extends Controller
         'famountponet'   => round($totalHarga, 2),
         'famountpopajak' => $ppnAmount,
         'famountpo'      => $grandTotal,
+        'fapproval'     => $isApproval,
       ]);
+
+      if ($isApproval === 1) {
+        $hdr = Tr_poh::where('fpono', $fpono)->first();
+        $dt = Tr_pod::query()
+          ->leftJoin('msprd as p', 'p.fprdcode', '=', 'tr_pod.fprdcode')
+          ->where('tr_pod.fpono', $hdr->fpono)
+          ->orderBy('tr_pod.fprdcode')
+          ->get([
+            'tr_pod.*',
+            'p.fprdname as product_name',
+            'p.fminstock as stock',
+          ]);
+
+        $productName = $dt->pluck('fprdcode')->implode(', ');
+        $approver = auth('sysuser')->user()->fname;
+
+        Mail::to('Surianto_w@yahoo.com')->send(new ApprovalEmail($hdr, $dt, $productName, $approver));
+      }
 
       // === siapkan fnou berurutan & insert detail ===
       $lastNou = (int) DB::table('tr_pod')->where('fpono', $fpono)->max('fnou');

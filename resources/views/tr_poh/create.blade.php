@@ -640,32 +640,20 @@
                                         <div class="flex items-center justify-between">
                                             <span class="text-sm text-gray-700">Total Harga</span>
                                             <span class="min-w-[140px] text-right font-medium"
-                                                x-text="fmtMoney(totalHarga)"></span>
+                                                x-text="rupiah(totalHarga)"></span>
                                         </div>
 
-                                        <div class="flex items-center justify-between" x-show="includePPN">
+                                        <div class="flex items-center justify-between">
                                             <label class="text-sm text-gray-700">PPN</label>
                                             <div class="flex items-center gap-2">
                                                 <input type="number" min="0" max="100" step="0.01"
-                                                    x-model.number="ppnRate"
-                                                    class="w-20 border rounded px-2 py-1 text-right"
-                                                    @input="calculatePPN()">
+                                                    x-model.number="ppnRate" :disabled="!includePPN"
+                                                    class="w-20 border rounded px-2 py-1 text-right transition-opacity"
+                                                    :class="includePPN ? 'bg-white opacity-100' :
+                                                        'bg-gray-100 opacity-60 cursor-not-allowed'">
                                                 <span class="text-sm">%</span>
                                                 <span class="min-w-[140px] text-right font-medium"
-                                                    x-text="fmtMoney(ppnAmount)"></span>
-                                            </div>
-                                        </div>
-
-                                        <!-- Input PPN yang dinonaktifkan jika checkbox tidak dicentang -->
-                                        <div class="flex items-center justify-between" x-show="!includePPN">
-                                            <label class="text-sm text-gray-700">PPN</label>
-                                            <div class="flex items-center gap-2">
-                                                <input type="number" min="0" max="100" step="0.01"
-                                                    x-model.number="ppnRate"
-                                                    class="w-20 border rounded px-2 py-1 text-right bg-gray-100" disabled>
-                                                <span class="text-sm">%</span>
-                                                <span class="min-w-[140px] text-right font-medium"
-                                                    x-text="fmtMoney(ppnAmount)"></span>
+                                                    x-text="rupiah(ppnAmount)"></span>
                                             </div>
                                         </div>
 
@@ -674,7 +662,7 @@
                                         <div class="flex items-center justify-between">
                                             <span class="text-sm font-semibold text-gray-800">Grand Total</span>
                                             <span class="min-w-[140px] text-right text-lg font-semibold"
-                                                x-text="fmtMoney(grandTotal)"></span>
+                                                x-text="rupiah(grandTotal)"></span>
                                         </div>
                                     </div>
 
@@ -1292,7 +1280,7 @@
             editRow: newRow(),
 
             totalHarga: 0, // Total harga before PPN
-            ppnRate: 0, // PPN rate (percentage)
+            ppnRate: 11, // PPN rate (percentage)
             ppnAmount: 0, // Amount of PPN calculated
             grandTotal: 0, // Final grand total after adding PPN
 
@@ -1312,34 +1300,35 @@
                 }
             },
 
-            // Adding missing fmtMoney function
+            rupiah(n) {
+                const v = Number(n || 0);
+                if (!isFinite(v)) return 'Rp -';
+                return 'Rp ' + v.toLocaleString('id-ID', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            },
+
             fmtMoney(value) {
-                return this.fmt(value); // reuse fmt function for currency formatting
+                return this.fmt(value); 
             },
 
             recalc(row) {
-                // Normalisasi & guard rails
                 row.fqty = Math.max(0, +row.fqty || 0);
                 row.fterima = Math.max(0, +row.fterima || 0);
                 row.fprice = Math.max(0, +row.fprice || 0);
                 row.fdisc = Math.min(100, Math.max(0, +row.fdisc || 0));
-                // Total berdasarkan QTY (bukan "Terima")
                 row.ftotal = +(row.fqty * row.fprice * (1 - row.fdisc / 100)).toFixed(2);
-
-                // Recalculate totals after item recalculation
                 this.recalcTotals();
             },
 
             recalcTotals() {
-                // Calculate total price before PPN
                 this.totalHarga = this.savedItems.reduce((sum, item) => sum + item.ftotal, 0);
-
-                // Recalculate PPN and grand total
                 this.calculatePPN();
             },
 
             calculatePPN() {
-                this.ppnAmount = this.totalHarga * (this.ppnRate / 100);
+                this.ppnAmount = this.includePPN ? (this.totalHarga * (this.ppnRate / 100)) : 0;
                 this.grandTotal = this.totalHarga + this.ppnAmount;
             },
 
@@ -1547,6 +1536,11 @@
             },
 
             init() {
+                // Toggle responsive: tiap kali checkbox berubah → hitung ulang
+                this.$watch('includePPN', () => this.recalcTotals());
+                // Kalau rate berubah → hitung ulang
+                this.$watch('ppnRate', () => this.recalcTotals());
+
                 // Listen for PR picked from modal PR
                 window.getCurrentItemKeys = () => this.getCurrentItemKeys();
                 window.addEventListener('pr-picked', this.onPrPicked.bind(this), {
@@ -1574,6 +1568,10 @@
                     }
                 }, {
                     passive: true
+                });
+                this.$watch('ppnAmount', () => {
+                    const ppnValue = (+this.totalHarga || 0) * (+this.ppnAmount || 0) / 100;
+                    this.grandTotal = (+this.totalHarga || 0) + ppnValue;
                 });
             },
 
