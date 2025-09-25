@@ -122,7 +122,7 @@
                                 <div class="relative flex-1">
                                     <select id="supplierSelect" name="fsupplier"
                                         class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
-                                         disabled onchange="updateTempo()">
+                                        disabled onchange="updateTempo()">
                                         <option value=""></option>
                                         @foreach ($supplier as $suppliers)
                                             <option value="{{ $suppliers->fsupplierid }}"
@@ -370,8 +370,8 @@
                                         <tr class="border-b">
                                             <td class="p-0"></td>
                                             <td class="p-0"></td>
-                                            <td class="p-2">
-                                                <textarea x-model="it.fdesc" rows="2" class="w-full border rounded px-2 py-1"
+                                            <td class="p-2" colspan="3">
+                                                <textarea x-model="draft.fdesc" rows="2" class="w-full border rounded px-4 py-1"
                                                     placeholder="Deskripsi (opsional)"></textarea>
                                             </td>
                                             <td class="p-0"></td>
@@ -449,7 +449,7 @@
                                                 x-model.number="editRow.fqty" @input="recalc(editRow)"
                                                 @keydown.enter.prevent="$refs.editTerima?.focus()">
                                         </td>
-                                        
+
                                         <!-- Terima -->
                                         <td class="p-2 text-right">
                                             <input type="number"
@@ -491,8 +491,8 @@
                                     <tr x-show="editingIndex !== null" class="border-b" x-cloak>
                                         <td class="p-0"></td>
                                         <td class="p-0"></td>
-                                        <td class="p-2">
-                                            <textarea x-model="editRow.fdesc" rows="2" class="w-full border rounded px-2 py-1"
+                                        <td class="p-2" colspan="3">
+                                            <textarea x-model="draft.fdesc" rows="2" class="w-full border rounded px-4 py-1"
                                                 placeholder="Deskripsi (opsional)"></textarea>
                                         </td>
                                         <td class="p-0"></td>
@@ -606,8 +606,8 @@
                                     <tr class="border-b">
                                         <td class="p-0"></td>
                                         <td class="p-0"></td>
-                                        <td class="p-2">
-                                            <textarea x-model="draft.fdesc" rows="2" class="w-full border rounded px-2 py-1"
+                                        <td class="p-2" colspan="3">
+                                            <textarea x-model="draft.fdesc" rows="2" class="w-full border rounded px-4 py-1"
                                                 placeholder="Deskripsi (opsional)"></textarea>
                                         </td>
                                         <td class="p-0"></td>
@@ -790,6 +790,60 @@
                                                 Kembali
                                             </button>
                                         </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Duplicate Items (Simple) -->
+                            <div x-show="showDupModal" x-cloak
+                                class="fixed inset-0 z-[95] flex items-center justify-center" x-transition.opacity>
+                                <!-- Backdrop -->
+                                <div class="absolute inset-0 bg-black/50" @click="closeDupModal()"></div>
+
+                                <!-- Panel -->
+                                <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden"
+                                    x-transition.scale>
+                                    <!-- Header -->
+                                    <div class="px-5 py-4 border-b flex items-center gap-2">
+                                        <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-amber-500" />
+                                        <h3 class="text-lg font-semibold text-gray-800">Item Duplikat</h3>
+                                    </div>
+
+                                    <!-- Body -->
+                                    <div class="px-5 py-4 space-y-3">
+                                        <p class="text-sm text-gray-700">
+                                            Ada <span class="font-semibold" x-text="dupCount"></span> item duplikat.
+                                            Duplikat <span class="font-semibold">tidak</span> akan ditambahkan.
+                                        </p>
+
+                                        <!-- Simple preview list -->
+                                        <div class="rounded-xl border">
+                                            <div class="px-3 py-2 border-b text-sm font-medium text-gray-800">
+                                                Duplikat PR
+                                            </div>
+                                            <ul class="max-h-40 overflow-auto divide-y">
+                                                <template x-for="d in dupSample" :key="`${d.fitemcode}::${d.fitemname}`">
+                                                    <li class="px-3 py-2 text-sm flex items-center gap-2">
+                                                        <span
+                                                            class="inline-flex w-5 h-5 items-center justify-center rounded-full bg-amber-100 text-amber-700 text-xs">!</span>
+                                                        <span class="font-medium" x-text="d.fitemcode || '-'"></span>
+                                                        <span class="text-gray-500">/</span>
+                                                        <span class="text-gray-600" x-text="d.fitemname || '-'"></span>
+                                                    </li>
+                                                </template>
+                                                <template x-if="dupCount === 0">
+                                                    <li class="px-3 py-2 text-sm text-gray-500">Tidak ada contoh.</li>
+                                                </template>
+                                            </ul>
+                                        </div>
+                                    </div>
+
+                                    <!-- Footer -->
+                                    <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
+                                        <button type="button" @click="closeDupModal()"
+                                            class="h-9 px-4 rounded-lg border text-gray-700 text-sm font-medium hover:bg-gray-50">
+                                            Batal
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -1336,7 +1390,10 @@
             },
 
             addManyFromPR(header, items) {
-                const existing = new Set(this.savedItems.map(it => `${it.fitemcode}::${it.frefdtno}`));
+                const existing = new Set(this.getCurrentItemKeys()); // gunakan helper
+
+                let added = 0,
+                    duplicates = [];
 
                 items.forEach(src => {
                     const row = {
@@ -1359,10 +1416,23 @@
                         units: Array.isArray(src.units) && src.units.length ? src.units : [src.fsatuan]
                             .filter(Boolean),
                     };
-                    if (!existing.has(`${row.fitemcode}::${row.frefdtno}`)) {
-                        this.savedItems.push(row);
-                        existing.add(`${row.fitemcode}::${row.frefdtno}`);
+                    const key = this.itemKey({
+                        fitemcode: row.fitemcode,
+                        frefdtno: row.frefdtno
+                    });
+
+                    if (existing.has(key)) {
+                        duplicates.push({
+                            key,
+                            code: row.fitemcode,
+                            ref: row.frefdtno
+                        });
+                        return;
                     }
+
+                    this.savedItems.push(row);
+                    existing.add(key);
+                    added++;
                 });
 
                 this.recalcTotals();
@@ -1468,8 +1538,17 @@
             closeDesc() {},
             applyDesc() {},
 
+            itemKey(it) {
+                return `${(it.fitemcode ?? '').toString().trim()}::${(it.frefdtno ?? '').toString().trim()}`;
+            },
+
+            getCurrentItemKeys() {
+                return this.savedItems.map(it => this.itemKey(it));
+            },
+
             init() {
                 // Listen for PR picked from modal PR
+                window.getCurrentItemKeys = () => this.getCurrentItemKeys();
                 window.addEventListener('pr-picked', this.onPrPicked.bind(this), {
                     passive: true
                 });
@@ -1549,6 +1628,38 @@
             total: 0,
             loading: false,
 
+            showDupModal: false,
+            dupCount: 0,
+            dupSample: [],
+            pendingHeader: null,
+            pendingUniques: [],
+
+            openDupModal(header, duplicates, uniques) {
+                this.dupCount = duplicates.length;
+                this.dupSample = duplicates.slice(0, 6); // simple preview (max 6 baris)
+                this.pendingHeader = header;
+                this.pendingUniques = uniques;
+                this.showDupModal = true;
+            },
+            closeDupModal() {
+                this.showDupModal = false;
+                this.dupCount = 0;
+                this.dupSample = [];
+                this.pendingHeader = null;
+                this.pendingUniques = [];
+            },
+            confirmAddUniques() {
+                // kirim hanya item unik
+                window.dispatchEvent(new CustomEvent('pr-picked', {
+                    detail: {
+                        header: this.pendingHeader,
+                        items: this.pendingUniques
+                    }
+                }));
+                this.closeDupModal();
+                this.closeModal?.();
+            },
+
             openModal() {
                 this.show = true;
                 this.goToPage(1);
@@ -1609,14 +1720,36 @@
                             'X-Requested-With': 'XMLHttpRequest'
                         }
                     });
-
                     const json = await res.json();
 
-                    this.addManyFromPR(row, json
-                        .items);
+                    const items = json.items || [];
+                    const currentKeys = new Set((window.getCurrentItemKeys?.() || []).map(String));
+
+                    const keyOf = (src) =>
+                        `${(src.fitemcode ?? '').toString().trim()}::${(src.frefdtno ?? '').toString().trim()}`;
+
+                    const duplicates = items.filter(src => currentKeys.has(keyOf(src)));
+                    const uniques = items.filter(src => !currentKeys.has(keyOf(src)));
+
+                    if (duplicates.length > 0) {
+                        this.openDupModal(row, duplicates, uniques);
+                        return; // tunggu aksi user di modal
+                    }
+
+                    // tidak ada duplikat → langsung kirim semua item yang unik (atau 'items' kalau mau semua)
+                    window.dispatchEvent(new CustomEvent('pr-picked', {
+                        detail: {
+                            header: row,
+                            items
+                        } // jika ingin hanya unik, ganti 'items' → 'uniques'
+                    }));
+                    this.closeModal();
 
                     window.dispatchEvent(new CustomEvent('pr-picked', {
-                        detail: json
+                        detail: {
+                            header: row,
+                            items
+                        }
                     }));
 
                     this.closeModal();
@@ -1625,7 +1758,6 @@
                     alert('Gagal mengambil detail PR');
                 }
             },
-
         };
     };
 </script>

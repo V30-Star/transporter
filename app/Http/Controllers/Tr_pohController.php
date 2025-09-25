@@ -59,8 +59,8 @@ class Tr_pohController extends Controller
         'tr_poh.fsupplier',
         'mssupplier.fsuppliername',
         'tr_poh.fpodate',
-        'tr_poh.famountpo', 
-        'tr_poh.fuserid', 
+        'tr_poh.famountpo',
+        'tr_poh.fuserid',
         DB::raw('COALESCE(d.item_count, 0) AS item_count'),
       ])
       ->paginate(10)
@@ -686,10 +686,12 @@ class Tr_pohController extends Controller
     $refprs  = $request->input('frefpr', []);
     $descs   = $request->input('fdesc', []);
 
+    $ppnRate = (float) $request->input('ppn_rate', $request->input('famountpajak', 0));
+    $ppnRate = max(0, min(100, $ppnRate));
+
     $totalHarga  = (float) $request->input('famountponet', 0);
-    $ppnRate     = (float) $request->input('ppn_rate', 0);
-    $ppnAmount   = (float) $request->input('famountpopajak', 0);
-    $grandTotal  = (float) $request->input('famountpo', 0);
+    $ppnAmount  = $request->boolean('fincludeppn') ? round($totalHarga * ($ppnRate / 100), 2) : 0.0;
+    $grandTotal = round($totalHarga + $ppnAmount, 2);
 
     // Get product metadata
     $uniqueCodes = array_values(array_unique(array_filter(array_map(fn($c) => trim((string)$c), $codes))));

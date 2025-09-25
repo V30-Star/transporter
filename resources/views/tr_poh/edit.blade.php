@@ -86,7 +86,6 @@
 
     <div x-data="{ open: true }">
         <div x-data="{ includePPN: false, ppnRate: 0, ppnAmount: 0, totalHarga: 100000 }" class="lg:col-span-5">
-
             <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
                 <form action="{{ route('tr_poh.update', $tr_poh->fpohdid) }}" method="POST" class="mt-6"
                     x-data="{ showNoItems: false }"
@@ -128,8 +127,7 @@
                                         disabled onchange="updateTempo()">
                                         <option value=""></option>
                                         @foreach ($supplier as $s)
-                                            <option value="{{ $s->fsuppliercode }}" 
-                                                data-tempo="{{ $s->ftempo }}"
+                                            <option value="{{ $s->fsuppliercode }}" data-tempo="{{ $s->ftempo }}"
                                                 {{ old('fsupplier', $selectedSupplierCode) == $s->fsuppliercode ? 'selected' : '' }}>
                                                 {{ $s->fsuppliercode }} - {{ $s->fsuppliername }}
                                             </option>
@@ -262,7 +260,6 @@
                         <script>
                             function ratesForm() {
                                 return {
-                                    // use old() first (when validation fails), otherwise DB values from $tr_poh, else defaults
                                     currency: @json(old('fcurrency', $tr_poh->fcurrency ?? 'IDR')),
                                     rateUsdIdr: Number(@json(old('frate', $tr_poh->frate ?? 15500))),
 
@@ -654,28 +651,29 @@
                                                 x-text="fmtMoney(totalHarga)"></span>
                                         </div>
 
-                                        <!-- Input PPN yang aktif ketika checkbox tidak dicentang -->
-                                        <div class="flex items-center justify-between" x-show="!includePPN">
-                                            <label class="text-sm text-gray-700">PPN (%)</label>
-                                            <div class="flex items-center gap-2">
-                                                <input type="number" name="famountpajak" x-model.number="ppnAmount"
-                                                    value="{{ old('famountpajak', $ppnAmount ?? 0) }}" step="0.01"
-                                                    class="w-20 border rounded px-2 py-1 text-right bg-gray-100"
-                                                    placeholder="11" />
-                                                <span class="text-sm">%</span>
-                                                <span class="min-w-[140px] text-right font-medium"
-                                                    x-text="fmtMoney((totalHarga * ppnAmount / 100))"></span>
-                                            </div>
-                                        </div>
-
-                                        <!-- Input PPN yang dinonaktifkan jika checkbox dicentang -->
+                                        <!-- PPN aktif (editable) -->
                                         <div class="flex items-center justify-between" x-show="includePPN">
                                             <label class="text-sm text-gray-700">PPN (%)</label>
                                             <div class="flex items-center gap-2">
                                                 <input type="number" min="0" max="100" step="0.01"
-                                                    value="{{ old('famountpajak', $ppnAmount ?? 0) }}"
+                                                    name="ppn_rate" x-model.number="ppnRate"
+                                                    value="{{ old('ppn_rate', $ppnRate ?? 0) }}"
+                                                    class="w-20 border rounded px-2 py-1 text-right" placeholder="0" />
+                                                <span class="text-sm">%</span>
+                                                <span class="min-w-[140px] text-right font-medium"
+                                                    x-text="fmtMoney(ppnAmount)"></span>
+                                            </div>
+                                        </div>
+
+                                        <!-- PPN nonaktif (readonly) -->
+                                        <div class="flex items-center justify-between" x-show="!includePPN">
+                                            <label class="text-sm text-gray-700">PPN (%)</label>
+                                            <div class="flex items-center gap-2">
+                                                <!-- hidden agar ppn_rate tetap terkirim -->
+                                                <input type="hidden" name="ppn_rate" :value="ppnRate">
+                                                <input type="number" min="0" max="100" step="0.01"
                                                     x-model.number="ppnRate"
-                                                    class="w-20 border rounded px-2 py-1 text-right" disabled>
+                                                    class="w-20 border rounded px-2 py-1 text-right bg-gray-100" readonly>
                                                 <span class="text-sm">%</span>
                                                 <span class="min-w-[140px] text-right font-medium"
                                                     x-text="fmtMoney(ppnAmount)"></span>
@@ -692,10 +690,11 @@
                                     </div>
 
                                     <!-- Hidden inputs for submit -->
-                                    <input type="hidden" name="famountponet" :value="totalHarga">
                                     <input type="hidden" name="" :value="ppnAmount">
                                     <input type="hidden" name="famountpo" :value="grandTotal">
-                                    <input type="hidden" name="famountpopajak" :value="ppnRate">
+                                    <input type="hidden" name="famountpajak" :value="ppnRate">
+                                    <input type="hidden" name="famountponet" :value="totalHarga">
+                                    <input type="hidden" name="famountpopajak" :value="ppnAmount">
                                 </div>
                             </div>
                             <!-- Modal backdrop -->
@@ -803,6 +802,59 @@
                                                 Kembali
                                             </button>
                                         </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Duplicate Items (Simple) -->
+                            <div x-show="showDupModal" x-cloak
+                                class="fixed inset-0 z-[95] flex items-center justify-center" x-transition.opacity>
+                                <!-- Backdrop -->
+                                <div class="absolute inset-0 bg-black/50" @click="closeDupModal()"></div>
+
+                                <!-- Panel -->
+                                <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden"
+                                    x-transition.scale>
+                                    <!-- Header -->
+                                    <div class="px-5 py-4 border-b flex items-center gap-2">
+                                        <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-amber-500" />
+                                        <h3 class="text-lg font-semibold text-gray-800">Item Duplikat</h3>
+                                    </div>
+
+                                    <!-- Body -->
+                                    <div class="px-5 py-4 space-y-3">
+                                        <p class="text-sm text-gray-700">
+                                            Ada <span class="font-semibold" x-text="dupCount"></span> item duplikat.
+                                            Duplikat <span class="font-semibold">tidak</span> akan ditambahkan.
+                                        </p>
+
+                                        <!-- Simple preview list -->
+                                        <div class="rounded-xl border">
+                                            <div class="px-3 py-2 border-b text-sm font-medium text-gray-800">
+                                                Duplikat PR
+                                            </div>
+                                            <ul class="max-h-40 overflow-auto divide-y">
+                                                <template x-for="d in dupSample" :key="`${d.fitemcode}::${d.fitemname}`">
+                                                    <li class="px-3 py-2 text-sm flex items-center gap-2">
+                                                        <span
+                                                            class="inline-flex w-5 h-5 items-center justify-center rounded-full bg-amber-100 text-amber-700 text-xs">!</span>
+                                                        <span class="font-medium" x-text="d.fitemcode || '-'"></span>
+                                                        <span class="text-gray-500">/</span>
+                                                        <span class="text-gray-600" x-text="d.fitemname || '-'"></span>
+                                                    </li>
+                                                </template>
+                                                <template x-if="dupCount === 0">
+                                                    <li class="px-3 py-2 text-sm text-gray-500">Tidak ada contoh.</li>
+                                                </template>
+                                            </ul>
+                                        </div>
+                                    </div>
+
+                                    <!-- Footer -->
+                                    <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
+                                        <button type="button" @click="closeDupModal()"
+                                            class="h-9 px-4 rounded-lg border text-gray-700 text-sm font-medium hover:bg-gray-50">
+                                            Batal
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -1250,10 +1302,26 @@
             editingIndex: null,
             editRow: newRow(),
 
-            totalHarga: 0, // Total harga before PPN
-            ppnRate: 0, // PPN rate (percentage)
-            ppnAmount: @json($ppnAmount ?? 0),
-            grandTotal: @json($famountpo ?? 0), // Mengambil nilai famountpo dari DB
+            totalHarga: 0,
+            ppnRate: 0,
+            grandTotal: @json($famountpo ?? 0),
+
+            initialGrandTotal: @json($famountpo ?? 0),
+            initialPpnAmount: @json($famountpopajak ?? 0),
+
+            get ppnAmount() {
+                if (!this.includePPN) return 0;
+                const total = +this.totalHarga || 0;
+                const rate = +this.ppnRate || 0;
+                return Math.round(total * rate / 100);
+            },
+            get grandTotal() {
+                if (!this.includePPN) {
+                    return this.initialGrandTotal; // pakai nilai lama dari DB
+                }
+                const total = +this.totalHarga || 0;
+                return total + this.ppnAmount; // hitung baru kalau PPN aktif
+            },
 
             fmtMoney(value) {
                 return this.fmt(value); // format uang
@@ -1274,30 +1342,24 @@
                     }); // Jika angka desimal, tampilkan dalam format mata uang
                 }
             },
+
             recalc(row) {
-                // Normalisasi & guard rails
                 row.fqty = Math.max(0, +row.fqty || 0);
                 row.fterima = Math.max(0, +row.fterima || 0);
                 row.fprice = Math.max(0, +row.fprice || 0);
                 row.fdisc = Math.min(100, Math.max(0, +row.fdisc || 0));
                 row.ftotal = +(row.fqty * row.fprice * (1 - row.fdisc / 100)).toFixed(2);
-
                 this.recalcTotals();
             },
 
             recalcTotals() {
-                // jumlahkan dari famount (ftotal) per item
                 this.totalHarga = this.savedItems.reduce((sum, it) => sum + (+it.ftotal || 0), 0);
-                // grand total = total + PPN (dihitung sebagai persentase)
-                const ppnValue = (+this.totalHarga || 0) * (+this.ppnAmount || 0) / 100;
-                this.grandTotal = (+this.totalHarga || 0) + ppnValue;
+                // Grand total akan otomatis terhitung via getter
             },
 
             calculatePPN() {
                 const t = +this.totalHarga || 0;
-                const ppnPercent = +this.ppnAmount || 0;
                 const ppnValue = t * ppnPercent / 100;
-                this.ppnRate = ppnPercent; // display-only
                 this.grandTotal = t + ppnValue;
             },
 
@@ -1564,6 +1626,38 @@
             total: 0,
             loading: false,
 
+            showDupModal: false,
+            dupCount: 0,
+            dupSample: [],
+            pendingHeader: null,
+            pendingUniques: [],
+
+            openDupModal(header, duplicates, uniques) {
+                this.dupCount = duplicates.length;
+                this.dupSample = duplicates.slice(0, 6); // simple preview (max 6 baris)
+                this.pendingHeader = header;
+                this.pendingUniques = uniques;
+                this.showDupModal = true;
+            },
+            closeDupModal() {
+                this.showDupModal = false;
+                this.dupCount = 0;
+                this.dupSample = [];
+                this.pendingHeader = null;
+                this.pendingUniques = [];
+            },
+            confirmAddUniques() {
+                // kirim hanya item unik
+                window.dispatchEvent(new CustomEvent('pr-picked', {
+                    detail: {
+                        header: this.pendingHeader,
+                        items: this.pendingUniques
+                    }
+                }));
+                this.closeDupModal();
+                this.closeModal?.();
+            },
+
             openModal() {
                 this.show = true;
                 this.goToPage(1);
@@ -1628,11 +1722,34 @@
 
                     const json = await res.json();
 
-                    this.addManyFromPR(row, json
-                        .items);
+                    const items = json.items || [];
+                    const currentKeys = new Set((window.getCurrentItemKeys?.() || []).map(String));
+
+                    const keyOf = (src) =>
+                        `${(src.fitemcode ?? '').toString().trim()}::${(src.frefdtno ?? '').toString().trim()}`;
+
+                    const duplicates = items.filter(src => currentKeys.has(keyOf(src)));
+                    const uniques = items.filter(src => !currentKeys.has(keyOf(src)));
+
+                    if (duplicates.length > 0) {
+                        this.openDupModal(row, duplicates, uniques);
+                        return; // tunggu aksi user di modal
+                    }
+
+                    // tidak ada duplikat → langsung kirim semua item yang unik (atau 'items' kalau mau semua)
+                    window.dispatchEvent(new CustomEvent('pr-picked', {
+                        detail: {
+                            header: row,
+                            items
+                        } // jika ingin hanya unik, ganti 'items' → 'uniques'
+                    }));
+                    this.closeModal();
 
                     window.dispatchEvent(new CustomEvent('pr-picked', {
-                        detail: json
+                        detail: {
+                            header: row,
+                            items
+                        }
                     }));
 
                     this.closeModal();
@@ -1641,7 +1758,6 @@
                     alert('Gagal mengambil detail PR');
                 }
             },
-
         };
     };
 </script>
