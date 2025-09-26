@@ -13,7 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use App\Mail\ApprovalEmail;
+use App\Mail\ApprovalEmailPo;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Carbon\Carbon; // sekalian biar aman untuk tanggal
@@ -254,9 +254,8 @@ class Tr_pohController extends Controller
     return $prefix . str_pad((string)$next, 4, '0', STR_PAD_LEFT);
   }
 
-  public function print(string $fprno)
+  public function print(string $fpono)
   {
-    // subquery aman mengikuti $table dari model Supplier
     $supplierSub = Supplier::select('fsuppliercode', 'fsuppliername');
 
     $hdr = Tr_poh::query()
@@ -264,30 +263,37 @@ class Tr_pohController extends Controller
         $join->on('s.fsuppliercode', '=', 'tr_poh.fsupplier');
       })
       ->leftJoin('mscabang as c', 'c.fcabangkode', '=', 'tr_poh.fbranchcode')
-      ->where('tr_poh.fprno', $fprno)
+      ->where('tr_poh.fpono', $fpono)
       ->first([
         'tr_poh.*',
         's.fsuppliername as supplier_name',
         'c.fcabangname as cabang_name',
       ]);
 
-    $dt = Tr_prd::query()
-      ->leftJoin('msprd as p', 'p.fprdcode', '=', 'tr_prd.fprdcode')
-      ->where('tr_prd.fprnoid', $hdr->fprno)
-      ->orderBy('tr_prd.fprdcode')
+    if (!$hdr) {
+      return redirect()->back()->with('error', 'PO tidak ditemukan.');
+    }
+
+    $dt = Tr_pod::query()
+      ->leftJoin('msprd as p', 'p.fprdcode', '=', 'tr_pod.fprdcode')
+      ->where('tr_pod.fpono', $fpono)
+      ->orderBy('tr_pod.fprdcode')
       ->get([
-        'tr_prd.*',
+        'tr_pod.*',
         'p.fprdname as product_name',
         'p.fminstock as stock',
+        'tr_pod.fqtyremain',
       ]);
 
-    $fmt = fn($d) => $d ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y') : '-';
+    $fmt = fn($d) => $d
+      ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y')
+      : '-';
 
     return view('tr_poh.print', [
-      'hdr' => $hdr,
-      'dt'  => $dt,
-      'fmt' => $fmt,
-      'company_name' => config('app.company_name', 'PT.DEMO VERSION'),
+      'hdr'          => $hdr,
+      'dt'           => $dt,
+      'fmt'          => $fmt,
+      'company_name' => config('app.company_name', 'PT. DEMO VERSION'),
       'company_city' => config('app.company_city', 'Tangerang'),
     ]);
   }
@@ -538,7 +544,7 @@ class Tr_pohController extends Controller
         $productName = $dt->pluck('fprdcode')->implode(', ');
         $approver = auth('sysuser')->user()->fname;
 
-        Mail::to('Surianto_w@yahoo.com')->send(new ApprovalEmail($hdr, $dt, $productName, $approver));
+        Mail::to('vierybiliam8@gmail.com')->send(new ApprovalEmailPo($hdr, $dt, $productName, $approver, 'Permintaan Order (PO)'));
       }
 
       // === siapkan fnou berurutan & insert detail ===

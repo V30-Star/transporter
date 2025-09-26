@@ -374,7 +374,7 @@ class Tr_prhController extends Controller
         $productName = $dt->pluck('fprdcode')->implode(', ');
         $approver = auth('sysuser')->user()->fname;
 
-        Mail::to('vierybiliam8@gmail.com')->send(new ApprovalEmail($hdr, $dt, $productName, $approver));
+        Mail::to('vierybiliam8@gmail.com')->send(new ApprovalEmail($hdr, $dt, $productName, $approver, 'Permintaan Pembelian (PR)'));
       }
     });
 

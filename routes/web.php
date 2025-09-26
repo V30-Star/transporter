@@ -161,7 +161,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/tr_poh/{fpohdid}/edit', [Tr_pohController::class, 'edit'])->name('tr_poh.edit');
         Route::patch('/tr_poh/{fpohdid}', [Tr_pohController::class, 'update'])->name('tr_poh.update');
         Route::delete('/tr_poh/{fpohdid}', [Tr_pohController::class, 'destroy'])->name('tr_poh.destroy');
-        Route::get('/tr_poh/{fpohdid}/print', [Tr_pohController::class, 'print'])
+        Route::get('/tr_poh/{fpono}/print', [Tr_pohController::class, 'print'])
             ->name('tr_poh.print');
 
         Route::get('/tr-poh/pickable', [Tr_pohController::class, 'pickable'])

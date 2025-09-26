@@ -1279,10 +1279,26 @@
             editingIndex: null,
             editRow: newRow(),
 
-            totalHarga: 0, // Total harga before PPN
-            ppnRate: 11, // PPN rate (percentage)
-            ppnAmount: 0, // Amount of PPN calculated
-            grandTotal: 0, // Final grand total after adding PPN
+            totalHarga: 0,
+            ppnRate: 11,
+            grandTotal: @json($famountpo ?? 0),
+
+            initialGrandTotal: @json($famountpo ?? 0),
+            initialPpnAmount: @json($famountpopajak ?? 0),
+
+            get ppnAmount() {
+                if (!this.includePPN) return 0;
+                const total = +this.totalHarga || 0;
+                const rate = +this.ppnRate || 0;
+                return Math.round(total * rate / 100);
+            },
+            get grandTotal() {
+                if (!this.includePPN) {
+                    return this.initialGrandTotal; // pakai nilai lama dari DB
+                }
+                const total = +this.totalHarga || 0;
+                return total + this.ppnAmount; // hitung baru kalau PPN aktif
+            },
 
             fmt(n) {
                 if (n === null || n === undefined || n === '') return '-';
@@ -1310,7 +1326,7 @@
             },
 
             fmtMoney(value) {
-                return this.fmt(value); 
+                return this.fmt(value);
             },
 
             recalc(row) {

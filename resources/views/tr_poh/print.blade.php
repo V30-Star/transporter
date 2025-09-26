@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Permintaan Pembelian - {{ $hdr->fprno }}</title>
+    <title>Permintaan Order - {{ $hdr->fpono ?? '-' }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         :root {
@@ -16,7 +16,6 @@
             box-sizing: border-box
         }
 
-        /* >>> Preview (layar) punya kanvas putih dengan bayangan */
         body {
             margin: 0;
             background: #ececec;
@@ -110,10 +109,6 @@
             text-align: center
         }
 
-        .sign .note {
-            vertical-align: top
-        }
-
         .sign .small {
             font-size: 12px;
             color: var(--muted)
@@ -125,21 +120,7 @@
             column-gap: 18px;
             margin-top: 14px;
             min-height: 120px;
-            /* bikin area footer agak tinggi */
             align-items: start;
-        }
-
-
-        .footer-left {
-            flex: 0 0 60%
-        }
-
-        .footer-right {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-            padding-bottom: 10px;
         }
 
         .note-top {
@@ -152,11 +133,6 @@
             flex-direction: column;
             justify-content: space-between;
             height: 100%;
-        }
-
-        .note-title {
-            font-weight: 700;
-            margin-bottom: 6px
         }
 
         .hal {
@@ -204,6 +180,71 @@
                 margin: 0;
             }
         }
+
+        .footer-wrap {
+            display: flex;
+            justify-content: space-between;
+            /* Align left and right sections */
+            margin-top: 20px;
+        }
+
+        .footer-left {
+            display: flex;
+            flex-direction: column;
+            width: 50%;
+            /* Left section will take 50% width */
+        }
+
+        .footer-right {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            /* Align everything to the right */
+            width: 100%;
+            /* Right section will take 50% width */
+            margin-left: 30px;
+            /* Add space between left and right */
+        }
+
+        .total-section {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            width: 100%;
+        }
+
+        .label {
+            font-weight: 550;
+            width: 150px;
+        }
+
+        .value {
+            font-weight: 550;
+            text-align: right;
+        }
+
+        .sign td {
+            padding: 8px 10px;
+            border: 1px solid var(--bd);
+        }
+
+        .sign .head {
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .note-box {
+            margin-top: 10px;
+            font-size: 11px;
+        }
+
+        /* Style for the horizontal line after GRAND TOTAL */
+        .footer-line {
+            border: 0;
+            border-top: 1px solid #000;
+            /* A thick black line */
+            margin: 5px 0;
+        }
     </style>
 </head>
 
@@ -213,7 +254,7 @@
         <button onclick="window.close()">Close</button>
     </div>
 
-    <div class="sheet"><!-- <<< mulai kanvas -->
+    <div class="sheet">
 
         <!-- Header -->
         <div class="row">
@@ -222,8 +263,8 @@
                 <div class="muted">{{ $company_city }}</div>
             </div>
             <div class="right">
-                <div class="title">PERMINTAAN PEMBELIAN</div>
-                <div>No. <span class="mono">{{ $hdr->fprno }}</span></div>
+                <div class="title">ORDER PEMBELIAN</div>
+                <div>No. <span class="mono">{{ $hdr->fpono ?? '-' }}</span></div>
             </div>
         </div>
 
@@ -233,13 +274,12 @@
         <table style="width:100%;border-collapse:collapse;margin-bottom:8px">
             <tr>
                 <td style="border:0;padding:0 0 4px 0">
-                    <strong>Supplier</strong> :
-                    {{ $hdr->fsupplier ?? '-' }}{{ $hdr->supplier_name ? ' — ' . $hdr->supplier_name : '' }}
+                    <strong>Kepada</strong> :
+                    {{ $hdr->fsupplier ?? '-' }}{{ !empty($hdr->supplier_name) ? ' — ' . $hdr->supplier_name : '' }}
                 </td>
                 <td style="border:0;padding:0;text-align:right">
-                    <div><strong>Tanggal</strong> : {{ $fmt($hdr->fprdate) }}</div>
-                    <div><strong>Tgl.dibutuhkan</strong> : {{ $fmt($hdr->fneeddate) }}</div>
-                    <div><strong>Tgl.Paling Lambat</strong> : {{ $fmt($hdr->fduedate) }}</div>
+                    <div><strong>Tanggal</strong> : {{ $fmt($hdr->fpodate) }}</div>
+                    <div><strong>Tempo</strong> : {{ $hdr->ftempohr }} Hari</div>
                 </td>
             </tr>
         </table>
@@ -250,9 +290,10 @@
                 <tr>
                     <th style="width:36px">No.</th>
                     <th>Nama Barang</th>
-                    <th style="width:100px">Q t y.</th>
-                    <th style="width:70px">Stok</th>
-                    <th style="width:240px;text-align:left">Keterangan</th>
+                    <th style="width:100px">Qty.</th>
+                    <th style="width:70px">Harga</th>
+                    <th style="width:70px">Disc%</th>
+                    <th style="width:240px;text-align:left">Total Harga</th>
                 </tr>
             </thead>
             <tbody>
@@ -266,19 +307,49 @@
                                 <div class="muted">({{ $r->fdesc }})</div>
                             @endif
                         </td>
-                        <td class="center">{{ number_format($r->fqty, 0, ',', '.') }} {{ $r->fsatuan }}</td>
-                        <td class="center">{{ (int) $r->stock }}</td>
-                        <td>{{ $r->fketdt ?? '' }}</td>
+                        <td class="center">{{ number_format((float) ($r->fqty ?? 0), 0, ',', '.') }}
+                            {{ $r->fsatuan ?? '' }}</td>
+                        <td class="center">{{ (int) ($r->fprice ?? ($r->fprice ?? 0)) }}</td>
+                        <td>{{ $r->fdisc ?? '' }}</td>
+                        <td>{{ $r->famount ?? '' }}</td>
                     </tr>
                 @endforeach
             </tbody>
         </table>
 
+        <br>
+        <br>
         <hr class="hr-strong">
 
         <div class="footer-wrap">
-            <!-- Kolom kiri: tanda tangan -->
-            <div>
+            <!-- Kolom kiri: Note + Hal -->
+            <div class="footer-left">
+                <div class="note-box">
+                    <div class="note-top">Terbilang :</div>
+                    <div>-</div>
+                </div>
+            </div>
+
+            <!-- Kolom kanan: Total Harga, PPN, Grand Total, Signature -->
+            <div class="footer-right">
+                <div class="total-section">
+                    <div class="label">TOTAL HARGA :</div>
+                    <div class="value">Rp {{ number_format((float) ($hdr->famountponet ?? 0), 2, ',', '.') }}</div>
+                </div>
+
+                <div class="total-section">
+                    <div class="label">PPN :</div>
+                    <div class="value">{{ number_format($hdr->famountpopajak ?? 0) }}%</div>
+                </div>
+ 
+                <div class="total-section grand-total">
+                    <div class="label">GRAND TOTAL :</div>
+                    <div class="value">Rp {{ number_format((float) ($hdr->famountpo ?? 0), 2, ',', '.') }}</div>
+                </div>
+                <div class="total-section grand-total"></div>
+                <div class="total-section grand-total"></div>
+
+                <!-- Horizontal Line after Grand Total -->
                 <table class="sign">
                     <tr>
                         <td class="head">Dibuat,</td>
@@ -292,19 +363,17 @@
                     </tr>
                 </table>
             </div>
-
-            <!-- Kolom kanan: Note + Hal -->
-            <div class="note-box">
-                <div>
-                    <div class="note-top">Note :</div>
-                    <div>{{ $hdr->fket ?? '' }}</div>
-                </div>
-                <div class="hal">Hal : 1 / 1</div>
-            </div>
         </div>
-
-
-    </div><!-- <<< akhir kanvas -->
+        <style>
+            .grand-total {
+                border-top: 1px solid #000000;
+                padding-top: 8px;
+                margin-top: 8px;
+                font-weight: bold;
+                /* Optional: untuk menekankan grand total */
+            }
+        </style>
+    </div>
 </body>
 
 </html>
