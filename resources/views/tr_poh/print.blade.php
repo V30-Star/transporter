@@ -326,7 +326,7 @@
             <div class="footer-left">
                 <div class="note-box">
                     <div class="note-top">Terbilang :</div>
-                    <div>-</div>
+                    <div>#{{ ucwords(trim(terbilang($hdr->famountpo ?? 0))) }} Rupiah#</div>
                 </div>
             </div>
 
@@ -339,9 +339,9 @@
 
                 <div class="total-section">
                     <div class="label">PPN :</div>
-                    <div class="value">{{ number_format($hdr->famountpopajak ?? 0) }}%</div>
+                    <div class="value">{{ number_format($hdr->famountpopajak ?? 0) }}</div>
                 </div>
- 
+
                 <div class="total-section grand-total">
                     <div class="label">GRAND TOTAL :</div>
                     <div class="value">Rp {{ number_format((float) ($hdr->famountpo ?? 0), 2, ',', '.') }}</div>
