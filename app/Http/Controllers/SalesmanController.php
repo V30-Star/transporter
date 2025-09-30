@@ -111,6 +111,40 @@ class SalesmanController extends Controller
         ));
     }
 
+    public function create()
+    {
+        return view('salesman.create');
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate(
+            [
+                'fsalesmancode' => 'required|string|unique:mssalesman,fsalesmancode',
+                'fsalesmanname' => 'required|string',
+            ],
+            [
+                'fsalesmancode.required' => 'Kode Salesman wajib diisi.',
+                'fsalesmancode.unique' => 'Kode Salesman sudah ada.',
+                'fsalesmanname.required' => 'Nama Salesman wajib diisi.',
+            ]
+        );
+
+        // Add default values for the required fields
+        $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null; // Use the authenticated user's name or 'system' as default
+        $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? 'system';  // Fallback jika tidak ada
+        $validated['fcreatedat'] = now(); // Use the current time
+
+        $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
+
+        // Create the new Salesman
+        Salesman::create($validated);
+
+        return redirect()
+            ->route('salesman.create')
+            ->with('success', 'Salesman berhasil ditambahkan.');
+    }
+
     public function edit($fsalesmanid)
     {
         // Ambil data berdasarkan PK fsalesmanid
