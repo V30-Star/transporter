@@ -10,7 +10,7 @@ class Groupproduct extends Model
     use HasFactory;
 
     // Define the table associated with the model
-    protected $table = 'msgroupproduct';
+    protected $table = 'ms_groupprd';
 
     // Define the primary key if it's not the default 'id'
     protected $primaryKey = 'fgroupid';

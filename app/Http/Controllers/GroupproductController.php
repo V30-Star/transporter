@@ -84,7 +84,7 @@ class GroupproductController extends Controller
     {
         $validated = $request->validate(
             [
-                'fgroupcode' => 'required|string|unique:msgroupproduct,fgroupcode',
+                'fgroupcode' => 'required|string|unique:ms_groupprd,fgroupcode',
                 'fgroupname' => 'required|string',
             ],
             [
@@ -122,7 +122,7 @@ class GroupproductController extends Controller
         // Validate the incoming data
         $validated = $request->validate(
             [
-                'fgroupcode' => "required|string|unique:msgroupproduct,fgroupcode,{$fgroupid},fgroupid",
+                'fgroupcode' => "required|string|unique:ms_groupprd,fgroupcode,{$fgroupid},fgroupid",
                 'fgroupname' => 'required|string',
             ],
             [
@@ -189,7 +189,7 @@ class GroupproductController extends Controller
     public function ajaxStore(Request $request)
     {
         $data = $request->validate([
-            'fgroupcode' => ['required', 'string', 'max:50', 'unique:msgroupproduct,fgroupcode'],
+            'fgroupcode' => ['required', 'string', 'max:50', 'unique:ms_groupprd,fgroupcode'],
             'fgroupname' => ['required', 'string', 'max:100'],
             'fnonactive' => ['nullable', 'in:0,1'],
         ]);
