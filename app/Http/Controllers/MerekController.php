@@ -129,7 +129,7 @@ class MerekController extends Controller
         Merek::create($validated);
 
         return redirect()
-            ->route('merek.index')
+            ->route('merek.create')
             ->with('success', 'Merek berhasil ditambahkan.');
     }
 

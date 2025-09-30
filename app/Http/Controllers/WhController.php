@@ -124,7 +124,7 @@ class WhController extends Controller
         Wh::create($validated);
 
         return redirect()
-            ->route('gudang.index')
+            ->route('gudang.create')
             ->with('success', 'Wh berhasil ditambahkan.');
     }
 

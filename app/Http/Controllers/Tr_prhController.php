@@ -384,7 +384,7 @@ class Tr_prhController extends Controller
       }
     });
 
-    return redirect()->route('tr_prh.index')
+    return redirect()->route('tr_prh.create')
       ->with('success', 'Permintaan pembelian berhasil ditambahkan.');
   }
 

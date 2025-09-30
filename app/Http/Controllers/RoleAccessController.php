@@ -55,7 +55,7 @@ class RoleAccessController extends Controller
             }
         }
 
-        return redirect()->route('roleaccess.index', ['fuid' => $request->fuid])
+        return redirect()->route('roleaccess.create', ['fuid' => $request->fuid])
             ->with('success', 'Set Menu berhasil disimpan.');
     }
 

@@ -166,7 +166,7 @@ class AccountController extends Controller
 
         Account::create($validated);
 
-        return redirect()->route('account.index')->with('success', 'Account berhasil ditambahkan.');
+        return redirect()->route('account.create')->with('success', 'Account berhasil ditambahkan.');
     }
 
     public function edit($faccid)

@@ -92,7 +92,7 @@ class GroupcustomerController extends Controller
         Groupcustomer::create($validated);
 
         // Mengarahkan kembali dengan pesan sukses
-        return redirect()->route('groupcustomer.index')
+        return redirect()->route('groupcustomer.create')
             ->with('success', 'Group Customer berhasil ditambahkan.');
     }
 

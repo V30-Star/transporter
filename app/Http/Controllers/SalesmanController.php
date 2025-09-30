@@ -106,7 +106,7 @@ class SalesmanController extends Controller
         Salesman::create($validated);
 
         return redirect()
-            ->route('salesman.index')
+            ->route('salesman.create')
             ->with('success', 'Salesman berhasil ditambahkan.');
     }
 

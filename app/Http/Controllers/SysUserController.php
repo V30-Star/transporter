@@ -127,7 +127,7 @@ class SysUserController extends Controller
         try {
             Sysuser::create($validated);
             return redirect()
-                ->route('sysuser.index')
+                ->route('sysuser.create')
                 ->with('success', 'User berhasil ditambahkan.');
         } catch (\Exception $e) {
             return back()->withInput()->with('error', 'Gagal menyimpan user: ' . $e->getMessage());

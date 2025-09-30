@@ -130,7 +130,7 @@ class SupplierController extends Controller
         Supplier::create($validated);
 
         return redirect()
-            ->route('supplier.index')
+            ->route('supplier.create')
             ->with('success', 'Supplier berhasil ditambahkan.');
     }
 

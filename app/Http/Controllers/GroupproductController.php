@@ -105,7 +105,7 @@ class GroupproductController extends Controller
         Groupproduct::create($validated);
 
         return redirect()
-            ->route('groupproduct.index')
+            ->route('groupproduct.create')
             ->with('success', 'Groupproduct berhasil ditambahkan.');
     }
 

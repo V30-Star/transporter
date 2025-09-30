@@ -123,7 +123,7 @@ class SatuanController extends Controller
         Satuan::create($validated);
 
         return redirect()
-            ->route('satuan.index')
+            ->route('satuan.create')
             ->with('success', 'Satuan berhasil ditambahkan.');
     }
 

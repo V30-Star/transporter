@@ -109,7 +109,7 @@ class SubaccountController extends Controller
         Subaccount::create($validated);
 
         return redirect()
-            ->route('subaccount.index')
+            ->route('subaccount.create')
             ->with('success', 'Subaccount berhasil ditambahkan.');
     }
 

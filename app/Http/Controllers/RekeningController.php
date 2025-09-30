@@ -110,7 +110,7 @@ class RekeningController extends Controller
         Rekening::create($validated);
 
         return redirect()
-            ->route('rekening.index')
+            ->route('rekening.create')
             ->with('success', 'Rekening berhasil ditambahkan.');
     }
 

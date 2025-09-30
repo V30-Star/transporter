@@ -108,7 +108,7 @@ class WilayahController extends Controller
         Wilayah::create($validated);
 
         return redirect()
-            ->route('wilayah.index')
+            ->route('wilayah.create')
             ->with('success', 'Wilayah berhasil ditambahkan.');
     }
 

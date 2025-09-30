@@ -560,7 +560,7 @@ class Tr_pohController extends Controller
     });
 
     return redirect()
-      ->route('tr_poh.index')
+      ->route('tr_poh.create')
       ->with('success', "PO {$fpono} tersimpan, detail masuk ke TR_POD.");
   }
 
