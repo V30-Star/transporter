@@ -233,6 +233,8 @@ class Tr_prhController extends Controller
       'fsatuan.*'   => ['nullable', 'string', 'max:20'],
       'fqty'        => '',
       'fqty.*'      => '',
+      'fqtypo'        => '',
+      'fqtypo.*'      => '',
       'fdesc'       => ['array'],
       'fdesc.*'     => ['nullable', 'string'],
       'fketdt'      => ['array'],
@@ -261,6 +263,7 @@ class Tr_prhController extends Controller
     $codes   = $request->input('fitemcode', []);
     $sats    = $request->input('fsatuan', []);
     $qtys  = $request->input('fqty', []);
+    $qtypo   = $request->input('fqtypo', []);
     $descs   = $request->input('fdesc', []);
     $ketdts  = $request->input('fketdt', []);
 
@@ -296,7 +299,9 @@ class Tr_prhController extends Controller
     for ($i = 0; $i < $rowCount; $i++) {
       $code  = trim($codes[$i] ?? '');
       $sat   = trim($sats[$i] ?? '');
-      $qty   = $qtys[$i]        ?? null;
+      $qty   = is_numeric($qtys[$i] ?? null) ? (int)$qtys[$i] : null;
+      $qtypoi = is_numeric($qtypo[$i] ?? null) ? (int)$qtypo[$i] : 0;
+      if ($qty !== null && $qtypoi > $qty) $qtypoi = $qty;
       $desc  = $descs[$i]       ?? null;
       $ketdt = $ketdts[$i]      ?? null;
 
@@ -305,6 +310,7 @@ class Tr_prhController extends Controller
           'fprnoid'    => $fprno,
           'fprdcode'   => $code,
           'fqty'       => (int)$qty,
+          'fqtypo'   => (int)$qtypoi,
           'fqtyremain' => (int)$qty,
           'fprice'     => 0,
           'fketdt'     => $ketdt,
@@ -453,8 +459,10 @@ class Tr_prhController extends Controller
       'fitemcode.*' => ['nullable', 'string', 'max:50'],
       'fsatuan'    => ['array'],
       'fsatuan.*'  => ['nullable', 'string', 'max:20'],
-      'fqty'       => ['array'],
-      'fqty.*'     => ['nullable', 'integer', 'min:1'],
+      'fqty'       => '',
+      'fqty.*'     => '',
+      'fqtypo'        => '',
+      'fqtypo.*'      => '',
       'fdesc'      => ['array'],
       'fdesc.*'    => ['nullable', 'string'],
       'fketdt'     => ['array'],
@@ -483,6 +491,7 @@ class Tr_prhController extends Controller
     $codes  = $request->input('fitemcode', []);
     $sats   = $request->input('fsatuan', []);
     $qtys   = $request->input('fqty', []);
+    $qtypo   = $request->input('fqtypo', []);
     $descs  = $request->input('fdesc', []);
     $ketdts = $request->input('fketdt', []);
 
@@ -507,12 +516,13 @@ class Tr_prhController extends Controller
     // Susun detail rows yang valid
     $detailRows = [];
     $now = now();
-    $rowCount = max(count($codes), count($sats), count($qtys), count($descs), count($ketdts));
+    $rowCount = max(count($codes), count($sats), count($qtys), count($qtypo), count($descs), count($ketdts));
 
     for ($i = 0; $i < $rowCount; $i++) {
       $code = trim((string)($codes[$i]  ?? ''));
       $sat  = trim((string)($sats[$i]   ?? ''));
       $qty  = $qtys[$i]  ?? null;
+      $qtypos   = $qtypo[$i]        ?? null;
       $desc = $descs[$i] ?? null;
       $ket  = $ketdts[$i] ?? null;
 
@@ -521,6 +531,7 @@ class Tr_prhController extends Controller
           'fprnoid'    => $fprno,
           'fprdcode'   => $code,
           'fqty'       => (int)$qty,
+          'fqtypo'       => (int)$qtypos,
           'fqtyremain' => (int)$qty,
           'fprice'     => 0,
           'fketdt'     => $ket,
@@ -561,6 +572,7 @@ class Tr_prhController extends Controller
           ->where('fprdcode', $row['fprdcode'])
           ->update([
             'fqty'       => $row['fqty'],
+            'fqtypo'       => $row['fqtypo'],
             'fqtyremain' => $row['fqtyremain'],
             'fsatuan'    => $row['fsatuan'],
             'fdesc'      => $row['fdesc'],

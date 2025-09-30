@@ -277,14 +277,6 @@
                             }
                         </script>
 
-                        <div class="lg:col-span-5">
-                            <input id="fincludeppn" type="checkbox" name="fincludeppn" value="1"
-                                x-model="includePPN" class="h-4 w-4 text-blue-600 border-gray-300 rounded">
-                            <label for="fincludeppn" class="ml-2 text-sm font-medium text-gray-700">
-                                Harga Termasuk <span class="font-bold">PPN</span>
-                            </label>
-                        </div>
-
                         <div class="lg:col-span-12">
                             <label class="block text-sm font-medium">Keterangan</label>
                             <textarea name="fket" rows="3"
@@ -296,8 +288,17 @@
                         </div>
                     </div>
 
-                    {{-- DETAIL ITEM (tabel input) --}}
                     <div x-data="itemsTable()" x-init="init()" class="mt-6 space-y-2">
+
+                        <div class="flex items-center">
+                            <input id="fapplyppn" type="checkbox" name="fapplyppn" value="1" x-model="fapplyppn"
+                                class="h-4 w-4 text-blue-600 border-gray-300 rounded">
+                            <label for="fapplyppn" class="ml-2 text-sm font-medium text-gray-700">
+                                Harga Termasuk <span class="font-bold">PPN</span>
+                            </label>
+                        </div>
+
+                        {{-- DETAIL ITEM (tabel input) --}}
                         <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
 
                         <div class="overflow-auto border rounded">
@@ -643,18 +644,35 @@
                                                 x-text="rupiah(totalHarga)"></span>
                                         </div>
 
-                                        <div class="flex items-center justify-between">
-                                            <label class="text-sm text-gray-700">PPN</label>
+                                        <div class="flex items-center justify-between gap-6">
+                                            <!-- Checkbox Include PPN -->
+                                            <div class="flex items-center">
+                                                <input id="fincludeppn" type="checkbox" name="fincludeppn"
+                                                    value="1" x-model="includePPN"
+                                                    class="h-4 w-4 text-blue-600 border-gray-300 rounded">
+                                                <label for="fincludeppn" class="ml-2 text-sm font-medium text-gray-700">
+                                                    <span class="font-bold">PPN</span>
+                                                </label>
+                                            </div>
+
+                                            <!-- Input Rate + Nominal -->
                                             <div class="flex items-center gap-2">
+                                                <label class="text-sm text-gray-700">PPN</label>
                                                 <input type="number" min="0" max="100" step="0.01"
-                                                    x-model.number="ppnRate" :disabled="!includePPN"
+                                                    x-model.number="ppnRate" :disabled="!(includePPN || fapplyppn)"
                                                     class="w-20 border rounded px-2 py-1 text-right transition-opacity"
-                                                    :class="includePPN ? 'bg-white opacity-100' :
-                                                        'bg-gray-100 opacity-60 cursor-not-allowed'">
+                                                    :class="(includePPN || fapplyppn) ? 'bg-white opacity-100' :
+                                                    'bg-gray-100 opacity-60 cursor-not-allowed'">
                                                 <span class="text-sm">%</span>
                                                 <span class="min-w-[140px] text-right font-medium"
                                                     x-text="rupiah(ppnAmount)"></span>
                                             </div>
+                                        </div>
+
+                                        <div class="text-sm text-gray-600">
+                                            <div>PPN termasuk: <b x-text="rupiah(ppnIncluded)"></b></div>
+                                            <div>PPN tambahan: <b x-text="rupiah(ppnAdded)"></b></div>
+                                            <div>Total PPN: <b x-text="rupiah(ppnAmount)"></b></div>
                                         </div>
 
                                         <div class="border-t my-1"></div>
@@ -1281,23 +1299,50 @@
 
             totalHarga: 0,
             ppnRate: 11,
-            grandTotal: @json($famountpo ?? 0),
 
             initialGrandTotal: @json($famountpo ?? 0),
             initialPpnAmount: @json($famountpopajak ?? 0),
 
-            get ppnAmount() {
-                if (!this.includePPN) return 0;
+            includePPN: false, // tambah PPN normal di luar total
+            fapplyppn: false, // harga sudah termasuk PPN (back-calc)
+            // PPN yang SUDAH termasuk (back-calc dari GROSS)
+            get ppnIncluded() {
                 const total = +this.totalHarga || 0;
                 const rate = +this.ppnRate || 0;
-                return Math.round(total * rate / 100);
+                if (!this.fapplyppn) return 0;
+                // back-calc from GROSS
+                return Math.round((100 / (100 + rate)) * total * (rate / 100));
             },
-            get grandTotal() {
-                if (!this.includePPN) {
-                    return this.initialGrandTotal; // pakai nilai lama dari DB
-                }
+
+            // NET dari GROSS jika fapplyppn aktif
+            get netFromGross() {
                 const total = +this.totalHarga || 0;
-                return total + this.ppnAmount; // hitung baru kalau PPN aktif
+                return total - this.ppnIncluded;
+            },
+
+            // PPN tambahan (di luar total). Jika sudah include PPN, base = NET (tidak pajak atas pajak)
+            get ppnAdded() {
+                const rate = +this.ppnRate || 0;
+                if (!this.includePPN) return 0;
+
+                const total = +this.totalHarga || 0;
+
+                // When both are ON, compute extra PPN on GROSS (not NET)
+                const base = this.fapplyppn ? total : total; // <— effectively: always use total (GROSS)
+
+                return Math.round(base * (rate / 100));
+            },
+
+            get ppnAmount() {
+                return (this.ppnIncluded ?? 0) + (this.ppnAdded ?? 0);
+            },
+
+            get grandTotal() {
+                const total = +this.totalHarga || 0;
+                if (this.includePPN && this.fapplyppn) return total + this.ppnAdded; // GROSS + extra PPN on GROSS
+                if (this.includePPN) return total + this.ppnAdded; // NET + PPN
+                if (this.fapplyppn) return total; // GROSS stays GROSS
+                return total;
             },
 
             fmt(n) {
@@ -1340,12 +1385,6 @@
 
             recalcTotals() {
                 this.totalHarga = this.savedItems.reduce((sum, item) => sum + item.ftotal, 0);
-                this.calculatePPN();
-            },
-
-            calculatePPN() {
-                this.ppnAmount = this.includePPN ? (this.totalHarga * (this.ppnRate / 100)) : 0;
-                this.grandTotal = this.totalHarga + this.ppnAmount;
             },
 
             productMeta(code) {
@@ -1552,9 +1591,8 @@
             },
 
             init() {
-                // Toggle responsive: tiap kali checkbox berubah → hitung ulang
                 this.$watch('includePPN', () => this.recalcTotals());
-                // Kalau rate berubah → hitung ulang
+                this.$watch('fapplyppn', () => this.recalcTotals());
                 this.$watch('ppnRate', () => this.recalcTotals());
 
                 // Listen for PR picked from modal PR
@@ -1584,10 +1622,6 @@
                     }
                 }, {
                     passive: true
-                });
-                this.$watch('ppnAmount', () => {
-                    const ppnValue = (+this.totalHarga || 0) * (+this.ppnAmount || 0) / 100;
-                    this.grandTotal = (+this.totalHarga || 0) + ppnValue;
                 });
             },
 

@@ -213,6 +213,7 @@
                                     <th class="p-2 text-left">Nama Produk</th>
                                     <th class="p-2 text-left w-40">Satuan</th>
                                     <th class="p-2 text-right w-28">Qty</th>
+                                    <th class="p-2 text-right w-28">Qty PO</th>
                                     <th class="p-2 text-left w-56">Ket Item</th>
                                     <th class="p-2 text-center w-28">Aksi</th>
                                 </tr>
@@ -236,6 +237,7 @@
                                         </td>
                                         <td class="p-2" x-text="it.fsatuan"></td>
                                         <td class="p-2 text-right" x-text="it.fqty"></td>
+                                        <td class="p-2 text-right" x-text="it.fqtypo"></td>
                                         <td class="p-2" x-text="it.fketdt || '-'"></td>
                                         <td class="p-2 text-center">
                                             <div class="flex items-center justify-center gap-2 flex-wrap">
@@ -252,6 +254,8 @@
                                             <input type="hidden" name="fitemname[]" x-model="it.fitemname">
                                             <input type="hidden" name="fsatuan[]" x-model="it.fsatuan">
                                             <input type="hidden" name="fqty[]" x-model="it.fqty">
+                                            <input type="hidden" name="fqtypo[]" x-model="it.fqtypo">
+                                            <!-- bukan fqty[] -->
                                             <input type="hidden" name="fdesc[]" x-model="it.fdesc">
                                             <input type="hidden" name="fketdt[]" x-model="it.fketdt">
                                         </td>
@@ -265,6 +269,7 @@
                                             <textarea x-model="it.fdesc" rows="2" class="w-full border rounded px-2 py-1"
                                                 placeholder="Deskripsi (opsional)"></textarea>
                                         </td>
+                                        <td class="p-0"></td>
                                         <td class="p-0"></td>
                                         <td class="p-0"></td>
                                         <td class="p-0"></td>
@@ -325,6 +330,11 @@
                                             @keydown.enter.prevent="$refs.editKet?.focus()">
                                     </td>
 
+                                    <td class="p-2 text-right">
+                                        <input type="number" class="w-full border rounded px-2 py-1 text-gray-600"
+                                            min="0" step="1" x-model.number="editRow.fqtypo">
+                                    </td>
+
                                     <td class="p-2">
                                         <input type="text" class="border rounded px-2 py-1 w-full"
                                             x-model="editRow.fketdt" x-ref="editKet"
@@ -349,6 +359,7 @@
                                         <textarea x-model="editRow.fdesc" rows="2" class="w-full border rounded px-2 py-1"
                                             placeholder="Deskripsi (opsional)"></textarea>
                                     </td>
+                                    <td class="p-0"></td>
                                     <td class="p-0"></td>
                                     <td class="p-0"></td>
                                     <td class="p-0"></td>
@@ -408,6 +419,11 @@
                                             @keydown.enter.prevent="$refs.draftKet?.focus()">
                                     </td>
 
+                                    <td class="p-2 text-right">
+                                        <input type="number" class="w-full border rounded px-2 py-1 text-gray-600"
+                                            min="0" step="1" x-model.number="draft.fqtypo">
+                                    </td>
+
                                     <td class="p-2">
                                         <input type="text" class="border rounded px-2 py-1 w-full"
                                             x-model="draft.fketdt" x-ref="draftKet"
@@ -430,6 +446,7 @@
                                         <textarea x-model="draft.fdesc" rows="2" class="w-full border rounded px-2 py-1"
                                             placeholder="Deskripsi (opsional)"></textarea>
                                     </td>
+                                    <td class="p-0"></td>
                                     <td class="p-0"></td>
                                     <td class="p-0"></td>
                                     <td class="p-0"></td>
@@ -681,6 +698,7 @@
                 fitemname: @json($d->fprdname),
                 fsatuan: @json($d->fsatuan),
                 fqty: {{ (int) $d->fqty }},
+                fqtypo: @json($d->fqtypo ?? ''),
                 fdesc: @json($d->fdesc ?? ''),
                 fketdt: @json($d->fketdt ?? ''),
             },
@@ -895,6 +913,7 @@
                 units: [],
                 fsatuan: '',
                 fqty: '',
+                fqtypo: '',
                 fdesc: '',
                 fketdt: '',
                 maxqty: 0
@@ -907,6 +926,7 @@
                 fsatuan: '',
                 fqty: 1,
                 fdesc: '',
+                fqtypo: '',
                 fketdt: '',
                 maxqty: 0
             },
@@ -918,6 +938,7 @@
                     units: [],
                     fsatuan: '',
                     fqty: '',
+                    fqtypo: '',
                     fdesc: '',
                     fketdt: '',
                     maxqty: 0
@@ -968,6 +989,11 @@
                     if (!(Number(r.fqty) > 0)) return this.$refs.draftQty?.focus();
                     return;
                 }
+
+                r.fqtypo = Number.isFinite(+r.fqtypo) ? +r.fqtypo : 0;
+
+                if (r.fqtypo > r.fqty) r.fqtypo = r.fqty;
+
                 const dupe = this.savedItems.find(it =>
                     it.fitemcode === r.fitemcode && it.fsatuan === r.fsatuan &&
                     (it.fdesc || '') === (r.fdesc || '') && (it.fketdt || '') === (r.fketdt || '')
@@ -982,6 +1008,7 @@
                     fitemcode: r.fitemcode,
                     fitemname: r.fitemname,
                     fsatuan: r.fsatuan,
+                    fqtypo: r.fqtypo,
                     fqty: +r.fqty,
                     fdesc: r.fdesc || '',
                     fketdt: r.fketdt || ''
@@ -1003,6 +1030,7 @@
                         fitemname: r.fitemname || '',
                         fsatuan: r.fsatuan || '',
                         fqty: Number(r.fqty) || 0,
+                        fqtypo: Number(r.fqtypo) || 0, // <-- ADD THIS
                         fdesc: r.fdesc || '',
                         fketdt: r.fketdt || '',
                         units: [],
@@ -1142,6 +1170,7 @@
                     fsatuan: it.fsatuan,
                     fqty: it.fqty,
                     fdesc: it.fdesc,
+                    fqtypo: it.fqtypo,
                     fketdt: it.fketdt,
                     maxqty: 0
                 };
@@ -1164,6 +1193,7 @@
                 it.fsatuan = r.fsatuan;
                 it.fqty = +r.fqty;
                 it.fdesc = r.fdesc || '';
+                it.fqtypo = +r.fqtypo; // <-- ensure number
                 it.fketdt = r.fketdt || '';
                 this.cancelEdit();
                 this.syncDescList(); // <= tambahkan ini
