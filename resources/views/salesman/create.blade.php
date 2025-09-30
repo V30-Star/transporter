@@ -85,7 +85,7 @@
                     <div>
                         <label class="block text-sm font-medium">Nama Salesman</label>
                         <input type="text" name="fsalesmanname" value="{{ old('fsalesmanname') }}"
-                            class="w-full border rounded px-3 py-2 @error('fsalesmanname') border-red-500 @enderror">
+                            class="w-full border rounded px-3 py-2 uppercase @error('fsalesmanname') border-red-500 @enderror">
                         @error('fsalesmanname')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
