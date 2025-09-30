@@ -23,6 +23,13 @@
                 <input id="searchInput" type="text" name="search" value="{{ $search }}"
                     class="border rounded px-2 py-1 w-1/4" placeholder="Cari...">
                 <button type="submit" class="hidden">Cari</button>
+
+                {{-- NEW: Status Filter --}}
+                <select id="statusFilter" name="status" class="border rounded px-2 py-1">
+                    <option value="">All</option>
+                    <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active</option>
+                    <option value="nonactive" {{ request('status') === 'nonactive' ? 'selected' : '' }}>No Active</option>
+                </select>
             </div>
         </form>
 
@@ -144,7 +151,8 @@
         (function() {
             const form = document.getElementById('searchForm');
             const input = document.getElementById('searchInput');
-            const filter = document.getElementById('filterBy'); // jika ada
+            const filter = document.getElementById('filterBy');
+            const statusFilter = document.getElementById('statusFilter');
             const tbody = document.getElementById('tableBody');
             const prevBtn = document.getElementById('prevBtn');
             const nextBtn = document.getElementById('nextBtn');
@@ -158,6 +166,21 @@
                 by: {!! isset($sortBy) ? json_encode($sortBy) : '"fsalesmanid"' !!},
                 dir: {!! isset($sortDir) ? json_encode($sortDir) : '"desc"' !!}
             };
+
+            // ✅ SET status awal dari server (selalu 'active' saat refresh)
+            if (statusFilter) {
+                statusFilter.value = {!! json_encode($status ?? 'active') !!};
+            }
+
+            function isDefaultState(curPage, curSortBy, curSortDir, curStatus, curSearch) {
+                return (
+                    (curSearch ?? '') === '' &&
+                    (curStatus ?? 'active') === 'active' &&
+                    Number(curPage ?? 1) === 1 &&
+                    (curSortBy ?? 'fsalesmanid') === 'fsalesmanid' &&
+                    (curSortDir ?? 'desc') === 'desc'
+                );
+            }
 
             // modal hapus (tetap)
             window.openDeleteModal = function(url) {
@@ -219,6 +242,7 @@
 
                 if (json.perms) perms = json.perms;
 
+                // table body render
                 if (json.data.length === 0) {
                     const colCount = document.querySelector('thead tr').children.length;
                     tbody.innerHTML =
@@ -227,6 +251,7 @@
                     tbody.innerHTML = json.data.map(rowHtml).join('');
                 }
 
+                // pagination
                 prevBtn.dataset.page = json.links.prev || '';
                 nextBtn.dataset.page = json.links.next || '';
                 prevBtn.disabled = !json.links.prev;
@@ -235,18 +260,46 @@
                 nextBtn.classList.toggle('opacity-50', !json.links.next);
                 pageInfo.textContent = `Page ${json.links.current_page} of ${json.links.last_page}`;
 
+                // sort state from server
                 if (json.sort && json.sort.by) {
                     sortState.by = json.sort.by;
                     sortState.dir = json.sort.dir || 'desc';
                 }
                 applySortIcons();
 
-                // opsional: sinkron URL address bar
-                const qs = new URLSearchParams(new FormData(form));
-                qs.set('page', json.links.current_page);
-                qs.set('sort_by', sortState.by);
-                qs.set('sort_dir', sortState.dir);
-                history.replaceState({}, '', `${form.action}?${qs.toString()}`);
+                // ✅ UPDATE dropdown status dari response server
+                if (json.filters && typeof json.filters.status !== 'undefined' && statusFilter) {
+                    statusFilter.value = json.filters.status || 'active';
+                }
+
+                // ✅ UPDATE URL BAR: Jika state default, gunakan URL bersih
+                const currentPage = json.links.current_page;
+                const currentStatus = json.filters?.status || 'active';
+                const currentSearch = input?.value?.trim() || '';
+
+                // Cek apakah dalam state default
+                const isDefault = isDefaultState(currentPage, sortState.by, sortState.dir, currentStatus,
+                currentSearch);
+
+                if (isDefault) {
+                    // State default: PAKSA URL bersih tanpa query string
+                    const cleanUrl = window.location.origin + window.location.pathname;
+                    history.replaceState({}, '', cleanUrl);
+                } else {
+                    // Bukan state default: tambahkan HANYA parameter yang non-default
+                    const qs = new URLSearchParams();
+
+                    if (currentSearch !== '') qs.set('search', currentSearch);
+                    if (currentStatus !== 'active') qs.set('status', currentStatus);
+                    if (currentPage > 1) qs.set('page', currentPage);
+                    if (sortState.by !== 'fsalesmanid') qs.set('sort_by', sortState.by);
+                    if (sortState.dir !== 'desc') qs.set('sort_dir', sortState.dir);
+
+                    const queryString = qs.toString();
+                    const newUrl = queryString ? `${window.location.pathname}?${queryString}` : window.location
+                    .pathname;
+                    history.replaceState({}, '', newUrl);
+                }
             }
 
             function fetchTable(url) {
@@ -269,8 +322,10 @@
             function buildUrl(baseUrl = null) {
                 const base = baseUrl ? new URL(baseUrl, window.location.origin) :
                     new URL(form.getAttribute('action'), window.location.origin);
+
                 base.searchParams.set('search', input?.value || '');
-                if (filter) base.searchParams.set('filter_by', filter.value || 'fsalesmancode');
+                if (filter) base.searchParams.set('filter_by', filter.value || 'all');
+                if (statusFilter) base.searchParams.set('status', statusFilter.value || 'active');
                 base.searchParams.set('sort_by', sortState.by);
                 base.searchParams.set('sort_dir', sortState.dir);
                 if (!baseUrl) base.searchParams.delete('page');
@@ -281,6 +336,11 @@
             input.addEventListener('input', () => {
                 clearTimeout(timer);
                 timer = setTimeout(() => fetchTable(buildUrl()), 300);
+            });
+
+            // ✅ Saat status filter berubah, fetch ulang
+            statusFilter?.addEventListener('change', () => {
+                fetchTable(buildUrl());
             });
 
             // cegah Enter submit
@@ -314,6 +374,21 @@
 
             // init ikon
             applySortIcons();
+
+            // ✅ BERSIHKAN URL saat page load jika dalam state default
+            (function cleanUrlOnLoad() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const currentSearch = input?.value?.trim() || '';
+                const currentStatus = statusFilter?.value || 'active';
+                const currentPage = urlParams.get('page') || '1';
+                const currentSortBy = urlParams.get('sort_by') || 'fsalesmanid';
+                const currentSortDir = urlParams.get('sort_dir') || 'desc';
+
+                if (isDefaultState(currentPage, currentSortBy, currentSortDir, currentStatus, currentSearch)) {
+                    const cleanUrl = window.location.origin + window.location.pathname;
+                    history.replaceState({}, '', cleanUrl);
+                }
+            })();
         })();
     </script>
 @endpush
