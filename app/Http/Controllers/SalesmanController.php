@@ -20,13 +20,11 @@ class SalesmanController extends Controller
         $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fsalesmanid';
         $sortDir = $request->sort_dir === 'asc' ? 'asc' : 'desc';
 
-        $status = $request->has('status') ? (string) $request->status : 'active';
-        if (!in_array($status, ['', 'active', 'nonactive'], true)) {
+        if ($request->ajax()) {
+            $status = $request->has('status') ? (string) $request->status : '';
+        } else {
+            // Non-AJAX (refresh/first load) tetap default 'active'
             $status = 'active';
-        }
-
-        if (!$request->has('status')) {
-            $request->query->set('status', $status);
         }
 
         $salesmen = Salesman::when($search !== '', function ($q) use ($search, $filterBy) {
@@ -44,14 +42,13 @@ class SalesmanController extends Controller
                 }
             });
         })
-            // filter status
+            // ✅ PERBAIKAN: filter status ('' = semua, 'active' = 1, 'nonactive' = 0)
             ->when($status === 'active', function ($q) {
                 $q->where('fnonactive', 1); // 1 = Active
             })
             ->when($status === 'nonactive', function ($q) {
-                $q->where('fnonactive', 0); // 0 = No Active
+                $q->where('fnonactive', 0); // 0 = Non Active
             })
-            // Active duluan
             ->orderByDesc('fnonactive')  // 1 (Active) before 0
             ->orderBy($sortBy, $sortDir)
             ->orderBy('fsalesmanid', 'desc')
@@ -107,7 +104,8 @@ class SalesmanController extends Controller
             'canEdit',
             'canDelete',
             'sortBy',
-            'sortDir'
+            'sortDir',
+            'status'  // ✅ Tambahkan ini untuk JS tahu status awal
         ));
     }
 

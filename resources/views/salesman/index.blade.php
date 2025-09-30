@@ -269,7 +269,7 @@
 
                 // ✅ UPDATE dropdown status dari response server
                 if (json.filters && typeof json.filters.status !== 'undefined' && statusFilter) {
-                    statusFilter.value = json.filters.status || 'active';
+                    statusFilter.value = json.filters.status; // boleh kosong ("")
                 }
 
                 // ✅ UPDATE URL BAR: Jika state default, gunakan URL bersih
@@ -279,7 +279,7 @@
 
                 // Cek apakah dalam state default
                 const isDefault = isDefaultState(currentPage, sortState.by, sortState.dir, currentStatus,
-                currentSearch);
+                    currentSearch);
 
                 if (isDefault) {
                     // State default: PAKSA URL bersih tanpa query string
@@ -297,7 +297,7 @@
 
                     const queryString = qs.toString();
                     const newUrl = queryString ? `${window.location.pathname}?${queryString}` : window.location
-                    .pathname;
+                        .pathname;
                     history.replaceState({}, '', newUrl);
                 }
             }
@@ -325,7 +325,12 @@
 
                 base.searchParams.set('search', input?.value || '');
                 if (filter) base.searchParams.set('filter_by', filter.value || 'all');
-                if (statusFilter) base.searchParams.set('status', statusFilter.value || 'active');
+
+                // ✅ kalau All (""), jangan set status
+                if (statusFilter && statusFilter.value !== '') {
+                    base.searchParams.set('status', statusFilter.value);
+                }
+
                 base.searchParams.set('sort_by', sortState.by);
                 base.searchParams.set('sort_dir', sortState.dir);
                 if (!baseUrl) base.searchParams.delete('page');
