@@ -669,12 +669,6 @@
                                             </div>
                                         </div>
 
-                                        <div class="text-sm text-gray-600">
-                                            <div>PPN termasuk: <b x-text="rupiah(ppnIncluded)"></b></div>
-                                            <div>PPN tambahan: <b x-text="rupiah(ppnAdded)"></b></div>
-                                            <div>Total PPN: <b x-text="rupiah(ppnAmount)"></b></div>
-                                        </div>
-
                                         <div class="border-t my-1"></div>
 
                                         <div class="flex items-center justify-between">
@@ -1334,12 +1328,17 @@
             },
 
             get ppnAmount() {
+                // Jika dua checkbox aktif → tampilkan PPN tambahan saja (hindari double count)
+                if (this.includePPN && this.fapplyppn) {
+                    return this.ppnAdded;
+                }
+                // Kasus lain: gabungan PPN yang sudah termasuk + PPN tambahan
                 return (this.ppnIncluded ?? 0) + (this.ppnAdded ?? 0);
             },
 
             get grandTotal() {
                 const total = +this.totalHarga || 0;
-                if (this.includePPN && this.fapplyppn) return total + this.ppnAdded; // GROSS + extra PPN on GROSS
+                if (this.includePPN) return total + this.ppnAdded; // GROSS + extra PPN on GROSS
                 if (this.includePPN) return total + this.ppnAdded; // NET + PPN
                 if (this.fapplyppn) return total; // GROSS stays GROSS
                 return total;
