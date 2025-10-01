@@ -77,7 +77,8 @@
                     <div>
                         <label class="block text-sm font-medium">Kode Salesman</label>
                         <input type="text" name="fsalesmancode" value="{{ old('fsalesmancode') }}"
-                            class="w-full border rounded px-3 py-2 @error('fsalesmancode') border-red-500 @enderror">
+                            class="w-full border rounded px-3 py-2 uppercase @error('fsalesmancode') border-red-500 @enderror"
+                            autofocus>
                         @error('fsalesmancode')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
