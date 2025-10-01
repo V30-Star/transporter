@@ -9,89 +9,24 @@ class SatuanController extends Controller
 {
     public function index(Request $request)
     {
-        $search   = trim((string) $request->search);
-
-        // filter kolom (biar tetap kompatibel: fsatuancode | fsatuanname | fsatuanid | all)
-        $allowedFilters = ['fsatuancode', 'fsatuanname', 'fsatuanid', 'all'];
-        $filterBy = in_array($request->filter_by, $allowedFilters, true)
-            ? $request->filter_by
-            : 'all';
-
-        // sorting: hanya izinkan kolom berikut; default pakai fsatuanid
+        // Sorting default (opsional, DataTables bisa override di frontend)
         $allowedSorts = ['fsatuancode', 'fsatuanname', 'fsatuanid'];
         $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fsatuanid';
         $sortDir = $request->sort_dir === 'asc' ? 'asc' : 'desc';
 
-        $satuans = Satuan::when($search !== '', function ($q) use ($search, $filterBy) {
-            $q->where(function ($qq) use ($search, $filterBy) {
-                if ($filterBy === 'fsatuancode') {
-                    $qq->where('fsatuancode', 'ILIKE', "%{$search}%");
-                } elseif ($filterBy === 'fsatuanid') {
-                    $qq->whereRaw('CAST(fsatuanid AS TEXT) ILIKE ?', ["%{$search}%"]);
-                } elseif ($filterBy === 'fsatuanname') {
-                    $qq->where('fsatuanname', 'ILIKE', "%{$search}%");
-                } else { // 'all'
-                    $qq->where('fsatuancode', 'ILIKE', "%{$search}%")
-                        ->orWhereRaw('CAST(fsatuanid AS TEXT) ILIKE ?', ["%{$search}%"])
-                        ->orWhere('fsatuanname', 'ILIKE', "%{$search}%");
-                }
-            });
-        })
-            ->orderBy($sortBy, $sortDir)
-            ->orderBy('fsatuanid', 'desc')
-            ->paginate(10)
-            ->withQueryString();
+        // Ambil semua data (client-side DataTables akan handle pagination & search)
+        $satuans = Satuan::orderBy($sortBy, $sortDir)->get(['fsatuanid', 'fsatuancode', 'fsatuanname']);
 
+        // Permission
         $permsStr  = (string) session('user_restricted_permissions', '');
         $permsArr  = explode(',', $permsStr);
         $canCreate = in_array('createSatuan', $permsArr, true);
         $canEdit   = in_array('updateSatuan', $permsArr, true);
         $canDelete = in_array('deleteSatuan', $permsArr, true);
 
-        // AJAX response
-        if ($request->ajax()) {
-            $rows = collect($satuans->items())->map(function ($s) {
-                return [
-                    'fsatuanid'   => $s->fsatuanid,
-                    'fsatuancode' => $s->fsatuancode,
-                    'fsatuanname' => $s->fsatuanname,
-                    'edit_url'    => route('satuan.edit', $s->fsatuanid),
-                    'destroy_url' => route('satuan.destroy', $s->fsatuanid),
-                ];
-            });
-
-            return response()->json([
-                'data'  => $rows,
-                'perms' => [
-                    'can_create' => $canCreate,
-                    'can_edit'   => $canEdit,
-                    'can_delete' => $canDelete,
-                ],
-                'links' => [
-                    'prev'         => $satuans->previousPageUrl(),
-                    'next'         => $satuans->nextPageUrl(),
-                    'current_page' => $satuans->currentPage(),
-                    'last_page'    => $satuans->lastPage(),
-                ],
-                'sort' => [
-                    'by'  => $sortBy,
-                    'dir' => $sortDir,
-                ],
-            ]);
-        }
-
-        // render awal
-        return view('satuan.index', compact(
-            'satuans',
-            'filterBy',
-            'search',
-            'canCreate',
-            'canEdit',
-            'canDelete',
-            'sortBy',
-            'sortDir'
-        ));
+        return view('satuan.index', compact('satuans', 'canCreate', 'canEdit', 'canDelete'));
     }
+
 
     public function create()
     {

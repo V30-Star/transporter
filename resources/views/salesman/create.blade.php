@@ -77,8 +77,7 @@
                     <div>
                         <label class="block text-sm font-medium">Kode Salesman</label>
                         <input type="text" name="fsalesmancode" value="{{ old('fsalesmancode') }}"
-                            class="w-full border rounded px-3 py-2 uppercase @error('fsalesmancode') border-red-500 @enderror"
-                            autofocus>
+                            class="w-full border rounded px-3 py-2 uppercase @error('fsalesmancode') border-red-500 @enderror">
                         @error('fsalesmancode')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
@@ -86,7 +85,8 @@
                     <div>
                         <label class="block text-sm font-medium">Nama Salesman</label>
                         <input type="text" name="fsalesmanname" value="{{ old('fsalesmanname') }}"
-                            class="w-full border rounded px-3 py-2 uppercase @error('fsalesmanname') border-red-500 @enderror">
+                            class="w-full border rounded px-3 py-2 uppercase @error('fsalesmanname') border-red-500 @enderror"
+                            autofocus>
                         @error('fsalesmanname')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
