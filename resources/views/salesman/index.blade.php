@@ -56,6 +56,12 @@
                             <span id="icon-fsalesmanname" class="text-lg font-semibold text-green-600">⇅</span>
                         </div>
                     </th>
+                    <th class="border px-2 py-1 cursor-pointer sortCol" data-sort-by="fsalesmanname">
+                        <div class="flex items-center gap-1">
+                            <span>Status</span>
+                            <span id="icon-fsalesmanname" class="text-lg font-semibold text-green-600">⇅</span>
+                        </div>
+                    </th>
                     @if ($showActionsColumn)
                         <th class="border px-2 py-1">Aksi</th>
                     @endif
@@ -66,6 +72,13 @@
                     <tr class="hover:bg-gray-50">
                         <td class="border px-2 py-1">{{ $item->fsalesmancode }}</td>
                         <td class="border px-2 py-1">{{ $item->fsalesmanname }}</td>
+                        <td class="border px-2 py-1">
+                            @if ($item->fnonactive == 1)
+                                Active
+                            @else
+                                Non Active
+                            @endif
+                        </td>
                         @if ($showActionsColumn)
                             <td class="border px-2 py-1 space-x-2">
                                 @if ($canEdit)
@@ -215,12 +228,15 @@
             function rowHtml(item) {
                 const actions = aksiButtons(item);
                 return `
-            <tr class="hover:bg-gray-50">
-                <td class="border px-2 py-1">${item.fsalesmancode ?? ''}</td>
-                <td class="border px-2 py-1">${item.fsalesmanname ?? ''}</td>
-                ${(perms.can_edit || perms.can_delete) ? `<td class="border px-2 py-1">${actions}</td>` : ''}
-            </tr>
-        `;
+                <tr class="hover:bg-gray-50">
+                    <td class="border px-2 py-1">${item.fsalesmancode ?? ''}</td>
+                    <td class="border px-2 py-1">${item.fsalesmanname ?? ''}</td>
+                    <td class="border px-2 py-1">${item.status_label ?? ''}</td>
+                    ${(perms.can_edit || perms.can_delete) 
+                        ? `<td class="border px-2 py-1">${actions}</td>` 
+                        : ''}
+                </tr>
+            `;
             }
 
             function applySortIcons() {

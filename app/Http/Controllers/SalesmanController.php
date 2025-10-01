@@ -68,6 +68,7 @@ class SalesmanController extends Controller
                     'fsalesmancode' => $s->fsalesmancode,
                     'fsalesmanname' => $s->fsalesmanname,
                     'fnonactive'    => $s->fnonactive, // 1=Active, 0=No Active
+                    'status_label'  => $s->fnonactive == 1 ? 'Active' : 'Non Active', // ✅ label siap pakai
                     'edit_url'      => route('salesman.edit', $s->fsalesmanid),
                     'destroy_url'   => route('salesman.destroy', $s->fsalesmanid),
                 ];
