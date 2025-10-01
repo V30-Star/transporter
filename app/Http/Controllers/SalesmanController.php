@@ -12,19 +12,20 @@ class SalesmanController extends Controller
         $search = trim((string) $request->search);
 
         $allowedFilters = ['fsalesmancode', 'fsalesmanname', 'fsalesmanid', 'all'];
-        $filterBy = in_array($request->filter_by, $allowedFilters, true)
-            ? $request->filter_by
-            : 'all';
+        $filterBy = in_array($request->filter_by, $allowedFilters, true) ? $request->filter_by : 'all';
 
         $allowedSorts = ['fsalesmancode', 'fsalesmanname', 'fsalesmanid'];
         $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fsalesmanid';
         $sortDir = $request->sort_dir === 'asc' ? 'asc' : 'desc';
 
-        if ($request->ajax()) {
-            $status = $request->has('status') ? (string) $request->status : '';
-        } else {
-            // Non-AJAX (refresh/first load) tetap default 'active'
-            $status = 'active';
+        // ✅ 1) Read from query if present, else from session, else default 'active'
+        $status = $request->filled('status')
+            ? (string) $request->status
+            : (string) $request->session()->get('salesman.status', 'active');
+
+        // ✅ 2) If AJAX brings a new status, store it to session
+        if ($request->ajax() && $request->filled('status')) {
+            $request->session()->put('salesman.status', (string) $request->status);
         }
 
         $salesmen = Salesman::when($search !== '', function ($q) use ($search, $filterBy) {
@@ -35,21 +36,17 @@ class SalesmanController extends Controller
                     $qq->whereRaw('CAST(fsalesmanid AS TEXT) ILIKE ?', ["%{$search}%"]);
                 } elseif ($filterBy === 'fsalesmanname') {
                     $qq->where('fsalesmanname', 'ILIKE', "%{$search}%");
-                } else { // 'all'
+                } else {
                     $qq->where('fsalesmancode', 'ILIKE', "%{$search}%")
                         ->orWhereRaw('CAST(fsalesmanid AS TEXT) ILIKE ?', ["%{$search}%"])
                         ->orWhere('fsalesmanname', 'ILIKE', "%{$search}%");
                 }
             });
         })
-            // ✅ PERBAIKAN: filter status ('' = semua, 'active' = 1, 'nonactive' = 0)
-            ->when($status === 'active', function ($q) {
-                $q->where('fnonactive', 1); // 1 = Active
-            })
-            ->when($status === 'nonactive', function ($q) {
-                $q->where('fnonactive', 0); // 0 = Non Active
-            })
-            ->orderByDesc('fnonactive')  // 1 (Active) before 0
+            // 0 = Active, 1 = Non Active
+            ->when($status === 'active',    fn($q) => $q->where('fnonactive', 0))
+            ->when($status === 'nonactive', fn($q) => $q->where('fnonactive', 1))
+            ->orderBy('fnonactive', 'asc')
             ->orderBy($sortBy, $sortDir)
             ->orderBy('fsalesmanid', 'desc')
             ->paginate(10)
@@ -67,8 +64,8 @@ class SalesmanController extends Controller
                     'fsalesmanid'   => $s->fsalesmanid,
                     'fsalesmancode' => $s->fsalesmancode,
                     'fsalesmanname' => $s->fsalesmanname,
-                    'fnonactive'    => $s->fnonactive, // 1=Active, 0=No Active
-                    'status_label'  => $s->fnonactive == 1 ? 'Active' : 'Non Active', // ✅ label siap pakai
+                    'fnonactive'    => $s->fnonactive, // 0/1
+                    'status_label'  => $s->fnonactive == 1 ? 'Non Active' : 'Active',
                     'edit_url'      => route('salesman.edit', $s->fsalesmanid),
                     'destroy_url'   => route('salesman.destroy', $s->fsalesmanid),
                 ];
@@ -92,7 +89,7 @@ class SalesmanController extends Controller
                     'dir' => $sortDir,
                 ],
                 'filters' => [
-                    'status' => $status ?? '',
+                    'status' => $status, // ✅ echo back effective status
                 ],
             ]);
         }
@@ -106,7 +103,7 @@ class SalesmanController extends Controller
             'canDelete',
             'sortBy',
             'sortDir',
-            'status'  // ✅ Tambahkan ini untuk JS tahu status awal
+            'status'
         ));
     }
 
@@ -130,6 +127,8 @@ class SalesmanController extends Controller
         );
 
         // Add default values for the required fields
+        $validated['fsalesmancode'] = strtoupper($validated['fsalesmancode']);
+        $validated['fsalesmanname'] = strtoupper($validated['fsalesmanname']);
         $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null; // Use the authenticated user's name or 'system' as default
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? 'system';  // Fallback jika tidak ada
         $validated['fcreatedat'] = now(); // Use the current time
@@ -170,6 +169,8 @@ class SalesmanController extends Controller
             ]
         );
 
+        $validated['fsalesmancode'] = strtoupper($validated['fsalesmancode']);
+        $validated['fsalesmanname'] = strtoupper($validated['fsalesmanname']);
         $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null; // Use the authenticated user's name or 'system' as default
         $validated['fupdatedat'] = now(); // Use the current time
@@ -183,13 +184,13 @@ class SalesmanController extends Controller
             ->with('success', 'Salesman berhasil di-update.');
     }
 
-    public function destroy($fsalesmanid)
+    public function destroy(Request $request, $fsalesmanid)
     {
         $salesman = Salesman::findOrFail($fsalesmanid);
         $salesman->delete();
 
         return redirect()
-            ->route('salesman.index')
-            ->with('success', 'Salesman berhasil dihapus.');
+            ->route('salesman.index', $request->only(['status', 'search', 'filter_by', 'sort_by', 'sort_dir', 'page']))
+            ->with('success', 'Salesman dihapus.');
     }
 }

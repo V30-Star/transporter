@@ -12,7 +12,7 @@
                 <div>
                     <label class="block text-sm font-medium">Kode Salesman</label>
                     <input type="text" name="fsalesmancode" value="{{ old('fsalesmancode', $salesman->fsalesmancode) }}"
-                        class="w-full border rounded px-3 py-2 @error('fsalesmancode') border-red-500 @enderror">
+                        class="w-full border rounded px-3 py-2 uppercase @error('fsalesmancode') border-red-500 @enderror">
                     @error('fsalesmancode')
                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                     @enderror
@@ -21,7 +21,7 @@
                 <div>
                     <label class="block text-sm font-medium">Nama Salesman</label>
                     <input type="text" name="fsalesmanname" value="{{ old('fsalesmanname', $salesman->fsalesmanname) }}"
-                        class="w-full border rounded px-3 py-2 @error('fsalesmanname') border-red-500 @enderror">
+                        class="w-full border rounded px-3 py-2 uppercase @error('fsalesmanname') border-red-500 @enderror">
                     @error('fsalesmanname')
                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                     @enderror
@@ -30,7 +30,7 @@
                 <div class="flex justify-center mt-4">
                     <label for="statusToggle"
                         class="flex items-center justify-between w-40 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition">
-                        <span class="text-sm font-medium">Non Aktif</span>
+                        <span class="text-sm font-medium">Non Active</span>
                         <input type="checkbox" name="fnonactive" id="statusToggle"
                             class="h-5 w-5 text-green-600 rounded focus:ring-green-500"
                             {{ old('fnonactive', $salesman->fnonactive) == '1' ? 'checked' : '' }}>

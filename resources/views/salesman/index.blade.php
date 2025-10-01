@@ -26,7 +26,7 @@
 
                 {{-- NEW: Status Filter --}}
                 <select id="statusFilter" name="status" class="border rounded px-2 py-1">
-                    <option value="">All</option>
+                    <option value="all">All</option>
                     <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active</option>
                     <option value="nonactive" {{ request('status') === 'nonactive' ? 'selected' : '' }}>No Active</option>
                 </select>
@@ -74,9 +74,9 @@
                         <td class="border px-2 py-1">{{ $item->fsalesmanname }}</td>
                         <td class="border px-2 py-1">
                             @if ($item->fnonactive == 1)
-                                Active
-                            @else
                                 Non Active
+                            @else
+                                Active
                             @endif
                         </td>
                         @if ($showActionsColumn)
@@ -336,16 +336,14 @@
             }
 
             function buildUrl(baseUrl = null) {
-                const base = baseUrl ? new URL(baseUrl, window.location.origin) :
-                    new URL(form.getAttribute('action'), window.location.origin);
+                const base = baseUrl ? new URL(baseUrl, location.origin) :
+                    new URL(form.getAttribute('action'), location.origin);
 
                 base.searchParams.set('search', input?.value || '');
                 if (filter) base.searchParams.set('filter_by', filter.value || 'all');
 
-                // ✅ kalau All (""), jangan set status
-                if (statusFilter && statusFilter.value !== '') {
-                    base.searchParams.set('status', statusFilter.value);
-                }
+                // ← keep exactly what user chose: 'active' | 'nonactive' | 'all'
+                if (statusFilter) base.searchParams.set('status', statusFilter.value ?? 'active');
 
                 base.searchParams.set('sort_by', sortState.by);
                 base.searchParams.set('sort_dir', sortState.dir);
