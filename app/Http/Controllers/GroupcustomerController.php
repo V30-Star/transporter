@@ -9,59 +9,17 @@ class GroupcustomerController extends Controller
 {
     public function index(Request $request)
     {
-        $search = trim((string) $request->search);
-
-        // Sorting
         $allowedSorts = ['fgroupcode', 'fgroupname', 'fgroupid'];
         $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fgroupid';
         $sortDir = $request->sort_dir === 'asc' ? 'asc' : 'desc';
 
-        $groupCustomers = Groupcustomer::when($search !== '', function ($q) use ($search) {
-            $q->where('fgroupcode', 'ILIKE', "%{$search}%")
-                ->orWhere('fgroupname', 'ILIKE', "%{$search}%");
-        })
-            ->orderBy($sortBy, $sortDir)
-            ->orderBy('fgroupid', 'desc') // tie-breaker stabil
-            ->paginate(10)
-            ->withQueryString();
+        $groupcustomers = Groupcustomer::orderBy($sortBy, $sortDir)->get(['fgroupcode', 'fgroupname', 'fgroupid']);
 
         $canCreate = in_array('createGroupCustomer', explode(',', session('user_restricted_permissions', '')));
         $canEdit   = in_array('updateGroupCustomer', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deleteGroupCustomer', explode(',', session('user_restricted_permissions', '')));
 
-        if ($request->ajax()) {
-            $rows = collect($groupCustomers->items())->map(function ($gc) {
-                return [
-                    'fgroupid'    => $gc->fgroupid,
-                    'fgroupcode'  => $gc->fgroupcode,
-                    'fgroupname'  => $gc->fgroupname,
-                    'edit_url'    => route('groupcustomer.edit', $gc->fgroupid),
-                    'destroy_url' => route('groupcustomer.destroy', $gc->fgroupid),
-                ];
-            });
-
-            return response()->json([
-                'data'  => $rows,
-                'perms' => ['can_create' => $canCreate, 'can_edit' => $canEdit, 'can_delete' => $canDelete],
-                'links' => [
-                    'prev'         => $groupCustomers->previousPageUrl(),
-                    'next'         => $groupCustomers->nextPageUrl(),
-                    'current_page' => $groupCustomers->currentPage(),
-                    'last_page'    => $groupCustomers->lastPage(),
-                ],
-                'sort' => ['by' => $sortBy, 'dir' => $sortDir],
-            ]);
-        }
-
-        return view('master.groupcustomer.index', compact(
-            'groupCustomers',
-            'search',
-            'canCreate',
-            'canEdit',
-            'canDelete',
-            'sortBy',
-            'sortDir'
-        ));
+        return view('master.groupcustomer.index', compact('groupcustomers', 'canCreate', 'canEdit', 'canDelete'));
     }
 
     public function create()

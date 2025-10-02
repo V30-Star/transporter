@@ -9,80 +9,17 @@ class SupplierController extends Controller
 {
     public function index(Request $request)
     {
-        $search   = trim((string) $request->search);
-        $filterBy = $request->filter_by ?? 'all';
-
-        // Sorting
-        $allowedSorts = ['fsuppliercode', 'fsuppliername', 'fsupplierid'];
+        $allowedSorts = ['fsuppliercode', 'fsuppliername', 'fsupplierid', 'fkontakperson', 'faddress', 'fcity'];
         $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fsupplierid';
         $sortDir = $request->sort_dir === 'asc' ? 'asc' : 'desc';
 
-        $suppliers = Supplier::when($search !== '', function ($q) use ($search, $filterBy) {
-            $q->where(function ($qq) use ($search, $filterBy) {
-                if ($filterBy === 'fsuppliercode') {
-                    $qq->where('fsuppliercode', 'ILIKE', "%{$search}%");
-                } elseif ($filterBy === 'fsuppliername') {
-                    $qq->where('fsuppliername', 'ILIKE', "%{$search}%");
-                } else { // 'all'
-                    $qq->where('fsuppliercode', 'ILIKE', "%{$search}%")
-                        ->orWhere('fsuppliername', 'ILIKE', "%{$search}%");
-                }
-            });
-        })
-            ->orderBy($sortBy, $sortDir)
-            ->orderBy('fsupplierid', 'desc') // tie-breaker
-            ->paginate(10)
-            ->withQueryString();
+        $suppliers = Supplier::orderBy($sortBy, $sortDir)->get(['fsuppliercode', 'fsuppliername', 'fsupplierid',  'fkontakperson', 'faddress', 'fcity']);
 
-        foreach ($suppliers as $supplier) {
-            $supplier->faddress = trim($supplier->faddress ?? '');
-        }
-
-        // permissions
         $canCreate = in_array('createSupplier', explode(',', session('user_restricted_permissions', '')));
         $canEdit   = in_array('updateSupplier', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deleteSupplier', explode(',', session('user_restricted_permissions', '')));
 
-        // AJAX response
-        if ($request->ajax()) {
-            $rows = collect($suppliers->items())->map(function ($s) {
-                return [
-                    'fsupplierid'   => $s->fsupplierid,
-                    'fsuppliercode' => $s->fsuppliercode,
-                    'fsuppliername' => $s->fsuppliername,
-                    'faddress'      => $s->faddress,
-                    'ftelp'         => $s->ftelp,
-                    'fcity'         => $s->fcity,
-                    'fkontakperson' => $s->fkontakperson,
-                    'edit_url'      => route('supplier.edit', $s->fsupplierid),
-                    'destroy_url'   => route('supplier.destroy', $s->fsupplierid),
-                ];
-            });
-
-            return response()->json([
-                'data'  => $rows,
-                'perms' => ['can_create' => $canCreate, 'can_edit' => $canEdit, 'can_delete' => $canDelete],
-                'links' => [
-                    'prev'         => $suppliers->previousPageUrl(),
-                    'next'         => $suppliers->nextPageUrl(),
-                    'current_page' => $suppliers->currentPage(),
-                    'last_page'    => $suppliers->lastPage(),
-                ],
-                'sort' => ['by' => $sortBy, 'dir' => $sortDir],
-            ]);
-        }
-
-        // Render awal
-        return view('supplier.index', compact(
-            'suppliers',
-            'filterBy',
-            'search',
-            'canCreate',
-            'canEdit',
-            'canDelete',
-            'sortBy',
-            'sortDir'
-        ));
+        return view('supplier.index', compact('suppliers', 'canCreate', 'canEdit', 'canDelete'));
     }
 
     public function create()

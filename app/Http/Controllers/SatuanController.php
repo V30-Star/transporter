@@ -9,15 +9,12 @@ class SatuanController extends Controller
 {
     public function index(Request $request)
     {
-        // Sorting default (opsional, DataTables bisa override di frontend)
         $allowedSorts = ['fsatuancode', 'fsatuanname', 'fsatuanid'];
         $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fsatuanid';
         $sortDir = $request->sort_dir === 'asc' ? 'asc' : 'desc';
 
-        // Ambil semua data (client-side DataTables akan handle pagination & search)
         $satuans = Satuan::orderBy($sortBy, $sortDir)->get(['fsatuanid', 'fsatuancode', 'fsatuanname']);
 
-        // Permission
         $permsStr  = (string) session('user_restricted_permissions', '');
         $permsArr  = explode(',', $permsStr);
         $canCreate = in_array('createSatuan', $permsArr, true);
@@ -26,7 +23,6 @@ class SatuanController extends Controller
 
         return view('satuan.index', compact('satuans', 'canCreate', 'canEdit', 'canDelete'));
     }
-
 
     public function create()
     {

@@ -10,72 +10,17 @@ class AccountController extends Controller
 {
     public function index(Request $request)
     {
-        $search   = trim((string) $request->search);
-        $filterBy = $request->filter_by ?? 'all'; // all | faccount | faccname
-
-        // Sorting
-        $allowedSorts = ['faccount', 'faccname', 'faccid'];
+        $allowedSorts = ['faccount', 'faccname', 'faccid', 'fnormal', 'fend'];
         $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'faccount';
         $sortDir = $request->sort_dir === 'desc' ? 'desc' : 'asc';
 
-        $accounts = Account::when($search !== '', function ($q) use ($search, $filterBy) {
-            $q->where(function ($qq) use ($search, $filterBy) {
-                if ($filterBy === 'faccount') {
-                    $qq->where('faccount', 'ILIKE', "%{$search}%");
-                } elseif ($filterBy === 'faccname') {
-                    $qq->where('faccname', 'ILIKE', "%{$search}%");
-                } else { // all
-                    $qq->where('faccount', 'ILIKE', "%{$search}%")
-                        ->orWhere('faccname', 'ILIKE', "%{$search}%");
-                }
-            });
-        })
-            ->orderBy($sortBy, $sortDir)
-            ->orderBy('faccid', 'asc') // tie-breaker stabil
-            ->paginate(10)
-            ->withQueryString();
+        $accounts = Account::orderBy($sortBy, $sortDir)->get(['faccount', 'faccname', 'faccid', 'fnormal', 'fend']);
 
-        // permissions
         $canCreate = in_array('createAccount', explode(',', session('user_restricted_permissions', '')));
         $canEdit   = in_array('updateAccount', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deleteAccount', explode(',', session('user_restricted_permissions', '')));
 
-        if ($request->ajax()) {
-            $rows = collect($accounts->items())->map(function ($a) {
-                return [
-                    'faccid'   => $a->faccid,
-                    'faccount' => $a->faccount,
-                    'faccname' => $a->faccname,
-                    'fend'     => $a->fend,     // 1=Detil, 0=Header (atau sesuai schema)
-                    'fnormal'  => $a->fnormal,  // 1=Debet, 0=Kredit (atau sesuai schema)
-                    'edit_url'    => route('account.edit', $a->faccid),
-                    'destroy_url' => route('account.destroy', $a->faccid),
-                ];
-            });
-
-            return response()->json([
-                'data'  => $rows,
-                'perms' => ['can_create' => $canCreate, 'can_edit' => $canEdit, 'can_delete' => $canDelete],
-                'links' => [
-                    'prev'         => $accounts->previousPageUrl(),
-                    'next'         => $accounts->nextPageUrl(),
-                    'current_page' => $accounts->currentPage(),
-                    'last_page'    => $accounts->lastPage(),
-                ],
-                'sort' => ['by' => $sortBy, 'dir' => $sortDir],
-            ]);
-        }
-
-        return view('account.index', compact(
-            'accounts',
-            'filterBy',
-            'search',
-            'canCreate',
-            'canEdit',
-            'canDelete',
-            'sortBy',
-            'sortDir'
-        ));
+        return view('account.index', compact('accounts', 'canCreate', 'canEdit', 'canDelete'));
     }
 
     public function browse(Request $request)

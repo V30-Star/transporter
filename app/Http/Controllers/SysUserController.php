@@ -14,75 +14,19 @@ class SysUserController extends Controller
 {
     public function index(Request $request)
     {
-        $search = trim((string) $request->input('search'));
-
-        // sorting
-        $allowedSorts = ['fsysuserid', 'fname', 'created_at', 'fuserid', 'fcabang'];
+        $allowedSorts = ['fuid', 'fsysuserid', 'fname', 'created_at', 'fuserid', 'fcabang'];
         $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fsysuserid';
         $sortDir = $request->sort_dir === 'asc' ? 'asc' : 'desc';
 
-        $sysusers = Sysuser::when($search !== '', function ($q) use ($search) {
-            $q->where(function ($qq) use ($search) {
-                $qq->where('fsysuserid', 'ILIKE', "%{$search}%")
-                    ->orWhere('fname',      'ILIKE', "%{$search}%")
-                    ->orWhere('fcabang',    'ILIKE', "%{$search}%");
-            });
-        })
-            ->orderBy($sortBy, $sortDir)
-            ->orderBy('fsysuserid', 'asc') // tie-breaker stabil
-            ->paginate(10)
-            ->withQueryString();
+        $sysusers = Sysuser::orderBy($sortBy, $sortDir)->get(['fuid', 'fsysuserid', 'fname', 'created_at', 'fuserid', 'fcabang']);
 
-        // Permissions
         $perms       = explode(',', (string) session('user_restricted_permissions', ''));
         $canCreate   = in_array('createSysuser', $perms, true);
         $canEdit     = in_array('updateSysuser', $perms, true);
         $canDelete   = in_array('deleteSysuser', $perms, true);
         $canRoleAccess = in_array('roleaccess', $perms, true);
 
-        if ($request->ajax()) {
-            $rows = collect($sysusers->items())->map(function ($u) {
-                return [
-                    'fsysuserid'  => $u->fsysuserid,
-                    'fname'       => $u->fname,
-                    'created_at'  => optional($u->created_at)->format('Y-m-d H:i'),
-                    'fuserid'     => $u->fuserid,
-                    'fcabang'     => $u->fcabang,
-                    'edit_url'    => route('sysuser.edit', $u->fuid),
-                    'destroy_url' => route('sysuser.destroy', $u->fuid),
-                    'can_role_access' => route('roleaccess.index', $u->fuid),
-                ];
-            });
-
-            return response()->json([
-                'data'  => $rows,
-                'perms' => [
-                    'can_create'      => $canCreate,
-                    'can_edit'        => $canEdit,
-                    'can_delete'      => $canDelete,
-                    'can_role_access' => $canRoleAccess
-                ],
-                'links' => [
-                    'prev'         => $sysusers->previousPageUrl(),
-                    'next'         => $sysusers->nextPageUrl(),
-                    'current_page' => $sysusers->currentPage(),
-                    'last_page'    => $sysusers->lastPage(),
-                ],
-                // penting: kirim state sort ke front-end
-                'sort' => ['by' => $sortBy, 'dir' => $sortDir],
-            ]);
-        }
-
-        return view('sysuser.index', compact(
-            'sysusers',
-            'search',
-            'canCreate',
-            'canEdit',
-            'canDelete',
-            'canRoleAccess',
-            'sortBy',
-            'sortDir'
-        ));
+        return view('sysuser.index', compact('sysusers', 'canCreate', 'canEdit', 'canDelete'));
     }
 
     public function create()

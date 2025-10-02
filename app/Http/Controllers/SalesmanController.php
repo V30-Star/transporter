@@ -9,48 +9,11 @@ class SalesmanController extends Controller
 {
     public function index(Request $request)
     {
-        $search = trim((string) $request->search);
-
-        $allowedFilters = ['fsalesmancode', 'fsalesmanname', 'fsalesmanid', 'all'];
-        $filterBy = in_array($request->filter_by, $allowedFilters, true) ? $request->filter_by : 'all';
-
-        $allowedSorts = ['fsalesmancode', 'fsalesmanname', 'fsalesmanid'];
+        $allowedSorts = ['fsalesmancode', 'fsalesmanname', 'fsalesmanid', 'fnonactive'];
         $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fsalesmanid';
         $sortDir = $request->sort_dir === 'asc' ? 'asc' : 'desc';
 
-        // ✅ 1) Read from query if present, else from session, else default 'active'
-        $status = $request->filled('status')
-            ? (string) $request->status
-            : (string) $request->session()->get('salesman.status', 'active');
-
-        // ✅ 2) If AJAX brings a new status, store it to session
-        if ($request->ajax() && $request->filled('status')) {
-            $request->session()->put('salesman.status', (string) $request->status);
-        }
-
-        $salesmen = Salesman::when($search !== '', function ($q) use ($search, $filterBy) {
-            $q->where(function ($qq) use ($search, $filterBy) {
-                if ($filterBy === 'fsalesmancode') {
-                    $qq->where('fsalesmancode', 'ILIKE', "%{$search}%");
-                } elseif ($filterBy === 'fsalesmanid') {
-                    $qq->whereRaw('CAST(fsalesmanid AS TEXT) ILIKE ?', ["%{$search}%"]);
-                } elseif ($filterBy === 'fsalesmanname') {
-                    $qq->where('fsalesmanname', 'ILIKE', "%{$search}%");
-                } else {
-                    $qq->where('fsalesmancode', 'ILIKE', "%{$search}%")
-                        ->orWhereRaw('CAST(fsalesmanid AS TEXT) ILIKE ?', ["%{$search}%"])
-                        ->orWhere('fsalesmanname', 'ILIKE', "%{$search}%");
-                }
-            });
-        })
-            // 0 = Active, 1 = Non Active
-            ->when($status === 'active',    fn($q) => $q->where('fnonactive', 0))
-            ->when($status === 'nonactive', fn($q) => $q->where('fnonactive', 1))
-            ->orderBy('fnonactive', 'asc')
-            ->orderBy($sortBy, $sortDir)
-            ->orderBy('fsalesmanid', 'desc')
-            ->paginate(10)
-            ->withQueryString();
+        $salesmans = Salesman::orderBy($sortBy, $sortDir)->get(['fsalesmancode', 'fsalesmanname', 'fsalesmanid', 'fnonactive']);
 
         $permsStr  = (string) session('user_restricted_permissions', '');
         $permsArr  = explode(',', $permsStr);
@@ -58,53 +21,7 @@ class SalesmanController extends Controller
         $canEdit   = in_array('updateSalesman', $permsArr, true);
         $canDelete = in_array('deleteSalesman', $permsArr, true);
 
-        if ($request->ajax()) {
-            $rows = collect($salesmen->items())->map(function ($s) {
-                return [
-                    'fsalesmanid'   => $s->fsalesmanid,
-                    'fsalesmancode' => $s->fsalesmancode,
-                    'fsalesmanname' => $s->fsalesmanname,
-                    'fnonactive'    => $s->fnonactive, // 0/1
-                    'status_label'  => $s->fnonactive == 1 ? 'Non Active' : 'Active',
-                    'edit_url'      => route('salesman.edit', $s->fsalesmanid),
-                    'destroy_url'   => route('salesman.destroy', $s->fsalesmanid),
-                ];
-            });
-
-            return response()->json([
-                'data'  => $rows,
-                'perms' => [
-                    'can_create' => $canCreate,
-                    'can_edit'   => $canEdit,
-                    'can_delete' => $canDelete,
-                ],
-                'links' => [
-                    'prev'         => $salesmen->previousPageUrl(),
-                    'next'         => $salesmen->nextPageUrl(),
-                    'current_page' => $salesmen->currentPage(),
-                    'last_page'    => $salesmen->lastPage(),
-                ],
-                'sort' => [
-                    'by'  => $sortBy,
-                    'dir' => $sortDir,
-                ],
-                'filters' => [
-                    'status' => $status, // ✅ echo back effective status
-                ],
-            ]);
-        }
-
-        return view('salesman.index', compact(
-            'salesmen',
-            'filterBy',
-            'search',
-            'canCreate',
-            'canEdit',
-            'canDelete',
-            'sortBy',
-            'sortDir',
-            'status'
-        ));
+        return view('Salesman.index', compact('salesmans', 'canCreate', 'canEdit', 'canDelete'));
     }
 
     public function create()

@@ -16,17 +16,6 @@
         }
     }" class="bg-white rounded shadow p-4">
 
-        {{-- Search (Live) --}}
-        <form id="searchForm" method="GET" action="{{ route('rekening.index') }}"
-            class="flex flex-wrap justify-between items-center mb-4 gap-2">
-            <div class="flex items-center space-x-2 w-full">
-                <label class="font-semibold">Search:</label>
-                <input id="searchInput" type="text" name="search" value="{{ $search }}"
-                    class="border rounded px-2 py-1 w-1/4" placeholder="Cari...">
-                <button type="submit" class="hidden">Cari</button>
-            </div>
-        </form>
-
         @php
             $canCreate = in_array('createRekening', explode(',', session('user_restricted_permissions', '')));
             $canEdit = in_array('updateRekening', explode(',', session('user_restricted_permissions', '')));
@@ -34,32 +23,31 @@
             $showActionsColumn = $canEdit || $canDelete;
         @endphp
 
+        <div class="flex justify-end items-center mb-4">
+            @if ($canCreate)
+                <a href="{{ route('rekening.create') }}"
+                    class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                    <x-heroicon-o-plus class="w-4 h-4 mr-1" /> Tambah Baru
+                </a>
+            @endif
+        </div>
+
         {{-- Table --}}
-        <table class="min-w-full border text-sm">
+        <table id="rekeningTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
-                    <th class="border px-2 py-1 cursor-pointer sortCol" data-sort-by="frekeningcode">
-                        <div class="flex items-center gap-1">
-                            <span>Kode Rekening</span>
-                            <span id="icon-frekeningcode" class="text-lg font-semibold text-green-600">⇅</span>
-                        </div>
-                    </th>
-                    <th class="border px-2 py-1 cursor-pointer sortCol" data-sort-by="frekeningname">
-                        <div class="flex items-center gap-1">
-                            <span>Nama Rekening</span>
-                            <span id="icon-frekeningname" class="text-lg font-semibold text-green-600">⇅</span>
-                        </div>
-                    </th>
+                    <th class="border px-2 py-2">Kode Rekening</th>
+                    <th class="border px-2 py-2">Nama Rekening</th>
                     @if ($showActionsColumn)
-                        <th class="border px-2 py-1">Aksi</th>
+                        <th class="border px-2 py-2">Aksi</th>
                     @endif
                 </tr>
             </thead>
             <tbody id="tableBody">
-                @forelse($rekening as $item)
+                @forelse($rekenings as $item)
                     <tr class="hover:bg-gray-50">
-                        <td class="border px-2 py-1">{{ $item->frekeningcode }}</td>
-                        <td class="border px-2 py-1">{{ $item->frekeningname }}</td>
+                        <td>{{ $item->frekeningcode }}</td>
+                        <td>{{ $item->frekeningname }}</td>
                         @if ($showActionsColumn)
                             <td class="border px-2 py-1 space-x-2">
                                 @if ($canEdit)
@@ -104,208 +92,110 @@
                 </div>
             </div>
         </div>
-
-        {{-- Bottom actions & AJAX pagination --}}
-        <div id="pagination" class="mt-4 flex justify-between items-center">
-            <div class="space-x-2">
-                @if ($canCreate)
-                    <a href="{{ route('rekening.create') }}"
-                        class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                        <x-heroicon-o-plus class="w-4 h-4 mr-1" /> Baru
-                    </a>
-                @endif
-            </div>
-
-            <div class="flex items-center space-x-2">
-                <button id="prevBtn"
-                    class="px-3 py-1 rounded border hover:bg-gray-100 {{ $rekening->onFirstPage() ? 'opacity-50' : '' }}"
-                    {{ $rekening->onFirstPage() ? 'disabled' : '' }}
-                    data-page="{{ $rekening->previousPageUrl() ?? '' }}">&larr;</button>
-
-                <span id="pageInfo" class="text-sm">
-                    Page {{ $rekening->currentPage() }} of {{ $rekening->lastPage() }}
-                </span>
-
-                <button id="nextBtn"
-                    class="px-3 py-1 rounded border hover:bg-gray-100 {{ $rekening->hasMorePages() ? '' : 'opacity-50' }}"
-                    {{ $rekening->hasMorePages() ? '' : 'disabled' }}
-                    data-page="{{ $rekening->nextPageUrl() ?? '' }}">&rarr;</button>
-            </div>
-        </div>
     </div>
 @endsection
 
+@push('styles')
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.1.6/css/dataTables.dataTables.min.css">
+    <style>
+        /* Tata letak kontrol */
+        .dt-container .dt-length,
+        .dt-container .dt-search {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+        }
+
+        .dt-container .dt-length .dt-input {
+            width: 4.5rem;
+            padding: .35rem .5rem;
+        }
+
+        /* Stabilkan tabel */
+        #rekeningTable {
+            width: 100% !important;
+        }
+
+        #rekeningTable th,
+        #rekeningTable td {
+            vertical-align: middle;
+        }
+
+        /* Kolom Aksi: jangan mepet, tapi tetap ringkas */
+        #rekeningTable th:last-child,
+        #rekeningTable td:last-child {
+            white-space: nowrap;
+            text-align: center;
+        }
+
+        #rekeningTable td:last-child {
+            padding: .25rem .5rem;
+        }
+
+        .btn-aksi {
+            padding: .25rem .5rem;
+            font-size: .825rem;
+        }
+    </style>
+@endpush
+
 @push('scripts')
+    {{-- jQuery + DataTables JS (CDN) --}}
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/2.1.6/js/dataTables.min.js"></script>
     <script>
-        (function() {
-            const form = document.getElementById('searchForm');
-            const input = document.getElementById('searchInput');
-            const tbody = document.getElementById('tableBody');
-            const prevBtn = document.getElementById('prevBtn');
-            const nextBtn = document.getElementById('nextBtn');
-            const pageInfo = document.getElementById('pageInfo');
+        document.addEventListener('alpine:init', () => {
+            /* no-op */
+        });
 
-            let timer = null,
-                lastAbort = null;
-
-            // permissions awal (dipakai saat render AJAX)
-            let perms = {
-                can_edit: {!! json_encode($canEdit) !!},
-                can_delete: {!! json_encode($canDelete) !!}
-            };
-
-            // state sort awal dari server (fallback ke frekeningid desc)
-            const sortState = {
-                by: {!! isset($sortBy) ? json_encode($sortBy) : '"frekeningid"' !!},
-                dir: {!! isset($sortDir) ? json_encode($sortDir) : '"desc"' !!}
-            };
-
-            // buka modal delete dari row JS (sesuaikan dgn Alpine milikmu)
-            window.openDeleteModal = function(url) {
-                document.querySelector('[x-data]')?.__x?.$data?.openDelete?.(url);
-            };
-
-            function aksiButtons(item) {
-                let html = '';
-                if (perms.can_edit) {
-                    html +=
-                        `<a href="${item.edit_url}"
-                class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">Edit</a>`;
+        $(function() {
+            // Inisialisasi DataTables
+            const hasActions = {{ $showActionsColumn ? 'true' : 'false' }};
+            const columns = hasActions ? [{
+                    title: 'Kode Rekening'
+                },
+                {
+                    title: 'Nama Rekening'
+                },
+                {
+                    title: 'Aksi',
+                    orderable: false,
+                    searchable: false
                 }
-                if (perms.can_delete) {
-                    html +=
-                        `<button onclick="window.openDeleteModal('${item.destroy_url}')"
-                class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 ml-2">Hapus</button>`;
+            ] : [{
+                    title: 'Kode Rekening'
+                },
+                {
+                    title: 'Nama Rekening'
                 }
-                return html;
-            }
+            ];
 
-            function rowHtml(item) {
-                const actions = aksiButtons(item);
-                const showAksi = (perms.can_edit || perms.can_delete);
-                return `
-        <tr class="hover:bg-gray-50">
-            <td class="border px-2 py-1">${item.frekeningcode ?? ''}</td>
-            <td class="border px-2 py-1">${item.frekeningname ?? ''}</td>
-            ${ showAksi ? `<td class="border px-2 py-1">${actions}</td>` : '' }
-        </tr>`;
-            }
-
-            function applySortIcons() {
-                ['frekeningcode', 'frekeningname'].forEach(col => {
-                    const el = document.getElementById('icon-' + col);
-                    if (!el) return;
-                    el.textContent = '↕';
-                    el.classList.add('opacity-50');
-                });
-                const active = document.getElementById('icon-' + sortState.by);
-                if (active) {
-                    active.textContent = (sortState.dir === 'asc') ? '↑' : '↓';
-                    active.classList.remove('opacity-50');
-                }
-            }
-
-            function render(json) {
-                if (!json || !json.data) return;
-
-                // sync perms kalau server mengirim (antisipasi perubahan session)
-                if (json.perms) perms = json.perms;
-
-                if (!json.data.length) {
-                    const colCount = document.querySelector('thead tr').children.length;
-                    tbody.innerHTML =
-                        `<tr><td colspan="${colCount}" class="text-center py-4">Tidak ada data.</td></tr>`;
-                } else {
-                    tbody.innerHTML = json.data.map(rowHtml).join('');
-                }
-
-                // update pagination
-                prevBtn.dataset.page = json.links.prev || '';
-                nextBtn.dataset.page = json.links.next || '';
-                prevBtn.disabled = !json.links.prev;
-                nextBtn.disabled = !json.links.next;
-                prevBtn.classList.toggle('opacity-50', !json.links.prev);
-                nextBtn.classList.toggle('opacity-50', !json.links.next);
-                pageInfo.textContent = `Page ${json.links.current_page} of ${json.links.last_page}`;
-
-                // update state sort dari server bila dikirim
-                if (json.sort && json.sort.by) {
-                    sortState.by = json.sort.by;
-                    sortState.dir = json.sort.dir || 'desc';
-                }
-                applySortIcons();
-
-                // (opsional) sync URL bar tanpa reload
-                const qs = new URLSearchParams(new FormData(form));
-                qs.set('page', json.links.current_page);
-                qs.set('sort_by', sortState.by);
-                qs.set('sort_dir', sortState.dir);
-                history.replaceState({}, '', `${form.action}?${qs.toString()}`);
-            }
-
-            function fetchTable(url) {
-                if (lastAbort) lastAbort.abort();
-                lastAbort = new AbortController();
-
-                fetch(url, {
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest'
-                        },
-                        signal: lastAbort.signal
-                    })
-                    .then(r => r.json())
-                    .then(render)
-                    .catch(err => {
-                        if (err.name !== 'AbortError') console.error(err);
-                    });
-            }
-
-            function buildUrl(baseUrl = null) {
-                const base = baseUrl ? new URL(baseUrl, window.location.origin) :
-                    new URL(form.getAttribute('action'), window.location.origin);
-                base.searchParams.set('search', input?.value || '');
-                base.searchParams.set('sort_by', sortState.by);
-                base.searchParams.set('sort_dir', sortState.dir);
-                if (!baseUrl) base.searchParams.delete('page'); // reset halaman saat bukan pagination
-                return base.toString();
-            }
-
-            // live search (debounce)
-            input.addEventListener('input', () => {
-                clearTimeout(timer);
-                timer = setTimeout(() => fetchTable(buildUrl()), 300);
-            });
-            // cegah Enter submit
-            input.addEventListener('keydown', e => {
-                if (e.key === 'Enter') e.preventDefault();
-            });
-
-            // klik header → toggle sort
-            document.querySelectorAll('.sortCol').forEach(th => {
-                th.addEventListener('click', () => {
-                    const col = th.dataset.sortBy;
-                    if (!col) return;
-                    if (sortState.by === col) {
-                        sortState.dir = (sortState.dir === 'asc') ? 'desc' : 'asc';
-                    } else {
-                        sortState.by = col;
-                        sortState.dir = 'asc';
-                    }
-                    applySortIcons();
-                    fetchTable(buildUrl());
-                });
-            });
-
-            // pagination ajax
-            document.getElementById('pagination')?.addEventListener('click', e => {
-                if (e.target.tagName === 'BUTTON' && e.target.dataset.page) {
-                    e.preventDefault();
-                    fetchTable(buildUrl(e.target.dataset.page));
+            $('#rekeningTable').DataTable({
+                autoWidth: false,
+                pageLength: 25,
+                lengthMenu: [10, 25, 50, 100],
+                order: [
+                    [0, 'asc']
+                ],
+                layout: {
+                    topStart: 'search', // Search pindah ke kiri
+                    topEnd: 'pageLength', // Length menu pindah ke kanan
+                    bottomStart: 'info',
+                    bottomEnd: 'paging'
+                },
+                columnDefs: [{
+                    targets: -1,
+                    orderable: false,
+                    searchable: false,
+                    width: 120
+                }],
+                initComplete: function() {
+                    const api = this.api();
+                    const $len = $(api.table().container()).find('.dt-length .dt-input');
+                    $len.addClass('focus:outline-none focus:ring focus:ring-blue-100');
                 }
             });
 
-            // set ikon saat load
-            applySortIcons();
-        })();
+        });
     </script>
 @endpush

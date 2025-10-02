@@ -13,56 +13,17 @@ class ProductController extends Controller
 {
     public function index(Request $request)
     {
-        $search   = trim((string) $request->search);
-
-        // Sorting
         $allowedSorts = ['fprdcode', 'fprdname', 'fsatuankecil', 'fminstock', 'fprdid'];
         $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fprdid';
         $sortDir = $request->sort_dir === 'asc' ? 'asc' : 'desc';
 
-        $products = Product::when($search !== '', function ($q) use ($search) {
-            $q->where(function ($qq) use ($search) {
-                $qq->where('fprdcode', 'ILIKE', "%{$search}%")
-                    ->orWhere('fprdname', 'ILIKE', "%{$search}%");
-            });
-        })
-            ->orderBy($sortBy, $sortDir)
-            ->orderBy('fprdid', 'desc') // tie-breaker
-            ->paginate(10)
-            ->withQueryString();
+        $products = Product::orderBy($sortBy, $sortDir)->get(['fprdcode', 'fprdname', 'fsatuankecil', 'fminstock', 'fprdid']);
 
-        // permissions
         $canCreate = in_array('createProduct', explode(',', session('user_restricted_permissions', '')));
         $canEdit   = in_array('updateProduct', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deleteProduct', explode(',', session('user_restricted_permissions', '')));
 
-        if ($request->ajax()) {
-            $rows = collect($products->items())->map(function ($p) {
-                return [
-                    'fprdid'       => $p->fprdid,
-                    'fprdcode'     => $p->fprdcode,
-                    'fprdname'     => $p->fprdname,
-                    'fsatuankecil' => $p->fsatuankecil,
-                    'fminstock'    => $p->fminstock,
-                    'edit_url'     => route('product.edit', $p->fprdid),
-                    'destroy_url'  => route('product.destroy', $p->fprdid),
-                ];
-            });
-
-            return response()->json([
-                'data'  => $rows,
-                'perms' => ['can_edit' => $canEdit, 'can_delete' => $canDelete],
-                'links' => [
-                    'prev'          => $products->previousPageUrl(),
-                    'next'          => $products->nextPageUrl(),
-                    'current_page'  => $products->currentPage(),
-                    'last_page'     => $products->lastPage(),
-                ],
-                'sort' => ['by' => $sortBy, 'dir' => $sortDir],
-            ]);
-        }
-
-        return view('product.index', compact('products', 'search', 'canCreate', 'canEdit', 'canDelete', 'sortBy', 'sortDir'));
+        return view('product.index', compact('products', 'canCreate', 'canEdit', 'canDelete'));
     }
 
     public function suggestNames(Request $request)

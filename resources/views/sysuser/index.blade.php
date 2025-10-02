@@ -16,16 +16,6 @@
         }
     }" x-on:open-delete.window="openDelete($event.detail)" class="bg-white rounded shadow p-4">
 
-        {{-- Search --}}
-        <form id="searchForm" method="GET" action="{{ route('sysuser.index') }}"
-            class="flex flex-wrap justify-between items-center mb-4 gap-2">
-            <div class="flex items-center space-x-2 w-full">
-                <label class="font-semibold">Search:</label>
-                <input id="searchInput" type="text" name="search" value="{{ $search }}"
-                    class="border rounded px-2 py-1 w-1/4" placeholder="Cari...">
-                <button type="submit" class="hidden">Cari</button>
-            </div>
-        </form>
         @php
             $canCreate = in_array('createSysuser', explode(',', session('user_restricted_permissions', '')));
             $canEdit = in_array('updateSysuser', explode(',', session('user_restricted_permissions', '')));
@@ -34,54 +24,38 @@
             $showActionsColumn = $canEdit || $canDelete || $canRoleAccess;
         @endphp
 
+        <div class="flex justify-end items-center mb-4">
+            @if ($canCreate)
+                <a href="{{ route('sysuser.create') }}"
+                    class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                    <x-heroicon-o-plus class="w-4 h-4 mr-1" /> Tambah Baru
+                </a>
+            @endif
+        </div>
+
+
         <!-- Table -->
-        <table class="min-w-full border text-sm">
+        <table id="sysuserTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
-                    <th class="border px-2 py-1 cursor-pointer sortCol" data-sort-by="fsysuserid">
-                        <div class="flex items-center gap-1">
-                            <span>User Id</span>
-                            <span id="icon-fsysuserid" class="text-lg font-semibold text-green-600">⇅</span>
-                        </div>
-                    </th>
-                    <th class="border px-2 py-1 cursor-pointer sortCol" data-sort-by="fname">
-                        <div class="flex items-center gap-1">
-                            <span>Nama User</span>
-                            <span id="icon-fname" class="text-lg font-semibold text-green-600">⇅</span>
-                        </div>
-                    </th>
-                    <th class="border px-2 py-1 cursor-pointer sortCol" data-sort-by="created_at">
-                        <div class="flex items-center gap-1">
-                            <span>Waktu</span>
-                            <span id="icon-created_at" class="text-lg font-semibold text-green-600">⇅</span>
-                        </div>
-                    </th>
-                    <th class="border px-2 py-1 cursor-pointer sortCol" data-sort-by="fuserid">
-                        <div class="flex items-center gap-1">
-                            <span>Fuserid</span>
-                            <span id="icon-fuserid" class="text-lg font-semibold text-green-600">⇅</span>
-                        </div>
-                    </th>
-                    <th class="border px-2 py-1 cursor-pointer sortCol" data-sort-by="fcabang">
-                        <div class="flex items-center gap-1">
-                            <span>Cabang</span>
-                            <span id="icon-fcabang" class="text-lg font-semibold text-green-600">⇅</span>
-                        </div>
-                    </th>
+                    <th class="border px-2 py-2">User Id</th>
+                    <th class="border px-2 py-2">Nama User</th>
+                    <th class="border px-2 py-2">Waktu</th>
+                    <th class="border px-2 py-2">Fuserid</th>
+                    <th class="border px-2 py-2">Cabang</th>
                     @if ($showActionsColumn)
-                        <th class="border px-2 py-1">Aksi</th>
+                        <th class="border px-2 py-2">Aksi</th>
                     @endif
                 </tr>
             </thead>
             <tbody id="tableBody">
                 @forelse ($sysusers as $sysuser)
                     <tr class="hover:bg-gray-50">
-                        <td class="border px-2 py-1">{{ $sysuser->fsysuserid }}</td>
-                        <td class="border px-2 py-1">{{ $sysuser->fname }}</td>
-                        <td class="border px-2 py-1">{{ $sysuser->created_at }}</td>
-                        <td class="border px-2 py-1">{{ $sysuser->fuserid ?? 'N/A' }}</td>
-                        <td class="border px-2 py-1">{{ $sysuser->fcabang }}</td>
-
+                        <td>{{ $sysuser->fsysuserid }}</td>
+                        <td>{{ $sysuser->fname }}</td>
+                        <td>{{ $sysuser->created_at }}</td>
+                        <td>{{ $sysuser->fuserid ?? 'N/A' }}</td>
+                        <td>{{ $sysuser->fcabang }}</td>
                         @if ($showActionsColumn)
                             <td class="border px-2 py-1">
                                 @if ($canEdit)
@@ -144,221 +118,128 @@
                 </div>
             </div>
         </div>
-
-        <!-- Bottom Actions -->
-        <div id="pagination" class="mt-4 flex justify-between items-center">
-            <div class="space-x-2">
-                @if ($canCreate)
-                    <a href="{{ route('sysuser.create') }}"
-                        class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                        <x-heroicon-o-plus class="w-4 h-4 mr-1" />
-                        Baru
-                    </a>
-                @endif
-            </div>
-
-            <div class="flex items-center space-x-2">
-                <button id="prevBtn"
-                    class="px-3 py-1 rounded border hover:bg-gray-100 {{ $sysusers->onFirstPage() ? 'opacity-50' : '' }}"
-                    {{ $sysusers->onFirstPage() ? 'disabled' : '' }}
-                    data-page="{{ $sysusers->previousPageUrl() ?? '' }}">&larr;</button>
-
-                <span id="pageInfo" class="text-sm">
-                    Page {{ $sysusers->currentPage() }} of {{ $sysusers->lastPage() }}
-                </span>
-
-                <button id="nextBtn"
-                    class="px-3 py-1 rounded border hover:bg-gray-100 {{ $sysusers->hasMorePages() ? '' : 'opacity-50' }}"
-                    {{ $sysusers->hasMorePages() ? '' : 'disabled' }}
-                    data-page="{{ $sysusers->nextPageUrl() ?? '' }}">&rarr;</button>
-            </div>
-        </div>
     </div>
 @endsection
 
+@push('styles')
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.1.6/css/dataTables.dataTables.min.css">
+    <style>
+        /* Tata letak kontrol */
+        .dt-container .dt-length,
+        .dt-container .dt-search {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+        }
+
+        .dt-container .dt-length .dt-input {
+            width: 4.5rem;
+            padding: .35rem .5rem;
+        }
+
+        /* Stabilkan tabel */
+        #sysuserTable {
+            width: 100% !important;
+        }
+
+        #sysuserTable th,
+        #sysuserTable td {
+            vertical-align: middle;
+        }
+
+        /* Kolom Aksi: jangan mepet, tapi tetap ringkas */
+        #sysuserTable th:last-child,
+        #sysuserTable td:last-child {
+            white-space: nowrap;
+            text-align: center;
+        }
+
+        #sysuserTable td:last-child {
+            padding: .25rem .5rem;
+        }
+
+        .btn-aksi {
+            padding: .25rem .5rem;
+            font-size: .825rem;
+        }
+    </style>
+@endpush
+
 @push('scripts')
+    {{-- jQuery + DataTables JS (CDN) --}}
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/2.1.6/js/dataTables.min.js"></script>
     <script>
-        (function() {
-            const form = document.getElementById('searchForm');
-            const input = document.getElementById('searchInput');
-            const tbody = document.getElementById('tableBody');
-            const prevBtn = document.getElementById('prevBtn');
-            const nextBtn = document.getElementById('nextBtn');
-            const pageInfo = document.getElementById('pageInfo');
+        document.addEventListener('alpine:init', () => {
+            /* no-op */
+        });
 
-            let timer = null,
-                lastAbort = null;
-
-            // state sort awal (dari server bila ada)
-            const sortState = {
-                by: {!! isset($sortBy) ? json_encode($sortBy) : '"fsysuserid"' !!},
-                dir: {!! isset($sortDir) ? json_encode($sortDir) : '"desc"' !!}
-            };
-
-            // permission awal (bisa dioverride dari JSON)
-            let perms = {
-                can_edit: {!! json_encode($canEdit) !!},
-                can_delete: {!! json_encode($canDelete) !!},
-                can_role_access: {!! json_encode($canRoleAccess) !!}
-            };
-
-            // helper modal hapus
-            window.openDeleteModal = function(url) {
-                window.dispatchEvent(new CustomEvent('open-delete', {
-                    detail: url
-                }));
-            };
-
-            function aksiButtons(item) {
-                let html = '';
-                if (perms.can_edit) {
-                    html += `<a href="${item.edit_url}"
-                class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
-                Edit
-            </a>`;
+        $(function() {
+            // Inisialisasi DataTables
+            const hasActions = {{ $showActionsColumn ? 'true' : 'false' }};
+            const columns = hasActions ? [{
+                    title: 'User Id'
+                },
+                {
+                    title: 'Nama User'
+                },
+                {
+                    title: 'Waktu'
+                },
+                {
+                    title: 'Fuserid'
+                },
+                {
+                    title: 'Cabang'
+                },
+                {
+                    title: 'Aksi',
+                    orderable: false,
+                    searchable: false
                 }
-                if (perms.can_delete) {
-                    html += `<button onclick="window.openDeleteModal('${item.destroy_url}')"
-                class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 ml-2">
-                Hapus
-            </button>`;
+            ] : [{
+                    title: 'User Id'
+                },
+                {
+                    title: 'Nama User'
+                },
+                {
+                    title: 'Waktu'
+                },
+                {
+                    title: 'Fuserid'
+                },
+                {
+                    title: 'Cabang'
                 }
-                if (perms.can_role_access) {
-                    html += `<a href="${item.can_role_access}"
-                class="inline-flex items-center bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 ml-2">
-                Set Menu
-            </a>`;
-                }
-                return html;
-            }
+            ];
 
-            function rowHtml(item) {
-                const actions = aksiButtons(item);
-                return `
-            <tr class="hover:bg-gray-50">
-                <td class="border px-2 py-1">${item.fsysuserid ?? ''}</td>
-                <td class="border px-2 py-1">${item.fname ?? ''}</td>
-                <td class="border px-2 py-1">${item.created_at ?? ''}</td>
-                <td class="border px-2 py-1">${item.fuserid ?? 'N/A'}</td>
-                <td class="border px-2 py-1">${item.fcabang ?? ''}</td>
-                ${(perms.can_edit || perms.can_delete || perms.can_role_access) ? `<td class="border px-2 py-1">${actions}</td>` : ''}
-            </tr>
-        `;
-            }
-
-            function applySortIcons() {
-                ['fsysuserid', 'fname', 'created_at', 'fuserid', 'fcabang'].forEach(col => {
-                    const el = document.getElementById('icon-' + col);
-                    if (!el) return;
-                    el.textContent = '↕';
-                    el.classList.add('opacity-50');
-                });
-                const active = document.getElementById('icon-' + sortState.by);
-                if (active) {
-                    active.textContent = (sortState.dir === 'asc') ? '↑' : '↓';
-                    active.classList.remove('opacity-50');
-                }
-            }
-
-            function render(json) {
-                if (!json || !json.data) return;
-
-                if (json.perms) perms = json.perms;
-
-                if (json.data.length === 0) {
-                    const colCount = document.querySelector('thead tr').children.length;
-                    tbody.innerHTML =
-                        `<tr><td colspan="${colCount}" class="text-center py-4">Tidak ada data.</td></tr>`;
-                } else {
-                    tbody.innerHTML = json.data.map(rowHtml).join('');
-                }
-
-                // pagination state
-                prevBtn.dataset.page = json.links.prev || '';
-                nextBtn.dataset.page = json.links.next || '';
-                prevBtn.disabled = !json.links.prev;
-                nextBtn.disabled = !json.links.next;
-                prevBtn.classList.toggle('opacity-50', !json.links.prev);
-                nextBtn.classList.toggle('opacity-50', !json.links.next);
-                pageInfo.textContent = `Page ${json.links.current_page} of ${json.links.last_page}`;
-
-                // update sort dari server jika ada
-                if (json.sort && json.sort.by) {
-                    sortState.by = json.sort.by;
-                    sortState.dir = json.sort.dir || 'desc';
-                }
-                applySortIcons();
-
-                // opsional: sync URL address bar
-                const qs = new URLSearchParams(new FormData(form));
-                qs.set('page', json.links.current_page);
-                qs.set('sort_by', sortState.by);
-                qs.set('sort_dir', sortState.dir);
-                history.replaceState({}, '', `${form.action}?${qs.toString()}`);
-            }
-
-            function fetchTable(url) {
-                if (lastAbort) lastAbort.abort();
-                lastAbort = new AbortController();
-
-                fetch(url, {
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest'
-                        },
-                        signal: lastAbort.signal
-                    })
-                    .then(r => r.json())
-                    .then(render)
-                    .catch(err => {
-                        if (err.name !== 'AbortError') console.error(err);
-                    });
-            }
-
-            function buildUrl(baseUrl = null) {
-                const base = baseUrl ? new URL(baseUrl, window.location.origin) :
-                    new URL(form.getAttribute('action'), window.location.origin);
-                base.searchParams.set('search', input?.value || '');
-                base.searchParams.set('sort_by', sortState.by);
-                base.searchParams.set('sort_dir', sortState.dir);
-                if (!baseUrl) base.searchParams.delete('page'); // reset page kalau bukan pagination
-                return base.toString();
-            }
-
-            // live search (debounce)
-            input.addEventListener('input', () => {
-                clearTimeout(timer);
-                timer = setTimeout(() => fetchTable(buildUrl()), 300);
-            });
-            input.addEventListener('keydown', e => {
-                if (e.key === 'Enter') e.preventDefault();
-            });
-
-            // klik header → toggle sort (tanpa reload)
-            document.querySelectorAll('.sortCol').forEach(th => {
-                th.addEventListener('click', () => {
-                    const col = th.dataset.sortBy;
-                    if (!col) return;
-                    if (sortState.by === col) {
-                        sortState.dir = (sortState.dir === 'asc') ? 'desc' : 'asc';
-                    } else {
-                        sortState.by = col;
-                        sortState.dir = 'asc';
-                    }
-                    applySortIcons();
-                    fetchTable(buildUrl());
-                });
-            });
-
-            // pagination AJAX
-            document.getElementById('pagination')?.addEventListener('click', e => {
-                if (e.target.tagName === 'BUTTON' && e.target.dataset.page) {
-                    e.preventDefault();
-                    fetchTable(buildUrl(e.target.dataset.page));
+            $('#sysuserTable').DataTable({
+                autoWidth: false,
+                pageLength: 25,
+                lengthMenu: [10, 25, 50, 100],
+                order: [
+                    [0, 'asc']
+                ],
+                layout: {
+                    topStart: 'search', // Search pindah ke kiri
+                    topEnd: 'pageLength', // Length menu pindah ke kanan
+                    bottomStart: 'info',
+                    bottomEnd: 'paging'
+                },
+                columnDefs: [{
+                    targets: -1,
+                    orderable: false,
+                    searchable: false,
+                    width: 120
+                }],
+                initComplete: function() {
+                    const api = this.api();
+                    const $len = $(api.table().container()).find('.dt-length .dt-input');
+                    $len.addClass('focus:outline-none focus:ring focus:ring-blue-100');
                 }
             });
 
-            // init ikon
-            applySortIcons();
-        })();
+        });
     </script>
 @endpush

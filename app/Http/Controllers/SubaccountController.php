@@ -9,74 +9,17 @@ class SubaccountController extends Controller
 {
     public function index(Request $request)
     {
-        $search   = trim((string) $request->search);
-        $filterBy = $request->filter_by ?? 'all'; // all | fsubaccountcode | fsubaccountid | fsubaccountname
-
-        // Sorting
         $allowedSorts = ['fsubaccountcode', 'fsubaccountname', 'fsubaccountid'];
         $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fsubaccountid';
         $sortDir = $request->sort_dir === 'asc' ? 'asc' : 'desc';
 
-        $subaccounts = Subaccount::when($search !== '', function ($q) use ($search, $filterBy) {
-            $q->where(function ($qq) use ($search, $filterBy) {
-                if ($filterBy === 'fsubaccountcode') {
-                    $qq->where('fsubaccountcode', 'ILIKE', "%{$search}%");
-                } elseif ($filterBy === 'fsubaccountid') {
-                    $qq->whereRaw('CAST(fsubaccountid AS TEXT) ILIKE ?', ["%{$search}%"]);
-                } elseif ($filterBy === 'fsubaccountname') {
-                    $qq->where('fsubaccountname', 'ILIKE', "%{$search}%");
-                } else { // all
-                    $qq->where('fsubaccountcode', 'ILIKE', "%{$search}%")
-                        ->orWhereRaw('CAST(fsubaccountid AS TEXT) ILIKE ?', ["%{$search}%"])
-                        ->orWhere('fsubaccountname', 'ILIKE', "%{$search}%");
-                }
-            });
-        })
-            ->orderBy($sortBy, $sortDir)
-            ->orderBy('fsubaccountid', 'desc') // tie-breaker
-            ->paginate(10)
-            ->withQueryString();
+        $subaccounts = Subaccount::orderBy($sortBy, $sortDir)->get(['fsubaccountcode', 'fsubaccountname', 'fsubaccountid']);
 
-        // permission flags
         $canCreate = in_array('createSubAccount', explode(',', session('user_restricted_permissions', '')));
         $canEdit   = in_array('updateSubAccount', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deleteSubAccount', explode(',', session('user_restricted_permissions', '')));
 
-        // AJAX response
-        if ($request->ajax()) {
-            $rows = collect($subaccounts->items())->map(function ($s) {
-                return [
-                    'fsubaccountid'   => $s->fsubaccountid,
-                    'fsubaccountcode' => $s->fsubaccountcode,
-                    'fsubaccountname' => $s->fsubaccountname,
-                    'edit_url'        => route('subaccount.edit', $s->fsubaccountid),
-                    'destroy_url'     => route('subaccount.destroy', $s->fsubaccountid),
-                ];
-            });
-
-            return response()->json([
-                'data'  => $rows,
-                'perms' => ['can_create' => $canCreate, 'can_edit' => $canEdit, 'can_delete' => $canDelete],
-                'links' => [
-                    'prev'         => $subaccounts->previousPageUrl(),
-                    'next'         => $subaccounts->nextPageUrl(),
-                    'current_page' => $subaccounts->currentPage(),
-                    'last_page'    => $subaccounts->lastPage(),
-                ],
-                'sort' => ['by' => $sortBy, 'dir' => $sortDir], // untuk ikon & state front-end
-            ]);
-        }
-
-        return view('subaccount.index', compact(
-            'subaccounts',
-            'filterBy',
-            'search',
-            'canCreate',
-            'canEdit',
-            'canDelete',
-            'sortBy',
-            'sortDir'
-        ));
+        return view('subaccount.index', compact('subaccounts', 'canCreate', 'canEdit', 'canDelete'));
     }
 
     public function create()

@@ -10,79 +10,18 @@ class WhController extends Controller
 {
     public function index(Request $request)
     {
-        $search   = trim((string) $request->search);
-        $filterBy = $request->filter_by ?? 'all';
-
-        // Sorting (klik header)
-        $allowedSorts = ['fwhcode', 'fwhname', 'fwhid']; // tambahkan kolom lain jika perlu
+        $allowedSorts = ['fwhcode', 'fwhname', 'fwhid', 'faddress'];
         $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fwhid';
         $sortDir = $request->sort_dir === 'asc' ? 'asc' : 'desc';
 
-        $gudangs = Wh::with('cabang')
-            ->when($search !== '', function ($q) use ($search, $filterBy) {
-                $q->where(function ($qq) use ($search, $filterBy) {
-                    if ($filterBy === 'fwhcode') {
-                        $qq->where('fwhcode', 'ILIKE', "%{$search}%");
-                    } elseif ($filterBy === 'fwhid') {
-                        $qq->whereRaw('CAST(fwhid AS TEXT) ILIKE ?', ["%{$search}%"]);
-                    } elseif ($filterBy === 'fwhname') {
-                        $qq->where('fwhname', 'ILIKE', "%{$search}%");
-                    } else { // 'all'
-                        $qq->where('fwhcode', 'ILIKE', "%{$search}%")
-                            ->orWhereRaw('CAST(fwhid AS TEXT) ILIKE ?', ["%{$search}%"])
-                            ->orWhere('fwhname', 'ILIKE', "%{$search}%");
-                    }
-                });
-            })
-            ->orderBy($sortBy, $sortDir)
-            ->orderBy('fwhid', 'desc') // tie-breaker
-            ->paginate(10)
-            ->withQueryString();
+        $permsArr  = explode(',', (string) session('user_restricted_permissions', ''));
+        $canCreate = in_array('createGudang', $permsArr, true);
+        $canEdit   = in_array('updateGudang', $permsArr, true);
+        $canDelete = in_array('deleteGudang', $permsArr, true);
 
-        // permissions
-        $canCreate = in_array('createGudang', explode(',', session('user_restricted_permissions', '')));
-        $canEdit   = in_array('updateGudang', explode(',', session('user_restricted_permissions', '')));
-        $canDelete = in_array('deleteGudang', explode(',', session('user_restricted_permissions', '')));
+        $gudangs = Wh::orderBy($sortBy, $sortDir)->get(['fwhcode', 'fwhname', 'fwhid', 'faddress']);
 
-        // Respon AJAX
-        if ($request->ajax()) {
-            $rows = collect($gudangs->items())->map(function ($g) {
-                return [
-                    'fwhid'       => $g->fwhid,
-                    'fwhcode'     => $g->fwhcode,
-                    'fwhname'     => $g->fwhname,
-                    'cabang_code' => optional($g->cabang)->fcabangkode ?? null,
-                    'cabang_name' => optional($g->cabang)->fcabangname ?? null,
-                    'faddress'    => $g->faddress ?? null, // kalau ada kolom alamat di tabel wh
-                    'edit_url'    => route('gudang.edit', $g->fwhid),
-                    'destroy_url' => route('gudang.destroy', $g->fwhid),
-                ];
-            });
-
-            return response()->json([
-                'data'  => $rows,
-                'perms' => ['can_create' => $canCreate, 'can_edit' => $canEdit, 'can_delete' => $canDelete],
-                'links' => [
-                    'prev'         => $gudangs->previousPageUrl(),
-                    'next'         => $gudangs->nextPageUrl(),
-                    'current_page' => $gudangs->currentPage(),
-                    'last_page'    => $gudangs->lastPage(),
-                ],
-                'sort' => ['by' => $sortBy, 'dir' => $sortDir], // penting untuk ikon di front-end
-            ]);
-        }
-
-        // Render awal (Blade)
-        return view('gudang.index', compact(
-            'gudangs',
-            'filterBy',
-            'search',
-            'canCreate',
-            'canEdit',
-            'canDelete',
-            'sortBy',
-            'sortDir'
-        ));
+        return view('gudang.index', compact('gudangs', 'canCreate', 'canEdit', 'canDelete'));
     }
 
     public function create()

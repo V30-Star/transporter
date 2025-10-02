@@ -36,8 +36,8 @@
         <table id="satuanTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
-                    <th class="border px-2 py-2">Kode Satuan</th>
-                    <th class="border px-2 py-2">Nama Satuan</th>
+                    <th>Kode Satuan</th>
+                    <th>Nama Satuan</th>
                     @if ($showActionsColumn)
                         <th class="border px-2 py-2">Aksi</th>
                     @endif
@@ -46,8 +46,8 @@
             <tbody>
                 @forelse($satuans as $item)
                     <tr>
-                        <td class="border px-2 py-1">{{ $item->fsatuancode }}</td>
-                        <td class="border px-2 py-1">{{ $item->fsatuanname }}</td>
+                        <td>{{ $item->fsatuancode }}</td>
+                        <td>{{ $item->fsatuanname }}</td>
                         @if ($showActionsColumn)
                             <td class="border px-2 py-1 space-x-2">
                                 @if ($canEdit)
@@ -188,20 +188,9 @@
                     searchable: false,
                     width: 120
                 }],
-                language: {
-                    search: "Cari:",
-                    lengthMenu: "Tampil _MENU_ data",
-                    info: "Menampilkan _START_–_END_ dari _TOTAL_ data",
-                    infoEmpty: "Menampilkan 0 data",
-                    infoFiltered: "(disaring dari _MAX_ total data)",
-                    zeroRecords: "Tidak ada data yang cocok",
-                    paginate: {
-                        previous: "←",
-                        next: "→"
-                    }
-                },
                 initComplete: function() {
-                    const $len = $(this.api().container()).find('.dt-length .dt-input');
+                    const api = this.api();
+                    const $len = $(api.table().container()).find('.dt-length .dt-input');
                     $len.addClass('focus:outline-none focus:ring focus:ring-blue-100');
                 }
             });
