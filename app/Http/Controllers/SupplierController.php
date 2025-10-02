@@ -9,11 +9,11 @@ class SupplierController extends Controller
 {
     public function index(Request $request)
     {
-        $allowedSorts = ['fsuppliercode', 'fsuppliername', 'fsupplierid', 'fkontakperson', 'faddress', 'fcity'];
+        $allowedSorts = ['fsuppliercode', 'fsuppliername', 'fsupplierid', 'fkontakperson', 'faddress'];
         $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fsupplierid';
         $sortDir = $request->sort_dir === 'asc' ? 'asc' : 'desc';
 
-        $suppliers = Supplier::orderBy($sortBy, $sortDir)->get(['fsuppliercode', 'fsuppliername', 'fsupplierid',  'fkontakperson', 'faddress', 'fcity']);
+        $suppliers = Supplier::orderBy($sortBy, $sortDir)->get(['fsuppliercode', 'fsuppliername', 'fsupplierid',  'fkontakperson', 'faddress']);
 
         $canCreate = in_array('createSupplier', explode(',', session('user_restricted_permissions', '')));
         $canEdit   = in_array('updateSupplier', explode(',', session('user_restricted_permissions', '')));

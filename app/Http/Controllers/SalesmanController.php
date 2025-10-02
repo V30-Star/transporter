@@ -21,7 +21,7 @@ class SalesmanController extends Controller
         $canEdit   = in_array('updateSalesman', $permsArr, true);
         $canDelete = in_array('deleteSalesman', $permsArr, true);
 
-        return view('Salesman.index', compact('salesmans', 'canCreate', 'canEdit', 'canDelete'));
+        return view('salesman.index', compact('salesmans', 'canCreate', 'canEdit', 'canDelete'));
     }
 
     public function create()

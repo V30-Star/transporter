@@ -54,7 +54,7 @@
                         <td>{{ $item->fsuppliername }}</td>
                         <td>{{ $item->fkontakperson ?? '-' }}</td>
                         <td> {{ !empty(trim($item->faddress)) ? $item->faddress : '-' }}
-                        <td>{{ $item->fcity }}</td>
+                        <td>{{ $item->faddress }}</td>
                         </td>
                         @if ($showActionsColumn)
                             <td class="border px-2 py-1 space-x-2">
