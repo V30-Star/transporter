@@ -9,17 +9,29 @@ class SubaccountController extends Controller
 {
     public function index(Request $request)
     {
-        $allowedSorts = ['fsubaccountcode', 'fsubaccountname', 'fsubaccountid'];
+        $allowedSorts = ['fsubaccountcode', 'fsubaccountname', 'fsubaccountid', 'fnonactive'];
         $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fsubaccountid';
         $sortDir = $request->sort_dir === 'asc' ? 'asc' : 'desc';
 
-        $subaccounts = Subaccount::orderBy($sortBy, $sortDir)->get(['fsubaccountcode', 'fsubaccountname', 'fsubaccountid']);
+        $status = $request->query('status');
+
+        $query = Subaccount::query();
+
+        if ($status === 'active') {
+            $query->where('fnonactive', '0');
+        } elseif ($status === 'nonactive') {
+            $query->where('fnonactive', '1');
+        }
+
+        $subaccounts = $query
+            ->orderBy($sortBy, $sortDir)
+            ->get(['fsubaccountcode', 'fsubaccountname', 'fsubaccountid', 'fnonactive']);
 
         $canCreate = in_array('createSubAccount', explode(',', session('user_restricted_permissions', '')));
         $canEdit   = in_array('updateSubAccount', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deleteSubAccount', explode(',', session('user_restricted_permissions', '')));
 
-        return view('subaccount.index', compact('subaccounts', 'canCreate', 'canEdit', 'canDelete'));
+        return view('subaccount.index', compact('subaccounts', 'canCreate', 'canEdit', 'canDelete', 'status'));
     }
 
     public function create()

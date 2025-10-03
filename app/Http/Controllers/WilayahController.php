@@ -18,17 +18,27 @@ class WilayahController extends Controller
 
     public function index(Request $request)
     {
-        $allowedSorts = ['fwilayahcode', 'fwilayahname', 'fwilayahid'];
+        $allowedSorts = ['fwilayahcode', 'fwilayahname', 'fwilayahid', 'fnonactive'];
         $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fwilayahid';
         $sortDir = $request->sort_dir === 'asc' ? 'asc' : 'desc';
 
-        $wilayahs = Wilayah::orderBy($sortBy, $sortDir)->get(['fwilayahcode', 'fwilayahname', 'fwilayahid']);
+        $status = $request->query('status');
+
+        $query = Wilayah::query();
+
+        if ($status === 'active') {
+            $query->where('fnonactive', '0');
+        } elseif ($status === 'nonactive') {
+            $query->where('fnonactive', '1');
+        }
+
+        $wilayahs = Wilayah::orderBy($sortBy, $sortDir)->get(['fwilayahcode', 'fwilayahname', 'fwilayahid', 'fnonactive']);
 
         $canCreate = in_array('createWilayah', explode(',', session('user_restricted_permissions', '')));
         $canEdit   = in_array('updateWilayah', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deleteWilayah', explode(',', session('user_restricted_permissions', '')));
 
-        return view('master.wilayah.index', compact('wilayahs', 'canCreate', 'canEdit', 'canDelete'));
+        return view('master.wilayah.index', compact('wilayahs', 'canCreate', 'canEdit', 'canDelete', 'status'));
     }
 
     public function create()

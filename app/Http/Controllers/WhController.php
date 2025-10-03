@@ -10,18 +10,30 @@ class WhController extends Controller
 {
     public function index(Request $request)
     {
-        $allowedSorts = ['fwhcode', 'fwhname', 'fwhid', 'faddress'];
+        $allowedSorts = ['fwhcode', 'fwhname', 'fwhid', 'faddress', 'fnonactive'];
         $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fwhid';
         $sortDir = $request->sort_dir === 'asc' ? 'asc' : 'desc';
+
+        $status = $request->query('status');
+
+        $query = Wh::query();
+
+        if ($status === 'active') {
+            $query->where('fnonactive', '0');
+        } elseif ($status === 'nonactive') {
+            $query->where('fnonactive', '1');
+        }
+
+        $gudangs = $query
+            ->orderBy($sortBy, $sortDir)
+            ->get(['fwhcode', 'fwhname', 'fwhid', 'faddress', 'fnonactive']);
 
         $permsArr  = explode(',', (string) session('user_restricted_permissions', ''));
         $canCreate = in_array('createGudang', $permsArr, true);
         $canEdit   = in_array('updateGudang', $permsArr, true);
         $canDelete = in_array('deleteGudang', $permsArr, true);
 
-        $gudangs = Wh::orderBy($sortBy, $sortDir)->get(['fwhcode', 'fwhname', 'fwhid', 'faddress']);
-
-        return view('gudang.index', compact('gudangs', 'canCreate', 'canEdit', 'canDelete'));
+        return view('gudang.index', compact('gudangs', 'canCreate', 'canEdit', 'canDelete', 'status'));
     }
 
     public function create()

@@ -24,6 +24,8 @@
         @endphp
 
         <div class="flex justify-end items-center mb-4">
+            <div></div>
+
             @if ($canCreate)
                 <a href="{{ route('groupproduct.create') }}"
                     class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
@@ -32,14 +34,27 @@
             @endif
         </div>
 
+        <div id="statusFilterTemplate" class="hidden">
+            <div class="flex items-center gap-2" id="statusFilterWrap">
+                <span class="text-sm text-gray-700">Status</span>
+                <select data-role="status-filter" class="border rounded px-2 py-1">
+                    <option value="all">All</option>
+                    <option value="active" selected>Active</option>
+                    <option value="nonactive">Non Active</option>
+                </select>
+            </div>
+        </div>
+
         {{-- Table --}}
         <table id="groupproductTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
                     <th class="border px-2 py-2">Kode Group Product</th>
                     <th class="border px-2 py-2">Nama Group Product</th>
+                    <th class="border px-2 py-2">Status</th>
+                    <th class="border px-2 py-2" data-col="statusRaw">StatusRaw</th>
                     @if ($showActionsColumn)
-                        <th class="border px-2 py-2">Aksi</th>
+                        <th class="border px-2 py-2 col-aksi">Aksi</th>
                     @endif
                 </tr>
             </thead>
@@ -48,6 +63,14 @@
                     <tr class="hover:bg-gray-50">
                         <td>{{ $item->fgroupcode }}</td>
                         <td>{{ $item->fgroupname }}</td>
+                        <td>
+                            @php $isActive = (string)$item->fnonactive === '0'; @endphp
+                            <span
+                                class="inline-flex items-center px-2 py-0.5 rounded text-xs {{ $isActive ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-700' }}">
+                                {{ $isActive ? 'Active' : 'Non Active' }}
+                            </span>
+                        </td>
+                        <td>{{ (string) $item->fnonactive }}</td>
                         @if ($showActionsColumn)
                             <td class="border px-2 py-1 space-x-2">
                                 @if ($canEdit)
@@ -139,6 +162,29 @@
             padding: .25rem .5rem;
             font-size: .825rem;
         }
+
+        #groupproductTable th,
+        #groupproductTable td {
+            text-align: left !important;
+            vertical-align: middle;
+        }
+
+        #groupproductTable th:last-child,
+        #groupproductTable td:last-child {
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .dataTables_wrapper .dt-search {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            flex-wrap: wrap;
+        }
+
+        #statusFilterWrap {
+            margin-right: .25rem;
+        }
     </style>
 @endpush
 
@@ -187,20 +233,52 @@
                     bottomEnd: 'paging'
                 },
                 columnDefs: [{
-                    targets: -1,
+                    targets: 'col-aksi',
                     orderable: false,
                     searchable: false,
                     width: 120
                 }],
+                language: {
+                    lengthMenu: "Show _MENU_ entries"
+                },
                 initComplete: function() {
                     const api = this.api();
-                    const $len = $(api.table().container()).find('.dt-length .dt-input');
-                    $len.addClass('focus:outline-none focus:ring focus:ring-blue-100');
 
-                    const $search = $(api.table().container()).find('.dt-search .dt-input');
-                    $search.css({
+                    const $toolbarSearch = $(api.table().container()).find('.dt-search');
+                    const $filter = $('#statusFilterTemplate #statusFilterWrap').clone(true, true);
+
+                    const $select = $filter.find('select[data-role="status-filter"]');
+                    $select.attr('id', 'statusFilterDT');
+
+                    $toolbarSearch.append($filter);
+
+                    const statusRawIdx = api.columns().indexes().toArray()
+                        .find(i => $(api.column(i).header()).attr('data-col') === 'statusRaw');
+
+                    if (statusRawIdx === undefined) {
+                        console.warn('Kolom StatusRaw tidak ditemukan.');
+                        return;
+                    }
+
+                    api.column(statusRawIdx).visible(false);
+
+                    const $searchInput = $toolbarSearch.find('.dt-input');
+                    $searchInput.css({
                         width: '400px',
-                        'max-width': '100%'
+                        maxWidth: '100%'
+                    });
+
+                    api.column(statusRawIdx).search('^0$', true, false).draw();
+
+                    $select.on('change', function() {
+                        const v = this.value;
+                        if (v === 'active') {
+                            api.column(statusRawIdx).search('^0$', true, false).draw();
+                        } else if (v === 'nonactive') {
+                            api.column(statusRawIdx).search('^1$', true, false).draw();
+                        } else {
+                            api.column(statusRawIdx).search('', true, false).draw(); // all
+                        }
                     });
                 }
             });

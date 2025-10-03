@@ -10,17 +10,29 @@ class AccountController extends Controller
 {
     public function index(Request $request)
     {
-        $allowedSorts = ['faccount', 'faccname', 'faccid', 'fnormal', 'fend'];
+        $allowedSorts = ['faccount', 'faccname', 'faccid', 'fnormal', 'fend', 'fnonactive'];
         $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'faccount';
         $sortDir = $request->sort_dir === 'desc' ? 'desc' : 'asc';
 
-        $accounts = Account::orderBy($sortBy, $sortDir)->get(['faccount', 'faccname', 'faccid', 'fnormal', 'fend']);
+        $status = $request->query('status');
+
+        $query = Account::query();
+
+        if ($status === 'active') {
+            $query->where('fnonactive', '0');
+        } elseif ($status === 'nonactive') {
+            $query->where('fnonactive', '1');
+        }
+
+        $accounts = $query
+            ->orderBy($sortBy, $sortDir)
+            ->get(['faccount', 'faccname', 'faccid', 'fnormal', 'fend', 'fnonactive']);
 
         $canCreate = in_array('createAccount', explode(',', session('user_restricted_permissions', '')));
         $canEdit   = in_array('updateAccount', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deleteAccount', explode(',', session('user_restricted_permissions', '')));
 
-        return view('account.index', compact('accounts', 'canCreate', 'canEdit', 'canDelete'));
+        return view('account.index', compact('accounts', 'canCreate', 'canEdit', 'canDelete', 'status'));
     }
 
     public function browse(Request $request)

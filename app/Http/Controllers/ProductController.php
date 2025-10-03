@@ -13,17 +13,29 @@ class ProductController extends Controller
 {
     public function index(Request $request)
     {
-        $allowedSorts = ['fprdcode', 'fprdname', 'fsatuankecil', 'fminstock', 'fprdid'];
+        $allowedSorts = ['fprdcode', 'fprdname', 'fsatuankecil', 'fminstock', 'fprdid', 'fnonactive'];
         $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fprdid';
         $sortDir = $request->sort_dir === 'asc' ? 'asc' : 'desc';
 
-        $products = Product::orderBy($sortBy, $sortDir)->get(['fprdcode', 'fprdname', 'fsatuankecil', 'fminstock', 'fprdid']);
+        $status = $request->query('status');
+
+        $query = Product::query();
+
+        if ($status === 'active') {
+            $query->where('fnonactive', '0');
+        } elseif ($status === 'nonactive') {
+            $query->where('fnonactive', '1');
+        }
+
+        $products = $query
+            ->orderBy($sortBy, $sortDir)
+            ->get(['fprdcode', 'fprdname', 'fsatuankecil', 'fminstock', 'fprdid', 'fnonactive']);
 
         $canCreate = in_array('createProduct', explode(',', session('user_restricted_permissions', '')));
         $canEdit   = in_array('updateProduct', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deleteProduct', explode(',', session('user_restricted_permissions', '')));
 
-        return view('product.index', compact('products', 'canCreate', 'canEdit', 'canDelete'));
+        return view('product.index', compact('products', 'canCreate', 'canEdit', 'canDelete', 'status'));
     }
 
     public function suggestNames(Request $request)

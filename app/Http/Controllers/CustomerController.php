@@ -14,17 +14,29 @@ class CustomerController extends Controller
     // Index method to list all customers with search functionality
     public function index(Request $request)
     {
-        $allowedSorts = ['fcustomercode', 'fcustomername', 'fcustomerid', 'faddress', 'faddress', 'faddress', 'ftempo', 'ftempo', 'fkirimaddress1'];
+        $allowedSorts = ['fcustomercode', 'fcustomername', 'fcustomerid', 'faddress', 'faddress', 'faddress', 'ftempo', 'ftempo', 'fkirimaddress1', 'fnonactive'];
         $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fcustomerid';
         $sortDir = $request->sort_dir === 'asc' ? 'asc' : 'desc';
 
-        $customers = Customer::orderBy($sortBy, $sortDir)->get(['fcustomercode', 'fcustomername', 'fcustomerid', 'faddress', 'faddress', 'faddress', 'ftempo', 'ftempo', 'fkirimaddress1']);
+        $status = $request->query('status');
+
+        $query = Customer::query();
+
+        if ($status === 'active') {
+            $query->where('fnonactive', '0');
+        } elseif ($status === 'nonactive') {
+            $query->where('fnonactive', '1');
+        }
+
+        $customers = $query
+            ->orderBy($sortBy, $sortDir)
+            ->get(['fcustomercode', 'fcustomername', 'fcustomerid', 'faddress', 'faddress', 'faddress', 'ftempo', 'ftempo', 'fkirimaddress1', 'fnonactive']);
 
         $canCreate = in_array('createCustomer', explode(',', session('user_restricted_permissions', '')));
         $canEdit   = in_array('updateCustomer', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deleteCustomer', explode(',', session('user_restricted_permissions', '')));
 
-        return view('master.customer.index', compact('customers', 'canCreate', 'canEdit', 'canDelete'));
+        return view('master.customer.index', compact('customers', 'canCreate', 'canEdit', 'canDelete', 'status'));
     }
 
     private function generateCustomerCode(): string

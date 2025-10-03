@@ -9,17 +9,27 @@ class SupplierController extends Controller
 {
     public function index(Request $request)
     {
-        $allowedSorts = ['fsuppliercode', 'fsuppliername', 'fsupplierid', 'fkontakperson', 'faddress'];
+        $allowedSorts = ['fsuppliercode', 'fsuppliername', 'fsupplierid', 'fkontakperson', 'faddress', 'fnonactive'];
         $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fsupplierid';
         $sortDir = $request->sort_dir === 'asc' ? 'asc' : 'desc';
 
-        $suppliers = Supplier::orderBy($sortBy, $sortDir)->get(['fsuppliercode', 'fsuppliername', 'fsupplierid',  'fkontakperson', 'faddress']);
+        $status = $request->query('status');
+
+        $query = Supplier::query();
+
+        if ($status === 'active') {
+            $query->where('fnonactive', '0');
+        } elseif ($status === 'nonactive') {
+            $query->where('fnonactive', '1');
+        }
+
+        $suppliers = Supplier::orderBy($sortBy, $sortDir)->get(['fsuppliercode', 'fsuppliername', 'fsupplierid',  'fkontakperson', 'faddress', 'fnonactive']);
 
         $canCreate = in_array('createSupplier', explode(',', session('user_restricted_permissions', '')));
         $canEdit   = in_array('updateSupplier', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deleteSupplier', explode(',', session('user_restricted_permissions', '')));
 
-        return view('supplier.index', compact('suppliers', 'canCreate', 'canEdit', 'canDelete'));
+        return view('supplier.index', compact('suppliers', 'canCreate', 'canEdit', 'canDelete', 'status'));
     }
 
     public function create()
