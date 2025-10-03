@@ -123,6 +123,7 @@
 
         #wilayahTable th,
         #wilayahTable td {
+            text-align: left !important;
             vertical-align: middle;
         }
 
@@ -145,62 +146,67 @@
 @endpush
 
 @push('scripts')
-{{-- jQuery + DataTables JS (CDN) --}}
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="https://cdn.datatables.net/2.1.6/js/dataTables.min.js"></script>
-<script>
-    document.addEventListener('alpine:init', () => {
-        /* no-op */
-    });
-
-    $(function() {
-        // Inisialisasi DataTables
-        const hasActions = {{ $showActionsColumn ? 'true' : 'false' }};
-        const columns = hasActions ? [{
-                title: 'Kode Wilayah'
-            },
-            {
-                title: 'Nama Wilayah'
-            },
-            {
-                title: 'Aksi',
-                orderable: false,
-                searchable: false
-            }
-        ] : [{
-                title: 'Kode Wilayah'
-            },
-            {
-                title: 'Nama Wilayah'
-            }
-        ];
-
-        $('#wilayahTable').DataTable({
-            autoWidth: false,
-            pageLength: 25,
-            lengthMenu: [10, 25, 50, 100],
-            order: [
-                [0, 'asc']
-            ],
-            layout: {
-                topStart: 'search', // Search pindah ke kiri
-                topEnd: 'pageLength', // Length menu pindah ke kanan
-                bottomStart: 'info',
-                bottomEnd: 'paging'
-            },
-            columnDefs: [{
-                targets: -1,
-                orderable: false,
-                searchable: false,
-                width: 120
-            }],
-            initComplete: function() {
-                const api = this.api();
-                const $len = $(api.table().container()).find('.dt-length .dt-input');
-                $len.addClass('focus:outline-none focus:ring focus:ring-blue-100');
-            }
+    {{-- jQuery + DataTables JS (CDN) --}}
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/2.1.6/js/dataTables.min.js"></script>
+    <script>
+        document.addEventListener('alpine:init', () => {
+            /* no-op */
         });
 
-    });
-</script>
+        $(function() {
+            // Inisialisasi DataTables
+            const hasActions = {{ $showActionsColumn ? 'true' : 'false' }};
+            const columns = hasActions ? [{
+                    title: 'Kode Wilayah'
+                },
+                {
+                    title: 'Nama Wilayah'
+                },
+                {
+                    title: 'Aksi',
+                    orderable: false,
+                    searchable: false
+                }
+            ] : [{
+                    title: 'Kode Wilayah'
+                },
+                {
+                    title: 'Nama Wilayah'
+                }
+            ];
+
+            $('#wilayahTable').DataTable({
+                autoWidth: false,
+                pageLength: 10,
+                lengthMenu: [10, 25, 50, 100],
+                order: [
+                    [0, 'asc']
+                ],
+                layout: {
+                    topStart: 'search', // Search pindah ke kiri
+                    topEnd: 'pageLength', // Length menu pindah ke kanan
+                    bottomStart: 'info',
+                    bottomEnd: 'paging'
+                },
+                columnDefs: [{
+                    targets: -1,
+                    orderable: false,
+                    searchable: false,
+                    width: 120
+                }],
+                initComplete: function() {
+                    const api = this.api();
+                    const $len = $(api.table().container()).find('.dt-length .dt-input');
+                    $len.addClass('focus:outline-none focus:ring focus:ring-blue-100');
+
+                    const $search = $(api.table().container()).find('.dt-search .dt-input');
+                    $search.css({
+                        width: '400px',
+                        'max-width': '100%'
+                    });
+                }
+            });
+        });
+    </script>
 @endpush

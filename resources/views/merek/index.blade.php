@@ -119,6 +119,7 @@
 
         #merekTable th,
         #merekTable td {
+            text-align: left !important;
             vertical-align: middle;
         }
 
@@ -173,7 +174,7 @@
 
             $('#merekTable').DataTable({
                 autoWidth: false,
-                pageLength: 25,
+                pageLength: 10,
                 lengthMenu: [10, 25, 50, 100],
                 order: [
                     [0, 'asc']
@@ -194,9 +195,14 @@
                     const api = this.api();
                     const $len = $(api.table().container()).find('.dt-length .dt-input');
                     $len.addClass('focus:outline-none focus:ring focus:ring-blue-100');
+
+                    const $search = $(api.table().container()).find('.dt-search .dt-input');
+                    $search.css({
+                        width: '400px',
+                        'max-width': '100%'
+                    });
                 }
             });
-
         });
     </script>
 @endpush
