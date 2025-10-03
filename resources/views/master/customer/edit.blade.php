@@ -145,7 +145,7 @@
                         <input type="text"
                             class="w-full border rounded px-3 py-2 @error('fcustomername') is-invalid @enderror"
                             name="fcustomername" id="fcustomername" placeholder="Masukkan Nama Customer"
-                            value="{{ old('fcustomername', $customer->fcustomername) }}">
+                            value="{{ old('fcustomername', $customer->fcustomername) }}" autofocus>
                         @error('fcustomername')
                             <div class="invalid-feedback">
                                 {{ $message }}
@@ -231,12 +231,12 @@
                             <option value="Setiap Minggu"
                                 {{ old('fjadwaltukarfaktur', $customer->fjadwaltukarfaktur) == 'Setiap Minggu' ? 'selected' : '' }}>
                                 Setiap Minggu</option>
-                            <option value="Setiap Bulan"
-                                {{ old('fjadwaltukarfaktur', $customer->fjadwaltukarfaktur) == 'Setiap Bulan' ? 'selected' : '' }}>
-                                Setiap Bulan</option>
-                            <option value="Sesuai Permintaan"
-                                {{ old('fjadwaltukarfaktur', $customer->fjadwaltukarfaktur) == 'Sesuai Permintaan' ? 'selected' : '' }}>
-                                Sesuai Permintaan</option>
+                            <option value="Minggu Ganjil"
+                                {{ old('fjadwaltukarfaktur', $customer->fjadwaltukarfaktur) == 'Minggu Ganjil' ? 'selected' : '' }}>
+                                Minggu Ganjil</option>
+                            <option value="Minggu Genap"
+                                {{ old('fjadwaltukarfaktur', $customer->fjadwaltukarfaktur) == 'Minggu Genap' ? 'selected' : '' }}>
+                                Minggu Genap</option>
                         </select>
                         @error('fjadwaltukarfaktur')
                             <div class="invalid-feedback">

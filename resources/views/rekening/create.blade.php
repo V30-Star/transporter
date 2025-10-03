@@ -32,7 +32,8 @@
                     <div>
                         <label class="block text-sm font-medium">Nama Rekening</label>
                         <input type="text" name="frekeningname" value="{{ old('frekeningname') }}"
-                            class="w-full border rounded px-3 py-2 @error('frekeningname') border-red-500 @enderror">
+                            class="w-full border rounded px-3 py-2 @error('frekeningname') border-red-500 @enderror"
+                            autofocus>
                         @error('frekeningname')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror

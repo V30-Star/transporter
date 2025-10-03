@@ -252,7 +252,7 @@
                 <div class="mt-2 w-1/2">
                     <label class="block text-sm font-medium">Nama Product</label>
                     <input type="text" name="fprdname" id="fprdname" value="{{ old('fprdname') }}"
-                        class="w-full border rounded px-3 py-2 @error('fprdname') border-red-500 @enderror">
+                        class="w-full border rounded px-3 py-2 @error('fprdname') border-red-500 @enderror" autofocus>
                     @error('fprdname')
                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                     @enderror

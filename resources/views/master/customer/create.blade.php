@@ -144,7 +144,7 @@
                         <input type="text"
                             class="w-full border rounded px-3 py-2 @error('fcustomername') is-invalid @enderror"
                             name="fcustomername" id="fcustomername" placeholder="Masukkan Nama Customer"
-                            value="{{ old('fcustomername') }}">
+                            value="{{ old('fcustomername') }}" autofocus>
                         @error('fcustomername')
                             <div class="invalid-feedback">
                                 {{ $message }}
@@ -226,8 +226,8 @@
                         <select name="fjadwaltukarfaktur"
                             class="w-full border rounded px-3 py-2 @error('fjadwaltukarfaktur') border-red-500 @enderror">
                             <option value="Setiap Minggu">Setiap Minggu</option>
-                            <option value="Setiap Bulan">Setiap Bulan</option>
-                            <option value="Sesuai Permintaan">Sesuai Permintaan</option>
+                            <option value="Minggu Ganjil">Minggu Ganjil</option>
+                            <option value="Minggu Genap">Minggu Genap</option>
                         </select>
                         @error('fjadwaltukarfaktur')
                             <div class="invalid-feedback">

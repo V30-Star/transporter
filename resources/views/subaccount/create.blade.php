@@ -88,7 +88,8 @@
                     <div>
                         <label class="block text-sm font-medium">Nama Subaccount</label>
                         <input type="text" name="fsubaccountname" value="{{ old('fsubaccountname') }}"
-                            class="w-full border rounded px-3 py-2 @error('fsubaccountname') border-red-500 @enderror">
+                            class="w-full border rounded px-3 py-2 @error('fsubaccountname') border-red-500 @enderror"
+                            autofocus>
                         @error('fsubaccountname')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror

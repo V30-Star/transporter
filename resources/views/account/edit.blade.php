@@ -124,7 +124,8 @@
             <div class="mt-4">
                 <label class="block text-sm font-medium">Nama Account</label>
                 <input type="text" name="faccname" value="{{ old('faccname', $account->faccname) }}"
-                    class="w-full border rounded px-3 py-2 @error('faccname') border-red-500 @enderror" maxlength="50">
+                    class="w-full border rounded px-3 py-2 @error('faccname') border-red-500 @enderror" maxlength="50"
+                    autofocus>
                 @error('faccname')
                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                 @enderror

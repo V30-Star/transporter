@@ -31,7 +31,8 @@
                     <div>
                         <label class="block text-sm font-medium">Nama Satuan</label>
                         <input type="text" name="fsatuanname" value="{{ old('fsatuanname') }}"
-                            class="w-full border rounded px-3 py-2 @error('fsatuanname') border-red-500 @enderror">
+                            class="w-full border rounded px-3 py-2 @error('fsatuanname') border-red-500 @enderror"
+                            autofocus>
                         @error('fsatuanname')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
