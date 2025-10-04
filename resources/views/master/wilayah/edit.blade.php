@@ -14,7 +14,7 @@
                 <div>
                     <label class="block text-sm font-medium">Kode Wilayah</label>
                     <input type="text" name="fwilayahcode" value="{{ old('fwilayahcode', $wilayah->fwilayahcode) }}"
-                        class="w-full border rounded px-3 py-2 @error('fwilayahcode') border-red-500 @enderror">
+                        class="w-full border rounded px-3 py-2 @error('fwilayahcode') border-red-500 @enderror" autofocus>
                     @error('fwilayahcode')
                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                     @enderror
@@ -23,7 +23,7 @@
                 <div>
                     <label class="block text-sm font-medium">Nama Wilayah</label>
                     <input type="text" name="fwilayahname" value="{{ old('fwilayahname', $wilayah->fwilayahname) }}"
-                        class="w-full border rounded px-3 py-2 @error('fwilayahname') border-red-500 @enderror" autofocus>
+                        class="w-full border rounded px-3 py-2 @error('fwilayahname') border-red-500 @enderror">
                     @error('fwilayahname')
                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                     @enderror

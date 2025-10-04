@@ -12,7 +12,8 @@
                 <div>
                     <label class="block text-sm font-medium">Kode Satuan</label>
                     <input type="text" name="fsatuancode" value="{{ old('fsatuancode', $satuan->fsatuancode) }}"
-                        class="w-full border rounded px-3 py-2 @error('fsatuancode') border-red-500 @enderror" maxlength="3">
+                        class="w-full border rounded px-3 py-2 @error('fsatuancode') border-red-500 @enderror" maxlength="3"
+                        autofocus>
                     @error('fsatuancode')
                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                     @enderror
@@ -21,7 +22,7 @@
                 <div>
                     <label class="block text-sm font-medium">Nama Satuan</label>
                     <input type="text" name="fsatuanname" value="{{ old('fsatuanname', $satuan->fsatuanname) }}"
-                        class="w-full border rounded px-3 py-2 @error('fsatuanname') border-red-500 @enderror" autofocus>
+                        class="w-full border rounded px-3 py-2 @error('fsatuanname') border-red-500 @enderror">
                     @error('fsatuanname')
                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                     @enderror

@@ -22,7 +22,8 @@
                     <div>
                         <label class="block text-sm font-medium">Kode Supplier</label>
                         <input type="text" name="fsuppliercode" value="{{ old('fsuppliercode') }}"
-                            class="w-full border rounded px-3 py-2 @error('fsuppliercode') border-red-500 @enderror">
+                            class="w-full border rounded px-3 py-2 @error('fsuppliercode') border-red-500 @enderror"
+                            autofocus>
                         @error('fsuppliercode')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
@@ -30,7 +31,7 @@
                     <div>
                         <label class="block text-sm font-medium">Nama Supplier</label>
                         <input type="text" name="fsuppliername" value="{{ old('fsuppliername') }}"
-                            class="w-full border rounded px-3 py-2 @error('fsuppliername') border-red-500 @enderror" autofocus>
+                            class="w-full border rounded px-3 py-2 @error('fsuppliername') border-red-500 @enderror">
                         @error('fsuppliername')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror

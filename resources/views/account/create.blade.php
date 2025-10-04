@@ -58,7 +58,8 @@
                     <label class="block text-sm font-medium">Account #</label>
                     <input type="text" name="faccount" value="{{ old('faccount') }}"
                         class="w-full border rounded px-3 py-2 @error('faccount') border-red-500 @enderror" maxlength="10"
-                        pattern="^\d+(-\d+)*$" title="Format harus berupa angka dengan tanda hubung (misal: 1-123)">
+                        pattern="^\d+(-\d+)*$" title="Format harus berupa angka dengan tanda hubung (misal: 1-123)"
+                        autofocus>
                     @error('faccount')
                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                     @enderror
@@ -67,8 +68,7 @@
                 <div class="mt-4">
                     <label class="block text-sm font-medium">Account Name</label>
                     <input type="text" name="faccname" value="{{ old('faccname') }}"
-                        class="w-full border rounded px-3 py-2 @error('faccname') border-red-500 @enderror" maxlength="50"
-                        autofocus>
+                        class="w-full border rounded px-3 py-2 @error('faccname') border-red-500 @enderror" maxlength="50">
                     @error('faccname')
                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                     @enderror
