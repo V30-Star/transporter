@@ -228,15 +228,15 @@
                         <label class="block text-sm font-medium">Jadwal Tukar Faktur</label>
                         <select name="fjadwaltukarfaktur"
                             class="w-full border rounded px-3 py-2 @error('fjadwaltukarfaktur') border-red-500 @enderror">
-                            <option value="Setiap Minggu"
-                                {{ old('fjadwaltukarfaktur', $customer->fjadwaltukarfaktur) == 'Setiap Minggu' ? 'selected' : '' }}>
-                                Setiap Minggu</option>
-                            <option value="Minggu Ganjil"
-                                {{ old('fjadwaltukarfaktur', $customer->fjadwaltukarfaktur) == 'Minggu Ganjil' ? 'selected' : '' }}>
-                                Minggu Ganjil</option>
-                            <option value="Minggu Genap"
-                                {{ old('fjadwaltukarfaktur', $customer->fjadwaltukarfaktur) == 'Minggu Genap' ? 'selected' : '' }}>
-                                Minggu Genap</option>
+                            <option value="1"
+                                {{ old('fjadwaltukarfaktur', $customer->fjadwaltukarfaktur) == '1' ? 'selected' : '' }}>
+                                1</option>
+                            <option value="2"
+                                {{ old('fjadwaltukarfaktur', $customer->fjadwaltukarfaktur) == '2' ? 'selected' : '' }}>
+                                2</option>
+                            <option value="3"
+                                {{ old('fjadwaltukarfaktur', $customer->fjadwaltukarfaktur) == '3' ? 'selected' : '' }}>
+                                3</option>
                         </select>
                         @error('fjadwaltukarfaktur')
                             <div class="invalid-feedback">
@@ -245,16 +245,39 @@
                         @enderror
                     </div>
 
-                    <div>
-                        <label class="block text-sm font-medium">Kode Faktur Pajak</label>
-                        <input type="text" class="w-full border rounded px-3 py-2 @error('fkodefp') is-invalid @enderror"
-                            name="fkodefp" id="fkodefp" placeholder="010"
-                            value="{{ old('fkodefp', $customer->fkodefp) }}" maxlength="3">
-                        @error('fkodefp')
-                            <div class="invalid-feedback">
-                                {{ $message }}
-                            </div>
-                        @enderror
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium">Hari Tukar Faktur</label>
+                            <select name="fhari_tukarfaktur"
+                                class="w-full border rounded px-3 py-2 @error('fhari_tukarfaktur') border-red-500 @enderror">
+                                <option value="">-- Pilih Hari --</option>
+                                <option value="1">Senin</option>
+                                <option value="2">Selasa</option>
+                                <option value="3">Rabu</option>
+                                <option value="4">Kamis</option>
+                                <option value="5">Jumat</option>
+                                <option value="6">Sabtu</option>
+                                <option value="7">Minggu</option>
+                            </select>
+                            @error('fhari_tukarfaktur')
+                                <div class="invalid-feedback">
+                                    {{ $message }}
+                                </div>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium">Kode Faktur Pajak</label>
+                            <input type="text"
+                                class="w-full border rounded px-3 py-2 @error('fkodefp') is-invalid @enderror"
+                                name="fkodefp" id="fkodefp" placeholder="010" value="{{ old('fkodefp', '010') }}"
+                                maxlength="3">
+                            @error('fkodefp')
+                                <div class="invalid-feedback">
+                                    {{ $message }}
+                                </div>
+                            @enderror
+                        </div>
                     </div>
 
                     <!-- Alamat -->
@@ -272,8 +295,8 @@
                                 class="px-4 py-2 rounded border">Alamat Pajak</button>
                         </div>
                         <div x-show="selected === 'alamatsurat'">
-                            <textarea class="w-full border rounded px-3 py-2 @error('faddress') is-invalid @enderror" name="faddress" id="faddress"
-                                placeholder="Masukkan Alamat Surat" cols="10" rows="6">{{ old('faddress', $customer->faddress) }}</textarea>
+                            <textarea class="w-full border rounded px-3 py-2 @error('faddress') is-invalid @enderror" name="faddress"
+                                id="faddress" placeholder="Masukkan Alamat Surat" cols="10" rows="6">{{ old('faddress', $customer->faddress) }}</textarea>
                             @error('faddress')
                                 <div class="invalid-feedback">
                                     {{ $message }}

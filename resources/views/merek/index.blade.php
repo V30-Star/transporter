@@ -35,7 +35,7 @@
 
         <div id="statusFilterTemplate" class="hidden">
             <div class="flex items-center gap-2" id="statusFilterWrap">
-                <span class="text-sm text-gray-700">Status</span>
+                <span class="text-sm text-gray-700 no-sort">Status</span>
                 <select data-role="status-filter" class="border rounded px-2 py-1">
                     <option value="all">All</option>
                     <option value="active" selected>Active</option>
@@ -65,7 +65,7 @@
                         <td>
                             @php $isActive = (string)$item->fnonactive === '0'; @endphp
                             <span
-                                class="inline-flex items-center px-2 py-0.5 rounded text-xs {{ $isActive ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-700' }}">
+                                class="inline-flex items-center px-2 py-0.5 rounded text-xs {{ $isActive ? 'bg-green-100 text-green-700' : 'bg-red-200 text-red-700' }}">
                                 {{ $isActive ? 'Active' : 'Non Active' }}
                             </span>
                         </td>
@@ -232,11 +232,16 @@
                     bottomEnd: 'paging'
                 },
                 columnDefs: [{
-                    targets: 'col-aksi',
-                    orderable: false,
-                    searchable: false,
-                    width: 120
-                }],
+                        targets: 'col-aksi',
+                        orderable: false,
+                        searchable: false,
+                        width: 120
+                    },
+                    {
+                        targets: 'no-sort',
+                        orderable: false
+                    }
+                ],
                 language: {
                     lengthMenu: "Show _MENU_ entries"
                 },

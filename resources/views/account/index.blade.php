@@ -51,10 +51,10 @@
                 <tr>
                     <th class="border px-2 py-2">Account #</th>
                     <th class="border px-2 py-2">Nama Account</th>
-                    <th class="border px-2 py-2">Type</th>
-                    <th class="border px-2 py-2">Saldo Normal</th>
-                    <th class="border px-2 py-2">Status</th>
-                    <th class="border px-2 py-2" data-col="statusRaw">StatusRaw</th> 
+                    <th class="border px-2 py-2 no-sort">Type</th>
+                    <th class="border px-2 py-2 no-sort">Saldo Normal</th>
+                    <th class="border px-2 py-2 no-sort">Status</th>
+                    <th class="border px-2 py-2" data-col="statusRaw">StatusRaw</th>
                     @if ($showActionsColumn)
                         <th class="border px-2 py-2 col-aksi">Aksi</th>
                     @endif
@@ -70,11 +70,11 @@
                         <td>
                             @php $isActive = (string)$account->fnonactive === '0'; @endphp
                             <span
-                                class="inline-flex items-center px-2 py-0.5 rounded text-xs {{ $isActive ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-700' }}">
+                                class="inline-flex items-center px-2 py-0.5 rounded text-xs {{ $isActive ? 'bg-green-100 text-green-700' : 'bg-red-200 text-red-700' }}">
                                 {{ $isActive ? 'Active' : 'Non Active' }}
                             </span>
                         </td>
-                        <td>{{ (string) $account->fnonactive }}</td> 
+                        <td>{{ (string) $account->fnonactive }}</td>
                         @if ($showActionsColumn)
                             <td class="border px-2 py-1 space-x-2">
                                 @if ($canEdit)
@@ -249,11 +249,16 @@
                     bottomEnd: 'paging'
                 },
                 columnDefs: [{
-                    targets: 'col-aksi',
-                    orderable: false,
-                    searchable: false,
-                    width: 120
-                }],
+                        targets: 'col-aksi',
+                        orderable: false,
+                        searchable: false,
+                        width: 120
+                    },
+                    {
+                        targets: 'no-sort',
+                        orderable: false
+                    }
+                ],
                 language: {
                     lengthMenu: "Show _MENU_ entries"
                 },
@@ -264,7 +269,7 @@
                     const $filter = $('#statusFilterTemplate #statusFilterWrap').clone(true, true);
 
                     const $select = $filter.find('select[data-role="status-filter"]');
-                    $select.attr('id', 'statusFilterDT'); 
+                    $select.attr('id', 'statusFilterDT');
 
                     $toolbarSearch.append($filter);
 
