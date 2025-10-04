@@ -544,7 +544,7 @@ class Tr_pohController extends Controller
         $productName = $dt->pluck('fprdcode')->implode(', ');
         $approver = auth('sysuser')->user()->fname;
 
-        Mail::to('vierybiliam8@gmail.com')->send(new ApprovalEmailPo($hdr, $dt, $productName, $approver, 'Permintaan Order (PO)'));
+        Mail::to('vierybiliam8@gmail.com')->send(new ApprovalEmailPo($hdr, $dt, $productName, $approver, 'Order Pembelian (PO)'));
       }
 
       // === siapkan fnou berurutan & insert detail ===

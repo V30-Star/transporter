@@ -16,7 +16,7 @@ class ApprovalEmailPo extends Mailable
   public $approver;
   public $subjectMail;
 
-  public function __construct($hdr, $dt, $productName, $approver, $subjectMail = 'Permintaan Order (PO)')
+  public function __construct($hdr, $dt, $productName, $approver, $subjectMail = 'Order Pembelian (PO)')
   {
     $this->hdr         = $hdr;
     $this->dt          = $dt;

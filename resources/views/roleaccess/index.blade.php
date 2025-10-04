@@ -58,586 +58,333 @@
 
                 <!-- Permissions Table -->
                 <div class="form-group mb-4">
-                    <table class="table table-bordered w-40">
-                        <thead style="border-bottom: 2px solid #000; padding-bottom: 10px;">
-                            <tr>
-                                <th class="text-left">Akses</th>
-                                <th>Wewenang</th>
+                    <table class="table table-bordered w-full">
+                        <thead>
+                            <tr class="bg-gray-200 text-gray-800 text-center">
+                                <th class="px-3 py-2 text-left">Menu</th>
+                                <th class="px-3 py-2">Access</th>
+                                <th class="px-3 py-2">Add</th>
+                                <th class="px-3 py-2">Edit</th>
+                                <th class="px-3 py-2">Delete</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
                                 <td colspan="5" style="height: 10px;"></td>
                             </tr>
-                            <tr>
-                                <th colspan="2" style="background-color: #f0f0f0; font-weight: bold;">
-                                    Wilayah Menu
-                                </th>
-                            </tr>
-                            <tr>
-                                <td>WilayahView</td>
+                            <tr class="bg-gray-50">
+                                <td class="px-3 py-2 font-semibold">Wilayah</td>
                                 <td class="text-center">
-                                    <input type="checkbox" name="permission[]" value="viewWilayah" id="viewWilayah"
+                                    <input type="checkbox" name="permission[]" value="viewWilayah"
                                         {{ isset($roleAccess) && in_array('viewWilayah', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
-                            </tr>
-                            <tr>
-                                <td>WilayahCreate</td>
                                 <td class="text-center">
-                                    <input type="checkbox" name="permission[]" value="createWilayah" id="createWilayah"
+                                    <input type="checkbox" name="permission[]" value="createWilayah"
                                         {{ isset($roleAccess) && in_array('createWilayah', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
-                            </tr>
-                            <tr>
-                                <td>WilayahUpdate</td>
                                 <td class="text-center">
-                                    <input type="checkbox" name="permission[]" value="updateWilayah" id="updateWilayah"
+                                    <input type="checkbox" name="permission[]" value="updateWilayah"
                                         {{ isset($roleAccess) && in_array('updateWilayah', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
-                            </tr>
-                            <tr>
-                                <td>WilayahDelete</td>
                                 <td class="text-center">
-                                    <input type="checkbox" name="permission[]" value="deleteWilayah" id="deleteWilayah"
+                                    <input type="checkbox" name="permission[]" value="deleteWilayah"
                                         {{ isset($roleAccess) && in_array('deleteWilayah', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
                             </tr>
 
                             <tr>
-                                <th colspan="2" style="background-color: #f0f0f0; font-weight: bold;">
-                                    Customer Menu
-                                </th>
-                            </tr>
-
-                            <tr>
-                                <td>CustomerView</td>
+                                <td class="px-3 py-2 font-semibold">Customer</td>
                                 <td class="text-center">
-                                    <input type="checkbox" name="permission[]" value="viewCustomer" id="viewCustomer"
+                                    <input type="checkbox" name="permission[]" value="viewCustomer"
                                         {{ isset($roleAccess) && in_array('viewCustomer', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
-                            </tr>
-                            <tr>
-                                <td>CustomerCreate</td>
                                 <td class="text-center">
-                                    <input type="checkbox" name="permission[]" value="createCustomer" id="createCustomer"
+                                    <input type="checkbox" name="permission[]" value="createCustomer"
                                         {{ isset($roleAccess) && in_array('createCustomer', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
-                            </tr>
-                            <tr>
-                                <td>CustomerUpdate</td>
                                 <td class="text-center">
-                                    <input type="checkbox" name="permission[]" value="updateCustomer" id="updateCustomer"
+                                    <input type="checkbox" name="permission[]" value="updateCustomer"
                                         {{ isset($roleAccess) && in_array('updateCustomer', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
-                            </tr>
-                            <tr>
-                                <td>CustomerDelete</td>
                                 <td class="text-center">
-                                    <input type="checkbox" name="permission[]" value="deleteCustomer" id="deleteCustomer"
+                                    <input type="checkbox" name="permission[]" value="deleteCustomer"
                                         {{ isset($roleAccess) && in_array('deleteCustomer', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
                             </tr>
 
-                            <tr>
-                                <th colspan="2" style="background-color: #f0f0f0; font-weight: bold;">
-                                    Group Customer Menu
-                                </th>
-                            </tr>
-
-                            <tr>
-                                <td>GroupCustomerView</td>
+                            <tr class="bg-gray-50">
+                                <td class="px-3 py-2 font-semibold">Group Customer</td>
                                 <td class="text-center">
                                     <input type="checkbox" name="permission[]" value="viewGroupCustomer"
-                                        id="viewGroupCustomer"
                                         {{ isset($roleAccess) && in_array('viewGroupCustomer', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
-                            </tr>
-                            <tr>
-                                <td>GroupCustomerCreate</td>
                                 <td class="text-center">
                                     <input type="checkbox" name="permission[]" value="createGroupCustomer"
-                                        id="createGroupCustomer"
                                         {{ isset($roleAccess) && in_array('createGroupCustomer', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
-                            </tr>
-                            <tr>
-                                <td>GroupCustomerUpdate</td>
                                 <td class="text-center">
                                     <input type="checkbox" name="permission[]" value="updateGroupCustomer"
-                                        id="updateGroupCustomer"
                                         {{ isset($roleAccess) && in_array('updateGroupCustomer', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
-                            </tr>
-                            <tr>
-                                <td>GroupCustomerDelete</td>
                                 <td class="text-center">
                                     <input type="checkbox" name="permission[]" value="deleteGroupCustomer"
-                                        id="deleteGroupCustomer"
                                         {{ isset($roleAccess) && in_array('deleteGroupCustomer', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
                             </tr>
 
                             <tr>
-                                <th colspan="2" style="background-color: #f0f0f0; font-weight: bold;">
-                                    Wewenang User Menu
-                                </th>
-                            </tr>
-
-                            <tr>
-                                <td>WewenangUserView</td>
+                                <td class="px-3 py-2 font-semibold">Wewenang User</td>
                                 <td class="text-center">
-                                    <input type="checkbox" name="permission[]" value="viewSysuser" id="viewSysuser"
+                                    <input type="checkbox" name="permission[]" value="viewSysuser"
                                         {{ isset($roleAccess) && in_array('viewSysuser', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
-                            </tr>
-                            <tr>
-                                <td>WewenangUserCreate</td>
                                 <td class="text-center">
-                                    <input type="checkbox" name="permission[]" value="createSysuser" id="createSysuser"
+                                    <input type="checkbox" name="permission[]" value="createSysuser"
                                         {{ isset($roleAccess) && in_array('createSysuser', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
-                            </tr>
-                            <tr>
-                                <td>WewenangUserUpdate</td>
                                 <td class="text-center">
-                                    <input type="checkbox" name="permission[]" value="updateSysuser" id="updateSysuser"
+                                    <input type="checkbox" name="permission[]" value="updateSysuser"
                                         {{ isset($roleAccess) && in_array('updateSysuser', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
-                            </tr>
-                            <tr>
-                                <td>WewenangUserDelete</td>
                                 <td class="text-center">
-                                    <input type="checkbox" name="permission[]" value="deleteSysuser" id="deleteSysuser"
+                                    <input type="checkbox" name="permission[]" value="deleteSysuser"
                                         {{ isset($roleAccess) && in_array('deleteSysuser', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
                             </tr>
 
-                            <tr>
-                                <th colspan="2" style="background-color: #f0f0f0; font-weight: bold;">
-                                    Salesman Menu
-                                </th>
-                            </tr>
-
-                            <tr>
-                                <td>SalesmanView</td>
+                            <tr class="bg-gray-50">
+                                <td class="px-3 py-2 font-semibold">Salesman</td>
                                 <td class="text-center">
-                                    <input type="checkbox" name="permission[]" value="viewSalesman" id="viewSalesman"
+                                    <input type="checkbox" name="permission[]" value="viewSalesman"
                                         {{ isset($roleAccess) && in_array('viewSalesman', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
-                            </tr>
-                            <tr>
-                                <td>SalesmanCreate</td>
                                 <td class="text-center">
                                     <input type="checkbox" name="permission[]" value="createSalesman"
-                                        id="createSalesman"
                                         {{ isset($roleAccess) && in_array('createSalesman', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
-                            </tr>
-                            <tr>
-                                <td>SalesmanUpdate</td>
                                 <td class="text-center">
                                     <input type="checkbox" name="permission[]" value="updateSalesman"
-                                        id="updateSalesman"
                                         {{ isset($roleAccess) && in_array('updateSalesman', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
-                            </tr>
-                            <tr>
-                                <td>SalesmanDelete</td>
                                 <td class="text-center">
                                     <input type="checkbox" name="permission[]" value="deleteSalesman"
-                                        id="deleteSalesman"
                                         {{ isset($roleAccess) && in_array('deleteSalesman', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
                             </tr>
 
-                            <tr>
-                                <th colspan="2" style="background-color: #f0f0f0; font-weight: bold;">
-                                    Satuan Menu
-                                </th>
-                            </tr>
-
-                            <tr>
-                                <td>SatuanView</td>
+                            <tr class="bg-gray-50">
+                                <td class="px-3 py-2 font-semibold">Satuan</td>
                                 <td class="text-center">
-                                    <input type="checkbox" name="permission[]" value="viewSatuan" id="viewSatuan"
+                                    <input type="checkbox" name="permission[]" value="viewSatuan"
                                         {{ isset($roleAccess) && in_array('viewSatuan', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
-                            </tr>
-                            <tr>
-                                <td>SatuanCreate</td>
                                 <td class="text-center">
-                                    <input type="checkbox" name="permission[]" value="createSatuan" id="createSatuan"
+                                    <input type="checkbox" name="permission[]" value="createSatuan"
                                         {{ isset($roleAccess) && in_array('createSatuan', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
-                            </tr>
-                            <tr>
-                                <td>SatuanUpdate</td>
                                 <td class="text-center">
-                                    <input type="checkbox" name="permission[]" value="updateSatuan" id="updateSatuan"
+                                    <input type="checkbox" name="permission[]" value="updateSatuan"
                                         {{ isset($roleAccess) && in_array('updateSatuan', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
-                            </tr>
-                            <tr>
-                                <td>SatuanDelete</td>
                                 <td class="text-center">
-                                    <input type="checkbox" name="permission[]" value="deleteSatuan" id="deleteSatuan"
+                                    <input type="checkbox" name="permission[]" value="deleteSatuan"
                                         {{ isset($roleAccess) && in_array('deleteSatuan', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
                             </tr>
 
                             <tr>
-                                <th colspan="2" style="background-color: #f0f0f0; font-weight: bold;">
-                                    Merek Menu
-                                </th>
-                            </tr>
-
-                            <tr>
-                                <td>MerekView</td>
+                                <td class="px-3 py-2 font-semibold">Merek</td>
                                 <td class="text-center">
-                                    <input type="checkbox" name="permission[]" value="viewMerek" id="viewMerek"
+                                    <input type="checkbox" name="permission[]" value="viewMerek"
                                         {{ isset($roleAccess) && in_array('viewMerek', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
-                            </tr>
-                            <tr>
-                                <td>MerekCreate</td>
                                 <td class="text-center">
-                                    <input type="checkbox" name="permission[]" value="createMerek" id="createMerek"
+                                    <input type="checkbox" name="permission[]" value="createMerek"
                                         {{ isset($roleAccess) && in_array('createMerek', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
-                            </tr>
-                            <tr>
-                                <td>MerekUpdate</td>
                                 <td class="text-center">
-                                    <input type="checkbox" name="permission[]" value="updateMerek" id="updateMerek"
+                                    <input type="checkbox" name="permission[]" value="updateMerek"
                                         {{ isset($roleAccess) && in_array('updateMerek', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
-                            </tr>
-                            <tr>
-                                <td>MerekDelete</td>
                                 <td class="text-center">
-                                    <input type="checkbox" name="permission[]" value="deleteMerek" id="deleteMerek"
+                                    <input type="checkbox" name="permission[]" value="deleteMerek"
                                         {{ isset($roleAccess) && in_array('deleteMerek', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
                             </tr>
 
-                            <tr>
-                                <th colspan="2" style="background-color: #f0f0f0; font-weight: bold;">
-                                    Gudang Menu
-                                </th>
-                            </tr>
-
-                            <tr>
-                                <td>GudangView</td>
+                            <tr class="bg-gray-50">
+                                <td class="px-3 py-2 font-semibold">Gudang</td>
                                 <td class="text-center">
-                                    <input type="checkbox" name="permission[]" value="viewGudang" id="viewGudang"
+                                    <input type="checkbox" name="permission[]" value="viewGudang"
                                         {{ isset($roleAccess) && in_array('viewGudang', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
-                            </tr>
-                            <tr>
-                                <td>GudangCreate</td>
                                 <td class="text-center">
-                                    <input type="checkbox" name="permission[]" value="createGudang" id="createGudang"
+                                    <input type="checkbox" name="permission[]" value="createGudang"
                                         {{ isset($roleAccess) && in_array('createGudang', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
-                            </tr>
-                            <tr>
-                                <td>GudangUpdate</td>
                                 <td class="text-center">
-                                    <input type="checkbox" name="permission[]" value="updateGudang" id="updateGudang"
+                                    <input type="checkbox" name="permission[]" value="updateGudang"
                                         {{ isset($roleAccess) && in_array('updateGudang', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
-                            </tr>
-                            <tr>
-                                <td>GudangDelete</td>
                                 <td class="text-center">
-                                    <input type="checkbox" name="permission[]" value="deleteGudang" id="deleteGudang"
+                                    <input type="checkbox" name="permission[]" value="deleteGudang"
                                         {{ isset($roleAccess) && in_array('deleteGudang', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
                             </tr>
 
                             <tr>
-                                <th colspan="2" style="background-color: #f0f0f0; font-weight: bold;">
-                                    Group Product Menu
-                                </th>
-                            </tr>
-
-                            <tr>
-                                <td>GroupProdukView</td>
+                                <td class="px-3 py-2 font-semibold">Group Product</td>
                                 <td class="text-center">
                                     <input type="checkbox" name="permission[]" value="viewGroupProduct"
-                                        id="viewGroupProduct"
                                         {{ isset($roleAccess) && in_array('viewGroupProduct', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
-                            </tr>
-                            <tr>
-                                <td>GroupProdukCreate</td>
                                 <td class="text-center">
                                     <input type="checkbox" name="permission[]" value="createGroupProduct"
-                                        id="createGroupProduct"
                                         {{ isset($roleAccess) && in_array('createGroupProduct', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
-                            </tr>
-                            <tr>
-                                <td>GroupProdukUpdate</td>
                                 <td class="text-center">
                                     <input type="checkbox" name="permission[]" value="updateGroupProduct"
-                                        id="updateGroupProduct"
                                         {{ isset($roleAccess) && in_array('updateGroupProduct', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
-                            </tr>
-                            <tr>
-                                <td>GroupProdukDelete</td>
                                 <td class="text-center">
                                     <input type="checkbox" name="permission[]" value="deleteGroupProduct"
-                                        id="deleteGroupProduct"
                                         {{ isset($roleAccess) && in_array('deleteGroupProduct', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
                             </tr>
 
-                            <tr>
-                                <th colspan="2" style="background-color: #f0f0f0; font-weight: bold;">
-                                    Product Menu
-                                </th>
-                            </tr>
 
-                            <tr>
-                                <td>ProductView</td>
+                            <tr class="bg-gray-50">
+                                <td class="px-3 py-2 font-semibold">Product</td>
                                 <td class="text-center">
-                                    <input type="checkbox" name="permission[]" value="viewProduct" id="viewProduct"
+                                    <input type="checkbox" name="permission[]" value="viewProduct"
                                         {{ isset($roleAccess) && in_array('viewProduct', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
-                            </tr>
-                            <tr>
-                                <td>ProductCreate</td>
                                 <td class="text-center">
-                                    <input type="checkbox" name="permission[]" value="createProduct" id="createProduct"
+                                    <input type="checkbox" name="permission[]" value="createProduct"
                                         {{ isset($roleAccess) && in_array('createProduct', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
-                            </tr>
-                            <tr>
-                                <td>ProductUpdate</td>
                                 <td class="text-center">
-                                    <input type="checkbox" name="permission[]" value="updateProduct" id="updateProduct"
+                                    <input type="checkbox" name="permission[]" value="updateProduct"
                                         {{ isset($roleAccess) && in_array('updateProduct', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
-                            </tr>
-                            <tr>
-                                <td>ProductDelete</td>
                                 <td class="text-center">
-                                    <input type="checkbox" name="permission[]" value="deleteProduct" id="deleteProduct"
+                                    <input type="checkbox" name="permission[]" value="deleteProduct"
                                         {{ isset($roleAccess) && in_array('deleteProduct', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
                             </tr>
 
                             <tr>
-                                <th colspan="2" style="background-color: #f0f0f0; font-weight: bold;">
-                                    Supplier Menu
-                                </th>
-                            </tr>
-
-                            <tr>
-                                <td>SupplierView</td>
+                                <td class="px-3 py-2 font-semibold">Supplier</td>
                                 <td class="text-center">
-                                    <input type="checkbox" name="permission[]" value="viewSupplier" id="viewSupplier"
+                                    <input type="checkbox" name="permission[]" value="viewSupplier"
                                         {{ isset($roleAccess) && in_array('viewSupplier', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
-                            </tr>
-                            <tr>
-                                <td>SupplierCreate</td>
                                 <td class="text-center">
                                     <input type="checkbox" name="permission[]" value="createSupplier"
-                                        id="createSupplier"
                                         {{ isset($roleAccess) && in_array('createSupplier', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
-                            </tr>
-                            <tr>
-                                <td>SupplierUpdate</td>
                                 <td class="text-center">
                                     <input type="checkbox" name="permission[]" value="updateSupplier"
-                                        id="updateSupplier"
                                         {{ isset($roleAccess) && in_array('updateSupplier', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
-                            </tr>
-                            <tr>
-                                <td>SupplierDelete</td>
                                 <td class="text-center">
                                     <input type="checkbox" name="permission[]" value="deleteSupplier"
-                                        id="deleteSupplier"
                                         {{ isset($roleAccess) && in_array('deleteSupplier', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
                             </tr>
 
-                            <tr>
-                                <th colspan="2" style="background-color: #f0f0f0; font-weight: bold;">
-                                    Rekening Menu
-                                </th>
-                            </tr>
-
-                            <tr>
-                                <td>RekeningView</td>
+                            <tr class="bg-gray-50">
+                                <td class="px-3 py-2 font-semibold">Rekening</td>
                                 <td class="text-center">
-                                    <input type="checkbox" name="permission[]" value="viewRekening" id="viewRekening"
+                                    <input type="checkbox" name="permission[]" value="viewRekening"
                                         {{ isset($roleAccess) && in_array('viewRekening', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
-                            </tr>
-                            <tr>
-                                <td>RekeningCreate</td>
                                 <td class="text-center">
                                     <input type="checkbox" name="permission[]" value="createRekening"
-                                        id="createRekening"
                                         {{ isset($roleAccess) && in_array('createRekening', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
-                            </tr>
-                            <tr>
-                                <td>RekeningUpdate</td>
                                 <td class="text-center">
                                     <input type="checkbox" name="permission[]" value="updateRekening"
-                                        id="updateRekening"
                                         {{ isset($roleAccess) && in_array('updateRekening', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
-                            </tr>
-                            <tr>
-                                <td>RekeningDelete</td>
                                 <td class="text-center">
                                     <input type="checkbox" name="permission[]" value="deleteRekening"
-                                        id="deleteRekening"
                                         {{ isset($roleAccess) && in_array('deleteRekening', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
                             </tr>
 
                             <tr>
-                                <th colspan="2" style="background-color: #f0f0f0; font-weight: bold;">
-                                    SubAccount Menu
-                                </th>
-                            </tr>
-
-                            <tr>
-                                <td>SubAccountView</td>
+                                <td class="px-3 py-2 font-semibold">Sub Account</td>
                                 <td class="text-center">
                                     <input type="checkbox" name="permission[]" value="viewSubAccount"
-                                        id="viewSubAccount"
                                         {{ isset($roleAccess) && in_array('viewSubAccount', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
-                            </tr>
-                            <tr>
-                                <td>SubAccountCreate</td>
                                 <td class="text-center">
                                     <input type="checkbox" name="permission[]" value="createSubAccount"
-                                        id="createSubAccount"
                                         {{ isset($roleAccess) && in_array('createSubAccount', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
-                            </tr>
-                            <tr>
-                                <td>SubAccountUpdate</td>
                                 <td class="text-center">
                                     <input type="checkbox" name="permission[]" value="updateSubAccount"
-                                        id="updateSubAccount"
                                         {{ isset($roleAccess) && in_array('updateSubAccount', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
-                            </tr>
-                            <tr>
-                                <td>SubAccountDelete</td>
                                 <td class="text-center">
                                     <input type="checkbox" name="permission[]" value="deleteSubAccount"
-                                        id="deleteSubAccount"
                                         {{ isset($roleAccess) && in_array('deleteSubAccount', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
                             </tr>
 
-                            <tr>
-                                <th colspan="2" style="background-color: #f0f0f0; font-weight: bold;">
-                                    Account Menu
-                                </th>
-                            </tr>
-
-                            <tr>
-                                <td>AccountView</td>
+                            <tr class="bg-gray-50">
+                                <td class="px-3 py-2 font-semibold">Account</td>
                                 <td class="text-center">
-                                    <input type="checkbox" name="permission[]" value="viewAccount" id="viewAccount"
+                                    <input type="checkbox" name="permission[]" value="viewAccount"
                                         {{ isset($roleAccess) && in_array('viewAccount', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
-                            </tr>
-                            <tr>
-                                <td>AccountCreate</td>
                                 <td class="text-center">
-                                    <input type="checkbox" name="permission[]" value="createAccount" id="createAccount"
+                                    <input type="checkbox" name="permission[]" value="createAccount"
                                         {{ isset($roleAccess) && in_array('createAccount', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
-                            </tr>
-                            <tr>
-                                <td>AccountUpdate</td>
                                 <td class="text-center">
-                                    <input type="checkbox" name="permission[]" value="updateAccount" id="updateAccount"
+                                    <input type="checkbox" name="permission[]" value="updateAccount"
                                         {{ isset($roleAccess) && in_array('updateAccount', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
-                            </tr>
-                            <tr>
-                                <td>AccountDelete</td>
                                 <td class="text-center">
-                                    <input type="checkbox" name="permission[]" value="deleteAccount" id="deleteAccount"
+                                    <input type="checkbox" name="permission[]" value="deleteAccount"
                                         {{ isset($roleAccess) && in_array('deleteAccount', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
                             </tr>
 
-                            <tr>
-                                <th colspan="2" style="background-color: #f0f0f0; font-weight: bold;">
-                                    Permintaan Pembelian Menu
-                                </th>
-                            </tr>
-
-                            <tr>
-                                <td>PermintaanPembelianView</td>
+                            <tr class="bg-gray-50">
+                                <td class="px-3 py-2 font-semibold">Permintaan Pembelian</td>
                                 <td class="text-center">
-                                    <input type="checkbox" name="permission[]" value="viewTr_prh" id="viewTr_prh"
+                                    <input type="checkbox" name="permission[]" value="viewTr_prh"
                                         {{ isset($roleAccess) && in_array('viewTr_prh', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
-                            </tr>
-                            <tr>
-                                <td>PermintaanPembelianCreate</td>
                                 <td class="text-center">
-                                    <input type="checkbox" name="permission[]" value="createTr_prh" id="createTr_prh"
+                                    <input type="checkbox" name="permission[]" value="createTr_prh"
                                         {{ isset($roleAccess) && in_array('createTr_prh', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
-                            </tr>
-                            <tr>
-                                <td>PermintaanPembelianUpdate</td>
                                 <td class="text-center">
-                                    <input type="checkbox" name="permission[]" value="updateTr_prh" id="updateTr_prh"
+                                    <input type="checkbox" name="permission[]" value="updateTr_prh"
                                         {{ isset($roleAccess) && in_array('updateTr_prh', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
-                            </tr>
-                            <tr>
-                                <td>PermintaanPembelianDelete</td>
                                 <td class="text-center">
-                                    <input type="checkbox" name="permission[]" value="deleteTr_prh" id="deleteTr_prh"
+                                    <input type="checkbox" name="permission[]" value="deleteTr_prh"
                                         {{ isset($roleAccess) && in_array('deleteTr_prh', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
                             </tr>
 
                             <tr>
-                                <th colspan="2" style="background-color: #f0f0f0; font-weight: bold;">
-                                    Wewenang User Menu
-                                </th>
-                            </tr>
-
-                            <tr>
-                                <td>Wewenang User</td>
-                                <td class="text-center">
-                                    <input type="checkbox" name="permission[]" value="roleaccess" id="roleaccess"
+                                <td class="px-3 py-2 font-semibold">Wewenang User</td>
+                                <td class="text-center" colspan="4">
+                                    <input type="checkbox" name="permission[]" value="roleaccess"
                                         {{ isset($roleAccess) && in_array('roleaccess', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
                             </tr>
 
-                            <tr>
-                                <th colspan="2" style="background-color: #f0f0f0; font-weight: bold;">
-                                    Approval Setting
-                                </th>
-                            </tr>
-
-                            <tr>
-                                <td>Approval Permintaan Pembelian</td>
-                                <td class="text-center">
-                                    <input type="checkbox" name="permission[]" value="approvalpr" id="approvalpr"
+                            <tr class="bg-gray-50">
+                                <td class="px-3 py-2 font-semibold">Approval Permintaan Pembelian</td>
+                                <td class="text-center" colspan="4">
+                                    <input type="checkbox" name="permission[]" value="approvalpr"
                                         {{ isset($roleAccess) && in_array('approvalpr', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
                                 </td>
                             </tr>
@@ -647,7 +394,7 @@
 
                 <br>
 
-                <div class="form-group mb-4 flex space-x-2">
+                <div class="form-group mb-4 flex justify-end space-x-2">
                     <button class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
                         type="submit">
                         Simpan
@@ -658,7 +405,6 @@
                         Kembali
                     </a>
                 </div>
-
             </form>
         </div>
     </div>
