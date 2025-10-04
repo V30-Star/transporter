@@ -230,13 +230,13 @@
                             class="w-full border rounded px-3 py-2 @error('fjadwalmingguan') border-red-500 @enderror">
                             <option value="1"
                                 {{ old('fjadwalmingguan', $customer->fjadwalmingguan) == '1' ? 'selected' : '' }}>
-                                1</option>
+                                Setiap Minggu</option>
                             <option value="2"
                                 {{ old('fjadwalmingguan', $customer->fjadwalmingguan) == '2' ? 'selected' : '' }}>
-                                2</option>
+                                Minggu Ganjil</option>
                             <option value="3"
                                 {{ old('fjadwalmingguan', $customer->fjadwalmingguan) == '3' ? 'selected' : '' }}>
-                                3</option>
+                                Minggu Genap</option>
                         </select>
                         @error('fjadwalmingguan')
                             <div class="invalid-feedback">
@@ -251,13 +251,27 @@
                             <select name="fjadwalhari"
                                 class="w-full border rounded px-3 py-2 @error('fjadwalhari') border-red-500 @enderror">
                                 <option value="">-- Pilih Hari --</option>
-                                <option value="1">Senin</option>
-                                <option value="2">Selasa</option>
-                                <option value="3">Rabu</option>
-                                <option value="4">Kamis</option>
-                                <option value="5">Jumat</option>
-                                <option value="6">Sabtu</option>
-                                <option value="7">Minggu</option>
+                                <option value="1"
+                                    {{ old('fjadwalhari', $customer->fjadwalhari) == '1' ? 'selected' : '' }}>
+                                    Senin</option>
+                                <option value="2"
+                                    {{ old('fjadwalhari', $customer->fjadwalhari) == '2' ? 'selected' : '' }}>
+                                    Selasa</option>
+                                <option value="3"
+                                    {{ old('fjadwalhari', $customer->fjadwalhari) == '3' ? 'selected' : '' }}>
+                                    Rabu</option>
+                                <option value="4"
+                                    {{ old('fjadwalhari', $customer->fjadwalhari) == '4' ? 'selected' : '' }}>
+                                    Kamis</option>
+                                <option value="5"
+                                    {{ old('fjadwalhari', $customer->fjadwalhari) == '5' ? 'selected' : '' }}>
+                                    Jumat</option>
+                                <option value="6"
+                                    {{ old('fjadwalhari', $customer->fjadwalhari) == '6' ? 'selected' : '' }}>
+                                    Sabtu</option>
+                                <option value="7"
+                                    {{ old('fjadwalhari', $customer->fjadwalhari) == '7' ? 'selected' : '' }}>
+                                    Minggu</option>
                             </select>
                             @error('fjadwalhari')
                                 <div class="invalid-feedback">

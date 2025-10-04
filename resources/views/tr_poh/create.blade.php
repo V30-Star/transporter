@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Order')
+@section('title', 'Order Pembelian')
 
 @section('content')
     <style>
@@ -218,7 +218,7 @@
 
                             {{-- Editable: 1 USD = X IDR --}}
                             <div class="lg:col-span-4">
-                                <label class="block text-sm font-medium">Rate (1 USD = ? IDR)</label>
+                                <label class="block text-sm font-medium">Rate</label>
                                 <input type="number" step="0.0001" min="0" name="frate_display"
                                     x-model.number="rateUsdIdr"
                                     class="w-full border rounded px-3 py-2 @error('frate') border-red-500 @enderror"
@@ -226,25 +226,6 @@
                                 @error('frate')
                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                 @enderror
-                            </div>
-
-                            {{-- Read-only mirrors --}}
-                            <div class="lg:col-span-8">
-                                <div class="flex flex-wrap items-center gap-2 text-sm">
-                                    <span class="inline-flex items-center gap-2 rounded border px-2 py-1 bg-gray-50">
-                                        <span class="font-medium">1 USD</span>
-                                        <span>=</span>
-                                        <span x-text="fmt(rateUsdIdr, 4)"></span>
-                                        <span class="text-gray-600">IDR</span>
-                                    </span>
-
-                                    <span class="inline-flex items-center gap-2 rounded border px-2 py-1 bg-gray-50">
-                                        <span class="font-medium">1 IDR</span>
-                                        <span>=</span>
-                                        <span x-text="fmt(invRate, 8)"></span>
-                                        <span class="text-gray-600">USD</span>
-                                    </span>
-                                </div>
                             </div>
 
                             {{-- Hidden real rate for backend --}}
@@ -289,14 +270,6 @@
                     </div>
 
                     <div x-data="itemsTable()" x-init="init()" class="mt-6 space-y-2">
-
-                        <div class="flex items-center">
-                            <input id="fapplyppn" type="checkbox" name="fapplyppn" value="1" x-model="fapplyppn"
-                                class="h-4 w-4 text-blue-600 border-gray-300 rounded">
-                            <label for="fapplyppn" class="ml-2 text-sm font-medium text-gray-700">
-                                Harga Termasuk <span class="font-bold">PPN</span>
-                            </label>
-                        </div>
 
                         {{-- DETAIL ITEM (tabel input) --}}
                         <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
@@ -454,8 +427,8 @@
                                         <!-- Terima -->
                                         <td class="p-2 text-right">
                                             <input type="number"
-                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
-                                                min="0" step="1" :value="editRow.fterima" disabled>
+                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600  text-right"
+                                                min="0" step="1" :value="editRow.fterima ?? 0" disabled>
                                         </td>
 
                                         <!-- @ Harga -->
@@ -571,8 +544,8 @@
                                         <!-- Terima -->
                                         <td class="p-2 text-right">
                                             <input type="number"
-                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
-                                                min="0" step="1" :value="draft.fterima" disabled>
+                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-right"
+                                                min="0" step="1" :value="draft.fterima ?? 0" disabled>
                                         </td>
 
                                         <!-- @ Harga -->
@@ -643,36 +616,54 @@
                                             <span class="min-w-[140px] text-right font-medium"
                                                 x-text="rupiah(totalHarga)"></span>
                                         </div>
-
                                         <div class="flex items-center justify-between gap-6">
-                                            <!-- Checkbox Include PPN -->
+                                            <!-- Checkbox -->
                                             <div class="flex items-center">
-                                                <input id="fincludeppn" type="checkbox" name="fincludeppn"
-                                                    value="1" x-model="includePPN"
+                                                <input id="fapplyppn" type="checkbox" name="fapplyppn" value="1"
+                                                    x-model="includePPN"
                                                     class="h-4 w-4 text-blue-600 border-gray-300 rounded">
-                                                <label for="fincludeppn" class="ml-2 text-sm font-medium text-gray-700">
+                                                <label for="fapplyppn" class="ml-2 text-sm font-medium text-gray-700">
                                                     <span class="font-bold">PPN</span>
                                                 </label>
                                             </div>
 
-                                            <!-- Input Rate + Nominal -->
+                                            <!-- Dropdown Include / Exclude (tengah) -->
                                             <div class="flex items-center gap-2">
-                                                <label class="text-sm text-gray-700">PPN</label>
+                                                <select id="includePPN" name="includePPN" x-model.number="fapplyppn"
+                                                    x-init="fapplyppn = 0" :disabled="!(includePPN || fapplyppn)"
+                                                    class="w-28 h-9 px-2 text-sm leading-tight border rounded transition-opacity appearance-none
+                                                           disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
+                                                    <option value="0">Exclude</option>
+                                                    <option value="1">Include</option>
+                                                </select>
+                                            </div>
+
+                                            <!-- Input Rate + Nominal (kanan) -->
+                                            <div class="flex items-center gap-2">
                                                 <input type="number" min="0" max="100" step="0.01"
                                                     x-model.number="ppnRate" :disabled="!(includePPN || fapplyppn)"
-                                                    class="w-20 border rounded px-2 py-1 text-right transition-opacity"
-                                                    :class="(includePPN || fapplyppn) ? 'bg-white opacity-100' :
-                                                    'bg-gray-100 opacity-60 cursor-not-allowed'">
+                                                    class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
+                                                            [appearance:textfield]
+                                                            [&::-webkit-outer-spin-button]:appearance-none
+                                                            [&::-webkit-inner-spin-button]:appearance-none
+                                                            disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
                                                 <span class="text-sm">%</span>
                                                 <span class="min-w-[140px] text-right font-medium"
                                                     x-text="rupiah(ppnAmount)"></span>
                                             </div>
+
                                         </div>
 
                                         <div class="border-t my-1"></div>
 
                                         <div class="flex items-center justify-between">
                                             <span class="text-sm font-semibold text-gray-800">Grand Total</span>
+                                            <span class="min-w-[140px] text-right text-lg font-semibold"
+                                                x-text="rupiah(grandTotal)"></span>
+                                        </div>
+
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-sm font-semibold text-gray-800">Grand Total (RP)</span>
                                             <span class="min-w-[140px] text-right text-lg font-semibold"
                                                 x-text="rupiah(grandTotal)"></span>
                                         </div>
@@ -1450,7 +1441,7 @@
                         frefpr: src.frefpr ?? (header?.fpono ?? ''),
                         fprnoid: src.fprnoid ?? header?.fprnoid ?? '',
                         fqty: Number(src.fqty ?? 0),
-                        fterima: Number(src.ferima ?? 0),
+                        fterima: Number(src.fterima ?? 0),
                         fprice: Number(src.fprice ?? 0),
                         fdisc: Number(src.fdisc ?? 0),
                         ftotal: Number(src.ftotal ?? 0),
@@ -1646,7 +1637,7 @@
                 fnouref: '',
                 frefpr: '',
                 fqty: 0,
-                fterima: '',
+                fterima: 0,
                 fprice: 0,
                 fdisc: 0,
                 ftotal: 0,
