@@ -13,6 +13,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Mail\ApprovalEmail;
+use App\Models\Tr_poh;
 use Illuminate\Support\Facades\Mail;
 
 
@@ -20,62 +21,20 @@ class Tr_prhController extends Controller
 {
   public function index(Request $request)
   {
-    $search   = trim((string) $request->search);
-    $filterBy = $request->filter_by ?? 'all'; // all | fprno | fprdin
-
     // Sorting
     $allowedSorts = ['fprid', 'fprno', 'fprdin'];
     $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fprid';
     $sortDir = $request->sort_dir === 'asc' ? 'asc' : 'desc';
 
-    $tr_prh = Tr_prh::when($search !== '', function ($q) use ($search, $filterBy) {
-      $q->where(function ($qq) use ($search, $filterBy) {
-        if ($filterBy === 'fprno') {
-          $qq->where('fprno', 'ILIKE', "%{$search}%");
-        } elseif ($filterBy === 'fprdin') {
-          $qq->where('fprdin', 'ILIKE', "%{$search}%");
-        } else { // all
-          $qq->where('fprno',  'ILIKE', "%{$search}%")
-            ->orWhere('fprdin', 'ILIKE', "%{$search}%");
-        }
-      });
-    })
-      ->orderBy($sortBy, $sortDir)
-      ->orderBy('fprid', 'desc') // tie-breaker
-      ->paginate(10)
-      ->withQueryString();
+    $query = Tr_prh::query();
 
-    // permissions (ganti sesuai app jika perlu)
+    $tr_prh = Tr_prh::orderBy($sortBy, $sortDir)->get(['fprid', 'fprno', 'fprdin']);
+
     $canCreate = in_array('createTr_prh', explode(',', session('user_restricted_permissions', '')));
     $canEdit   = in_array('updateTr_prh', explode(',', session('user_restricted_permissions', '')));
     $canDelete = in_array('deleteTr_prh', explode(',', session('user_restricted_permissions', '')));
 
-    if ($request->ajax()) {
-      $rows = collect($tr_prh->items())->map(function ($t) {
-        return [
-          'fprid'       => $t->fprid,
-          'fprno'       => $t->fprno,
-          'fprdin'      => $t->fprdin,
-          'edit_url'    => route('tr_prh.edit', $t->fprid),
-          'destroy_url' => route('tr_prh.destroy', $t->fprid),
-          'print_url'   => route('tr_prh.print', $t->fprno),
-        ];
-      });
-
-      return response()->json([
-        'data'  => $rows,
-        'perms' => ['can_create' => $canCreate, 'can_edit' => $canEdit, 'can_delete' => $canDelete],
-        'links' => [
-          'prev'         => $tr_prh->previousPageUrl(),
-          'next'         => $tr_prh->nextPageUrl(),
-          'current_page' => $tr_prh->currentPage(),
-          'last_page'    => $tr_prh->lastPage(),
-        ],
-        'sort' => ['by' => $sortBy, 'dir' => $sortDir],
-      ]);
-    }
-
-    return view('tr_prh.index', compact('tr_prh', 'filterBy', 'search', 'canCreate', 'canEdit', 'canDelete', 'sortBy', 'sortDir'));
+    return view('tr_prh.index', compact('tr_prh', 'canCreate', 'canEdit', 'canDelete'));
   }
 
   private function generatetr_prh_Code(?Carbon $onDate = null, $branch = null): string
@@ -380,7 +339,7 @@ class Tr_prhController extends Controller
         $productName = $dt->pluck('fprdcode')->implode(', ');
         $approver = auth('sysuser')->user()->fname;
 
-        Mail::to('Surianto_w@yahoo.com')->send(new ApprovalEmail($hdr, $dt, $productName, $approver, 'Permintaan Pembelian (PR)'));
+        Mail::to('vierybiliam8@gmail.com')->send(new ApprovalEmail($hdr, $dt, $productName, $approver, 'Permintaan Pembelian (PR)'));
       }
     });
 

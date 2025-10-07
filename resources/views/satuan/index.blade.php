@@ -80,8 +80,7 @@
                                     </a>
                                 @endif
                                 @if ($canDelete)
-                                    <button
-                                        @click="$dispatch('open-delete', '{{ route('satuan.destroy', $item->fsatuanid) }}')"
+                                    <button @click="openDelete('{{ route('satuan.destroy', $item->fsatuanid) }}')"
                                         class="btn-aksi inline-flex items-center bg-red-600 text-white rounded hover:bg-red-700">
                                         <x-heroicon-o-trash class="w-4 h-4 mr-1" /> Hapus
                                     </button>

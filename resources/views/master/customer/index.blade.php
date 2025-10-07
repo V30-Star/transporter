@@ -86,8 +86,7 @@
                                     </a>
                                 @endif
                                 @if ($canDelete)
-                                    <button
-                                        onclick="window.openDeleteModal('{{ route('customer.destroy', $r->fcustomerid) }}')"
+                                    <button @click="openDelete('{{ route('customer.destroy', $r->fcustomerid) }}')"
                                         class="inline-flex items-center bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700">
                                         <x-heroicon-o-trash class="w-4 h-4 mr-1" /> Hapus
                                     </button>

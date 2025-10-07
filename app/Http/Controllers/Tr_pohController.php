@@ -22,105 +22,20 @@ class Tr_pohController extends Controller
 {
   public function index(Request $request)
   {
-    $search   = trim((string) $request->search);
+    // Sorting
+    $allowedSorts = ['fpohdid', 'fpono', 'fsupplier', 'fpodate'];
+    $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fpohdid';
+    $sortDir = $request->sort_dir === 'asc' ? 'asc' : 'desc';
 
-    // Tetap dukung nilai lama dari UI: fprno -> dipetakan ke fpono
-    $rawFilter = $request->filter_by ?? 'all'; // all | fprno | fpono | fsupplier
-    $filterBy  = match ($rawFilter) {
-      'fprno' => 'fpono',
-      default => $rawFilter, // 'all' | 'fpono' | 'fsupplier'
-    };
+    $query = Tr_poh::query();
 
-    // Subquery untuk hitung jumlah detail per fpono (opsional; aman meski tidak dipakai di UI)
-    $detailAgg = DB::table('tr_pod')
-      ->select('fpono', DB::raw('COUNT(*)::int AS item_count'))
-      ->groupBy('fpono');
+    $tr_poh = Tr_poh::orderBy($sortBy, $sortDir)->get(['fpohdid', 'fpono', 'fsupplier', 'fpodate']);
 
-    // Ambil header dari tr_poh, join dengan agregasi detail
-    $tr_poh = DB::table('tr_poh')
-      ->leftJoinSub($detailAgg, 'd', 'd.fpono', '=', 'tr_poh.fpono')
-      ->leftJoin('mssupplier', 'mssupplier.fsuppliercode', '=', 'tr_poh.fsupplier') // JOIN dengan mssupplier
-      ->when($search !== '', function ($q) use ($search, $filterBy) {
-        $q->where(function ($qq) use ($search, $filterBy) {
-          if ($filterBy === 'fpono') {
-            $qq->where('tr_poh.fpono', 'ILIKE', "%{$search}%");
-          } elseif ($filterBy === 'fsupplier') {
-            $qq->where('tr_poh.fsupplier', 'ILIKE', "%{$search}%");
-          } else { // all
-            $qq->where('tr_poh.fpono', 'ILIKE', "%{$search}%")
-              ->orWhere('tr_poh.fsupplier', 'ILIKE', "%{$search}%");
-          }
-        });
-      })
-      ->orderByDesc('tr_poh.fdatetime')   // kalau tidak ada fdatetime, ganti ke fpodate
-      ->orderByDesc('tr_poh.fpodate')
-      ->select([
-        'tr_poh.fpohdid',
-        'tr_poh.fpono',
-        'tr_poh.fsupplier',
-        'mssupplier.fsuppliername',
-        'tr_poh.fpodate',
-        'tr_poh.famountpo',
-        'tr_poh.fuserid',
-        DB::raw('COALESCE(d.item_count, 0) AS item_count'),
-      ])
-      ->paginate(10)
-      ->withQueryString();
-
-    // Permissions (biarin pakai session key yang sama)
     $canCreate = in_array('createTr_prh', explode(',', session('user_restricted_permissions', '')));
     $canEdit   = in_array('updateTr_prh', explode(',', session('user_restricted_permissions', '')));
     $canDelete = in_array('deleteTr_prh', explode(',', session('user_restricted_permissions', '')));
 
-    // AJAX response untuk modal "Pilih Permintaan (PR)"
-    if ($request->ajax()) {
-      $rows = collect($tr_poh->items())->map(function ($t) {
-        // Gunakan fpono sebagai "id" agar kompatibel dengan frontend (alias ke fprid)
-        $fpono    = $t->fpono;
-        $fpodate  = $t->fpodate ? \Carbon\Carbon::parse($t->fpodate)->format('Y-m-d H:i:s') : 'No Date';
-
-        return [
-          'fprid'      => $fpono,           // <- alias id agar :key="row.fprid" tetap aman
-          'fpono'      => $fpono,
-          'fsupplier'  => trim($t->fsupplier ?? ''),
-          'fsuppliername' => $t->fsuppliername ?? '',
-          'fpodate'    => $fpodate,
-          'item_count' => (int)($t->item_count ?? 0),
-
-          // pastikan rute-rutenya menerima fpono sebagai parameter
-          'edit_url'    => route('tr_poh.edit',    $fpono),
-          'destroy_url' => route('tr_poh.destroy', $fpono),
-          'print_url'   => route('tr_poh.print',   $fpono),
-          // endpoint untuk mengambil detail (dipakai saat klik "Pilih")
-          'items_url'   => route('tr_poh.items',   $fpono),
-        ];
-      });
-
-      return response()->json([
-        'data'  => $rows,
-        'perms' => [
-          'can_create' => $canCreate,
-          'can_edit'   => $canEdit,
-          'can_delete' => $canDelete,
-        ],
-        'links' => [
-          'prev'         => $tr_poh->previousPageUrl(),
-          'next'         => $tr_poh->nextPageUrl(),
-          'current_page' => $tr_poh->currentPage(),
-          'last_page'    => $tr_poh->lastPage(),
-        ],
-      ]);
-    }
-
-    // Render view index
-    return view('tr_poh.index', [
-      'tr_poh'    => $tr_poh,
-      'filterBy'  => $rawFilter, // tampilkan nilai asli yang dipilih user
-      'search'    => $search,
-      'canCreate' => $canCreate,
-      'canEdit'   => $canEdit,
-      'canDelete' => $canDelete,
-    ]);
+    return view('tr_poh.index', compact('tr_poh', 'canCreate', 'canEdit', 'canDelete'));
   }
 
   public function pickable(Request $request)
@@ -539,7 +454,7 @@ class Tr_pohController extends Controller
             ->get(['d.*', 'p.fprdname as product_name', 'p.fminstock as stock']);
           $productName = $dt->pluck('fprdcode')->implode(', ');
           $approver    = auth('sysuser')->user()->fname ?? '-';
-          Mail::to('Surianto_w@yahoo.com')
+          Mail::to('vierybiliam8@gmail.com')
             ->send(new ApprovalEmailPo($hdr, $dt, $productName, $approver, 'Order Pembelian (PO)'));
         });
       }

@@ -79,8 +79,7 @@
                                     </a>
                                 @endif
                                 @if ($canDelete)
-                                    <button
-                                        onclick="window.openDeleteModal('{{ route('groupcustomer.destroy', $gc->fgroupid) }}')"
+                                    <button @click="openDelete('{{ route('groupcustomer.destroy', $gc->fgroupid) }}')"
                                         class="inline-flex items-center bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700">
                                         <x-heroicon-o-trash class="w-4 h-4 mr-1" /> Hapus
                                     </button>
@@ -236,7 +235,7 @@
                     {
                         targets: 'no-sort',
                         orderable: false
-                    } 
+                    }
                 ],
                 language: {
                     lengthMenu: "Show _MENU_ entries"

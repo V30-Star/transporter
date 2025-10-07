@@ -122,7 +122,7 @@ class CustomerController extends Controller
             'ftaxaddress.required' => 'Alamat Pajak harus diisi.',
             'fhargalevel.required' => 'Level Harga harus dipilih.',
             'fkontakperson.required' => 'Kontak Person harus diisi.',
-            'fjabatan.required' => 'Jabatan Kontak Person harus diisi.',
+            'fjabatan.required' => 'Jabatan harus diisi.',
             'frekening.required' => 'Rekening harus dipilih.'
         ]);
 
@@ -213,7 +213,7 @@ class CustomerController extends Controller
             'ftaxaddress.required' => 'Alamat Pajak harus diisi.',
             'fhargalevel.required' => 'Level Harga harus dipilih.',
             'fkontakperson.required' => 'Kontak Person harus diisi.',
-            'fjabatan.required' => 'Jabatan Kontak Person harus diisi.',
+            'fjabatan.required' => 'Jabatan harus diisi.',
             'frekening.required' => 'Rekening harus dipilih.'
         ]);
         $customer = Customer::findOrFail($fcustomerid);

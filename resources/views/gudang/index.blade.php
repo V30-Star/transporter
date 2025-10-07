@@ -86,7 +86,7 @@
                                     </a>
                                 @endif
                                 @if ($canDelete)
-                                    <button @click="$dispatch('open-delete', '{{ route('gudang.destroy', $item->fwhid) }}')"
+                                    <button @click="openDelete('{{ route('gudang.destroy', $item->fwhid) }}')"
                                         class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
                                         <x-heroicon-o-trash class="w-4 h-4 mr-1" /> Hapus
                                     </button>

@@ -181,6 +181,11 @@
                                     </option>
                                 @endforeach
                             </select>
+                            @error('fsalesman')
+                                <div class="invalid-feedback">
+                                    {{ $message }}
+                                </div>
+                            @enderror
                         </div>
 
                         <div>
@@ -196,6 +201,11 @@
                                     </option>
                                 @endforeach
                             </select>
+                            @error('fwilayah')
+                                <div class="invalid-feedback">
+                                    {{ $message }}
+                                </div>
+                            @enderror
                         </div>
                     </div>
 

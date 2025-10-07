@@ -16,23 +16,6 @@
         }
     }" class="bg-white rounded shadow p-4">
 
-        {{-- Search (Live) --}}
-        <form id="searchForm" method="GET" action="{{ route('tr_poh.index') }}"
-            class="flex flex-wrap justify-between items-center mb-4 gap-2">
-            <div class="flex items-center space-x-2 w-full">
-                <label class="font-semibold">Search:</label>
-                <input id="searchInput" type="text" name="search" value="{{ $search }}"
-                    class="border rounded px-2 py-1 w-1/4" placeholder="Cari...">
-                <button type="submit" class="hidden">Cari</button>
-            </div>
-        </form>
-
-        @php
-            $canCreate = true;
-            $canEdit = true;
-            $canDelete = true;
-        @endphp
-
         @php
             $canCreate = in_array('createTr_poh', explode(',', session('user_restricted_permissions', '')));
             $canEdit = in_array('updateTr_poh', explode(',', session('user_restricted_permissions', '')));
@@ -40,8 +23,29 @@
             $showActionsColumn = $canEdit || $canDelete;
         @endphp
 
+        <div class="flex justify-end items-center mb-4">
+            <div></div>
+            {{-- @if ($canCreate) --}}
+                <a href="{{ route('tr_poh.create') }}"
+                    class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                    <x-heroicon-o-plus class="w-4 h-4 mr-1" /> Tambah Baru
+                </a>
+            {{-- @endif --}}
+        </div>
+
+        <div id="statusFilterTemplate" class="hidden">
+            <div class="flex items-center gap-2" id="statusFilterWrap">
+                <span class="text-sm text-gray-700">Status</span>
+                <select data-role="status-filter" class="border rounded px-2 py-1">
+                    <option value="all">All</option>
+                    <option value="active" selected>Active</option>
+                    <option value="nonactive">Non Active</option>
+                </select>
+            </div>
+        </div>
+
         {{-- Table --}}
-        <table class="min-w-full border text-sm">
+        <table id="tr_pohTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
                     <th class="border px-2 py-1">No. PO</th>
@@ -51,34 +55,42 @@
                     <th class="border px-2 py-1">Total Harga</th>
                     <th class="border px-2 py-1">Status</th>
                     <th class="border px-2 py-1">User ID</th>
-                    <th class="border px-2 py-1">Aksi</th>
+                    {{-- @if ($showActionsColumn) --}}
+                    <th class="border px-2 py-1 col-aksi">Aksi</th>
+                    {{-- @endif --}}
                 </tr>
             </thead>
-            <tbody id="tableBody">
+            <tbody>
                 @forelse($tr_poh as $item)
-                    <tr class="hover:bg-gray-50">
+                    <tr>
                         <td class="border px-2 py-1">{{ $item->fpono }}</td>
-                        <td class="border px-2 py-1">{{ $item->fpodate }}</td>
+                        <td class="border px-2 py-1">
+                            {{ \Carbon\Carbon::parse($item->fpodate)->format('d-m-Y') }}
+                        </td>
                         <td class="border px-2 py-1">{{ $item->fsupplier }}</td>
                         <td class="border px-2 py-1">{{ $item->fsuppliername }}</td>
-                        <td class="border px-2 py-1">{{ $item->famountpo }}</td>
+                        <td class="border px-2 py-1">
+                            Rp {{ number_format((float) ($item->famountpo ?? 0), 2, ',', '.') }}
+                        </td>
                         <td class="border px-2 py-1">-</td>
                         <td class="border px-2 py-1">{{ $item->fuserid }}</td>
+
+                        {{-- @if ($showActionsColumn) --}}
                         <td class="border px-2 py-1 space-x-2">
                             {{-- @if ($canEdit) --}}
-                                <a href="{{ route('tr_poh.edit', $item->fpohdid) }}">
-                                    <button
-                                        class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
-                                        <x-heroicon-o-pencil-square class="w-4 h-4 mr-1" /> Edit
-                                    </button>
-                                </a>
+                            <a href="{{ route('tr_poh.edit', $item->fpohdid) }}">
+                                <button
+                                    class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
+                                    <x-heroicon-o-pencil-square class="w-4 h-4 mr-1" /> Edit
+                                </button>
+                            </a>
                             {{-- @endif --}}
 
                             {{-- @if ($canDelete) --}}
-                                <button @click="openDelete('{{ route('tr_poh.destroy', $item->fpohdid) }}')"
-                                    class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
-                                    <x-heroicon-o-trash class="w-4 h-4 mr-1" /> Hapus
-                                </button>
+                            <button @click="openDelete('{{ route('tr_poh.destroy', $item->fpohdid) }}')"
+                                class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                                <x-heroicon-o-trash class="w-4 h-4 mr-1" /> Hapus
+                            </button>
                             {{-- @endif --}}
 
                             <a href="{{ route('tr_poh.print', $item->fpono) }}" target="_blank" rel="noopener"
@@ -86,10 +98,11 @@
                                 <x-heroicon-o-printer class="w-4 h-4 mr-1" /> Print
                             </a>
                         </td>
+                        {{-- @endif --}}
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="{{ $showActionsColumn ? 3 : 2 }}" class="text-center py-4">Tidak ada data.</td>
+                        <td colspan="{{ $showActionsColumn ? 8 : 7 }}" class="text-center py-4">Tidak ada data.</td>
                     </tr>
                 @endforelse
             </tbody>
@@ -113,155 +126,206 @@
                 </div>
             </div>
         </div>
-
-        {{-- Bottom actions & AJAX pagination --}}
-        <div id="pagination" class="mt-4 flex justify-between items-center">
-            <div class="space-x-2">
-                {{-- @if ($canCreate) --}}
-                    <a href="{{ route('tr_poh.create') }}"
-                        class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                        <x-heroicon-o-plus class="w-4 h-4 mr-1" /> Baru
-                    </a>
-                {{-- @endif --}}
-            </div>
-
-            <div class="flex items-center space-x-2">
-                <button id="prevBtn"
-                    class="px-3 py-1 rounded border hover:bg-gray-100 {{ $tr_poh->onFirstPage() ? 'opacity-50' : '' }}"
-                    {{ $tr_poh->onFirstPage() ? 'disabled' : '' }}
-                    data-page="{{ $tr_poh->previousPageUrl() ?? '' }}">&larr;</button>
-
-                <span id="pageInfo" class="text-sm">
-                    Page {{ $tr_poh->currentPage() }} of {{ $tr_poh->lastPage() }}
-                </span>
-
-                <button id="nextBtn"
-                    class="px-3 py-1 rounded border hover:bg-gray-100 {{ $tr_poh->hasMorePages() ? '' : 'opacity-50' }}"
-                    {{ $tr_poh->hasMorePages() ? '' : 'disabled' }}
-                    data-page="{{ $tr_poh->nextPageUrl() ?? '' }}">&rarr;</button>
-            </div>
-        </div>
     </div>
 @endsection
 
+@push('styles')
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.1.6/css/dataTables.dataTables.min.css">
+    <style>
+        /* Tata letak kontrol */
+        .dt-container .dt-length,
+        .dt-container .dt-search {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+        }
+
+        .dt-container .dt-length .dt-input {
+            width: 4.5rem;
+            padding: .35rem .5rem;
+        }
+
+        /* Stabilkan tabel */
+        #tr_pohTable {
+            width: 100% !important;
+        }
+
+        #tr_pohTable th,
+        #tr_pohTable td {
+            text-align: left !important;
+            vertical-align: middle;
+        }
+
+        /* Kolom Aksi: jangan mepet, tapi tetap ringkas */
+        #tr_pohTable th:last-child,
+        #tr_pohTable td:last-child {
+            white-space: nowrap;
+            text-align: center;
+        }
+
+        #tr_pohTable td:last-child {
+            padding: .25rem .5rem;
+        }
+
+        .btn-aksi {
+            padding: .25rem .5rem;
+            font-size: .825rem;
+        }
+
+        #tr_pohTable th,
+        #tr_pohTable td {
+            text-align: left !important;
+            vertical-align: middle;
+        }
+
+        #tr_pohTable th:last-child,
+        #tr_pohTable td:last-child {
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .dataTables_wrapper .dt-search {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            flex-wrap: wrap;
+        }
+
+        #statusFilterWrap {
+            margin-right: .25rem;
+        }
+    </style>
+@endpush
+
 @push('scripts')
+    {{-- jQuery + DataTables JS (CDN) --}}
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/2.1.6/js/dataTables.min.js"></script>
     <script>
-        (function() {
-            const form = document.getElementById('searchForm');
-            const input = document.getElementById('searchInput');
-            const tbody = document.getElementById('tableBody');
-            const prevBtn = document.getElementById('prevBtn');
-            const nextBtn = document.getElementById('nextBtn');
-            const pageInfo = document.getElementById('pageInfo');
+        document.addEventListener('alpine:init', () => {
+            /* no-op */
+        });
 
-            let timer = null,
-                lastAbort = null;
-
-            let perms = {
-                can_edit: true,
-                can_delete: true
-            };
-
-            window.openDeleteModal = function(url) {
-                document.querySelector('[x-data]').__x.$data.openDelete(url);
-            };
-
-            function aksiButtons(item) {
-                let html = '';
-                if (perms.can_edit) {
-                    html += `<a href="${item.edit_url}"
-                      class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
-                      Edit
-                     </a>`;
+        $(function() {
+            // Inisialisasi DataTables
+            const hasActions = {{ $showActionsColumn ? 'true' : 'false' }};
+            const columns = hasActions ? [{
+                    title: 'No. PO'
+                },
+                {
+                    title: 'Tanggal'
+                },
+                {
+                    title: 'Kode Supplier'
+                },
+                {
+                    title: 'Nama Supplier'
+                },
+                {
+                    title: 'Total Harga'
+                },
+                {
+                    title: 'Status'
+                },
+                {
+                    title: 'User ID'
+                },
+                {
+                    title: 'Aksi',
+                    orderable: false,
+                    searchable: false
                 }
-                if (perms.can_delete) {
-                    html += `<button onclick="window.openDeleteModal('${item.destroy_url}')"
-                         class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 ml-2">
-                         Hapus
-                     </button>`;
+            ] : [{
+                    title: 'No. PO'
+                },
+                {
+                    title: 'Tanggal'
+                },
+                {
+                    title: 'Kode Supplier'
+                },
+                {
+                    title: 'Nama Supplier'
+                },
+                {
+                    title: 'Total Harga'
+                },
+                {
+                    title: 'Status'
+                },
+                {
+                    title: 'User ID'
                 }
-                html += `<a href="${item.print_url ?? '#'}" target="_blank" rel="noopener"
-                    class="inline-flex items-center px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 ml-2">
-                    Print
-                    </a>`;
-                return html;
-            }
+            ];
 
-            function rowHtml(item) {
-                const actions = aksiButtons(item);
-                const showAksi = (perms.can_edit || perms.can_delete) || true;
-                return `
-        <tr class="hover:bg-gray-50">
-            <td class="border px-2 py-1">${item.fpohdid ?? ''}</td>
-            <td class="border px-2 py-1">${item.fprno ?? ''}</td>
-            ${ showAksi ? `<td class="border px-2 py-1">${actions}</td>` : '' }
-        </tr>`;
-            }
+            $('#tr_pohTable').DataTable({
+                autoWidth: false,
+                pageLength: 10,
+                lengthMenu: [10, 25, 50, 100],
+                order: [
+                    [0, 'asc']
+                ],
+                layout: {
+                    topStart: 'search', // Search pindah ke kiri
+                    topEnd: 'pageLength', // Length menu pindah ke kanan
+                    bottomStart: 'info',
+                    bottomEnd: 'paging'
+                },
+                columnDefs: [{
+                        targets: 'col-aksi',
+                        orderable: false,
+                        searchable: false,
+                        width: 120
+                    },
+                    {
+                        targets: 'no-sort',
+                        orderable: false
+                    }
+                ],
+                language: {
+                    lengthMenu: "Show _MENU_ entries"
+                },
+                initComplete: function() {
+                    const api = this.api();
 
-            function render(json) {
-                if (!json || !json.data) return;
+                    const $toolbarSearch = $(api.table().container()).find('.dt-search');
+                    const $filter = $('#statusFilterTemplate #statusFilterWrap').clone(true, true);
 
-                if (json.perms) perms = json.perms;
+                    const $select = $filter.find('select[data-role="status-filter"]');
+                    $select.attr('id', 'statusFilterDT');
 
-                if (json.data.length === 0) {
-                    const colCount = document.querySelector('thead tr').children.length;
-                    tbody.innerHTML =
-                        `<tr><td colspan="${colCount}" class="text-center py-4">Tidak ada data.</td></tr>`;
-                } else {
-                    tbody.innerHTML = json.data.map(rowHtml).join('');
-                }
+                    $toolbarSearch.append($filter);
 
-                prevBtn.dataset.page = json.links.prev || '';
-                nextBtn.dataset.page = json.links.next || '';
-                prevBtn.disabled = !json.links.prev;
-                nextBtn.disabled = !json.links.next;
-                prevBtn.classList.toggle('opacity-50', !json.links.prev);
-                nextBtn.classList.toggle('opacity-50', !json.links.next);
-                pageInfo.textContent = `Page ${json.links.current_page} of ${json.links.last_page}`;
-            }
+                    const statusRawIdx = api.columns().indexes().toArray()
+                        .find(i => $(api.column(i).header()).attr('data-col') === 'statusRaw');
 
-            function fetchTable(url) {
-                if (lastAbort) lastAbort.abort();
-                lastAbort = new AbortController();
-                fetch(url, {
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest'
-                        },
-                        signal: lastAbort.signal
-                    })
-                    .then(r => r.json())
-                    .then(render)
-                    .catch(err => {
-                        if (err.name !== 'AbortError') console.error(err);
+                    if (statusRawIdx === undefined) {
+                        console.warn('Kolom StatusRaw tidak ditemukan.');
+                        return;
+                    }
+
+                    api.column(statusRawIdx).visible(false);
+
+                    const $searchInput = $toolbarSearch.find('.dt-input');
+                    $searchInput.css({
+                        width: '400px',
+                        maxWidth: '100%'
                     });
-            }
 
-            function buildUrl(baseUrl = null) {
-                if (baseUrl) {
-                    const u = new URL(baseUrl, window.location.origin);
-                    u.searchParams.set('search', input.value || '');
-                    return u.toString();
-                }
-                const base = form.getAttribute('action');
-                const params = new URLSearchParams(new FormData(form));
-                params.delete('page');
-                return `${base}?${params.toString()}`;
-            }
+                    api.column(statusRawIdx).search('^0$', true, false).draw();
 
-            input.addEventListener('input', () => {
-                clearTimeout(timer);
-                timer = setTimeout(() => fetchTable(buildUrl()), 300);
-            });
-            input.addEventListener('keydown', e => {
-                if (e.key === 'Enter') e.preventDefault();
-            });
-
-            document.getElementById('pagination')?.addEventListener('click', e => {
-                if (e.target.tagName === 'BUTTON' && e.target.dataset.page) {
-                    e.preventDefault();
-                    fetchTable(buildUrl(e.target.dataset.page));
+                    $select.on('change', function() {
+                        const v = this.value;
+                        if (v === 'active') {
+                            api.column(statusRawIdx).search('^0$', true, false).draw();
+                        } else if (v === 'nonactive') {
+                            api.column(statusRawIdx).search('^1$', true, false).draw();
+                        } else {
+                            api.column(statusRawIdx).search('', true, false).draw(); // all
+                        }
+                    });
                 }
             });
-        })();
+        });
     </script>
 @endpush
