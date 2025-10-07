@@ -219,4 +219,17 @@ Route::post('/reject/{fprno}', [ApprovalController::class, 'rejectRequest'])
 Route::get('/approval/info/{fprno}', [ApprovalController::class, 'infoApprovalPage'])
     ->name('approval.info');
 
+Route::get('/approval-page-po', [ApprovalController::class, 'showApprovalPagePO'])
+    ->name('approval.page.po');
+
+Route::post('/approve-po/{fpono}', [ApprovalController::class, 'approveRequestPO'])
+    ->name('approval.po.submit');
+
+Route::post('/reject-po/{fpono}', [ApprovalController::class, 'rejectRequestPO'])
+    ->where('fpono', '[A-Za-z0-9\.\-]+')
+    ->name('approval.po.reject');
+
+Route::get('/approval-po/info/{fpono}', [ApprovalController::class, 'infoApprovalPagePO'])
+    ->name('approval.po.info');
+
 require __DIR__ . '/auth.php';

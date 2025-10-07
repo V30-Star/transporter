@@ -529,22 +529,19 @@ class Tr_pohController extends Controller
         'fapproval'     => $isApproval,
       ]);
 
-      if ($isApproval === 1) {
-        $hdr = Tr_poh::where('fpono', $fpono)->first();
-        $dt = Tr_pod::query()
-          ->leftJoin('msprd as p', 'p.fprdcode', '=', 'tr_pod.fprdcode')
-          ->where('tr_pod.fpono', $hdr->fpono)
-          ->orderBy('tr_pod.fprdcode')
-          ->get([
-            'tr_pod.*',
-            'p.fprdname as product_name',
-            'p.fminstock as stock',
-          ]);
-
-        $productName = $dt->pluck('fprdcode')->implode(', ');
-        $approver = auth('sysuser')->user()->fname;
-
-        Mail::to('vierybiliam8@gmail.com')->send(new ApprovalEmailPo($hdr, $dt, $productName, $approver, 'Order Pembelian (PO)'));
+      if ((int)$request->input('fapproval', 0) === 1) {
+        DB::afterCommit(function () use ($fpono) {
+          $hdr = Tr_poh::where('fpono', $fpono)->first();
+          $dt  = Tr_pod::from('tr_pod as d')
+            ->leftJoin('msprd as p', 'p.fprdcode', '=', 'd.fprdcode')
+            ->where('d.fpono', $fpono)
+            ->orderBy('d.fprdcode')
+            ->get(['d.*', 'p.fprdname as product_name', 'p.fminstock as stock']);
+          $productName = $dt->pluck('fprdcode')->implode(', ');
+          $approver    = auth('sysuser')->user()->fname ?? '-';
+          Mail::to('Surianto_w@yahoo.com')
+            ->send(new ApprovalEmailPo($hdr, $dt, $productName, $approver, 'Order Pembelian (PO)'));
+        });
       }
 
       // === siapkan fnou berurutan & insert detail ===

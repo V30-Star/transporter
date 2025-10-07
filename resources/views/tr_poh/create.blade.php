@@ -1031,7 +1031,6 @@
                         $canApproval = in_array('approvalpr', explode(',', session('user_restricted_permissions', '')));
                     @endphp
 
-
                     {{-- APPROVAL & ACTIONS --}}
                     <div class="md:col-span-2 flex justify-center items-center space-x-2 mt-6">
                         @if ($canApproval)

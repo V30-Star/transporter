@@ -5,8 +5,6 @@
     <meta charset="UTF-8">
     <title>Approval Notification</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    {{-- Gunakan gaya yang aman untuk email clients --}}
     <style>
         body {
             font-family: Arial, Helvetica, sans-serif;
@@ -118,9 +116,8 @@
 <body>
     <div class="container">
 
-        <h1>Permintaan Pembelian Approval</h1>
+        <h1>Order Pembelian Approval</h1>
 
-        {{-- Header Information --}}
         <table class="info-table">
             <tr>
                 <td>
@@ -168,15 +165,15 @@
             <thead>
                 <tr>
                     <th style="width:120px;">Kode</th>
-                    <th>Nama Produk</th>
+                    <th>Nama Barang</th>
                     <th style="width:120px;">Qty</th>
-                    <th style="width:90px;">Satuan</th>
-                    <th>Keterangan</th>
+                    <th style="width:120px;">Harga</th>
+                    <th style="width:90px;">Disc%</th>
+                    <th style="width:90px;">Total Harga</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse ($dt as $item)
-                <php>{{ $dt }}</php>
                     <tr>
                         <td>{{ $item->fprdcode }}</td>
                         <td>
@@ -186,8 +183,9 @@
                             @endif
                         </td>
                         <td>{{ number_format((float) ($item->fqty ?? 0), 0, ',', '.') }}</td>
-                        <td>{{ $item->fsatuan ?? '-' }}</td>
-                        <td>{{ $item->fdesc ?? '-' }}</td>
+                        <td>{{ $item->fprice ?? '-' }}</td>
+                        <td>{{ $item->fdisc ?? '-' }}</td>
+                        <td>{{ $item->famount ?? '-' }}</td>
                     </tr>
                 @empty
                     <tr>
@@ -196,12 +194,6 @@
                 @endforelse
             </tbody>
         </table>
-
-        <!-- Footer and Signature Section -->
-        <div class="note-box">
-            <div class="note-top">Note:</div>
-            <div>{{ $hdr->fket ?? '-' }}</div>
-        </div>
 
         <div class="signature-table">
             <tr>
@@ -217,10 +209,10 @@
         </div>
 
         {{-- Approve button (opsional bila ada fprno) --}}
-        @php $fprno = $hdr->fprno ?? null; @endphp
-        @if ($fprno)
+        @php $fpono = $hdr->fpono ?? null; @endphp
+        @if ($fpono)
             <div class="btn-wrap">
-                <a class="btn btn-approve" href="{{ route('approval.page', ['fprno' => $fprno]) }}">✅ Approve</a>
+                <a class="btn btn-approve" href="{{ route('approval.page.po', ['fpono' => $fpono]) }}">✅ Approve</a>
             </div>
         @else
             <p class="warning">PR number tidak tersedia.</p>
