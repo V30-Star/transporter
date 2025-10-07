@@ -66,9 +66,9 @@
                     <tr>
                         <td>{{ $r->fcustomercode }}</td>
                         <td>{{ $r->fcustomername }}</td>
+                        <td>{{ $r->wilayah_name }}</td>
                         <td>{{ $r->faddress }}</td>
-                        <td>{{ $r->faddress }}</td>
-                        <td>{{ $r->faddress }}</td>
+                        <td>{{ $r->fkirimaddress1 }}</td>
                         <td>
                             @php $isActive = (string)$r->fnonactive === '0'; @endphp
                             <span

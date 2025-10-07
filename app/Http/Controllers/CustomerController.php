@@ -8,37 +8,55 @@ use App\Models\Salesman;  // Add this import to get the groups
 use App\Models\Wilayah;  // Add this import to get the groups
 use App\Models\Rekening;  // Add this import to get the groups
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class CustomerController extends Controller
 {
     // Index method to list all customers with search functionality
     public function index(Request $request)
     {
-        $allowedSorts = ['fcustomercode', 'fcustomername', 'fcustomerid', 'faddress', 'faddress', 'faddress', 'ftempo', 'ftempo', 'fkirimaddress1', 'fnonactive'];
-        $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fcustomerid';
+        $sortBy  = $request->sort_by ?? 'fcustomerid';
         $sortDir = $request->sort_dir === 'asc' ? 'asc' : 'desc';
+        $status  = $request->query('status');
 
-        $status = $request->query('status');
-
-        $query = Customer::query();
+        $query = DB::table('mscustomer')
+            ->leftJoin('mswilayah as w', 'w.fwilayahid', '=', 'mscustomer.fwilayah');
 
         if ($status === 'active') {
-            $query->where('fnonactive', '0');
+            $query->where('mscustomer.fnonactive', '0');
         } elseif ($status === 'nonactive') {
-            $query->where('fnonactive', '1');
+            $query->where('mscustomer.fnonactive', '1');
         }
 
-        $customers = $query
-            ->orderBy($sortBy, $sortDir)
-            ->get(['fcustomercode', 'fcustomername', 'fcustomerid', 'faddress', 'faddress', 'faddress', 'ftempo', 'ftempo', 'fkirimaddress1', 'fnonactive']);
+        $customers = $query->select(
+            'mscustomer.fcustomercode',
+            'mscustomer.fcustomername',
+            'mscustomer.fcustomerid',
+            'mscustomer.faddress',
+            'mscustomer.ftempo',
+            'mscustomer.fkirimaddress1',
+            'mscustomer.fnonactive',
+            'mscustomer.fwilayah',
+            'w.fwilayahname as wilayah_name'   // <- pakai alias w
+        )
+            ->orderBy('mscustomer.' . $sortBy, $sortDir)
+            ->get();
 
         $canCreate = in_array('createCustomer', explode(',', session('user_restricted_permissions', '')));
         $canEdit   = in_array('updateCustomer', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deleteCustomer', explode(',', session('user_restricted_permissions', '')));
+        $showActionsColumn = $canEdit || $canDelete;
 
-        return view('master.customer.index', compact('customers', 'canCreate', 'canEdit', 'canDelete', 'status'));
+        return view('master.customer.index', compact(
+            'customers',
+            'canCreate',
+            'canEdit',
+            'canDelete',
+            'status',
+            'showActionsColumn'
+        ));
     }
-
+    
     private function generateCustomerCode(): string
     {
         $lastCode = Customer::where('fcustomercode', 'like', 'C-%')
