@@ -64,7 +64,7 @@ class SysUserController extends Controller
         $validated['fuserid'] = auth('sysuser')->user()->fname ?? null;
         $validated['created_at'] = now();
 
-        $validated['fsalesman'] = $request->fsalesman;
+        $validated['fsalesman'] = $request->has('fsalesman') ? $request->fsalesman : '-';  // Atau null jika memang diperlukan
 
         $validated['password'] = Hash::make($validated['password']);
 
@@ -125,7 +125,7 @@ class SysUserController extends Controller
         $validated['fuserlevel'] = $validated['fuserlevel'] == 'Admin' ? '2' : '1';
         $validated['fuserid'] = auth('sysuser')->user()->fname ?? null;
         $validated['updated_at'] = now();
-        $validated['fsalesman'] = $request->fsalesman;
+        $validated['fsalesman'] = $request->has('fsalesman') ? $request->fsalesman : '-';  // Atau null jika memang diperlukan
 
         // Update the sysuser with the validated data
         $sysuser->update($validated);
