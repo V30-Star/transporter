@@ -21,6 +21,7 @@ use App\Http\Controllers\SysUserController;
 use App\Http\Controllers\Tr_prhController;
 use App\Http\Controllers\ApprovalController;
 use App\Http\Controllers\WhController;
+use App\Http\Controllers\FakturpembelianController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -169,6 +170,15 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/tr-poh/{id}/items', [Tr_pohController::class, 'items'])
             ->name('tr_poh.items');    // endpoint ambil header+items PR
+
+        Route::get('/fakturpembelian',  [FakturpembelianController::class, 'index'])->name('fakturpembelian.index');
+        // Route::post('/fakturpembelian',        [FakturpembelianController::class, 'store'])->name('fakturpembelian.store');
+        Route::get('/fakturpembelian/create', [FakturpembelianController::class, 'create'])->name('fakturpembelian.create');
+        // Route::get('/fakturpembelian/{fpohdid}/edit', [FakturpembelianController::class, 'edit'])->name('fakturpembelian.edit');
+        // Route::patch('/fakturpembelian/{fpohdid}', [FakturpembelianController::class, 'update'])->name('fakturpembelian.update');
+        // Route::delete('/fakturpembelian/{fpohdid}', [FakturpembelianController::class, 'destroy'])->name('fakturpembelian.destroy');
+        // Route::get('/fakturpembelian/{fpono}/print', [FakturpembelianController::class, 'print'])
+        //     ->name('fakturpembelian.print');
 
         Route::get('/products/browse', [\App\Http\Controllers\ProductBrowseController::class, 'index'])
             ->name('products.browse');
