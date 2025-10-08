@@ -36,34 +36,6 @@ class MerekController extends Controller
         return view('merek.index', compact('mereks', 'canCreate', 'canEdit', 'canDelete', 'status'));
     }
 
-    public function ajaxStore(Request $request)
-    {
-        $data = $request->validate([
-            // pastikan nama tabel di rule unique sama dengan modelmu
-            'fmerekcode' => ['required', 'string', 'max:50', 'unique:msmerek,fmerekcode'],
-            'fmerekname' => ['required', 'string', 'max:100'],
-            'fnonactive' => ['nullable', 'in:0,1'],
-        ]);
-
-        $userName = optional(auth('sysuser')->user())->fname ?? 'system';
-        $now = now();
-
-        $merek = Merek::create([
-            'fmerekcode'  => $data['fmerekcode'],
-            'fmerekname'  => $data['fmerekname'],
-            'fnonactive'  => $request->boolean('fnonactive') ? 1 : 0,
-            'fcreatedby'  => $userName,
-            'fupdatedby'  => $userName,
-            'fcreatedat'  => $now,
-            'fupdatedat'  => $now,
-        ]);
-
-        return response()->json([
-            'id'   => $merek->fmerekid,
-            'name' => $merek->fmerekname,
-        ], 201);
-    }
-
     public function create()
     {
         return view('merek.create');

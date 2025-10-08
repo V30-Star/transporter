@@ -145,31 +145,4 @@ class GroupproductController extends Controller
 
         return response()->json($paginated);
     }
-    public function ajaxStore(Request $request)
-    {
-        $data = $request->validate([
-            'fgroupcode' => ['required', 'string', 'max:50', 'unique:ms_groupprd,fgroupcode'],
-            'fgroupname' => ['required', 'string', 'max:100'],
-            'fnonactive' => ['nullable', 'in:0,1'],
-        ]);
-
-        $userName = optional(auth('sysuser')->user())->fname ?? 'system';
-        $now = now();
-
-        // Create the new Group Product
-        $groupProduct = Groupproduct::create([
-            'fgroupcode' => $data['fgroupcode'],
-            'fgroupname' => $data['fgroupname'],
-            'fnonactive' => $request->boolean('fnonactive') ? 1 : 0,
-            'fcreatedby' => $userName,
-            'fupdatedby' => $userName,
-            'fcreatedat' => $now,
-            'fupdatedat' => $now,
-        ]);
-
-        return response()->json([
-            'id'   => $groupProduct->fgroupid,
-            'name' => $groupProduct->fgroupname,
-        ], 201);
-    }
 }
