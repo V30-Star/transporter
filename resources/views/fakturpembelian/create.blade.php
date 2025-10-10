@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Faktur Penjualan')
+@section('title', 'Penerimaan Barang')
 
 @section('content')
     <style>
@@ -194,7 +194,7 @@
                             @enderror
                         </div>
 
-                        <div>
+                        {{-- <div>
                             <label class="block text-sm font-medium mb-1">Timbangan</label>
                             <div class="flex items-center gap-2">
                                 <input type="text" name="fwhname" value="{{ old('fwhname') }}"
@@ -204,12 +204,11 @@
                             @error('fwhname')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
-                        </div>
+                        </div> --}}
 
                         <div class="lg:col-span-12">
                             <label class="block text-sm font-medium">Keterangan</label>
-                            <textarea name="fket" rows="3"
-                                class="w-full border rounded px-3 py-2 @error('fket') border-red-500 @enderror"
+                            <textarea name="fket" rows="3" class="w-full border rounded px-3 py-2 @error('fket') border-red-500 @enderror"
                                 placeholder="Tulis keterangan tambahan di sini...">{{ old('fket') }}</textarea>
                             @error('fket')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -231,8 +230,8 @@
                                         <th class="p-2 text-left w-72">Nama Produk</th>
                                         <th class="p-2 text-left w-28">Desc</th>
                                         <th class="p-2 text-left w-36">Ref.PO#</th>
-                                        <th class="p-2 text-right w-24 whitespace-nowrap">Sat</th>
                                         <th class="p-2 text-right w-28 whitespace-nowrap">Qty</th>
+                                        <th class="p-2 text-right w-24 whitespace-nowrap">Sat</th>
                                         <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
                                         <th class="p-2 text-right w-36 whitespace-nowrap">Total Harga</th>
                                         <th class="p-2 text-center w-28">Aksi</th>
@@ -370,13 +369,6 @@
                                                 @keydown.enter.prevent="$refs.editTerima?.focus()">
                                         </td>
 
-                                        <!-- Terima -->
-                                        <td class="p-2 text-right">
-                                            <input type="number"
-                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600  text-right"
-                                                min="0" step="1" :value="editRow.fterima ?? 0" disabled>
-                                        </td>
-
                                         <!-- @ Harga -->
                                         <td class="p-2 text-right">
                                             <input type="number" class="border rounded px-2 py-1 w-28 text-right"
@@ -487,13 +479,6 @@
                                                 @keydown.enter.prevent="$refs.draftTerima?.focus()">
                                         </td>
 
-                                        <!-- Terima -->
-                                        <td class="p-2 text-right">
-                                            <input type="number"
-                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-right"
-                                                min="0" step="1" :value="draft.fterima ?? 0" disabled>
-                                        </td>
-
                                         <!-- @ Harga -->
                                         <td class="p-2 text-right">
                                             <input type="number" class="border rounded px-2 py-1 w-28 text-right"
@@ -551,7 +536,7 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                                 d="M12 4.5v15m7.5-7.5h-15" />
                                         </svg>
-                                        Add PR
+                                        Add PO
                                     </button>
                                 </div>
                                 <!-- Kanan: Panel Totals -->
@@ -574,7 +559,7 @@
                                     aria-modal="true" role="dialog">
                                     <div class="w-full max-w-3xl rounded-xl bg-white shadow-xl">
                                         <div class="flex items-center justify-between border-b px-4 py-3">
-                                            <h3 class="text-lg font-semibold">Add PR</h3>
+                                            <h3 class="text-lg font-semibold">Add PO</h3>
                                         </div>
 
                                         <div class="px-4 py-3 space-y-3">
@@ -611,7 +596,8 @@
                                                 <table class="min-w-full text-sm">
                                                     <thead class="bg-gray-100">
                                                         <tr>
-                                                            <th class="p-2 text-left w-48">PR No</th>
+                                                            <th class="p-2 text-left w-48">PO No</th>
+                                                            <th class="p-2 text-left w-48">Ref No PO</th>
                                                             <th class="p-2 text-left w-48">Supplier</th>
                                                             <th class="p-2 text-left w-48">Tanggal</th>
                                                             <th class="p-2 text-right w-24">Aksi</th>
@@ -620,6 +606,7 @@
                                                     <tbody>
                                                         <template x-for="row in rows" :key="row.fprid">
                                                             <tr class="border-t">
+                                                                <td class="p-2" x-text="row.fprno"></td>
                                                                 <td class="p-2" x-text="row.fprno"></td>
                                                                 <td class="p-2" x-text="row.fsupplier || '-'"></td>
                                                                 <td class="p-2" x-text="formatDate(row.fprdate)">
@@ -931,35 +918,12 @@
                             </div>
                         </div>
 
-                        @php
-                            $canApproval = in_array(
-                                'approvalpr',
-                                explode(',', session('user_restricted_permissions', '')),
-                            );
-                        @endphp
-
-                        {{-- APPROVAL & ACTIONS --}}
-                        <div class="md:col-span-2 flex justify-center items-center space-x-2 mt-6">
-                            @if ($canApproval)
-                                <label class="block text-sm font-medium">Approval</label>
-
-                                {{-- fallback 0 saat checkbox tidak dicentang --}}
-                                <input type="hidden" name="fapproval" value="0">
-
-                                <label class="switch">
-                                    <input type="checkbox" name="fapproval" id="approvalToggle" value="1"
-                                        {{ old('fapproval', session('fapproval') ? 1 : 0) ? 'checked' : '' }}>
-                                    <span class="slider"></span>
-                                </label>
-                            @endif
-                        </div>
-
                         <div class="mt-8 flex justify-center gap-4">
                             <button type="submit"
                                 class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
                                 <x-heroicon-o-check class="w-5 h-5 mr-2" /> Simpan
                             </button>
-                            <button type="button" @click="window.location.href='{{ route('tr_poh.index') }}'"
+                            <button type="button" @click="window.location.href='{{ route('fakturpembelian.index') }}'"
                                 class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
                                 <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" /> Keluar
                             </button>
@@ -1621,7 +1585,7 @@
                         page: this.currentPage,
                     });
 
-                    const res = await fetch(`{{ route('tr_poh.pickable') }}?` + params.toString(), {
+                    const res = await fetch(`{{ route('fakturpembelian.pickable') }}?` + params.toString(), {
                         headers: {
                             'X-Requested-With': 'XMLHttpRequest'
                         }
@@ -1656,7 +1620,7 @@
 
             async pick(row) {
                 try {
-                    const url = `{{ route('tr_poh.items', ['id' => 'PR_ID_PLACEHOLDER']) }}`
+                    const url = `{{ route('fakturpembelian.items', ['id' => 'PR_ID_PLACEHOLDER']) }}`
                         .replace('PR_ID_PLACEHOLDER', row.fprid);
 
                     const res = await fetch(url, {

@@ -40,95 +40,96 @@ class FakturpembelianController extends Controller
 
   public function pickable(Request $request)
   {
-    $search   = trim((string) $request->get('search', ''));
-    $perPage  = (int) $request->get('per_page', 10);
+    $search   = trim($request->get('search', ''));
+    $perPage  = (int)($request->get('per_page', 10));
+    $perPage  = $perPage > 0 ? $perPage : 10;
 
-    // Ambil dari tr_prh dengan kondisi yang kamu minta
-    $query = Tr_prh::query()
+    $q = \App\Models\Tr_poh::query()
       ->select([
-        'tr_prh.fprid',
-        'tr_prh.fprno',
-        'tr_prh.fsupplier',
-        'tr_prh.fprdate',
-      ])
-      ->where('tr_prh.fapproval', 2)
-      ->where('tr_prh.fprdin', 0);
+        'fpohdid as fprid',     // FE expects fprid
+        'fpono as fprno',       // FE expects fprno
+        'fsupplier',
+        'fpodate as fprdate',   // FE expects fprdate
+      ]);
 
-    // Optional search: fprno / fsupplier / tanggal
     if ($search !== '') {
-      // PostgreSQL -> ILIKE, MySQL -> LIKE (ganti sesuai DB)
-      $likeOp = DB::getDriverName() === 'pgsql' ? 'ILIKE' : 'LIKE';
-      $query->where(function ($q) use ($search, $likeOp) {
-        $q->where('tr_prh.fprno', $likeOp, "%{$search}%")
-          ->orWhere('tr_prh.fsupplier', $likeOp, "%{$search}%")
-          ->orWhereRaw("TO_CHAR(tr_prh.fprdate, 'YYYY-MM-DD HH24:MI:SS') {$likeOp} ?", ["%{$search}%"]);
+      // cari di fpono / fsupplier / tanggal (yyyy-mm-dd)
+      $q->where(function ($w) use ($search) {
+        $w->where('fpono', 'ILIKE', "%{$search}%")
+          ->orWhere('fsupplier', 'ILIKE', "%{$search}%");
+
+        // coba parse tanggal
+        $date = null;
+        try {
+          $date = \Carbon\Carbon::parse($search)->startOfDay();
+        } catch (\Throwable $e) {
+        }
+        if ($date) {
+          $w->orWhereBetween('fpodate', [
+            $date->copy()->startOfDay(),
+            $date->copy()->endOfDay(),
+          ]);
+        }
       });
     }
 
-    // Urutan paling baru
-    $query->orderByDesc('tr_prh.fprdate')
-      ->orderByDesc('tr_prh.fprid');
+    $q->orderByDesc('fpodate')->orderBy('fpono');
 
-    $paginated = $query->paginate($perPage)->withQueryString();
+    $page = (int)$request->get('page', 1);
+    $data = $q->paginate($perPage, ['*'], 'page', $page);
 
-    // Format JSON agar cocok dengan kode Alpine kamu
-    $rows = collect($paginated->items())->map(function ($t) {
-      return [
-        'fprid'     => $t->fprid,
-        'fprno'     => $t->fprno,
-        'fsupplier' => trim($t->fsupplier ?? ''),
-        'fprdate'   => $t->fprdate ? \Carbon\Carbon::parse($t->fprdate)->format('Y-m-d H:i:s') : 'No Date',
-        // siapkan URL jika dibutuhkan
-        'items_url' => route('tr_poh.items', $t->fprid),
-      ];
-    });
-
+    // Kembalikan struktur yang sudah diantisipasi FE-mu (data, current_page, last_page, total)
     return response()->json([
-      'data'  => $rows,
-      'links' => [
-        'prev'         => $paginated->previousPageUrl(),
-        'next'         => $paginated->nextPageUrl(),
-        'current_page' => $paginated->currentPage(),
-        'last_page'    => $paginated->lastPage(),
-        'total'        => $paginated->total(),
-      ],
-      // compat untuk key yang sudah kamu baca di frontend
-      'current_page' => $paginated->currentPage(),
-      'last_page'    => $paginated->lastPage(),
-      'total'        => $paginated->total(),
+      'data'         => $data->items(),
+      'current_page' => $data->currentPage(),
+      'last_page'    => $data->lastPage(),
+      'total'        => $data->total(),
     ]);
   }
 
   public function items($id)
   {
-    // Ambil data header PR berdasarkan fprid
-    $header = Tr_prh::where('fprid', $id)->firstOrFail();
+    // Header PO berdasar PK: fpohdid
+    $header = \App\Models\Tr_poh::where('fpohdid', $id)->firstOrFail();
 
-    // Ambil data items dari tabel tr_prd berdasarkan fprnoid
-    $items = Tr_prd::where('tr_prd.fprnoid', $header->fprno)
-      ->leftJoin('msprd as m', 'm.fprdcode', '=', 'tr_prd.fprdcode')
+    $items = DB::table('tr_pod')
+      ->where('tr_pod.fpono', $header->fpono) // <— fpono (bukan fponoid)
+      ->leftJoin('msprd as m', 'm.fprdcode', '=', 'tr_pod.fprdcode')
       ->select([
-        'tr_prd.fprdid as frefdtno',      // PK detail PR
-        'tr_prd.fprnoid as fnouref',      // Ref PR#
-        'tr_prd.fprdcode as fitemcode',   // Kode produk
-        'm.fprdname as fitemname',        // Nama produk
-        'tr_prd.fqty',                    // Quantity
-        'tr_prd.fsatuan as fsatuan',         // Satuan
-        'tr_prd.fprnoid',            // <-- WAJIB DIAMBIL
-        'tr_prd.fprice as fharga',        // Harga produk
-        DB::raw('0::numeric as fdiskon')  // Default diskon
+        // FE butuh alias berikut—pakai kolom yang ada di skema kamu
+        // kalau mau pakai PK detail yang pasti unik, bisa gunakan fpodid.
+        // Di sini saya prioritaskan kolom bisnis yang sudah ada (frefdtno):
+        DB::raw("COALESCE(NULLIF(tr_pod.frefdtno, ''), tr_pod.fpodid::text) as frefdtno"),
+
+        // nomor referensi (sudah ada di tabel)
+        'tr_pod.fnouref as fnouref',
+
+        'tr_pod.fprdcode as fitemcode',
+        'm.fprdname as fitemname',
+        'tr_pod.fqty',
+        'tr_pod.fsatuan as fsatuan',
+
+        // simpan juga fpono untuk referensi
+        'tr_pod.fpono',
+
+        // harga
+        'tr_pod.fprice as fharga',
+
+        // fdisc adalah varchar → ekstrak angka saja, kosong → 0
+        DB::raw("COALESCE(NULLIF(regexp_replace(COALESCE(tr_pod.fdisc, ''), '[^0-9\\.]', '', 'g'), '')::numeric, 0) as fdiskon"),
       ])
-      ->orderBy('tr_prd.fprdcode')  // Menurut kode produk
+      ->orderBy('tr_pod.fprdcode')
       ->get();
 
     return response()->json([
+      // pertahankan key yang sudah dipakai FE-mu
       'header' => [
-        'fprid'     => $header->fprid,
-        'fprno'     => $header->fprno,
+        'fprid'     => $header->fpohdid,               // map ke PK PO
+        'fprno'     => $header->fpono,                 // map ke nomor PO
         'fsupplier' => trim($header->fsupplier ?? ''),
-        'fprdate'   => optional($header->fprdate)->format('Y-m-d H:i:s'),
+        'fprdate'   => optional($header->fpodate)->format('Y-m-d H:i:s'),
       ],
-      'items'  => $items,
+      'items' => $items,
     ]);
   }
 
