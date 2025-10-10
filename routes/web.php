@@ -164,15 +164,13 @@ Route::middleware('auth')->group(function () {
         Route::delete('/tr_poh/{fpohdid}', [Tr_pohController::class, 'destroy'])->name('tr_poh.destroy');
         Route::get('/tr_poh/{fpono}/print', [Tr_pohController::class, 'print'])
             ->name('tr_poh.print');
-
         Route::get('/tr-poh/pickable', [Tr_pohController::class, 'pickable'])
-            ->name('tr_poh.pickable'); // sumber data modal
-
+            ->name('tr_poh.pickable');
         Route::get('/tr-poh/{id}/items', [Tr_pohController::class, 'items'])
-            ->name('tr_poh.items');    // endpoint ambil header+items PR
+            ->name('tr_poh.items');
 
         Route::get('/fakturpembelian',  [FakturpembelianController::class, 'index'])->name('fakturpembelian.index');
-        // Route::post('/fakturpembelian',        [FakturpembelianController::class, 'store'])->name('fakturpembelian.store');
+        Route::post('/fakturpembelian',        [FakturpembelianController::class, 'store'])->name('fakturpembelian.store');
         Route::get('/fakturpembelian/create', [FakturpembelianController::class, 'create'])->name('fakturpembelian.create');
         // Route::get('/fakturpembelian/{fpohdid}/edit', [FakturpembelianController::class, 'edit'])->name('fakturpembelian.edit');
         // Route::patch('/fakturpembelian/{fpohdid}', [FakturpembelianController::class, 'update'])->name('fakturpembelian.update');
@@ -192,6 +190,9 @@ Route::middleware('auth')->group(function () {
             ->name('groupproducts.browse');
 
         Route::get('/mereks/browse', [MerekController::class, 'browse'])->name('mereks.browse');
+
+        Route::get('/gudang/browse', [WhController::class, 'browse'])
+            ->name('gudang.browse');
 
         Route::get('/suppliers/browse', [SupplierController::class, 'browse'])->name('suppliers.browse');
 

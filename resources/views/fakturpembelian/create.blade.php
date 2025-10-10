@@ -99,7 +99,7 @@
                         <div class="lg:col-span-4" x-data="{ autoCode: true }">
                             <label class="block text-sm font-medium mb-1">Transaksi#</label>
                             <div class="flex items-center gap-3">
-                                <input type="text" name="fpono" class="w-full border rounded px-3 py-2"
+                                <input type="text" name="fstockmtno" class="w-full border rounded px-3 py-2"
                                     :disabled="autoCode"
                                     :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
                                 <label class="inline-flex items-center select-none">
@@ -151,45 +151,52 @@
                             <label class="block text-sm font-medium mb-1">Gudang</label>
                             <div class="flex">
                                 <div class="relative flex-1">
-                                    <select id="supplierSelect" name="fsupplier"
+                                    <select id="warehouseSelect" name="ffrom"
                                         class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
-                                        disabled onchange="updateTempo()">
+                                        disabled>
                                         <option value=""></option>
-                                        @foreach ($supplier as $suppliers)
-                                            <option value="{{ $suppliers->fsupplierid }}"
-                                                data-tempo="{{ $suppliers->ftempo }}"
-                                                {{ old('fsupplier') == $suppliers->fsupplierid ? 'selected' : '' }}>
-                                                {{ $suppliers->fsuppliercode }} - {{ $suppliers->fsuppliername }}
+                                        @foreach ($warehouses as $wh)
+                                            <option value="{{ $wh->fwhcode }}" data-id="{{ $wh->fwhid }}"
+                                                data-branch="{{ $wh->fbranchcode }}"
+                                                {{ old('ffrom') == $wh->fwhcode ? 'selected' : '' }}>
+                                                {{ $wh->fwhcode }} - {{ $wh->fwhname }}
                                             </option>
                                         @endforeach
                                     </select>
-                                    <div class="absolute inset-0" role="button" aria-label="Browse supplier"
-                                        @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"></div>
+
+                                    {{-- Overlay untuk buka browser gudang --}}
+                                    <div class="absolute inset-0" role="button" aria-label="Browse warehouse"
+                                        @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"></div>
                                 </div>
-                                <input type="hidden" name="fsupplier" id="supplierCodeHidden"
-                                    value="{{ old('fsupplier') }}">
+
+                                {{-- Simpan juga ID gudang jika diperlukan --}}
+                                <input type="hidden" name="fwhid" id="warehouseIdHidden" value="{{ old('fwhid') }}">
+
                                 <button type="button"
-                                    @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"
+                                    @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"
                                     class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
-                                    title="Browse Supplier">
+                                    title="Browse Gudang">
                                     <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                                 </button>
-                                <a href="{{ route('supplier.create') }}" target="_blank" rel="noopener"
+
+                                {{-- ganti route di bawah sesuai halaman tambah gudangmu --}}
+                                <a href="{{ route('gudang.create') }}" target="_blank" rel="noopener"
                                     class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
-                                    title="Tambah Supplier">
+                                    title="Tambah Gudang">
                                     <x-heroicon-o-plus class="w-5 h-5" />
                                 </a>
                             </div>
-                            @error('fsupplier')
+
+                            @error('ffrom')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
                         </div>
 
                         <div class="lg:col-span-4">
                             <label class="block text-sm font-medium">Tanggal</label>
-                            <input type="date" name="fpodate" value="{{ old('fpodate') ?? date('Y-m-d') }}"
-                                class="w-full border rounded px-3 py-2 @error('fpodate') border-red-500 @enderror">
-                            @error('fpodate')
+                            <input type="date" name="fstockmtdate" value="{{ old('fstockmtdate') ?? date('Y-m-d') }}"
+                                class="w-full border rounded px-3 py-2 @error('fstockmtdate') border-red-500 @enderror">
+                            @error('fstockmtdate')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
                         </div>
@@ -835,6 +842,72 @@
                                 <div class="p-3 border-t flex items-center gap-2">
                                     <div class="text-sm text-gray-600"><span
                                             x-text="`Page ${page} / ${lastPage} • Total ${total}`"></span></div>
+                                    <div class="ml-auto flex items-center gap-2">
+                                        <button type="button" @click="prev()" :disabled="page <= 1"
+                                            class="px-3 py-1 rounded border"
+                                            :class="page <= 1 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' :
+                                                'bg-gray-100 hover:bg-gray-200'">Prev</button>
+                                        <button type="button" @click="next()" :disabled="page >= lastPage"
+                                            class="px-3 py-1 rounded border"
+                                            :class="page >= lastPage ? 'bg-gray-200 text-gray-400 cursor-not-allowed' :
+                                                'bg-gray-100 hover:bg-gray-200'">Next</button>
+                                        <button type="button" @click="close()"
+                                            class="px-3 py-1 rounded border bg-gray-100 hover:bg-gray-200">Close</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div x-data="warehouseBrowser()" x-show="open" x-cloak x-transition.opacity
+                            class="fixed inset-0 z-50 flex items-center justify-center">
+                            <div class="absolute inset-0 bg-black/40" @click="close()"></div>
+
+                            <div
+                                class="relative bg-white rounded-2xl shadow-xl w-[92vw] max-w-4xl max-h-[85vh] flex flex-col">
+                                <div class="p-4 border-b flex items-center gap-3">
+                                    <h3 class="text-lg font-semibold">Browse Gudang</h3>
+                                    <div class="ml-auto flex items-center gap-2">
+                                        <input type="text" x-model="keyword" @keydown.enter.prevent="search()"
+                                            placeholder="Cari kode / nama…" class="border rounded px-3 py-2 w-64">
+                                        <button type="button" @click="search()"
+                                            class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Search</button>
+                                    </div>
+                                </div>
+
+                                <div class="p-0 overflow-auto">
+                                    <table class="min-w-full text-sm">
+                                        <thead class="bg-gray-100 sticky top-0">
+                                            <tr>
+                                                <th class="text-left p-2">Gudang (Kode - Nama)</th>
+                                                <th class="text-left p-2 w-40">Branch</th>
+                                                <th class="text-center p-2 w-28">Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <template x-for="w in rows" :key="w.fwhid">
+                                                <tr class="border-b hover:bg-gray-50">
+                                                    <td class="p-2" x-text="`${w.fwhcode} - ${w.fwhname}`"></td>
+                                                    <td class="p-2" x-text="w.fbranchcode || '-'"></td>
+                                                    <td class="p-2 text-center">
+                                                        <button type="button" @click="choose(w)"
+                                                            class="px-3 py-1 rounded text-xs bg-emerald-600 hover:bg-emerald-700 text-white">
+                                                            Pilih
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            </template>
+                                            <tr x-show="rows.length === 0">
+                                                <td colspan="3" class="p-4 text-center text-gray-500">Tidak ada data.
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div class="p-3 border-t flex items-center gap-2">
+                                    <div class="text-sm text-gray-600">
+                                        <span x-text="`Page ${page} / ${lastPage} • Total ${total}`"></span>
+                                    </div>
                                     <div class="ml-auto flex items-center gap-2">
                                         <button type="button" @click="prev()" :disabled="page <= 1"
                                             class="px-3 py-1 rounded border"
@@ -1668,4 +1741,107 @@
             },
         };
     };
+</script>
+
+<script>
+    window.warehouseBrowser = function() {
+        return {
+            open: false,
+            keyword: '',
+            rows: [],
+            page: 1,
+            lastPage: 1,
+            total: 0,
+            perPage: 10,
+            loading: false,
+
+            async fetch() {
+                this.loading = true;
+                try {
+                    const params = new URLSearchParams({
+                        search: this.keyword ?? '',
+                        page: this.page,
+                        per_page: this.perPage,
+                    });
+                    const res = await fetch(`{{ route('gudang.browse') }}?` + params.toString(), {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+                    const json = await res.json();
+                    this.rows = json.data ?? [];
+                    this.page = json.current_page ?? 1;
+                    this.lastPage = json.last_page ?? 1;
+                    this.total = json.total ?? (json.data_total ?? 0);
+                } catch (e) {
+                    console.error(e);
+                    this.rows = [];
+                } finally {
+                    this.loading = false;
+                }
+            },
+
+            search() {
+                this.page = 1;
+                this.fetch();
+            },
+            next() {
+                if (this.page < this.lastPage) {
+                    this.page++;
+                    this.fetch();
+                }
+            },
+            prev() {
+                if (this.page > 1) {
+                    this.page--;
+                    this.fetch();
+                }
+            },
+
+            openModal() {
+                this.open = true;
+                this.search();
+            },
+            close() {
+                this.open = false;
+            },
+
+            choose(w) {
+                // Kirim event ke halaman utama agar select + hidden input terisi
+                window.dispatchEvent(new CustomEvent('warehouse-picked', {
+                    detail: {
+                        fwhid: w.fwhid,
+                        fwhcode: w.fwhcode,
+                        fwhname: w.fwhname,
+                        fbranchcode: w.fbranchcode
+                    }
+                }));
+                this.close();
+            },
+
+            init() {
+                // Buka modal saat overlay di select diklik
+                window.addEventListener('warehouse-browse-open', () => this.openModal());
+            }
+        }
+    };
+
+    // Helper: update field saat warehouse-picked
+    document.addEventListener('DOMContentLoaded', () => {
+        window.addEventListener('warehouse-picked', (ev) => {
+            const {
+                fwhcode,
+                fwhid
+            } = ev.detail || {};
+            const sel = document.getElementById('warehouseSelect');
+            const hid = document.getElementById('warehouseIdHidden');
+            if (sel) {
+                sel.value = fwhcode || '';
+                sel.dispatchEvent(new Event('change', {
+                    bubbles: true
+                }));
+            }
+            if (hid) hid.value = fwhid || '';
+        });
+    });
 </script>

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Wh;
 use App\Models\Cabang;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class WhController extends Controller
 {
@@ -136,5 +137,34 @@ class WhController extends Controller
         return redirect()
             ->route('gudang.index')
             ->with('success', 'Wh berhasil dihapus.');
+    }
+    public function browse(Request $request)
+    {
+        $search  = trim($request->get('search', ''));
+        $perPage = max(1, (int) $request->get('per_page', 10));
+        $page    = max(1, (int) $request->get('page', 1));
+
+        $q = DB::table('mswh')
+            ->select('fwhid', 'fwhcode', 'fwhname', 'fbranchcode', 'fnonactive')
+            ->where('fnonactive', '0');
+
+        if ($search !== '') {
+            $q->where(function ($w) use ($search) {
+                $w->where('fwhcode', 'ILIKE', "%{$search}%")
+                    ->orWhere('fwhname', 'ILIKE', "%{$search}%")
+                    ->orWhere('fbranchcode', 'ILIKE', "%{$search}%");
+            });
+        }
+
+        $q->orderBy('fwhcode');
+
+        $data = $q->paginate($perPage, ['*'], 'page', $page);
+
+        return response()->json([
+            'data'         => $data->items(),
+            'current_page' => $data->currentPage(),
+            'last_page'    => $data->lastPage(),
+            'total'        => $data->total(),
+        ]);
     }
 }

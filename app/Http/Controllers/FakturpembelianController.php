@@ -218,6 +218,12 @@ class FakturpembelianController extends Controller
   {
     $supplier = Supplier::all();
 
+    $warehouses = DB::table('mswh')
+      ->select('fwhid', 'fwhcode', 'fwhname', 'fbranchcode', 'fnonactive')
+      ->where('fnonactive', '0')              // hanya yang aktif
+      ->orderBy('fwhcode')
+      ->get();
+
     $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
     $branch = DB::table('mscabang')
@@ -247,6 +253,7 @@ class FakturpembelianController extends Controller
 
     return view('fakturpembelian.create', [
       'newtr_prh_code' => $newtr_prh_code,
+      'warehouses' => $warehouses,
       'perms' => ['can_approval' => $canApproval],
       'supplier' => $supplier,
       'fcabang' => $fcabang,
