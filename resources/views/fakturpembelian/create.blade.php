@@ -87,7 +87,7 @@
     <div x-data="{ open: true }">
         <div x-data="{ includePPN: false, ppnRate: 0, ppnAmount: 0, totalHarga: 100000 }" class="lg:col-span-5">
             <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
-                <form action="{{ route('tr_poh.store') }}" method="POST" class="mt-6" x-data="{ showNoItems: false }"
+                <form action="{{ route('fakturpembelian.store') }}" method="POST" class="mt-6" x-data="{ showNoItems: false }"
                     @submit.prevent="
         const n = Number(document.getElementById('itemsCount')?.value || 0);
         if (n < 1) { showNoItems = true } else { $el.submit() }
@@ -115,7 +115,7 @@
                                 <div class="relative flex-1">
                                     <select id="supplierSelect" name="fsupplier"
                                         class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
-                                        disabled onchange="updateTempo()">
+                                        disabled>
                                         <option value=""></option>
                                         @foreach ($supplier as $suppliers)
                                             <option value="{{ $suppliers->fsupplierid }}"
@@ -283,9 +283,7 @@
                                                 <input type="hidden" name="fnouref[]" :value="it.fnouref">
                                                 <input type="hidden" name="frefpr[]" :value="it.frefpr">
                                                 <input type="hidden" name="fqty[]" :value="it.fqty">
-                                                <input type="hidden" name="fterima[]" :value="it.fterima">
                                                 <input type="hidden" name="fprice[]" :value="it.fprice">
-                                                <input type="hidden" name="fdisc[]" :value="it.fdisc">
                                                 <input type="hidden" name="ftotal[]" :value="it.ftotal">
                                                 <input type="hidden" name="fdesc[]" :value="it.fdesc">
                                                 <input type="hidden" name="fketdt[]" :value="it.fketdt">
@@ -386,10 +384,10 @@
 
                                         <!-- Disc.% -->
                                         <td class="p-2 text-right">
-                                            <input type="number" class="border rounded px-2 py-1 w-24 text-right"
-                                                min="0" max="100" step="0.01" x-ref="editDisc"
-                                                x-model.number="editRow.fdisc" @input="recalc(editRow)"
-                                                @keydown.enter.prevent="applyEdit()">
+                                            <input type="number" class="border rounded px-2 py-1 w-28 text-right"
+                                                min="0" step="0.01" x-ref="editPrice"
+                                                x-model.number="editRow.fprice" @input="recalc(editRow)"
+                                                @keydown.enter.prevent="$refs.editDisc?.focus()">
                                         </td>
 
                                         <!-- Total Harga (readonly) -->
@@ -496,10 +494,10 @@
 
                                         <!-- Disc.% -->
                                         <td class="p-2 text-right">
-                                            <input type="number" class="border rounded px-2 py-1 w-24 text-right"
-                                                min="0" max="100" step="0.01" x-ref="draftDisc"
-                                                x-model.number="draft.fdisc" @input="recalc(draft)"
-                                                @keydown.enter.prevent="addIfComplete()">
+                                            <input type="number" class="border rounded px-2 py-1 w-28 text-right"
+                                                min="0" step="0.01" x-ref="editPrice"
+                                                x-model.number="editRow.fprice" @input="recalc(editRow)"
+                                                @keydown.enter.prevent="$refs.editDisc?.focus()">
                                         </td>
 
                                         <!-- Total Harga (readonly) -->
@@ -1226,57 +1224,6 @@
             editRow: newRow(),
 
             totalHarga: 0,
-            ppnRate: 11,
-
-            initialGrandTotal: @json($famountpo ?? 0),
-            initialPpnAmount: @json($famountpopajak ?? 0),
-
-            includePPN: false, // tambah PPN normal di luar total
-            fapplyppn: false, // harga sudah termasuk PPN (back-calc)
-            // PPN yang SUDAH termasuk (back-calc dari GROSS)
-            get ppnIncluded() {
-                const total = +this.totalHarga || 0;
-                const rate = +this.ppnRate || 0;
-                if (!this.fapplyppn) return 0;
-                // back-calc from GROSS
-                return Math.round((100 / (100 + rate)) * total * (rate / 100));
-            },
-
-            // NET dari GROSS jika fapplyppn aktif
-            get netFromGross() {
-                const total = +this.totalHarga || 0;
-                return total - this.ppnIncluded;
-            },
-
-            // PPN tambahan (di luar total). Jika sudah include PPN, base = NET (tidak pajak atas pajak)
-            get ppnAdded() {
-                const rate = +this.ppnRate || 0;
-                if (!this.includePPN) return 0;
-
-                const total = +this.totalHarga || 0;
-
-                // When both are ON, compute extra PPN on GROSS (not NET)
-                const base = this.fapplyppn ? total : total; // <— effectively: always use total (GROSS)
-
-                return Math.round(base * (rate / 100));
-            },
-
-            get ppnAmount() {
-                // Jika dua checkbox aktif → tampilkan PPN tambahan saja (hindari double count)
-                if (this.includePPN && this.fapplyppn) {
-                    return this.ppnAdded;
-                }
-                // Kasus lain: gabungan PPN yang sudah termasuk + PPN tambahan
-                return (this.ppnIncluded ?? 0) + (this.ppnAdded ?? 0);
-            },
-
-            get grandTotal() {
-                const total = +this.totalHarga || 0;
-                if (this.includePPN) return total + this.ppnAdded; // GROSS + extra PPN on GROSS
-                if (this.includePPN) return total + this.ppnAdded; // NET + PPN
-                if (this.fapplyppn) return total; // GROSS stays GROSS
-                return total;
-            },
 
             fmt(n) {
                 if (n === null || n === undefined || n === '') return '-';
@@ -1311,13 +1258,21 @@
                 row.fqty = Math.max(0, +row.fqty || 0);
                 row.fterima = Math.max(0, +row.fterima || 0);
                 row.fprice = Math.max(0, +row.fprice || 0);
-                row.fdisc = Math.min(100, Math.max(0, +row.fdisc || 0));
-                row.ftotal = +(row.fqty * row.fprice * (1 - row.fdisc / 100)).toFixed(2);
+                row.ftotal = +(row.fqty * row.fprice).toFixed(2);
                 this.recalcTotals();
             },
 
             recalcTotals() {
-                this.totalHarga = this.savedItems.reduce((sum, item) => sum + item.ftotal, 0);
+                this.totalHarga = (this.savedItems || []).reduce((sum, it) => {
+                    const v = Number(it?.ftotal ?? 0);
+                    return sum + (Number.isFinite(v) ? v : 0);
+                }, 0);
+            },
+
+            removeSaved(i) {
+                this.savedItems.splice(i, 1);
+                this.syncDescList?.();
+                this.recalcTotals(); // ← add this
             },
 
             productMeta(code) {
@@ -1470,7 +1425,6 @@
                 this.cancelEdit();
                 this.syncDescList?.();
 
-                // Recalculate totals after applying edit
                 this.recalcTotals();
             },
 
@@ -1524,10 +1478,6 @@
             },
 
             init() {
-                this.$watch('includePPN', () => this.recalcTotals());
-                this.$watch('fapplyppn', () => this.recalcTotals());
-                this.$watch('ppnRate', () => this.recalcTotals());
-
                 // Listen for PR picked from modal PR
                 window.getCurrentItemKeys = () => this.getCurrentItemKeys();
                 window.addEventListener('pr-picked', this.onPrPicked.bind(this), {
@@ -1582,7 +1532,6 @@
                 fqty: 0,
                 fterima: 0,
                 fprice: 0,
-                fdisc: 0,
                 ftotal: 0,
                 fdesc: '',
                 fketdt: '',

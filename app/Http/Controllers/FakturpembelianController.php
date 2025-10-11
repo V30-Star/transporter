@@ -264,73 +264,88 @@ class FakturpembelianController extends Controller
 
   public function store(Request $request)
   {
-    // VALIDASI
+    // =========================
+    // 1) VALIDASI INPUT
+    // =========================
     $request->validate([
-      'fpono'        => ['nullable', 'string', 'max:25'],
-      'fpodate'      => ['required', 'date'],
-      'fkirimdate'   => ['nullable', 'date'],
+      'fstockmtno'   => ['nullable', 'string', 'max:20'],   // boleh isi manual jika auto dimatikan
+      'fstockmtdate' => ['required', 'date'],
       'fsupplier'    => ['required', 'string', 'max:30'],
-      'fincludeppn'  => ['nullable'],
-      'fket'         => ['nullable', 'string', 'max:300'],
+      'ffrom'        => ['nullable', 'string', 'max:10'],   // gudang
+      'fket'         => ['nullable', 'string', 'max:50'],
       'fbranchcode'  => ['nullable', 'string', 'max:20'],
-      'ftempohr'     => ['nullable', 'string', 'max:3'],
+
+      // Detail minimal: Kode, Qty>0, Harga >=0. Satuan opsional (akan diisi default dari master bila kosong)
       'fitemcode'    => ['required', 'array', 'min:1'],
       'fitemcode.*'  => ['required', 'string', 'max:50'],
+
       'fsatuan'      => ['nullable', 'array'],
       'fsatuan.*'    => ['nullable', 'string', 'max:5'],
-      'fapproval' => ['nullable'],
-      'frefdtno'      => ['nullable'],
-      'frefdtno.*'    => ['nullable'],
-      'fnouref'      => ['nullable'],
-      'fnouref.*'    => ['nullable'],
+
+      'frefdtno'     => ['nullable', 'array'],
+      'frefdtno.*'   => ['nullable', 'string', 'max:20'],
+
+      'fnouref'      => ['nullable', 'array'],
+      'fnouref.*'    => ['nullable', 'integer'],
+
       'fqty'         => ['required', 'array'],
       'fqty.*'       => ['numeric', 'min:0'],
-      'fprice'       => ['nullable', 'array'],
+
+      'fprice'       => ['required', 'array'],
       'fprice.*'     => ['numeric', 'min:0'],
-      'fdisc'        => ['nullable', 'array'],
-      'fdisc.*'      => ['numeric', 'min:0'],
-      'frefpr'       => ['nullable', 'array'],
-      'frefpr.*'     => ['nullable', 'string', 'max:30'],
+
       'fdesc'        => ['nullable', 'array'],
       'fdesc.*'      => ['nullable', 'string', 'max:500'],
-      'ppn_rate'     => ['nullable', 'numeric', 'min:0', 'max:100'],
+
+      // Kurs & pajak (opsional)
+      'fcurrency'    => ['nullable', 'string', 'max:5'],
+      'frate'        => ['nullable', 'numeric', 'min:0'],
+      'famountpopajak' => ['nullable', 'numeric', 'min:0'], // PPN nominal (jika dikirim dari form)
     ], [
-      'fpodate.required'   => 'Tanggal PO wajib diisi.',
-      'fsupplier.required' => 'Supplier wajib diisi.',
-      'fitemcode.required' => 'Minimal 1 item.',
+      'fstockmtdate.required' => 'Tanggal transaksi wajib diisi.',
+      'fsupplier.required'    => 'Supplier wajib diisi.',
+      'fitemcode.required'    => 'Minimal 1 item.',
     ]);
 
-    // HEADER
-    $fpodate    = \Carbon\Carbon::parse($request->fpodate)->startOfDay();
-    $fkirimdate = $request->filled('fkirimdate') ? \Carbon\Carbon::parse($request->fkirimdate)->startOfDay() : null;
-    $fpono      = $request->input('fpono'); // biarkan null dulu, akan digenerate dalam transaksi
-    $fincludeppn = $request->boolean('fincludeppn') ? 1 : 0;
-    $userid = 'admin';
-    $now = now();
+    // =========================
+    // 2) HEADER FIELDS
+    // =========================
+    $fstockmtno   = trim((string)$request->input('fstockmtno')); // boleh null → akan di-generate
+    $fstockmtdate = \Carbon\Carbon::parse($request->fstockmtdate)->startOfDay();
+    $fsupplier    = trim((string)$request->input('fsupplier'));
+    $ffrom        = trim((string)$request->input('ffrom', ''));  // gudang dari
+    $fket         = trim((string)$request->input('fket', ''));
+    $fbranchcode  = $request->input('fbranchcode');              // bisa id / kode / nama cabang
 
-    // DETAIL ARRAYS
-    $codes  = $request->input('fitemcode', []);
-    $satuan = $request->input('fsatuan', []);
+    $fcurrency = $request->input('fcurrency', 'IDR');
+    $frate     = (float)$request->input('frate', 1);            // default 1 (IDR)
+    if ($frate <= 0) $frate = 1;
+
+    // Jika form mengirim pajak/PPN, terima. Kalau ingin hitung server, bisa ganti logika di sini.
+    $ppnAmount  = (float)$request->input('famountpopajak', 0);
+
+    $userid = auth('sysuser')->user()->fsysuserid ?? 'admin';
+    $now    = now();
+
+    // =========================
+    // 3) DETAIL ARRAYS
+    // =========================
+    $codes   = $request->input('fitemcode', []);
+    $satuans = $request->input('fsatuan', []);
     $refdtno = $request->input('frefdtno', []);
-    $nouref = $request->input('fnouref', []);
-    $qtys   = $request->input('fqty', []);
-    $prices = $request->input('fprice', []);
-    $discs  = $request->input('fdisc', []);
-    $refprs = $request->input('frefpr', []);
-    $descs  = $request->input('fdesc', []);
+    $nourefs = $request->input('fnouref', []);
+    $qtys    = $request->input('fqty', []);
+    $prices  = $request->input('fprice', []);
+    $descs   = $request->input('fdesc', []);
 
-    $totalHarga  = (float) $request->input('famountponet', 0);
-    $ppnRate     = (float) $request->input('ppn_rate', 0);
-    $ppnAmount   = (float) $request->input('famountpopajak', 0);
-    $grandTotal  = (float) $request->input('famountpo', 0);
-
+    // Ambil referensi master produk untuk fallback satuan
     $uniqueCodes = array_values(array_unique(array_filter(array_map(fn($c) => trim((string)$c), $codes))));
     $prodMeta = DB::table('msprd')
       ->whereIn('fprdcode', $uniqueCodes)
       ->get(['fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2'])
       ->keyBy('fprdcode');
 
-    $pickDefaultSat = function ($code) use ($prodMeta) {
+    $pickDefaultSat = function (string $code) use ($prodMeta): string {
       $m = $prodMeta[$code] ?? null;
       if (!$m) return '';
       foreach (['fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2'] as $k) {
@@ -340,68 +355,105 @@ class FakturpembelianController extends Controller
       return '';
     };
 
-    // RAKIT DETAIL
-    $rowsPod = [];
-    $totalHarga = 0.0; // subtotal sebelum PPN
-    $rowCount = max(count($codes), count($satuan), count($refdtno), count($nouref), count($qtys), count($prices), count($discs), count($refprs), count($descs));
+    // =========================
+    // 4) RAKIT DETAIL + HITUNG SUBTOTAL
+    // =========================
+    $rowsDt     = [];
+    $subtotal   = 0.0; // famount (sebelum pajak)
+    $rowCount   = max(
+      count($codes),
+      count($satuans),
+      count($refdtno),
+      count($nourefs),
+      count($qtys),
+      count($prices),
+      count($descs)
+    );
 
     for ($i = 0; $i < $rowCount; $i++) {
-      $code  = trim((string)($codes[$i]  ?? ''));
-      $sat   = trim((string)($satuan[$i] ?? ''));
-      $refdtno   = trim((string)($refdtno[$i] ?? ''));
-      $nouref   = trim((string)($nouref[$i] ?? ''));
-      $qty   = (float)($qtys[$i]   ?? 0);
-      $price = (float)($prices[$i] ?? 0);
-      $discP = (float)($discs[$i]  ?? 0);
-      $desc  = (string)($descs[$i]  ?? '');
+      $code   = trim((string)($codes[$i]    ?? ''));
+      $sat    = trim((string)($satuans[$i]  ?? ''));
+      $rref   = trim((string)($refdtno[$i]  ?? ''));
+      $rnour  = $nourefs[$i]  ?? null;
+      $qty    = (float)($qtys[$i]   ?? 0);
+      $price  = (float)($prices[$i] ?? 0);
+      $desc   = (string)($descs[$i] ?? '');
 
-      if ($code === '' || $qty <= 0) continue;
+      if ($code === '' || $qty <= 0) {
+        continue; // skip baris tidak valid
+      }
 
       if ($sat === '') {
         $sat = $pickDefaultSat($code);
       }
       $sat = mb_substr($sat, 0, 5);
-      if ($sat === '') continue;
+      if ($sat === '') {
+        continue; // baris tanpa satuan valid → skip
+      }
 
-      $priceGross = $price;
-      $priceNet   = $priceGross * (1 - ($discP / 100));
-      $amount     = $qty * $priceNet;
+      $amount = $qty * $price; // TANPA diskon (sudah dihapus)
+      $subtotal += $amount;
 
-      $totalHarga += $amount;
-
-      $rowsPod[] = [
-        'fprdcode'    => $code,
-        'fqty'        => $qty,
-        'fqtyremain'  => $qty,
-        'fdisc'       => (string)$discP,
-        'fprice'      => $price,
-        'fprice_rp'   => $price,
-        'fpricegross' => $priceGross,
-        'fpricenet'   => $priceNet,
-        'famount'     => $amount,
-        'famount_rp'  => $amount,
-        'fuserid'     => $userid,
-        'fdatetime'   => $now,
-        'fsatuan'     => $sat,
-        'fqtykecil'   => $qty,
-        'frefdtno'    => $refdtno,
-        'fnouref'     => $nouref,
-        'fdesc'       => $desc,
+      $rowsDt[] = [
+        // akan diisi fstockmtno & fstockmtcode saat hendak insert
+        'fprdcode'     => $code,
+        'frefdtno'     => $rref,
+        'fqty'         => $qty,
+        'fqtyremain'   => $qty,
+        'fprice'       => $price,
+        'fprice_rp'    => $price * $frate,
+        'ftotprice'    => $amount,
+        'ftotprice_rp' => $amount * $frate,
+        'fuserid'      => $userid,
+        'fdatetime'    => $now,
+        'fketdt'       => '',              // isi jika perlu
+        'fcode'        => '0',             // default
+        'fnouref'      => $rnour !== null ? (int)$rnour : null,
+        'frefso'       => null,
+        'fdesc'        => $desc,
+        'fsatuan'      => $sat,
+        'fqtykecil'    => $qty,            // jika perlu konversi, sesuaikan
+        'fclosedt'     => '0',
+        'fdiscpersen'  => 0,               // tidak dipakai, set 0
+        'fbiaya'       => 0,               // biaya lain-lain, jika ada
       ];
     }
 
-    if (empty($rowsPod)) {
-      return back()->withInput()->withErrors(['detail' => 'Minimal satu item valid (Kode, Satuan, Qty > 0).']);
+    if (empty($rowsDt)) {
+      return back()->withInput()->withErrors([
+        'detail' => 'Minimal satu item valid (Kode, Satuan, Qty > 0).'
+      ]);
     }
 
-    $ppnAmount  = $request->input('famountpopajak', 0);
+    // Hitung grand total
+    $grandTotal = $subtotal + $ppnAmount;
 
-    DB::transaction(function () use ($request, $fpodate, $fkirimdate, $fincludeppn, $userid, $now, &$rowsPod, &$fpono, $totalHarga, $ppnAmount, $grandTotal) {
-      if (empty($fpono)) {
-        $rawBranch = $request->input('fbranchcode');
-        $kodeCabang = null;
-        if ($rawBranch !== null) {
-          $needle = trim((string)$rawBranch);
+    // =========================
+    // 5) TRANSAKSI DB
+    // =========================
+    DB::transaction(function () use (
+      $request,
+      $fstockmtdate,
+      $fsupplier,
+      $ffrom,
+      $fket,
+      $fbranchcode,
+      $fcurrency,
+      $frate,
+      $userid,
+      $now,
+      &$fstockmtno,
+      &$rowsDt,
+      $subtotal,
+      $ppnAmount,
+      $grandTotal
+    ) {
+      // ---- 5.1. Generate fstockmtno jika kosong ----
+      // Ambil kode cabang dari input (boleh id / kode / nama)
+      $kodeCabang = null;
+      if ($fbranchcode !== null) {
+        $needle = trim((string)$fbranchcode);
+        if ($needle !== '') {
           if (is_numeric($needle)) {
             $kodeCabang = DB::table('mscabang')->where('fcabangid', (int)$needle)->value('fcabangkode');
           } else {
@@ -409,80 +461,101 @@ class FakturpembelianController extends Controller
               ?: DB::table('mscabang')->whereRaw('LOWER(fcabangname)=LOWER(?)', [$needle])->value('fcabangkode');
           }
         }
-        if (!$kodeCabang) $kodeCabang = 'NA';
+      }
+      if (!$kodeCabang) $kodeCabang = 'NA';
 
-        $yy = $fpodate->format('y'); // 25
-        $mm = $fpodate->format('m'); // 09
-        $prefix = sprintf('PO.%s.%s.%s.', $kodeCabang, $yy, $mm);
+      $yy = $fstockmtdate->format('y');
+      $mm = $fstockmtdate->format('m');
 
-        // advisory lock per (branch, tahun-bulan)
-        $lockKey = crc32('PO|' . $kodeCabang . '|' . $fpodate->format('Y-m'));
+      // Gunakan kode transaksi untuk header/detil
+      $fstockmtcode = 'RCV';
+
+      if (empty($fstockmtno)) {
+        $prefix = sprintf('%s.%s.%s.%s.', $fstockmtcode, $kodeCabang, $yy, $mm); // RCV.BR.25.10.
+
+        // advisory lock per (branch, tahun-bulan, code)
+        $lockKey = crc32('STOCKMT|' . $fstockmtcode . '|' . $kodeCabang . '|' . $fstockmtdate->format('Y-m'));
         DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
-        // ambil nomor terakhir dgn prefix yg sama lalu +1
-        $last = DB::table('tr_poh')
-          ->where('fpono', 'like', $prefix . '%')
-          ->selectRaw("MAX(CAST(split_part(fpono, '.', 5) AS int)) AS lastno")
+        $last = DB::table('trstockmt')
+          ->where('fstockmtno', 'like', $prefix . '%')
+          ->selectRaw("MAX(CAST(split_part(fstockmtno, '.', 5) AS int)) AS lastno")
           ->value('lastno');
 
         $next = (int)$last + 1;
-        $fpono = $prefix . str_pad((string)$next, 4, '0', STR_PAD_LEFT);
+        $fstockmtno = $prefix . str_pad((string)$next, 4, '0', STR_PAD_LEFT);
+      } else {
+        // Jika nomor manual, pakai code default di header/detil
+        $fstockmtcode = 'RCV';
       }
 
-      $fcurrency = $request->input('fcurrency', 'IDR');   // default IDR
-      $frate     = $request->input('frate', 15500);       // default 15500 kalau IDR
-      $ftempohr     = $request->input('ftempohr', 0);       // default 15500 kalau IDR
-      $isApproval = (int)($request->input('fapproval', 0)); // 1 jika dicentang, 0 jika tidak
+      // ---- 5.2. Insert HEADER: trstockmt ----
+      DB::table('trstockmt')->insert([
+        'fstockmtno'      => $fstockmtno,
+        'fstockmtcode'    => $fstockmtcode,
+        'fstockmtdate'    => $fstockmtdate,
+        'fprdout'         => '0',
+        'fsupplier'       => $fsupplier,
+        'fcurrency'       => $fcurrency,
+        'frate'           => $frate,
 
-      DB::table('tr_poh')->insert([
-        'fpono'          => $fpono,
-        'fpodate'        => $fpodate,
-        'fkirimdate'     => $fkirimdate,
-        'fcurrency'      => $fcurrency,
-        'ftempohr'       => $ftempohr,
-        'frate'          => $frate,
-        'fsupplier'      => $request->input('fsupplier'),
-        'fincludeppn'    => $fincludeppn,
-        'fket'           => $request->input('fket'),
-        'fuserid'        => $userid,
-        'fdatetime'      => $now,
-        'famountponet'   => round($totalHarga, 2),
-        'famountpopajak' => $ppnAmount,
-        'famountpo'      => $grandTotal,
-        'fapproval'     => $isApproval,
+        // Amounts (server-calculated)
+        'famount'         => round($subtotal, 2),
+        'famount_rp'      => round($subtotal * $frate, 2),
+        'famountpajak'    => round($ppnAmount, 2),
+        'famountpajak_rp' => round($ppnAmount * $frate, 2),
+        'famountmt'       => round($grandTotal, 2),
+        'famountmt_rp'    => round($grandTotal * $frate, 2),
+
+        // Sisa (set awal = total, silakan sesuaikan bila ada logika pembayaran)
+        'famountremain'   => round($grandTotal, 2),
+        'famountremain_rp' => round($grandTotal * $frate, 2),
+
+        'frefno'          => null,
+        'frefpo'          => null,
+        'ftrancode'       => null,
+        'ffrom'           => $ffrom,
+        'fto'             => null,
+        'fkirim'          => null,
+        'fprdjadi'        => null,
+        'fqtyjadi'        => null,
+        'fket'            => $fket,
+        'fuserid'         => $userid,
+        'fdatetime'       => $now,
+        'fsalesman'       => null,
+        'fjatuhtempo'     => null,
+        'fprint'          => 0,
+        'fsudahtagih'     => '0',
+        'fbranchcode'     => $kodeCabang,
+        'fdiscount'       => 0,
       ]);
 
-      if ((int)$request->input('fapproval', 0) === 1) {
-        DB::afterCommit(function () use ($fpono) {
-          $hdr = Tr_poh::where('fpono', $fpono)->first();
-          $dt  = Tr_pod::from('tr_pod as d')
-            ->leftJoin('msprd as p', 'p.fprdcode', '=', 'd.fprdcode')
-            ->where('d.fpono', $fpono)
-            ->orderBy('d.fprdcode')
-            ->get(['d.*', 'p.fprdname as product_name', 'p.fminstock as stock']);
-          $productName = $dt->pluck('fprdcode')->implode(', ');
-          $approver    = auth('sysuser')->user()->fname ?? '-';
-          Mail::to('vierybiliam8@gmail.com')
-            ->send(new ApprovalEmailPo($hdr, $dt, $productName, $approver, 'Order Pembelian (PO)'));
-        });
-      }
+      // ---- 5.3. Siapkan & insert DETAIL: trstockdt ----
+      // Cari nomor urut referensi terakhir (opsional, kalau dibutuhkan)
+      $lastNouRef = (int) DB::table('trstockdt')
+        ->where('fstockmtno', $fstockmtno)
+        ->max('fnouref');
+      $nextNouRef = $lastNouRef + 1;
 
-      // === siapkan fnou berurutan & insert detail ===
-      $lastNou = (int) DB::table('tr_pod')->where('fpono', $fpono)->max('fnou');
-      $nextNou = $lastNou + 1;
-      foreach ($rowsPod as &$r) {
-        $r['fpono'] = $fpono;
-        $r['fnou']  = $nextNou++;
+      foreach ($rowsDt as &$r) {
+        $r['fstockmtcode'] = $fstockmtcode;
+        $r['fstockmtno']   = $fstockmtno;
+
+        // Jika fnouref kosong, isi berurutan (opsional)
+        if (!isset($r['fnouref']) || $r['fnouref'] === null) {
+          $r['fnouref'] = $nextNouRef++;
+        }
       }
       unset($r);
 
-      DB::table('tr_pod')->insert($rowsPod);
+      DB::table('trstockdt')->insert($rowsDt);
     });
 
     return redirect()
-      ->route('tr_poh.create')
-      ->with('success', "PO {$fpono} tersimpan, detail masuk ke TR_POD.");
+      ->route('tr_poh.create') // ganti ke route halaman create/daftar yang Anda inginkan
+      ->with('success', "Transaksi {$fstockmtno} tersimpan, detail masuk ke TR_STOCKDT.");
   }
+
 
   public function edit($fpohdid)
   {
