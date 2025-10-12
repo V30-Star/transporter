@@ -27,7 +27,7 @@
             <div></div>
 
             @if ($canCreate)
-                <a href="{{ route('satuan.create') }}"
+                <a href="{{ route('tr_prh.create') }}"
                     class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
                     <x-heroicon-o-plus class="w-4 h-4 mr-1" /> Tambah Baru
                 </a>

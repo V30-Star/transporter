@@ -177,64 +177,72 @@ class Tr_prhController extends Controller
 
   public function store(Request $request)
   {
-    // Validasi request
+    // VALIDATION
     $request->validate([
-      'fprdate'   => ['nullable', 'date'],
-      'fsupplier' => ['nullable', 'string', 'max:10'],
-      'fneeddate' => ['nullable', 'date'],
-      'fduedate'  => ['nullable', 'date'],
-      'fket'      => ['nullable', 'string', 'max:300'],
-      'fbranchcode' => ['nullable', 'string', 'max:20'],
-      'fitemcode'   => ['array'],
-      'fitemcode.*' => ['nullable', 'string', 'max:50'],
-      'fsatuan'     => ['array'],
-      'fapproval' => ['nullable'],
-      'fsatuan.*'   => ['nullable', 'string', 'max:20'],
-      'fqty'        => '',
-      'fqty.*'      => '',
-      'fqtypo'        => '',
-      'fqtypo.*'      => '',
-      'fdesc'       => ['array'],
-      'fdesc.*'     => ['nullable', 'string'],
-      'fketdt'      => ['array'],
-      'fketdt.*'    => ['nullable', 'string', 'max:50'],
-    ], [
-      'fprdate.required'   => 'Tanggal PR wajib diisi.',
+      'fprdate'      => ['nullable', 'date'],
+      'fsupplier'    => ['nullable', 'string', 'max:10'],
+      'fneeddate'    => ['nullable', 'date'],
+      'fduedate'     => ['nullable', 'date'],
+      'fket'         => ['nullable', 'string', 'max:300'],
+      'fbranchcode'  => ['nullable', 'string', 'max:20'],
+
+      'fitemcode'    => ['array'],
+      'fitemcode.*'  => ['nullable', 'string', 'max:50'],
+
+      'fsatuan'      => ['array'],
+      'fsatuan.*'    => ['nullable', 'string', 'max:20'],
+
+      'fqty'         => ['array'],
+      'fqty.*'       => ['nullable'],
+
+      'fqtypo'       => ['array'],
+      'fqtypo.*'     => ['nullable'],
+
+      'fdesc'        => ['array'],
+      'fdesc.*'      => ['nullable', 'string'],
+
+      'fketdt'       => ['array'],
+      'fketdt.*'     => ['nullable', 'string', 'max:50'],
+
+      'fapproval'    => ['nullable'],
     ]);
 
-    // Proses tanggal PR
-    $fprdate = Carbon::parse($request->fprdate)->startOfDay();
-    $branchFromForm = $request->input('fbranchcode');  // no cast
+    // HEADER DATE + CODE
+    $fprdate = $request->filled('fprdate')
+      ? Carbon::parse($request->fprdate)->startOfDay()
+      : now()->startOfDay();
 
-    // Jika tidak ada kode PR, buat kode baru
+    $branchFromForm = $request->input('fbranchcode');
     $fprno = $request->filled('fprno')
       ? $request->fprno
       : $this->generatetr_prh_Code($fprdate, $branchFromForm);
 
-    // Proses tanggal lainnya
     $fneeddate = $request->filled('fneeddate') ? Carbon::parse($request->fneeddate)->startOfDay() : null;
     $fduedate  = $request->filled('fduedate')  ? Carbon::parse($request->fduedate)->startOfDay()  : null;
 
-    $authUser    = auth('sysuser')->user();
-    $userName    = $authUser->fname ?? null;
+    $authUser = auth('sysuser')->user();
+    $userName = $authUser->fname ?? null;
 
-    // Ambil data item
+    // ARRAYS
     $codes   = $request->input('fitemcode', []);
     $sats    = $request->input('fsatuan', []);
-    $qtys  = $request->input('fqty', []);
-    $qtypo   = $request->input('fqtypo', []);
+    $qtys    = $request->input('fqty', []);
+    $qtypos  = $request->input('fqtypo', []);
     $descs   = $request->input('fdesc', []);
     $ketdts  = $request->input('fketdt', []);
 
-    // Cek stok produk
-    $stocks = Product::whereIn('fprdcode', $codes)->pluck('fminstock', 'fprdcode');
+    // PRODUCT MAP: code -> (id, stock)
+    $productMap = Product::whereIn('fprdcode', array_filter($codes))
+      ->get(['fprdid', 'fprdcode', 'fminstock'])
+      ->keyBy('fprdcode');
 
+    // STOCK VALIDATION
     $validator = Validator::make([], []);
-    foreach ($codes as $i => $code) {
-      $code = trim($code ?? '');
+    foreach ($codes as $i => $codeRaw) {
+      $code = trim($codeRaw ?? '');
       if ($code === '') continue;
 
-      $max = (int)($stocks[$code] ?? 0);
+      $max = (int)($productMap[$code]->fminstock ?? 0);
       $qty = (int)($qtys[$i] ?? 0);
 
       if ($max > 0 && $qty > $max) {
@@ -244,52 +252,47 @@ class Tr_prhController extends Controller
         $validator->errors()->add("fqty.$i", "Qty minimal 1.");
       }
     }
-
     if ($validator->fails()) {
       return back()->withErrors($validator)->withInput();
     }
 
-    // Membuat detail rows
-    $detailRows = [];
-    $now = now();
-
-    $rowCount = max(count($codes), count($sats), count($qtys), count($descs), count($ketdts));
-
+    // CHECK DETAIL EXISTENCE
+    $hasValidDetail = false;
+    $rowCount = max(count($codes), count($sats), count($qtys), count($descs), count($ketdts), count($qtypos));
     for ($i = 0; $i < $rowCount; $i++) {
-      $code  = trim($codes[$i] ?? '');
-      $sat   = trim($sats[$i] ?? '');
-      $qty   = is_numeric($qtys[$i] ?? null) ? (int)$qtys[$i] : null;
-      $qtypoi = is_numeric($qtypo[$i] ?? null) ? (int)$qtypo[$i] : 0;
-      if ($qty !== null && $qtypoi > $qty) $qtypoi = $qty;
-      $desc  = $descs[$i]       ?? null;
-      $ketdt = $ketdts[$i]      ?? null;
+      $code = trim($codes[$i] ?? '');
+      $sat  = trim($sats[$i] ?? '');
+      $qty  = is_numeric($qtys[$i] ?? null) ? (int)$qtys[$i] : null;
 
       if ($code !== '' && $sat !== '' && is_numeric($qty) && $qty >= 1) {
-        $detailRows[] = [
-          'fprnoid'    => $fprno,
-          'fprdcode'   => $code,
-          'fqty'       => (int)$qty,
-          'fqtypo'   => (int)$qtypoi,
-          'fqtyremain' => (int)$qty,
-          'fprice'     => 0,
-          'fketdt'     => $ketdt,
-          'fcreatedat' => $now,
-          'fsatuan'    => $sat,
-          'fdesc'      => $desc,
-          'fuserid'    => $userName,
-        ];
+        $hasValidDetail = true;
+        break;
       }
     }
-
-    if (empty($detailRows)) {
+    if (!$hasValidDetail) {
       return back()->withInput()
         ->withErrors(['detail' => 'Minimal satu item detail dengan Kode, Satuan, dan Qty ≥ 1.']);
     }
 
-    // Menyimpan data header dan detail dalam transaksi
-    DB::transaction(function () use ($request, $fprno, $fprdate, $fneeddate, $fduedate, $userName, $detailRows, $codes, $qtys) {
-      // Menyimpan data header
-      $isApproval = (int)($request->input('fapproval', 0)); // 1 jika dicentang, 0 jika tidak
+    // TRANSACTION
+    DB::transaction(function () use (
+      $request,
+      $fprno,
+      $fprdate,
+      $fneeddate,
+      $fduedate,
+      $userName,
+      $codes,
+      $sats,
+      $qtys,
+      $descs,
+      $ketdts,
+      $qtypos,
+      $productMap
+    ) {
+      $isApproval = (int)($request->input('fapproval', 0));
+
+      // CREATE HEADER
       $tr_prh = Tr_prh::create([
         'fprno'         => $fprno,
         'fprdate'       => $fprdate,
@@ -308,44 +311,81 @@ class Tr_prhController extends Controller
         'fapproval'     => $isApproval,
       ]);
 
-      // Menyimpan detail barang
+      // CREATE DETAILS
+      $detailRows = [];
+      $now = now();
+      $rowCount = max(count($codes), count($sats), count($qtys), count($descs), count($ketdts), count($qtypos));
+
+      for ($i = 0; $i < $rowCount; $i++) {
+        $code   = trim($codes[$i] ?? '');
+        $sat    = trim($sats[$i] ?? '');
+        $qty    = is_numeric($qtys[$i] ?? null) ? (int)$qtys[$i] : null;
+
+        $qtypoi = is_numeric($qtypos[$i] ?? null) ? (int)$qtypos[$i] : 0;
+        if ($qty !== null && $qtypoi > $qty) $qtypoi = $qty;
+
+        $desc   = $descs[$i]  ?? null;
+        $ketdt  = $ketdts[$i] ?? null;
+
+        if ($code !== '' && $sat !== '' && is_numeric($qty) && $qty >= 1) {
+          $productId = (int)($productMap[$code]->fprdid ?? 0); // <-- use msprd.fprdid
+          if ($productId === 0) continue;
+
+          $detailRows[] = [
+            'fprnoid'    => $tr_prh->fprid,   // header link
+            'fprdcode'   => $productId,       // store msprd.fprdid
+            'fqty'       => (int)$qty,
+            'fqtypo'     => (int)$qtypoi,
+            'fqtyremain' => (int)$qty,
+            'fprice'     => 0,
+            'fketdt'     => $ketdt,
+            'fcreatedat' => $now,
+            'fsatuan'    => $sat,
+            'fdesc'      => $desc,
+            'fuserid'    => $userName,
+          ];
+        }
+      }
+
       Tr_prd::insert($detailRows);
 
-      // Update stok produk
-      foreach ($codes as $i => $code) {
-        $qty = (int)($qtys[$i] ?? 0);
-        if ($qty > 0) {
+      foreach ($codes as $i => $codeRaw) {
+        $code = trim($codeRaw ?? '');
+        $qty  = (int)($qtys[$i] ?? 0);
+        if ($code !== '' && $qty > 0) {
           DB::table('msprd')
             ->where('fprdcode', $code)
             ->update([
-              'fminstock' => DB::raw("CAST(fminstock AS INTEGER) - $qty"),
+              'fminstock'  => DB::raw("CAST(fminstock AS INTEGER) - $qty"),
               'fupdatedat' => now(),
             ]);
         }
       }
 
       if ($isApproval === 1) {
-        $hdr = Tr_prh::where('fprno', $fprno)->first();
         $dt = Tr_prd::query()
-          ->leftJoin('msprd as p', 'p.fprdcode', '=', 'tr_prd.fprdcode')
-          ->where('tr_prd.fprnoid', $hdr->fprno)
-          ->orderBy('tr_prd.fprdcode')
+          ->leftJoin('msprd as p', 'p.fprdid', '=', 'tr_prd.fprdcode') // join by product ID
+          ->where('tr_prd.fprnoid', $tr_prh->fprid)
+          ->orderBy('p.fprdname')
           ->get([
             'tr_prd.*',
             'p.fprdname as product_name',
+            'p.fprdcode as product_code',
             'p.fminstock as stock',
           ]);
 
-        $productName = $dt->pluck('fprdcode')->implode(', ');
-        $approver = auth('sysuser')->user()->fname;
+        $productNameList = $dt->pluck('product_name')->implode(', ');
+        $approver = auth('sysuser')->user()->fname ?? $tr_prh->fuserid ?? 'System';
 
-        Mail::to('vierybiliam8@gmail.com')->send(new ApprovalEmail($hdr, $dt, $productName, $approver, 'Permintaan Pembelian (PR)'));
+        Mail::to('vierybiliam8@gmail.com')
+          ->send(new ApprovalEmail($tr_prh, $dt, $productNameList, $approver, 'Permintaan Pembelian (PR)'));
       }
     });
 
     return redirect()->route('tr_prh.create')
       ->with('success', 'Permintaan pembelian berhasil ditambahkan.');
   }
+
 
   public function edit($fprid)
   {
