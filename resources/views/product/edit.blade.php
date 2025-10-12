@@ -600,7 +600,7 @@
             this.errors = {};
     
             $.ajax({
-                    url: '{{ route('merek.store.ajax') }}',
+                    url: '{{ route('merek.store') }}',
                     type: 'POST',
                     headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
                     data: {
@@ -1165,7 +1165,7 @@
             saveData() {
                 this.loading = true;
                 $.ajax({
-                        url: '{{ route('groupproduct.store.ajax') }}',
+                        url: '{{ route('groupproduct.store') }}',
                         type: 'POST',
                         headers: {
                             'X-CSRF-TOKEN': '{{ csrf_token() }}'
