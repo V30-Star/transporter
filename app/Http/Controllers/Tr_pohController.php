@@ -171,12 +171,12 @@ class Tr_pohController extends Controller
 
   public function print(string $fpono)
   {
-    $supplierSub = Supplier::select('fsuppliercode', 'fsuppliername');
+    // Use the model’s actual table name
+    $supplierTable = (new Supplier)->getTable(); // e.g. ms_supplier
 
+    // Header: find by PO code (string)
     $hdr = Tr_poh::query()
-      ->leftJoinSub($supplierSub, 's', function ($join) {
-        $join->on('s.fsuppliercode', '=', 'tr_poh.fsupplier');
-      })
+      ->leftJoin("{$supplierTable} as s", 's.fsupplierid', '=', 'tr_poh.fsupplier') // integer ↔ integer
       ->leftJoin('mscabang as c', 'c.fcabangkode', '=', 'tr_poh.fbranchcode')
       ->where('tr_poh.fpono', $fpono)
       ->first([
@@ -189,12 +189,17 @@ class Tr_pohController extends Controller
       return redirect()->back()->with('error', 'PO tidak ditemukan.');
     }
 
-    $dt = Tr_pod::query()
-      ->leftJoin('msprd as p', 'p.fprdcode', '=', 'tr_pod.fprdcode')
-      ->where('tr_pod.fpono', $fpono)
+    // Use header ID (integer) for detail FK
+    $fpohdid = (int) $hdr->fpohdid;
+
+    $dt = DB::table('tr_pod')
+      ->leftJoin('msprd as p', function ($j) {
+        $j->on('p.fprdid', '=', DB::raw('CAST(tr_pod.fprdcode AS INTEGER)'));
+      })->where('tr_pod.fpono', $fpohdid)                            // detail FK = header ID
       ->orderBy('tr_pod.fprdcode')
       ->get([
         'tr_pod.*',
+        'p.fprdcode as product_code',
         'p.fprdname as product_name',
         'p.fminstock as stock',
         'tr_pod.fqtyremain',
@@ -212,6 +217,7 @@ class Tr_pohController extends Controller
       'company_city' => config('app.company_city', 'Tangerang'),
     ]);
   }
+
 
   public function create()
   {
@@ -256,7 +262,7 @@ class Tr_pohController extends Controller
 
   public function store(Request $request)
   {
-    // VALIDASI
+    // VALIDATION
     $request->validate([
       'fpono'        => ['nullable', 'string', 'max:25'],
       'fpodate'      => ['required', 'date'],
@@ -266,25 +272,36 @@ class Tr_pohController extends Controller
       'fket'         => ['nullable', 'string', 'max:300'],
       'fbranchcode'  => ['nullable', 'string', 'max:20'],
       'ftempohr'     => ['nullable', 'string', 'max:3'],
+
       'fitemcode'    => ['required', 'array', 'min:1'],
       'fitemcode.*'  => ['required', 'string', 'max:50'],
+
       'fsatuan'      => ['nullable', 'array'],
       'fsatuan.*'    => ['nullable', 'string', 'max:5'],
-      'fapproval' => ['nullable'],
-      'frefdtno'      => ['nullable'],
-      'frefdtno.*'    => ['nullable'],
+
+      'fapproval'    => ['nullable'],
+
+      'frefdtno'     => ['nullable'],
+      'frefdtno.*'   => ['nullable'],
+
       'fnouref'      => ['nullable'],
       'fnouref.*'    => ['nullable'],
+
       'fqty'         => ['required', 'array'],
       'fqty.*'       => ['numeric', 'min:0'],
+
       'fprice'       => ['nullable', 'array'],
       'fprice.*'     => ['numeric', 'min:0'],
+
       'fdisc'        => ['nullable', 'array'],
       'fdisc.*'      => ['numeric', 'min:0'],
+
       'frefpr'       => ['nullable', 'array'],
       'frefpr.*'     => ['nullable', 'string', 'max:30'],
+
       'fdesc'        => ['nullable', 'array'],
       'fdesc.*'      => ['nullable', 'string', 'max:500'],
+
       'ppn_rate'     => ['nullable', 'numeric', 'min:0', 'max:100'],
     ], [
       'fpodate.required'   => 'Tanggal PO wajib diisi.',
@@ -292,68 +309,70 @@ class Tr_pohController extends Controller
       'fitemcode.required' => 'Minimal 1 item.',
     ]);
 
-    // HEADER
-    $fpodate    = \Carbon\Carbon::parse($request->fpodate)->startOfDay();
-    $fkirimdate = $request->filled('fkirimdate') ? \Carbon\Carbon::parse($request->fkirimdate)->startOfDay() : null;
-    $fpono      = $request->input('fpono'); // biarkan null dulu, akan digenerate dalam transaksi
+    // HEADER VALUES
+    $fpodate     = Carbon::parse($request->fpodate)->startOfDay();
+    $fkirimdate  = $request->filled('fkirimdate') ? Carbon::parse($request->fkirimdate)->startOfDay() : null;
+    $fpono       = $request->input('fpono'); // can be null; we will generate if empty
     $fincludeppn = $request->boolean('fincludeppn') ? 1 : 0;
-    $userid = 'admin';
-    $now = now();
+    $userid      = auth('sysuser')->user()->fname ?? 'admin';
+    $now         = now();
 
     // DETAIL ARRAYS
-    $codes  = $request->input('fitemcode', []);
-    $satuan = $request->input('fsatuan', []);
+    $codes   = $request->input('fitemcode', []);
+    $satuans = $request->input('fsatuan', []);
     $refdtno = $request->input('frefdtno', []);
-    $nouref = $request->input('fnouref', []);
-    $qtys   = $request->input('fqty', []);
-    $prices = $request->input('fprice', []);
-    $discs  = $request->input('fdisc', []);
-    $refprs = $request->input('frefpr', []);
-    $descs  = $request->input('fdesc', []);
+    $nouref  = $request->input('fnouref', []);
+    $qtys    = $request->input('fqty', []);
+    $prices  = $request->input('fprice', []);
+    $discs   = $request->input('fdisc', []);
+    $refprs  = $request->input('frefpr', []);
+    $descs   = $request->input('fdesc', []);
 
-    $totalHarga  = (float) $request->input('famountponet', 0);
-    $ppnRate     = (float) $request->input('ppn_rate', 0);
-    $ppnAmount   = (float) $request->input('famountpopajak', 0);
-    $grandTotal  = (float) $request->input('famountpo', 0);
+    // TOTALS (from frontend)
+    $totalHarga = (float) $request->input('famountponet', 0);
+    $ppnAmount  = (float) $request->input('famountpopajak', 0);
+    $grandTotal = (float) $request->input('famountpo', 0);
 
+    // Load product metadata: map code -> (fprdid, satuans)
     $uniqueCodes = array_values(array_unique(array_filter(array_map(fn($c) => trim((string)$c), $codes))));
     $prodMeta = DB::table('msprd')
       ->whereIn('fprdcode', $uniqueCodes)
-      ->get(['fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2'])
+      ->get(['fprdid', 'fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2'])
       ->keyBy('fprdcode');
 
-    $pickDefaultSat = function ($code) use ($prodMeta) {
+    $pickDefaultSat = function (string $code) use ($prodMeta): string {
       $m = $prodMeta[$code] ?? null;
       if (!$m) return '';
       foreach (['fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2'] as $k) {
         $v = trim((string)($m->$k ?? ''));
-        if ($v !== '') return mb_substr($v, 0, 5); // patuhi varchar(5)
+        if ($v !== '') return mb_substr($v, 0, 5);
       }
       return '';
     };
 
-    // RAKIT DETAIL
-    $rowsPod = [];
-    $totalHarga = 0.0; // subtotal sebelum PPN
-    $rowCount = max(count($codes), count($satuan), count($refdtno), count($nouref), count($qtys), count($prices), count($discs), count($refprs), count($descs));
+    // BUILD DETAIL ROWS (use fprdid, not fprdcode)
+    $rowsPod    = [];
+    $totalHarga = 0.0; // recompute to be safe
+    $rowCount   = max(count($codes), count($satuans), count($refdtno), count($nouref), count($qtys), count($prices), count($discs), count($refprs), count($descs));
 
     for ($i = 0; $i < $rowCount; $i++) {
-      $code  = trim((string)($codes[$i]  ?? ''));
-      $sat   = trim((string)($satuan[$i] ?? ''));
-      $refdtno   = trim((string)($refdtno[$i] ?? ''));
-      $nouref   = trim((string)($nouref[$i] ?? ''));
-      $qty   = (float)($qtys[$i]   ?? 0);
-      $price = (float)($prices[$i] ?? 0);
-      $discP = (float)($discs[$i]  ?? 0);
-      $desc  = (string)($descs[$i]  ?? '');
+      $code   = trim($codes[$i] ?? '');
+      $sat    = trim((string)($satuans[$i] ?? ''));
+      $refdt  = trim((string)($refdtno[$i] ?? ''));
+      $nref   = trim((string)($nouref[$i]  ?? ''));
+      $qty    = (float)($qtys[$i]    ?? 0);
+      $price  = (float)($prices[$i]  ?? 0);
+      $discP  = (float)($discs[$i]   ?? 0);
+      $desc   = (string)($descs[$i]  ?? '');
 
       if ($code === '' || $qty <= 0) continue;
 
-      if ($sat === '') {
-        $sat = $pickDefaultSat($code);
-      }
+      if ($sat === '') $sat = $pickDefaultSat($code);
       $sat = mb_substr($sat, 0, 5);
       if ($sat === '') continue;
+
+      $productId = (int) (($prodMeta[$code]->fprdid ?? null) ?? 0);
+      if ($productId === 0) continue;
 
       $priceGross = $price;
       $priceNet   = $priceGross * (1 - ($discP / 100));
@@ -362,7 +381,7 @@ class Tr_pohController extends Controller
       $totalHarga += $amount;
 
       $rowsPod[] = [
-        'fprdcode'    => $code,
+        'fprdcode'      => $productId,   // <-- integer FK to msprd.fprdid
         'fqty'        => $qty,
         'fqtyremain'  => $qty,
         'fdisc'       => (string)$discP,
@@ -376,8 +395,8 @@ class Tr_pohController extends Controller
         'fdatetime'   => $now,
         'fsatuan'     => $sat,
         'fqtykecil'   => $qty,
-        'frefdtno'    => $refdtno,
-        'fnouref'     => $nouref,
+        'frefdtno'    => $refdt,
+        'fnouref'     => $nref,
         'fdesc'       => $desc,
       ];
     }
@@ -386,9 +405,21 @@ class Tr_pohController extends Controller
       return back()->withInput()->withErrors(['detail' => 'Minimal satu item valid (Kode, Satuan, Qty > 0).']);
     }
 
-    $ppnAmount  = $request->input('famountpopajak', 0);
-
-    DB::transaction(function () use ($request, $fpodate, $fkirimdate, $fincludeppn, $userid, $now, &$rowsPod, &$fpono, $totalHarga, $ppnAmount, $grandTotal) {
+    // TRANSACTION
+    DB::transaction(function () use (
+      $request,
+      $fpodate,
+      $fkirimdate,
+      $fincludeppn,
+      $userid,
+      $now,
+      $rowsPod,
+      $fpono,
+      $totalHarga,
+      $ppnAmount,
+      $grandTotal
+    ) {
+      // Generate human code if not provided
       if (empty($fpono)) {
         $rawBranch = $request->input('fbranchcode');
         $kodeCabang = null;
@@ -403,15 +434,15 @@ class Tr_pohController extends Controller
         }
         if (!$kodeCabang) $kodeCabang = 'NA';
 
-        $yy = $fpodate->format('y'); // 25
-        $mm = $fpodate->format('m'); // 09
+        $yy = $fpodate->format('y');
+        $mm = $fpodate->format('m');
         $prefix = sprintf('PO.%s.%s.%s.', $kodeCabang, $yy, $mm);
 
-        // advisory lock per (branch, tahun-bulan)
+        // advisory lock per (branch, y-m)
         $lockKey = crc32('PO|' . $kodeCabang . '|' . $fpodate->format('Y-m'));
         DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
-        // ambil nomor terakhir dgn prefix yg sama lalu +1
+        // get last sequence under this prefix
         $last = DB::table('tr_poh')
           ->where('fpono', 'like', $prefix . '%')
           ->selectRaw("MAX(CAST(split_part(fpono, '.', 5) AS int)) AS lastno")
@@ -421,13 +452,14 @@ class Tr_pohController extends Controller
         $fpono = $prefix . str_pad((string)$next, 4, '0', STR_PAD_LEFT);
       }
 
-      $fcurrency = $request->input('fcurrency', 'IDR');   // default IDR
-      $frate     = $request->input('frate', 15500);       // default 15500 kalau IDR
-      $ftempohr     = $request->input('ftempohr', 0);       // default 15500 kalau IDR
-      $isApproval = (int)($request->input('fapproval', 0)); // 1 jika dicentang, 0 jika tidak
+      $fcurrency = $request->input('fcurrency', 'IDR');
+      $frate     = $request->input('frate', 15500);
+      $ftempohr  = $request->input('ftempohr', 0);
+      $isApproval = (int)($request->input('fapproval', 0));
 
-      DB::table('tr_poh')->insert([
-        'fpono'          => $fpono,
+      // INSERT HEADER and GET fpohdid
+      $fpohdid = DB::table('tr_poh')->insertGetId([
+        'fpono'          => $fpono,     // human-readable code stays in header
         'fpodate'        => $fpodate,
         'fkirimdate'     => $fkirimdate,
         'fcurrency'      => $fcurrency,
@@ -441,30 +473,40 @@ class Tr_pohController extends Controller
         'famountponet'   => round($totalHarga, 2),
         'famountpopajak' => $ppnAmount,
         'famountpo'      => $grandTotal,
-        'fapproval'     => $isApproval,
-      ]);
+        'fapproval'      => $isApproval,
+      ], 'fpohdid');
 
-      if ((int)$request->input('fapproval', 0) === 1) {
-        DB::afterCommit(function () use ($fpono) {
-          $hdr = Tr_poh::where('fpono', $fpono)->first();
+      // EMAIL after commit — use fpohdid and fprdid
+      if ($isApproval === 1) {
+        DB::afterCommit(function () use ($fpohdid) {
+          $hdr = Tr_poh::where('fpohdid', $fpohdid)->first();
+
           $dt  = Tr_pod::from('tr_pod as d')
-            ->leftJoin('msprd as p', 'p.fprdcode', '=', 'd.fprdcode')
-            ->where('d.fpono', $fpono)
-            ->orderBy('d.fprdcode')
-            ->get(['d.*', 'p.fprdname as product_name', 'p.fminstock as stock']);
-          $productName = $dt->pluck('fprdcode')->implode(', ');
+            ->leftJoin('msprd as p', 'p.fprdid', '=', 'd.fprdid')  // <-- FK to msprd.fprdid
+            ->where('d.fpono', $fpohdid) // integer FK now
+            ->orderBy('p.fprdname')
+            ->get([
+              'd.*',
+              'p.fprdname as product_name',
+              'p.fminstock as stock',
+            ]);
+
+          $productName = $dt->pluck('product_name')->implode(', ');
           $approver    = auth('sysuser')->user()->fname ?? '-';
+
           Mail::to('vierybiliam8@gmail.com')
             ->send(new ApprovalEmailPo($hdr, $dt, $productName, $approver, 'Order Pembelian (PO)'));
         });
       }
 
-      // === siapkan fnou berurutan & insert detail ===
-      $lastNou = (int) DB::table('tr_pod')->where('fpono', $fpono)->max('fnou');
+      // numbering + insert details — use fpohdid
+      $lastNou = (int) DB::table('tr_pod')->where('fpono', $fpohdid)->max('fnou');
       $nextNou = $lastNou + 1;
+
       foreach ($rowsPod as &$r) {
-        $r['fpono'] = $fpono;
+        $r['fpono'] = $fpohdid;  // FK → tr_poh.fpohdid (integer)
         $r['fnou']  = $nextNou++;
+        // $r['fprdid'] already set above
       }
       unset($r);
 
@@ -494,37 +536,33 @@ class Tr_pohController extends Controller
 
     $tr_poh = Tr_poh::with(['details' => function ($q) {
       $q->orderBy('fpodid')
-        ->join('msprd', 'msprd.fprdcode', '=', 'tr_pod.fprdcode')
-        ->select('tr_pod.*', 'msprd.fprdname', DB::raw('tr_pod.fpono as fpono'), 'tr_pod.famount'); // Select fpono from tr_pod
-    }])
-      ->where('fpohdid', $fpohdid)
-      ->firstOrFail();
+        ->leftJoin('msprd', function ($j) {
+          $j->on('msprd.fprdid', '=', DB::raw('CAST(tr_pod.fprdcode AS INTEGER)'));
+        })
+        ->select(
+          'tr_pod.*',
+          'msprd.fprdcode as fitemcode',
+          'msprd.fprdname'
+        );
+    }])->findOrFail($fpohdid);
 
-    // Map the data for savedItems
     $savedItems = $tr_poh->details->map(function ($d) {
       return [
-        'uid'       => $d->fpodid,                   // untuk :key
-        'fitemcode' => $d->fprdcode ?? '',
-        'fitemname' => $d->fprdname ?? '',  // Now fprdname will be available here
-        'fsatuan'   => $d->fsatuan ?? '',
-        'fprno'     => $d->frefpr ?? '-',   // ini PR#, biarkan di sini kalau kamu butuh
-        'frefpr'    => $d->frefpr ?? null,  // referensi PR (jika perlu)
-        'fpono'     => $d->fpono ?? null,   // <-- TAMBAH INI: untuk ditampilkan di tabel
-        'famountponet' => $d->famountponet ?? null,   // <-- TAMBAH INI: untuk ditampilkan di tabel
-        'famountpo' => $d->famountpo ?? null,   // <-- TAMBAH INI: untuk ditampilkan di tabel
-        'frefdtno'  => $d->frefdtno ?? null,
-        'fnouref'   => $d->fnouref ?? null,
-        'fqty'      => (int)($d->fqty ?? 0),
-        'fterima'   => (int)($d->fterima ?? 0),
-        'fprice'    => (float)($d->fprice ?? 0),
-        'fdisc'     => (float)($d->fdisc ?? 0),
-        'ftotal'    => (float)($d->famount ?? 0),
-        'fdesc'     => $d->fdesc ?? '',
-        'fketdt'    => $d->fketdt ?? '',
-        'units'     => [],                           // opsional; bisa diisi dari PRODUCT_MAP
+        'uid'        => $d->fpodid,
+        'fitemcode'  => (string)($d->fitemcode ?? ''),  // dari alias msprd.fprdcode
+        'fitemname'  => (string)($d->fprdname ?? ''),   // dari msprd.fprdname
+        'fsatuan'    => (string)($d->fsatuan ?? ''),
+        'frefdtno'   => (string)($d->frefdtno ?? ''),
+        'fnouref'    => (string)($d->fnouref ?? ''),
+        'fqty'       => (float)($d->fqty ?? 0),
+        'fterima'    => (float)($d->fterima ?? 0),
+        'fprice'     => (float)($d->fprice ?? 0),
+        'fdisc'      => (float)($d->fdisc ?? 0),
+        'ftotal'     => (float)($d->famount ?? 0),
+        'fdesc'      => (string)($d->fdesc ?? ''),
+        'fketdt'     => (string)($d->fketdt ?? ''),
       ];
     })->values();
-
     $selectedSupplierCode = $tr_poh->fsupplier;
 
     // Fetch all products for product mapping
@@ -604,9 +642,8 @@ class Tr_pohController extends Controller
       'fitemcode.required' => 'Minimal 1 item.',
     ]);
 
-    // Ambil header berdasar fpohdid
-    $header = Tr_poh::where('fpohdid', $fpohdid)->firstOrFail();
-    $fpono = $header->fpono; // dipakai untuk detail
+    $header  = Tr_poh::where('fpohdid', $fpohdid)->firstOrFail();
+    $fponoId = (int) $header->fpohdid;   // ← PAKAI INI, BUKAN $header->fpono (string)
 
     // HEADER DATA
     $fpodate    = \Carbon\Carbon::parse($request->fpodate)->startOfDay();
@@ -637,7 +674,7 @@ class Tr_pohController extends Controller
     $uniqueCodes = array_values(array_unique(array_filter(array_map(fn($c) => trim((string)$c), $codes))));
     $prodMeta = DB::table('msprd')
       ->whereIn('fprdcode', $uniqueCodes)
-      ->get(['fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2'])
+      ->get(['fprdid', 'fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2'])
       ->keyBy('fprdcode');
 
     $pickDefaultSat = function ($code) use ($prodMeta) {
@@ -667,11 +704,12 @@ class Tr_pohController extends Controller
 
       if ($code === '' || $qty <= 0) continue;
 
-      if ($sat === '') {
-        $sat = $pickDefaultSat($code);
-      }
+      if ($sat === '') $sat = $pickDefaultSat($code);
       $sat = mb_substr($sat, 0, 5);
       if ($sat === '') continue;
+
+      $productId = (int) (($prodMeta[$code]->fprdid ?? null) ?? 0);
+      if ($productId === 0) continue;
 
       $priceGross = $price;
       $priceNet   = $priceGross * (1 - ($discP / 100));
@@ -680,7 +718,7 @@ class Tr_pohController extends Controller
       $totalHarga += $amount;
 
       $rowsPod[] = [
-        'fprdcode'    => $code,
+        'fprdcode'    => $productId,
         'fqty'        => $qty,
         'fqtyremain'  => $qty,
         'fdisc'       => (string)$discP,
@@ -705,10 +743,11 @@ class Tr_pohController extends Controller
     }
 
     // TRANSACTION UPDATE
-    DB::transaction(function () use ($request, $header, $fpodate, $fkirimdate, $fincludeppn, $userid, $now, $rowsPod, $fpono, $totalHarga, $ppnAmount, $grandTotal) {
+    DB::transaction(function () use ($request, $header, $fpodate, $fkirimdate, $userid, $now, $rowsPod, $fponoId, $totalHarga, $ppnAmount, $grandTotal) {
 
-      $fcurrency = $request->input('fcurrency', 'IDR');   // default IDR
-      $frate     = $request->input('frate', 15500);       // default 15500 kalau IDR
+      $fcurrency = $request->input('fcurrency', 'IDR');
+      $frate     = $request->input('frate', 15500);
+      $fincludeppn = $request->boolean('fincludeppn') ? 1 : 0;
 
       // Update header
       $header->update([
@@ -726,14 +765,13 @@ class Tr_pohController extends Controller
         'famountpo'      => $grandTotal,
       ]);
 
-      // Delete existing details
-      DB::table('tr_pod')->where('fpono', $fpono)->delete();
+      // Hapus detail lama berdasarkan ID header
+      DB::table('tr_pod')->where('fpono', $fponoId)->delete();
 
-      // Insert new details
-      $lastNou = 0; // reset karena sudah dihapus
+      // Isi FK detail dengan ID header
       $nextNou = 1;
       foreach ($rowsPod as &$r) {
-        $r['fpono'] = $fpono;
+        $r['fpono'] = $fponoId;  // ← integer FK
         $r['fnou']  = $nextNou++;
       }
       unset($r);
@@ -741,9 +779,10 @@ class Tr_pohController extends Controller
       DB::table('tr_pod')->insert($rowsPod);
     });
 
+    // Pesan sukses tetap pakai nomor PO string untuk tampilan
     return redirect()
       ->route('tr_poh.index')
-      ->with('success', "PO {$fpono} berhasil diperbarui.");
+      ->with('success', "PO {$header->fpono} berhasil diperbarui.");
   }
 
   public function destroy($fpohdid)

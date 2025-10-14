@@ -23,9 +23,10 @@ class Tr_prh extends Model
       });
     });
   }
-  
+
   public function details()
   {
-    return $this->hasMany(Tr_prd::class, 'fprnoid', 'fprno'); // Adjust 'fprno' if the foreign key is different
+    // FK detail (tr_prd.fprnoid, varchar) → localKey header (tr_prh.fprno, varchar)
+    return $this->hasMany(Tr_prd::class, 'fprnoid', 'fprid');
   }
 }

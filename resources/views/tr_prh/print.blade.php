@@ -234,7 +234,7 @@
             <tr>
                 <td style="border:0;padding:0 0 4px 0">
                     <strong>Supplier</strong> :
-                    {{ $hdr->fsupplier ?? '-' }}{{ $hdr->supplier_name ? ' — ' . $hdr->supplier_name : '' }}
+                    {{ $hdr->supplier_name ? $hdr->supplier_name : '' }}
                 </td>
                 <td style="border:0;padding:0;text-align:right">
                     <div><strong>Tanggal</strong> : {{ $fmt($hdr->fprdate) }}</div>

@@ -98,56 +98,56 @@ Route::middleware('auth')->group(function () {
         Route::patch('/merek/{fmerekid}', [MerekController::class, 'update'])->name('merek.update');
         Route::delete('/merek/{fmerekid}', [MerekController::class, 'destroy'])->name('merek.destroy');
 
-        Route::get('/gudang', action: [WhController::class, 'index'])->name('gudang.index');
+        Route::get('/gudang', [WhController::class, 'index'])->name('gudang.index');
         Route::post('/gudang',        [WhController::class, 'store'])->name('gudang.store');
         Route::get('/gudang/create', [WhController::class, 'create'])->name('gudang.create');
         Route::get('/gudang/{fwhid}/edit', [WhController::class, 'edit'])->name('gudang.edit');
         Route::patch('/gudang/{fwhid}', [WhController::class, 'update'])->name('gudang.update');
         Route::delete('/gudang/{fwhid}', [WhController::class, 'destroy'])->name('gudang.destroy');
 
-        Route::get('/groupproduct', action: [GroupproductController::class, 'index'])->name('groupproduct.index');
+        Route::get('/groupproduct', [GroupproductController::class, 'index'])->name('groupproduct.index');
         Route::post('/groupproduct',        [GroupproductController::class, 'store'])->name('groupproduct.store');
         Route::get('/groupproduct/create', [GroupproductController::class, 'create'])->name('groupproduct.create');
         Route::get('/groupproduct/{fgroupid}/edit', [GroupproductController::class, 'edit'])->name('groupproduct.edit');
         Route::patch('/groupproduct/{fgroupid}', [GroupproductController::class, 'update'])->name('groupproduct.update');
         Route::delete('/groupproduct/{fgroupid}', [GroupproductController::class, 'destroy'])->name('groupproduct.destroy');
 
-        Route::get('/product', action: [ProductController::class, 'index'])->name('product.index');
+        Route::get('/product', [ProductController::class, 'index'])->name('product.index');
         Route::post('/product',        [ProductController::class, 'store'])->name('product.store');
         Route::get('/product/create', [ProductController::class, 'create'])->name('product.create');
         Route::get('/product/{fprdid}/edit', [ProductController::class, 'edit'])->name('product.edit');
         Route::patch('/product/{fprdid}', [ProductController::class, 'update'])->name('product.update');
         Route::delete('/product/{fprdid}', [ProductController::class, 'destroy'])->name('product.destroy');
 
-        Route::get('/supplier', action: [SupplierController::class, 'index'])->name('supplier.index');
+        Route::get('/supplier', [SupplierController::class, 'index'])->name('supplier.index');
         Route::post('/supplier',        [SupplierController::class, 'store'])->name('supplier.store');
         Route::get('/supplier/create', [SupplierController::class, 'create'])->name('supplier.create');
         Route::get('/supplier/{fprdid}/edit', [SupplierController::class, 'edit'])->name('supplier.edit');
         Route::patch('/supplier/{fprdid}', [SupplierController::class, 'update'])->name('supplier.update');
         Route::delete('/supplier/{fprdid}', [SupplierController::class, 'destroy'])->name('supplier.destroy');
 
-        Route::get('/subaccount', action: [SubaccountController::class, 'index'])->name('subaccount.index');
+        Route::get('/subaccount', [SubaccountController::class, 'index'])->name('subaccount.index');
         Route::post('/subaccount',        [SubaccountController::class, 'store'])->name('subaccount.store');
         Route::get('/subaccount/create', [SubaccountController::class, 'create'])->name('subaccount.create');
         Route::get('/subaccount/{fsubaccountid}/edit', [SubaccountController::class, 'edit'])->name('subaccount.edit');
         Route::patch('/subaccount/{fsubaccountid}', [SubaccountController::class, 'update'])->name('subaccount.update');
         Route::delete('/subaccount/{fsubaccountid}', [SubaccountController::class, 'destroy'])->name('subaccount.destroy');
 
-        Route::get('/rekening', action: [RekeningController::class, 'index'])->name('rekening.index');
+        Route::get('/rekening', [RekeningController::class, 'index'])->name('rekening.index');
         Route::post('/rekening',        [RekeningController::class, 'store'])->name('rekening.store');
         Route::get('/rekening/create', [RekeningController::class, 'create'])->name('rekening.create');
         Route::get('/rekening/{frekeningid}/edit', [RekeningController::class, 'edit'])->name('rekening.edit');
         Route::patch('/rekening/{frekeningid}', [RekeningController::class, 'update'])->name('rekening.update');
         Route::delete('/rekening/{frekeningid}', [RekeningController::class, 'destroy'])->name('rekening.destroy');
 
-        Route::get('/account', action: [AccountController::class, 'index'])->name('account.index');
+        Route::get('/account', [AccountController::class, 'index'])->name('account.index');
         Route::post('/account',        [AccountController::class, 'store'])->name('account.store');
         Route::get('/account/create', [AccountController::class, 'create'])->name('account.create');
         Route::get('/account/{faccid}/edit', [AccountController::class, 'edit'])->name('account.edit');
         Route::patch('/account/{faccid}', [AccountController::class, 'update'])->name('account.update');
         Route::delete('/account/{faccid}', [AccountController::class, 'destroy'])->name('account.destroy');
 
-        Route::get('/tr_prh', action: [Tr_prhController::class, 'index'])->name('tr_prh.index');
+        Route::get('/tr_prh', [Tr_prhController::class, 'index'])->name('tr_prh.index');
         Route::post('/tr_prh',        [Tr_prhController::class, 'store'])->name('tr_prh.store');
         Route::get('/tr_prh/create', [Tr_prhController::class, 'create'])->name('tr_prh.create');
         Route::get('/tr_prh/{fprid}/edit', [Tr_prhController::class, 'edit'])->name('tr_prh.edit');
@@ -156,13 +156,14 @@ Route::middleware('auth')->group(function () {
         Route::get('/tr_prh/{fprno}/print', [Tr_prhController::class, 'print'])
             ->name('tr_prh.print');
 
-        Route::get('/tr_poh', action: [Tr_pohController::class, 'index'])->name('tr_poh.index');
+        Route::get('/tr_poh',  [Tr_pohController::class, 'index'])->name('tr_poh.index');
         Route::post('/tr_poh',        [Tr_pohController::class, 'store'])->name('tr_poh.store');
         Route::get('/tr_poh/create', [Tr_pohController::class, 'create'])->name('tr_poh.create');
         Route::get('/tr_poh/{fpohdid}/edit', [Tr_pohController::class, 'edit'])->name('tr_poh.edit');
         Route::patch('/tr_poh/{fpohdid}', [Tr_pohController::class, 'update'])->name('tr_poh.update');
         Route::delete('/tr_poh/{fpohdid}', [Tr_pohController::class, 'destroy'])->name('tr_poh.destroy');
         Route::get('/tr_poh/{fpono}/print', [Tr_pohController::class, 'print'])
+            ->where('fpono', '.*')
             ->name('tr_poh.print');
         Route::get('/tr-poh/pickable', [Tr_pohController::class, 'pickable'])
             ->name('tr_poh.pickable');

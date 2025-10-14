@@ -1168,7 +1168,7 @@
                     opt.selected = true;
                 }
                 sel.dispatchEvent(new Event('change'));
-                if (hid) hid.value = s.fsuppliercode;
+                if (hid) hid.value = s.fsupplierid;
                 this.close();
             },
             init() {

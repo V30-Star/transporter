@@ -15,6 +15,11 @@ class Tr_prd extends Model
   const CREATED_AT = 'fcreatedat';
   const UPDATED_AT = 'fupdatedat';
 
+  public function header()
+  {
+    return $this->belongsTo(Tr_prh::class, 'fprnoid', 'fprid');
+  }
+
   public function scopeSearch($query, $search)
   {
     $query->when($search ?? false, function ($query, $search) {

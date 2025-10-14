@@ -15,6 +15,11 @@ class Tr_pod extends Model
   const CREATED_AT = 'fdatetime';
   const UPDATED_AT = 'fupdatedat';
 
+  public function header()
+  {
+    return $this->belongsTo(Tr_poh::class, 'fpono', 'fpohdid');
+  }
+
   public function scopeSearch($query, $search)
   {
     $query->when($search ?? false, function ($query, $search) {
@@ -22,9 +27,5 @@ class Tr_pod extends Model
         $query->whereAny(['fpodid', 'fprdin'], 'like', '%' . $search . '%');
       });
     });
-  }
-  public function details()
-  {
-    return $this->hasMany(Tr_poh::class, 'fpono', 'fpono');
   }
 }
