@@ -914,8 +914,8 @@
                 fitemname: '',
                 units: [],
                 fsatuan: '',
-                fqty: '',
-                fqtypo: '',
+                fqty: 1,
+                fqtypo: 0,
                 fdesc: '',
                 fketdt: '',
                 maxqty: 0
@@ -928,7 +928,7 @@
                 fsatuan: '',
                 fqty: 1,
                 fdesc: '',
-                fqtypo: '',
+                fqtypo: 0,
                 fketdt: '',
                 maxqty: 0
             },
@@ -939,8 +939,8 @@
                     fitemname: '',
                     units: [],
                     fsatuan: '',
-                    fqty: '',
-                    fqtypo: '',
+                    fqty: 1,
+                    fqtypo: 0,
                     fdesc: '',
                     fketdt: '',
                     maxqty: 0
@@ -970,14 +970,19 @@
             onCodeTypedRow(row) {
                 this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
             },
+            sanitizeNumber(v, d = 0) {
+                const n = +v;
+                return Number.isFinite(n) ? n : d;
+            },
             enforceQtyRow(row) {
-                const n = +row.fqty;
+                const n = this.sanitizeNumber(row.fqty, 1);
                 if (!Number.isFinite(n)) {
                     row.fqty = '';
                     return;
                 }
                 if (n < 1) row.fqty = 1;
                 if (row.maxqty > 0 && n > row.maxqty) row.fqty = row.maxqty;
+                row.fqtypo = Math.max(0, Math.min(this.sanitizeNumber(row.fqtypo, 0), row.fqty));
             },
             isComplete(row) {
                 return row.fitemcode && row.fitemname && row.fsatuan && Number(row.fqty) > 0;
@@ -992,6 +997,7 @@
 
                 r.fqtypo = Number.isFinite(+r.fqtypo) ? +r.fqtypo : 0;
                 if (r.fqtypo > r.fqty) r.fqtypo = r.fqty;
+                r.fqty = this.sanitizeNumber(r.fqty, 1);
 
                 // pastikan ada ID:
                 if (!r.fprdid) {
@@ -1174,7 +1180,7 @@
                 const it = this.savedItems[i];
                 this.editingIndex = i;
                 this.editRow = {
-                    fprdid: it.fprdid || null,     // ⬅️ penting
+                    fprdid: it.fprdid || null, // ⬅️ penting
                     fitemcode: it.fitemcode,
                     fitemname: it.fitemname,
                     units: [],
@@ -1214,9 +1220,9 @@
                 it.fitemcode = r.fitemcode;
                 it.fitemname = r.fitemname;
                 it.fsatuan = r.fsatuan;
-                it.fqty = +r.fqty;
+                it.fqty = this.sanitizeNumber(r.fqty, 1);
                 it.fdesc = r.fdesc || '';
-                it.fqtypo = +r.fqtypo;
+                it.fqtypo = Math.max(0, Math.min(this.sanitizeNumber(r.fqtypo, 0), it.fqty));
                 it.fketdt = r.fketdt || '';
 
                 this.cancelEdit();
@@ -1259,7 +1265,7 @@
                             row.fitemname = product.fprdname || row.fitemname || '';
                         }
                         // perbaiki qty
-                        row.fqty = row.maxqty > 0 ? Math.min(+row.fqty || 1, row.maxqty) : (+row.fqty || 1);
+                        row.fqtypo = Math.max(0, Math.min(this.sanitizeNumber(row.fqtypo, 0), row.fqty));
                     };
 
                     if (this.browseTarget === 'edit') {
