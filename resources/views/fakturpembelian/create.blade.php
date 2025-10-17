@@ -234,14 +234,13 @@
                                     <tr>
                                         <th class="p-2 text-left w-10">#</th>
                                         <th class="p-2 text-left w-40">Kode Produk</th>
-                                        <th class="p-2 text-left w-72">Nama Produk</th>
-                                        <th class="p-2 text-left w-28">Desc</th>
+                                        <th class="p-2 text-left w-102">Nama Produk</th>
                                         <th class="p-2 text-left w-36">Ref.PO#</th>
-                                        <th class="p-2 text-right w-28 whitespace-nowrap">Qty</th>
-                                        <th class="p-2 text-right w-24 whitespace-nowrap">Sat</th>
-                                        <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
-                                        <th class="p-2 text-right w-36 whitespace-nowrap">Total Harga</th>
-                                        <th class="p-2 text-center w-28">Aksi</th>
+                                        <th class="p-2 text-right w-24">Sat</th>
+                                        <th class="p-2 text-right w-28">Qty</th>
+                                        <th class="p-2 text-right w-32">@ Harga</th>
+                                        <th class="p-2 text-right w-36">Total Harga</th>
+                                        <th class="p-2 text-center w-36">Aksi</th>
                                     </tr>
                                 </thead>
 
@@ -259,10 +258,9 @@
                                                     <span class="align-middle text-gray-600" x-text="it.fdesc"></span>
                                                 </div>
                                             </td>
-                                            <td class="p-2" x-text="it.fsatuan"></td>
-                                            <td class="p-2" x-text="it.fprnoid || '-'"></td>
+                                            <td class="p-2" x-text="it.frefdtno || '-'"></td>
+                                            <td class="p-2 text-right" x-text="it.fsatuan"></td>
                                             <td class="p-2 text-right" x-text="fmt(it.fqty)"></td>
-                                            <td class="p-2 text-right" x-text="fmt(it.fterima)"></td>
                                             <td class="p-2 text-right" x-text="fmt(it.fprice)"></td>
                                             <td class="p-2 text-right" x-text="fmt(it.ftotal)"></td>
                                             <td class="p-2 text-center">
@@ -280,7 +278,7 @@
                                                 <input type="hidden" name="fitemname[]" :value="it.fitemname">
                                                 <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
                                                 <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
-                                                <input type="hidden" name="fnouref[]" :value="it.fnouref">
+                                                <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
                                                 <input type="hidden" name="frefpr[]" :value="it.frefpr">
                                                 <input type="hidden" name="fqty[]" :value="it.fqty">
                                                 <input type="hidden" name="fprice[]" :value="it.fprice">
@@ -298,8 +296,6 @@
                                                 <textarea x-model="draft.fdesc" rows="2" class="w-full border rounded px-4 py-1"
                                                     placeholder="Deskripsi (opsional)"></textarea>
                                             </td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
                                             <td class="p-0"></td>
                                             <td class="p-0"></td>
                                             <td class="p-0"></td>
@@ -341,6 +337,13 @@
                                                 :value="editRow.fitemname" disabled>
                                         </td>
 
+                                        <!-- Ref.PR# -->
+                                        <td class="p-2">
+                                            <input type="text"
+                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
+                                                :value="editRow.frefdtno" disabled placeholder="Ref PR">
+                                        </td>
+
                                         <!-- Satuan -->
                                         <td class="p-2">
                                             <template x-if="editRow.units.length > 1">
@@ -359,39 +362,25 @@
                                             </template>
                                         </td>
 
-                                        <!-- Ref.PR# -->
-                                        <td class="p-2">
-                                            <input type="text"
-                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
-                                                :value="editRow.frefpr" disabled placeholder="Ref PR">
-                                        </td>
-
                                         <!-- Qty -->
                                         <td class="p-2 text-right">
                                             <input type="number" class="border rounded px-2 py-1 w-24 text-right"
                                                 min="0" step="1" x-ref="editQty"
-                                                x-model.number="editRow.fqty" @input="recalc(editRow)"
-                                                @keydown.enter.prevent="$refs.editTerima?.focus()">
+                                                x-model.number="editRow.fqty" @change="recalc(editRow)"
+                                                @blur="recalc(editRow)" @keydown.enter.prevent="$refs.editPrice?.focus()">
                                         </td>
 
                                         <!-- @ Harga -->
                                         <td class="p-2 text-right">
                                             <input type="number" class="border rounded px-2 py-1 w-28 text-right"
                                                 min="0" step="0.01" x-ref="editPrice"
-                                                x-model.number="editRow.fprice" @input="recalc(editRow)"
-                                                @keydown.enter.prevent="$refs.editDisc?.focus()">
-                                        </td>
-
-                                        <!-- Disc.% -->
-                                        <td class="p-2 text-right">
-                                            <input type="number" class="border rounded px-2 py-1 w-28 text-right"
-                                                min="0" step="0.01" x-ref="editPrice"
-                                                x-model.number="editRow.fprice" @input="recalc(editRow)"
-                                                @keydown.enter.prevent="$refs.editDisc?.focus()">
+                                                x-model.number="editRow.fprice" @change="recalc(editRow)"
+                                                @blur="recalc(editRow)"
+                                                @keydown.enter.prevent="handleEnterOnPrice('edit')">
                                         </td>
 
                                         <!-- Total Harga (readonly) -->
-                                        <td class="p-2 text-right" x-text="fmt(editRow.ftotal)"></td>
+                                        <td class="p-2 text-right font-semibold" x-text="rupiah(editRow.ftotal)"></td>
 
                                         <!-- Aksi -->
                                         <td class="p-2 text-center">
@@ -412,6 +401,7 @@
                                             <textarea x-model="draft.fdesc" rows="2" class="w-full border rounded px-4 py-1"
                                                 placeholder="Deskripsi (opsional)"></textarea>
                                         </td>
+                                        <td class="p-0"></td>
                                         <td class="p-0"></td>
                                         <td class="p-0"></td>
                                         <td class="p-0"></td>
@@ -451,6 +441,13 @@
                                                 :value="draft.fitemname" disabled>
                                         </td>
 
+                                        <!-- Ref.PR# -->
+                                        <td class="p-2">
+                                            <input type="text"
+                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
+                                                :value="draft.frefdtno" disabled placeholder="Ref PR">
+                                        </td>
+
                                         <!-- Satuan -->
                                         <td class="p-2">
                                             <template x-if="draft.units.length > 1">
@@ -469,39 +466,25 @@
                                             </template>
                                         </td>
 
-                                        <!-- Ref.PR# -->
-                                        <td class="p-2">
-                                            <input type="text"
-                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
-                                                :value="draft.frefpr" disabled placeholder="Ref PR">
-                                        </td>
-
                                         <!-- Qty -->
                                         <td class="p-2 text-right">
                                             <input type="number" class="border rounded px-2 py-1 w-24 text-right"
                                                 min="0" step="1" x-ref="draftQty"
-                                                x-model.number="draft.fqty" @input="recalc(draft)"
-                                                @keydown.enter.prevent="$refs.draftTerima?.focus()">
+                                                x-model.number="draft.fqty" @change="recalc(draft)" @blur="recalc(draft)"
+                                                @keydown.enter.prevent="$refs.draftPrice?.focus()">
                                         </td>
 
                                         <!-- @ Harga -->
                                         <td class="p-2 text-right">
                                             <input type="number" class="border rounded px-2 py-1 w-28 text-right"
                                                 min="0" step="0.01" x-ref="draftPrice"
-                                                x-model.number="draft.fprice" @input="recalc(draft)"
-                                                @keydown.enter.prevent="$refs.draftDisc?.focus()">
-                                        </td>
-
-                                        <!-- Disc.% -->
-                                        <td class="p-2 text-right">
-                                            <input type="number" class="border rounded px-2 py-1 w-28 text-right"
-                                                min="0" step="0.01" x-ref="editPrice"
-                                                x-model.number="editRow.fprice" @input="recalc(editRow)"
-                                                @keydown.enter.prevent="$refs.editDisc?.focus()">
+                                                x-model.number="draft.fprice" @change="recalc(draft)"
+                                                @blur="recalc(draft)"
+                                                @keydown.enter.prevent="handleEnterOnPrice('draft')">
                                         </td>
 
                                         <!-- Total Harga (readonly) -->
-                                        <td class="p-2 text-right" x-text="fmt(draft.ftotal)"></td>
+                                        <td class="p-2 text-right font-semibold" x-text="rupiah(draft.ftotal)"></td>
 
                                         <!-- Aksi -->
                                         <td class="p-2 text-center">
@@ -520,6 +503,7 @@
                                             <textarea x-model="draft.fdesc" rows="2" class="w-full border rounded px-4 py-1"
                                                 placeholder="Deskripsi (opsional)"></textarea>
                                         </td>
+                                        <td class="p-0"></td>
                                         <td class="p-0"></td>
                                         <td class="p-0"></td>
                                         <td class="p-0"></td>
@@ -1232,12 +1216,12 @@
 
                 // Jika angka adalah bulat, hilangkan desimal
                 if (Number.isInteger(v)) {
-                    return v.toLocaleString('id-ID'); // Format sebagai angka bulat
+                    return v.toLocaleString('id-ID');
                 } else {
                     return v.toLocaleString('id-ID', {
-                        style: 'currency',
-                        currency: 'IDR'
-                    }); // Jika angka desimal, tampilkan dalam format mata uang
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
                 }
             },
 
@@ -1255,11 +1239,15 @@
             },
 
             recalc(row) {
-                row.fqty = Math.max(0, +row.fqty || 0);
-                row.fterima = Math.max(0, +row.fterima || 0);
-                row.fprice = Math.max(0, +row.fprice || 0);
-                row.ftotal = +(row.fqty * row.fprice).toFixed(2);
-                this.recalcTotals();
+                this.$nextTick(() => {
+                    row.fqty = Math.max(0, Number(row.fqty) || 0);
+                    row.fterima = Math.max(0, Number(row.fterima) || 0);
+                    row.fprice = Math.max(0, Number(row.fprice) || 0);
+
+                    row.ftotal = Number((row.fqty * row.fprice).toFixed(2));
+
+                    this.recalcTotals();
+                });
             },
 
             recalcTotals() {
@@ -1272,7 +1260,7 @@
             removeSaved(i) {
                 this.savedItems.splice(i, 1);
                 this.syncDescList?.();
-                this.recalcTotals(); // ← add this
+                this.recalcTotals();
             },
 
             productMeta(code) {
@@ -1292,7 +1280,6 @@
                 const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
                 row.units = units;
                 if (!units.includes(row.fsatuan)) row.fsatuan = units[0] || '';
-                row.fsatuan = row.fsatuan;
                 const stock = Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0;
                 row.maxqty = stock;
             },
@@ -1313,16 +1300,16 @@
                 if (!items || !Array.isArray(items)) return;
 
                 this.resetDraft();
-
                 this.addManyFromPR(header, items);
             },
+
             resetDraft() {
                 this.draft = newRow();
                 this.$nextTick(() => this.$refs.draftCode?.focus());
             },
 
             addManyFromPR(header, items) {
-                const existing = new Set(this.getCurrentItemKeys()); // gunakan helper
+                const existing = new Set(this.getCurrentItemKeys());
 
                 let added = 0,
                     duplicates = [];
@@ -1333,21 +1320,18 @@
                         fitemcode: src.fitemcode ?? '',
                         fitemname: src.fitemname ?? '',
                         fsatuan: src.fsatuan ?? '',
-                        fsatuan: (src.fsatuan ?? ''),
                         frefdtno: src.frefdtno ?? '',
-                        fnouref: src.fnouref ?? '',
+                        frefdtno: src.frefdtno ?? '',
                         frefpr: src.frefpr ?? (header?.fpono ?? ''),
-                        fprnoid: src.fprnoid ?? header?.fprnoid ?? '',
                         fqty: Number(src.fqty ?? 0),
-                        fterima: Number(src.fterima ?? 0),
                         fprice: Number(src.fprice ?? 0),
-                        fdisc: Number(src.fdisc ?? 0),
                         ftotal: Number(src.ftotal ?? 0),
                         fdesc: src.fdesc ?? '',
                         fketdt: src.fketdt ?? '',
                         units: Array.isArray(src.units) && src.units.length ? src.units : [src.fsatuan]
                             .filter(Boolean),
                     };
+
                     const key = this.itemKey({
                         fitemcode: row.fitemcode,
                         frefdtno: row.frefdtno
@@ -1383,8 +1367,12 @@
 
                 this.recalc(r);
 
-                const dupe = this.savedItems.find(it => it.fitemcode === r.fitemcode && it.fsatuan === r.fsatuan && (it
-                    .frefpr || '') === (r.frefpr || ''));
+                const dupe = this.savedItems.find(it =>
+                    it.fitemcode === r.fitemcode &&
+                    it.fsatuan === r.fsatuan &&
+                    (it.frefpr || '') === (r.frefpr || '')
+                );
+
                 if (dupe) {
                     alert('Item sama sudah ada.');
                     return;
@@ -1394,12 +1382,11 @@
                     ...r,
                     uid: cryptoRandom()
                 });
+
                 this.showNoItems = false;
-                this.resetDraft(); // Reset draft setelah item ditambahkan
+                this.resetDraft();
                 this.$nextTick(() => this.$refs.draftCode?.focus());
                 this.syncDescList?.();
-                this.showNoItems = false;
-
                 this.recalcTotals();
             },
 
@@ -1418,28 +1405,19 @@
                     alert('Lengkapi data item.');
                     return;
                 }
+
                 this.recalc(r);
                 this.savedItems.splice(this.editingIndex, 1, {
                     ...r
                 });
                 this.cancelEdit();
                 this.syncDescList?.();
-
                 this.recalcTotals();
             },
 
             cancelEdit() {
                 this.editingIndex = null;
                 this.editRow = newRow();
-            },
-
-            removeSaved(i) {
-                this.savedItems.splice(i, 1);
-                this.syncDescList?.();
-            },
-
-            resetDraft() {
-                this.draft = newRow();
             },
 
             onSubmit($event) {
@@ -1450,7 +1428,6 @@
                 }
             },
 
-            // Handle enter for navigating fields (similar to your current logic)
             handleEnterOnCode(where) {
                 if (where === 'edit') {
                     if (this.editRow.units.length > 1) this.$refs.editUnit?.focus();
@@ -1458,6 +1435,14 @@
                 } else {
                     if (this.draft.units.length > 1) this.$refs.draftUnit?.focus();
                     else this.$refs.draftQty?.focus();
+                }
+            },
+
+            handleEnterOnPrice(where) {
+                if (where === 'edit') {
+                    this.applyEdit();
+                } else {
+                    this.addIfComplete();
                 }
             },
 
@@ -1478,24 +1463,25 @@
             },
 
             init() {
-                // Listen for PR picked from modal PR
                 window.getCurrentItemKeys = () => this.getCurrentItemKeys();
+
                 window.addEventListener('pr-picked', this.onPrPicked.bind(this), {
                     passive: true
                 });
 
-                // Listen for product picked from product modal
                 window.addEventListener('product-chosen', (e) => {
                     const {
                         product
                     } = e.detail || {};
                     if (!product) return;
+
                     const apply = (row) => {
                         row.fitemcode = (product.fprdcode || '').toString();
                         this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
                         if (!row.fqty) row.fqty = 1;
                         this.recalc(row);
                     };
+
                     if (this.browseTarget === 'edit') {
                         apply(this.editRow);
                         this.$nextTick(() => this.$refs.editQty?.focus());
@@ -1527,10 +1513,9 @@
                 units: [],
                 fsatuan: '',
                 frefdtno: '',
-                fnouref: '',
+                frefdtno: '',
                 frefpr: '',
                 fqty: 0,
-                fterima: 0,
                 fprice: 0,
                 ftotal: 0,
                 fdesc: '',
@@ -1541,7 +1526,8 @@
 
         function cryptoRandom() {
             return (window.crypto?.getRandomValues ? [...window.crypto.getRandomValues(new Uint32Array(2))].map(n => n
-                .toString(16)).join('') : Math.random().toString(36).slice(2)) + Date.now();
+                    .toString(16)).join('') :
+                Math.random().toString(36).slice(2)) + Date.now();
         }
     }
 </script>

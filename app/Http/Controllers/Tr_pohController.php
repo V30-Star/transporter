@@ -104,21 +104,21 @@ class Tr_pohController extends Controller
     // Ambil data header PR berdasarkan fprid
     $header = Tr_prh::where('fprid', $id)->firstOrFail();
 
-    // Ambil data items dari tabel tr_prd berdasarkan fprnoid
-    $items = Tr_prd::where('tr_prd.fprnoid', $header->fprno)
-      ->leftJoin('msprd as m', 'm.fprdcode', '=', 'tr_prd.fprdcode')
+    // PERBAIKAN: Gunakan fprid (integer) bukan fprno (varchar)
+    $items = Tr_prd::where('tr_prd.fprnoid', $header->fprid) // <- Gunakan fprid
+      ->leftJoin('msprd as m', 'm.fprdid', '=', 'tr_prd.fprdcode')
       ->select([
-        'tr_prd.fprdid as frefdtno',      // PK detail PR
-        'tr_prd.fprnoid as fnouref',      // Ref PR#
-        'tr_prd.fprdcode as fitemcode',   // Kode produk
-        'm.fprdname as fitemname',        // Nama produk
-        'tr_prd.fqty',                    // Quantity
-        'tr_prd.fsatuan as fsatuan',         // Satuan
-        'tr_prd.fprnoid',            // <-- WAJIB DIAMBIL
-        'tr_prd.fprice as fharga',        // Harga produk
-        DB::raw('0::numeric as fdiskon')  // Default diskon
+        'tr_prd.fprdid as frefdtno',
+        'tr_prd.fprnoid as fnouref',
+        'tr_prd.fprdcode as fitemcode',
+        'm.fprdname as fitemname',
+        'tr_prd.fqty',
+        'tr_prd.fsatuan as fsatuan',
+        'tr_prd.fprnoid',
+        'tr_prd.fprice as fharga',
+        DB::raw('0::numeric as fdiskon')
       ])
-      ->orderBy('tr_prd.fprdcode')  // Menurut kode produk
+      ->orderBy('tr_prd.fprdcode')
       ->get();
 
     return response()->json([
@@ -277,7 +277,7 @@ class Tr_pohController extends Controller
       'fitemcode.*'  => ['required', 'string', 'max:50'],
 
       'fsatuan'      => ['nullable', 'array'],
-      'fsatuan.*'    => ['nullable', 'string', 'max:5'],
+      'fsatuan.*'    => ['nullable', 'string', 'max:20'],
 
       'fapproval'    => ['nullable'],
 
@@ -368,7 +368,7 @@ class Tr_pohController extends Controller
       if ($code === '' || $qty <= 0) continue;
 
       if ($sat === '') $sat = $pickDefaultSat($code);
-      $sat = mb_substr($sat, 0, 5);
+      $sat = mb_substr($sat, 0, 20);
       if ($sat === '') continue;
 
       $productId = (int) (($prodMeta[$code]->fprdid ?? null) ?? 0);
