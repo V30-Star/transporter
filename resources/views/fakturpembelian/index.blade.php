@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Penerimaan Pembelian')
+@section('title', 'Penerimaan Barang')
 
 @section('content')
     <div x-data="{
@@ -49,7 +49,7 @@
         <table id="tr_prhTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
-                    <th>ID Penerimaan Pembelian</th>
+                    <th>ID Penerimaan Barang</th>
                     <th>oid</th>
                     <th>fstockmtno</th>
                     <th>fstockmtcode</th>
