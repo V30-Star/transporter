@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Mail\ApprovalEmailPo;
+use App\Models\PenerimaanPembelianHeader;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Carbon\Carbon; // sekalian biar aman untuk tanggal
@@ -23,13 +24,13 @@ class FakturpembelianController extends Controller
   public function index(Request $request)
   {
     // Sorting
-    $allowedSorts = ['fpohdid', 'fpono', 'fsupplier', 'fpodate'];
-    $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fpohdid';
+    $allowedSorts = ['fstockmtid', 'fstockmtno', 'fstockmtcode', 'fstockmtdate'];
+    $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fstockmtid';
     $sortDir = $request->sort_dir === 'asc' ? 'asc' : 'desc';
 
-    $query = Tr_poh::query();
+    $query = PenerimaanPembelianHeader::query();
 
-    $fakturpembelian = Tr_poh::orderBy($sortBy, $sortDir)->get(['fpohdid', 'fpono', 'fsupplier', 'fpodate']);
+    $fakturpembelian = PenerimaanPembelianHeader::orderBy($sortBy, $sortDir)->get(['fstockmtid', 'fstockmtno', 'fstockmtcode', 'fstockmtdate']);
 
     $canCreate = in_array('createTr_prh', explode(',', session('user_restricted_permissions', '')));
     $canEdit   = in_array('updateTr_prh', explode(',', session('user_restricted_permissions', '')));
@@ -534,7 +535,7 @@ class FakturpembelianController extends Controller
       ->with('success', "Transaksi {$fstockmtno} tersimpan.");
   }
 
-  public function edit($fpohdid)
+  public function edit($fstockmtid)
   {
     $supplier = Supplier::all();
 
@@ -547,21 +548,39 @@ class FakturpembelianController extends Controller
         ->orWhere('fcabangname', $raw))
       ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
 
+    $warehouses = DB::table('mswh')
+      ->select('fwhid', 'fwhcode', 'fwhname', 'fbranchcode', 'fnonactive')
+      ->where('fnonactive', '0')              // hanya yang aktif
+      ->orderBy('fwhcode')
+      ->get();
+
     $fcabang     = $branch->fcabangname ?? (string) $raw;   // tampilan
     $fbranchcode = $branch->fcabangkode ?? (string) $raw;   // hidden post
 
-    $tr_poh = Tr_poh::with(['details' => function ($q) {
-      $q->orderBy('fpodid')
-        ->join('msprd', 'msprd.fprdcode', '=', 'tr_pod.fprdcode')
-        ->select('tr_pod.*', 'msprd.fprdname', DB::raw('tr_pod.fpono as fpono'), 'tr_pod.famount'); // Select fpono from tr_pod
+    $fstockmtid = PenerimaanPembelianHeader::with(['details' => function ($q) {
+      $q->orderBy('fstockdtid')
+        ->leftJoin('msprd', function ($j) {
+          $j->on('msprd.fprdid', '=', DB::raw('CAST(trstockdt.fprdcode AS INTEGER)'));
+        })
+        ->select(
+          'trstockdt.*',
+          'msprd.fprdcode as fitemcode',
+          'msprd.fprdname'
+        );
+    }])->findOrFail($fstockmtid);
+
+    $fakturpembelian = PenerimaanPembelianHeader::with(['details' => function ($q) {
+      $q->orderBy('fstockdtid')
+        ->join('msprd', 'msprd.fprdcode', '=', 'trstockdt.fprdcode')
+        ->select('trstockdt.*', 'msprd.fprdname', DB::raw('trstockdt.fstockmtcode as fstockmtcode'), 'trstockdt.fprice');
     }])
-      ->where('fpohdid', $fpohdid)
+      ->where('fstockmtid', $fstockmtid->fstockmtid) // Ambil ID-nya saja
       ->firstOrFail();
 
     // Map the data for savedItems
-    $savedItems = $tr_poh->details->map(function ($d) {
+    $savedItems = $fakturpembelian->details->map(function ($d) {
       return [
-        'uid'       => $d->fpodid,                   // untuk :key
+        'uid'       => $d->fstockdtid,                   // untuk :key
         'fitemcode' => $d->fprdcode ?? '',
         'fitemname' => $d->fprdname ?? '',  // Now fprdname will be available here
         'fsatuan'   => $d->fsatuan ?? '',
@@ -583,7 +602,7 @@ class FakturpembelianController extends Controller
       ];
     })->values();
 
-    $selectedSupplierCode = $tr_poh->fsupplier;
+    $selectedSupplierCode = $fakturpembelian->fsupplier;
 
     // Fetch all products for product mapping
     $products = Product::select(
@@ -608,14 +627,15 @@ class FakturpembelianController extends Controller
     })->toArray();
 
     // Pass the data to the view
-    return view('tr_poh.edit', [
+    return view('fakturpembelian.edit', [
       'supplier'     => $supplier,
       'selectedSupplierCode' => $selectedSupplierCode, // Kirim kode supplier ke view
       'fcabang'      => $fcabang,
       'fbranchcode'  => $fbranchcode,
+      'warehouses' => $warehouses,
       'products'     => $products,
       'productMap'   => $productMap,
-      'tr_poh'       => $tr_poh,
+      'fakturpembelian'       => $fakturpembelian,
       'savedItems'   => $savedItems,
       'ppnAmount'    => (float) ($tr_poh->famountpopajak ?? 0), // total PPN from DB
       'famountponet'    => (float) ($tr_poh->famountponet ?? 0),  // nilai Grand Total dari DB
@@ -800,17 +820,17 @@ class FakturpembelianController extends Controller
     });
 
     return redirect()
-      ->route('tr_poh.index')
+      ->route('fakturpembelian.edit')
       ->with('success', "PO {$fpono} berhasil diperbarui.");
   }
 
-  public function destroy($fpohdid)
+  public function destroy($fstockmtid)
   {
-    $tr_poh = Tr_poh::findOrFail($fpohdid);
-    $tr_poh->delete();
+    $fakturpembelian = PenerimaanPembelianHeader::findOrFail($fstockmtid);
+    $fakturpembelian->delete();
 
     return redirect()
-      ->route('tr_poh.index')
-      ->with('success', 'Tr_Poh berhasil dihapus.');
+      ->route('fakturpembelian.index')
+      ->with('success', 'Penerimaan Pembelian Berhasil Dihapus.');
   }
 }

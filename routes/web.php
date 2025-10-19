@@ -173,11 +173,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/fakturpembelian',  [FakturpembelianController::class, 'index'])->name('fakturpembelian.index');
         Route::post('/fakturpembelian',        [FakturpembelianController::class, 'store'])->name('fakturpembelian.store');
         Route::get('/fakturpembelian/create', [FakturpembelianController::class, 'create'])->name('fakturpembelian.create');
-        // Route::get('/fakturpembelian/{fpohdid}/edit', [FakturpembelianController::class, 'edit'])->name('fakturpembelian.edit');
-        // Route::patch('/fakturpembelian/{fpohdid}', [FakturpembelianController::class, 'update'])->name('fakturpembelian.update');
-        // Route::delete('/fakturpembelian/{fpohdid}', [FakturpembelianController::class, 'destroy'])->name('fakturpembelian.destroy');
-        // Route::get('/fakturpembelian/{fpono}/print', [FakturpembelianController::class, 'print'])
-        //     ->name('fakturpembelian.print');
+        Route::get('/fakturpembelian/{fstockmtid}/edit', [FakturpembelianController::class, 'edit'])->name('fakturpembelian.edit');
+        Route::patch('/fakturpembelian/{fstockmtid}', [FakturpembelianController::class, 'update'])->name('fakturpembelian.update');
+        Route::delete('/fakturpembelian/{fstockmtid}', [FakturpembelianController::class, 'destroy'])->name('fakturpembelian.destroy');
+        Route::get('/fakturpembelian/{fpono}/print', [FakturpembelianController::class, 'print'])
+            ->name('fakturpembelian.print');
         Route::get('/fakturpembelian/{id}/items', [FakturpembelianController::class, 'items'])
             ->name('fakturpembelian.items');    // endpoint ambil header+items PR\
         Route::get('/fakturpembelian/pickable', [FakturpembelianController::class, 'pickable'])
