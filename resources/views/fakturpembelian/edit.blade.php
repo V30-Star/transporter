@@ -87,12 +87,14 @@
     <div x-data="{ open: true }">
         <div x-data="{ includePPN: false, ppnRate: 0, ppnAmount: 0, totalHarga: 100000 }" class="lg:col-span-5">
             <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
-                <form action="{{ route('fakturpembelian.store') }}" method="POST" class="mt-6" x-data="{ showNoItems: false }"
+                <form action="{{ route('fakturpembelian.update', $fakturpembelian->fstockmtid) }}" method="POST"
+                    class="mt-6" x-data="{ showNoItems: false }"
                     @submit.prevent="
         const n = Number(document.getElementById('itemsCount')?.value || 0);
         if (n < 1) { showNoItems = true } else { $el.submit() }
       ">
                     @csrf
+                    @method('PATCH')
 
                     {{-- HEADER FORM --}}
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
@@ -151,14 +153,15 @@
                             <label class="block text-sm font-medium mb-1">Gudang</label>
                             <div class="flex">
                                 <div class="relative flex-1">
-                                    <select id="warehouseSelect" name="ffrom"
+
+                                    <select id="warehouseSelect"
                                         class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
                                         disabled>
                                         <option value=""></option>
                                         @foreach ($warehouses as $wh)
-                                            <option value="{{ $wh->fwhcode }}" data-id="{{ $wh->fwhid }}"
+                                            <option value="{{ $wh->fwhid }}" data-id="{{ $wh->fwhid }}"
                                                 data-branch="{{ $wh->fbranchcode }}"
-                                                {{ old('ffrom') == $wh->fwhcode ? 'selected' : '' }}>
+                                                {{ old('ffrom', $fakturpembelian->ffrom) == $wh->fwhid ? 'selected' : '' }}>
                                                 {{ $wh->fwhcode }} - {{ $wh->fwhname }}
                                             </option>
                                         @endforeach
@@ -168,28 +171,20 @@
                                     <div class="absolute inset-0" role="button" aria-label="Browse warehouse"
                                         @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"></div>
                                 </div>
+                                <input type="hidden" name="ffrom" id="warehouseIdHidden"
+                                    value="{{ old('ffrom', $fakturpembelian->ffrom) }}">
 
-                                {{-- Simpan juga ID gudang jika diperlukan --}}
-                                <input type="hidden" name="fwhid" id="warehouseIdHidden" value="{{ old('fwhid') }}">
-
+                                {{-- Tombol-tombol Anda --}}
                                 <button type="button"
                                     @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"
                                     class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
                                     title="Browse Gudang">
                                     <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                                 </button>
-
-                                {{-- ganti route di bawah sesuai halaman tambah gudangmu --}}
-                                <a href="{{ route('gudang.create') }}" target="_blank" rel="noopener"
-                                    class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
-                                    title="Tambah Gudang">
+                                <a href="{{ route('gudang.create') }}" ...>
                                     <x-heroicon-o-plus class="w-5 h-5" />
                                 </a>
                             </div>
-
-                            @error('ffrom')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
                         </div>
 
                         <div class="lg:col-span-4">
@@ -246,7 +241,6 @@
 
                                 <tbody>
                                     <template x-for="(it, i) in savedItems" :key="it.uid">
-                                        <!-- ROW UTAMA -->
                                         <tr class="border-t align-top">
                                             <td class="p-2" x-text="i + 1"></td>
                                             <td class="p-2 font-mono" x-text="it.fitemcode"></td>
@@ -272,13 +266,13 @@
                                                 </div>
                                             </td>
 
-                                            <!-- hidden inputs -->
                                             <td class="hidden">
                                                 <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
                                                 <input type="hidden" name="fitemname[]" :value="it.fitemname">
                                                 <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
+
                                                 <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
-                                                <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
+
                                                 <input type="hidden" name="frefpr[]" :value="it.frefpr">
                                                 <input type="hidden" name="fqty[]" :value="it.fqty">
                                                 <input type="hidden" name="fprice[]" :value="it.fprice">
@@ -288,29 +282,11 @@
                                             </td>
                                         </tr>
 
-                                        <!-- ROW DESC (di bawah Nama Produk) -->
-                                        <tr class="border-b">
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-2" colspan="3">
-                                                <textarea x-model="draft.fdesc" rows="2" class="w-full border rounded px-4 py-1"
-                                                    placeholder="Deskripsi (opsional)"></textarea>
-                                            </td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                        </tr>
                                     </template>
 
-                                    <!-- ROW EDIT UTAMA -->
                                     <tr x-show="editingIndex !== null" class="border-t align-top" x-cloak>
-                                        <!-- # -->
                                         <td class="p-2" x-text="(editingIndex ?? 0) + 1"></td>
 
-                                        <!-- Kode Produk -->
                                         <td class="p-2">
                                             <div class="flex">
                                                 <input type="text" class="flex-1 border rounded-l px-2 py-1 font-mono"
@@ -330,21 +306,18 @@
                                             </div>
                                         </td>
 
-                                        <!-- Nama Produk (readonly) -->
                                         <td class="p-2">
                                             <input type="text"
                                                 class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
                                                 :value="editRow.fitemname" disabled>
                                         </td>
 
-                                        <!-- Ref.PR# -->
                                         <td class="p-2">
                                             <input type="text"
                                                 class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
                                                 :value="editRow.frefdtno" disabled placeholder="Ref PR">
                                         </td>
 
-                                        <!-- Satuan -->
                                         <td class="p-2">
                                             <template x-if="editRow.units.length > 1">
                                                 <select class="w-full border rounded px-2 py-1" x-ref="editUnit"
@@ -362,7 +335,6 @@
                                             </template>
                                         </td>
 
-                                        <!-- Qty -->
                                         <td class="p-2 text-right">
                                             <input type="number" class="border rounded px-2 py-1 w-24 text-right"
                                                 min="0" step="1" x-ref="editQty"
@@ -370,7 +342,6 @@
                                                 @blur="recalc(editRow)" @keydown.enter.prevent="$refs.editPrice?.focus()">
                                         </td>
 
-                                        <!-- @ Harga -->
                                         <td class="p-2 text-right">
                                             <input type="number" class="border rounded px-2 py-1 w-28 text-right"
                                                 min="0" step="0.01" x-ref="editPrice"
@@ -379,10 +350,8 @@
                                                 @keydown.enter.prevent="handleEnterOnPrice('edit')">
                                         </td>
 
-                                        <!-- Total Harga (readonly) -->
                                         <td class="p-2 text-right font-semibold" x-text="rupiah(editRow.ftotal)"></td>
 
-                                        <!-- Aksi -->
                                         <td class="p-2 text-center">
                                             <div class="flex items-center justify-center gap-2 flex-wrap">
                                                 <button type="button" @click="applyEdit()"
@@ -393,13 +362,14 @@
                                         </td>
                                     </tr>
 
-                                    <!-- ROW EDIT DESC -->
                                     <tr x-show="editingIndex !== null" class="border-b" x-cloak>
                                         <td class="p-0"></td>
                                         <td class="p-0"></td>
                                         <td class="p-2" colspan="3">
-                                            <textarea x-model="draft.fdesc" rows="2" class="w-full border rounded px-4 py-1"
+
+                                            <textarea x-model="editRow.fdesc" rows="2" class="w-full border rounded px-4 py-1"
                                                 placeholder="Deskripsi (opsional)"></textarea>
+
                                         </td>
                                         <td class="p-0"></td>
                                         <td class="p-0"></td>
@@ -409,12 +379,9 @@
                                         <td class="p-0"></td>
                                     </tr>
 
-                                    <!-- ROW DRAFT UTAMA -->
                                     <tr class="border-t align-top">
-                                        <!-- # -->
                                         <td class="p-2" x-text="savedItems.length + 1"></td>
 
-                                        <!-- Kode Produk -->
                                         <td class="p-2">
                                             <div class="flex">
                                                 <input type="text" class="flex-1 border rounded-l px-2 py-1 font-mono"
@@ -434,21 +401,18 @@
                                             </div>
                                         </td>
 
-                                        <!-- Nama Produk (readonly) -->
                                         <td class="p-2">
                                             <input type="text"
                                                 class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
                                                 :value="draft.fitemname" disabled>
                                         </td>
 
-                                        <!-- Ref.PR# -->
                                         <td class="p-2">
                                             <input type="text"
                                                 class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
                                                 :value="draft.frefdtno" disabled placeholder="Ref PR">
                                         </td>
 
-                                        <!-- Satuan -->
                                         <td class="p-2">
                                             <template x-if="draft.units.length > 1">
                                                 <select class="w-full border rounded px-2 py-1" x-ref="draftUnit"
@@ -466,7 +430,6 @@
                                             </template>
                                         </td>
 
-                                        <!-- Qty -->
                                         <td class="p-2 text-right">
                                             <input type="number" class="border rounded px-2 py-1 w-24 text-right"
                                                 min="0" step="1" x-ref="draftQty"
@@ -474,7 +437,6 @@
                                                 @keydown.enter.prevent="$refs.draftPrice?.focus()">
                                         </td>
 
-                                        <!-- @ Harga -->
                                         <td class="p-2 text-right">
                                             <input type="number" class="border rounded px-2 py-1 w-28 text-right"
                                                 min="0" step="0.01" x-ref="draftPrice"
@@ -483,10 +445,8 @@
                                                 @keydown.enter.prevent="handleEnterOnPrice('draft')">
                                         </td>
 
-                                        <!-- Total Harga (readonly) -->
                                         <td class="p-2 text-right font-semibold" x-text="rupiah(draft.ftotal)"></td>
 
-                                        <!-- Aksi -->
                                         <td class="p-2 text-center">
                                             <div class="flex items-center justify-center gap-2 flex-wrap">
                                                 <button type="button" @click="addIfComplete()"
@@ -495,7 +455,6 @@
                                         </td>
                                     </tr>
 
-                                    <!-- ROW DRAFT DESC -->
                                     <tr class="border-b">
                                         <td class="p-0"></td>
                                         <td class="p-0"></td>
@@ -1205,7 +1164,7 @@
     function itemsTable() {
         return {
             showNoItems: false,
-            savedItems: [],
+            savedItems: @json($savedItems),
             draft: newRow(),
             editingIndex: null,
             editRow: newRow(),
@@ -1324,7 +1283,7 @@
                         fitemname: src.fitemname ?? '',
                         fsatuan: src.fsatuan ?? '',
                         frefdtno: src.frefdtno ?? '',
-                        frefdtno: src.frefdtno ?? '',
+                        // frefdtno: src.frefdtno ?? '', // <-- Ini duplikat, saya hapus 1
                         frefpr: src.frefpr ?? (header?.fpono ?? ''),
                         fqty: Number(src.fqty ?? 0),
                         fprice: Number(src.fprice ?? 0),
@@ -1495,6 +1454,9 @@
                 }, {
                     passive: true
                 });
+                this.$nextTick(() => {
+                    this.recalcTotals();
+                });
             },
 
             browseTarget: 'draft',
@@ -1515,7 +1477,6 @@
                 fitemname: '',
                 units: [],
                 fsatuan: '',
-                frefdtno: '',
                 frefdtno: '',
                 frefpr: '',
                 fqty: 0,
@@ -1768,18 +1729,32 @@
     document.addEventListener('DOMContentLoaded', () => {
         window.addEventListener('warehouse-picked', (ev) => {
             const {
-                fwhcode,
+                // fwhcode, // Tidak perlu diambil jika hanya untuk set value select
                 fwhid
             } = ev.detail || {};
             const sel = document.getElementById('warehouseSelect');
             const hid = document.getElementById('warehouseIdHidden');
+
+            console.log('Warehouse picked:', ev.detail); // Untuk debugging
+
             if (sel) {
-                sel.value = fwhcode || '';
+                // PERBAIKAN: Gunakan fwhid untuk value <select>
+                sel.value = fwhid || '';
+
+                console.log('Select value set to:', sel.value); // Debugging
                 sel.dispatchEvent(new Event('change', {
                     bubbles: true
                 }));
+            } else {
+                console.error('Element #warehouseSelect not found'); // Debugging
             }
-            if (hid) hid.value = fwhid || '';
+
+            if (hid) {
+                hid.value = fwhid || ''; // Ini sudah benar
+                console.log('Hidden input value set to:', hid.value); // Debugging
+            } else {
+                console.error('Element #warehouseIdHidden not found'); // Debugging
+            }
         });
     });
 </script>

@@ -16,7 +16,8 @@ class PenerimaanPembelianHeader extends Model
   const UPDATED_AT = 'fupdatedat';
 
   protected $casts = [
-    'fstockmtid' => 'string',
+    'fstockmtid' => 'integer',
+    'fstockmtdate' => 'date',
   ];
 
   public function scopeSearch($query, $search)

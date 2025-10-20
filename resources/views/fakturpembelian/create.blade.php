@@ -153,7 +153,7 @@
                             <label class="block text-sm font-medium mb-1">Gudang</label>
                             <div class="flex">
                                 <div class="relative flex-1">
-                                    <select id="warehouseSelect" name="ffrom"
+                                    <select id="warehouseSelect"
                                         class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
                                         disabled>
                                         <option value=""></option>
@@ -171,7 +171,7 @@
                                         @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"></div>
                                 </div>
 
-                                {{-- Simpan juga ID gudang jika diperlukan --}}
+                                <input type="hidden" name="ffrom" id="warehouseCodeHidden" value="{{ old('ffrom') }}">
                                 <input type="hidden" name="fwhid" id="warehouseIdHidden" value="{{ old('fwhid') }}">
 
                                 <button type="button"

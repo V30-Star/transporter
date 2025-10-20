@@ -26,7 +26,6 @@ class Tr_prh extends Model
 
   public function details()
   {
-    // FK detail (tr_prd.fprnoid, varchar) → localKey header (tr_prh.fprno, varchar)
     return $this->hasMany(Tr_prd::class, 'fprnoid', 'fprid');
   }
 }
