@@ -218,7 +218,6 @@ class Tr_pohController extends Controller
     ]);
   }
 
-
   public function create()
   {
     $supplier = Supplier::all();

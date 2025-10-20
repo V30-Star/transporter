@@ -101,7 +101,7 @@
                                 </button>
                             @endif
 
-                            <a {{-- href="{{ route('fakturpembelian.print', $item->fprno) }}" target="_blank" rel="noopener" --}}
+                            <a href="{{ route('fakturpembelian.print', $item->fstockmtno) }}" target="_blank" rel="noopener"
                                 class="inline-flex items-center px-3 py-1 rounded bg-gray-100 hover:bg-gray-200">
                                 <x-heroicon-o-printer class="w-4 h-4 mr-1" /> Print
                             </a>

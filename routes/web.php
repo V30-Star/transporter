@@ -176,7 +176,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/fakturpembelian/{fstockmtid}/edit', [FakturpembelianController::class, 'edit'])->name('fakturpembelian.edit');
         Route::patch('/fakturpembelian/{fstockmtid}', [FakturpembelianController::class, 'update'])->name('fakturpembelian.update');
         Route::delete('/fakturpembelian/{fstockmtid}', [FakturpembelianController::class, 'destroy'])->name('fakturpembelian.destroy');
-        Route::get('/fakturpembelian/{fpono}/print', [FakturpembelianController::class, 'print'])
+        Route::get('/fakturpembelian/{fstockmtno}/print', [FakturpembelianController::class, 'print'])
             ->name('fakturpembelian.print');
         Route::get('/fakturpembelian/{id}/items', [FakturpembelianController::class, 'items'])
             ->name('fakturpembelian.items');    // endpoint ambil header+items PR\

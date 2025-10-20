@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Mail\ApprovalEmailPo;
+use App\Models\PenerimaanPembelianDetail;
 use App\Models\PenerimaanPembelianHeader;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
@@ -166,18 +167,18 @@ class FakturpembelianController extends Controller
     return $prefix . str_pad((string)$next, 4, '0', STR_PAD_LEFT);
   }
 
-  public function print(string $fpono)
+  public function print(string $fstockmtno)
   {
-    $supplierSub = Supplier::select('fsuppliercode', 'fsuppliername');
+    $supplierSub = Supplier::select('fsupplierid', 'fsuppliercode', 'fsuppliername');
 
-    $hdr = Tr_poh::query()
+    $hdr = PenerimaanPembelianHeader::query()
       ->leftJoinSub($supplierSub, 's', function ($join) {
-        $join->on('s.fsuppliercode', '=', 'tr_poh.fsupplier');
+        $join->on('s.fsupplierid', '=', 'trstockmt.fsupplier');
       })
-      ->leftJoin('mscabang as c', 'c.fcabangkode', '=', 'tr_poh.fbranchcode')
-      ->where('tr_poh.fpono', $fpono)
+      ->leftJoin('mscabang as c', 'c.fcabangkode', '=', 'trstockmt.fbranchcode')
+      ->where('trstockmt.fstockmtno', $fstockmtno)
       ->first([
-        'tr_poh.*',
+        'trstockmt.*',
         's.fsuppliername as supplier_name',
         'c.fcabangname as cabang_name',
       ]);
@@ -186,22 +187,23 @@ class FakturpembelianController extends Controller
       return redirect()->back()->with('error', 'PO tidak ditemukan.');
     }
 
-    $dt = Tr_pod::query()
-      ->leftJoin('msprd as p', 'p.fprdcode', '=', 'tr_pod.fprdcode')
-      ->where('tr_pod.fpono', $fpono)
-      ->orderBy('tr_pod.fprdcode')
+    $dt = PenerimaanPembelianDetail::query()
+      ->leftJoin('msprd as p', 'p.fprdid', '=', 'trstockdt.fprdcode')
+      ->where('trstockdt.fstockmtno', $fstockmtno)
+      ->orderBy('trstockdt.fprdcode')
       ->get([
-        'tr_pod.*',
+        'trstockdt.*',
         'p.fprdname as product_name',
+        'p.fprdcode as product_code',
         'p.fminstock as stock',
-        'tr_pod.fqtyremain',
+        'trstockdt.fqtyremain',
       ]);
 
     $fmt = fn($d) => $d
       ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y')
       : '-';
 
-    return view('tr_poh.print', [
+    return view('fakturpembelian.print', [
       'hdr'          => $hdr,
       'dt'           => $dt,
       'fmt'          => $fmt,
@@ -879,7 +881,7 @@ class FakturpembelianController extends Controller
       ->route('fakturpembelian.edit', $fstockmtid)
       ->with('success', "Transaksi {$header->fstockmtno} berhasil diperbarui.");
   }
-  
+
   public function destroy($fstockmtid)
   {
     $fakturpembelian = PenerimaanPembelianHeader::findOrFail($fstockmtid);

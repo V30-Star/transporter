@@ -109,8 +109,8 @@ class Tr_prhController extends Controller
     abort_if(!$hdr, 404);
 
     $dt = Tr_prd::query()
-      ->leftJoin('msprd as p', 'p.fprdcode', '=', 'tr_prd.fprdcode')
-      ->where('tr_prd.fprnoid', $hdr->fprno)
+      ->leftJoin('msprd as p', 'p.fprdid', '=', 'tr_prd.fprdcode')
+      ->where('tr_prd.fprnoid', $hdr->fprid)
       ->orderBy('tr_prd.fprdcode')
       ->get([
         'tr_prd.*',
