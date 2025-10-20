@@ -270,12 +270,20 @@
 
         <hr>
 
-        <!-- Info supplier dan tanggal -->
         <table style="width:100%;border-collapse:collapse;margin-bottom:8px">
             <tr>
-                <td style="border:0;padding:0 0 4px 0">
-                    <strong>Kepada</strong> :
-                    {{ !empty($hdr->supplier_name) ? $hdr->supplier_name : '' }}
+                <td colspan="2" style="border:0;padding:0 0 4px 0">
+
+                    <div>
+                        <strong>Supplier</strong> :
+                        {{ !empty($hdr->supplier_name) ? $hdr->supplier_name : '' }}
+                    </div>
+
+                    <div>
+                        <strong>Gudang</strong> :
+                        {{ !empty($hdr->fwhnamen) ? $hdr->fwhnamen : '' }}
+                    </div>
+
                 </td>
                 <td style="border:0;padding:0;text-align:right">
                     <div><strong>Tanggal</strong> : {{ $fmt($hdr->fstockmtdate) }}</div>

@@ -176,11 +176,13 @@ class FakturpembelianController extends Controller
         $join->on('s.fsupplierid', '=', 'trstockmt.fsupplier');
       })
       ->leftJoin('mscabang as c', 'c.fcabangkode', '=', 'trstockmt.fbranchcode')
+      ->leftJoin('mswh as w', 'w.fwhid', '=', 'trstockmt.ffrom')
       ->where('trstockmt.fstockmtno', $fstockmtno)
       ->first([
         'trstockmt.*',
         's.fsuppliername as supplier_name',
         'c.fcabangname as cabang_name',
+        'w.fwhname as fwhnamen',  
       ]);
 
     if (!$hdr) {
