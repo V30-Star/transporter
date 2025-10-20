@@ -264,7 +264,7 @@ class FakturpembelianController extends Controller
     // 1) VALIDASI INPUT
     // =========================
     $request->validate([
-      'fstockmtno'     => ['nullable', 'string', 'max:20'], // boleh isi manual jika auto dimatikan
+      'fstockmtno'     => ['nullable', 'string', 'max:100'], // boleh isi manual jika auto dimatikan
       'fstockmtdate'   => ['required', 'date'],
       'fsupplier'      => ['required', 'string', 'max:30'],
       'ffrom'          => ['nullable', 'string', 'max:10'], // gudang
@@ -339,14 +339,13 @@ class FakturpembelianController extends Controller
     $uniqueCodes = array_values(array_unique(array_filter(array_map(fn($c) => trim((string)$c), $codes))));
     $prodMeta = DB::table('msprd')
       ->whereIn('fprdcode', $uniqueCodes)
-      ->get(['fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2'])
+      ->get(['fprdid', 'fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2'])
       ->keyBy('fprdcode');
 
-    $pickDefaultSat = function (string $code) use ($prodMeta): string {
-      $m = $prodMeta[$code] ?? null;
-      if (!$m) return '';
+    $pickDefaultSat = function (?object $meta) use ($prodMeta): string {
+      if (!$meta) return ''; // Jika $meta null (produk tidak ketemu)
       foreach (['fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2'] as $k) {
-        $v = trim((string)($m->$k ?? ''));
+        $v = trim((string)($meta->$k ?? ''));
         if ($v !== '') return mb_substr($v, 0, 5); // patuhi varchar(5)
       }
       return '';
@@ -372,6 +371,14 @@ class FakturpembelianController extends Controller
         continue; // skip baris tidak valid
       }
 
+      $meta = $prodMeta[$code] ?? null;
+
+      if (!$meta) {
+        continue;
+      }
+
+      $prdId = $meta->fprdid;
+
       if ($sat === '') {
         $sat = $pickDefaultSat($code);
       }
@@ -380,13 +387,12 @@ class FakturpembelianController extends Controller
         continue; // baris tanpa satuan valid → skip
       }
 
-      // Hitung Ulang Total per Baris di Server
       $amount = $qty * $price;
       $subtotal += $amount;
 
       $rowsDt[] = [
         // 'fstockmtno' dan 'fstockmtcode' akan diisi di dalam transaksi
-        'fprdcode'       => $code,       // Dari fitemcode[]
+        'fprdcode'       => $prdId,       // Dari fitemcode[]
         'frefdtno'       => $rref,       // Dari frefdtno[]
         'fqty'           => $qty,        // Dari fqty[]
         'fqtyremain'     => $qty,
@@ -473,9 +479,8 @@ class FakturpembelianController extends Controller
         $fstockmtno = $prefix . str_pad((string)$next, 4, '0', STR_PAD_LEFT);
       }
 
-      // ---- 5.2. Insert HEADER: trstockmt ----
-      DB::table('trstockmt')->insert([
-        'fstockmtno'       => $fstockmtno,
+      $masterData = [
+        'fstockmtno'       => $fstockmtno, // Kode string yang tadi di-generate
         'fstockmtcode'     => $fstockmtcode,
         'fstockmtdate'     => $fstockmtdate,
         'fprdout'          => '0',
@@ -507,31 +512,35 @@ class FakturpembelianController extends Controller
         'fsudahtagih'      => '0',
         'fbranchcode'      => $kodeCabang,
         'fdiscount'        => 0,
-      ]);
+      ];
 
-      // ---- 5.3. Siapkan & insert DETAIL: trstockdt ----
+      $newStockMasterId = DB::table('trstockmt')->insertGetId($masterData, 'fstockmtid');
+
+      if (!$newStockMasterId) {
+        throw new \Exception("Gagal menyimpan data master (header).");
+      }
+
       $lastNouRef = (int) DB::table('trstockdt')
-        ->where('fstockmtno', $fstockmtno)
+        ->where('fstockmtid', $newStockMasterId)
         ->max('fnouref');
       $nextNouRef = $lastNouRef + 1;
 
       foreach ($rowsDt as &$r) {
+        $r['fstockmtid']   = $newStockMasterId;
         $r['fstockmtcode'] = $fstockmtcode;
         $r['fstockmtno']   = $fstockmtno;
 
-        // Jika fnouref kosong, isi berurutan
         if (!isset($r['fnouref']) || $r['fnouref'] === null) {
           $r['fnouref'] = $nextNouRef++;
         }
       }
-      unset($r); // hapus referensi
+      unset($r);
 
       DB::table('trstockdt')->insert($rowsDt);
     });
 
-    // Redirect setelah transaksi sukses
     return redirect()
-      ->route('fakturpembelian.create') // ganti ke route yang Anda inginkan
+      ->route('fakturpembelian.create')
       ->with('success', "Transaksi {$fstockmtno} tersimpan.");
   }
 
@@ -572,7 +581,7 @@ class FakturpembelianController extends Controller
     $fakturpembelian = PenerimaanPembelianHeader::with(['details' => function ($q) {
       $q->orderBy('fstockdtid')
         ->join('msprd', 'msprd.fprdcode', '=', 'trstockdt.fprdcode')
-        ->select('trstockdt.*', 'msprd.fprdname', DB::raw('trstockdt.fstockmtcode as fstockmtcode'), 'trstockdt.fprice');
+        ->select('trstockdt.*', 'msprd.fprdname', DB::raw('trstockdt.fstockmtid as fstockmtid'), 'trstockdt.fprice');
     }])
       ->where('fstockmtid', $fstockmtid->fstockmtid) // Ambil ID-nya saja
       ->firstOrFail();

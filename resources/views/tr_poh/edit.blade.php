@@ -122,22 +122,23 @@
                             <label class="block text-sm font-medium mb-1">Supplier</label>
                             <div class="flex">
                                 <div class="relative flex-1">
-                                    <select id="supplierSelect" name="fsupplier"
+                                    <select id="supplierSelect" name="fsupplier_view"
                                         class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
-                                        disabled onchange="updateTempo()">
+                                        disabled>
                                         <option value=""></option>
-                                        @foreach ($supplier as $s)
-                                            <option value="{{ $s->fsuppliercode }}" data-tempo="{{ $s->ftempo }}"
-                                                {{ old('fsupplier', $selectedSupplierCode) == $s->fsuppliercode ? 'selected' : '' }}>
-                                                {{ $s->fsuppliercode }} - {{ $s->fsuppliername }}
+                                        @foreach ($supplier as $sup)
+                                            <option value="{{ $sup->fsupplierid }}"
+                                                {{ old('fsupplier', $tr_poh->fsupplier) == $sup->fsupplierid ? 'selected' : '' }}>
+                                                {{ $sup->fsuppliercode }} - {{ $sup->fsuppliername }}
                                             </option>
                                         @endforeach
                                     </select>
                                     <div class="absolute inset-0" role="button" aria-label="Browse supplier"
                                         @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"></div>
                                 </div>
+                                {{-- kirim ID supplier ke server --}}
                                 <input type="hidden" name="fsupplier" id="supplierCodeHidden"
-                                    value="{{ old('fsupplier', $selectedSupplierCode) }}">
+                                    value="{{ old('fsupplier', $tr_poh->fsupplier) }}">
                                 <button type="button"
                                     @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"
                                     class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"

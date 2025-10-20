@@ -109,6 +109,8 @@
                             </div>
                         </div>
 
+                        <input type="hidden" name="fstockmtid" value="fstockmtid">
+
                         <div class="lg:col-span-4">
                             <label class="block text-sm font-medium mb-1">Supplier</label>
                             <div class="flex">
@@ -1094,7 +1096,7 @@
                     opt.selected = true;
                 }
                 sel.dispatchEvent(new Event('change'));
-                if (hid) hid.value = s.fsuppliercode;
+                if (hid) hid.value = s.fsupplierid;
                 this.close();
             },
             init() {

@@ -113,23 +113,23 @@
                             <label class="block text-sm font-medium mb-1">Supplier</label>
                             <div class="flex">
                                 <div class="relative flex-1">
-                                    <select id="supplierSelect" name="fsupplier"
+                                    <select id="supplierSelect" name="fsupplier_view"
                                         class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
                                         disabled>
                                         <option value=""></option>
-                                        @foreach ($supplier as $suppliers)
-                                            <option value="{{ $suppliers->fsupplierid }}"
-                                                data-tempo="{{ $suppliers->ftempo }}"
-                                                {{ old('fsupplier') == $suppliers->fsupplierid ? 'selected' : '' }}>
-                                                {{ $suppliers->fsuppliercode }} - {{ $suppliers->fsuppliername }}
+                                        @foreach ($supplier as $sup)
+                                            <option value="{{ $sup->fsupplierid }}"
+                                                {{ old('fsupplier', $fakturpembelian->fsupplier) == $sup->fsupplierid ? 'selected' : '' }}>
+                                                {{ $sup->fsuppliercode }} - {{ $sup->fsuppliername }}
                                             </option>
                                         @endforeach
                                     </select>
                                     <div class="absolute inset-0" role="button" aria-label="Browse supplier"
                                         @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"></div>
                                 </div>
+                                {{-- kirim ID supplier ke server --}}
                                 <input type="hidden" name="fsupplier" id="supplierCodeHidden"
-                                    value="{{ old('fsupplier') }}">
+                                    value="{{ old('fsupplier', $fakturpembelian->fsupplier) }}">
                                 <button type="button"
                                     @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"
                                     class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
@@ -1080,6 +1080,9 @@
             choose(s) {
                 const sel = document.getElementById('supplierSelect');
                 const hid = document.getElementById('supplierCodeHidden');
+
+                if (hid) hid.value = s.fsupplierid;
+                this.close();
                 if (!sel) {
                     this.close();
                     return;
@@ -1094,7 +1097,7 @@
                     opt.selected = true;
                 }
                 sel.dispatchEvent(new Event('change'));
-                if (hid) hid.value = s.fsuppliercode;
+                if (hid) hid.value = s.fsupplierid; // simpan ID supplier (konsisten dengan old/fsupplier)
                 this.close();
             },
             init() {

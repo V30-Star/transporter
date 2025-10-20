@@ -29,6 +29,6 @@ class PenerimaanPembelianHeader extends Model
   }
   public function details()
   {
-    return $this->hasMany(PenerimaanPembelianDetail::class, 'fstockmtno', 'fstockmtid');
+    return $this->hasMany(PenerimaanPembelianDetail::class, 'fstockmtid', 'fstockmtid');
   }
 }
