@@ -889,6 +889,6 @@ class FakturpembelianController extends Controller
 
     return redirect()
       ->route('fakturpembelian.index')
-      ->with('success', 'Penerimaan Pembelian Berhasil Dihapus.');
+      ->with('success', 'Penerimaan Barang Berhasil Dihapus.');
   }
 }

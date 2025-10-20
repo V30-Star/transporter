@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Penerimaan Pembelian - {{ $hdr->fstockmtno ?? '-' }}</title>
+    <title>Penerimaan Barang - {{ $hdr->fstockmtno ?? '-' }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         :root {
@@ -263,7 +263,7 @@
                 <div class="muted">{{ $company_city }}</div>
             </div>
             <div class="right">
-                <div class="title">ORDER PEMBELIAN</div>
+                <div class="title">PENERIMAAN BARANG</div>
                 <div>No. <span class="mono">{{ $hdr->fstockmtno ?? '-' }}</span></div>
             </div>
         </div>
