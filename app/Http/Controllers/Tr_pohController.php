@@ -780,7 +780,7 @@ class Tr_pohController extends Controller
 
     // Pesan sukses tetap pakai nomor PO string untuk tampilan
     return redirect()
-      ->route('tr_poh.index')
+      ->route('tr_poh.edit', ['fpohdid' => $fpohdid])
       ->with('success', "PO {$header->fpono} berhasil diperbarui.");
   }
 
