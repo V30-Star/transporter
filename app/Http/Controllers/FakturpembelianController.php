@@ -31,13 +31,13 @@ class FakturpembelianController extends Controller
 
     $query = PenerimaanPembelianHeader::query();
 
-    $fakturpembelian = PenerimaanPembelianHeader::orderBy($sortBy, $sortDir)->get(['fstockmtid', 'fstockmtno', 'fstockmtcode', 'fstockmtdate']);
+    $penerimaanbarang = PenerimaanPembelianHeader::orderBy($sortBy, $sortDir)->get(['fstockmtid', 'fstockmtno', 'fstockmtcode', 'fstockmtdate']);
 
     $canCreate = in_array('createTr_prh', explode(',', session('user_restricted_permissions', '')));
     $canEdit   = in_array('updateTr_prh', explode(',', session('user_restricted_permissions', '')));
     $canDelete = in_array('deleteTr_prh', explode(',', session('user_restricted_permissions', '')));
 
-    return view('fakturpembelian.index', compact('fakturpembelian', 'canCreate', 'canEdit', 'canDelete'));
+    return view('penerimaanbarang.index', compact('penerimaanbarang', 'canCreate', 'canEdit', 'canDelete'));
   }
 
   public function pickable(Request $request)
@@ -205,7 +205,7 @@ class FakturpembelianController extends Controller
       ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y')
       : '-';
 
-    return view('fakturpembelian.print', [
+    return view('penerimaanbarang.print', [
       'hdr'          => $hdr,
       'dt'           => $dt,
       'fmt'          => $fmt,
@@ -251,7 +251,7 @@ class FakturpembelianController extends Controller
       'fminstock'
     )->orderBy('fprdname')->get();
 
-    return view('fakturpembelian.create', [
+    return view('penerimaanbarang.create', [
       'newtr_prh_code' => $newtr_prh_code,
       'warehouses' => $warehouses,
       'perms' => ['can_approval' => $canApproval],
@@ -544,7 +544,7 @@ class FakturpembelianController extends Controller
     });
 
     return redirect()
-      ->route('fakturpembelian.create')
+      ->route('penerimaanbarang.create')
       ->with('success', "Transaksi {$fstockmtno} tersimpan.");
   }
 
@@ -572,7 +572,7 @@ class FakturpembelianController extends Controller
 
     // 1. Ambil data Header (trstockmt) DAN relasi Details (trstockdt)
     // Biarkan query ini. Sekarang $fstockmtid di sini adalah integer (misal: 8)
-    $fakturpembelian = PenerimaanPembelianHeader::with([
+    $penerimaanbarang = PenerimaanPembelianHeader::with([
       'details' => function ($query) {
         $query
           // 2. Join ke msprd berdasarkan ID
@@ -590,7 +590,7 @@ class FakturpembelianController extends Controller
 
 
     // 4. Map the data for savedItems (sudah menggunakan data yang benar)
-    $savedItems = $fakturpembelian->details->map(function ($d) {
+    $savedItems = $penerimaanbarang->details->map(function ($d) {
       return [
         'uid'       => $d->fstockdtid,
         'fitemcode' => $d->fitemcode_text ?? '',
@@ -615,7 +615,7 @@ class FakturpembelianController extends Controller
     })->values();
 
     // Sisa kode Anda sudah benar
-    $selectedSupplierCode = $fakturpembelian->fsupplier;
+    $selectedSupplierCode = $penerimaanbarang->fsupplier;
 
     $products = Product::select(
       'fprdid',
@@ -637,7 +637,7 @@ class FakturpembelianController extends Controller
       ];
     })->toArray();
 
-    return view('fakturpembelian.edit', [
+    return view('penerimaanbarang.edit', [
       'supplier'           => $supplier,
       'selectedSupplierCode' => $selectedSupplierCode,
       'fcabang'            => $fcabang,
@@ -645,11 +645,11 @@ class FakturpembelianController extends Controller
       'warehouses'         => $warehouses,
       'products'           => $products,
       'productMap'         => $productMap,
-      'fakturpembelian'    => $fakturpembelian,
+      'penerimaanbarang'    => $penerimaanbarang,
       'savedItems'         => $savedItems,
-      'ppnAmount'          => (float) ($fakturpembelian->famountpopajak ?? 0),
-      'famountponet'       => (float) ($fakturpembelian->famountponet ?? 0),
-      'famountpo'          => (float) ($fakturpembelian->famountpo ?? 0),
+      'ppnAmount'          => (float) ($penerimaanbarang->famountpopajak ?? 0),
+      'famountponet'       => (float) ($penerimaanbarang->famountponet ?? 0),
+      'famountpo'          => (float) ($penerimaanbarang->famountpo ?? 0),
     ]);
   }
 
@@ -880,17 +880,17 @@ class FakturpembelianController extends Controller
     });
 
     return redirect()
-      ->route('fakturpembelian.edit', $fstockmtid)
+      ->route('penerimaanbarang.edit', $fstockmtid)
       ->with('success', "Transaksi {$header->fstockmtno} berhasil diperbarui.");
   }
 
   public function destroy($fstockmtid)
   {
-    $fakturpembelian = PenerimaanPembelianHeader::findOrFail($fstockmtid);
-    $fakturpembelian->delete();
+    $penerimaanbarang = PenerimaanPembelianHeader::findOrFail($fstockmtid);
+    $penerimaanbarang->delete();
 
     return redirect()
-      ->route('fakturpembelian.index')
+      ->route('penerimaanbarang.index')
       ->with('success', 'Penerimaan Barang Berhasil Dihapus.');
   }
 }

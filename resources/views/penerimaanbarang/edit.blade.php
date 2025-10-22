@@ -87,7 +87,7 @@
     <div x-data="{ open: true }">
         <div x-data="{ includePPN: false, ppnRate: 0, ppnAmount: 0, totalHarga: 100000 }" class="lg:col-span-5">
             <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
-                <form action="{{ route('fakturpembelian.update', $fakturpembelian->fstockmtid) }}" method="POST"
+                <form action="{{ route('penerimaanbarang.update', $penerimaanbarang->fstockmtid) }}" method="POST"
                     class="mt-6" x-data="{ showNoItems: false }"
                     @submit.prevent="
         const n = Number(document.getElementById('itemsCount')?.value || 0);
@@ -121,7 +121,7 @@
                                         <option value=""></option>
                                         @foreach ($supplier as $sup)
                                             <option value="{{ $sup->fsupplierid }}"
-                                                {{ old('fsupplier', $fakturpembelian->fsupplier) == $sup->fsupplierid ? 'selected' : '' }}>
+                                                {{ old('fsupplier', $penerimaanbarang->fsupplier) == $sup->fsupplierid ? 'selected' : '' }}>
                                                 {{ $sup->fsuppliercode }} - {{ $sup->fsuppliername }}
                                             </option>
                                         @endforeach
@@ -131,7 +131,7 @@
                                 </div>
                                 {{-- kirim ID supplier ke server --}}
                                 <input type="hidden" name="fsupplier" id="supplierCodeHidden"
-                                    value="{{ old('fsupplier', $fakturpembelian->fsupplier) }}">
+                                    value="{{ old('fsupplier', $penerimaanbarang->fsupplier) }}">
                                 <button type="button"
                                     @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"
                                     class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
@@ -161,7 +161,7 @@
                                         @foreach ($warehouses as $wh)
                                             <option value="{{ $wh->fwhid }}" data-id="{{ $wh->fwhid }}"
                                                 data-branch="{{ $wh->fbranchcode }}"
-                                                {{ old('ffrom', $fakturpembelian->ffrom) == $wh->fwhid ? 'selected' : '' }}>
+                                                {{ old('ffrom', $penerimaanbarang->ffrom) == $wh->fwhid ? 'selected' : '' }}>
                                                 {{ $wh->fwhcode }} - {{ $wh->fwhname }}
                                             </option>
                                         @endforeach
@@ -172,7 +172,7 @@
                                         @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"></div>
                                 </div>
                                 <input type="hidden" name="ffrom" id="warehouseIdHidden"
-                                    value="{{ old('ffrom', $fakturpembelian->ffrom) }}">
+                                    value="{{ old('ffrom', $penerimaanbarang->ffrom) }}">
 
                                 {{-- Tombol-tombol Anda --}}
                                 <button type="button"
@@ -937,7 +937,7 @@
                                 class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
                                 <x-heroicon-o-check class="w-5 h-5 mr-2" /> Simpan
                             </button>
-                            <button type="button" @click="window.location.href='{{ route('fakturpembelian.index') }}'"
+                            <button type="button" @click="window.location.href='{{ route('penerimaanbarang.index') }}'"
                                 class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
                                 <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" /> Keluar
                             </button>
@@ -1557,7 +1557,7 @@
                         page: this.currentPage,
                     });
 
-                    const res = await fetch(`{{ route('fakturpembelian.pickable') }}?` + params.toString(), {
+                    const res = await fetch(`{{ route('penerimaanbarang.pickable') }}?` + params.toString(), {
                         headers: {
                             'X-Requested-With': 'XMLHttpRequest'
                         }
@@ -1592,7 +1592,7 @@
 
             async pick(row) {
                 try {
-                    const url = `{{ route('fakturpembelian.items', ['id' => 'PR_ID_PLACEHOLDER']) }}`
+                    const url = `{{ route('penerimaanbarang.items', ['id' => 'PR_ID_PLACEHOLDER']) }}`
                         .replace('PR_ID_PLACEHOLDER', row.fprid);
 
                     const res = await fetch(url, {

@@ -27,7 +27,7 @@
             <div></div>
 
             {{-- @if ($canCreate) --}}
-            <a href="{{ route('fakturpembelian.create') }}"
+            <a href="{{ route('penerimaanbarang.create') }}"
                 class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
                 <x-heroicon-o-plus class="w-4 h-4 mr-1" /> Tambah Baru
             </a>
@@ -68,7 +68,7 @@
                 </tr>
             </thead>
             <tbody>
-                @forelse($fakturpembelian as $item)
+                @forelse($penerimaanbarang as $item)
                     <tr>
                         <td>{{ $item->fstockmtid }}</td>
                         <td>{{ $item->fstockmtno }}</td>
@@ -87,7 +87,7 @@
                         <td>{{ $item->fprno }}</td> --}}
                         <td class="border px-2 py-1 space-x-2">
                             {{-- @if ($canEdit) --}}
-                            <a href="{{ route('fakturpembelian.edit', $item->fstockmtid) }}"> <button
+                            <a href="{{ route('penerimaanbarang.edit', $item->fstockmtid) }}"> <button
                                     class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
                                     <x-heroicon-o-pencil-square class="w-4 h-4 mr-1" /> Edit
                                 </button>
@@ -95,13 +95,14 @@
                             {{-- @endif --}}
 
                             @if ($canDelete)
-                                <button @click="openDelete('{{ route('fakturpembelian.destroy', $item->fstockmtid) }}')"
+                                <button @click="openDelete('{{ route('penerimaanbarang.destroy', $item->fstockmtid) }}')"
                                     class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
                                     <x-heroicon-o-trash class="w-4 h-4 mr-1" /> Hapus
                                 </button>
                             @endif
 
-                            <a href="{{ route('fakturpembelian.print', $item->fstockmtno) }}" target="_blank" rel="noopener"
+                            <a href="{{ route('penerimaanbarang.print', $item->fstockmtno) }}" target="_blank"
+                                rel="noopener"
                                 class="inline-flex items-center px-3 py-1 rounded bg-gray-100 hover:bg-gray-200">
                                 <x-heroicon-o-printer class="w-4 h-4 mr-1" /> Print
                             </a>

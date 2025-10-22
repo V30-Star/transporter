@@ -87,7 +87,7 @@
     <div x-data="{ open: true }">
         <div x-data="{ includePPN: false, ppnRate: 0, ppnAmount: 0, totalHarga: 100000 }" class="lg:col-span-5">
             <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
-                <form action="{{ route('fakturpembelian.store') }}" method="POST" class="mt-6" x-data="{ showNoItems: false }"
+                <form action="{{ route('penerimaanbarang.store') }}" method="POST" class="mt-6" x-data="{ showNoItems: false }"
                     @submit.prevent="
         const n = Number(document.getElementById('itemsCount')?.value || 0);
         if (n < 1) { showNoItems = true } else { $el.submit() }
@@ -980,7 +980,7 @@
                                 class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
                                 <x-heroicon-o-check class="w-5 h-5 mr-2" /> Simpan
                             </button>
-                            <button type="button" @click="window.location.href='{{ route('fakturpembelian.index') }}'"
+                            <button type="button" @click="window.location.href='{{ route('penerimaanbarang.index') }}'"
                                 class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
                                 <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" /> Keluar
                             </button>
@@ -1595,7 +1595,7 @@
                         page: this.currentPage,
                     });
 
-                    const res = await fetch(`{{ route('fakturpembelian.pickable') }}?` + params.toString(), {
+                    const res = await fetch(`{{ route('penerimaanbarang.pickable') }}?` + params.toString(), {
                         headers: {
                             'X-Requested-With': 'XMLHttpRequest'
                         }
@@ -1630,7 +1630,7 @@
 
             async pick(row) {
                 try {
-                    const url = `{{ route('fakturpembelian.items', ['id' => 'PR_ID_PLACEHOLDER']) }}`
+                    const url = `{{ route('penerimaanbarang.items', ['id' => 'PR_ID_PLACEHOLDER']) }}`
                         .replace('PR_ID_PLACEHOLDER', row.fprid);
 
                     const res = await fetch(url, {

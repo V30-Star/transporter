@@ -170,6 +170,19 @@ Route::middleware('auth')->group(function () {
         Route::get('/tr-poh/{id}/items', [Tr_pohController::class, 'items'])
             ->name('tr_poh.items');
 
+        Route::get('/penerimaanbarang',  [FakturpembelianController::class, 'index'])->name('penerimaanbarang.index');
+        Route::post('/penerimaanbarang',        [FakturpembelianController::class, 'store'])->name('penerimaanbarang.store');
+        Route::get('/penerimaanbarang/create', [FakturpembelianController::class, 'create'])->name('penerimaanbarang.create');
+        Route::get('/penerimaanbarang/{fstockmtid}/edit', [FakturpembelianController::class, 'edit'])->name('penerimaanbarang.edit');
+        Route::patch('/penerimaanbarang/{fstockmtid}', [FakturpembelianController::class, 'update'])->name('penerimaanbarang.update');
+        Route::delete('/penerimaanbarang/{fstockmtid}', [FakturpembelianController::class, 'destroy'])->name('penerimaanbarang.destroy');
+        Route::get('/penerimaanbarang/{fstockmtno}/print', [FakturpembelianController::class, 'print'])
+            ->name('penerimaanbarang.print');
+        Route::get('/penerimaanbarang/{id}/items', [FakturpembelianController::class, 'items'])
+            ->name('penerimaanbarang.items');    // endpoint ambil header+items PR\
+        Route::get('/penerimaanbarang/pickable', [FakturpembelianController::class, 'pickable'])
+            ->name('penerimaanbarang.pickable'); // sumber data modal
+
         Route::get('/fakturpembelian',  [FakturpembelianController::class, 'index'])->name('fakturpembelian.index');
         Route::post('/fakturpembelian',        [FakturpembelianController::class, 'store'])->name('fakturpembelian.store');
         Route::get('/fakturpembelian/create', [FakturpembelianController::class, 'create'])->name('fakturpembelian.create');
@@ -182,7 +195,6 @@ Route::middleware('auth')->group(function () {
             ->name('fakturpembelian.items');    // endpoint ambil header+items PR\
         Route::get('/fakturpembelian/pickable', [FakturpembelianController::class, 'pickable'])
             ->name('fakturpembelian.pickable'); // sumber data modal
-
 
         Route::get('/products/browse', [\App\Http\Controllers\ProductBrowseController::class, 'index'])
             ->name('products.browse');
