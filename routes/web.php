@@ -21,6 +21,7 @@ use App\Http\Controllers\SysUserController;
 use App\Http\Controllers\Tr_prhController;
 use App\Http\Controllers\ApprovalController;
 use App\Http\Controllers\WhController;
+use App\Http\Controllers\PenerimaanBarangController;
 use App\Http\Controllers\FakturpembelianController;
 
 Route::get('/', function () {
@@ -170,17 +171,17 @@ Route::middleware('auth')->group(function () {
         Route::get('/tr-poh/{id}/items', [Tr_pohController::class, 'items'])
             ->name('tr_poh.items');
 
-        Route::get('/penerimaanbarang',  [FakturpembelianController::class, 'index'])->name('penerimaanbarang.index');
-        Route::post('/penerimaanbarang',        [FakturpembelianController::class, 'store'])->name('penerimaanbarang.store');
-        Route::get('/penerimaanbarang/create', [FakturpembelianController::class, 'create'])->name('penerimaanbarang.create');
-        Route::get('/penerimaanbarang/{fstockmtid}/edit', [FakturpembelianController::class, 'edit'])->name('penerimaanbarang.edit');
-        Route::patch('/penerimaanbarang/{fstockmtid}', [FakturpembelianController::class, 'update'])->name('penerimaanbarang.update');
-        Route::delete('/penerimaanbarang/{fstockmtid}', [FakturpembelianController::class, 'destroy'])->name('penerimaanbarang.destroy');
-        Route::get('/penerimaanbarang/{fstockmtno}/print', [FakturpembelianController::class, 'print'])
+        Route::get('/penerimaanbarang',  [PenerimaanBarangController::class, 'index'])->name('penerimaanbarang.index');
+        Route::post('/penerimaanbarang',        [PenerimaanBarangController::class, 'store'])->name('penerimaanbarang.store');
+        Route::get('/penerimaanbarang/create', [PenerimaanBarangController::class, 'create'])->name('penerimaanbarang.create');
+        Route::get('/penerimaanbarang/{fstockmtid}/edit', [PenerimaanBarangController::class, 'edit'])->name('penerimaanbarang.edit');
+        Route::patch('/penerimaanbarang/{fstockmtid}', [PenerimaanBarangController::class, 'update'])->name('penerimaanbarang.update');
+        Route::delete('/penerimaanbarang/{fstockmtid}', [PenerimaanBarangController::class, 'destroy'])->name('penerimaanbarang.destroy');
+        Route::get('/penerimaanbarang/{fstockmtno}/print', [PenerimaanBarangController::class, 'print'])
             ->name('penerimaanbarang.print');
-        Route::get('/penerimaanbarang/{id}/items', [FakturpembelianController::class, 'items'])
+        Route::get('/penerimaanbarang/{id}/items', [PenerimaanBarangController::class, 'items'])
             ->name('penerimaanbarang.items');    // endpoint ambil header+items PR\
-        Route::get('/penerimaanbarang/pickable', [FakturpembelianController::class, 'pickable'])
+        Route::get('/penerimaanbarang/pickable', [PenerimaanBarangController::class, 'pickable'])
             ->name('penerimaanbarang.pickable'); // sumber data modal
 
         Route::get('/fakturpembelian',  [FakturpembelianController::class, 'index'])->name('fakturpembelian.index');
@@ -206,6 +207,9 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/gudang/browse', [WhController::class, 'browse'])
             ->name('gudang.browse');
+
+        Route::get('/account/browse', [AccountController::class, 'browse'])
+            ->name('account.browse');
 
         Route::get('/suppliers/browse', [SupplierController::class, 'browse'])->name('suppliers.browse');
 

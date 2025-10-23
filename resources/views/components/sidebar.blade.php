@@ -262,7 +262,7 @@
                         <a href="{{ route('fakturpembelian.index') }}"
                             class="flex items-center p-2 rounded-lg hover:bg-gray-700">
                             <x-heroicon-o-banknotes class="w-5 h-5" />
-                            <span class="ml-3">Faktur Barang</span>
+                            <span class="ml-3">Faktur Pembelian</span>
                         </a>
                     </li>
                 </ul>
