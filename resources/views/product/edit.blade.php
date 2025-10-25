@@ -311,6 +311,9 @@
                                 <input type="number"
                                     class="w-full border rounded px-3 py-2 @error('fqtykecil') border-red-500 @enderror"
                                     name="fqtykecil" id="fqtykecil" value="{{ old('fqtykecil', $product->fqtykecil) }}">
+                                <span id="satuanKecilTarget"
+                                    class="satuan-kecil-display text-gray-700 font-semibold whitespace-nowrap">
+                                </span>
                                 @error('fqtykecil')
                                     <div class="text-red-600 text-sm mt-1">
                                         {{ $message }}
@@ -354,6 +357,9 @@
                                     class="w-full border rounded px-3 py-2 @error('fqtykecil2') border-red-500 @enderror"
                                     name="fqtykecil2" id="fqtykecil2"
                                     value="{{ old('fqtykecil2', $product->fqtykecil2) }}">
+                                <span id="satuanKecilTarget"
+                                    class="satuan-kecil-display text-gray-700 font-semibold whitespace-nowrap">
+                                </span>
                                 @error('fqtykecil2')
                                     <div class="text-red-600 text-sm mt-1">
                                         {{ $message }}
@@ -510,6 +516,9 @@
                         <label class="block text-sm font-medium">Min.Stok</label>
                         <input type="text" name="fminstock" value="{{ old('fminstock', $product->fminstock) }}"
                             class="w-full border rounded px-3 py-2 @error('fminstock') border-red-500 @enderror">
+                        <span id="satuanKecilTarget"
+                            class="satuan-kecil-display text-gray-700 font-semibold whitespace-nowrap">
+                        </span>
                         @error('fminstock')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
