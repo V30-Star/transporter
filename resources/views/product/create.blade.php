@@ -307,9 +307,19 @@
 
                         <div class="w-1/6">
                             <label class="block text-sm font-medium">Isi</label>
-                            <input type="number" name="fqtykecil" id="fqtykecil" value="{{ old('fqtykecil', 0) }}"
-                                class="w-full border rounded px-3 py-2 @error('fqtykecil') border-red-500 @enderror"
-                                disabled>
+
+                            <div class="flex items-baseline gap-2">
+
+                                <input type="number" name="fqtykecil" id="fqtykecil" value="{{ old('fqtykecil', 0) }}"
+                                    class="flex-1 border rounded px-3 py-2 @error('fqtykecil') border-red-500 @enderror"
+                                    disabled>
+
+                                <span id="satuanKecilTarget"
+                                    class="satuan-kecil-display text-gray-700 font-semibold whitespace-nowrap">
+                                </span>
+
+                            </div>
+
                             @error('fqtykecil')
                                 <div class="text-red-600 text-sm mt-1">{{ $message }}</div>
                             @enderror
@@ -339,9 +349,19 @@
 
                         <div class="w-1/6">
                             <label class="block text-sm font-medium">Isi</label>
-                            <input type="number" name="fqtykecil2" id="fqtykecil2" value="{{ old('fqtykecil2', 0) }}"
-                                class="w-full border rounded px-3 py-2 @error('fqtykecil2') border-red-500 @enderror"
-                                disabled>
+
+                            <div class="flex items-baseline gap-2">
+
+                                <input type="number" name="fqtykecil2" id="fqtykecil2"
+                                    value="{{ old('fqtykecil2', 0) }}"
+                                    class="flex-1 border rounded px-3 py-2 @error('fqtykecil2') border-red-500 @enderror"
+                                    disabled>
+
+                                <span class="satuan-kecil-display text-gray-700 font-semibold whitespace-nowrap">
+                                </span>
+
+                            </div>
+
                             @error('fqtykecil2')
                                 <div class="text-red-600 text-sm mt-1">{{ $message }}</div>
                             @enderror
@@ -483,6 +503,8 @@
                     <label class="block text-sm font-medium">Min.Stok</label>
                     <input type="text" name="fminstock" value="{{ old('fminstock', 0) }}"
                         class="w-full border rounded px-3 py-2 @error('fminstock') border-red-500 @enderror">
+                    <span class="satuan-kecil-display text-gray-700 font-semibold whitespace-nowrap">
+                    </span>
                     @error('fminstock')
                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                     @enderror
@@ -1177,4 +1199,41 @@
             }
         }
     }
+</script>
+<script>
+    function checkSatuan() {
+        // Ambil elemen-elemen yang relevan
+        var satuanKecilSelect = document.getElementById('fsatuankecil');
+        var satuanBesarSelect = document.getElementById('fsatuanbesar');
+        var qtyKecilInput = document.getElementById('fqtykecil');
+
+        // Ambil elemen <span> target yang baru kita buat
+        var targets = document.querySelectorAll('.satuan-kecil-display');
+
+        // Ambil nilai yang dipilih
+        var selectedValue = satuanKecilSelect.value;
+
+        // 1. Logika untuk mengaktifkan/menonaktifkan field
+        if (selectedValue) {
+            // Jika ada nilai, aktifkan field berikutnya
+            satuanBesarSelect.disabled = false;
+            qtyKecilInput.disabled = false;
+        } else {
+            // Jika tidak ada (dipilih "Pilih Satuan 1"), nonaktifkan dan reset
+            satuanBesarSelect.disabled = true;
+            satuanBesarSelect.value = "";
+            qtyKecilInput.disabled = true;
+            qtyKecilInput.value = 0;
+        }
+
+        // 2. Logika untuk menampilkan nama satuan di sebelah "Isi"
+        // (Ini adalah jawaban untuk pertanyaan Anda)
+        targets.forEach(function(target) {
+            target.textContent = selectedValue;
+        });
+    }
+
+    // Panggil fungsi ini saat halaman pertama kali dimuat
+    // untuk memastikan status disabled-nya sudah benar
+    document.addEventListener('DOMContentLoaded', checkSatuan);
 </script>
