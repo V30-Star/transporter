@@ -162,16 +162,6 @@
                         @enderror
                     </div>
 
-                    <!-- Kode Product -->
-                    <div class="mt-2 w-1/3">
-                        <label class="block text-sm font-medium">Kode Product</label>
-                        <input type="text" name="fprdcode" value="{{ old('fprdcode', $product->fprdcode) }}"
-                            class="w-full border rounded px-3 py-2 uppercase @error('fprdcode') border-red-500 @enderror">
-                        @error('fprdcode')
-                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-
                     <!-- Merek Dropdown -->
                     <div class="mt-2 w-1/2" x-data="{ isMerekEditable: false }">
                         <label class="block text-sm font-medium">Merek</label>
@@ -203,6 +193,16 @@
                             </button>
                         </div>
                         @error('fmerek')
+                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <!-- Kode Product -->
+                    <div class="mt-2 w-1/3">
+                        <label class="block text-sm font-medium">Kode Product</label>
+                        <input type="text" name="fprdcode" value="{{ old('fprdcode', $product->fprdcode) }}"
+                            class="w-full border rounded px-3 py-2 uppercase @error('fprdcode') border-red-500 @enderror">
+                        @error('fprdcode')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
                     </div>
@@ -245,7 +245,8 @@
                         <label class="block text-sm font-medium">Nama Product</label>
                         <input type="text" name="fprdname" id="fprdname"
                             value="{{ old('fprdname', $product->fprdname) }}"
-                            class="w-full border rounded px-3 py-2 uppercase @error('fprdname') border-red-500 @enderror" autofocus>
+                            class="w-full border rounded px-3 py-2 uppercase @error('fprdname') border-red-500 @enderror"
+                            autofocus>
                         @error('fprdname')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror

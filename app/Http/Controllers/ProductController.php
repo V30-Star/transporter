@@ -56,20 +56,36 @@ class ProductController extends Controller
         return response()->json($names);
     }
 
-    private function generateProductCode(): string
+    private function generateProductCode($groupId, $merekId): string
     {
-        $lastCode = Product::where('fprdcode', 'like', 'C-%')
-            ->orderByRaw("CAST(SUBSTRING(fprdcode FROM 3) AS INTEGER) DESC")
+        // 1. Pad ID grup dan merek (ggg.mmm)
+        $paddedGroupId = str_pad($groupId, 3, '0', STR_PAD_LEFT);
+        $paddedMerekId = str_pad($merekId, 3, '0', STR_PAD_LEFT);
+
+        // 2. Buat prefix untuk pencarian (e.g., "001.002.")
+        $prefix = $paddedGroupId . '.' . $paddedMerekId . '.';
+        $prefixLength = strlen($prefix);
+
+        // 3. Cari kode terakhir dengan prefix yang sama
+        $lastCode = Product::where('fprdcode', 'like', $prefix . '%')
+            // Urutkan berdasarkan angka di belakang prefix
+            ->orderByRaw("CAST(SUBSTRING(fprdcode FROM " . ($prefixLength + 1) . ") AS INTEGER) DESC")
             ->value('fprdcode');
 
+        // 4. Jika tidak ditemukan, mulai dari 1
         if (!$lastCode) {
-            return 'C-01';
+            $newNumber = 1;
+        } else {
+            // 5. Jika ditemukan, ambil nomornya dan tambahkan 1
+            // e.g., $lastCode = "001.002.000005"
+            // substr($lastCode, $prefixLength) akan mengambil "000005"
+            $number = (int)substr($lastCode, $prefixLength);
+            $newNumber = $number + 1;
         }
 
-        $number = (int)substr($lastCode, 2);
-        $newNumber = $number + 1;
-
-        return 'C-' . str_pad($newNumber, 2, '0', STR_PAD_LEFT);
+        // 6. Kembalikan kode baru dengan padding 6 digit untuk sequence
+        // e.g., "001.002.000006"
+        return $prefix . str_pad($newNumber, 6, '0', STR_PAD_LEFT);
     }
 
     public function create()
@@ -78,7 +94,7 @@ class ProductController extends Controller
         $groups = Groupproduct::where('fnonactive', 0)->get();
         $merks = Merek::where('fnonactive', 0)->get();
         $satuan = Satuan::where('fnonactive', 0)->get();
-        $newProductCode = $this->generateProductCode();
+        $newProductCode = $this->generateProductCode($groups->first()->fgroupcode ?? 1, $merks->first()->fmerekid ?? 1);
 
         return view('product.create', compact('groups', 'merks', 'satuan', 'newProductCode'));
     }
@@ -132,7 +148,11 @@ class ProductController extends Controller
         );
 
         if (empty($request->fprdcode)) {
-            $validated['fprdcode'] = $this->generateProductCode();
+            // Panggil generator baru dengan ID grup dan merek dari data yang sudah tervalidasi
+            $validated['fprdcode'] = $this->generateProductCode(
+                $validated['fgroupcode'],
+                $validated['fmerek']
+            );
         }
 
         $validated['fapproval'] = auth('sysuser')->user()->fname ?? null;

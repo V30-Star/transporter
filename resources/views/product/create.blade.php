@@ -160,23 +160,6 @@
                         @enderror
                     </div>
 
-                    <div x-data="{ autoCode: true }" class="flex items-center gap-4">
-                        <!-- Input Kode Product -->
-                        <div class="mt-2 w-1/3">
-                            <label class="block text-sm font-medium">Kode Product</label>
-                            <input type="text" name="fprdcode" class="w-full border rounded px-3 py-2 uppercase"
-                                placeholder="Masukkan Kode Product" :disabled="autoCode"
-                                :value="autoCode ? '' : '{{ old('fprdcode') }}'"
-                                :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
-                        </div>
-
-                        <!-- Checkbox Auto Generate -->
-                        <label class="inline-flex items-center mt-6">
-                            <input type="checkbox" x-model="autoCode" class="form-checkbox text-indigo-600" checked>
-                            <span class="ml-2 text-sm text-gray-700">Auto</span>
-                        </label>
-                    </div>
-
                     <!-- Merek Dropdown + Button Create -->
                     <div class="mt-2 w-1/2" x-data="{ isMerekEditable: false }">
                         <label class="block text-sm font-medium">Merek</label>
@@ -212,6 +195,23 @@
                         @error('fmerek')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
+                    </div>
+
+                    <div x-data="{ autoCode: true }" class="flex items-center gap-4">
+                        <!-- Input Kode Product -->
+                        <div class="mt-2 w-1/3">
+                            <label class="block text-sm font-medium">Kode Product</label>
+                            <input type="text" name="fprdcode" class="w-full border rounded px-3 py-2 uppercase"
+                                placeholder="Masukkan Kode Product" :disabled="autoCode"
+                                :value="autoCode ? '' : '{{ old('fprdcode') }}'"
+                                :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
+                        </div>
+
+                        <!-- Checkbox Auto Generate -->
+                        <label class="inline-flex items-center mt-6">
+                            <input type="checkbox" x-model="autoCode" class="form-checkbox text-indigo-600" checked>
+                            <span class="ml-2 text-sm text-gray-700">Auto</span>
+                        </label>
                     </div>
 
                     <div x-show="open" x-transition.opacity x-cloak
@@ -252,7 +252,8 @@
                 <div class="mt-2 w-1/2">
                     <label class="block text-sm font-medium">Nama Product</label>
                     <input type="text" name="fprdname" id="fprdname" value="{{ old('fprdname') }}"
-                        class="w-full border rounded px-3 py-2 uppercase @error('fprdname') border-red-500 @enderror" autofocus>
+                        class="w-full border rounded px-3 py-2 uppercase @error('fprdname') border-red-500 @enderror"
+                        autofocus>
                     @error('fprdname')
                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                     @enderror
