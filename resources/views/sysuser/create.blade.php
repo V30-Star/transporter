@@ -25,7 +25,7 @@
                     <div>
                         <label class="block text-sm font-medium">Nama Lengkap</label>
                         <input type="text" name="fname" value="{{ old('fname') }}"
-                            class="w-full border rounded px-3 py-2 @error('fname') border-red-500 @enderror" autofocus>
+                            class="w-full border rounded px-3 py-2 uppercase @error('fname') border-red-500 @enderror" autofocus>
                         @error('fname')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
@@ -35,7 +35,7 @@
                     <div>
                         <label class="block text-sm font-medium">User Name / Login</label>
                         <input type="text" name="fsysuserid" value="{{ old('fsysuserid') }}"
-                            class="w-full border rounded px-3 py-2 @error('fsysuserid') border-red-500 @enderror">
+                            class="w-full border rounded px-3 py-2 uppercase @error('fsysuserid') border-red-500 @enderror">
                         @error('fsysuserid')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror

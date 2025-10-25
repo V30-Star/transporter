@@ -22,7 +22,7 @@
                     <div>
                         <label class="block text-sm font-medium">Kode Group Product</label>
                         <input type="text" name="fgroupcode" value="{{ old('fgroupcode') }}"
-                            class="w-full border rounded px-3 py-2 @error('fgroupcode') border-red-500 @enderror" autofocus>
+                            class="w-full border rounded px-3 py-2 uppercase @error('fgroupcode') border-red-500 @enderror" autofocus>
                         @error('fgroupcode')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
@@ -30,7 +30,7 @@
                     <div>
                         <label class="block text-sm font-medium">Nama Group Product</label>
                         <input type="text" name="fgroupname" value="{{ old('fgroupname') }}"
-                            class="w-full border rounded px-3 py-2 @error('fgroupname') border-red-500 @enderror">
+                            class="w-full border rounded px-3 py-2 uppercase @error('fgroupname') border-red-500 @enderror">
                         @error('fgroupname')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror

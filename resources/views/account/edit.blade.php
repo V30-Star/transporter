@@ -113,7 +113,7 @@
             <div class="mt-4">
                 <label class="block text-sm font-medium">Kode Account</label>
                 <input type="text" name="faccount" value="{{ old('faccount', $account->faccount) }}"
-                    class="w-full border rounded px-3 py-2 @error('faccount') border-red-500 @enderror" maxlength="10"
+                    class="w-full border rounded px-3 py-2 uppercase @error('faccount') border-red-500 @enderror" maxlength="10"
                     pattern="^\d+(-\d+)*$" title="Format harus angka & boleh pakai '-' (mis: 1-123)" autofocus>
                 @error('faccount')
                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -124,7 +124,7 @@
             <div class="mt-4">
                 <label class="block text-sm font-medium">Nama Account</label>
                 <input type="text" name="faccname" value="{{ old('faccname', $account->faccname) }}"
-                    class="w-full border rounded px-3 py-2 @error('faccname') border-red-500 @enderror" maxlength="50">
+                    class="w-full border rounded px-3 py-2 uppercase @error('faccname') border-red-500 @enderror" maxlength="50">
                 @error('faccname')
                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                 @enderror

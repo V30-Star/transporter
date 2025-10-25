@@ -127,14 +127,14 @@
                         <!-- Input Kode Customer -->
                         <div class="flex-1">
                             <label class="block text-sm font-medium">Kode Customer</label>
-                            <input type="text" name="fcustomercode" class="w-full border rounded px-3 py-2"
+                            <input type="text" name="fcustomercode" class="w-full border rounded px-3 py-2 uppercase"
                                 placeholder="Masukkan Kode Customer" :disabled="autoCode"
                                 :value="autoCode ? '{{ $customer->fcustomercode }}' : '{{ old('fcustomercode') }}'"
                                 :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
                         </div>
                         <!-- Checkbox Auto Generate -->
                         <label class="inline-flex items-center mt-6">
-                            <input type="checkbox" x-model="autoCode" class="form-checkbox text-indigo-600"
+                            <input type="checkbox" x-model="autoCode" class="form-checkbox text-indigo-600 uppercase"
                                 {{ old('fcustomercode', $customer->fcustomercode) ? 'checked' : '' }}>
                             <span class="ml-2 text-sm text-gray-700">Auto</span>
                         </label>

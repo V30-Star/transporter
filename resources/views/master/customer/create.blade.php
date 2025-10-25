@@ -126,7 +126,7 @@
                         <!-- Input Kode Customer -->
                         <div class="flex-1">
                             <label class="block text-sm font-medium">Kode Customer</label>
-                            <input type="text" name="fcustomercode" class="w-full border rounded px-3 py-2"
+                            <input type="text" name="fcustomercode" class="w-full border rounded px-3 py-2 uppercase"
                                 placeholder="Masukkan Kode Customer" :disabled="autoCode"
                                 :value="autoCode ? '' : '{{ old('fcustomercode') }}'"
                                 :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
@@ -142,7 +142,7 @@
                     <div>
                         <label class="block text-sm font-medium">Nama Customer</label>
                         <input type="text"
-                            class="w-full border rounded px-3 py-2 @error('fcustomername') is-invalid @enderror"
+                            class="w-full border rounded px-3 py-2 uppercase @error('fcustomername') is-invalid @enderror"
                             name="fcustomername" id="fcustomername" placeholder="Masukkan Nama Customer"
                             value="{{ old('fcustomername') }}" autofocus>
                         @error('fcustomername')
