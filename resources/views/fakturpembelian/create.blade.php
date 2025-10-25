@@ -78,16 +78,15 @@
             margin: 0;
         }
 
-        /* Hilangkan panah di input number (Firefox) */
         input[type=number] {
             -moz-appearance: textfield;
         }
     </style>
 
     <div x-data="{ open: true }">
-        <div x-data="{ includePPN: false, ppnRate: 0, ppnAmount: 0, totalHarga: 100000 }" class="lg:col-span-5">
+        <div x-data="{ includePPN: false, ppnRate: 0, ppnAmount: 0, totalHarga: 100000, selectedType: 0 }" class="lg:col-span-5">
             <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
-                <form action="{{ route('tr_poh.store') }}" method="POST" class="mt-6" x-data="{ showNoItems: false }"
+                <form action="{{ route('fakturpembelian.store') }}" method="POST" class="mt-6" x-data="{ showNoItems: false }"
                     @submit.prevent="
         const n = Number(document.getElementById('itemsCount')?.value || 0);
         if (n < 1) { showNoItems = true } else { $el.submit() }
@@ -118,32 +117,33 @@
 
                         <div class="lg:col-span-4">
                             <label class="block text-sm font-medium">Type</label>
-                            <select name="fcurrency" x-model="currency" @change="applyDefaultIfNeeded()"
-                                class="w-full border rounded px-3 py-2 @error('fcurrency') border-red-500 @enderror">
-                                <option value="IDR" {{ old('fcurrency') == 'IDR' ? 'selected' : '' }}>Trade</option>
-                                <option value="USD" {{ old('fcurrency') == 'USD' ? 'selected' : '' }}>USD</option>
+                            <select name="ftypebuy" x-model="selectedType"
+                                class="w-full border rounded px-3 py-2 @error('ftypebuy') border-red-500 @enderror">
+                                <option value="0" {{ old('ftypebuy') == '0' ? 'selected' : '' }}>Trade</option>
+                                <option value="1" {{ old('ftypebuy') == '1' ? 'selected' : '' }}>Non Stok</option>
+                                <option value="2" {{ old('ftypebuy') == '2' ? 'selected' : '' }}>Uang Muka</option>
                             </select>
-                            @error('fcurrency')
+                            @error('ftypebuy')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
                         </div>
 
                         <div class="lg:col-span-4">
                             <label class="block text-sm font-medium">Tanggal</label>
-                            <input type="date" id="fpodate" name="fpodate"
-                                value="{{ old('fpodate') ?? date('Y-m-d') }}"
-                                class="w-full border rounded px-3 py-2 @error('fpodate') border-red-500 @enderror">
-                            @error('fpodate')
+                            <input type="date" id="fstockmtdate" name="fstockmtdate"
+                                value="{{ old('fstockmtdate') ?? date('Y-m-d') }}"
+                                class="w-full border rounded px-3 py-2 @error('fstockmtdate') border-red-500 @enderror">
+                            @error('fstockmtdate')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
                         </div>
 
                         <div class="lg:col-span-4">
                             <label class="block text-sm font-medium">Tgl. Jatuh Tempo</label>
-                            <input type="date" id="fkirimdate" name="fkirimdate" value="{{ old('fkirimdate', '') }}"
+                            <input type="date" id="fjatuhtempo" name="fjatuhtempo" value="{{ old('fjatuhtempo', '') }}"
                                 readonly
-                                class="w-full border rounded px-3 py-2 bg-gray-100 @error('fkirimdate') border-red-500 @enderror">
-                            @error('fkirimdate')
+                                class="w-full border rounded px-3 py-2 bg-gray-100 @error('fjatuhtempo') border-red-500 @enderror">
+                            @error('fjatuhtempo')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
                         </div>
@@ -196,43 +196,49 @@
                             <label class="block text-sm font-medium mb-1">Account</label>
                             <div class="flex">
                                 <div class="relative flex-1">
-                                    <select id="accountSelect"
-                                        class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
+                                    <select id="accountSelect" class="w-full border rounded-l px-3 py-2"
+                                        :class="{
+                                            'bg-gray-100 text-gray-700 cursor-not-allowed': selectedType != '1',
+                                            'bg-white cursor-pointer': selectedType == '1'
+                                        }"
                                         disabled>
                                         <option value=""></option>
                                         @foreach ($accounts as $account)
-                                            <option value="{{ $account->faccount }}" data-id="{{ $account->faccid }}"
+                                            <option value="{{ $account->faccount }}" data-faccid="{{ $account->faccid }}"
                                                 data-branch="{{ $account->faccount }}"
-                                                {{ old('faccuont') == $account->faccount ? 'selected' : '' }}>
+                                                {{ old('fprdjadi') == $account->faccount ? 'selected' : '' }}>
                                                 {{ $account->faccount }} - {{ $account->faccname }}
                                             </option>
                                         @endforeach
                                     </select>
 
-                                    {{-- Overlay untuk buka browser gudang --}}
                                     <div class="absolute inset-0" role="button" aria-label="Browse account"
-                                        @click="window.dispatchEvent(new CustomEvent('account-browse-open'))"></div>
+                                        @click="window.dispatchEvent(new CustomEvent('account-browse-open'))"
+                                        x-show="selectedType == '1'"></div>
                                 </div>
 
-                                <input type="hidden" name="ffrom" id="accountCodeHidden"
-                                    value="{{ old('ffrom') }}">
-                                <input type="hidden" name="fwhid" id="accountIdHidden" value="{{ old('fwhid') }}">
+                                <input type="hidden" name="fprdjadi" id="accountCodeHidden"
+                                    value="{{ old('fprdjadi') }}">
+                                <input type="hidden" name="faccid" id="accountIdHidden" value="{{ old('faccid') }}">
 
                                 <button type="button"
                                     @click="window.dispatchEvent(new CustomEvent('account-browse-open'))"
                                     class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
+                                    :disabled="selectedType != '1'"
+                                    :class="{ 'opacity-50 cursor-not-allowed': selectedType != '1' }"
                                     title="Browse Account">
                                     <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                                 </button>
 
                                 <a href="{{ route('account.create') }}" target="_blank" rel="noopener"
                                     class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
-                                    title="Tambah Account">
+                                    :class="{ 'opacity-50 cursor-not-allowed pointer-events-none': selectedType != '1' }"
+                                    @click="selectedType != '1' && $event.preventDefault()" title="Tambah Account">
                                     <x-heroicon-o-plus class="w-5 h-5" />
                                 </a>
                             </div>
 
-                            @error('ffrom')
+                            @error('fprdjadi')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
                         </div>
@@ -240,7 +246,7 @@
                         <div class="lg:col-span-4">
                             <label class="block text-npsm font-medium mb-1">Faktur</label>
                             <div class="flex items-center gap-3">
-                                <input type="text" name="fpono" class="w-full border rounded px-3 py-2">
+                                <input type="text" name="frefno" class="w-full border rounded px-3 py-2">
                                 <label class="inline-flex items-center select-none">
                                 </label>
                             </div>
@@ -249,10 +255,10 @@
                         <div class="lg:col-span-4">
                             <label class="block text-sm font-medium mb-1">Faktur Pajak#</label>
                             <div class="flex items-center">
-                                <input type="text" id="fakturpajak" name="fakturpajak"
-                                    class="w-full border rounded px-3 py-2 @error('fakturpajak') border-red-500 @enderror">
+                                <input type="text" id="frefpo" name="frefpo"
+                                    class="w-full border rounded px-3 py-2 @error('frefpo') border-red-500 @enderror">
                             </div>
-                            @error('fakturpajak')
+                            @error('frefpo')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
                         </div>
@@ -319,7 +325,7 @@
 
                     <script>
                         function calculateDueDate() {
-                            const poDate = document.getElementById('fpodate').value;
+                            const poDate = document.getElementById('fstockmtdate').value;
                             const tempoDays = parseInt(document.getElementById('ftempohr').value) || 0;
 
                             if (poDate && tempoDays > 0) {
@@ -331,17 +337,15 @@
                                 const month = String(date.getMonth() + 1).padStart(2, '0');
                                 const day = String(date.getDate()).padStart(2, '0');
 
-                                document.getElementById('fkirimdate').value = `${year}-${month}-${day}`;
+                                document.getElementById('fjatuhtempo').value = `${year}-${month}-${day}`;
                             } else {
-                                document.getElementById('fkirimdate').value = '';
+                                document.getElementById('fjatuhtempo').value = '';
                             }
                         }
 
-                        // Event listeners
-                        document.getElementById('fpodate').addEventListener('change', calculateDueDate);
+                        document.getElementById('fstockmtdate').addEventListener('change', calculateDueDate);
                         document.getElementById('ftempohr').addEventListener('input', calculateDueDate);
 
-                        // Hitung saat halaman load (jika ada old value)
                         document.addEventListener('DOMContentLoaded', calculateDueDate);
                     </script>
 
@@ -376,7 +380,6 @@
                                         <th class="p-2 text-left w-72">No Refrensi</th>
                                         <th class="p-2 text-left w-28">Satuan</th>
                                         <th class="p-2 text-right w-24 whitespace-nowrap">Qty.</th>
-                                        <th class="p-2 text-right w-24 whitespace-nowrap">Qty. SN</th>
                                         <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
                                         <th class="p-2 text-right w-32 whitespace-nowrap">@ Biaya</th>
                                         <th class="p-2 text-right w-24 whitespace-nowrap">Disc. %</th>
@@ -399,14 +402,13 @@
                                                     <span class="align-middle text-gray-600" x-text="it.fdesc"></span>
                                                 </div>
                                             </td>
-                                            <td class="p-2" x-text="it.fsatuan"></td>
-                                            <td class="p-2" x-text="it.fprnoid || '-'"></td>
+                                            <td class="p-2 text-right" x-text="it.frefdtno"></td>
+                                            <td class="p-2 text-right" x-text="it.fsatuan"></td>
                                             <td class="p-2 text-right" x-text="fmt(it.fqty)"></td>
-                                            <td class="p-2 text-right" x-text="fmt(it.fterima)"></td>
                                             <td class="p-2 text-right" x-text="fmt(it.fprice)"></td>
-                                            <td class="p-2 text-right" x-text="fmt(it.fdisc)"></td>
-                                            <td class="p-2 text-right" x-text="fmt(it.fdisc)"></td>
-                                            <td class="p-2 text-right" x-text="fmt(it.ftotal)"></td>
+                                            <td class="p-2 text-right" x-text="fmt(it.fbiaya)"></td>
+                                            <td class="p-2 text-right" x-text="fmt(it.fdiscpersen)"></td>
+                                            <td class="p-2 text-right" x-text="fmt(it.ftotprice)"></td>
                                             <td class="p-2 text-center">
                                                 <div class="flex items-center justify-center gap-2 flex-wrap">
                                                     <button type="button" @click="edit(i)"
@@ -421,16 +423,14 @@
                                                 <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
                                                 <input type="hidden" name="fitemname[]" :value="it.fitemname">
                                                 <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
-                                                <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
-                                                <input type="hidden" name="fnouref[]" :value="it.fnouref">
-                                                <input type="hidden" name="frefpr[]" :value="it.frefpr">
                                                 <input type="hidden" name="fqty[]" :value="it.fqty">
-                                                <input type="hidden" name="fterima[]" :value="it.fterima">
                                                 <input type="hidden" name="fprice[]" :value="it.fprice">
-                                                <input type="hidden" name="fdisc[]" :value="it.fdisc">
-                                                <input type="hidden" name="ftotal[]" :value="it.ftotal">
+                                                <input type="hidden" name="fbiaya[]" :value="it.fbiaya">
+                                                <input type="hidden" name="fdiscpersen[]" :value="it.fdiscpersen">
+                                                <input type="hidden" name="ftotprice[]" :value="it.ftotprice">
                                                 <input type="hidden" name="fdesc[]" :value="it.fdesc">
                                                 <input type="hidden" name="fketdt[]" :value="it.fketdt">
+                                                <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
                                             </td>
                                         </tr>
 
@@ -442,7 +442,6 @@
                                                 <textarea x-model="draft.fdesc" rows="2" class="w-full border rounded px-4 py-1"
                                                     placeholder="Deskripsi (opsional)"></textarea>
                                             </td>
-                                            <td class="p-0"></td>
                                             <td class="p-0"></td>
                                             <td class="p-0"></td>
                                             <td class="p-0"></td>
@@ -486,6 +485,13 @@
                                                 :value="editRow.fitemname" disabled>
                                         </td>
 
+                                        <!-- Ref.PR# -->
+                                        <td class="p-2">
+                                            <input type="text"
+                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
+                                                :value="editRow.frefdtno" disabled placeholder="Ref PR">
+                                        </td>
+
                                         <!-- Satuan -->
                                         <td class="p-2">
                                             <template x-if="editRow.units.length > 1">
@@ -504,26 +510,12 @@
                                             </template>
                                         </td>
 
-                                        <!-- Ref.PR# -->
-                                        <td class="p-2">
-                                            <input type="text"
-                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
-                                                :value="editRow.frefpr" disabled placeholder="Ref PR">
-                                        </td>
-
                                         <!-- Qty -->
                                         <td class="p-2 text-right">
                                             <input type="number" class="border rounded px-2 py-1 w-24 text-right"
                                                 min="0" step="1" x-ref="editQty"
                                                 x-model.number="editRow.fqty" @input="recalc(editRow)"
                                                 @keydown.enter.prevent="$refs.editTerima?.focus()">
-                                        </td>
-
-                                        <!-- Terima -->
-                                        <td class="p-2 text-right">
-                                            <input type="number"
-                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600  text-right"
-                                                min="0" step="1" :value="editRow.fterima ?? 0">
                                         </td>
 
                                         <!-- @ Harga -->
@@ -537,8 +529,8 @@
                                         <!-- @ Biaya -->
                                         <td class="p-2 text-right">
                                             <input type="number" class="border rounded px-2 py-1 w-28 text-right"
-                                                min="0" step="0.01" x-ref="editPrice"
-                                                x-model.number="editRow.fprice" @input="recalc(editRow)"
+                                                min="0" step="0.01" x-ref="editBiaya"
+                                                x-model.number="editRow.fbiaya" default="0"
                                                 @keydown.enter.prevent="$refs.editDisc?.focus()">
                                         </td>
 
@@ -546,12 +538,12 @@
                                         <td class="p-2 text-right">
                                             <input type="number" class="border rounded px-2 py-1 w-24 text-right"
                                                 min="0" max="100" step="0.01" x-ref="editDisc"
-                                                x-model.number="editRow.fdisc" @input="recalc(editRow)"
+                                                x-model.number="editRow.fdiscpersen" @input="recalc(editRow)"
                                                 @keydown.enter.prevent="applyEdit()">
                                         </td>
 
                                         <!-- Total Harga (readonly) -->
-                                        <td class="p-2 text-right" x-text="fmt(editRow.ftotal)"></td>
+                                        <td class="p-2 text-right" x-text="fmt(editRow.ftotprice)"></td>
 
                                         <!-- Aksi -->
                                         <td class="p-2 text-center">
@@ -572,7 +564,6 @@
                                             <textarea x-model="draft.fdesc" rows="2" class="w-full border rounded px-4 py-1"
                                                 placeholder="Deskripsi (opsional)"></textarea>
                                         </td>
-                                        <td class="p-0"></td>
                                         <td class="p-0"></td>
                                         <td class="p-0"></td>
                                         <td class="p-0"></td>
@@ -612,6 +603,13 @@
                                                 :value="draft.fitemname" disabled>
                                         </td>
 
+                                        <!-- Ref.PR# -->
+                                        <td class="p-2">
+                                            <input type="text"
+                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
+                                                :value="draft.frefdtno" disabled placeholder="Ref PR">
+                                        </td>
+
                                         <!-- Satuan -->
                                         <td class="p-2">
                                             <template x-if="draft.units.length > 1">
@@ -630,26 +628,12 @@
                                             </template>
                                         </td>
 
-                                        <!-- Ref.PR# -->
-                                        <td class="p-2">
-                                            <input type="text"
-                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
-                                                :value="draft.frefpr" disabled placeholder="Ref PR">
-                                        </td>
-
                                         <!-- Qty -->
                                         <td class="p-2 text-right">
                                             <input type="number" class="border rounded px-2 py-1 w-24 text-right"
                                                 min="0" step="1" x-ref="draftQty"
                                                 x-model.number="draft.fqty" @input="recalc(draft)"
                                                 @keydown.enter.prevent="$refs.draftTerima?.focus()">
-                                        </td>
-
-                                        <!-- Terima -->
-                                        <td class="p-2 text-right">
-                                            <input type="number"
-                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-right"
-                                                min="0" step="1" :value="draft.fterima ?? 0">
                                         </td>
 
                                         <!-- @ Harga -->
@@ -663,21 +647,21 @@
                                         <!-- @ Biaya -->
                                         <td class="p-2 text-right">
                                             <input type="number" class="border rounded px-2 py-1 w-28 text-right"
-                                                min="0" step="0.01" x-ref="draftPrice"
-                                                x-model.number="draft.fprice" @input="recalc(draft)"
-                                                @keydown.enter.prevent="$refs.draftDisc?.focus()">
+                                                min="0" step="0.01" x-ref="draftBiaya"
+                                                x-model.number="draft.fbiaya" @input="recalc(draft)" default="0"
+                                                @keydown.enter.prevent="$refs.draftBiaya?.focus()">
                                         </td>
 
                                         <!-- Disc.% -->
                                         <td class="p-2 text-right">
                                             <input type="number" class="border rounded px-2 py-1 w-24 text-right"
                                                 min="0" max="100" step="0.01" x-ref="draftDisc"
-                                                x-model.number="draft.fdisc" @input="recalc(draft)"
+                                                x-model.number="draft.fdiscpersen" @input="recalc(draft)"
                                                 @keydown.enter.prevent="addIfComplete()">
                                         </td>
 
                                         <!-- Total Harga (readonly) -->
-                                        <td class="p-2 text-right" x-text="fmt(draft.ftotal)"></td>
+                                        <td class="p-2 text-right" x-text="fmt(draft.ftotprice)"></td>
 
                                         <!-- Aksi -->
                                         <td class="p-2 text-center">
@@ -696,7 +680,6 @@
                                             <textarea x-model="draft.fdesc" rows="2" class="w-full border rounded px-4 py-1"
                                                 placeholder="Deskripsi (opsional)"></textarea>
                                         </td>
-                                        <td class="p-0"></td>
                                         <td class="p-0"></td>
                                         <td class="p-0"></td>
                                         <td class="p-0"></td>
@@ -783,10 +766,10 @@
                                     </div>
 
                                     <!-- Hidden inputs for submit -->
-                                    <input type="hidden" name="famountponet" :value="totalHarga">
+                                    <input type="hidden" name="famount" :value="totalHarga">
                                     <input type="hidden" name="" :value="ppnAmount">
-                                    <input type="hidden" name="famountpo" :value="grandTotal">
-                                    <input type="hidden" name="famountpopajak" :value="ppnRate">
+                                    <input type="hidden" name="famountmt" :value="grandTotal">
+                                    <input type="hidden" name="famountpajak" :value="ppnRate">
                                 </div>
                             </div>
                             <!-- Modal backdrop -->
@@ -831,7 +814,7 @@
 
                                         </div>
 
-                                        <!-- Table -->
+                                        <!-- Table PR-->
                                         <div class="overflow-auto border rounded">
                                             <table class="min-w-full text-sm">
                                                 <thead class="bg-gray-100">
@@ -1307,7 +1290,6 @@
 
 @endsection
 
-{{-- DATA & SCRIPTS --}}
 <script>
     // Map produk untuk auto-fill tabel
     window.PRODUCT_MAP = {
@@ -1527,8 +1509,8 @@
             totalHarga: 0,
             ppnRate: 11,
 
-            initialGrandTotal: @json($famountpo ?? 0),
-            initialPpnAmount: @json($famountpopajak ?? 0),
+            initialGrandTotal: @json($famountmt ?? 0),
+            initialPpnAmount: @json($famountpajak ?? 0),
 
             includePPN: false, // tambah PPN normal di luar total
             fapplyppn: false, // harga sudah termasuk PPN (back-calc)
@@ -1610,13 +1592,13 @@
                 row.fqty = Math.max(0, +row.fqty || 0);
                 row.fterima = Math.max(0, +row.fterima || 0);
                 row.fprice = Math.max(0, +row.fprice || 0);
-                row.fdisc = Math.min(100, Math.max(0, +row.fdisc || 0));
-                row.ftotal = +(row.fqty * row.fprice * (1 - row.fdisc / 100)).toFixed(2);
+                row.fdiscpersen = Math.min(100, Math.max(0, +row.fdiscpersen || 0));
+                row.ftotprice = +(row.fqty * row.fprice * (1 - row.fdiscpersen / 100)).toFixed(2);
                 this.recalcTotals();
             },
 
             recalcTotals() {
-                this.totalHarga = this.savedItems.reduce((sum, item) => sum + item.ftotal, 0);
+                this.totalHarga = this.savedItems.reduce((sum, item) => sum + item.ftotprice, 0);
             },
 
             productMeta(code) {
@@ -1684,8 +1666,8 @@
                         fqty: Number(src.fqty ?? 0),
                         fterima: Number(src.fterima ?? 0),
                         fprice: Number(src.fprice ?? 0),
-                        fdisc: Number(src.fdisc ?? 0),
-                        ftotal: Number(src.ftotal ?? 0),
+                        fdiscpersen: Number(src.fdiscpersen ?? 0),
+                        ftotprice: Number(src.ftotprice ?? 0),
                         fdesc: src.fdesc ?? '',
                         fketdt: src.fketdt ?? '',
                         units: Array.isArray(src.units) && src.units.length ? src.units : [src.fsatuan]
@@ -1794,7 +1776,6 @@
                 }
             },
 
-            // Handle enter for navigating fields (similar to your current logic)
             handleEnterOnCode(where) {
                 if (where === 'edit') {
                     if (this.editRow.units.length > 1) this.$refs.editUnit?.focus();
@@ -1880,8 +1861,9 @@
                 fqty: 0,
                 fterima: 0,
                 fprice: 0,
-                fdisc: 0,
-                ftotal: 0,
+                fdiscpersen: 0,
+                fbiaya: 0,
+                ftotprice: 0,
                 fdesc: '',
                 fketdt: '',
                 maxqty: 0,
@@ -2105,7 +2087,6 @@
             },
 
             choose(w) {
-                // Kirim event ke halaman utama agar select + hidden input terisi
                 window.dispatchEvent(new CustomEvent('warehouse-picked', {
                     detail: {
                         fwhid: w.fwhid,
@@ -2123,7 +2104,6 @@
         }
     };
 
-    // Helper: update field saat warehouse-picked
     document.addEventListener('DOMContentLoaded', () => {
         window.addEventListener('warehouse-picked', (ev) => {
             const {
@@ -2209,10 +2189,9 @@
             choose(w) {
                 window.dispatchEvent(new CustomEvent('account-picked', {
                     detail: {
-                        fwhid: w.faccid,
-                        fwhcode: w.fwhcode,
-                        fwhname: w.fwhname,
-                        fbranchcode: w.fbranchcode
+                        faccid: w.faccid,
+                        faccount: w.faccount,
+                        faccname: w.faccname,
                     }
                 }));
                 this.close();
@@ -2226,19 +2205,39 @@
 
     document.addEventListener('DOMContentLoaded', () => {
         window.addEventListener('account-picked', (ev) => {
-            const {
-                fwhcode,
-                fwhid
+            let {
+                faccount,
+                faccid
             } = ev.detail || {};
+
+            if (!faccid && faccount) {
+                const sel = document.getElementById('accountSelect');
+                if (sel) {
+                    const option = sel.querySelector(`option[value="${faccount}"]`);
+                    if (option) {
+                        faccid = option.getAttribute('data-faccid'); 
+                    }
+                }
+            }
+
             const sel = document.getElementById('accountSelect');
-            const hid = document.getElementById('warehouseIdHidden');
+            const hidId = document.getElementById('accountIdHidden');
+            const hidCode = document.getElementById('accountCodeHidden');
+
             if (sel) {
-                sel.value = fwhcode || '';
+                sel.value = faccount || '';
                 sel.dispatchEvent(new Event('change', {
                     bubbles: true
                 }));
             }
-            if (hid) hid.value = fwhid || '';
+
+            if (hidId) {
+                hidId.value = faccid || '';
+            }
+
+            if (hidCode) {
+                hidCode.value = faccount || '';
+            }
         });
     });
 </script>
