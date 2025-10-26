@@ -31,7 +31,9 @@ class PenerimaanBarangController extends Controller
 
     $query = PenerimaanPembelianHeader::query();
 
-    $penerimaanbarang = PenerimaanPembelianHeader::orderBy($sortBy, $sortDir)->get(['fstockmtid', 'fstockmtno', 'fstockmtcode', 'fstockmtdate']);
+    $penerimaanbarang = PenerimaanPembelianHeader::where('fstockmtcode', 'RCV')
+    ->orderBy($sortBy, $sortDir)
+    ->get(['fstockmtid', 'fstockmtno', 'fstockmtcode', 'fstockmtdate']);
 
     $canCreate = in_array('createTr_prh', explode(',', session('user_restricted_permissions', '')));
     $canEdit   = in_array('updateTr_prh', explode(',', session('user_restricted_permissions', '')));

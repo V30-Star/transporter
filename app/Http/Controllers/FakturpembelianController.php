@@ -7,6 +7,7 @@ use App\Models\Tr_prd;
 use App\Models\Tr_poh;
 use App\Models\Tr_pod;
 use App\Models\Supplier;
+use App\Models\PenerimaanPembelianHeader;
 use App\Models\Product;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
@@ -24,19 +25,21 @@ class FakturPembelianController extends Controller
   public function index(Request $request)
   {
     // Sorting
-    $allowedSorts = ['fpohdid', 'fpono', 'fsupplier', 'fpodate'];
-    $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fpohdid';
+    $allowedSorts = ['fstockmtid', 'fstockmtno', 'fstockmtcode', 'fstockmtdate'];
+    $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fstockmtid';
     $sortDir = $request->sort_dir === 'asc' ? 'asc' : 'desc';
 
-    $query = Tr_poh::query();
+    $query = PenerimaanPembelianHeader::query();
 
-    $tr_poh = Tr_poh::orderBy($sortBy, $sortDir)->get(['fpohdid', 'fpono', 'fsupplier', 'fpodate']);
+    $fakturpembelian = PenerimaanPembelianHeader::where('fstockmtcode', 'TER')
+      ->orderBy($sortBy, $sortDir)
+      ->get(['fstockmtid', 'fstockmtno', 'fstockmtcode', 'fstockmtdate']);
 
     $canCreate = in_array('createTr_prh', explode(',', session('user_restricted_permissions', '')));
     $canEdit   = in_array('updateTr_prh', explode(',', session('user_restricted_permissions', '')));
     $canDelete = in_array('deleteTr_prh', explode(',', session('user_restricted_permissions', '')));
 
-    return view('fakturpembelian.index', compact('tr_poh', 'canCreate', 'canEdit', 'canDelete'));
+    return view('fakturpembelian.index', compact('fakturpembelian', 'canCreate', 'canEdit', 'canDelete'));
   }
 
   public function pickable(Request $request)
@@ -321,7 +324,7 @@ class FakturPembelianController extends Controller
       $ffrom = $request->input('fwhid');
       $fket = trim((string)$request->input('fket', ''));
       $fbranchcode = $request->input('fbranchcode');
-      $faccid = $request->input('faccid'); 
+      $faccid = $request->input('faccid');
 
       $fcurrency = $request->input('fcurrency', 'IDR');
       $frate = (float)$request->input('frate', 1);
@@ -557,9 +560,15 @@ class FakturPembelianController extends Controller
     }
   }
 
-  public function edit($fpohdid)
+  public function edit($fstockmtid)
   {
     $supplier = Supplier::all();
+
+    $accounts = DB::table('account')
+      ->select('faccid', 'faccount', 'faccname', 'fnonactive')
+      ->where('fnonactive', '0')
+      ->orderBy('account')
+      ->get();
 
     $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
@@ -570,41 +579,62 @@ class FakturPembelianController extends Controller
         ->orWhere('fcabangname', $raw))
       ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
 
-    $fcabang     = $branch->fcabangname ?? (string) $raw;   // tampilan
-    $fbranchcode = $branch->fcabangkode ?? (string) $raw;   // hidden post
+    $warehouses = DB::table('mswh')
+      ->select('fwhid', 'fwhcode', 'fwhname', 'fbranchcode', 'fnonactive')
+      ->where('fnonactive', '0') // hanya yang aktif
+      ->orderBy('fwhcode')
+      ->get();
 
-    $tr_poh = Tr_poh::with(['details' => function ($q) {
-      $q->orderBy('fpodid')
-        ->leftJoin('msprd', function ($j) {
-          $j->on('msprd.fprdid', '=', DB::raw('CAST(tr_pod.fprdcode AS INTEGER)'));
-        })
-        ->select(
-          'tr_pod.*',
-          'msprd.fprdcode as fitemcode',
-          'msprd.fprdname'
-        );
-    }])->findOrFail($fpohdid);
+    $fcabang     = $branch->fcabangname ?? (string) $raw;
+    $fbranchcode = $branch->fcabangkode ?? (string) $raw;
 
-    $savedItems = $tr_poh->details->map(function ($d) {
+    // 1. Ambil data Header (trstockmt) DAN relasi Details (trstockdt)
+    // Biarkan query ini. Sekarang $fstockmtid di sini adalah integer (misal: 8)
+    $penerimaanbarang = PenerimaanPembelianHeader::with([
+      'details' => function ($query) {
+        $query
+          // 2. Join ke msprd berdasarkan ID
+          ->join('msprd', 'msprd.fprdid', '=', 'trstockdt.fprdcode')
+          // 3. Select kolom yang dibutuhkan
+          ->select(
+            'trstockdt.*', // Ambil semua kolom dari tabel detail
+            'msprd.fprdname', // Ambil nama produk
+            'msprd.fprdcode as fitemcode_text' // Ambil KODE string produk
+          )
+          ->orderBy('trstockdt.fstockdtid', 'asc');
+      }
+    ])
+      ->findOrFail($fstockmtid); // Temukan header berdasarkan $fstockmtid dari URL
+
+
+    // 4. Map the data for savedItems (sudah menggunakan data yang benar)
+    $savedItems = $penerimaanbarang->details->map(function ($d) {
       return [
-        'uid'        => $d->fpodid,
-        'fitemcode'  => (string)($d->fitemcode ?? ''),  // dari alias msprd.fprdcode
-        'fitemname'  => (string)($d->fprdname ?? ''),   // dari msprd.fprdname
-        'fsatuan'    => (string)($d->fsatuan ?? ''),
-        'frefdtno'   => (string)($d->frefdtno ?? ''),
-        'fnouref'    => (string)($d->fnouref ?? ''),
-        'fqty'       => (float)($d->fqty ?? 0),
-        'fterima'    => (float)($d->fterima ?? 0),
-        'ftotprice'     => (float)($d->ftotprice ?? 0),
-        'fdiscpersen'      => (float)($d->fdiscpersen ?? 0),
-        'ftotal'     => (float)($d->famount ?? 0),
-        'fdesc'      => (string)($d->fdesc ?? ''),
-        'fketdt'     => (string)($d->fketdt ?? ''),
+        'uid'       => $d->fstockdtid,
+        'fitemcode' => $d->fitemcode_text ?? '',
+        'fitemname' => $d->fprdname ?? '',
+        'fsatuan'   => $d->fsatuan ?? '',
+        'fprno'     => $d->frefpr ?? '-',
+        'frefpr'    => $d->frefpr ?? null,
+        'fpono'     => $d->fpono ?? null,
+        'famountponet' => $d->famountponet ?? null,
+        'famountpo' => $d->famountpo ?? null,
+        'frefdtno'  => $d->frefdtno ?? null,
+        'fnouref'   => $d->fnouref ?? null,
+        'fqty'      => (float)($d->fqty ?? 0),
+        'fterima'   => (float)($d->fterima ?? 0),
+        'fprice'    => (float)($d->fprice ?? 0),
+        'fdisc'     => (float)($d->fdiscpersen ?? 0),
+        'ftotal'    => (float)($d->ftotprice ?? 0),
+        'fdesc'     => is_array($d->fdesc) ? implode(', ', $d->fdesc) : ($d->fdesc ?? ''),
+        'fketdt'    => $d->fketdt ?? '',
+        'units'     => [],
       ];
     })->values();
-    $selectedSupplierCode = $tr_poh->fsupplier;
 
-    // Fetch all products for product mapping
+    // Sisa kode Anda sudah benar
+    $selectedSupplierCode = $penerimaanbarang->fsupplier;
+
     $products = Product::select(
       'fprdid',
       'fprdcode',
@@ -615,7 +645,6 @@ class FakturPembelianController extends Controller
       'fminstock'
     )->orderBy('fprdname')->get();
 
-    // Prepare the product map for frontend
     $productMap = $products->mapWithKeys(function ($p) {
       return [
         $p->fprdcode => [
@@ -626,19 +655,20 @@ class FakturPembelianController extends Controller
       ];
     })->toArray();
 
-    // Pass the data to the view
-    return view('tr_poh.edit', [
-      'supplier'     => $supplier,
-      'selectedSupplierCode' => $selectedSupplierCode, // Kirim kode supplier ke view
-      'fcabang'      => $fcabang,
-      'fbranchcode'  => $fbranchcode,
-      'products'     => $products,
-      'productMap'   => $productMap,
-      'tr_poh'       => $tr_poh,
-      'savedItems'   => $savedItems,
-      'ppnAmount'    => (float) ($tr_poh->famountpajak ?? 0), // total PPN from DB
-      'famount'    => (float) ($tr_poh->famount ?? 0),  // nilai Grand Total dari DB
-      'famountmt'    => (float) ($tr_poh->famountmt ?? 0),  // nilai Grand Total dari DB
+    return view('fakturpembelian.edit', [
+      'supplier'           => $supplier,
+      'selectedSupplierCode' => $selectedSupplierCode,
+      'fcabang'            => $fcabang,
+      'fbranchcode'        => $fbranchcode,
+      'warehouses'         => $warehouses,
+      'products'           => $products,
+      'accounts' => $accounts,
+      'productMap'         => $productMap,
+      'penerimaanbarang'    => $penerimaanbarang,
+      'savedItems'         => $savedItems,
+      'ppnAmount'          => (float) ($penerimaanbarang->famountpopajak ?? 0),
+      'famountponet'       => (float) ($penerimaanbarang->famountponet ?? 0),
+      'famountpo'          => (float) ($penerimaanbarang->famountpo ?? 0),
     ]);
   }
 
