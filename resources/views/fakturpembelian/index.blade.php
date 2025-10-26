@@ -108,9 +108,9 @@
                         </td>
                     </tr>
                 @empty
-                    <tr>
+                    {{-- <tr>
                         <td colspan="{{ $showActionsColumn ? 3 : 2 }}" class="text-center py-4">Tidak ada data.</td>
-                    </tr>
+                    </tr> --}}
                 @endforelse
             </tbody>
         </table>
