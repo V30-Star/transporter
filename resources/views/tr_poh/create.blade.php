@@ -633,8 +633,8 @@
                                                     x-init="fapplyppn = 0" :disabled="!(includePPN || fapplyppn)"
                                                     class="w-28 h-9 px-2 text-sm leading-tight border rounded transition-opacity appearance-none
                                                            disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
-                                                    <option value="0">Exclude</option>
-                                                    <option value="1">Include</option>
+                                                    <option value="0">Include</option>
+                                                    <option value="1">Exclude</option>
                                                 </select>
                                             </div>
 
@@ -1293,7 +1293,10 @@
             get ppnIncluded() {
                 const total = +this.totalHarga || 0;
                 const rate = +this.ppnRate || 0;
+
+                // Hanya hitung jika fapplyppn = 1 (Include)
                 if (!this.fapplyppn) return 0;
+
                 // back-calc from GROSS
                 return Math.round((100 / (100 + rate)) * total * (rate / 100));
             },
@@ -1307,30 +1310,41 @@
             // PPN tambahan (di luar total). Jika sudah include PPN, base = NET (tidak pajak atas pajak)
             get ppnAdded() {
                 const rate = +this.ppnRate || 0;
-                if (!this.includePPN) return 0;
+
+                // Hanya hitung jika includePPN = true DAN fapplyppn = 0 (Exclude)
+                if (!this.includePPN || this.fapplyppn) return 0;
 
                 const total = +this.totalHarga || 0;
-
-                // When both are ON, compute extra PPN on GROSS (not NET)
-                const base = this.fapplyppn ? total : total; // <— effectively: always use total (GROSS)
-
-                return Math.round(base * (rate / 100));
+                return Math.round(total * (rate / 100));
             },
 
             get ppnAmount() {
-                // Jika dua checkbox aktif → tampilkan PPN tambahan saja (hindari double count)
-                if (this.includePPN && this.fapplyppn) {
+                // Jika fapplyppn = 1 (Include), gunakan ppnIncluded
+                if (this.fapplyppn) {
+                    return this.ppnIncluded;
+                }
+                // Jika includePPN = true DAN fapplyppn = 0, gunakan ppnAdded
+                if (this.includePPN) {
                     return this.ppnAdded;
                 }
-                // Kasus lain: gabungan PPN yang sudah termasuk + PPN tambahan
-                return (this.ppnIncluded ?? 0) + (this.ppnAdded ?? 0);
+                // Default: tidak ada PPN
+                return 0;
             },
 
             get grandTotal() {
                 const total = +this.totalHarga || 0;
-                if (this.includePPN) return total + this.ppnAdded; // GROSS + extra PPN on GROSS
-                if (this.includePPN) return total + this.ppnAdded; // NET + PPN
-                if (this.fapplyppn) return total; // GROSS stays GROSS
+
+                // Case 1: fapplyppn = 1 (Include) - total sudah termasuk PPN
+                if (this.fapplyppn) {
+                    return total;
+                }
+
+                // Case 2: includePPN = true - tambahkan PPN ke total
+                if (this.includePPN) {
+                    return total + this.ppnAdded;
+                }
+
+                // Case 3: Default - tidak ada PPN
                 return total;
             },
 
@@ -1472,15 +1486,22 @@
 
             addIfComplete() {
                 const r = this.draft;
+
                 if (!this.isComplete(r)) {
-                    if (!r.fitemcode) return this.$refs.draftCode?.focus();
-                    if (!r.fitemname) return this.$refs.draftCode?.focus();
-                    if (!r.fsatuan) return (r.units.length > 1 ? this.$refs.draftUnit?.focus() : this.$refs.draftCode
-                        ?.focus());
-                    if (!(Number(r.fqty) > 0)) return this.$refs.draftQty?.focus();
+                    if (!r.fitemcode) {
+                        return this.$refs.draftCode?.focus();
+                    }
+                    if (!r.fitemname) {
+                        return this.$refs.draftCode?.focus();
+                    }
+                    if (!r.fsatuan) {
+                        return (r.units.length > 1 ? this.$refs.draftUnit?.focus() : this.$refs.draftCode?.focus());
+                    }
+                    if (!(Number(r.fqty) > 0)) {
+                        return this.$refs.draftQty?.focus();
+                    }
                     return;
                 }
-
                 this.recalc(r);
 
                 const dupe = this.savedItems.find(it => it.fitemcode === r.fitemcode && it.fsatuan === r.fsatuan && (it

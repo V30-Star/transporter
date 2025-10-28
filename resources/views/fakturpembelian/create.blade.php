@@ -1698,11 +1698,18 @@
             addIfComplete() {
                 const r = this.draft;
                 if (!this.isComplete(r)) {
-                    if (!r.fitemcode) return this.$refs.draftCode?.focus();
-                    if (!r.fitemname) return this.$refs.draftCode?.focus();
-                    if (!r.fsatuan) return (r.units.length > 1 ? this.$refs.draftUnit?.focus() : this.$refs.draftCode
-                        ?.focus());
-                    if (!(Number(r.fqty) > 0)) return this.$refs.draftQty?.focus();
+                    if (!r.fitemcode) {
+                        return this.$refs.draftCode?.focus();
+                    }
+                    if (!r.fitemname) {
+                        return this.$refs.draftCode?.focus();
+                    }
+                    if (!r.fsatuan) {
+                        return (r.units.length > 1 ? this.$refs.draftUnit?.focus() : this.$refs.draftCode?.focus());
+                    }
+                    if (!(Number(r.fqty) > 0)) {
+                        return this.$refs.draftQty?.focus();
+                    }
                     return;
                 }
 
