@@ -139,11 +139,39 @@
                         </div>
 
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium">Tgl. Jatuh Tempo</label>
-                            <input type="date" id="fjatuhtempo" name="fjatuhtempo" value="{{ old('fjatuhtempo', '') }}"
-                                readonly
-                                class="w-full border rounded px-3 py-2 bg-gray-100 @error('fjatuhtempo') border-red-500 @enderror">
-                            @error('fjatuhtempo')
+                            <label class="block text-sm font-medium mb-1">Supplier</label>
+                            <div class="flex">
+                                <div class="relative flex-1">
+                                    <select id="supplierSelect" name="fsupplier"
+                                        class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
+                                        disabled onchange="updateTempo()">
+                                        <option value=""></option>
+                                        @foreach ($supplier as $suppliers)
+                                            <option value="{{ $suppliers->fsupplierid }}"
+                                                data-tempo="{{ $suppliers->ftempo }}"
+                                                {{ old('fsupplier') == $suppliers->fsupplierid ? 'selected' : '' }}>
+                                                {{ $suppliers->fsuppliercode }} - {{ $suppliers->fsuppliername }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <div class="absolute inset-0" role="button" aria-label="Browse supplier"
+                                        @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"></div>
+                                </div>
+                                <input type="hidden" name="fsupplier" id="supplierCodeHidden"
+                                    value="{{ old('fsupplier') }}">
+                                <button type="button"
+                                    @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"
+                                    class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
+                                    title="Browse Supplier">
+                                    <x-heroicon-o-magnifying-glass class="w-5 h-5" />
+                                </button>
+                                <a href="{{ route('supplier.create') }}" target="_blank" rel="noopener"
+                                    class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
+                                    title="Tambah Supplier">
+                                    <x-heroicon-o-plus class="w-5 h-5" />
+                                </a>
+                            </div>
+                            @error('fsupplier')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
                         </div>
@@ -204,7 +232,8 @@
                                         disabled>
                                         <option value=""></option>
                                         @foreach ($accounts as $account)
-                                            <option value="{{ $account->faccount }}" data-faccid="{{ $account->faccid }}"
+                                            <option value="{{ $account->faccount }}"
+                                                data-faccid="{{ $account->faccid }}"
                                                 data-branch="{{ $account->faccount }}"
                                                 {{ old('fprdjadi') == $account->faccount ? 'selected' : '' }}>
                                                 {{ $account->faccount }} - {{ $account->faccname }}
@@ -264,50 +293,21 @@
                         </div>
 
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium mb-1">Supplier</label>
-                            <div class="flex">
-                                <div class="relative flex-1">
-                                    <select id="supplierSelect" name="fsupplier"
-                                        class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
-                                        disabled onchange="updateTempo()">
-                                        <option value=""></option>
-                                        @foreach ($supplier as $suppliers)
-                                            <option value="{{ $suppliers->fsupplierid }}"
-                                                data-tempo="{{ $suppliers->ftempo }}"
-                                                {{ old('fsupplier') == $suppliers->fsupplierid ? 'selected' : '' }}>
-                                                {{ $suppliers->fsuppliercode }} - {{ $suppliers->fsuppliername }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    <div class="absolute inset-0" role="button" aria-label="Browse supplier"
-                                        @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"></div>
-                                </div>
-                                <input type="hidden" name="fsupplier" id="supplierCodeHidden"
-                                    value="{{ old('fsupplier') }}">
-                                <button type="button"
-                                    @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"
-                                    class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
-                                    title="Browse Supplier">
-                                    <x-heroicon-o-magnifying-glass class="w-5 h-5" />
-                                </button>
-                                <a href="{{ route('supplier.create') }}" target="_blank" rel="noopener"
-                                    class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
-                                    title="Tambah Supplier">
-                                    <x-heroicon-o-plus class="w-5 h-5" />
-                                </a>
-                            </div>
-                            @error('fsupplier')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-
-                        <div class="lg:col-span-4">
                             <label class="block text-sm font-medium">TOP (Hari)</label>
                             <input type="number" id="ftempohr" name="ftempohr" value="{{ old('ftempohr', '0') }}"
                                 class="w-full border rounded px-3 py-2 @error('ftempohr') border-red-500 @enderror"
                                 placeholder="Masukkan jumlah hari">
                             @error('ftempohr')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div class="lg:col-span-4">
+                            <label class="block text-sm font-medium">Tgl. Jatuh Tempo</label>
+                            <input type="date" id="fjatuhtempo" name="fjatuhtempo"
+                                value="{{ old('fjatuhtempo', '') }}" readonly
+                                class="w-full border rounded px-3 py-2 bg-gray-100 @error('fjatuhtempo') border-red-500 @enderror">
+                            @error('fjatuhtempo')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
                         </div>
@@ -489,7 +489,7 @@
                                         <td class="p-2">
                                             <input type="text"
                                                 class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
-                                                :value="editRow.frefdtno" disabled placeholder="Ref PR">
+                                                :value="editRow.frefdtno" disabled placeholder="No Ref">
                                         </td>
 
                                         <!-- Satuan -->
@@ -607,7 +607,7 @@
                                         <td class="p-2">
                                             <input type="text"
                                                 class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
-                                                :value="draft.frefdtno" disabled placeholder="Ref PR">
+                                                :value="draft.frefdtno" disabled placeholder="No Ref">
                                         </td>
 
                                         <!-- Satuan -->
@@ -2215,7 +2215,7 @@
                 if (sel) {
                     const option = sel.querySelector(`option[value="${faccount}"]`);
                     if (option) {
-                        faccid = option.getAttribute('data-faccid'); 
+                        faccid = option.getAttribute('data-faccid');
                     }
                 }
             }

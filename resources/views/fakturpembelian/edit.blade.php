@@ -86,12 +86,14 @@
     <div x-data="{ open: true }">
         <div x-data="{ includePPN: false, ppnRate: 0, ppnAmount: 0, totalHarga: 100000, selectedType: 0 }" class="lg:col-span-5">
             <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
-                <form action="{{ route('fakturpembelian.store') }}" method="POST" class="mt-6" x-data="{ showNoItems: false }"
+                <form action="{{ route('fakturpembelian.update', $fakturpembelian->fstockmtid) }}" method="POST"
+                    class="mt-6" x-data="{ showNoItems: false }"
                     @submit.prevent="
         const n = Number(document.getElementById('itemsCount')?.value || 0);
         if (n < 1) { showNoItems = true } else { $el.submit() }
       ">
                     @csrf
+                    @method('PATCH')
 
                     {{-- HEADER FORM --}}
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
@@ -119,9 +121,15 @@
                             <label class="block text-sm font-medium">Type</label>
                             <select name="ftypebuy" x-model="selectedType"
                                 class="w-full border rounded px-3 py-2 @error('ftypebuy') border-red-500 @enderror">
-                                <option value="0" {{ old('ftypebuy') == '0' ? 'selected' : '' }}>Trade</option>
-                                <option value="1" {{ old('ftypebuy') == '1' ? 'selected' : '' }}>Non Stok</option>
-                                <option value="2" {{ old('ftypebuy') == '2' ? 'selected' : '' }}>Uang Muka</option>
+                                <option value="0"
+                                    {{ old('ftypebuy', $fakturpembelian->ftypebuy ?? 'Trade') == 'Trade' ? 'selected' : '' }}>
+                                    Trade</option>
+                                <option value="1"
+                                    {{ old('ftypebuy', $fakturpembelian->ftypebuy ?? 'Non Stok') == 'Non Stok' ? 'selected' : '' }}>
+                                    Non Stok</option>
+                                <option value="2"
+                                    {{ old('ftypebuy', $fakturpembelian->ftypebuy ?? 'Uang Muka') == 'Uang Muka' ? 'selected' : '' }}>
+                                    Uang Muka</option>
                             </select>
                             @error('ftypebuy')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -139,11 +147,39 @@
                         </div>
 
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium">Tgl. Jatuh Tempo</label>
-                            <input type="date" id="fjatuhtempo" name="fjatuhtempo" value="{{ old('fjatuhtempo', '') }}"
-                                readonly
-                                class="w-full border rounded px-3 py-2 bg-gray-100 @error('fjatuhtempo') border-red-500 @enderror">
-                            @error('fjatuhtempo')
+                            <label class="block text-sm font-medium mb-1">Supplier</label>
+                            <div class="flex">
+                                <div class="relative flex-1">
+                                    <select id="supplierSelect" name="fsupplier_view"
+                                        class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
+                                        disabled>
+                                        <option value=""></option>
+                                        @foreach ($supplier as $sup)
+                                            <option value="{{ $sup->fsupplierid }}"
+                                                {{ old('fsupplier', $fakturpembelian->fsupplier) == $sup->fsupplierid ? 'selected' : '' }}>
+                                                {{ $sup->fsuppliercode }} - {{ $sup->fsuppliername }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <div class="absolute inset-0" role="button" aria-label="Browse supplier"
+                                        @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"></div>
+                                </div>
+                                {{-- kirim ID supplier ke server --}}
+                                <input type="hidden" name="fsupplier" id="supplierCodeHidden"
+                                    value="{{ old('fsupplier', $fakturpembelian->fsupplier) }}">
+                                <button type="button"
+                                    @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"
+                                    class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
+                                    title="Browse Supplier">
+                                    <x-heroicon-o-magnifying-glass class="w-5 h-5" />
+                                </button>
+                                <a href="{{ route('supplier.create') }}" target="_blank" rel="noopener"
+                                    class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
+                                    title="Tambah Supplier">
+                                    <x-heroicon-o-plus class="w-5 h-5" />
+                                </a>
+                            </div>
+                            @error('fsupplier')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
                         </div>
@@ -152,14 +188,15 @@
                             <label class="block text-sm font-medium mb-1">Gudang</label>
                             <div class="flex">
                                 <div class="relative flex-1">
+
                                     <select id="warehouseSelect"
                                         class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
                                         disabled>
                                         <option value=""></option>
                                         @foreach ($warehouses as $wh)
-                                            <option value="{{ $wh->fwhcode }}" data-id="{{ $wh->fwhid }}"
+                                            <option value="{{ $wh->fwhid }}" data-id="{{ $wh->fwhid }}"
                                                 data-branch="{{ $wh->fbranchcode }}"
-                                                {{ old('ffrom') == $wh->fwhcode ? 'selected' : '' }}>
+                                                {{ old('ffrom', $fakturpembelian->ffrom) == $wh->fwhid ? 'selected' : '' }}>
                                                 {{ $wh->fwhcode }} - {{ $wh->fwhname }}
                                             </option>
                                         @endforeach
@@ -169,27 +206,20 @@
                                     <div class="absolute inset-0" role="button" aria-label="Browse warehouse"
                                         @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"></div>
                                 </div>
+                                <input type="hidden" name="ffrom" id="warehouseIdHidden"
+                                    value="{{ old('ffrom', $fakturpembelian->ffrom) }}">
 
-                                <input type="hidden" name="ffrom" id="warehouseCodeHidden" value="{{ old('ffrom') }}">
-                                <input type="hidden" name="fwhid" id="warehouseIdHidden" value="{{ old('fwhid') }}">
-
+                                {{-- Tombol-tombol Anda --}}
                                 <button type="button"
                                     @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"
                                     class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
                                     title="Browse Gudang">
                                     <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                                 </button>
-
-                                <a href="{{ route('gudang.create') }}" target="_blank" rel="noopener"
-                                    class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
-                                    title="Tambah Gudang">
+                                <a href="{{ route('gudang.create') }}" ...>
                                     <x-heroicon-o-plus class="w-5 h-5" />
                                 </a>
                             </div>
-
-                            @error('ffrom')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
                         </div>
 
                         <div class="lg:col-span-4">
@@ -204,9 +234,10 @@
                                         disabled>
                                         <option value=""></option>
                                         @foreach ($accounts as $account)
-                                            <option value="{{ $account->faccount }}" data-faccid="{{ $account->faccid }}"
+                                            <option value="{{ $account->faccount }}"
+                                                data-faccid="{{ $account->faccid }}"
                                                 data-branch="{{ $account->faccount }}"
-                                                {{ old('fprdjadi') == $account->faccount ? 'selected' : '' }}>
+                                                {{ old('fprdjadi', $fakturpembelian->fprdjadi) }}>
                                                 {{ $account->faccount }} - {{ $account->faccname }}
                                             </option>
                                         @endforeach
@@ -218,8 +249,9 @@
                                 </div>
 
                                 <input type="hidden" name="fprdjadi" id="accountCodeHidden"
-                                    value="{{ old('fprdjadi') }}">
-                                <input type="hidden" name="faccid" id="accountIdHidden" value="{{ old('faccid') }}">
+                                    value="{{ old('fprdjadi', $fakturpembelian->fprdjadi) }}">
+                                <input type="hidden" name="faccid" id="accountIdHidden"
+                                    value="{{ old('faccid', $fakturpembelian->faccid) }}">
 
                                 <button type="button"
                                     @click="window.dispatchEvent(new CustomEvent('account-browse-open'))"
@@ -246,7 +278,8 @@
                         <div class="lg:col-span-4">
                             <label class="block text-npsm font-medium mb-1">Faktur</label>
                             <div class="flex items-center gap-3">
-                                <input type="text" name="frefno" class="w-full border rounded px-3 py-2">
+                                <input type="text" name="frefno" class="w-full border rounded px-3 py-2"
+                                    value="{{ old('frefno', $fakturpembelian->frefno) }}">
                                 <label class="inline-flex items-center select-none">
                                 </label>
                             </div>
@@ -256,7 +289,8 @@
                             <label class="block text-sm font-medium mb-1">Faktur Pajak#</label>
                             <div class="flex items-center">
                                 <input type="text" id="frefpo" name="frefpo"
-                                    class="w-full border rounded px-3 py-2 @error('frefpo') border-red-500 @enderror">
+                                    class="w-full border rounded px-3 py-2"
+                                    value="{{ old('frefpo', $fakturpembelian->frefpo) }}">
                             </div>
                             @error('frefpo')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -264,50 +298,21 @@
                         </div>
 
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium mb-1">Supplier</label>
-                            <div class="flex">
-                                <div class="relative flex-1">
-                                    <select id="supplierSelect" name="fsupplier"
-                                        class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
-                                        disabled onchange="updateTempo()">
-                                        <option value=""></option>
-                                        @foreach ($supplier as $suppliers)
-                                            <option value="{{ $suppliers->fsupplierid }}"
-                                                data-tempo="{{ $suppliers->ftempo }}"
-                                                {{ old('fsupplier') == $suppliers->fsupplierid ? 'selected' : '' }}>
-                                                {{ $suppliers->fsuppliercode }} - {{ $suppliers->fsuppliername }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    <div class="absolute inset-0" role="button" aria-label="Browse supplier"
-                                        @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"></div>
-                                </div>
-                                <input type="hidden" name="fsupplier" id="supplierCodeHidden"
-                                    value="{{ old('fsupplier') }}">
-                                <button type="button"
-                                    @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"
-                                    class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
-                                    title="Browse Supplier">
-                                    <x-heroicon-o-magnifying-glass class="w-5 h-5" />
-                                </button>
-                                <a href="{{ route('supplier.create') }}" target="_blank" rel="noopener"
-                                    class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
-                                    title="Tambah Supplier">
-                                    <x-heroicon-o-plus class="w-5 h-5" />
-                                </a>
-                            </div>
-                            @error('fsupplier')
+                            <label class="block text-sm font-medium">TOP (Hari)</label>
+                            <input type="number" id="ftempohr" name="ftempohr" class="w-full border rounded px-3 py-2"
+                                {{-- Hapus 'value' yang duplikat. Cukup satu baris ini: --}} value="{{ old('ftempohr', $fakturpembelian->ftempohr) }}"
+                                placeholder="Masukkan jumlah hari">
+                            @error('ftempohr')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
                         </div>
 
-
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium">TOP (Hari)</label>
-                            <input type="number" id="ftempohr" name="ftempohr" value="{{ old('ftempohr', '0') }}"
-                                class="w-full border rounded px-3 py-2 @error('ftempohr') border-red-500 @enderror"
-                                placeholder="Masukkan jumlah hari">
-                            @error('ftempohr')
+                            <label class="block text-sm font-medium">Tgl. Jatuh Tempo</label>
+                            <input type="date" id="fjatuhtempo" name="fjatuhtempo"
+                                value="{{ old('fjatuhtempo', '') }}" readonly
+                                class="w-full border rounded px-3 py-2 bg-gray-100 @error('fjatuhtempo') border-red-500 @enderror">
+                            @error('fjatuhtempo')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
                         </div>
@@ -357,12 +362,11 @@
                             const selectedOption = supplierSelect.options[supplierSelect.selectedIndex];
                             const tempo = selectedOption.getAttribute('data-tempo');
 
-                            tempoInput.value = tempo || 0;
+                            tempoInput.value = tempo;
+                            calculateDueDate();
                         }
 
-                        document.addEventListener('DOMContentLoaded', function() {
-                            updateTempo();
-                        });
+                        document.getElementById('supplierSelect').addEventListener('change', updateTempo);
                     </script>
 
                     <div x-data="itemsTable()" x-init="init()" class="mt-6 space-y-2">
@@ -489,7 +493,7 @@
                                         <td class="p-2">
                                             <input type="text"
                                                 class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
-                                                :value="editRow.frefdtno" disabled placeholder="Ref PR">
+                                                :value="editRow.frefdtno" disabled placeholder="No Ref">
                                         </td>
 
                                         <!-- Satuan -->
@@ -607,7 +611,7 @@
                                         <td class="p-2">
                                             <input type="text"
                                                 class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
-                                                :value="draft.frefdtno" disabled placeholder="Ref PR">
+                                                :value="draft.frefdtno" disabled placeholder="No Ref">
                                         </td>
 
                                         <!-- Satuan -->
@@ -1501,7 +1505,7 @@
     function itemsTable() {
         return {
             showNoItems: false,
-            savedItems: [],
+            savedItems: @json($savedItems),
             draft: newRow(),
             editingIndex: null,
             editRow: newRow(),

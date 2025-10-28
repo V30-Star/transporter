@@ -87,7 +87,7 @@
     <div x-data="{ open: true }">
         <div x-data="{ includePPN: false, ppnRate: 0, ppnAmount: 0, totalHarga: 100000 }" class="lg:col-span-5">
             <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
-                <form action="{{ route('penerimaanbarang.update', $penerimaanbarang->fstockmtid) }}" method="POST"
+                <form action="{{ route('fakturpembelian.update', $fakturpembelian->fstockmtid) }}" method="POST"
                     class="mt-6" x-data="{ showNoItems: false }"
                     @submit.prevent="
         const n = Number(document.getElementById('itemsCount')?.value || 0);
@@ -1725,35 +1725,22 @@
         }
     };
 
-    // Helper: update field saat warehouse-picked
     document.addEventListener('DOMContentLoaded', () => {
         window.addEventListener('warehouse-picked', (ev) => {
             const {
-                // fwhcode, // Tidak perlu diambil jika hanya untuk set value select
                 fwhid
             } = ev.detail || {};
             const sel = document.getElementById('warehouseSelect');
             const hid = document.getElementById('warehouseIdHidden');
 
-            console.log('Warehouse picked:', ev.detail); // Untuk debugging
-
             if (sel) {
-                // PERBAIKAN: Gunakan fwhid untuk value <select>
                 sel.value = fwhid || '';
 
-                console.log('Select value set to:', sel.value); // Debugging
                 sel.dispatchEvent(new Event('change', {
                     bubbles: true
                 }));
             } else {
-                console.error('Element #warehouseSelect not found'); // Debugging
-            }
-
-            if (hid) {
-                hid.value = fwhid || ''; // Ini sudah benar
-                console.log('Hidden input value set to:', hid.value); // Debugging
-            } else {
-                console.error('Element #warehouseIdHidden not found'); // Debugging
+                console.error('Element #warehouseSelect not found'); 
             }
         });
     });
