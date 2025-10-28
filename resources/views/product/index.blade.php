@@ -394,7 +394,6 @@
                             maxWidth: '100%'
                         });
 
-                        api.column(statusRawIdx).search('^0$', true, false).draw();
 
                         $select.on('change', function() {
                             const v = this.value;
@@ -403,7 +402,8 @@
                             } else if (v === 'nonactive') {
                                 api.column(statusRawIdx).search('^1$', true, false).draw();
                             } else {
-                                api.column(statusRawIdx).search('', true, false).draw(); // all
+                                api.column(statusRawIdx).search('', false, false)
+                            .draw(); 
                             }
                         });
                     }
