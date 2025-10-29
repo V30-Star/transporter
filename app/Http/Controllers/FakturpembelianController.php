@@ -281,6 +281,7 @@ class FakturPembelianController extends Controller
   public function store(Request $request)
   {
     try {
+      // VALIDATION
       $request->validate([
         'fstockmtno' => ['nullable', 'string', 'max:100'],
         'fstockmtdate' => ['required', 'date'],
@@ -307,6 +308,8 @@ class FakturPembelianController extends Controller
         'fbiaya.*' => ['numeric', 'min:0'],
         'fdesc' => ['nullable', 'array'],
         'fdesc.*' => ['nullable', 'string', 'max:500'],
+        'ftempohr' => ['nullable', 'integer'],
+        'ftypebuy' => ['nullable', 'integer'],
         'fcurrency' => ['nullable', 'string', 'max:5'],
         'frate' => ['nullable', 'numeric', 'min:0'],
         'famountpopajak' => ['nullable', 'numeric', 'min:0'],
@@ -315,7 +318,6 @@ class FakturPembelianController extends Controller
         'fsupplier.required' => 'Supplier wajib diisi.',
         'fitemcode.required' => 'Minimal 1 item.',
         'fsatuan.*.max' => 'Satuan di salah satu baris tidak boleh lebih dari 5 karakter.',
-        'faccid.required_if' => 'Account wajib dipilih untuk tipe Non Stok.',
       ]);
 
       // HEADER FIELDS
@@ -326,12 +328,13 @@ class FakturPembelianController extends Controller
       $fket = trim((string)$request->input('fket', ''));
       $fbranchcode = $request->input('fbranchcode');
       $faccid = $request->input('faccid');
+      $ftempohr = $request->input('ftempohr');
+      $ftypebuy = $request->input('ftypebuy');
 
       $fcurrency = $request->input('fcurrency', 'IDR');
       $frate = (float)$request->input('frate', 1);
       if ($frate <= 0) $frate = 1;
 
-      $ppnAmount = (float)$request->input('famountpopajak', 0);
       $userid = auth('sysuser')->user()->fsysuserid ?? 'admin';
       $now = now();
 
@@ -370,9 +373,8 @@ class FakturPembelianController extends Controller
       // BUILD DETAIL ROWS
       $rowsDt = [];
       $subtotal = 0.0;
-      $rowCount = count($codes);
 
-      for ($i = 0; $i < $rowCount; $i++) {
+      for ($i = 0; $i < count($codes); $i++) {
         $code = trim((string)($codes[$i] ?? ''));
         $sat = trim((string)($satuans[$i] ?? ''));
         $rref = trim((string)($refdtno[$i] ?? ''));
@@ -383,15 +385,10 @@ class FakturPembelianController extends Controller
         $discP = (float)($discs[$i] ?? 0);
         $desc = (string)($descs[$i] ?? '');
 
-        if ($code === '' || $qty <= 0) {
-          continue;
-        }
+        if ($code === '' || $qty <= 0) continue;
 
         $meta = $prodMeta[$code] ?? null;
-
-        if (!$meta) {
-          continue;
-        }
+        if (!$meta) continue;
 
         $prdId = $meta->fprdid;
 
@@ -400,9 +397,7 @@ class FakturPembelianController extends Controller
         }
         $sat = mb_substr($sat, 0, 5);
 
-        if ($sat === '') {
-          continue;
-        }
+        if ($sat === '') continue;
 
         $priceGross = $price;
         $priceNet = $priceGross * (1 - ($discP / 100));
@@ -452,6 +447,8 @@ class FakturPembelianController extends Controller
         $frate,
         $userid,
         $now,
+        $ftempohr,
+        $ftypebuy,
         &$fstockmtno,
         &$rowsDt,
         $subtotal,
@@ -459,6 +456,7 @@ class FakturPembelianController extends Controller
         $grandTotal,
         $faccid
       ) {
+        // BRANCH CODE RESOLUTION
         $kodeCabang = null;
         if ($fbranchcode !== null) {
           $needle = trim((string)$fbranchcode);
@@ -474,6 +472,7 @@ class FakturPembelianController extends Controller
 
         if (!$kodeCabang) $kodeCabang = 'NA';
 
+        // GENERATE DOCUMENT NUMBER
         $yy = $fstockmtdate->format('y');
         $mm = $fstockmtdate->format('m');
         $fstockmtcode = 'TER';
@@ -493,7 +492,7 @@ class FakturPembelianController extends Controller
           $fstockmtno = $prefix . str_pad((string)$next, 4, '0', STR_PAD_LEFT);
         }
 
-        // INSERT HEADER ke trstockmt
+        // INSERT HEADER
         $masterData = [
           'fstockmtno' => $fstockmtno,
           'fstockmtcode' => $fstockmtcode,
@@ -527,11 +526,13 @@ class FakturPembelianController extends Controller
           'fsudahtagih' => '0',
           'fbranchcode' => $kodeCabang,
           'fdiscount' => 0,
+          'ftempohr' => $ftempohr,
+          'ftypebuy' => $ftypebuy,
         ];
 
         $newStockMasterId = DB::table('trstockmt')->insertGetId($masterData, 'fstockmtid');
 
-        // INSERT DETAILS ke trstockdt
+        // INSERT DETAILS
         $lastNouRef = (int) DB::table('trstockdt')
           ->where('fstockmtid', $newStockMasterId)
           ->max('fnouref');
@@ -553,8 +554,8 @@ class FakturPembelianController extends Controller
 
       return redirect()
         ->route('fakturpembelian.create')
-        ->with('success', "Faktur Pembelian {$fstockmtno} tersimpan, detail masuk ke trstockdt.");
-    } catch (Exception $e) {
+        ->with('success', "Faktur Pembelian {$fstockmtno} berhasil disimpan.");
+    } catch (\Exception $e) {
       return back()
         ->withInput()
         ->withErrors(['error' => 'Terjadi kesalahan: ' . $e->getMessage()]);
@@ -883,7 +884,7 @@ class FakturPembelianController extends Controller
         if (empty($fstockmtno)) {
           $fstockmtno = $header->fstockmtno; // <-- Ambil dari record yang ada
         }
-        
+
         // 1. UPDATE HEADER
         $masterData = [
           'fstockmtno' => $fstockmtno,
