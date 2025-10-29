@@ -633,8 +633,8 @@
                                                     x-init="fapplyppn = 0" :disabled="!(includePPN || fapplyppn)"
                                                     class="w-28 h-9 px-2 text-sm leading-tight border rounded transition-opacity appearance-none
                                                            disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
-                                                    <option value="0">Include</option>
-                                                    <option value="1">Exclude</option>
+                                                    <option value="0">Exclude</option>
+                                                    <option value="1">Include</option>
                                                 </select>
                                             </div>
 
