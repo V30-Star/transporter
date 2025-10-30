@@ -850,10 +850,9 @@ class PenerimaanBarangController extends Controller
         'famountmt_rp'     => round($grandTotal * $frate, 2),
         'famountremain'    => round($grandTotal, 2),
         'famountremain_rp' => round($grandTotal * $frate, 2),
-        'ffrom'            => $ffrom, // fwhid
+        'ffrom'            => $ffrom, 
         'fket'             => $fket,
         'fuserid'          => $userid,
-        // Kolom 'fupdateat' akan diupdate otomatis oleh model
         'fbranchcode'      => $kodeCabang,
       ];
 

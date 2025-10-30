@@ -87,7 +87,7 @@
     <div x-data="{ open: true }">
         <div x-data="{ includePPN: false, ppnRate: 0, ppnAmount: 0, totalHarga: 100000 }" class="lg:col-span-5">
             <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
-                <form action="{{ route('fakturpembelian.update', $fakturpembelian->fstockmtid) }}" method="POST"
+                <form action="{{ route('penerimaanbarang.update', $penerimaanbarang->fstockmtid) }}" method="POST"
                     class="mt-6" x-data="{ showNoItems: false }"
                     @submit.prevent="
         const n = Number(document.getElementById('itemsCount')?.value || 0);
@@ -181,7 +181,9 @@
                                     title="Browse Gudang">
                                     <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                                 </button>
-                                <a href="{{ route('gudang.create') }}" ...>
+                                <a href="{{ route('supplier.create') }}" target="_blank" rel="noopener"
+                                    class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
+                                    title="Tambah Supplier">
                                     <x-heroicon-o-plus class="w-5 h-5" />
                                 </a>
                             </div>
@@ -799,6 +801,7 @@
                             </div>
                         </div>
 
+                        {{-- MODAL GUDANG --}}
                         <div x-data="warehouseBrowser()" x-show="open" x-cloak x-transition.opacity
                             class="fixed inset-0 z-50 flex items-center justify-center">
                             <div class="absolute inset-0 bg-black/40" @click="close()"></div>
@@ -1733,14 +1736,21 @@
             const sel = document.getElementById('warehouseSelect');
             const hid = document.getElementById('warehouseIdHidden');
 
-            if (sel) {
+            if (sel && hid) {
+                // 1. Update <select> (untuk tampilan visual)
                 sel.value = fwhid || '';
 
+                // 2. INI BAGIAN YANG HILANG:
+                // Update <input type="hidden"> (ini yang dikirim ke server)
+                hid.value = fwhid || ''; // <-- TAMBAHKAN BARIS INI
+
+                // (Opsional) dispatch 'change' sudah bagus
                 sel.dispatchEvent(new Event('change', {
                     bubbles: true
                 }));
             } else {
-                console.error('Element #warehouseSelect not found'); 
+                if (!sel) console.error('Element #warehouseSelect not found');
+                if (!hid) console.error('Element #warehouseIdHidden not found');
             }
         });
     });

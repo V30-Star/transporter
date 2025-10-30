@@ -310,6 +310,8 @@ class FakturPembelianController extends Controller
         'fdesc.*' => ['nullable', 'string', 'max:500'],
         'ftempohr' => ['nullable', 'integer'],
         'ftypebuy' => ['nullable', 'integer'],
+        'frefno' => ['nullable', 'integer'],
+        'frefpo' => ['nullable', 'integer'],
         'fcurrency' => ['nullable', 'string', 'max:5'],
         'frate' => ['nullable', 'numeric', 'min:0'],
         'famountpopajak' => ['nullable', 'numeric', 'min:0'],
@@ -330,6 +332,8 @@ class FakturPembelianController extends Controller
       $faccid = $request->input('faccid');
       $ftempohr = $request->input('ftempohr');
       $ftypebuy = $request->input('ftypebuy');
+      $frefno = $request->input('frefno');
+      $frefpo = $request->input('frefpo');
 
       $fcurrency = $request->input('fcurrency', 'IDR');
       $frate = (float)$request->input('frate', 1);
@@ -449,6 +453,8 @@ class FakturPembelianController extends Controller
         $now,
         $ftempohr,
         $ftypebuy,
+        $frefno,
+        $frefpo,
         &$fstockmtno,
         &$rowsDt,
         $subtotal,
@@ -509,8 +515,8 @@ class FakturPembelianController extends Controller
           'famountmt_rp' => round($grandTotal * $frate, 2),
           'famountremain' => round($grandTotal, 2),
           'famountremain_rp' => round($grandTotal * $frate, 2),
-          'frefno' => null,
-          'frefpo' => null,
+          'frefno' => $frefno,
+          'frefpo' => $frefpo,
           'ftrancode' => null,
           'ffrom' => $ffrom,
           'fto' => null,
@@ -589,7 +595,6 @@ class FakturPembelianController extends Controller
     $accounts = DB::table('account')
       ->select('faccid', 'faccount', 'faccname', 'fnonactive')
       ->where('fnonactive', '0') // Ambil semua yang aktif
-      ->orWhere('faccount', $savedAccountCode) // ATAU ambil yang tersimpan (walau non-aktif)
       ->orderBy('faccount') // <-- Perbaikan nama kolom
       ->get();
 
@@ -631,7 +636,9 @@ class FakturPembelianController extends Controller
         'fqty' => (float)($d->fqty ?? 0),
         'fterima' => (float)($d->fterima ?? 0),
         'fprice' => (float)($d->fprice ?? 0),
-        'fdisc' => (float)($d->fdiscpersen ?? 0),
+        'fdiscpersen' => (float)($d->fdiscpersen ?? 0),
+        'fbiaya' => (float)($d->fbiaya ?? 0),
+        'ftotprice' => (float)($d->ftotprice ?? 0),
         'ftotal' => (float)($d->ftotprice ?? 0),
         'fdesc' => is_array($d->fdesc) ? implode(', ', $d->fdesc) : ($d->fdesc ?? ''),
         'fketdt' => $d->fketdt ?? '',
@@ -686,7 +693,7 @@ class FakturPembelianController extends Controller
         'fstockmtno' => ['nullable', 'string', 'max:100'],
         'fstockmtdate' => ['required', 'date'],
         'fsupplier' => ['required', 'string', 'max:30'],
-        'ffrom' => ['nullable', 'string', 'max:10'],
+        'ffrom'          => ['nullable', 'integer', 'exists:mswh,fwhid'],
         'fket' => ['nullable', 'string', 'max:50'],
         'fbranchcode' => ['nullable', 'string', 'max:20'],
         'faccid' => ['nullable', 'integer'],
@@ -711,10 +718,9 @@ class FakturPembelianController extends Controller
         'fcurrency' => ['nullable', 'string', 'max:5'],
         'frate' => ['nullable', 'numeric', 'min:0'],
         'famountpopajak' => ['nullable', 'numeric', 'min:0'],
-        // Tambahkan validasi untuk field baru jika perlu
-        'ftempohr' => ['nullable', 'numeric'],
         'fjatuhtempo' => ['nullable', 'date'],
-        'ftypebuy' => ['nullable', 'string'],
+        'ftempohr' => ['nullable', 'integer'],
+        'ftypebuy' => ['nullable', 'integer'],
         'frefno' => ['nullable', 'string'],
         'frefpo' => ['nullable', 'string'],
       ], [
@@ -732,10 +738,12 @@ class FakturPembelianController extends Controller
       $fstockmtno = $header->fstockmtno;
       $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
       $fsupplier = trim((string)$request->input('fsupplier'));
-      $ffrom = $request->input('fwhid');
+      $ffrom        = $request->input('ffrom');
       $fket = trim((string)$request->input('fket', ''));
       $fbranchcode = $request->input('fbranchcode');
       $faccid = $request->input('faccid');
+      $ftempohr = $request->input('ftempohr');
+      $ftypebuy = $request->input('ftypebuy');
 
       $fcurrency = $request->input('fcurrency', 'IDR');
       $frate = (float)$request->input('frate', 1);
@@ -856,6 +864,8 @@ class FakturPembelianController extends Controller
         $frate,
         $userid,
         $now,
+        $ftempohr,
+        $ftypebuy,
         &$fstockmtno,
         &$rowsDt,
         $subtotal,
@@ -890,6 +900,7 @@ class FakturPembelianController extends Controller
           'fstockmtno' => $fstockmtno,
           'fstockmtcode' => $fstockmtcode,
           'fstockmtdate' => $fstockmtdate,
+          'fprdout' => '0',
           'fsupplier' => $fsupplier,
           'fcurrency' => $fcurrency,
           'frate' => $frate,
@@ -899,33 +910,37 @@ class FakturPembelianController extends Controller
           'famountpajak_rp' => round($ppnAmount * $frate, 2),
           'famountmt' => round($grandTotal, 2),
           'famountmt_rp' => round($grandTotal * $frate, 2),
-          'famountremain' => round($grandTotal, 2), // Asumsi sisa hutang di-reset saat update
+          'famountremain' => round($grandTotal, 2),
           'famountremain_rp' => round($grandTotal * $frate, 2),
-          'ffrom' => $ffrom,
-          'fprdjadi' => $faccid,
-          'fket' => $fket,
-          'fuserid' => $userid,
-          'fdatetime' => $now, // Ini berfungsi sebagai 'updated_at'
-          'fbranchcode' => $kodeCabang,
-
-          // Tambahkan field lain dari form
-          'ftypebuy' => $request->input('ftypebuy'),
-          'ftempohr' => $request->input('ftempohr'),
-          'fjatuhtempo' => $request->input('fjatuhtempo') ? Carbon::parse($request->input('fjatuhtempo'))->startOfDay() : null,
           'frefno' => $request->input('frefno'),
           'frefpo' => $request->input('frefpo'),
+          'ftrancode' => null,
+          'ffrom' => $ffrom,
+          'fto' => null,
+          'fkirim' => null,
+          'fprdjadi' => $faccid,
+          'fqtyjadi' => null,
+          'fket' => $fket,
+          'fuserid' => $userid,
+          'fdatetime' => $now,
+          'fsalesman' => null,
+          'fprint' => 0,
+          'fsudahtagih' => '0',
+          'fbranchcode' => $kodeCabang,
+          'fdiscount' => 0,
+          'ftempohr' => $ftempohr,
+          'ftypebuy' => $ftypebuy,
+          'fjatuhtempo' => $request->input('fjatuhtempo') ? Carbon::parse($request->input('fjatuhtempo'))->startOfDay() : null,
         ];
 
-        $header->update($masterData); // <-- INI YANG DIUBAH
+        $header->update($masterData);
 
-        // 2. DELETE DETAIL LAMA
-        $header->details()->delete(); // <-- INI TAMBAHAN
+        $header->details()->delete();
 
-        // 3. INSERT DETAIL BARU
-        $nextNouRef = 1; // Mulai ulang penomoran detail
+        $nextNouRef = 1;
 
         foreach ($rowsDt as &$r) {
-          $r['fstockmtid'] = $header->fstockmtid; // <-- Gunakan ID header yang ada
+          $r['fstockmtid'] = $header->fstockmtid;
           $r['fstockmtcode'] = $fstockmtcode;
           $r['fstockmtno'] = $fstockmtno;
 
@@ -935,25 +950,13 @@ class FakturPembelianController extends Controller
         }
         unset($r);
 
-        DB::table('trstockdt')->insert($rowsDt); // <-- Tetap insert untuk detail baru
-
-      }); // Akhir Transaksi
+        DB::table('trstockdt')->insert($rowsDt);
+      });
 
       return redirect()
         ->route('fakturpembelian.edit', $header->fstockmtid) // <-- Redirect kembali ke halaman edit
         ->with('success', "Faktur Pembelian {$fstockmtno} berhasil di-update.");
-    } catch (ValidationException $e) {
-      // Tangani error validasi
-      return back()
-        ->withInput()
-        ->withErrors($e->errors());
     } catch (\Exception $e) {
-      // Tangani semua error lainnya
-      Log::error("Gagal update Faktur Pembelian (fstockmtid: {$fstockmtid})", [
-        'message' => $e->getMessage(),
-        'trace' => $e->getTraceAsString() // Simpan trace di log untuk debug
-      ]);
-
       return back()
         ->withInput()
         ->withErrors(['error' => 'Terjadi kesalahan: ' . $e->getMessage()]);
