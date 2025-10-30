@@ -8,6 +8,7 @@ use App\Models\Tr_poh;
 use App\Models\Tr_pod;
 use App\Models\Supplier;
 use App\Models\PenerimaanPembelianHeader;
+use App\Models\PenerimaanPembelianDetail;
 use App\Models\Product;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
@@ -174,47 +175,45 @@ class FakturPembelianController extends Controller
     return $prefix . str_pad((string)$next, 4, '0', STR_PAD_LEFT);
   }
 
-  public function print(string $fpono)
+  public function print(string $fstockmtno)
   {
-    // Use the model’s actual table name
-    $supplierTable = (new Supplier)->getTable(); // e.g. ms_supplier
+    $supplierSub = Supplier::select('fsupplierid', 'fsuppliercode', 'fsuppliername');
 
-    // Header: find by PO code (string)
-    $hdr = Tr_poh::query()
-      ->leftJoin("{$supplierTable} as s", 's.fsupplierid', '=', 'tr_poh.fsupplier') // integer ↔ integer
-      ->leftJoin('mscabang as c', 'c.fcabangkode', '=', 'tr_poh.fbranchcode')
-      ->where('tr_poh.fpono', $fpono)
+    $hdr = PenerimaanPembelianHeader::query()
+      ->leftJoinSub($supplierSub, 's', function ($join) {
+        $join->on('s.fsupplierid', '=', 'trstockmt.fsupplier');
+      })
+      ->leftJoin('mscabang as c', 'c.fcabangkode', '=', 'trstockmt.fbranchcode')
+      ->leftJoin('mswh as w', 'w.fwhid', '=', 'trstockmt.ffrom')
+      ->where('trstockmt.fstockmtno', $fstockmtno)
       ->first([
-        'tr_poh.*',
+        'trstockmt.*',
         's.fsuppliername as supplier_name',
         'c.fcabangname as cabang_name',
+        'w.fwhname as fwhnamen',
       ]);
 
     if (!$hdr) {
       return redirect()->back()->with('error', 'PO tidak ditemukan.');
     }
 
-    // Use header ID (integer) for detail FK
-    $fpohdid = (int) $hdr->fpohdid;
-
-    $dt = DB::table('tr_pod')
-      ->leftJoin('msprd as p', function ($j) {
-        $j->on('p.fprdid', '=', DB::raw('CAST(tr_pod.fprdcode AS INTEGER)'));
-      })->where('tr_pod.fpono', $fpohdid)                            // detail FK = header ID
-      ->orderBy('tr_pod.fprdcode')
+    $dt = PenerimaanPembelianDetail::query()
+      ->leftJoin('msprd as p', 'p.fprdid', '=', 'trstockdt.fprdcode')
+      ->where('trstockdt.fstockmtno', $fstockmtno)
+      ->orderBy('trstockdt.fprdcode')
       ->get([
-        'tr_pod.*',
-        'p.fprdcode as product_code',
+        'trstockdt.*',
         'p.fprdname as product_name',
+        'p.fprdcode as product_code',
         'p.fminstock as stock',
-        'tr_pod.fqtyremain',
+        'trstockdt.fqtyremain',
       ]);
 
     $fmt = fn($d) => $d
       ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y')
       : '-';
 
-    return view('tr_poh.print', [
+    return view('fakturpembelian.print', [
       'hdr'          => $hdr,
       'dt'           => $dt,
       'fmt'          => $fmt,
