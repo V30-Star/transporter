@@ -498,20 +498,14 @@
                     </div>
                 </div>
 
-                <!-- Min.Stok -->
                 <div class="mt-2 w-1/4">
                     <label class="block text-sm font-medium mb-1">Min.Stok</label>
-
                     <div class="flex items-baseline">
-
                         <input type="text" name="fminstock" value="{{ old('fminstock', 0) }}"
                             class="flex-1 border rounded px-3 py-2 @error('fminstock') border-red-500 @enderror">
-
                         <span class="satuan-kecil-display text-gray-700 font-semibold whitespace-nowrap ml-2">
-                            {{-- (Misalnya: "PCS") --}}
                         </span>
                     </div>
-
                     @error('fminstock')
                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                     @enderror

@@ -647,7 +647,7 @@ class Tr_prhController extends Controller
 
     // ===== 10) SELESAI =====
     return redirect()
-      ->route('tr_prh.index')
+      ->route('tr_prh.edit', $fprid)
       ->with('success', 'Permintaan pembelian berhasil diperbarui.');
   }
 

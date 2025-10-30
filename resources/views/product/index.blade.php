@@ -20,6 +20,12 @@
             activeTable: 'null',
             toggleTable(table) { this.activeTable = table; }
         }" class="bg-white rounded shadow p-4">
+        
+            @if ($message = Session::get('danger'))
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+                    <span class="block sm:inline">{{ $message }}</span>
+                </div>
+            @endif
 
             @php
                 $canCreate = in_array('createProduct', explode(',', session('user_restricted_permissions', '')));
@@ -403,7 +409,7 @@
                                 api.column(statusRawIdx).search('^1$', true, false).draw();
                             } else {
                                 api.column(statusRawIdx).search('', false, false)
-                            .draw(); 
+                                    .draw();
                             }
                         });
                     }

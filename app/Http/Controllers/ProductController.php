@@ -7,6 +7,7 @@ use App\Models\Groupproduct;  // Add this import to get the groups
 use App\Models\Merek;         // If you have a model for "Merek"
 use App\Models\Satuan;
 use Illuminate\Http\Request;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 
 class ProductController extends Controller
@@ -249,12 +250,32 @@ class ProductController extends Controller
 
     public function destroy($fprdid)
     {
-        // Find and delete the Product
-        $product = Product::findOrFail($fprdid);
-        $product->delete();
+        try {
+            // 1. Cari produk
+            $product = Product::findOrFail($fprdid);
 
-        return redirect()
-            ->route('product.index')
-            ->with('success', 'Product berhasil dihapus.');
+            // 2. Langsung coba hapus
+            $product->delete();
+
+            // 3. Jika berhasil, redirect sukses
+            return redirect()
+                ->route('product.index')
+                ->with('success', 'Produk berhasil dihapus.');
+        } catch (QueryException $e) {
+            // 4. Jika gagal karena foreign key violation
+
+            // Kode '23503' adalah kode error standar untuk foreign key violation
+            if ($e->getCode() == '23503') {
+                // --- INI BAGIAN YANG DIUBAH ---
+                return redirect()
+                    ->route('product.index')
+                    ->with('danger', 'Product Sedang Digunakan dalam Transaksi.'); // Pesan diubah ke 'danger'
+            }
+
+            // Tangani error database lainnya jika perlu
+            return redirect()
+                ->route('product.index')
+                ->with('error', 'Gagal menghapus produk: Terjadi kesalahan database.'); // Ini bisa juga diganti ke 'danger' jika mau
+        }
     }
 }

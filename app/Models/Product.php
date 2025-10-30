@@ -32,4 +32,15 @@ class Product extends Model
             });
         });
     }
+    public function trPods()
+    {
+        // Parameter: (Model Tujuan, Foreign Key di tr_pod, Local Key di msprd/Product)
+        return $this->hasMany(Tr_pod::class, 'fprdcode', 'fprdid');
+    }
+
+    public function trPrds()
+    {
+        // Ganti 'fprdcode' dengan nama kolom foreign key yang benar di tabel 'tr_prd'
+        return $this->hasMany(Tr_pod::class, 'fprdcode', 'fprdid');
+    }
 }
