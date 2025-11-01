@@ -3,6 +3,8 @@
 @section('title', 'Master Customer')
 
 @section('content')
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.3/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/ui/1.13.3/jquery-ui.min.js"></script>
 
     <style>
         /* The switch - the outer box */
@@ -524,6 +526,7 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/autonumeric/4.8.1/autoNumeric.min.js"></script>
 
 <script>
     $(document).ready(function() {
@@ -533,6 +536,52 @@
                 return $(this).data('placeholder') || '-- Pilih --';
             },
             dropdownAutoWidth: true
+        });
+        $(function() {
+            const $inp = $("#fcustomername");
+            let lastXHR = null;
+            const localCache = {};
+
+            $inp.autocomplete({
+                source: function(request, response) {
+                    const term = request.term || "";
+
+                    if (localCache[term]) {
+                        response(localCache[term]);
+                        return;
+                    }
+
+                    if (lastXHR && lastXHR.readyState !== 4) lastXHR.abort();
+
+                    lastXHR = $.getJSON("{{ route('customer.name.suggest') }}", {
+                        term
+                    }, function(data) {
+                        localCache[term] = data;
+                        response(data);
+                    });
+                },
+                minLength: 0,
+                delay: 0,
+                select: function(event, ui) {
+                    $(this).val(ui.item.value);
+                    return false;
+                },
+                open: function() {
+                    $(".ui-autocomplete").css("width", $inp.outerWidth());
+                }
+            });
+
+            $inp.on("focus", function() {
+                if (!$(".ui-autocomplete:visible").length) {
+                    $(this).autocomplete("search", $(this).val() || "");
+                }
+            });
+
+            $inp.on("keydown", function(e) {
+                if (e.key === "ArrowDown" && !$(".ui-autocomplete:visible").length) {
+                    $(this).autocomplete("search", $(this).val() || "");
+                }
+            });
         });
     });
 </script>

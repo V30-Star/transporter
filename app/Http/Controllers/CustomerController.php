@@ -56,7 +56,7 @@ class CustomerController extends Controller
             'showActionsColumn'
         ));
     }
-    
+
     private function generateCustomerCode(): string
     {
         $lastCode = Customer::where('fcustomercode', 'like', 'C-%')
@@ -266,5 +266,22 @@ class CustomerController extends Controller
         return redirect()
             ->route('customer.index')
             ->with('success', 'Customer berhasil dihapus.');
+    }
+
+    public function suggestNames(Request $request)
+    {
+        $term = (string) $request->get('term', '');
+        $q = DB::table('mscustomer')->whereNotNull('fcustomername');
+
+        if ($term !== '') {
+            $q->where('fcustomername', 'ILIKE', "{$term}%"); // <-- UBAH INI
+        }
+
+        $names = $q->distinct()
+            ->orderBy('fcustomername')
+            ->limit(15)
+            ->pluck('fcustomername');
+
+        return response()->json($names);
     }
 }

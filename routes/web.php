@@ -216,6 +216,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/product-name-suggest', [ProductController::class, 'suggestNames'])
             ->name('product.name.suggest');
 
+        Route::get('/customer-name-suggest', [CustomerController::class, 'suggestNames'])
+            ->name('customer.name.suggest');
+
         Route::get('/accounts/browse', [AccountController::class, 'browse'])
             ->name('accounts.browse');
 
