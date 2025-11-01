@@ -11,14 +11,14 @@
 
             <div class="space-y-4 mt-4">
                 <!-- Rekening Code -->
-                <div>
+                {{-- <div>
                     <label class="block text-sm font-medium">Kode Rekening</label>
                     <input type="text" name="frekeningcode" value="{{ old('frekeningcode', $rekening->frekeningcode) }}"
                         class="w-full border rounded px-3 py-2 @error('frekeningcode') border-red-500 @enderror" autofocus>
                     @error('frekeningcode')
                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                     @enderror
-                </div>
+                </div> --}}
 
                 <!-- Rekening Name -->
                 <div>

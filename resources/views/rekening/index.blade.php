@@ -49,7 +49,6 @@
         <table id="rekeningTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
-                    <th class="border px-2 py-2">Kode Rekening</th>
                     <th class="border px-2 py-2">Nama Rekening</th>
                     <th class="border px-2 py-2 no-sort">Status</th>
                     <th class="border px-2 py-2" data-col="statusRaw">StatusRaw</th>
@@ -61,7 +60,6 @@
             <tbody id="tableBody">
                 @forelse($rekenings as $item)
                     <tr class="hover:bg-gray-50">
-                        <td>{{ $item->frekeningcode }}</td>
                         <td>{{ $item->frekeningname }}</td>
                         <td>
                             @php $isActive = (string)$item->fnonactive === '0'; @endphp

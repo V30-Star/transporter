@@ -44,13 +44,10 @@ class RekeningController extends Controller
         // Validate incoming request data
         $validated = $request->validate(
             [
-                'frekeningcode' => 'required|string|unique:msrekening,frekeningcode',
                 'frekeningname' => 'required|string',
             ],
             [
-                'frekeningcode.required' => 'Kode rekening harus diisi.',
                 'frekeningname.required' => 'Nama rekening harus diisi.',
-                'frekeningcode.unique' => 'Kode rekening sudah ada.',
             ]
         );
 
@@ -58,6 +55,7 @@ class RekeningController extends Controller
         $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null; // Or use the authenticated user's name
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? 'system';  // Fallback jika tidak ada
         $validated['fcreatedat'] = now(); // Set current time
+        $validated['frekeningcode'] = '0';
 
         $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
 
@@ -82,17 +80,15 @@ class RekeningController extends Controller
         // Validate incoming request data
         $validated = $request->validate(
             [
-                'frekeningcode' => "required|string|unique:msrekening,frekeningcode,{$frekeningid},frekeningid",
                 'frekeningname' => 'required|string',
             ],
             [
-                'frekeningcode.required' => 'Kode rekening harus diisi.',
                 'frekeningname.required' => 'Nama rekening harus diisi.',
-                'frekeningcode.unique' => 'Kode rekening sudah ada.',
             ]
         );
 
         $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
+        $validated['frekeningcode'] = '0';
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null; // Or use the authenticated user's name
         $validated['fupdatedat'] = now(); // Set current time
 
