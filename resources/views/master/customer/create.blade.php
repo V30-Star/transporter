@@ -560,8 +560,9 @@
                         response(data);
                     });
                 },
+                
                 minLength: 0,
-                delay: 0,
+                delay: 400,
                 select: function(event, ui) {
                     $(this).val(ui.item.value);
                     return false;

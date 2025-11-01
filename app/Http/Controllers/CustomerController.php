@@ -256,10 +256,8 @@ class CustomerController extends Controller
             ->with('success', 'Customer berhasil di-update.');
     }
 
-    // Destroy method to delete a customer
     public function destroy($fcustomerid)
     {
-        // Find Customer and delete it
         $customer = Customer::findOrFail($fcustomerid);
         $customer->delete();
 
@@ -274,12 +272,12 @@ class CustomerController extends Controller
         $q = DB::table('mscustomer')->whereNotNull('fcustomername');
 
         if ($term !== '') {
-            $q->where('fcustomername', 'ILIKE', "{$term}%");
+            $q->where('fcustomername', 'ILIKE', "%{$term}%");
         }
 
         $names = $q->distinct()
             ->orderBy('fcustomername')
-            ->limit(100)  // <-- Dihapus sesuai permintaan Anda
+            ->limit(10)
             ->pluck('fcustomername');
 
         return response()->json($names);
