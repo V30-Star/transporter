@@ -274,12 +274,12 @@ class CustomerController extends Controller
         $q = DB::table('mscustomer')->whereNotNull('fcustomername');
 
         if ($term !== '') {
-            $q->where('fcustomername', 'ILIKE', "{$term}%"); // <-- UBAH INI
+            $q->where('fcustomername', 'ILIKE', "{$term}%");
         }
 
         $names = $q->distinct()
             ->orderBy('fcustomername')
-            ->limit(15)
+            ->limit(100)  // <-- Dihapus sesuai permintaan Anda
             ->pluck('fcustomername');
 
         return response()->json($names);
