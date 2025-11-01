@@ -150,10 +150,9 @@
                         <select name="ftypebuy" x-model="selectedType"
                             class="w-full border rounded px-3 py-2 @error('ftypebuy') border-red-500 @enderror">
                             <option value="0" {{ $currentTypeBuy == 0 ? 'selected' : '' }}>
-                                Trade
+                                Stok
                             </option>
                             <option value="1" {{ $currentTypeBuy == 1 ? 'selected' : '' }}>
-
                                 Non Stok
                             </option>
                             <option value="2" {{ $currentTypeBuy == 2 ? 'selected' : '' }}>

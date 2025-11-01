@@ -119,7 +119,7 @@
                             <label class="block text-sm font-medium">Type</label>
                             <select name="ftypebuy" x-model="selectedType"
                                 class="w-full border rounded px-3 py-2 @error('ftypebuy') border-red-500 @enderror">
-                                <option value="0" {{ old('ftypebuy') == '0' ? 'selected' : '' }}>Trade</option>
+                                <option value="0" {{ old('ftypebuy') == '0' ? 'selected' : '' }}>Stok</option>
                                 <option value="1" {{ old('ftypebuy') == '1' ? 'selected' : '' }}>Non Stok</option>
                                 <option value="2" {{ old('ftypebuy') == '2' ? 'selected' : '' }}>Uang Muka</option>
                             </select>
@@ -305,7 +305,7 @@
                         <div class="lg:col-span-4">
                             <label class="block text-sm font-medium">Tgl. Jatuh Tempo</label>
                             <input type="date" id="fjatuhtempo" name="fjatuhtempo"
-                                value="{{ old('fjatuhtempo', '') }}" readonly
+                                value="{{ old('fjatuhtempo') ?? date('Y-m-d') }}" readonly
                                 class="w-full border rounded px-3 py-2 bg-gray-100 @error('fjatuhtempo') border-red-500 @enderror">
                             @error('fjatuhtempo')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -328,8 +328,13 @@
                             const poDate = document.getElementById('fstockmtdate').value;
                             const tempoDays = parseInt(document.getElementById('ftempohr').value) || 0;
 
-                            if (poDate && tempoDays > 0) {
+                            // --- LOGIKA DIPERBAIKI ---
+                            if (poDate) {
+                                // JIKA poDate ada, LAKUKAN kalkulasi
                                 const date = new Date(poDate);
+                                date.setMinutes(date.getMinutes() + date.getTimezoneOffset()); // Fix Timezone
+
+                                // Menambah 0 hari tidak akan mengubah tanggal, dan itu benar
                                 date.setDate(date.getDate() + tempoDays);
 
                                 // Format ke YYYY-MM-DD
@@ -338,14 +343,16 @@
                                 const day = String(date.getDate()).padStart(2, '0');
 
                                 document.getElementById('fjatuhtempo').value = `${year}-${month}-${day}`;
+
                             } else {
+                                // HANYA JIKA poDate kosong, baru kosongkan jatuh tempo
                                 document.getElementById('fjatuhtempo').value = '';
                             }
                         }
 
+                        // Event listener Anda (ini sudah benar)
                         document.getElementById('fstockmtdate').addEventListener('change', calculateDueDate);
                         document.getElementById('ftempohr').addEventListener('input', calculateDueDate);
-
                         document.addEventListener('DOMContentLoaded', calculateDueDate);
                     </script>
 

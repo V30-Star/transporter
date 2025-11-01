@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Log;
 use App\Mail\ApprovalEmailPo;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
-use Carbon\Carbon; // sekalian biar aman untuk tanggal
+use Carbon\Carbon; 
 use Exception;
 use Illuminate\Validation\ValidationException;
 
@@ -27,7 +27,7 @@ class FakturPembelianController extends Controller
   public function index(Request $request)
   {
     // Sorting
-    $allowedSorts = ['fstockmtid', 'fstockmtno', 'fstockmtcode', 'fstockmtdate'];
+    $allowedSorts = ['fstockmtid', 'fstockmtno', 'fstockmtcode', 'fstockmtdate', 'ftypebuy'];
     $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fstockmtid';
     $sortDir = $request->sort_dir === 'asc' ? 'asc' : 'desc';
 
@@ -35,7 +35,7 @@ class FakturPembelianController extends Controller
 
     $fakturpembelian = PenerimaanPembelianHeader::where('fstockmtcode', 'TER')
       ->orderBy($sortBy, $sortDir)
-      ->get(['fstockmtid', 'fstockmtno', 'fstockmtcode', 'fstockmtdate']);
+      ->get(['fstockmtid', 'fstockmtno', 'fstockmtcode', 'fstockmtdate', 'ftypebuy']);
 
     $canCreate = in_array('createTr_prh', explode(',', session('user_restricted_permissions', '')));
     $canEdit   = in_array('updateTr_prh', explode(',', session('user_restricted_permissions', '')));

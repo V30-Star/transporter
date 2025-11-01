@@ -53,7 +53,7 @@
                     <th>oid</th>
                     <th>fstockmtno</th>
                     <th>fstockmtcode</th>
-                    <th>fstockmtdate</th>
+                    <th>Type</th>
                     <th>fprdout</th>
                     <th>fsupplier</th>
                     <th>fcurrency</th>
@@ -74,7 +74,7 @@
                         <td>{{ $item->fstockmtno }}</td>
                         <td>{{ $item->fstockmtcode }}</td>
                         <td>{{ $item->fstockmtdate }}</td>
-                        <td>{{ $item->fprno }}</td>
+                        <td>{{ $item->ftypebuy }}</td>
                         <td>{{ $item->fprno }}</td>
                         <td>{{ $item->fprno }}</td>
                         <td>{{ $item->fprno }}</td>
