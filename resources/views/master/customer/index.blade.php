@@ -46,8 +46,8 @@
         </div>
 
         {{-- Tabel --}}
-        <table id="customerTable" class="display">
-            <thead>
+        <table id="customerTable" class="min-w-full border text-sm">
+            <thead class="bg-gray-100">
                 <tr>
                     <th class="border px-2 py-2">Kode Customer</th>
                     <th class="border px-2 py-2">Nama Customer</th>
@@ -61,9 +61,9 @@
                     @endif
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="tableBody">
                 @forelse($customers as $r)
-                    <tr>
+                    <tr class="hover:bg-gray-50">
                         <td>{{ $r->fcustomercode }}</td>
                         <td>{{ $r->fcustomername }}</td>
                         <td>{{ $r->wilayah_name }}</td>
