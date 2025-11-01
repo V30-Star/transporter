@@ -32,21 +32,17 @@ class Product extends Model
             });
         });
     }
-   public function trPods()
+    public function trPods()
     {
-        // (Model Tujuan, Foreign Key di tr_pod, Local Key di product)
         return $this->hasMany(Tr_pod::class, 'fprdcode', 'fprdid');
     }
 
-   public function trPrds()
+    public function trPrds()
     {
-        // !!! PERBAIKAN: Modelnya harus Tr_prd::class, BUKAN Tr_pod::class
-        // Asumsi foreign key-nya sama ('fprdcode')
         return $this->hasMany(Tr_prd::class, 'fprdcode', 'fprdid');
     }
     public function trstockdts()
     {
-        // Asumsi nama modelnya Trstockdt dan foreign key-nya 'fprdcode'
         return $this->hasMany(PenerimaanPembelianDetail::class, 'fprdcode', 'fprdid');
     }
 }

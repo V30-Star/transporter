@@ -17,15 +17,14 @@ class ProductController extends Controller
         $allowedSorts = ['fprdcode', 'fprdname', 'fsatuankecil', 'fminstock', 'fprdid', 'fnonactive'];
         $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fprdid';
         $sortDir = $request->sort_dir === 'asc' ? 'asc' : 'desc';
-
         $status = $request->query('status');
 
         $query = Product::query();
 
         if ($status === 'active') {
-            $query->where('fnonactive', '0');
+            $query->where('msprd.fnonactive', '0');
         } elseif ($status === 'nonactive') {
-            $query->where('fnonactive', '1');
+            $query->where('msprd.fnonactive', '1');
         }
 
         $products = $query
