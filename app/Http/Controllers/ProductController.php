@@ -251,31 +251,43 @@ class ProductController extends Controller
     public function destroy($fprdid)
     {
         try {
-            // 1. Cari produk
+            // 1. Cari produknya dulu
+            // findOrFail akan error jika produk tidak ada, langsung masuk ke catch
             $product = Product::findOrFail($fprdid);
 
-            // 2. Langsung coba hapus
-            $product->delete();
+            // 2. Lakukan pengecekan satu per satu MENGGUNAKAN RELASI
 
-            // 3. Jika berhasil, redirect sukses
-            return redirect()
-                ->route('product.index')
-                ->with('success', 'Produk berhasil dihapus.');
-        } catch (QueryException $e) {
-            // 4. Jika gagal karena foreign key violation
-
-            // Kode '23503' adalah kode error standar untuk foreign key violation
-            if ($e->getCode() == '23503') {
-                // --- INI BAGIAN YANG DIUBAH ---
-                return redirect()
-                    ->route('product.index')
-                    ->with('danger', 'Product Sedang Digunakan dalam Transaksi.'); // Pesan diubah ke 'danger'
+            // Cek ke tr_pod
+            if ($product->trPods()->exists()) {
+                return redirect()->route('product.index')
+                    ->with('danger', 'Gagal hapus: Produk masih digunakan di data PO (tr_pod).');
             }
 
-            // Tangani error database lainnya jika perlu
-            return redirect()
-                ->route('product.index')
-                ->with('error', 'Gagal menghapus produk: Terjadi kesalahan database.'); // Ini bisa juga diganti ke 'danger' jika mau
+            // Cek ke tr_prd (asumsi dari fungsi Anda)
+            if ($product->trPrds()->exists()) {
+                return redirect()->route('product.index')
+                    ->with('danger', 'Gagal hapus: Produk masih digunakan di data PR (tr_prd).');
+            }
+
+            // Cek ke trstockdt
+            if ($product->trstockdts()->exists()) {
+                return redirect()->route('product.index')
+                    ->with('danger', 'Gagal hapus: Produk masih digunakan di data Transaksi Stok (trstockdt).');
+            }
+
+            // 3. Jika semua pengecekan lolos, baru hapus
+            $product->delete();
+
+            return redirect()->route('product.index')
+                ->with('success', 'Produk berhasil dihapus.');
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            // Ini jika findOrFail gagal (produk tidak ditemukan)
+            return redirect()->route('product.index')
+                ->with('danger', 'Produk tidak ditemukan.');
+        } catch (\Exception $e) {
+            // Ini untuk menangkap error tak terduga lainnya
+            return redirect()->route('product.index')
+                ->with('error', 'Gagal menghapus produk: ' . $e->getMessage());
         }
     }
 }
