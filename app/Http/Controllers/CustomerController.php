@@ -189,7 +189,7 @@ class CustomerController extends Controller
             'fwilayah' => 'required', // Validate the Group Produk field
             'fnpwp' => 'required', // Validate the Group Produk field
             'fnik' => 'required', // Validate the Group Produk field
-            'fjadwalmingguan' => 'required|in:Setiap Minggu,Setiap Bulan,Sesuai Permintaan',
+            'fjadwalmingguan' => 'required',
             'fjadwalhari' => 'required|in:1,2,3,4,5,6,7',
             'fkodefp' => 'required',
             'ftelp' => 'required',
@@ -252,7 +252,7 @@ class CustomerController extends Controller
         $customer->update($validated);
 
         return redirect()
-            ->route('customer.index')
+            ->route('customer.edit', $fcustomerid)
             ->with('success', 'Customer berhasil di-update.');
     }
 

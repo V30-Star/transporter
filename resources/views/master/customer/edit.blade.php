@@ -476,9 +476,9 @@
                             name="frekening" id="frekening">
                             <option value="" selected> Pilih Kode Rekening </option>
                             @foreach ($rekening as $rek)
-                                <option value="{{ $rek->frekeningcode }}"
-                                    {{ old('frekening', $customer->frekening) == $rek->frekeningcode ? 'selected' : '' }}>
-                                    {{ $rek->frekeningcode }} - {{ $rek->frekeningname }}
+                                <option value="{{ $rek->frekeningid }}"
+                                    {{ old('frekening', $customer->frekening) == $rek->frekeningid ? 'selected' : '' }}>
+                                    {{ $rek->frekeningname }}
                                 </option>
                             @endforeach
                         </select>
