@@ -342,7 +342,7 @@
 
                     <div>
                         <label class="block text-sm font-medium">Telp</label>
-                        <input type="number"
+                        <input type="text"
                             class="w-full border rounded px-3 py-2 @error('ftelp') is-invalid @enderror" name="ftelp"
                             id="ftelp" placeholder="Masukkan Nomor Telepon" value="{{ old('ftelp') }}">
                         @error('ftelp')
@@ -354,7 +354,7 @@
 
                     <div>
                         <label class="block text-sm font-medium">Fax</label>
-                        <input type="number" class="w-full border rounded px-3 py-2 @error('ffax') is-invalid @enderror"
+                        <input type="text" class="w-full border rounded px-3 py-2 @error('ffax') is-invalid @enderror"
                             name="ffax" id="ffax" placeholder="Masukkan Nomor Fax" value="{{ old('ffax') }}">
                         @error('ffax')
                             <div class="invalid-feedback">
@@ -428,7 +428,7 @@
 
                     <div>
                         <label class="block text-sm font-medium">Kontak Person</label>
-                        <input type="number"
+                        <input type="text"
                             class="w-full border rounded px-3 py-2 @error('fkontakperson') is-invalid @enderror"
                             name="fkontakperson" id="fkontakperson" placeholder="Masukkan Nama Kontak Person"
                             value="{{ old('fkontakperson') }}">
