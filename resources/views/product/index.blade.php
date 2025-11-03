@@ -58,6 +58,7 @@
             </div>
 
             {{-- Table Data Produk --}}
+            {{-- Table Data Produk --}}
             <table id="productTable" class="min-w-full border text-sm">
                 <thead class="bg-gray-100">
                     <tr>
@@ -66,56 +67,18 @@
                         <th class="border px-2 py-2 no-sort">Satuan</th>
                         <th class="border px-2 py-2 no-sort">Stok</th>
                         <th class="border px-2 py-2 no-sort">Status</th>
-                        <th class="border px-2 py-2" data-col="statusRaw">StatusRaw</th>
                         @if ($showActionsColumn)
-                            <th class="border px-2 py-1 col-aksi">Aksi</th>
+                            <th class="border px-2 py-1 col-aksi no-sort">Aksi</th>
                         @endif
                     </tr>
                 </thead>
-                <tbody id="tableBody">
-                    @forelse($products as $item)
-                        <tr class="hover:bg-gray-50">
-                            <td>{{ $item->fprdcode }}</td>
-                            <td>{{ $item->fprdname }}</td>
-                            <td>{{ $item->fsatuankecil }}</td>
-                            <td>{{ $item->fminstock }}</td>
-                            <td>
-                                @php $isActive = (string)$item->fnonactive === '0'; @endphp
-                                <span
-                                    class="inline-flex items-center px-2 py-0.5 rounded text-xs {{ $isActive ? 'bg-green-100 text-green-700' : 'bg-red-200 text-red-700' }}">
-                                    {{ $isActive ? 'Active' : 'Non Active' }}
-                                </span>
-                            </td>
-                            <td>{{ (string) $item->fnonactive }}</td>
-                            @if ($showActionsColumn)
-                                <td class="border px-2 py-1 space-x-2">
-                                    @if ($canEdit)
-                                        <a href="{{ route('product.edit', $item->fprdid) }}">
-                                            <button
-                                                class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
-                                                <x-heroicon-o-pencil-square class="w-4 h-4 mr-1" /> Edit
-                                            </button>
-                                        </a>
-                                    @endif
-                                    @if ($canDelete)
-                                        <button @click="openDelete('{{ route('product.destroy', $item->fprdid) }}')"
-                                            class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
-                                            <x-heroicon-o-trash class="w-4 h-4 mr-1" /> Hapus
-                                        </button>
-                                    @endif
-                                </td>
-                            @endif
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="{{ $showActionsColumn ? 5 : 4 }}" class="text-center py-4">Tidak ada data.</td>
-                        </tr>
-                    @endforelse
+                <tbody>
+                    {{-- Data akan dimuat via AJAX --}}
                 </tbody>
             </table>
 
             {{-- Tombol untuk menampilkan Tabel Stok --}}
-            <div class="mt-4 flex justify-start space-x-2">
+            {{-- <div class="mt-4 flex justify-start space-x-2">
                 <button @click="toggleTable('stok')" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
                     Lihat Stok
                 </button>
@@ -128,10 +91,10 @@
                     Lihat Supplier
                 </button>
 
-            </div>
+            </div> --}}
 
             <!-- Tabel Stok -->
-            <div x-show="activeTable === 'stok'" x-cloak class="mt-4">
+            {{-- <div x-show="activeTable === 'stok'" x-cloak class="mt-4">
                 <h3 class="font-semibold text-xl mb-3">Tabel Stok untuk Produk</h3>
                 <table class="min-w-full border text-sm">
                     <thead class="bg-gray-100">
@@ -153,10 +116,10 @@
                         @endforeach
                     </tbody>
                 </table>
-            </div>
+            </div> --}}
 
             <!-- Tabel Customer -->
-            <div x-show="activeTable === 'customer'" x-cloak class="mt-4">
+            {{-- <div x-show="activeTable === 'customer'" x-cloak class="mt-4">
                 <h3 class="font-semibold text-xl mb-3">Tabel Customer untuk Produk</h3>
                 <table class="min-w-full border text-sm">
                     <thead class="bg-gray-100">
@@ -186,10 +149,10 @@
                         @endforeach
                     </tbody>
                 </table>
-            </div>
+            </div> --}}
 
             <!-- Tabel Supplier -->
-            <div x-show="activeTable === 'supplier'" x-cloak class="mt-4">
+            {{-- <div x-show="activeTable === 'supplier'" x-cloak class="mt-4">
                 <h3 class="font-semibold text-xl mb-3">Tabel Supplier untuk Produk</h3>
                 <table class="min-w-full border text-sm">
                     <thead class="bg-gray-100">
@@ -213,7 +176,7 @@
                         @endforeach
                     </tbody>
                 </table>
-            </div>
+            </div> --}}
 
             {{--  Modal Delete  --}}
             <div x-show="showDeleteModal" x-cloak
@@ -314,40 +277,94 @@
             });
 
             $(function() {
-                // Inisialisasi DataTables
                 const hasActions = {{ $showActionsColumn ? 'true' : 'false' }};
-                const columns = hasActions ? [{
-                        title: 'Kode Product'
+                const canEdit = {{ $canEdit ? 'true' : 'false' }};
+                const canDelete = {{ $canDelete ? 'true' : 'false' }};
+
+                const columnDefs = [{
+                    targets: [2, 3, 4], // Satuan, Stok, Status
+                    orderable: false
+                }];
+
+                const columns = [{
+                        data: 'fprdcode',
+                        name: 'fprdcode'
                     },
                     {
-                        title: 'Nama Product'
+                        data: 'fprdname',
+                        name: 'fprdname'
                     },
                     {
-                        title: 'Satuan'
+                        data: 'fsatuankecil',
+                        name: 'fsatuankecil'
                     },
                     {
-                        title: 'Stok'
+                        data: 'fminstock',
+                        name: 'fminstock'
                     },
                     {
-                        title: 'Aksi',
+                        data: 'status',
+                        name: 'status',
                         orderable: false,
                         searchable: false
                     }
-                ] : [{
-                        title: 'Kode Product'
-                    },
-                    {
-                        title: 'Nama Product'
-                    },
-                    {
-                        title: 'Satuan'
-                    },
-                    {
-                        title: 'Stok'
-                    },
                 ];
 
-                $('#productTable').DataTable({
+                if (hasActions) {
+                    columns.push({
+                        data: 'fprdid',
+                        name: 'actions',
+                        orderable: false,
+                        searchable: false,
+                        render: function(data, type, row) {
+                            let html = '<div class="space-x-2">';
+
+                            if (canEdit) {
+                                html += `<a href="/product/${data}/edit">
+                        <button class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                            </svg>
+                            Edit
+                        </button>
+                    </a>`;
+                            }
+
+                            if (canDelete) {
+                                html += `<button onclick="openDeleteModal('/product/${data}')" 
+                        class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                        Hapus
+                    </button>`;
+                            }
+
+                            html += '</div>';
+                            return html;
+                        }
+                    });
+
+                    columnDefs.push({
+                        targets: -1,
+                        orderable: false,
+                        searchable: false,
+                        width: '120px'
+                    });
+                }
+
+                const table = $('#productTable').DataTable({
+                    processing: true,
+                    serverSide: true,
+                    ajax: {
+                        url: '{{ route('product.index') }}',
+                        type: 'GET',
+                        data: function(d) {
+                            d.status = $('#statusFilterDT').val() || 'active';
+                        }
+                    },
+                    columns: columns,
+                    columnDefs: columnDefs,
                     autoWidth: false,
                     pageLength: 10,
                     lengthMenu: [10, 25, 50, 100],
@@ -355,45 +372,23 @@
                         [0, 'asc']
                     ],
                     layout: {
-                        topStart: 'search', // Search pindah ke kiri
-                        topEnd: 'pageLength', // Length menu pindah ke kanan
+                        topStart: 'search',
+                        topEnd: 'pageLength',
                         bottomStart: 'info',
                         bottomEnd: 'paging'
                     },
-                    columnDefs: [{
-                            targets: 'col-aksi',
-                            orderable: false,
-                            searchable: false,
-                            width: 120
-                        },
-                        {
-                            targets: 'no-sort',
-                            orderable: false
-                        }
-                    ],
                     language: {
-                        lengthMenu: "Show _MENU_ entries"
+                        lengthMenu: "Show _MENU_ entries",
+                        processing: '<div class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading...</div>'
                     },
                     initComplete: function() {
                         const api = this.api();
-
                         const $toolbarSearch = $(api.table().container()).find('.dt-search');
                         const $filter = $('#statusFilterTemplate #statusFilterWrap').clone(true, true);
-
                         const $select = $filter.find('select[data-role="status-filter"]');
+
                         $select.attr('id', 'statusFilterDT');
-
                         $toolbarSearch.append($filter);
-
-                        const statusRawIdx = api.columns().indexes().toArray()
-                            .find(i => $(api.column(i).header()).attr('data-col') === 'statusRaw');
-
-                        if (statusRawIdx === undefined) {
-                            console.warn('Kolom StatusRaw tidak ditemukan.');
-                            return;
-                        }
-
-                        api.column(statusRawIdx).visible(false);
 
                         const $searchInput = $toolbarSearch.find('.dt-input');
                         $searchInput.css({
@@ -401,21 +396,18 @@
                             maxWidth: '100%'
                         });
 
-                        api.column(statusRawIdx).search('^0$', true, false).draw();
-
                         $select.on('change', function() {
-                            const v = this.value;
-                            if (v === 'active') {
-                                api.column(statusRawIdx).search('^0$', true, false).draw();
-                            } else if (v === 'nonactive') {
-                                api.column(statusRawIdx).search('^1$', true, false).draw();
-                            } else {
-                                api.column(statusRawIdx).search('', true, false)
-                                    .draw();
-                            }
+                            table.ajax.reload();
                         });
                     }
                 });
             });
+
+            // Fungsi helper untuk modal delete
+            function openDeleteModal(url) {
+                window.dispatchEvent(new CustomEvent('open-delete', {
+                    detail: url
+                }));
+            }
         </script>
     @endpush

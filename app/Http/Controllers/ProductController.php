@@ -14,28 +14,87 @@ class ProductController extends Controller
 {
     public function index(Request $request)
     {
-        $allowedSorts = ['fprdcode', 'fprdname', 'fsatuankecil', 'fminstock', 'fprdid', 'fnonactive'];
-        $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fprdid';
-        $sortDir = $request->sort_dir === 'asc' ? 'asc' : 'desc';
-        $status = $request->query('status');
+        // Jika request dari DataTables (AJAX)
+        if ($request->ajax()) {
+            $query = Product::query();
 
-        $query = Product::query();
+            // Filter status dari custom filter - PERBAIKAN: simpan query base untuk total
+            $status = $request->input('status');
+            if ($status === 'active') {
+                $query->where('msprd.fnonactive', '0');
+            } elseif ($status === 'nonactive') {
+                $query->where('msprd.fnonactive', '1');
+            }
+            // Default jika status 'all' atau tidak ada, tampilkan semua
 
-        if ($status === 'active') {
-            $query->where('msprd.fnonactive', '0');
-        } elseif ($status === 'nonactive') {
-            $query->where('msprd.fnonactive', '1');
+            // PERBAIKAN: Total records SETELAH filter status (bukan sebelum)
+            $totalRecords = Product::count(); // Total semua data
+            $totalAfterStatusFilter = (clone $query)->count(); // Total setelah filter status
+
+            // Kolom yang bisa dicari
+            $searchableColumns = ['fprdcode', 'fprdname', 'fsatuankecil', 'fminstock'];
+
+            // Pencarian global
+            if ($search = $request->input('search.value')) {
+                $query->where(function ($q) use ($search, $searchableColumns) {
+                    foreach ($searchableColumns as $column) {
+                        $q->orWhere($column, 'like', "%{$search}%");
+                    }
+                });
+            }
+
+            // Total records setelah filter search
+            $filteredRecords = (clone $query)->count();
+
+            // Sorting
+            $orderColumnIndex = $request->input('order.0.column', 0);
+            $orderDir = $request->input('order.0.dir', 'asc');
+            $columns = ['fprdcode', 'fprdname', 'fsatuankecil', 'fminstock', 'fnonactive'];
+
+            if (isset($columns[$orderColumnIndex])) {
+                $query->orderBy($columns[$orderColumnIndex], $orderDir);
+            }
+
+            // Pagination
+            $start = $request->input('start', 0);
+            $length = $request->input('length', 10);
+
+            $products = $query->skip($start)
+                ->take($length)
+                ->get(['fprdcode', 'fprdname', 'fsatuankecil', 'fminstock', 'fprdid', 'fnonactive']);
+
+            // Format data untuk DataTables
+            $data = $products->map(function ($item) {
+                $isActive = (string)$item->fnonactive === '0';
+                $statusBadge = $isActive
+                    ? '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-green-100 text-green-700">Active</span>'
+                    : '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-red-200 text-red-700">Non Active</span>';
+
+                return [
+                    'fprdcode' => $item->fprdcode,
+                    'fprdname' => $item->fprdname,
+                    'fsatuankecil' => $item->fsatuankecil,
+                    'fminstock' => $item->fminstock,
+                    'status' => $statusBadge,
+                    'statusRaw' => (string)$item->fnonactive,
+                    'fprdid' => $item->fprdid,
+                ];
+            });
+
+            return response()->json([
+                'draw' => intval($request->input('draw')),
+                'recordsTotal' => $totalRecords,
+                'recordsFiltered' => $filteredRecords,
+                'data' => $data
+            ]);
         }
 
-        $products = $query
-            ->orderBy($sortBy, $sortDir)
-            ->get(['fprdcode', 'fprdname', 'fsatuankecil', 'fminstock', 'fprdid', 'fnonactive']);
-
+        // Render view untuk non-AJAX request
         $canCreate = in_array('createProduct', explode(',', session('user_restricted_permissions', '')));
         $canEdit   = in_array('updateProduct', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deleteProduct', explode(',', session('user_restricted_permissions', '')));
 
-        return view('product.index', compact('products', 'canCreate', 'canEdit', 'canDelete', 'status'));
+        return view('product.index', compact('canCreate', 'canEdit', 'canDelete'));
     }
 
     public function suggestNames(Request $request)
