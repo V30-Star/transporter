@@ -15,7 +15,7 @@ class CustomerController extends Controller
     // Index method to list all customers with search functionality
     public function index(Request $request)
     {
-        // Ambil permissions dulu, dipakai di kedua mode (AJAX & non-AJAX)
+        // Ambil permissions dulu
         $canCreate = in_array('createCustomer', explode(',', session('user_restricted_permissions', '')));
         $canEdit   = in_array('updateCustomer', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deleteCustomer', explode(',', session('user_restricted_permissions', '')));
@@ -24,11 +24,10 @@ class CustomerController extends Controller
         // --- Handle Request AJAX untuk DataTables ---
         if ($request->ajax()) {
 
-            // Query dasar dengan join
             $query = DB::table('mscustomer')
                 ->leftJoin('mswilayah as w', 'w.fwilayahid', '=', 'mscustomer.fwilayah');
 
-            // Filter Status (dikirim dari custom filter DataTables)
+            // Filter Status
             $status = $request->input('status');
             if ($status === 'active') {
                 $query->where('mscustomer.fnonactive', '0');
@@ -36,17 +35,14 @@ class CustomerController extends Controller
                 $query->where('mscustomer.fnonactive', '1');
             }
 
-            // Total records (sebelum filtering search dll)
-            // Hitung dari tabel utama saja agar cepat
             $totalRecords = DB::table('mscustomer')->count();
 
             // Kolom yang bisa dicari
-            // Penting: Gunakan alias tabel (mscustomer. dan w.) karena ada JOIN
             $searchableColumns = [
                 'mscustomer.fcustomercode',
                 'mscustomer.fcustomername',
                 'mscustomer.faddress',
-                'w.fwilayahname' // Cari di nama wilayah
+                'w.fwilayahname'
             ];
 
             // Handle Search
@@ -58,14 +54,11 @@ class CustomerController extends Controller
                 });
             }
 
-            // Total records setelah filter (status dan search)
             $filteredRecords = (clone $query)->count();
 
             // Sorting
             $orderColumnIndex = $request->input('order.0.column', 0);
             $orderDir = $request->input('order.0.dir', 'asc');
-
-            // Sesuaikan urutan array ini dengan kolom di view DataTables Anda
             $columns = [
                 0 => 'mscustomer.fcustomercode',
                 1 => 'mscustomer.fcustomername',
@@ -73,21 +66,19 @@ class CustomerController extends Controller
                 3 => 'mscustomer.faddress',
                 4 => 'mscustomer.ftempo',
                 5 => 'mscustomer.fnonactive',
-                6 => null // Kolom 'Actions' tidak bisa di-sort
+                6 => null // Kolom 'Actions'
             ];
 
             if (isset($columns[$orderColumnIndex]) && $columns[$orderColumnIndex] !== null) {
                 $query->orderBy($columns[$orderColumnIndex], $orderDir);
             } else {
-                // Default sort jika kolom tidak valid
                 $query->orderBy('mscustomer.fcustomercode', 'asc');
             }
 
             // Pagination
             $start = $request->input('start', 0);
             $length = $request->input('length', 10);
-
-            if ($length != -1) { // Handle "Show All"
+            if ($length != -1) {
                 $query->skip($start)->take($length);
             }
 
@@ -102,26 +93,16 @@ class CustomerController extends Controller
                 'w.fwilayahname as wilayah_name'
             )->get();
 
-            // Format data untuk DataTables
-            $data = $customers->map(function ($customer) use ($canEdit, $canDelete) {
+            // --- PERUBAHAN UTAMA DI SINI ---
+            // Format data untuk DataTables (Pola JS Render)
+            $data = $customers->map(function ($customer) {
                 $isActive = (string)$customer->fnonactive === '0';
                 $statusBadge = $isActive
                     ? '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-green-100 text-green-700">Active</span>'
                     : '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-red-200 text-red-700">Non Active</span>';
 
-                // Buat tombol actions
-                $actions = '';
-                if ($canEdit) {
-                    // Ganti 'customer.edit' dengan nama route Anda
-                    $editUrl = route('customer.edit', $customer->fcustomerid);
-                    $actions .= '<a href="' . $editUrl . '" class="text-indigo-600 hover:text-indigo-900 mr-3">Edit</a>';
-                }
-                if ($canDelete) {
-                    // Ganti dengan logic delete Anda (misal: tombol modal)
-                    $actions .= '<button type-"button" class="text-red-600 hover:text-red-900" 
-                                        onclick="deleteCustomer(' . $customer->fcustomerid . ')">Delete</button>';
-                }
-
+                // Kita TIDAK buat $actions di sini.
+                // Kita hanya kirim ID-nya.
                 return [
                     'fcustomercode' => $customer->fcustomercode,
                     'fcustomername' => $customer->fcustomername,
@@ -129,10 +110,11 @@ class CustomerController extends Controller
                     'faddress'      => $customer->faddress,
                     'ftempo'        => $customer->ftempo,
                     'status'        => $statusBadge,
-                    'actions'       => $actions,
-                    'DT_RowId'      => 'row_' . $customer->fcustomerid // Opsional, tapi bagus untuk DataTables
+                    'fcustomerid'   => $customer->fcustomerid, // KIRIM ID INI
+                    'DT_RowId'      => 'row_' . $customer->fcustomerid
                 ];
             });
+            // --- AKHIR PERUBAHAN ---
 
             // Kirim response JSON
             return response()->json([
@@ -144,9 +126,8 @@ class CustomerController extends Controller
         }
 
         // --- Handle Request non-AJAX (Saat load halaman pertama kali) ---
-        $status = $request->query('status'); // Untuk default value filter dropdown
+        $status = $request->query('status');
 
-        // Hanya render view. Data akan diambil via AJAX.
         return view('master.customer.index', compact(
             'canCreate',
             'canEdit',
