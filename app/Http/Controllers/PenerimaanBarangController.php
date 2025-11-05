@@ -24,24 +24,111 @@ class PenerimaanBarangController extends Controller
 {
   public function index(Request $request)
   {
-    // Sorting
-    $allowedSorts = ['fstockmtid', 'fstockmtno', 'fstockmtcode', 'fstockmtdate'];
-    $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fstockmtid';
-    $sortDir = $request->sort_dir === 'asc' ? 'asc' : 'desc';
+    // --- 1. PERBAIKAN PERMISSIONS ---
+    // Saya asumsikan ini nama permission yang benar untuk modul ini
+    $canCreate = in_array('createPenerimaanBarang', explode(',', session('user_restricted_permissions', '')));
+    $canEdit   = in_array('updatePenerimaanBarang', explode(',', session('user_restricted_permissions', '')));
+    $canDelete = in_array('deletePenerimaanBarang', explode(',', session('user_restricted_permissions', '')));
+    $showActionsColumn = $canEdit || $canDelete; // Anda bisa tambahkan $canPrint jika ada
 
-    $query = PenerimaanPembelianHeader::query();
+    // --- 2. Handle Request AJAX dari DataTables ---
+    if ($request->ajax()) {
 
-    $penerimaanbarang = PenerimaanPembelianHeader::where('fstockmtcode', 'RCV')
-    ->orderBy($sortBy, $sortDir)
-    ->get(['fstockmtid', 'fstockmtno', 'fstockmtcode', 'fstockmtdate']);
+      // Query dasar HANYA untuk 'RCV' (Receiving)
+      $query = PenerimaanPembelianHeader::where('fstockmtcode', 'RCV');
 
-    $canCreate = in_array('createTr_prh', explode(',', session('user_restricted_permissions', '')));
-    $canEdit   = in_array('updateTr_prh', explode(',', session('user_restricted_permissions', '')));
-    $canDelete = in_array('deleteTr_prh', explode(',', session('user_restricted_permissions', '')));
+      // Total records (dengan filter 'RCV')
+      $totalRecords = PenerimaanPembelianHeader::where('fstockmtcode', 'RCV')->count();
 
-    return view('penerimaanbarang.index', compact('penerimaanbarang', 'canCreate', 'canEdit', 'canDelete'));
+      // Handle Search (cari di No. Penerimaan)
+      if ($search = $request->input('search.value')) {
+        $query->where('fstockmtno', 'like', "%{$search}%");
+      }
+
+      // Total records setelah filter search
+      $filteredRecords = (clone $query)->count();
+
+      // Handle Sorting
+      $orderColIdx = $request->input('order.0.column', 0);
+      $orderDir = $request->input('order.0.dir', 'asc');
+      // Kolom di tabel: 0 = fstockmtno, 1 = fstockmtdate
+      $sortableColumns = ['fstockmtno', 'fstockmtdate'];
+
+      if (isset($sortableColumns[$orderColIdx])) {
+        $query->orderBy($sortableColumns[$orderColIdx], $orderDir);
+      } else {
+        $query->orderBy('fstockmtid', 'desc'); // Default sort
+      }
+
+      // Handle Paginasi
+      $start = $request->input('start', 0);
+      $length = $request->input('length', 10);
+      $records = $query->skip($start)
+        ->take($length)
+        ->get(['fstockmtid', 'fstockmtno', 'fstockmtdate']); // fstockmtcode tidak perlu, krn sudah pasti RCV
+
+      // Format Data (Tombol dibuat di sini)
+      $data = $records->map(function ($row) use ($canEdit, $canDelete) {
+
+        $actions = '';
+
+        // --- Tombol Edit ---
+        // if ($canEdit) {
+        // Asumsi route edit Anda: penerimaanbarang.edit
+        $editUrl = route('penerimaanbarang.edit', $row->fstockmtid);
+        $actions .= ' <a href="' . $editUrl . '" class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                    </svg> Edit
+                                </a>';
+        // }
+
+        // --- Tombol Delete ---
+        // if ($canDelete) {
+        // Asumsi route destroy Anda: penerimaanbarang.destroy
+        $deleteUrl = route('penerimaanbarang.destroy', $row->fstockmtid);
+        $actions .= ' <button onclick="$dispatch(\'open-delete\', \'' . $deleteUrl . '\')" class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                    </svg> Delete
+                                </button>';
+        // }
+
+        // --- Tombol Print ---
+        // Asumsi route print Anda: penerimaanbarang.print
+        $printUrl = route('penerimaanbarang.print', ['fstockmtno' => $row->fstockmtno]);
+        $actions .= ' <a href="' . $printUrl . '" target="_blank" class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m10 0v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5m10 0v5H7v-5"></path>
+                                </svg> Print
+                            </a>';
+
+
+        return [
+          'fstockmtno'   => $row->fstockmtno,
+          // Format tanggal agar rapi di tabel
+          'fstockmtdate' => Carbon::parse($row->fstockmtdate)->format('d/m/Y'),
+          'actions'      => $actions
+        ];
+      });
+
+      // 9. Kirim Response JSON
+      return response()->json([
+        'draw'            => intval($request->input('draw')),
+        'recordsTotal'    => $totalRecords,
+        'recordsFiltered' => $filteredRecords,
+        'data'            => $data
+      ]);
+    }
+
+    // --- 3. Handle Request non-AJAX (Saat load halaman) ---
+    return view('penerimaanbarang.index', compact(
+      'canCreate',
+      'canEdit',
+      'canDelete',
+      'showActionsColumn'
+    ));
   }
-
   public function pickable(Request $request)
   {
     $search   = trim($request->get('search', ''));
@@ -184,7 +271,7 @@ class PenerimaanBarangController extends Controller
         'trstockmt.*',
         's.fsuppliername as supplier_name',
         'c.fcabangname as cabang_name',
-        'w.fwhname as fwhnamen',  
+        'w.fwhname as fwhnamen',
       ]);
 
     if (!$hdr) {
@@ -850,7 +937,7 @@ class PenerimaanBarangController extends Controller
         'famountmt_rp'     => round($grandTotal * $frate, 2),
         'famountremain'    => round($grandTotal, 2),
         'famountremain_rp' => round($grandTotal * $frate, 2),
-        'ffrom'            => $ffrom, 
+        'ffrom'            => $ffrom,
         'fket'             => $fket,
         'fuserid'          => $userid,
         'fbranchcode'      => $kodeCabang,

@@ -21,20 +21,89 @@ class Tr_prhController extends Controller
 {
   public function index(Request $request)
   {
-    // Sorting
-    $allowedSorts = ['fprid', 'fprno', 'fprdin'];
-    $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fprid';
-    $sortDir = $request->sort_dir === 'asc' ? 'asc' : 'desc';
-
-    $query = Tr_prh::query();
-
-    $tr_prh = Tr_prh::orderBy($sortBy, $sortDir)->get(['fprid', 'fprno', 'fprdin']);
-
+    // Ambil izin (permissions) di awal
     $canCreate = in_array('createTr_prh', explode(',', session('user_restricted_permissions', '')));
     $canEdit   = in_array('updateTr_prh', explode(',', session('user_restricted_permissions', '')));
     $canDelete = in_array('deleteTr_prh', explode(',', session('user_restricted_permissions', '')));
+    $showActionsColumn = $canEdit || $canDelete;
 
-    return view('tr_prh.index', compact('tr_prh', 'canCreate', 'canEdit', 'canDelete'));
+    // --- Handle Request AJAX dari DataTables ---
+    if ($request->ajax()) {
+
+      $query = Tr_prh::query();
+      $totalRecords = Tr_prh::count();
+
+      // Kolom yang bisa dicari
+      $searchableColumns = ['fprno', 'fprdin'];
+
+      // Handle Search
+      if ($search = $request->input('search.value')) {
+        $query->where(function ($q) use ($search, $searchableColumns) {
+          foreach ($searchableColumns as $column) {
+            $q->orWhere($column, 'like', "%{$search}%");
+          }
+        });
+      }
+
+      $filteredRecords = (clone $query)->count();
+
+      // Sorting
+      $orderColumnIndex = $request->input('order.0.column', 0);
+      $orderDir = $request->input('order.0.dir', 'asc');
+
+      // Sesuaikan array ini dengan urutan <th> di view Anda
+      $columns = [
+        0 => 'fprno',
+        1 => 'fprdin',
+        2 => null // Kolom 'Actions'
+      ];
+
+      if (isset($columns[$orderColumnIndex]) && $columns[$orderColumnIndex] !== null) {
+        $query->orderBy($columns[$orderColumnIndex], $orderDir);
+      } else {
+        $query->orderBy('fprid', 'desc');
+      }
+
+      // Pagination
+      $start = $request->input('start', 0);
+      $length = $request->input('length', 10);
+      if ($length != -1) {
+        $query->skip($start)->take($length);
+      }
+
+      // Select kolom yang dibutuhkan
+      $records = $query->get(['fprid', 'fprno', 'fprdin']);
+
+      // --- PERUBAHAN DI SINI ---
+      // Format data untuk DataTables
+      $data = $records->map(function ($record) {
+        // Kita tidak lagi membuat HTML 'actions' di sini.
+        // Kita hanya mengirim 'fprid' agar bisa dipakai oleh
+        // fungsi 'render' di JavaScript.
+        return [
+          'fprno'    => $record->fprno,
+          'fprdin'   => $record->fprdin, // Format tanggal jika perlu
+          'fprid'    => $record->fprid,  // KIRIM ID UNTUK TOMBOL AKSI
+          'DT_RowId' => 'row_' . $record->fprid
+        ];
+      });
+
+      // Kirim response JSON
+      return response()->json([
+        'draw'            => intval($request->input('draw')),
+        'recordsTotal'    => $totalRecords,
+        'recordsFiltered' => $filteredRecords,
+        'data'            => $data
+      ]);
+    }
+
+    // --- Handle Request non-AJAX ---
+    return view('tr_prh.index', compact(
+      'canCreate',
+      'canEdit',
+      'canDelete',
+      'showActionsColumn'
+    ));
   }
 
   private function generatetr_prh_Code(?Carbon $onDate = null, $branch = null): string

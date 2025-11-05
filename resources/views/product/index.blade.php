@@ -58,7 +58,6 @@
             </div>
 
             {{-- Table Data Produk --}}
-            {{-- Table Data Produk --}}
             <table id="productTable" class="min-w-full border text-sm">
                 <thead class="bg-gray-100">
                     <tr>

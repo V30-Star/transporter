@@ -55,38 +55,6 @@
                 </tr>
             </thead>
             <tbody>
-                @forelse($tr_prh as $item)
-                    <tr>
-                        <td>{{ $item->fprid }}</td>
-                        <td>{{ $item->fprno }}</td>
-                        <td class="border px-2 py-1 space-x-2">
-                            @if ($canEdit)
-                                <a href="{{ route('tr_prh.edit', $item->fprid) }}">
-                                    <button
-                                        class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
-                                        <x-heroicon-o-pencil-square class="w-4 h-4 mr-1" /> Edit
-                                    </button>
-                                </a>
-                            @endif
-
-                            @if ($canDelete)
-                                <button @click="openDelete('{{ route('tr_prh.destroy', $item->fprid) }}')"
-                                    class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
-                                    <x-heroicon-o-trash class="w-4 h-4 mr-1" /> Hapus
-                                </button>
-                            @endif
-
-                            <a href="{{ route('tr_prh.print', $item->fprno) }}" target="_blank" rel="noopener"
-                                class="inline-flex items-center px-3 py-1 rounded bg-gray-100 hover:bg-gray-200">
-                                <x-heroicon-o-printer class="w-4 h-4 mr-1" /> Print
-                            </a>
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="{{ $showActionsColumn ? 3 : 2 }}" class="text-center py-4">Tidak ada data.</td>
-                    </tr>
-                @endforelse
             </tbody>
         </table>
 
@@ -183,98 +151,129 @@
     {{-- jQuery + DataTables JS (CDN) --}}
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.datatables.net/2.1.6/js/dataTables.min.js"></script>
+
     <script>
         document.addEventListener('alpine:init', () => {
             /* no-op */
         });
 
+        // --- FUNGSI HELPER UNTUK MODAL DELETE ---
+        // (Dibutuhkan oleh tombol 'Hapus' yang di-render)
+        function openDeleteModal(url) {
+            window.dispatchEvent(new CustomEvent('open-delete', {
+                detail: url
+            }));
+        }
+
         $(function() {
-            // Inisialisasi DataTables
+            // Ambil variabel izin dari Blade
             const hasActions = {{ $showActionsColumn ? 'true' : 'false' }};
-            const columns = hasActions ? [{
-                    title: 'ID PR'
+            const canEdit = {{ $canEdit ? 'true' : 'false' }};
+            const canDelete = {{ $canDelete ? 'true' : 'false' }};
+
+            // --- 1. Definisi columnDefs ---
+            // Kita hanya perlu menonaktifkan sort di kolom 'fprdin' (index 1)
+            // Kolom Aksi akan ditambahkan di bawah
+            const columnDefs = [{
+                targets: [1], // Target 'fprdin'
+                orderable: false
+            }];
+
+            // --- 2. Definisi Kolom ---
+            // 'data' harus cocok dengan key JSON dari Controller baru
+            const columns = [{
+                    data: 'fprno',
+                    name: 'fprno'
                 },
                 {
-                    title: 'No. PR'
-                },
-                {
-                    title: 'Aksi',
-                    orderable: false,
-                    searchable: false
-                }
-            ] : [{
-                    title: 'ID PR'
-                },
-                {
-                    title: 'No. PR'
+                    data: 'fprdin',
+                    name: 'fprdin'
                 }
             ];
 
-            $('#tr_prhTable').DataTable({
+            // --- 3. Tambahkan Kolom Aksi (Gaya Product) ---
+            if (hasActions) {
+                columns.push({
+                    data: 'fprid', // Ambil 'fprid' dari controller
+                    name: 'actions',
+                    orderable: false,
+                    searchable: false,
+                    // Gunakan 'render' untuk membuat HTML tombol
+                    render: function(data, type, row) {
+                        let html = '<div class="space-x-2">';
+
+                        if (canEdit) {
+                            html += `<a href="/product/${data}/edit">
+                        <button class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                            </svg>
+                            Edit
+                        </button>
+                    </a>`;
+                        }
+
+                        if (canDelete) {
+                            html += `<button onclick="openDeleteModal('/product/${data}')" 
+                        class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                        Hapus
+                    </button>`;
+                        }
+
+                        html += '</div>';
+                        return html;
+                    }
+                });
+
+                // Tambahkan definisi untuk kolom Aksi (target: -1 artinya kolom terakhir)
+                columnDefs.push({
+                    targets: -1,
+                    orderable: false,
+                    searchable: false,
+                    width: '120px' // Sesuaikan
+                });
+            }
+
+            // --- 4. Inisialisasi DataTables ---
+            const table = $('#tr_prhTable').DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: {
+                    url: '{{ route('tr_prh.index') }}',
+                    type: 'GET',
+                    data: function(d) {
+                        // Tidak ada filter status
+                    }
+                },
+                columns: columns,
+                columnDefs: columnDefs, // Terapkan definisi kolom
                 autoWidth: false,
                 pageLength: 10,
                 lengthMenu: [10, 25, 50, 100],
                 order: [
-                    [0, 'asc']
+                    [0, 'asc'] // Default order by 'fprno'
                 ],
                 layout: {
-                    topStart: 'search', // Search pindah ke kiri
-                    topEnd: 'pageLength', // Length menu pindah ke kanan
+                    topStart: 'search',
+                    topEnd: 'pageLength',
                     bottomStart: 'info',
                     bottomEnd: 'paging'
                 },
-                columnDefs: [{
-                        targets: 'col-aksi',
-                        orderable: false,
-                        searchable: false,
-                        width: 120
-                    },
-                    {
-                        targets: 'no-sort',
-                        orderable: false
-                    }
-                ],
                 language: {
-                    lengthMenu: "Show _MENU_ entries"
+                    lengthMenu: "Show _MENU_ entries",
+                    processing: '<div class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading...</div>'
                 },
                 initComplete: function() {
+                    // Hapus filter status, hanya atur lebar search
                     const api = this.api();
-
                     const $toolbarSearch = $(api.table().container()).find('.dt-search');
-                    const $filter = $('#statusFilterTemplate #statusFilterWrap').clone(true, true);
-
-                    const $select = $filter.find('select[data-role="status-filter"]');
-                    $select.attr('id', 'statusFilterDT');
-
-                    $toolbarSearch.append($filter);
-
-                    const statusRawIdx = api.columns().indexes().toArray()
-                        .find(i => $(api.column(i).header()).attr('data-col') === 'statusRaw');
-
-                    if (statusRawIdx === undefined) {
-                        console.warn('Kolom StatusRaw tidak ditemukan.');
-                        return;
-                    }
-
-                    api.column(statusRawIdx).visible(false);
-
                     const $searchInput = $toolbarSearch.find('.dt-input');
                     $searchInput.css({
                         width: '400px',
                         maxWidth: '100%'
-                    });
-
-                    api.column(statusRawIdx).search('^0$', true, false).draw();
-
-                    $select.on('change', function() {
-                        const v = this.value;
-                        if (v === 'active') {
-                            api.column(statusRawIdx).search('^0$', true, false).draw();
-                        } else if (v === 'nonactive') {
-                            api.column(statusRawIdx).search('^1$', true, false).draw();
-                        } else {
-                            api.column(statusRawIdx).search('', true, false).draw(); // all
-                        }
                     });
                 }
             });

@@ -44,67 +44,21 @@
             </div>
         </div>
 
-        {{-- Table --}}
         <table id="tr_pohTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
                     <th class="border px-2 py-1">No. PO</th>
+                    <th class="border px-2 py-1">Supplier ID</th> {{-- Sesuai data simpel (bukan nama) --}}
                     <th class="border px-2 py-1">Tanggal</th>
-                    <th class="border px-2 py-1">Kode Supplier</th>
-                    <th class="border px-2 py-1">Nama Supplier</th>
-                    <th class="border px-2 py-1">Total Harga</th>
-                    <th class="border px-2 py-1">Status</th>
-                    <th class="border px-2 py-1">User ID</th>
+
                     {{-- @if ($showActionsColumn) --}}
-                    <th class="border px-2 py-1 col-aksi">Aksi</th>
+                        <th class="border px-2 py-1 col-aksi">Aksi</th>
                     {{-- @endif --}}
                 </tr>
             </thead>
             <tbody>
-                @forelse($tr_poh as $item)
-                    <tr>
-                        <td class="border px-2 py-1">{{ $item->fpono }}</td>
-                        <td class="border px-2 py-1">
-                            {{ \Carbon\Carbon::parse($item->fpodate)->format('d-m-Y') }}
-                        </td>
-                        <td class="border px-2 py-1">{{ $item->fsupplier }}</td>
-                        <td class="border px-2 py-1">{{ $item->fsuppliername }}</td>
-                        <td class="border px-2 py-1">
-                            Rp {{ number_format((float) ($item->famountpo ?? 0), 2, ',', '.') }}
-                        </td>
-                        <td class="border px-2 py-1">-</td>
-                        <td class="border px-2 py-1">{{ $item->fuserid }}</td>
-
-                        {{-- @if ($showActionsColumn) --}}
-                        <td class="border px-2 py-1 space-x-2">
-                            {{-- @if ($canEdit) --}}
-                            <a href="{{ route('tr_poh.edit', $item->fpohdid) }}">
-                                <button
-                                    class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
-                                    <x-heroicon-o-pencil-square class="w-4 h-4 mr-1" /> Edit
-                                </button>
-                            </a>
-                            {{-- @endif --}}
-
-                            {{-- @if ($canDelete) --}}
-                            <button @click="openDelete('{{ route('tr_poh.destroy', $item->fpohdid) }}')"
-                                class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
-                                <x-heroicon-o-trash class="w-4 h-4 mr-1" /> Hapus
-                            </button>
-                            {{-- @endif --}}
-
-                            <a href="{{ route('tr_poh.print', $item->fpono) }}" target="_blank" rel="noopener"
-                                class="inline-flex items-center px-3 py-1 rounded bg-gray-100 hover:bg-gray-200">
-                                <x-heroicon-o-printer class="w-4 h-4 mr-1" /> Print
-                            </a>
-                        </td>
-                        {{-- @endif --}}
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="{{ $showActionsColumn ? 8 : 7 }}" class="text-center py-4">Tidak ada data.</td>
-                    </tr>
-                @endforelse
+                {{-- KOSONGKAN BAGIAN INI --}}
+                {{-- DataTables akan mengisinya secara otomatis --}}
             </tbody>
         </table>
 
@@ -201,129 +155,61 @@
     {{-- jQuery + DataTables JS (CDN) --}}
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.datatables.net/2.1.6/js/dataTables.min.js"></script>
+
     <script>
-        document.addEventListener('alpine:init', () => {
-            /* no-op */
-        });
-
         $(function() {
-            // Inisialisasi DataTables
+            // Ambil dari Blade untuk menentukan jumlah kolom
             const hasActions = {{ $showActionsColumn ? 'true' : 'false' }};
-            const columns = hasActions ? [{
-                    title: 'No. PO'
-                },
-                {
-                    title: 'Tanggal'
-                },
-                {
-                    title: 'Kode Supplier'
-                },
-                {
-                    title: 'Nama Supplier'
-                },
-                {
-                    title: 'Total Harga'
-                },
-                {
-                    title: 'Status'
-                },
-                {
-                    title: 'User ID'
-                },
-                {
-                    title: 'Aksi',
-                    orderable: false,
-                    searchable: false
-                }
-            ] : [{
-                    title: 'No. PO'
-                },
-                {
-                    title: 'Tanggal'
-                },
-                {
-                    title: 'Kode Supplier'
-                },
-                {
-                    title: 'Nama Supplier'
-                },
-                {
-                    title: 'Total Harga'
-                },
-                {
-                    title: 'Status'
-                },
-                {
-                    title: 'User ID'
-                }
-            ];
 
+            // 1. Definisi Kolom (Sangat Penting)
+            // 'data' harus cocok dengan key JSON dari Controller
+
+            // --- INI BAGIAN YANG DIPERBAIKI ---
+            const columns = [{
+                    data: 'fpono'
+                }, // data dari 'fpono'
+                {
+                    data: 'fsupplier'
+                }, // data dari 'fsupplier'
+                {
+                    data: 'fpodate'
+                } // data dari 'fpodate'
+            ];
+            // ---------------------------------
+
+            // 2. Tambah Kolom Aksi (jika ada izin)
+            // if (hasActions) {
+                columns.push({
+                    data: 'actions', // data dari 'actions'
+                    orderable: false, // tidak bisa di-sort
+                    searchable: false // tidak bisa di-search
+                });
+            // }    
+
+            // 3. Inisialisasi DataTables
             $('#tr_pohTable').DataTable({
-                autoWidth: false,
-                pageLength: 10,
-                lengthMenu: [10, 25, 50, 100],
+                // --- KUNCI SERVER-SIDE ---
+                processing: true, // Tampilkan 'Loading...'
+                serverSide: true, // Aktifkan mode SSP
+
+                // Ambil data dari route ini
+                ajax: '{{ route('tr_poh.index') }}',
+                // -------------------------
+
+                // Terapkan kolom dari langkah 1 & 2
+                columns: columns,
+
+                // Urutkan berdasarkan kolom pertama (No. PO)
                 order: [
-                    [0, 'asc']
+                    [0, 'desc']
                 ],
+
+                // Tampilkan elemen standar
                 layout: {
-                    topStart: 'search', // Search pindah ke kiri
-                    topEnd: 'pageLength', // Length menu pindah ke kanan
+                    topStart: 'search',
+                    topEnd: 'pageLength',
                     bottomStart: 'info',
                     bottomEnd: 'paging'
-                },
-                columnDefs: [{
-                        targets: 'col-aksi',
-                        orderable: false,
-                        searchable: false,
-                        width: 120
-                    },
-                    {
-                        targets: 'no-sort',
-                        orderable: false
-                    }
-                ],
-                language: {
-                    lengthMenu: "Show _MENU_ entries"
-                },
-                initComplete: function() {
-                    const api = this.api();
-
-                    const $toolbarSearch = $(api.table().container()).find('.dt-search');
-                    const $filter = $('#statusFilterTemplate #statusFilterWrap').clone(true, true);
-
-                    const $select = $filter.find('select[data-role="status-filter"]');
-                    $select.attr('id', 'statusFilterDT');
-
-                    $toolbarSearch.append($filter);
-
-                    const statusRawIdx = api.columns().indexes().toArray()
-                        .find(i => $(api.column(i).header()).attr('data-col') === 'statusRaw');
-
-                    if (statusRawIdx === undefined) {
-                        console.warn('Kolom StatusRaw tidak ditemukan.');
-                        return;
-                    }
-
-                    api.column(statusRawIdx).visible(false);
-
-                    const $searchInput = $toolbarSearch.find('.dt-input');
-                    $searchInput.css({
-                        width: '400px',
-                        maxWidth: '100%'
-                    });
-
-                    api.column(statusRawIdx).search('^0$', true, false).draw();
-
-                    $select.on('change', function() {
-                        const v = this.value;
-                        if (v === 'active') {
-                            api.column(statusRawIdx).search('^0$', true, false).draw();
-                        } else if (v === 'nonactive') {
-                            api.column(statusRawIdx).search('^1$', true, false).draw();
-                        } else {
-                            api.column(statusRawIdx).search('', true, false).draw(); // all
-                        }
-                    });
                 }
             });
         });

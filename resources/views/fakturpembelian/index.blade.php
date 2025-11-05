@@ -46,297 +46,175 @@
         </div>
 
         {{-- Table --}}
-        <table id="tr_prhTable" class="min-w-full border text-sm">
+        {{-- GANTI TABEL ANDA DENGAN INI --}}
+        <table id="fakturpembelianTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
-                    <th>ID Penerimaan Barang</th>
-                    <th>oid</th>
-                    <th>fstockmtno</th>
-                    <th>fstockmtcode</th>
-                    <th>Type</th>
-                    <th>fprdout</th>
-                    <th>fsupplier</th>
-                    <th>fcurrency</th>
-                    <th>frate</th>
-                    <th>famountremain</th>
-                    <th>famountremain_pr</th>
-                    <th>famount</th>
-                    <th>famount_rp</th>
-                    <th>famountpajak</th>
-                    <th>famountmt</th>
-                    <th class="border px-2 py-2 col-aksi">Aksi</th>
+                    <th class="border px-2 py-1">No. Faktur</th>
+                    <th class="border px-2 py-1">Tanggal</th>
+                    <th class="border px-2 py-1">Tipe Beli</th>
+
+                    {{-- @if ($showActionsColumn) --}}
+                        <th class="border px-2 py-1 col-aksi">Aksi</th>
+                    {{-- @endif --}}
                 </tr>
             </thead>
             <tbody>
-                @forelse($fakturpembelian as $item)
-                    <tr>
-                        <td>{{ $item->fstockmtid }}</td>
-                        <td>{{ $item->fstockmtno }}</td>
-                        <td>{{ $item->fstockmtcode }}</td>
-                        <td>{{ $item->fstockmtdate }}</td>
-                        <td>
-                            @php
-                                // Definisikan class dasarnya di sini
-                                $baseClass = 'inline-block px-2.5 py-0.5 rounded-full text-xs font-medium';
-                            @endphp
+                {{-- KOSONGKAN BAGIAN INI --}}
+            </tbody>
+        </table>
 
-                            @switch($item->ftypebuy)
-                                @case('0')
-                                    {{-- Stok --}}
-                                    <span class="{{ $baseClass }} bg-blue-100 text-blue-800">
-                                        Stok
-                                    </span>
-                                @break
+        {{-- Modal Delete --}}
+        <div x-show="showDeleteModal" x-cloak
+            class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div @click.away="closeDelete()" class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
+                <h3 class="text-lg font-semibold mb-4">Konfirmasi Hapus</h3>
+                <p class="mb-6">Apakah Anda yakin ingin menghapus data ini?</p>
 
-                                @case('1')
-                                    {{-- Non Stok --}}
-                                    <span class="{{ $baseClass }} bg-yellow-100 text-yellow-800">
-                                        Non Stok
-                                    </span>
-                                @break
-
-                                @case('2')
-                                    {{-- Uang Muka --}}
-                                    <span class="{{ $baseClass }} bg-green-100 text-green-800">
-                                        Uang Muka
-                                    </span>
-                                @break
-
-                                @default
-                                    {{-- Default / N/A --}}
-                                    <span class="{{ $baseClass }} bg-gray-100 text-gray-800">
-                                        N/A
-                                    </span>
-                            @endswitch
-                        </td>
-                        <td>{{ $item->fprno }}</td>
-                        <td>{{ $item->fprno }}</td>
-                        <td>{{ $item->fprno }}</td>
-                        <td>{{ $item->fprno }}</td>
-                        <td>{{ $item->fprno }}</td>
-                        <td>{{ $item->fprno }}</td>
-                        <td>{{ $item->fprno }}</td>
-                        <td>{{ $item->fprno }}</td>
-                        <td>{{ $item->fprno }}</td>
-                        <td>{{ $item->fprno }}</td>
-                        <td class="border px-2 py-1 space-x-2">
-                            {{-- @if ($canEdit) --}}
-                            <a href="{{ route('fakturpembelian.edit', $item->fstockmtid) }}"> <button
-                                    class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
-                                    <x-heroicon-o-pencil-square class="w-4 h-4 mr-1" /> Edit
-                                </button>
-                            </a>
-                            {{-- @endif --}}
-
-                            {{-- @if ($canDelete) --}}
-                            <button @click="openDelete('{{ route('fakturpembelian.destroy', $item->fstockmtid) }}')"
-                                class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
-                                <x-heroicon-o-trash class="w-4 h-4 mr-1" /> Hapus
-                            </button>
-                            {{-- @endif --}}
-
-                            <a href="{{ route('fakturpembelian.print', $item->fstockmtno) }}" target="_blank"
-                                rel="noopener"
-                                class="inline-flex items-center px-3 py-1 rounded bg-gray-100 hover:bg-gray-200">
-                                <x-heroicon-o-printer class="w-4 h-4 mr-1" /> Print
-                            </a>
-                        </td>
-                    </tr>
-                    @empty
-                        {{-- <tr>
-                        <td colspan="{{ $showActionsColumn ? 3 : 2 }}" class="text-center py-4">Tidak ada data.</td>
-                    </tr> --}}
-                    @endforelse
-                </tbody>
-            </table>
-
-            {{-- Modal Delete --}}
-            <div x-show="showDeleteModal" x-cloak
-                class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                <div @click.away="closeDelete()" class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
-                    <h3 class="text-lg font-semibold mb-4">Konfirmasi Hapus</h3>
-                    <p class="mb-6">Apakah Anda yakin ingin menghapus data ini?</p>
-
-                    <div class="flex justify-end space-x-2">
-                        <button @click="closeDelete()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Batal</button>
-                        <form :action="deleteUrl" method="POST" class="inline">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit"
-                                class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Hapus</button>
-                        </form>
-                    </div>
+                <div class="flex justify-end space-x-2">
+                    <button @click="closeDelete()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Batal</button>
+                    <form :action="deleteUrl" method="POST" class="inline">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit"
+                            class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Hapus</button>
+                    </form>
                 </div>
             </div>
         </div>
-    @endsection
+    </div>
+@endsection
 
-    @push('styles')
-        <link rel="stylesheet" href="https://cdn.datatables.net/2.1.6/css/dataTables.dataTables.min.css">
-        <style>
-            /* Tata letak kontrol */
-            .dt-container .dt-length,
-            .dt-container .dt-search {
-                display: flex;
-                align-items: center;
-                gap: .5rem;
-            }
+@push('styles')
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.1.6/css/dataTables.dataTables.min.css">
+    <style>
+        /* Tata letak kontrol */
+        .dt-container .dt-length,
+        .dt-container .dt-search {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+        }
 
-            .dt-container .dt-length .dt-input {
-                width: 4.5rem;
-                padding: .35rem .5rem;
-            }
+        .dt-container .dt-length .dt-input {
+            width: 4.5rem;
+            padding: .35rem .5rem;
+        }
 
-            /* Stabilkan tabel */
-            #tr_prhTable {
-                width: 100% !important;
-            }
+        /* Stabilkan tabel */
+        #tr_prhTable {
+            width: 100% !important;
+        }
 
-            #tr_prhTable th,
-            #tr_prhTable td {
-                text-align: left !important;
-                vertical-align: middle;
-            }
+        #tr_prhTable th,
+        #tr_prhTable td {
+            text-align: left !important;
+            vertical-align: middle;
+        }
 
-            /* Kolom Aksi: jangan mepet, tapi tetap ringkas */
-            #tr_prhTable th:last-child,
-            #tr_prhTable td:last-child {
-                white-space: nowrap;
-                text-align: center;
-            }
+        /* Kolom Aksi: jangan mepet, tapi tetap ringkas */
+        #tr_prhTable th:last-child,
+        #tr_prhTable td:last-child {
+            white-space: nowrap;
+            text-align: center;
+        }
 
-            #tr_prhTable td:last-child {
-                padding: .25rem .5rem;
-            }
+        #tr_prhTable td:last-child {
+            padding: .25rem .5rem;
+        }
 
-            .btn-aksi {
-                padding: .25rem .5rem;
-                font-size: .825rem;
-            }
+        .btn-aksi {
+            padding: .25rem .5rem;
+            font-size: .825rem;
+        }
 
-            #tr_prhTable th,
-            #tr_prhTable td {
-                text-align: left !important;
-                vertical-align: middle;
-            }
+        #tr_prhTable th,
+        #tr_prhTable td {
+            text-align: left !important;
+            vertical-align: middle;
+        }
 
-            #tr_prhTable th:last-child,
-            #tr_prhTable td:last-child {
-                text-align: center;
-                white-space: nowrap;
-            }
+        #tr_prhTable th:last-child,
+        #tr_prhTable td:last-child {
+            text-align: center;
+            white-space: nowrap;
+        }
 
-            .dataTables_wrapper .dt-search {
-                display: flex;
-                align-items: center;
-                gap: .75rem;
-                flex-wrap: wrap;
-            }
+        .dataTables_wrapper .dt-search {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            flex-wrap: wrap;
+        }
 
-            #statusFilterWrap {
-                margin-right: .25rem;
-            }
-        </style>
-    @endpush
+        #statusFilterWrap {
+            margin-right: .25rem;
+        }
+    </style>
+@endpush
 
-    @push('scripts')
-        {{-- jQuery + DataTables JS (CDN) --}}
-        <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-        <script src="https://cdn.datatables.net/2.1.6/js/dataTables.min.js"></script>
-        <script>
-            document.addEventListener('alpine:init', () => {
-                /* no-op */
-            });
+@push('scripts')
+    {{-- jQuery + DataTables JS (CDN) --}}
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/2.1.6/js/dataTables.min.js"></script>
 
-            $(function() {
-                // Inisialisasi DataTables
-                const columns = hasActions ? [{
-                        title: 'ID PR'
-                    },
-                    {
-                        title: 'No. PR'
-                    },
-                    {
-                        title: 'Aksi',
-                        orderable: false,
-                        searchable: false
-                    }
-                ] : [{
-                        title: 'ID PR'
-                    },
-                    {
-                        title: 'No. PR'
-                    }
-                ];
+    <script>
+        $(function() {
+            // Ambil dari Blade untuk menentukan jumlah kolom
+            const hasActions = {{ $showActionsColumn ? 'true' : 'false' }};
 
-                $('#tr_prhTable').DataTable({
-                    autoWidth: false,
-                    pageLength: 10,
-                    lengthMenu: [10, 25, 50, 100],
-                    order: [
-                        [0, 'asc']
-                    ],
-                    layout: {
-                        topStart: 'search', // Search pindah ke kiri
-                        topEnd: 'pageLength', // Length menu pindah ke kanan
-                        bottomStart: 'info',
-                        bottomEnd: 'paging'
-                    },
-                    columnDefs: [{
-                            targets: 'col-aksi',
-                            orderable: false,
-                            searchable: false,
-                            width: 120
-                        },
-                        {
-                            targets: 'no-sort',
-                            orderable: false
-                        }
-                    ],
-                    language: {
-                        lengthMenu: "Show _MENU_ entries"
-                    },
-                    initComplete: function() {
-                        const api = this.api();
+            // 1. Definisi Kolom (Sangat Penting)
+            // 'data' harus cocok dengan key JSON dari Controller
+            const columns = [{
+                    data: 'fstockmtno'
+                }, // data dari 'fstockmtno'
+                {
+                    data: 'fstockmtdate'
+                }, // data dari 'fstockmtdate'
+                {
+                    data: 'ftypebuy'
+                }, // data dari 'ftypebuy'
+            ];
 
-                        const $toolbarSearch = $(api.table().container()).find('.dt-search');
-                        const $filter = $('#statusFilterTemplate #statusFilterWrap').clone(true, true);
-
-                        const $select = $filter.find('select[data-role="status-filter"]');
-                        $select.attr('id', 'statusFilterDT');
-
-                        $toolbarSearch.append($filter);
-
-                        const statusRawIdx = api.columns().indexes().toArray()
-                            .find(i => $(api.column(i).header()).attr('data-col') === 'statusRaw');
-
-                        if (statusRawIdx === undefined) {
-                            console.warn('Kolom StatusRaw tidak ditemukan.');
-                            return;
-                        }
-
-                        api.column(statusRawIdx).visible(false);
-
-                        const $searchInput = $toolbarSearch.find('.dt-input');
-                        $searchInput.css({
-                            width: '400px',
-                            maxWidth: '100%'
-                        });
-
-                        api.column(statusRawIdx).search('^0$', true, false).draw();
-
-                        $select.on('change', function() {
-                            const v = this.value;
-                            if (v === 'active') {
-                                api.column(statusRawIdx).search('^0$', true, false).draw();
-                            } else if (v === 'nonactive') {
-                                api.column(statusRawIdx).search('^1$', true, false).draw();
-                            } else {
-                                api.column(statusRawIdx).search('', true, false).draw(); // all
-                            }
-                        });
-                    }
+            // 2. Tambah Kolom Aksi (jika ada izin)
+            // if (hasActions) {
+                columns.push({
+                    data: 'actions', // data dari 'actions'
+                    orderable: false, // tidak bisa di-sort
+                    searchable: false // tidak bisa di-search
                 });
+            // }
+
+            // 3. Inisialisasi DataTables
+            // Ganti '#tr_prhTable' menjadi '#fakturpembelianTable'
+            $('#fakturpembelianTable').DataTable({
+                // --- KUNCI SERVER-SIDE ---
+                processing: true, // Tampilkan 'Loading...'
+                serverSide: true, // Aktifkan mode SSP
+
+                // Ambil data dari route ini
+                ajax: '{{ route('fakturpembelian.index') }}',
+                // -------------------------
+
+                // Terapkan kolom dari langkah 1 & 2
+                columns: columns,
+
+                // Urutkan berdasarkan kolom pertama (No. Faktur)
+                order: [
+                    [0, 'desc']
+                ],
+
+                // Tampilkan elemen standar
+                layout: {
+                    topStart: 'search',
+                    topEnd: 'pageLength',
+                    bottomStart: 'info',
+                    bottomEnd: 'paging'
+                }
+
+                // TIDAK PERLU initComplete: function() ...
+                // karena controller ini tidak memakai filter status 'active/nonactive'
             });
-        </script>
-    @endpush
+        });
+    </script>
+@endpush

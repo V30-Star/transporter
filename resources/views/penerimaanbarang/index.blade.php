@@ -45,74 +45,19 @@
             </div>
         </div>
 
-        {{-- Table --}}
-        <table id="tr_prhTable" class="min-w-full border text-sm">
+        <table id="penerimaanbarangTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
-                    <th>ID Penerimaan Barang</th>
-                    {{-- <th>oid</th> --}}
-                    <th>fstockmtno</th>
-                    <th>fstockmtcode</th>
-                    <th>fstockmtdate</th>
-                    {{-- <th>fprdout</th>
-                    <th>fsupplier</th>
-                    <th>fcurrency</th>
-                    <th>frate</th>
-                    <th>famountremain</th>
-                    <th>famountremain_pr</th>
-                    <th>famount</th>
-                    <th>famount_rp</th>
-                    <th>famountpajak</th>
-                    <th>famountmt</th> --}}
-                    <th class="border px-2 py-2 col-aksi">Aksi</th>
+                    <th class="border px-2 py-1">No. Penerimaan</th>
+                    <th class="border px-2 py-1">Tanggal</th>
+
+                    {{-- @if ($showActionsColumn) --}}
+                        <th class="border px-2 py-1 col-aksi">Aksi</th>
+                    {{-- @endif --}}
                 </tr>
             </thead>
             <tbody>
-                @forelse($penerimaanbarang as $item)
-                    <tr>
-                        <td>{{ $item->fstockmtid }}</td>
-                        <td>{{ $item->fstockmtno }}</td>
-                        <td>{{ $item->fstockmtcode }}</td>
-                        <td>{{ $item->fstockmtdate }}</td>
-                        {{-- <td>{{ $item->fprno }}</td> --}}
-                        {{-- <td>{{ $item->fprno }}</td>
-                        <td>{{ $item->fprno }}</td>
-                        <td>{{ $item->fprno }}</td>
-                        <td>{{ $item->fprno }}</td>
-                        <td>{{ $item->fprno }}</td>
-                        <td>{{ $item->fprno }}</td>
-                        <td>{{ $item->fprno }}</td>
-                        <td>{{ $item->fprno }}</td>
-                        <td>{{ $item->fprno }}</td>
-                        <td>{{ $item->fprno }}</td> --}}
-                        <td class="border px-2 py-1 space-x-2">
-                            {{-- @if ($canEdit) --}}
-                            <a href="{{ route('penerimaanbarang.edit', $item->fstockmtid) }}"> <button
-                                    class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
-                                    <x-heroicon-o-pencil-square class="w-4 h-4 mr-1" /> Edit
-                                </button>
-                            </a>
-                            {{-- @endif --}}
-
-                            @if ($canDelete)
-                                <button @click="openDelete('{{ route('penerimaanbarang.destroy', $item->fstockmtid) }}')"
-                                    class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
-                                    <x-heroicon-o-trash class="w-4 h-4 mr-1" /> Hapus
-                                </button>
-                            @endif
-
-                            <a href="{{ route('penerimaanbarang.print', $item->fstockmtno) }}" target="_blank"
-                                rel="noopener"
-                                class="inline-flex items-center px-3 py-1 rounded bg-gray-100 hover:bg-gray-200">
-                                <x-heroicon-o-printer class="w-4 h-4 mr-1" /> Print
-                            </a>
-                        </td>
-                    </tr>
-                @empty
-                    {{-- <tr>
-                        <td colspan="{{ $showActionsColumn ? 3 : 2 }}" class="text-center py-4">Tidak ada data.</td>
-                    </tr> --}}
-                @endforelse
+                {{-- KOSONGKAN BAGIAN INI --}}
             </tbody>
         </table>
 
@@ -209,99 +154,60 @@
     {{-- jQuery + DataTables JS (CDN) --}}
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.datatables.net/2.1.6/js/dataTables.min.js"></script>
-    <script>
-        document.addEventListener('alpine:init', () => {
-            /* no-op */
-        });
 
+    <script>
         $(function() {
-            // Inisialisasi DataTables
-            const columns = hasActions ? [{
-                    title: 'ID PR'
-                },
+            // Ambil dari Blade untuk menentukan jumlah kolom
+            const hasActions = {{ $showActionsColumn ? 'true' : 'false' }};
+
+            // 1. Definisi Kolom (Sangat Penting)
+            // 'data' harus cocok dengan key JSON dari Controller
+            const columns = [{
+                    data: 'fstockmtno'
+                }, // data dari 'fstockmtno'
                 {
-                    title: 'No. PR'
-                },
-                {
-                    title: 'Aksi',
-                    orderable: false,
-                    searchable: false
-                }
-            ] : [{
-                    title: 'ID PR'
-                },
-                {
-                    title: 'No. PR'
-                }
+                    data: 'fstockmtdate'
+                }, // data dari 'fstockmtdate'
             ];
 
-            $('#tr_prhTable').DataTable({
-                autoWidth: false,
-                pageLength: 10,
-                lengthMenu: [10, 25, 50, 100],
+            // 2. Tambah Kolom Aksi (jika ada izin)
+            // if (hasActions) {
+                columns.push({
+                    data: 'actions', // data dari 'actions'
+                    orderable: false, // tidak bisa di-sort
+                    searchable: false // tidak bisa di-search
+                });
+            // }
+
+            // 3. Inisialisasi DataTables
+            // Pastikan ID tabel Anda adalah 'penerimaanbarangTable'
+            $('#penerimaanbarangTable').DataTable({
+                // --- KUNCI SERVER-SIDE ---
+                processing: true, // Tampilkan 'Loading...'
+                serverSide: true, // Aktifkan mode SSP
+
+                // Ambil data dari route ini
+                ajax: '{{ route('penerimaanbarang.index') }}',
+                // -------------------------
+
+                // Terapkan kolom dari langkah 1 & 2
+                columns: columns,
+
+                // Urutkan berdasarkan kolom pertama (No. Penerimaan)
                 order: [
-                    [0, 'asc']
+                    [0, 'desc']
                 ],
+
+                // Tampilkan elemen standar
                 layout: {
-                    topStart: 'search', // Search pindah ke kiri
-                    topEnd: 'pageLength', // Length menu pindah ke kanan
+                    topStart: 'search',
+                    topEnd: 'pageLength',
                     bottomStart: 'info',
                     bottomEnd: 'paging'
                 },
-                columnDefs: [{
-                        targets: 'col-aksi',
-                        orderable: false,
-                        searchable: false,
-                        width: 120
-                    },
-                    {
-                        targets: 'no-sort',
-                        orderable: false
-                    }
-                ],
-                language: {
-                    lengthMenu: "Show _MENU_ entries"
-                },
-                initComplete: function() {
-                    const api = this.api();
 
-                    const $toolbarSearch = $(api.table().container()).find('.dt-search');
-                    const $filter = $('#statusFilterTemplate #statusFilterWrap').clone(true, true);
-
-                    const $select = $filter.find('select[data-role="status-filter"]');
-                    $select.attr('id', 'statusFilterDT');
-
-                    $toolbarSearch.append($filter);
-
-                    const statusRawIdx = api.columns().indexes().toArray()
-                        .find(i => $(api.column(i).header()).attr('data-col') === 'statusRaw');
-
-                    if (statusRawIdx === undefined) {
-                        console.warn('Kolom StatusRaw tidak ditemukan.');
-                        return;
-                    }
-
-                    api.column(statusRawIdx).visible(false);
-
-                    const $searchInput = $toolbarSearch.find('.dt-input');
-                    $searchInput.css({
-                        width: '400px',
-                        maxWidth: '100%'
-                    });
-
-                    api.column(statusRawIdx).search('^0$', true, false).draw();
-
-                    $select.on('change', function() {
-                        const v = this.value;
-                        if (v === 'active') {
-                            api.column(statusRawIdx).search('^0$', true, false).draw();
-                        } else if (v === 'nonactive') {
-                            api.column(statusRawIdx).search('^1$', true, false).draw();
-                        } else {
-                            api.column(statusRawIdx).search('', true, false).draw(); // all
-                        }
-                    });
-                }
+                // Hapus filter status (initComplete) karena tidak dipakai
+                // di controller ini (hanya filter 'RCV')
             });
         });
     </script>

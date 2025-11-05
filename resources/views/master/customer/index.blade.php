@@ -53,52 +53,15 @@
                     <th class="border px-2 py-2">Nama Customer</th>
                     <th class="border px-2 py-2 no-sort">Wilayah</th>
                     <th class="border px-2 py-2 no-sort">Alamat</th>
-                    <th class="border px-2 py-2 no-sort">Kota</th>
+                    <th class="border px-2 py-2 no-sort">Tempo</th> {{-- Diganti dari 'Kota' --}}
                     <th class="border px-2 py-2 no-sort">Status</th>
-                    <th class="border px-2 py-2" data-col="statusRaw">StatusRaw</th>
+                    {{-- Kolom StatusRaw Dihapus --}}
                     @if ($showActionsColumn)
                         <th class="border px-2 py-2 col-aksi">Aksi</th>
                     @endif
                 </tr>
             </thead>
-            <tbody id="tableBody">
-                @forelse($customers as $r)
-                    <tr class="hover:bg-gray-50">
-                        <td>{{ $r->fcustomercode }}</td>
-                        <td>{{ $r->fcustomername }}</td>
-                        <td>{{ $r->wilayah_name }}</td>
-                        <td>{{ $r->faddress }}</td>
-                        <td>{{ $r->fkirimaddress1 }}</td>
-                        <td>
-                            @php $isActive = (string)$r->fnonactive === '0'; @endphp
-                            <span
-                                class="inline-flex items-center px-2 py-0.5 rounded text-xs {{ $isActive ? 'bg-green-100 text-green-700' : 'bg-red-200 text-red-700' }}">
-                                {{ $isActive ? 'Active' : 'Non Active' }}
-                            </span>
-                        </td>
-                        <td>{{ (string) $r->fnonactive }}</td>
-                        @if ($showActionsColumn)
-                            <td class="border px-2 py-1 space-x-2">
-                                @if ($canEdit)
-                                    <a href="{{ route('customer.edit', $r->fcustomerid) }}"
-                                        class="inline-flex items-center bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600">
-                                        <x-heroicon-o-pencil-square class="w-4 h-4 mr-1" /> Edit
-                                    </a>
-                                @endif
-                                @if ($canDelete)
-                                    <button @click="openDelete('{{ route('customer.destroy', $r->fcustomerid) }}')"
-                                        class="inline-flex items-center bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700">
-                                        <x-heroicon-o-trash class="w-4 h-4 mr-1" /> Hapus
-                                    </button>
-                                @endif
-                            </td>
-                        @endif
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="{{ $showActionsColumn ? 3 : 2 }}" class="text-center py-4">Tidak ada data.</td>
-                    </tr>
-                @endforelse
+            <tbody>
             </tbody>
         </table>
 
@@ -200,84 +163,105 @@
 
         $(function() {
             const hasActions = {{ $showActionsColumn ? 'true' : 'false' }};
-            const columns = hasActions ? [{
+            const canEdit = {{ $canEdit ? 'true' : 'false' }};
+            const canDelete = {{ $canDelete ? 'true' : 'false' }};
+
+            const columnDefs = [{
+                targets: [2, 3, 4], // Satuan, Stok, Status
+                orderable: false
+            }];
+
+            // --- PERUBAHAN 1: Definisi Kolom ---
+            // 'data' HARUS cocok dengan key JSON yang dikirim oleh Controller
+            const columns = [{
                     title: 'Kode Customer',
-                    data: 'kode'
+                    data: 'fcustomercode'
                 },
                 {
                     title: 'Nama Customer',
-                    data: 'nama'
+                    data: 'fcustomername'
                 },
                 {
                     title: 'Wilayah',
-                    data: 'wilayah'
+                    data: 'wilayah_name'
                 },
                 {
                     title: 'Alamat',
-                    data: 'alamat'
+                    data: 'faddress'
                 },
                 {
-                    title: 'Kota',
-                    data: 'kota'
+                    title: 'Tempo',
+                    data: 'ftempo'
                 },
                 {
-                    title: 'Jadwal Mingguan',
-                    data: 'jadwal_mingguan'
-                },
-                {
-                    title: 'Hari',
-                    data: 'hari'
-                },
-                {
-                    title: 'Description',
-                    data: 'description'
-                },
-                {
-                    title: 'Aksi',
-                    data: 'aksi',
+                    title: 'Status',
+                    data: 'status',
                     orderable: false,
                     searchable: false
                 }
-            ] : [{
-                    title: 'Kode Customer',
-                    data: 'kode'
-                },
-                {
-                    title: 'Nama Customer',
-                    data: 'nama'
-                },
-                {
-                    title: 'Wilayah',
-                    data: 'wilayah'
-                },
-                {
-                    title: 'Alamat',
-                    data: 'alamat'
-                },
-                {
-                    title: 'Kota',
-                    data: 'kota'
-                },
-                {
-                    title: 'Jadwal Mingguan',
-                    data: 'jadwal_mingguan'
-                },
-                {
-                    title: 'Hari',
-                    data: 'hari'
-                },
-                {
-                    title: 'Description',
-                    data: 'description'
-                }
             ];
 
-            $('#customerTable').DataTable({
+            // Tambahkan kolom 'Aksi' secara kondisional
+            if (hasActions) {
+                columns.push({
+                    data: 'fprdid',
+                    name: 'actions',
+                    orderable: false,
+                    searchable: false,
+                    render: function(data, type, row) {
+                        let html = '<div class="space-x-2">';
+
+                        if (canEdit) {
+                            html += `<a href="/customer/${data}/edit">
+                        <button class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                            </svg>
+                            Edit
+                        </button>
+                    </a>`;
+                        }
+
+                        if (canDelete) {
+                            html += `<button onclick="openDeleteModal('/customer/${data}')" 
+                        class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                        Hapus
+                    </button>`;
+                        }
+
+                        html += '</div>';
+                        return html;
+                    }
+                });
+            }
+
+            // --- PERUBAHAN 2: Inisialisasi DataTables ---
+            const table = $('#customerTable').DataTable({
+                // Aktifkan Server-Side Processing
+                processing: true,
+                serverSide: true,
+                // --- PERUBAHAN 3: AJAX (Sumber Data) ---
+                ajax: {
+                    url: "{{ route('customer.index') }}", // Arahkan ke route controller
+                    type: "GET",
+                    // Kirim data tambahan (filter status) ke server
+                    data: function(d) {
+                        // 'd' adalah data default DataTables (search, order, paging)
+                        // Kita tambahkan 'status' ke dalamnya
+                        d.status = $('#statusFilterDT').val() || 'active';
+                    }
+                },
+
+                // Gunakan 'columns' yang sudah kita definisikan di atas
+                columns: columns,
                 autoWidth: false,
                 pageLength: 10,
                 lengthMenu: [10, 25, 50, 100],
                 order: [
-                    [0, 'asc']
+                    [0, 'asc'] // Default order
                 ],
                 layout: {
                     topStart: 'search',
@@ -285,40 +269,19 @@
                     bottomStart: 'info',
                     bottomEnd: 'paging'
                 },
-                columnDefs: [{
-                        targets: 'col-aksi',
-                        orderable: false,
-                        searchable: false,
-                        width: 120
-                    },
-                    {
-                        targets: 'no-sort',
-                        orderable: false
-                    }
-                ],
                 language: {
-                    lengthMenu: "Show _MENU_ entries"
+                    lengthMenu: "Show _MENU_ entries",
+                    processing: '<div class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading...</div>'
                 },
+                // --- PERUBAHAN 4: initComplete (Filter) ---
                 initComplete: function() {
                     const api = this.api();
-
                     const $toolbarSearch = $(api.table().container()).find('.dt-search');
                     const $filter = $('#statusFilterTemplate #statusFilterWrap').clone(true, true);
-
                     const $select = $filter.find('select[data-role="status-filter"]');
+
                     $select.attr('id', 'statusFilterDT');
-
                     $toolbarSearch.append($filter);
-
-                    const statusRawIdx = api.columns().indexes().toArray()
-                        .find(i => $(api.column(i).header()).attr('data-col') === 'statusRaw');
-
-                    if (statusRawIdx === undefined) {
-                        console.warn('Kolom StatusRaw tidak ditemukan.');
-                        return;
-                    }
-
-                    api.column(statusRawIdx).visible(false);
 
                     const $searchInput = $toolbarSearch.find('.dt-input');
                     $searchInput.css({
@@ -326,20 +289,17 @@
                         maxWidth: '100%'
                     });
 
-                    api.column(statusRawIdx).search('^0$', true, false).draw();
-
                     $select.on('change', function() {
-                        const v = this.value;
-                        if (v === 'active') {
-                            api.column(statusRawIdx).search('^0$', true, false).draw();
-                        } else if (v === 'nonactive') {
-                            api.column(statusRawIdx).search('^1$', true, false).draw();
-                        } else {
-                            api.column(statusRawIdx).search('', true, false).draw(); // all
-                        }
+                        table.ajax.reload();
                     });
                 }
             });
         });
+
+        function openDeleteModal(url) {
+            window.dispatchEvent(new CustomEvent('open-delete', {
+                detail: url
+            }));
+        }
     </script>
 @endpush

@@ -14,27 +14,21 @@ class ProductController extends Controller
 {
     public function index(Request $request)
     {
-        // Jika request dari DataTables (AJAX)
         if ($request->ajax()) {
             $query = Product::query();
 
-            // Filter status dari custom filter - PERBAIKAN: simpan query base untuk total
             $status = $request->input('status');
             if ($status === 'active') {
                 $query->where('msprd.fnonactive', '0');
             } elseif ($status === 'nonactive') {
                 $query->where('msprd.fnonactive', '1');
             }
-            // Default jika status 'all' atau tidak ada, tampilkan semua
-
-            // PERBAIKAN: Total records SETELAH filter status (bukan sebelum)
             $totalRecords = Product::count(); // Total semua data
             $totalAfterStatusFilter = (clone $query)->count(); // Total setelah filter status
 
             // Kolom yang bisa dicari
             $searchableColumns = ['fprdcode', 'fprdname', 'fsatuankecil', 'fminstock'];
 
-            // Pencarian global
             if ($search = $request->input('search.value')) {
                 $query->where(function ($q) use ($search, $searchableColumns) {
                     foreach ($searchableColumns as $column) {
