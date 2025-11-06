@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\AdjstockController;
 use App\Http\Controllers\Tr_pohController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
@@ -196,6 +197,19 @@ Route::middleware('auth')->group(function () {
             ->name('fakturpembelian.items');    // endpoint ambil header+items PR\
         Route::get('/fakturpembelian/pickable', [FakturpembelianController::class, 'pickable'])
             ->name('fakturpembelian.pickable'); // sumber data modal
+
+        Route::get('/adjstock',  [AdjstockController::class, 'index'])->name('adjstock.index');
+        Route::post('/adjstock',        [AdjstockController::class, 'store'])->name('adjstock.store');
+        Route::get('/adjstock/create', [AdjstockController::class, 'create'])->name('adjstock.create');
+        Route::get('/adjstock/{fstockmtid}/edit', [AdjstockController::class, 'edit'])->name('adjstock.edit');
+        Route::patch('/adjstock/{fstockmtid}', [AdjstockController::class, 'update'])->name('adjstock.update');
+        Route::delete('/adjstock/{fstockmtid}', [AdjstockController::class, 'destroy'])->name('adjstock.destroy');
+        Route::get('/adjstock/{fstockmtno}/print', [AdjstockController::class, 'print'])
+            ->name('adjstock.print');
+        Route::get('/adjstock/{id}/items', [AdjstockController::class, 'items'])
+            ->name('adjstock.items');    // endpoint ambil header+items PR\
+        Route::get('/adjstock/pickable', [AdjstockController::class, 'pickable'])
+            ->name('adjstock.pickable'); // sumber data modal
 
         Route::get('/products/browse', [\App\Http\Controllers\ProductBrowseController::class, 'index'])
             ->name('products.browse');

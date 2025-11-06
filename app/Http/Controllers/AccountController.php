@@ -15,24 +15,43 @@ class AccountController extends Controller
         $sortDir = $request->sort_dir === 'desc' ? 'desc' : 'asc';
 
         $status = $request->query('status');
+        $year = $request->query('year');
+        $month = $request->query('month');
 
         $query = Account::query();
 
+        // Filter status
         if ($status === 'active') {
             $query->where('fnonactive', '0');
         } elseif ($status === 'nonactive') {
             $query->where('fnonactive', '1');
         }
 
+        // Filter tahun (PostgreSQL syntax)
+        if ($year) {
+            $query->whereRaw('EXTRACT(YEAR FROM fcreatedat) = ?', [$year]);
+        }
+
+        // Filter bulan (PostgreSQL syntax)
+        if ($month) {
+            $query->whereRaw('EXTRACT(MONTH FROM fcreatedat) = ?', [$month]);
+        }
+
         $accounts = $query
             ->orderBy($sortBy, $sortDir)
-            ->get(['faccount', 'faccname', 'faccid', 'fnormal', 'fend', 'fnonactive']);
+            ->get(['faccount', 'faccname', 'faccid', 'fnormal', 'fend', 'fnonactive', 'fcreatedat']);
+
+        // Ambil tahun-tahun yang tersedia dari data (PostgreSQL syntax)
+        $availableYears = Account::selectRaw('DISTINCT EXTRACT(YEAR FROM fcreatedat) as year')
+            ->whereNotNull('fcreatedat')
+            ->orderByRaw('EXTRACT(YEAR FROM fcreatedat) DESC')
+            ->pluck('year');
 
         $canCreate = in_array('createAccount', explode(',', session('user_restricted_permissions', '')));
         $canEdit   = in_array('updateAccount', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deleteAccount', explode(',', session('user_restricted_permissions', '')));
 
-        return view('account.index', compact('accounts', 'canCreate', 'canEdit', 'canDelete', 'status'));
+        return view('account.index', compact('accounts', 'canCreate', 'canEdit', 'canDelete', 'status', 'availableYears', 'year', 'month'));
     }
 
     public function browse(Request $request)

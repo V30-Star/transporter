@@ -13,14 +13,14 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use App\Mail\ApprovalEmailPo;
 use App\Models\PenerimaanPembelianDetail;
 use App\Models\PenerimaanPembelianHeader;
+use App\Mail\ApprovalEmailPo;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Carbon\Carbon; // sekalian biar aman untuk tanggal
 
-class PenerimaanBarangController extends Controller
+class AdjstockController extends Controller
 {
   public function index(Request $request)
   {
@@ -122,14 +122,14 @@ class PenerimaanBarangController extends Controller
     }
 
     // --- 3. Handle Request non-AJAX (Saat load halaman) ---
-    return view('penerimaanbarang.index', compact(
+    return view('adjstock.index', compact(
       'canCreate',
       'canEdit',
       'canDelete',
       'showActionsColumn'
     ));
   }
-  
+
   public function pickable(Request $request)
   {
     $search   = trim($request->get('search', ''));
@@ -341,7 +341,7 @@ class PenerimaanBarangController extends Controller
       'fminstock'
     )->orderBy('fprdname')->get();
 
-    return view('penerimaanbarang.create', [
+    return view('adjstock.create', [
       'newtr_prh_code' => $newtr_prh_code,
       'warehouses' => $warehouses,
       'perms' => ['can_approval' => $canApproval],

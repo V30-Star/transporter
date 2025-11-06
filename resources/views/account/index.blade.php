@@ -45,6 +45,42 @@
             </div>
         </div>
 
+        {{-- Template untuk filter Tahun --}}
+        <div id="yearFilterTemplate" class="hidden">
+            <div class="flex items-center gap-2" id="yearFilterWrap">
+                <span class="text-sm text-gray-700">Tahun</span>
+                <select data-role="year-filter" class="border rounded px-2 py-1">
+                    <option value="">Semua Tahun</option>
+                    @foreach ($availableYears as $yr)
+                        <option value="{{ $yr }}" {{ $year == $yr ? 'selected' : '' }}>{{ $yr }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+        </div>
+
+        {{-- Template untuk filter Bulan --}}
+        <div id="monthFilterTemplate" class="hidden">
+            <div class="flex items-center gap-2" id="monthFilterWrap">
+                <span class="text-sm text-gray-700">Bulan</span>
+                <select data-role="month-filter" class="border rounded px-2 py-1">
+                    <option value="">Semua Bulan</option>
+                    <option value="1" {{ $month == '1' ? 'selected' : '' }}>Januari</option>
+                    <option value="2" {{ $month == '2' ? 'selected' : '' }}>Februari</option>
+                    <option value="3" {{ $month == '3' ? 'selected' : '' }}>Maret</option>
+                    <option value="4" {{ $month == '4' ? 'selected' : '' }}>April</option>
+                    <option value="5" {{ $month == '5' ? 'selected' : '' }}>Mei</option>
+                    <option value="6" {{ $month == '6' ? 'selected' : '' }}>Juni</option>
+                    <option value="7" {{ $month == '7' ? 'selected' : '' }}>Juli</option>
+                    <option value="8" {{ $month == '8' ? 'selected' : '' }}>Agustus</option>
+                    <option value="9" {{ $month == '9' ? 'selected' : '' }}>September</option>
+                    <option value="10" {{ $month == '10' ? 'selected' : '' }}>Oktober</option>
+                    <option value="11" {{ $month == '11' ? 'selected' : '' }}>November</option>
+                    <option value="12" {{ $month == '12' ? 'selected' : '' }}>Desember</option>
+                </select>
+            </div>
+        </div>
+
         {{-- Table --}}
         <table id="accountTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
@@ -96,9 +132,6 @@
                         @endif
                     </tr>
                 @empty
-                    <tr>
-                        <td colspan="{{ $showActionsColumn ? 5 : 4 }}" class="text-center py-4">Tidak ada data.</td>
-                    </tr>
                 @endforelse
             </tbody>
         </table>
@@ -264,15 +297,28 @@
                 },
                 initComplete: function() {
                     const api = this.api();
-
                     const $toolbarSearch = $(api.table().container()).find('.dt-search');
-                    const $filter = $('#statusFilterTemplate #statusFilterWrap').clone(true, true);
 
-                    const $select = $filter.find('select[data-role="status-filter"]');
-                    $select.attr('id', 'statusFilterDT');
+                    // Clone dan append Status Filter
+                    const $statusFilter = $('#statusFilterTemplate #statusFilterWrap').clone(true,
+                    true);
+                    const $statusSelect = $statusFilter.find('select[data-role="status-filter"]');
+                    $statusSelect.attr('id', 'statusFilterDT');
+                    $toolbarSearch.append($statusFilter);
 
-                    $toolbarSearch.append($filter);
+                    // Clone dan append Year Filter
+                    const $yearFilter = $('#yearFilterTemplate #yearFilterWrap').clone(true, true);
+                    const $yearSelect = $yearFilter.find('select[data-role="year-filter"]');
+                    $yearSelect.attr('id', 'yearFilterDT');
+                    $toolbarSearch.append($yearFilter);
 
+                    // Clone dan append Month Filter
+                    const $monthFilter = $('#monthFilterTemplate #monthFilterWrap').clone(true, true);
+                    const $monthSelect = $monthFilter.find('select[data-role="month-filter"]');
+                    $monthSelect.attr('id', 'monthFilterDT');
+                    $toolbarSearch.append($monthFilter);
+
+                    // Cari index kolom StatusRaw
                     const statusRawIdx = api.columns().indexes().toArray()
                         .find(i => $(api.column(i).header()).attr('data-col') === 'statusRaw');
 
@@ -283,24 +329,65 @@
 
                     api.column(statusRawIdx).visible(false);
 
+                    // Perlebar search input
                     const $searchInput = $toolbarSearch.find('.dt-input');
                     $searchInput.css({
                         width: '400px',
                         maxWidth: '100%'
                     });
 
+                    // Set filter status default
                     api.column(statusRawIdx).search('^0$', true, false).draw();
 
-                    $select.on('change', function() {
+                    // Event handler untuk Status Filter
+                    $statusSelect.on('change', function() {
                         const v = this.value;
                         if (v === 'active') {
                             api.column(statusRawIdx).search('^0$', true, false).draw();
                         } else if (v === 'nonactive') {
                             api.column(statusRawIdx).search('^1$', true, false).draw();
                         } else {
-                            api.column(statusRawIdx).search('', true, false).draw(); // all
+                            api.column(statusRawIdx).search('', true, false).draw();
                         }
                     });
+
+                    // Event handler untuk Year dan Month Filter
+                    // Menggunakan server-side filtering dengan reload halaman
+                    $yearSelect.on('change', function() {
+                        applyDateFilters();
+                    });
+
+                    $monthSelect.on('change', function() {
+                        applyDateFilters();
+                    });
+
+                    function applyDateFilters() {
+                        const year = $yearSelect.val();
+                        const month = $monthSelect.val();
+                        const status = $statusSelect.val();
+
+                        const url = new URL(window.location.href);
+
+                        if (year) {
+                            url.searchParams.set('year', year);
+                        } else {
+                            url.searchParams.delete('year');
+                        }
+
+                        if (month) {
+                            url.searchParams.set('month', month);
+                        } else {
+                            url.searchParams.delete('month');
+                        }
+
+                        if (status && status !== 'all') {
+                            url.searchParams.set('status', status);
+                        } else {
+                            url.searchParams.delete('status');
+                        }
+
+                        window.location.href = url.toString();
+                    }
                 }
             });
         });
