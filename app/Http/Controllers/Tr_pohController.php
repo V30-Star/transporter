@@ -23,86 +23,113 @@ class Tr_pohController extends Controller
   public function index(Request $request)
   {
     // Ambil izin (permissions)
-    // PERBAIKAN: Gunakan permission yg benar untuk POH
     $canCreate = in_array('createTr_poh', explode(',', session('user_restricted_permissions', '')));
     $canEdit   = in_array('updateTr_poh', explode(',', session('user_restricted_permissions', '')));
     $canDelete = in_array('deleteTr_poh', explode(',', session('user_restricted_permissions', '')));
     $showActionsColumn = $canEdit || $canDelete;
 
+    $status = $request->query('status');
+    $year = $request->query('year');
+    $month = $request->query('month');
+
+    // Ambil tahun-tahun yang tersedia dari data - PERBAIKI: Ganti Tr_prh jadi Tr_poh
+    $availableYears = Tr_poh::selectRaw('DISTINCT EXTRACT(YEAR FROM fdatetime) as year')
+      ->whereNotNull('fdatetime')
+      ->orderByRaw('EXTRACT(YEAR FROM fdatetime) DESC')
+      ->pluck('year');
+
     // --- Handle Request AJAX dari DataTables ---
     if ($request->ajax()) {
 
-      // 1. Query Dasar
       $query = Tr_poh::query();
-
-      // 2. Total Data (Tanpa Filter)
       $totalRecords = Tr_poh::count();
 
-      // 3. Handle Search (Opsional, tapi simpel & berguna) 
+      // Handle Search
       if ($search = $request->input('search.value')) {
-        // Cari hanya di kolom fpono
         $query->where('fpono', 'like', "%{$search}%");
       }
 
-      // 4. Total Data (Setelah Filter)
+      // Filter status
+      $statusFilter = $request->query('status', 'active');
+      if ($statusFilter === 'active') {
+        $query->where('fclose', '0');
+      } elseif ($statusFilter === 'nonactive') {
+        $query->where('fclose', '1');
+      }
+
+      // Filter tahun
+      if ($year) {
+        $query->whereRaw('EXTRACT(YEAR FROM fdatetime) = ?', [$year]);
+      }
+
+      // Filter bulan
+      if ($month) {
+        $query->whereRaw('EXTRACT(MONTH FROM fdatetime) = ?', [$month]);
+      }
+
       $filteredRecords = (clone $query)->count();
 
-      // 5. Handle Sorting (Ambil data dari DataTables)
-      $orderColIdx = $request->input('order.0.column', 0); // Index kolom
-      $orderDir = $request->input('order.0.dir', 'asc');   // asc atau desc
+      // Sorting
+      $orderColIdx = $request->input('order.0.column', 0);
+      $orderDir = $request->input('order.0.dir', 'asc');
 
-      // Definisikan kolom yg bisa di-sort (sesuai 'columns' di JS)
-      // 'fpono' = index 0, 'fsupplier' = index 1, 'fpodate' = index 2
-      $sortableColumns = ['fpono', 'fsupplier', 'fpodate'];
+      $sortableColumns = ['fpono', 'fsupplier', 'fpodate', 'fclose'];
 
       if (isset($sortableColumns[$orderColIdx])) {
         $query->orderBy($sortableColumns[$orderColIdx], $orderDir);
       }
 
-      // 6. Handle Paginasi (Ambil data dari DataTables)
+      // Paginasi
       $start = $request->input('start', 0);
       $length = $request->input('length', 10);
       $records = $query->skip($start)
         ->take($length)
-        ->get(['fpohdid', 'fpono', 'fsupplier', 'fpodate']);
+        ->get(['fpohdid', 'fpono', 'fsupplier', 'fpodate', 'fclose']);
 
-      // 7. Format Data (Versi Simpel: Tombol dibuat di sini)
+      // Format Data
       $data = $records->map(function ($row) use ($canEdit, $canDelete) {
 
-        $actions = '';
-        // if ($canEdit) {
-        $editUrl = route('tr_poh.edit', $row->fpohdid);
-        $actions .= '<a href="' . $editUrl . '" class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600"> <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                            </svg> Edit</a>';
-        // }
-        // if ($canDelete) {
-        $deleteUrl = route('tr_poh.destroy', $row->fpohdid);
-        $actions .= ' <button onclick="$dispatch(\'open-delete\', \'' . $deleteUrl . '\')" class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">  <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                        </svg> Delete</button>';
-        // }
+        $actions = '<div class="flex gap-2">';
+
+        if ($canEdit) {
+          $editUrl = route('tr_poh.edit', $row->fpohdid);
+          $actions .= '<a href="' . $editUrl . '" class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                    </svg>
+                    Edit
+                </a>';
+        }
+
+        if ($canDelete) {
+          $deleteUrl = route('tr_poh.destroy', $row->fpohdid);
+          $actions .= '<button onclick="window.dispatchEvent(new CustomEvent(\'open-delete\', {detail: \'' . $deleteUrl . '\'}))" class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                    Delete
+                </button>';
+        }
 
         $printUrl = route('tr_poh.print', ['fpono' => $row->fpono]);
-        // 1. Tambah spasi di depan: ' <a... '
-        // 2. Ganti warna: bg-blue-600 dan hover:bg-blue-700
-        // 3. Ganti <x-heroicon...> dengan <svg...> dan path icon printer
-        $actions .= ' <a href="' . $printUrl . '" target="_blank" class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m10 0v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5m10 0v5H7v-5"></path>
-                        </svg> Print
-                    </a>';
+        $actions .= '<a href="' . $printUrl . '" target="_blank" class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m10 0v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5m10 0v5H7v-5"></path>
+                </svg>
+                Print
+            </a>';
 
-        // Ini adalah 'data' yang akan dikirim sebagai JSON
+        $actions .= '</div>';
+
         return [
           'fpono'     => $row->fpono,
-          'fsupplier' => $row->fsupplier, // Tampilkan ID mentah
-          'fpodate'   => $row->fpodate,   // Tampilkan tanggal mentah
+          'fsupplier' => $row->fsupplier,
+          'fpodate'   => $row->fpodate,
+          'fclose'    => $row->fclose,
           'actions'   => $actions
         ];
       });
 
-      // 8. Kirim Response JSON
       return response()->json([
         'draw'            => intval($request->input('draw')),
         'recordsTotal'    => $totalRecords,
@@ -111,16 +138,18 @@ class Tr_pohController extends Controller
       ]);
     }
 
-    // --- Handle Request non-AJAX (Saat load halaman) ---
-    // Hanya render view. DataTables akan ambil data via AJAX.
+    // --- Handle Request non-AJAX ---
     return view('tr_poh.index', compact(
       'canCreate',
       'canEdit',
       'canDelete',
-      'showActionsColumn'
+      'showActionsColumn',
+      'status',
+      'availableYears',  // TAMBAHKAN INI
+      'year',            // TAMBAHKAN INI
+      'month'            // TAMBAHKAN INI
     ));
   }
-
   public function pickable(Request $request)
   {
     $search   = trim((string) $request->get('search', ''));

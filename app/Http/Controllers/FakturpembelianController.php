@@ -35,6 +35,16 @@ class FakturPembelianController extends Controller
     $canPrint  = in_array('printFakturPembelian', explode(',', session('user_restricted_permissions', '')));
     $showActionsColumn = $canEdit || $canDelete || $canPrint;
 
+    $year = $request->query('year');
+    $month = $request->query('month');
+
+    // Ambil tahun-tahun yang tersedia dari data
+    $availableYears = PenerimaanPembelianHeader::selectRaw('DISTINCT EXTRACT(YEAR FROM fdatetime) as year')
+      ->where('fstockmtcode', 'RCV')
+      ->whereNotNull('fdatetime')
+      ->orderByRaw('EXTRACT(YEAR FROM fdatetime) DESC')
+      ->pluck('year');
+
     // --- 2. Handle Request AJAX dari DataTables ---
     if ($request->ajax()) {
 
@@ -49,13 +59,24 @@ class FakturPembelianController extends Controller
         $query->where('fstockmtno', 'like', "%{$search}%");
       }
 
+      // Filter tahun
+      if ($year) {
+        $query->whereRaw('EXTRACT(YEAR FROM fdatetime) = ?', [$year]);
+      }
+
+      // Filter bulan
+      if ($month) {
+        $query->whereRaw('EXTRACT(MONTH FROM fdatetime) = ?', [$month]);
+      }
+
       // Total records setelah filter search
       $filteredRecords = (clone $query)->count();
 
       // Handle Sorting
+      // Handle Sorting
       $orderColIdx = $request->input('order.0.column', 0);
-      $orderDir = $request->input('order.0.dir', 'asc');
-      // Kolom di tabel: 0 = fstockmtno, 1 = fstockmtdate, 2 = ftypebuy
+      $orderDir = $request->input('order.0.dir', 'desc');
+
       $sortableColumns = ['fstockmtno', 'fstockmtdate', 'ftypebuy'];
 
       if (isset($sortableColumns[$orderColIdx])) {
@@ -69,7 +90,7 @@ class FakturPembelianController extends Controller
       $length = $request->input('length', 10);
       $records = $query->skip($start)
         ->take($length)
-        ->get(['fstockmtid', 'fstockmtno', 'fstockmtdate', 'ftypebuy']);
+        ->get(['fstockmtid', 'fstockmtno', 'fstockmtdate', 'ftypebuy', 'fstockmtdate']);
 
       // Format Data (Tombol dibuat di sini)
       $data = $records->map(function ($row) use ($canEdit, $canDelete, $canPrint) {
@@ -132,7 +153,10 @@ class FakturPembelianController extends Controller
       'canEdit',
       'canDelete',
       'canPrint', // Kirim izin print ke view
-      'showActionsColumn'
+      'showActionsColumn',
+      'availableYears',
+      'year',
+      'month'
     ));
   }
 

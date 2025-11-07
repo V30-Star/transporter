@@ -124,39 +124,50 @@
                         </div>
 
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium mb-1">Supplier</label>
+                            <label class="block text-sm font-medium mb-1">Account</label>
                             <div class="flex">
                                 <div class="relative flex-1">
-                                    <select id="supplierSelect" name="fsupplier"
-                                        class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
+                                    <select id="accountSelect" class="w-full border rounded-l px-3 py-2"
+                                        :class="{
+                                            'bg-gray-100 text-gray-700 cursor-not-allowed': selectedType != '1',
+                                            'bg-white cursor-pointer': selectedType == '1'
+                                        }"
                                         disabled>
                                         <option value=""></option>
-                                        @foreach ($supplier as $suppliers)
-                                            <option value="{{ $suppliers->fsupplierid }}"
-                                                data-tempo="{{ $suppliers->ftempo }}"
-                                                {{ old('fsupplier') == $suppliers->fsupplierid ? 'selected' : '' }}>
-                                                {{ $suppliers->fsuppliercode }} - {{ $suppliers->fsuppliername }}
+                                        @foreach ($accounts as $account)
+                                            <option value="{{ $account->faccount }}" data-faccid="{{ $account->faccid }}"
+                                                data-branch="{{ $account->faccount }}"
+                                                {{ old('fprdjadi') == $account->faccount ? 'selected' : '' }}>
+                                                {{ $account->faccount }} - {{ $account->faccname }}
                                             </option>
                                         @endforeach
                                     </select>
-                                    <div class="absolute inset-0" role="button" aria-label="Browse supplier"
-                                        @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"></div>
+
+                                    <div class="absolute inset-0" role="button" aria-label="Browse account"
+                                        @click="window.dispatchEvent(new CustomEvent('account-browse-open'))"
+                                        x-show="selectedType == '1'"></div>
                                 </div>
-                                <input type="hidden" name="fsupplier" id="supplierCodeHidden"
-                                    value="{{ old('fsupplier') }}">
-                                <button type="button"
-                                    @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"
+
+                                <input type="hidden" name="fprdjadi" id="accountCodeHidden" value="{{ old('fprdjadi') }}">
+                                <input type="hidden" name="faccid" id="accountIdHidden" value="{{ old('faccid') }}">
+
+                                <button type="button" @click="window.dispatchEvent(new CustomEvent('account-browse-open'))"
                                     class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
-                                    title="Browse Supplier">
+                                    :disabled="selectedType != '1'"
+                                    :class="{ 'opacity-50 cursor-not-allowed': selectedType != '1' }"
+                                    title="Browse Account">
                                     <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                                 </button>
-                                <a href="{{ route('supplier.create') }}" target="_blank" rel="noopener"
+
+                                <a href="{{ route('account.create') }}" target="_blank" rel="noopener"
                                     class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
-                                    title="Tambah Supplier">
+                                    :class="{ 'opacity-50 cursor-not-allowed pointer-events-none': selectedType != '1' }"
+                                    @click="selectedType != '1' && $event.preventDefault()" title="Tambah Account">
                                     <x-heroicon-o-plus class="w-5 h-5" />
                                 </a>
                             </div>
-                            @error('fsupplier')
+
+                            @error('fprdjadi')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
                         </div>
@@ -977,6 +988,71 @@
                             </div>
                         </div>
 
+                        {{-- Modal Account --}}
+                        <div x-data="accountBrowser()" x-show="open" x-cloak x-transition.opacity
+                            class="fixed inset-0 z-50 flex items-center justify-center">
+                            <div class="absolute inset-0 bg-black/40" @click="close()"></div>
+
+                            <div
+                                class="relative bg-white rounded-2xl shadow-xl w-[92vw] max-w-4xl max-h-[85vh] flex flex-col">
+                                <div class="p-4 border-b flex items-center gap-3">
+                                    <h3 class="text-lg font-semibold">Browse Account</h3>
+                                    <div class="ml-auto flex items-center gap-2">
+                                        <input type="text" x-model="keyword" @keydown.enter.prevent="search()"
+                                            placeholder="Cari kode / nama…" class="border rounded px-3 py-2 w-64">
+                                        <button type="button" @click="search()"
+                                            class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Search</button>
+                                    </div>
+                                </div>
+
+                                <div class="p-0 overflow-auto">
+                                    <table class="min-w-full text-sm">
+                                        <thead class="bg-gray-100 sticky top-0">
+                                            <tr>
+                                                <th class="text-left p-2">Account (Kode - Nama)</th>
+                                                <th class="text-center p-2 w-28">Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <template x-for="w in rows" :key="w.faccount">
+                                                <tr class="border-b hover:bg-gray-50">
+                                                    <td class="p-2" x-text="`${w.faccount} - ${w.faccname}`"></td>
+                                                    <td class="p-2 text-center">
+                                                        <button type="button" @click="choose(w)"
+                                                            class="px-3 py-1 rounded text-xs bg-emerald-600 hover:bg-emerald-700 text-white">
+                                                            Pilih
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            </template>
+                                            <tr x-show="rows.length === 0">
+                                                <td colspan="3" class="p-4 text-center text-gray-500">Tidak ada data.
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div class="p-3 border-t flex items-center gap-2">
+                                    <div class="text-sm text-gray-600">
+                                        <span x-text="`Page ${page} / ${lastPage} • Total ${total}`"></span>
+                                    </div>
+                                    <div class="ml-auto flex items-center gap-2">
+                                        <button type="button" @click="prev()" :disabled="page <= 1"
+                                            class="px-3 py-1 rounded border"
+                                            :class="page <= 1 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' :
+                                                'bg-gray-100 hover:bg-gray-200'">Prev</button>
+                                        <button type="button" @click="next()" :disabled="page >= lastPage"
+                                            class="px-3 py-1 rounded border"
+                                            :class="page >= lastPage ? 'bg-gray-200 text-gray-400 cursor-not-allowed' :
+                                                'bg-gray-100 hover:bg-gray-200'">Next</button>
+                                        <button type="button" @click="close()"
+                                            class="px-3 py-1 rounded border bg-gray-100 hover:bg-gray-200">Close</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="mt-8 flex justify-center gap-4">
                             <button type="submit"
                                 class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
@@ -1781,6 +1857,126 @@
                 }));
             }
             if (hid) hid.value = fwhid || '';
+        });
+    });
+</script>
+
+
+<script>
+    window.accountBrowser = function() {
+        return {
+            open: false,
+            keyword: '',
+            rows: [],
+            page: 1,
+            lastPage: 1,
+            total: 0,
+            perPage: 10,
+            loading: false,
+
+            async fetch() {
+                this.loading = true;
+                try {
+                    const params = new URLSearchParams({
+                        search: this.keyword ?? '',
+                        page: this.page,
+                        per_page: this.perPage,
+                    });
+                    const res = await fetch(`{{ route('account.browse') }}?` + params.toString(), {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+                    const json = await res.json();
+                    this.rows = json.data ?? [];
+                    this.page = json.current_page ?? 1;
+                    this.lastPage = json.last_page ?? 1;
+                    this.total = json.total ?? (json.data_total ?? 0);
+                } catch (e) {
+                    console.error(e);
+                    this.rows = [];
+                } finally {
+                    this.loading = false;
+                }
+            },
+
+            search() {
+                this.page = 1;
+                this.fetch();
+            },
+            next() {
+                if (this.page < this.lastPage) {
+                    this.page++;
+                    this.fetch();
+                }
+            },
+            prev() {
+                if (this.page > 1) {
+                    this.page--;
+                    this.fetch();
+                }
+            },
+
+            openModal() {
+                this.open = true;
+                this.search();
+            },
+            close() {
+                this.open = false;
+            },
+
+            choose(w) {
+                window.dispatchEvent(new CustomEvent('account-picked', {
+                    detail: {
+                        faccid: w.faccid,
+                        faccount: w.faccount,
+                        faccname: w.faccname,
+                    }
+                }));
+                this.close();
+            },
+
+            init() {
+                window.addEventListener('account-browse-open', () => this.openModal());
+            }
+        }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+        window.addEventListener('account-picked', (ev) => {
+            let {
+                faccount,
+                faccid
+            } = ev.detail || {};
+
+            if (!faccid && faccount) {
+                const sel = document.getElementById('accountSelect');
+                if (sel) {
+                    const option = sel.querySelector(`option[value="${faccount}"]`);
+                    if (option) {
+                        faccid = option.getAttribute('data-faccid');
+                    }
+                }
+            }
+
+            const sel = document.getElementById('accountSelect');
+            const hidId = document.getElementById('accountIdHidden');
+            const hidCode = document.getElementById('accountCodeHidden');
+
+            if (sel) {
+                sel.value = faccount || '';
+                sel.dispatchEvent(new Event('change', {
+                    bubbles: true
+                }));
+            }
+
+            if (hidId) {
+                hidId.value = faccid || '';
+            }
+
+            if (hidCode) {
+                hidCode.value = faccount || '';
+            }
         });
     });
 </script>

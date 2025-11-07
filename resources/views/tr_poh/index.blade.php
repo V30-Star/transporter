@@ -44,6 +44,41 @@
             </div>
         </div>
 
+        <div id="yearFilterTemplate" class="hidden">
+            <div class="flex items-center gap-2" id="yearFilterWrap">
+                <span class="text-sm text-gray-700">Tahun</span>
+                <select data-role="year-filter" class="border rounded px-2 py-1">
+                    <option value="">Semua</option>
+                    @foreach ($availableYears as $yr)
+                        <option value="{{ $yr }}" {{ $year == $yr ? 'selected' : '' }}>{{ $yr }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+        </div>
+
+        {{-- Template untuk filter Bulan --}}
+        <div id="monthFilterTemplate" class="hidden">
+            <div class="flex items-center gap-2" id="monthFilterWrap">
+                <span class="text-sm text-gray-700">Bulan</span>
+                <select data-role="month-filter" class="border rounded px-2 py-1">
+                    <option value="">Semua</option>
+                    <option value="1" {{ $month == '1' ? 'selected' : '' }}>Januari</option>
+                    <option value="2" {{ $month == '2' ? 'selected' : '' }}>Februari</option>
+                    <option value="3" {{ $month == '3' ? 'selected' : '' }}>Maret</option>
+                    <option value="4" {{ $month == '4' ? 'selected' : '' }}>April</option>
+                    <option value="5" {{ $month == '5' ? 'selected' : '' }}>Mei</option>
+                    <option value="6" {{ $month == '6' ? 'selected' : '' }}>Juni</option>
+                    <option value="7" {{ $month == '7' ? 'selected' : '' }}>Juli</option>
+                    <option value="8" {{ $month == '8' ? 'selected' : '' }}>Agustus</option>
+                    <option value="9" {{ $month == '9' ? 'selected' : '' }}>September</option>
+                    <option value="10" {{ $month == '10' ? 'selected' : '' }}>Oktober</option>
+                    <option value="11" {{ $month == '11' ? 'selected' : '' }}>November</option>
+                    <option value="12" {{ $month == '12' ? 'selected' : '' }}>Desember</option>
+                </select>
+            </div>
+        </div>
+
         <table id="tr_pohTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
@@ -52,7 +87,7 @@
                     <th class="border px-2 py-1">Tanggal</th>
 
                     {{-- @if ($showActionsColumn) --}}
-                        <th class="border px-2 py-1 col-aksi">Aksi</th>
+                    <th class="border px-2 py-1 col-aksi">Aksi</th>
                     {{-- @endif --}}
                 </tr>
             </thead>
@@ -150,7 +185,6 @@
         }
     </style>
 @endpush
-
 @push('scripts')
     {{-- jQuery + DataTables JS (CDN) --}}
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -162,54 +196,167 @@
             const hasActions = {{ $showActionsColumn ? 'true' : 'false' }};
 
             // 1. Definisi Kolom (Sangat Penting)
-            // 'data' harus cocok dengan key JSON dari Controller
-
-            // --- INI BAGIAN YANG DIPERBAIKI ---
             const columns = [{
                     data: 'fpono'
-                }, // data dari 'fpono'
+                },
                 {
                     data: 'fsupplier'
-                }, // data dari 'fsupplier'
+                },
                 {
                     data: 'fpodate'
-                } // data dari 'fpodate'
+                },
+                {
+                    data: 'fclose',
+                    name: 'fclose',
+                    visible: false,
+                    searchable: true
+                },
+                {
+                    data: 'actions',
+                    name: 'actions',
+                    orderable: false,
+                    searchable: false
+                }
             ];
-            // ---------------------------------
 
-            // 2. Tambah Kolom Aksi (jika ada izin)
-            // if (hasActions) {
-                columns.push({
-                    data: 'actions', // data dari 'actions'
-                    orderable: false, // tidak bisa di-sort
-                    searchable: false // tidak bisa di-search
-                });
-            // }    
+            // 2. Definisi columnDefs
+            const columnDefs = [{
+                targets: -1, // Kolom terakhir (actions)
+                orderable: false,
+                searchable: false,
+                width: '200px'
+            }];
 
             // 3. Inisialisasi DataTables
             $('#tr_pohTable').DataTable({
-                // --- KUNCI SERVER-SIDE ---
-                processing: true, // Tampilkan 'Loading...'
-                serverSide: true, // Aktifkan mode SSP
-
-                // Ambil data dari route ini
-                ajax: '{{ route('tr_poh.index') }}',
-                // -------------------------
-
-                // Terapkan kolom dari langkah 1 & 2
+                processing: true,
+                serverSide: true,
+                ajax: {
+                    url: '{{ route('tr_poh.index') }}',
+                    type: 'GET',
+                    data: function(d) {
+                        const urlParams = new URLSearchParams(window.location.search);
+                        d.year = urlParams.get('year') || '';
+                        d.month = urlParams.get('month') || '';
+                        d.status = urlParams.get('status') || 'active';
+                    }
+                },
                 columns: columns,
-
-                // Urutkan berdasarkan kolom pertama (No. PO)
+                columnDefs: columnDefs,
                 order: [
                     [0, 'desc']
                 ],
-
-                // Tampilkan elemen standar
                 layout: {
                     topStart: 'search',
                     topEnd: 'pageLength',
                     bottomStart: 'info',
                     bottomEnd: 'paging'
+                }, // TAMBAHKAN KOMA INI!
+                initComplete: function() {
+                    const api = this.api();
+                    const $toolbarSearch = $(api.table().container()).find('.dt-search');
+
+                    // Clone filters
+                    const $statusFilter = $('#statusFilterTemplate #statusFilterWrap').clone(true,
+                    true);
+                    const $statusSelect = $statusFilter.find('select[data-role="status-filter"]');
+                    $statusSelect.attr('id', 'statusFilterDT');
+                    $toolbarSearch.append($statusFilter);
+
+                    const $yearFilter = $('#yearFilterTemplate #yearFilterWrap').clone(true, true);
+                    const $yearSelect = $yearFilter.find('select[data-role="year-filter"]');
+                    $yearSelect.attr('id', 'yearFilterDT');
+                    $toolbarSearch.append($yearFilter);
+
+                    const $monthFilter = $('#monthFilterTemplate #monthFilterWrap').clone(true, true);
+                    const $monthSelect = $monthFilter.find('select[data-role="month-filter"]');
+                    $monthSelect.attr('id', 'monthFilterDT');
+                    $toolbarSearch.append($monthFilter);
+
+                    // Cari kolom fclose
+                    const statusColIdx = api.columns().indexes().toArray()
+                        .find(i => api.column(i).dataSrc() === 'fclose');
+
+                    if (statusColIdx === undefined) {
+                        console.warn('Kolom fclose tidak ditemukan.');
+                        return;
+                    }
+
+                    // Baca status dari URL, default 'active'
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const currentStatus = urlParams.get('status') || 'active';
+
+                    // Set selected option sesuai URL
+                    $statusSelect.val(currentStatus);
+
+                    // Apply filter sesuai status dari URL
+                    if (currentStatus === 'active') {
+                        api.column(statusColIdx).search('^0$', true, false).draw();
+                    } else if (currentStatus === 'nonactive') {
+                        api.column(statusColIdx).search('^1$', true, false).draw();
+                    } else {
+                        api.column(statusColIdx).search('', true, false).draw();
+                    }
+
+                    const $searchInput = $toolbarSearch.find('.dt-input');
+                    $searchInput.css({
+                        width: '400px',
+                        maxWidth: '100%'
+                    });
+
+                    // Event handler untuk Status Filter
+                    $statusSelect.on('change', function() {
+                        const v = this.value;
+                        if (v === 'active') {
+                            api.column(statusColIdx).search('^0$', true, false).draw();
+                        } else if (v === 'nonactive') {
+                            api.column(statusColIdx).search('^1$', true, false).draw();
+                        } else {
+                            api.column(statusColIdx).search('', true, false).draw();
+                        }
+
+                        // Update URL tanpa reload
+                        updateUrlParams();
+                    });
+
+                    // Event handlers untuk Year dan Month
+                    $yearSelect.on('change', function() {
+                        updateUrlParams();
+                        api.ajax.reload();
+                    });
+
+                    $monthSelect.on('change', function() {
+                        updateUrlParams();
+                        api.ajax.reload();
+                    });
+
+                    // Fungsi untuk update URL params tanpa reload halaman
+                    function updateUrlParams() {
+                        const year = $yearSelect.val();
+                        const month = $monthSelect.val();
+                        const status = $statusSelect.val();
+                        const url = new URL(window.location.href);
+
+                        if (year) {
+                            url.searchParams.set('year', year);
+                        } else {
+                            url.searchParams.delete('year');
+                        }
+
+                        if (month) {
+                            url.searchParams.set('month', month);
+                        } else {
+                            url.searchParams.delete('month');
+                        }
+
+                        if (status && status !== 'all') {
+                            url.searchParams.set('status', status);
+                        } else {
+                            url.searchParams.delete('status');
+                        }
+
+                        window.history.pushState({}, '', url.toString());
+                    }
                 }
             });
         });

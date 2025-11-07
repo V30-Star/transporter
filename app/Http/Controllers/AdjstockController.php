@@ -310,8 +310,14 @@ class AdjstockController extends Controller
 
     $warehouses = DB::table('mswh')
       ->select('fwhid', 'fwhcode', 'fwhname', 'fbranchcode', 'fnonactive')
-      ->where('fnonactive', '0')              // hanya yang aktif
+      ->where('fnonactive', '0')
       ->orderBy('fwhcode')
+      ->get();
+
+    $accounts = DB::table('account')
+      ->select('faccid', 'faccount', 'faccname', 'fnonactive')
+      ->where('fnonactive', '0')
+      ->orderBy('account')
       ->get();
 
     $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
@@ -343,8 +349,9 @@ class AdjstockController extends Controller
 
     return view('adjstock.create', [
       'newtr_prh_code' => $newtr_prh_code,
-      'warehouses' => $warehouses,
       'perms' => ['can_approval' => $canApproval],
+      'warehouses' => $warehouses,
+      'accounts' => $accounts,
       'supplier' => $supplier,
       'fcabang' => $fcabang,
       'fbranchcode' => $fbranchcode,

@@ -27,6 +27,16 @@ class Tr_prhController extends Controller
     $canDelete = in_array('deleteTr_prh', explode(',', session('user_restricted_permissions', '')));
     $showActionsColumn = $canEdit || $canDelete;
 
+    $status = $request->query('status');
+    $year = $request->query('year');
+    $month = $request->query('month');
+
+    // Ambil tahun-tahun yang tersedia dari data
+    $availableYears = Tr_prh::selectRaw('DISTINCT EXTRACT(YEAR FROM fcreatedat) as year')
+      ->whereNotNull('fcreatedat')
+      ->orderByRaw('EXTRACT(YEAR FROM fcreatedat) DESC')
+      ->pluck('year');
+
     // --- Handle Request AJAX dari DataTables ---
     if ($request->ajax()) {
 
@@ -45,17 +55,37 @@ class Tr_prhController extends Controller
         });
       }
 
+      // Filter status berdasarkan query parameter atau default ke active
+      $statusFilter = $request->query('status', 'active');
+      if ($statusFilter === 'active') {
+        $query->where('fclose', '0');
+      } elseif ($statusFilter === 'nonactive') {
+        $query->where('fclose', '1');
+      }
+      // Jika 'all', tidak ada filter
+
+      // Filter tahun (PostgreSQL syntax)
+      if ($year) {
+        $query->whereRaw('EXTRACT(YEAR FROM fcreatedat) = ?', [$year]);
+      }
+
+      // Filter bulan (PostgreSQL syntax)
+      if ($month) {
+        $query->whereRaw('EXTRACT(MONTH FROM fcreatedat) = ?', [$month]);
+      }
+
       $filteredRecords = (clone $query)->count();
 
       // Sorting
       $orderColumnIndex = $request->input('order.0.column', 0);
       $orderDir = $request->input('order.0.dir', 'asc');
 
-      // Sesuaikan array ini dengan urutan <th> di view Anda
+      // Sesuaikan dengan urutan columns di DataTables
       $columns = [
         0 => 'fprno',
         1 => 'fprdin',
-        2 => null // Kolom 'Actions'
+        2 => 'fclose',  // Ganti ke fclose
+        3 => null // Kolom 'Actions'
       ];
 
       if (isset($columns[$orderColumnIndex]) && $columns[$orderColumnIndex] !== null) {
@@ -71,19 +101,16 @@ class Tr_prhController extends Controller
         $query->skip($start)->take($length);
       }
 
-      // Select kolom yang dibutuhkan
-      $records = $query->get(['fprid', 'fprno', 'fprdin']);
+      // Select kolom yang dibutuhkan - PASTIKAN fclose ADA
+      $records = $query->get(['fprid', 'fprno', 'fprdin', 'fcreatedat', 'fclose']);
 
-      // --- PERUBAHAN DI SINI ---
       // Format data untuk DataTables
       $data = $records->map(function ($record) {
-        // Kita tidak lagi membuat HTML 'actions' di sini.
-        // Kita hanya mengirim 'fprid' agar bisa dipakai oleh
-        // fungsi 'render' di JavaScript.
         return [
           'fprno'    => $record->fprno,
-          'fprdin'   => $record->fprdin, // Format tanggal jika perlu
-          'fprid'    => $record->fprid,  // KIRIM ID UNTUK TOMBOL AKSI
+          'fprdin'   => $record->fprdin,
+          'fclose'   => $record->fclose, // Ganti ke fclose
+          'fprid'    => $record->fprid,
           'DT_RowId' => 'row_' . $record->fprid
         ];
       });
@@ -102,10 +129,14 @@ class Tr_prhController extends Controller
       'canCreate',
       'canEdit',
       'canDelete',
-      'showActionsColumn'
+      'showActionsColumn',
+      'status',
+      'availableYears',
+      'year',
+      'month'
     ));
   }
-
+  
   private function generatetr_prh_Code(?Carbon $onDate = null, $branch = null): string
   {
     $date = $onDate ?: now();

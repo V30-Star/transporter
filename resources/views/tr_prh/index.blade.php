@@ -45,6 +45,41 @@
             </div>
         </div>
 
+        <div id="yearFilterTemplate" class="hidden">
+            <div class="flex items-center gap-2" id="yearFilterWrap">
+                <span class="text-sm text-gray-700">Tahun</span>
+                <select data-role="year-filter" class="border rounded px-2 py-1">
+                    <option value="">Semua</option>
+                    @foreach ($availableYears as $yr)
+                        <option value="{{ $yr }}" {{ $year == $yr ? 'selected' : '' }}>{{ $yr }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+        </div>
+
+        {{-- Template untuk filter Bulan --}}
+        <div id="monthFilterTemplate" class="hidden">
+            <div class="flex items-center gap-2" id="monthFilterWrap">
+                <span class="text-sm text-gray-700">Bulan</span>
+                <select data-role="month-filter" class="border rounded px-2 py-1">
+                    <option value="">Semua</option>
+                    <option value="1" {{ $month == '1' ? 'selected' : '' }}>Januari</option>
+                    <option value="2" {{ $month == '2' ? 'selected' : '' }}>Februari</option>
+                    <option value="3" {{ $month == '3' ? 'selected' : '' }}>Maret</option>
+                    <option value="4" {{ $month == '4' ? 'selected' : '' }}>April</option>
+                    <option value="5" {{ $month == '5' ? 'selected' : '' }}>Mei</option>
+                    <option value="6" {{ $month == '6' ? 'selected' : '' }}>Juni</option>
+                    <option value="7" {{ $month == '7' ? 'selected' : '' }}>Juli</option>
+                    <option value="8" {{ $month == '8' ? 'selected' : '' }}>Agustus</option>
+                    <option value="9" {{ $month == '9' ? 'selected' : '' }}>September</option>
+                    <option value="10" {{ $month == '10' ? 'selected' : '' }}>Oktober</option>
+                    <option value="11" {{ $month == '11' ? 'selected' : '' }}>November</option>
+                    <option value="12" {{ $month == '12' ? 'selected' : '' }}>Desember</option>
+                </select>
+            </div>
+        </div>
+
         {{-- Table --}}
         <table id="tr_prhTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
@@ -188,6 +223,12 @@
                 {
                     data: 'fprdin',
                     name: 'fprdin'
+                },
+                {
+                    data: 'fclose', // TAMBAHKAN KOLOM INI
+                    name: 'fclose',
+                    visible: false,
+                    searchable: true
                 }
             ];
 
@@ -245,7 +286,11 @@
                     url: '{{ route('tr_prh.index') }}',
                     type: 'GET',
                     data: function(d) {
-                        // Tidak ada filter status
+                        // Ambil parameter dari URL saat ini
+                        const urlParams = new URLSearchParams(window.location.search);
+                        d.year = urlParams.get('year') || '';
+                        d.month = urlParams.get('month') || '';
+                        d.status = urlParams.get('status') || 'active';
                     }
                 },
                 columns: columns,
@@ -266,15 +311,113 @@
                     lengthMenu: "Show _MENU_ entries",
                     processing: '<div class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading...</div>'
                 },
+
                 initComplete: function() {
-                    // Hapus filter status, hanya atur lebar search
                     const api = this.api();
                     const $toolbarSearch = $(api.table().container()).find('.dt-search');
+
+                    // Clone filters
+                    const $statusFilter = $('#statusFilterTemplate #statusFilterWrap').clone(true,
+                        true);
+                    const $statusSelect = $statusFilter.find('select[data-role="status-filter"]');
+                    $statusSelect.attr('id', 'statusFilterDT');
+                    $toolbarSearch.append($statusFilter);
+
+                    const $yearFilter = $('#yearFilterTemplate #yearFilterWrap').clone(true, true);
+                    const $yearSelect = $yearFilter.find('select[data-role="year-filter"]');
+                    $yearSelect.attr('id', 'yearFilterDT');
+                    $toolbarSearch.append($yearFilter);
+
+                    const $monthFilter = $('#monthFilterTemplate #monthFilterWrap').clone(true, true);
+                    const $monthSelect = $monthFilter.find('select[data-role="month-filter"]');
+                    $monthSelect.attr('id', 'monthFilterDT');
+                    $toolbarSearch.append($monthFilter);
+
+                    // Cari kolom fclose
+                    const statusColIdx = api.columns().indexes().toArray()
+                        .find(i => api.column(i).dataSrc() === 'fclose');
+
+                    if (statusColIdx === undefined) {
+                        console.warn('Kolom fclose tidak ditemukan.');
+                        return;
+                    }
+
+                    // Baca status dari URL, default 'active'
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const currentStatus = urlParams.get('status') || 'active';
+
+                    // Set selected option sesuai URL
+                    $statusSelect.val(currentStatus);
+
+                    // Apply filter sesuai status dari URL
+                    if (currentStatus === 'active') {
+                        api.column(statusColIdx).search('^0$', true, false).draw();
+                    } else if (currentStatus === 'nonactive') {
+                        api.column(statusColIdx).search('^1$', true, false).draw();
+                    } else {
+                        api.column(statusColIdx).search('', true, false).draw();
+                    }
+
                     const $searchInput = $toolbarSearch.find('.dt-input');
                     $searchInput.css({
                         width: '400px',
                         maxWidth: '100%'
                     });
+
+                    // Event handler untuk Status Filter
+                    $statusSelect.on('change', function() {
+                        const v = this.value;
+                        if (v === 'active') {
+                            api.column(statusColIdx).search('^0$', true, false).draw();
+                        } else if (v === 'nonactive') {
+                            api.column(statusColIdx).search('^1$', true, false).draw();
+                        } else {
+                            api.column(statusColIdx).search('', true, false).draw();
+                        }
+
+                        // Update URL tanpa reload
+                        updateUrlParams();
+                    });
+
+                    // Event handlers untuk Year dan Month - TANPA RELOAD
+                    $yearSelect.on('change', function() {
+                        updateUrlParams();
+                        api.ajax.reload(); // Reload data DataTables
+                    });
+
+                    $monthSelect.on('change', function() {
+                        updateUrlParams();
+                        api.ajax.reload(); // Reload data DataTables
+                    });
+
+                    // Fungsi untuk update URL params tanpa reload halaman
+                    function updateUrlParams() {
+                        const year = $yearSelect.val();
+                        const month = $monthSelect.val();
+                        const status = $statusSelect.val();
+                        const url = new URL(window.location.href);
+
+                        if (year) {
+                            url.searchParams.set('year', year);
+                        } else {
+                            url.searchParams.delete('year');
+                        }
+
+                        if (month) {
+                            url.searchParams.set('month', month);
+                        } else {
+                            url.searchParams.delete('month');
+                        }
+
+                        if (status && status !== 'all') {
+                            url.searchParams.set('status', status);
+                        } else {
+                            url.searchParams.delete('status');
+                        }
+
+                        // Update URL di browser tanpa reload halaman
+                        window.history.pushState({}, '', url.toString());
+                    }
                 }
             });
         });
