@@ -48,7 +48,7 @@
         <div id="yearFilterTemplate" class="hidden">
             <div class="flex items-center gap-2" id="yearFilterWrap">
                 <span class="text-sm text-gray-700">Tahun</span>
-                <select data-role="year-filter" class="border rounded px-2 py-1">
+                <select data-role="year-filter" class="border rounded px-2 py-1 w-24">
                     <option value="">Semua</option>
                     @foreach ($availableYears as $yr)
                         <option value="{{ $yr }}" {{ $year == $yr ? 'selected' : '' }}>{{ $yr }}
