@@ -21,11 +21,30 @@
                 <input type="hidden" name="fuserid" value="{{ auth()->user()->id ?? 'system' }}">
 
                 <div class="space-y-4 mt-4">
+                    {{-- Cabang --}}
+                    <div>
+                        <label class="block text-sm font-medium">Cabang</label>
+                        <select name="fcabang"
+                            class="w-full border rounded px-3 py-2 @error('fcabang') border-red-500 @enderror" required>
+                            <option value="HQ">Cabang HQ</option>
+                            @foreach ($cabangs as $c)
+                                <option value="{{ $c->fcabangkode }}"
+                                    {{ old('fcabang') == $c->fcabangkode ? 'selected' : '' }}>
+                                    {{ $c->fcabangkode }} - {{ $c->fcabangname }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('fcabang')
+                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
                     <!-- Nama Lengkap -->
                     <div>
                         <label class="block text-sm font-medium">Nama Lengkap</label>
                         <input type="text" name="fname" value="{{ old('fname') }}"
-                            class="w-full border rounded px-3 py-2 uppercase @error('fname') border-red-500 @enderror" autofocus>
+                            class="w-full border rounded px-3 py-2 uppercase @error('fname') border-red-500 @enderror"
+                            autofocus>
                         @error('fname')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
@@ -57,23 +76,6 @@
                         <input type="password" name="password_confirmation" value="{{ old('password_confirmation') }}"
                             class="w-full border rounded px-3 py-2 @error('password_confirmation') border-red-500 @enderror">
                         @error('password_confirmation')
-                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium">Cabang</label>
-                        <select name="fcabang"
-                            class="w-full border rounded px-3 py-2 @error('fcabang') border-red-500 @enderror" required>
-                            <option value="">-- Pilih Cabang --</option>
-                            @foreach ($cabangs as $c)
-                                <option value="{{ $c->fcabangkode }}"
-                                    {{ old('fcabang') == $c->fcabangkode ? 'selected' : '' }}>
-                                    {{ $c->fcabangkode }} - {{ $c->fcabangname }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('fcabang')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
                     </div>

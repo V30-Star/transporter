@@ -20,11 +20,30 @@
                 @method('PATCH')
 
                 <div class="space-y-4 mt-4">
+                    <!-- Cabang -->
+                    <div>
+                        <label class="block text-sm font-medium">Cabang</label>
+                        <select name="fcabang"
+                            class="w-full border rounded px-3 py-2 @error('fcabang') border-red-500 @enderror" required>
+                            <option value="HQ">Cabang HQ</option>
+                            @foreach ($cabangs as $c)
+                                <option value="{{ $c->fcabangkode }}"
+                                    {{ old('fcabang', $sysuser->fcabang) == $c->fcabangkode ? 'selected' : '' }}>
+                                    {{ $c->fcabangkode }} - {{ $c->fcabangname }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('fcabang')
+                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
                     <!-- Nama Lengkap -->
                     <div>
                         <label class="block text-sm font-medium">Nama Lengkap</label>
                         <input type="text" name="fname" value="{{ old('fname', $sysuser->fname) }}"
-                            class="w-full border rounded px-3 py-2 uppercase @error('fname') border-red-500 @enderror" autofocus>
+                            class="w-full border rounded px-3 py-2 uppercase @error('fname') border-red-500 @enderror"
+                            autofocus>
                         @error('fname')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
@@ -96,24 +115,6 @@
                             </option>
                         </select>
                         @error('fuserlevel')
-                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <!-- Cabang -->
-                    <div>
-                        <label class="block text-sm font-medium">Cabang</label>
-                        <select name="fcabang"
-                            class="w-full border rounded px-3 py-2 @error('fcabang') border-red-500 @enderror" required>
-                            <option value="">-- Pilih Cabang --</option>
-                            @foreach ($cabangs as $c)
-                                <option value="{{ $c->fcabangkode }}"
-                                    {{ old('fcabang', $sysuser->fcabang) == $c->fcabangkode ? 'selected' : '' }}>
-                                    {{ $c->fcabangkode }} - {{ $c->fcabangname }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('fcabang')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
                     </div>
