@@ -84,18 +84,32 @@
         }
     </style>
 
-    <div x-data="{ open: true, currency: '{{ old('fcurrency', '0') }}' }">
-        <div x-data="{ includePPN: false, ppnRate: 0, ppnAmount: 0, totalHarga: 100000 }" class="lg:col-span-5">
+    <div x-data="{ open: true, adjtype: '{{ old('ftrancode', 'm') }}' }">
+        <div x-data="{
+            open: true,
+            adjtype: '{{ old('ftrancode', 'm') }}',
+        
+            includePPN: false,
+            ppnRate: 0,
+            ppnAmount: 0,
+            totalHarga: 100000,
+        
+            showNoItems: false,
+        
+            savedItems: []
+        }" class="lg:col-span-5">
             <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
-                <form action="{{ route('penerimaanbarang.store') }}" method="POST" class="mt-6" x-data="{ showNoItems: false }"
-                    @submit.prevent="
-        const n = Number(document.getElementById('itemsCount')?.value || 0);
-        if (n < 1) { showNoItems = true } else { $el.submit() }
-      ">
+                <form action="{{ route('adjstock.store') }}" method="POST" class="mt-6" @submit="onSubmit($event)">
                     @csrf
 
                     {{-- HEADER FORM --}}
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                        <div class="lg:col-span-4">
+                            <label class="block text-sm font-medium">Cabang</label>
+                            <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
+                                value="{{ $fcabang }}" disabled>
+                            <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
+                        </div>
                         <div class="lg:col-span-4" x-data="{ autoCode: true }">
                             <label class="block text-sm font-medium mb-1">Transaksi#</label>
                             <div class="flex items-center gap-3">
@@ -114,14 +128,14 @@
                         <div class="lg:col-span-4">
                             <label class="block text-sm font-medium">Adj. Type</label>
 
-                            <select name="fcurrency" x-model="currency" @change="applyDefaultIfNeeded()"
-                                class="w-full border rounded px-3 py-2 @error('fcurrency') border-red-500 @enderror">
+                            <select name="ftrancode" x-model="adjtype"
+                                class="w-full border rounded px-3 py-2 @error('ftrancode') border-red-500 @enderror">
 
-                                <option value="0">Masuk</option>
-                                <option value="1">Keluar</option>
+                                <option value="m">Masuk</option>
+                                <option value="k">Keluar</option>
                             </select>
 
-                            @error('fcurrency')
+                            @error('ftrancode')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
                         </div>
@@ -130,47 +144,38 @@
                             <label class="block text-sm font-medium mb-1">Account</label>
                             <div class="flex">
                                 <div class="relative flex-1">
-                                    <select id="accountSelect" class="w-full border rounded-l px-3 py-2"
-                                        :class="{
-                                            'bg-gray-100 text-gray-700 cursor-not-allowed': selectedType != '1',
-                                            'bg-white cursor-pointer': selectedType == '1'
-                                        }"
-                                        disabled>
+                                    <select id="accountSelect" class="w-full border rounded-l px-3 py-2" disabled>
                                         <option value=""></option>
                                         @foreach ($accounts as $account)
                                             <option value="{{ $account->faccount }}" data-faccid="{{ $account->faccid }}"
                                                 data-branch="{{ $account->faccount }}"
-                                                {{ old('fprdjadi') == $account->faccount ? 'selected' : '' }}>
+                                                {{ old('frefno') == $account->faccount ? 'selected' : '' }}>
                                                 {{ $account->faccount }} - {{ $account->faccname }}
                                             </option>
                                         @endforeach
                                     </select>
 
                                     <div class="absolute inset-0" role="button" aria-label="Browse account"
-                                        @click="window.dispatchEvent(new CustomEvent('account-browse-open'))"
-                                        x-show="selectedType == '1'"></div>
+                                        @click="window.dispatchEvent(new CustomEvent('account-browse-open'))"></div>
                                 </div>
 
-                                <input type="hidden" name="fprdjadi" id="accountCodeHidden" value="{{ old('fprdjadi') }}">
+                                <input type="hidden" name="frefno" id="accountCodeHidden" value="{{ old('frefno') }}">
                                 <input type="hidden" name="faccid" id="accountIdHidden" value="{{ old('faccid') }}">
 
                                 <button type="button" @click="window.dispatchEvent(new CustomEvent('account-browse-open'))"
                                     class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
-                                    :disabled="selectedType != '1'"
-                                    :class="{ 'opacity-50 cursor-not-allowed': selectedType != '1' }"
                                     title="Browse Account">
                                     <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                                 </button>
 
                                 <a href="{{ route('account.create') }}" target="_blank" rel="noopener"
                                     class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
-                                    :class="{ 'opacity-50 cursor-not-allowed pointer-events-none': selectedType != '1' }"
-                                    @click="selectedType != '1' && $event.preventDefault()" title="Tambah Account">
+                                    title="Tambah Account">
                                     <x-heroicon-o-plus class="w-5 h-5" />
                                 </a>
                             </div>
 
-                            @error('fprdjadi')
+                            @error('frefno')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
                         </div>
@@ -240,559 +245,442 @@
                         </div>
                     </div>
 
-                    <div x-show="currency == '0'" x-data="itemsTable()" x-init="init()"
-                        class="mt-6 space-y-2">
+                    <template x-if="adjtype === 'm'">
+                        <div x-data="itemsTable()" x-init="init()" class="mt-6 space-y-2">
 
-                        {{-- DETAIL ITEM (tabel input) --}}
-                        <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
+                            {{-- DETAIL ITEM (tabel input) --}}
+                            <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
 
-                        <div class="overflow-auto border rounded">
-                            <table class="min-w-full text-sm">
-                                <thead class="bg-gray-100">
-                                    <tr>
-                                        <th class="p-2 text-left w-10">#</th>
-                                        <th class="p-2 text-left w-40">Kode Produk</th>
-                                        <th class="p-2 text-left w-102">Nama Produk</th>
-                                        <th class="p-2 text-left w-24">Sat</th>
-                                        <th class="p-2 text-right w-36">Qty Masuk</th>
-                                        <th class="p-2 text-right w-28">Qty SN</th>
-                                        <th class="p-2 text-right w-32">@ Harga</th>
-                                        <th class="p-2 text-right w-36">Total Harga</th>
-                                        <th class="p-2 text-center w-36">Aksi</th>
-                                    </tr>
-                                </thead>
+                            <div class="overflow-auto border rounded">
+                                <table class="min-w-full text-sm">
+                                    <thead class="bg-gray-100">
+                                        <tr>
+                                            <th class="p-2 text-left w-10">#</th>
+                                            <th class="p-2 text-left w-40">Kode Produk</th>
+                                            <th class="p-2 text-left w-102">Nama Produk</th>
+                                            <th class="p-2 text-left w-24">Sat</th>
+                                            <th class="p-2 text-right w-36">Qty Masuk</th>
+                                            <th class="p-2 text-right w-32">@ Harga</th>
+                                            <th class="p-2 text-right w-36">Total Harga</th>
+                                            <th class="p-2 text-center w-36">Aksi</th>
+                                        </tr>
+                                    </thead>
 
-                                <tbody>
-                                    <template x-for="(it, i) in savedItems" :key="it.uid">
-                                        <!-- ROW UTAMA -->
-                                        <tr class="border-t align-top">
-                                            <td class="p-2" x-text="i + 1"></td>
-                                            <td class="p-2 font-mono" x-text="it.fitemcode"></td>
-                                            <td class="p-2 text-gray-800">
-                                                <div x-text="it.fitemname"></div>
-                                                <div x-show="it.fdesc" class="mt-1 text-xs">
-                                                    <span
-                                                        class="inline-block px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 mr-2">Deskripsi</span>
-                                                    <span class="align-middle text-gray-600" x-text="it.fdesc"></span>
+                                    <tbody>
+                                        <template x-for="(it, i) in savedItems" :key="it.uid">
+                                            <!-- ROW UTAMA -->
+                                            <tr class="border-t align-top">
+                                                <td class="p-2" x-text="i + 1"></td>
+                                                <td class="p-2 font-mono" x-text="it.fitemcode"></td>
+                                                <td class="p-2 text-gray-800" x-text="it.fitemname"></td>
+                                                <td class="p-2 text-left" x-text="it.fsatuan"></td>
+                                                <td class="p-2 text-right" x-text="fmt(it.fqty)"></td>
+                                                <td class="p-2 text-right" x-text="fmt(it.fprice)"></td>
+                                                <td class="p-2 text-right" x-text="fmt(it.ftotal)"></td>
+                                                <td class="p-2 text-center">
+                                                    <div class="flex items-center justify-center gap-2 flex-wrap">
+                                                        <button type="button" @click="edit(i)"
+                                                            class="px-3 py-1 rounded text-xs bg-amber-100 text-amber-700 hover:bg-amber-200">Edit</button>
+                                                        <button type="button" @click="removeSaved(i)"
+                                                            class="px-3 py-1 rounded text-xs bg-red-100 text-red-600 hover:bg-red-200">Hapus</button>
+                                                    </div>
+                                                </td>
+
+                                                <!-- hidden inputs -->
+                                                <td class="hidden">
+                                                    <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
+                                                    <input type="hidden" name="fitemname[]" :value="it.fitemname">
+                                                    <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
+                                                    <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
+                                                    <input type="hidden" name="frefpr[]" :value="it.frefpr">
+                                                    <input type="hidden" name="fqty[]" :value="it.fqty">
+                                                    <input type="hidden" name="fprice[]" :value="it.fprice">
+                                                    <input type="hidden" name="ftotal[]" :value="it.ftotal">
+                                                    <input type="hidden" name="fketdt[]" :value="it.fketdt">
+                                                </td>
+                                            </tr>
+                                        </template>
+
+                                        <!-- ROW EDIT UTAMA -->
+                                        <tr x-show="editingIndex !== null" class="border-t align-top" x-cloak>
+                                            <!-- # -->
+                                            <td class="p-2" x-text="(editingIndex ?? 0) + 1"></td>
+
+                                            <!-- Kode Produk -->
+                                            <td class="p-2">
+                                                <div class="flex">
+                                                    <input type="text"
+                                                        class="flex-1 border rounded-l px-2 py-1 font-mono"
+                                                        x-ref="editCode" x-model.trim="editRow.fitemcode"
+                                                        @input="onCodeTypedRow(editRow)"
+                                                        @keydown.enter.prevent="handleEnterOnCode('edit')">
+                                                    <button type="button" @click="openBrowseFor('edit')"
+                                                        class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
+                                                        title="Cari Produk">
+                                                        <x-heroicon-o-magnifying-glass class="w-4 h-4" />
+                                                    </button>
+                                                    <a href="{{ route('product.create') }}" target="_blank"
+                                                        rel="noopener"
+                                                        class="border border-l-0 rounded-r px-2 py-1 bg-white hover:bg-gray-50"
+                                                        title="Tambah Produk">
+                                                        <x-heroicon-o-plus class="w-4 h-4" />
+                                                    </a>
                                                 </div>
                                             </td>
-                                            <td class="p-2 text-right" x-text="it.fsatuan"></td>
-                                            <td class="p-2" x-text="it.frefdtno || '-'"></td>
-                                            <td class="p-2 text-right" x-text="fmt(it.fqty)"></td>
-                                            <td class="p-2 text-right" x-text="fmt(it.fprice)"></td>
-                                            <td class="p-2 text-right" x-text="fmt(it.ftotal)"></td>
+
+                                            <!-- Nama Produk (readonly) -->
+                                            <td class="p-2">
+                                                <input type="text"
+                                                    class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
+                                                    :value="editRow.fitemname" disabled>
+                                            </td>
+
+                                            <!-- Satuan -->
+                                            <td class="p-2">
+                                                <template x-if="editRow.units.length > 1">
+                                                    <select class="w-full border rounded px-2 py-1" x-ref="editUnit"
+                                                        x-model="editRow.fsatuan"
+                                                        @keydown.enter.prevent="$refs.editRefPr?.focus()">
+                                                        <template x-for="u in editRow.units" :key="u">
+                                                            <option :value="u" x-text="u"></option>
+                                                        </template>
+                                                    </select>
+                                                </template>
+                                                <template x-if="editRow.units.length <= 1">
+                                                    <input type="text"
+                                                        class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
+                                                        :value="editRow.fsatuan || '-'" disabled>
+                                                </template>
+                                            </td>
+
+                                            <!-- Qty -->
+                                            <td class="p-2 text-right">
+                                                <input type="number" class="border rounded px-2 py-1 w-24 text-right"
+                                                    min="0" step="1" x-ref="editQty"
+                                                    x-model.number="editRow.fqty" @change="recalc(editRow)"
+                                                    @blur="recalc(editRow)"
+                                                    @keydown.enter.prevent="$refs.editPrice?.focus()">
+                                            </td>
+
+                                            <!-- @ Harga -->
+                                            <td class="p-2 text-right">
+                                                <input type="number" class="border rounded px-2 py-1 w-28 text-right"
+                                                    min="0" step="0.01" x-ref="editPrice"
+                                                    x-model.number="editRow.fprice" @change="recalc(editRow)"
+                                                    @blur="recalc(editRow)"
+                                                    @keydown.enter.prevent="handleEnterOnPrice('edit')">
+                                            </td>
+
+                                            <!-- Total Harga (readonly) -->
+                                            <td class="p-2 text-right font-semibold" x-text="rupiah(editRow.ftotal)"></td>
+
+                                            <!-- Aksi -->
                                             <td class="p-2 text-center">
                                                 <div class="flex items-center justify-center gap-2 flex-wrap">
-                                                    <button type="button" @click="edit(i)"
-                                                        class="px-3 py-1 rounded text-xs bg-amber-100 text-amber-700 hover:bg-amber-200">Edit</button>
-                                                    <button type="button" @click="removeSaved(i)"
-                                                        class="px-3 py-1 rounded text-xs bg-red-100 text-red-600 hover:bg-red-200">Hapus</button>
+                                                    <button type="button" @click="applyEdit()"
+                                                        class="px-3 py-1 rounded text-xs bg-emerald-600 text-white">Simpan</button>
+                                                    <button type="button" @click="cancelEdit()"
+                                                        class="px-3 py-1 rounded text-xs bg-gray-100">Batal</button>
                                                 </div>
                                             </td>
-
-                                            <!-- hidden inputs -->
-                                            <td class="hidden">
-                                                <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
-                                                <input type="hidden" name="fitemname[]" :value="it.fitemname">
-                                                <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
-                                                <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
-                                                <input type="hidden" name="frefpr[]" :value="it.frefpr">
-                                                <input type="hidden" name="fqty[]" :value="it.fqty">
-                                                <input type="hidden" name="fprice[]" :value="it.fprice">
-                                                <input type="hidden" name="ftotal[]" :value="it.ftotal">
-                                                <input type="hidden" name="fdesc[]" :value="it.fdesc">
-                                                <input type="hidden" name="fketdt[]" :value="it.fketdt">
-                                            </td>
                                         </tr>
 
-                                        <!-- ROW DESC (di bawah Nama Produk) -->
-                                        <tr class="border-b">
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-2" colspan="3">
-                                                <textarea x-model="draft.fdesc" rows="2" class="w-full border rounded px-4 py-1"
-                                                    placeholder="Deskripsi (opsional)"></textarea>
-                                            </td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                        </tr>
-                                    </template>
-
-                                    <!-- ROW EDIT UTAMA -->
-                                    <tr x-show="editingIndex !== null" class="border-t align-top" x-cloak>
-                                        <!-- # -->
-                                        <td class="p-2" x-text="(editingIndex ?? 0) + 1"></td>
-
-                                        <!-- Kode Produk -->
-                                        <td class="p-2">
-                                            <div class="flex">
-                                                <input type="text" class="flex-1 border rounded-l px-2 py-1 font-mono"
-                                                    x-ref="editCode" x-model.trim="editRow.fitemcode"
-                                                    @input="onCodeTypedRow(editRow)"
-                                                    @keydown.enter.prevent="handleEnterOnCode('edit')">
-                                                <button type="button" @click="openBrowseFor('edit')"
-                                                    class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
-                                                    title="Cari Produk">
-                                                    <x-heroicon-o-magnifying-glass class="w-4 h-4" />
-                                                </button>
-                                                <a href="{{ route('product.create') }}" target="_blank" rel="noopener"
-                                                    class="border border-l-0 rounded-r px-2 py-1 bg-white hover:bg-gray-50"
-                                                    title="Tambah Produk">
-                                                    <x-heroicon-o-plus class="w-4 h-4" />
-                                                </a>
-                                            </div>
-                                        </td>
-
-                                        <!-- Nama Produk (readonly) -->
-                                        <td class="p-2">
-                                            <input type="text"
-                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
-                                                :value="editRow.fitemname" disabled>
-                                        </td>
-
-                                        <!-- Satuan -->
-                                        <td class="p-2">
-                                            <template x-if="editRow.units.length > 1">
-                                                <select class="w-full border rounded px-2 py-1" x-ref="editUnit"
-                                                    x-model="editRow.fsatuan"
-                                                    @keydown.enter.prevent="$refs.editRefPr?.focus()">
-                                                    <template x-for="u in editRow.units" :key="u">
-                                                        <option :value="u" x-text="u"></option>
-                                                    </template>
-                                                </select>
-                                            </template>
-                                            <template x-if="editRow.units.length <= 1">
-                                                <input type="text"
-                                                    class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
-                                                    :value="editRow.fsatuan || '-'" disabled>
-                                            </template>
-                                        </td>
-
-                                        <!-- Qty -->
-                                        <td class="p-2 text-right">
-                                            <input type="number" class="border rounded px-2 py-1 w-24 text-right"
-                                                min="0" step="1" x-ref="editQty"
-                                                x-model.number="editRow.fqty" @change="recalc(editRow)"
-                                                @blur="recalc(editRow)" @keydown.enter.prevent="$refs.editPrice?.focus()">
-                                        </td>
-
-                                        <!-- Qty -->
-                                        <td class="p-2 text-right">
-                                            <input type="number" class="border rounded px-2 py-1 w-24 text-right"
-                                                min="0" step="1" x-ref="editQty"
-                                                x-model.number="editRow.fqty" @change="recalc(editRow)"
-                                                @blur="recalc(editRow)" @keydown.enter.prevent="$refs.editPrice?.focus()">
-                                        </td>
-
-                                        <!-- @ Harga -->
-                                        <td class="p-2 text-right">
-                                            <input type="number" class="border rounded px-2 py-1 w-28 text-right"
-                                                min="0" step="0.01" x-ref="editPrice"
-                                                x-model.number="editRow.fprice" @change="recalc(editRow)"
-                                                @blur="recalc(editRow)"
-                                                @keydown.enter.prevent="handleEnterOnPrice('edit')">
-                                        </td>
-
-                                        <!-- Total Harga (readonly) -->
-                                        <td class="p-2 text-right font-semibold" x-text="rupiah(editRow.ftotal)"></td>
-
-                                        <!-- Aksi -->
-                                        <td class="p-2 text-center">
-                                            <div class="flex items-center justify-center gap-2 flex-wrap">
-                                                <button type="button" @click="applyEdit()"
-                                                    class="px-3 py-1 rounded text-xs bg-emerald-600 text-white">Simpan</button>
-                                                <button type="button" @click="cancelEdit()"
-                                                    class="px-3 py-1 rounded text-xs bg-gray-100">Batal</button>
-                                            </div>
-                                        </td>
-                                    </tr>
-
-                                    <!-- ROW EDIT DESC -->
-                                    <tr x-show="editingIndex !== null" class="border-b" x-cloak>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-2" colspan="3">
-                                            <textarea x-model="draft.fdesc" rows="2" class="w-full border rounded px-4 py-1"
-                                                placeholder="Deskripsi (opsional)"></textarea>
-                                        </td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                    </tr>
-
-                                    <!-- ROW DRAFT UTAMA -->
-                                    <tr class="border-t align-top">
-                                        <!-- # -->
-                                        <td class="p-2" x-text="savedItems.length + 1"></td>
-
-                                        <!-- Kode Produk -->
-                                        <td class="p-2">
-                                            <div class="flex">
-                                                <input type="text" class="flex-1 border rounded-l px-2 py-1 font-mono"
-                                                    x-ref="draftCode" x-model.trim="draft.fitemcode"
-                                                    @input="onCodeTypedRow(draft)"
-                                                    @keydown.enter.prevent="handleEnterOnCode('draft')">
-                                                <button type="button" @click="openBrowseFor('draft')"
-                                                    class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
-                                                    title="Cari Produk">
-                                                    <x-heroicon-o-magnifying-glass class="w-4 h-4" />
-                                                </button>
-                                                <a href="{{ route('product.create') }}" target="_blank" rel="noopener"
-                                                    class="border border-l-0 rounded-r px-2 py-1 bg-white hover:bg-gray-50"
-                                                    title="Tambah Produk">
-                                                    <x-heroicon-o-plus class="w-4 h-4" />
-                                                </a>
-                                            </div>
-                                        </td>
-
-                                        <!-- Nama Produk (readonly) -->
-                                        <td class="p-2">
-                                            <input type="text"
-                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
-                                                :value="draft.fitemname" disabled>
-                                        </td>
-
-                                        <!-- Satuan -->
-                                        <td class="p-2">
-                                            <template x-if="draft.units.length > 1">
-                                                <select class="w-full border rounded px-2 py-1" x-ref="draftUnit"
-                                                    x-model="draft.fsatuan"
-                                                    @keydown.enter.prevent="$refs.draftRefPr?.focus()">
-                                                    <template x-for="u in draft.units" :key="u">
-                                                        <option :value="u" x-text="u"></option>
-                                                    </template>
-                                                </select>
-                                            </template>
-                                            <template x-if="draft.units.length <= 1">
-                                                <input type="text"
-                                                    class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
-                                                    :value="draft.fsatuan || '-'" disabled>
-                                            </template>
-                                        </td>
-
-                                        <!-- Qty -->
-                                        <td class="p-2 text-right">
-                                            <input type="number" class="border rounded px-2 py-1 w-24 text-right"
-                                                min="0" step="1" x-ref="editQty"
-                                                x-model.number="editRow.fqty" @change="recalc(editRow)"
-                                                @blur="recalc(editRow)" @keydown.enter.prevent="$refs.editPrice?.focus()">
-                                        </td>
-
-                                        <!-- Qty -->
-                                        <td class="p-2 text-right">
-                                            <input type="number" class="border rounded px-2 py-1 w-24 text-right"
-                                                min="0" step="1" x-ref="draftQty"
-                                                x-model.number="draft.fqty" @change="recalc(draft)" @blur="recalc(draft)"
-                                                @keydown.enter.prevent="$refs.draftPrice?.focus()">
-                                        </td>
-
-                                        <!-- @ Harga -->
-                                        <td class="p-2 text-right">
-                                            <input type="number" class="border rounded px-2 py-1 w-28 text-right"
-                                                min="0" step="0.01" x-ref="draftPrice"
-                                                x-model.number="draft.fprice" @change="recalc(draft)"
-                                                @blur="recalc(draft)"
-                                                @keydown.enter.prevent="handleEnterOnPrice('draft')">
-                                        </td>
-
-                                        <!-- Total Harga (readonly) -->
-                                        <td class="p-2 text-right font-semibold" x-text="rupiah(draft.ftotal)"></td>
-
-                                        <!-- Aksi -->
-                                        <td class="p-2 text-center">
-                                            <div class="flex items-center justify-center gap-2 flex-wrap">
-                                                <button type="button" @click="addIfComplete()"
-                                                    class="px-3 py-1 rounded text-xs bg-emerald-600 text-white">Tambah</button>
-                                            </div>
-                                        </td>
-                                    </tr>
-
-                                    <!-- ROW DRAFT DESC -->
-                                    <tr class="border-b">
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-2" colspan="3">
-                                            <textarea x-model="draft.fdesc" rows="2" class="w-full border rounded px-4 py-1"
-                                                placeholder="Deskripsi (opsional)"></textarea>
-                                        </td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <div x-show="currency == '1'" x-data="itemsTableKeluar()" x-init="init()"
-                        class="mt-6 space-y-2">
-
-                        {{-- DETAIL ITEM (tabel input) --}}
-                        <h3 class="text-base font-semibold text-gray-800">Detail Item Keluar</h3>
-
-                        <div class="overflow-auto border rounded">
-                            <table class="min-w-full text-sm">
-                                <thead class="bg-gray-100">
-                                    <tr>
-                                        <th class="p-2 text-left w-10">#</th>
-                                        <th class="p-2 text-left w-40">Kode Produk</th>
-                                        <th class="p-2 text-left w-102">Nama Produk</th>
-                                        <th class="p-2 text-left w-24">Sat</th>
-                                        <th class="p-2 text-right w-36">Qty Keluar</th>
-                                        <th class="p-2 text-right w-28">Qty SN</th>
-                                        <th class="p-2 text-center w-36">Aksi</th>
-                                    </tr>
-                                </thead>
-
-                                <tbody>
-                                    <template x-for="(it, i) in savedItems" :key="it.uid">
-                                        <!-- ROW UTAMA -->
+                                        <!-- ROW DRAFT UTAMA -->
                                         <tr class="border-t align-top">
-                                            <td class="p-2" x-text="i + 1"></td>
-                                            <td class="p-2 font-mono" x-text="it.fitemcode"></td>
-                                            <td class="p-2 text-gray-800">
-                                                <div x-text="it.fitemname"></div>
-                                                <div x-show="it.fdesc" class="mt-1 text-xs">
-                                                    <span
-                                                        class="inline-block px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 mr-2">Deskripsi</span>
-                                                    <span class="align-middle text-gray-600" x-text="it.fdesc"></span>
+                                            <!-- # -->
+                                            <td class="p-2" x-text="savedItems.length + 1"></td>
+
+                                            <!-- Kode Produk -->
+                                            <td class="p-2">
+                                                <div class="flex">
+                                                    <input type="text"
+                                                        class="flex-1 border rounded-l px-2 py-1 font-mono"
+                                                        x-ref="draftCode" x-model.trim="draft.fitemcode"
+                                                        @input="onCodeTypedRow(draft)"
+                                                        @keydown.enter.prevent="handleEnterOnCode('draft')">
+                                                    <button type="button" @click="openBrowseFor('draft')"
+                                                        class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
+                                                        title="Cari Produk">
+                                                        <x-heroicon-o-magnifying-glass class="w-4 h-4" />
+                                                    </button>
+                                                    <a href="{{ route('product.create') }}" target="_blank"
+                                                        rel="noopener"
+                                                        class="border border-l-0 rounded-r px-2 py-1 bg-white hover:bg-gray-50"
+                                                        title="Tambah Produk">
+                                                        <x-heroicon-o-plus class="w-4 h-4" />
+                                                    </a>
                                                 </div>
                                             </td>
-                                            <td class="p-2 text-right" x-text="it.fsatuan"></td>
-                                            <td class="p-2" x-text="it.frefdtno || '-'"></td>
-                                            <td class="p-2 text-right" x-text="fmt(it.fqty)"></td>
+
+                                            <!-- Nama Produk (readonly) -->
+                                            <td class="p-2">
+                                                <input type="text"
+                                                    class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
+                                                    :value="draft.fitemname" disabled>
+                                            </td>
+
+                                            <!-- Satuan -->
+                                            <td class="p-2">
+                                                <template x-if="draft.units.length > 1">
+                                                    <select class="w-full border rounded px-2 py-1" x-ref="draftUnit"
+                                                        x-model="draft.fsatuan"
+                                                        @keydown.enter.prevent="$refs.draftRefPr?.focus()">
+                                                        <template x-for="u in draft.units" :key="u">
+                                                            <option :value="u" x-text="u"></option>
+                                                        </template>
+                                                    </select>
+                                                </template>
+                                                <template x-if="draft.units.length <= 1">
+                                                    <input type="text"
+                                                        class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
+                                                        :value="draft.fsatuan || '-'" disabled>
+                                                </template>
+                                            </td>
+
+                                            <!-- Qty -->
+                                            <td class="p-2 text-right">
+                                                <input type="number" class="border rounded px-2 py-1 w-24 text-right"
+                                                    min="0" step="1" x-ref="draftQty"
+                                                    x-model.number="draft.fqty" @change="recalc(draft)"
+                                                    @blur="recalc(draft)"
+                                                    @keydown.enter.prevent="$refs.draftPrice?.focus()">
+                                            </td>
+
+                                            <!-- @ Harga -->
+                                            <td class="p-2 text-right">
+                                                <input type="number" class="border rounded px-2 py-1 w-28 text-right"
+                                                    min="0" step="0.01" x-ref="draftPrice"
+                                                    x-model.number="draft.fprice" @change="recalc(draft)"
+                                                    @blur="recalc(draft)"
+                                                    @keydown.enter.prevent="handleEnterOnPrice('draft')">
+                                            </td>
+
+                                            <!-- Total Harga (readonly) -->
+                                            <td class="p-2 text-right font-semibold" x-text="rupiah(draft.ftotal)"></td>
+
+                                            <!-- Aksi -->
                                             <td class="p-2 text-center">
                                                 <div class="flex items-center justify-center gap-2 flex-wrap">
-                                                    <button type="button" @click="edit(i)"
-                                                        class="px-3 py-1 rounded text-xs bg-amber-100 text-amber-700 hover:bg-amber-200">Edit</button>
-                                                    <button type="button" @click="removeSaved(i)"
-                                                        class="px-3 py-1 rounded text-xs bg-red-100 text-red-600 hover:bg-red-200">Hapus</button>
+                                                    <button type="button" @click="addIfComplete()"
+                                                        class="px-3 py-1 rounded text-xs bg-emerald-600 text-white">Tambah</button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="w-1/2 ml-auto">
+                                <div class="rounded-lg border bg-gray-50 p-3 space-y-2">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm text-gray-700">Total Harga</span>
+                                        <span class="min-w-[140px] text-right font-medium"
+                                            x-text="rupiah(totalHarga)"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+
+                    <template x-if="adjtype === 'k'">
+                        <div x-data="itemsTableKeluar()" x-init="init()" class="mt-6 space-y-2">
+
+                            {{-- DETAIL ITEM (tabel input) --}}
+                            <h3 class="text-base font-semibold text-gray-800">Detail Item Keluar</h3>
+
+                            <div class="overflow-auto border rounded">
+                                <table class="min-w-full text-sm">
+                                    <thead class="bg-gray-100">
+                                        <tr>
+                                            <th class="p-2 text-left w-10">#</th>
+                                            <th class="p-2 text-left w-40">Kode Produk</th>
+                                            <th class="p-2 text-left w-102">Nama Produk</th>
+                                            <th class="p-2 text-left w-24">Sat</th>
+                                            <th class="p-2 text-right w-36">Qty Keluar</th>
+                                            <th class="p-2 text-center w-36">Aksi</th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody>
+                                        <template x-for="(it, i) in savedItems" :key="it.uid">
+                                            <!-- ROW UTAMA -->
+                                            <tr class="border-t align-top">
+                                                <td class="p-2" x-text="i + 1"></td>
+                                                <td class="p-2 font-mono" x-text="it.fitemcode"></td>
+                                                <td class="p-2 text-gray-800" x-text="it.fitemname"></td>
+                                                <td class="p-2 text-left" x-text="it.fsatuan"></td>
+                                                <td class="p-2 text-right" x-text="fmt(it.fqty)"></td>
+                                                <td class="p-2 text-center">
+                                                    <div class="flex items-center justify-center gap-2 flex-wrap">
+                                                        <button type="button" @click="edit(i)"
+                                                            class="px-3 py-1 rounded text-xs bg-amber-100 text-amber-700 hover:bg-amber-200">Edit</button>
+                                                        <button type="button" @click="removeSaved(i)"
+                                                            class="px-3 py-1 rounded text-xs bg-red-100 text-red-600 hover:bg-red-200">Hapus</button>
+                                                    </div>
+                                                </td>
+
+                                                <!-- hidden inputs -->
+                                                <td class="hidden">
+                                                    <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
+                                                    <input type="hidden" name="fitemname[]" :value="it.fitemname">
+                                                    <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
+                                                    <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
+                                                    <input type="hidden" name="frefpr[]" :value="it.frefpr">
+                                                    <input type="hidden" name="fqty[]" :value="it.fqty">
+                                                    <input type="hidden" name="fprice[]" :value="it.fprice">
+                                                    <input type="hidden" name="ftotal[]" :value="it.ftotal">
+                                                    <input type="hidden" name="fketdt[]" :value="it.fketdt">
+                                                </td>
+                                            </tr>
+                                        </template>
+
+                                        <!-- ROW EDIT UTAMA -->
+                                        <tr x-show="editingIndex !== null" class="border-t align-top" x-cloak>
+                                            <!-- # -->
+                                            <td class="p-2" x-text="(editingIndex ?? 0) + 1"></td>
+
+                                            <!-- Kode Produk -->
+                                            <td class="p-2">
+                                                <div class="flex">
+                                                    <input type="text"
+                                                        class="flex-1 border rounded-l px-2 py-1 font-mono"
+                                                        x-ref="editCode" x-model.trim="editRow.fitemcode"
+                                                        @input="onCodeTypedRow(editRow)"
+                                                        @keydown.enter.prevent="handleEnterOnCode('edit')">
+                                                    <button type="button" @click="openBrowseFor('edit')"
+                                                        class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
+                                                        title="Cari Produk">
+                                                        <x-heroicon-o-magnifying-glass class="w-4 h-4" />
+                                                    </button>
+                                                    <a href="{{ route('product.create') }}" target="_blank"
+                                                        rel="noopener"
+                                                        class="border border-l-0 rounded-r px-2 py-1 bg-white hover:bg-gray-50"
+                                                        title="Tambah Produk">
+                                                        <x-heroicon-o-plus class="w-4 h-4" />
+                                                    </a>
                                                 </div>
                                             </td>
 
-                                            <!-- hidden inputs -->
-                                            <td class="hidden">
-                                                <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
-                                                <input type="hidden" name="fitemname[]" :value="it.fitemname">
-                                                <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
-                                                <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
-                                                <input type="hidden" name="frefpr[]" :value="it.frefpr">
-                                                <input type="hidden" name="fqty[]" :value="it.fqty">
-                                                <input type="hidden" name="fprice[]" :value="it.fprice">
-                                                <input type="hidden" name="ftotal[]" :value="it.ftotal">
-                                                <input type="hidden" name="fdesc[]" :value="it.fdesc">
-                                                <input type="hidden" name="fketdt[]" :value="it.fketdt">
+                                            <!-- Nama Produk (readonly) -->
+                                            <td class="p-2">
+                                                <input type="text"
+                                                    class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
+                                                    :value="editRow.fitemname" disabled>
+                                            </td>
+
+                                            <!-- Satuan -->
+                                            <td class="p-2">
+                                                <template x-if="editRow.units.length > 1">
+                                                    <select class="w-full border rounded px-2 py-1" x-ref="editUnit"
+                                                        x-model="editRow.fsatuan"
+                                                        @keydown.enter.prevent="$refs.editRefPr?.focus()">
+                                                        <template x-for="u in editRow.units" :key="u">
+                                                            <option :value="u" x-text="u">
+                                                            </option>
+                                                        </template>
+                                                    </select>
+                                                </template>
+                                                <template x-if="editRow.units.length <= 1">
+                                                    <input type="text"
+                                                        class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
+                                                        :value="editRow.fsatuan || '-'" disabled>
+                                                </template>
+                                            </td>
+
+                                            <!-- Qty -->
+                                            <td class="p-2 text-right">
+                                                <input type="number" class="border rounded px-2 py-1 w-24 text-right"
+                                                    min="0" step="1" x-ref="editQty"
+                                                    x-model.number="editRow.fqty" @change="recalc(editRow)"
+                                                    @blur="recalc(editRow)"
+                                                    @keydown.enter.prevent="$refs.editPrice?.focus()">
+                                            </td>
+
+                                            <!-- Aksi -->
+                                            <td class="p-2 text-center">
+                                                <div class="flex items-center justify-center gap-2 flex-wrap">
+                                                    <button type="button" @click="applyEdit()"
+                                                        class="px-3 py-1 rounded text-xs bg-emerald-600 text-white">Simpan</button>
+                                                    <button type="button" @click="cancelEdit()"
+                                                        class="px-3 py-1 rounded text-xs bg-gray-100">Batal</button>
+                                                </div>
                                             </td>
                                         </tr>
 
-                                        <!-- ROW DESC (di bawah Nama Produk) -->
-                                        <tr class="border-b">
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-2" colspan="3">
-                                                <textarea x-model="draft.fdesc" rows="2" class="w-full border rounded px-4 py-1"
-                                                    placeholder="Deskripsi (opsional)"></textarea>
+                                        <!-- ROW DRAFT UTAMA -->
+                                        <tr class="border-t align-top">
+                                            <!-- # -->
+                                            <td class="p-2" x-text="savedItems.length + 1"></td>
+
+                                            <!-- Kode Produk -->
+                                            <td class="p-2">
+                                                <div class="flex">
+                                                    <input type="text"
+                                                        class="flex-1 border rounded-l px-2 py-1 font-mono"
+                                                        x-ref="draftCode" x-model.trim="draft.fitemcode"
+                                                        @input="onCodeTypedRow(draft)"
+                                                        @keydown.enter.prevent="handleEnterOnCode('draft')">
+                                                    <button type="button" @click="openBrowseFor('draft')"
+                                                        class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
+                                                        title="Cari Produk">
+                                                        <x-heroicon-o-magnifying-glass class="w-4 h-4" />
+                                                    </button>
+                                                    <a href="{{ route('product.create') }}" target="_blank"
+                                                        rel="noopener"
+                                                        class="border border-l-0 rounded-r px-2 py-1 bg-white hover:bg-gray-50"
+                                                        title="Tambah Produk">
+                                                        <x-heroicon-o-plus class="w-4 h-4" />
+                                                    </a>
+                                                </div>
                                             </td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
+
+                                            <!-- Nama Produk (readonly) -->
+                                            <td class="p-2">
+                                                <input type="text"
+                                                    class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
+                                                    :value="draft.fitemname" disabled>
+                                            </td>
+
+                                            <!-- Satuan -->
+                                            <td class="p-2">
+                                                <template x-if="draft.units.length > 1">
+                                                    <select class="w-full border rounded px-2 py-1" x-ref="draftUnit"
+                                                        x-model="draft.fsatuan"
+                                                        @keydown.enter.prevent="$refs.draftRefPr?.focus()">
+                                                        <template x-for="u in draft.units" :key="u">
+                                                            <option :value="u" x-text="u">
+                                                            </option>
+                                                        </template>
+                                                    </select>
+                                                </template>
+                                                <template x-if="draft.units.length <= 1">
+                                                    <input type="text"
+                                                        class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
+                                                        :value="draft.fsatuan || '-'" disabled>
+                                                </template>
+                                            </td>
+
+                                            <!-- Qty -->
+                                            <td class="p-2 text-right">
+                                                <input type="number" class="border rounded px-2 py-1 w-24 text-right"
+                                                    min="0" step="1" x-ref="draftQty"
+                                                    x-model.number="draft.fqty" @change="recalc(draft)"
+                                                    @blur="recalc(draft)"
+                                                    @keydown.enter.prevent="$refs.draftPrice?.focus()">
+                                            </td>
+
+                                            <!-- Aksi -->
+                                            <td class="p-2 text-center">
+                                                <div class="flex items-center justify-center gap-2 flex-wrap">
+                                                    <button type="button" @click="addIfComplete()"
+                                                        class="px-3 py-1 rounded text-xs bg-emerald-600 text-white">Tambah</button>
+                                                </div>
+                                            </td>
                                         </tr>
-                                    </template>
-
-                                    <!-- ROW EDIT UTAMA -->
-                                    <tr x-show="editingIndex !== null" class="border-t align-top" x-cloak>
-                                        <!-- # -->
-                                        <td class="p-2" x-text="(editingIndex ?? 0) + 1"></td>
-
-                                        <!-- Kode Produk -->
-                                        <td class="p-2">
-                                            <div class="flex">
-                                                <input type="text" class="flex-1 border rounded-l px-2 py-1 font-mono"
-                                                    x-ref="editCode" x-model.trim="editRow.fitemcode"
-                                                    @input="onCodeTypedRow(editRow)"
-                                                    @keydown.enter.prevent="handleEnterOnCode('edit')">
-                                                <button type="button" @click="openBrowseFor('edit')"
-                                                    class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
-                                                    title="Cari Produk">
-                                                    <x-heroicon-o-magnifying-glass class="w-4 h-4" />
-                                                </button>
-                                                <a href="{{ route('product.create') }}" target="_blank" rel="noopener"
-                                                    class="border border-l-0 rounded-r px-2 py-1 bg-white hover:bg-gray-50"
-                                                    title="Tambah Produk">
-                                                    <x-heroicon-o-plus class="w-4 h-4" />
-                                                </a>
-                                            </div>
-                                        </td>
-
-                                        <!-- Nama Produk (readonly) -->
-                                        <td class="p-2">
-                                            <input type="text"
-                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
-                                                :value="editRow.fitemname" disabled>
-                                        </td>
-
-                                        <!-- Satuan -->
-                                        <td class="p-2">
-                                            <template x-if="editRow.units.length > 1">
-                                                <select class="w-full border rounded px-2 py-1" x-ref="editUnit"
-                                                    x-model="editRow.fsatuan"
-                                                    @keydown.enter.prevent="$refs.editRefPr?.focus()">
-                                                    <template x-for="u in editRow.units" :key="u">
-                                                        <option :value="u" x-text="u"></option>
-                                                    </template>
-                                                </select>
-                                            </template>
-                                            <template x-if="editRow.units.length <= 1">
-                                                <input type="text"
-                                                    class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
-                                                    :value="editRow.fsatuan || '-'" disabled>
-                                            </template>
-                                        </td>
-
-                                        <!-- Qty -->
-                                        <td class="p-2 text-right">
-                                            <input type="number" class="border rounded px-2 py-1 w-24 text-right"
-                                                min="0" step="1" x-ref="editQty"
-                                                x-model.number="editRow.fqty" @change="recalc(editRow)"
-                                                @blur="recalc(editRow)" @keydown.enter.prevent="$refs.editPrice?.focus()">
-                                        </td>
-
-                                        <!-- Qty -->
-                                        <td class="p-2 text-right">
-                                            <input type="number" class="border rounded px-2 py-1 w-24 text-right"
-                                                min="0" step="1" x-ref="editQty"
-                                                x-model.number="editRow.fqty" @change="recalc(editRow)"
-                                                @blur="recalc(editRow)" @keydown.enter.prevent="$refs.editPrice?.focus()">
-                                        </td>
-
-                                        <!-- Aksi -->
-                                        <td class="p-2 text-center">
-                                            <div class="flex items-center justify-center gap-2 flex-wrap">
-                                                <button type="button" @click="applyEdit()"
-                                                    class="px-3 py-1 rounded text-xs bg-emerald-600 text-white">Simpan</button>
-                                                <button type="button" @click="cancelEdit()"
-                                                    class="px-3 py-1 rounded text-xs bg-gray-100">Batal</button>
-                                            </div>
-                                        </td>
-                                    </tr>
-
-                                    <!-- ROW EDIT DESC -->
-                                    <tr x-show="editingIndex !== null" class="border-b" x-cloak>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-2" colspan="3">
-                                            <textarea x-model="draft.fdesc" rows="2" class="w-full border rounded px-4 py-1"
-                                                placeholder="Deskripsi (opsional)"></textarea>
-                                        </td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                    </tr>
-
-                                    <!-- ROW DRAFT UTAMA -->
-                                    <tr class="border-t align-top">
-                                        <!-- # -->
-                                        <td class="p-2" x-text="savedItems.length + 1"></td>
-
-                                        <!-- Kode Produk -->
-                                        <td class="p-2">
-                                            <div class="flex">
-                                                <input type="text" class="flex-1 border rounded-l px-2 py-1 font-mono"
-                                                    x-ref="draftCode" x-model.trim="draft.fitemcode"
-                                                    @input="onCodeTypedRow(draft)"
-                                                    @keydown.enter.prevent="handleEnterOnCode('draft')">
-                                                <button type="button" @click="openBrowseFor('draft')"
-                                                    class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
-                                                    title="Cari Produk">
-                                                    <x-heroicon-o-magnifying-glass class="w-4 h-4" />
-                                                </button>
-                                                <a href="{{ route('product.create') }}" target="_blank" rel="noopener"
-                                                    class="border border-l-0 rounded-r px-2 py-1 bg-white hover:bg-gray-50"
-                                                    title="Tambah Produk">
-                                                    <x-heroicon-o-plus class="w-4 h-4" />
-                                                </a>
-                                            </div>
-                                        </td>
-
-                                        <!-- Nama Produk (readonly) -->
-                                        <td class="p-2">
-                                            <input type="text"
-                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
-                                                :value="draft.fitemname" disabled>
-                                        </td>
-
-                                        <!-- Satuan -->
-                                        <td class="p-2">
-                                            <template x-if="draft.units.length > 1">
-                                                <select class="w-full border rounded px-2 py-1" x-ref="draftUnit"
-                                                    x-model="draft.fsatuan"
-                                                    @keydown.enter.prevent="$refs.draftRefPr?.focus()">
-                                                    <template x-for="u in draft.units" :key="u">
-                                                        <option :value="u" x-text="u"></option>
-                                                    </template>
-                                                </select>
-                                            </template>
-                                            <template x-if="draft.units.length <= 1">
-                                                <input type="text"
-                                                    class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
-                                                    :value="draft.fsatuan || '-'" disabled>
-                                            </template>
-                                        </td>
-
-                                        <!-- Qty -->
-                                        <td class="p-2 text-right">
-                                            <input type="number" class="border rounded px-2 py-1 w-24 text-right"
-                                                min="0" step="1" x-ref="editQty"
-                                                x-model.number="editRow.fqty" @change="recalc(editRow)"
-                                                @blur="recalc(editRow)" @keydown.enter.prevent="$refs.editPrice?.focus()">
-                                        </td>
-
-                                        <!-- Qty -->
-                                        <td class="p-2 text-right">
-                                            <input type="number" class="border rounded px-2 py-1 w-24 text-right"
-                                                min="0" step="1" x-ref="draftQty"
-                                                x-model.number="draft.fqty" @change="recalc(draft)" @blur="recalc(draft)"
-                                                @keydown.enter.prevent="$refs.draftPrice?.focus()">
-                                        </td>
-
-                                        <!-- Aksi -->
-                                        <td class="p-2 text-center">
-                                            <div class="flex items-center justify-center gap-2 flex-wrap">
-                                                <button type="button" @click="addIfComplete()"
-                                                    class="px-3 py-1 rounded text-xs bg-emerald-600 text-white">Tambah</button>
-                                            </div>
-                                        </td>
-                                    </tr>
-
-                                    <!-- ROW DRAFT DESC -->
-                                    <tr class="border-b">
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-2" colspan="3">
-                                            <textarea x-model="draft.fdesc" rows="2" class="w-full border rounded px-4 py-1"
-                                                placeholder="Deskripsi (opsional)"></textarea>
-                                        </td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
-                    </div>
+                    </template>
 
                     <!-- ===== Trigger: Add tr_prh dari panel kanan ===== -->
                     <div x-data="prhFormModal()" class="mt-3">
@@ -807,16 +695,6 @@
                                     </svg>
                                     Add PO
                                 </button>
-                            </div>
-                            <!-- Kanan: Panel Totals -->
-                            <div class="w-1/2">
-                                <div class="rounded-lg border bg-gray-50 p-3 space-y-2">
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-sm text-gray-700">Total Harga</span>
-                                        <span class="min-w-[140px] text-right font-medium"
-                                            x-text="rupiah(totalHarga)"></span>
-                                    </div>
-                                </div>
                             </div>
                             <!-- Modal backdrop -->
                             <div x-show="show" x-transition.opacity class="fixed inset-0 z-40 bg-black/50"
@@ -991,38 +869,6 @@
                                 </div>
                             </div>
                         </div>
-
-                        <!-- MODAL DESC (di dalam itemsTable) -->
-                        <div x-show="showDescModal" x-cloak class="fixed inset-0 z-[95] flex items-center justify-center"
-                            x-transition.opacity>
-                            <div class="absolute inset-0 bg-black/50" @click="closeDesc()"></div>
-
-                            <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
-                                x-transition.scale>
-                                <div class="px-5 py-4 border-b flex items-center">
-                                    <x-heroicon-o-document-text class="w-6 h-6 text-blue-600 mr-2" />
-                                    <h3 class="text-lg font-semibold text-gray-800">Isi Deskripsi Item</h3>
-                                </div>
-
-                                <div class="px-5 py-4 space-y-2">
-                                    <label class="block text-sm text-gray-700">Deskripsi</label>
-                                    <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2"
-                                        placeholder="Tulis deskripsi item di sini..."></textarea>
-                                </div>
-
-                                <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
-                                    <button type="button" @click="closeDesc()"
-                                        class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
-                                        Batal
-                                    </button>
-                                    <button type="button" @click="applyDesc()"
-                                        class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
-                                        Simpan
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
                         <input type="hidden" id="itemsCount" :value="savedItems.length">
                     </div>
 
@@ -1155,7 +1001,8 @@
                                             </tr>
                                         </template>
                                         <tr x-show="rows.length === 0">
-                                            <td colspan="3" class="p-4 text-center text-gray-500">Tidak ada data.
+                                            <td colspan="3" class="p-4 text-center text-gray-500">Tidak ada
+                                                data.
                                             </td>
                                         </tr>
                                     </tbody>
@@ -1285,7 +1132,8 @@
                                             </tr>
                                         </template>
                                         <tr x-show="rows.length === 0">
-                                            <td colspan="3" class="p-4 text-center text-gray-500">Tidak ada data.
+                                            <td colspan="3" class="p-4 text-center text-gray-500">Tidak ada
+                                                data.
                                             </td>
                                         </tr>
                                     </tbody>
@@ -1659,7 +1507,6 @@
                         fitemcode: src.fitemcode ?? '',
                         fitemname: src.fitemname ?? '',
                         fsatuan: src.fsatuan ?? '',
-                        frefdtno: src.frefdtno ?? '',
                         frefpr: src.frefpr ?? (header?.fpono ?? ''),
                         fqty: Number(src.fqty ?? 0),
                         fprice: Number(src.fprice ?? 0),
@@ -1988,7 +1835,6 @@
                         fitemcode: src.fitemcode ?? '',
                         fitemname: src.fitemname ?? '',
                         fsatuan: src.fsatuan ?? '',
-                        frefdtno: src.frefdtno ?? '',
                         frefpr: src.frefpr ?? (header?.fpono ?? ''),
                         fqty: Number(src.fqty ?? 0),
                         fdesc: src.fdesc ?? '',
