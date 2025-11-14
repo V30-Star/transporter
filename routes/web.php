@@ -181,9 +181,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/penerimaanbarang/{fstockmtno}/print', [PenerimaanBarangController::class, 'print'])
             ->name('penerimaanbarang.print');
         Route::get('/penerimaanbarang/{id}/items', [PenerimaanBarangController::class, 'items'])
-            ->name('penerimaanbarang.items');    // endpoint ambil header+items PR\
+            ->name('penerimaanbarang.items'); 
         Route::get('/penerimaanbarang/pickable', [PenerimaanBarangController::class, 'pickable'])
-            ->name('penerimaanbarang.pickable'); // sumber data modal
+            ->name('penerimaanbarang.pickable'); 
 
         Route::get('/fakturpembelian',  [FakturpembelianController::class, 'index'])->name('fakturpembelian.index');
         Route::post('/fakturpembelian',        [FakturpembelianController::class, 'store'])->name('fakturpembelian.store');
@@ -194,9 +194,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/fakturpembelian/{fstockmtno}/print', [FakturpembelianController::class, 'print'])
             ->name('fakturpembelian.print');
         Route::get('/fakturpembelian/{id}/items', [FakturpembelianController::class, 'items'])
-            ->name('fakturpembelian.items');    // endpoint ambil header+items PR\
+            ->name('fakturpembelian.items'); 
         Route::get('/fakturpembelian/pickable', [FakturpembelianController::class, 'pickable'])
-            ->name('fakturpembelian.pickable'); // sumber data modal
+            ->name('fakturpembelian.pickable'); 
 
         Route::get('/adjstock',  [AdjstockController::class, 'index'])->name('adjstock.index');
         Route::post('/adjstock',        [AdjstockController::class, 'store'])->name('adjstock.store');
@@ -207,9 +207,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/adjstock/{fstockmtno}/print', [AdjstockController::class, 'print'])
             ->name('adjstock.print');
         Route::get('/adjstock/{id}/items', [AdjstockController::class, 'items'])
-            ->name('adjstock.items');    // endpoint ambil header+items PR\
+            ->name('adjstock.items'); 
         Route::get('/adjstock/pickable', [AdjstockController::class, 'pickable'])
-            ->name('adjstock.pickable'); // sumber data modal
+            ->name('adjstock.pickable'); 
 
         Route::get('/products/browse', [\App\Http\Controllers\ProductBrowseController::class, 'index'])
             ->name('products.browse');

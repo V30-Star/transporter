@@ -45,10 +45,10 @@
             </div>
         </div>
 
-        <table id="penerimaanbarangTable" class="min-w-full border text-sm">
+        <table id="adjstockTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
-                    <th class="border px-2 py-1">No. Penerimaan</th>
+                    <th class="border px-2 py-1">No. Adj Stock</th>
                     <th class="border px-2 py-1">Tanggal</th>
 
                     {{-- @if ($showActionsColumn) --}}
@@ -180,14 +180,14 @@
             // }
 
             // 3. Inisialisasi DataTables
-            // Pastikan ID tabel Anda adalah 'penerimaanbarangTable'
-            $('#penerimaanbarangTable').DataTable({
+            // Pastikan ID tabel Anda adalah 'adjstockTable'
+            $('#adjstockTable').DataTable({
                 // --- KUNCI SERVER-SIDE ---
                 processing: true, // Tampilkan 'Loading...'
                 serverSide: true, // Aktifkan mode SSP
 
                 // Ambil data dari route ini
-                ajax: '{{ route('penerimaanbarang.index') }}',
+                ajax: '{{ route('adjstock.index') }}',
                 // -------------------------
 
                 // Terapkan kolom dari langkah 1 & 2

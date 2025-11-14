@@ -35,11 +35,11 @@ class AdjstockController extends Controller
     // --- 2. Handle Request AJAX dari DataTables ---
     if ($request->ajax()) {
 
-      // Query dasar HANYA untuk 'RCV' (Receiving)
-      $query = PenerimaanPembelianHeader::where('fstockmtcode', 'RCV');
+      // Query dasar HANYA untuk 'ADJ' (Receiving)
+      $query = PenerimaanPembelianHeader::where('fstockmtcode', 'ADJ');
 
-      // Total records (dengan filter 'RCV')
-      $totalRecords = PenerimaanPembelianHeader::where('fstockmtcode', 'RCV')->count();
+      // Total records (dengan filter 'ADJ')
+      $totalRecords = PenerimaanPembelianHeader::where('fstockmtcode', 'ADJ')->count();
 
       // Handle Search (cari di No. Penerimaan)
       if ($search = $request->input('search.value')) {
@@ -75,8 +75,8 @@ class AdjstockController extends Controller
 
         // --- Tombol Edit ---
         // if ($canEdit) {
-        // Asumsi route edit Anda: penerimaanbarang.edit
-        $editUrl = route('penerimaanbarang.edit', $row->fstockmtid);
+        // Asumsi route edit Anda: adjstock.edit
+        $editUrl = route('adjstock.edit', $row->fstockmtid);
         $actions .= ' <a href="' . $editUrl . '" class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
                                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
@@ -86,8 +86,8 @@ class AdjstockController extends Controller
 
         // --- Tombol Delete ---
         // if ($canDelete) {
-        // Asumsi route destroy Anda: penerimaanbarang.destroy
-        $deleteUrl = route('penerimaanbarang.destroy', $row->fstockmtid);
+        // Asumsi route destroy Anda: adjstock.destroy
+        $deleteUrl = route('adjstock.destroy', $row->fstockmtid);
         $actions .= ' <button onclick="$dispatch(\'open-delete\', \'' . $deleteUrl . '\')" class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
                                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
@@ -96,8 +96,8 @@ class AdjstockController extends Controller
         // }
 
         // --- Tombol Print ---
-        // Asumsi route print Anda: penerimaanbarang.print
-        $printUrl = route('penerimaanbarang.print', ['fstockmtno' => $row->fstockmtno]);
+        // Asumsi route print Anda: adjstock.print
+        $printUrl = route('adjstock.print', ['fstockmtno' => $row->fstockmtno]);
         $actions .= ' <a href="' . $printUrl . '" target="_blank" class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
                                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m10 0v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5m10 0v5H7v-5"></path>
@@ -533,7 +533,7 @@ class AdjstockController extends Controller
       // Siapkan array data untuk tabel 'trstockmt'
       $headerData = [
         'fstockmtno'       => trim((string)$request->input('fstockmtno')),
-        'fstockmtcode'     => 'RCV',
+        'fstockmtcode'     => 'ADJ',
         'fstockmtdate'     => $fstockmtdate,
         'fprdout'          => '0',
         'fsupplier'        => '0',
@@ -679,7 +679,7 @@ class AdjstockController extends Controller
       ]);
     }
   }
-  
+
   public function edit($fstockmtid)
   {
     $supplier = Supplier::all();
@@ -699,12 +699,18 @@ class AdjstockController extends Controller
       ->orderBy('fwhcode')
       ->get();
 
+    $accounts = DB::table('account')
+      ->select('faccid', 'faccount', 'faccname', 'fnonactive')
+      ->where('fnonactive', '0')
+      ->orderBy('account')
+      ->get();
+
     $fcabang     = $branch->fcabangname ?? (string) $raw;
     $fbranchcode = $branch->fcabangkode ?? (string) $raw;
 
     // 1. Ambil data Header (trstockmt) DAN relasi Details (trstockdt)
     // Biarkan query ini. Sekarang $fstockmtid di sini adalah integer (misal: 8)
-    $penerimaanbarang = PenerimaanPembelianHeader::with([
+    $adjstock = PenerimaanPembelianHeader::with([
       'details' => function ($query) {
         $query
           // 2. Join ke msprd berdasarkan ID
@@ -722,7 +728,7 @@ class AdjstockController extends Controller
 
 
     // 4. Map the data for savedItems (sudah menggunakan data yang benar)
-    $savedItems = $penerimaanbarang->details->map(function ($d) {
+    $savedItems = $adjstock->details->map(function ($d) {
       return [
         'uid'       => $d->fstockdtid,
         'fitemcode' => $d->fitemcode_text ?? '',
@@ -747,7 +753,7 @@ class AdjstockController extends Controller
     })->values();
 
     // Sisa kode Anda sudah benar
-    $selectedSupplierCode = $penerimaanbarang->fsupplier;
+    $selectedSupplierCode = $adjstock->fsupplier;
 
     $products = Product::select(
       'fprdid',
@@ -769,19 +775,20 @@ class AdjstockController extends Controller
       ];
     })->toArray();
 
-    return view('penerimaanbarang.edit', [
+    return view('adjstock.edit', [
       'supplier'           => $supplier,
       'selectedSupplierCode' => $selectedSupplierCode,
       'fcabang'            => $fcabang,
       'fbranchcode'        => $fbranchcode,
       'warehouses'         => $warehouses,
+      'accounts'           => $accounts,
       'products'           => $products,
       'productMap'         => $productMap,
-      'penerimaanbarang'    => $penerimaanbarang,
+      'adjstock'    => $adjstock,
       'savedItems'         => $savedItems,
-      'ppnAmount'          => (float) ($penerimaanbarang->famountpopajak ?? 0),
-      'famountponet'       => (float) ($penerimaanbarang->famountponet ?? 0),
-      'famountpo'          => (float) ($penerimaanbarang->famountpo ?? 0),
+      'ppnAmount'          => (float) ($adjstock->famountpopajak ?? 0),
+      'famountponet'       => (float) ($adjstock->famountponet ?? 0),
+      'famountpo'          => (float) ($adjstock->famountpo ?? 0),
     ]);
   }
 
@@ -790,23 +797,22 @@ class AdjstockController extends Controller
     // =========================
     // 1) VALIDASI INPUT
     // =========================
-    $request->validate([
+    $validated = $request->validate([
       'fstockmtno'     => ['nullable', 'string', 'max:100'],
       'fstockmtdate'   => ['required', 'date'],
-      'fsupplier'      => ['required', 'string', 'max:30'],
-      'ffrom'          => ['nullable', 'integer', 'exists:mswh,fwhid'],
+      'ffrom'          => ['nullable', 'string', 'max:10'], // Sepertinya ini fwhid?
+      'ftrancode'      => ['nullable', 'string', 'max:3'],
       'fket'           => ['nullable', 'string', 'max:50'],
       'fbranchcode'    => ['nullable', 'string', 'max:20'],
       'fitemcode'      => ['required', 'array', 'min:1'],
       'fitemcode.*'    => ['required', 'string', 'max:50'],
       'fsatuan'        => ['nullable', 'array'],
       'fsatuan.*'      => ['nullable', 'string', 'max:5'],
-      'frefdtno'       => ['nullable', 'array'],
-      'frefdtno.*'     => ['nullable', 'string', 'max:20'],
+      'frefno' => ['nullable', 'string'],
       'fnouref'        => ['nullable', 'array'],
       'fnouref.*'      => ['nullable', 'integer'],
       'fqty'           => ['required', 'array'],
-      'fqty.*'         => ['numeric', 'min:0.01'],
+      'fqty.*'         => ['required', 'numeric', 'min:0.01'], // Minimal 0.01
       'fprice'         => ['required', 'array'],
       'fprice.*'       => ['numeric', 'min:0'],
       'fdesc'          => ['nullable', 'array'],
@@ -814,23 +820,16 @@ class AdjstockController extends Controller
       'fcurrency'      => ['nullable', 'string', 'max:5'],
       'frate'          => ['nullable', 'numeric', 'min:0'],
       'famountpopajak' => ['nullable', 'numeric', 'min:0'],
-    ], [
-      'fstockmtdate.required' => 'Tanggal transaksi wajib diisi.',
-      'fsupplier.required'    => 'Supplier wajib diisi.',
-      'fitemcode.required'    => 'Minimal 1 item.',
-      'fqty.*.min'            => 'Qty tidak boleh 0.',
-      'ffrom.exists'          => 'Gudang (ffrom/fwhid) tidak valid.',
-      'ffrom.integer'         => 'Gudang (ffrom/fwhid) harus berupa angka ID.',
     ]);
-
     // =========================
     // 2) AMBIL DATA MASTER & HEADER
     // =========================
     $header = PenerimaanPembelianHeader::findOrFail($fstockmtid);
 
     $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
-    $fsupplier    = trim((string)$request->input('fsupplier'));
     $ffrom        = $request->input('ffrom');
+    $frefno        = $request->input('frefno');
+    $ftrancode        = $request->input('ftrancode');
     $fket         = trim((string)$request->input('fket', ''));
     $fbranchcode  = $request->input('fbranchcode');
     $fcurrency    = $request->input('fcurrency', 'IDR');
@@ -919,6 +918,9 @@ class AdjstockController extends Controller
         'fclosedt'       => '0',
         'fdiscpersen'    => 0,
         'fbiaya'         => 0,
+        'fstockmtid'     => null, // Akan diisi di Tahap 5
+        'fstockmtcode'   => null, // Akan diisi di Tahap 5
+        'fstockmtno'     => null, // Akan diisi di Tahap 5
       ];
     }
 
@@ -937,8 +939,9 @@ class AdjstockController extends Controller
       $header,
       $fstockmtid,
       $fstockmtdate,
-      $fsupplier,
       $ffrom,
+      $frefno,
+      $ftrancode,
       $fket,
       $fbranchcode,
       $fcurrency,
@@ -969,7 +972,6 @@ class AdjstockController extends Controller
       // ---- 5.2. UPDATE HEADER: trstockmt ----
       $masterData = [
         'fstockmtdate'     => $fstockmtdate,
-        'fsupplier'        => $fsupplier,
         'fcurrency'        => $fcurrency,
         'frate'            => $frate,
         'famount'          => round($subtotal, 2),
@@ -981,6 +983,8 @@ class AdjstockController extends Controller
         'famountremain'    => round($grandTotal, 2),
         'famountremain_rp' => round($grandTotal * $frate, 2),
         'ffrom'            => $ffrom,
+        'ftrancode'            => $ftrancode,
+        'frefno'           => $frefno,
         'fket'             => $fket,
         'fuserid'          => $userid,
         'fbranchcode'      => $kodeCabang,
@@ -1011,7 +1015,7 @@ class AdjstockController extends Controller
     });
 
     return redirect()
-      ->route('penerimaanbarang.edit', $fstockmtid)
+      ->route('adjstock.edit', $fstockmtid)
       ->with('success', "Transaksi {$header->fstockmtno} berhasil diperbarui.");
   }
 
@@ -1021,7 +1025,7 @@ class AdjstockController extends Controller
     $penerimaanbarang->delete();
 
     return redirect()
-      ->route('penerimaanbarang.index')
+      ->route('adjstock.index')
       ->with('success', 'Penerimaan Barang Berhasil Dihapus.');
   }
 }

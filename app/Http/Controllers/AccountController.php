@@ -56,33 +56,15 @@ class AccountController extends Controller
 
     public function browse(Request $request)
     {
-        $q       = trim($request->get('q', ''));
-        $perPage = (int)($request->get('per_page', 10)) ?: 10;
+        $accounts = Account::select('faccid', 'faccount', 'faccname') // ← PASTIKAN faccid ada
+            ->when($request->search, function ($q, $search) {
+                $q->where('faccount', 'like', "%{$search}%")
+                    ->orWhere('faccname', 'like', "%{$search}%");
+            })
+            ->paginate($request->per_page ?? 10);
 
-        // Header = 1 (sesuai skema kamu). Kalau ada historis 0, bisa whereIn([0,1]).
-        $query = Account::query()->where('fend', 0);
-
-        if ($q !== '') {
-            $query->where(function ($w) use ($q) {
-                $w->where('faccount', 'like', "%{$q}%")
-                    ->orWhere('faccname', 'like', "%{$q}%");
-            });
-        }
-
-        $result = $query->orderBy('faccount')->paginate($perPage);
-
-        // penting: mapping faccid -> id agar frontend tetap pakai row.id
-        $result->getCollection()->transform(function ($row) {
-            return [
-                'id'       => $row->faccid,     // <— pakai faccid
-                'faccount' => $row->faccount,
-                'faccname' => $row->faccname,
-            ];
-        });
-
-        return response()->json($result);
+        return response()->json($accounts);
     }
-
 
     public function create()
     {

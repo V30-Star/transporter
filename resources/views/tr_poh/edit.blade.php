@@ -229,7 +229,7 @@
                                     x-model.number="rateUsdIdr"
                                     class="w-full border rounded px-3 py-2 @error('frate') border-red-500 @enderror"
                                     placeholder="Contoh: 15500"
-                                    value="{{ old('frate', $tr_poh->frate ?? 15500) }}"><!-- fallback kalau Alpine mati -->
+                                    value="{{ old('frate', $tr_poh->frate ?? 15500) }}">
                                 @error('frate')
                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                 @enderror
