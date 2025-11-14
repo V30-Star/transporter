@@ -296,7 +296,7 @@ class AdjstockController extends Controller
       ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y')
       : '-';
 
-    return view('penerimaanbarang.print', [
+    return view('adjstock.print', [
       'hdr'          => $hdr,
       'dt'           => $dt,
       'fmt'          => $fmt,
