@@ -102,7 +102,9 @@
                         <td>{{ $account->faccount }}</td>
                         <td>{{ $account->faccname }}</td>
                         <td>{{ $account->fend == 1 ? 'Detil' : 'Header' }}</td>
-                        <td>{{ $account->fnormal == 'D' ? 'D' : '' }}</td>
+                        <td>
+                            {{ $account->fnormal == 'D' ? 'Debit' : ($account->fnormal == 'K' ? 'Kredit' : '-') }}
+                        </td>
                         <td>
                             @php $isActive = (string)$account->fnonactive === '0'; @endphp
                             <span
@@ -301,7 +303,7 @@
 
                     // Clone dan append Status Filter
                     const $statusFilter = $('#statusFilterTemplate #statusFilterWrap').clone(true,
-                    true);
+                        true);
                     const $statusSelect = $statusFilter.find('select[data-role="status-filter"]');
                     $statusSelect.attr('id', 'statusFilterDT');
                     $toolbarSearch.append($statusFilter);
