@@ -269,39 +269,33 @@
                     @enderror
                 </div>
 
-                {{-- Satuan Kecil --}}
-                <div class="mt-2 w-1/4">
-                    <label class="block text-sm font-medium">Satuan Kecil</label>
-                    <select class="w-full border rounded px-3 py-2 @error('fsatuankecil') border-red-500 @enderror"
-                        name="fsatuankecil" id="fsatuankecil" onchange="checkSatuan();">
-                        <option value="" selected>Pilih Satuan 1</option>
-                        @foreach ($satuan as $satu)
-                            <option value="{{ $satu->fsatuancode }}">
-                                {{ $satu->fsatuancode }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('fsatuankecil')
-                        <div class="text-red-600 text-sm mt-1">{{ $message }}</div>
-                    @enderror
-                </div>
+                <div id="satuan-container">
 
-                <br>
+                    {{-- 1. Satuan Kecil (Default) --}}
+                    <div class="mt-2 w-1/4">
+                        <label class="block text-sm font-medium">Satuan Kecil</label>
+                        <select class="w-full border rounded px-3 py-2 @error('fsatuankecil') border-red-500 @enderror"
+                            name="fsatuankecil" id="fsatuankecil" onchange="updateSatuanLogic();">
+                            <option value="" selected>Pilih Satuan 1</option>
+                            @foreach ($satuan as $satu)
+                                <option value="{{ $satu->fsatuancode }}">
+                                    {{ $satu->fsatuancode }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('fsatuankecil')
+                            <div class="text-red-600 text-sm mt-1">{{ $message }}</div>
+                        @enderror
+                    </div>
 
-                <div x-data="{ satuan2: false }">
-                    <label class="flex items-center space-x-2">
-                        <input type="checkbox" x-model="satuan2" class="rounded text-blue-600">
-                        <span class="text-sm font-medium">Add Satuan 2</span>
-                    </label>
-
-                    {{-- Satuan 2 --}}
-                    <div class="mt-2" x-show="satuan2" x-transition>
+                    {{-- 2. Satuan 2 (Awalnya tersembunyi menggunakan inline style) --}}
+                    <div id="satuan2-block" style="display: none;">
                         <div class="flex items-end gap-4">
                             <div class="w-1/3">
                                 <label class="block text-sm font-medium">Satuan 2</label>
                                 <select
                                     class="w-full border rounded px-3 py-2 @error('fsatuanbesar') border-red-500 @enderror"
-                                    name="fsatuanbesar" id="fsatuanbesar" disabled>
+                                    name="fsatuanbesar" id="fsatuanbesar" disabled onchange="updateSatuanLogic();">
                                     <option value="" selected>Pilih Satuan 2</option>
                                     @foreach ($satuan as $satu)
                                         <option value="{{ $satu->fsatuancode }}" data-name="{{ $satu->fsatuanname }}">
@@ -316,38 +310,23 @@
 
                             <div class="w-1/6">
                                 <label class="block text-sm font-medium">Isi</label>
-
                                 <div class="flex items-baseline gap-2">
-
-                                    <input type="number" name="fqtykecil" id="fqtykecil"
-                                        value="{{ old('fqtykecil', 0) }}"
+                                    <input type="number" name="fqtykecil" id="fqtykecil" value="0"
                                         class="flex-1 border rounded px-3 py-2 @error('fqtykecil') border-red-500 @enderror"
                                         disabled>
-
                                     <span id="satuanKecilTarget"
                                         class="satuan-kecil-display text-gray-700 font-semibold whitespace-nowrap">
                                     </span>
-
                                 </div>
-
                                 @error('fqtykecil')
                                     <div class="text-red-600 text-sm mt-1">{{ $message }}</div>
                                 @enderror
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <br>
+                    <div id="satuan3-block" style="display: none;">
 
-                <div x-data="{ satuan3: false }">
-                    <label class="flex items-center space-x-2">
-                        <input type="checkbox" x-model="satuan3" class="rounded text-blue-600">
-                        <span class="text-sm font-medium">Add Satuan 3</span>
-                    </label>
-
-                    {{-- Satuan 3 --}}
-                    <div class="mt-2" x-show="satuan3" x-transition>
                         <div class="flex items-end gap-4">
                             <div class="w-1/3">
                                 <label class="block text-sm font-medium">Satuan 3</label>
@@ -368,19 +347,13 @@
 
                             <div class="w-1/6">
                                 <label class="block text-sm font-medium">Isi</label>
-
                                 <div class="flex items-baseline gap-2">
-
-                                    <input type="number" name="fqtykecil2" id="fqtykecil2"
-                                        value="{{ old('fqtykecil2', 0) }}"
+                                    <input type="number" name="fqtykecil2" id="fqtykecil2" value="0"
                                         class="flex-1 border rounded px-3 py-2 @error('fqtykecil2') border-red-500 @enderror"
                                         disabled>
-
                                     <span class="satuan-kecil-display text-gray-700 font-semibold whitespace-nowrap">
                                     </span>
-
                                 </div>
-
                                 @error('fqtykecil2')
                                     <div class="text-red-600 text-sm mt-1">{{ $message }}</div>
                                 @enderror
@@ -1221,40 +1194,93 @@
         }
     }
 </script>
-<script>
-    function checkSatuan() {
-        // Ambil elemen-elemen yang relevan
-        var satuanKecilSelect = document.getElementById('fsatuankecil');
-        var satuanBesarSelect = document.getElementById('fsatuanbesar');
-        var qtyKecilInput = document.getElementById('fqtykecil');
 
-        // Ambil elemen <span> target yang baru kita buat
-        var targets = document.querySelectorAll('.satuan-kecil-display');
+<script>
+    /**
+     * Fungsi utama untuk mengelola visibilitas field satuan dan pembaruan label.
+     * Dipanggil saat ada perubahan pada Satuan Kecil atau Satuan 2.
+     */
+    function updateSatuanLogic() {
+        // --- 1. Ambil Elemen Utama ---
+        const smallSatuan = document.getElementById('fsatuankecil');
+        const largeSatuan1 = document.getElementById('fsatuanbesar');
+        const largeSatuan2 = document.getElementById('fsatuanbesar2');
+
+        const qty1 = document.getElementById('fqtykecil');
+        const qty2 = document.getElementById('fqtykecil2');
+
+        const block2 = document.getElementById('satuan2-block');
+        const br2 = document.getElementById('br-satuan2');
+        const block3 = document.getElementById('satuan3-block');
+
+        // Target span untuk menampilkan kode Satuan Kecil
+        const targets = document.querySelectorAll('.satuan-kecil-display');
 
         // Ambil nilai yang dipilih
-        var selectedValue = satuanKecilSelect.value;
+        const smallSatuanValue = smallSatuan ? smallSatuan.value : '';
+        const largeSatuan1Value = largeSatuan1 ? largeSatuan1.value : '';
 
-        // 1. Logika untuk mengaktifkan/menonaktifkan field
-        if (selectedValue) {
-            // Jika ada nilai, aktifkan field berikutnya
-            satuanBesarSelect.disabled = false;
-            qtyKecilInput.disabled = false;
+        // --- 2. Logika Satuan 2 & Satuan Kecil Display ---
+        if (smallSatuanValue) {
+            // Tampilkan block Satuan 2 dan elemen <br>
+            if (block2) block2.style.display = 'block';
+            if (br2) br2.style.display = 'block';
+
+            // Aktifkan field Satuan 2 (Select dan Input Isi)
+            if (largeSatuan1) largeSatuan1.disabled = false;
+            if (qty1) qty1.disabled = false;
+
         } else {
-            // Jika tidak ada (dipilih "Pilih Satuan 1"), nonaktifkan dan reset
-            satuanBesarSelect.disabled = true;
-            satuanBesarSelect.value = "";
-            qtyKecilInput.disabled = true;
-            qtyKecilInput.value = 0;
+            // Sembunyikan block Satuan 2, nonaktifkan, dan reset nilai
+            if (block2) block2.style.display = 'none';
+            if (br2) br2.style.display = 'none';
+
+            if (largeSatuan1) {
+                largeSatuan1.disabled = true;
+                largeSatuan1.value = "";
+            }
+            if (qty1) {
+                qty1.disabled = true;
+                qty1.value = 0;
+            }
         }
 
-        // 2. Logika untuk menampilkan nama satuan di sebelah "Isi"
-        // (Ini adalah jawaban untuk pertanyaan Anda)
+        // Tampilkan kode Satuan Kecil di samping field Isi untuk semua target
         targets.forEach(function(target) {
-            target.textContent = selectedValue;
+            target.textContent = smallSatuanValue;
         });
+
+        // --- 3. Logika Satuan 3 ---
+        // Satuan 3 muncul jika Satuan 2 sedang terlihat DAN Satuan 2 memiliki nilai yang dipilih
+        const isSatuan2Visible = block2 ? block2.style.display !== 'none' : false;
+
+        if (isSatuan2Visible && largeSatuan1Value) {
+            // Tampilkan block Satuan 3
+            if (block3) block3.style.display = 'block';
+
+            // Aktifkan field Satuan 3
+            if (largeSatuan2) largeSatuan2.disabled = false;
+            if (qty2) qty2.disabled = false;
+        } else {
+            // Sembunyikan block Satuan 3, nonaktifkan, dan reset nilai
+            if (block3) block3.style.display = 'none';
+
+            if (largeSatuan2) {
+                largeSatuan2.disabled = true;
+                largeSatuan2.value = "";
+            }
+            if (qty2) {
+                qty2.disabled = true;
+                qty2.value = 0;
+            }
+        }
     }
 
-    // Panggil fungsi ini saat halaman pertama kali dimuat
-    // untuk memastikan status disabled-nya sudah benar
-    document.addEventListener('DOMContentLoaded', checkSatuan);
+    // --- Pemasangan Event Listener ---
+
+    // Panggil fungsi ini saat dokumen dimuat untuk inisialisasi awal (kasus halaman Create)
+    document.addEventListener('DOMContentLoaded', updateSatuanLogic);
+
+    // Event listener untuk Satuan Kecil (Sudah dipasang melalui onchange="updateSatuanLogic()" di HTML)
+    // Event listener untuk Satuan 2 (Sudah dipasang melalui onchange="updateSatuanLogic()" di HTML)
 </script>
