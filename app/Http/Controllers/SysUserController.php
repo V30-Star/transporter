@@ -59,6 +59,9 @@ class SysUserController extends Controller
             'fcabang.required' => 'Cabang harus diisi.',
         ]);
 
+        $validated['fname'] = mb_strtoupper($validated['fname']);
+        $validated['fsysuserid'] = mb_strtoupper($validated['fsysuserid']);
+
         $validated['fcabang'] = $request->fcabang ?? '-';
         $validated['fuserlevel'] = $validated['fuserlevel'] == 'Admin' ? '2' : '1';
         $validated['fuserid'] = auth('sysuser')->user()->fname ?? null;
@@ -121,6 +124,10 @@ class SysUserController extends Controller
         } else {
             unset($validated['password']); // Remove password if not filled
         }
+
+        $validated['fname'] = mb_strtoupper($validated['fname']);
+        $validated['fsysuserid'] = mb_strtoupper($validated['fsysuserid']);
+
         $validated['fcabang'] = $request->fcabang ?? '-';
         $validated['fuserlevel'] = $validated['fuserlevel'] == 'Admin' ? '2' : '1';
         $validated['fuserid'] = auth('sysuser')->user()->fname ?? null;

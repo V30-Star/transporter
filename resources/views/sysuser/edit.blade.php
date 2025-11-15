@@ -111,6 +111,7 @@
                         <select name="fuserlevel"
                             class="w-full border rounded px-3 py-2 @error('fuserlevel') border-red-500 @enderror">
                             <option value="User" {{ old('fuserlevel') == 'User' ? 'selected' : '' }}>User</option>
+                            <option value="Supervisor" {{ old('fuserlevel') == 'Supervisor' ? 'selected' : '' }}>Supervisor
                             <option value="Admin" {{ old('fuserlevel') == 'Admin' ? 'selected' : '' }}>Admin
                             </option>
                         </select>

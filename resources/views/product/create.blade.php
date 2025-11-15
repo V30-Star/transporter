@@ -326,7 +326,6 @@
                     </div>
 
                     <div id="satuan3-block" style="display: none;">
-
                         <div class="flex items-end gap-4">
                             <div class="w-1/3">
                                 <label class="block text-sm font-medium">Satuan 3</label>
