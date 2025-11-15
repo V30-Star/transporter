@@ -63,6 +63,7 @@
                     <tr>
                         <th class="border px-2 py-2">Kode Product</th>
                         <th class="border px-2 py-2">Nama Product</th>
+                        <th class="border px-2 py-2">Merek</th>
                         <th class="border px-2 py-2 no-sort">Satuan</th>
                         <th class="border px-2 py-2 no-sort">Stok</th>
                         <th class="border px-2 py-2 no-sort">Status</th>
@@ -75,107 +76,6 @@
                     {{-- Data akan dimuat via AJAX --}}
                 </tbody>
             </table>
-
-            {{-- Tombol untuk menampilkan Tabel Stok --}}
-            {{-- <div class="mt-4 flex justify-start space-x-2">
-                <button @click="toggleTable('stok')" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-                    Lihat Stok
-                </button>
-                <button @click="toggleTable('customer')"
-                    class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-                    Lihat Customer
-                </button>
-                <button @click="toggleTable('supplier')"
-                    class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-                    Lihat Supplier
-                </button>
-
-            </div> --}}
-
-            <!-- Tabel Stok -->
-            {{-- <div x-show="activeTable === 'stok'" x-cloak class="mt-4">
-                <h3 class="font-semibold text-xl mb-3">Tabel Stok untuk Produk</h3>
-                <table class="min-w-full border text-sm">
-                    <thead class="bg-gray-100">
-                        <tr>
-                            <th class="border px-2 py-1">Gudang#</th>
-                            <th class="border px-2 py-1">Nama Gudang</th>
-                            <th class="border px-2 py-1">Stok</th>
-                            <th class="border px-2 py-1">Satuan</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($products as $item)
-                            <tr>
-                                <td class="border px-2 py-1">{{ $item->fprdcode }}</td>
-                                <td class="border px-2 py-1">{{ $item->fprdname }}</td>
-                                <td class="border px-2 py-1">{{ $item->fstok }}</td>
-                                <td class="border px-2 py-1">{{ $item->fsatuan }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div> --}}
-
-            <!-- Tabel Customer -->
-            {{-- <div x-show="activeTable === 'customer'" x-cloak class="mt-4">
-                <h3 class="font-semibold text-xl mb-3">Tabel Customer untuk Produk</h3>
-                <table class="min-w-full border text-sm">
-                    <thead class="bg-gray-100">
-                        <tr>
-                            <th class="border px-2 py-1">Faktur#</th>
-                            <th class="border px-2 py-1">Customer</th>
-                            <th class="border px-2 py-1">Tanggal Jual</th>
-                            <th class="border px-2 py-1">Harga Jual</th>
-                            <th class="border px-2 py-1">Qty</th>
-                            <th class="border px-2 py-1">Satuan</th>
-                            <th class="border px-2 py-1">Ref.PO</th>
-                            <th class="border px-2 py-1">Description</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($products as $item)
-                            <tr>
-                                <td class="border px-2 py-1">{{ $item->fprdcode }}</td>
-                                <td class="border px-2 py-1">{{ $item->fprdname }}</td>
-                                <td class="border px-2 py-1">{{ $item->fstok }}</td>
-                                <td class="border px-2 py-1">{{ $item->fsatuan }}</td>
-                                <td class="border px-2 py-1">{{ $item->fsatuan }}</td>
-                                <td class="border px-2 py-1">{{ $item->fsatuan }}</td>
-                                <td class="border px-2 py-1">{{ $item->fsatuan }}</td>
-                                <td class="border px-2 py-1">{{ $item->fsatuan }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div> --}}
-
-            <!-- Tabel Supplier -->
-            {{-- <div x-show="activeTable === 'supplier'" x-cloak class="mt-4">
-                <h3 class="font-semibold text-xl mb-3">Tabel Supplier untuk Produk</h3>
-                <table class="min-w-full border text-sm">
-                    <thead class="bg-gray-100">
-                        <tr>
-                            <th class="border px-2 py-1">Nama Supplier</th>
-                            <th class="border px-2 py-1">Tanggal Beli</th>
-                            <th class="border px-2 py-1">Harga Beli</th>
-                            <th class="border px-2 py-1">Qty</th>
-                            <th class="border px-2 py-1">Satuan</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($products as $item)
-                            <tr>
-                                <td class="border px-2 py-1">{{ $item->fprdcode }}</td>
-                                <td class="border px-2 py-1">{{ $item->fprdname }}</td>
-                                <td class="border px-2 py-1">{{ $item->fstok }}</td>
-                                <td class="border px-2 py-1">{{ $item->fsatuan }}</td>
-                                <td class="border px-2 py-1">{{ $item->fsatuan }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div> --}}
 
             {{--  Modal Delete  --}}
             <div x-show="showDeleteModal" x-cloak
@@ -288,6 +188,14 @@
                 const columns = [{
                         data: 'fprdcode',
                         name: 'fprdcode'
+                    },
+                    {
+                        data: 'fprdname',
+                        name: 'fprdname'
+                    },
+                    {
+                        data: 'fmerek',
+                        name: 'fmerek'
                     },
                     {
                         data: 'fprdname',

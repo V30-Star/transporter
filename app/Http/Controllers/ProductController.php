@@ -12,38 +12,55 @@ use Illuminate\Support\Facades\DB;
 
 class ProductController extends Controller
 {
+
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $query = Product::query();
-
+            $query = Product::query()
+                // --- 1. MELAKUKAN JOIN KE TABEL MEREK ---
+                // Asumsi: msprd.fmerek adalah ID yang terhubung ke msmerek.fmerekid
+                ->leftJoin('msmerek', function ($join) {
+                    $join->on(
+                        'msmerek.fmerekid',
+                        '=',
+                        // Menggunakan COALESCE/NULLIF untuk mengganti string kosong/non-angka dengan 0 (integer)
+                        DB::raw('CAST(COALESCE(NULLIF("msprd"."fmerek", \'\'), \'0\') AS INTEGER)')
+                    );
+                });
+            // ... (Filter Status) ...
             $status = $request->input('status');
             if ($status === 'active') {
                 $query->where('msprd.fnonactive', '0');
             } elseif ($status === 'nonactive') {
                 $query->where('msprd.fnonactive', '1');
             }
-            $totalRecords = Product::count(); // Total semua data
-            $totalAfterStatusFilter = (clone $query)->count(); // Total setelah filter status
+
+            // Total records sebelum filtering DataTables (hanya status)
+            $totalRecords = Product::count();
+            $totalAfterStatusFilter = (clone $query)->count();
 
             // Kolom yang bisa dicari
-            $searchableColumns = ['fprdcode', 'fprdname', 'fsatuankecil', 'fminstock'];
+            // Tambahkan msmerek.fmerekname agar nama merek yang di-join juga bisa dicari
+            $searchableColumns = ['fprdcode', 'fprdname', 'fsatuankecil', 'fminstock', 'msmerek.fmerekname'];
 
+            // ... (Logika Pencarian) ...
             if ($search = $request->input('search.value')) {
                 $query->where(function ($q) use ($search, $searchableColumns) {
                     foreach ($searchableColumns as $column) {
+                        // Gunakan whereRaw atau where jika kolom bukan dari tabel utama
                         $q->orWhere($column, 'like', "%{$search}%");
                     }
                 });
             }
 
-            // Total records setelah filter search
+            // ... (Total records setelah filter search) ...
             $filteredRecords = (clone $query)->count();
 
             // Sorting
             $orderColumnIndex = $request->input('order.0.column', 0);
             $orderDir = $request->input('order.0.dir', 'asc');
-            $columns = ['fprdcode', 'fprdname', 'fsatuankecil', 'fminstock', 'fnonactive'];
+            // Tambahkan alias 'fmerekname' ke daftar kolom untuk sorting
+            $columns = ['fprdcode', 'fprdname', 'msmerek.fmerekname', 'fsatuankecil', 'fminstock', 'fnonactive'];
 
             if (isset($columns[$orderColumnIndex])) {
                 $query->orderBy($columns[$orderColumnIndex], $orderDir);
@@ -55,7 +72,19 @@ class ProductController extends Controller
 
             $products = $query->skip($start)
                 ->take($length)
-                ->get(['fprdcode', 'fprdname', 'fsatuankecil', 'fminstock', 'fprdid', 'fnonactive']);
+                ->get([
+                    'msprd.fprdcode',
+                    'msprd.fprdname',
+                    'msprd.fsatuankecil',
+                    'msprd.fminstock',
+                    'msprd.fprdid',
+                    'msprd.fnonactive',
+                    'msprd.fmerek',
+                    // --- 2. AMBIL NAMA MEREK DENGAN ALIAS ---
+                    'msmerek.fmerekname AS merek_name',
+                    // Ambil juga kode merek jika diperlukan, beri alias:
+                    // 'msmerek.fmerekcode AS merek_code'
+                ]);
 
             // Format data untuk DataTables
             $data = $products->map(function ($item) {
@@ -67,6 +96,7 @@ class ProductController extends Controller
                 return [
                     'fprdcode' => $item->fprdcode,
                     'fprdname' => $item->fprdname,
+                    'fmerek' => $item->merek_name, // Menggunakan ALIAS yang di-join
                     'fsatuankecil' => $item->fsatuankecil,
                     'fminstock' => $item->fminstock,
                     'status' => $statusBadge,
@@ -83,7 +113,7 @@ class ProductController extends Controller
             ]);
         }
 
-        // Render view untuk non-AJAX request
+        // ... (Render view untuk non-AJAX request) ...
         $canCreate = in_array('createProduct', explode(',', session('user_restricted_permissions', '')));
         $canEdit   = in_array('updateProduct', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deleteProduct', explode(',', session('user_restricted_permissions', '')));
