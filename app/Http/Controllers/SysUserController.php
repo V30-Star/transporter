@@ -14,16 +14,41 @@ class SysUserController extends Controller
 {
     public function index(Request $request)
     {
-        $allowedSorts = ['fuid', 'fsysuserid', 'fname', 'created_at', 'fuserid', 'fcabang'];
-        $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fsysuserid';
-        $sortDir = $request->sort_dir === 'asc' ? 'asc' : 'desc';
+        $allowedSorts = ['fuid', 'fsysuserid', 'fname', 'created_at', 'fuserid', 'fcabang', 'sysuser.fsalesman', 'salesman_name'];
+        $sortBy     = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fsysuserid';
+        $sortDir    = $request->sort_dir === 'asc' ? 'asc' : 'desc';
 
-        $sysusers = Sysuser::orderBy($sortBy, $sortDir)->get(['fuid', 'fsysuserid', 'fname', 'created_at', 'fuserid', 'fcabang']);
+        // Mendefinisikan kolom yang akan dipilih
+        $selectColumns = [
+            'sysuser.fuid',
+            'sysuser.fsysuserid',
+            'sysuser.fname',
+            'sysuser.created_at',
+            'sysuser.fuserid',
+            'sysuser.fcabang',
+            'sysuser.fsalesman',
+            // Mengambil nama salesman, dan memberikan alias 'fsalesmanname' atau 'salesman_name'
+            'mssalesman.fsalesmanname AS salesman_name',
+        ];
 
-        $perms       = explode(',', (string) session('user_restricted_permissions', ''));
-        $canCreate   = in_array('createSysuser', $perms, true);
-        $canEdit     = in_array('updateSysuser', $perms, true);
-        $canDelete   = in_array('deleteSysuser', $perms, true);
+        $sysusers = Sysuser::query()
+            // Melakukan LEFT JOIN ke tabel mssalesman
+            // Kunci join: sysuser.fsalesman = mssalesman.fsalesmanid
+            ->leftJoin('mssalesman', 'sysuser.fsalesman', '=', 'mssalesman.fsalesmanid')
+
+            // Memilih kolom secara spesifik
+            ->select($selectColumns)
+
+            // Menangani sorting
+            ->orderBy($sortBy, $sortDir)
+
+            // Mengambil hasilnya
+            ->get();
+
+        $perms         = explode(',', (string) session('user_restricted_permissions', ''));
+        $canCreate     = in_array('createSysuser', $perms, true);
+        $canEdit       = in_array('updateSysuser', $perms, true);
+        $canDelete     = in_array('deleteSysuser', $perms, true);
         $canRoleAccess = in_array('roleaccess', $perms, true);
 
         return view('sysuser.index', compact('sysusers', 'canCreate', 'canEdit', 'canDelete'));

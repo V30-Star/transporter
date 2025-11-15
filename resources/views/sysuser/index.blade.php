@@ -37,11 +37,10 @@
         <table id="sysuserTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
+                    <th class="border px-2 py-2">Cabang</th>
                     <th class="border px-2 py-2">User Id</th>
                     <th class="border px-2 py-2">Nama User</th>
-                    <th class="border px-2 py-2">Waktu</th>
-                    <th class="border px-2 py-2">Fuserid</th>
-                    <th class="border px-2 py-2">Cabang</th>
+                    <th class="border px-2 py-2">Salesman</th>
                     @if ($showActionsColumn)
                         <th class="border px-2 py-2">Aksi</th>
                     @endif
@@ -50,11 +49,10 @@
             <tbody id="tableBody">
                 @forelse ($sysusers as $sysuser)
                     <tr class="hover:bg-gray-50">
+                        <td>{{ $sysuser->fcabang }}</td>
                         <td>{{ $sysuser->fsysuserid }}</td>
                         <td>{{ $sysuser->fname }}</td>
-                        <td>{{ $sysuser->created_at }}</td>
-                        <td>{{ $sysuser->fuserid ?? 'N/A' }}</td>
-                        <td>{{ $sysuser->fcabang }}</td>
+                        <td>{{ $sysuser->salesman_name }}</td>
                         @if ($showActionsColumn)
                             <td class="border px-2 py-1">
                                 @if ($canEdit)
@@ -178,40 +176,34 @@
             // Inisialisasi DataTables
             const hasActions = {{ $showActionsColumn ? 'true' : 'false' }};
             const columns = hasActions ? [{
+                    title: 'Cabang'
+                }, // Kolom 1
+                {
                     title: 'User Id'
-                },
+                }, // Kolom 2
                 {
                     title: 'Nama User'
-                },
+                }, // Kolom 3
                 {
-                    title: 'Waktu'
-                },
-                {
-                    title: 'Fuserid'
-                },
-                {
-                    title: 'Cabang'
-                },
+                    title: 'Salesman'
+                }, // KOLOM BARU (Kolom 4)
                 {
                     title: 'Aksi',
                     orderable: false,
                     searchable: false
-                }
+                } // Kolom 5
             ] : [{
+                    title: 'Cabang'
+                },
+                {
                     title: 'User Id'
                 },
                 {
                     title: 'Nama User'
                 },
                 {
-                    title: 'Waktu'
-                },
-                {
-                    title: 'Fuserid'
-                },
-                {
-                    title: 'Cabang'
-                }
+                    title: 'Salesman'
+                }, // KOLOM BARU
             ];
 
             $('#sysuserTable').DataTable({
