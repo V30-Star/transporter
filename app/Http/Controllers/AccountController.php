@@ -56,7 +56,7 @@ class AccountController extends Controller
 
     public function browse(Request $request)
     {
-        $accounts = Account::select('faccid', 'faccount', 'faccname') // ← PASTIKAN faccid ada
+        $accounts = Account::select('faccid as id', 'faccount', 'faccname') // ← PASTIKAN faccid ada
             ->when($request->search, function ($q, $search) {
                 $q->where('faccount', 'like', "%{$search}%")
                     ->orWhere('faccname', 'like', "%{$search}%");

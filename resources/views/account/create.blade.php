@@ -77,7 +77,8 @@
                 <div class="mt-4">
                     <label for="fnormal" class="block text-sm font-medium">Saldo Normal</label>
                     <select name="fnormal" id="fnormal" class="w-full border rounded px-3 py-2">
-                        <option value="D" {{ old('fnormal') == 'D' ? 'selected' : '' }}>D</option>
+                        <option value="D" {{ old('fnormal') == 'D' ? 'selected' : '' }}>Debit</option>
+                        <option value="K" {{ old('fnormal') == 'K' ? 'selected' : '' }}>Kredit</option>
                     </select>
                 </div>
 
