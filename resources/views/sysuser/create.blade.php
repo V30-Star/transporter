@@ -80,17 +80,20 @@
                         @enderror
                     </div>
 
-                    <div x-data="{ salesman: false }">
+                    <div x-data="{ salesman: {{ old('fsalesman') != null && old('fsalesman') != '0' ? 'true' : 'false' }} }">
+                        {{-- Checkbox untuk mengaktifkan field --}}
                         <label class="flex items-center space-x-2">
                             <input type="checkbox" x-model="salesman" class="rounded text-blue-600">
                             <span class="text-sm font-medium">Salesman</span>
                         </label>
 
+                        {{-- 1. Blok Field Salesman (Muncul jika checkbox dicentang) --}}
                         <div x-show="salesman" x-transition>
                             <label class="block text-sm font-medium">Nama Salesman</label>
+
                             <select name="fsalesman"
                                 class="w-full border rounded px-3 py-2 @error('fsalesman') border-red-500 @enderror"
-                                id="salesmanSelect">
+                                id="salesmanSelect" x-bind:disabled="!salesman">
                                 <option value="">-- Pilih Nama Salesman --</option>
                                 @foreach ($salesman as $salesmans)
                                     <option value="{{ $salesmans->fsalesmanid }}"
@@ -99,11 +102,14 @@
                                     </option>
                                 @endforeach
                             </select>
-                            <input type="hidden" name="fsalesman" value="{{ old('fsalesman', '-') }}">
+
                             @error('fsalesman')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
                         </div>
+
+                        {{-- 2. Hidden Input untuk Nilai Default (TERKIRIM HANYA JIKA CHECKBOX TIDAK DICENTANG) --}}
+                        <input type="hidden" name="fsalesman" value="0" x-bind:disabled="salesman">
                     </div>
 
                     <!-- Account Level -->

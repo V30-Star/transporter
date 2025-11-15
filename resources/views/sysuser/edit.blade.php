@@ -79,17 +79,25 @@
                         @enderror
                     </div>
 
-                    <div x-data="{ salesman: {{ $sysuser->fsalesman ? 'true' : 'false' }} }">
+                    <div x-data="{
+                        // Inisialisasi: Cek apakah fsalesman memiliki nilai truthy (ID > 0 atau tidak null)
+                        // Jika fsalesman null, 0, atau undefined, dianggap false (tidak dicentang)
+                        salesman: {{ ($sysuser->fsalesman && $sysuser->fsalesman != 0) || old('fsalesman', null) ? 'true' : 'false' }}
+                    }">
+
+                        {{-- Checkbox untuk mengaktifkan field --}}
                         <label class="flex items-center space-x-2">
                             <input type="checkbox" x-model="salesman" class="rounded text-blue-600">
                             <span class="text-sm font-medium">Salesman</span>
                         </label>
 
+                        {{-- 1. Blok Field Salesman (Muncul jika checkbox dicentang) --}}
                         <div x-show="salesman" x-transition>
                             <label class="block text-sm font-medium">Salesman Level</label>
+
                             <select name="fsalesman"
                                 class="w-full border rounded px-3 py-2 @error('fsalesman') border-red-500 @enderror"
-                                id="salesmanSelect">
+                                id="salesmanSelect" x-bind:disabled="!salesman">
                                 <option value="">-- Pilih Salesman --</option>
                                 @foreach ($salesman as $salesmans)
                                     <option value="{{ $salesmans->fsalesmanid }}"
@@ -98,11 +106,15 @@
                                     </option>
                                 @endforeach
                             </select>
-                            <input type="hidden" name="fsalesman" value="{{ old('fsalesman', '-') }}">
+
                             @error('fsalesman')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
                         </div>
+
+                        {{-- 2. Hidden Input untuk Nilai Default (TERKIRIM HANYA JIKA CHECKBOX TIDAK DICENTANG) --}}
+                        {{-- Jika checkbox TIDAK dicentang (salesman=false), input ini aktif dan mengirim 0 (atau null) --}}
+                        <input type="hidden" name="fsalesman" value="0" x-bind:disabled="salesman">
                     </div>
 
                     <!-- Account Level -->

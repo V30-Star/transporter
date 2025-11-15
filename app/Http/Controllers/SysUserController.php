@@ -7,6 +7,7 @@ use App\Models\Cabang;
 use App\Models\Salesman;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Models\Sysuser;
 use Illuminate\Support\Facades\Hash;
 
@@ -83,7 +84,7 @@ class SysUserController extends Controller
             'fuserlevel.required' => 'Level akun harus User atau Admin.',
             'fcabang.required' => 'Cabang harus diisi.',
         ]);
-
+        // --- Pemrosesan Data ---
         $validated['fname'] = mb_strtoupper($validated['fname']);
         $validated['fsysuserid'] = mb_strtoupper($validated['fsysuserid']);
 
@@ -92,9 +93,20 @@ class SysUserController extends Controller
         $validated['fuserid'] = auth('sysuser')->user()->fname ?? null;
         $validated['created_at'] = now();
 
-        $validated['fsalesman'] = $request->has('fsalesman') ? $request->fsalesman : '-';  // Atau null jika memang diperlukan
+        // Pastikan ini menangani kasus jika fsalesman tidak dikirim sama sekali
+        // CATATAN: Karena Anda mengubah default menjadi '0', ini akan menghindari error INTEGER jika 0 adalah ID Salesman yang valid.
+        $fsalesmanValue = $request->fsalesman;
 
+        if (empty($fsalesmanValue) || $fsalesmanValue === '-') {
+            $validated['fsalesman'] = 0; // Menyimpan 0 ke kolom INTEGER
+        } else {
+            // Memastikan nilai yang ada adalah integer
+            $validated['fsalesman'] = (int) $fsalesmanValue;
+        }
         $validated['password'] = Hash::make($validated['password']);
+
+        $finalData = $validated;
+        unset($finalData['password']);
 
         try {
             Sysuser::create($validated);
@@ -105,7 +117,6 @@ class SysUserController extends Controller
             return back()->withInput()->with('error', 'Gagal menyimpan user: ' . $e->getMessage());
         }
     }
-
     public function edit($fuid)
     {
         // Find the sysuser by fuid (primary key)
@@ -157,8 +168,16 @@ class SysUserController extends Controller
         $validated['fuserlevel'] = $validated['fuserlevel'] == 'Admin' ? '2' : '1';
         $validated['fuserid'] = auth('sysuser')->user()->fname ?? null;
         $validated['updated_at'] = now();
-        $validated['fsalesman'] = $request->has('fsalesman') ? $request->fsalesman : '-';  // Atau null jika memang diperlukan
+        // Pastikan ini menangani kasus jika fsalesman tidak dikirim sama sekali
+        // CATATAN: Karena Anda mengubah default menjadi '0', ini akan menghindari error INTEGER jika 0 adalah ID Salesman yang valid.
+        $fsalesmanValue = $request->fsalesman;
 
+        if (empty($fsalesmanValue) || $fsalesmanValue === '-') {
+            $validated['fsalesman'] = 0; // Menyimpan 0 ke kolom INTEGER
+        } else {
+            // Memastikan nilai yang ada adalah integer
+            $validated['fsalesman'] = (int) $fsalesmanValue;
+        }
         // Update the sysuser with the validated data
         $sysuser->update($validated);
 
