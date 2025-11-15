@@ -198,10 +198,6 @@
                         name: 'fmerek'
                     },
                     {
-                        data: 'fprdname',
-                        name: 'fprdname'
-                    },
-                    {
                         data: 'fsatuankecil',
                         name: 'fsatuankecil'
                     },
