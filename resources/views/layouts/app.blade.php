@@ -21,6 +21,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Lato&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/js/select2.full.min.js"></script>
+    <!-- DataTables CSS -->
+    <!-- Select2 CSS -->
     <style>
         body {
             font-family: 'Lato', sans-serif;
@@ -59,6 +61,20 @@
     
     window.addEventListener('pageshow', () => updateSidebarState());" @resize.window="updateSidebarState()"
         class="flex min-h-screen">
+
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+        <!-- 2. Chart.js -->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+        <!-- 3. DataTables JS Core (TAMBAHKAN INI) -->
+        <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+
+        <!-- 4. DataTables Bootstrap 4 Integration (TAMBAHKAN INI) -->
+        <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap4.min.js"></script>
+
+        <!-- 5. Select2 JS -->
+        <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/js/select2.full.min.js"></script>
 
 
         <div :class="openSidebar ? 'w-64' : 'w-16'"
