@@ -1,468 +1,227 @@
-{{-- resources/views/reporting/index.blade.php --}}
-
 @extends('layouts.app')
 
-@push('styles')
-<style>
-    /* Custom styling untuk halaman reporting */
-    .report-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 2rem;
-        border-radius: 10px;
-        margin-bottom: 2rem;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    }
-    
-    .report-header h2 {
-        margin: 0;
-        font-weight: 600;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-    
-    .filter-card {
-        border: none;
-        border-radius: 10px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.08);
-        margin-bottom: 1.5rem;
-    }
-    
-    .filter-card .card-header {
-        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-        border-bottom: 2px solid #667eea;
-        border-radius: 10px 10px 0 0 !important;
-        padding: 1rem 1.5rem;
-    }
-    
-    .filter-card .card-header h6 {
-        margin: 0;
-        color: #2d3748;
-        font-weight: 600;
-        font-size: 1rem;
-    }
-    
-    .results-card {
-        border: none;
-        border-radius: 10px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.08);
-    }
-    
-    .results-card .card-header {
-        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-        border-bottom: 2px solid #48bb78;
-        border-radius: 10px 10px 0 0 !important;
-        padding: 1rem 1.5rem;
-    }
-    
-    .results-card .card-header h6 {
-        margin: 0;
-        color: #2d3748;
-        font-weight: 600;
-        font-size: 1rem;
-    }
-    
-    .form-control, .btn {
-        border-radius: 6px;
-    }
-    
-    .btn-primary {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border: none;
-        padding: 0.5rem 1.5rem;
-        font-weight: 500;
-        transition: transform 0.2s, box-shadow 0.2s;
-    }
-    
-    .btn-primary:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(102, 126, 234, 0.4);
-    }
-    
-    .btn-success {
-        background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
-        border: none;
-        padding: 0.5rem 1.5rem;
-        font-weight: 500;
-        transition: transform 0.2s, box-shadow 0.2s;
-    }
-    
-    .btn-success:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(72, 187, 120, 0.4);
-    }
-    
-    /* DataTables custom styling */
-    #pr-report-table {
-        font-size: 0.9rem;
-    }
-    
-    #pr-report-table thead th {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        font-weight: 600;
-        text-transform: uppercase;
-        font-size: 0.85rem;
-        letter-spacing: 0.5px;
-        border: none;
-        padding: 1rem;
-    }
-    
-    #pr-report-table tbody tr {
-        transition: background-color 0.2s;
-    }
-    
-    #pr-report-table tbody tr:hover {
-        background-color: #f7fafc;
-    }
-    
-    #pr-report-table tbody td {
-        padding: 0.875rem;
-        vertical-align: middle;
-    }
-    
-    .badge {
-        padding: 0.4rem 0.8rem;
-        font-size: 0.8rem;
-        font-weight: 600;
-        border-radius: 20px;
-    }
-    
-    .badge-success {
-        background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
-    }
-    
-    .badge-danger {
-        background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
-    }
-    
-    /* DataTables controls styling */
-    .dataTables_wrapper .dataTables_length select,
-    .dataTables_wrapper .dataTables_filter input {
-        border: 1px solid #e2e8f0;
-        border-radius: 6px;
-        padding: 0.375rem 0.75rem;
-    }
-    
-    .dataTables_wrapper .dataTables_filter input {
-        padding: 0.5rem 1rem;
-        border: 2px solid #e2e8f0;
-        transition: border-color 0.3s;
-    }
-    
-    .dataTables_wrapper .dataTables_filter input:focus {
-        border-color: #667eea;
-        outline: none;
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-    }
-    
-    /* Pagination Styling */
-    .dataTables_wrapper .dataTables_paginate {
-        margin-top: 1rem;
-    }
-    
-    .dataTables_wrapper .dataTables_paginate .paginate_button {
-        padding: 0.35rem 0.6rem !important;
-        margin: 0 2px !important;
-        border-radius: 4px !important;
-        border: 1px solid #e2e8f0 !important;
-        background: white !important;
-        color: #4a5568 !important;
-        font-weight: 500 !important;
-        font-size: 0.875rem !important;
-        transition: all 0.3s !important;
-    }
-    
-    .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-        border-color: #667eea !important;
-        color: white !important;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3) !important;
-    }
-    
-    .dataTables_wrapper .dataTables_paginate .paginate_button.current {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-        border-color: #667eea !important;
-        color: white !important;
-        box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3) !important;
-    }
-    
-    .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
-        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%) !important;
-        transform: translateY(-2px);
-    }
-    
-    .dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
-        opacity: 0.5 !important;
-        cursor: not-allowed !important;
-    }
-    
-    .dataTables_wrapper .dataTables_paginate .paginate_button.disabled:hover {
-        background: white !important;
-        border-color: #e2e8f0 !important;
-        color: #4a5568 !important;
-        transform: none !important;
-        box-shadow: none !important;
-    }
-    
-    .dataTables_wrapper .dataTables_info {
-        padding-top: 1rem;
-        color: #718096;
-        font-weight: 500;
-        font-size: 0.875rem;
-    }
-    
-    /* Responsive adjustments */
-    @media (max-width: 768px) {
-        .report-header {
-            padding: 1.5rem;
-        }
-        
-        .btn {
-            width: 100%;
-            margin-top: 0.5rem;
-        }
-        
-        .ml-2 {
-            margin-left: 0 !important;
-        }
-    }
-</style>
-@endpush
+@section('title', 'Listing Order Pembelian / PO')
 
 @section('content')
-    <div class="container-fluid py-4">
-        <!-- Header Section -->
-        <div class="report-header">
-            <h2>
-                <i class="fas fa-chart-line"></i>
-                Reporting Purchase Request
-            </h2>
-            <p class="mb-0 mt-2" style="opacity: 0.9;">Laporan dan analisis data purchase request</p>
+    <div class="p-6 bg-white shadow-md rounded-lg">
+        <h2 class="text-xl font-bold mb-4">Listing Order Pembelian / PO</h2>
+
+        <div class="flex flex-wrap items-center gap-4 mb-6">
+            {{-- Tombol Pemicu Modal --}}
+            <button onclick="toggleModal(true)"
+                class="px-4 py-1.5 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 transition-colors inline-flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM4 10h16v10a1 1 0 01-1 1H4a1 1 0 01-1-1V10zM10 9v4m0 4h.01" />
+                </svg>
+                Search Data
+            </button>
+
+            {{-- Tombol Export Excel di Kanan --}}
+            <div class="flex gap-2 ml-auto">
+                @php
+                    // Ambil semua parameter query saat ini (termasuk filter)
+                    $exportUrl = route('reporting.exportExcel', request()->query());
+                @endphp
+                <a href="{{ $exportUrl }}"
+                    class="px-4 py-1.5 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition-colors flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd"
+                            d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L10 11.586l2.293-2.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
+                            clip-rule="evenodd" />
+                    </svg>
+                    Export Excel
+                </a>
+            </div>
         </div>
 
-        <!-- Filter Section -->
-        <div class="card filter-card">
-            <div class="card-header">
-                <h6>
-                    <i class="fas fa-filter me-2"></i>
-                    Filter Data
-                </h6>
-            </div>
-            <div class="card-body">
-                <form id="report-filter-form" action="{{ route('reports.pr.index') }}" method="GET">
-                    <div class="row">
-                        {{-- Filter Status --}}
-                        <div class="col-lg-3 col-md-6 mb-3">
-                            <label for="status" class="form-label">
-                                <i class="fas fa-info-circle text-primary"></i>
-                                Status
-                            </label>
-                            <select name="status" id="status" class="form-control">
-                                <option value="active" {{ $status == 'active' ? 'selected' : '' }}>
-                                    ✓ Aktif
-                                </option>
-                                <option value="nonactive" {{ $status == 'nonactive' ? 'selected' : '' }}>
-                                    ✗ Non-Aktif/Ditutup
-                                </option>
-                                <option value="all" {{ $status == 'all' ? 'selected' : '' }}>
-                                    ⊕ Semua Status
-                                </option>
-                            </select>
+        {{-- --- MODAL FILTER POP-UP --- --}}
+        <div id="filterModal" class="fixed inset-0 z-50 bg-black bg-opacity-50 hidden flex items-center justify-center">
+            <div class="bg-white rounded-lg shadow-2xl max-w-xl w-full p-6" onclick="event.stopPropagation()">
+                <div class="flex justify-between items-center border-b pb-3 mb-4">
+                    <h3 class="text-lg font-semibold">Filter Listing Order Pembelian / PO</h3>
+                    <button onclick="toggleModal(false)"
+                        class="text-gray-500 hover:text-gray-800 text-xl font-bold">&times;</button>
+                </div>
+
+                <form method="GET" action="{{ route('reporting.index') }}">
+                    <div class="grid grid-cols-2 gap-4">
+                        {{-- Filter Tanggal Dari --}}
+                        <div>
+                            <label for="modal_filter_date_from" class="block text-sm font-medium text-gray-700">Tanggal
+                                Dari</label>
+                            <input type="date" name="filter_date_from" id="modal_filter_date_from"
+                                value="{{ request('filter_date_from') }}"
+                                class="mt-1 block w-full border rounded px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500">
                         </div>
 
-                        {{-- Filter Tahun --}}
-                        <div class="col-lg-3 col-md-6 mb-3">
-                            <label for="year" class="form-label">
-                                <i class="fas fa-calendar-alt text-primary"></i>
-                                Tahun
-                            </label>
-                            <select name="year" id="year" class="form-control">
-                                <option value="">Semua Tahun</option>
-                                @foreach ($availableYears as $availableYear)
-                                    <option value="{{ $availableYear }}" {{ $year == $availableYear ? 'selected' : '' }}>
-                                        {{ $availableYear }}
+                        {{-- Filter Tanggal Sampai --}}
+                        <div>
+                            <label for="modal_filter_date_to" class="block text-sm font-medium text-gray-700">Tanggal
+                                Sampai</label>
+                            <input type="date" name="filter_date_to" id="modal_filter_date_to"
+                                value="{{ request('filter_date_to') }}"
+                                class="mt-1 block w-full border rounded px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+
+                        {{-- Filter Supplier --}}
+                        <div class="col-span-2">
+                            <label for="modal_filter_supplier_id"
+                                class="block text-sm font-medium text-gray-700">Supplier</label>
+                            <select name="filter_supplier_id" id="modal_filter_supplier_id"
+                                class="mt-1 block w-full border rounded px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">-- Semua Supplier --</option>
+                                @foreach ($suppliers as $supplier)
+                                    <option value="{{ $supplier->fsupplierid }}"
+                                        {{ request('filter_supplier_id') == $supplier->fsupplierid ? 'selected' : '' }}>
+                                        {{ $supplier->fsuppliername }} ({{ $supplier->fsupplierid }})
                                     </option>
                                 @endforeach
                             </select>
                         </div>
+                    </div>
 
-                        {{-- Filter Bulan --}}
-                        <div class="col-lg-3 col-md-6 mb-3">
-                            <label for="month" class="form-label">
-                                <i class="fas fa-calendar text-primary"></i>
-                                Bulan
-                            </label>
-                            <select name="month" id="month" class="form-control">
-                                <option value="">Semua Bulan</option>
-                                @foreach ($months as $monthNumber => $monthName)
-                                    <option value="{{ $monthNumber }}" {{ $month == $monthNumber ? 'selected' : '' }}>
-                                        {{ $monthName }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        {{-- Tombol Aksi --}}
-                        <div class="col-lg-3 col-md-6 mb-3">
-                            <label class="form-label d-none d-lg-block">&nbsp;</label>
-                            <div class="d-grid gap-2">
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-search"></i>
-                                    Tampilkan Data
-                                </button>
-                                <a id="download-excel-btn" href="{{ route('reports.pr.export') }}" class="btn btn-success">
-                                    <i class="fas fa-file-excel"></i>
-                                    Download Excel
-                                </a>
-                            </div>
-                        </div>
+                    <div class="flex justify-end space-x-2 mt-6">
+                        {{-- Tombol Reset --}}
+                        <a href="{{ route('reporting.index') }}"
+                            class="px-4 py-2 bg-gray-300 text-gray-800 text-sm rounded hover:bg-gray-400 transition-colors">
+                            Reset Filter
+                        </a>
+                        {{-- Tombol Terapkan Filter --}}
+                        <button type="submit"
+                            class="px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors">
+                            Terapkan Filter
+                        </button>
                     </div>
                 </form>
             </div>
-        </div>
 
-        {{-- Results Section --}}
-        <div class="card results-card">
-            <div class="card-header">
-                <h6>
-                    <i class="fas fa-table me-2"></i>
-                    Hasil Laporan
-                </h6>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table id="pr-report-table" class="table table-bordered table-hover" style="width: 100%">
-                        <thead>
-                            <tr>
-                                <th>Nomor PR</th>
-                                <th>Tanggal PR</th>
-                                <th class="text-center">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {{-- Data dimuat via AJAX DataTables --}}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+
         </div>
+        {{-- --- END MODAL FILTER POP-UP --- --}}
+
+        <p class="mt-8 text-gray-700">
+            @php
+                // Ambil semua parameter query yang ada di URL saat ini
+                $printUrl = route('reporting.printPoh', request()->query());
+            @endphp
+            <a href="{{ $printUrl }}" target="_blank"
+                class="px-3 py-1 bg-gray-200 text-sm rounded hover:bg-gray-300 inline-flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2z" />
+                </svg>
+                Cetak Laporan Master-Detail
+            </a>
+        </p>
+
+        {{-- --- BAGIAN TABEL DATA TR_POH (HEADER) DIKEMBALIKAN --- --}}
+        <div class="mt-6 overflow-x-auto">
+            <table id="pohReportTable" class="min-w-full border text-sm">
+                <thead class="bg-gray-100">
+                    <tr>
+                        <th class="border px-2 py-2">ID PO</th>
+                        <th class="border px-2 py-2">Nomor PO</th>
+                        <th class="border px-2 py-2">Tanggal PO</th>
+                        <th class="border px-2 py-2">Supplier</th>
+                        <th class="border px-2 py-2">Mata Uang</th>
+                        <th class="border px-2 py-2 text-right">Total PO</th>
+                        <th class="border px-2 py-2">Status Close</th>
+                        <th class="border px-2 py-2">Status Approval</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($pohData as $data)
+                        <tr class="hover:bg-gray-50">
+                            <td class="border px-2 py-1">{{ $data->fpohdid }}</td>
+                            <td class="border px-2 py-1">{{ $data->fpono }}</td>
+                            <td class="border px-2 py-1">{{ \Carbon\Carbon::parse($data->fpodate)->format('d-m-Y') }}</td>
+                            <td class="border px-2 py-1">{{ $data->supplier->fsuppliername ?? 'N/A' }}</td>
+                            <td class="border px-2 py-1">{{ $data->fcurrency }}</td>
+                            <td class="border px-2 py-1 text-right">
+                                {{ number_format($data->famountpo, 2, ',', '.') }}
+                            </td>
+                            <td class="border px-2 py-1 text-center">
+                                <span
+                                    class="inline-flex items-center px-2 py-0.5 rounded text-xs 
+                        {{ $data->fclose === '1' ? 'bg-red-200 text-red-700' : 'bg-green-100 text-green-700' }}">
+                                    {{ $data->fclose === '1' ? 'Closed' : 'Open' }}
+                                </span>
+                            </td>
+                            <td class="border px-2 py-1 text-center">
+                                {{ $data->fapproval ?? '-' }}
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="8" class="text-center py-4">Tidak ada data Purchase Order Header yang
+                                ditemukan.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+        {{-- --- BAGIAN TABEL DATA TR_POH SELESAI --- --}}
     </div>
+
+
 @endsection
 
-@push('scripts')
-    <script>
-        $(document).ready(function() {
-            // Debug check
-            if (typeof $.fn.DataTable === 'undefined') {
-                console.error('DataTables belum di-load!');
-                alert('Error: DataTables library belum dimuat. Silakan refresh halaman.');
-                return;
+@push('styles')
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.1.6/css/dataTables.dataTables.min.css">
+    {{-- Menghilangkan elemen non-esensial saat mencetak --}}
+    <style>
+        @media print {
+
+            /* Sembunyikan tombol Export dan tombol Filter di hasil cetakan /
+                                                    .flex.gap-2.ml-auto,
+                                                    .flex.gap-2:has(button[type="submit"]) {
+                                                    display: none !important;
+                                                    }
+                                                    / Pastikan form filter terlihat rapi */
+            .bg-gray-50 {
+                background-color: #ffffff !important;
+                border: none !important;
             }
+        }
+    </style>
+@endpush
 
-            console.log('jQuery version:', $.fn.jquery);
-            console.log('DataTables version:', $.fn.DataTable.version);
-
+@push('scripts')
+    {{-- jQuery + DataTables JS (CDN) --}}
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/2.1.6/js/dataTables.min.js"></script>
+    <script>
+        // Fungsi untuk mengontrol modal
+        function toggleModal(show) {
+            const modal = document.getElementById('filterModal');
+            if (show) {
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+        $(function() {
             // Inisialisasi DataTables
-            const prTable = $('#pr-report-table').DataTable({
-                processing: true,
-                serverSide: true,
-                responsive: true,
-                ajax: {
-                    url: '{{ route('reports.pr.data') }}',
-                    type: 'GET',
-                    data: function(d) {
-                        d.status = $('#status').val();
-                        d.year = $('#year').val();
-                        d.month = $('#month').val();
-                    },
-                    error: function(xhr, error, code) {
-                        console.error('AJAX Error:', xhr.responseText);
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Oops...',
-                            text: 'Gagal memuat data dari server!',
-                            footer: 'Silakan cek console untuk detail error'
-                        });
-                    }
-                },
-                columns: [
-                    {
-                        data: 'fprno',
-                        name: 'fprno',
-                        className: 'font-weight-bold'
-                    },
-                    {
-                        data: 'fprdin',
-                        name: 'fprdin'
-                    },
-                    {
-                        data: 'fclose',
-                        name: 'fclose',
-                        className: 'text-center',
-                        render: function(data, type, row) {
-                            return data == '0' ?
-                                '<span class="badge badge-success"><i class="fas fa-check-circle"></i> Aktif</span>' :
-                                '<span class="badge badge-danger"><i class="fas fa-times-circle"></i> Ditutup</span>';
-                        }
-                    }
+            $('#pohReportTable').DataTable({
+                // Konfigurasi minimal untuk DataTables
+                autoWidth: false,
+                pageLength: 10,
+                lengthMenu: [10, 25, 50, 100],
+                order: [
+                    [2, 'desc'] // Urutkan berdasarkan Tanggal PO (kolom index 2) secara descending
                 ],
-                order: [[1, 'desc']],
-                pageLength: 25,
-                lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
-                language: {
-                    processing: '<i class="fas fa-spinner fa-spin fa-2x text-primary"></i><br><span class="mt-2">Memuat data...</span>',
-                    search: "_INPUT_",
-                    searchPlaceholder: "🔍 Cari data...",
-                    lengthMenu: "Tampilkan _MENU_ data per halaman",
-                    info: "Menampilkan <strong>_START_</strong> sampai <strong>_END_</strong> dari <strong>_TOTAL_</strong> data",
-                    infoEmpty: "Tidak ada data untuk ditampilkan",
-                    infoFiltered: "(difilter dari _MAX_ total data)",
-                    loadingRecords: "Memuat...",
-                    zeroRecords: '<div class="text-center py-4"><i class="fas fa-search fa-3x text-muted mb-3"></i><br><h5>Tidak ada data yang ditemukan</h5><p class="text-muted">Coba ubah filter atau kata kunci pencarian</p></div>',
-                    emptyTable: '<div class="text-center py-4"><i class="fas fa-inbox fa-3x text-muted mb-3"></i><br><h5>Belum ada data</h5><p class="text-muted">Data akan muncul di sini setelah ada purchase request</p></div>',
-                    paginate: {
-                        first: '<i class="fas fa-angle-double-left"></i>',
-                        previous: '<i class="fas fa-angle-left"></i>',
-                        next: '<i class="fas fa-angle-right"></i>',
-                        last: '<i class="fas fa-angle-double-right"></i>'
-                    }
+                // Gunakan layout DataTables 2.x
+                layout: {
+                    topStart: 'pageLength',
+                    topEnd: 'search',
+                    bottomStart: 'info',
+                    bottomEnd: 'paging'
                 },
-                dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>' +
-                     '<"row"<"col-sm-12"tr>>' +
-                     '<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
-                drawCallback: function() {
-                    // Tambahkan efek smooth scroll ke atas setelah ganti halaman
-                    $('html, body').animate({
-                        scrollTop: $("#pr-report-table").offset().top - 100
-                    }, 300);
-                }
             });
-
-            // Event submit form
-            $('#report-filter-form').on('submit', function(e) {
-                e.preventDefault();
-
-                // Reload DataTables dengan animasi
-                prTable.ajax.reload();
-
-                // Update URL Download Excel
-                const status = $('#status').val();
-                const year = $('#year').val();
-                const month = $('#month').val();
-
-                let queryParams = `?status=${status}`;
-                if (year) queryParams += `&year=${year}`;
-                if (month) queryParams += `&month=${month}`;
-
-                const exportUrl = '{{ route('reports.pr.export') }}' + queryParams;
-                $('#download-excel-btn').attr('href', exportUrl);
-            });
-
-            // Trigger submit untuk load data awal
-            $('#report-filter-form').trigger('submit');
         });
     </script>
 @endpush

@@ -215,14 +215,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/products/browse', [\App\Http\Controllers\ProductBrowseController::class, 'index'])
             ->name('products.browse');
 
-        // 1. Route untuk DataTables AJAX (Mengembalikan JSON) - Ini yang dipanggil oleh JS table
-        Route::get('/reports/purchase-request/data', [ReportingController::class, 'index'])->name('reports.pr.data');
-
-        // 2. Route untuk Halaman View (Menampilkan Filter Form) - Ini yang dipanggil dari menu
-        Route::get('/reports/purchase-request', [ReportingController::class, 'reportIndex'])->name('reports.pr.index');
-
-        // 3. Route untuk Download Excel
-        Route::get('/reports/purchase-request/export', [ReportingController::class, 'exportExcel'])->name('reports.pr.export');
+        Route::get('/reporting',  [ReportingController::class, 'index'])->name('reporting.index');
+        Route::get('/reporting/exportExcel', [ReportingController::class, 'exportExcel'])->name('reporting.exportExcel');
+        Route::get('/reporting/print', [ReportingController::class, 'printPoh'])->name('reporting.printPoh');
 
         Route::get('/groupproducts/browse', [GroupproductController::class, 'browse'])
             ->name('groupproducts.browse');

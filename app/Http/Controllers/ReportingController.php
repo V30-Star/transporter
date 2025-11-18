@@ -4,8 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Wilayah;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
-use App\Models\Tr_prh; // Sesuaikan dengan path Model Purchase Request Anda
+use App\Models\Tr_poh; // Sesuaikan dengan path Model Purchase Request Anda
+use App\Models\Groupcustomer; // Sesuaikan dengan path Model Purchase Request Anda
+use App\Models\Supplier;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -14,300 +17,213 @@ use Illuminate\Support\Facades\Session; // Digunakan untuk 'session()'
 
 class ReportingController extends Controller
 {
-  // protected $permission = [];
-
-  public function __construct()
+  protected function getPohQuery(Request $request)
   {
-    $restrictedPermissions = session('user_restricted_permissions', []);
+    // Mengambil parameter filter
+    $filterDateFrom = $request->query('filter_date_from');
+    $filterDateTo  = $request->query('filter_date_to');
+    $filterSupplierId = $request->query('filter_supplier_id'); // Parameter Supplier baru
 
-    $this->restrictedPermission = $restrictedPermissions ? explode(',', $restrictedPermissions) : [];
-  }
-  public function index(Request $request)
-  {
-    // --- Handle Request AJAX dari DataTables ---
-    if ($request->ajax()) {
-      try {
-        $query = Tr_prh::query();
-        $totalRecords = Tr_prh::count();
+    $query = Tr_poh::query();
 
-        // Kolom yang bisa dicari
-        $searchableColumns = ['fprno', 'fprdin'];
-
-        // Handle Search
-        if ($search = $request->input('search.value')) {
-          $query->where(function ($q) use ($search, $searchableColumns) {
-            foreach ($searchableColumns as $column) {
-              $q->orWhere($column, 'like', "%{$search}%");
-            }
-          });
-        }
-
-        // Filter status
-        $statusFilter = $request->input('status', 'active');
-        if ($statusFilter === 'active') {
-          $query->where('fclose', '0');
-        } elseif ($statusFilter === 'nonactive') {
-          $query->where('fclose', '1');
-        }
-        // Jika 'all', tidak perlu filter
-
-        // Filter tahun
-        if ($year = $request->input('year')) {
-          $query->whereRaw('EXTRACT(YEAR FROM fcreatedat) = ?', [$year]);
-        }
-
-        // Filter bulan
-        if ($month = $request->input('month')) {
-          $query->whereRaw('EXTRACT(MONTH FROM fcreatedat) = ?', [$month]);
-        }
-
-        $filteredRecords = (clone $query)->count();
-
-        // Sorting
-        $orderColumnIndex = $request->input('order.0.column', 0);
-        $orderDir = $request->input('order.0.dir', 'desc');
-
-        $columns = [
-          0 => 'fprno',
-          1 => 'fprdin',
-          2 => 'fclose',
-        ];
-
-        if (isset($columns[$orderColumnIndex])) {
-          $query->orderBy($columns[$orderColumnIndex], $orderDir);
-        } else {
-          $query->orderBy('fprdin', 'desc');
-        }
-
-        // Pagination
-        $start = $request->input('start', 0);
-        $length = $request->input('length', 10);
-
-        if ($length != -1) {
-          $query->skip($start)->take($length);
-        }
-
-        // Get data
-        $records = $query->get(['fprid', 'fprno', 'fprdin', 'fcreatedat', 'fclose']);
-
-        // Format data untuk DataTables
-        $data = $records->map(function ($record) {
-          return [
-            'fprno'    => $record->fprno ?? '-',
-            'fprdin'   => $record->fprdin ?? '-',
-            'fclose'   => $record->fclose ?? '0',
-            'fprid'    => $record->fprid,
-            'DT_RowId' => 'row_' . $record->fprid
-          ];
-        });
-
-        // Response JSON
-        return response()->json([
-          'draw'            => intval($request->input('draw')),
-          'recordsTotal'    => $totalRecords,
-          'recordsFiltered' => $filteredRecords,
-          'data'            => $data,
-          // DEBUG info (hapus setelah testing)
-          'debug' => [
-            'status_filter' => $statusFilter,
-            'year' => $year,
-            'month' => $month,
-            'query_count' => $records->count()
-          ]
-        ]);
-      } catch (\Exception $e) {
-        // Log error
-        Log::error('DataTables Error: ' . $e->getMessage());
-
-        return response()->json([
-          'draw'            => intval($request->input('draw')),
-          'recordsTotal'    => 0,
-          'recordsFiltered' => 0,
-          'data'            => [],
-          'error'           => $e->getMessage()
-        ]);
-      }
+    // Terapkan Filter Tanggal Mulai (fpodate >= filterDateFrom)
+    if (!empty($filterDateFrom)) {
+      $query->where('fpodate', '>=', $filterDateFrom);
     }
 
-    abort(404);
+    // Terapkan Filter Tanggal Sampai (fpodate <= filterDateTo [End of Day])
+    if (!empty($filterDateTo)) {
+      // Menggunakan Carbon::parse($filterDateTo)->endOfDay() untuk memastikan inklusif hingga akhir hari
+      $query->where('fpodate', '<=', Carbon::parse($filterDateTo)->endOfDay());
+    }
+
+    // --- FILTER SUPPLIER BARU ---
+    if (!empty($filterSupplierId)) {
+      $query->where('fsupplier', $filterSupplierId);
+    }
+
+    return $query->orderBy('fpodate', 'desc');
   }
-  /**
-   * FUNGSI 2: Menampilkan halaman reporting (Mengembalikan View)
-   * Route: reports.pr.view akan diarahkan ke sini.
-   */
-  public function reportIndex(Request $request)
+
+  public function index(Request $request)
   {
-    // Ambil tahun-tahun yang tersedia
-    $availableYears = Tr_prh::selectRaw('DISTINCT EXTRACT(YEAR FROM fcreatedat) as year')
-      ->whereNotNull('fcreatedat')
-      ->orderByRaw('EXTRACT(YEAR FROM fcreatedat) DESC')
-      ->pluck('year');
+    // 1. Ambil data TR_POH (Header) berdasarkan filter dan EAGER LOAD SUPPLIER
+    $pohData = $this->getPohQuery($request)
+      ->with('supplier:fsupplierid,fsuppliername')
+      ->get([
+        'fpohdid',
+        'fpono',
+        'fpodate',
+        'fsupplier',
+        'famountpo',
+        'fcurrency',
+        'fclose',
+        'fapproval'
+      ]);
 
-    // Untuk menampilkan filter yang sedang aktif di view
-    $status = $request->query('status', 'active');
-    $year = $request->query('year');
-    $month = $request->query('month');
+    // 2. Ambil SEMUA Supplier untuk dropdown filter
+    $suppliers = Supplier::orderBy('fsuppliername', 'asc')->get(['fsupplierid', 'fsuppliername']);
 
-    // Daftar bulan untuk dropdown
-    $months = [
-      1 => 'Januari',
-      2 => 'Februari',
-      3 => 'Maret',
-      4 => 'April',
-      5 => 'Mei',
-      6 => 'Juni',
-      7 => 'Juli',
-      8 => 'Agustus',
-      9 => 'September',
-      10 => 'Oktober',
-      11 => 'November',
-      12 => 'Desember'
-    ];
-
-    // Memanggil view yang sudah dikoreksi menjadi 'reporting.index'
-    return view('reporting.index', compact('availableYears', 'status', 'year', 'month', 'months'));
+    // 3. Kirim data dan supplier ke View
+    return view('reporting.index', [
+      'pohData' => $pohData,
+      'suppliers' => $suppliers, // Kirim daftar supplier
+      // Kirim parameter filter yang sedang aktif
+      'filterDateFrom' => $request->query('filter_date_from'),
+      'filterDateTo' => $request->query('filter_date_to'),
+      'filterSupplierId' => $request->query('filter_supplier_id'), // Kirim ID Supplier yang aktif
+    ]);
   }
 
   /**
-   * FUNGSI 3: Mengunduh data yang difilter ke format Excel (Mengembalikan File)
-   * Route: reports.pr.export akan diarahkan ke sini.
+   * Metode baru untuk menampilkan data Master-Detail dalam format cetak.
+   */
+  public function printPoh(Request $request)
+  {
+    $query = DB::table('tr_poh')
+      ->select('tr_poh.*');
+
+    // Filter berdasarkan tanggal jika ada
+    if ($request->filled('filter_date_from')) {
+      $query->whereDate('fpodate', '>=', $request->filter_date_from);
+    }
+
+    if ($request->filled('filter_date_to')) {
+      $query->whereDate('fpodate', '<=', $request->filter_date_to);
+    }
+
+    // Ambil data PO Header
+    $pohData = $query->orderBy('fpodate', 'desc')->get();
+
+    // Untuk setiap PO Header, ambil detail-nya
+    foreach ($pohData as $poh) {
+      // Ambil detail berdasarkan fpono yang sesuai dengan fpohdid
+      $poh->details = DB::table('tr_pod')
+        ->where('fpono', $poh->fpohdid)  // fpono di tr_pod = fpohdid di tr_poh
+        ->orderBy('fnou')  // urutkan berdasarkan nomor urut
+        ->get();
+
+      // Debug: cek apakah detail ada
+      // dd($poh->fpohdid, $poh->details); // Uncomment untuk debugging
+
+      // Hitung total harga dari detail
+      $poh->total_harga = $poh->details->sum('famount');
+
+      // Ambil nama supplier jika ada relasi
+      $supplier = DB::table('mssupplier')
+        ->where('fsupplierid', $poh->fsupplier)
+        ->first();
+      $poh->supplier_name = $supplier->fsuppliername ?? $poh->fsupplier;
+
+      // Ambil nama produk untuk setiap detail
+      foreach ($poh->details as $detail) {
+        $product = DB::table('msprd')
+          ->where('fprdcode', $detail->fprdcode)
+          ->first();
+        $detail->product_name = $product->fitemname ?? $detail->fprdcode;
+      }
+    }
+    $activeSupplierName = null;
+    if ($filterSupplierId = $request->query('filter_supplier_id')) {
+      $supplier = Supplier::where('fsupplierid', $filterSupplierId)
+        ->select('fsuppliername')
+        ->first();
+      $activeSupplierName = $supplier->fsuppliername ?? 'N/A';
+    }
+
+    return view('reporting.print', compact('pohData', 'activeSupplierName'));
+  }
+  /**
+   * Mengekspor data TR_POH (Header) dan TR_POD (Detail) ke CSV/Excel dalam format Datar (Flattened).
    */
   public function exportExcel(Request $request)
   {
-    $query = Tr_prh::query();
+    // 1. Ambil data yang sudah difilter dan Eager Load Detail
+    $dataToExport = $this->getPohQuery($request)
+      ->with('details')
+      ->get();
 
-    // --- Terapkan Filter (menggunakan $request->query() karena ini GET Request dari link Excel) ---
+    $filename = 'PO_Report_Flattened_' . now()->format('Ymd_His') . '.csv';
 
-    // Filter status
-    $statusFilter = $request->query('status', 'active');
-    if ($statusFilter === 'active') {
-      $query->where('fclose', '0');
-    } elseif ($statusFilter === 'nonactive') {
-      $query->where('fclose', '1');
-    }
+    $headers = [
+      'Content-Type' => 'text/csv',
+      'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+    ];
 
-    // Filter tahun (PostgreSQL syntax)
-    if ($year = $request->query('year')) {
-      $query->whereRaw('EXTRACT(YEAR FROM fcreatedat) = ?', [$year]);
-    }
+    $callback = function () use ($dataToExport) {
+      $file = fopen('php://output', 'w');
 
-    // Filter bulan (PostgreSQL syntax)
-    if ($month = $request->query('month')) {
-      $query->whereRaw('EXTRACT(MONTH FROM fcreatedat) = ?', [$month]);
-    }
+      // --- PENAMBAHAN PENTING UNTUK EXCEL ---
+      // Baris ini memaksa Excel mengenali semicolon (;) sebagai delimiter.
+      fputs($file, "sep=;\n"); // Hapus sep=; jika Excel Anda menggunakan koma sebagai delimiter default
 
-    // Urutkan data
-    $query->orderBy('fprdin', 'asc');
+      // --- HEADER FORMAT BARU (Datar) ---
+      $header = [
+        // --- KOLOM PARENT (TR_POH) ---
+        'ID PO',
+        'NOMOR PO',
+        'TANGGAL PO',
+        'SUPPLIER ID',
+        'MATA UANG',
+        'TOTAL PO',
+        'STATUS CLOSE',
+        'STATUS APPROVAL',
 
-    // Ambil data
-    $records = $query->get(['fprno', 'fprdin', 'fcreatedat', 'fclose']);
+        // --- KOLOM CHILD (TR_POD) ---
+        'NO. URUT ITEM',
+        'KODE PRODUK',
+        'DESKRIPSI ITEM',
+        'QTY',
+        'SATUAN',
+        'HARGA SATUAN',
+        'JUMLAH ITEM',
+      ];
+      fputcsv($file, $header, ';');
 
-    // --- Generate Excel menggunakan PhpSpreadsheet ---
+      // --- TULIS DATA BARIS ---
+      foreach ($dataToExport as $poh) {
 
-    $spreadsheet = new Spreadsheet();
-    $sheet = $spreadsheet->getActiveSheet();
+        // 1. Siapkan data Master (Header) yang akan diulang di setiap baris Detail
+        $pohBaseRow = [
+          $poh->fpohdid,
+          $poh->fpono,
+          Carbon::parse($poh->fpodate)->format('d-m-Y'),
+          $poh->fsupplier,
+          $poh->fcurrency,
+          number_format($poh->famountpo, 2, '.', ''),
+          $poh->fclose === '1' ? 'Closed' : 'Open',
+          $poh->fapproval ?? '-',
+        ];
 
-    // Header Kolom
-    $sheet->setCellValue('A1', 'Nomor PR');
-    $sheet->setCellValue('B1', 'Tanggal PR');
-    $sheet->setCellValue('C1', 'Status');
-    $sheet->setCellValue('D1', 'Dibuat Pada');
+        // 2. Handle PO dengan Detail (output satu baris per item Detail)
+        if ($poh->details->isNotEmpty()) {
+          foreach ($poh->details as $pod) {
+            $podRow = [
+              // Kolom Detail diisi
+              $pod->fnou,
+              $pod->fprdcode,
+              $pod->fdesc ?? '-',
+              number_format($pod->fqty, 2, '.', ''),
+              $pod->fsatuan,
+              number_format($pod->fprice, 2, '.', ''),
+              number_format($pod->famount, 2, '.', ''),
+            ];
 
-    // Data Baris
-    $row = 2;
-    foreach ($records as $record) {
-      $statusText = $record->fclose == '0' ? 'Aktif' : 'Non-Aktif/Ditutup';
-      $sheet->setCellValue('A' . $row, $record->fprno);
-      $sheet->setCellValue('B' . $row, $record->fprdin);
-      $sheet->setCellValue('C' . $row, $statusText);
-      $sheet->setCellValue('D' . $row, $record->fcreatedat);
-      $row++;
-    }
+            // Gabungkan Header dan Detail
+            fputcsv($file, array_merge($pohBaseRow, $podRow), ';');
+          }
+        } else {
+          // 3. Handle PO tanpa Detail (output satu baris dengan kolom Detail kosong)
+          $emptyDetailRow = ['', '', '', '', '', '', '']; // 7 kolom detail kosong
 
-    // --- Pengaturan Response Download ---
-
-    $writer = new Xlsx($spreadsheet);
-    $filename = 'Laporan_Tr_prh_' . date('Ymd_His') . '.xlsx';
-
-    $response = new StreamedResponse(
-      function () use ($writer) {
-        $writer->save('php://output');
+          fputcsv($file, array_merge($pohBaseRow, $emptyDetailRow), ';');
+        }
       }
-    );
 
-    $response->headers->set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    $response->headers->set('Content-Disposition', 'attachment;filename="' . $filename . '"');
-    $response->headers->set('Cache-Control', 'max-age=0');
+      fclose($file);
+    };
 
-    return $response;
-  }
-
-  public function create()
-  {
-    return view('master.wilayah.create');
-  }
-
-  public function store(Request $request)
-  {
-    $validated = $request->validate([
-      'fwilayahcode' => 'required|string|unique:mswilayah,fwilayahcode',
-      'fwilayahname' => 'required|string',
-    ], [
-      'fwilayahcode.required' => 'Kode wilayah harus diisi.',
-      'fwilayahname.required' => 'Nama wilayah harus diisi.',
-      'fwilayahcode.unique' => 'Kode wilayah sudah ada, silakan gunakan kode lain.',
-    ]);
-
-    $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null;
-    $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? 'system';  // Fallback jika tidak ada
-    $validated['fcreatedat'] = now();
-
-    $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
-
-    Wilayah::create($validated);
-
-    return redirect()
-      ->route('wilayah.create')
-      ->with('success', 'Wilayah berhasil ditambahkan.');
-  }
-
-  public function edit($fwilayahid)
-  {
-    $wilayah = Wilayah::findOrFail($fwilayahid);
-
-    return view('master.wilayah.edit', compact('wilayah'));
-  }
-
-  public function update(Request $request, $fwilayahid)
-  {
-    $validated = $request->validate([
-      'fwilayahcode' => "required|string|unique:mswilayah,fwilayahcode,{$fwilayahid},fwilayahid",
-      'fwilayahname' => 'required|string',
-    ], [
-      'fwilayahcode.required' => 'Kode wilayah harus diisi.',
-      'fwilayahname.required' => 'Nama wilayah harus diisi.',
-      'fwilayahcode.unique' => 'Kode wilayah sudah ada, silakan gunakan kode lain.',
-    ]);
-
-    $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
-    $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
-    $validated['fupdatedat'] = now();
-
-    $wilayah = Wilayah::findOrFail($fwilayahid);
-    $wilayah->update($validated);
-
-    return redirect()
-      ->route('wilayah.index')
-      ->with('success', 'Wilayah berhasil di-update.');
-  }
-
-  public function destroy($fwilayahid)
-  {
-    $wilayah = Wilayah::findOrFail($fwilayahid);
-    $wilayah->delete();
-
-    return redirect()
-      ->route('wilayah.index')
-      ->with('success', 'Wilayah berhasil dihapus.');
+    // 4. Streaming response ke browser
+    return response()->stream($callback, 200, $headers);
   }
 }
