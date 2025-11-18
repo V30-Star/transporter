@@ -10,7 +10,7 @@
             {{-- Tombol Pemicu Modal --}}
             <button onclick="toggleModal(true)"
                 style="padding: 6px 16px; background-color: #3b82f6; color: white; font-size: 0.875rem; border-radius: 0.25rem; display: inline-flex; align-items: center;"
-                class="hover:bg-blue-600 transition-colors">
+                class="hover:bg-blue-600 transition-colors"> Search Data
             </button>
             {{-- Tombol Export Excel di Kanan --}}
             <div class="flex gap-2 ml-auto">
