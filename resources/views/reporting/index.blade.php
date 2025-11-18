@@ -9,15 +9,9 @@
         <div class="flex flex-wrap items-center gap-4 mb-6">
             {{-- Tombol Pemicu Modal --}}
             <button onclick="toggleModal(true)"
-                class="px-4 py-1.5 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 transition-colors inline-flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM4 10h16v10a1 1 0 01-1 1H4a1 1 0 01-1-1V10zM10 9v4m0 4h.01" />
-                </svg>
-                Search Data
+                style="padding: 6px 16px; background-color: #3b82f6; color: white; font-size: 0.875rem; border-radius: 0.25rem; display: inline-flex; align-items: center;"
+                class="hover:bg-blue-600 transition-colors">
             </button>
-
             {{-- Tombol Export Excel di Kanan --}}
             <div class="flex gap-2 ml-auto">
                 @php
@@ -177,11 +171,11 @@
         @media print {
 
             /* Sembunyikan tombol Export dan tombol Filter di hasil cetakan /
-                                                    .flex.gap-2.ml-auto,
-                                                    .flex.gap-2:has(button[type="submit"]) {
-                                                    display: none !important;
-                                                    }
-                                                    / Pastikan form filter terlihat rapi */
+                                                        .flex.gap-2.ml-auto,
+                                                        .flex.gap-2:has(button[type="submit"]) {
+                                                        display: none !important;
+                                                        }
+                                                        / Pastikan form filter terlihat rapi */
             .bg-gray-50 {
                 background-color: #ffffff !important;
                 border: none !important;
