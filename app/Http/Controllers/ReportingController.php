@@ -123,14 +123,13 @@ class ReportingController extends Controller
     // Ambil data PO Header
     $pohData = $query->orderBy('fpodate', 'desc')->get();
 
-    // Untuk setiap PO Header, ambil detail-nya
     foreach ($pohData as $poh) {
       // Ambil detail berdasarkan fpono yang sesuai dengan fpohdid
       $poh->details = DB::table('tr_pod')
         ->where('fpono', $poh->fpohdid)  // fpono di tr_pod = fpohdid di tr_poh
         ->orderBy('fnou')  // urutkan berdasarkan nomor urut
         ->get();
-        
+
       // Hitung total harga dari detail
       $poh->total_harga = $poh->details->sum('famount');
 
