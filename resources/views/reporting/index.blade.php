@@ -66,7 +66,7 @@
                                 <div class="relative flex-1" for="modal_filter_supplier_id">
                                     <select id="modal_filter_supplier_id" name="filter_supplier_id"
                                         class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
-                                        disabled onchange="updateTempo()">
+                                        disabled>
                                         <option value=""></option>
                                         @foreach ($suppliers as $supplier)
                                             <option value="{{ $supplier->fsupplierid }}"
