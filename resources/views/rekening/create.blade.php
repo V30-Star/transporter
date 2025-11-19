@@ -32,7 +32,7 @@
                     <!-- Rekening Name -->
                     <div>
                         <label class="block text-sm font-medium">Nama Rekening</label>
-                        <textarea name="frekeningname" rows="3"
+                        <textarea name="frekeningname" rows="6"
                             class="w-full border rounded px-3 py-2 uppercase @error('frekeningname') border-red-500 @enderror">{{ old('frekeningname') }}</textarea>
                         @error('frekeningname')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>

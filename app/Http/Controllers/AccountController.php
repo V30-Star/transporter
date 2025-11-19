@@ -215,7 +215,7 @@ class AccountController extends Controller
         if ($account->fend == 0) {
             return redirect()
                 ->route('account.index')
-                ->with('error', 'Account tidak dapat dihapus.');
+                ->with('error', 'Account tidak dapat dihapus karena Header.');
         }
 
         // 2. Cek apakah account ini memiliki sub-account (child account)
