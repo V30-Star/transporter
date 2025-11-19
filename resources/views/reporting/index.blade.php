@@ -401,7 +401,7 @@
                                 className: 'text-center',
                                 width: '20%',
                                 render: function(data, type, row) {
-                                    return `<button type="button" onclick="window.chooseSupplier('${row.fsupplierid}', '${row.fsuppliercode}', '${row.fsuppliername}')" class="px-3 py-1 rounded text-xs bg-emerald-600 hover:bg-emerald-700 text-white">Pilih</button>`;
+                                    return `<button type="button" onclick="window.chooseSupplier('${row.fsupplierid}', '${row.fsuppliercode}', '${row.fsuppliername}', '${row.faddress}', '${row.ftelp}')" class="px-3 py-1 rounded text-xs bg-emerald-600 hover:bg-emerald-700 text-white">Pilih</button>`;
                                 }
                             }
                         ],
@@ -462,7 +462,7 @@
                 },
 
                 init() {
-                    window.chooseSupplier = (id, code, name) => {
+                    window.chooseSupplier = (id, code, name, address, telp) => {
                         const sel = document.getElementById('modal_filter_supplier_id');
                         const hid = document.getElementById('supplierCodeHidden');
 
