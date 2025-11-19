@@ -205,8 +205,19 @@ class AccountController extends Controller
 
     public function destroy($faccid)
     {
-        // Find Account and delete it
+        // Find Account
         $account = Account::findOrFail($faccid);
+
+        // --- Validation Check ---
+        // Cek apakah kolom 'fend' bernilai 0. Jika ya, batalkan penghapusan dan kirim pesan error.
+        if ($account->fend == 0) {
+            return redirect()
+                ->route('account.index')
+                ->with('error', 'Account tidak dapat dihapus.');
+        }
+        // --- End Validation Check ---
+
+        // Delete the Account
         $account->delete();
 
         return redirect()

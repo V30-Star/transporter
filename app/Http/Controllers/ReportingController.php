@@ -47,8 +47,29 @@ class ReportingController extends Controller
 
   public function index(Request $request)
   {
-    // 1. Ambil data TR_POH (Header) berdasarkan filter dan EAGER LOAD SUPPLIER
-    $pohData = $this->getPohQuery($request)
+    // Set default tanggal jika belum ada filter
+    $filterDateFrom = $request->query('filter_date_from');
+    $filterDateTo = $request->query('filter_date_to');
+
+    // Jika belum ada tanggal, set default
+    if (!$filterDateFrom) {
+      // Tanggal pertama bulan ini (timezone Jakarta)
+      $filterDateFrom = \Carbon\Carbon::now('Asia/Jakarta')->startOfMonth()->format('Y-m-d');
+    }
+
+    if (!$filterDateTo) {
+      // Tanggal hari ini (timezone Jakarta)
+      $filterDateTo = \Carbon\Carbon::now('Asia/Jakarta')->format('Y-m-d');
+    }
+
+    // Cek apakah ada filter yang dijalankan
+    $hasFilter = $request->has('filter_date_from') ||
+      $request->has('filter_date_to') ||
+      $request->has('filter_supplier_id');
+
+    // Hanya ambil data jika ada filter
+    $pohData = $hasFilter
+      ? $this->getPohQuery($request)
       ->with('supplier:fsupplierid,fsuppliername')
       ->get([
         'fpohdid',
@@ -59,19 +80,20 @@ class ReportingController extends Controller
         'fcurrency',
         'fclose',
         'fapproval'
-      ]);
+      ])
+      : collect();
 
-    // 2. Ambil SEMUA Supplier untuk dropdown filter
-    $suppliers = Supplier::orderBy('fsuppliername', 'asc')->get(['fsupplierid', 'fsuppliername']);
+    // Ambil SEMUA Supplier untuk dropdown filter
+    $suppliers = Supplier::orderBy('fsuppliername', 'asc')
+      ->get(['fsupplierid', 'fsuppliername']);
 
-    // 3. Kirim data dan supplier ke View
     return view('reporting.index', [
       'pohData' => $pohData,
-      'suppliers' => $suppliers, // Kirim daftar supplier
-      // Kirim parameter filter yang sedang aktif
-      'filterDateFrom' => $request->query('filter_date_from'),
-      'filterDateTo' => $request->query('filter_date_to'),
-      'filterSupplierId' => $request->query('filter_supplier_id'), // Kirim ID Supplier yang aktif
+      'suppliers' => $suppliers,
+      'hasFilter' => $hasFilter,
+      'filterDateFrom' => $filterDateFrom,
+      'filterDateTo' => $filterDateTo,
+      'filterSupplierId' => $request->query('filter_supplier_id'),
     ]);
   }
 
@@ -80,6 +102,8 @@ class ReportingController extends Controller
    */
   public function printPoh(Request $request)
   {
+    $filterSupplierId = $request->query('fsupplier');
+
     $query = DB::table('tr_poh')
       ->select('tr_poh.*');
 
@@ -90,6 +114,10 @@ class ReportingController extends Controller
 
     if ($request->filled('filter_date_to')) {
       $query->whereDate('fpodate', '<=', $request->filter_date_to);
+    }
+
+    if (!empty($filterSupplierId)) {
+      $query->where('fsupplier', $filterSupplierId);
     }
 
     // Ambil data PO Header
@@ -124,12 +152,15 @@ class ReportingController extends Controller
       }
     }
     $activeSupplierName = null;
-    if ($filterSupplierId = $request->query('filter_supplier_id')) {
+    if (!empty($filterSupplierId)) {
       $supplier = Supplier::where('fsupplierid', $filterSupplierId)
         ->select('fsuppliername')
         ->first();
-      $activeSupplierName = $supplier->fsuppliername ?? 'N/A';
+
+      // Cek dulu apakah $supplier bukan null
+      $activeSupplierName = $supplier ? $supplier->fsuppliername : 'N/A';
     }
+    // dd($activeSupplierName);
 
     return view('reporting.print', compact('pohData', 'activeSupplierName'));
   }

@@ -151,7 +151,7 @@ class SupplierController extends Controller
         $perPage = max(1, min($perPage, 100));
 
         $query = Supplier::query()
-            ->select('fsupplierid', 'fsuppliercode', 'fsuppliername', 'ftelp')
+            ->select('fsupplierid', 'fsuppliercode', 'fsuppliername', 'ftelp', 'faddress')
             // exclude non-active if you use 'Y' to mark inactive
             ->where(function ($w) {
                 $w->whereNull('fnonactive')->orWhere('fnonactive', '!=', 'Y');
