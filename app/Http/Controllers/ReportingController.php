@@ -130,10 +130,7 @@ class ReportingController extends Controller
         ->where('fpono', $poh->fpohdid)  // fpono di tr_pod = fpohdid di tr_poh
         ->orderBy('fnou')  // urutkan berdasarkan nomor urut
         ->get();
-
-      // Debug: cek apakah detail ada
-      // dd($poh->fpohdid, $poh->details); // Uncomment untuk debugging
-
+        
       // Hitung total harga dari detail
       $poh->total_harga = $poh->details->sum('famount');
 
