@@ -53,6 +53,9 @@ class SubaccountController extends Controller
             ]
         );
 
+        $validated['fsubaccountcode'] = strtoupper($validated['fsubaccountcode']);
+        $validated['fsubaccountname'] = strtoupper($validated['fsubaccountname']);
+
         // Add default values for the required fields
         $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null; // Use the authenticated user's name or 'system' as default
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? 'system';  // Fallback jika tidak ada
@@ -93,6 +96,9 @@ class SubaccountController extends Controller
                 'fsubaccountcode.unique' => 'Kode subaccount sudah ada.',
             ]
         );
+
+        $validated['fsubaccountcode'] = strtoupper($validated['fsubaccountcode']);
+        $validated['fsubaccountname'] = strtoupper($validated['fsubaccountname']);
 
         $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null; // Use the authenticated user's name or 'system' as default

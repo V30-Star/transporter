@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Account;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
 
 class AccountController extends Controller
 {
@@ -209,12 +210,33 @@ class AccountController extends Controller
         $account = Account::findOrFail($faccid);
 
         // --- Validation Check ---
-        // Cek apakah kolom 'fend' bernilai 0. Jika ya, batalkan penghapusan dan kirim pesan error.
+
+        // 1. Cek apakah kolom 'fend' bernilai 0
         if ($account->fend == 0) {
             return redirect()
                 ->route('account.index')
                 ->with('error', 'Account tidak dapat dihapus.');
         }
+
+        // 2. Cek apakah account ini memiliki sub-account (child account)
+        $hasChildren = Account::where('faccupline', $faccid)->exists();
+
+        if ($hasChildren) {
+            return redirect()
+                ->route('account.index')
+                ->with('error', 'Account tidak dapat dihapus karena memiliki sub-account.');
+        }
+
+        // 3. (Opsional) Cek apakah account sudah digunakan di transaksi
+        // Uncomment jika Anda ingin cek di tabel jurnal/transaksi
+        $usedInTransaction = DB::table('jurnaldt')->where('faccount', $account->faccount)->exists();
+
+        if ($usedInTransaction) {
+            return redirect()
+                ->route('account.index')
+                ->with('error', 'Account tidak dapat dihapus karena sudah digunakan dalam transaksi.');
+        }
+
         // --- End Validation Check ---
 
         // Delete the Account
