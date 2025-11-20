@@ -55,6 +55,9 @@ class MerekController extends Controller
             ]
         );
 
+        $validated['fmerekcode'] = strtoupper($validated['fmerekcode']);
+        $validated['fmerekname'] = strtoupper($validated['fmerekname']);
+
         // Add default values for the required fields
         $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null; // Use the authenticated user's name or 'system' as default
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? 'system';  // Fallback jika tidak ada

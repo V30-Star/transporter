@@ -34,6 +34,7 @@
             @endif
         </div>
 
+        {{-- Filter Status (Hidden Template) --}}
         <div id="statusFilterTemplate" class="hidden">
             <div class="flex items-center gap-2" id="statusFilterWrap">
                 <span class="text-sm text-gray-700">Status</span>
@@ -45,32 +46,32 @@
             </div>
         </div>
 
-        {{-- Table --}}
+        {{-- Tabel --}}
         <table id="subaccountTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
                     <th class="border px-2 py-2">Kode Subaccount</th>
                     <th class="border px-2 py-2">Nama Subaccount</th>
-                    <th class="border px-2 py-2 no-sort">Status</th>
-                    <th class="border px-2 py-2" data-col="statusRaw">StatusRaw</th>
+                    <th class="border px-2 py-2">Status</th>
+                    <th class="border px-2 py-2" style="display:none;">StatusRaw</th>
                     @if ($showActionsColumn)
-                        <th class="border px-2 py-2 col-aksi">Aksi</th>
+                        <th class="border px-2 py-2">Aksi</th>
                     @endif
                 </tr>
             </thead>
-            <tbody id="tableBody">
-                @forelse($subaccounts as $item)
+            <tbody>
+                @foreach ($subaccounts as $item)
                     <tr class="hover:bg-gray-50">
-                        <td>{{ $item->fsubaccountcode }}</td>
-                        <td>{{ $item->fsubaccountname }}</td>
-                        <td>
+                        <td class="border px-2 py-2">{{ $item->fsubaccountcode }}</td>
+                        <td class="border px-2 py-2">{{ $item->fsubaccountname }}</td>
+                        <td class="border px-2 py-2">
                             @php $isActive = (string)$item->fnonactive === '0'; @endphp
                             <span
                                 class="inline-flex items-center px-2 py-0.5 rounded text-xs {{ $isActive ? 'bg-green-100 text-green-700' : 'bg-red-200 text-red-700' }}">
                                 {{ $isActive ? 'Active' : 'Non Active' }}
                             </span>
                         </td>
-                        <td>{{ (string) $item->fnonactive }}</td>
+                        <td style="display:none;">{{ $item->fnonactive }}</td>
                         @if ($showActionsColumn)
                             <td class="border px-2 py-1 space-x-2">
                                 @if ($canEdit)
@@ -90,14 +91,104 @@
                             </td>
                         @endif
                     </tr>
-                @empty
-                    <tr>
-                        <td colspan="{{ $showActionsColumn ? 3 : 2 }}" class="text-center py-4">Tidak ada data.</td>
-                    </tr>
-                @endforelse
+                @endforeach
             </tbody>
         </table>
 
+        @push('scripts')
+            {{-- Load jQuery dan DataTables --}}
+            <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+            <script src="https://cdn.datatables.net/2.1.6/js/dataTables.min.js"></script>
+
+            <script>
+                $(document).ready(function() {
+                    // ========================================
+                    // STEP 1: Inisialisasi DataTables
+                    // ========================================
+                    const table = $('#subaccountTable').DataTable({
+                        pageLength: 10, // Tampilkan 10 data per halaman
+                        lengthMenu: [10, 25, 50, 100], // Pilihan jumlah data per halaman
+                        order: [
+                            [0, 'asc']
+                        ], // Urutkan berdasarkan kolom pertama (Kode)
+
+                        // Pengaturan kolom
+                        columnDefs: [{
+                                targets: 2, // Kolom Status (index 2)
+                                orderable: false // Tidak bisa diurutkan
+                            },
+                            {
+                                targets: 3, // Kolom StatusRaw (index 3)
+                                visible: false // Disembunyikan
+                            },
+                            @if ($showActionsColumn)
+                                {
+                                    targets: 4, // Kolom Aksi (index 4)
+                                    orderable: false, // Tidak bisa diurutkan
+                                    searchable: false // Tidak bisa dicari
+                                }
+                            @endif
+                        ],
+
+                        // Terjemahan Bahasa Indonesia
+                        language: {
+                            lengthMenu: "Tampilkan _MENU_ data",
+                            search: "Cari:",
+                            info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+                            infoEmpty: "Tidak ada data",
+                            infoFiltered: "(difilter dari _MAX_ total data)",
+                            paginate: {
+                                first: "Pertama",
+                                last: "Terakhir",
+                                next: "Selanjutnya",
+                                previous: "Sebelumnya"
+                            },
+                            emptyTable: "Tidak ada data yang tersedia"
+                        }
+                    });
+
+                    // ========================================
+                    // STEP 2: Tambahkan Filter Status
+                    // ========================================
+
+                    // Ambil template filter dan clone
+                    const filterHtml = $('#statusFilterTemplate #statusFilterWrap').clone();
+
+                    // Tambahkan filter ke sebelah kotak pencarian
+                    $('.dt-length').append(filterHtml);
+
+                    // Perbesar kotak pencarian
+                    $('.dt-search .dt-input').css('width', '400px');
+
+                    // ========================================
+                    // STEP 3: Filter Default ke "Active"
+                    // ========================================
+
+                    // Filter otomatis menampilkan hanya data Active saat pertama load
+                    table.column(3).search('^0$', true, false).draw();
+
+                    // ========================================
+                    // STEP 4: Event Handler untuk Filter Status
+                    // ========================================
+
+                    $('select[data-role="status-filter"]').on('change', function() {
+                        const selectedValue = $(this).val();
+
+                        // Kolom index 3 adalah StatusRaw (0 = Active, 1 = Non Active)
+                        if (selectedValue === 'active') {
+                            // Filter hanya yang bernilai '0' (Active)
+                            table.column(3).search('^0$', true, false).draw();
+                        } else if (selectedValue === 'nonactive') {
+                            // Filter hanya yang bernilai '1' (Non Active)
+                            table.column(3).search('^1$', true, false).draw();
+                        } else {
+                            // Tampilkan semua (kosongkan filter)
+                            table.column(3).search('').draw();
+                        }
+                    });
+                });
+            </script>
+        @endpush
         {{-- Modal Delete --}}
         <div x-show="showDeleteModal" x-cloak
             class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -184,107 +275,4 @@
             margin-right: .25rem;
         }
     </style>
-@endpush
-
-@push('scripts')
-    {{-- jQuery + DataTables JS (CDN) --}}
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="https://cdn.datatables.net/2.1.6/js/dataTables.min.js"></script>
-    <script>
-        document.addEventListener('alpine:init', () => {
-            /* no-op */
-        });
-
-        $(function() {
-            // Inisialisasi DataTables
-            const hasActions = {{ $showActionsColumn ? 'true' : 'false' }};
-            const columns = hasActions ? [{
-                    title: 'Kode Subaccount'
-                },
-                {
-                    title: 'Nama Subaccount'
-                },
-                {
-                    title: 'Aksi',
-                    orderable: false,
-                    searchable: false
-                }
-            ] : [{
-                    title: 'Kode Subaccount'
-                },
-                {
-                    title: 'Nama Subaccount'
-                }
-            ];
-
-            $('#subaccountTable').DataTable({
-                autoWidth: false,
-                pageLength: 10,
-                lengthMenu: [10, 25, 50, 100],
-                order: [
-                    [0, 'asc']
-                ],
-                layout: {
-                    topStart: 'search',
-                    topEnd: 'pageLength',
-                    bottomStart: 'info',
-                    bottomEnd: 'paging'
-                },
-                columnDefs: [{
-                        targets: 'col-aksi',
-                        orderable: false,
-                        searchable: false,
-                        width: 120
-                    },
-                    {
-                        targets: 'no-sort',
-                        orderable: false
-                    }
-                ],
-                language: {
-                    lengthMenu: "Show _MENU_ entries"
-                },
-                initComplete: function() {
-                    const api = this.api();
-
-                    const $toolbarSearch = $(api.table().container()).find('.dt-search');
-                    const $filter = $('#statusFilterTemplate #statusFilterWrap').clone(true, true);
-
-                    const $select = $filter.find('select[data-role="status-filter"]');
-                    $select.attr('id', 'statusFilterDT');
-
-                    $toolbarSearch.append($filter);
-
-                    const statusRawIdx = api.columns().indexes().toArray()
-                        .find(i => $(api.column(i).header()).attr('data-col') === 'statusRaw');
-
-                    if (statusRawIdx === undefined) {
-                        console.warn('Kolom StatusRaw tidak ditemukan.');
-                        return;
-                    }
-
-                    api.column(statusRawIdx).visible(false);
-
-                    const $searchInput = $toolbarSearch.find('.dt-input');
-                    $searchInput.css({
-                        width: '400px',
-                        maxWidth: '100%'
-                    });
-
-                    api.column(statusRawIdx).search('^0$', true, false).draw();
-
-                    $select.on('change', function() {
-                        const v = this.value;
-                        if (v === 'active') {
-                            api.column(statusRawIdx).search('^0$', true, false).draw();
-                        } else if (v === 'nonactive') {
-                            api.column(statusRawIdx).search('^1$', true, false).draw();
-                        } else {
-                            api.column(statusRawIdx).search('', true, false).draw(); // all
-                        }
-                    });
-                }
-            });
-        });
-    </script>
 @endpush

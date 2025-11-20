@@ -53,6 +53,10 @@ class GroupproductController extends Controller
             ]
         );
 
+
+        $validated['fgroupcode'] = strtoupper($validated['fgroupcode']);
+        $validated['fgroupname'] = strtoupper($validated['fgroupname']);
+
         // Add default values for the required fields
         $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null; // Use the authenticated user's name or 'system' as default
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? 'system';  // Fallback jika tidak ada
