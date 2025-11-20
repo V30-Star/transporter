@@ -17,15 +17,13 @@ class ProductController extends Controller
     {
         if ($request->ajax()) {
             $query = Product::query()
+                // Menggunakan alias 'msprd' untuk memastikan kolomnya jelas
+                ->from('msprd')
+
                 // --- 1. MELAKUKAN JOIN KE TABEL MEREK ---
-                // Asumsi: msprd.fmerek adalah ID yang terhubung ke msmerek.fmerekid
+                // Join sekarang membandingkan fmerek (teks/string) dengan fmerekcode (teks/string)
                 ->leftJoin('msmerek', function ($join) {
-                    $join->on(
-                        'msmerek.fmerekid',
-                        '=',
-                        // Menggunakan COALESCE/NULLIF untuk mengganti string kosong/non-angka dengan 0 (integer)
-                        DB::raw('CAST(COALESCE(NULLIF("msprd"."fmerek", \'\'), \'0\') AS INTEGER)')
-                    );
+                    $join->on('msmerek.fmerekcode', '=', 'msprd.fmerek');
                 });
             // ... (Filter Status) ...
             $status = $request->input('status');
@@ -80,10 +78,7 @@ class ProductController extends Controller
                     'msprd.fprdid',
                     'msprd.fnonactive',
                     'msprd.fmerek',
-                    // --- 2. AMBIL NAMA MEREK DENGAN ALIAS ---
                     'msmerek.fmerekname AS merek_name',
-                    // Ambil juga kode merek jika diperlukan, beri alias:
-                    // 'msmerek.fmerekcode AS merek_code'
                 ]);
 
             // Format data untuk DataTables
