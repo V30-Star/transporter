@@ -234,6 +234,9 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/product-name-suggest', [ProductController::class, 'suggestNames'])
             ->name('product.name.suggest');
+        Route::get('/product/suggest-codes', [ProductController::class, 'suggestCodes'])->name('product.suggest-codes');
+
+        Route::get('/account/suggest', [AccountController::class, 'suggestAccounts'])->name('account.suggest');
 
         Route::get('/customer-name-suggest', [CustomerController::class, 'suggestNames'])
             ->name('customer.name.suggest');

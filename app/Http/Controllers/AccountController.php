@@ -246,4 +246,41 @@ class AccountController extends Controller
             ->route('account.index')
             ->with('success', 'Account berhasil dihapus.');
     }
+
+    public function suggestAccounts(Request $request)
+    {
+        $term = (string) $request->get('term', '');
+        $field = $request->get('field', 'faccount'); // faccount atau faccname
+
+        $q = DB::table('account')
+            ->whereNotNull('faccount')
+            ->whereNotNull('faccname');
+
+        if ($term !== '') {
+            if ($field === 'faccount') {
+                $q->where('faccount', 'ILIKE', "%{$term}%");
+            } else {
+                $q->where('faccname', 'ILIKE', "%{$term}%");
+            }
+        }
+
+        // Return data dengan format: {value, label, code, name}
+        $accounts = $q->select('faccount', 'faccname')
+            ->distinct()
+            ->orderBy($field)
+            ->limit(15)
+            ->get()
+            ->map(function ($item) use ($field) {
+                return [
+                    'value' => $field === 'faccount' ? $item->faccount : $item->faccname,
+                    'label' => $field === 'faccount'
+                        ? "{$item->faccount} - {$item->faccname}"
+                        : "{$item->faccname} ({$item->faccount})",
+                    'code' => $item->faccount,
+                    'name' => $item->faccname
+                ];
+            });
+
+        return response()->json($accounts);
+    }
 }

@@ -134,6 +134,24 @@ class ProductController extends Controller
         return response()->json($names);
     }
 
+    public function suggestCodes(Request $request)
+    {
+        $term = (string) $request->get('term', '');
+
+        $q = DB::table('msprd')->whereNotNull('fprdcode');
+
+        if ($term !== '') {
+            $q->where('fprdcode', 'ILIKE', "%{$term}%");
+        }
+
+        $codes = $q->distinct()
+            ->orderBy('fprdcode')
+            ->limit(15)
+            ->pluck('fprdcode');
+
+        return response()->json($codes);
+    }
+
     private function generateProductCode($groupId, $merekId): string
     {
         // 1. Pad ID grup dan merek (ggg.mmm)

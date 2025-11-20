@@ -112,9 +112,13 @@
             {{-- Kode Account --}}
             <div class="mt-4">
                 <label class="block text-sm font-medium">Kode Account</label>
-                <input type="text" name="faccount" value="{{ old('faccount', $account->faccount) }}"
-                    class="w-full border rounded px-3 py-2 uppercase @error('faccount') border-red-500 @enderror" maxlength="10"
-                    pattern="^\d+(-\d+)*$" title="Format harus angka & boleh pakai '-' (mis: 1-123)" autofocus>
+                <input type="text" name="faccount" id="faccount" value="{{ old('faccount', $account->faccount) }}"
+                    class="w-full border rounded px-3 py-2 uppercase @error('faccount') border-red-500 @enderror"
+                    maxlength="10" pattern="^\d+(-\d+)*$" title="Format harus angka & boleh pakai '-' (mis: 1-123)"
+                    placeholder="Ketik untuk mencari..." autofocus>
+
+                <p id="faccount-hint" class="hint-text"></p>
+
                 @error('faccount')
                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                 @enderror
@@ -123,8 +127,12 @@
             {{-- Nama Account --}}
             <div class="mt-4">
                 <label class="block text-sm font-medium">Nama Account</label>
-                <input type="text" name="faccname" value="{{ old('faccname', $account->faccname) }}"
-                    class="w-full border rounded px-3 py-2 uppercase @error('faccname') border-red-500 @enderror" maxlength="50">
+                <input type="text" name="faccname" id="faccname" value="{{ old('faccname', $account->faccname) }}"
+                    class="w-full border rounded px-3 py-2 uppercase @error('faccname') border-red-500 @enderror"
+                    maxlength="50" placeholder="Ketik untuk mencari...">
+
+                <p id="faccname-hint" class="hint-text"></p>
+
                 @error('faccname')
                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                 @enderror
@@ -135,7 +143,8 @@
                 <label for="fnormal" class="block text-sm font-medium">Saldo Normal</label>
                 <select name="fnormal" id="fnormal" class="w-full border rounded px-3 py-2">
                     <option value="D" {{ old('fnormal', $account->fnormal) == 'D' ? 'selected' : '' }}>Debit</option>
-                    <option value="K" {{ old('fnormal', $account->fnormal) == 'K' ? 'selected' : '' }}>Kredit</option>
+                    <option value="K" {{ old('fnormal', $account->fnormal) == 'K' ? 'selected' : '' }}>Kredit
+                    </option>
                 </select>
             </div>
 
@@ -235,7 +244,59 @@
             </span>
         </form>
     </div>
-    </div>
+    <style>
+        .ui-autocomplete {
+            background-color: white !important;
+            z-index: 1050 !important;
+
+            /* === Perubahan Utama: Tambahkan Max-Width === */
+            /* Sesuaikan nilai '300px' ini sesuai kebutuhan Anda */
+            max-width: 700px !important;
+            /* ------------------------------------------- */
+
+            /* Styling tambahan (sama seperti sebelumnya) */
+            border: 1px solid #d1d5db !important;
+            border-radius: 0.25rem !important;
+            padding: 0 !important;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+        }
+
+        .ui-menu-item-wrapper {
+            padding: 0.5rem 0.75rem !important;
+        }
+
+        .ui-menu-item-wrapper.ui-state-active,
+        .ui-menu-item-wrapper:hover {
+            background-color: #f3f4f6 !important;
+            color: #1f2937 !important;
+        }
+
+        .hint-text {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-top: 0.25rem;
+            font-style: italic;
+        }
+
+        /* Custom styling untuk autocomplete dropdown */
+        .ui-autocomplete {
+            max-height: 300px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            z-index: 9999 !important;
+        }
+
+        .ui-menu-item {
+            padding: 8px 12px;
+            font-size: 0.875rem;
+        }
+
+        .ui-state-active {
+            background: #3b82f6 !important;
+            border-color: #3b82f6 !important;
+            color: white !important;
+        }
+    </style>
     <script>
         function accHeaderBrowser() {
             return {
@@ -323,4 +384,114 @@
         }
     </script>
 
+    @push('scripts')
+        <!-- Load jQuery & jQuery UI -->
+        <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+        <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+
+        <script>
+            $(document).ready(function() {
+
+                // ========================================
+                // Autocomplete untuk ACCOUNT # (Kode)
+                // ========================================
+                $('#faccount').autocomplete({
+                        source: function(request, response) {
+                            $.ajax({
+                                url: "{{ route('account.suggest') }}",
+                                dataType: "json",
+                                data: {
+                                    term: request.term,
+                                    field: 'faccount' // Cari berdasarkan kode
+                                },
+                                success: function(data) {
+                                    response(data);
+                                }
+                            });
+                        },
+                        minLength: 1, // Minimal 1 karakter
+                        select: function(event, ui) {
+                            // Isi Account # dengan kode
+                            $('#faccount').val(ui.item.code);
+
+                            // Isi Account Name dengan nama
+                            $('#faccname').val(ui.item.name);
+
+                            // Tampilkan hint
+                            $('#faccount-hint').text('Account Name: ' + ui.item.name);
+                            $('#faccname-hint').text('Account #: ' + ui.item.code);
+
+                            return false;
+                        },
+                        focus: function(event, ui) {
+                            // Preview saat hover
+                            $('#faccount').val(ui.item.code);
+                            return false;
+                        }
+                    })
+                    .on('input', function() {
+                        // Clear hint saat user mengetik manual
+                        const currentVal = $(this).val();
+                        if (!currentVal) {
+                            $('#faccount-hint').text('');
+                            $('#faccname-hint').text('');
+                        }
+                    });
+
+                // ========================================
+                // Autocomplete untuk ACCOUNT NAME (Nama)
+                // ========================================
+                $('#faccname').autocomplete({
+                        source: function(request, response) {
+                            $.ajax({
+                                url: "{{ route('account.suggest') }}",
+                                dataType: "json",
+                                data: {
+                                    term: request.term,
+                                    field: 'faccname' // Cari berdasarkan nama
+                                },
+                                success: function(data) {
+                                    response(data);
+                                }
+                            });
+                        },
+                        minLength: 2, // Minimal 2 karakter untuk nama
+                        select: function(event, ui) {
+                            // Isi Account Name dengan nama
+                            $('#faccname').val(ui.item.name);
+
+                            // Isi Account # dengan kode
+                            $('#faccount').val(ui.item.code);
+
+                            // Tampilkan hint
+                            $('#faccname-hint').text('Account #: ' + ui.item.code);
+                            $('#faccount-hint').text('Account Name: ' + ui.item.name);
+
+                            return false;
+                        },
+                        focus: function(event, ui) {
+                            // Preview saat hover
+                            $('#faccname').val(ui.item.name);
+                            return false;
+                        }
+                    })
+                    .on('input', function() {
+                        // Clear hint saat user mengetik manual
+                        const currentVal = $(this).val();
+                        if (!currentVal) {
+                            $('#faccount-hint').text('');
+                            $('#faccname-hint').text('');
+                        }
+                    });
+
+                // ========================================
+                // Clear hint saat form di-reset
+                // ========================================
+                $('form').on('reset', function() {
+                    $('#faccount-hint').text('');
+                    $('#faccname-hint').text('');
+                });
+            });
+        </script>
+    @endpush
 @endsection
