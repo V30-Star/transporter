@@ -29,7 +29,7 @@ class SubaccountController extends Controller
 
         $canCreate = in_array('createSubAccount', explode(',', session('user_restricted_permissions', '')));
         $canEdit   = in_array('updateSubAccount', explode(',', session('user_restricted_permissions', '')));
-        $canDelete = in_array('deleteSubAccount', explode(',', session('user_restricted_permissions', '')));    
+        $canDelete = in_array('deleteSubAccount', explode(',', session('user_restricted_permissions', '')));
 
         return view('subaccount.index', compact('subaccounts', 'canCreate', 'canEdit', 'canDelete', 'status'));
     }
@@ -41,6 +41,11 @@ class SubaccountController extends Controller
 
     public function store(Request $request)
     {
+        $request->merge([
+            'fsubaccountcode' => strtoupper($request->fsubaccountcode),
+            'fsubaccountname' => strtoupper($request->fsubaccountname),
+        ]);
+        
         $validated = $request->validate(
             [
                 'fsubaccountcode' => 'required|string|unique:mssubaccount,fsubaccountcode',
