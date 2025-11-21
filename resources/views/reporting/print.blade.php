@@ -120,27 +120,6 @@
             text-align: center;
         }
 
-        /* ... CSS print dan lainnya ... */
-
-        .print-button {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 12px 24px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            cursor: pointer;
-            font-size: 14px;
-            border-radius: 6px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-            z-index: 1000;
-        }
-
-        .print-button:hover {
-            background-color: #45a049;
-        }
-
         .no-data {
             text-align: center;
             padding: 40px;
@@ -236,18 +215,71 @@
             }
         }
     </style>
+    <style>
+        .no-print {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            display: flex;
+            gap: 8px;
+            z-index: 1000;
+        }
+
+        .print-button,
+        .excel-button {
+            padding: 10px 20px;
+            font-size: 14px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .print-button {
+            background-color: #3b82f6;
+            color: white;
+        }
+
+        .print-button:hover {
+            background-color: #2563eb;
+        }
+
+        .excel-button {
+            background-color: #22c55e;
+            color: white;
+        }
+
+        .excel-button:hover {
+            background-color: #16a34a;
+        }
+
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
 </head>
 
 <body>
-    <button class="print-button no-print" onclick="window.print()">🖨️ Cetak Laporan</button>
+    <div class="no-print">
+        <button class="print-button" onclick="window.print()">🖨️ Cetak Laporan</button>
+        <a href="{{ route('reporting.exportExcel', request()->query()) }}" class="excel-button">
+            📊 Download Excel
+        </a>
+    </div>
 
     <div class="a4-container">
         <div class="header-section">
-            @if ($activeSupplierName)
-                <div class="supplier-info-kiri">
+            <div class="supplier-info-kiri">
+                @if ($activeSupplierName)
                     Supplier: {{ $activeSupplierName }}
-                </div>
-            @endif
+                @else
+                    Supplier: Semua
+                @endif
+            </div>
             <h2>Listing Order Pembelian / PO</h2>
             @if (request('filter_date_from') || request('filter_date_to'))
                 <div class="filter-info">

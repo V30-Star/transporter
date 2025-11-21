@@ -39,7 +39,7 @@
                         class="text-gray-500 hover:text-gray-800 text-xl font-bold">&times;</button>
                 </div>
 
-                <form method="GET" action="{{ route('reporting.index') }}">
+                <form method="GET" action="{{ route('reporting.printPoh') }}">
                     <div class="grid grid-cols-2 gap-4">
                         {{-- Filter Tanggal Dari --}}
                         <div>
@@ -105,7 +105,7 @@
                             Reset Filter
                         </a>
                         {{-- Tombol Terapkan Filter --}}
-                        <button type="submit"
+                        <button type="submit"  formaction="{{ route('reporting.printPoh') }}" formtarget="_blank"
                             class="px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors">
                             Terapkan Filter
                         </button>
