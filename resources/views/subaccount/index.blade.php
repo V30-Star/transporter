@@ -111,7 +111,12 @@
                         order: [
                             [0, 'asc']
                         ], // Urutkan berdasarkan kolom pertama (Kode)
-
+                        layout: {
+                            topStart: 'search', // Search pindah ke kiri
+                            topEnd: 'pageLength', // Length menu pindah ke kanan
+                            bottomStart: 'info',
+                            bottomEnd: 'paging'
+                        },
                         // Pengaturan kolom
                         columnDefs: [{
                                 targets: 2, // Kolom Status (index 2)
@@ -132,8 +137,8 @@
 
                         // Terjemahan Bahasa Indonesia
                         language: {
-                            lengthMenu: "Tampilkan _MENU_ data",
-                            search: "Cari:",
+                            lengthMenu: "Show _MENU_ entries",
+                            search: "Search:",
                             info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
                             infoEmpty: "Tidak ada data",
                             infoFiltered: "(difilter dari _MAX_ total data)",
@@ -155,7 +160,7 @@
                     const filterHtml = $('#statusFilterTemplate #statusFilterWrap').clone();
 
                     // Tambahkan filter ke sebelah kotak pencarian
-                    $('.dt-length').append(filterHtml);
+                    $('.dt-search').append(filterHtml);
 
                     // Perbesar kotak pencarian
                     $('.dt-search .dt-input').css('width', '400px');
