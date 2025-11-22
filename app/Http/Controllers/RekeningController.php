@@ -52,7 +52,7 @@ class RekeningController extends Controller
             ],
             [
                 'frekeningname.required' => 'Nama rekening harus diisi.',
-                'frekeningname.unique' => 'Nama Rekening ini sudah ada dan tidak boleh diduplikasi.',
+                'frekeningname.unique' => 'Nama Rekening ini sudah ada',
             ]
         );
 
@@ -93,7 +93,7 @@ class RekeningController extends Controller
             ],
             [
                 'frekeningname.required' => 'Nama rekening harus diisi.',
-                'frekeningname.unique' => 'Nama Rekening ini sudah ada dan tidak boleh diduplikasi.',
+                'frekeningname.unique' => 'Nama Rekening ini sudah ada',
             ]
         );
         

@@ -227,8 +227,8 @@ class ProductController extends Controller
                 'fminstock' => 'numeric', // Validate if nonactive is checked
             ],
             [
-                'fprdcode.unique' => 'Kode Produk sudah ada, silakan gunakan kode yang lain.',
-                'fprdname.unique' => 'Nama Produk sudah ada, silakan gunakan nama yang lain.',
+                'fprdcode.unique' => 'Kode Produk sudah ada',
+                'fprdname.unique' => 'Nama Produk sudah ada',
                 'fprdcode.required' => 'Kode Produk harus diisi.',
                 'fprdname.required' => 'Nama Produk harus diisi.',
                 'ftype.required' => 'Tipe Produk harus diisi.',
@@ -319,8 +319,8 @@ class ProductController extends Controller
                 'fminstock' => 'numeric', // Validate if nonactive is checked
             ],
             [
-                'fprdcode.unique' => 'Kode Produk sudah ada, silakan gunakan kode yang lain.',
-                'fprdname.unique' => 'Nama Produk sudah ada, silakan gunakan nama yang lain.',
+                'fprdcode.unique' => 'Kode Produk sudah ada',
+                'fprdname.unique' => 'Nama Produk sudah ada',
                 'fprdname.required' => 'Nama Produk harus diisi.',
                 'ftype.required' => 'Tipe Produk harus diisi.',
                 'fbarcode.required' => 'Barcode Produk harus diisi.',

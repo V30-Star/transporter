@@ -99,7 +99,7 @@ class AccountController extends Controller
                 'faccount.required' => 'Kode account harus diisi.',
                 'faccname.required' => 'Nama account harus diisi.',
                 'faccount.unique'   => 'Kode account sudah ada.',
-                'faccname.unique'   => 'nama account sudah ada.',
+                'faccname.unique'   => 'Nama account sudah ada.',
                 'faccount.max'      => 'Kode account maksimal 10 karakter.',
                 'faccname.max'      => 'Nama account maksimal 50 karakter.',
                 'finitjurnal.max'   => 'Inisial jurnal maksimal 2 karakter.',
@@ -180,7 +180,7 @@ class AccountController extends Controller
             [
                 'faccount.required' => 'Kode account harus diisi.',
                 'faccount.unique'   => 'Kode account sudah ada.',
-                'faccname.unique'   => 'nama account sudah ada.',
+                'faccname.unique'   => 'Nama account sudah ada.',
                 'faccount.max'      => 'Kode account maksimal 10 karakter.',
                 'faccname.required' => 'Nama account harus diisi.',
                 'faccname.max'      => 'Nama account maksimal 50 karakter.',

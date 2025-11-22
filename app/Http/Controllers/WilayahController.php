@@ -59,8 +59,8 @@ class WilayahController extends Controller
         ], [
             'fwilayahcode.required' => 'Kode wilayah harus diisi.',
             'fwilayahname.required' => 'Nama wilayah harus diisi.',
-            'fwilayahcode.unique' => 'Kode wilayah sudah ada, silakan gunakan kode lain.',
-            'fwilayahname.unique' => 'Nama wilayah sudah ada, silakan gunakan nama lain.',
+            'fwilayahcode.unique' => 'Kode wilayah sudah ada',
+            'fwilayahname.unique' => 'Nama wilayah sudah ada',
         ]);
 
         // Add default values for the required fields
@@ -100,8 +100,8 @@ class WilayahController extends Controller
         ], [
             'fwilayahcode.required' => 'Kode wilayah harus diisi.',
             'fwilayahname.required' => 'Nama wilayah harus diisi.',
-            'fwilayahcode.unique' => 'Kode wilayah sudah ada, silakan gunakan kode lain.',
-            'fwilayahname.unique' => 'Nama wilayah sudah ada, silakan gunakan nama lain.',
+            'fwilayahcode.unique' => 'Kode wilayah sudah ada',
+            'fwilayahname.unique' => 'Nama wilayah sudah ada',
         ]);
 
         // Add default values for the required fields

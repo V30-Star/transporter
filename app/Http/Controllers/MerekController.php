@@ -56,8 +56,8 @@ class MerekController extends Controller
             [
                 'fmerekcode.required' => 'Kode Merek harus diisi.',
                 'fmerekname.required' => 'Nama Merek harus diisi.',
-                'fmerekcode.unique' => 'Kode Merek sudah ada, silakan gunakan kode lain.',
-                'fmerekname.unique' => 'Nama Merek sudah ada, silakan gunakan nama lain.',
+                'fmerekcode.unique' => 'Kode Merek sudah ada',
+                'fmerekname.unique' => 'Nama Merek sudah ada',
             ]
         );
 
@@ -105,8 +105,8 @@ class MerekController extends Controller
             [
                 'fmerekcode.required' => 'Kode Merek harus diisi.',
                 'fmerekname.required' => 'Nama Merek harus diisi.',
-                'fmerekcode.unique' => 'Kode Merek sudah ada, silakan gunakan kode lain.',
-                'fmerekname.unique' => 'Nama Merek sudah ada, silakan gunakan nama lain.',
+                'fmerekcode.unique' => 'Kode Merek sudah ada',
+                'fmerekname.unique' => 'Nama Merek sudah ada',
             ]
         );
 

@@ -82,8 +82,8 @@ class SysUserController extends Controller
             'fuserlevel' => 'string|in:User,Admin',
             'fcabang' => 'string',
         ], [
-            'fsysuserid.unique' => 'Username sudah digunakan, silakan pilih username lain.',
-            'fname.unique' => 'Name sudah digunakan, silakan pilih name lain.',
+            'fsysuserid.unique' => 'Username sudah digunakan',
+            'fname.unique' => 'Name sudah digunakan',
             'fname.required' => 'Nama harus diisi.',
             'fsysuserid.required' => 'Username harus diisi.',
             'password.required' => 'Password harus diisi.',
@@ -153,8 +153,8 @@ class SysUserController extends Controller
             'fuserlevel' => 'string|in:User,Admin',
             'fcabang' => 'string',
         ], [
-            'fsysuserid.unique' => 'Username sudah digunakan, silakan pilih username lain.',
-            'fname.unique' => 'Name sudah digunakan, silakan pilih name lain.',
+            'fsysuserid.unique' => 'Username sudah digunakan',
+            'fname.unique' => 'Name sudah digunakan',
             'fname.required' => 'Nama harus diisi.',
             'fsysuserid.required' => 'Username harus diisi.',
             'password.required' => 'Password harus diisi.',

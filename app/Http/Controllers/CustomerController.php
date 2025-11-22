@@ -226,8 +226,8 @@ class CustomerController extends Controller
             'fkontakperson.required' => 'Kontak Person harus diisi.',
             'fjabatan.required' => 'Jabatan harus diisi.',
             'frekening.required' => 'Rekening harus dipilih.',
-            'fcustomercode.unique' => 'Kode Customer ini sudah ada dan tidak boleh diduplikasi.',
-            'fcustomername.unique' => 'Nama Customer ini sudah ada dan tidak boleh diduplikasi.',
+            'fcustomercode.unique' => 'Kode Customer ini sudah ada',
+            'fcustomername.unique' => 'Nama Customer ini sudah ada',
         ]);
 
         if (empty($request->fcustomercode)) {
@@ -325,8 +325,8 @@ class CustomerController extends Controller
             'fkontakperson.required' => 'Kontak Person harus diisi.',
             'fjabatan.required' => 'Jabatan harus diisi.',
             'frekening.required' => 'Rekening harus dipilih.',
-            'fcustomercode.unique' => 'Kode Customer ini sudah ada dan tidak boleh diduplikasi.',
-            'fcustomername.unique' => 'Nama Customer ini sudah ada dan tidak boleh diduplikasi.'
+            'fcustomercode.unique' => 'Kode Customer ini sudah ada',
+            'fcustomername.unique' => 'Nama Customer ini sudah ada'
         ]);
         $customer = Customer::findOrFail($fcustomerid);
         $validated['fcustomercode'] = $request->fcustomercode ?? $customer->fcustomercode;

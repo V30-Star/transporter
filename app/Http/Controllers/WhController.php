@@ -131,7 +131,6 @@ class WhController extends Controller
             ]
         );
 
-
         // Add default values for the required fields
         $validated['fwhcode'] = strtoupper($validated['fwhcode']);
         $validated['fwhname'] = strtoupper($validated['fwhname']);

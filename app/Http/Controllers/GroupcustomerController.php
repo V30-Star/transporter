@@ -53,8 +53,8 @@ class GroupcustomerController extends Controller
         ], [
             'fgroupcode.required' => 'Kode Group harus diisi.',
             'fgroupname.required' => 'Nama Group harus diisi.',
-            'fgroupcode.unique' => 'Kode Group sudah digunakan, silakan pilih kode lain.',
-            'fgroupname.unique' => 'Nama Group sudah digunakan, silakan pilih nama lain.',
+            'fgroupcode.unique' => 'Kode Group sudah digunakan',
+            'fgroupname.unique' => 'Nama Group sudah digunakan',
         ]);
 
         $validated['fgroupcode'] = strtoupper($validated['fgroupcode']);
@@ -96,8 +96,8 @@ class GroupcustomerController extends Controller
         ], [
             'fgroupcode.required' => 'Kode Group harus diisi.',
             'fgroupname.required' => 'Nama Group harus diisi.',
-            'fgroupcode.unique' => 'Kode Group sudah digunakan, silakan pilih kode lain.',
-            'fgroupname.unique' => 'Nama Group sudah digunakan, silakan pilih nama lain.',
+            'fgroupcode.unique' => 'Kode Group sudah digunakan',
+            'fgroupname.unique' => 'Nama Group sudah digunakan',
         ]);
 
         $validated['fgroupcode'] = strtoupper($validated['fgroupcode']);
