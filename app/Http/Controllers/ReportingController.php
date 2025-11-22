@@ -104,8 +104,7 @@ class ReportingController extends Controller
   {
     $filterSupplierId = $request->query('fsupplier');
 
-    $query = DB::table('tr_poh')
-      ->select('tr_poh.*');
+    $query = DB::table('tr_poh')->select('tr_poh.*');
 
     // Filter berdasarkan tanggal jika ada
     if ($request->filled('filter_date_from')) {
@@ -120,26 +119,22 @@ class ReportingController extends Controller
       $query->where('fsupplier', $filterSupplierId);
     }
 
-    // Ambil data PO Header
+    // Ambil SEMUA data PO Header (tetap pakai get)
     $pohData = $query->orderBy('fpodate', 'desc')->get();
 
     foreach ($pohData as $poh) {
-      // Ambil detail berdasarkan fpono yang sesuai dengan fpohdid
       $poh->details = DB::table('tr_pod')
-        ->where('fpono', $poh->fpohdid)  // fpono di tr_pod = fpohdid di tr_poh
-        ->orderBy('fnou')  // urutkan berdasarkan nomor urut
+        ->where('fpono', $poh->fpohdid)
+        ->orderBy('fnou')
         ->get();
 
-      // Hitung total harga dari detail
       $poh->total_harga = $poh->details->sum('famount');
 
-      // Ambil nama supplier jika ada relasi
       $supplier = DB::table('mssupplier')
         ->where('fsupplierid', $poh->fsupplier)
         ->first();
       $poh->supplier_name = $supplier->fsuppliername ?? $poh->fsupplier;
 
-      // Ambil nama produk untuk setiap detail
       foreach ($poh->details as $detail) {
         $product = DB::table('msprd')
           ->where('fprdcode', $detail->fprdcode)
@@ -147,18 +142,28 @@ class ReportingController extends Controller
         $detail->product_name = $product->fitemname ?? $detail->fprdcode;
       }
     }
+
     $activeSupplierName = null;
     if (!empty($filterSupplierId)) {
       $supplier = Supplier::where('fsupplierid', $filterSupplierId)
         ->select('fsuppliername')
         ->first();
-
-      // Cek dulu apakah $supplier bukan null
       $activeSupplierName = $supplier ? $supplier->fsuppliername : 'N/A';
     }
-    // dd($activeSupplierName);
 
-    return view('reporting.print', compact('pohData', 'activeSupplierName'));
+    // Hitung pagination manual
+    $perPage = 10;
+    $totalData = $pohData->count();
+    $totalPages = $totalData > 0 ? ceil($totalData / $perPage) : 1;
+    $chunkedData = $pohData->chunk($perPage);
+
+    return view('reporting.print', compact(
+      'pohData',
+      'activeSupplierName',
+      'chunkedData',
+      'totalPages',
+      'perPage'
+    ));
   }
   /**
    * Mengekspor data TR_POH (Header) dan TR_POD (Detail) ke CSV/Excel dalam format Datar (Flattened).
