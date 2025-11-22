@@ -278,7 +278,7 @@
                     </div>
                     <div>
                         <span class="info-label">Opr:</span>
-                        {{ session('user_name', 'Guest') }}
+                        {{ $user_session->fname ?? 'Guest' }}
                     </div>
                     <div>
                         <span class="info-label">Hal:</span> 1 / 1
@@ -324,7 +324,7 @@
                         </div>
                         <div>
                             <span class="info-label">Opr:</span>
-                            {{ session('user_name', 'Guest') }}
+                            {{ $user_session->fname ?? 'Guest' }}
                         </div>
                         <div>
                             <span class="info-label">Hal:</span>

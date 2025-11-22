@@ -102,6 +102,8 @@ class ReportingController extends Controller
    */
   public function printPoh(Request $request)
   {
+    $user_session = auth('sysuser')->user();
+    
     $filterSupplierId = $request->query('fsupplier');
 
     $query = DB::table('tr_poh')->select('tr_poh.*');
@@ -162,9 +164,11 @@ class ReportingController extends Controller
       'activeSupplierName',
       'chunkedData',
       'totalPages',
-      'perPage'
+      'perPage',
+      'user_session'
     ));
   }
+
   /**
    * Mengekspor data TR_POH (Header) dan TR_POD (Detail) ke CSV/Excel dalam format Datar (Flattened).
    */
