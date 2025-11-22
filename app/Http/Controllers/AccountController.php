@@ -79,10 +79,14 @@ class AccountController extends Controller
 
     public function store(Request $request)
     {
+        $request->merge([
+            'faccount' => strtoupper($request->faccount),
+            'faccname' => strtoupper($request->faccname),
+        ]);
         $validated = $request->validate(
             [
                 'faccount'     => 'required|string|unique:account,faccount|max:10',
-                'faccname'     => 'required|string|max:50',
+                'faccname'     => 'required|string|unique:account,faccname|max:50',
                 'faccupline'  => 'nullable|integer|exists:account,faccid', // <— ganti ke faccid
                 'finitjurnal'  => 'nullable|string|max:2',
                 'fnormal'      => 'required|in:D',
@@ -95,12 +99,16 @@ class AccountController extends Controller
                 'faccount.required' => 'Kode account harus diisi.',
                 'faccname.required' => 'Nama account harus diisi.',
                 'faccount.unique'   => 'Kode account sudah ada.',
+                'faccname.unique'   => 'nama account sudah ada.',
                 'faccount.max'      => 'Kode account maksimal 10 karakter.',
                 'faccname.max'      => 'Nama account maksimal 50 karakter.',
                 'finitjurnal.max'   => 'Inisial jurnal maksimal 2 karakter.',
                 'faccupline.exists' => 'Account header tidak valid.',
             ]
         );
+
+        $validated['faccount'] = strtoupper($validated['faccount']);
+        $validated['faccname'] = strtoupper($validated['faccname']);
 
         $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null;
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? 'system';
@@ -149,10 +157,15 @@ class AccountController extends Controller
 
     public function update(Request $request, $faccid)
     {
+        $request->merge([
+            'faccount' => strtoupper($request->faccount),
+            'faccname' => strtoupper($request->faccname),
+        ]);
+
         $validated = $request->validate(
             [
                 'faccount'     => "required|string|unique:account,faccount,{$faccid},faccid|max:10",
-                'faccname'     => 'required|string|max:50',
+                'faccname'     => 'required|string|unique:account,faccname|max:50',
                 'fnormal'      => 'required|in:D',
                 'finitjurnal'  => 'nullable|string|max:2',
                 'fend'         => 'required|in:1,0',
@@ -167,6 +180,7 @@ class AccountController extends Controller
             [
                 'faccount.required' => 'Kode account harus diisi.',
                 'faccount.unique'   => 'Kode account sudah ada.',
+                'faccname.unique'   => 'nama account sudah ada.',
                 'faccount.max'      => 'Kode account maksimal 10 karakter.',
                 'faccname.required' => 'Nama account harus diisi.',
                 'faccname.max'      => 'Nama account maksimal 50 karakter.',
@@ -174,6 +188,9 @@ class AccountController extends Controller
                 'faccupline.exists' => 'Account header tidak valid.',
             ]
         );
+
+        $validated['faccount'] = strtoupper($validated['faccount']);
+        $validated['faccname'] = strtoupper($validated['faccname']);
 
         // Checkbox & metadata
         $validated['fnonactive']  = $request->has('fnonactive') ? '1' : '0';

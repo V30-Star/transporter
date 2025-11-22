@@ -168,10 +168,14 @@ class CustomerController extends Controller
     // Store method to save the new customer in the database
     public function store(Request $request)
     {
+        $request->merge([
+            'fcustomercode' => strtoupper($request->fcustomercode),
+            'fcustomername' => strtoupper($request->fcustomername),
+        ]);
         // Validate incoming request data
         $validated = $request->validate([
-            'fcustomercode' => 'nullable|string|max:10',  // Validate customer code (max 10 chars)
-            'fcustomername' => 'required|string|max:50', // Validate customer name (max 50 chars)
+            'fcustomercode' => 'nullable|string|max:10|unique:mscustomer,fcustomercode',  // Validate customer code (max 10 chars)
+            'fcustomername' => 'required|string|max:50|unique:mscustomer,fcustomername', // Validate customer name (max 50 chars)
             'fgroup' => 'required', // Validate the Group Produk field
             'fsalesman' => 'required', // Validate the Group Produk field
             'fwilayah' => 'required', // Validate the Group Produk field
@@ -221,7 +225,9 @@ class CustomerController extends Controller
             'fhargalevel.required' => 'Level Harga harus dipilih.',
             'fkontakperson.required' => 'Kontak Person harus diisi.',
             'fjabatan.required' => 'Jabatan harus diisi.',
-            'frekening.required' => 'Rekening harus dipilih.'
+            'frekening.required' => 'Rekening harus dipilih.',
+            'fcustomercode.unique' => 'Kode Customer ini sudah ada dan tidak boleh diduplikasi.',
+            'fcustomername.unique' => 'Nama Customer ini sudah ada dan tidak boleh diduplikasi.',
         ]);
 
         if (empty($request->fcustomercode)) {
@@ -262,8 +268,14 @@ class CustomerController extends Controller
     // Update method to save the updated customer data in the database
     public function update(Request $request, $fcustomerid)
     {
+        $request->merge([
+            'fcustomercode' => strtoupper($request->fcustomercode),
+            'fcustomername' => strtoupper($request->fcustomername),
+        ]);
+
         $validated = $request->validate([
-            'fcustomername' => 'required|string|max:50', // Validate customer name (max 50 chars)
+            'fcustomercode' => 'nullable|string|max:10|unique:mscustomer,fcustomercode',  // Validate customer code (max 10 chars)
+            'fcustomername' => 'required|string|max:50|unique:mscustomer,fcustomername', // Validate customer name (max 50 chars)
             'fgroup' => 'required', // Validate the Group Produk field
             'fsalesman' => 'required', // Validate the Group Produk field
             'fwilayah' => 'required', // Validate the Group Produk field
@@ -312,7 +324,9 @@ class CustomerController extends Controller
             'fhargalevel.required' => 'Level Harga harus dipilih.',
             'fkontakperson.required' => 'Kontak Person harus diisi.',
             'fjabatan.required' => 'Jabatan harus diisi.',
-            'frekening.required' => 'Rekening harus dipilih.'
+            'frekening.required' => 'Rekening harus dipilih.',
+            'fcustomercode.unique' => 'Kode Customer ini sudah ada dan tidak boleh diduplikasi.',
+            'fcustomername.unique' => 'Nama Customer ini sudah ada dan tidak boleh diduplikasi.'
         ]);
         $customer = Customer::findOrFail($fcustomerid);
         $validated['fcustomercode'] = $request->fcustomercode ?? $customer->fcustomercode;

@@ -51,21 +51,31 @@ class WhController extends Controller
 
     public function store(Request $request)
     {
+        $request->merge([
+            'fwhcode' => strtoupper($request->fwhcode),
+            'fwhname' => strtoupper($request->fwhname),
+        ]);
+
         $validated = $request->validate(
             [
                 'fwhcode' => 'required|string|unique:mswh,fwhcode',
-                'fwhname' => 'required|string',
+                'fwhname' => 'required|string|unique:mswh,fwhname',
                 'faddress' => 'required|string',
                 'fbranchcode' => 'required|string',
             ],
             [
                 'fwhcode.unique' => 'Kode Gudang sudah ada.',
+                'fwhname.unique' => 'Nama Gudang sudah ada.',
                 'fwhcode.required' => 'Kode Gudang harus diisi.',
                 'fwhname.required' => 'Nama Gudang harus diisi.',
                 'faddress.required' => 'Alamat Gudang harus diisi.',
                 'fbranchcode.required' => 'Kode Cabang harus dipilih.',
             ]
         );
+
+        // Add default values for the required fields
+        $validated['fwhcode'] = strtoupper($validated['fwhcode']);
+        $validated['fwhname'] = strtoupper($validated['fwhname']);
 
         $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null; // Use the authenticated user's name or 'system' as default
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? 'system';  // Fallback jika tidak ada
@@ -99,22 +109,32 @@ class WhController extends Controller
      */
     public function update(Request $request, $fwhid)
     {
-        // Validasi
+        $request->merge([
+            'fwhcode' => strtoupper($request->fwhcode),
+            'fwhname' => strtoupper($request->fwhname),
+        ]);
+
         $validated = $request->validate(
             [
                 'fwhcode' => "required|string|unique:mswh,fwhcode,{$fwhid},fwhid",
-                'fwhname' => 'required|string',
+                'fwhname' => 'required|string|unique:mswh,fwhname',
                 'faddress' => 'required|string',
                 'fbranchcode' => 'required|string', // Ensure the cabang code is validated and passed
             ],
             [
                 'fwhcode.unique' => 'Kode Wh sudah ada.',
+                'fwhname.unique' => 'Nama Gudang sudah ada.',
                 'fwhcode.required' => 'Kode Wh harus diisi.',
                 'fwhname.required' => 'Nama Wh harus diisi.',
                 'faddress.required' => 'Alamat Wh harus diisi.',
                 'fbranchcode.required' => 'Kode Cabang harus dipilih.',
             ]
         );
+
+
+        // Add default values for the required fields
+        $validated['fwhcode'] = strtoupper($validated['fwhcode']);
+        $validated['fwhname'] = strtoupper($validated['fwhname']);
 
         $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null; // Use the authenticated user's name or 'system' as default

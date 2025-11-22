@@ -43,15 +43,21 @@ class MerekController extends Controller
 
     public function store(Request $request)
     {
+        $request->merge([
+            'fmerekcode' => strtoupper($request->fmerekcode),
+            'fmerekname' => strtoupper($request->fmerekname),
+        ]);
+
         $validated = $request->validate(
             [
                 'fmerekcode' => 'required|string|unique:msmerek,fmerekcode',
-                'fmerekname' => 'required|string',
+                'fmerekname' => 'required|string|unique:msmerek,fmerekname',
             ],
             [
                 'fmerekcode.required' => 'Kode Merek harus diisi.',
                 'fmerekname.required' => 'Nama Merek harus diisi.',
                 'fmerekcode.unique' => 'Kode Merek sudah ada, silakan gunakan kode lain.',
+                'fmerekname.unique' => 'Nama Merek sudah ada, silakan gunakan nama lain.',
             ]
         );
 
@@ -86,18 +92,26 @@ class MerekController extends Controller
      */
     public function update(Request $request, $fmerekid)
     {
-        // Validasi
+        $request->merge([
+            'fmerekcode' => strtoupper($request->fmerekcode),
+            'fmerekname' => strtoupper($request->fmerekname),
+        ]);
+
         $validated = $request->validate(
             [
                 'fmerekcode' => "required|string|unique:msmerek,fmerekcode,{$fmerekid},fmerekid",
-                'fmerekname' => 'required|string',
+                'fmerekname' => 'required|string|unique:msmerek,fmerekname',
             ],
             [
                 'fmerekcode.required' => 'Kode Merek harus diisi.',
                 'fmerekname.required' => 'Nama Merek harus diisi.',
                 'fmerekcode.unique' => 'Kode Merek sudah ada, silakan gunakan kode lain.',
+                'fmerekname.unique' => 'Nama Merek sudah ada, silakan gunakan nama lain.',
             ]
         );
+
+        $validated['fmerekcode'] = strtoupper($validated['fmerekcode']);
+        $validated['fmerekname'] = strtoupper($validated['fmerekname']);
 
         $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null; // Use the authenticated user's name or 'system' as default

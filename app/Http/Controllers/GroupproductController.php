@@ -41,18 +41,23 @@ class GroupproductController extends Controller
 
     public function store(Request $request)
     {
+        $request->merge([
+            'fgroupcode' => strtoupper($request->fgroupcode),
+            'fgroupname' => strtoupper($request->fgroupname),
+        ]);
+
         $validated = $request->validate(
             [
                 'fgroupcode' => 'required|string|unique:ms_groupprd,fgroupcode',
-                'fgroupname' => 'required|string',
+                'fgroupname' => 'required|string|unique:ms_groupprd,fgroupname',
             ],
             [
                 'fgroupcode.unique' => 'Kode grup produk sudah ada.',
+                'fgroupname.unique' => 'Nama grup produk sudah ada.',
                 'fgroupcode.required' => 'Kode grup produk harus diisi.',
                 'fgroupname.required' => 'Nama grup produk harus diisi.',
             ]
         );
-
 
         $validated['fgroupcode'] = strtoupper($validated['fgroupcode']);
         $validated['fgroupname'] = strtoupper($validated['fgroupname']);
@@ -82,18 +87,26 @@ class GroupproductController extends Controller
 
     public function update(Request $request, $fgroupid)
     {
+        $request->merge([
+            'fgroupcode' => strtoupper($request->fgroupcode),
+            'fgroupname' => strtoupper($request->fgroupname),
+        ]);
         // Validate the incoming data
         $validated = $request->validate(
             [
                 'fgroupcode' => "required|string|unique:ms_groupprd,fgroupcode,{$fgroupid},fgroupid",
-                'fgroupname' => 'required|string',
+                'fgroupname' => 'required|string|unique:ms_groupprd,fgroupname',
             ],
             [
                 'fgroupcode.unique' => 'Kode grup produk sudah ada.',
+                'fgroupname.unique' => 'Nama grup produk sudah ada.',
                 'fgroupcode.required' => 'Kode grup produk harus diisi.',
                 'fgroupname.required' => 'Nama grup produk harus diisi.',
             ]
         );
+
+        $validated['fgroupcode'] = strtoupper($validated['fgroupcode']);
+        $validated['fgroupname'] = strtoupper($validated['fgroupname']);
 
         $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null; // Use the authenticated user's name or 'system' as default

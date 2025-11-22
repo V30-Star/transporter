@@ -41,21 +41,27 @@ class RekeningController extends Controller
 
     public function store(Request $request)
     {
+        $request->merge([
+            'frekeningname' => strtoupper($request->frekeningname),
+        ]);
+
         // Validate incoming request data
         $validated = $request->validate(
             [
-                'frekeningname' => 'required|string',
+                'frekeningname' => 'required|string|unique:msrekening,frekeningname',
             ],
             [
                 'frekeningname.required' => 'Nama rekening harus diisi.',
+                'frekeningname.unique' => 'Nama Rekening ini sudah ada dan tidak boleh diduplikasi.',
             ]
         );
+
+        $validated['frekeningname'] = strtoupper($validated['frekeningname']);
 
         // Add default values for created and updated fields
         $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null; // Or use the authenticated user's name
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? 'system';  // Fallback jika tidak ada
         $validated['fcreatedat'] = now(); // Set current time
-        $validated['frekeningcode'] = '0';
 
         $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
 
@@ -77,15 +83,21 @@ class RekeningController extends Controller
 
     public function update(Request $request, $frekeningid)
     {
-        // Validate incoming request data
+        $request->merge([
+            'frekeningname' => strtoupper($request->frekeningname),
+        ]);
+
         $validated = $request->validate(
             [
-                'frekeningname' => 'required|string',
+                'frekeningname' => 'required|string|string|unique:msrekening,frekeningname',
             ],
             [
                 'frekeningname.required' => 'Nama rekening harus diisi.',
+                'frekeningname.unique' => 'Nama Rekening ini sudah ada dan tidak boleh diduplikasi.',
             ]
         );
+        
+        $validated['frekeningname'] = strtoupper($validated['frekeningname']);
 
         $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
         $validated['frekeningcode'] = '0';

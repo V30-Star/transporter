@@ -48,14 +48,24 @@ class WilayahController extends Controller
 
     public function store(Request $request)
     {
+        $request->merge([
+            'fwilayahcode' => strtoupper($request->fwilayahcode),
+            'fwilayahname' => strtoupper($request->fwilayahname),
+        ]);
+
         $validated = $request->validate([
             'fwilayahcode' => 'required|string|unique:mswilayah,fwilayahcode',
-            'fwilayahname' => 'required|string',
+            'fwilayahname' => 'required|string|unique:mswilayah,fwilayahname',
         ], [
             'fwilayahcode.required' => 'Kode wilayah harus diisi.',
             'fwilayahname.required' => 'Nama wilayah harus diisi.',
             'fwilayahcode.unique' => 'Kode wilayah sudah ada, silakan gunakan kode lain.',
+            'fwilayahname.unique' => 'Nama wilayah sudah ada, silakan gunakan nama lain.',
         ]);
+
+        // Add default values for the required fields
+        $validated['fwilayahcode'] = strtoupper($validated['fsalesmancode']);
+        $validated['fwilayahname'] = strtoupper($validated['fsalesmanname']);
 
         $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null;
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? 'system';  // Fallback jika tidak ada
@@ -79,14 +89,24 @@ class WilayahController extends Controller
 
     public function update(Request $request, $fwilayahid)
     {
+        $request->merge([
+            'fwilayahcode' => strtoupper($request->fwilayahcode),
+            'fwilayahname' => strtoupper($request->fwilayahname),
+        ]);
+
         $validated = $request->validate([
             'fwilayahcode' => "required|string|unique:mswilayah,fwilayahcode,{$fwilayahid},fwilayahid",
-            'fwilayahname' => 'required|string',
+            'fwilayahname' => 'required|string|unique:mswilayah,fwilayahname',
         ], [
             'fwilayahcode.required' => 'Kode wilayah harus diisi.',
             'fwilayahname.required' => 'Nama wilayah harus diisi.',
             'fwilayahcode.unique' => 'Kode wilayah sudah ada, silakan gunakan kode lain.',
+            'fwilayahname.unique' => 'Nama wilayah sudah ada, silakan gunakan nama lain.',
         ]);
+
+        // Add default values for the required fields
+        $validated['fwilayahcode'] = strtoupper($validated['fsalesmancode']);
+        $validated['fwilayahname'] = strtoupper($validated['fsalesmanname']);
 
         $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;

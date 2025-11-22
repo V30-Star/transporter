@@ -42,15 +42,23 @@ class GroupcustomerController extends Controller
 
     public function store(Request $request)
     {
+        $request->merge([
+            'fgroupcode' => strtoupper($request->fgroupcode),
+            'fgroupname' => strtoupper($request->fgroupname),
+        ]);
         // Validasi input yang diterima dari form
         $validated = $request->validate([
             'fgroupcode' => 'required|string|unique:msgroupcustomer,fgroupcode',
-            'fgroupname' => 'required|string',
+            'fgroupname' => 'required|string|unique:msgroupcustomer,fgroupname',
         ], [
             'fgroupcode.required' => 'Kode Group harus diisi.',
             'fgroupname.required' => 'Nama Group harus diisi.',
             'fgroupcode.unique' => 'Kode Group sudah digunakan, silakan pilih kode lain.',
+            'fgroupname.unique' => 'Nama Group sudah digunakan, silakan pilih nama lain.',
         ]);
+
+        $validated['fgroupcode'] = strtoupper($validated['fgroupcode']);
+        $validated['fgroupname'] = strtoupper($validated['fgroupname']);
 
         // Menambahkan nilai default untuk kolom yang tidak ada dalam form
         $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null; // bisa diganti dengan user yang sedang login
@@ -77,14 +85,23 @@ class GroupcustomerController extends Controller
 
     public function update(Request $request, $fgroupid)
     {
+        $request->merge([
+            'fgroupcode' => strtoupper($request->fgroupcode),
+            'fgroupname' => strtoupper($request->fgroupname),
+        ]);
+
         $validated = $request->validate([
             'fgroupcode' => "required|string|unique:msgroupcustomer,fgroupcode,{$fgroupid},fgroupid",
-            'fgroupname' => 'required|string',
+            'fgroupname' => 'required|string|unique:msgroupcustomer,fgroupname',
         ], [
             'fgroupcode.required' => 'Kode Group harus diisi.',
             'fgroupname.required' => 'Nama Group harus diisi.',
             'fgroupcode.unique' => 'Kode Group sudah digunakan, silakan pilih kode lain.',
+            'fgroupname.unique' => 'Nama Group sudah digunakan, silakan pilih nama lain.',
         ]);
+
+        $validated['fgroupcode'] = strtoupper($validated['fgroupcode']);
+        $validated['fgroupname'] = strtoupper($validated['fgroupname']);
 
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
         $validated['fupdatedat'] = now(); // Menggunakan waktu sekarang

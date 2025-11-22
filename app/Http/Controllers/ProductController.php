@@ -197,11 +197,16 @@ class ProductController extends Controller
 
     public function store(Request $request)
     {
+        $request->merge([
+            'fprdcode' => strtoupper($request->fprdcode),
+            'fprdname' => strtoupper($request->fprdname),
+        ]);
+
         // Validate the incoming request
         $validated = $request->validate(
             [
-                'fprdcode' => 'nullable|string',
-                'fprdname' => 'required|string',
+                'fprdcode' => 'nullable|string|unique:msprd,fprdcode',
+                'fprdname' => 'required|string|unique:msprd,fprdname',
                 'ftype' => 'string',
                 'fbarcode' => 'string',
                 'fgroupcode' => 'required', // Validate that fgroupcode exists in groups table
@@ -223,6 +228,8 @@ class ProductController extends Controller
             ],
             [
                 'fprdcode.unique' => 'Kode Produk sudah ada, silakan gunakan kode yang lain.',
+                'fprdname.unique' => 'Nama Produk sudah ada, silakan gunakan nama yang lain.',
+                'fprdcode.required' => 'Kode Produk harus diisi.',
                 'fprdname.required' => 'Nama Produk harus diisi.',
                 'ftype.required' => 'Tipe Produk harus diisi.',
                 'fbarcode.required' => 'Barcode Produk harus diisi.',
@@ -242,6 +249,9 @@ class ProductController extends Controller
                 'fminstock.required' => 'Harga Satuan 3 harus diisi.',
             ]
         );
+
+        $validated['fprdcode'] = strtoupper($validated['fprdcode']);
+        $validated['fprdname'] = strtoupper($validated['fprdname']);
 
         if (empty($request->fprdcode)) {
             // Panggil generator baru dengan ID grup dan merek dari data yang sudah tervalidasi
@@ -279,11 +289,16 @@ class ProductController extends Controller
 
     public function update(Request $request, $fprdid)
     {
+        $request->merge([
+            'fprdcode' => strtoupper($request->fprdcode),
+            'fprdname' => strtoupper($request->fprdname),
+        ]);
+
         // Validate the incoming data
         $validated = $request->validate(
             [
                 'fprdcode' => "required|string|unique:msprd,fprdcode,{$fprdid},fprdid",
-                'fprdname' => 'required|string',
+                'fprdname' => 'required|string|unique:msprd,fprdname',
                 'ftype' => 'string',
                 'fbarcode' => 'string',
                 'fgroupcode' => 'required', // Validate that fgroupcode exists in groups table
@@ -305,6 +320,7 @@ class ProductController extends Controller
             ],
             [
                 'fprdcode.unique' => 'Kode Produk sudah ada, silakan gunakan kode yang lain.',
+                'fprdname.unique' => 'Nama Produk sudah ada, silakan gunakan nama yang lain.',
                 'fprdname.required' => 'Nama Produk harus diisi.',
                 'ftype.required' => 'Tipe Produk harus diisi.',
                 'fbarcode.required' => 'Barcode Produk harus diisi.',
@@ -324,6 +340,9 @@ class ProductController extends Controller
                 'fminstock.required' => 'Harga Satuan 3 harus diisi.',
             ]
         );
+
+        $validated['fprdcode'] = strtoupper($validated['fprdcode']);
+        $validated['fprdname'] = strtoupper($validated['fprdname']);
 
         if ($request->has('approve_now')) {
             $validated['fapproval'] = auth('sysuser')->user()->fname ?? null;

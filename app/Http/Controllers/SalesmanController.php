@@ -43,21 +43,28 @@ class SalesmanController extends Controller
 
     public function store(Request $request)
     {
+        $request->merge([
+            'fsalesmancode' => strtoupper($request->fsalesmancode),
+            'fsalesmanname' => strtoupper($request->fsalesmanname),
+        ]);
+
         $validated = $request->validate(
             [
                 'fsalesmancode' => 'required|string|unique:mssalesman,fsalesmancode',
-                'fsalesmanname' => 'required|string',
+                'fsalesmanname' => 'required|string|unique:mssalesman,fsalesmanname',
             ],
             [
                 'fsalesmancode.required' => 'Kode Salesman wajib diisi.',
-                'fsalesmancode.unique' => 'Kode Salesman sudah ada.',
                 'fsalesmanname.required' => 'Nama Salesman wajib diisi.',
+                'fsalesmancode.unique' => 'Kode Salesman sudah ada.',
+                'fsalesmanname.unique' => 'Nama Salesman sudah ada.',
             ]
         );
 
         // Add default values for the required fields
         $validated['fsalesmancode'] = strtoupper($validated['fsalesmancode']);
         $validated['fsalesmanname'] = strtoupper($validated['fsalesmanname']);
+
         $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null; // Use the authenticated user's name or 'system' as default
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? 'system';  // Fallback jika tidak ada
         $validated['fcreatedat'] = now(); // Use the current time
@@ -85,21 +92,27 @@ class SalesmanController extends Controller
      */
     public function update(Request $request, $fsalesmanid)
     {
-        // Validasi
+        $request->merge([
+            'fsalesmancode' => strtoupper($request->fsalesmancode),
+            'fsalesmanname' => strtoupper($request->fsalesmanname),
+        ]);
+
         $validated = $request->validate(
             [
                 'fsalesmancode' => "required|string|unique:mssalesman,fsalesmancode,{$fsalesmanid},fsalesmanid",
-                'fsalesmanname' => 'required|string',
+                'fsalesmanname' => 'required|string|unique:mssalesman,fsalesmanname',
             ],
             [
                 'fsalesmancode.required' => 'Kode Salesman wajib diisi.',
-                'fsalesmancode.unique' => 'Kode Salesman sudah ada.',
                 'fsalesmanname.required' => 'Nama Salesman wajib diisi.',
+                'fsalesmancode.unique' => 'Kode Salesman sudah ada.',
+                'fsalesmanname.unique' => 'Nama Salesman sudah ada.',
             ]
         );
 
         $validated['fsalesmancode'] = strtoupper($validated['fsalesmancode']);
         $validated['fsalesmanname'] = strtoupper($validated['fsalesmanname']);
+        
         $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null; // Use the authenticated user's name or 'system' as default
         $validated['fupdatedat'] = now(); // Use the current time

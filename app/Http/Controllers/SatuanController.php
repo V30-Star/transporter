@@ -43,17 +43,27 @@ class SatuanController extends Controller
 
     public function store(Request $request)
     {
+        $request->merge([
+            'fsatuancode' => strtoupper($request->fsatuancode),
+            'fsatuanname' => strtoupper($request->fsatuanname),
+        ]);
+
         $validated = $request->validate(
             [
                 'fsatuancode' => 'required|string|unique:mssatuan,fsatuancode',
-                'fsatuanname' => 'required|string',
+                'fsatuanname' => 'required|string|unique:mssatuan,fsatuanname',
             ],
             [
                 'fsatuancode.unique' => 'Kode Satuan sudah ada.',
+                'fsatuanname.unique' => 'Nama Satuan sudah ada.',
                 'fsatuancode.required' => 'Kode Satuan harus diisi.',
                 'fsatuanname.required' => 'Nama Satuan harus diisi.',
             ]
         );
+
+        // Add default values for the required fields
+        $validated['fsatuancode'] = strtoupper($validated['fsatuancode']);
+        $validated['fsatuanname'] = strtoupper($validated['fsatuanname']);
 
         // Add default values for the required fields
         $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null; // Use the authenticated user's name or 'system' as default
@@ -83,18 +93,28 @@ class SatuanController extends Controller
      */
     public function update(Request $request, $fsatuanid)
     {
+        $request->merge([
+            'fsalesmancode' => strtoupper($request->fsalesmancode),
+            'fsalesmanname' => strtoupper($request->fsalesmanname),
+        ]);
+
         // Validasi
         $validated = $request->validate(
             [
                 'fsatuancode' => "required|string|unique:mssatuan,fsatuancode,{$fsatuanid},fsatuanid",
-                'fsatuanname' => 'required|string',
+                'fsatuanname' => 'required|string|unique:mssalesman,fsalesmanname',
             ],
             [
                 'fsatuancode.unique' => 'Kode Satuan sudah ada.',
+                'fsalesmanname.unique' => 'Nama Salesman sudah ada.',
                 'fsatuancode.required' => 'Kode Satuan harus diisi.',
                 'fsatuanname.required' => 'Nama Satuan harus diisi.',
             ]
         );
+
+        // Add default values for the required fields
+        $validated['fsalesmancode'] = strtoupper($validated['fsalesmancode']);
+        $validated['fsalesmanname'] = strtoupper($validated['fsalesmanname']);
 
         $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
 
