@@ -243,9 +243,56 @@
             background-color: #16a34a;
         }
 
+        /* Zoom Controls */
+        .zoom-controls {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: #fff;
+            padding: 5px 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .zoom-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 4px;
+            background: #6b7280;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .zoom-btn:hover {
+            background: #4b5563;
+        }
+
+        .zoom-level {
+            min-width: 50px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 14px;
+            color: #333;
+        }
+
+        /* Report Container untuk Zoom */
+        .report-wrapper {
+            transform-origin: top center;
+            transition: transform 0.2s ease;
+        }
+
         @media print {
             .no-print {
                 display: none !important;
+            }
+
+            .report-wrapper {
+                transform: none !important;
             }
         }
     </style>
@@ -257,62 +304,23 @@
         <a href="{{ route('reporting.exportExcel', request()->query()) }}" class="excel-button">
             📊 Download Excel
         </a>
+        <div class="zoom-controls">
+            <button class="zoom-btn" onclick="zoomOut()">➖</button>
+            <span class="zoom-level" id="zoomLevel">100%</span>
+            <button class="zoom-btn" onclick="zoomIn()">➕</button>
+            <button class="zoom-btn" onclick="resetZoom()">↺</button>
+        </div>
     </div>
 
-    @if ($chunkedData->isEmpty())
-        {{-- Jika tidak ada data --}}
-        <div class="a4-container">
-            <div class="header-section">
-                <div class="supplier-info-kiri">
-                    Supplier: {{ $activeSupplierName ?? 'Semua' }}
-                </div>
-                <h2>Listing Order Pembelian / PO</h2>
-                <div class="info-tambahan">
-                    <div>
-                        <span class="info-label">Tanggal:</span>
-                        {{ \Carbon\Carbon::now()->setTimezone('Asia/Jakarta')->format('d/m/Y') }}
-                    </div>
-                    <div>
-                        <span class="info-label">Waktu:</span>
-                        {{ \Carbon\Carbon::now()->setTimezone('Asia/Jakarta')->format('H:i:s') }}
-                    </div>
-                    <div>
-                        <span class="info-label">Opr:</span>
-                        {{ $user_session->fname ?? 'Guest' }}
-                    </div>
-                    <div>
-                        <span class="info-label">Hal:</span> 1 / 1
-                    </div>
-                </div>
-            </div>
-            <div class="no-data">
-                Tidak ada data Purchase Order yang ditemukan.
-            </div>
-        </div>
-    @else
-        {{-- Loop setiap chunk = 1 halaman kertas --}}
-        @foreach ($chunkedData as $pageIndex => $pageData)
+    <div class="report-wrapper" id="reportWrapper">
+        @if ($chunkedData->isEmpty())
+            {{-- Jika tidak ada data --}}
             <div class="a4-container">
                 <div class="header-section">
                     <div class="supplier-info-kiri">
-                        @if ($activeSupplierName)
-                            Supplier: {{ $activeSupplierName }}
-                        @else
-                            Supplier: Semua
-                        @endif
+                        Supplier: {{ $activeSupplierName ?? 'Semua' }}
                     </div>
                     <h2>Listing Order Pembelian / PO</h2>
-                    @if (request('filter_date_from') || request('filter_date_to'))
-                        <div class="filter-info">
-                            Periode:
-                            @if (request('filter_date_from'))
-                                Dari {{ \Carbon\Carbon::parse(request('filter_date_from'))->format('d/m/Y') }}
-                            @endif
-                            @if (request('filter_date_to'))
-                                s/d {{ \Carbon\Carbon::parse(request('filter_date_to'))->format('d/m/Y') }}
-                            @endif
-                        </div>
-                    @endif
                     <div class="info-tambahan">
                         <div>
                             <span class="info-label">Tanggal:</span>
@@ -327,71 +335,166 @@
                             {{ $user_session->fname ?? 'Guest' }}
                         </div>
                         <div>
-                            <span class="info-label">Hal:</span>
-                            {{ $pageIndex + 1 }} / {{ $totalPages }}
+                            <span class="info-label">Hal:</span> 1 / 1
                         </div>
                     </div>
                 </div>
-
-                {{-- Header Labels --}}
-                <div class="po-header-labels">
-                    <div>No.PO</div>
-                    <div>Tanggal</div>
-                    <div>Nama Supplier</div>
-                    <div>Keterangan</div>
-                    <div class="text-right">Total Harga</div>
-                    <div class="text-right">PPN</div>
-                    <div class="text-right">Total PO</div>
-
-                    <div class="po-detail-labels">
-                        <div>Produk#</div>
-                        <div>Nama Produk</div>
-                        <div class="text-right">Satuan</div>
-                        <div class="text-right">Qty Order</div>
-                        <div class="text-right">Qty Terima</div>
-                        <div class="text-right">@ Harga</div>
-                        <div class="text-right">Total Harga</div>
-                    </div>
+                <div class="no-data">
+                    Tidak ada data Purchase Order yang ditemukan.
                 </div>
-
-                @foreach ($pageData as $index => $poh)
-                    {{-- PO Header (Parent) - Hitam --}}
-                    <div class="po-header">
-                        <div>{{ $poh->fpono }}</div>
-                        <div>{{ \Carbon\Carbon::parse($poh->fpodate)->format('d/m/Y') }}</div>
-                        <div>{{ $poh->supplier_name ?? $poh->fsupplier }}</div>
-                        <div>{{ $poh->fket ?? 'LOCO BL' }}</div>
-                        <div class="text-right">{{ number_format($poh->total_harga ?? 0, 2, ',', '.') }}</div>
-                        <div class="text-right">{{ number_format($poh->fppn ?? 0, 2, ',', '.') }}</div>
-                        <div class="text-right">{{ number_format($poh->famountpo ?? 0, 2, ',', '.') }}</div>
+            </div>
+        @else
+            {{-- Loop setiap chunk = 1 halaman kertas --}}
+            @foreach ($chunkedData as $pageIndex => $pageData)
+                <div class="a4-container">
+                    <div class="header-section">
+                        <div class="supplier-info-kiri">
+                            @if ($activeSupplierName)
+                                Supplier: {{ $activeSupplierName }}
+                            @else
+                                Supplier: Semua
+                            @endif
+                        </div>
+                        <h2>Listing Order Pembelian / PO</h2>
+                        @if (request('filter_date_from') || request('filter_date_to'))
+                            <div class="filter-info">
+                                Periode:
+                                @if (request('filter_date_from'))
+                                    Dari {{ \Carbon\Carbon::parse(request('filter_date_from'))->format('d/m/Y') }}
+                                @endif
+                                @if (request('filter_date_to'))
+                                    s/d {{ \Carbon\Carbon::parse(request('filter_date_to'))->format('d/m/Y') }}
+                                @endif
+                            </div>
+                        @endif
+                        <div class="info-tambahan">
+                            <div>
+                                <span class="info-label">Tanggal:</span>
+                                {{ \Carbon\Carbon::now()->setTimezone('Asia/Jakarta')->format('d/m/Y') }}
+                            </div>
+                            <div>
+                                <span class="info-label">Waktu:</span>
+                                {{ \Carbon\Carbon::now()->setTimezone('Asia/Jakarta')->format('H:i:s') }}
+                            </div>
+                            <div>
+                                <span class="info-label">Opr:</span>
+                                {{ $user_session->fname ?? 'Guest' }}
+                            </div>
+                            <div>
+                                <span class="info-label">Hal:</span>
+                                {{ $pageIndex + 1 }} / {{ $totalPages }}
+                            </div>
+                        </div>
                     </div>
 
-                    {{-- PO Detail Rows (Child) - Merah --}}
-                    @if ($poh->details && $poh->details->count() > 0)
-                        @foreach ($poh->details as $detail)
-                            <div class="po-detail">
-                                <div>{{ $detail->fprdcode }}</div>
-                                <div>{{ $detail->product_name ?? $detail->fprdcode }}</div>
-                                <div>{{ $detail->funit ?? 'PCS' }}</div>
-                                <div class="text-right">{{ number_format($detail->fqty ?? 0, 2, ',', '.') }}</div>
-                                <div class="text-right">{{ number_format($detail->fqty_receive ?? 0, 2, ',', '.') }}
-                                </div>
-                                <div class="text-right">{{ number_format($detail->fprice ?? 0, 0, ',', '.') }}</div>
-                                <div class="text-right">{{ number_format($detail->famount ?? 0, 0, ',', '.') }}</div>
-                            </div>
-                        @endforeach
-                    @endif
+                    {{-- Header Labels --}}
+                    <div class="po-header-labels">
+                        <div>No.PO</div>
+                        <div>Tanggal</div>
+                        <div>Nama Supplier</div>
+                        <div>Keterangan</div>
+                        <div class="text-right">Total Harga</div>
+                        <div class="text-right">PPN</div>
+                        <div class="text-right">Total PO</div>
 
-                    {{-- Separator jika bukan data terakhir di halaman ini --}}
-                    @if (!$loop->last)
-                        <div class="separator"></div>
-                    @endif
-                @endforeach
-            </div>
-        @endforeach
-    @endif
+                        <div class="po-detail-labels">
+                            <div>Produk#</div>
+                            <div>Nama Produk</div>
+                            <div class="text-right">Satuan</div>
+                            <div class="text-right">Qty Order</div>
+                            <div class="text-right">Qty Terima</div>
+                            <div class="text-right">@ Harga</div>
+                            <div class="text-right">Total Harga</div>
+                        </div>
+                    </div>
+
+                    @foreach ($pageData as $index => $poh)
+                        {{-- PO Header (Parent) - Hitam --}}
+                        <div class="po-header">
+                            <div>{{ $poh->fpono }}</div>
+                            <div>{{ \Carbon\Carbon::parse($poh->fpodate)->format('d/m/Y') }}</div>
+                            <div>{{ $poh->supplier_name ?? $poh->fsupplier }}</div>
+                            <div>{{ $poh->fket ?? 'LOCO BL' }}</div>
+                            <div class="text-right">{{ number_format($poh->total_harga ?? 0, 2, ',', '.') }}</div>
+                            <div class="text-right">{{ number_format($poh->fppn ?? 0, 2, ',', '.') }}</div>
+                            <div class="text-right">{{ number_format($poh->famountpo ?? 0, 2, ',', '.') }}</div>
+                        </div>
+
+                        {{-- PO Detail Rows (Child) - Merah --}}
+                        @if ($poh->details && $poh->details->count() > 0)
+                            @foreach ($poh->details as $detail)
+                                <div class="po-detail">
+                                    <div>{{ $detail->fprdcode }}</div>
+                                    <div>{{ $detail->product_name ?? $detail->fprdcode }}</div>
+                                    <div>{{ $detail->funit ?? 'PCS' }}</div>
+                                    <div class="text-right">{{ number_format($detail->fqty ?? 0, 2, ',', '.') }}</div>
+                                    <div class="text-right">
+                                        {{ number_format($detail->fqty_receive ?? 0, 2, ',', '.') }}</div>
+                                    <div class="text-right">{{ number_format($detail->fprice ?? 0, 0, ',', '.') }}
+                                    </div>
+                                    <div class="text-right">{{ number_format($detail->famount ?? 0, 0, ',', '.') }}
+                                    </div>
+                                </div>
+                            @endforeach
+                        @endif
+
+                        {{-- Separator jika bukan data terakhir di halaman ini --}}
+                        @if (!$loop->last)
+                            <div class="separator"></div>
+                        @endif
+                    @endforeach
+                </div>
+            @endforeach
+        @endif
+    </div>
 
     <script>
+        // Zoom functionality
+        let currentZoom = 100;
+        const minZoom = 50;
+        const maxZoom = 150;
+        const zoomStep = 10;
+
+        function updateZoom() {
+            const wrapper = document.getElementById('reportWrapper');
+            const zoomLabel = document.getElementById('zoomLevel');
+            wrapper.style.transform = `scale(${currentZoom / 100})`;
+            zoomLabel.textContent = currentZoom + '%';
+        }
+
+        function zoomIn() {
+            if (currentZoom < maxZoom) {
+                currentZoom += zoomStep;
+                updateZoom();
+            }
+        }
+
+        function zoomOut() {
+            if (currentZoom > minZoom) {
+                currentZoom -= zoomStep;
+                updateZoom();
+            }
+        }
+
+        function resetZoom() {
+            currentZoom = 100;
+            updateZoom();
+        }
+
+        // Keyboard shortcuts: Ctrl + Plus/Minus
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && (e.key === '=' || e.key === '+')) {
+                e.preventDefault();
+                zoomIn();
+            } else if (e.ctrlKey && e.key === '-') {
+                e.preventDefault();
+                zoomOut();
+            } else if (e.ctrlKey && e.key === '0') {
+                e.preventDefault();
+                resetZoom();
+            }
+        });
+
         // Auto print saat halaman dibuka (opsional)
         // window.onload = function() { window.print(); }
     </script>
