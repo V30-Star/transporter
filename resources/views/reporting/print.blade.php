@@ -108,6 +108,35 @@
             clear: both;
         }
 
+        /* Grand Total Styles */
+        .grand-total-section {
+            margin-top: 20px;
+            border-top: 2px solid #000;
+            padding-top: 10px;
+        }
+
+        .grand-total-header {
+            display: grid;
+            grid-template-columns: 30mm 20mm 1fr 30mm 25mm 20mm 25mm;
+            gap: 5px;
+            font-size: 10px;
+            font-weight: bold;
+            padding: 8px 5px;
+            background-color: #333;
+            color: white;
+        }
+
+        .grand-total-detail {
+            display: grid;
+            grid-template-columns: 25mm 1fr 15mm 20mm 20mm 25mm 30mm;
+            gap: 5px;
+            font-size: 9px;
+            font-weight: bold;
+            padding: 8px 5px 8px 15mm;
+            background-color: #f0f0f0;
+            border: 1px solid #333;
+        }
+
         .text-right {
             text-align: right;
         }
@@ -202,8 +231,7 @@
                 border-bottom: 1px dashed #666;
             }
         }
-    </style>
-    <style>
+
         .no-print {
             position: fixed;
             top: 10px;
@@ -443,6 +471,32 @@
                             <div class="separator"></div>
                         @endif
                     @endforeach
+                    {{-- Grand Total hanya di halaman terakhir --}}
+                    @if ($loop->last)
+                        <div class="grand-total-section">
+                            {{-- Total Header PO --}}
+                            <div class="grand-total-header">
+                                <div>GRAND TOTAL</div>
+                                <div></div>
+                                <div></div>
+                                <div></div>
+                                <div class="text-right">{{ number_format($grandTotal['harga'], 2, ',', '.') }}</div>
+                                <div class="text-right">{{ number_format($grandTotal['ppn'], 2, ',', '.') }}</div>
+                                <div class="text-right">{{ number_format($grandTotal['total_po'], 2, ',', '.') }}</div>
+                            </div>
+                            {{-- Total Detail --}}
+                            <div class="grand-total-detail">
+                                <div>TOTAL DETAIL</div>
+                                <div></div>
+                                <div></div>
+                                <div class="text-right">{{ number_format($grandTotal['qty'], 2, ',', '.') }}</div>
+                                <div class="text-right">{{ number_format($grandTotal['qty_receive'], 2, ',', '.') }}
+                                </div>
+                                <div class="text-right">{{ number_format($grandTotal['price'], 0, ',', '.') }}</div>
+                                <div class="text-right">{{ number_format($grandTotal['harga'], 0, ',', '.') }}</div>
+                            </div>
+                        </div>
+                    @endif
                 </div>
             @endforeach
         @endif

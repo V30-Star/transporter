@@ -14,6 +14,9 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session; // Digunakan untuk 'session()'
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
 
 class ReportingController extends Controller
 {
@@ -103,7 +106,7 @@ class ReportingController extends Controller
   public function printPoh(Request $request)
   {
     $user_session = auth('sysuser')->user();
-    
+
     $filterSupplierId = $request->query('fsupplier');
 
     $query = DB::table('tr_poh')->select('tr_poh.*');
@@ -124,11 +127,21 @@ class ReportingController extends Controller
     // Ambil SEMUA data PO Header (tetap pakai get)
     $pohData = $query->orderBy('fpodate', 'desc')->get();
 
+    $grandTotalQty = 0;
+    $grandTotalQtyReceive = 0;
+    $grandTotalHarga = 0;
+    $grandTotalPrice = 0;
+    $grandTotalPPN = 0;
+    $grandTotalPO = 0;
+
     foreach ($pohData as $poh) {
       $poh->details = DB::table('tr_pod')
         ->where('fpono', $poh->fpohdid)
         ->orderBy('fnou')
         ->get();
+      $grandTotalHarga += $poh->total_harga ?? 0;
+      $grandTotalPPN += $poh->fppn ?? 0;
+      $grandTotalPO += $poh->famountpo ?? 0;
 
       $poh->total_harga = $poh->details->sum('famount');
 
@@ -141,9 +154,23 @@ class ReportingController extends Controller
         $product = DB::table('msprd')
           ->where('fprdcode', $detail->fprdcode)
           ->first();
+
+        $grandTotalQty += $detail->fqty ?? 0;
+        $grandTotalQtyReceive += $detail->fqty_receive ?? 0;
+        $grandTotalPrice += $detail->fprice ?? 0;
+
         $detail->product_name = $product->fitemname ?? $detail->fprdcode;
       }
     }
+
+    $grandTotal = [
+      'qty' => $grandTotalQty,
+      'qty_receive' => $grandTotalQtyReceive,
+      'price' => $grandTotalPrice,
+      'harga' => $grandTotalHarga,
+      'ppn' => $grandTotalPPN,
+      'total_po' => $grandTotalPO,
+    ];
 
     $activeSupplierName = null;
     if (!empty($filterSupplierId)) {
@@ -165,101 +192,206 @@ class ReportingController extends Controller
       'chunkedData',
       'totalPages',
       'perPage',
-      'user_session'
+      'user_session',
+      'grandTotal'
     ));
   }
 
-  /**
-   * Mengekspor data TR_POH (Header) dan TR_POD (Detail) ke CSV/Excel dalam format Datar (Flattened).
-   */
   public function exportExcel(Request $request)
   {
-    // 1. Ambil data yang sudah difilter dan Eager Load Detail
     $dataToExport = $this->getPohQuery($request)
       ->with('details')
       ->get();
 
-    $filename = 'PO_Report_Flattened_' . now()->format('Ymd_His') . '.csv';
+    // Buat Spreadsheet baru
+    $spreadsheet = new Spreadsheet();
+    $sheet = $spreadsheet->getActiveSheet();
+    $sheet->setTitle('PO Report');
 
+    // Header kolom
     $headers = [
-      'Content-Type' => 'text/csv',
-      'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+      'ID PO',
+      'NOMOR PO',
+      'TANGGAL PO',
+      'SUPPLIER ID',
+      'MATA UANG',
+      'TOTAL PO',
+      'STATUS CLOSE',
+      'STATUS APPROVAL',
+      'NO. URUT ITEM',
+      'KODE PRODUK',
+      'DESKRIPSI ITEM',
+      'QTY',
+      'SATUAN',
+      'HARGA SATUAN',
+      'JUMLAH ITEM',
     ];
 
-    $callback = function () use ($dataToExport) {
-      $file = fopen('php://output', 'w');
+    // Tulis header di baris 1
+    $col = 'A';
+    foreach ($headers as $header) {
+      $sheet->setCellValue($col . '1', $header);
+      $col++;
+    }
 
-      // --- PENAMBAHAN PENTING UNTUK EXCEL ---
-      // Baris ini memaksa Excel mengenali semicolon (;) sebagai delimiter.
-      fputs($file, "sep=;\n"); // Hapus sep=; jika Excel Anda menggunakan koma sebagai delimiter default
+    // Style header
+    $headerRange = 'A1:O1';
+    $sheet->getStyle($headerRange)->applyFromArray([
+      'font' => [
+        'bold' => true,
+        'color' => ['rgb' => 'FFFFFF'],
+      ],
+      'fill' => [
+        'fillType' => Fill::FILL_SOLID,
+        'startColor' => ['rgb' => '4472C4'],
+      ],
+      'alignment' => [
+        'horizontal' => Alignment::HORIZONTAL_CENTER,
+        'vertical' => Alignment::VERTICAL_CENTER,
+      ],
+      'borders' => [
+        'allBorders' => [
+          'borderStyle' => Border::BORDER_THIN,
+        ],
+      ],
+    ]);
 
-      // --- HEADER FORMAT BARU (Datar) ---
-      $header = [
-        // --- KOLOM PARENT (TR_POH) ---
-        'ID PO',
-        'NOMOR PO',
-        'TANGGAL PO',
-        'SUPPLIER ID',
-        'MATA UANG',
-        'TOTAL PO',
-        'STATUS CLOSE',
-        'STATUS APPROVAL',
-
-        // --- KOLOM CHILD (TR_POD) ---
-        'NO. URUT ITEM',
-        'KODE PRODUK',
-        'DESKRIPSI ITEM',
-        'QTY',
-        'SATUAN',
-        'HARGA SATUAN',
-        'JUMLAH ITEM',
+    // Tulis data mulai baris 2
+    $row = 2;
+    foreach ($dataToExport as $poh) {
+      $pohBaseData = [
+        $poh->fpohdid,
+        $poh->fpono,
+        Carbon::parse($poh->fpodate)->format('d-m-Y'),
+        $poh->fsupplier,
+        $poh->fcurrency,
+        $poh->famountpo,
+        $poh->fclose === '1' ? 'Closed' : 'Open',
+        $poh->fapproval ?? '-',
       ];
-      fputcsv($file, $header, ';');
 
-      // --- TULIS DATA BARIS ---
-      foreach ($dataToExport as $poh) {
+      if ($poh->details->isNotEmpty()) {
+        foreach ($poh->details as $pod) {
+          $col = 'A';
 
-        // 1. Siapkan data Master (Header) yang akan diulang di setiap baris Detail
-        $pohBaseRow = [
-          $poh->fpohdid,
-          $poh->fpono,
-          Carbon::parse($poh->fpodate)->format('d-m-Y'),
-          $poh->fsupplier,
-          $poh->fcurrency,
-          number_format($poh->famountpo, 2, '.', ''),
-          $poh->fclose === '1' ? 'Closed' : 'Open',
-          $poh->fapproval ?? '-',
-        ];
-
-        // 2. Handle PO dengan Detail (output satu baris per item Detail)
-        if ($poh->details->isNotEmpty()) {
-          foreach ($poh->details as $pod) {
-            $podRow = [
-              // Kolom Detail diisi
-              $pod->fnou,
-              $pod->fprdcode,
-              $pod->fdesc ?? '-',
-              number_format($pod->fqty, 2, '.', ''),
-              $pod->fsatuan,
-              number_format($pod->fprice, 2, '.', ''),
-              number_format($pod->famount, 2, '.', ''),
-            ];
-
-            // Gabungkan Header dan Detail
-            fputcsv($file, array_merge($pohBaseRow, $podRow), ';');
+          // Tulis data header PO
+          foreach ($pohBaseData as $value) {
+            $sheet->setCellValue($col . $row, $value);
+            $col++;
           }
-        } else {
-          // 3. Handle PO tanpa Detail (output satu baris dengan kolom Detail kosong)
-          $emptyDetailRow = ['', '', '', '', '', '', '']; // 7 kolom detail kosong
 
-          fputcsv($file, array_merge($pohBaseRow, $emptyDetailRow), ';');
+          // Tulis data detail
+          $sheet->setCellValue('I' . $row, $pod->fnou);
+          $sheet->setCellValue('J' . $row, $pod->fprdcode);
+          $sheet->setCellValue('K' . $row, $pod->fdesc ?? '-');
+          $sheet->setCellValue('L' . $row, $pod->fqty);
+          $sheet->setCellValue('M' . $row, $pod->fsatuan);
+          $sheet->setCellValue('N' . $row, $pod->fprice);
+          $sheet->setCellValue('O' . $row, $pod->famount);
+
+          $row++;
         }
+      } else {
+        $col = 'A';
+        foreach ($pohBaseData as $value) {
+          $sheet->setCellValue($col . $row, $value);
+          $col++;
+        }
+        $row++;
       }
+    }
 
-      fclose($file);
-    };
+    // Auto-size kolom
+    foreach (range('A', 'O') as $column) {
+      $sheet->getColumnDimension($column)->setAutoSize(true);
+    }
 
-    // 4. Streaming response ke browser
-    return response()->stream($callback, 200, $headers);
+    // Style untuk data (border)
+    $lastDataRow = $row - 1;
+    if ($lastDataRow >= 2) {
+      $sheet->getStyle('A2:O' . $lastDataRow)->applyFromArray([
+        'borders' => [
+          'allBorders' => [
+            'borderStyle' => Border::BORDER_THIN,
+          ],
+        ],
+      ]);
+
+      // Format angka untuk kolom numerik
+      $sheet->getStyle('F2:F' . $lastDataRow)->getNumberFormat()->setFormatCode('#,##0.00');
+      $sheet->getStyle('L2:L' . $lastDataRow)->getNumberFormat()->setFormatCode('#,##0.00');
+      $sheet->getStyle('N2:O' . $lastDataRow)->getNumberFormat()->setFormatCode('#,##0.00');
+    }
+
+    // ===============================
+    // GRAND TOTAL
+    // ===============================
+    $row++; // Baris kosong
+    $grandTotalRow = $row;
+
+    // Hitung Grand Total
+    $grandTotalPO = 0;
+    $grandTotalQty = 0;
+    $grandTotalPrice = 0;
+    $grandTotalAmount = 0;
+
+    foreach ($dataToExport as $poh) {
+      $grandTotalPO += $poh->famountpo ?? 0;
+      foreach ($poh->details as $pod) {
+        $grandTotalQty += $pod->fqty ?? 0;
+        $grandTotalPrice += $pod->fprice ?? 0;
+        $grandTotalAmount += $pod->famount ?? 0;
+      }
+    }
+
+    // Tulis Grand Total
+    $sheet->setCellValue('A' . $grandTotalRow, 'GRAND TOTAL');
+    $sheet->mergeCells('A' . $grandTotalRow . ':E' . $grandTotalRow);
+    $sheet->setCellValue('F' . $grandTotalRow, $grandTotalPO);
+    $sheet->setCellValue('L' . $grandTotalRow, $grandTotalQty);
+    $sheet->setCellValue('N' . $grandTotalRow, $grandTotalPrice);
+    $sheet->setCellValue('O' . $grandTotalRow, $grandTotalAmount);
+
+    // Style Grand Total
+    $sheet->getStyle('A' . $grandTotalRow . ':O' . $grandTotalRow)->applyFromArray([
+      'font' => [
+        'bold' => true,
+        'color' => ['rgb' => 'FFFFFF'],
+      ],
+      'fill' => [
+        'fillType' => Fill::FILL_SOLID,
+        'startColor' => ['rgb' => '333333'],
+      ],
+      'alignment' => [
+        'horizontal' => Alignment::HORIZONTAL_CENTER,
+        'vertical' => Alignment::VERTICAL_CENTER,
+      ],
+      'borders' => [
+        'allBorders' => [
+          'borderStyle' => Border::BORDER_THIN,
+        ],
+      ],
+    ]);
+
+    // Alignment kiri untuk label GRAND TOTAL
+    $sheet->getStyle('A' . $grandTotalRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
+
+    // Format angka untuk grand total
+    $sheet->getStyle('F' . $grandTotalRow)->getNumberFormat()->setFormatCode('#,##0.00');
+    $sheet->getStyle('L' . $grandTotalRow)->getNumberFormat()->setFormatCode('#,##0.00');
+    $sheet->getStyle('N' . $grandTotalRow . ':O' . $grandTotalRow)->getNumberFormat()->setFormatCode('#,##0.00');
+
+    // Generate filename
+    $filename = 'PO_Report_' . now()->format('Ymd_His') . '.xlsx';
+
+    // Set headers untuk download
+    header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    header('Content-Disposition: attachment; filename="' . $filename . '"');
+    header('Cache-Control: max-age=0');
+
+    // Output file
+    $writer = new Xlsx($spreadsheet);
+    $writer->save('php://output');
+    exit;
   }
 }
