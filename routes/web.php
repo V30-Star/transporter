@@ -24,6 +24,7 @@ use App\Http\Controllers\ApprovalController;
 use App\Http\Controllers\WhController;
 use App\Http\Controllers\PenerimaanBarangController;
 use App\Http\Controllers\FakturpembelianController;
+use App\Http\Controllers\MutasiController;
 use App\Http\Controllers\ReportingController;
 
 Route::get('/', function () {
@@ -211,6 +212,19 @@ Route::middleware('auth')->group(function () {
             ->name('adjstock.items');
         Route::get('/adjstock/pickable', [AdjstockController::class, 'pickable'])
             ->name('adjstock.pickable');
+
+        Route::get('/mutasi',  [MutasiController::class, 'index'])->name('mutasi.index');
+        Route::post('/mutasi',        [MutasiController::class, 'store'])->name('mutasi.store');
+        Route::get('/mutasi/create', [MutasiController::class, 'create'])->name('mutasi.create');
+        Route::get('/mutasi/{fstockmtid}/edit', [MutasiController::class, 'edit'])->name('mutasi.edit');
+        Route::patch('/mutasi/{fstockmtid}', [MutasiController::class, 'update'])->name('mutasi.update');
+        Route::delete('/mutasi/{fstockmtid}', [MutasiController::class, 'destroy'])->name('mutasi.destroy');
+        Route::get('/mutasi/{fstockmtno}/print', [MutasiController::class, 'print'])
+            ->name('mutasi.print');
+        Route::get('/mutasi/{id}/items', [MutasiController::class, 'items'])
+            ->name('mutasi.items');
+        Route::get('/mutasi/pickable', [MutasiController::class, 'pickable'])
+            ->name('mutasi.pickable');
 
         Route::get('/products/browse', [\App\Http\Controllers\ProductBrowseController::class, 'index'])
             ->name('products.browse');
