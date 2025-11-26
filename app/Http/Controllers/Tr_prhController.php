@@ -136,7 +136,7 @@ class Tr_prhController extends Controller
       'month'
     ));
   }
-  
+
   private function generatetr_prh_Code(?Carbon $onDate = null, $branch = null): string
   {
     $date = $onDate ?: now();
@@ -229,9 +229,12 @@ class Tr_prhController extends Controller
     ]);
   }
 
-  public function create()
+  public function create(Request $request)
   {
-    $supplier        = Supplier::all();
+
+    // Ambil SEMUA Supplier untuk dropdown filter
+    $suppliers = Supplier::orderBy('fsuppliername', 'asc')
+      ->get(['fsupplierid', 'fsuppliername']);
 
     $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
@@ -266,10 +269,11 @@ class Tr_prhController extends Controller
     return view('tr_prh.create', [
       'newtr_prh_code' => $newtr_prh_code,
       'perms' => ['can_approval' => $canApproval],
-      'supplier'       => $supplier,
+      'suppliers'      => $suppliers,
       'fcabang'        => $fcabang,
       'fbranchcode'    => $fbranchcode,
       'products'       => $products,
+      'filterSupplierId' => $request->query('filter_supplier_id'),
     ]);
   }
 

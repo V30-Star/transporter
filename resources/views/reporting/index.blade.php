@@ -105,7 +105,7 @@
                             Reset Filter
                         </a>
                         {{-- Tombol Terapkan Filter --}}
-                        <button type="submit"  formaction="{{ route('reporting.printPoh') }}" formtarget="_blank"
+                        <button type="submit" formaction="{{ route('reporting.printPoh') }}" formtarget="_blank"
                             class="px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors">
                             Terapkan Filter
                         </button>
@@ -232,6 +232,7 @@
     </div>
 
 @endsection
+
 @push('styles')
     <style>
         /* DataTables Custom Styling */
@@ -363,10 +364,12 @@
                                 return {
                                     q: d.search.value,
                                     page: (d.start / d.length) + 1,
-                                    per_page: d.length
+                                    per_page: d.length,
+                                    draw: d.draw // ✅ Tambahkan draw
                                 };
                             },
                             dataSrc: function(json) {
+                                // ✅ PERBAIKAN: Return json langsung, bukan hanya data
                                 return json.data || [];
                             }
                         },
@@ -401,7 +404,17 @@
                                 className: 'text-center',
                                 width: '20%',
                                 render: function(data, type, row) {
-                                    return `<button type="button" onclick="window.chooseSupplier('${row.fsupplierid}', '${row.fsuppliercode}', '${row.fsuppliername}', '${row.faddress}', '${row.ftelp}')" class="px-3 py-1 rounded text-xs bg-emerald-600 hover:bg-emerald-700 text-white">Pilih</button>`;
+                                    // ✅ PERBAIKAN: Escape quotes untuk mencegah error
+                                    const code = (row.fsuppliercode || '').replace(/'/g, "\\'");
+                                    const name = (row.fsuppliername || '').replace(/'/g, "\\'");
+                                    const address = (row.faddress || '').replace(/'/g, "\\'");
+                                    const telp = (row.ftelp || '').replace(/'/g, "\\'");
+
+                                    return `<button type="button" 
+                                onclick="window.chooseSupplier('${row.fsupplierid}', '${code}', '${name}', '${address}', '${telp}')" 
+                                class="px-3 py-1 rounded text-xs bg-emerald-600 hover:bg-emerald-700 text-white">
+                                Pilih
+                            </button>`;
                                 }
                             }
                         ],
@@ -430,7 +443,6 @@
                             zeroRecords: "Tidak ada data yang ditemukan"
                         },
                         drawCallback: function() {
-                            // Styling untuk pagination buttons
                             $('.dataTables_paginate .paginate_button').addClass(
                                 'px-3 py-2 border rounded mx-0.5 hover:bg-gray-100 transition-colors inline-flex items-center justify-center'
                             );
@@ -439,7 +451,6 @@
                             $('.dataTables_paginate .paginate_button.disabled').addClass(
                                 'opacity-50 cursor-not-allowed hover:bg-transparent');
 
-                            // Hide "first" and "last" text, show only icons
                             $('.dataTables_paginate .paginate_button.first, .dataTables_paginate .paginate_button.last, .dataTables_paginate .paginate_button.previous, .dataTables_paginate .paginate_button.next')
                                 .css('min-width', '36px');
                         }

@@ -117,15 +117,15 @@
                     <div class="lg:col-span-4">
                         <label class="block text-sm font-medium mb-1">Supplier</label>
                         <div class="flex">
-                            <div class="relative flex-1">
-                                <select id="supplierSelect" name="fsupplier_view"
+                            <div class="relative flex-1" for="modal_filter_supplier_id">
+                                <select id="modal_filter_supplier_id" name="filter_supplier_id"
                                     class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
                                     disabled>
                                     <option value=""></option>
-                                    @foreach ($supplier as $suppliers)
-                                        <option value="{{ $suppliers->fsupplierid }}"
-                                            {{ old('fsupplier') == $suppliers->fsupplierid ? 'selected' : '' }}>
-                                            {{ $suppliers->fsuppliercode }} - {{ $suppliers->fsuppliername }}
+                                    @foreach ($suppliers as $supplier)
+                                        <option value="{{ $supplier->fsupplierid }}"
+                                            {{ $filterSupplierId == $supplier->fsupplierid ? 'selected' : '' }}>
+                                            {{ $supplier->fsuppliername }} ({{ $supplier->fsupplierid }})
                                         </option>
                                     @endforeach
                                 </select>
@@ -511,54 +511,24 @@
                     <div class="relative bg-white rounded-2xl shadow-xl w-[92vw] max-w-4xl max-h-[85vh] flex flex-col">
                         <div class="p-4 border-b flex items-center gap-3">
                             <h3 class="text-lg font-semibold">Browse Supplier</h3>
-                            <div class="ml-auto flex items-center gap-2">
-                                <input type="text" x-model="keyword" @keydown.enter.prevent="search()"
-                                    placeholder="Cari kode / nama…" class="border rounded px-3 py-2 w-64">
-                                <button type="button" @click="search()"
-                                    class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Search</button>
-                            </div>
+                            <button type="button" @click="close()"
+                                class="ml-auto px-3 py-1 rounded border bg-gray-100 hover:bg-gray-200">Close</button>
                         </div>
-                        <div class="p-0 overflow-auto">
-                            <table class="min-w-full text-sm">
-                                <thead class="bg-gray-100 sticky top-0">
+                        <div class="p-4 overflow-auto flex-1">
+                            <table id="supplierBrowseTable" class="min-w-full text-sm display">
+                                <thead class="bg-gray-100">
                                     <tr>
-                                        <th class="text-left p-2">Supplier (Kode - Nama)</th>
-                                        <th class="text-left p-2 w-40">Telepon</th>
-                                        <th class="text-center p-2 w-28">Aksi</th>
+                                        <th class="text-left p-2">Kode</th>
+                                        <th class="text-left p-2">Nama Supplier</th>
+                                        <th class="text-left p-2">Alamat</th>
+                                        <th class="text-left p-2">Telepon</th>
+                                        <th class="text-center p-2">Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <template x-for="s in rows" :key="s.fsupplierid">
-                                        <tr class="border-b hover:bg-gray-50">
-                                            <td class="p-2" x-text="`${s.fsuppliercode} - ${s.fsuppliername}`"></td>
-                                            <td class="p-2" x-text="s.ftelp || '-'"></td>
-                                            <td class="p-2 text-center">
-                                                <button type="button" @click="choose(s)"
-                                                    class="px-3 py-1 rounded text-xs bg-emerald-600 hover:bg-emerald-700 text-white">Pilih</button>
-                                            </td>
-                                        </tr>
-                                    </template>
-                                    <tr x-show="rows.length === 0">
-                                        <td colspan="3" class="p-4 text-center text-gray-500">Tidak ada data.</td>
-                                    </tr>
+                                    <!-- DataTables akan mengisi ini -->
                                 </tbody>
                             </table>
-                        </div>
-                        <div class="p-3 border-t flex items-center gap-2">
-                            <div class="text-sm text-gray-600"><span
-                                    x-text="`Page ${page} / ${lastPage} • Total ${total}`"></span></div>
-                            <div class="ml-auto flex items-center gap-2">
-                                <button type="button" @click="prev()" :disabled="page <= 1"
-                                    class="px-3 py-1 rounded border"
-                                    :class="page <= 1 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' :
-                                        'bg-gray-100 hover:bg-gray-200'">Prev</button>
-                                <button type="button" @click="next()" :disabled="page >= lastPage"
-                                    class="px-3 py-1 rounded border"
-                                    :class="page >= lastPage ? 'bg-gray-200 text-gray-400 cursor-not-allowed' :
-                                        'bg-gray-100 hover:bg-gray-200'">Next</button>
-                                <button type="button" @click="close()"
-                                    class="px-3 py-1 rounded border bg-gray-100 hover:bg-gray-200">Close</button>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -662,9 +632,78 @@
             </form>
         </div>
     </div>
-
 @endsection
+@push('styles')
+    <style>
+        /* DataTables Custom Styling */
+        #supplierBrowseTable_wrapper .dataTables_length select {
+            @apply border rounded px-2 py-1 text-sm;
+        }
 
+        #supplierBrowseTable_wrapper .dataTables_filter input {
+            @apply border rounded px-3 py-2 text-sm w-64;
+        }
+
+        #supplierBrowseTable_wrapper .dataTables_info {
+            @apply text-sm text-gray-600;
+        }
+
+        #supplierBrowseTable_wrapper .dataTables_paginate {
+            @apply flex items-center gap-1;
+        }
+
+        #supplierBrowseTable_wrapper .dataTables_paginate .paginate_button {
+            @apply px-3 py-2 border rounded text-sm cursor-pointer transition-colors inline-flex items-center justify-center min-w-[36px];
+        }
+
+        #supplierBrowseTable_wrapper .dataTables_paginate .paginate_button:hover:not(.disabled) {
+            @apply bg-gray-100;
+        }
+
+        #supplierBrowseTable_wrapper .dataTables_paginate .paginate_button.current {
+            @apply bg-blue-600 text-white border-blue-600 font-semibold;
+        }
+
+        #supplierBrowseTable_wrapper .dataTables_paginate .paginate_button.current:hover {
+            @apply bg-blue-700;
+        }
+
+        #supplierBrowseTable_wrapper .dataTables_paginate .paginate_button.disabled {
+            @apply opacity-30 cursor-not-allowed;
+        }
+
+        #supplierBrowseTable_wrapper .dataTables_paginate .paginate_button.disabled:hover {
+            @apply bg-transparent;
+        }
+
+        /* Icon buttons styling */
+        #supplierBrowseTable_wrapper .dataTables_paginate .paginate_button svg {
+            @apply w-4 h-4;
+        }
+
+        #supplierBrowseTable_wrapper .dataTables_processing {
+            @apply bg-white/90 flex items-center justify-center;
+        }
+
+        /* Table styling */
+        #supplierBrowseTable thead th {
+            @apply bg-gray-100 font-semibold text-left p-3 border-b-2;
+        }
+
+        #supplierBrowseTable tbody td {
+            @apply p-3 border-b;
+        }
+
+        #supplierBrowseTable tbody tr:hover {
+            @apply bg-gray-50;
+        }
+
+        /* Ellipsis styling */
+        #supplierBrowseTable_wrapper .dataTables_paginate .ellipsis {
+            @apply px-2 py-2 text-gray-400;
+        }
+    </style>
+@endpush
 {{-- DATA & SCRIPTS --}}
 <script>
     // Map produk untuk auto-fill tabel
@@ -690,96 +729,167 @@
         return 'r' + (Date.now().toString(16) + Math.random().toString(16).slice(2));
     };
 
-    // Modal supplier
     function supplierBrowser() {
         return {
             open: false,
-            keyword: '',
-            page: 1,
-            lastPage: 1,
-            perPage: 10,
-            total: 0,
-            rows: [],
-            apiUrl() {
-                const u = new URL("{{ route('suppliers.browse') }}", window.location.origin);
-                u.searchParams.set('q', this.keyword || '');
-                u.searchParams.set('per_page', this.perPage);
-                u.searchParams.set('page', this.page);
-                return u.toString();
-            },
-            async fetch() {
-                try {
-                    const res = await fetch(this.apiUrl(), {
-                        headers: {
-                            'Accept': 'application/json'
-                        }
-                    });
-                    const j = await res.json();
-                    this.rows = j.data || [];
-                    this.page = j.current_page || 1;
-                    this.lastPage = j.last_page || 1;
-                    this.total = j.total || 0;
-                } catch (e) {
-                    this.rows = [];
-                    this.page = 1;
-                    this.lastPage = 1;
-                    this.total = 0;
+            dataTable: null,
+
+            initDataTable() {
+                if (this.dataTable) {
+                    this.dataTable.destroy();
                 }
+
+                this.dataTable = $('#supplierBrowseTable').DataTable({
+                    processing: true,
+                    serverSide: true,
+                    ajax: {
+                        url: "{{ route('suppliers.browse') }}",
+                        type: 'GET',
+                        data: function(d) {
+                            return {
+                                q: d.search.value,
+                                page: (d.start / d.length) + 1,
+                                per_page: d.length,
+                                draw: d.draw // ✅ Tambahkan draw
+                            };
+                        },
+                        dataSrc: function(json) {
+                            // ✅ PERBAIKAN: Return json langsung, bukan hanya data
+                            return json.data || [];
+                        }
+                    },
+                    columns: [{
+                            data: 'fsuppliercode',
+                            name: 'fsuppliercode',
+                            width: '15%'
+                        },
+                        {
+                            data: 'fsuppliername',
+                            name: 'fsuppliername',
+                            width: '20%'
+                        },
+                        {
+                            data: 'faddress',
+                            name: 'faddress',
+                            defaultContent: '-',
+                            orderable: false,
+                            width: '30%'
+                        },
+                        {
+                            data: 'ftelp',
+                            name: 'ftelp',
+                            defaultContent: '-',
+                            orderable: false,
+                            width: '20%'
+                        },
+                        {
+                            data: null,
+                            orderable: false,
+                            searchable: false,
+                            className: 'text-center',
+                            width: '20%',
+                            render: function(data, type, row) {
+                                // ✅ PERBAIKAN: Escape quotes untuk mencegah error
+                                const code = (row.fsuppliercode || '').replace(/'/g, "\\'");
+                                const name = (row.fsuppliername || '').replace(/'/g, "\\'");
+                                const address = (row.faddress || '').replace(/'/g, "\\'");
+                                const telp = (row.ftelp || '').replace(/'/g, "\\'");
+
+                                return `<button type="button" 
+                                onclick="window.chooseSupplier('${row.fsupplierid}', '${code}', '${name}', '${address}', '${telp}')" 
+                                class="px-3 py-1 rounded text-xs bg-emerald-600 hover:bg-emerald-700 text-white">
+                                Pilih
+                            </button>`;
+                            }
+                        }
+                    ],
+                    pageLength: 10,
+                    lengthMenu: [10, 25, 50, 100],
+                    order: [
+                        [1, 'asc']
+                    ],
+                    dom: '<"flex items-center justify-between mb-4"<"flex items-center gap-2"l><"flex-1"><"flex items-center"f>>' +
+                        '<"overflow-x-auto"t>' +
+                        '<"flex items-center justify-between mt-4"<"text-sm text-gray-600"i><"flex items-center gap-2"p>>',
+                    language: {
+                        search: "_INPUT_",
+                        searchPlaceholder: "Cari kode atau nama supplier...",
+                        lengthMenu: "Tampilkan _MENU_",
+                        info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
+                        infoEmpty: "Tidak ada data",
+                        infoFiltered: "(difilter dari _MAX_ total data)",
+                        paginate: {
+                            first: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/></svg>',
+                            last: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg>',
+                            next: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>',
+                            previous: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>'
+                        },
+                        processing: '<div class="flex items-center justify-center"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>',
+                        zeroRecords: "Tidak ada data yang ditemukan"
+                    },
+                    drawCallback: function() {
+                        $('.dataTables_paginate .paginate_button').addClass(
+                            'px-3 py-2 border rounded mx-0.5 hover:bg-gray-100 transition-colors inline-flex items-center justify-center'
+                        );
+                        $('.dataTables_paginate .paginate_button.current').addClass(
+                            'bg-blue-600 text-white border-blue-600 hover:bg-blue-700');
+                        $('.dataTables_paginate .paginate_button.disabled').addClass(
+                            'opacity-50 cursor-not-allowed hover:bg-transparent');
+
+                        $('.dataTables_paginate .paginate_button.first, .dataTables_paginate .paginate_button.last, .dataTables_paginate .paginate_button.previous, .dataTables_paginate .paginate_button.next')
+                            .css('min-width', '36px');
+                    }
+                });
             },
+
             openBrowse() {
                 this.open = true;
-                this.page = 1;
-                this.fetch();
+                this.$nextTick(() => {
+                    this.initDataTable();
+                });
             },
+
             close() {
                 this.open = false;
-                this.keyword = '';
-                this.rows = [];
-            },
-            search() {
-                this.page = 1;
-                this.fetch();
-            },
-            prev() {
-                if (this.page > 1) {
-                    this.page--;
-                    this.fetch();
+                if (this.dataTable) {
+                    this.dataTable.destroy();
+                    this.dataTable = null;
                 }
             },
-            next() {
-                if (this.page < this.lastPage) {
-                    this.page++;
-                    this.fetch();
-                }
-            },
-            choose(s) {
-                const sel = document.getElementById('supplierSelect');
-                const hid = document.getElementById('supplierCodeHidden');
-                if (!sel) {
-                    this.close();
-                    return;
-                }
-                let opt = [...sel.options].find(o => o.value == String(s.fsupplierid));
-                const label = `${s.fsuppliercode} - ${s.fsuppliername}`;
-                if (!opt) {
-                    opt = new Option(label, s.fsupplierid, true, true);
-                    sel.add(opt);
-                } else {
-                    opt.text = label;
-                    opt.selected = true;
-                }
-                sel.dispatchEvent(new Event('change'));
-                if (hid) hid.value = s.fsupplierid;
-                this.close();
-            },
+
             init() {
+                window.chooseSupplier = (id, code, name, address, telp) => {
+                    const sel = document.getElementById('modal_filter_supplier_id');
+                    const hid = document.getElementById('supplierCodeHidden');
+
+                    if (!sel) {
+                        this.close();
+                        return;
+                    }
+
+                    let opt = [...sel.options].find(o => o.value == String(id));
+                    const label = `${name} (${code})`;
+
+                    if (!opt) {
+                        opt = new Option(label, id, true, true);
+                        sel.add(opt);
+                    } else {
+                        opt.text = label;
+                        opt.selected = true;
+                    }
+
+                    sel.dispatchEvent(new Event('change'));
+                    if (hid) hid.value = id;
+                    this.close();
+                };
+
                 window.addEventListener('supplier-browse-open', () => this.openBrowse(), {
                     passive: true
                 });
             }
         }
     }
-
+    
     // Modal produk
     function productBrowser() {
         return {

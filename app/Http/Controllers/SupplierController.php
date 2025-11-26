@@ -164,30 +164,38 @@ class SupplierController extends Controller
     }
     public function browse(Request $request)
     {
-        $q = trim((string) $request->get('q', ''));
-        $perPage = (int) $request->get('per_page', 10);
-        $perPage = max(1, min($perPage, 100));
+        $query = Supplier::query();
 
-        $query = Supplier::query()
-            ->select('fsupplierid', 'fsuppliercode', 'fsuppliername', 'ftelp', 'faddress')
-            // exclude non-active if you use 'Y' to mark inactive
-            ->where(function ($w) {
-                $w->whereNull('fnonactive')->orWhere('fnonactive', '!=', 'Y');
-            });
-
-        if ($q !== '') {
-            // Postgres case-insensitive search
-            $like = '%' . str_replace(['%', '_'], ['\\%', '\\_'], $q) . '%';
-            $query->where(function ($w) use ($like) {
-                $w->where('fsuppliercode', 'ilike', $like)
-                    ->orWhere('fsuppliername', 'ilike', $like);
+        // Search
+        if ($request->filled('q')) {
+            $search = $request->q;
+            $query->where(function ($q) use ($search) {
+                $q->where('fsuppliercode', 'ilike', "%{$search}%")
+                    ->orWhere('fsuppliername', 'ilike', "%{$search}%")
+                    ->orWhere('faddress', 'ilike', "%{$search}%")
+                    ->orWhere('ftelp', 'ilike', "%{$search}%");
             });
         }
 
-        $paginated = $query
-            ->orderBy('fsuppliercode')   // adjust if you prefer name
-            ->paginate($perPage);
+        // Get total before pagination
+        $recordsTotal = Supplier::count();
+        $recordsFiltered = $query->count();
 
-        return response()->json($paginated);
+        // Pagination
+        $perPage = $request->input('per_page', 10);
+        $page = $request->input('page', 1);
+
+        $data = $query->orderBy('fsuppliername', 'asc')
+            ->skip(($page - 1) * $perPage)
+            ->take($perPage)
+            ->get();
+
+        // Format response untuk DataTables
+        return response()->json([
+            'draw' => $request->input('draw', 1),
+            'recordsTotal' => $recordsTotal,
+            'recordsFiltered' => $recordsFiltered,
+            'data' => $data
+        ]);
     }
 }
