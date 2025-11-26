@@ -5,16 +5,19 @@
 @section('content')
     <div x-data="{
         showDeleteModal: false,
-        deleteUrl: null,
+        deleteUrl: '',
+    
         openDelete(url) {
             this.deleteUrl = url;
-            this.showDeleteModal = true
+            this.showDeleteModal = true;
         },
+    
         closeDelete() {
             this.showDeleteModal = false;
-            this.deleteUrl = null
+            this.deleteUrl = '';
         }
-    }" class="bg-white rounded shadow p-4">
+    }" class="bg-white rounded shadow p-4" @open-delete.window="openDelete($event.detail)">
+
 
         {{-- @php
             $canCreate = in_array('createTr_prh', explode(',', session('user_restricted_permissions', '')));
@@ -45,7 +48,7 @@
             </div>
         </div>
 
-        <table id="adjstockTable" class="min-w-full border text-sm">
+        <table id="mutasiTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
                     <th class="border px-2 py-1">No. Mutasi</th>
@@ -62,19 +65,22 @@
         </table>
 
         {{-- Modal Delete --}}
-        <div x-show="showDeleteModal" x-cloak
+        <div x-show="showDeleteModal" x-cloak @keydown.escape.window="closeDelete()"
             class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div @click.away="closeDelete()" class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
                 <h3 class="text-lg font-semibold mb-4">Konfirmasi Hapus</h3>
                 <p class="mb-6">Apakah Anda yakin ingin menghapus data ini?</p>
 
                 <div class="flex justify-end space-x-2">
-                    <button @click="closeDelete()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Batal</button>
+                    <button @click="closeDelete()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">
+                        Batal
+                    </button>
                     <form :action="deleteUrl" method="POST" class="inline">
                         @csrf
                         @method('DELETE')
-                        <button type="submit"
-                            class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Hapus</button>
+                        <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+                            Hapus
+                        </button>
                     </form>
                 </div>
             </div>
@@ -180,14 +186,14 @@
             // }
 
             // 3. Inisialisasi DataTables
-            // Pastikan ID tabel Anda adalah 'adjstockTable'
-            $('#adjstockTable').DataTable({
+            // Pastikan ID tabel Anda adalah 'mutasiTable'
+            $('#mutasiTable').DataTable({
                 // --- KUNCI SERVER-SIDE ---
                 processing: true, // Tampilkan 'Loading...'
                 serverSide: true, // Aktifkan mode SSP
 
                 // Ambil data dari route ini
-                ajax: '{{ route('adjstock.index') }}',
+                ajax: '{{ route('mutasi.index') }}',
                 // -------------------------
 
                 // Terapkan kolom dari langkah 1 & 2

@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use App\Models\Tr_prh;
 use App\Models\Tr_prd;
 use App\Models\Tr_poh;
@@ -34,11 +35,11 @@ class MutasiController extends Controller
         // --- 2. Handle Request AJAX dari DataTables ---
         if ($request->ajax()) {
 
-            // Query dasar HANYA untuk 'ADJ' (Receiving)
-            $query = PenerimaanPembelianHeader::where('fstockmtcode', 'ADJ');
+            // Query dasar HANYA untuk 'MUT' (Receiving)
+            $query = PenerimaanPembelianHeader::where('fstockmtcode', 'MUT');
 
-            // Total records (dengan filter 'ADJ')
-            $totalRecords = PenerimaanPembelianHeader::where('fstockmtcode', 'ADJ')->count();
+            // Total records (dengan filter 'MUT')
+            $totalRecords = PenerimaanPembelianHeader::where('fstockmtcode', 'MUT')->count();
 
             // Handle Search (cari di No. Penerimaan)
             if ($search = $request->input('search.value')) {
@@ -74,8 +75,8 @@ class MutasiController extends Controller
 
                 // --- Tombol Edit ---
                 // if ($canEdit) {
-                // Asumsi route edit Anda: adjstock.edit
-                $editUrl = route('adjstock.edit', $row->fstockmtid);
+                // Asumsi route edit Anda: mutasi.edit
+                $editUrl = route('mutasi.edit', $row->fstockmtid);
                 $actions .= ' <a href="' . $editUrl . '" class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
                                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
@@ -85,18 +86,18 @@ class MutasiController extends Controller
 
                 // --- Tombol Delete ---
                 // if ($canDelete) {
-                // Asumsi route destroy Anda: adjstock.destroy
-                $deleteUrl = route('adjstock.destroy', $row->fstockmtid);
-                $actions .= ' <button onclick="$dispatch(\'open-delete\', \'' . $deleteUrl . '\')" class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
-                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                    </svg> Delete
-                                </button>';
+                // Asumsi route destroy Anda: mutasi.destroy
+                $deleteUrl = route('mutasi.destroy', $row->fstockmtid);
+                $actions .= ' <button @click="$dispatch(\'open-delete\', \'' . $deleteUrl . '\')" class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                </svg> Delete
+            </button>';
                 // }
 
                 // --- Tombol Print ---
-                // Asumsi route print Anda: adjstock.print
-                $printUrl = route('adjstock.print', ['fstockmtno' => $row->fstockmtno]);
+                // Asumsi route print Anda: mutasi.print
+                $printUrl = route('mutasi.print', ['fstockmtno' => $row->fstockmtno]);
                 $actions .= ' <a href="' . $printUrl . '" target="_blank" class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
                                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m10 0v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5m10 0v5H7v-5"></path>
@@ -295,7 +296,7 @@ class MutasiController extends Controller
             ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y')
             : '-';
 
-        return view('adjstock.print', [
+        return view('mutasi.print', [
             'hdr'          => $hdr,
             'dt'           => $dt,
             'fmt'          => $fmt,
@@ -362,13 +363,11 @@ class MutasiController extends Controller
     public function store(Request $request)
     {
         try {
-            // =========================
-            // TAHAP 1: VALIDASI INPUT
-            // =========================
             $validated = $request->validate([
                 'fstockmtno'     => ['nullable', 'string', 'max:100'],
                 'fstockmtdate'   => ['required', 'date'],
-                'ffrom'          => ['nullable', 'string', 'max:10'], // Sepertinya ini fwhid?
+                'ffrom'          => ['required', 'integer'],  // ✅ TAMBAHKAN required
+                'fto'            => ['required', 'integer'],  // ✅ TAMBAHKAN required
                 'ftrancode'      => ['nullable', 'string', 'max:3'],
                 'fket'           => ['nullable', 'string', 'max:50'],
                 'fbranchcode'    => ['nullable', 'string', 'max:20'],
@@ -381,8 +380,7 @@ class MutasiController extends Controller
                 'fnouref'        => ['nullable', 'array'],
                 'fnouref.*'      => ['nullable', 'integer'],
                 'fqty'           => ['required', 'array'],
-                'fqty.*'         => ['required', 'numeric', 'min:0.01'], // Minimal 0.01
-                'fprice'         => ['required', 'array'],
+                'fqty.*'         => ['required', 'numeric', 'min:0.01'],
                 'fprice.*'       => ['numeric', 'min:0'],
                 'fdesc'          => ['nullable', 'array'],
                 'fdesc.*'        => ['nullable', 'string', 'max:500'],
@@ -391,35 +389,26 @@ class MutasiController extends Controller
                 'famountpopajak' => ['nullable', 'numeric', 'min:0'],
             ]);
 
-            // =========================
-            // TAHAP 2: AMBIL DATA MASTER PRODUK
-            // =========================
-            // Ambil semua kode item yang unik dari form
             $uniqueCodes = array_values(array_unique(
                 array_filter(
                     array_map(fn($c) => trim((string)$c), $request->input('fitemcode', []))
                 )
             ));
 
-            // Query ke database sekali saja untuk semua data produk
             $prodMeta = collect();
             if (!empty($uniqueCodes)) {
                 $prodMeta = DB::table('msprd')
                     ->whereIn('fprdcode', $uniqueCodes)
                     ->get(['fprdid', 'fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2'])
-                    ->keyBy('fprdcode'); // Di-index berdasarkan fprdcode agar mudah dicari
+                    ->keyBy('fprdcode');
+
+                if ($prodMeta->count() < count($uniqueCodes)) {
+                    $notFound = array_diff($uniqueCodes, $prodMeta->keys()->toArray());
+                }
             }
 
-            // =========================
-            // TAHAP 3: RAKIT DETAIL & HITUNG SUBTOTAL
-            // =========================
-
-            // --- Helper lokal untuk cari satuan default ---
-            // Ini adalah 'closure' atau fungsi anonim, berguna untuk logika
-            // yang dipakai berulang kali di dalam satu fungsi.
             $pickDefaultSat = function (?object $meta): string {
                 if (!$meta) return '';
-                // Cek urutan prioritas: kecil, besar, besar2
                 foreach (['fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2'] as $k) {
                     $v = trim((string)($meta->$k ?? ''));
                     if ($v !== '') {
@@ -428,7 +417,6 @@ class MutasiController extends Controller
                 }
                 return '';
             };
-            // --- Akhir helper lokal ---
 
             $rowsDt   = [];
             $subtotal = 0.0;
@@ -437,7 +425,6 @@ class MutasiController extends Controller
             $frate    = (float)$request->input('frate', 1);
             if ($frate <= 0) $frate = 1;
 
-            // Ambil semua array input dari form
             $codes   = $request->input('fitemcode', []);
             $satuans = $request->input('fsatuan', []);
             $refdtno = $request->input('frefdtno', []);
@@ -448,7 +435,9 @@ class MutasiController extends Controller
 
             $rowCount = count($codes);
 
-            // Looping sebanyak baris item di form
+            $skippedRows = [];
+            $validRows = 0;
+
             for ($i = 0; $i < $rowCount; $i++) {
                 $code  = trim((string)($codes[$i]   ?? ''));
                 $sat   = trim((string)($satuans[$i] ?? ''));
@@ -458,36 +447,25 @@ class MutasiController extends Controller
                 $price = (float)($prices[$i]  ?? 0);
                 $desc  = (string)($descs[$i]   ?? '');
 
-                // Lewati (skip) jika kode kosong atau qty 0
                 if ($code === '' || $qty <= 0) {
-                    continue;
+                    $skippedRows[] = [
+                        'index' => $i,
+                        'reason' => $code === '' ? 'kode kosong' : 'qty <= 0',
+                        'code' => $code,
+                        'qty' => $qty
+                    ];
                 }
 
-                // Ambil data master produk
                 $meta = $prodMeta[$code] ?? null;
-
-                // Lewati jika data master produk tidak ditemukan
-                if (!$meta) {
-                    continue;
-                }
 
                 $prdId = $meta->fprdid;
 
-                // Jika satuan di form kosong, cari satuan default
-                if ($sat === '') {
-                    $sat = $pickDefaultSat($meta); // <-- Menggunakan helper lokal
-                }
-                $sat = mb_substr($sat, 0, 5); // Pastikan tidak lebih dari 5 karakter
-
-                // Lewati jika satuan tetap kosong
-                if ($sat === '') {
-                    continue;
-                }
+                $sat = mb_substr($sat, 0, 5);
 
                 $amount = $qty * $price;
-                $subtotal += $amount; // Tambahkan ke subtotal transaksi
+                $subtotal += $amount;
+                $validRows++;
 
-                // Masukkan data baris ini ke array $rowsDt
                 $rowsDt[] = [
                     'fprdcode'       => $prdId,
                     'frefdtno'       => $rref,
@@ -509,30 +487,23 @@ class MutasiController extends Controller
                     'fclosedt'       => '0',
                     'fdiscpersen'    => 0,
                     'fbiaya'         => 0,
-                    'fstockmtid'     => null, // Akan diisi di Tahap 5
-                    'fstockmtcode'   => null, // Akan diisi di Tahap 5
-                    'fstockmtno'     => null, // Akan diisi di Tahap 5
+                    'fstockmtid'     => null,
+                    'fstockmtcode'   => null,
+                    'fstockmtno'     => null,
                 ];
-            }
-
-            // Jika setelah diproses tidak ada item yang valid
-            if (empty($rowsDt)) {
-                return back()->withInput()->withErrors([
-                    'detail' => 'Minimal satu item valid (Kode, Satuan, Qty > 0) harus diisi.'
-                ]);
             }
 
             // =========================
             // TAHAP 4: PERSIAPAN DATA HEADER
             // =========================
+
             $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
             $ppnAmount    = (float)$request->input('famountpopajak', 0);
             $grandTotal   = $subtotal + $ppnAmount;
 
-            // Siapkan array data untuk tabel 'trstockmt'
             $headerData = [
                 'fstockmtno'       => trim((string)$request->input('fstockmtno')),
-                'fstockmtcode'     => 'ADJ',
+                'fstockmtcode'     => 'MUT',
                 'fstockmtdate'     => $fstockmtdate,
                 'fprdout'          => '0',
                 'fsupplier'        => '0',
@@ -548,9 +519,8 @@ class MutasiController extends Controller
                 'famountremain_rp' => round($grandTotal * $frate, 2),
                 'frefpo'           => null,
                 'ftrancode'        => $request->input('ftrancode'),
-                'ffrom'            => $request->input('fwhid'),
-                'frefno'           => $request->input('faccid'),
-                'fto'              => null,
+                'ffrom'            => $request->input('ffrom'),  // ✅ PERBAIKAN
+                'fto'              => $request->input('fto'),    // ✅ PERBAIKAN
                 'fkirim'           => null,
                 'fprdjadi'         => null,
                 'fqtyjadi'         => null,
@@ -561,29 +531,20 @@ class MutasiController extends Controller
                 'fjatuhtempo'      => null,
                 'fprint'           => 0,
                 'fsudahtagih'      => '0',
-                'fbranchcode'      => $request->input('fbranchcode'), // <-- Input mentah
+                'fbranchcode'      => $request->input('fbranchcode'),
                 'fdiscount'        => 0,
             ];
 
-            // =========================
-            // TAHAP 5: TRANSAKSI DATABASE
-            // =========================
-            // DB::transaction memastikan semua query di dalamnya berhasil,
-            // atau jika ada 1 saja yang gagal, semua akan dibatalkan (rollback).
-
             $fstockmtno = DB::transaction(function () use (
-                $headerData, // <-- $headerData sudah lengkap
-                &$rowsDt     // <-- &$rowsDt (array detail)
+                $headerData,
+                &$rowsDt
             ) {
-
-                // ---- 5.1. Generate Nomor Transaksi (jika kosong) ----
-                $fstockmtno = trim((string)$headerData['fstockmtno']);
 
                 if (empty($fstockmtno)) {
 
-                    // --- Logika mencari kode cabang (prefix) ---
                     $kodeCabang = null;
-                    $needle = trim((string)$headerData['fbranchcode']); // Ambil dari $headerData
+                    $needle = trim((string)$headerData['fbranchcode']);
+
 
                     if ($needle !== '') {
                         if (is_numeric($needle)) {
@@ -596,20 +557,16 @@ class MutasiController extends Controller
                         }
                     }
                     $kodeCabang = $kodeCabang ?: 'NA';
-                    // --- Akhir Logika kode cabang ---
 
-                    // --- Logika Generate Nomor (Auto-numbering) ---
-                    $fstockmtcode = $headerData['fstockmtcode']; // 'RCV'
-                    $date         = $headerData['fstockmtdate']; // Objek Carbon
+                    $fstockmtcode = $headerData['fstockmtcode'];
+                    $date         = $headerData['fstockmtdate'];
                     $yy = $date->format('y');
                     $mm = $date->format('m');
                     $prefix = sprintf('%s.%s.%s.%s.', $fstockmtcode, $kodeCabang, $yy, $mm);
 
-                    // Kunci tabel (PostgreSQL Advisory Lock)
                     $lockKey = crc32('STOCKMT|' . $fstockmtcode . '|' . $kodeCabang . '|' . $date->format('Y-m'));
                     DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
-                    // Cari nomor terakhir
                     $last = DB::table('trstockmt')
                         ->where('fstockmtno', 'like', $prefix . '%')
                         ->selectRaw("MAX(CAST(split_part(fstockmtno, '.', 5) AS int)) AS lastno")
@@ -617,33 +574,22 @@ class MutasiController extends Controller
 
                     $next = (int)$last + 1;
                     $fstockmtno = $prefix . str_pad((string)$next, 4, '0', STR_PAD_LEFT);
-                    // --- Akhir Logika Generate Nomor ---
 
-                    // Update $headerData dengan kode cabang & nomor baru
                     $headerData['fbranchcode'] = $kodeCabang;
                     $headerData['fstockmtno']  = $fstockmtno;
                 }
 
-                // ---- 5.2. Insert Data Header (trstockmt) ----
                 $newStockMasterId = DB::table('trstockmt')->insertGetId(
                     $headerData,
-                    'fstockmtid' // Kolom auto-increment
+                    'fstockmtid'
                 );
 
-                if (!$newStockMasterId) {
-                    throw new \Exception("Gagal menyimpan data header.");
-                }
-
-                // ---- 5.3. Insert Data Detail (trstockdt) ----
-
-                // Cari nomor urut (fnouref) terakhir
                 $lastNouRef = (int) DB::table('trstockdt')
                     ->where('fstockmtid', $newStockMasterId)
                     ->max('fnouref');
                 $nextNouRef = $lastNouRef + 1;
 
-                // Loop untuk melengkapi ID dan nomor urut di data detail
-                foreach ($rowsDt as &$r) {
+                foreach ($rowsDt as $idx => &$r) {
                     $r['fstockmtid']   = $newStockMasterId;
                     $r['fstockmtcode'] = $headerData['fstockmtcode'];
                     $r['fstockmtno']   = $fstockmtno;
@@ -652,27 +598,19 @@ class MutasiController extends Controller
                         $r['fnouref'] = $nextNouRef++;
                     }
                 }
-                unset($r); // Wajib di-unset setelah loop by reference
+                unset($r);
 
-                // Insert semua data detail sekaligus (Bulk Insert)
                 DB::table('trstockdt')->insert($rowsDt);
-
-                // Kembalikan nomor transaksi untuk ditampilkan di pesan sukses
                 return $fstockmtno;
-            }); // Akhir dari DB::transaction
+            });
 
-            // =========================
-            // TAHAP 6: SUKSES
-            // =========================
             return redirect()
-                ->route('mutasi.create') // <-- Ganti ke route yang sesuai
+                ->route('mutasi.create')
                 ->with('success', "Transaksi {$fstockmtno} berhasil disimpan.");
         } catch (ValidationException $e) {
-            // Jika validasi gagal, lempar error agar Laravel otomatis
-            // redirect-back-with-errors
             throw $e;
         } catch (\Exception $e) {
-            // Untuk semua error lainnya
+
             return back()->withInput()->withErrors([
                 'fatal' => 'Terjadi error: ' . $e->getMessage()
             ]);
@@ -709,7 +647,7 @@ class MutasiController extends Controller
 
         // 1. Ambil data Header (trstockmt) DAN relasi Details (trstockdt)
         // Biarkan query ini. Sekarang $fstockmtid di sini adalah integer (misal: 8)
-        $adjstock = PenerimaanPembelianHeader::with([
+        $mutasi = PenerimaanPembelianHeader::with([
             'details' => function ($query) {
                 $query
                     // 2. Join ke msprd berdasarkan ID
@@ -727,7 +665,7 @@ class MutasiController extends Controller
 
 
         // 4. Map the data for savedItems (sudah menggunakan data yang benar)
-        $savedItems = $adjstock->details->map(function ($d) {
+        $savedItems = $mutasi->details->map(function ($d) {
             return [
                 'uid'       => $d->fstockdtid,
                 'fitemcode' => $d->fitemcode_text ?? '',
@@ -752,7 +690,7 @@ class MutasiController extends Controller
         })->values();
 
         // Sisa kode Anda sudah benar
-        $selectedSupplierCode = $adjstock->fsupplier;
+        $selectedSupplierCode = $mutasi->fsupplier;
 
         $products = Product::select(
             'fprdid',
@@ -774,7 +712,7 @@ class MutasiController extends Controller
             ];
         })->toArray();
 
-        return view('adjstock.edit', [
+        return view('mutasi.edit', [
             'supplier'           => $supplier,
             'selectedSupplierCode' => $selectedSupplierCode,
             'fcabang'            => $fcabang,
@@ -783,11 +721,11 @@ class MutasiController extends Controller
             'accounts'           => $accounts,
             'products'           => $products,
             'productMap'         => $productMap,
-            'adjstock'    => $adjstock,
+            'mutasi'             => $mutasi,
             'savedItems'         => $savedItems,
-            'ppnAmount'          => (float) ($adjstock->famountpopajak ?? 0),
-            'famountponet'       => (float) ($adjstock->famountponet ?? 0),
-            'famountpo'          => (float) ($adjstock->famountpo ?? 0),
+            'ppnAmount'          => (float) ($mutasi->famountpopajak ?? 0),
+            'famountponet'       => (float) ($mutasi->famountponet ?? 0),
+            'famountpo'          => (float) ($mutasi->famountpo ?? 0),
         ]);
     }
 
@@ -1014,17 +952,42 @@ class MutasiController extends Controller
         });
 
         return redirect()
-            ->route('adjstock.edit', $fstockmtid)
+            ->route('mutasi.edit', $fstockmtid)
             ->with('success', "Transaksi {$header->fstockmtno} berhasil diperbarui.");
     }
 
     public function destroy($fstockmtid)
     {
-        $penerimaanbarang = PenerimaanPembelianHeader::findOrFail($fstockmtid);
-        $penerimaanbarang->delete();
+        try {
+            DB::beginTransaction();
 
-        return redirect()
-            ->route('adjstock.index')
-            ->with('success', 'Penerimaan Barang Berhasil Dihapus.');
+            // 1. Hapus detail dulu (trstockdt)
+            DB::table('trstockdt')
+                ->where('fstockmtid', $fstockmtid)
+                ->delete();
+
+            // 2. Baru hapus header (trstockmt)
+            $deleted = DB::table('trstockmt')
+                ->where('fstockmtid', $fstockmtid)
+                ->delete();
+
+            DB::commit();
+
+            if ($deleted) {
+                return redirect()
+                    ->route('mutasi.index')
+                    ->with('success', 'Data mutasi berhasil dihapus.');
+            }
+
+            return redirect()
+                ->route('mutasi.index')
+                ->with('error', 'Data tidak ditemukan.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return redirect()
+                ->route('mutasi.index')
+                ->with('error', 'Gagal menghapus data: ' . $e->getMessage());
+        }
     }
 }

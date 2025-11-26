@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Mutasi Stock')
+@section('title', 'Edit Mutasi Stock')
 
 @section('content')
     <style>
@@ -99,9 +99,10 @@
             savedItems: []
         }" class="lg:col-span-5">
             <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
-                <form action="{{ route('mutasi.store') }}" method="POST" class="mt-6" @submit="onSubmit($event)">
+                <form action="{{ route('mutasi.store', $mutasi->fstockmtid) }}" method="POST" class="mt-6"
+                    @submit="onSubmit($event)">
                     @csrf
-
+                    @method('PATCH')
                     {{-- HEADER FORM --}}
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
                         <div class="lg:col-span-4">
@@ -133,7 +134,6 @@
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
                         </div>
-
                         <!-- Field FROM -->
                         <div class="lg:col-span-4">
                             <label class="block text-sm font-medium mb-1">Dari Gudang</label>
@@ -144,9 +144,9 @@
                                         disabled>
                                         <option value=""></option>
                                         @foreach ($warehouses as $wh)
-                                            <option value="{{ $wh->fwhid }}" data-code="{{ $wh->fwhcode }}"
+                                            <option value="{{ $wh->fwhid }}" data-id="{{ $wh->fwhid }}"
                                                 data-branch="{{ $wh->fbranchcode }}"
-                                                {{ old('ffrom', $mutasi->ffrom ?? '') == $wh->fwhid ? 'selected' : '' }}>
+                                                {{ old('ffrom', $mutasi->ffrom) == $wh->fwhid ? 'selected' : '' }}>
                                                 {{ $wh->fwhcode }} - {{ $wh->fwhname }}
                                             </option>
                                         @endforeach
@@ -157,9 +157,9 @@
                                     </div>
                                 </div>
 
-                                <!-- Simpan fwhid di ffrom -->
+                                <!-- PERBAIKAN: ID unik untuk field FROM -->
                                 <input type="hidden" name="ffrom" id="warehouseCodeHiddenFrom"
-                                    value="{{ old('ffrom', $mutasi->ffrom ?? '') }}">
+                                    value="{{ old('ffrom', $mutasi->ffrom) }}">
 
                                 <button type="button"
                                     @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open', { detail: 'from' }))"
@@ -190,9 +190,9 @@
                                         disabled>
                                         <option value=""></option>
                                         @foreach ($warehouses as $wh)
-                                            <option value="{{ $wh->fwhid }}" data-code="{{ $wh->fwhcode }}"
+                                            <option value="{{ $wh->fwhid }}" data-id="{{ $wh->fwhid }}"
                                                 data-branch="{{ $wh->fbranchcode }}"
-                                                {{ old('fto', $mutasi->fto ?? '') == $wh->fwhid ? 'selected' : '' }}>
+                                                {{ old('fto', $mutasi->fto) == $wh->fwhid ? 'selected' : '' }}>
                                                 {{ $wh->fwhcode }} - {{ $wh->fwhname }}
                                             </option>
                                         @endforeach
@@ -203,9 +203,9 @@
                                     </div>
                                 </div>
 
-                                <!-- Simpan fwhid di fto -->
+                                <!-- PERBAIKAN: ID unik untuk field TO -->
                                 <input type="hidden" name="fto" id="warehouseCodeHiddenTo"
-                                    value="{{ old('fto', $mutasi->fto ?? '') }}">
+                                    value="{{ old('fto', $mutasi->fto) }}">
 
                                 <button type="button"
                                     @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open', { detail: 'to' }))"
@@ -230,7 +230,7 @@
                             <label class="block text-sm font-medium">Keterangan</label>
                             <textarea name="fket" rows="3"
                                 class="w-full border rounded px-3 py-2 @error('fket') border-red-500 @enderror"
-                                placeholder="Tulis keterangan tambahan di sini...">{{ old('fket') }}</textarea>
+                                placeholder="Tulis keterangan tambahan di sini...">{{ old('fket', $mutasi->fket) }}</textarea>
                             @error('fket')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
@@ -1007,7 +1007,7 @@
     function itemsTable() {
         return {
             showNoItems: false,
-            savedItems: [],
+            savedItems: @json($savedItems),
             draft: newRow(),
             editingIndex: null,
             editRow: newRow(),
@@ -1474,6 +1474,7 @@
         };
     };
 </script>
+
 <script>
     window.warehouseBrowser = function() {
         return {
@@ -1530,8 +1531,8 @@
                 }
             },
 
-            openModal(event) {
-                this.targetField = event.detail;
+            openModal(event) { // <--- MODIFIKASI: Menerima event
+                this.targetField = event.detail; // <--- BARU: Simpan target field ('from' atau 'to')
                 this.open = true;
                 this.search();
             },
@@ -1540,10 +1541,13 @@
             },
 
             choose(w) {
+                // Kirim event ke halaman utama agar select + hidden input terisi
                 window.dispatchEvent(new CustomEvent('warehouse-picked', {
                     detail: {
                         fwhid: w.fwhid,
+                        fwhcode: w.fwhcode,
                         fwhname: w.fwhname,
+                        fbranchcode: w.fbranchcode,
                         target: this.targetField
                     }
                 }));
@@ -1551,51 +1555,50 @@
             },
 
             init() {
+                // Buka modal saat overlay di select diklik
                 window.addEventListener('warehouse-browse-open', (event) => this.openModal(event));
             }
         }
     };
 
-    // Helper: update field saat warehouse-picked
     document.addEventListener('DOMContentLoaded', () => {
         window.addEventListener('warehouse-picked', (ev) => {
             const {
-                fwhid,
-                fwhname,
+                fwhcode,
                 target
             } = ev.detail || {};
 
-            if (!target) return;
+            if (!target) return; // Pastikan target ada
 
-            let selectId, hiddenId;
+            let selectId, codeHiddenId, idHiddenId;
 
+            // Tentukan ID mana yang akan diisi berdasarkan target
             if (target === 'from') {
                 selectId = 'warehouseSelectFrom';
-                hiddenId = 'warehouseCodeHiddenFrom';
+                codeHiddenId = 'warehouseCodeHiddenFrom'; // ✅ Sesuaikan dengan ID baru
             } else if (target === 'to') {
                 selectId = 'warehouseSelectTo';
-                hiddenId = 'warehouseCodeHiddenTo';
+                codeHiddenId = 'warehouseCodeHiddenTo'; // ✅ Sesuaikan dengan ID baru
             } else {
                 return;
             }
 
             const sel = document.getElementById(selectId);
-            const hidden = document.getElementById(hiddenId);
+            const codeHid = document.getElementById(codeHiddenId);
 
-            // Update select field (disabled)
             if (sel) {
-                sel.value = fwhid || '';
+                const optionToSelect = Array.from(sel.options).find(opt => opt.value === fwhcode);
+                if (optionToSelect) {
+                    sel.value = fwhcode;
+                } else {
+                    sel.value = fwhcode || '';
+                }
                 sel.dispatchEvent(new Event('change', {
                     bubbles: true
                 }));
             }
 
-            // Update hidden input (yang akan di-submit)
-            if (hidden) {
-                hidden.value = fwhid || '';
-            }
-
-            console.log(`✅ Updated ${target}:`, fwhid, fwhname);
+            if (codeHid) codeHid.value = fwhcode || '';
         });
     });
 </script>
