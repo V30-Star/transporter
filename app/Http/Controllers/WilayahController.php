@@ -64,8 +64,8 @@ class WilayahController extends Controller
         ]);
 
         // Add default values for the required fields
-        $validated['fwilayahcode'] = strtoupper($validated['fsalesmancode']);
-        $validated['fwilayahname'] = strtoupper($validated['fsalesmanname']);
+        $validated['fwilayahcode'] = strtoupper($validated['fwilayahcode']);
+        $validated['fwilayahname'] = strtoupper($validated['fwilayahname']);
 
         $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null;
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? 'system';  // Fallback jika tidak ada
@@ -105,8 +105,8 @@ class WilayahController extends Controller
         ]);
 
         // Add default values for the required fields
-        $validated['fwilayahcode'] = strtoupper($validated['fsalesmancode']);
-        $validated['fwilayahname'] = strtoupper($validated['fsalesmanname']);
+        $validated['fwilayahcode'] = strtoupper($validated['fwilayahcode']);
+        $validated['fwilayahname'] = strtoupper($validated['fwilayahname']);
 
         $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;

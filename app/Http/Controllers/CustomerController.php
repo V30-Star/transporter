@@ -170,12 +170,11 @@ class CustomerController extends Controller
     {
         $request->merge([
             'fcustomercode' => strtoupper($request->fcustomercode),
-            'fcustomername' => strtoupper($request->fcustomername),
         ]);
         // Validate incoming request data
         $validated = $request->validate([
             'fcustomercode' => 'nullable|string|max:10|unique:mscustomer,fcustomercode',  // Validate customer code (max 10 chars)
-            'fcustomername' => 'required|string|max:50|unique:mscustomer,fcustomername', // Validate customer name (max 50 chars)
+            'fcustomername' => 'required|string|max:50', // Validate customer name (max 50 chars)
             'fgroup' => 'required', // Validate the Group Produk field
             'fsalesman' => 'required', // Validate the Group Produk field
             'fwilayah' => 'required', // Validate the Group Produk field
@@ -227,7 +226,6 @@ class CustomerController extends Controller
             'fjabatan.required' => 'Jabatan harus diisi.',
             'frekening.required' => 'Rekening harus dipilih.',
             'fcustomercode.unique' => 'Kode Customer ini sudah ada',
-            'fcustomername.unique' => 'Nama Customer ini sudah ada',
         ]);
 
         if (empty($request->fcustomercode)) {
@@ -270,12 +268,11 @@ class CustomerController extends Controller
     {
         $request->merge([
             'fcustomercode' => strtoupper($request->fcustomercode),
-            'fcustomername' => strtoupper($request->fcustomername),
         ]);
 
         $validated = $request->validate([
             'fcustomercode' => 'nullable|string|max:10|unique:mscustomer,fcustomercode',  // Validate customer code (max 10 chars)
-            'fcustomername' => 'required|string|max:50|unique:mscustomer,fcustomername', // Validate customer name (max 50 chars)
+            'fcustomername' => 'required|string|max:50', // Validate customer name (max 50 chars)
             'fgroup' => 'required', // Validate the Group Produk field
             'fsalesman' => 'required', // Validate the Group Produk field
             'fwilayah' => 'required', // Validate the Group Produk field
@@ -326,7 +323,6 @@ class CustomerController extends Controller
             'fjabatan.required' => 'Jabatan harus diisi.',
             'frekening.required' => 'Rekening harus dipilih.',
             'fcustomercode.unique' => 'Kode Customer ini sudah ada',
-            'fcustomername.unique' => 'Nama Customer ini sudah ada'
         ]);
         $customer = Customer::findOrFail($fcustomerid);
         $validated['fcustomercode'] = $request->fcustomercode ?? $customer->fcustomercode;

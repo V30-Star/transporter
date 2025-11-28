@@ -66,9 +66,6 @@
         .slider.round:before {
             border-radius: 50%;
         }
-    </style>
-
-    <style>
         .invalid-feedback {
             color: #f87171;
             font-size: 0.875rem;

@@ -47,7 +47,7 @@ class SupplierController extends Controller
         $validated = $request->validate(
             [
                 'fsuppliercode' => 'required|string|unique:mssupplier,fsuppliercode',
-                'fsuppliername' => 'required|string|unique:mssupplier,fsuppliername',
+                'fsuppliername' => 'required|string',
                 'fnpwp' => 'required|string',
                 'faddress' => 'required|string',
                 'fkontakperson' => '',
@@ -61,7 +61,6 @@ class SupplierController extends Controller
             ],
             [
                 'fsuppliercode.unique' => 'Kode Supplier sudah ada.',
-                'fsuppliername.unique' => 'Nama Supplier sudah ada.',
                 'fsuppliercode.required' => 'Kode Supplier harus diisi.',
                 'fsuppliername.required' => 'Nama Supplier harus diisi.',
                 'fnpwp.required' => 'NPWP harus diisi.',
@@ -73,7 +72,6 @@ class SupplierController extends Controller
         );
 
         $validated['fsuppliercode'] = strtoupper($validated['fsuppliercode']);
-        $validated['fsuppliername'] = strtoupper($validated['fsuppliername']);
 
         // Add default values for the required fields
         $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null; // Use the authenticated user's name or 'system' as default
@@ -109,7 +107,7 @@ class SupplierController extends Controller
         $validated = $request->validate(
             [
                 'fsuppliercode' => "required|string|unique:mssupplier,fsuppliercode,{$fsupplierid},fsupplierid",
-                'fsuppliername' => 'required|string|unique:mssupplier,fsuppliername',
+                'fsuppliername' => 'required|string',
                 'fnpwp' => 'required|string',
                 'fkontakperson' => '',
                 'fjabatan' => '',
@@ -123,7 +121,6 @@ class SupplierController extends Controller
             ],
             [
                 'fsuppliercode.unique' => 'Kode Supplier sudah ada.',
-                'fsuppliername.unique' => 'Nama Supplier sudah ada.',
                 'fsuppliercode.required' => 'Kode Supplier harus diisi.',
                 'fsuppliername.required' => 'Nama Supplier harus diisi.',
                 'fnpwp.required' => 'NPWP harus diisi.',
@@ -136,7 +133,6 @@ class SupplierController extends Controller
 
 
         $validated['fsuppliercode'] = strtoupper($validated['fsuppliercode']);
-        $validated['fsuppliername'] = strtoupper($validated['fsuppliername']);
 
         $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null; // Use the authenticated user's name or 'system' as default

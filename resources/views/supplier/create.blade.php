@@ -63,8 +63,8 @@
 
                     <div>
                         <label class="block text-sm font-medium">Alamat</label>
-                        <input type="text" name="faddress" value="{{ old('faddress') }}"
-                            class="w-full border rounded px-3 py-2 @error('faddress') border-red-500 @enderror">
+                        <textarea name="faddress" rows="3"
+                            class="w-full border rounded px-3 py-2 resize-y @error('faddress') border-red-500 @enderror">{{ old('faddress') }}</textarea>
                         @error('faddress')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
@@ -84,15 +84,6 @@
                         <input type="text" name="ffax" value="{{ old('ffax') }}"
                             class="w-full border rounded px-3 py-2 @error('ffax') border-red-500 @enderror">
                         @error('ffax')
-                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium">Kota</label>
-                        <input type="text" name="fcity" value="{{ old('fcity') }}"
-                            class="w-full border rounded px-3 py-2 @error('fcity') border-red-500 @enderror">
-                        @error('fcity')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
                     </div>
