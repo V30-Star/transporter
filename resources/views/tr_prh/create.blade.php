@@ -540,60 +540,23 @@
                     <div class="relative bg-white rounded-2xl shadow-xl w-[92vw] max-w-5xl max-h-[85vh] flex flex-col">
                         <div class="p-4 border-b flex items-center gap-3">
                             <h3 class="text-lg font-semibold">Browse Produk</h3>
-                            <div class="ml-auto flex items-center gap-2">
-                                <input type="text" x-model="keyword" @keydown.enter.prevent="search()"
-                                    placeholder="Cari kode / nama…" class="border rounded px-3 py-2 w-64">
-                                <button type="button" @click="search()"
-                                    class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Search</button>
-                            </div>
+                            <button type="button" @click="close()"
+                                class="ml-auto px-3 py-1 rounded border bg-gray-100 hover:bg-gray-200">
+                                Close
+                            </button>
                         </div>
-                        <div class="p-0 overflow-auto">
-                            <table class="min-w-full text-sm">
-                                <thead class="bg-gray-100 sticky top-0">
+                        <div class="p-4 overflow-auto flex-1">
+                            <table id="productTable" class="min-w-full text-sm display nowrap" style="width:100%">
+                                <thead class="bg-gray-100">
                                     <tr>
-                                        <th class="text-left p-2 w-40">Kode</th>
+                                        <th class="text-left p-2">Kode</th>
                                         <th class="text-left p-2">Nama</th>
-                                        <th class="text-left p-2 w-48">Satuan</th>
-                                        <th class="text-center p-2 w-28">Stock</th>
-                                        <th class="text-center p-2 w-28">Aksi</th>
+                                        <th class="text-left p-2">Satuan</th>
+                                        <th class="text-center p-2">Stock</th>
+                                        <th class="text-center p-2">Aksi</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    <template x-for="p in rows" :key="p.fprdcode">
-                                        <tr class="border-b hover:bg-gray-50">
-                                            <td class="p-2 font-mono" x-text="p.fprdcode"></td>
-                                            <td class="p-2" x-text="p.fprdname"></td>
-                                            <td class="p-2">
-                                                <span x-text="p.fsatuanbesar || '-'"></span>
-                                            </td>
-                                            <td class="p-2 text-center" x-text="p.fminstock"></td>
-                                            <td class="p-2 text-center">
-                                                <button type="button" @click="choose(p)"
-                                                    class="px-3 py-1 rounded text-xs bg-emerald-600 hover:bg-emerald-700 text-white">Pilih</button>
-                                            </td>
-                                        </tr>
-                                    </template>
-                                    <tr x-show="rows.length === 0">
-                                        <td colspan="5" class="p-4 text-center text-gray-500">Tidak ada data.</td>
-                                    </tr>
-                                </tbody>
                             </table>
-                        </div>
-                        <div class="p-3 border-t flex items-center gap-2">
-                            <div class="text-sm text-gray-600"><span
-                                    x-text="`Page ${page} / ${lastPage} • Total ${total}`"></span></div>
-                            <div class="ml-auto flex items-center gap-2">
-                                <button type="button" @click="prev()" :disabled="page <= 1"
-                                    class="px-3 py-1 rounded border"
-                                    :class="page <= 1 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' :
-                                        'bg-gray-100 hover:bg-gray-200'">Prev</button>
-                                <button type="button" @click="next()" :disabled="page >= lastPage"
-                                    class="px-3 py-1 rounded border"
-                                    :class="page >= lastPage ? 'bg-gray-200 text-gray-400 cursor-not-allowed' :
-                                        'bg-gray-100 hover:bg-gray-200'">Next</button>
-                                <button type="button" @click="close()"
-                                    class="px-3 py-1 rounded border bg-gray-100 hover:bg-gray-200">Close</button>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -703,6 +666,9 @@
             @apply px-2 py-2 text-gray-400;
         }
     </style>
+@endpush
+@push('styles')
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
 @endpush
 {{-- DATA & SCRIPTS --}}
 <script>
@@ -887,86 +853,6 @@
                     passive: true
                 });
             }
-        }
-    }
-    
-    // Modal produk
-    function productBrowser() {
-        return {
-            open: false,
-            forEdit: false,
-            keyword: '',
-            page: 1,
-            lastPage: 1,
-            perPage: 10,
-            total: 0,
-            rows: [],
-            apiUrl() {
-                const u = new URL("{{ route('products.browse') }}", window.location.origin);
-                u.searchParams.set('q', this.keyword || '');
-                u.searchParams.set('per_page', this.perPage);
-                u.searchParams.set('page', this.page);
-                return u.toString();
-            },
-            async fetch() {
-                try {
-                    const res = await fetch(this.apiUrl(), {
-                        headers: {
-                            'Accept': 'application/json'
-                        }
-                    });
-                    const j = await res.json();
-                    this.rows = j.data || [];
-                    this.page = j.current_page || 1;
-                    this.lastPage = j.last_page || 1;
-                    this.total = j.total || 0;
-                } catch (e) {
-                    this.rows = [];
-                    this.page = 1;
-                    this.lastPage = 1;
-                    this.total = 0;
-                }
-            },
-            close() {
-                this.open = false;
-                this.keyword = '';
-                this.rows = [];
-            },
-            search() {
-                this.page = 1;
-                this.fetch();
-            },
-            prev() {
-                if (this.page > 1) {
-                    this.page--;
-                    this.fetch();
-                }
-            },
-            next() {
-                if (this.page < this.lastPage) {
-                    this.page++;
-                    this.fetch();
-                }
-            },
-            choose(p) {
-                window.dispatchEvent(new CustomEvent('product-chosen', {
-                    detail: {
-                        product: p,
-                        forEdit: this.forEdit
-                    }
-                }));
-                this.close();
-            },
-            init() {
-                window.addEventListener('browse-open', (e) => {
-                    this.open = true;
-                    this.forEdit = !!(e.detail && e.detail.forEdit);
-                    this.page = 1;
-                    this.fetch();
-                }, {
-                    passive: true
-                });
-            },
         }
     }
 
@@ -1287,3 +1173,152 @@
         }
     }
 </script>
+
+@push('scripts')
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+
+    <script>
+        // Modal produk dengan DataTables
+        function productBrowser() {
+            return {
+                open: false,
+                forEdit: false,
+                table: null,
+
+                initDataTable() {
+                    if (this.table) {
+                        this.table.destroy();
+                    }
+
+                    this.table = $('#productTable').DataTable({
+                        processing: true,
+                        serverSide: true,
+                        ajax: {
+                            url: "{{ route('products.browse') }}",
+                            type: 'GET',
+                            data: function(d) {
+                                // DataTables mengirim parameter search[value] untuk pencarian
+                                return {
+                                    draw: d.draw,
+                                    page: (d.start / d.length) + 1,
+                                    per_page: d.length,
+                                    q: d.search.value
+                                };
+                            },
+                            dataSrc: function(json) {
+                                // Mapping response ke format DataTables
+                                return json.data;
+                            }
+                        },
+                        columns: [{
+                                data: 'fprdcode',
+                                name: 'fprdcode',
+                                className: 'font-mono'
+                            },
+                            {
+                                data: 'fprdname',
+                                name: 'fprdname'
+                            },
+                            {
+                                data: 'fsatuanbesar',
+                                name: 'fsatuanbesar',
+                                render: function(data) {
+                                    return data || '-';
+                                }
+                            },
+                            {
+                                data: 'fminstock',
+                                name: 'fminstock',
+                                className: 'text-center'
+                            },
+                            {
+                                data: null,
+                                orderable: false,
+                                searchable: false,
+                                className: 'text-center',
+                                render: function(data, type, row) {
+                                    return '<button type="button" class="btn-choose px-3 py-1 rounded text-xs bg-emerald-600 hover:bg-emerald-700 text-white">Pilih</button>';
+                                }
+                            }
+                        ],
+                        pageLength: 10,
+                        lengthMenu: [
+                            [10, 25, 50, 100],
+                            [10, 25, 50, 100]
+                        ],
+                        language: {
+                            processing: "Memuat...",
+                            search: "Cari:",
+                            lengthMenu: "Tampilkan _MENU_ data",
+                            info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
+                            infoEmpty: "Menampilkan 0 data",
+                            infoFiltered: "(disaring dari _MAX_ total data)",
+                            zeroRecords: "Tidak ada data yang ditemukan",
+                            emptyTable: "Tidak ada data tersedia",
+                            paginate: {
+                                first: "Pertama",
+                                last: "Terakhir",
+                                next: "Selanjutnya",
+                                previous: "Sebelumnya"
+                            }
+                        },
+                        order: [
+                            [1, 'asc']
+                        ], // Sort by nama
+                        autoWidth: false
+                    });
+
+                    // Handle button click
+                    $('#productTable').on('click', '.btn-choose', (e) => {
+                        const data = this.table.row($(e.target).closest('tr')).data();
+                        this.choose(data);
+                    });
+                },
+
+                close() {
+                    this.open = false;
+                    if (this.table) {
+                        this.table.search('').draw();
+                    }
+                },
+
+                choose(product) {
+                    window.dispatchEvent(new CustomEvent('product-chosen', {
+                        detail: {
+                            product: product,
+                            forEdit: this.forEdit
+                        }
+                    }));
+                    this.close();
+                },
+
+                init() {
+                    window.addEventListener('browse-open', (e) => {
+                        this.open = true;
+                        this.forEdit = !!(e.detail && e.detail.forEdit);
+
+                        // Initialize DataTable setelah modal terbuka
+                        this.$nextTick(() => {
+                            this.initDataTable();
+                        });
+                    }, {
+                        passive: true
+                    });
+                }
+            }
+        }
+
+        document.addEventListener('alpine:init', () => {
+            Alpine.store('prh', {
+                descPreview: {
+                    uid: null,
+                    index: null,
+                    label: '',
+                    text: ''
+                },
+                descList: []
+            });
+        });
+    </script>
+@endpush

@@ -55,18 +55,6 @@ class AccountController extends Controller
         return view('account.index', compact('accounts', 'canCreate', 'canEdit', 'canDelete', 'status', 'availableYears', 'year', 'month'));
     }
 
-    public function browse(Request $request)
-    {
-        $accounts = Account::select('faccid as id', 'faccount', 'faccname') // ← PASTIKAN faccid ada
-            ->when($request->search, function ($q, $search) {
-                $q->where('faccount', 'like', "%{$search}%")
-                    ->orWhere('faccname', 'like', "%{$search}%");
-            })
-            ->paginate($request->per_page ?? 10);
-
-        return response()->json($accounts);
-    }
-
     public function create()
     {
 
@@ -299,5 +287,39 @@ class AccountController extends Controller
             });
 
         return response()->json($accounts);
+    }
+
+    public function browse(Request $request)
+    {
+        $query = Account::query(); // Sesuaikan dengan model Anda
+
+        // Search
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('faccount', 'ilike', "%{$search}%")
+                    ->orWhere('faccname', 'ilike', "%{$search}%");
+            });
+        }
+
+        // Get totals
+        $recordsTotal = Account::count();
+        $recordsFiltered = $query->count();
+
+        // Pagination
+        $perPage = $request->input('per_page', 10);
+        $page = $request->input('page', 1);
+
+        $data = $query->orderBy('faccount', 'asc')
+            ->skip(($page - 1) * $perPage)
+            ->take($perPage)
+            ->get();
+
+        return response()->json([
+            'draw' => $request->input('draw', 1),
+            'recordsTotal' => $recordsTotal,
+            'recordsFiltered' => $recordsFiltered,
+            'data' => $data
+        ]);
     }
 }

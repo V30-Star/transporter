@@ -132,11 +132,33 @@ class SatuanController extends Controller
 
     public function destroy($fsatuanid)
     {
-        $satuan = Satuan::findOrFail($fsatuanid);
-        $satuan->delete();
+        try {
+            $satuan = Satuan::findOrFail($fsatuanid);
+            $satuan->delete();
 
-        return redirect()
-            ->route('satuan.index')
-            ->with('success', 'Satuan berhasil dihapus.');
+            // Cek apakah request dari AJAX
+            if (request()->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Satuan berhasil dihapus.'
+                ]);
+            }
+
+            // Fallback untuk non-AJAX (opsional)
+            return redirect()
+                ->route('satuan.index')
+                ->with('success', 'Satuan berhasil dihapus.');
+        } catch (\Exception $e) {
+            if (request()->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal menghapus satuan: ' . $e->getMessage()
+                ], 500);
+            }
+
+            return redirect()
+                ->route('satuan.index')
+                ->with('error', 'Gagal menghapus satuan.');
+        }
     }
 }

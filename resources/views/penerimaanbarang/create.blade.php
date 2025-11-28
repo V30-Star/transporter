@@ -788,61 +788,29 @@
                                 class="relative bg-white rounded-2xl shadow-xl w-[92vw] max-w-4xl max-h-[85vh] flex flex-col">
                                 <div class="p-4 border-b flex items-center gap-3">
                                     <h3 class="text-lg font-semibold">Browse Supplier</h3>
-                                    <div class="ml-auto flex items-center gap-2">
-                                        <input type="text" x-model="keyword" @keydown.enter.prevent="search()"
-                                            placeholder="Cari kode / nama…" class="border rounded px-3 py-2 w-64">
-                                        <button type="button" @click="search()"
-                                            class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Search</button>
-                                    </div>
+                                    <button type="button" @click="close()"
+                                        class="ml-auto px-3 py-1 rounded border bg-gray-100 hover:bg-gray-200">Close</button>
                                 </div>
-                                <div class="p-0 overflow-auto">
-                                    <table class="min-w-full text-sm">
-                                        <thead class="bg-gray-100 sticky top-0">
+                                <div class="p-4 overflow-auto flex-1">
+                                    <table id="supplierBrowseTable" class="min-w-full text-sm display">
+                                        <thead class="bg-gray-100">
                                             <tr>
-                                                <th class="text-left p-2">Supplier (Kode - Nama)</th>
-                                                <th class="text-left p-2 w-40">Telepon</th>
-                                                <th class="text-center p-2 w-28">Aksi</th>
+                                                <th class="text-left p-2">Kode</th>
+                                                <th class="text-left p-2">Nama Supplier</th>
+                                                <th class="text-left p-2">Alamat</th>
+                                                <th class="text-left p-2">Telepon</th>
+                                                <th class="text-center p-2">Aksi</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <template x-for="s in rows" :key="s.fsupplierid">
-                                                <tr class="border-b hover:bg-gray-50">
-                                                    <td class="p-2" x-text="`${s.fsuppliercode} - ${s.fsuppliername}`">
-                                                    </td>
-                                                    <td class="p-2" x-text="s.ftelp || '-'"></td>
-                                                    <td class="p-2 text-center">
-                                                        <button type="button" @click="choose(s)"
-                                                            class="px-3 py-1 rounded text-xs bg-emerald-600 hover:bg-emerald-700 text-white">Pilih</button>
-                                                    </td>
-                                                </tr>
-                                            </template>
-                                            <tr x-show="rows.length === 0">
-                                                <td colspan="3" class="p-4 text-center text-gray-500">Tidak ada
-                                                    data.</td>
-                                            </tr>
+                                            <!-- DataTables akan mengisi ini -->
                                         </tbody>
                                     </table>
-                                </div>
-                                <div class="p-3 border-t flex items-center gap-2">
-                                    <div class="text-sm text-gray-600"><span
-                                            x-text="`Page ${page} / ${lastPage} • Total ${total}`"></span></div>
-                                    <div class="ml-auto flex items-center gap-2">
-                                        <button type="button" @click="prev()" :disabled="page <= 1"
-                                            class="px-3 py-1 rounded border"
-                                            :class="page <= 1 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' :
-                                                'bg-gray-100 hover:bg-gray-200'">Prev</button>
-                                        <button type="button" @click="next()" :disabled="page >= lastPage"
-                                            class="px-3 py-1 rounded border"
-                                            :class="page >= lastPage ? 'bg-gray-200 text-gray-400 cursor-not-allowed' :
-                                                'bg-gray-100 hover:bg-gray-200'">Next</button>
-                                        <button type="button" @click="close()"
-                                            class="px-3 py-1 rounded border bg-gray-100 hover:bg-gray-200">Close</button>
-                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        {{-- Modal Gudang --}}
+                        {{-- MODAL GUDANG dengan DataTables --}}
                         <div x-data="warehouseBrowser()" x-show="open" x-cloak x-transition.opacity
                             class="fixed inset-0 z-50 flex items-center justify-center">
                             <div class="absolute inset-0 bg-black/40" @click="close()"></div>
@@ -851,60 +819,23 @@
                                 class="relative bg-white rounded-2xl shadow-xl w-[92vw] max-w-4xl max-h-[85vh] flex flex-col">
                                 <div class="p-4 border-b flex items-center gap-3">
                                     <h3 class="text-lg font-semibold">Browse Gudang</h3>
-                                    <div class="ml-auto flex items-center gap-2">
-                                        <input type="text" x-model="keyword" @keydown.enter.prevent="search()"
-                                            placeholder="Cari kode / nama…" class="border rounded px-3 py-2 w-64">
-                                        <button type="button" @click="search()"
-                                            class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Search</button>
-                                    </div>
+                                    <button type="button" @click="close()"
+                                        class="ml-auto px-3 py-1 rounded border bg-gray-100 hover:bg-gray-200">
+                                        Close
+                                    </button>
                                 </div>
 
-                                <div class="p-0 overflow-auto">
-                                    <table class="min-w-full text-sm">
-                                        <thead class="bg-gray-100 sticky top-0">
+                                <div class="p-4 overflow-auto flex-1">
+                                    <table id="warehouseTable" class="min-w-full text-sm display nowrap"
+                                        style="width:100%">
+                                        <thead class="bg-gray-100">
                                             <tr>
                                                 <th class="text-left p-2">Gudang (Kode - Nama)</th>
-                                                <th class="text-left p-2 w-40">Branch</th>
-                                                <th class="text-center p-2 w-28">Aksi</th>
+                                                <th class="text-left p-2">Branch</th>
+                                                <th class="text-center p-2">Aksi</th>
                                             </tr>
                                         </thead>
-                                        <tbody>
-                                            <template x-for="w in rows" :key="w.fwhid">
-                                                <tr class="border-b hover:bg-gray-50">
-                                                    <td class="p-2" x-text="`${w.fwhcode} - ${w.fwhname}`"></td>
-                                                    <td class="p-2" x-text="w.fbranchcode || '-'"></td>
-                                                    <td class="p-2 text-center">
-                                                        <button type="button" @click="choose(w)"
-                                                            class="px-3 py-1 rounded text-xs bg-emerald-600 hover:bg-emerald-700 text-white">
-                                                            Pilih
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                            </template>
-                                            <tr x-show="rows.length === 0">
-                                                <td colspan="3" class="p-4 text-center text-gray-500">Tidak ada data.
-                                                </td>
-                                            </tr>
-                                        </tbody>
                                     </table>
-                                </div>
-
-                                <div class="p-3 border-t flex items-center gap-2">
-                                    <div class="text-sm text-gray-600">
-                                        <span x-text="`Page ${page} / ${lastPage} • Total ${total}`"></span>
-                                    </div>
-                                    <div class="ml-auto flex items-center gap-2">
-                                        <button type="button" @click="prev()" :disabled="page <= 1"
-                                            class="px-3 py-1 rounded border"
-                                            :class="page <= 1 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' :
-                                                'bg-gray-100 hover:bg-gray-200'">Prev</button>
-                                        <button type="button" @click="next()" :disabled="page >= lastPage"
-                                            class="px-3 py-1 rounded border"
-                                            :class="page >= lastPage ? 'bg-gray-200 text-gray-400 cursor-not-allowed' :
-                                                'bg-gray-100 hover:bg-gray-200'">Next</button>
-                                        <button type="button" @click="close()"
-                                            class="px-3 py-1 rounded border bg-gray-100 hover:bg-gray-200">Close</button>
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -917,61 +848,24 @@
                                 class="relative bg-white rounded-2xl shadow-xl w-[92vw] max-w-5xl max-h-[85vh] flex flex-col">
                                 <div class="p-4 border-b flex items-center gap-3">
                                     <h3 class="text-lg font-semibold">Browse Produk</h3>
-                                    <div class="ml-auto flex items-center gap-2">
-                                        <input type="text" x-model="keyword" @keydown.enter.prevent="search()"
-                                            placeholder="Cari kode / nama…" class="border rounded px-3 py-2 w-64">
-                                        <button type="button" @click="search()"
-                                            class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Search</button>
-                                    </div>
+                                    <button type="button" @click="close()"
+                                        class="ml-auto px-3 py-1 rounded border bg-gray-100 hover:bg-gray-200">
+                                        Close
+                                    </button>
                                 </div>
-                                <div class="p-0 overflow-auto">
-                                    <table class="min-w-full text-sm">
-                                        <thead class="bg-gray-100 sticky top-0">
+                                <div class="p-4 overflow-auto flex-1">
+                                    <table id="productTable" class="min-w-full text-sm display nowrap"
+                                        style="width:100%">
+                                        <thead class="bg-gray-100">
                                             <tr>
-                                                <th class="text-left p-2 w-40">Kode</th>
+                                                <th class="text-left p-2">Kode</th>
                                                 <th class="text-left p-2">Nama</th>
-                                                <th class="text-left p-2 w-48">Satuan</th>
-                                                <th class="text-center p-2 w-28">Stock</th>
-                                                <th class="text-center p-2 w-28">Aksi</th>
+                                                <th class="text-left p-2">Satuan</th>
+                                                <th class="text-center p-2">Stock</th>
+                                                <th class="text-center p-2">Aksi</th>
                                             </tr>
                                         </thead>
-                                        <tbody>
-                                            <template x-for="p in rows" :key="p.fprdcode">
-                                                <tr class="border-b hover:bg-gray-50">
-                                                    <td class="p-2 font-mono" x-text="p.fprdcode"></td>
-                                                    <td class="p-2" x-text="p.fprdname"></td>
-                                                    <td class="p-2">
-                                                        <span x-text="p.fsatuanbesar || '-'"></span>
-                                                    </td>
-                                                    <td class="p-2 text-center" x-text="p.fminstock"></td>
-                                                    <td class="p-2 text-center">
-                                                        <button type="button" @click="choose(p)"
-                                                            class="px-3 py-1 rounded text-xs bg-emerald-600 hover:bg-emerald-700 text-white">Pilih</button>
-                                                    </td>
-                                                </tr>
-                                            </template>
-                                            <tr x-show="rows.length === 0">
-                                                <td colspan="5" class="p-4 text-center text-gray-500">Tidak ada
-                                                    data.</td>
-                                            </tr>
-                                        </tbody>
                                     </table>
-                                </div>
-                                <div class="p-3 border-t flex items-center gap-2">
-                                    <div class="text-sm text-gray-600"><span
-                                            x-text="`Page ${page} / ${lastPage} • Total ${total}`"></span></div>
-                                    <div class="ml-auto flex items-center gap-2">
-                                        <button type="button" @click="prev()" :disabled="page <= 1"
-                                            class="px-3 py-1 rounded border"
-                                            :class="page <= 1 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' :
-                                                'bg-gray-100 hover:bg-gray-200'">Prev</button>
-                                        <button type="button" @click="next()" :disabled="page >= lastPage"
-                                            class="px-3 py-1 rounded border"
-                                            :class="page >= lastPage ? 'bg-gray-200 text-gray-400 cursor-not-allowed' :
-                                                'bg-gray-100 hover:bg-gray-200'">Next</button>
-                                        <button type="button" @click="close()"
-                                            class="px-3 py-1 rounded border bg-gray-100 hover:bg-gray-200">Close</button>
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -990,9 +884,10 @@
             </div>
         </div>
     </div>
-
 @endsection
-
+@push('styles')
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+@endpush
 {{-- DATA & SCRIPTS --}}
 <script>
     // Map produk untuk auto-fill tabel
@@ -1022,169 +917,161 @@
     function supplierBrowser() {
         return {
             open: false,
-            keyword: '',
-            page: 1,
-            lastPage: 1,
-            perPage: 10,
-            total: 0,
-            rows: [],
-            apiUrl() {
-                const u = new URL("{{ route('suppliers.browse') }}", window.location.origin);
-                u.searchParams.set('q', this.keyword || '');
-                u.searchParams.set('per_page', this.perPage);
-                u.searchParams.set('page', this.page);
-                return u.toString();
-            },
-            async fetch() {
-                try {
-                    const res = await fetch(this.apiUrl(), {
-                        headers: {
-                            'Accept': 'application/json'
-                        }
-                    });
-                    const j = await res.json();
-                    this.rows = j.data || [];
-                    this.page = j.current_page || 1;
-                    this.lastPage = j.last_page || 1;
-                    this.total = j.total || 0;
-                } catch (e) {
-                    this.rows = [];
-                    this.page = 1;
-                    this.lastPage = 1;
-                    this.total = 0;
+            dataTable: null,
+
+            initDataTable() {
+                if (this.dataTable) {
+                    this.dataTable.destroy();
                 }
+
+                this.dataTable = $('#supplierBrowseTable').DataTable({
+                    processing: true,
+                    serverSide: true,
+                    ajax: {
+                        url: "{{ route('suppliers.browse') }}",
+                        type: 'GET',
+                        data: function(d) {
+                            return {
+                                q: d.search.value,
+                                page: (d.start / d.length) + 1,
+                                per_page: d.length,
+                                draw: d.draw // ✅ Tambahkan draw
+                            };
+                        },
+                        dataSrc: function(json) {
+                            // ✅ PERBAIKAN: Return json langsung, bukan hanya data
+                            return json.data || [];
+                        }
+                    },
+                    columns: [{
+                            data: 'fsuppliercode',
+                            name: 'fsuppliercode',
+                            width: '15%'
+                        },
+                        {
+                            data: 'fsuppliername',
+                            name: 'fsuppliername',
+                            width: '20%'
+                        },
+                        {
+                            data: 'faddress',
+                            name: 'faddress',
+                            defaultContent: '-',
+                            orderable: false,
+                            width: '30%'
+                        },
+                        {
+                            data: 'ftelp',
+                            name: 'ftelp',
+                            defaultContent: '-',
+                            orderable: false,
+                            width: '20%'
+                        },
+                        {
+                            data: null,
+                            orderable: false,
+                            searchable: false,
+                            className: 'text-center',
+                            width: '20%',
+                            render: function(data, type, row) {
+                                // ✅ PERBAIKAN: Escape quotes untuk mencegah error
+                                const code = (row.fsuppliercode || '').replace(/'/g, "\\'");
+                                const name = (row.fsuppliername || '').replace(/'/g, "\\'");
+                                const address = (row.faddress || '').replace(/'/g, "\\'");
+                                const telp = (row.ftelp || '').replace(/'/g, "\\'");
+
+                                return `<button type="button" 
+                                onclick="window.chooseSupplier('${row.fsupplierid}', '${code}', '${name}', '${address}', '${telp}')" 
+                                class="px-3 py-1 rounded text-xs bg-emerald-600 hover:bg-emerald-700 text-white">
+                                Pilih
+                            </button>`;
+                            }
+                        }
+                    ],
+                    pageLength: 10,
+                    lengthMenu: [10, 25, 50, 100],
+                    order: [
+                        [1, 'asc']
+                    ],
+                    dom: '<"flex items-center justify-between mb-4"<"flex items-center gap-2"l><"flex-1"><"flex items-center"f>>' +
+                        '<"overflow-x-auto"t>' +
+                        '<"flex items-center justify-between mt-4"<"text-sm text-gray-600"i><"flex items-center gap-2"p>>',
+                    language: {
+                        search: "_INPUT_",
+                        searchPlaceholder: "Cari kode atau nama supplier...",
+                        lengthMenu: "Tampilkan _MENU_",
+                        info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
+                        infoEmpty: "Tidak ada data",
+                        infoFiltered: "(difilter dari _MAX_ total data)",
+                        paginate: {
+                            first: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/></svg>',
+                            last: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg>',
+                            next: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>',
+                            previous: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>'
+                        },
+                        processing: '<div class="flex items-center justify-center"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>',
+                        zeroRecords: "Tidak ada data yang ditemukan"
+                    },
+                    drawCallback: function() {
+                        $('.dataTables_paginate .paginate_button').addClass(
+                            'px-3 py-2 border rounded mx-0.5 hover:bg-gray-100 transition-colors inline-flex items-center justify-center'
+                        );
+                        $('.dataTables_paginate .paginate_button.current').addClass(
+                            'bg-blue-600 text-white border-blue-600 hover:bg-blue-700');
+                        $('.dataTables_paginate .paginate_button.disabled').addClass(
+                            'opacity-50 cursor-not-allowed hover:bg-transparent');
+
+                        $('.dataTables_paginate .paginate_button.first, .dataTables_paginate .paginate_button.last, .dataTables_paginate .paginate_button.previous, .dataTables_paginate .paginate_button.next')
+                            .css('min-width', '36px');
+                    }
+                });
             },
+
             openBrowse() {
                 this.open = true;
-                this.page = 1;
-                this.fetch();
+                this.$nextTick(() => {
+                    this.initDataTable();
+                });
             },
+
             close() {
                 this.open = false;
-                this.keyword = '';
-                this.rows = [];
-            },
-            search() {
-                this.page = 1;
-                this.fetch();
-            },
-            prev() {
-                if (this.page > 1) {
-                    this.page--;
-                    this.fetch();
+                if (this.dataTable) {
+                    this.dataTable.destroy();
+                    this.dataTable = null;
                 }
             },
-            next() {
-                if (this.page < this.lastPage) {
-                    this.page++;
-                    this.fetch();
-                }
-            },
-            choose(s) {
-                const sel = document.getElementById('supplierSelect');
-                const hid = document.getElementById('supplierCodeHidden');
-                if (!sel) {
-                    this.close();
-                    return;
-                }
-                let opt = [...sel.options].find(o => o.value == String(s.fsupplierid));
-                const label = `${s.fsuppliercode} - ${s.fsuppliername}`;
-                if (!opt) {
-                    opt = new Option(label, s.fsupplierid, true, true);
-                    sel.add(opt);
-                } else {
-                    opt.text = label;
-                    opt.selected = true;
-                }
-                sel.dispatchEvent(new Event('change'));
-                if (hid) hid.value = s.fsupplierid;
-                this.close();
-            },
+
             init() {
+                window.chooseSupplier = (id, code, name, address, telp) => {
+                    const sel = document.getElementById('modal_filter_supplier_id');
+                    const hid = document.getElementById('supplierCodeHidden');
+
+                    if (!sel) {
+                        this.close();
+                        return;
+                    }
+
+                    let opt = [...sel.options].find(o => o.value == String(id));
+                    const label = `${name} (${code})`;
+
+                    if (!opt) {
+                        opt = new Option(label, id, true, true);
+                        sel.add(opt);
+                    } else {
+                        opt.text = label;
+                        opt.selected = true;
+                    }
+
+                    sel.dispatchEvent(new Event('change'));
+                    if (hid) hid.value = id;
+                    this.close();
+                };
+
                 window.addEventListener('supplier-browse-open', () => this.openBrowse(), {
                     passive: true
                 });
             }
-        }
-    }
-
-    // Modal produk
-    function productBrowser() {
-        return {
-            open: false,
-            forEdit: false,
-            keyword: '',
-            page: 1,
-            lastPage: 1,
-            perPage: 10,
-            total: 0,
-            rows: [],
-            apiUrl() {
-                const u = new URL("{{ route('products.browse') }}", window.location.origin);
-                u.searchParams.set('q', this.keyword || '');
-                u.searchParams.set('per_page', this.perPage);
-                u.searchParams.set('page', this.page);
-                return u.toString();
-            },
-            async fetch() {
-                try {
-                    const res = await fetch(this.apiUrl(), {
-                        headers: {
-                            'Accept': 'application/json'
-                        }
-                    });
-                    const j = await res.json();
-                    this.rows = j.data || [];
-                    this.page = j.current_page || 1;
-                    this.lastPage = j.last_page || 1;
-                    this.total = j.total || 0;
-                } catch (e) {
-                    this.rows = [];
-                    this.page = 1;
-                    this.lastPage = 1;
-                    this.total = 0;
-                }
-            },
-            close() {
-                this.open = false;
-                this.keyword = '';
-                this.rows = [];
-            },
-            search() {
-                this.page = 1;
-                this.fetch();
-            },
-            prev() {
-                if (this.page > 1) {
-                    this.page--;
-                    this.fetch();
-                }
-            },
-            next() {
-                if (this.page < this.lastPage) {
-                    this.page++;
-                    this.fetch();
-                }
-            },
-            choose(p) {
-                window.dispatchEvent(new CustomEvent('product-chosen', {
-                    detail: {
-                        product: p,
-                        forEdit: this.forEdit
-                    }
-                }));
-                this.close();
-            },
-            init() {
-                window.addEventListener('browse-open', (e) => {
-                    this.open = true;
-                    this.forEdit = !!(e.detail && e.detail.forEdit);
-                    this.page = 1;
-                    this.fetch();
-                }, {
-                    passive: true
-                });
-            },
         }
     }
 
@@ -1682,70 +1569,110 @@
 </script>
 
 <script>
+    // Warehouse Browser dengan DataTables
     window.warehouseBrowser = function() {
         return {
             open: false,
-            keyword: '',
-            rows: [],
-            page: 1,
-            lastPage: 1,
-            total: 0,
-            perPage: 10,
-            loading: false,
+            table: null,
 
-            async fetch() {
-                this.loading = true;
-                try {
-                    const params = new URLSearchParams({
-                        search: this.keyword ?? '',
-                        page: this.page,
-                        per_page: this.perPage,
-                    });
-                    const res = await fetch(`{{ route('gudang.browse') }}?` + params.toString(), {
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest'
+            initDataTable() {
+                if (this.table) {
+                    this.table.destroy();
+                }
+
+                this.table = $('#warehouseTable').DataTable({
+                    processing: true,
+                    serverSide: true,
+                    ajax: {
+                        url: "{{ route('gudang.browse') }}",
+                        type: 'GET',
+                        data: function(d) {
+                            return {
+                                draw: d.draw,
+                                page: (d.start / d.length) + 1,
+                                per_page: d.length,
+                                search: d.search.value
+                            };
+                        },
+                        dataSrc: function(json) {
+                            return json.data;
                         }
-                    });
-                    const json = await res.json();
-                    this.rows = json.data ?? [];
-                    this.page = json.current_page ?? 1;
-                    this.lastPage = json.last_page ?? 1;
-                    this.total = json.total ?? (json.data_total ?? 0);
-                } catch (e) {
-                    console.error(e);
-                    this.rows = [];
-                } finally {
-                    this.loading = false;
-                }
-            },
+                    },
+                    columns: [{
+                            data: null,
+                            name: 'fwhcode',
+                            render: function(data, type, row) {
+                                return `${row.fwhcode} - ${row.fwhname}`;
+                            }
+                        },
+                        {
+                            data: 'fbranchcode',
+                            name: 'fbranchcode',
+                            render: function(data) {
+                                return data || '-';
+                            }
+                        },
+                        {
+                            data: null,
+                            orderable: false,
+                            searchable: false,
+                            className: 'text-center',
+                            render: function(data, type, row) {
+                                return '<button type="button" class="btn-choose px-3 py-1 rounded text-xs bg-emerald-600 hover:bg-emerald-700 text-white">Pilih</button>';
+                            }
+                        }
+                    ],
+                    pageLength: 10,
+                    lengthMenu: [
+                        [10, 25, 50, 100],
+                        [10, 25, 50, 100]
+                    ],
+                    language: {
+                        processing: "Memuat...",
+                        search: "Cari:",
+                        lengthMenu: "Tampilkan _MENU_ data",
+                        info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
+                        infoEmpty: "Menampilkan 0 data",
+                        infoFiltered: "(disaring dari _MAX_ total data)",
+                        zeroRecords: "Tidak ada data yang ditemukan",
+                        emptyTable: "Tidak ada data tersedia",
+                        paginate: {
+                            first: "Pertama",
+                            last: "Terakhir",
+                            next: "Selanjutnya",
+                            previous: "Sebelumnya"
+                        }
+                    },
+                    order: [
+                        [0, 'asc']
+                    ], // Sort by kode gudang
+                    autoWidth: false
+                });
 
-            search() {
-                this.page = 1;
-                this.fetch();
-            },
-            next() {
-                if (this.page < this.lastPage) {
-                    this.page++;
-                    this.fetch();
-                }
-            },
-            prev() {
-                if (this.page > 1) {
-                    this.page--;
-                    this.fetch();
-                }
+                // Handle button click
+                $('#warehouseTable').on('click', '.btn-choose', (e) => {
+                    const data = this.table.row($(e.target).closest('tr')).data();
+                    this.choose(data);
+                });
             },
 
             openModal() {
                 this.open = true;
-                this.search();
+                // Initialize DataTable setelah modal terbuka
+                this.$nextTick(() => {
+                    this.initDataTable();
+                });
             },
+
             close() {
                 this.open = false;
+                if (this.table) {
+                    this.table.search('').draw();
+                }
             },
 
             choose(w) {
-                // Kirim event ke halaman utama agar select + hidden input terisi
+                // Kirim event ke halaman utama
                 window.dispatchEvent(new CustomEvent('warehouse-picked', {
                     detail: {
                         fwhid: w.fwhid,
@@ -1758,7 +1685,7 @@
             },
 
             init() {
-                // Buka modal saat overlay di select diklik
+                // Buka modal saat event dipanggil
                 window.addEventListener('warehouse-browse-open', () => this.openModal());
             }
         }
@@ -1783,3 +1710,152 @@
         });
     });
 </script>
+
+@push('scripts')
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+
+    <script>
+        // Modal produk dengan DataTables
+        function productBrowser() {
+            return {
+                open: false,
+                forEdit: false,
+                table: null,
+
+                initDataTable() {
+                    if (this.table) {
+                        this.table.destroy();
+                    }
+
+                    this.table = $('#productTable').DataTable({
+                        processing: true,
+                        serverSide: true,
+                        ajax: {
+                            url: "{{ route('products.browse') }}",
+                            type: 'GET',
+                            data: function(d) {
+                                // DataTables mengirim parameter search[value] untuk pencarian
+                                return {
+                                    draw: d.draw,
+                                    page: (d.start / d.length) + 1,
+                                    per_page: d.length,
+                                    q: d.search.value
+                                };
+                            },
+                            dataSrc: function(json) {
+                                // Mapping response ke format DataTables
+                                return json.data;
+                            }
+                        },
+                        columns: [{
+                                data: 'fprdcode',
+                                name: 'fprdcode',
+                                className: 'font-mono'
+                            },
+                            {
+                                data: 'fprdname',
+                                name: 'fprdname'
+                            },
+                            {
+                                data: 'fsatuanbesar',
+                                name: 'fsatuanbesar',
+                                render: function(data) {
+                                    return data || '-';
+                                }
+                            },
+                            {
+                                data: 'fminstock',
+                                name: 'fminstock',
+                                className: 'text-center'
+                            },
+                            {
+                                data: null,
+                                orderable: false,
+                                searchable: false,
+                                className: 'text-center',
+                                render: function(data, type, row) {
+                                    return '<button type="button" class="btn-choose px-3 py-1 rounded text-xs bg-emerald-600 hover:bg-emerald-700 text-white">Pilih</button>';
+                                }
+                            }
+                        ],
+                        pageLength: 10,
+                        lengthMenu: [
+                            [10, 25, 50, 100],
+                            [10, 25, 50, 100]
+                        ],
+                        language: {
+                            processing: "Memuat...",
+                            search: "Cari:",
+                            lengthMenu: "Tampilkan _MENU_ data",
+                            info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
+                            infoEmpty: "Menampilkan 0 data",
+                            infoFiltered: "(disaring dari _MAX_ total data)",
+                            zeroRecords: "Tidak ada data yang ditemukan",
+                            emptyTable: "Tidak ada data tersedia",
+                            paginate: {
+                                first: "Pertama",
+                                last: "Terakhir",
+                                next: "Selanjutnya",
+                                previous: "Sebelumnya"
+                            }
+                        },
+                        order: [
+                            [1, 'asc']
+                        ], // Sort by nama
+                        autoWidth: false
+                    });
+
+                    // Handle button click
+                    $('#productTable').on('click', '.btn-choose', (e) => {
+                        const data = this.table.row($(e.target).closest('tr')).data();
+                        this.choose(data);
+                    });
+                },
+
+                close() {
+                    this.open = false;
+                    if (this.table) {
+                        this.table.search('').draw();
+                    }
+                },
+
+                choose(product) {
+                    window.dispatchEvent(new CustomEvent('product-chosen', {
+                        detail: {
+                            product: product,
+                            forEdit: this.forEdit
+                        }
+                    }));
+                    this.close();
+                },
+
+                init() {
+                    window.addEventListener('browse-open', (e) => {
+                        this.open = true;
+                        this.forEdit = !!(e.detail && e.detail.forEdit);
+
+                        // Initialize DataTable setelah modal terbuka
+                        this.$nextTick(() => {
+                            this.initDataTable();
+                        });
+                    }, {
+                        passive: true
+                    });
+                }
+            }
+        }
+
+        document.addEventListener('alpine:init', () => {
+            Alpine.store('prh', {
+                descPreview: {
+                    uid: null,
+                    index: null,
+                    label: '',
+                    text: ''
+                },
+                descList: []
+            });
+        });
+    </script>
+@endpush

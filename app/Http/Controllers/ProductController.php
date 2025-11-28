@@ -404,4 +404,38 @@ class ProductController extends Controller
                 ->with('error', 'Gagal menghapus produk: ' . $e->getMessage());
         }
     }
+
+    public function browse(Request $request)
+    {
+        $query = Product::query();
+
+        // Search dari DataTables
+        if ($request->filled('q')) {
+            $search = $request->q;
+            $query->where(function ($q) use ($search) {
+                $q->where('fprdcode', 'ilike', "%{$search}%")
+                    ->orWhere('fprdname', 'ilike', "%{$search}%");
+            });
+        }
+
+        // Get totals
+        $recordsTotal = Product::count();
+        $recordsFiltered = $query->count();
+
+        // Pagination dari DataTables
+        $perPage = $request->input('per_page', 10);
+        $page = $request->input('page', 1);
+
+        $data = $query->orderBy('fprdname', 'asc')
+            ->skip(($page - 1) * $perPage)
+            ->take($perPage)
+            ->get();
+
+        return response()->json([
+            'draw' => $request->input('draw', 1),
+            'recordsTotal' => $recordsTotal,
+            'recordsFiltered' => $recordsFiltered,
+            'data' => $data
+        ]);
+    }
 }

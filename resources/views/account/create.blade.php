@@ -19,36 +19,40 @@
                 @csrf
 
                 {{-- Account Header (Browse) --}}
-                <div class="mt-4 lg:col-span-4">
-                    <label class="block text-sm font-medium mb-1">Account Header</label>
+
+                <div class="lg:col-span-4">
+                    <label class="block text-sm font-medium mb-1">Account</label>
                     <div class="flex">
                         <div class="relative flex-1">
-                            <select id="accHeaderSelect" name="faccupline_view"
-                                class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
-                                disabled>
+                            <select id="accountSelect" class="w-full border rounded-l px-3 py-2" disabled>
                                 <option value=""></option>
-                                @foreach ($accounts as $header)
-                                    <option value="{{ $header->faccid }}"
-                                        {{ old('faccupline') == $header->faccid ? 'selected' : '' }}>
-                                        {{ $header->faccount }} - {{ $header->faccname }}
+                                @foreach ($accounts as $account)
+                                    <option value="{{ $account->faccount }}" data-faccid="{{ $account->faccid }}"
+                                        data-branch="{{ $account->faccount }}"
+                                        {{ old('faccupline') == $account->faccount ? 'selected' : '' }}>
+                                        {{ $account->faccount }} - {{ $account->faccname }}
                                     </option>
                                 @endforeach
                             </select>
 
-                            <input type="hidden" name="faccupline" id="accHeaderHidden" value="{{ old('faccupline') }}">
-
-                            {{-- overlay klik untuk buka modal --}}
-                            <div class="absolute inset-0" role="button" aria-label="Browse Account Header"
-                                @click="window.dispatchEvent(new CustomEvent('acc-header-browse-open'))"></div>
+                            <div class="absolute inset-0" role="button" aria-label="Browse account"
+                                @click="window.dispatchEvent(new CustomEvent('account-browse-open'))"></div>
                         </div>
 
-                        {{-- tombol browse --}}
-                        <button type="button" @click="window.dispatchEvent(new CustomEvent('acc-header-browse-open'))"
-                            class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r"
-                            title="Browse Account Header">
+                        <input type="hidden" name="faccupline" id="accountCodeHidden" value="{{ old('faccupline') }}">
+                        <input type="hidden" name="faccid" id="accountIdHidden" value="{{ old('faccid') }}">
+
+                        <button type="button" @click="window.dispatchEvent(new CustomEvent('account-browse-open'))"
+                            class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none" title="Browse Account">
                             <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                         </button>
+
+                        <a href="{{ route('account.create') }}" target="_blank" rel="noopener"
+                            class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50" title="Tambah Account">
+                            <x-heroicon-o-plus class="w-5 h-5" />
+                        </a>
                     </div>
+
                     @error('faccupline')
                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                     @enderror
@@ -161,6 +165,34 @@
                 <input type="hidden" name="fcurrency" value='IDR'>
                 <input type="hidden" name="fnonactive" value='0'>
                 <br>
+
+                {{-- MODAL ACCOUNT dengan DataTables --}}
+                <div x-data="accountBrowser()" x-show="open" x-cloak x-transition.opacity
+                    class="fixed inset-0 z-50 flex items-center justify-center">
+                    <div class="absolute inset-0 bg-black/40" @click="close()"></div>
+
+                    <div class="relative bg-white rounded-2xl shadow-xl w-[92vw] max-w-4xl max-h-[85vh] flex flex-col">
+                        <div class="p-4 border-b flex items-center gap-3">
+                            <h3 class="text-lg font-semibold">Browse Account</h3>
+                            <button type="button" @click="close()"
+                                class="ml-auto px-3 py-1 rounded border bg-gray-100 hover:bg-gray-200">
+                                Close
+                            </button>
+                        </div>
+
+                        <div class="p-4 overflow-auto flex-1">
+                            <table id="accountTable" class="min-w-full text-sm display nowrap" style="width:100%">
+                                <thead class="bg-gray-100">
+                                    <tr>
+                                        <th class="text-left p-2">Account (Kode - Nama)</th>
+                                        <th class="text-center p-2">Aksi</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="mt-6 flex justify-center space-x-4">
                     <button type="submit"
                         class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
@@ -177,328 +209,324 @@
             </form>
         </div>
     </div>
+@endsection
+@push('styles')
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+@endpush
+<style>
+    .ui-autocomplete {
+        background-color: white !important;
+        z-index: 1050 !important;
 
-    <div x-data="accHeaderBrowser()" x-init="init()" x-show="open" x-cloak x-transition.opacity
-        class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="absolute inset-0 bg-black/40" @click="close()"></div>
-        <div class="relative bg-white rounded-2xl shadow-xl w-[92vw] max-w-4xl max-h-[85vh] flex flex-col">
-            <div class="p-4 border-b flex items-center gap-3">
-                <h3 class="text-lg font-semibold">Browse Account Header</h3>
-                <div class="ml-auto flex items-center gap-2">
-                    <input type="text" x-model="keyword" @keydown.enter.prevent="search()"
-                        placeholder="Cari kode / nama…" class="border rounded px-3 py-2 w-64">
-                    <button type="button" @click="search()"
-                        class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                        Search
-                    </button>
-                </div>
-            </div>
+        /* === Perubahan Utama: Tambahkan Max-Width === */
+        /* Sesuaikan nilai '300px' ini sesuai kebutuhan Anda */
+        max-width: 700px !important;
+        /* ------------------------------------------- */
 
-            <div class="p-0 overflow-auto">
-                <table class="min-w-full text-sm">
-                    <thead class="bg-gray-100 sticky top-0">
-                        <tr>
-                            <th class="text-left p-2">Account (Kode - Nama)</th>
-                            <th class="text-center p-2 w-28">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <template x-for="row in rows" :key="row.id">
-                            <tr class="border-b hover:bg-gray-50">
-                                <td class="p-2" x-text="`${row.faccount} - ${row.faccname}`"></td>
-                                <td class="p-2 text-center">
-                                    <button type="button" @click="choose(row)"
-                                        class="px-3 py-1 rounded text-xs bg-emerald-600 hover:bg-emerald-700 text-white">
-                                        Pilih
-                                    </button>
-                                </td>
-                            </tr>
-                        </template>
-                        <tr x-show="rows.length === 0">
-                            <td colspan="2" class="p-4 text-center text-gray-500">Tidak ada data.</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+        /* Styling tambahan (sama seperti sebelumnya) */
+        border: 1px solid #d1d5db !important;
+        border-radius: 0.25rem !important;
+        padding: 0 !important;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+    }
 
-            <div class="p-3 border-t flex items-center gap-2">
-                <div class="text-sm text-gray-600">
-                    <span x-text="`Page ${page} / ${lastPage} • Total ${total}`"></span>
-                </div>
-                <div class="ml-auto flex items-center gap-2">
-                    <button type="button" @click="prev()" :disabled="page <= 1" class="px-3 py-1 rounded border"
-                        :class="page <= 1 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-gray-100 hover:bg-gray-200'">
-                        Prev
-                    </button>
-                    <button type="button" @click="next()" :disabled="page >= lastPage" class="px-3 py-1 rounded border"
-                        :class="page >= lastPage ? 'bg-gray-200 text-gray-400 cursor-not-allowed' :
-                            'bg-gray-100 hover:bg-gray-200'">
-                        Next
-                    </button>
-                    <button type="button" @click="close()"
-                        class="px-3 py-1 rounded border bg-gray-100 hover:bg-gray-200">
-                        Close
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
+    .ui-menu-item-wrapper {
+        padding: 0.5rem 0.75rem !important;
+    }
 
-    <style>
-        .ui-autocomplete {
-            background-color: white !important;
-            z-index: 1050 !important;
+    .ui-menu-item-wrapper.ui-state-active,
+    .ui-menu-item-wrapper:hover {
+        background-color: #f3f4f6 !important;
+        color: #1f2937 !important;
+    }
 
-            /* === Perubahan Utama: Tambahkan Max-Width === */
-            /* Sesuaikan nilai '300px' ini sesuai kebutuhan Anda */
-            max-width: 700px !important;
-            /* ------------------------------------------- */
+    .hint-text {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin-top: 0.25rem;
+        font-style: italic;
+    }
 
-            /* Styling tambahan (sama seperti sebelumnya) */
-            border: 1px solid #d1d5db !important;
-            border-radius: 0.25rem !important;
-            padding: 0 !important;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
-        }
+    /* Custom styling untuk autocomplete dropdown */
+    .ui-autocomplete {
+        max-height: 300px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        z-index: 9999 !important;
+    }
 
-        .ui-menu-item-wrapper {
-            padding: 0.5rem 0.75rem !important;
-        }
+    .ui-menu-item {
+        padding: 8px 12px;
+        font-size: 0.875rem;
+    }
 
-        .ui-menu-item-wrapper.ui-state-active,
-        .ui-menu-item-wrapper:hover {
-            background-color: #f3f4f6 !important;
-            color: #1f2937 !important;
-        }
+    .ui-state-active {
+        background: #3b82f6 !important;
+        border-color: #3b82f6 !important;
+        color: white !important;
+    }
+</style>
 
-        .hint-text {
-            font-size: 0.875rem;
-            color: #6b7280;
-            margin-top: 0.25rem;
-            font-style: italic;
-        }
+@push('scripts')
+    <!-- Load jQuery & jQuery UI -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
-        /* Custom styling untuk autocomplete dropdown */
-        .ui-autocomplete {
-            max-height: 300px;
-            overflow-y: auto;
-            overflow-x: hidden;
-            z-index: 9999 !important;
-        }
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
 
-        .ui-menu-item {
-            padding: 8px 12px;
-            font-size: 0.875rem;
-        }
-
-        .ui-state-active {
-            background: #3b82f6 !important;
-            border-color: #3b82f6 !important;
-            color: white !important;
-        }
-    </style>
-
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
     <script>
-        function accHeaderBrowser() {
-            return {
-                open: false,
-                keyword: '',
-                page: 1,
-                lastPage: 1,
-                perPage: 10,
-                total: 0,
-                rows: [],
-                apiUrl() {
-                    const u = new URL("{{ route('accounts.browse') }}", window.location.origin);
-                    u.searchParams.set('q', this.keyword || '');
-                    u.searchParams.set('per_page', this.perPage);
-                    u.searchParams.set('page', this.page);
-                    return u.toString();
-                },
-                async fetch() {
-                    try {
-                        const res = await fetch(this.apiUrl(), {
-                            headers: {
-                                'Accept': 'application/json'
+        $(document).ready(function() {
+            // ========================================
+            // Autocomplete untuk ACCOUNT # (Kode)
+            // ========================================
+            $('#faccount').autocomplete({
+                    source: function(request, response) {
+                        $.ajax({
+                            url: "{{ route('account.suggest') }}",
+                            dataType: "json",
+                            data: {
+                                term: request.term,
+                                field: 'faccount' // Cari berdasarkan kode
+                            },
+                            success: function(data) {
+                                response(data);
                             }
                         });
-                        const j = await res.json();
-                        this.rows = j.data || [];
-                        this.page = j.current_page || 1;
-                        this.lastPage = j.last_page || 1;
-                        this.total = j.total || 0;
-                    } catch (e) {
-                        this.rows = [];
-                        this.page = 1;
-                        this.lastPage = 1;
-                        this.total = 0;
+                    },
+                    minLength: 1, // Minimal 1 karakter
+                    select: function(event, ui) {
+                        // Isi Account # dengan kode
+                        $('#faccount').val(ui.item.code);
+
+                        // Isi Account Name dengan nama
+                        $('#faccname').val(ui.item.name);
+
+                        // Tampilkan hint
+                        $('#faccount-hint').text('Account Name: ' + ui.item.name);
+                        $('#faccname-hint').text('Account #: ' + ui.item.code);
+
+                        return false;
+                    },
+                    focus: function(event, ui) {
+                        // Preview saat hover
+                        $('#faccount').val(ui.item.code);
+                        return false;
                     }
+                })
+                .on('input', function() {
+                    // Clear hint saat user mengetik manual
+                    const currentVal = $(this).val();
+                    if (!currentVal) {
+                        $('#faccount-hint').text('');
+                        $('#faccname-hint').text('');
+                    }
+                });
+
+            // ========================================
+            // Autocomplete untuk ACCOUNT NAME (Nama)
+            // ========================================
+            $('#faccname').autocomplete({
+                    source: function(request, response) {
+                        $.ajax({
+                            url: "{{ route('account.suggest') }}",
+                            dataType: "json",
+                            data: {
+                                term: request.term,
+                                field: 'faccname' // Cari berdasarkan nama
+                            },
+                            success: function(data) {
+                                response(data);
+                            }
+                        });
+                    },
+                    minLength: 2, // Minimal 2 karakter untuk nama
+                    select: function(event, ui) {
+                        // Isi Account Name dengan nama
+                        $('#faccname').val(ui.item.name);
+
+                        // Isi Account # dengan kode
+                        $('#faccount').val(ui.item.code);
+
+                        // Tampilkan hint
+                        $('#faccname-hint').text('Account #: ' + ui.item.code);
+                        $('#faccount-hint').text('Account Name: ' + ui.item.name);
+
+                        return false;
+                    },
+                    focus: function(event, ui) {
+                        // Preview saat hover
+                        $('#faccname').val(ui.item.name);
+                        return false;
+                    }
+                })
+                .on('input', function() {
+                    // Clear hint saat user mengetik manual
+                    const currentVal = $(this).val();
+                    if (!currentVal) {
+                        $('#faccount-hint').text('');
+                        $('#faccname-hint').text('');
+                    }
+                });
+
+            // ========================================
+            // Clear hint saat form di-reset
+            // ========================================
+            $('form').on('reset', function() {
+                $('#faccount-hint').text('');
+                $('#faccname-hint').text('');
+            });
+        });
+    </script>
+    <script>
+        window.accountBrowser = function() {
+            return {
+                open: false,
+                table: null,
+
+                initDataTable() {
+                    if (this.table) {
+                        this.table.destroy();
+                    }
+
+                    this.table = $('#accountTable').DataTable({
+                        processing: true,
+                        serverSide: true,
+                        ajax: {
+                            url: "{{ route('account.browse') }}",
+                            type: 'GET',
+                            data: function(d) {
+                                return {
+                                    draw: d.draw,
+                                    page: (d.start / d.length) + 1,
+                                    per_page: d.length,
+                                    search: d.search.value
+                                };
+                            },
+                            dataSrc: function(json) {
+                                return json.data;
+                            }
+                        },
+                        columns: [{
+                                data: null,
+                                name: 'faccount',
+                                render: function(data, type, row) {
+                                    return `${row.faccount} - ${row.faccname}`;
+                                }
+                            },
+                            {
+                                data: null,
+                                orderable: false,
+                                searchable: false,
+                                className: 'text-center',
+                                render: function(data, type, row) {
+                                    return '<button type="button" class="btn-choose px-3 py-1 rounded text-xs bg-emerald-600 hover:bg-emerald-700 text-white">Pilih</button>';
+                                }
+                            }
+                        ],
+                        pageLength: 10,
+                        lengthMenu: [
+                            [10, 25, 50, 100],
+                            [10, 25, 50, 100]
+                        ],
+                        language: {
+                            processing: "Memuat...",
+                            search: "Cari:",
+                            lengthMenu: "Tampilkan _MENU_ data",
+                            info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
+                            infoEmpty: "Menampilkan 0 data",
+                            infoFiltered: "(disaring dari _MAX_ total data)",
+                            zeroRecords: "Tidak ada data yang ditemukan",
+                            emptyTable: "Tidak ada data tersedia",
+                            paginate: {
+                                first: "Pertama",
+                                last: "Terakhir",
+                                next: "Selanjutnya",
+                                previous: "Sebelumnya"
+                            }
+                        },
+                        order: [
+                            [0, 'asc']
+                        ], // Sort by account code
+                        autoWidth: false
+                    });
+
+                    // Handle button click
+                    $('#accountTable').on('click', '.btn-choose', (e) => {
+                        const data = this.table.row($(e.target).closest('tr')).data();
+                        this.choose(data);
+                    });
                 },
-                openBrowse() {
+
+                openModal() {
                     this.open = true;
-                    this.page = 1;
-                    this.fetch();
+                    // Initialize DataTable setelah modal terbuka
+                    this.$nextTick(() => {
+                        this.initDataTable();
+                    });
                 },
+
                 close() {
                     this.open = false;
-                    this.keyword = '';
-                    this.rows = [];
-                },
-                search() {
-                    this.page = 1;
-                    this.fetch();
-                },
-                prev() {
-                    if (this.page > 1) {
-                        this.page--;
-                        this.fetch();
+                    if (this.table) {
+                        this.table.search('').draw();
                     }
                 },
-                next() {
-                    if (this.page < this.lastPage) {
-                        this.page++;
-                        this.fetch();
-                    }
-                },
-                choose(row) {
-                    const sel = document.getElementById('accHeaderSelect');
-                    const hid = document.getElementById('accHeaderHidden');
-                    if (!sel) {
-                        this.close();
-                        return;
-                    }
 
-                    const label = `${row.faccount} - ${row.faccname}`;
-                    let opt = [...sel.options].find(o => o.value == String(row.id));
-                    if (!opt) {
-                        opt = new Option(label, row.id, true, true);
-                        sel.add(opt);
-                    } else {
-                        opt.text = label;
-                        opt.selected = true;
-                    }
-                    sel.dispatchEvent(new Event('change'));
-                    if (hid) hid.value = row.id;
+                choose(w) {
+                    window.dispatchEvent(new CustomEvent('account-picked', {
+                        detail: {
+                            faccid: w.faccid,
+                            faccount: w.faccount,
+                            faccname: w.faccname,
+                        }
+                    }));
                     this.close();
                 },
+
                 init() {
-                    window.addEventListener('acc-header-browse-open', () => this.openBrowse(), {
-                        passive: true
-                    });
+                    window.addEventListener('account-browse-open', () => this.openModal());
                 }
             }
-        }
-    </script>
+        };
 
-    @push('scripts')
-        <!-- Load jQuery & jQuery UI -->
-        <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-        <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+        // Helper: update field saat account-picked
+        document.addEventListener('DOMContentLoaded', () => {
+            window.addEventListener('account-picked', (ev) => {
+                let {
+                    faccount,
+                    faccid
+                } = ev.detail || {};
 
-        <script>
-            $(document).ready(function() {
-
-                // ========================================
-                // Autocomplete untuk ACCOUNT # (Kode)
-                // ========================================
-                $('#faccount').autocomplete({
-                        source: function(request, response) {
-                            $.ajax({
-                                url: "{{ route('account.suggest') }}",
-                                dataType: "json",
-                                data: {
-                                    term: request.term,
-                                    field: 'faccount' // Cari berdasarkan kode
-                                },
-                                success: function(data) {
-                                    response(data);
-                                }
-                            });
-                        },
-                        minLength: 1, // Minimal 1 karakter
-                        select: function(event, ui) {
-                            // Isi Account # dengan kode
-                            $('#faccount').val(ui.item.code);
-
-                            // Isi Account Name dengan nama
-                            $('#faccname').val(ui.item.name);
-
-                            // Tampilkan hint
-                            $('#faccount-hint').text('Account Name: ' + ui.item.name);
-                            $('#faccname-hint').text('Account #: ' + ui.item.code);
-
-                            return false;
-                        },
-                        focus: function(event, ui) {
-                            // Preview saat hover
-                            $('#faccount').val(ui.item.code);
-                            return false;
+                // Fallback untuk mencari faccid dari option jika tidak ada
+                if (!faccid && faccount) {
+                    const sel = document.getElementById('accountSelect');
+                    if (sel) {
+                        const option = sel.querySelector(`option[value="${faccount}"]`);
+                        if (option) {
+                            faccid = option.getAttribute('data-faccid');
                         }
-                    })
-                    .on('input', function() {
-                        // Clear hint saat user mengetik manual
-                        const currentVal = $(this).val();
-                        if (!currentVal) {
-                            $('#faccount-hint').text('');
-                            $('#faccname-hint').text('');
-                        }
-                    });
+                    }
+                }
 
-                // ========================================
-                // Autocomplete untuk ACCOUNT NAME (Nama)
-                // ========================================
-                $('#faccname').autocomplete({
-                        source: function(request, response) {
-                            $.ajax({
-                                url: "{{ route('account.suggest') }}",
-                                dataType: "json",
-                                data: {
-                                    term: request.term,
-                                    field: 'faccname' // Cari berdasarkan nama
-                                },
-                                success: function(data) {
-                                    response(data);
-                                }
-                            });
-                        },
-                        minLength: 2, // Minimal 2 karakter untuk nama
-                        select: function(event, ui) {
-                            // Isi Account Name dengan nama
-                            $('#faccname').val(ui.item.name);
+                const sel = document.getElementById('accountSelect');
+                const hidId = document.getElementById('accountIdHidden');
+                const hidCode = document.getElementById('accountCodeHidden');
 
-                            // Isi Account # dengan kode
-                            $('#faccount').val(ui.item.code);
+                if (sel) {
+                    sel.value = faccount || '';
+                    sel.dispatchEvent(new Event('change', {
+                        bubbles: true
+                    }));
+                }
 
-                            // Tampilkan hint
-                            $('#faccname-hint').text('Account #: ' + ui.item.code);
-                            $('#faccount-hint').text('Account Name: ' + ui.item.name);
+                if (hidId) {
+                    hidId.value = faccid || '';
+                }
 
-                            return false;
-                        },
-                        focus: function(event, ui) {
-                            // Preview saat hover
-                            $('#faccname').val(ui.item.name);
-                            return false;
-                        }
-                    })
-                    .on('input', function() {
-                        // Clear hint saat user mengetik manual
-                        const currentVal = $(this).val();
-                        if (!currentVal) {
-                            $('#faccount-hint').text('');
-                            $('#faccname-hint').text('');
-                        }
-                    });
-
-                // ========================================
-                // Clear hint saat form di-reset
-                // ========================================
-                $('form').on('reset', function() {
-                    $('#faccount-hint').text('');
-                    $('#faccname-hint').text('');
-                });
+                if (hidCode) {
+                    hidCode.value = faccount || '';
+                }
             });
-        </script>
-    @endpush
-
-@endsection
+        });
+    </script>
+@endpush

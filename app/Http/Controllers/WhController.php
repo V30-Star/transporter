@@ -159,31 +159,36 @@ class WhController extends Controller
     }
     public function browse(Request $request)
     {
-        $search  = trim($request->get('search', ''));
-        $perPage = max(1, (int) $request->get('per_page', 10));
-        $page    = max(1, (int) $request->get('page', 1));
+        $query = Wh::query(); // atau Warehouse::query() sesuai model Anda
 
-        $q = DB::table('mswh')
-            ->select('fwhid', 'fwhcode', 'fwhname', 'fbranchcode', 'fnonactive')
-            ->where('fnonactive', '0');
-
-        if ($search !== '') {
-            $q->where(function ($w) use ($search) {
-                $w->where('fwhcode', 'ILIKE', "%{$search}%")
-                    ->orWhere('fwhname', 'ILIKE', "%{$search}%")
-                    ->orWhere('fbranchcode', 'ILIKE', "%{$search}%");
+        // Search
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('fwhcode', 'ilike', "%{$search}%")
+                    ->orWhere('fwhname', 'ilike', "%{$search}%")
+                    ->orWhere('fbranchcode', 'ilike', "%{$search}%");
             });
         }
 
-        $q->orderBy('fwhcode');
+        // Get totals
+        $recordsTotal = Wh::count();
+        $recordsFiltered = $query->count();
 
-        $data = $q->paginate($perPage, ['*'], 'page', $page);
+        // Pagination
+        $perPage = $request->input('per_page', 10);
+        $page = $request->input('page', 1);
+
+        $data = $query->orderBy('fwhcode', 'asc')
+            ->skip(($page - 1) * $perPage)
+            ->take($perPage)
+            ->get();
 
         return response()->json([
-            'data'         => $data->items(),
-            'current_page' => $data->currentPage(),
-            'last_page'    => $data->lastPage(),
-            'total'        => $data->total(),
+            'draw' => $request->input('draw', 1),
+            'recordsTotal' => $recordsTotal,
+            'recordsFiltered' => $recordsFiltered,
+            'data' => $data
         ]);
     }
 }

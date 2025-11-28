@@ -91,7 +91,7 @@ class Tr_pohController extends Controller
 
         $actions = '<div class="flex gap-2">';
 
-        if ($canEdit) {
+        // if ($canEdit) {
           $editUrl = route('tr_poh.edit', $row->fpohdid);
           $actions .= '<a href="' . $editUrl . '" class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -99,9 +99,9 @@ class Tr_pohController extends Controller
                     </svg>
                     Edit
                 </a>';
-        }
+        // }
 
-        if ($canDelete) {
+        // if ($canDelete) {
           $deleteUrl = route('tr_poh.destroy', $row->fpohdid);
           $actions .= '<button onclick="window.dispatchEvent(new CustomEvent(\'open-delete\', {detail: \'' . $deleteUrl . '\'}))" class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -109,7 +109,7 @@ class Tr_pohController extends Controller
                     </svg>
                     Delete
                 </button>';
-        }
+        // }
 
         $printUrl = route('tr_poh.print', ['fpono' => $row->fpono]);
         $actions .= '<a href="' . $printUrl . '" target="_blank" class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
