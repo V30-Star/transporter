@@ -16,7 +16,6 @@
             box-sizing: border-box
         }
 
-        /* >>> Preview (layar) punya kanvas putih dengan bayangan */
         body {
             margin: 0;
             background: #ececec;
@@ -24,15 +23,20 @@
             color: var(--fg)
         }
 
+        /* --- PERUBAHAN UTAMA UNTUK A4 --- */
         .sheet {
-            width: 5.5in;
-            min-height: 11in;
+            width: 8.27in;
+            /* Lebar A4 */
+            min-height: 11.69in;
+            /* Tinggi A4 */
             margin: 0.4in auto;
             padding: 0.4in 0.5in;
             background: #fff;
             border: 1px solid #cfcfcf;
             box-shadow: 0 6px 18px rgba(0, 0, 0, .12);
         }
+
+        /* -------------------------------- */
 
         .row {
             display: flex;
@@ -110,36 +114,15 @@
             text-align: center
         }
 
-        .sign .note {
-            vertical-align: top
-        }
-
         .sign .small {
             font-size: 12px;
             color: var(--muted)
         }
 
         .footer-wrap {
-            display: grid;
-            grid-template-columns: 60% 40%;
-            column-gap: 18px;
-            margin-top: 14px;
-            min-height: 120px;
-            /* bikin area footer agak tinggi */
-            align-items: start;
-        }
-
-
-        .footer-left {
-            flex: 0 0 60%
-        }
-
-        .footer-right {
-            flex: 1;
             display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-            padding-bottom: 10px;
+            justify-content: space-between;
+            margin-top: 20px;
         }
 
         .note-top {
@@ -152,11 +135,10 @@
             flex-direction: column;
             justify-content: space-between;
             height: 100%;
-        }
-
-        .note-title {
-            font-weight: 700;
-            margin-bottom: 6px
+            margin-top: 10px;
+            font-size: 11px;
+            width: 50%;
+            /* Mengembalikan lebar relatif */
         }
 
         .hal {
@@ -190,8 +172,10 @@
                 margin: 0;
                 border: none;
                 box-shadow: none;
-                width: 5.5in;
-                min-height: 11in;
+                width: 8.27in;
+                /* A4 Print Width */
+                min-height: 11.69in;
+                /* A4 Print Height */
                 padding: 0.4in 0.5in;
             }
 
@@ -200,9 +184,60 @@
             }
 
             @page {
-                size: 5.5in 11in;
+                size: A4;
+                /* Mengatur halaman cetak ke A4 */
                 margin: 0;
             }
+        }
+
+        .footer-left {
+            display: flex;
+            flex-direction: column;
+            width: 60%;
+            /* Disesuaikan untuk A4 */
+        }
+
+        .footer-right {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            width: 40%;
+            /* Disesuaikan untuk A4 */
+            margin-left: 18px;
+            /* Menggunakan gap yang lebih konsisten */
+        }
+
+        .total-section {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            width: 100%;
+        }
+
+        .label {
+            font-weight: 550;
+        }
+
+        .value {
+            font-weight: 550;
+            text-align: right;
+        }
+
+        .sign td {
+            padding: 8px 10px;
+            border: 1px solid var(--bd);
+        }
+
+        .sign .head {
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .grand-total {
+            border-top: 1px solid #000000;
+            padding-top: 8px;
+            margin-top: 8px;
+            font-weight: bold;
         }
     </style>
 </head>
@@ -248,10 +283,10 @@
         <table class="tb">
             <thead>
                 <tr>
-                    <th style="width:36px">No.</th>
-                    <th>Nama Barang</th>
-                    <th style="width:100px">Q t y.</th>
-                    <th style="width:70px">Stok</th>
+                    <th style="width:5px">No.</th>
+                    <th style="width:200px">Nama Barang</th>
+                    <th style="width:50px">Q t y.</th>
+                    <th style="width:50px">Stok</th>
                     <th style="width:240px;text-align:left">Keterangan</th>
                 </tr>
             </thead>
@@ -260,7 +295,6 @@
                     <tr>
                         <td class="center">{{ $i + 1 }}</td>
                         <td>
-                            <div class="mono">({{ $r->fprdcode }})</div>
                             <div>{{ $r->product_name ?? '-' }}</div>
                             @if (!empty($r->fdesc))
                                 <div class="muted">({{ $r->fdesc }})</div>

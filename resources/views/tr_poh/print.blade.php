@@ -23,15 +23,20 @@
             color: var(--fg)
         }
 
+        /* --- PERUBAHAN UTAMA UNTUK A4 --- */
         .sheet {
-            width: 5.5in;
-            min-height: 11in;
+            width: 8.27in;
+            /* Lebar A4 */
+            min-height: 11.69in;
+            /* Tinggi A4 */
             margin: 0.4in auto;
             padding: 0.4in 0.5in;
             background: #fff;
             border: 1px solid #cfcfcf;
             box-shadow: 0 6px 18px rgba(0, 0, 0, .12);
         }
+
+        /* -------------------------------- */
 
         .row {
             display: flex;
@@ -115,12 +120,9 @@
         }
 
         .footer-wrap {
-            display: grid;
-            grid-template-columns: 60% 40%;
-            column-gap: 18px;
-            margin-top: 14px;
-            min-height: 120px;
-            align-items: start;
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
         }
 
         .note-top {
@@ -133,6 +135,10 @@
             flex-direction: column;
             justify-content: space-between;
             height: 100%;
+            margin-top: 10px;
+            font-size: 11px;
+            width: 50%;
+            /* Mengembalikan lebar relatif */
         }
 
         .hal {
@@ -166,8 +172,10 @@
                 margin: 0;
                 border: none;
                 box-shadow: none;
-                width: 5.5in;
-                min-height: 11in;
+                width: 8.27in;
+                /* A4 Print Width */
+                min-height: 11.69in;
+                /* A4 Print Height */
                 padding: 0.4in 0.5in;
             }
 
@@ -176,34 +184,27 @@
             }
 
             @page {
-                size: 5.5in 11in;
+                size: A4;
+                /* Mengatur halaman cetak ke A4 */
                 margin: 0;
             }
-        }
-
-        .footer-wrap {
-            display: flex;
-            justify-content: space-between;
-            /* Align left and right sections */
-            margin-top: 20px;
         }
 
         .footer-left {
             display: flex;
             flex-direction: column;
-            width: 50%;
-            /* Left section will take 50% width */
+            width: 60%;
+            /* Disesuaikan untuk A4 */
         }
 
         .footer-right {
             display: flex;
             flex-direction: column;
             align-items: flex-end;
-            /* Align everything to the right */
-            width: 100%;
-            /* Right section will take 50% width */
-            margin-left: 30px;
-            /* Add space between left and right */
+            width: 40%;
+            /* Disesuaikan untuk A4 */
+            margin-left: 18px;
+            /* Menggunakan gap yang lebih konsisten */
         }
 
         .total-section {
@@ -215,7 +216,6 @@
 
         .label {
             font-weight: 550;
-            width: 150px;
         }
 
         .value {
@@ -233,17 +233,11 @@
             text-align: center;
         }
 
-        .note-box {
-            margin-top: 10px;
-            font-size: 11px;
-        }
-
-        /* Style for the horizontal line after GRAND TOTAL */
-        .footer-line {
-            border: 0;
-            border-top: 1px solid #000;
-            /* A thick black line */
-            margin: 5px 0;
+        .grand-total {
+            border-top: 1px solid #000000;
+            padding-top: 8px;
+            margin-top: 8px;
+            font-weight: bold;
         }
     </style>
 </head>
@@ -256,7 +250,6 @@
 
     <div class="sheet">
 
-        <!-- Header -->
         <div class="row">
             <div class="left">
                 <div style="font-weight:700">{{ $company_name }}</div>
@@ -270,12 +263,11 @@
 
         <hr>
 
-        <!-- Info supplier dan tanggal -->
         <table style="width:100%;border-collapse:collapse;margin-bottom:8px">
             <tr>
                 <td style="border:0;padding:0 0 4px 0">
                     <strong>Kepada</strong> :
-                    {{ !empty($hdr->supplier_name) ?  $hdr->supplier_name : '' }}
+                    {{ !empty($hdr->supplier_name) ? $hdr->supplier_name : '' }}
                 </td>
                 <td style="border:0;padding:0;text-align:right">
                     <div><strong>Tanggal</strong> : {{ $fmt($hdr->fpodate) }}</div>
@@ -284,16 +276,17 @@
             </tr>
         </table>
 
-        <!-- Tabel item -->
+        <br>
+
         <table class="tb">
             <thead>
                 <tr>
-                    <th style="width:36px">No.</th>
-                    <th>Nama Barang</th>
-                    <th style="width:100px">Qty.</th>
-                    <th style="width:70px">Harga</th>
-                    <th style="width:70px">Disc%</th>
-                    <th style="width:240px;text-align:left">Total Harga</th>
+                    <th style="width:5px">No.</th>
+                    <th style="width:200px">Nama Barang</th>
+                    <th style="width:50px">Qty.</th>
+                    <th style="width:50px">Harga</th>
+                    <th style="width:50px">Disc%</th>
+                    <th style="width:60px;text-align:left">Total Harga</th>
                 </tr>
             </thead>
             <tbody>
@@ -301,7 +294,6 @@
                     <tr>
                         <td class="center">{{ $i + 1 }}</td>
                         <td>
-                            <div class="mono">({{ $r->fprdcode }})</div>
                             <div>{{ $r->product_name ?? '-' }}</div>
                             @if (!empty($r->fdesc))
                                 <div class="muted">({{ $r->fdesc }})</div>
@@ -322,7 +314,6 @@
         <hr class="hr-strong">
 
         <div class="footer-wrap">
-            <!-- Kolom kiri: Note + Hal -->
             <div class="footer-left">
                 <div class="note-box">
                     <div class="note-top">Terbilang :</div>
@@ -330,7 +321,6 @@
                 </div>
             </div>
 
-            <!-- Kolom kanan: Total Harga, PPN, Grand Total, Signature -->
             <div class="footer-right">
                 <div class="total-section">
                     <div class="label">TOTAL HARGA :</div>
@@ -346,10 +336,7 @@
                     <div class="label">GRAND TOTAL :</div>
                     <div class="value">Rp {{ number_format((float) ($hdr->famountpo ?? 0), 2, ',', '.') }}</div>
                 </div>
-                <div class="total-section grand-total"></div>
-                <div class="total-section grand-total"></div>
 
-                <!-- Horizontal Line after Grand Total -->
                 <table class="sign">
                     <tr>
                         <td class="head">Dibuat,</td>
@@ -364,15 +351,6 @@
                 </table>
             </div>
         </div>
-        <style>
-            .grand-total {
-                border-top: 1px solid #000000;
-                padding-top: 8px;
-                margin-top: 8px;
-                font-weight: bold;
-                /* Optional: untuk menekankan grand total */
-            }
-        </style>
     </div>
 </body>
 

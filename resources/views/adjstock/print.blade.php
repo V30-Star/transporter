@@ -23,15 +23,20 @@
             color: var(--fg)
         }
 
+        /* --- PERUBAHAN UTAMA UNTUK A4 --- */
         .sheet {
-            width: 5.5in;
-            min-height: 11in;
+            width: 8.27in;
+            /* Lebar A4 */
+            min-height: 11.69in;
+            /* Tinggi A4 */
             margin: 0.4in auto;
             padding: 0.4in 0.5in;
             background: #fff;
             border: 1px solid #cfcfcf;
             box-shadow: 0 6px 18px rgba(0, 0, 0, .12);
         }
+
+        /* -------------------------------- */
 
         .row {
             display: flex;
@@ -115,12 +120,9 @@
         }
 
         .footer-wrap {
-            display: grid;
-            grid-template-columns: 60% 40%;
-            column-gap: 18px;
-            margin-top: 14px;
-            min-height: 120px;
-            align-items: start;
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
         }
 
         .note-top {
@@ -133,6 +135,10 @@
             flex-direction: column;
             justify-content: space-between;
             height: 100%;
+            margin-top: 10px;
+            font-size: 11px;
+            width: 50%;
+            /* Mengembalikan lebar relatif */
         }
 
         .hal {
@@ -166,8 +172,10 @@
                 margin: 0;
                 border: none;
                 box-shadow: none;
-                width: 5.5in;
-                min-height: 11in;
+                width: 8.27in;
+                /* A4 Print Width */
+                min-height: 11.69in;
+                /* A4 Print Height */
                 padding: 0.4in 0.5in;
             }
 
@@ -176,34 +184,27 @@
             }
 
             @page {
-                size: 5.5in 11in;
+                size: A4;
+                /* Mengatur halaman cetak ke A4 */
                 margin: 0;
             }
-        }
-
-        .footer-wrap {
-            display: flex;
-            justify-content: space-between;
-            /* Align left and right sections */
-            margin-top: 20px;
         }
 
         .footer-left {
             display: flex;
             flex-direction: column;
-            width: 50%;
-            /* Left section will take 50% width */
+            width: 60%;
+            /* Disesuaikan untuk A4 */
         }
 
         .footer-right {
             display: flex;
             flex-direction: column;
             align-items: flex-end;
-            /* Align everything to the right */
-            width: 100%;
-            /* Right section will take 50% width */
-            margin-left: 30px;
-            /* Add space between left and right */
+            width: 40%;
+            /* Disesuaikan untuk A4 */
+            margin-left: 18px;
+            /* Menggunakan gap yang lebih konsisten */
         }
 
         .total-section {
@@ -215,7 +216,6 @@
 
         .label {
             font-weight: 550;
-            width: 150px;
         }
 
         .value {
@@ -233,17 +233,11 @@
             text-align: center;
         }
 
-        .note-box {
-            margin-top: 10px;
-            font-size: 11px;
-        }
-
-        /* Style for the horizontal line after GRAND TOTAL */
-        .footer-line {
-            border: 0;
-            border-top: 1px solid #000;
-            /* A thick black line */
-            margin: 5px 0;
+        .grand-total {
+            border-top: 1px solid #000000;
+            padding-top: 8px;
+            margin-top: 8px;
+            font-weight: bold;
         }
     </style>
 </head>
@@ -295,11 +289,11 @@
         <table class="tb">
             <thead>
                 <tr>
-                    <th style="width:36px">No.</th>
-                    <th>Kode Barang</th>
-                    <th>Nama Barang</th>
-                    <th style="width:100px">Qty.</th>
-                    <th style="width:70px">Satuan</th>
+                    <th style="width:5px">No.</th>
+                    <th style="width:50px">Kode Barang</th>
+                    <th style="width:200px">Nama Barang</th>
+                    <th style="width:50px">Qty.</th>
+                    <th style="width:50px">Satuan</th>
                 </tr>
             </thead>
             <tbody>

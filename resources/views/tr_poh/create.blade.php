@@ -935,7 +935,8 @@
                     <div x-data="productBrowser()" x-show="open" x-cloak x-transition.opacity
                         class="fixed inset-0 z-50 flex items-center justify-center">
                         <div class="absolute inset-0 bg-black/40" @click="close()"></div>
-                        <div class="relative bg-white rounded-2xl shadow-xl w-[92vw] max-w-5xl max-h-[85vh] flex flex-col">
+                        <div
+                            class="relative bg-white rounded-2xl shadow-xl w-[90vw] **max-w-7xl** max-h-[90vh] flex flex-col">
                             <div class="p-4 border-b flex items-center gap-3">
                                 <h3 class="text-lg font-semibold">Browse Produk</h3>
                                 <button type="button" @click="close()"
