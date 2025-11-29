@@ -3,18 +3,7 @@
 @section('title', 'Penerimaan Barang')
 
 @section('content')
-    <div x-data="{
-        showDeleteModal: false,
-        deleteUrl: null,
-        openDelete(url) {
-            this.deleteUrl = url;
-            this.showDeleteModal = true
-        },
-        closeDelete() {
-            this.showDeleteModal = false;
-            this.deleteUrl = null
-        }
-    }" class="bg-white rounded shadow p-4">
+    <div x-data class="bg-white rounded shadow p-4">
 
         {{-- @php
             $canCreate = in_array('createTr_prh', explode(',', session('user_restricted_permissions', '')));
@@ -97,23 +86,42 @@
         </table>
 
         {{-- Modal Delete --}}
-        <div x-show="showDeleteModal" x-cloak
-            class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div @click.away="closeDelete()" class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
+        <div x-show="$store.penerimaanbarangStore.showDeleteModal" x-cloak
+            class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" x-transition>
+            <div @click.away="!$store.penerimaanbarangStore.isDeleting && $store.penerimaanbarangStore.closeDelete()"
+                class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
                 <h3 class="text-lg font-semibold mb-4">Konfirmasi Hapus</h3>
                 <p class="mb-6">Apakah Anda yakin ingin menghapus data ini?</p>
-
                 <div class="flex justify-end space-x-2">
-                    <button @click="closeDelete()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Batal</button>
-                    <form :action="deleteUrl" method="POST" class="inline">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit"
-                            class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Hapus</button>
-                    </form>
+                    <button @click="$store.penerimaanbarangStore.closeDelete()"
+                        class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400" :disabled="$store.penerimaanbarangStore.isDeleting">
+                        Batal
+                    </button>
+                    <button @click="$store.penerimaanbarangStore.confirmDelete()"
+                        class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                        :disabled="$store.penerimaanbarangStore.isDeleting">
+                        <span x-show="!$store.penerimaanbarangStore.isDeleting">Hapus</span>
+                        <span x-show="$store.penerimaanbarangStore.isDeleting">Menghapus...</span>
+                    </button>
                 </div>
             </div>
         </div>
+
+        {{-- Toast Notification --}}
+        <div x-show="$store.penerimaanbarangStore.showNotification" x-cloak x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="opacity-0 transform translate-y-2"
+            x-transition:enter-end="opacity-100 transform translate-y-0"
+            x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0" class="fixed top-4 right-4 z-50 max-w-sm">
+            <div :class="$store.penerimaanbarangStore.notificationType === 'success' ? 'bg-green-500' : 'bg-red-500'"
+                class="text-white px-6 py-4 rounded-lg shadow-lg flex items-center space-x-3">
+                <span x-text="$store.penerimaanbarangStore.notificationMessage"></span>
+                <button @click="$store.penerimaanbarangStore.showNotification = false" class="ml-4 text-white hover:text-gray-200">
+                    ×
+                </button>
+            </div>
+        </div>
+
     </div>
 @endsection
 
@@ -191,43 +199,166 @@
     <script src="https://cdn.datatables.net/2.1.6/js/dataTables.min.js"></script>
 
     <script>
-        $(function() {
-            // Ambil dari Blade untuk menentukan jumlah kolom
-            const hasActions = {{ $showActionsColumn ? 'true' : 'false' }};
+        document.addEventListener('alpine:init', () => {
+            Alpine.store('penerimaanbarangStore', {
+                showDeleteModal: false,
+                deleteUrl: '',
+                isDeleting: false,
+                showNotification: false,
+                notificationMessage: '',
+                notificationType: 'success',
+                currentRow: null,
 
-            // 1. Definisi Kolom (Sangat Penting)
-            // 'data' harus cocok dengan key JSON dari Controller
+                openDelete(url, event) {
+                    this.deleteUrl = url;
+                    this.showDeleteModal = true;
+                    this.isDeleting = false;
+                    this.currentRow = event.target.closest('tr');
+                },
+
+                closeDelete() {
+                    if (!this.isDeleting) {
+                        this.showDeleteModal = false;
+                        this.deleteUrl = '';
+                        this.currentRow = null;
+                    }
+                },
+
+                confirmDelete() {
+                    this.isDeleting = true;
+                    const rowToDelete = this.currentRow;
+
+                    fetch(this.deleteUrl, {
+                            method: 'DELETE',
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                    .content,
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json'
+                            }
+                        })
+                        .then(response => {
+                            return response.json().then(data => ({
+                                ok: response.ok,
+                                status: response.status,
+                                data: data
+                            }));
+                        })
+                        .then(result => {
+                            this.showDeleteModal = false;
+                            this.isDeleting = false;
+
+                            if (result.ok) {
+                                const table = $('#penerimaanbarangTable').DataTable();
+                                if (rowToDelete) {
+                                    table.row($(rowToDelete)).remove().draw(false);
+                                }
+                                this.showNotificationMsg('success', result.data.message ||
+                                    'Data berhasil dihapus');
+                            } else {
+                                this.showNotificationMsg('error', result.data.message ||
+                                    'Gagal menghapus data');
+                            }
+
+                            this.currentRow = null;
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            this.showDeleteModal = false;
+                            this.isDeleting = false;
+                            this.showNotificationMsg('error', 'Terjadi kesalahan. Silakan coba lagi.');
+                            this.currentRow = null;
+                        });
+                },
+
+                showNotificationMsg(type, message) {
+                    this.notificationType = type;
+                    this.notificationMessage = message;
+                    this.showNotification = true;
+
+                    setTimeout(() => {
+                        this.showNotification = false;
+                    }, 3000);
+                }
+            });
+        });
+
+        $(function() {
+            // const hasActions = {{ $showActionsColumn ? 'true' : 'false' }};
+            // const canEdit = {{ $canEdit ? 'true' : 'false' }};
+            // const canDelete = {{ $canDelete ? 'true' : 'false' }};
+
+            // 1. Definisi Kolom
             const columns = [{
-                    data: 'fstockmtno'
-                }, // data dari 'fstockmtno'
+                    data: 'fstockmtno',
+                    name: 'fstockmtno'
+                },
                 {
-                    data: 'fstockmtdate'
-                }, // data dari 'fstockmtdate'
-                {
-                    data: 'actions',
-                    name: 'actions',
-                    orderable: false,
-                    searchable: false
+                    data: 'fstockmtdate',
+                    name: 'fstockmtdate'
                 }
             ];
 
-            // 2. Tambah Kolom Aksi (jika ada izin)
+            // Tambahkan kolom actions jika ada permission
             // if (hasActions) {
-            const columnDefs = [{
-                targets: -1, // Kolom terakhir (actions)
-                orderable: false,
-                searchable: false,
-                width: '200px'
-            }];
+                columns.push({
+                    data: 'fstockmtid',
+                    name: 'actions',
+                    orderable: false,
+                    searchable: false,
+                    render: function(data, type, row) {
+                        let html = '<div class="flex gap-2">';
 
+                        // Edit Button
+                        // if (canEdit) {
+                            html += `<a href="/penerimaanbarang/${data}/edit" class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                            </svg>
+                            Edit
+                        </a>`;
+                        // }
+
+                        // Delete Button
+                        // if (canDelete) {
+                            html += `<button onclick="event.stopPropagation(); Alpine.store('penerimaanbarangStore').openDelete('penerimaanbarang/${data}', event)" 
+                            class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                            Delete
+                        </button>`;
+                        // }
+
+                        // Print Button - Selalu tampil, pakai fstockmtno
+                        html += `<a href="/penerimaanbarang/${row.fstockmtno}/print" target="_blank" class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m10 0v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5m10 0v5H7v-5"></path>
+                        </svg>
+                        Print
+                    </a>`;
+
+                        html += '</div>';
+                        return html;
+                    }
+                });
+            // }
+
+            // 2. Definisi columnDefs
+            const columnDefs = [];
+            // if (hasActions) {
+                columnDefs.push({
+                    targets: -1,
+                    orderable: false,
+                    searchable: false,
+                    width: '280px'
+                });
             // }
 
             // 3. Inisialisasi DataTables
-            // Pastikan ID tabel Anda adalah 'penerimaanbarangTable'
             $('#penerimaanbarangTable').DataTable({
-                // --- KUNCI SERVER-SIDE ---
-                processing: true, // Tampilkan 'Loading...'
-                serverSide: true, // Aktifkan mode SSP
+                processing: true,
+                serverSide: true,
                 ajax: {
                     url: '{{ route('penerimaanbarang.index') }}',
                     type: 'GET',
@@ -237,16 +368,11 @@
                         d.month = urlParams.get('month') || '';
                     }
                 },
-                // Terapkan kolom dari langkah 1 & 2
                 columns: columns,
                 columnDefs: columnDefs,
-
-                // Urutkan berdasarkan kolom pertama (No. Penerimaan)
                 order: [
                     [0, 'desc']
                 ],
-
-                // Tampilkan elemen standar
                 layout: {
                     topStart: 'search',
                     topEnd: 'pageLength',
@@ -257,45 +383,22 @@
                     const api = this.api();
                     const $toolbarSearch = $(api.table().container()).find('.dt-search');
 
-                    // Clone filters
-                    const $statusFilter = $('#statusFilterTemplate #statusFilterWrap').clone(true,
-                        true);
-                    const $statusSelect = $statusFilter.find('select[data-role="status-filter"]');
-                    $statusSelect.attr('id', 'statusFilterDT');
-                    $toolbarSearch.append($statusFilter);
-
+                    // Clone year filter
                     const $yearFilter = $('#yearFilterTemplate #yearFilterWrap').clone(true, true);
                     const $yearSelect = $yearFilter.find('select[data-role="year-filter"]');
                     $yearSelect.attr('id', 'yearFilterDT');
                     $toolbarSearch.append($yearFilter);
 
+                    // Clone month filter
                     const $monthFilter = $('#monthFilterTemplate #monthFilterWrap').clone(true, true);
                     const $monthSelect = $monthFilter.find('select[data-role="month-filter"]');
                     $monthSelect.attr('id', 'monthFilterDT');
                     $toolbarSearch.append($monthFilter);
 
-                    // Baca status dari URL, default 'active'
-                    const urlParams = new URLSearchParams(window.location.search);
-
                     const $searchInput = $toolbarSearch.find('.dt-input');
                     $searchInput.css({
                         width: '400px',
                         maxWidth: '100%'
-                    });
-
-                    // Event handler untuk Status Filter
-                    $statusSelect.on('change', function() {
-                        const v = this.value;
-                        if (v === 'active') {
-                            api.column(statusColIdx).search('^0$', true, false).draw();
-                        } else if (v === 'nonactive') {
-                            api.column(statusColIdx).search('^1$', true, false).draw();
-                        } else {
-                            api.column(statusColIdx).search('', true, false).draw();
-                        }
-
-                        // Update URL tanpa reload
-                        updateUrlParams();
                     });
 
                     // Event handlers untuk Year dan Month
@@ -313,7 +416,6 @@
                     function updateUrlParams() {
                         const year = $yearSelect.val();
                         const month = $monthSelect.val();
-                        const status = $statusSelect.val();
                         const url = new URL(window.location.href);
 
                         if (year) {
@@ -326,12 +428,6 @@
                             url.searchParams.set('month', month);
                         } else {
                             url.searchParams.delete('month');
-                        }
-
-                        if (status && status !== 'all') {
-                            url.searchParams.set('status', status);
-                        } else {
-                            url.searchParams.delete('status');
                         }
 
                         window.history.pushState({}, '', url.toString());

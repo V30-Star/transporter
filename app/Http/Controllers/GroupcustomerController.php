@@ -124,6 +124,13 @@ class GroupcustomerController extends Controller
         // Menghapus data grup customer
         $groupCustomer->delete();
 
+        if (request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Group Customer berhasil dihapus.'
+            ]);
+        }
+
         // Mengarahkan kembali dengan pesan sukses
         return redirect()->route('groupcustomer.index')
             ->with('success', 'Group Customer berhasil dihapus.');

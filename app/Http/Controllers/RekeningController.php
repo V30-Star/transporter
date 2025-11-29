@@ -96,7 +96,7 @@ class RekeningController extends Controller
                 'frekeningname.unique' => 'Nama Rekening ini sudah ada',
             ]
         );
-        
+
         $validated['frekeningname'] = strtoupper($validated['frekeningname']);
 
         $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
@@ -118,6 +118,13 @@ class RekeningController extends Controller
         // Find Rekening and delete it
         $rekening = Rekening::findOrFail($frekeningid);
         $rekening->delete();
+
+        if (request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Rekening berhasil dihapus.'
+            ]);
+        }
 
         return redirect()
             ->route('rekening.index')

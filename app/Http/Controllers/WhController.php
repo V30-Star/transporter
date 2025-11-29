@@ -153,6 +153,13 @@ class WhController extends Controller
         $gudang = Wh::findOrFail($fwhid);
         $gudang->delete();
 
+        if (request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Gudang berhasil dihapus.'
+            ]);
+        }
+
         return redirect()
             ->route('gudang.index')
             ->with('success', 'Wh berhasil dihapus.');

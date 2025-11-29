@@ -45,7 +45,7 @@ class SubaccountController extends Controller
             'fsubaccountcode' => strtoupper($request->fsubaccountcode),
             'fsubaccountname' => strtoupper($request->fsubaccountname),
         ]);
-        
+
         $validated = $request->validate(
             [
                 'fsubaccountcode' => 'required|string|unique:mssubaccount,fsubaccountcode',
@@ -122,6 +122,13 @@ class SubaccountController extends Controller
         $subaccount = Subaccount::findOrFail($fsubaccountid);
         $subaccount->delete();
 
+        if (request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Sub Account berhasil dihapus.'
+            ]);
+        }
+        
         return redirect()
             ->route('subaccount.index')
             ->with('success', 'Subaccount berhasil dihapus.');

@@ -88,48 +88,12 @@ class PenerimaanBarangController extends Controller
         ->take($length)
         ->get(['fstockmtid', 'fstockmtno', 'fstockmtdate']);
 
-      // Format Data
-      $data = $records->map(function ($row) use ($canEdit, $canDelete) {
-
-        $actions = '<div class="flex gap-2">';
-
-        // --- Tombol Edit ---
-        // if ($canEdit) {
-        $editUrl = route('penerimaanbarang.edit', $row->fstockmtid);
-        $actions .= '<a href="' . $editUrl . '" class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
-                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                    </svg>
-                    Edit
-                </a>';
-        // }
-
-        // --- Tombol Delete ---
-        // if ($canDelete) {
-        $deleteUrl = route('penerimaanbarang.destroy', $row->fstockmtid);
-        $actions .= '<button onclick="window.dispatchEvent(new CustomEvent(\'open-delete\', {detail: \'' . $deleteUrl . '\'}))" class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
-                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                    </svg>
-                    Delete
-                </button>';
-        // }
-
-        // --- Tombol Print ---
-        $printUrl = route('penerimaanbarang.print', ['fstockmtno' => $row->fstockmtno]);
-        $actions .= '<a href="' . $printUrl . '" target="_blank" class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m10 0v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5m10 0v5H7v-5"></path>
-                </svg>
-                Print
-            </a>';
-
-        $actions .= '</div>';
-
+      // Format Data - HANYA RETURN DATA MENTAH
+      $data = $records->map(function ($row) {
         return [
+          'fstockmtid'   => $row->fstockmtid,
           'fstockmtno'   => $row->fstockmtno,
-          'fstockmtdate' => Carbon::parse($row->fstockmtdate)->format('d/m/Y'),
-          'actions'      => $actions
+          'fstockmtdate' => Carbon::parse($row->fstockmtdate)->format('d/m/Y')
         ];
       });
 
@@ -1099,7 +1063,16 @@ class PenerimaanBarangController extends Controller
   public function destroy($fstockmtid)
   {
     $penerimaanbarang = PenerimaanPembelianHeader::findOrFail($fstockmtid);
+    $penerimaanbarang->details()->delete();
+
+    // 2. Baru hapus header
     $penerimaanbarang->delete();
+    if (request()->wantsJson()) {
+      return response()->json([
+        'success' => true,
+        'message' => 'Penerimaan Barang berhasil dihapus.'
+      ]);
+    }
 
     return redirect()
       ->route('penerimaanbarang.index')

@@ -350,6 +350,13 @@ class CustomerController extends Controller
     {
         $customer = Customer::findOrFail($fcustomerid);
         $customer->delete();
+        if (request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Customer berhasil dihapus.'
+            ]);
+        }
+
 
         return redirect()
             ->route('customer.index')

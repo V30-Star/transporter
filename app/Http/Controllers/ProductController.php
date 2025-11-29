@@ -12,7 +12,6 @@ use Illuminate\Support\Facades\DB;
 
 class ProductController extends Controller
 {
-
     public function index(Request $request)
     {
         if ($request->ajax()) {
@@ -364,45 +363,41 @@ class ProductController extends Controller
 
     public function destroy($fprdid)
     {
-        try {
-            // 1. Cari produknya dulu
-            // findOrFail akan error jika produk tidak ada, langsung masuk ke catch
-            $product = Product::findOrFail($fprdid);
+        // 1. Cari produknya dulu
+        // findOrFail akan error jika produk tidak ada, langsung masuk ke catch
+        $product = Product::findOrFail($fprdid);
 
-            // 2. Lakukan pengecekan satu per satu MENGGUNAKAN RELASI
+        // 2. Lakukan pengecekan satu per satu MENGGUNAKAN RELASI
 
-            // Cek ke tr_pod
-            if ($product->trPods()->exists()) {
-                return redirect()->route('product.index')
-                    ->with('danger', 'Gagal hapus: Produk masih digunakan di data PO (tr_pod).');
-            }
-
-            // Cek ke tr_prd (asumsi dari fungsi Anda)
-            if ($product->trPrds()->exists()) {
-                return redirect()->route('product.index')
-                    ->with('danger', 'Gagal hapus: Produk masih digunakan di data PR (tr_prd).');
-            }
-
-            // Cek ke trstockdt
-            if ($product->trstockdts()->exists()) {
-                return redirect()->route('product.index')
-                    ->with('danger', 'Gagal hapus: Produk masih digunakan di data Transaksi Stok (trstockdt).');
-            }
-
-            // 3. Jika semua pengecekan lolos, baru hapus
-            $product->delete();
-
+        // Cek ke tr_pod
+        if ($product->trPods()->exists()) {
             return redirect()->route('product.index')
-                ->with('success', 'Produk berhasil dihapus.');
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            // Ini jika findOrFail gagal (produk tidak ditemukan)
-            return redirect()->route('product.index')
-                ->with('danger', 'Produk tidak ditemukan.');
-        } catch (\Exception $e) {
-            // Ini untuk menangkap error tak terduga lainnya
-            return redirect()->route('product.index')
-                ->with('error', 'Gagal menghapus produk: ' . $e->getMessage());
+                ->with('danger', 'Gagal hapus: Produk masih digunakan di data PO (tr_pod).');
         }
+
+        // Cek ke tr_prd (asumsi dari fungsi Anda)
+        if ($product->trPrds()->exists()) {
+            return redirect()->route('product.index')
+                ->with('danger', 'Gagal hapus: Produk masih digunakan di data PR (tr_prd).');
+        }
+
+        // Cek ke trstockdt
+        if ($product->trstockdts()->exists()) {
+            return redirect()->route('product.index')
+                ->with('danger', 'Gagal hapus: Produk masih digunakan di data Transaksi Stok (trstockdt).');
+        }
+
+        // 3. Jika semua pengecekan lolos, baru hapus
+        $product->delete();
+        if (request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Product berhasil dihapus.'
+            ]);
+        }
+
+        return redirect()->route('product.index')
+            ->with('success', 'Produk berhasil dihapus.');
     }
 
     public function browse(Request $request)

@@ -760,6 +760,13 @@ class Tr_prhController extends Controller
     $satuan = Tr_prh::findOrFail($fsatuanid);
     $satuan->delete();
 
+    if (request()->wantsJson()) {
+      return response()->json([
+        'success' => true,
+        'message' => 'Permintaan Pembelian berhasil dihapus.'
+      ]);
+    }
+
     return redirect()
       ->route('tr_prh.index')
       ->with('success', 'Satuan berhasil dihapus.');

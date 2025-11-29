@@ -154,6 +154,13 @@ class SupplierController extends Controller
         $supplier = Supplier::findOrFail($fsupplierid);
         $supplier->delete();
 
+        if (request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Supplier berhasil dihapus.'
+            ]);
+        }
+
         return redirect()
             ->route('supplier.index')
             ->with('success', 'Supplier berhasil dihapus.');

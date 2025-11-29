@@ -3,18 +3,7 @@
 @section('title', 'Master Customer')
 
 @section('content')
-    <div x-data="{
-        showDeleteModal: false,
-        deleteUrl: null,
-        openDelete(url) {
-            this.deleteUrl = url;
-            this.showDeleteModal = true
-        },
-        closeDelete() {
-            this.deleteUrl = null;
-            this.showDeleteModal = false
-        }
-    }" x-on:open-delete.window="openDelete($event.detail)" class="bg-white rounded shadow p-4">
+    <div x-data class="bg-white rounded shadow p-4">
 
         @php
             $canCreate = in_array('createCustomer', explode(',', session('user_restricted_permissions', '')));
@@ -66,19 +55,39 @@
         </table>
 
         {{-- Modal Delete --}}
-        <div x-show="showDeleteModal" x-cloak
-            class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div @click.away="closeDelete()" class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
+        <div x-show="$store.customerStore.showDeleteModal" x-cloak
+            class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" x-transition>
+            <div @click.away="!$store.customerStore.isDeleting && $store.customerStore.closeDelete()"
+                class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
                 <h3 class="text-lg font-semibold mb-4">Konfirmasi Hapus</h3>
                 <p class="mb-6">Apakah Anda yakin ingin menghapus data ini?</p>
                 <div class="flex justify-end space-x-2">
-                    <button @click="closeDelete()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Batal</button>
-                    <form :action="deleteUrl" method="POST" class="inline">
-                        @csrf @method('DELETE')
-                        <button type="submit"
-                            class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Hapus</button>
-                    </form>
+                    <button @click="$store.customerStore.closeDelete()"
+                        class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400" :disabled="$store.customerStore.isDeleting">
+                        Batal
+                    </button>
+                    <button @click="$store.customerStore.confirmDelete()"
+                        class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                        :disabled="$store.customerStore.isDeleting">
+                        <span x-show="!$store.customerStore.isDeleting">Hapus</span>
+                        <span x-show="$store.customerStore.isDeleting">Menghapus...</span>
+                    </button>
                 </div>
+            </div>
+        </div>
+
+        {{-- Toast Notification --}}
+        <div x-show="$store.customerStore.showNotification" x-cloak x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="opacity-0 transform translate-y-2"
+            x-transition:enter-end="opacity-100 transform translate-y-0"
+            x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0" class="fixed top-4 right-4 z-50 max-w-sm">
+            <div :class="$store.customerStore.notificationType === 'success' ? 'bg-green-500' : 'bg-red-500'"
+                class="text-white px-6 py-4 rounded-lg shadow-lg flex items-center space-x-3">
+                <span x-text="$store.customerStore.notificationMessage"></span>
+                <button @click="$store.customerStore.showNotification = false" class="ml-4 text-white hover:text-gray-200">
+                    ×
+                </button>
             </div>
         </div>
     </div>
@@ -160,16 +169,88 @@
     {{-- Script inisialisasi DataTables --}}
     <script>
         document.addEventListener('alpine:init', () => {
-            /* no-op */
-        });
+            Alpine.store('customerStore', {
+                showDeleteModal: false,
+                deleteUrl: '',
+                isDeleting: false,
+                showNotification: false,
+                notificationMessage: '',
+                notificationType: 'success',
+                currentRow: null,
 
-        // Fungsi helper untuk modal delete
-        function openDeleteModal(url) {
-            // Pastikan Anda punya modal AlpineJS 'open-delete'
-            window.dispatchEvent(new CustomEvent('open-delete', {
-                detail: url
-            }));
-        }
+                openDelete(url, event) {
+                    this.deleteUrl = url;
+                    this.showDeleteModal = true;
+                    this.isDeleting = false;
+                    this.currentRow = event.target.closest('tr');
+                },
+
+                closeDelete() {
+                    if (!this.isDeleting) {
+                        this.showDeleteModal = false;
+                        this.deleteUrl = '';
+                        this.currentRow = null;
+                    }
+                },
+
+                confirmDelete() {
+                    this.isDeleting = true;
+                    const rowToDelete = this.currentRow;
+
+                    fetch(this.deleteUrl, {
+                            method: 'DELETE',
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                    .content,
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json'
+                            }
+                        })
+                        .then(response => {
+                            return response.json().then(data => ({
+                                ok: response.ok,
+                                status: response.status,
+                                data: data
+                            }));
+                        })
+                        .then(result => {
+                            this.showDeleteModal = false;
+                            this.isDeleting = false;
+
+                            if (result.ok) {
+                                const table = $('#customerTable').DataTable();
+                                if (rowToDelete) {
+                                    table.row($(rowToDelete)).remove().draw(false);
+                                }
+                                this.showNotificationMsg('success', result.data.message ||
+                                    'Data berhasil dihapus');
+                            } else {
+                                this.showNotificationMsg('error', result.data.message ||
+                                    'Gagal menghapus data');
+                            }
+
+                            this.currentRow = null;
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            this.showDeleteModal = false;
+                            this.isDeleting = false;
+                            this.showNotificationMsg('error', 'Terjadi kesalahan. Silakan coba lagi.');
+                            this.currentRow = null;
+                        });
+                },
+
+                showNotificationMsg(type, message) {
+                    this.notificationType = type;
+                    this.notificationMessage = message;
+                    this.showNotification = true;
+
+                    setTimeout(() => {
+                        this.showNotification = false;
+                    }, 3000);
+                }
+            });
+        });
 
         $(function() {
             const hasActions = {{ $showActionsColumn ? 'true' : 'false' }};
@@ -229,15 +310,14 @@
                         }
 
                         if (canDelete) {
-                            // Ganti route('customer.destroy') jika perlu
-                            let deleteUrl = '{{ route('customer.index') }}/' + data;
-                            html += `<button onclick="openDeleteModal('${deleteUrl}')" class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
-                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                    </svg> Delete
-                            </button>`;
+                            html += `<button onclick="event.stopPropagation(); Alpine.store('customerStore').openDelete('customer/${data}', event)" 
+                        class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                        Hapus
+                    </button>`;
                         }
-
                         html += '</div>';
                         return html;
                     }

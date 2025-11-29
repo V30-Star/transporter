@@ -130,6 +130,13 @@ class MerekController extends Controller
         $merek = Merek::findOrFail($fmerekid);
         $merek->delete();
 
+        if (request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Merek berhasil dihapus.'
+            ]);
+        }
+
         return redirect()
             ->route('merek.index')
             ->with('success', 'Merek berhasil dihapus.');

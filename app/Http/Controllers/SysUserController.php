@@ -206,6 +206,13 @@ class SysUserController extends Controller
         $sysuser = Sysuser::findOrFail($fuid);
         $sysuser->delete();
 
+        if (request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Wewenang User berhasil dihapus.'
+            ]);
+        }
+
         return redirect()
             ->route('sysuser.index')
             ->with('success', 'Sysuser berhasil dihapus.');

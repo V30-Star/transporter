@@ -75,7 +75,7 @@ class AccountController extends Controller
             [
                 'faccount'     => 'required|string|unique:account,faccount|max:10',
                 'faccname'     => 'required|string|unique:account,faccname|max:50',
-                'faccupline'  => 'nullable|integer|exists:account,faccid', // <— ganti ke faccid
+                'faccupline'   => 'nullable|integer', // <— ganti ke faccid
                 'finitjurnal'  => 'nullable|string|max:2',
                 'fnormal'      => 'required|in:D',
                 'fend'         => 'required|in:1,0',
@@ -161,8 +161,8 @@ class AccountController extends Controller
                 'faccupline'   => [
                     'nullable',
                     'integer',
-                    Rule::exists('account', 'faccid')->where(fn($q) => $q->where('fend', 0)),
-                    Rule::notIn([$faccid]),
+                    // Rule::exists('account', 'faccid')->where(fn($q) => $q->where('fend', 0)),
+                    // Rule::notIn([$faccid]),
                 ],
             ],
             [
@@ -246,6 +246,12 @@ class AccountController extends Controller
 
         // Delete the Account
         $account->delete();
+        if (request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Account berhasil dihapus.'
+            ]);
+        }
 
         return redirect()
             ->route('account.index')

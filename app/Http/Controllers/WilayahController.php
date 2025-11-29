@@ -125,6 +125,13 @@ class WilayahController extends Controller
         $wilayah = Wilayah::findOrFail($fwilayahid);
         $wilayah->delete();
 
+        if (request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Wilayah berhasil dihapus.'
+            ]);
+        }
+
         return redirect()
             ->route('wilayah.index')
             ->with('success', 'Wilayah berhasil dihapus.');

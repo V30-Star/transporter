@@ -112,7 +112,7 @@ class SalesmanController extends Controller
 
         $validated['fsalesmancode'] = strtoupper($validated['fsalesmancode']);
         $validated['fsalesmanname'] = strtoupper($validated['fsalesmanname']);
-        
+
         $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null; // Use the authenticated user's name or 'system' as default
         $validated['fupdatedat'] = now(); // Use the current time
@@ -130,6 +130,13 @@ class SalesmanController extends Controller
     {
         $salesman = Salesman::findOrFail($fsalesmanid);
         $salesman->delete();
+
+        if (request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Salesman berhasil dihapus.'
+            ]);
+        }
 
         return redirect()
             ->route('salesman.index', $request->only(['status', 'search', 'filter_by', 'sort_by', 'sort_dir', 'page']))

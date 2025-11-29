@@ -127,6 +127,13 @@ class GroupproductController extends Controller
         $groupproduct = Groupproduct::findOrFail($fgroupid);
         $groupproduct->delete();
 
+        if (request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Group Product berhasil dihapus.'
+            ]);
+        }
+
         return redirect()
             ->route('groupproduct.index')
             ->with('success', 'Groupproduct berhasil dihapus.');
