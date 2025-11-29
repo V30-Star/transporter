@@ -43,7 +43,6 @@ class SubaccountController extends Controller
     {
         $request->merge([
             'fsubaccountcode' => strtoupper($request->fsubaccountcode),
-            'fsubaccountname' => strtoupper($request->fsubaccountname),
         ]);
 
         $validated = $request->validate(
@@ -89,6 +88,10 @@ class SubaccountController extends Controller
      */
     public function update(Request $request, $fsubaccountid)
     {
+        $request->merge([
+            'fsubaccountcode' => strtoupper($request->fsubaccountcode),
+        ]);
+
         // Validasi
         $validated = $request->validate(
             [
@@ -128,7 +131,7 @@ class SubaccountController extends Controller
                 'message' => 'Sub Account berhasil dihapus.'
             ]);
         }
-        
+
         return redirect()
             ->route('subaccount.index')
             ->with('success', 'Subaccount berhasil dihapus.');

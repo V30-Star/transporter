@@ -44,17 +44,15 @@ class GroupcustomerController extends Controller
     {
         $request->merge([
             'fgroupcode' => strtoupper($request->fgroupcode),
-            'fgroupname' => strtoupper($request->fgroupname),
         ]);
         // Validasi input yang diterima dari form
         $validated = $request->validate([
             'fgroupcode' => 'required|string|unique:msgroupcustomer,fgroupcode',
-            'fgroupname' => 'required|string|unique:msgroupcustomer,fgroupname',
+            'fgroupname' => 'required|string',
         ], [
             'fgroupcode.required' => 'Kode Group harus diisi.',
             'fgroupname.required' => 'Nama Group harus diisi.',
             'fgroupcode.unique' => 'Kode Group sudah digunakan',
-            'fgroupname.unique' => 'Nama Group sudah digunakan',
         ]);
 
         $validated['fgroupcode'] = strtoupper($validated['fgroupcode']);
@@ -87,17 +85,15 @@ class GroupcustomerController extends Controller
     {
         $request->merge([
             'fgroupcode' => strtoupper($request->fgroupcode),
-            'fgroupname' => strtoupper($request->fgroupname),
         ]);
 
         $validated = $request->validate([
             'fgroupcode' => "required|string|unique:msgroupcustomer,fgroupcode,{$fgroupid},fgroupid",
-            'fgroupname' => 'required|string|unique:msgroupcustomer,fgroupname',
+            'fgroupname' => 'required|string',
         ], [
             'fgroupcode.required' => 'Kode Group harus diisi.',
             'fgroupname.required' => 'Nama Group harus diisi.',
             'fgroupcode.unique' => 'Kode Group sudah digunakan',
-            'fgroupname.unique' => 'Nama Group sudah digunakan',
         ]);
 
         $validated['fgroupcode'] = strtoupper($validated['fgroupcode']);

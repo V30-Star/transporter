@@ -198,14 +198,13 @@ class ProductController extends Controller
     {
         $request->merge([
             'fprdcode' => strtoupper($request->fprdcode),
-            'fprdname' => strtoupper($request->fprdname),
         ]);
 
         // Validate the incoming request
         $validated = $request->validate(
             [
                 'fprdcode' => 'nullable|string|unique:msprd,fprdcode',
-                'fprdname' => 'required|string|unique:msprd,fprdname',
+                'fprdname' => 'required|string',
                 'ftype' => 'string',
                 'fbarcode' => 'string',
                 'fgroupcode' => 'required', // Validate that fgroupcode exists in groups table
@@ -227,7 +226,6 @@ class ProductController extends Controller
             ],
             [
                 'fprdcode.unique' => 'Kode Produk sudah ada',
-                'fprdname.unique' => 'Nama Produk sudah ada',
                 'fprdcode.required' => 'Kode Produk harus diisi.',
                 'fprdname.required' => 'Nama Produk harus diisi.',
                 'ftype.required' => 'Tipe Produk harus diisi.',
@@ -290,14 +288,13 @@ class ProductController extends Controller
     {
         $request->merge([
             'fprdcode' => strtoupper($request->fprdcode),
-            'fprdname' => strtoupper($request->fprdname),
         ]);
 
         // Validate the incoming data
         $validated = $request->validate(
             [
                 'fprdcode' => "required|string|unique:msprd,fprdcode,{$fprdid},fprdid",
-                'fprdname' => 'required|string|unique:msprd,fprdname',
+                'fprdname' => 'required|string',
                 'ftype' => 'string',
                 'fbarcode' => 'string',
                 'fgroupcode' => 'required', // Validate that fgroupcode exists in groups table
@@ -319,7 +316,6 @@ class ProductController extends Controller
             ],
             [
                 'fprdcode.unique' => 'Kode Produk sudah ada',
-                'fprdname.unique' => 'Nama Produk sudah ada',
                 'fprdname.required' => 'Nama Produk harus diisi.',
                 'ftype.required' => 'Tipe Produk harus diisi.',
                 'fbarcode.required' => 'Barcode Produk harus diisi.',

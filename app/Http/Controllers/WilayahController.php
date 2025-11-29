@@ -50,17 +50,15 @@ class WilayahController extends Controller
     {
         $request->merge([
             'fwilayahcode' => strtoupper($request->fwilayahcode),
-            'fwilayahname' => strtoupper($request->fwilayahname),
         ]);
 
         $validated = $request->validate([
             'fwilayahcode' => 'required|string|unique:mswilayah,fwilayahcode',
-            'fwilayahname' => 'required|string|unique:mswilayah,fwilayahname',
+            'fwilayahname' => 'required|string',
         ], [
             'fwilayahcode.required' => 'Kode wilayah harus diisi.',
             'fwilayahname.required' => 'Nama wilayah harus diisi.',
             'fwilayahcode.unique' => 'Kode wilayah sudah ada',
-            'fwilayahname.unique' => 'Nama wilayah sudah ada',
         ]);
 
         // Add default values for the required fields
@@ -91,17 +89,15 @@ class WilayahController extends Controller
     {
         $request->merge([
             'fwilayahcode' => strtoupper($request->fwilayahcode),
-            'fwilayahname' => strtoupper($request->fwilayahname),
         ]);
 
         $validated = $request->validate([
             'fwilayahcode' => "required|string|unique:mswilayah,fwilayahcode,{$fwilayahid},fwilayahid",
-            'fwilayahname' => 'required|string|unique:mswilayah,fwilayahname',
+            'fwilayahname' => 'required|string',
         ], [
             'fwilayahcode.required' => 'Kode wilayah harus diisi.',
             'fwilayahname.required' => 'Nama wilayah harus diisi.',
             'fwilayahcode.unique' => 'Kode wilayah sudah ada',
-            'fwilayahname.unique' => 'Nama wilayah sudah ada',
         ]);
 
         // Add default values for the required fields

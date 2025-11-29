@@ -41,7 +41,6 @@ class SupplierController extends Controller
     {
         $request->merge([
             'fsuppliercode' => strtoupper($request->fsuppliercode),
-            'fsuppliername' => strtoupper($request->fsuppliername),
         ]);
 
         $validated = $request->validate(
@@ -72,6 +71,7 @@ class SupplierController extends Controller
         );
 
         $validated['fsuppliercode'] = strtoupper($validated['fsuppliercode']);
+        $validated['fsuppliername'] = strtoupper($validated['fsuppliername']);
 
         // Add default values for the required fields
         $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null; // Use the authenticated user's name or 'system' as default
@@ -101,7 +101,6 @@ class SupplierController extends Controller
     {
         $request->merge([
             'fsuppliercode' => strtoupper($request->fsuppliercode),
-            'fsuppliername' => strtoupper($request->fsuppliername),
         ]);
 
         $validated = $request->validate(
@@ -133,6 +132,7 @@ class SupplierController extends Controller
 
 
         $validated['fsuppliercode'] = strtoupper($validated['fsuppliercode']);
+        $validated['fsuppliername'] = strtoupper($validated['fsuppliername']);
 
         $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null; // Use the authenticated user's name or 'system' as default

@@ -45,19 +45,17 @@ class MerekController extends Controller
     {
         $request->merge([
             'fmerekcode' => strtoupper($request->fmerekcode),
-            'fmerekname' => strtoupper($request->fmerekname),
         ]);
 
         $validated = $request->validate(
             [
                 'fmerekcode' => 'required|string|unique:msmerek,fmerekcode',
-                'fmerekname' => 'required|string|unique:msmerek,fmerekname',
+                'fmerekname' => 'required|string',
             ],
             [
                 'fmerekcode.required' => 'Kode Merek harus diisi.',
                 'fmerekname.required' => 'Nama Merek harus diisi.',
                 'fmerekcode.unique' => 'Kode Merek sudah ada',
-                'fmerekname.unique' => 'Nama Merek sudah ada',
             ]
         );
 
@@ -94,19 +92,17 @@ class MerekController extends Controller
     {
         $request->merge([
             'fmerekcode' => strtoupper($request->fmerekcode),
-            'fmerekname' => strtoupper($request->fmerekname),
         ]);
 
         $validated = $request->validate(
             [
                 'fmerekcode' => "required|string|unique:msmerek,fmerekcode,{$fmerekid},fmerekid",
-                'fmerekname' => 'required|string|unique:msmerek,fmerekname',
+                'fmerekname' => 'required|string',
             ],
             [
                 'fmerekcode.required' => 'Kode Merek harus diisi.',
                 'fmerekname.required' => 'Nama Merek harus diisi.',
                 'fmerekcode.unique' => 'Kode Merek sudah ada',
-                'fmerekname.unique' => 'Nama Merek sudah ada',
             ]
         );
 

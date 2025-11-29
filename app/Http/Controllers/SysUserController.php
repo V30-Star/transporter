@@ -71,19 +71,17 @@ class SysUserController extends Controller
     {
         $request->merge([
             'fsysuserid' => strtoupper($request->fsysuserid),
-            'fname' => strtoupper($request->fname),
         ]);
 
         $validated = $request->validate([
             'fsysuserid' => 'required|string|unique:sysuser,fsysuserid',
-            'fname' => 'required|string|max:100|unique:sysuser,fname',
+            'fname' => 'required|string|max:100',
             'password' => 'required|string|min:6|confirmed',
             'fsalesman' => 'nullable',
             'fuserlevel' => 'string|in:User,Admin',
             'fcabang' => 'string',
         ], [
             'fsysuserid.unique' => 'Username sudah digunakan',
-            'fname.unique' => 'Name sudah digunakan',
             'fname.required' => 'Nama harus diisi.',
             'fsysuserid.required' => 'Username harus diisi.',
             'password.required' => 'Password harus diisi.',
@@ -91,8 +89,8 @@ class SysUserController extends Controller
             'fcabang.required' => 'Cabang harus diisi.',
         ]);
         // --- Pemrosesan Data ---
-        $validated['fname'] = strtoupper($validated['fname']);
         $validated['fsysuserid'] = strtoupper($validated['fsysuserid']);
+        $validated['fname'] = strtoupper($validated['fname']);
 
         $validated['fcabang'] = $request->fcabang ?? '-';
         $validated['fuserlevel'] = $validated['fuserlevel'] == 'Admin' ? '2' : '1';
@@ -142,19 +140,17 @@ class SysUserController extends Controller
     {
         $request->merge([
             'fsysuserid' => strtoupper($request->fsysuserid),
-            'fname' => strtoupper($request->fname),
         ]);
 
         $validated = $request->validate([
             'fsysuserid' => 'required|string|unique:sysuser,fsysuserid,' . $fuid . ',fuid',
-            'fname' => 'required|string|unique:sysuser,fname',
+            'fname' => 'required|string',
             'password' => 'nullable|string|confirmed',
             'fsalesman' => 'nullable',
             'fuserlevel' => 'string|in:User,Admin',
             'fcabang' => 'string',
         ], [
             'fsysuserid.unique' => 'Username sudah digunakan',
-            'fname.unique' => 'Name sudah digunakan',
             'fname.required' => 'Nama harus diisi.',
             'fsysuserid.required' => 'Username harus diisi.',
             'password.required' => 'Password harus diisi.',
@@ -163,8 +159,8 @@ class SysUserController extends Controller
         ]);
 
         // --- Pemrosesan Data ---
-        $validated['fname'] = strtoupper($validated['fname']);
         $validated['fsysuserid'] = strtoupper($validated['fsysuserid']);
+        $validated['fname'] = strtoupper($validated['fname']);
 
         // Find and update the sysuser
         $sysuser = Sysuser::findOrFail($fuid);

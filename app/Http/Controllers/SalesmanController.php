@@ -45,19 +45,17 @@ class SalesmanController extends Controller
     {
         $request->merge([
             'fsalesmancode' => strtoupper($request->fsalesmancode),
-            'fsalesmanname' => strtoupper($request->fsalesmanname),
         ]);
 
         $validated = $request->validate(
             [
                 'fsalesmancode' => 'required|string|unique:mssalesman,fsalesmancode',
-                'fsalesmanname' => 'required|string|unique:mssalesman,fsalesmanname',
+                'fsalesmanname' => 'required|string',
             ],
             [
                 'fsalesmancode.required' => 'Kode Salesman wajib diisi.',
                 'fsalesmanname.required' => 'Nama Salesman wajib diisi.',
                 'fsalesmancode.unique' => 'Kode Salesman sudah ada.',
-                'fsalesmanname.unique' => 'Nama Salesman sudah ada.',
             ]
         );
 
@@ -94,19 +92,17 @@ class SalesmanController extends Controller
     {
         $request->merge([
             'fsalesmancode' => strtoupper($request->fsalesmancode),
-            'fsalesmanname' => strtoupper($request->fsalesmanname),
         ]);
 
         $validated = $request->validate(
             [
                 'fsalesmancode' => "required|string|unique:mssalesman,fsalesmancode,{$fsalesmanid},fsalesmanid",
-                'fsalesmanname' => 'required|string|unique:mssalesman,fsalesmanname',
+                'fsalesmanname' => 'required|string',
             ],
             [
                 'fsalesmancode.required' => 'Kode Salesman wajib diisi.',
                 'fsalesmanname.required' => 'Nama Salesman wajib diisi.',
                 'fsalesmancode.unique' => 'Kode Salesman sudah ada.',
-                'fsalesmanname.unique' => 'Nama Salesman sudah ada.',
             ]
         );
 

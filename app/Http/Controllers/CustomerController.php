@@ -179,7 +179,7 @@ class CustomerController extends Controller
             'fsalesman' => 'required', // Validate the Group Produk field
             'fwilayah' => 'required', // Validate the Group Produk field
             'fnpwp' => 'required', // Validate the Group Produk field
-            'fnik' => 'required', // Validate the Group Produk field
+            'fnik' => '', // Validate the Group Produk field
             'fjadwalmingguan' => 'required',
             'fjadwalhari' => 'required',
             'fkodefp' => 'required',
@@ -277,7 +277,7 @@ class CustomerController extends Controller
             'fsalesman' => 'required', // Validate the Group Produk field
             'fwilayah' => 'required', // Validate the Group Produk field
             'fnpwp' => 'required', // Validate the Group Produk field
-            'fnik' => 'required', // Validate the Group Produk field
+            'fnik' => '', // Validate the Group Produk field
             'fjadwalmingguan' => 'required',
             'fjadwalhari' => 'required|in:1,2,3,4,5,6,7',
             'fkodefp' => 'required',

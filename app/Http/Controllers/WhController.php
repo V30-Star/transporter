@@ -53,19 +53,17 @@ class WhController extends Controller
     {
         $request->merge([
             'fwhcode' => strtoupper($request->fwhcode),
-            'fwhname' => strtoupper($request->fwhname),
         ]);
 
         $validated = $request->validate(
             [
                 'fwhcode' => 'required|string|unique:mswh,fwhcode',
-                'fwhname' => 'required|string|unique:mswh,fwhname',
+                'fwhname' => 'required|string',
                 'faddress' => 'required|string',
                 'fbranchcode' => 'required|string',
             ],
             [
                 'fwhcode.unique' => 'Kode Gudang sudah ada.',
-                'fwhname.unique' => 'Nama Gudang sudah ada.',
                 'fwhcode.required' => 'Kode Gudang harus diisi.',
                 'fwhname.required' => 'Nama Gudang harus diisi.',
                 'faddress.required' => 'Alamat Gudang harus diisi.',
@@ -111,19 +109,17 @@ class WhController extends Controller
     {
         $request->merge([
             'fwhcode' => strtoupper($request->fwhcode),
-            'fwhname' => strtoupper($request->fwhname),
         ]);
 
         $validated = $request->validate(
             [
                 'fwhcode' => "required|string|unique:mswh,fwhcode,{$fwhid},fwhid",
-                'fwhname' => 'required|string|unique:mswh,fwhname',
+                'fwhname' => 'required|string',
                 'faddress' => 'required|string',
                 'fbranchcode' => 'required|string', // Ensure the cabang code is validated and passed
             ],
             [
                 'fwhcode.unique' => 'Kode Wh sudah ada.',
-                'fwhname.unique' => 'Nama Gudang sudah ada.',
                 'fwhcode.required' => 'Kode Wh harus diisi.',
                 'fwhname.required' => 'Nama Wh harus diisi.',
                 'faddress.required' => 'Alamat Wh harus diisi.',

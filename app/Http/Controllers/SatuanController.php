@@ -51,13 +51,12 @@ class SatuanController extends Controller
         $validated = $request->validate(
             [
                 'fsatuancode' => 'required|string|unique:mssatuan,fsatuancode',
-                'fsatuanname' => 'required|string|unique:mssatuan,fsatuanname',
+                'fsatuanname' => 'required|string',
             ],
             [
                 'fsatuancode.unique' => 'Kode Satuan sudah ada.',
                 'fsatuanname.unique' => 'Nama Satuan sudah ada.',
                 'fsatuancode.required' => 'Kode Satuan harus diisi.',
-                'fsatuanname.required' => 'Nama Satuan harus diisi.',
             ]
         );
 
@@ -95,20 +94,18 @@ class SatuanController extends Controller
     {
         $request->merge([
             'fsalesmancode' => strtoupper($request->fsalesmancode),
-            'fsalesmanname' => strtoupper($request->fsalesmanname),
         ]);
 
         // Validasi
         $validated = $request->validate(
             [
                 'fsatuancode' => "required|string|unique:mssatuan,fsatuancode,{$fsatuanid},fsatuanid",
-                'fsatuanname' => 'required|string|unique:mssalesman,fsalesmanname',
+                'fsatuanname' => 'required|string',
             ],
             [
                 'fsatuancode.unique' => 'Kode Satuan sudah ada.',
                 'fsalesmanname.unique' => 'Nama Salesman sudah ada.',
                 'fsatuancode.required' => 'Kode Satuan harus diisi.',
-                'fsatuanname.required' => 'Nama Satuan harus diisi.',
             ]
         );
 

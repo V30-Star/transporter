@@ -43,17 +43,15 @@ class GroupproductController extends Controller
     {
         $request->merge([
             'fgroupcode' => strtoupper($request->fgroupcode),
-            'fgroupname' => strtoupper($request->fgroupname),
         ]);
 
         $validated = $request->validate(
             [
                 'fgroupcode' => 'required|string|unique:ms_groupprd,fgroupcode',
-                'fgroupname' => 'required|string|unique:ms_groupprd,fgroupname',
+                'fgroupname' => 'required|string',
             ],
             [
                 'fgroupcode.unique' => 'Kode grup produk sudah ada.',
-                'fgroupname.unique' => 'Nama grup produk sudah ada.',
                 'fgroupcode.required' => 'Kode grup produk harus diisi.',
                 'fgroupname.required' => 'Nama grup produk harus diisi.',
             ]
@@ -89,17 +87,15 @@ class GroupproductController extends Controller
     {
         $request->merge([
             'fgroupcode' => strtoupper($request->fgroupcode),
-            'fgroupname' => strtoupper($request->fgroupname),
         ]);
         // Validate the incoming data
         $validated = $request->validate(
             [
                 'fgroupcode' => "required|string|unique:ms_groupprd,fgroupcode,{$fgroupid},fgroupid",
-                'fgroupname' => 'required|string|unique:ms_groupprd,fgroupname',
+                'fgroupname' => 'required|string',
             ],
             [
                 'fgroupcode.unique' => 'Kode grup produk sudah ada.',
-                'fgroupname.unique' => 'Nama grup produk sudah ada.',
                 'fgroupcode.required' => 'Kode grup produk harus diisi.',
                 'fgroupname.required' => 'Nama grup produk harus diisi.',
             ]
