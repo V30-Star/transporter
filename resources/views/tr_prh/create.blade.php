@@ -318,7 +318,7 @@
 
                                     <td class="p-2 text-right">
                                         <input type="number" class="w-full border rounded px-2 py-1 text-gray-600"
-                                            min="0" step="1" x-model.number="editRow.fqtypo">
+                                            min="0" step="1" x-model.number="editRow.fqtypo" disabled>
                                     </td>
 
                                     <td class="p-2">
@@ -407,7 +407,7 @@
 
                                     <td class="p-2 text-right">
                                         <input type="number" class="w-full border rounded px-2 py-1 text-gray-600"
-                                            min="0" step="1" x-model.number="draft.fqtypo">
+                                            min="0" step="1" x-model.number="draft.fqtypo" disabled>
                                     </td>
 
                                     <td class="p-2">
