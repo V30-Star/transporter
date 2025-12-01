@@ -23,8 +23,8 @@
                 <!-- Rekening Name -->
                 <div>
                     <label class="block text-sm font-medium">Nama Rekening</label>
-                    <textarea name="frekeningname" rows="6" value="{{ old('frekeningname', $rekening->frekeningname) }}"
-                        class="w-full border rounded px-3 py-2 @error('frekeningname') border-red-500 @enderror"></textarea>
+                    <textarea name="frekeningname" rows="6"
+                        class="w-full border rounded px-3 py-2 uppercase @error('frekeningname') border-red-500 @enderror">{{ old('frekeningname', $rekening->frekeningname) }}</textarea>
                     @error('frekeningname')
                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                     @enderror

@@ -110,8 +110,8 @@ class SatuanController extends Controller
         );
 
         // Add default values for the required fields
-        $validated['fsalesmancode'] = strtoupper($validated['fsalesmancode']);
-        $validated['fsalesmanname'] = strtoupper($validated['fsalesmanname']);
+        $validated['fsatuancode'] = strtoupper($validated['fsatuancode']);
+        $validated['fsatuanname'] = strtoupper($validated['fsatuanname']);
 
         $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
 
@@ -123,7 +123,7 @@ class SatuanController extends Controller
         $satuan->update($validated);
 
         return redirect()
-            ->route('satuan.index')
+            ->route('satuan.edit', $satuan->fsatuanid)
             ->with('success', 'Satuan berhasil di-update.');
     }
 

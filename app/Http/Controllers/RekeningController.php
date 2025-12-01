@@ -109,7 +109,7 @@ class RekeningController extends Controller
         $rekening->update($validated);
 
         return redirect()
-            ->route('rekening.index')
+            ->route('rekening.edit', $rekening->frekeningid)
             ->with('success', 'Rekening berhasil di-update.');
     }
 
