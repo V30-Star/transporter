@@ -686,7 +686,7 @@
                     <div x-data="prhFormModal()" class="mt-3">
                         <div class="mt-3 flex justify-between items-start gap-4">
                             <div class="w-full flex justify-start mb-3">
-                                <button type="button" @click="openModal()"
+                                {{-- <button type="button" @click="openModal()"
                                     class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
                                         viewBox="0 0 24 24" stroke="currentColor">
@@ -694,7 +694,7 @@
                                             d="M12 4.5v15m7.5-7.5h-15" />
                                     </svg>
                                     Add PO
-                                </button>
+                                </button> --}}
                             </div>
                             <!-- Modal backdrop -->
                             <div x-show="show" x-transition.opacity class="fixed inset-0 z-40 bg-black/50"
@@ -977,6 +977,7 @@
                                         <tr>
                                             <th class="text-left p-2">Kode</th>
                                             <th class="text-left p-2">Nama</th>
+                                            <th class="text-left p-2">Merek</th>
                                             <th class="text-left p-2">Satuan</th>
                                             <th class="text-center p-2">Stock</th>
                                             <th class="text-center p-2">Aksi</th>
@@ -1031,6 +1032,55 @@
 @endsection
 @push('styles')
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+    <style>
+        /* Fix untuk dropdown length menu DataTables */
+        .dataTables_length select {
+            padding: 0.25rem 2rem 0.25rem 0.5rem !important;
+            padding-right: 2rem !important;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            background-color: white;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.25em 1.25em;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            min-width: 4rem;
+        }
+
+        .dataTables_length select:focus {
+            outline: 2px solid #3b82f6;
+            outline-offset: 2px;
+        }
+
+        .dataTables_length label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .dataTables_filter label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .dataTables_filter input {
+            padding: 0.25rem 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            min-width: 400px;
+        }
+
+        .dataTables_filter input:focus {
+            outline: 2px solid #3b82f6;
+            outline-offset: 2px;
+        }
+    </style>
 @endpush
 {{-- DATA & SCRIPTS --}}
 <script>
@@ -2213,6 +2263,11 @@
                                 name: 'fprdname'
                             },
                             {
+                                data: 'fmerekname',
+                                name: 'fmerekname', // Pastikan nama ini sesuai dengan kolom di database jika diperlukan untuk sorting
+                                defaultContent: '-' // Opsional: tampilkan '-' jika data merek kosong
+                            },
+                            {
                                 data: 'fsatuanbesar',
                                 name: 'fsatuanbesar',
                                 render: function(data) {
@@ -2234,6 +2289,9 @@
                                 }
                             }
                         ],
+                        // Konfigurasi dom untuk mengatur posisi elemen
+                        // f = filter/search (kiri), l = length menu (kanan), t = table, i = info, p = pagination
+                        dom: '<"flex items-center justify-between mb-4"fl>rtip',
                         pageLength: 10,
                         lengthMenu: [
                             [10, 25, 50, 100],
@@ -2258,7 +2316,12 @@
                         order: [
                             [1, 'asc']
                         ], // Sort by nama
-                        autoWidth: false
+                        autoWidth: false,
+                        // Callback setelah DataTable selesai di-draw
+                        drawCallback: function() {
+                            // Fix styling untuk select dropdown
+                            $('.dataTables_length select').addClass('px-2 py-1 border rounded');
+                        }
                     });
 
                     // Handle button click

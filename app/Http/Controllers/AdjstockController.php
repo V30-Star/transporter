@@ -304,6 +304,7 @@ class AdjstockController extends Controller
       'fprdid',
       'fprdcode',
       'fprdname',
+      'fmerek',
       'fsatuankecil',
       'fsatuanbesar',
       'fsatuanbesar2',

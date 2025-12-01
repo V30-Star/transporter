@@ -14,29 +14,32 @@ class ProductBrowseController extends Controller
     $perPage = $perPage > 0 && $perPage <= 100 ? $perPage : 10;
 
     $builder = DB::table('msprd')
+      ->leftJoin('msmerek', 'msprd.fmerek', '=', 'msmerek.fmerekid')
       ->select([
-        'fprdcode',
-        'fprdname',
-        'fsatuankecil',
-        'fsatuanbesar',
-        'fsatuanbesar2',
+        'msprd.fprdcode',
+        'msprd.fprdname',
+        'msprd.fmerek',
+        'msmerek.fmerekname', // Ambil nama merek
+        'msprd.fsatuankecil',
+        'msprd.fsatuanbesar',
+        'msprd.fsatuanbesar2',
         DB::raw("
-            CASE 
-              WHEN fminstock ~ '^[0-9]+(\\.[0-9]+)?$' 
-                THEN (fminstock)::double precision
-              ELSE 0::double precision
-            END AS fminstock
-        "),
+                CASE 
+                    WHEN msprd.fminstock ~ '^[0-9]+(\\.[0-9]+)?$' 
+                        THEN (msprd.fminstock)::double precision
+                    ELSE 0::double precision
+                END AS fminstock
+            "),
       ]);
 
     if ($q !== '') {
       $builder->where(function ($w) use ($q) {
-        $w->where('fprdcode', 'like', "%{$q}%")
-          ->orWhere('fprdname', 'like', "%{$q}%");
+        $w->where('msprd.fprdcode', 'like', "%{$q}%")
+          ->orWhere('msprd.fprdname', 'like', "%{$q}%");
       });
     }
 
-    $data = $builder->orderBy('fprdname')->paginate($perPage);
+    $data = $builder->orderBy('msprd.fprdname')->paginate($perPage);
 
     return response()->json([
       'data' => $data->items(),

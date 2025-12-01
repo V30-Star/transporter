@@ -703,7 +703,7 @@
                     <div x-data="prhFormModal()" class="mt-3">
                         <div class="mt-3 flex justify-between items-start gap-4">
                             <div class="w-full flex justify-start mb-3">
-                                <button type="button" @click="openModal()"
+                                {{-- <button type="button" @click="openModal()"
                                     class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
                                         viewBox="0 0 24 24" stroke="currentColor">
@@ -711,7 +711,7 @@
                                             d="M12 4.5v15m7.5-7.5h-15" />
                                     </svg>
                                     Add PO
-                                </button>
+                                </button> --}}
                             </div>
                             <!-- Modal backdrop -->
                             <div x-show="show" x-transition.opacity class="fixed inset-0 z-40 bg-black/50"
