@@ -318,13 +318,6 @@
                             <span class="ml-3">Faktur Pembelian</span>
                         </a>
                     </li>
-                    <li>
-                        <a href="{{ route('adjstock.index') }}"
-                            class="flex items-center p-2 rounded-lg hover:bg-gray-700">
-                            <x-heroicon-o-banknotes class="w-5 h-5" />
-                            <span class="ml-3">Adjustment Stock</span>
-                        </a>
-                    </li>
                 </ul>
             </li>
 
@@ -395,7 +388,7 @@
                     class="flex items-center w-full p-2 rounded-lg hover:bg-gray-700 focus:outline-none">
                     <x-heroicon-o-folder class="w-5 h-5 flex-shrink-0" />
                     <span class="ml-3 flex-1 text-left" x-show="openSidebar"
-                        x-transition.opacity.duration.150>Mutasi</span>
+                        x-transition.opacity.duration.150>Stock</span>
                     <!-- caret -->
                     <svg x-show="openSidebar" :class="{ 'rotate-180': open }"
                         class="w-4 h-4 transition-transform ml-auto" fill="none" stroke="currentColor"
@@ -410,10 +403,24 @@
 
                     @if (in_array('viewSysuser', explode(',', session('user_restricted_permissions', ''))))
                         <li>
+                            <a href="{{ route('adjstock.index') }}"
+                                class="flex items-center p-2 rounded-lg hover:bg-gray-700">
+                                <x-heroicon-o-banknotes class="w-5 h-5" />
+                                <span class="ml-3">Adjustment Stock</span>
+                            </a>
+                        </li>
+                        <li>
                             <a href="{{ route('mutasi.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
                                 <x-heroicon-o-user-circle class="w-5 h-5" />
                                 <span class="ml-3">Mutasi Stok</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('pemakaianbarang.index') }}"
+                                class="flex items-center p-2 rounded hover:bg-gray-700">
+                                <x-heroicon-o-user-circle class="w-5 h-5" />
+                                <span class="ml-3">Pemakaian Barang</span>
                             </a>
                         </li>
                     @endif

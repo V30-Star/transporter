@@ -25,6 +25,7 @@ use App\Http\Controllers\WhController;
 use App\Http\Controllers\PenerimaanBarangController;
 use App\Http\Controllers\FakturpembelianController;
 use App\Http\Controllers\MutasiController;
+use App\Http\Controllers\PemakaianbarangController;
 use App\Http\Controllers\ReportingController;
 
 Route::get('/', function () {
@@ -225,6 +226,19 @@ Route::middleware('auth')->group(function () {
             ->name('mutasi.items');
         Route::get('/mutasi/pickable', [MutasiController::class, 'pickable'])
             ->name('mutasi.pickable');
+
+        Route::get('/pemakaianbarang',  [PemakaianbarangController::class, 'index'])->name('pemakaianbarang.index');
+        Route::post('/pemakaianbarang',        [PemakaianbarangController::class, 'store'])->name('pemakaianbarang.store');
+        Route::get('/pemakaianbarang/create', [PemakaianbarangController::class, 'create'])->name('pemakaianbarang.create');
+        Route::get('/pemakaianbarang/{fstockmtid}/edit', [PemakaianbarangController::class, 'edit'])->name('pemakaianbarang.edit');
+        Route::patch('/pemakaianbarang/{fstockmtid}', [PemakaianbarangController::class, 'update'])->name('pemakaianbarang.update');
+        Route::delete('/pemakaianbarang/{fstockmtid}', [PemakaianbarangController::class, 'destroy'])->name('pemakaianbarang.destroy');
+        Route::get('/pemakaianbarang/{fstockmtno}/print', [PemakaianbarangController::class, 'print'])
+            ->name('pemakaianbarang.print');
+        Route::get('/pemakaianbarang/{id}/items', [PemakaianbarangController::class, 'items'])
+            ->name('pemakaianbarang.items');
+        Route::get('/pemakaianbarang/pickable', [PemakaianbarangController::class, 'pickable'])
+            ->name('pemakaianbarang.pickable');
 
         Route::get('/products/browse', [\App\Http\Controllers\ProductBrowseController::class, 'index'])
             ->name('products.browse');
