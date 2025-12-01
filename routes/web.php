@@ -247,11 +247,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/reporting/exportExcel', [ReportingController::class, 'exportExcel'])->name('reporting.exportExcel');
         Route::get('/reporting/print', [ReportingController::class, 'printPoh'])->name('reporting.printPoh');
 
-        Route::get('/groupproducts/browse', [GroupproductController::class, 'browse'])
-            ->name('groupproducts.browse');
-
-        Route::get('/mereks/browse', [MerekController::class, 'browse'])->name('mereks.browse');
-
         Route::get('/gudang/browse', [WhController::class, 'browse'])
             ->name('gudang.browse');
 
@@ -262,6 +257,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/product/browse', [ProductController::class, 'browse'])->name('product.browse');
         Route::get('/wh/browse', [WhController::class, 'browse'])->name('wh.browse');
         Route::get('/account/browse', [AccountController::class, 'browse'])->name('account.browse');
+        Route::get('/group/browse', [GroupproductController::class, 'browse'])->name('group.browse');
+        Route::get('/merek/browse', [MerekController::class, 'browse'])->name('merek.browse');
 
         Route::get('/product-name-suggest', [ProductController::class, 'suggestNames'])
             ->name('product.name.suggest');

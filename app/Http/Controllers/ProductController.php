@@ -22,7 +22,7 @@ class ProductController extends Controller
                 // --- 1. MELAKUKAN JOIN KE TABEL MEREK ---
                 // Join sekarang membandingkan fmerek (teks/string) dengan fmerekcode (teks/string)
                 ->leftJoin('msmerek', function ($join) {
-                    $join->on('msmerek.fmerekcode', '=', 'msprd.fmerek');
+                    $join->on('msmerek.fmerekid', '=', 'msprd.fmerek');
                 });
             // ... (Filter Status) ...
             $status = $request->input('status');

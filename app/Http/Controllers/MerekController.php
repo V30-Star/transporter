@@ -140,28 +140,35 @@ class MerekController extends Controller
 
     public function browse(Request $request)
     {
-        $q = trim((string) $request->get('q', ''));
-        $perPage = (int) $request->get('per_page', 10);
-        $perPage = max(1, min($perPage, 100));
+        $query = Merek::query(); // Sesuaikan dengan model Anda
 
-        $query = Merek::query()
-            ->select('fmerekid', 'fmerekcode', 'fmerekname', 'fnonactive')
-            // hanya aktif (sesuaikan logika aktif/nonaktif Anda)
-            ->where(function ($w) {
-                $w->whereNull('fnonactive')->orWhere('fnonactive', '!=', '1')->orWhere('fnonactive', '!=', 'Y');
-            });
-
-        if ($q !== '') {
-            // jika pakai Postgres: 'ilike', jika MySQL pakai 'like'
-            $like = '%' . str_replace(['%', '_'], ['\\%', '\\_'], $q) . '%';
-            $query->where(function ($w) use ($like) {
-                $w->where('fmerekcode', 'like', $like)
-                    ->orWhere('fmerekname', 'like', $like);
+        // Search
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('fmerekcode', 'ilike', "%{$search}%")
+                    ->orWhere('fmerekname', 'ilike', "%{$search}%");
             });
         }
 
-        $paginated = $query->orderBy('fmerekcode')->paginate($perPage);
+        // Get totals
+        $recordsTotal = Merek::count();
+        $recordsFiltered = $query->count();
 
-        return response()->json($paginated);
+        // Pagination
+        $perPage = $request->input('per_page', 10);
+        $page = $request->input('page', 1);
+
+        $data = $query->orderBy('fmerekcode', 'asc')
+            ->skip(($page - 1) * $perPage)
+            ->take($perPage)
+            ->get();
+
+        return response()->json([
+            'draw' => $request->input('draw', 1),
+            'recordsTotal' => $recordsTotal,
+            'recordsFiltered' => $recordsFiltered,
+            'data' => $data
+        ]);
     }
 }

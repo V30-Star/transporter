@@ -137,32 +137,35 @@ class GroupproductController extends Controller
 
     public function browse(Request $request)
     {
-        $q = trim((string) $request->get('q', ''));
-        $perPage = (int) $request->get('per_page', 10);
-        $perPage = max(1, min($perPage, 100));
+        $query = Groupproduct::query(); // Atau ProductGroup::query() sesuai model Anda
 
-        $query = Groupproduct::query()
-            ->select('fgroupid', 'fgroupcode', 'fgroupname', 'fnonactive');
-
-        // Jika ingin exclude non-active (sesuaikan definisi non aktif Anda)
-        $query->where(function ($w) {
-            $w->whereNull('fnonactive')
-                ->orWhere('fnonactive', '!=', '1')
-                ->orWhere('fnonactive', '!=', 'Y');
-        });
-
-        if ($q !== '') {
-            // Jika Postgres: pakai ILIKE, jika MySQL: LIKE (case-insensitive tergantung collation)
-            $like = '%' . str_replace(['%', '_'], ['\\%', '\\_'], $q) . '%';
-            $query->where(function ($w) use ($like) {
-                // ganti 'ilike' jika pakai PostgreSQL
-                $w->where('fgroupcode', 'like', $like)
-                    ->orWhere('fgroupname', 'like', $like);
+        // Search
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('fgroupcode', 'ilike', "%{$search}%")
+                    ->orWhere('fgroupname', 'ilike', "%{$search}%");
             });
         }
 
-        $paginated = $query->orderBy('fgroupcode')->paginate($perPage);
+        // Get totals
+        $recordsTotal = Groupproduct::count();
+        $recordsFiltered = $query->count();
 
-        return response()->json($paginated);
+        // Pagination
+        $perPage = $request->input('per_page', 10);
+        $page = $request->input('page', 1);
+
+        $data = $query->orderBy('fgroupcode', 'asc')
+            ->skip(($page - 1) * $perPage)
+            ->take($perPage)
+            ->get();
+
+        return response()->json([
+            'draw' => $request->input('draw', 1),
+            'recordsTotal' => $recordsTotal,
+            'recordsFiltered' => $recordsFiltered,
+            'data' => $data
+        ]);
     }
 }
