@@ -265,6 +265,31 @@
         border-color: #3b82f6 !important;
         color: white !important;
     }
+
+    /* Lebarkan dropdown tampilkan data */
+    #accountTable_wrapper .dt-length select,
+    #accountTable_wrapper .dataTables_length select {
+        min-width: 80px !important;
+        width: auto !important;
+        padding-right: 30px !important;
+    }
+
+    /* Pastikan wrapper length cukup lebar */
+    #accountTable_wrapper .dt-length,
+    #accountTable_wrapper .dataTables_length {
+        min-width: 180px;
+        white-space: nowrap;
+    }
+
+    /* Styling untuk select agar lebih rapi */
+    #accountTable_wrapper .dt-length select,
+    #accountTable_wrapper .dataTables_length select {
+        padding: 6px 30px 6px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 0.375rem;
+        background-position: right 8px center;
+        background-size: 16px;
+    }
 </style>
 
 @push('scripts')
@@ -428,6 +453,10 @@
                             [10, 25, 50, 100],
                             [10, 25, 50, 100]
                         ],
+                        // Gunakan dom instead of layout
+                        dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
+                        // Atau gunakan dom yang lebih sederhana:
+                        // dom: 'fltip',
                         language: {
                             processing: "Memuat...",
                             search: "Cari:",
@@ -446,8 +475,24 @@
                         },
                         order: [
                             [0, 'asc']
-                        ], // Sort by account code
-                        autoWidth: false
+                        ],
+                        autoWidth: false,
+                        initComplete: function() {
+                            const api = this.api();
+                            const $container = $(api.table().container());
+
+                            // Lebarkan search input
+                            $container.find('.dt-search .dt-input, .dataTables_filter input').css({
+                                width: '400px',
+                                maxWidth: '100%',
+                                minWidth: '300px'
+                            });
+
+                            // Opsional: lebarkan wrapper search juga
+                            $container.find('.dt-search, .dataTables_filter').css({
+                                minWidth: '420px'
+                            });
+                        }
                     });
 
                     // Handle button click

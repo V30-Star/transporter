@@ -719,6 +719,33 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/autonumeric/4.8.1/autoNumeric.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
 
+<style>
+    /* Lebarkan dropdown tampilkan data */
+    #merekTable_wrapper .dt-length select,
+    #merekTable_wrapper .dataTables_length select {
+        min-width: 80px !important;
+        width: auto !important;
+        padding-right: 30px !important;
+    }
+
+    /* Pastikan wrapper length cukup lebar */
+    #merekTable_wrapper .dt-length,
+    #merekTable_wrapper .dataTables_length {
+        min-width: 180px;
+        white-space: nowrap;
+    }
+
+    /* Styling untuk select agar lebih rapi */
+    #merekTable_wrapper .dt-length select,
+    #merekTable_wrapper .dataTables_length select {
+        padding: 6px 30px 6px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 0.375rem;
+        background-position: right 8px center;
+        background-size: 16px;
+    }
+</style>
+
 <script>
     $(document).ready(function() {
         // Initialize Select2
@@ -903,7 +930,7 @@
                     processing: true,
                     serverSide: true,
                     ajax: {
-                        url: "{{ route('merek.browse') }}", // Sesuaikan route Anda
+                        url: "{{ route('merek.browse') }}",
                         type: 'GET',
                         data: function(d) {
                             return {
@@ -939,6 +966,9 @@
                         [10, 25, 50, 100],
                         [10, 25, 50, 100]
                     ],
+                    // Tambahkan layout untuk menukar posisi
+                    dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
+
                     language: {
                         processing: "Memuat...",
                         search: "Cari:",
@@ -957,8 +987,25 @@
                     },
                     order: [
                         [0, 'asc']
-                    ], // Sort by kode merek
-                    autoWidth: false
+                    ],
+                    autoWidth: false,
+                    // Tambahkan initComplete untuk styling
+                    initComplete: function() {
+                        const api = this.api();
+                        const $container = $(api.table().container());
+
+                        // Lebarkan search input
+                        $container.find('.dt-search .dt-input, .dataTables_filter input').css({
+                            width: '400px',
+                            maxWidth: '100%',
+                            minWidth: '300px'
+                        });
+
+                        // Opsional: lebarkan wrapper search juga
+                        $container.find('.dt-search, .dataTables_filter').css({
+                            minWidth: '420px'
+                        });
+                    }
                 });
 
                 // Handle button click
@@ -1083,6 +1130,8 @@
                         [10, 25, 50, 100],
                         [10, 25, 50, 100]
                     ],
+                    dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
+
                     language: {
                         processing: "Memuat...",
                         search: "Cari:",
@@ -1102,7 +1151,23 @@
                     order: [
                         [0, 'asc']
                     ], // Sort by kode group
-                    autoWidth: false
+                    autoWidth: false,
+                    initComplete: function() {
+                        const api = this.api();
+                        const $container = $(api.table().container());
+
+                        // Lebarkan search input
+                        $container.find('.dt-search .dt-input, .dataTables_filter input').css({
+                            width: '400px',
+                            maxWidth: '100%',
+                            minWidth: '300px'
+                        });
+
+                        // Opsional: lebarkan wrapper search juga
+                        $container.find('.dt-search, .dataTables_filter').css({
+                            minWidth: '420px'
+                        });
+                    }
                 });
 
                 // Handle button click

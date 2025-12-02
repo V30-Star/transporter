@@ -720,6 +720,65 @@
 @push('styles')
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
 @endpush
+<style>
+    /* Targeting lebih spesifik untuk length select */
+    div#warehouseTable_length select,
+    .dataTables_wrapper #warehouseTable_length select,
+    table#supplierBrowseTable+.dataTables_wrapper .dataTables_length select {
+        min-width: 140px !important;
+        width: auto !important;
+        padding: 8px 45px 8px 16px !important;
+        font-size: 14px !important;
+        border: 1px solid #d1d5db !important;
+        border-radius: 0.375rem !important;
+    }
+
+    /* Wrapper length */
+    div#warehouseTable_length,
+    .dataTables_wrapper #warehouseTable_length,
+    .dataTables_wrapper .dataTables_length {
+        min-width: 250px !important;
+    }
+
+    /* Label wrapper */
+    div#warehouseTable_length label,
+    .dataTables_wrapper #warehouseTable_length label,
+    .dataTables_wrapper .dataTables_length label {
+        font-size: 14px !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+    }
+
+    /* Targeting lebih spesifik untuk length select */
+    div#productTable_length select,
+    .dataTables_wrapper #productTable_length select,
+    table#supplierBrowseTable+.dataTables_wrapper .dataTables_length select {
+        min-width: 140px !important;
+        width: auto !important;
+        padding: 8px 45px 8px 16px !important;
+        font-size: 14px !important;
+        border: 1px solid #d1d5db !important;
+        border-radius: 0.375rem !important;
+    }
+
+    /* Wrapper length */
+    div#productTable_length,
+    .dataTables_wrapper #productTable_length,
+    .dataTables_wrapper .dataTables_length {
+        min-width: 250px !important;
+    }
+
+    /* Label wrapper */
+    div#productTable_length label,
+    .dataTables_wrapper #productTable_length label,
+    .dataTables_wrapper .dataTables_length label {
+        font-size: 14px !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+    }
+</style>
 {{-- DATA & SCRIPTS --}}
 <script>
     // Map produk untuk auto-fill tabel
@@ -1228,9 +1287,7 @@
             },
         };
     };
-</script>
 
-<script>
     // Warehouse Browser dengan DataTables
     window.warehouseBrowser = function() {
         return {
@@ -1289,6 +1346,8 @@
                         [10, 25, 50, 100],
                         [10, 25, 50, 100]
                     ],
+                    dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
+
                     language: {
                         processing: "Memuat...",
                         search: "Cari:",
@@ -1308,7 +1367,23 @@
                     order: [
                         [0, 'asc']
                     ], // Sort by kode gudang
-                    autoWidth: false
+                    autoWidth: false,
+                    initComplete: function() {
+                        const api = this.api();
+                        const $container = $(api.table().container());
+
+                        // Lebarkan search input
+                        $container.find('.dt-search .dt-input, .dataTables_filter input').css({
+                            width: '400px',
+                            maxWidth: '100%',
+                            minWidth: '300px'
+                        });
+
+                        // Opsional: lebarkan wrapper search juga
+                        $container.find('.dt-search, .dataTables_filter').css({
+                            minWidth: '420px'
+                        });
+                    }
                 });
 
                 // Handle button click
@@ -1446,6 +1521,8 @@
                             [10, 25, 50, 100],
                             [10, 25, 50, 100]
                         ],
+                        dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
+
                         language: {
                             processing: "Memuat...",
                             search: "Cari:",
@@ -1463,9 +1540,25 @@
                             }
                         },
                         order: [
-                            [1, 'asc']
+                            [0, 'asc']
                         ], // Sort by nama
-                        autoWidth: false
+                        autoWidth: false,
+                        initComplete: function() {
+                            const api = this.api();
+                            const $container = $(api.table().container());
+
+                            // Lebarkan search input
+                            $container.find('.dt-search .dt-input, .dataTables_filter input').css({
+                                width: '400px',
+                                maxWidth: '100%',
+                                minWidth: '300px'
+                            });
+
+                            // Opsional: lebarkan wrapper search juga
+                            $container.find('.dt-search, .dataTables_filter').css({
+                                minWidth: '420px'
+                            });
+                        }
                     });
 
                     // Handle button click

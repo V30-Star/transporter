@@ -901,35 +901,6 @@
                         </div>
                     </div>
 
-                    {{-- MODAL SUPPLIER --}}
-                    <div x-data="supplierBrowser()" x-show="open" x-cloak x-transition.opacity
-                        class="fixed inset-0 z-50 flex items-center justify-center">
-                        <div class="absolute inset-0 bg-black/40" @click="close()"></div>
-                        <div class="relative bg-white rounded-2xl shadow-xl w-[92vw] max-w-4xl max-h-[85vh] flex flex-col">
-                            <div class="p-4 border-b flex items-center gap-3">
-                                <h3 class="text-lg font-semibold">Browse Supplier</h3>
-                                <button type="button" @click="close()"
-                                    class="ml-auto px-3 py-1 rounded border bg-gray-100 hover:bg-gray-200">Close</button>
-                            </div>
-                            <div class="p-4 overflow-auto flex-1">
-                                <table id="supplierBrowseTable" class="min-w-full text-sm display">
-                                    <thead class="bg-gray-100">
-                                        <tr>
-                                            <th class="text-left p-2">Kode</th>
-                                            <th class="text-left p-2">Nama Supplier</th>
-                                            <th class="text-left p-2">Alamat</th>
-                                            <th class="text-left p-2">Telepon</th>
-                                            <th class="text-center p-2">Aksi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <!-- DataTables akan mengisi ini -->
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-
                     {{-- MODAL GUDANG dengan DataTables --}}
                     <div x-data="warehouseBrowser()" x-show="open" x-cloak x-transition.opacity
                         class="fixed inset-0 z-50 flex items-center justify-center">
@@ -1033,52 +1004,91 @@
 @push('styles')
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
     <style>
-        /* Fix untuk dropdown length menu DataTables */
-        .dataTables_length select {
-            padding: 0.25rem 2rem 0.25rem 0.5rem !important;
-            padding-right: 2rem !important;
-            border: 1px solid #d1d5db;
-            border-radius: 0.375rem;
-            background-color: white;
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-            background-position: right 0.5rem center;
-            background-repeat: no-repeat;
-            background-size: 1.25em 1.25em;
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
-            min-width: 4rem;
+        /* Targeting lebih spesifik untuk length select */
+        div#warehouseTable_length select,
+        .dataTables_wrapper #warehouseTable_length select,
+        table#supplierBrowseTable+.dataTables_wrapper .dataTables_length select {
+            min-width: 140px !important;
+            width: auto !important;
+            padding: 8px 45px 8px 16px !important;
+            font-size: 14px !important;
+            border: 1px solid #d1d5db !important;
+            border-radius: 0.375rem !important;
         }
 
-        .dataTables_length select:focus {
-            outline: 2px solid #3b82f6;
-            outline-offset: 2px;
+        /* Wrapper length */
+        div#warehouseTable_length,
+        .dataTables_wrapper #warehouseTable_length,
+        .dataTables_wrapper .dataTables_length {
+            min-width: 250px !important;
         }
 
-        .dataTables_length label {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.875rem;
+        /* Label wrapper */
+        div#warehouseTable_length label,
+        .dataTables_wrapper #warehouseTable_length label,
+        .dataTables_wrapper .dataTables_length label {
+            font-size: 14px !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 8px !important;
         }
 
-        .dataTables_filter label {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.875rem;
+        /* Targeting lebih spesifik untuk length select */
+        div#accountTable_length select,
+        .dataTables_wrapper #accountTable_length select,
+        table#supplierBrowseTable+.dataTables_wrapper .dataTables_length select {
+            min-width: 140px !important;
+            width: auto !important;
+            padding: 8px 45px 8px 16px !important;
+            font-size: 14px !important;
+            border: 1px solid #d1d5db !important;
+            border-radius: 0.375rem !important;
         }
 
-        .dataTables_filter input {
-            padding: 0.25rem 0.5rem;
-            border: 1px solid #d1d5db;
-            border-radius: 0.375rem;
-            min-width: 400px;
+        /* Wrapper length */
+        div#accountTable_length,
+        .dataTables_wrapper #accountTable_length,
+        .dataTables_wrapper .dataTables_length {
+            min-width: 250px !important;
         }
 
-        .dataTables_filter input:focus {
-            outline: 2px solid #3b82f6;
-            outline-offset: 2px;
+        /* Label wrapper */
+        div#accountTable_length label,
+        .dataTables_wrapper #accountTable_length label,
+        .dataTables_wrapper .dataTables_length label {
+            font-size: 14px !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+        }
+
+        /* Targeting lebih spesifik untuk length select */
+        div#productTable_length select,
+        .dataTables_wrapper #productTable_length select,
+        table#supplierBrowseTable+.dataTables_wrapper .dataTables_length select {
+            min-width: 140px !important;
+            width: auto !important;
+            padding: 8px 45px 8px 16px !important;
+            font-size: 14px !important;
+            border: 1px solid #d1d5db !important;
+            border-radius: 0.375rem !important;
+        }
+
+        /* Wrapper length */
+        div#productTable_length,
+        .dataTables_wrapper #productTable_length,
+        .dataTables_wrapper .dataTables_length {
+            min-width: 250px !important;
+        }
+
+        /* Label wrapper */
+        div#productTable_length label,
+        .dataTables_wrapper #productTable_length label,
+        .dataTables_wrapper .dataTables_length label {
+            font-size: 14px !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 8px !important;
         }
     </style>
 @endpush
@@ -1918,9 +1928,7 @@
             },
         };
     };
-</script>
 
-<script>
     window.accountBrowser = function() {
         return {
             open: false,
@@ -1971,6 +1979,8 @@
                         [10, 25, 50, 100],
                         [10, 25, 50, 100]
                     ],
+                    dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
+
                     language: {
                         processing: "Memuat...",
                         search: "Cari:",
@@ -1989,8 +1999,24 @@
                     },
                     order: [
                         [0, 'asc']
-                    ], // Sort by account code
-                    autoWidth: false
+                    ], // Sort by nama
+                    autoWidth: false,
+                    initComplete: function() {
+                        const api = this.api();
+                        const $container = $(api.table().container());
+
+                        // Lebarkan search input
+                        $container.find('.dt-search .dt-input, .dataTables_filter input').css({
+                            width: '400px',
+                            maxWidth: '100%',
+                            minWidth: '300px'
+                        });
+
+                        // Opsional: lebarkan wrapper search juga
+                        $container.find('.dt-search, .dataTables_filter').css({
+                            minWidth: '420px'
+                        });
+                    }
                 });
 
                 // Handle button click
@@ -2132,6 +2158,8 @@
                         [10, 25, 50, 100],
                         [10, 25, 50, 100]
                     ],
+                    dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
+
                     language: {
                         processing: "Memuat...",
                         search: "Cari:",
@@ -2151,7 +2179,23 @@
                     order: [
                         [0, 'asc']
                     ], // Sort by kode gudang
-                    autoWidth: false
+                    autoWidth: false,
+                    initComplete: function() {
+                        const api = this.api();
+                        const $container = $(api.table().container());
+
+                        // Lebarkan search input
+                        $container.find('.dt-search .dt-input, .dataTables_filter input').css({
+                            width: '400px',
+                            maxWidth: '100%',
+                            minWidth: '300px'
+                        });
+
+                        // Opsional: lebarkan wrapper search juga
+                        $container.find('.dt-search, .dataTables_filter').css({
+                            minWidth: '420px'
+                        });
+                    }
                 });
 
                 // Handle button click
@@ -2263,11 +2307,6 @@
                                 name: 'fprdname'
                             },
                             {
-                                data: 'fmerekname',
-                                name: 'fmerekname', // Pastikan nama ini sesuai dengan kolom di database jika diperlukan untuk sorting
-                                defaultContent: '-' // Opsional: tampilkan '-' jika data merek kosong
-                            },
-                            {
                                 data: 'fsatuanbesar',
                                 name: 'fsatuanbesar',
                                 render: function(data) {
@@ -2289,14 +2328,13 @@
                                 }
                             }
                         ],
-                        // Konfigurasi dom untuk mengatur posisi elemen
-                        // f = filter/search (kiri), l = length menu (kanan), t = table, i = info, p = pagination
-                        dom: '<"flex items-center justify-between mb-4"fl>rtip',
                         pageLength: 10,
                         lengthMenu: [
                             [10, 25, 50, 100],
                             [10, 25, 50, 100]
                         ],
+                        dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
+
                         language: {
                             processing: "Memuat...",
                             search: "Cari:",
@@ -2314,13 +2352,24 @@
                             }
                         },
                         order: [
-                            [1, 'asc']
+                            [0, 'asc']
                         ], // Sort by nama
                         autoWidth: false,
-                        // Callback setelah DataTable selesai di-draw
-                        drawCallback: function() {
-                            // Fix styling untuk select dropdown
-                            $('.dataTables_length select').addClass('px-2 py-1 border rounded');
+                        initComplete: function() {
+                            const api = this.api();
+                            const $container = $(api.table().container());
+
+                            // Lebarkan search input
+                            $container.find('.dt-search .dt-input, .dataTables_filter input').css({
+                                width: '400px',
+                                maxWidth: '100%',
+                                minWidth: '300px'
+                            });
+
+                            // Opsional: lebarkan wrapper search juga
+                            $container.find('.dt-search, .dataTables_filter').css({
+                                minWidth: '420px'
+                            });
                         }
                     });
 
@@ -2358,168 +2407,6 @@
                             this.initDataTable();
                         });
                     }, {
-                        passive: true
-                    });
-                }
-            }
-        }
-
-        // Modal supplier
-        function supplierBrowser() {
-            return {
-                open: false,
-                dataTable: null,
-
-                initDataTable() {
-                    if (this.dataTable) {
-                        this.dataTable.destroy();
-                    }
-
-                    this.dataTable = $('#supplierBrowseTable').DataTable({
-                        processing: true,
-                        serverSide: true,
-                        ajax: {
-                            url: "{{ route('suppliers.browse') }}",
-                            type: 'GET',
-                            data: function(d) {
-                                return {
-                                    q: d.search.value,
-                                    page: (d.start / d.length) + 1,
-                                    per_page: d.length,
-                                    draw: d.draw // ✅ Tambahkan draw
-                                };
-                            },
-                            dataSrc: function(json) {
-                                // ✅ PERBAIKAN: Return json langsung, bukan hanya data
-                                return json.data || [];
-                            }
-                        },
-                        columns: [{
-                                data: 'fsuppliercode',
-                                name: 'fsuppliercode',
-                                width: '15%'
-                            },
-                            {
-                                data: 'fsuppliername',
-                                name: 'fsuppliername',
-                                width: '20%'
-                            },
-                            {
-                                data: 'faddress',
-                                name: 'faddress',
-                                defaultContent: '-',
-                                orderable: false,
-                                width: '30%'
-                            },
-                            {
-                                data: 'ftelp',
-                                name: 'ftelp',
-                                defaultContent: '-',
-                                orderable: false,
-                                width: '20%'
-                            },
-                            {
-                                data: null,
-                                orderable: false,
-                                searchable: false,
-                                className: 'text-center',
-                                width: '20%',
-                                render: function(data, type, row) {
-                                    // ✅ PERBAIKAN: Escape quotes untuk mencegah error
-                                    const code = (row.fsuppliercode || '').replace(/'/g, "\\'");
-                                    const name = (row.fsuppliername || '').replace(/'/g, "\\'");
-                                    const address = (row.faddress || '').replace(/'/g, "\\'");
-                                    const telp = (row.ftelp || '').replace(/'/g, "\\'");
-
-                                    return `<button type="button" 
-                                onclick="window.chooseSupplier('${row.fsupplierid}', '${code}', '${name}', '${address}', '${telp}')" 
-                                class="px-3 py-1 rounded text-xs bg-emerald-600 hover:bg-emerald-700 text-white">
-                                Pilih
-                            </button>`;
-                                }
-                            }
-                        ],
-                        pageLength: 10,
-                        lengthMenu: [10, 25, 50, 100],
-                        order: [
-                            [1, 'asc']
-                        ],
-                        dom: '<"flex items-center justify-between mb-4"<"flex items-center gap-2"l><"flex-1"><"flex items-center"f>>' +
-                            '<"overflow-x-auto"t>' +
-                            '<"flex items-center justify-between mt-4"<"text-sm text-gray-600"i><"flex items-center gap-2"p>>',
-                        language: {
-                            search: "_INPUT_",
-                            searchPlaceholder: "Cari kode atau nama supplier...",
-                            lengthMenu: "Tampilkan _MENU_",
-                            info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
-                            infoEmpty: "Tidak ada data",
-                            infoFiltered: "(difilter dari _MAX_ total data)",
-                            paginate: {
-                                first: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/></svg>',
-                                last: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg>',
-                                next: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>',
-                                previous: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>'
-                            },
-                            processing: '<div class="flex items-center justify-center"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>',
-                            zeroRecords: "Tidak ada data yang ditemukan"
-                        },
-                        drawCallback: function() {
-                            $('.dataTables_paginate .paginate_button').addClass(
-                                'px-3 py-2 border rounded mx-0.5 hover:bg-gray-100 transition-colors inline-flex items-center justify-center'
-                            );
-                            $('.dataTables_paginate .paginate_button.current').addClass(
-                                'bg-blue-600 text-white border-blue-600 hover:bg-blue-700');
-                            $('.dataTables_paginate .paginate_button.disabled').addClass(
-                                'opacity-50 cursor-not-allowed hover:bg-transparent');
-
-                            $('.dataTables_paginate .paginate_button.first, .dataTables_paginate .paginate_button.last, .dataTables_paginate .paginate_button.previous, .dataTables_paginate .paginate_button.next')
-                                .css('min-width', '36px');
-                        }
-                    });
-                },
-
-                openBrowse() {
-                    this.open = true;
-                    this.$nextTick(() => {
-                        this.initDataTable();
-                    });
-                },
-
-                close() {
-                    this.open = false;
-                    if (this.dataTable) {
-                        this.dataTable.destroy();
-                        this.dataTable = null;
-                    }
-                },
-
-                init() {
-                    window.chooseSupplier = (id, code, name, address, telp) => {
-                        const sel = document.getElementById('modal_filter_supplier_id');
-                        const hid = document.getElementById('supplierCodeHidden');
-
-                        if (!sel) {
-                            this.close();
-                            return;
-                        }
-
-                        let opt = [...sel.options].find(o => o.value == String(id));
-                        const label = `${name} (${code})`;
-
-                        if (!opt) {
-                            opt = new Option(label, id, true, true);
-                            sel.add(opt);
-                        } else {
-                            opt.text = label;
-                            opt.selected = true;
-                        }
-
-                        sel.dispatchEvent(new Event('change'));
-                        if (hid) hid.value = id;
-                        this.close();
-                    };
-
-                    window.addEventListener('supplier-browse-open', () => this.openBrowse(), {
                         passive: true
                     });
                 }

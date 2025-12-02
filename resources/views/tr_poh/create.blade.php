@@ -58,20 +58,6 @@
             display: none !important
         }
 
-        /* select supplier tanpa caret */
-        #supplierSelect,
-        #supplierSelect:disabled {
-            -webkit-appearance: none !important;
-            -moz-appearance: none !important;
-            appearance: none !important;
-            background-image: none !important;
-            background-repeat: no-repeat !important;
-        }
-
-        #supplierSelect::-ms-expand {
-            display: none
-        }
-
         input[type=number]::-webkit-inner-spin-button,
         input[type=number]::-webkit-outer-spin-button {
             -webkit-appearance: none;
@@ -999,6 +985,65 @@
 @push('styles')
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
 @endpush
+<style>
+    /* Targeting lebih spesifik untuk length select */
+    div#supplierBrowseTable_length select,
+    .dataTables_wrapper #supplierBrowseTable_length select,
+    table#supplierBrowseTable+.dataTables_wrapper .dataTables_length select {
+        min-width: 140px !important;
+        width: auto !important;
+        padding: 8px 45px 8px 16px !important;
+        font-size: 14px !important;
+        border: 1px solid #d1d5db !important;
+        border-radius: 0.375rem !important;
+    }
+
+    /* Wrapper length */
+    div#supplierBrowseTable_length,
+    .dataTables_wrapper #supplierBrowseTable_length,
+    .dataTables_wrapper .dataTables_length {
+        min-width: 250px !important;
+    }
+
+    /* Label wrapper */
+    div#supplierBrowseTable_length label,
+    .dataTables_wrapper #supplierBrowseTable_length label,
+    .dataTables_wrapper .dataTables_length label {
+        font-size: 14px !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+    }
+
+    /* Targeting lebih spesifik untuk length select */
+    div#productTable_length select,
+    .dataTables_wrapper #productTable_length select,
+    table#supplierBrowseTable+.dataTables_wrapper .dataTables_length select {
+        min-width: 140px !important;
+        width: auto !important;
+        padding: 8px 45px 8px 16px !important;
+        font-size: 14px !important;
+        border: 1px solid #d1d5db !important;
+        border-radius: 0.375rem !important;
+    }
+
+    /* Wrapper length */
+    div#productTable_length,
+    .dataTables_wrapper #productTable_length,
+    .dataTables_wrapper .dataTables_length {
+        min-width: 250px !important;
+    }
+
+    /* Label wrapper */
+    div#productTable_length label,
+    .dataTables_wrapper #productTable_length label,
+    .dataTables_wrapper .dataTables_length label {
+        font-size: 14px !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+    }
+</style>
 {{-- DATA & SCRIPTS --}}
 <script>
     // Map produk untuk auto-fill tabel
@@ -1102,38 +1147,52 @@
                     pageLength: 10,
                     lengthMenu: [10, 25, 50, 100],
                     order: [
-                        [1, 'asc']
+                        [0, 'asc']
                     ],
-                    dom: '<"flex items-center justify-between mb-4"<"flex items-center gap-2"l><"flex-1"><"flex items-center"f>>' +
-                        '<"overflow-x-auto"t>' +
-                        '<"flex items-center justify-between mt-4"<"text-sm text-gray-600"i><"flex items-center gap-2"p>>',
-                    language: {
-                        search: "_INPUT_",
-                        searchPlaceholder: "Cari kode atau nama supplier...",
-                        lengthMenu: "Tampilkan _MENU_",
-                        info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
-                        infoEmpty: "Tidak ada data",
-                        infoFiltered: "(difilter dari _MAX_ total data)",
-                        paginate: {
-                            first: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/></svg>',
-                            last: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg>',
-                            next: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>',
-                            previous: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>'
-                        },
-                        processing: '<div class="flex items-center justify-center"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>',
-                        zeroRecords: "Tidak ada data yang ditemukan"
-                    },
-                    drawCallback: function() {
-                        $('.dataTables_paginate .paginate_button').addClass(
-                            'px-3 py-2 border rounded mx-0.5 hover:bg-gray-100 transition-colors inline-flex items-center justify-center'
-                        );
-                        $('.dataTables_paginate .paginate_button.current').addClass(
-                            'bg-blue-600 text-white border-blue-600 hover:bg-blue-700');
-                        $('.dataTables_paginate .paginate_button.disabled').addClass(
-                            'opacity-50 cursor-not-allowed hover:bg-transparent');
 
-                        $('.dataTables_paginate .paginate_button.first, .dataTables_paginate .paginate_button.last, .dataTables_paginate .paginate_button.previous, .dataTables_paginate .paginate_button.next')
-                            .css('min-width', '36px');
+                    // ✅ HILANGKAN scrollX, biarkan full width
+                    scrollX: false,
+                    autoWidth: true,
+
+                    dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
+
+                    language: {
+                        processing: "Memuat...",
+                        search: "Cari:",
+                        lengthMenu: "Tampilkan _MENU_ data",
+                        info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
+                        infoEmpty: "Menampilkan 0 data",
+                        infoFiltered: "(disaring dari _MAX_ total data)",
+                        zeroRecords: "Tidak ada data yang ditemukan",
+                        emptyTable: "Tidak ada data tersedia",
+                        paginate: {
+                            first: "Pertama",
+                            last: "Terakhir",
+                            next: "Selanjutnya",
+                            previous: "Sebelumnya"
+                        }
+                    },
+                    order: [
+                        [0, 'asc']
+                    ], // Sort by nama
+                    autoWidth: false,
+                    initComplete: function() {
+                        const api = this.api();
+                        const $container = $(api.table().container());
+
+                        // Lebarkan search input
+                        $container.find('.dt-search .dt-input, .dataTables_filter input').css({
+                            width: '400px',
+                            maxWidth: '100%',
+                            minWidth: '300px'
+                        });
+
+                        $container.find('.dt-search, .dataTables_filter').css({
+                            minWidth: '420px'
+                        });
+
+                        // Adjust kolom
+                        api.columns.adjust().draw(false);
                     }
                 });
             },
@@ -1819,6 +1878,8 @@
                             [10, 25, 50, 100],
                             [10, 25, 50, 100]
                         ],
+                        dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
+
                         language: {
                             processing: "Memuat...",
                             search: "Cari:",
@@ -1836,9 +1897,25 @@
                             }
                         },
                         order: [
-                            [1, 'asc']
+                            [0, 'asc']
                         ], // Sort by nama
-                        autoWidth: false
+                        autoWidth: false,
+                        initComplete: function() {
+                            const api = this.api();
+                            const $container = $(api.table().container());
+
+                            // Lebarkan search input
+                            $container.find('.dt-search .dt-input, .dataTables_filter input').css({
+                                width: '400px',
+                                maxWidth: '100%',
+                                minWidth: '300px'
+                            });
+
+                            // Opsional: lebarkan wrapper search juga
+                            $container.find('.dt-search, .dataTables_filter').css({
+                                minWidth: '420px'
+                            });
+                        }
                     });
 
                     // Handle button click

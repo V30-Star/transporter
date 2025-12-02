@@ -151,7 +151,7 @@
                             </button>
 
                             <!-- Browse Group (Icon Button) -->
-                            <button type="button" @click="isEditable = false; $dispatch('groupproduct-browse-open')"
+                            <button type="button" @click="window.dispatchEvent(new CustomEvent('group-browse-open'))"
                                 class="whitespace-nowrap bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700">
                                 <i class="fa fa-search"></i>
                             </button>
@@ -184,13 +184,12 @@
                             <button type="button" @click="isMerekEditable = true; $dispatch('open-merk-modal')"
                                 class="whitespace-nowrap bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700">
                                 <i class="fa fa-plus"></i>
-                            </button>
 
-                            <!-- Button Browse Merek -->
-                            <button type="button" @click="isMerekEditable = false; $dispatch('merek-browse-open')"
-                                class="whitespace-nowrap bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700">
-                                <i class="fa fa-search"></i>
-                            </button>
+                                <!-- Button Browse Merek -->
+                                <button type="button" @click="window.dispatchEvent(new CustomEvent('merek-browse-open'))"
+                                    class="whitespace-nowrap bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700">
+                                    <i class="fa fa-search"></i>
+                                </button>
                         </div>
                         @error('fmerek')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -714,102 +713,26 @@
     <div x-data="groupBrowser()" x-show="open" x-cloak x-transition.opacity
         class="fixed inset-0 z-[9998] flex items-center justify-center">
         <div class="absolute inset-0 bg-black/40" @click="close()"></div>
+
         <div class="relative bg-white rounded-2xl shadow-xl w-[92vw] max-w-4xl max-h-[85vh] flex flex-col">
             <div class="p-4 border-b flex items-center gap-3">
                 <h3 class="text-lg font-semibold">Browse Group Product</h3>
-                <div class="ml-auto flex items-center gap-2">
-                    <input type="text" x-model="keyword" @keydown.enter.prevent="search()"
-                        placeholder="Cari kode / nama…" class="border rounded px-3 py-2 w-64">
-                    <button type="button" @click="search()"
-                        class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Search</button>
-                </div>
+                <button type="button" @click="close()"
+                    class="ml-auto px-3 py-1 rounded border bg-gray-100 hover:bg-gray-200">
+                    Close
+                </button>
             </div>
 
-            <div class="p-0 overflow-auto">
-                <table class="min-w-full text-sm">
-                    <thead class="bg-gray-100 sticky top-0">
+            <div class="p-4 overflow-auto flex-1">
+                <table id="groupTable" class="min-w-full text-sm display nowrap" style="width:100%">
+                    <thead class="bg-gray-100">
                         <tr>
-                            <th class="text-left p-2 w-40">Kode</th>
+                            <th class="text-left p-2">Kode</th>
                             <th class="text-left p-2">Nama Group</th>
-                            <th class="text-center p-2 w-28">Aksi</th>
+                            <th class="text-center p-2">Aksi</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <template x-for="g in rows" :key="g.fgroupid">
-                            <tr class="border-b hover:bg-gray-50">
-                                <td class="p-2 font-mono" x-text="g.fgroupcode"></td>
-                                <td class="p-2" x-text="g.fgroupname"></td>
-                                <td class="p-2 text-center">
-                                    <button type="button" @click="choose(g)"
-                                        class="px-3 py-1 rounded text-xs bg-emerald-600 hover:bg-emerald-700 text-white">Pilih</button>
-                                </td>
-                            </tr>
-                        </template>
-                        <tr x-show="rows.length === 0">
-                            <td colspan="3" class="p-4 text-center text-gray-500">Tidak ada data.</td>
-                        </tr>
-                    </tbody>
                 </table>
-            </div>
-
-            <div class="p-3 border-t flex items-center gap-2">
-                <div class="text-sm text-gray-600" x-text="`Page ${page} / ${lastPage} • Total ${total}`"></div>
-                <div class="ml-auto flex items-center gap-2">
-                    <button type="button" @click="prev()" :disabled="page <= 1" class="px-3 py-1 rounded border"
-                        :class="page <= 1 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-gray-100 hover:bg-gray-200'">
-                        Prev
-                    </button>
-                    <button type="button" @click="next()" :disabled="page >= lastPage" class="px-3 py-1 rounded border"
-                        :class="page >= lastPage ? 'bg-gray-200 text-gray-400 cursor-not-allowed' :
-                            'bg-gray-100 hover:bg-gray-200'">
-                        Next
-                    </button>
-                    <button type="button" @click="close()"
-                        class="px-3 py-1 rounded border bg-gray-100 hover:bg-gray-200">
-                        Close
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div x-data="groupProductModal()" x-show="openGroupModal" x-cloak x-transition.opacity
-        class="fixed inset-0 z-[9999] flex items-center justify-center">
-        <div class="absolute inset-0 bg-black/50" @click="closeGroupModal()"></div>
-        <div class="relative bg-white rounded-2xl shadow-xl w-[92vw] max-w-4xl p-6">
-            <h3 class="text-lg font-semibold mb-4">Tambah Group Produk</h3>
-
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium">Kode Group Produk</label>
-                    <input type="text" x-model="form.fgroupcode" class="w-full border rounded px-3 py-2"
-                        maxlength="50" placeholder="Kode Group Produk">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium">Nama Group Produk</label>
-                    <input type="text" x-model="form.fgroupname" class="w-full border rounded px-3 py-2"
-                        maxlength="100" placeholder="Nama Group Produk">
-                </div>
-                <div class="md:col-span-2 flex items-center gap-2">
-                    <input type="checkbox" x-model="form.fnonactive" id="modal_fnonactive"
-                        class="form-checkbox h-5 w-5 text-indigo-600">
-                    <label for="modal_fnonactive" class="block text-sm font-medium">Non Aktif</label>
-                </div>
-            </div>
-
-            <div class="mt-6 flex justify-end gap-3">
-                <button type="button" @click="closeGroupModal()"
-                    class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Batal</button>
-                <button type="button" @click="saveData()"
-                    class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 flex items-center gap-2 disabled:opacity-60"
-                    :disabled="loading">
-                    <svg x-show="loading" class="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
-                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
-                            opacity=".25"></circle>
-                        <path d="M4 12a8 8 0 018-8" stroke="currentColor" stroke-width="4" opacity=".75"></path>
-                    </svg>
-                    <span x-text="loading ? 'Menyimpan...' : 'Simpan'"></span>
-                </button>
             </div>
         </div>
     </div>
@@ -818,71 +741,38 @@
     <div x-data="merekBrowser()" x-show="open" x-cloak x-transition.opacity
         class="fixed inset-0 z-[9999] flex items-center justify-center">
         <div class="absolute inset-0 bg-black/40" @click="close()"></div>
+
         <div class="relative bg-white rounded-2xl shadow-xl w-[92vw] max-w-4xl max-h-[85vh] flex flex-col">
             <div class="p-4 border-b flex items-center gap-3">
                 <h3 class="text-lg font-semibold">Browse Merek</h3>
-                <div class="ml-auto flex items-center gap-2">
-                    <input type="text" x-model="keyword" @keydown.enter.prevent="search()"
-                        placeholder="Cari kode / nama…" class="border rounded px-3 py-2 w-64">
-                    <button type="button" @click="search()"
-                        class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Search</button>
-                </div>
+                <button type="button" @click="close()"
+                    class="ml-auto px-3 py-1 rounded border bg-gray-100 hover:bg-gray-200">
+                    Close
+                </button>
             </div>
 
-            <div class="p-0 overflow-auto">
-                <table class="min-w-full text-sm">
-                    <thead class="bg-gray-100 sticky top-0">
+            <div class="p-4 overflow-auto flex-1">
+                <table id="merekTable" class="min-w-full text-sm display nowrap" style="width:100%">
+                    <thead class="bg-gray-100">
                         <tr>
                             <th class="text-left p-2">Merek (Kode - Nama)</th>
-                            <th class="text-center p-2 w-28">Aksi</th>
+                            <th class="text-center p-2">Aksi</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <template x-for="m in rows" :key="m.fmerekid">
-                            <tr class="border-b hover:bg-gray-50">
-                                <td class="p-2" x-text="`${m.fmerekcode} - ${m.fmerekname}`"></td>
-                                <td class="p-2 text-center">
-                                    <button type="button" @click="choose(m)"
-                                        class="px-3 py-1 rounded text-xs bg-emerald-600 hover:bg-emerald-700 text-white">
-                                        Pilih
-                                    </button>
-                                </td>
-                            </tr>
-                        </template>
-                        <tr x-show="rows.length === 0">
-                            <td colspan="2" class="p-4 text-center text-gray-500">Tidak ada data.</td>
-                        </tr>
-                    </tbody>
                 </table>
-            </div>
-
-            <div class="p-3 border-t flex items-center gap-2">
-                <div class="text-sm text-gray-600" x-text="`Page ${page} / ${lastPage} • Total ${total}`"></div>
-                <div class="ml-auto flex items-center gap-2">
-                    <button type="button" @click="prev()" :disabled="page <= 1" class="px-3 py-1 rounded border"
-                        :class="page <= 1 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-gray-100 hover:bg-gray-200'">
-                        Prev
-                    </button>
-                    <button type="button" @click="next()" :disabled="page >= lastPage" class="px-3 py-1 rounded border"
-                        :class="page >= lastPage ? 'bg-gray-200 text-gray-400 cursor-not-allowed' :
-                            'bg-gray-100 hover:bg-gray-200'">
-                        Next
-                    </button>
-                    <button type="button" @click="close()"
-                        class="px-3 py-1 rounded border bg-gray-100 hover:bg-gray-200">
-                        Close
-                    </button>
-                </div>
             </div>
         </div>
     </div>
-@endsection
 
+@endsection
+@push('styles')
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+@endpush
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet" />
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/autonumeric/4.8.1/autoNumeric.min.js"></script>
-
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
 
 <script>
     $(document).ready(function() {
@@ -1030,9 +920,7 @@
 
         toggleFields();
     });
-</script>
 
-<script>
     function chooseMerek(merek) {
         // Set value to the select dropdown
         document.querySelector('#merkSelect').value = merek.fmerekid;
@@ -1044,237 +932,290 @@
         this.open = false;
     }
 
-    function merekBrowser() {
+    window.merekBrowser = function() {
         return {
             open: false,
-            keyword: '',
-            page: 1,
-            lastPage: 1,
-            perPage: 10,
-            total: 0,
-            rows: [],
-            apiUrl() {
-                const u = new URL("{{ route('mereks.browse') }}", window.location.origin);
-                u.searchParams.set('q', this.keyword || '');
-                u.searchParams.set('per_page', this.perPage);
-                u.searchParams.set('page', this.page);
-                return u.toString();
-            },
-            async fetch() {
-                try {
-                    const res = await fetch(this.apiUrl(), {
-                        headers: {
-                            'Accept': 'application/json'
+            table: null,
+
+            initDataTable() {
+                if (this.table) {
+                    this.table.destroy();
+                }
+
+                this.table = $('#merekTable').DataTable({
+                    processing: true,
+                    serverSide: true,
+                    ajax: {
+                        url: "{{ route('merek.browse') }}", // Sesuaikan route Anda
+                        type: 'GET',
+                        data: function(d) {
+                            return {
+                                draw: d.draw,
+                                page: (d.start / d.length) + 1,
+                                per_page: d.length,
+                                search: d.search.value
+                            };
+                        },
+                        dataSrc: function(json) {
+                            return json.data;
                         }
-                    });
-                    const j = await res.json();
-                    this.rows = j.data || [];
-                    this.page = j.current_page || 1;
-                    this.lastPage = j.last_page || 1;
-                    this.total = j.total || 0;
-                } catch (e) {
-                    this.rows = [];
-                    this.page = 1;
-                    this.lastPage = 1;
-                    this.total = 0;
-                }
+                    },
+                    columns: [{
+                            data: null,
+                            name: 'fmerekcode',
+                            render: function(data, type, row) {
+                                return `${row.fmerekcode} - ${row.fmerekname}`;
+                            }
+                        },
+                        {
+                            data: null,
+                            orderable: false,
+                            searchable: false,
+                            className: 'text-center',
+                            render: function(data, type, row) {
+                                return '<button type="button" class="btn-choose px-3 py-1 rounded text-xs bg-emerald-600 hover:bg-emerald-700 text-white">Pilih</button>';
+                            }
+                        }
+                    ],
+                    pageLength: 10,
+                    lengthMenu: [
+                        [10, 25, 50, 100],
+                        [10, 25, 50, 100]
+                    ],
+                    language: {
+                        processing: "Memuat...",
+                        search: "Cari:",
+                        lengthMenu: "Tampilkan _MENU_ data",
+                        info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
+                        infoEmpty: "Menampilkan 0 data",
+                        infoFiltered: "(disaring dari _MAX_ total data)",
+                        zeroRecords: "Tidak ada data yang ditemukan",
+                        emptyTable: "Tidak ada data tersedia",
+                        paginate: {
+                            first: "Pertama",
+                            last: "Terakhir",
+                            next: "Selanjutnya",
+                            previous: "Sebelumnya"
+                        }
+                    },
+                    order: [
+                        [0, 'asc']
+                    ], // Sort by kode merek
+                    autoWidth: false
+                });
+
+                // Handle button click
+                $('#merekTable').on('click', '.btn-choose', (e) => {
+                    const data = this.table.row($(e.target).closest('tr')).data();
+                    this.choose(data);
+                });
             },
-            search() {
-                this.page = 1;
-                this.fetch();
-            },
-            prev() {
-                if (this.page > 1) {
-                    this.page--;
-                    this.fetch();
-                }
-            },
-            next() {
-                if (this.page < this.lastPage) {
-                    this.page++;
-                    this.fetch();
-                }
-            },
-            openBrowse() {
+
+            openModal() {
                 this.open = true;
-                this.page = 1;
-                this.fetch();
+                // Initialize DataTable setelah modal terbuka
+                this.$nextTick(() => {
+                    this.initDataTable();
+                });
             },
+
             close() {
                 this.open = false;
-                this.keyword = '';
-                this.rows = [];
-            },
-            choose(m) {
-                const $sel = $('#merkSelect');
-                // pastikan option ada
-                if ($sel.find(`option[value="${m.fmerekid}"]`).length === 0) {
-                    const opt = new Option(m.fmerekname, m.fmerekid, true, true);
-                    $sel.append(opt);
+                if (this.table) {
+                    this.table.search('').draw();
                 }
-                $sel.val(m.fmerekid).trigger('change');
-                $('input[name="fmerek"]').val(m.fmerekid);
+            },
+
+            choose(m) {
+                window.dispatchEvent(new CustomEvent('merek-picked', {
+                    detail: {
+                        fmerekid: m.fmerekid,
+                        fmerekcode: m.fmerekcode,
+                        fmerekname: m.fmerekname
+                    }
+                }));
                 this.close();
             },
+
             init() {
-                // buka modal saat tombol Browse Merek di-klik
-                window.addEventListener('merek-browse-open', () => this.openBrowse(), {
-                    passive: true
-                });
+                window.addEventListener('merek-browse-open', () => this.openModal());
             }
         }
-    }
+    };
 
-    function groupBrowser() {
+    // Helper: update field saat merek-picked
+    document.addEventListener('DOMContentLoaded', () => {
+        window.addEventListener('merek-picked', (ev) => {
+            const {
+                fmerekcode,
+                fmerekid,
+                fmerekname
+            } = ev.detail || {};
+
+            const sel = document.getElementById('merkSelect');
+            const hid = document.getElementById('fmerek');
+
+            if (sel) {
+                sel.value = fmerekid || '';
+                sel.dispatchEvent(new Event('change', {
+                    bubbles: true
+                }));
+            }
+
+            if (hid) {
+                hid.value = fmerekid || '';
+            }
+
+            // Optional: Enable select after picking
+            const alpineData = Alpine.$data(sel.closest('[x-data]'));
+            if (alpineData) {
+                alpineData.isMerekEditable = true;
+            }
+        });
+    });
+
+    window.groupBrowser = function() {
         return {
             open: false,
-            keyword: '',
-            page: 1,
-            lastPage: 1,
-            perPage: 10,
-            total: 0,
-            rows: [],
-            apiUrl() {
-                const u = new URL("{{ route('groupproducts.browse') }}", window.location.origin);
-                u.searchParams.set('q', this.keyword || '');
-                u.searchParams.set('per_page', this.perPage);
-                u.searchParams.set('page', this.page);
-                return u.toString();
-            },
-            async fetch() {
-                try {
-                    const res = await fetch(this.apiUrl(), {
-                        headers: {
-                            'Accept': 'application/json'
+            table: null,
+
+            initDataTable() {
+                if (this.table) {
+                    this.table.destroy();
+                }
+
+                this.table = $('#groupTable').DataTable({
+                    processing: true,
+                    serverSide: true,
+                    ajax: {
+                        url: "{{ route('group.browse') }}", // Sesuaikan route Anda
+                        type: 'GET',
+                        data: function(d) {
+                            return {
+                                draw: d.draw,
+                                page: (d.start / d.length) + 1,
+                                per_page: d.length,
+                                search: d.search.value
+                            };
+                        },
+                        dataSrc: function(json) {
+                            return json.data;
                         }
-                    });
-                    const j = await res.json();
-                    this.rows = j.data || [];
-                    this.page = j.current_page || 1;
-                    this.lastPage = j.last_page || 1;
-                    this.total = j.total || 0;
-                } catch (e) {
-                    this.rows = [];
-                    this.page = 1;
-                    this.lastPage = 1;
-                    this.total = 0;
-                }
+                    },
+                    columns: [{
+                            data: 'fgroupcode',
+                            name: 'fgroupcode',
+                            className: 'font-mono'
+                        },
+                        {
+                            data: 'fgroupname',
+                            name: 'fgroupname'
+                        },
+                        {
+                            data: null,
+                            orderable: false,
+                            searchable: false,
+                            className: 'text-center',
+                            render: function(data, type, row) {
+                                return '<button type="button" class="btn-choose px-3 py-1 rounded text-xs bg-emerald-600 hover:bg-emerald-700 text-white">Pilih</button>';
+                            }
+                        }
+                    ],
+                    pageLength: 10,
+                    lengthMenu: [
+                        [10, 25, 50, 100],
+                        [10, 25, 50, 100]
+                    ],
+                    language: {
+                        processing: "Memuat...",
+                        search: "Cari:",
+                        lengthMenu: "Tampilkan _MENU_ data",
+                        info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
+                        infoEmpty: "Menampilkan 0 data",
+                        infoFiltered: "(disaring dari _MAX_ total data)",
+                        zeroRecords: "Tidak ada data yang ditemukan",
+                        emptyTable: "Tidak ada data tersedia",
+                        paginate: {
+                            first: "Pertama",
+                            last: "Terakhir",
+                            next: "Selanjutnya",
+                            previous: "Sebelumnya"
+                        }
+                    },
+                    order: [
+                        [0, 'asc']
+                    ], // Sort by kode group
+                    autoWidth: false
+                });
+
+                // Handle button click
+                $('#groupTable').on('click', '.btn-choose', (e) => {
+                    const data = this.table.row($(e.target).closest('tr')).data();
+                    this.choose(data);
+                });
             },
-            search() {
-                this.page = 1;
-                this.fetch();
-            },
-            prev() {
-                if (this.page > 1) {
-                    this.page--;
-                    this.fetch();
-                }
-            },
-            next() {
-                if (this.page < this.lastPage) {
-                    this.page++;
-                    this.fetch();
-                }
-            },
-            openBrowse() {
+
+            openModal() {
                 this.open = true;
-                this.page = 1;
-                this.fetch();
+                // Initialize DataTable setelah modal terbuka
+                this.$nextTick(() => {
+                    this.initDataTable();
+                });
             },
+
             close() {
                 this.open = false;
-                this.keyword = '';
-                this.rows = [];
-            },
-            choose(g) {
-                // Set value to the group select field
-                const $sel = $('#groupSelect');
-
-                // Make sure the option is present, if not, add it
-                if ($sel.find(`option[value="${g.fgroupid}"]`).length === 0) {
-                    const opt = new Option(g.fgroupname, g.fgroupid, true, true);
-                    $sel.append(opt);
+                if (this.table) {
+                    this.table.search('').draw();
                 }
-
-                // Set the selected value to the dropdown
-                $sel.val(g.fgroupid).trigger('change'); // Triggers 'change' to update any dynamic behavior
-
-                // Also update the hidden input field 'fgroupcode' directly if needed
-                $('input[name="fgroupcode"]').val(g.fgroupid);
-
-                this.close(); // Close the modal after selecting
             },
+
+            choose(g) {
+                window.dispatchEvent(new CustomEvent('group-picked', {
+                    detail: {
+                        fgroupid: g.fgroupid,
+                        fgroupcode: g.fgroupcode,
+                        fgroupname: g.fgroupname
+                    }
+                }));
+                this.close();
+            },
+
             init() {
-                // Buka modal Browse Group Produk
-                window.addEventListener('groupproduct-browse-open', () => this.openBrowse(), {
-                    passive: true
-                });
+                window.addEventListener('group-browse-open', () => this.openModal());
             }
         }
-    }
+    };
 
-    function groupProductModal() {
-        return {
-            openGroupModal: false,
-            form: {
-                fgroupcode: '',
-                fgroupname: '',
-                fnonactive: false,
-            },
-            loading: false,
-            saveData() {
-                this.loading = true;
-                $.ajax({
-                        url: '{{ route('groupproduct.store') }}',
-                        type: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                        },
-                        data: {
-                            fgroupcode: this.form.fgroupcode,
-                            fgroupname: this.form.fgroupname,
-                            fnonactive: this.form.fnonactive ? 1 : 0
-                        }
-                    })
-                    .done((res) => {
-                        if (res && res.name && res.id) {
-                            const opt = new Option(res.name, res.id, true, true);
-                            $('#groupSelect').append(opt).trigger('change');
-                            this.closeGroupModal();
-                        } else {
-                            alert('Response format is incorrect or missing expected data.');
-                        }
-                        this.loading = false;
-                    })
-                    .fail((xhr) => {
-                        this.loading = false;
-                        if (xhr.status === 422) {
-                            this.errors = xhr.responseJSON?.errors || {};
-                        } else {
-                            alert('Gagal menyimpan group produk.');
-                        }
-                    });
-            },
-            closeGroupModal() {
-                this.openGroupModal = false;
-                this.form.fgroupcode = '';
-                this.form.fgroupname = '';
-                this.form.fnonactive = false;
-            },
-            openGroupProductModal() {
-                this.openGroupModal = true;
-            },
-            init() {
-                // Buka modal Add Group Produk
-                window.addEventListener('open-group-modal', () => this.openGroupProductModal(), {
-                    passive: true
-                });
+    document.addEventListener('DOMContentLoaded', () => {
+        window.addEventListener('group-picked', (ev) => {
+            const {
+                fgroupcode,
+                fgroupid,
+                fgroupname
+            } = ev.detail || {};
+
+            const sel = document.getElementById('groupSelect');
+            const hidId = document.getElementById('groupIdHidden');
+            const hidCode = document.getElementById('groupCodeHidden');
+
+            if (sel) {
+                sel.value = fgroupcode || '';
+                sel.dispatchEvent(new Event('change', {
+                    bubbles: true
+                }));
             }
-        }
-    }
-</script>
 
-<script>
+            if (hidId) {
+                hidId.value = fgroupid || '';
+            }
+
+            if (hidCode) {
+                hidCode.value = fgroupcode || '';
+            }
+        });
+    });
+
     /**
      * Fungsi utama untuk mengelola visibilitas field satuan dan pembaruan label.
      * Dipanggil saat ada perubahan pada Satuan Kecil atau Satuan 2.

@@ -123,7 +123,7 @@ class SatuanController extends Controller
         $satuan->update($validated);
 
         return redirect()
-            ->route('satuan.edit', $satuan->fsatuanid)
+            ->route('satuan.index')
             ->with('success', 'Satuan berhasil di-update.');
     }
 
