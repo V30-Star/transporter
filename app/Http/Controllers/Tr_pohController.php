@@ -272,9 +272,10 @@ class Tr_pohController extends Controller
     ]);
   }
 
-  public function create()
+  public function create(Request $request)
   {
-    $supplier = Supplier::all();
+    $suppliers = Supplier::orderBy('fsuppliername', 'asc')
+      ->get(['fsupplierid', 'fsuppliername']);
 
     $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
@@ -306,10 +307,11 @@ class Tr_pohController extends Controller
     return view('tr_poh.create', [
       'newtr_prh_code' => $newtr_prh_code,
       'perms' => ['can_approval' => $canApproval],
-      'supplier' => $supplier,
+      'suppliers' => $suppliers,
       'fcabang' => $fcabang,
       'fbranchcode' => $fbranchcode,
       'products' => $products,
+      'filterSupplierId' => $request->query('filter_supplier_id'),
     ]);
   }
 
@@ -571,9 +573,10 @@ class Tr_pohController extends Controller
       ->with('success', "PO {$fpono} tersimpan, detail masuk ke TR_POD.");
   }
 
-  public function edit($fpohdid)
+  public function edit(Request $request, $fpohdid)
   {
-    $supplier = Supplier::all();
+    $suppliers = Supplier::orderBy('fsuppliername', 'asc')
+      ->get(['fsupplierid', 'fsuppliername']);
 
     $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
@@ -642,7 +645,7 @@ class Tr_pohController extends Controller
 
     // Pass the data to the view
     return view('tr_poh.edit', [
-      'supplier'     => $supplier,
+      'suppliers'      => $suppliers,
       'selectedSupplierCode' => $selectedSupplierCode, // Kirim kode supplier ke view
       'fcabang'      => $fcabang,
       'fbranchcode'  => $fbranchcode,
@@ -653,6 +656,7 @@ class Tr_pohController extends Controller
       'ppnAmount'    => (float) ($tr_poh->famountpopajak ?? 0), // total PPN from DB
       'famountponet'    => (float) ($tr_poh->famountponet ?? 0),  // nilai Grand Total dari DB
       'famountpo'    => (float) ($tr_poh->famountpo ?? 0),  // nilai Grand Total dari DB
+      'filterSupplierId' => $request->query('filter_supplier_id'),
     ]);
   }
 

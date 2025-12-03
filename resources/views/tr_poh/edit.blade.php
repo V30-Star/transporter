@@ -121,15 +121,16 @@
                         <div class="lg:col-span-4">
                             <label class="block text-sm font-medium mb-1">Supplier</label>
                             <div class="flex">
-                                <div class="relative flex-1">
-                                    <select id="supplierSelect" name="fsupplier_view"
+                                <div class="relative flex-1" for="modal_filter_supplier_id">
+                                    <select id="modal_filter_supplier_id" name="filter_supplier_id"
                                         class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
                                         disabled>
                                         <option value=""></option>
-                                        @foreach ($supplier as $sup)
-                                            <option value="{{ $sup->fsupplierid }}"
-                                                {{ old('fsupplier', $tr_poh->fsupplier) == $sup->fsupplierid ? 'selected' : '' }}>
-                                                {{ $sup->fsuppliercode }} - {{ $sup->fsuppliername }}
+                                        @foreach ($suppliers as $supplier)
+                                            <option value="{{ $supplier->fsupplierid }}"
+                                                {{ old('fsupplier', $tr_poh->fsupplier) == $supplier->fsupplierid ? 'selected' : '' }}>
+                                                {{ $supplier->fsuppliername }}
+                                                ({{ $supplier->fsupplierid }})
                                             </option>
                                         @endforeach
                                     </select>

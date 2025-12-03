@@ -127,34 +127,34 @@
                     <div class="mt-2 w-1/2" x-data="{ isEditable: false }">
                         <label class="block text-sm font-medium">Group Produk</label>
                         <div class="flex items-center gap-2">
-                            <select name="fgroupcode" :disabled="!isEditable"
-                                class="w-full border rounded px-3 py-2 @error('fgroupcode') border-red-500 @enderror"
+                            <select :disabled="!isEditable"
+                                class="w-full border rounded px-3 py-2 @error('fgroupid') border-red-500 @enderror"
                                 id="groupSelect">
                                 <option value="">-- Pilih Group Produk --</option>
                                 @foreach ($groups as $group)
                                     <option value="{{ $group->fgroupid }}"
-                                        {{ old('fgroupcode') == $group->fgroupid ? 'selected' : '' }}>
+                                        {{ old('fgroupid', $tr_prh->fgroupid ?? null) == $group->fgroupid ? 'selected' : '' }}>
                                         {{ $group->fgroupname }}
                                     </option>
                                 @endforeach
                             </select>
-                            <!-- Hidden input to store selected fgroupcode -->
-                            <input type="hidden" name="fgroupcode" id="fgroupcode" value="{{ old('fgroupcode') }}">
+                            <input type="hidden" name="fgroupid" id="groupIdHidden"
+                                value="{{ old('fgroupid', $tr_prh->fgroupid ?? null) }}">
 
-                            <!-- Add Group Produk (Icon Button) -->
+                            <input type="hidden" name="fgroupcode" id="groupCodeHidden"
+                                value="{{ old('fgroupcode_raw', $tr_prh->fgroupcode ?? null) }}">
+
                             <button type="button" @click="isEditable = true; $dispatch('open-group-modal')"
                                 class="whitespace-nowrap bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700">
                                 <i class="fa fa-plus"></i>
                             </button>
-
-                            <!-- Browse Group (Icon Button) - PERBAIKAN DI SINI -->
                             <button type="button" @click="window.dispatchEvent(new CustomEvent('group-browse-open'))"
                                 class="whitespace-nowrap bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700">
                                 <i class="fa fa-search"></i>
                             </button>
                         </div>
 
-                        @error('fgroupcode')
+                        @error('fgroupid')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
                     </div>
@@ -744,6 +744,7 @@
         background-position: right 8px center;
         background-size: 16px;
     }
+
     /* Lebarkan dropdown tampilkan data */
     #groupTable_wrapper .dt-length select,
     #groupTable_wrapper .dataTables_length select {
@@ -1247,7 +1248,7 @@
             const hidCode = document.getElementById('groupCodeHidden');
 
             if (sel) {
-                sel.value = fgroupcode || '';
+                sel.value = fgroupid || '';
                 sel.dispatchEvent(new Event('change', {
                     bubbles: true
                 }));

@@ -298,9 +298,10 @@ class FakturPembelianController extends Controller
     ]);
   }
 
-  public function create()
+  public function create(Request $request)
   {
-    $supplier = Supplier::all();
+    $suppliers = Supplier::orderBy('fsuppliername', 'asc')
+      ->get(['fsupplierid', 'fsuppliername']);
 
     $warehouses = DB::table('mswh')
       ->select('fwhid', 'fwhcode', 'fwhname', 'fbranchcode', 'fnonactive')
@@ -346,10 +347,11 @@ class FakturPembelianController extends Controller
       'perms' => ['can_approval' => $canApproval],
       'warehouses' => $warehouses,
       'accounts' => $accounts,
-      'supplier' => $supplier,
+      'suppliers'      => $suppliers,
       'fcabang' => $fcabang,
       'fbranchcode' => $fbranchcode,
       'products' => $products,
+      'filterSupplierId' => $request->query('filter_supplier_id'),
     ]);
   }
 
@@ -643,9 +645,10 @@ class FakturPembelianController extends Controller
     }
   }
 
-  public function edit($fstockmtid)
+  public function edit(Request $request, $fstockmtid)
   {
-    $supplier = Supplier::all();
+    $suppliers = Supplier::orderBy('fsuppliername', 'asc')
+      ->get(['fsupplierid', 'fsuppliername']);
 
     // 1. PINDAHKAN INI KE ATAS
     // Ambil data Header (trstockmt) DULU
@@ -744,7 +747,7 @@ class FakturPembelianController extends Controller
     })->toArray();
 
     return view('fakturpembelian.edit', [
-      'supplier' => $supplier,
+      'suppliers' => $suppliers,
       'selectedSupplierCode' => $selectedSupplierCode,
       'fcabang' => $fcabang,
       'fbranchcode' => $fbranchcode,
@@ -757,6 +760,7 @@ class FakturPembelianController extends Controller
       'ppnAmount' => (float) ($fakturpembelian->famountpopajak ?? 0),
       'famountponet' => (float) ($fakturpembelian->famountponet ?? 0),
       'famountpo' => (float) ($fakturpembelian->famountpo ?? 0),
+      'filterSupplierId' => $request->query('filter_supplier_id'),
     ]);
   }
 

@@ -9,6 +9,7 @@ use App\Models\Satuan;
 use Illuminate\Http\Request;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class ProductController extends Controller
 {
@@ -196,11 +197,7 @@ class ProductController extends Controller
 
     public function store(Request $request)
     {
-        $request->merge([
-            'fprdcode' => strtoupper($request->fprdcode),
-        ]);
 
-        // Validate the incoming request
         $validated = $request->validate(
             [
                 'fprdcode' => 'nullable|string|unique:msprd,fprdcode',
@@ -243,25 +240,22 @@ class ProductController extends Controller
                 'fhargasatuankecillevel3.required' => 'Harga Satuan 3 harus diisi.',
                 'fhargajuallevel1.required' => 'Harga Satuan 1 harus diisi.',
                 'fhargajuallevel2.required' => 'Harga Satuan 2 harus diisi.',
+                'fhargajuallevel3.required' => 'Harga Satuan 3 harus diisi.',
                 'fminstock.required' => 'Harga Satuan 3 harus diisi.',
             ]
         );
 
-        $validated['fprdcode'] = strtoupper($validated['fprdcode']);
         $validated['fprdname'] = strtoupper($validated['fprdname']);
 
-        if (empty($request->fprdcode)) {
-            // Panggil generator baru dengan ID grup dan merek dari data yang sudah tervalidasi
-            $validated['fprdcode'] = $this->generateProductCode(
-                $validated['fgroupcode'],
-                $validated['fmerek']
-            );
-        }
+        // Panggil generator baru dengan ID grup dan merek dari data yang sudah tervalidasi
+        $validated['fprdcode'] = $this->generateProductCode(
+            $validated['fgroupcode'],
+            $validated['fmerek']
+        );
 
         $validated['fapproval'] = auth('sysuser')->user()->fname ?? null;
-
         $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null;
-        $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? 'system';  // Fallback jika tidak ada
+        $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? 'system'; // Fallback jika tidak ada
         $validated['fcreatedat'] = now(); // Use the current time
 
         $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';

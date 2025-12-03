@@ -141,16 +141,15 @@
                         <div class="lg:col-span-4">
                             <label class="block text-sm font-medium mb-1">Supplier</label>
                             <div class="flex">
-                                <div class="relative flex-1">
-                                    <select id="supplierSelect" name="fsupplier"
+                                <div class="relative flex-1" for="modal_filter_supplier_id">
+                                    <select id="modal_filter_supplier_id" name="filter_supplier_id"
                                         class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
-                                        disabled onchange="updateTempo()">
+                                        disabled>
                                         <option value=""></option>
-                                        @foreach ($supplier as $suppliers)
-                                            <option value="{{ $suppliers->fsupplierid }}"
-                                                data-tempo="{{ $suppliers->ftempo }}"
-                                                {{ old('fsupplier') == $suppliers->fsupplierid ? 'selected' : '' }}>
-                                                {{ $suppliers->fsuppliercode }} - {{ $suppliers->fsuppliername }}
+                                        @foreach ($suppliers as $supplier)
+                                            <option value="{{ $supplier->fsupplierid }}"
+                                                {{ $filterSupplierId == $supplier->fsupplierid ? 'selected' : '' }}>
+                                                {{ $supplier->fsuppliername }} ({{ $supplier->fsupplierid }})
                                             </option>
                                         @endforeach
                                     </select>
