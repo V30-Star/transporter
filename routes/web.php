@@ -183,10 +183,8 @@ Route::middleware('auth')->group(function () {
         Route::delete('/penerimaanbarang/{fstockmtid}', [PenerimaanBarangController::class, 'destroy'])->name('penerimaanbarang.destroy');
         Route::get('/penerimaanbarang/{fstockmtno}/print', [PenerimaanBarangController::class, 'print'])
             ->name('penerimaanbarang.print');
-        Route::get('/penerimaanbarang/{id}/items', [PenerimaanBarangController::class, 'items'])
-            ->name('penerimaanbarang.items');
-        Route::get('/penerimaanbarang/pickable', [PenerimaanBarangController::class, 'pickable'])
-            ->name('penerimaanbarang.pickable');
+        Route::get('/penerimaan-barang/pickable', [PenerimaanBarangController::class, 'pickable'])->name('penerimaanbarang.pickable');
+        Route::get('/penerimaan-barang/{id}/items', [PenerimaanBarangController::class, 'items'])->name('penerimaanbarang.items');
 
         Route::get('/fakturpembelian',  [FakturpembelianController::class, 'index'])->name('fakturpembelian.index');
         Route::post('/fakturpembelian',        [FakturpembelianController::class, 'store'])->name('fakturpembelian.store');

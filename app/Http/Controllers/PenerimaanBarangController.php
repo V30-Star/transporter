@@ -117,93 +117,89 @@ class PenerimaanBarangController extends Controller
     ));
   }
 
+  // Di PenerimaanBarangController
+
   public function pickable(Request $request)
   {
-    $search   = trim($request->get('search', ''));
-    $perPage  = (int)($request->get('per_page', 10));
-    $perPage  = $perPage > 0 ? $perPage : 10;
+    // Join dengan tabel supplier jika perlu
+    $query = DB::table('tr_poh')
+      ->select('tr_poh.*')
+      ->orderBy('fpodate', 'desc');
 
-    $q = \App\Models\Tr_poh::query()
-      ->select([
-        'fpohdid as fprid',     // FE expects fprid
-        'fpono as fprno',       // FE expects fprno
-        'fsupplier',
-        'fpodate as fprdate',   // FE expects fprdate
-      ]);
-
-    if ($search !== '') {
-      // cari di fpono / fsupplier / tanggal (yyyy-mm-dd)
-      $q->where(function ($w) use ($search) {
-        $w->where('fpono', 'ILIKE', "%{$search}%")
-          ->orWhere('fsupplier', 'ILIKE', "%{$search}%");
-
-        // coba parse tanggal
-        $date = null;
-        try {
-          $date = \Carbon\Carbon::parse($search)->startOfDay();
-        } catch (\Throwable $e) {
-        }
-        if ($date) {
-          $w->orWhereBetween('fpodate', [
-            $date->copy()->startOfDay(),
-            $date->copy()->endOfDay(),
-          ]);
-        }
+    // Search
+    if ($request->filled('search')) {
+      $search = $request->search;
+      $query->where(function ($q) use ($search) {
+        $q->where('fpono', 'ilike', "%{$search}%")
+          ->orWhere('fsupplier', 'ilike', "%{$search}%")
+          ->orWhere('fpodate', 'ilike', "%{$search}%");
       });
     }
 
-    $q->orderByDesc('fpodate')->orderBy('fpono');
+    // Get totals
+    $recordsTotal = DB::table('tr_poh')->count();
+    $recordsFiltered = $query->count();
 
-    $page = (int)$request->get('page', 1);
-    $data = $q->paginate($perPage, ['*'], 'page', $page);
+    // Pagination
+    $perPage = $request->input('per_page', 10);
+    $page = $request->input('page', 1);
 
-    // Kembalikan struktur yang sudah diantisipasi FE-mu (data, current_page, last_page, total)
+    $data = $query->skip(($page - 1) * $perPage)
+      ->take($perPage)
+      ->get();
+
     return response()->json([
-      'data'         => $data->items(),
-      'current_page' => $data->currentPage(),
-      'last_page'    => $data->lastPage(),
-      'total'        => $data->total(),
+      'draw' => $request->input('draw', 1),
+      'recordsTotal' => $recordsTotal,
+      'recordsFiltered' => $recordsFiltered,
+      'data' => $data
     ]);
   }
 
   public function items($id)
   {
-    // Langkah ini sudah benar: mendapatkan header berdasarkan Primary Key (ID)
-    $header = Tr_poh::where('fpohdid', $id)->firstOrFail();
+    // Ambil data header PO berdasarkan fpohdid
+    $header = DB::table('tr_poh')
+      ->where('fpohdid', $id)
+      ->first();
 
-    // Mengambil detail dari tr_pod
+    if (!$header) {
+      return response()->json([
+        'message' => 'PO tidak ditemukan'
+      ], 404);
+    }
+
+    // Ambil items dari tr_pod dengan join ke msprd
     $items = DB::table('tr_pod')
-      // =================================================================
-      // PERBAIKAN: Gunakan ID dari header (fpohdid) untuk mencocokkan.
-      // Kolom tr_pod.fpono (integer) dicocokkan dengan $header->fpohdid (integer).
-      // =================================================================
-      ->where('tr_pod.fpono', $header->fpohdid) // <-- DIUBAH DARI $header->fpono
-
-      // PERBAIKAN JOIN: tr_pod.fprdcode (sekarang integer) di-join ke msprd.fprdid (integer)
+      ->where('tr_pod.fpono', $header->fpohdid) // fpono (FK) = fpohdid (PK di tr_poh)
       ->leftJoin('msprd as m', 'm.fprdid', '=', 'tr_pod.fprdcode')
       ->select([
-        DB::raw("COALESCE(NULLIF(tr_pod.frefdtno, ''), tr_pod.fpodid::text) as frefdtno"),
-        'tr_pod.fnouref as fnouref',
-        'm.fprdcode as fitemcode', // <-- Ambil kode string dari master produk
-        'm.fprdname as fitemname', // <-- Mengambil fprdname dari tabel msprd
-        'tr_pod.fqty',
-        'tr_pod.fsatuan as fsatuan',
-        'tr_pod.fpono', // Ini adalah kolom ID (integer) dari tr_pod
-        'tr_pod.fprice as fharga',
-        DB::raw("COALESCE(NULLIF(regexp_replace(COALESCE(tr_pod.fdisc, ''), '[^0-9\\.]', '', 'g'), '')::numeric, 0) as fdiskon"),
+        'tr_pod.fpodid as frefdtno',        // ID detail sebagai referensi
+        'tr_pod.fnou as fnouref',            // Nomor urut
+        'tr_pod.fprdcode as fitemcode',      // Kode produk
+        'm.fprdname as fitemname',           // Nama produk dari master
+        'tr_pod.fqty',                       // Qty
+        'tr_pod.fqtyremain',                 // Qty sisa (jika diperlukan)
+        'tr_pod.fsatuan as fsatuan',         // Satuan
+        'tr_pod.fpono',                      // FK ke PO header
+        'tr_pod.fprice as fprice',           // Harga
+        'tr_pod.fprice_rp as fprice_rp',     // Harga Rupiah (jika ada)
+        'tr_pod.famount as ftotal',          // Total amount
+        'tr_pod.fdesc as fdesc',             // Deskripsi
+        'tr_pod.frefdtno',                   // Referensi detail eksternal
+        DB::raw('0::numeric as fterima'),    // Default terima = 0
       ])
-      ->orderBy('m.fprdcode') // Urutkan berdasarkan kode produk string
+      ->orderBy('tr_pod.fnou')
       ->get();
 
-    // Mengembalikan data dalam format JSON
     return response()->json([
       'header' => [
-        'fprid'     => $header->fpohdid,
-        'fprno'     => $header->fpono,
+        'fpohdid'   => $header->fpohdid,
+        'fpono'     => $header->fpono,
         'fsupplier' => trim($header->fsupplier ?? ''),
-        'fprdate'   => optional($header->fpodate)->format('Y-m-d H-i-s'),
+        'fpodate'   => $header->fpodate ? date('Y-m-d H:i:s', strtotime($header->fpodate)) : null,
       ],
-      'items' => $items,
+      'items'  => $items,
     ]);
   }
 

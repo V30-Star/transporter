@@ -120,62 +120,36 @@ class Tr_pohController extends Controller
 
   public function pickable(Request $request)
   {
-    $search   = trim((string) $request->get('search', ''));
-    $perPage  = (int) $request->get('per_page', 10);
+    $query = Tr_prh::query(); // Sesuaikan dengan model PR Anda
 
-    // Ambil dari tr_prh dengan kondisi yang kamu minta
-    $query = Tr_prh::query()
-      ->select([
-        'tr_prh.fprid',
-        'tr_prh.fprno',
-        'tr_prh.fsupplier',
-        'tr_prh.fprdate',
-      ])
-      ->where('tr_prh.fapproval', 2)
-      ->where('tr_prh.fprdin', 0);
-
-    // Optional search: fprno / fsupplier / tanggal
-    if ($search !== '') {
-      // PostgreSQL -> ILIKE, MySQL -> LIKE (ganti sesuai DB)
-      $likeOp = DB::getDriverName() === 'pgsql' ? 'ILIKE' : 'LIKE';
-      $query->where(function ($q) use ($search, $likeOp) {
-        $q->where('tr_prh.fprno', $likeOp, "%{$search}%")
-          ->orWhere('tr_prh.fsupplier', $likeOp, "%{$search}%")
-          ->orWhereRaw("TO_CHAR(tr_prh.fprdate, 'YYYY-MM-DD HH24:MI:SS') {$likeOp} ?", ["%{$search}%"]);
+    // Search
+    if ($request->filled('search')) {
+      $search = $request->search;
+      $query->where(function ($q) use ($search) {
+        $q->where('fprno', 'ilike', "%{$search}%")
+          ->orWhere('fsupplier', 'ilike', "%{$search}%")
+          ->orWhere('fprdate', 'ilike', "%{$search}%");
       });
     }
 
-    // Urutan paling baru
-    $query->orderByDesc('tr_prh.fprdate')
-      ->orderByDesc('tr_prh.fprid');
+    // Get totals
+    $recordsTotal = Tr_prh::count();
+    $recordsFiltered = $query->count();
 
-    $paginated = $query->paginate($perPage)->withQueryString();
+    // Pagination
+    $perPage = $request->input('per_page', 10);
+    $page = $request->input('page', 1);
 
-    // Format JSON agar cocok dengan kode Alpine kamu
-    $rows = collect($paginated->items())->map(function ($t) {
-      return [
-        'fprid'     => $t->fprid,
-        'fprno'     => $t->fprno,
-        'fsupplier' => trim($t->fsupplier ?? ''),
-        'fprdate'   => $t->fprdate ? \Carbon\Carbon::parse($t->fprdate)->format('Y-m-d H:i:s') : 'No Date',
-        // siapkan URL jika dibutuhkan
-        'items_url' => route('tr_poh.items', $t->fprid),
-      ];
-    });
+    $data = $query->orderBy('fprdate', 'desc')
+      ->skip(($page - 1) * $perPage)
+      ->take($perPage)
+      ->get();
 
     return response()->json([
-      'data'  => $rows,
-      'links' => [
-        'prev'         => $paginated->previousPageUrl(),
-        'next'         => $paginated->nextPageUrl(),
-        'current_page' => $paginated->currentPage(),
-        'last_page'    => $paginated->lastPage(),
-        'total'        => $paginated->total(),
-      ],
-      // compat untuk key yang sudah kamu baca di frontend
-      'current_page' => $paginated->currentPage(),
-      'last_page'    => $paginated->lastPage(),
-      'total'        => $paginated->total(),
+      'draw' => $request->input('draw', 1),
+      'recordsTotal' => $recordsTotal,
+      'recordsFiltered' => $recordsFiltered,
+      'data' => $data
     ]);
   }
 
