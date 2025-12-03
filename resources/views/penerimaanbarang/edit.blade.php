@@ -114,15 +114,16 @@
                         <div class="lg:col-span-4">
                             <label class="block text-sm font-medium mb-1">Supplier</label>
                             <div class="flex">
-                                <div class="relative flex-1">
-                                    <select id="supplierSelect" name="fsupplier_view"
+                                <div class="relative flex-1" for="modal_filter_supplier_id">
+                                    <select id="modal_filter_supplier_id" name="filter_supplier_id"
                                         class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
                                         disabled>
                                         <option value=""></option>
-                                        @foreach ($supplier as $sup)
-                                            <option value="{{ $sup->fsupplierid }}"
-                                                {{ old('fsupplier', $penerimaanbarang->fsupplier) == $sup->fsupplierid ? 'selected' : '' }}>
-                                                {{ $sup->fsuppliercode }} - {{ $sup->fsuppliername }}
+                                        @foreach ($suppliers as $supplier)
+                                            <option value="{{ $supplier->fsupplierid }}"
+                                                {{ old('fsupplier', $penerimaanbarang->fsupplier) == $supplier->fsupplierid ? 'selected' : '' }}>
+                                                {{ $supplier->fsuppliername }}
+                                                ({{ $supplier->fsupplierid }})
                                             </option>
                                         @endforeach
                                     </select>
@@ -712,7 +713,8 @@
                     <div x-data="supplierBrowser()" x-show="open" x-cloak x-transition.opacity
                         class="fixed inset-0 z-50 flex items-center justify-center">
                         <div class="absolute inset-0 bg-black/40" @click="close()"></div>
-                        <div class="relative bg-white rounded-2xl shadow-xl w-[92vw] max-w-4xl max-h-[85vh] flex flex-col">
+                        <div c
+                            class="relative bg-white rounded-2xl shadow-xl w-[90vw] **max-w-7xl** max-h-[90vh] flex flex-col">
                             <div class="p-4 border-b flex items-center gap-3">
                                 <h3 class="text-lg font-semibold">Browse Supplier</h3>
                                 <button type="button" @click="close()"
@@ -742,7 +744,8 @@
                         class="fixed inset-0 z-50 flex items-center justify-center">
                         <div class="absolute inset-0 bg-black/40" @click="close()"></div>
 
-                        <div class="relative bg-white rounded-2xl shadow-xl w-[92vw] max-w-4xl max-h-[85vh] flex flex-col">
+                        <div
+                            class="relative bg-white rounded-2xl shadow-xl w-[90vw] **max-w-7xl** max-h-[90vh] flex flex-col">
                             <div class="p-4 border-b flex items-center gap-3">
                                 <h3 class="text-lg font-semibold">Browse Gudang</h3>
                                 <button type="button" @click="close()"

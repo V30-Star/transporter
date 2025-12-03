@@ -510,7 +510,8 @@
                     <div class="absolute inset-0 bg-black/40" @click="close()"></div>
 
                     <!-- ✅ PERBAIKAN: Ubah max-w-4xl ke max-w-7xl atau hapus -->
-                    <div class="relative bg-white rounded-2xl shadow-xl w-[95vw] max-w-7xl max-h-[85vh] flex flex-col">
+                    <div
+                        class="relative bg-white rounded-2xl shadow-xl w-[90vw] **max-w-7xl** max-h-[90vh] flex flex-col">
                         <div class="p-4 border-b flex items-center gap-3">
                             <h3 class="text-lg font-semibold">Browse Supplier</h3>
                             <button type="button" @click="close()"

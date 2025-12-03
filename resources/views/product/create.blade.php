@@ -659,7 +659,7 @@
         class="fixed inset-0 z-[9998] flex items-center justify-center">
         <div class="absolute inset-0 bg-black/40" @click="close()"></div>
 
-        <div class="relative bg-white rounded-2xl shadow-xl w-[92vw] max-w-4xl max-h-[85vh] flex flex-col">
+        <div class="relative bg-white rounded-2xl shadow-xl w-[90vw] **max-w-7xl** max-h-[90vh] flex flex-col">
             <div class="p-4 border-b flex items-center gap-3">
                 <h3 class="text-lg font-semibold">Browse Group Product</h3>
                 <button type="button" @click="close()"
@@ -687,7 +687,7 @@
         class="fixed inset-0 z-[9999] flex items-center justify-center">
         <div class="absolute inset-0 bg-black/40" @click="close()"></div>
 
-        <div class="relative bg-white rounded-2xl shadow-xl w-[92vw] max-w-4xl max-h-[85vh] flex flex-col">
+        <div class="relative bg-white rounded-2xl shadow-xl w-[90vw] **max-w-7xl** max-h-[90vh] flex flex-col">
             <div class="p-4 border-b flex items-center gap-3">
                 <h3 class="text-lg font-semibold">Browse Merek</h3>
                 <button type="button" @click="close()"
@@ -738,6 +738,30 @@
     /* Styling untuk select agar lebih rapi */
     #merekTable_wrapper .dt-length select,
     #merekTable_wrapper .dataTables_length select {
+        padding: 6px 30px 6px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 0.375rem;
+        background-position: right 8px center;
+        background-size: 16px;
+    }
+    /* Lebarkan dropdown tampilkan data */
+    #groupTable_wrapper .dt-length select,
+    #groupTable_wrapper .dataTables_length select {
+        min-width: 80px !important;
+        width: auto !important;
+        padding-right: 30px !important;
+    }
+
+    /* Pastikan wrapper length cukup lebar */
+    #groupTable_wrapper .dt-length,
+    #groupTable_wrapper .dataTables_length {
+        min-width: 180px;
+        white-space: nowrap;
+    }
+
+    /* Styling untuk select agar lebih rapi */
+    #groupTable_wrapper .dt-length select,
+    #groupTable_wrapper .dataTables_length select {
         padding: 6px 30px 6px 12px;
         border: 1px solid #d1d5db;
         border-radius: 0.375rem;

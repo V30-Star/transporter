@@ -866,7 +866,8 @@
                     <div x-data="supplierBrowser()" x-show="open" x-cloak x-transition.opacity
                         class="fixed inset-0 z-50 flex items-center justify-center">
                         <div class="absolute inset-0 bg-black/40" @click="close()"></div>
-                        <div class="relative bg-white rounded-2xl shadow-xl w-[92vw] max-w-4xl max-h-[85vh] flex flex-col">
+                        <div
+                            class="relative bg-white rounded-2xl shadow-xl w-[90vw] **max-w-7xl** max-h-[90vh] flex flex-col">
                             <div class="p-4 border-b flex items-center gap-3">
                                 <h3 class="text-lg font-semibold">Browse Supplier</h3>
                                 <button type="button" @click="close()"
@@ -1617,7 +1618,7 @@
 </script>
 
 <script>
-      window.prhFormModal = function() {
+    window.prhFormModal = function() {
         return {
             show: false,
             table: null,
@@ -1827,7 +1828,6 @@
         return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
     }
 </script>
-
 
 @push('scripts')
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>

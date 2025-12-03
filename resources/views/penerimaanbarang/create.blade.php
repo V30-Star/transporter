@@ -115,15 +115,14 @@
                             <label class="block text-sm font-medium mb-1">Supplier</label>
                             <div class="flex">
                                 <div class="relative flex-1">
-                                    <select id="supplierSelect" name="fsupplier"
+                                    <select id="modal_filter_supplier_id" name="filter_supplier_id"
                                         class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
                                         disabled>
                                         <option value=""></option>
-                                        @foreach ($supplier as $suppliers)
-                                            <option value="{{ $suppliers->fsupplierid }}"
-                                                data-tempo="{{ $suppliers->ftempo }}"
-                                                {{ old('fsupplier') == $suppliers->fsupplierid ? 'selected' : '' }}>
-                                                {{ $suppliers->fsuppliercode }} - {{ $suppliers->fsuppliername }}
+                                        @foreach ($suppliers as $supplier)
+                                            <option value="{{ $supplier->fsupplierid }}"
+                                                {{ $filterSupplierId == $supplier->fsupplierid ? 'selected' : '' }}>
+                                                {{ $supplier->fsuppliername }} ({{ $supplier->fsupplierid }})
                                             </option>
                                         @endforeach
                                     </select>
@@ -721,7 +720,7 @@
 
                             <!-- ✅ PERBAIKAN: Ubah max-w-4xl ke max-w-7xl atau hapus -->
                             <div
-                                class="relative bg-white rounded-2xl shadow-xl w-[95vw] max-w-7xl max-h-[85vh] flex flex-col">
+                                class="relative bg-white rounded-2xl shadow-xl w-[90vw] **max-w-7xl** max-h-[90vh] flex flex-col">
                                 <div class="p-4 border-b flex items-center gap-3">
                                     <h3 class="text-lg font-semibold">Browse Supplier</h3>
                                     <button type="button" @click="close()"
@@ -755,7 +754,7 @@
                             <div class="absolute inset-0 bg-black/40" @click="close()"></div>
 
                             <div
-                                class="relative bg-white rounded-2xl shadow-xl w-[92vw] max-w-4xl max-h-[85vh] flex flex-col">
+                                class="relative bg-white rounded-2xl shadow-xl w-[90vw] **max-w-7xl** max-h-[90vh] flex flex-col">
                                 <div class="p-4 border-b flex items-center gap-3">
                                     <h3 class="text-lg font-semibold">Browse Gudang</h3>
                                     <button type="button" @click="close()"

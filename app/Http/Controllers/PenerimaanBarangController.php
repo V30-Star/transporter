@@ -287,9 +287,10 @@ class PenerimaanBarangController extends Controller
     ]);
   }
 
-  public function create()
+  public function create(Request $request)
   {
-    $supplier = Supplier::all();
+    $suppliers = Supplier::orderBy('fsuppliername', 'asc')
+      ->get(['fsupplierid', 'fsuppliername']);
 
     $warehouses = DB::table('mswh')
       ->select('fwhid', 'fwhcode', 'fwhname', 'fbranchcode', 'fnonactive')
@@ -328,10 +329,11 @@ class PenerimaanBarangController extends Controller
       'newtr_prh_code' => $newtr_prh_code,
       'warehouses' => $warehouses,
       'perms' => ['can_approval' => $canApproval],
-      'supplier' => $supplier,
+      'suppliers' => $suppliers,
       'fcabang' => $fcabang,
       'fbranchcode' => $fbranchcode,
       'products' => $products,
+      'filterSupplierId' => $request->query('filter_supplier_id'),
     ]);
   }
 
@@ -721,9 +723,10 @@ class PenerimaanBarangController extends Controller
       ->with('success', "Transaksi {$fstockmtno} tersimpan.");
   }
 
-  public function edit($fstockmtid)
+  public function edit(Request $request, $fstockmtid)
   {
-    $supplier = Supplier::all();
+    $suppliers = Supplier::orderBy('fsuppliername', 'asc')
+      ->get(['fsupplierid', 'fsuppliername']);
 
     $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
@@ -811,7 +814,7 @@ class PenerimaanBarangController extends Controller
     })->toArray();
 
     return view('penerimaanbarang.edit', [
-      'supplier'           => $supplier,
+      'suppliers'           => $suppliers,
       'selectedSupplierCode' => $selectedSupplierCode,
       'fcabang'            => $fcabang,
       'fbranchcode'        => $fbranchcode,
@@ -823,6 +826,7 @@ class PenerimaanBarangController extends Controller
       'ppnAmount'          => (float) ($penerimaanbarang->famountpopajak ?? 0),
       'famountponet'       => (float) ($penerimaanbarang->famountponet ?? 0),
       'famountpo'          => (float) ($penerimaanbarang->famountpo ?? 0),
+      'filterSupplierId' => $request->query('filter_supplier_id'),
     ]);
   }
 

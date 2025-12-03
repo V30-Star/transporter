@@ -97,7 +97,7 @@
             showNoItems: false,
         
             savedItems: []
-        }" class="lg:col-span-5"> 
+        }" class="lg:col-span-5">
             <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
                 <form action="{{ route('mutasi.store') }}" method="POST" class="mt-6" @submit="onSubmit($event)">
                     @csrf
@@ -650,7 +650,8 @@
                         class="fixed inset-0 z-50 flex items-center justify-center">
                         <div class="absolute inset-0 bg-black/40" @click="close()"></div>
 
-                        <div class="relative bg-white rounded-2xl shadow-xl w-[92vw] max-w-4xl max-h-[85vh] flex flex-col">
+                        <div
+                            class="relative bg-white rounded-2xl shadow-xl w-[90vw] **max-w-7xl** max-h-[90vh] flex flex-col">
                             <div class="p-4 border-b flex items-center gap-3">
                                 <h3 class="text-lg font-semibold">Browse Gudang</h3>
                                 <button type="button" @click="close()"

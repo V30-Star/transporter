@@ -488,9 +488,10 @@ class Tr_prhController extends Controller
       ->with('success', 'Permintaan pembelian berhasil ditambahkan.');
   }
 
-  public function edit($fprid)
+  public function edit(Request $request, $fprid)
   {
-    $supplier = Supplier::all();
+    $suppliers = Supplier::orderBy('fsuppliername', 'asc')
+      ->get(['fsupplierid', 'fsuppliername']);
 
     $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
@@ -559,13 +560,14 @@ class Tr_prhController extends Controller
     })->toArray();
 
     return view('tr_prh.edit', [
-      'supplier'     => $supplier,
+      'suppliers'      => $suppliers,
       'fcabang'      => $fcabang,
       'fbranchcode'  => $fbranchcode,
       'products'     => $products,
       'productMap'   => $productMap, // jika dipakai di Blade
       'tr_prh'       => $tr_prh,     // <<— PENTING
       'savedItems'  => $savedItems,   // <— tambahkan ini
+      'filterSupplierId' => $request->query('filter_supplier_id'),
     ]);
   }
 
