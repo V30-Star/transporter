@@ -57,7 +57,6 @@ class AccountController extends Controller
 
     public function create()
     {
-
         $accounts = Account::where('fend', 0) // header
             ->orderBy('faccount')
             ->limit(50)
@@ -296,6 +295,8 @@ class AccountController extends Controller
     {
         $query = Account::query(); // Sesuaikan dengan model Anda
 
+        $query->where('fend', 0);
+
         // Search
         if ($request->filled('search')) {
             $search = $request->search;
@@ -306,7 +307,7 @@ class AccountController extends Controller
         }
 
         // Get totals
-        $recordsTotal = Account::count();
+        $recordsTotal = Account::where('fend', 0)->count();
         $recordsFiltered = $query->count();
 
         // Pagination

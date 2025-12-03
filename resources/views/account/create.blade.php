@@ -184,7 +184,8 @@
                             <table id="accountTable" class="min-w-full text-sm display nowrap" style="width:100%">
                                 <thead class="bg-gray-100">
                                     <tr>
-                                        <th class="text-left p-2">Account (Kode - Nama)</th>
+                                        <th class="text-left p-2">Account Kode</th>
+                                        <th class="text-left p-2">Account Nama</th>
                                         <th class="text-center p-2">Aksi</th>
                                     </tr>
                                 </thead>
@@ -432,11 +433,12 @@
                             }
                         },
                         columns: [{
-                                data: null,
+                                data: 'faccount',
                                 name: 'faccount',
-                                render: function(data, type, row) {
-                                    return `${row.faccount} - ${row.faccname}`;
-                                }
+                            },
+                            {
+                                data: 'faccname',
+                                name: 'faccname'
                             },
                             {
                                 data: null,
