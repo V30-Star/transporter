@@ -654,34 +654,58 @@
         </div>
     </div>
 
-    <!-- MODAL BROWSE GROUP PRODUCT -->
     <div x-data="groupBrowser()" x-show="open" x-cloak x-transition.opacity
-        class="fixed inset-0 z-[9998] flex items-center justify-center">
-        <div class="absolute inset-0 bg-black/40" @click="close()"></div>
+        class="fixed inset-0 z-[9998] flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
 
-        <div class="relative bg-white rounded-2xl shadow-xl w-[90vw] **max-w-7xl** max-h-[90vh] flex flex-col">
-            <div class="p-4 border-b flex items-center gap-3">
-                <h3 class="text-lg font-semibold">Browse Group Product</h3>
+        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-5xl flex flex-col overflow-hidden"
+            style="height: 650px;">
+            <!-- Header -->
+            <div
+                class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-emerald-50 to-white">
+                <div>
+                    <h3 class="text-xl font-bold text-gray-800">Browse Group Product</h3>
+                    <p class="text-sm text-gray-500 mt-0.5">Pilih group product yang diinginkan</p>
+                </div>
                 <button type="button" @click="close()"
-                    class="ml-auto px-3 py-1 rounded border bg-gray-100 hover:bg-gray-200">
-                    Close
+                    class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">
+                    Tutup
                 </button>
             </div>
 
-            <div class="p-4 overflow-auto flex-1">
-                <table id="groupTable" class="min-w-full text-sm display nowrap" style="width:100%">
-                    <thead class="bg-gray-100">
-                        <tr>
-                            <th class="text-left p-2">Kode</th>
-                            <th class="text-left p-2">Nama Group</th>
-                            <th class="text-center p-2">Aksi</th>
-                        </tr>
-                    </thead>
-                </table>
+            <!-- Search & Length Menu -->
+            <div class="px-6 pt-4 pb-2 flex-shrink-0 border-b border-gray-100">
+                <div id="tableControls"></div>
+            </div>
+
+            <!-- Table with fixed height and scroll -->
+            <div class="flex-1 overflow-y-auto px-6" style="min-height: 0;">
+                <div class="bg-white">
+                    <table id="groupTable" class="min-w-full text-sm display nowrap stripe hover" style="width:100%">
+                        <thead class="sticky top-0 z-10">
+                            <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
+                                <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Kode Group
+                                </th>
+                                <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Nama Group
+                                </th>
+                                <th class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Aksi
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Data will be populated by DataTables -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Pagination & Info -->
+            <div class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">
+                <div id="tablePagination"></div>
             </div>
         </div>
     </div>
-
+    
     {{-- MODAL MEREK dengan DataTables --}}
     <div x-data="merekBrowser()" x-show="open" x-cloak x-transition.opacity
         class="fixed inset-0 z-[9999] flex items-center justify-center">

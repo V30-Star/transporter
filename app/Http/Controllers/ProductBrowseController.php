@@ -9,17 +9,22 @@ class ProductBrowseController extends Controller
 {
   public function index(Request $request)
   {
-    $q = trim($request->get('q', ''));
-    $perPage = (int) $request->get('per_page', 10);
-    $perPage = $perPage > 0 && $perPage <= 100 ? $perPage : 10;
+    // DataTables parameters
+    $draw = (int) $request->input('draw', 1);
+    $start = (int) $request->input('start', 0);
+    $length = (int) $request->input('length', 10);
+    $searchValue = $request->input('search', '');
+    $orderColumn = $request->input('order_column', 'fprdname');
+    $orderDir = $request->input('order_dir', 'asc');
 
+    // Base query
     $builder = DB::table('msprd')
       ->leftJoin('msmerek', 'msprd.fmerek', '=', 'msmerek.fmerekid')
       ->select([
         'msprd.fprdcode',
         'msprd.fprdname',
         'msprd.fmerek',
-        'msmerek.fmerekname', // Ambil nama merek
+        'msmerek.fmerekname',
         'msprd.fsatuankecil',
         'msprd.fsatuanbesar',
         'msprd.fsatuanbesar2',
@@ -32,21 +37,39 @@ class ProductBrowseController extends Controller
             "),
       ]);
 
-    if ($q !== '') {
-      $builder->where(function ($w) use ($q) {
-        $w->where('msprd.fprdcode', 'like', "%{$q}%")
-          ->orWhere('msprd.fprdname', 'like', "%{$q}%");
+    // Total records tanpa filter
+    $recordsTotal = DB::table('msprd')->count();
+
+    // Search/Filter
+    if ($searchValue !== '') {
+      $builder->where(function ($w) use ($searchValue) {
+        $w->where('msprd.fprdcode', 'ilike', "%{$searchValue}%")
+          ->orWhere('msprd.fprdname', 'ilike', "%{$searchValue}%");
       });
     }
 
-    $data = $builder->orderBy('msprd.fprdname')->paginate($perPage);
+    // Total records setelah filter
+    $recordsFiltered = $builder->count();
 
+    // Sorting
+    $allowedColumns = ['fprdcode', 'fprdname', 'fsatuanbesar', 'fminstock'];
+    if (in_array($orderColumn, $allowedColumns)) {
+      $builder->orderBy('msprd.' . $orderColumn, $orderDir);
+    } else {
+      $builder->orderBy('msprd.fprdname', 'asc');
+    }
+
+    // Pagination
+    $data = $builder->skip($start)
+      ->take($length)
+      ->get();
+
+    // Response format untuk DataTables
     return response()->json([
-      'data' => $data->items(),
-      'current_page' => $data->currentPage(),
-      'last_page' => $data->lastPage(),
-      'per_page' => $data->perPage(),
-      'total' => $data->total(),
+      'draw' => $draw,
+      'recordsTotal' => $recordsTotal,
+      'recordsFiltered' => $recordsFiltered,
+      'data' => $data
     ]);
   }
 }
