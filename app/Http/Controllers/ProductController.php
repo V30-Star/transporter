@@ -280,9 +280,6 @@ class ProductController extends Controller
 
     public function update(Request $request, $fprdid)
     {
-        $request->merge([
-            'fprdcode' => strtoupper($request->fprdcode),
-        ]);
 
         // Validate the incoming data
         $validated = $request->validate(

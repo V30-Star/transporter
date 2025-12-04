@@ -497,6 +497,8 @@
                         if (hid) hid.value = id;
                         this.close();
                     };
+                    $container.find('.dt-search .dt-input, .dataTables_filter input').focus();
+
 
                     window.addEventListener('supplier-browse-open', () => this.openBrowse(), {
                         passive: true

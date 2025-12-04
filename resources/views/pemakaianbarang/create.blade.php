@@ -1309,7 +1309,25 @@
                     order: [
                         [0, 'asc']
                     ], // Sort by kode gudang
-                    autoWidth: false
+                    autoWidth: false,
+                    initComplete: function() {
+                        const api = this.api();
+                        const $container = $(api.table().container());
+
+                        // Lebarkan search input
+                        $container.find('.dt-search .dt-input, .dataTables_filter input').css({
+                            width: '400px',
+                            maxWidth: '100%',
+                            minWidth: '300px'
+                        });
+
+                        // Opsional: lebarkan wrapper search juga
+                        $container.find('.dt-search, .dataTables_filter').css({
+                            minWidth: '420px'
+                        });
+
+                        $container.find('.dt-search .dt-input, .dataTables_filter input').focus();
+                    }
                 });
 
                 // Handle button click
@@ -1466,7 +1484,25 @@
                         order: [
                             [1, 'asc']
                         ], // Sort by nama
-                        autoWidth: false
+                        autoWidth: false,
+                        initComplete: function() {
+                            const api = this.api();
+                            const $container = $(api.table().container());
+
+                            // Lebarkan search input
+                            $container.find('.dt-search .dt-input, .dataTables_filter input').css({
+                                width: '400px',
+                                maxWidth: '100%',
+                                minWidth: '300px'
+                            });
+
+                            // Opsional: lebarkan wrapper search juga
+                            $container.find('.dt-search, .dataTables_filter').css({
+                                minWidth: '420px'
+                            });
+
+                            $container.find('.dt-search .dt-input, .dataTables_filter input').focus();
+                        }
                     });
 
                     // Handle button click

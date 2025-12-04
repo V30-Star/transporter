@@ -923,8 +923,8 @@
                         class="fixed inset-0 z-50 flex items-center justify-center">
                         <div class="absolute inset-0 bg-black/40" @click="close()"></div>
 
-                        <div 
-                        class="relative bg-white rounded-2xl shadow-xl w-[90vw] **max-w-7xl** max-h-[90vh] flex flex-col">
+                        <div
+                            class="relative bg-white rounded-2xl shadow-xl w-[90vw] **max-w-7xl** max-h-[90vh] flex flex-col">
                             <div class="p-4 border-b flex items-center gap-3">
                                 <h3 class="text-lg font-semibold">Browse Gudang</h3>
                                 <button type="button" @click="close()"
@@ -2058,6 +2058,8 @@
                         $container.find('.dt-search, .dataTables_filter').css({
                             minWidth: '420px'
                         });
+                        $container.find('.dt-search .dt-input, .dataTables_filter input').focus();
+
                     }
                 });
 
@@ -2190,6 +2192,7 @@
                         $container.find('.dt-search, .dataTables_filter').css({
                             minWidth: '420px'
                         });
+                        $container.find('.dt-search .dt-input, .dataTables_filter input').focus();
                     }
                 });
 
@@ -2383,6 +2386,8 @@
                             $container.find('.dt-search, .dataTables_filter').css({
                                 minWidth: '420px'
                             });
+                            $container.find('.dt-search .dt-input, .dataTables_filter input').focus();
+
                         }
                     });
 

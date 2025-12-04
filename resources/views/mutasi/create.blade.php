@@ -1260,6 +1260,8 @@
                         $container.find('.dt-search, .dataTables_filter').css({
                             minWidth: '420px'
                         });
+                                                $container.find('.dt-search .dt-input, .dataTables_filter input').focus();
+
                     }
                 });
 
@@ -1460,6 +1462,9 @@
                         $container.find('.dt-search, .dataTables_filter').css({
                             minWidth: '420px'
                         });
+
+                                                $container.find('.dt-search .dt-input, .dataTables_filter input').focus();
+
                     }
                 });
 
@@ -1635,6 +1640,8 @@
                             $container.find('.dt-search, .dataTables_filter').css({
                                 minWidth: '420px'
                             });
+                                                    $container.find('.dt-search .dt-input, .dataTables_filter input').focus();
+
                         }
                     });
 

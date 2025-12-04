@@ -700,7 +700,8 @@
                 <table id="merekTable" class="min-w-full text-sm display nowrap" style="width:100%">
                     <thead class="bg-gray-100">
                         <tr>
-                            <th class="text-left p-2">Merek (Kode - Nama)</th>
+                            <th class="text-left p-2">Kode Merek</th>
+                            <th class="text-left p-2">Nama Merek</th>
                             <th class="text-center p-2">Aksi</th>
                         </tr>
                     </thead>
@@ -970,11 +971,12 @@
                         }
                     },
                     columns: [{
-                            data: null,
+                            data: 'fmerekcode',
                             name: 'fmerekcode',
-                            render: function(data, type, row) {
-                                return `${row.fmerekcode} - ${row.fmerekname}`;
-                            }
+                        },
+                        {
+                            data: 'fmerekname',
+                            name: 'fmerekname',
                         },
                         {
                             data: null,
@@ -1030,6 +1032,8 @@
                         $container.find('.dt-search, .dataTables_filter').css({
                             minWidth: '420px'
                         });
+
+                        $container.find('.dt-search .dt-input, .dataTables_filter input').focus();
                     }
                 });
 
@@ -1192,6 +1196,8 @@
                         $container.find('.dt-search, .dataTables_filter').css({
                             minWidth: '420px'
                         });
+
+                        $container.find('.dt-search .dt-input, .dataTables_filter input').focus();
                     }
                 });
 
