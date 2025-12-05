@@ -140,34 +140,52 @@ class MerekController extends Controller
 
     public function browse(Request $request)
     {
-        $query = Merek::query(); // Sesuaikan dengan model Anda
+        // Base query
+        $query = Merek::query();
+
+        // Total records tanpa filter
+        $recordsTotal = Merek::count();
 
         // Search
-        if ($request->filled('search')) {
+        if ($request->filled('search') && $request->search != '') {
             $search = $request->search;
+            // Parameter search dari DataTables dikirim di $request->search
             $query->where(function ($q) use ($search) {
                 $q->where('fmerekcode', 'ilike', "%{$search}%")
                     ->orWhere('fmerekname', 'ilike', "%{$search}%");
             });
         }
 
-        // Get totals
-        $recordsTotal = Merek::count();
+        // Total records setelah filter
         $recordsFiltered = $query->count();
 
-        // Pagination
-        $perPage = $request->input('per_page', 10);
-        $page = $request->input('page', 1);
+        // Sorting
+        $orderColumn = $request->input('order_column', 'fmerekname');
+        $orderDir = $request->input('order_dir', 'asc');
 
-        $data = $query->orderBy('fmerekcode', 'asc')
-            ->skip(($page - 1) * $perPage)
-            ->take($perPage)
+        // Kolom yang diizinkan untuk di-sorting
+        $allowedColumns = ['fmerekcode', 'fmerekname'];
+
+        if (in_array($orderColumn, $allowedColumns)) {
+            $query->orderBy($orderColumn, $orderDir);
+        } else {
+            // Default order
+            $query->orderBy('fmerekname', 'asc');
+        }
+
+        // Pagination (Menggunakan start dan length dari DataTables)
+        $start = (int) $request->input('start', 0);
+        $length = (int) $request->input('length', 10);
+
+        $data = $query->skip($start)
+            ->take($length)
             ->get();
 
+        // Response format untuk DataTables
         return response()->json([
-            'draw' => $request->input('draw', 1),
-            'recordsTotal' => $recordsTotal,
-            'recordsFiltered' => $recordsFiltered,
+            'draw' => (int) $request->input('draw', 1),
+            'recordsTotal' => (int) $recordsTotal,
+            'recordsFiltered' => (int) $recordsFiltered,
             'data' => $data
         ]);
     }

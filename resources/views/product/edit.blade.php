@@ -763,27 +763,54 @@
 
     <!-- MODAL BROWSE MEREK -->
     <div x-data="merekBrowser()" x-show="open" x-cloak x-transition.opacity
-        class="fixed inset-0 z-[9999] flex items-center justify-center">
-        <div class="absolute inset-0 bg-black/40" @click="close()"></div>
+        class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="close()"></div>
 
-        <div class="relative bg-white rounded-2xl shadow-xl w-[90vw] **max-w-7xl** max-h-[90vh] flex flex-col">
-            <div class="p-4 border-b flex items-center gap-3">
-                <h3 class="text-lg font-semibold">Browse Merek</h3>
+        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-6xl flex flex-col overflow-hidden"
+            style="height: 550px;">
+
+            <!-- Header (Disamakan dengan Supplier/PR) -->
+            <div
+                class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
+                <div>
+                    <h3 class="text-xl font-bold text-gray-800">Browse Merek (Brand)</h3>
+                    <p class="text-sm text-gray-500 mt-0.5">Pilih merek yang diinginkan</p>
+                </div>
                 <button type="button" @click="close()"
-                    class="ml-auto px-3 py-1 rounded border bg-gray-100 hover:bg-gray-200">
-                    Close
+                    class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">
+                    Tutup
                 </button>
             </div>
 
-            <div class="p-4 overflow-auto flex-1">
-                <table id="merekTable" class="min-w-full text-sm display nowrap" style="width:100%">
-                    <thead class="bg-gray-100">
-                        <tr>
-                            <th class="text-left p-2">Merek (Kode - Nama)</th>
-                            <th class="text-center p-2">Aksi</th>
-                        </tr>
-                    </thead>
-                </table>
+            <!-- Search & Length Menu (Area untuk kontrol DataTables) -->
+            <div class="px-6 pt-4 pb-2 flex-shrink-0 border-b border-gray-100">
+                <!-- DataTables akan merender kontrol f (filter) dan l (length) di sini karena setting dom. -->
+            </div>
+
+            <!-- Table with fixed height and scroll -->
+            <div class="flex-1 overflow-y-auto px-6" style="min-height: 0;">
+                <div class="bg-white">
+                    <table id="merekTable" class="min-w-full text-sm display nowrap stripe hover" style="width:100%">
+                        <thead class="sticky top-0 z-10">
+                            <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
+                                <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                    Kode Merek</th>
+                                <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                    Nama Merek</th>
+                                <th class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                    Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Data will be populated by DataTables -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Pagination & Info -->
+            <div class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">
+                <!-- DataTables info dan paginate akan dirender di sini -->
             </div>
         </div>
     </div>
@@ -970,34 +997,43 @@
                     processing: true,
                     serverSide: true,
                     ajax: {
-                        url: "{{ route('merek.browse') }}", // Sesuaikan route Anda
+                        url: "{{ route('merek.browse') }}",
                         type: 'GET',
                         data: function(d) {
                             return {
                                 draw: d.draw,
-                                page: (d.start / d.length) + 1,
-                                per_page: d.length,
-                                search: d.search.value
+                                start: d.start,
+                                length: d.length,
+                                search: d.search.value,
+                                // Menggunakan parameter sorting standar DataTables
+                                order_column: d.columns[d.order[0].column].data,
+                                order_dir: d.order[0].dir
                             };
                         },
-                        dataSrc: function(json) {
-                            return json.data;
-                        }
+                        // Tidak perlu dataSrc jika backend merespons dalam format DataTables standar
+                        // Jika backend masih merespons dengan struktur Laravel pagination, dataSrc diperlukan
                     },
                     columns: [{
-                            data: null,
+                            data: 'fmerekcode',
                             name: 'fmerekcode',
-                            render: function(data, type, row) {
-                                return `${row.fmerekcode} - ${row.fmerekname}`;
-                            }
+                            className: 'font-mono text-sm', // Styling konsisten
+                            width: '30%'
+                        },
+                        {
+                            data: 'fmerekname',
+                            name: 'fmerekname',
+                            className: 'text-sm', // Styling konsisten
+                            width: '55%'
                         },
                         {
                             data: null,
                             orderable: false,
                             searchable: false,
                             className: 'text-center',
+                            width: '15%',
                             render: function(data, type, row) {
-                                return '<button type="button" class="btn-choose px-3 py-1 rounded text-xs bg-emerald-600 hover:bg-emerald-700 text-white">Pilih</button>';
+                                // Menggunakan styling button yang seragam (biru)
+                                return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>';
                             }
                         }
                     ],
@@ -1006,12 +1042,15 @@
                         [10, 25, 50, 100],
                         [10, 25, 50, 100]
                     ],
+                    // Menggunakan DOM custom yang sudah diseragamkan
+                    dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
+
                     language: {
-                        processing: "Memuat...",
+                        processing: "Memuat data...",
                         search: "Cari:",
-                        lengthMenu: "Tampilkan _MENU_ data",
+                        lengthMenu: "Tampilkan _MENU_",
                         info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
-                        infoEmpty: "Menampilkan 0 data",
+                        infoEmpty: "Tidak ada data",
                         infoFiltered: "(disaring dari _MAX_ total data)",
                         zeroRecords: "Tidak ada data yang ditemukan",
                         emptyTable: "Tidak ada data tersedia",
@@ -1023,31 +1062,35 @@
                         }
                     },
                     order: [
-                        [0, 'asc']
-                    ], // Sort by kode merek
-                    autoWidth: false
+                        [1, 'asc'] // Default order by Merek Name
+                    ],
+                    autoWidth: false,
+                    // Tambahkan initComplete untuk styling
                     initComplete: function() {
                         const api = this.api();
                         const $container = $(api.table().container());
 
-                        // Lebarkan search input
+                        // Style search input (disamakan dengan Supplier/PR)
                         $container.find('.dt-search .dt-input, .dataTables_filter input').css({
-                            width: '400px',
-                            maxWidth: '100%',
-                            minWidth: '300px'
-                        });
+                            width: '300px',
+                            padding: '8px 12px',
+                            border: '2px solid #e5e7eb',
+                            borderRadius: '8px',
+                            fontSize: '14px'
+                        }).focus();
 
-                        // Opsional: lebarkan wrapper search juga
-                        $container.find('.dt-search, .dataTables_filter').css({
-                            minWidth: '420px'
+                        // Style length select (disamakan dengan Supplier/PR)
+                        $container.find('.dt-length select, .dataTables_length select').css({
+                            padding: '6px 32px 6px 10px',
+                            border: '2px solid #e5e7eb',
+                            borderRadius: '8px',
+                            fontSize: '14px'
                         });
-
-                        $container.find('.dt-search .dt-input, .dataTables_filter input').focus();
                     }
                 });
 
                 // Handle button click
-                $('#merekTable').on('click', '.btn-choose', (e) => {
+                $('#merekTable').off('click', '.btn-choose').on('click', '.btn-choose', (e) => {
                     const data = this.table.row($(e.target).closest('tr')).data();
                     this.choose(data);
                 });
@@ -1055,7 +1098,6 @@
 
             openModal() {
                 this.open = true;
-                // Initialize DataTable setelah modal terbuka
                 this.$nextTick(() => {
                     this.initDataTable();
                 });
@@ -1080,7 +1122,10 @@
             },
 
             init() {
-                window.addEventListener('merek-browse-open', () => this.openModal());
+                // Menggunakan passive: true untuk performa
+                window.addEventListener('merek-browse-open', () => this.openModal(), {
+                    passive: true
+                });
             }
         }
     };

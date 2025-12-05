@@ -158,7 +158,7 @@
                         <select name="fgroup"
                             class="w-full border rounded px-3 py-2 @error('fgroup') border-red-500 @enderror"
                             id="groupSelect">
-                            <option value="">-- Pilih Group Produk --</option>
+                            <option value="">-- Pilih Group Customer --</option>
                             @foreach ($groups as $group)
                                 <option value="{{ $group->fgroupid }}"
                                     {{ old('fgroup', $customer->fgroup) == $group->fgroupid ? 'selected' : '' }}>

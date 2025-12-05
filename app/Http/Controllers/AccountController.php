@@ -293,12 +293,17 @@ class AccountController extends Controller
 
     public function browse(Request $request)
     {
-        $query = Account::query(); // Sesuaikan dengan model Anda
+        // Base query
+        $query = Account::query();
 
+        // Filter awal: hanya tampilkan akun yang tidak berakhir (fend = 0)
         $query->where('fend', 0);
 
+        // Total records tanpa filter (sesuai filter base 'fend = 0')
+        $recordsTotal = Account::where('fend', 0)->count();
+
         // Search
-        if ($request->filled('search')) {
+        if ($request->filled('search') && $request->search != '') {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('faccount', 'ilike', "%{$search}%")
@@ -306,23 +311,36 @@ class AccountController extends Controller
             });
         }
 
-        // Get totals
-        $recordsTotal = Account::where('fend', 0)->count();
+        // Total records setelah filter
         $recordsFiltered = $query->count();
 
-        // Pagination
-        $perPage = $request->input('per_page', 10);
-        $page = $request->input('page', 1);
+        // Sorting (Disamakan dengan Supplier)
+        $orderColumn = $request->input('order_column', 'faccname');
+        $orderDir = $request->input('order_dir', 'asc');
 
-        $data = $query->orderBy('faccount', 'asc')
-            ->skip(($page - 1) * $perPage)
-            ->take($perPage)
+        // Kolom yang diizinkan untuk di-sorting
+        $allowedColumns = ['faccount', 'faccname'];
+
+        if (in_array($orderColumn, $allowedColumns)) {
+            $query->orderBy($orderColumn, $orderDir);
+        } else {
+            // Default order
+            $query->orderBy('faccname', 'asc');
+        }
+
+        // Pagination (Menggunakan start dan length dari DataTables)
+        $start = (int) $request->input('start', 0);
+        $length = (int) $request->input('length', 10);
+
+        $data = $query->skip($start)
+            ->take($length)
             ->get();
 
+        // Response format untuk DataTables
         return response()->json([
-            'draw' => $request->input('draw', 1),
-            'recordsTotal' => $recordsTotal,
-            'recordsFiltered' => $recordsFiltered,
+            'draw' => (int) $request->input('draw', 1),
+            'recordsTotal' => (int) $recordsTotal,
+            'recordsFiltered' => (int) $recordsFiltered,
             'data' => $data
         ]);
     }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Customer;  // Assuming you have a Customer model
+use App\Models\Groupcustomer;
 use App\Models\Groupproduct;  // Add this import to get the groups
 use App\Models\Salesman;  // Add this import to get the groups
 use App\Models\Wilayah;  // Add this import to get the groups
@@ -156,7 +157,7 @@ class CustomerController extends Controller
     // Create method to return the customer creation form
     public function create()
     {
-        $groups = Groupproduct::where('fnonactive', 0)->get();
+        $groups = Groupcustomer::where('fnonactive', 0)->get();
         $salesman = Salesman::where('fnonactive', 0)->get();
         $wilayah = Wilayah::where('fnonactive', 0)->get();
         $rekening = Rekening::where('fnonactive', 0)->get();
@@ -254,7 +255,7 @@ class CustomerController extends Controller
     {
         // Find Customer by primary key
         $customer = Customer::findOrFail($fcustomerid);
-        $groups = Groupproduct::where('fnonactive', 0)->get();
+        $groups = Groupcustomer::where('fnonactive', 0)->get();
         $salesman = Salesman::where('fnonactive', 0)->get();
         $wilayah = Wilayah::where('fnonactive', 0)->get();
         $rekening = Rekening::where('fnonactive', 0)->get();
