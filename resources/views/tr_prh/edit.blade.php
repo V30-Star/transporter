@@ -508,57 +508,129 @@
 
                 {{-- MODAL SUPPLIER --}}
                 <div x-data="supplierBrowser()" x-show="open" x-cloak x-transition.opacity
-                    class="fixed inset-0 z-50 flex items-center justify-center">
-                    <div class="absolute inset-0 bg-black/40" @click="close()"></div>
-                    <div class="relative bg-white rounded-2xl shadow-xl w-[90vw] **max-w-7xl** max-h-[90vh] flex flex-col">
-                        <div class="p-4 border-b flex items-center gap-3">
-                            <h3 class="text-lg font-semibold">Browse Supplier</h3>
+                    class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+
+                    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-6xl flex flex-col overflow-hidden"
+                        style="height: 650px;">
+                        <!-- Header -->
+                        <div
+                            class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-purple-50 to-white">
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-800">Browse Supplier</h3>
+                                <p class="text-sm text-gray-500 mt-0.5">Pilih supplier yang diinginkan</p>
+                            </div>
                             <button type="button" @click="close()"
-                                class="ml-auto px-3 py-1 rounded border bg-gray-100 hover:bg-gray-200">Close</button>
+                                class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">
+                                Tutup
+                            </button>
                         </div>
-                        <div class="p-4 overflow-auto flex-1">
-                            <table id="supplierBrowseTable" class="min-w-full text-sm display">
-                                <thead class="bg-gray-100">
-                                    <tr>
-                                        <th class="text-left p-2">Kode</th>
-                                        <th class="text-left p-2">Nama Supplier</th>
-                                        <th class="text-left p-2">Alamat</th>
-                                        <th class="text-left p-2">Telepon</th>
-                                        <th class="text-center p-2">Aksi</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <!-- DataTables akan mengisi ini -->
-                                </tbody>
-                            </table>
+
+                        <!-- Search & Length Menu -->
+                        <div class="px-6 pt-4 pb-2 flex-shrink-0 border-b border-gray-100">
+                            <div id="supplierTableControls"></div>
+                        </div>
+
+                        <!-- Table with fixed height and scroll -->
+                        <div class="flex-1 overflow-y-auto px-6" style="min-height: 0;">
+                            <div class="bg-white">
+                                <table id="supplierBrowseTable" class="min-w-full text-sm display nowrap stripe hover"
+                                    style="width:100%">
+                                    <thead class="sticky top-0 z-10">
+                                        <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
+                                            <th
+                                                class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                Kode</th>
+                                            <th
+                                                class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                Nama Supplier</th>
+                                            <th
+                                                class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                Alamat</th>
+                                            <th
+                                                class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                Telepon</th>
+                                            <th
+                                                class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Data will be populated by DataTables -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Pagination & Info -->
+                        <div class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">
+                            <div id="supplierTablePagination"></div>
                         </div>
                     </div>
                 </div>
 
                 {{-- MODAL PRODUK --}}
                 <div x-data="productBrowser()" x-show="open" x-cloak x-transition.opacity
-                    class="fixed inset-0 z-50 flex items-center justify-center">
-                    <div class="absolute inset-0 bg-black/40" @click="close()"></div>
-                    <div class="relative bg-white rounded-2xl shadow-xl w-[90vw] **max-w-7xl** max-h-[90vh] flex flex-col">
-                        <div class="p-4 border-b flex items-center gap-3">
-                            <h3 class="text-lg font-semibold">Browse Produk</h3>
+                    class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+
+                    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-5xl flex flex-col overflow-hidden"
+                        style="height: 650px;">
+                        <!-- Header -->
+                        <div
+                            class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-800">Browse Produk</h3>
+                                <p class="text-sm text-gray-500 mt-0.5">Pilih produk yang diinginkan</p>
+                            </div>
                             <button type="button" @click="close()"
-                                class="ml-auto px-3 py-1 rounded border bg-gray-100 hover:bg-gray-200">
-                                Close
+                                class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">
+                                Tutup
                             </button>
                         </div>
-                        <div class="p-4 overflow-auto flex-1">
-                            <table id="productTable" class="min-w-full text-sm display nowrap" style="width:100%">
-                                <thead class="bg-gray-100">
-                                    <tr>
-                                        <th class="text-left p-2">Kode</th>
-                                        <th class="text-left p-2">Nama</th>
-                                        <th class="text-left p-2">Satuan</th>
-                                        <th class="text-center p-2">Stock</th>
-                                        <th class="text-center p-2">Aksi</th>
-                                    </tr>
-                                </thead>
-                            </table>
+
+                        <!-- Search & Length Menu -->
+                        <div class="px-6 pt-4 pb-2 flex-shrink-0 border-b border-gray-100">
+                            <div id="productTableControls"></div>
+                        </div>
+
+                        <!-- Table with fixed height and scroll -->
+                        <div class="flex-1 overflow-y-auto px-6" style="min-height: 0;">
+                            <div class="bg-white">
+                                <table id="productTable" class="min-w-full text-sm display nowrap stripe hover"
+                                    style="width:100%">
+                                    <thead class="sticky top-0 z-10">
+                                        <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
+                                            <th
+                                                class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                Kode</th>
+                                            <th
+                                                class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                Nama Produk</th>
+                                            <th
+                                                class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                Satuan</th>
+                                            <th
+                                                class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                Merek</th>
+                                            <th
+                                                class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                Stock</th>
+                                            <th
+                                                class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Data will be populated by DataTables -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Pagination & Info -->
+                        <div class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">
+                            <div id="productTablePagination"></div>
                         </div>
                     </div>
                 </div>
@@ -616,35 +688,83 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
 @endpush
 <style>
-    /* Targeting lebih spesifik untuk length select */
-    div#supplierBrowseTable_length select,
-    .dataTables_wrapper #supplierBrowseTable_length select,
-    table#supplierBrowseTable+.dataTables_wrapper .dataTables_length select {
-        min-width: 140px !important;
-        width: auto !important;
-        padding: 8px 45px 8px 16px !important;
+    /* DataTables Custom Styling for Supplier Table */
+    #supplierBrowseTable tbody tr {
+        transition: background-color 0.15s ease;
+    }
+
+    #supplierBrowseTable tbody tr:hover {
+        background-color: #faf5ff !important;
+    }
+
+    #supplierBrowseTable tbody td {
+        padding: 12px;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+    #supplierBrowseTable thead th {
+        background: linear-gradient(to right, #f9fafb, #f3f4f6);
+    }
+
+    /* Pagination styling */
+    .dataTables_wrapper .dataTables_paginate .paginate_button {
+        padding: 6px 12px !important;
+        margin: 0 2px !important;
+        border-radius: 6px !important;
+        border: 1px solid #e5e7eb !important;
+        background: white !important;
+        color: #374151 !important;
         font-size: 14px !important;
-        border: 1px solid #d1d5db !important;
-        border-radius: 0.375rem !important;
     }
 
-    /* Wrapper length */
-    div#supplierBrowseTable_length,
-    .dataTables_wrapper #supplierBrowseTable_length,
-    .dataTables_wrapper .dataTables_length {
-        min-width: 250px !important;
+    .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+        background: #f3f4f6 !important;
+        border-color: #d1d5db !important;
+        color: #111827 !important;
     }
 
-    /* Label wrapper */
-    div#supplierBrowseTable_length label,
-    .dataTables_wrapper #supplierBrowseTable_length label,
-    .dataTables_wrapper .dataTables_length label {
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+        background: #9333ea !important;
+        border-color: #9333ea !important;
+        color: white !important;
+    }
+
+    .dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
+        opacity: 0.5 !important;
+        cursor: not-allowed !important;
+    }
+
+    /* Info text styling */
+    .dataTables_info {
+        color: #6b7280 !important;
         font-size: 14px !important;
-        display: flex !important;
-        align-items: center !important;
-        gap: 8px !important;
     }
 
+    /* Processing indicator */
+    .dataTables_processing {
+        background: white !important;
+        border: 2px solid #e5e7eb !important;
+        border-radius: 12px !important;
+        padding: 20px 30px !important;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
+        font-size: 14px !important;
+        color: #374151 !important;
+    }
+
+    /* Search and length menu labels */
+    .dataTables_filter label,
+    .dataTables_length label {
+        font-size: 14px !important;
+        color: #374151 !important;
+        font-weight: 500 !important;
+    }
+
+    /* Remove default datatables wrapper styling */
+    .dataTables_wrapper {
+        padding: 0 !important;
+    }
+</style>
+<style>
     /* Targeting lebih spesifik untuk length select */
     div#productTable_length select,
     .dataTables_wrapper #productTable_length select,
@@ -735,30 +855,31 @@
                         type: 'GET',
                         data: function(d) {
                             return {
-                                q: d.search.value,
-                                page: (d.start / d.length) + 1,
-                                per_page: d.length,
-                                draw: d.draw // ✅ Tambahkan draw
+                                draw: d.draw,
+                                start: d.start,
+                                length: d.length,
+                                search: d.search.value,
+                                order_column: d.columns[d.order[0].column].data,
+                                order_dir: d.order[0].dir
                             };
-                        },
-                        dataSrc: function(json) {
-                            // ✅ PERBAIKAN: Return json langsung, bukan hanya data
-                            return json.data || [];
                         }
                     },
                     columns: [{
                             data: 'fsuppliercode',
                             name: 'fsuppliercode',
+                            className: 'font-mono text-sm',
                             width: '15%'
                         },
                         {
                             data: 'fsuppliername',
                             name: 'fsuppliername',
-                            width: '20%'
+                            className: 'text-sm',
+                            width: '25%'
                         },
                         {
                             data: 'faddress',
                             name: 'faddress',
+                            className: 'text-sm',
                             defaultContent: '-',
                             orderable: false,
                             width: '30%'
@@ -766,49 +887,34 @@
                         {
                             data: 'ftelp',
                             name: 'ftelp',
+                            className: 'text-sm',
                             defaultContent: '-',
                             orderable: false,
-                            width: '20%'
+                            width: '15%'
                         },
                         {
                             data: null,
                             orderable: false,
                             searchable: false,
                             className: 'text-center',
-                            width: '20%',
+                            width: '15%',
                             render: function(data, type, row) {
-                                // ✅ PERBAIKAN: Escape quotes untuk mencegah error
-                                const code = (row.fsuppliercode || '').replace(/'/g, "\\'");
-                                const name = (row.fsuppliername || '').replace(/'/g, "\\'");
-                                const address = (row.faddress || '').replace(/'/g, "\\'");
-                                const telp = (row.ftelp || '').replace(/'/g, "\\'");
-
-                                return `<button type="button" 
-                                onclick="window.chooseSupplier('${row.fsupplierid}', '${code}', '${name}', '${address}', '${telp}')" 
-                                class="px-3 py-1 rounded text-xs bg-emerald-600 hover:bg-emerald-700 text-white">
-                                Pilih
-                            </button>`;
+                                return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-purple-600 hover:bg-purple-700 text-white transition-colors duration-150">Pilih</button>';
                             }
                         }
                     ],
                     pageLength: 10,
-                    lengthMenu: [10, 25, 50, 100],
-                    order: [
-                        [0, 'asc']
+                    lengthMenu: [
+                        [10, 25, 50, 100],
+                        [10, 25, 50, 100]
                     ],
-
-                    // ✅ HILANGKAN scrollX, biarkan full width
-                    scrollX: false,
-                    autoWidth: true,
-
                     dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
-
                     language: {
-                        processing: "Memuat...",
+                        processing: "Memuat data...",
                         search: "Cari:",
-                        lengthMenu: "Tampilkan _MENU_ data",
+                        lengthMenu: "Tampilkan _MENU_",
                         info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
-                        infoEmpty: "Menampilkan 0 data",
+                        infoEmpty: "Tidak ada data",
                         infoFiltered: "(disaring dari _MAX_ total data)",
                         zeroRecords: "Tidak ada data yang ditemukan",
                         emptyTable: "Tidak ada data tersedia",
@@ -820,29 +926,42 @@
                         }
                     },
                     order: [
-                        [0, 'asc']
-                    ], // Sort by nama
+                        [1, 'asc']
+                    ],
                     autoWidth: false,
                     initComplete: function() {
                         const api = this.api();
                         const $container = $(api.table().container());
 
-                        // Lebarkan search input
+                        // Move controls to designated areas
+                        const $filter = $container.find('.dataTables_filter');
+                        const $length = $container.find('.dataTables_length');
+                        const $info = $container.find('.dataTables_info');
+                        const $paginate = $container.find('.dataTables_paginate');
+
+                        // Style search input
                         $container.find('.dt-search .dt-input, .dataTables_filter input').css({
-                            width: '400px',
-                            maxWidth: '100%',
-                            minWidth: '300px'
+                            width: '300px',
+                            padding: '8px 12px',
+                            border: '2px solid #e5e7eb',
+                            borderRadius: '8px',
+                            fontSize: '14px'
+                        }).focus();
+
+                        // Style length select
+                        $container.find('.dt-length select, .dataTables_length select').css({
+                            padding: '6px 32px 6px 10px',
+                            border: '2px solid #e5e7eb',
+                            borderRadius: '8px',
+                            fontSize: '14px'
                         });
-
-                        $container.find('.dt-search, .dataTables_filter').css({
-                            minWidth: '420px'
-                        });
-
-                        $container.find('.dt-search .dt-input, .dataTables_filter input').focus();
-
-                        // Adjust kolom
-                        api.columns.adjust().draw(false);
                     }
+                });
+
+                // Handle button click
+                $('#supplierBrowseTable').on('click', '.btn-choose', (e) => {
+                    const data = this.dataTable.row($(e.target).closest('tr')).data();
+                    this.chooseSupplier(data);
                 });
             },
 
@@ -856,37 +975,36 @@
             close() {
                 this.open = false;
                 if (this.dataTable) {
-                    this.dataTable.destroy();
-                    this.dataTable = null;
+                    this.dataTable.search('').draw();
                 }
             },
 
-            init() {
-                window.chooseSupplier = (id, code, name, address, telp) => {
-                    const sel = document.getElementById('modal_filter_supplier_id');
-                    const hid = document.getElementById('supplierCodeHidden');
+            chooseSupplier(supplier) {
+                const sel = document.getElementById('modal_filter_supplier_id');
+                const hid = document.getElementById('supplierCodeHidden');
 
-                    if (!sel) {
-                        this.close();
-                        return;
-                    }
-
-                    let opt = [...sel.options].find(o => o.value == String(id));
-                    const label = `${name} (${code})`;
-
-                    if (!opt) {
-                        opt = new Option(label, id, true, true);
-                        sel.add(opt);
-                    } else {
-                        opt.text = label;
-                        opt.selected = true;
-                    }
-
-                    sel.dispatchEvent(new Event('change'));
-                    if (hid) hid.value = id;
+                if (!sel) {
                     this.close();
-                };
+                    return;
+                }
 
+                let opt = [...sel.options].find(o => o.value == String(supplier.fsupplierid));
+                const label = `${supplier.fsuppliername} (${supplier.fsuppliercode})`;
+
+                if (!opt) {
+                    opt = new Option(label, supplier.fsupplierid, true, true);
+                    sel.add(opt);
+                } else {
+                    opt.text = label;
+                    opt.selected = true;
+                }
+
+                sel.dispatchEvent(new Event('change'));
+                if (hid) hid.value = supplier.fsupplierid;
+                this.close();
+            },
+
+            init() {
                 window.addEventListener('supplier-browse-open', () => this.openBrowse(), {
                     passive: true
                 });
@@ -1312,31 +1430,38 @@
                             url: "{{ route('products.browse') }}",
                             type: 'GET',
                             data: function(d) {
-                                // DataTables mengirim parameter search[value] untuk pencarian
                                 return {
                                     draw: d.draw,
-                                    page: (d.start / d.length) + 1,
-                                    per_page: d.length,
-                                    q: d.search.value
+                                    start: d.start,
+                                    length: d.length,
+                                    search: d.search.value,
+                                    order_column: d.columns[d.order[0].column].data,
+                                    order_dir: d.order[0].dir
                                 };
-                            },
-                            dataSrc: function(json) {
-                                // Mapping response ke format DataTables
-                                return json.data;
                             }
                         },
                         columns: [{
                                 data: 'fprdcode',
                                 name: 'fprdcode',
-                                className: 'font-mono'
+                                className: 'font-mono text-sm'
                             },
                             {
                                 data: 'fprdname',
-                                name: 'fprdname'
+                                name: 'fprdname',
+                                className: 'text-sm'
                             },
                             {
                                 data: 'fsatuanbesar',
                                 name: 'fsatuanbesar',
+                                className: 'text-sm',
+                                render: function(data) {
+                                    return data || '-';
+                                }
+                            },
+                            {
+                                data: 'fmerekname',
+                                name: 'fmerekname',
+                                className: 'text-center text-sm',
                                 render: function(data) {
                                     return data || '-';
                                 }
@@ -1344,15 +1469,16 @@
                             {
                                 data: 'fminstock',
                                 name: 'fminstock',
-                                className: 'text-center'
+                                className: 'text-center text-sm'
                             },
                             {
                                 data: null,
                                 orderable: false,
                                 searchable: false,
                                 className: 'text-center',
+                                width: '100px',
                                 render: function(data, type, row) {
-                                    return '<button type="button" class="btn-choose px-3 py-1 rounded text-xs bg-emerald-600 hover:bg-emerald-700 text-white">Pilih</button>';
+                                    return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>';
                                 }
                             }
                         ],
@@ -1362,13 +1488,12 @@
                             [10, 25, 50, 100]
                         ],
                         dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
-
                         language: {
-                            processing: "Memuat...",
+                            processing: "Memuat data...",
                             search: "Cari:",
-                            lengthMenu: "Tampilkan _MENU_ data",
+                            lengthMenu: "Tampilkan _MENU_",
                             info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
-                            infoEmpty: "Menampilkan 0 data",
+                            infoEmpty: "Tidak ada data",
                             infoFiltered: "(disaring dari _MAX_ total data)",
                             zeroRecords: "Tidak ada data yang ditemukan",
                             emptyTable: "Tidak ada data tersedia",
@@ -1380,26 +1505,35 @@
                             }
                         },
                         order: [
-                            [0, 'asc']
-                        ], // Sort by nama
+                            [1, 'asc']
+                        ],
                         autoWidth: false,
                         initComplete: function() {
                             const api = this.api();
                             const $container = $(api.table().container());
 
-                            // Lebarkan search input
+                            // Move controls to designated areas
+                            const $filter = $container.find('.dataTables_filter');
+                            const $length = $container.find('.dataTables_length');
+                            const $info = $container.find('.dataTables_info');
+                            const $paginate = $container.find('.dataTables_paginate');
+
+                            // Style search input
                             $container.find('.dt-search .dt-input, .dataTables_filter input').css({
-                                width: '400px',
-                                maxWidth: '100%',
-                                minWidth: '300px'
-                            });
+                                width: '300px',
+                                padding: '8px 12px',
+                                border: '2px solid #e5e7eb',
+                                borderRadius: '8px',
+                                fontSize: '14px'
+                            }).focus();
 
-                            // Opsional: lebarkan wrapper search juga
-                            $container.find('.dt-search, .dataTables_filter').css({
-                                minWidth: '420px'
+                            // Style length select
+                            $container.find('.dt-length select, .dataTables_length select').css({
+                                padding: '6px 32px 6px 10px',
+                                border: '2px solid #e5e7eb',
+                                borderRadius: '8px',
+                                fontSize: '14px'
                             });
-                            $container.find('.dt-search .dt-input, .dataTables_filter input').focus();
-
                         }
                     });
 

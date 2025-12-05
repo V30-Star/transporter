@@ -297,9 +297,6 @@ class Tr_prhController extends Controller
       'fqty'         => ['array'],
       'fqty.*'       => ['nullable'],
 
-      'fqtypo'       => ['array'],
-      'fqtypo.*'     => ['nullable'],
-
       'fdesc'        => ['array'],
       'fdesc.*'      => ['nullable', 'string'],
 
@@ -329,7 +326,6 @@ class Tr_prhController extends Controller
     $codes   = $request->input('fitemcode', []);
     $sats    = $request->input('fsatuan', []);
     $qtys    = $request->input('fqty', []);
-    $qtypos  = $request->input('fqtypo', []);
     $descs   = $request->input('fdesc', []);
     $ketdts  = $request->input('fketdt', []);
 
@@ -360,7 +356,7 @@ class Tr_prhController extends Controller
 
     // CHECK DETAIL EXISTENCE
     $hasValidDetail = false;
-    $rowCount = max(count($codes), count($sats), count($qtys), count($descs), count($ketdts), count($qtypos));
+    $rowCount = max(count($codes), count($sats), count($qtys), count($descs), count($ketdts));
     for ($i = 0; $i < $rowCount; $i++) {
       $code = trim($codes[$i] ?? '');
       $sat  = trim($sats[$i] ?? '');
@@ -389,7 +385,6 @@ class Tr_prhController extends Controller
       $qtys,
       $descs,
       $ketdts,
-      $qtypos,
       $productMap
     ) {
       $isApproval = (int)($request->input('fapproval', 0));
@@ -416,15 +411,12 @@ class Tr_prhController extends Controller
       // CREATE DETAILS
       $detailRows = [];
       $now = now();
-      $rowCount = max(count($codes), count($sats), count($qtys), count($descs), count($ketdts), count($qtypos));
+      $rowCount = max(count($codes), count($sats), count($qtys), count($descs), count($ketdts));
 
       for ($i = 0; $i < $rowCount; $i++) {
         $code   = trim($codes[$i] ?? '');
         $sat    = trim($sats[$i] ?? '');
         $qty    = is_numeric($qtys[$i] ?? null) ? (int)$qtys[$i] : null;
-
-        $qtypoi = is_numeric($qtypos[$i] ?? null) ? (int)$qtypos[$i] : 0;
-        if ($qty !== null && $qtypoi > $qty) $qtypoi = $qty;
 
         $desc   = $descs[$i]  ?? null;
         $ketdt  = $ketdts[$i] ?? null;
@@ -437,7 +429,6 @@ class Tr_prhController extends Controller
             'fprnoid'    => $tr_prh->fprid,   // header link
             'fprdcode'   => $productId,       // store msprd.fprdid
             'fqty'       => (int)$qty,
-            'fqtypo'     => (int)$qtypoi,
             'fqtyremain' => (int)$qty,
             'fprice'     => 0,
             'fketdt'     => $ketdt,

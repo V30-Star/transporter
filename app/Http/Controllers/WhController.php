@@ -162,10 +162,14 @@ class WhController extends Controller
     }
     public function browse(Request $request)
     {
-        $query = Wh::query(); // atau Warehouse::query() sesuai model Anda
+        // Base query
+        $query = Wh::query();
+
+        // Total records tanpa filter
+        $recordsTotal = Wh::count();
 
         // Search
-        if ($request->filled('search')) {
+        if ($request->filled('search') && $request->search != '') {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('fwhcode', 'ilike', "%{$search}%")
@@ -174,23 +178,33 @@ class WhController extends Controller
             });
         }
 
-        // Get totals
-        $recordsTotal = Wh::count();
+        // Total records setelah filter
         $recordsFiltered = $query->count();
 
-        // Pagination
-        $perPage = $request->input('per_page', 10);
-        $page = $request->input('page', 1);
+        // Sorting
+        $orderColumn = $request->input('order_column', 'fwhcode');
+        $orderDir = $request->input('order_dir', 'asc');
 
-        $data = $query->orderBy('fwhcode', 'asc')
-            ->skip(($page - 1) * $perPage)
-            ->take($perPage)
+        $allowedColumns = ['fwhcode', 'fwhname', 'fbranchcode'];
+        if (in_array($orderColumn, $allowedColumns)) {
+            $query->orderBy($orderColumn, $orderDir);
+        } else {
+            $query->orderBy('fwhcode', 'asc');
+        }
+
+        // Pagination
+        $start = (int) $request->input('start', 0);
+        $length = (int) $request->input('length', 10);
+
+        $data = $query->skip($start)
+            ->take($length)
             ->get();
 
+        // Response format untuk DataTables
         return response()->json([
-            'draw' => $request->input('draw', 1),
-            'recordsTotal' => $recordsTotal,
-            'recordsFiltered' => $recordsFiltered,
+            'draw' => (int) $request->input('draw', 1),
+            'recordsTotal' => (int) $recordsTotal,
+            'recordsFiltered' => (int) $recordsFiltered,
             'data' => $data
         ]);
     }

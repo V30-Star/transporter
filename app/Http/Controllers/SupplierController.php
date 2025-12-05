@@ -167,11 +167,15 @@ class SupplierController extends Controller
     }
     public function browse(Request $request)
     {
+        // Base query
         $query = Supplier::query();
 
+        // Total records tanpa filter
+        $recordsTotal = Supplier::count();
+
         // Search
-        if ($request->filled('q')) {
-            $search = $request->q;
+        if ($request->filled('search') && $request->search != '') {
+            $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('fsuppliercode', 'ilike', "%{$search}%")
                     ->orWhere('fsuppliername', 'ilike', "%{$search}%")
@@ -180,24 +184,33 @@ class SupplierController extends Controller
             });
         }
 
-        // Get total before pagination
-        $recordsTotal = Supplier::count();
+        // Total records setelah filter
         $recordsFiltered = $query->count();
 
-        // Pagination
-        $perPage = $request->input('per_page', 10);
-        $page = $request->input('page', 1);
+        // Sorting
+        $orderColumn = $request->input('order_column', 'fsuppliername');
+        $orderDir = $request->input('order_dir', 'asc');
 
-        $data = $query->orderBy('fsuppliername', 'asc')
-            ->skip(($page - 1) * $perPage)
-            ->take($perPage)
+        $allowedColumns = ['fsuppliercode', 'fsuppliername', 'faddress', 'ftelp'];
+        if (in_array($orderColumn, $allowedColumns)) {
+            $query->orderBy($orderColumn, $orderDir);
+        } else {
+            $query->orderBy('fsuppliername', 'asc');
+        }
+
+        // Pagination
+        $start = (int) $request->input('start', 0);
+        $length = (int) $request->input('length', 10);
+
+        $data = $query->skip($start)
+            ->take($length)
             ->get();
 
-        // Format response untuk DataTables
+        // Response format untuk DataTables
         return response()->json([
-            'draw' => $request->input('draw', 1),
-            'recordsTotal' => $recordsTotal,
-            'recordsFiltered' => $recordsFiltered,
+            'draw' => (int) $request->input('draw', 1),
+            'recordsTotal' => (int) $recordsTotal,
+            'recordsFiltered' => (int) $recordsFiltered,
             'data' => $data
         ]);
     }
