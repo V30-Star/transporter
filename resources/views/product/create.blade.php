@@ -654,6 +654,7 @@
         </div>
     </div>
 
+    <!-- MODAL BROWSE GROUP PRODUCT -->
     <div x-data="groupBrowser()" x-show="open" x-cloak x-transition.opacity
         class="fixed inset-0 z-[9998] flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
@@ -662,7 +663,7 @@
             style="height: 650px;">
             <!-- Header -->
             <div
-                class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-emerald-50 to-white">
+                class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
                 <div>
                     <h3 class="text-xl font-bold text-gray-800">Browse Group Product</h3>
                     <p class="text-sm text-gray-500 mt-0.5">Pilih group product yang diinginkan</p>
@@ -705,7 +706,7 @@
             </div>
         </div>
     </div>
-    
+
     {{-- MODAL MEREK dengan DataTables --}}
     <div x-data="merekBrowser()" x-show="open" x-cloak x-transition.opacity
         class="fixed inset-0 z-[9999] flex items-center justify-center">
@@ -1174,7 +1175,7 @@
                             searchable: false,
                             className: 'text-center',
                             render: function(data, type, row) {
-                                return '<button type="button" class="btn-choose px-3 py-1 rounded text-xs bg-emerald-600 hover:bg-emerald-700 text-white">Pilih</button>';
+                                return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>';
                             }
                         }
                     ],

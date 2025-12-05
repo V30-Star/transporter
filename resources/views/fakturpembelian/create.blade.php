@@ -938,7 +938,7 @@
                             style="height: 650px;">
                             <!-- Header -->
                             <div
-                                class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-purple-50 to-white">
+                                class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
                                 <div>
                                     <h3 class="text-xl font-bold text-gray-800">Browse Supplier</h3>
                                     <p class="text-sm text-gray-500 mt-0.5">Pilih supplier yang diinginkan</p>
@@ -997,7 +997,7 @@
                         class="fixed inset-0 z-50 flex items-center justify-center p-4">
                         <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
 
-                        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-5xl flex flex-col overflow-hidden"
+                        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-6xl flex flex-col overflow-hidden"
                             style="height: 650px;">
                             <!-- Header -->
                             <div
@@ -1067,7 +1067,7 @@
                             style="height: 650px;">
                             <!-- Header -->
                             <div
-                                class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-amber-50 to-white">
+                                class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
                                 <div>
                                     <h3 class="text-xl font-bold text-gray-800">Browse Gudang</h3>
                                     <p class="text-sm text-gray-500 mt-0.5">Pilih gudang yang diinginkan</p>
@@ -1181,164 +1181,10 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
 @endpush
 <style>
-    /* DataTables Custom Styling for Supplier Table */
-    #supplierBrowseTable tbody tr {
-        transition: background-color 0.15s ease;
-    }
-
-    #supplierBrowseTable tbody tr:hover {
-        background-color: #faf5ff !important;
-    }
-
-    #supplierBrowseTable tbody td {
-        padding: 12px;
-        border-bottom: 1px solid #f3f4f6;
-    }
-
-    #supplierBrowseTable thead th {
-        background: linear-gradient(to right, #f9fafb, #f3f4f6);
-    }
-
-    /* Pagination styling */
-    .dataTables_wrapper .dataTables_paginate .paginate_button {
-        padding: 6px 12px !important;
-        margin: 0 2px !important;
-        border-radius: 6px !important;
-        border: 1px solid #e5e7eb !important;
-        background: white !important;
-        color: #374151 !important;
-        font-size: 14px !important;
-    }
-
-    .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
-        background: #f3f4f6 !important;
-        border-color: #d1d5db !important;
-        color: #111827 !important;
-    }
-
-    .dataTables_wrapper .dataTables_paginate .paginate_button.current {
-        background: #9333ea !important;
-        border-color: #9333ea !important;
-        color: white !important;
-    }
-
-    .dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
-        opacity: 0.5 !important;
-        cursor: not-allowed !important;
-    }
-
-    /* Info text styling */
-    .dataTables_info {
-        color: #6b7280 !important;
-        font-size: 14px !important;
-    }
-
-    /* Processing indicator */
-    .dataTables_processing {
-        background: white !important;
-        border: 2px solid #e5e7eb !important;
-        border-radius: 12px !important;
-        padding: 20px 30px !important;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
-        font-size: 14px !important;
-        color: #374151 !important;
-    }
-
-    /* Search and length menu labels */
-    .dataTables_filter label,
-    .dataTables_length label {
-        font-size: 14px !important;
-        color: #374151 !important;
-        font-weight: 500 !important;
-    }
-
-    /* Remove default datatables wrapper styling */
-    .dataTables_wrapper {
-        padding: 0 !important;
-    }
-</style>
-<style>
-    /* DataTables Custom Styling for Warehouse Table */
-    #warehouseTable tbody tr {
-        transition: background-color 0.15s ease;
-    }
-
-    #warehouseTable tbody tr:hover {
-        background-color: #fffbeb !important;
-    }
-
-    #warehouseTable tbody td {
-        padding: 12px;
-        border-bottom: 1px solid #f3f4f6;
-    }
-
-    #warehouseTable thead th {
-        background: linear-gradient(to right, #f9fafb, #f3f4f6);
-    }
-
-    /* Pagination styling */
-    .dataTables_wrapper .dataTables_paginate .paginate_button {
-        padding: 6px 12px !important;
-        margin: 0 2px !important;
-        border-radius: 6px !important;
-        border: 1px solid #e5e7eb !important;
-        background: white !important;
-        color: #374151 !important;
-        font-size: 14px !important;
-    }
-
-    .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
-        background: #f3f4f6 !important;
-        border-color: #d1d5db !important;
-        color: #111827 !important;
-    }
-
-    .dataTables_wrapper .dataTables_paginate .paginate_button.current {
-        background: #d97706 !important;
-        border-color: #d97706 !important;
-        color: white !important;
-    }
-
-    .dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
-        opacity: 0.5 !important;
-        cursor: not-allowed !important;
-    }
-
-    /* Info text styling */
-    .dataTables_info {
-        color: #6b7280 !important;
-        font-size: 14px !important;
-    }
-
-    /* Processing indicator */
-    .dataTables_processing {
-        background: white !important;
-        border: 2px solid #e5e7eb !important;
-        border-radius: 12px !important;
-        padding: 20px 30px !important;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
-        font-size: 14px !important;
-        color: #374151 !important;
-    }
-
-    /* Search and length menu labels */
-    .dataTables_filter label,
-    .dataTables_length label {
-        font-size: 14px !important;
-        color: #374151 !important;
-        font-weight: 500 !important;
-    }
-
-    /* Remove default datatables wrapper styling */
-    .dataTables_wrapper {
-        padding: 0 !important;
-    }
-</style>
-<style>
     /* Targeting lebih spesifik untuk length select */
     div#productTable_length select,
     .dataTables_wrapper #productTable_length select,
-    table#supplierBrowseTable+.dataTables_wrapper .dataTables_length select {
+    table#productTable+.dataTables_wrapper .dataTables_length select {
         min-width: 140px !important;
         width: auto !important;
         padding: 8px 45px 8px 16px !important;
@@ -1357,6 +1203,64 @@
     /* Label wrapper */
     div#productTable_length label,
     .dataTables_wrapper #productTable_length label,
+    .dataTables_wrapper .dataTables_length label {
+        font-size: 14px !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+    }
+
+    /* Targeting lebih spesifik untuk length select */
+    div#warehouseTable_length select,
+    .dataTables_wrapper #warehouseTable_length select,
+    table#warehouseTable+.dataTables_wrapper .dataTables_length select {
+        min-width: 140px !important;
+        width: auto !important;
+        padding: 8px 45px 8px 16px !important;
+        font-size: 14px !important;
+        border: 1px solid #d1d5db !important;
+        border-radius: 0.375rem !important;
+    }
+
+    /* Wrapper length */
+    div#warehouseTable_length,
+    .dataTables_wrapper #warehouseTable_length,
+    .dataTables_wrapper .dataTables_length {
+        min-width: 250px !important;
+    }
+
+    /* Label wrapper */
+    div#warehouseTable_length label,
+    .dataTables_wrapper #warehouseTable_length label,
+    .dataTables_wrapper .dataTables_length label {
+        font-size: 14px !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+    }
+
+    /* Targeting lebih spesifik untuk length select */
+    div#supplierTable_length select,
+    .dataTables_wrapper #supplierTable_length select,
+    table#supplierBrowseTable+.dataTables_wrapper .dataTables_length select {
+        min-width: 140px !important;
+        width: auto !important;
+        padding: 8px 45px 8px 16px !important;
+        font-size: 14px !important;
+        border: 1px solid #d1d5db !important;
+        border-radius: 0.375rem !important;
+    }
+
+    /* Wrapper length */
+    div#supplierTable_length,
+    .dataTables_wrapper #supplierTable_length,
+    .dataTables_wrapper .dataTables_length {
+        min-width: 250px !important;
+    }
+
+    /* Label wrapper */
+    div#supplierTable_length label,
+    .dataTables_wrapper #supplierTable_length label,
     .dataTables_wrapper .dataTables_length label {
         font-size: 14px !important;
         display: flex !important;
@@ -2284,7 +2188,7 @@
                             className: 'text-center',
                             width: '100px',
                             render: function(data, type, row) {
-                                return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-amber-600 hover:bg-amber-700 text-white transition-colors duration-150">Pilih</button>';
+                                return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>';
                             }
                         }
                     ],
@@ -2648,7 +2552,7 @@
                                 className: 'text-center',
                                 width: '15%',
                                 render: function(data, type, row) {
-                                    return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-purple-600 hover:bg-purple-700 text-white transition-colors duration-150">Pilih</button>';
+                                    return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>';
                                 }
                             }
                         ],
