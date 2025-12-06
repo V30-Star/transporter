@@ -1821,8 +1821,8 @@
                             className: 'font-mono text-sm' // Styling konsisten
                         },
                         {
-                            data: 'fsupplier',
-                            name: 'fsupplier',
+                            data: 'fsuppliername',
+                            name: 'fsuppliername',
                             className: 'text-sm', // Styling konsisten
                             render: function(data) {
                                 return data || '-';

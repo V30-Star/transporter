@@ -118,40 +118,62 @@ class PenerimaanBarangController extends Controller
   }
 
   // Di PenerimaanBarangController
-
   public function pickable(Request $request)
   {
-    // Join dengan tabel supplier jika perlu
+    // Base query dengan JOIN
     $query = DB::table('tr_poh')
-      ->select('tr_poh.*')
-      ->orderBy('fpodate', 'desc');
+      ->leftJoin('mssupplier', 'tr_poh.fsupplier', '=', 'mssupplier.fsupplierid')
+      ->select(
+        'tr_poh.*',
+        'mssupplier.fsuppliername',
+        'mssupplier.fsuppliercode'
+      );
+
+    // Total records tanpa filter
+    $recordsTotal = DB::table('tr_poh')->count();
 
     // Search
-    if ($request->filled('search')) {
+    if ($request->filled('search') && $request->search != '') {
       $search = $request->search;
       $query->where(function ($q) use ($search) {
-        $q->where('fpono', 'ilike', "%{$search}%")
-          ->orWhere('fsupplier', 'ilike', "%{$search}%")
-          ->orWhere('fpodate', 'ilike', "%{$search}%");
+        $q->where('tr_poh.fpono', 'ilike', "%{$search}%")
+          ->orWhere('mssupplier.fsuppliername', 'ilike', "%{$search}%")
+          ->orWhere('mssupplier.fsuppliercode', 'ilike', "%{$search}%");
       });
     }
 
-    // Get totals
-    $recordsTotal = DB::table('tr_poh')->count();
+    // Total records setelah filter
     $recordsFiltered = $query->count();
 
-    // Pagination
-    $perPage = $request->input('per_page', 10);
-    $page = $request->input('page', 1);
+    // Sorting
+    $orderColumn = $request->input('order_column', 'fpodate');
+    $orderDir = $request->input('order_dir', 'desc');
 
-    $data = $query->skip(($page - 1) * $perPage)
-      ->take($perPage)
+    $allowedColumns = ['fpono', 'fsupplier', 'fpodate'];
+    if (in_array($orderColumn, $allowedColumns)) {
+      // Prefix table name untuk kolom di tr_poh
+      if (in_array($orderColumn, ['fpono', 'fpodate'])) {
+        $query->orderBy('tr_poh.' . $orderColumn, $orderDir);
+      } else {
+        $query->orderBy('mssupplier.fsuppliername', $orderDir);
+      }
+    } else {
+      $query->orderBy('tr_poh.fpodate', 'desc');
+    }
+
+    // Pagination
+    $start = (int) $request->input('start', 0);
+    $length = (int) $request->input('length', 10);
+
+    $data = $query->skip($start)
+      ->take($length)
       ->get();
 
+    // Response format untuk DataTables
     return response()->json([
-      'draw' => $request->input('draw', 1),
-      'recordsTotal' => $recordsTotal,
-      'recordsFiltered' => $recordsFiltered,
+      'draw' => (int) $request->input('draw', 1),
+      'recordsTotal' => (int) $recordsTotal,
+      'recordsFiltered' => (int) $recordsFiltered,
       'data' => $data
     ]);
   }

@@ -133,50 +133,61 @@ class MutasiController extends Controller
 
     public function pickable(Request $request)
     {
-        $search   = trim($request->get('search', ''));
-        $perPage  = (int)($request->get('per_page', 10));
-        $perPage  = $perPage > 0 ? $perPage : 10;
+        // Base query dengan JOIN
+        $query = DB::table('tr_poh')
+            ->leftJoin('mssupplier', 'tr_poh.fsupplier', '=', 'mssupplier.fsupplierid')
+            ->select(
+                'tr_poh.*',
+                'mssupplier.fsuppliername',
+                'mssupplier.fsuppliercode'
+            );
 
-        $q = \App\Models\Tr_poh::query()
-            ->select([
-                'fpohdid as fprid',     // FE expects fprid
-                'fpono as fprno',       // FE expects fprno
-                'fsupplier',
-                'fpodate as fprdate',   // FE expects fprdate
-            ]);
+        // Total records tanpa filter
+        $recordsTotal = DB::table('tr_poh')->count();
 
-        if ($search !== '') {
-            // cari di fpono / fsupplier / tanggal (yyyy-mm-dd)
-            $q->where(function ($w) use ($search) {
-                $w->where('fpono', 'ILIKE', "%{$search}%")
-                    ->orWhere('fsupplier', 'ILIKE', "%{$search}%");
-
-                // coba parse tanggal
-                $date = null;
-                try {
-                    $date = \Carbon\Carbon::parse($search)->startOfDay();
-                } catch (\Throwable $e) {
-                }
-                if ($date) {
-                    $w->orWhereBetween('fpodate', [
-                        $date->copy()->startOfDay(),
-                        $date->copy()->endOfDay(),
-                    ]);
-                }
+        // Search
+        if ($request->filled('search') && $request->search != '') {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('tr_poh.fpono', 'ilike', "%{$search}%")
+                    ->orWhere('mssupplier.fsuppliername', 'ilike', "%{$search}%")
+                    ->orWhere('mssupplier.fsuppliercode', 'ilike', "%{$search}%");
             });
         }
 
-        $q->orderByDesc('fpodate')->orderBy('fpono');
+        // Total records setelah filter
+        $recordsFiltered = $query->count();
 
-        $page = (int)$request->get('page', 1);
-        $data = $q->paginate($perPage, ['*'], 'page', $page);
+        // Sorting
+        $orderColumn = $request->input('order_column', 'fpodate');
+        $orderDir = $request->input('order_dir', 'desc');
 
-        // Kembalikan struktur yang sudah diantisipasi FE-mu (data, current_page, last_page, total)
+        $allowedColumns = ['fpono', 'fsupplier', 'fpodate'];
+        if (in_array($orderColumn, $allowedColumns)) {
+            // Prefix table name untuk kolom di tr_poh
+            if (in_array($orderColumn, ['fpono', 'fpodate'])) {
+                $query->orderBy('tr_poh.' . $orderColumn, $orderDir);
+            } else {
+                $query->orderBy('mssupplier.fsuppliername', $orderDir);
+            }
+        } else {
+            $query->orderBy('tr_poh.fpodate', 'desc');
+        }
+
+        // Pagination
+        $start = (int) $request->input('start', 0);
+        $length = (int) $request->input('length', 10);
+
+        $data = $query->skip($start)
+            ->take($length)
+            ->get();
+
+        // Response format untuk DataTables
         return response()->json([
-            'data'         => $data->items(),
-            'current_page' => $data->currentPage(),
-            'last_page'    => $data->lastPage(),
-            'total'        => $data->total(),
+            'draw' => (int) $request->input('draw', 1),
+            'recordsTotal' => (int) $recordsTotal,
+            'recordsFiltered' => (int) $recordsFiltered,
+            'data' => $data
         ]);
     }
 

@@ -120,39 +120,61 @@ class Tr_pohController extends Controller
 
   public function pickable(Request $request)
   {
-    $query = Tr_prh::query(); // Sesuaikan dengan model PR Anda
+    // Base query dengan JOIN
+    $query = Tr_prh::leftJoin('mssupplier', 'tr_prh.fsupplier', '=', 'mssupplier.fsupplierid')
+      ->select(
+        'tr_prh.*',
+        'mssupplier.fsuppliername',
+        'mssupplier.fsuppliercode'
+      );
+
+    // Total records tanpa filter
+    $recordsTotal = Tr_prh::count();
 
     // Search
-    if ($request->filled('search')) {
+    if ($request->filled('search') && $request->search != '') {
       $search = $request->search;
       $query->where(function ($q) use ($search) {
-        $q->where('fprno', 'ilike', "%{$search}%")
-          ->orWhere('fsupplier', 'ilike', "%{$search}%")
-          ->orWhere('fprdate', 'ilike', "%{$search}%");
+        $q->where('tr_prh.fprno', 'ilike', "%{$search}%")
+          ->orWhere('mssupplier.fsuppliername', 'ilike', "%{$search}%")
+          ->orWhere('mssupplier.fsuppliercode', 'ilike', "%{$search}%");
       });
     }
 
-    // Get totals
-    $recordsTotal = Tr_prh::count();
+    // Total records setelah filter
     $recordsFiltered = $query->count();
 
-    // Pagination
-    $perPage = $request->input('per_page', 10);
-    $page = $request->input('page', 1);
+    // Sorting
+    $orderColumn = $request->input('order_column', 'fprdate');
+    $orderDir = $request->input('order_dir', 'desc');
 
-    $data = $query->orderBy('fprdate', 'desc')
-      ->skip(($page - 1) * $perPage)
-      ->take($perPage)
+    $allowedColumns = ['fprno', 'fsupplier', 'fprdate'];
+    if (in_array($orderColumn, $allowedColumns)) {
+      if (in_array($orderColumn, ['fprno', 'fprdate'])) {
+        $query->orderBy('tr_prh.' . $orderColumn, $orderDir);
+      } else {
+        $query->orderBy('mssupplier.fsuppliername', $orderDir);
+      }
+    } else {
+      $query->orderBy('tr_prh.fprdate', 'desc');
+    }
+
+    // Pagination
+    $start = (int) $request->input('start', 0);
+    $length = (int) $request->input('length', 10);
+
+    $data = $query->skip($start)
+      ->take($length)
       ->get();
 
+    // Response format untuk DataTables
     return response()->json([
-      'draw' => $request->input('draw', 1),
-      'recordsTotal' => $recordsTotal,
-      'recordsFiltered' => $recordsFiltered,
+      'draw' => (int) $request->input('draw', 1),
+      'recordsTotal' => (int) $recordsTotal,
+      'recordsFiltered' => (int) $recordsFiltered,
       'data' => $data
     ]);
   }
-
   public function items($id)
   {
     // Ambil data header PR berdasarkan fprid
