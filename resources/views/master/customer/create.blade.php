@@ -66,6 +66,7 @@
         .slider.round:before {
             border-radius: 50%;
         }
+
         .invalid-feedback {
             color: #f87171;
             font-size: 0.875rem;
@@ -116,9 +117,17 @@
         }
     </style>
 
-    <div x-data="{ open: true, selected: 'alamatsurat' }">
+    <div x-data="{ showModal: false, open: true, selected: 'alamatsurat', frekening: '' }">
         <div class="bg-white rounded shadow p-6 md:p-8 max-w-5xl mx-auto">
-            <form action="{{ route('customer.store') }}" method="POST">
+            <form id="customerForm"
+                @submit.prevent="
+        frekening = $el.querySelector('#frekening').value;
+        if (!frekening) {
+            showModal = true;
+        } else {
+            $el.submit();
+        }"
+                action="{{ route('customer.store') }}" method="POST">
                 @csrf
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                     <div x-data="{ autoCode: true }" class="flex items-center gap-4">
@@ -517,7 +526,32 @@
                 </div>
             </form>
         </div>
+
+        {{-- MODAL SIMPLE --}}
+        <div x-show="showModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div class="absolute inset-0 bg-black/50" @click="showModal = false"></div>
+
+            <div class="relative bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-3">Rekening Kosong</h3>
+
+                <p class="text-gray-600 mb-6">
+                    Anda belum memilih rekening. Apakah yakin ingin menyimpan data tanpa rekening?
+                </p>
+
+                <div class="flex justify-end gap-3">
+                    <button type="button" @click="showModal = false"
+                        class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+                        Tidak
+                    </button>
+                    <button type="button" @click="showModal = false; document.getElementById('customerForm').submit()"
+                        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                        Ya, Simpan
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
+
 @endsection
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -557,7 +591,7 @@
                         response(data);
                     });
                 },
-                
+
                 minLength: 0,
                 delay: 400,
                 select: function(event, ui) {

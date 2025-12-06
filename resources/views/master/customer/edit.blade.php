@@ -117,9 +117,17 @@
         }
     </style>
 
-    <div x-data="{ open: true, selected: 'alamatsurat' }">
+    <div x-data="{ showModal: false, open: true, selected: 'alamatsurat', frekening: '' }">
         <div class="bg-white rounded shadow p-6 md:p-8 max-w-5xl mx-auto">
-            <form action="{{ route('customer.update', $customer->fcustomerid) }}" method="POST">
+            <form id="customerForm"
+                @submit.prevent="
+        frekening = $el.querySelector('#frekening').value;
+        if (!frekening) {
+            showModal = true;
+        } else {
+            $el.submit();
+        }"
+                action="{{ route('customer.update', $customer->fcustomerid) }}" method="POST">
                 @csrf
                 @method('PATCH')
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
@@ -353,7 +361,7 @@
 
                     <div>
                         <label class="block text-sm font-medium">Telp</label>
-                        <input type="number"
+                        <input type="text"
                             class="w-full border rounded px-3 py-2 @error('ftelp') is-invalid @enderror" name="ftelp"
                             id="ftelp" placeholder="Masukkan Nomor Telepon"
                             value="{{ old('ftelp', $customer->ftelp) }}">
@@ -551,6 +559,29 @@
                     </span>
                 </span>
             </form>
+        </div>
+        {{-- MODAL SIMPLE --}}
+        <div x-show="showModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div class="absolute inset-0 bg-black/50" @click="showModal = false"></div>
+
+            <div class="relative bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-3">Rekening Kosong</h3>
+
+                <p class="text-gray-600 mb-6">
+                    Anda belum memilih rekening. Apakah yakin ingin menyimpan data tanpa rekening?
+                </p>
+
+                <div class="flex justify-end gap-3">
+                    <button type="button" @click="showModal = false"
+                        class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+                        Tidak
+                    </button>
+                    <button type="button" @click="showModal = false; document.getElementById('customerForm').submit()"
+                        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                        Ya, Simpan
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 @endsection
