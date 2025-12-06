@@ -267,50 +267,66 @@ class CustomerController extends Controller
     // Update method to save the updated customer data in the database
     public function update(Request $request, $fcustomerid)
     {
-        $customer = Customer::findOrFail($fcustomerid);
-
         $request->merge([
             'fcustomercode' => strtoupper($request->fcustomercode),
         ]);
 
         $validated = $request->validate([
-            // PENTING: Ignore customer yang sedang di-update
-            'fcustomercode' => 'required|string|max:10|unique:mscustomer,fcustomercode,' . $fcustomerid . ',fcustomerid',
-            'fcustomername' => 'required|string|max:50',
-            'fgroup' => 'nullable',
-            'fsalesman' => 'nullable',
-            'fwilayah' => 'nullable',
-            'fnpwp' => 'nullable',
-            'fnik' => 'nullable',
-            'fjadwaltukarfakturmingguan' => 'nullable',
-            'fjadwaltukarfakturhari' => 'nullable',
-            'fkodefp' => 'nullable',
-            'ftelp' => 'nullable',
-            'ffax' => 'nullable',
-            'femail' => 'nullable|email',
-            'ftempo' => 'nullable',
-            'fmaxtempo' => 'nullable',
-            'flimit' => 'nullable',
-            'faddress' => 'nullable',
-            'fkirimaddress1' => 'nullable',
-            'fkirimaddress2' => 'nullable',
-            'fkirimaddress3' => 'nullable',
-            'ftaxaddress' => 'nullable',
-            'fhargalevel' => 'nullable|in:0,1,2',
-            'fkontakperson' => 'nullable',
-            'fjabatan' => 'nullable',
-            'frekening' => 'nullable',
-            'fmemo' => 'nullable',
+            'fcustomercode' => 'nullable|string|max:10|unique:mscustomer,fcustomercode,' . $fcustomerid . ',fcustomerid',
+            'fcustomername' => 'required|string|max:50', // Validate customer name (max 50 chars)
+            'fgroup' => '', // Validate the Group Produk field
+            'fsalesman' => '', // Validate the Group Produk field
+            'fwilayah' => '', // Validate the Group Produk field
+            'fnpwp' => '', // Validate the Group Produk field
+            'fnik' => '', // Validate the Group Produk field
+            'fjadwaltukarfakturmingguan' => '',
+            'fjadwaltukarfakturhari' => '',
+            'fkodefp' => '',
+            'ftelp' => '',
+            'ffax' => '',
+            'femail' => '',
+            'ftempo' => '',
+            'fmaxtempo' => '',
+            'flimit' => '',
+            'faddress' => '',
+            'fkirimaddress1' => '',
+            'fkirimaddress2' => '',
+            'fkirimaddress3' => '',
+            'ftaxaddress' => '',
+            'fhargalevel' => '|in:0,1,2',
+            'fkontakperson' => '',
+            'fjabatan' => '',
+            'frekening' => '',
+            'fmemo' => '',
         ], [
-            'fcustomercode.required' => 'Kode Customer harus diisi.',
-            'fcustomercode.unique' => 'Kode Customer ini sudah digunakan.',
-            'fcustomercode.max' => 'Kode Customer tidak boleh lebih dari 10 karakter.',
             'fcustomername.required' => 'Nama Customer harus diisi.',
-            'femail.email' => 'Format email tidak valid.',
-            'fhargalevel.in' => 'Level Harga harus 0, 1, atau 2.',
+            'fgroup.required' => 'Group Produk harus dipilih.',
+            'fsalesman.required' => 'Salesman harus dipilih.',
+            'fwilayah.required' => 'Wilayah harus dipilih.',
+            'fnpwp.required' => 'NPWP harus diisi.',
+            'fnik.required' => 'NIK harus diisi.',
+            'fjadwaltukarfakturmingguan.required' => 'Jadwal Tukar Faktur harus dipilih.',
+            'fjadwaltukarfakturhari.required' => 'Hari Tukar Faktur harus dipilih.',
+            'fkodefp.required' => 'Kode FP harus diisi.',
+            'ftelp.required' => 'Telepon harus diisi.',
+            'ffax.required' => 'Fax harus diisi.',
+            'femail.required' => 'Email harus diisi.',
+            'ftempo.required' => 'Tempo harus diisi.',
+            'fmaxtempo.required' => 'Maksimal Tempo harus diisi.',
+            'flimit.required' => 'Limit harus diisi.',
+            'faddress.required' => 'Alamat harus diisi.',
+            'fkirimaddress1.required' => 'Alamat Kirim 1 harus diisi.',
+            'fkirimaddress2.required' => 'Alamat Kirim 2 harus diisi.',
+            'fkirimaddress3.required' => 'Alamat Kirim 3 harus diisi.',
+            'ftaxaddress.required' => 'Alamat Pajak harus diisi.',
+            'fhargalevel.required' => 'Level Harga harus dipilih.',
+            'fkontakperson.required' => 'Kontak Person harus diisi.',
+            'fjabatan.required' => 'Jabatan harus diisi.',
+            'frekening.required' => 'Rekening harus dipilih.',
+            'fcustomercode.unique' => 'Kode Customer ini sudah ada',
         ]);
+        $customer = Customer::findOrFail($fcustomerid);
 
-        // Tambahkan data tambahan
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
         $validated['fupdatedat'] = now();
 
@@ -321,22 +337,13 @@ class CustomerController extends Controller
         }
 
         $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
+
         $validated['fcurrency'] = 'IDR';
+        $customer->update($validated);
 
-        try {
-            $customer->update($validated);
-
-            return redirect()
-                ->route('customer.edit', $fcustomerid)
-                ->with('success', 'Customer berhasil di-update.');
-        } catch (\Exception $e) {
-            \Log::error('Error updating customer: ' . $e->getMessage());
-
-            return redirect()
-                ->back()
-                ->withInput()
-                ->with('error', 'Gagal update customer: ' . $e->getMessage());
-        }
+        return redirect()
+            ->route('customer.edit', $fcustomerid)
+            ->with('success', 'Customer berhasil di-update.');
     }
 
     public function destroy($fcustomerid)
