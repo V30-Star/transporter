@@ -358,7 +358,7 @@ class CustomerController extends Controller
         $customer->update($validated);
 
         return redirect()
-            ->route('customer.edit', $fcustomerid)
+            ->route('customer.index')
             ->with('success', 'Customer berhasil di-update.');
     }
 

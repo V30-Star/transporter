@@ -963,7 +963,7 @@ class MutasiController extends Controller
         });
 
         return redirect()
-            ->route('mutasi.edit', $fstockmtid)
+            ->route('mutasi.index')
             ->with('success', "Transaksi {$header->fstockmtno} berhasil diperbarui.");
     }
 

@@ -1033,7 +1033,7 @@ class FakturPembelianController extends Controller
       });
 
       return redirect()
-        ->route('fakturpembelian.edit', $header->fstockmtid) // <-- Redirect kembali ke halaman edit
+        ->route('fakturpembelian.index') // <-- Redirect kembali ke halaman edit
         ->with('success', "Faktur Pembelian {$fstockmtno} berhasil di-update.");
     } catch (\Exception $e) {
       return back()

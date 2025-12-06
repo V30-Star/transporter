@@ -1078,7 +1078,7 @@ class PenerimaanBarangController extends Controller
     });
 
     return redirect()
-      ->route('penerimaanbarang.edit', $fstockmtid)
+      ->route('penerimaanbarang.index')
       ->with('success', "Transaksi {$header->fstockmtno} berhasil diperbarui.");
   }
 

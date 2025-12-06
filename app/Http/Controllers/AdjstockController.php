@@ -978,7 +978,7 @@ class AdjstockController extends Controller
     });
 
     return redirect()
-      ->route('adjstock.edit', $fstockmtid)
+      ->route('adjstock.index')
       ->with('success', "Transaksi {$header->fstockmtno} berhasil diperbarui.");
   }
 
