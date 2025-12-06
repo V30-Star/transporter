@@ -267,12 +267,28 @@ class CustomerController extends Controller
     // Update method to save the updated customer data in the database
     public function update(Request $request, $fcustomerid)
     {
-        $request->merge([
-            'fcustomercode' => strtoupper($request->fcustomercode),
-        ]);
+        // 1. Ambil data customer yang lama
+        $customer = Customer::findOrFail($fcustomerid);
+
+        // 2. LOGIKA PENANGANAN fcustomercode
+
+        // Kondisi: Jika input 'fcustomercode' kosong atau NULL
+        if (empty($request->fcustomercode)) {
+
+            // JIKA KOSONG: Ambil dan gunakan nilai yang lama dari database
+            $request->merge([
+                'fcustomercode' => $customer->fcustomercode,
+            ]);
+        } else {
+
+            // JIKA DIISI: Gunakan nilai baru dari request dan ubah menjadi uppercase
+            $request->merge([
+                'fcustomercode' => strtoupper($request->fcustomercode),
+            ]);
+        }
 
         $validated = $request->validate([
-            'fcustomercode' => 'nullable|string|max:10|unique:mscustomer,fcustomercode,' . $fcustomerid . ',fcustomerid',
+            'fcustomercode' => 'required|string|max:10|unique:mscustomer,fcustomercode,' . $fcustomerid . ',fcustomerid',
             'fcustomername' => 'required|string|max:50', // Validate customer name (max 50 chars)
             'fgroup' => '', // Validate the Group Produk field
             'fsalesman' => '', // Validate the Group Produk field
