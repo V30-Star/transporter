@@ -137,7 +137,10 @@
                             <label class="block text-sm font-medium">Kode Customer</label>
                             <input type="text" name="fcustomercode" class="w-full border rounded px-3 py-2 uppercase"
                                 placeholder="Masukkan Kode Customer" :disabled="autoCode"
-                                :value="autoCode ? '{{ $customer->fcustomercode }}' : '{{ old('fcustomercode') }}'"
+                                :value="autoCode
+                                    ?
+                                    '{{ $customer->fcustomercode }}' :
+                                    '{{ old('fcustomercode', $customer->fcustomercode) }}'"
                                 :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
                         </div>
                         <!-- Checkbox Auto Generate -->
