@@ -234,19 +234,19 @@
 
                     <div>
                         <label class="block text-sm font-medium">Jadwal Tukar Faktur</label>
-                        <select name="fjadwalmingguan"
-                            class="w-full border rounded px-3 py-2 @error('fjadwalmingguan') border-red-500 @enderror">
+                        <select name="fjadwaltukarfakturmingguan"
+                            class="w-full border rounded px-3 py-2 @error('fjadwaltukarfakturmingguan') border-red-500 @enderror">
                             <option value="1"
-                                {{ old('fjadwalmingguan', $customer->fjadwalmingguan) == '1' ? 'selected' : '' }}>
+                                {{ old('fjadwaltukarfakturmingguan', $customer->fjadwaltukarfakturmingguan) == '1' ? 'selected' : '' }}>
                                 Setiap Minggu</option>
                             <option value="2"
-                                {{ old('fjadwalmingguan', $customer->fjadwalmingguan) == '2' ? 'selected' : '' }}>
+                                {{ old('fjadwaltukarfakturmingguan', $customer->fjadwaltukarfakturmingguan) == '2' ? 'selected' : '' }}>
                                 Minggu Ganjil</option>
                             <option value="3"
-                                {{ old('fjadwalmingguan', $customer->fjadwalmingguan) == '3' ? 'selected' : '' }}>
+                                {{ old('fjadwaltukarfakturmingguan', $customer->fjadwaltukarfakturmingguan) == '3' ? 'selected' : '' }}>
                                 Minggu Genap</option>
                         </select>
-                        @error('fjadwalmingguan')
+                        @error('fjadwaltukarfakturmingguan')
                             <div class="invalid-feedback">
                                 {{ $message }}
                             </div>
@@ -256,32 +256,32 @@
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium">Hari Tukar Faktur</label>
-                            <select name="fjadwalhari"
-                                class="w-full border rounded px-3 py-2 @error('fjadwalhari') border-red-500 @enderror">
+                            <select name="fjadwaltukarfakturhari"
+                                class="w-full border rounded px-3 py-2 @error('fjadwaltukarfakturhari') border-red-500 @enderror">
                                 <option value="">-- Pilih Hari --</option>
                                 <option value="1"
-                                    {{ old('fjadwalhari', $customer->fjadwalhari) == '1' ? 'selected' : '' }}>
+                                    {{ old('fjadwaltukarfakturhari', $customer->fjadwaltukarfakturhari) == '1' ? 'selected' : '' }}>
                                     Senin</option>
                                 <option value="2"
-                                    {{ old('fjadwalhari', $customer->fjadwalhari) == '2' ? 'selected' : '' }}>
+                                    {{ old('fjadwaltukarfakturhari', $customer->fjadwaltukarfakturhari) == '2' ? 'selected' : '' }}>
                                     Selasa</option>
                                 <option value="3"
-                                    {{ old('fjadwalhari', $customer->fjadwalhari) == '3' ? 'selected' : '' }}>
+                                    {{ old('fjadwaltukarfakturhari', $customer->fjadwaltukarfakturhari) == '3' ? 'selected' : '' }}>
                                     Rabu</option>
                                 <option value="4"
-                                    {{ old('fjadwalhari', $customer->fjadwalhari) == '4' ? 'selected' : '' }}>
+                                    {{ old('fjadwaltukarfakturhari', $customer->fjadwaltukarfakturhari) == '4' ? 'selected' : '' }}>
                                     Kamis</option>
                                 <option value="5"
-                                    {{ old('fjadwalhari', $customer->fjadwalhari) == '5' ? 'selected' : '' }}>
+                                    {{ old('fjadwaltukarfakturhari', $customer->fjadwaltukarfakturhari) == '5' ? 'selected' : '' }}>
                                     Jumat</option>
                                 <option value="6"
-                                    {{ old('fjadwalhari', $customer->fjadwalhari) == '6' ? 'selected' : '' }}>
+                                    {{ old('fjadwaltukarfakturhari', $customer->fjadwaltukarfakturhari) == '6' ? 'selected' : '' }}>
                                     Sabtu</option>
                                 <option value="7"
-                                    {{ old('fjadwalhari', $customer->fjadwalhari) == '7' ? 'selected' : '' }}>
+                                    {{ old('fjadwaltukarfakturhari', $customer->fjadwaltukarfakturhari) == '7' ? 'selected' : '' }}>
                                     Minggu</option>
                             </select>
-                            @error('fjadwalhari')
+                            @error('fjadwaltukarfakturhari')
                                 <div class="invalid-feedback">
                                     {{ $message }}
                                 </div>

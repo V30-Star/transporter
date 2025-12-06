@@ -241,13 +241,13 @@
 
                     <div>
                         <label class="block text-sm font-medium">Jadwal Tukar Faktur</label>
-                        <select name="fjadwalmingguan"
-                            class="w-full border rounded px-3 py-2 @error('fjadwalmingguan') border-red-500 @enderror">
+                        <select name="fjadwaltukarfakturmingguan"
+                            class="w-full border rounded px-3 py-2 @error('fjadwaltukarfakturmingguan') border-red-500 @enderror">
                             <option value="1">Setiap Minggu</option>
                             <option value="2">Minggu Ganjil</option>
                             <option value="3">Minggu Genap</option>
                         </select>
-                        @error('fjadwalmingguan')
+                        @error('fjadwaltukarfakturmingguan')
                             <div class="invalid-feedback">
                                 {{ $message }}
                             </div>
@@ -257,8 +257,8 @@
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium">Hari Tukar Faktur</label>
-                            <select name="fjadwalhari"
-                                class="w-full border rounded px-3 py-2 @error('fjadwalhari') border-red-500 @enderror">
+                            <select name="fjadwaltukarfakturhari"
+                                class="w-full border rounded px-3 py-2 @error('fjadwaltukarfakturhari') border-red-500 @enderror">
                                 <option value="">-- Pilih Hari --</option>
                                 <option value="1">Senin</option>
                                 <option value="2">Selasa</option>
@@ -268,7 +268,7 @@
                                 <option value="6">Sabtu</option>
                                 <option value="7">Minggu</option>
                             </select>
-                            @error('fjadwalhari')
+                            @error('fjadwaltukarfakturhari')
                                 <div class="invalid-feedback">
                                     {{ $message }}
                                 </div>

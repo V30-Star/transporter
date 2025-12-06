@@ -181,8 +181,8 @@ class CustomerController extends Controller
             'fwilayah' => '', // Validate the Group Produk field
             'fnpwp' => '', // Validate the Group Produk field
             'fnik' => '', // Validate the Group Produk field
-            'fjadwalmingguan' => '',
-            'fjadwalhari' => '',
+            'fjadwaltukarfakturmingguan' => '',
+            'fjadwaltukarfakturhari' => '',
             'fkodefp' => '',
             'ftelp' => '',
             'ffax' => '',
@@ -208,8 +208,8 @@ class CustomerController extends Controller
             'fwilayah.required' => 'Wilayah harus dipilih.',
             'fnpwp.required' => 'NPWP harus diisi.',
             'fnik.required' => 'NIK harus diisi.',
-            'fjadwalmingguan.required' => 'Jadwal Tukar Faktur harus dipilih.',
-            'fjadwalhari.required' => 'Hari Tukar Faktur harus dipilih.',
+            'fjadwaltukarfakturmingguan.required' => 'Jadwal Tukar Faktur harus dipilih.',
+            'fjadwaltukarfakturhari.required' => 'Hari Tukar Faktur harus dipilih.',
             'fkodefp.required' => 'Kode FP harus diisi.',
             'ftelp.required' => 'Telepon harus diisi.',
             'ffax.required' => 'Fax harus diisi.',
@@ -279,8 +279,8 @@ class CustomerController extends Controller
             'fwilayah' => '', // Validate the Group Produk field
             'fnpwp' => '', // Validate the Group Produk field
             'fnik' => '', // Validate the Group Produk field
-            'fjadwalmingguan' => '',
-            'fjadwalhari' => '',
+            'fjadwaltukarfakturmingguan' => '',
+            'fjadwaltukarfakturhari' => '',
             'fkodefp' => '',
             'ftelp' => '',
             'ffax' => '',
@@ -305,8 +305,8 @@ class CustomerController extends Controller
             'fwilayah.required' => 'Wilayah harus dipilih.',
             'fnpwp.required' => 'NPWP harus diisi.',
             'fnik.required' => 'NIK harus diisi.',
-            'fjadwalmingguan.required' => 'Jadwal Tukar Faktur harus dipilih.',
-            'fjadwalhari.required' => 'Hari Tukar Faktur harus dipilih.',
+            'fjadwaltukarfakturmingguan.required' => 'Jadwal Tukar Faktur harus dipilih.',
+            'fjadwaltukarfakturhari.required' => 'Hari Tukar Faktur harus dipilih.',
             'fkodefp.required' => 'Kode FP harus diisi.',
             'ftelp.required' => 'Telepon harus diisi.',
             'ffax.required' => 'Fax harus diisi.',
