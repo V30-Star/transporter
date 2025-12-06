@@ -280,7 +280,7 @@ class CustomerController extends Controller
             'fnpwp' => '', // Validate the Group Produk field
             'fnik' => '', // Validate the Group Produk field
             'fjadwalmingguan' => '',
-            'fjadwalhari' => '|in:1,2,3,4,5,6,7',
+            'fjadwalhari' => '',
             'fkodefp' => '',
             'ftelp' => '',
             'ffax' => '',
