@@ -25,54 +25,34 @@ class PemakaianbarangController extends Controller
 {
   public function index(Request $request)
   {
-    // --- 1. PERMISSIONS ---
-    $canCreate = in_array('createPenerimaanBarang', explode(',', session('user_restricted_permissions', '')));
-    $canEdit   = in_array('updatePenerimaanBarang', explode(',', session('user_restricted_permissions', '')));
-    $canDelete = in_array('deletePenerimaanBarang', explode(',', session('user_restricted_permissions', '')));
-    $showActionsColumn = $canEdit || $canDelete;
-
-    $year = $request->query('year');
-    $month = $request->query('month');
-
-    // Ambil tahun-tahun yang tersedia dari data
-    $availableYears = PenerimaanPembelianHeader::selectRaw('DISTINCT EXTRACT(YEAR FROM fdatetime) as year')
-      ->where('fstockmtcode', 'RCV')
-      ->whereNotNull('fdatetime')
-      ->orderByRaw('EXTRACT(YEAR FROM fdatetime) DESC')
-      ->pluck('year');
+    // --- 1. PERBAIKAN PERMISSIONS ---
+    // Saya asumsikan ini nama permission yang benar untuk modul ini
+    $canCreate = in_array('createPemakaianbarang', explode(',', session('user_restricted_permissions', '')));
+    $canEdit   = in_array('updatePemakaianBarang', explode(',', session('user_restricted_permissions', '')));
+    $canDelete = in_array('deletePemakaianBarang', explode(',', session('user_restricted_permissions', '')));
+    $showActionsColumn = $canEdit || $canDelete; // Anda bisa tambahkan $canPrint jika ada
 
     // --- 2. Handle Request AJAX dari DataTables ---
     if ($request->ajax()) {
 
-      // Query dasar HANYA untuk 'RCV' (Receiving)
-      $query = PenerimaanPembelianHeader::where('fstockmtcode', 'RCV');
+      // Query dasar HANYA untuk 'PBR' (Receiving)
+      $query = PenerimaanPembelianHeader::where('fstockmtcode', 'PBR');
 
-      // Total records (dengan filter 'RCV')
-      $totalRecords = PenerimaanPembelianHeader::where('fstockmtcode', 'RCV')->count();
+      // Total records (dengan filter 'PBR')
+      $totalRecords = PenerimaanPembelianHeader::where('fstockmtcode', 'PBR')->count();
 
       // Handle Search (cari di No. Penerimaan)
       if ($search = $request->input('search.value')) {
         $query->where('fstockmtno', 'like', "%{$search}%");
       }
 
-      // Filter tahun
-      if ($year) {
-        $query->whereRaw('EXTRACT(YEAR FROM fdatetime) = ?', [$year]);
-      }
-
-      // Filter bulan
-      if ($month) {
-        $query->whereRaw('EXTRACT(MONTH FROM fdatetime) = ?', [$month]);
-      }
-
-      // Total records setelah filter
+      // Total records setelah filter search
       $filteredRecords = (clone $query)->count();
 
       // Handle Sorting
       $orderColIdx = $request->input('order.0.column', 0);
-      $orderDir = $request->input('order.0.dir', 'desc');
-
-      // Kolom di tabel: 0 = fstockmtno, 1 = fstockmtdate, 2 = actions
+      $orderDir = $request->input('order.0.dir', 'asc');
+      // Kolom di tabel: 0 = fstockmtno, 1 = fstockmtdate
       $sortableColumns = ['fstockmtno', 'fstockmtdate'];
 
       if (isset($sortableColumns[$orderColIdx])) {
@@ -86,17 +66,54 @@ class PemakaianbarangController extends Controller
       $length = $request->input('length', 10);
       $records = $query->skip($start)
         ->take($length)
-        ->get(['fstockmtid', 'fstockmtno', 'fstockmtdate']);
+        ->get(['fstockmtid', 'fstockmtno', 'fstockmtdate']); // fstockmtcode tidak perlu, krn sudah pasti RCV
 
-      // Format Data - HANYA RETURN DATA MENTAH
-      $data = $records->map(function ($row) {
+      // Format Data (Tombol dibuat di sini)
+      $data = $records->map(function ($row) use ($canEdit, $canDelete) {
+
+        $actions = '';
+
+        // --- Tombol Edit ---
+        // if ($canEdit) {
+        // Asumsi route edit Anda: pemakaianbarang.edit
+        $editUrl = route('pemakaianbarang.edit', $row->fstockmtid);
+        $actions .= ' <a href="' . $editUrl . '" class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                    </svg> Edit
+                                </a>';
+        // }
+
+        // --- Tombol Delete ---
+        // if ($canDelete) {
+        // Asumsi route destroy Anda: pemakaianbarang.destroy
+        $deleteUrl = route('pemakaianbarang.destroy', $row->fstockmtid);
+        $actions .= ' <button @click="$dispatch(\'open-delete\', \'' . $deleteUrl . '\')" class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                </svg> Delete
+            </button>';
+        // }
+
+        // --- Tombol Print ---
+        // Asumsi route print Anda: pemakaianbarang.print
+        $printUrl = route('pemakaianbarang.print', ['fstockmtno' => $row->fstockmtno]);
+        $actions .= ' <a href="' . $printUrl . '" target="_blank" class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m10 0v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5m10 0v5H7v-5"></path>
+                                </svg> Print
+                            </a>';
+
+
         return [
-          'fstockmtid'   => $row->fstockmtid,
           'fstockmtno'   => $row->fstockmtno,
-          'fstockmtdate' => Carbon::parse($row->fstockmtdate)->format('d/m/Y')
+          // Format tanggal agar rapi di tabel
+          'fstockmtdate' => Carbon::parse($row->fstockmtdate)->format('d/m/Y'),
+          'actions'      => $actions
         ];
       });
 
+      // 9. Kirim Response JSON
       return response()->json([
         'draw'            => intval($request->input('draw')),
         'recordsTotal'    => $totalRecords,
@@ -105,15 +122,12 @@ class PemakaianbarangController extends Controller
       ]);
     }
 
-    // --- 3. Handle Request non-AJAX ---
+    // --- 3. Handle Request non-AJAX (Saat load halaman) ---
     return view('pemakaianbarang.index', compact(
       'canCreate',
       'canEdit',
       'canDelete',
-      'showActionsColumn',
-      'availableYears',
-      'year',
-      'month'
+      'showActionsColumn'
     ));
   }
 
@@ -229,10 +243,10 @@ class PemakaianbarangController extends Controller
     }
     if (!$kodeCabang) $kodeCabang = 'NA';
 
-    $prefix = sprintf('PO.%s.%s.%s.', $kodeCabang, $date->format('y'), $date->format('m'));
+    $prefix = sprintf('PBR.%s.%s.%s.', $kodeCabang, $date->format('y'), $date->format('m'));
 
     // kunci per (branch, tahun-bulan) — TANPA bikin tabel baru
-    $lockKey = crc32('PO|' . $kodeCabang . '|' . $date->format('Y-m'));
+    $lockKey = crc32('PBR|' . $kodeCabang . '|' . $date->format('Y-m'));
     DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
     $last = DB::table('tr_poh')
@@ -295,6 +309,18 @@ class PemakaianbarangController extends Controller
   {
     $supplier = Supplier::all();
 
+    $accounts = DB::table('account')
+      ->select('faccid', 'faccount', 'faccname', 'fnonactive')
+      ->where('fnonactive', '0')
+      ->orderBy('account')
+      ->get();
+
+    $subaccounts = DB::table('mssubaccount')
+      ->select('fsubaccountid', 'fsubaccountcode', 'fsubaccountname')
+      ->where('fnonactive', '0')
+      ->orderBy('fsubaccountcode')
+      ->get();
+
     $warehouses = DB::table('mswh')
       ->select('fwhid', 'fwhcode', 'fwhname', 'fbranchcode', 'fnonactive')
       ->where('fnonactive', '0')              // hanya yang aktif
@@ -331,7 +357,8 @@ class PemakaianbarangController extends Controller
     return view('pemakaianbarang.create', [
       'newtr_prh_code' => $newtr_prh_code,
       'warehouses' => $warehouses,
-      'perms' => ['can_approval' => $canApproval],
+      'accounts' => $accounts,
+      'subaccounts' => $subaccounts,
       'supplier' => $supplier,
       'fcabang' => $fcabang,
       'fbranchcode' => $fbranchcode,
@@ -347,7 +374,6 @@ class PemakaianbarangController extends Controller
     $request->validate([
       'fstockmtno'      => ['nullable', 'string', 'max:100'],
       'fstockmtdate'    => ['required', 'date'],
-      'fsupplier'       => ['required', 'string', 'max:30'],
       'ffrom'           => ['nullable', 'string', 'max:10'], // gudang ID
       'fket'            => ['nullable', 'string', 'max:50'],
       'fbranchcode'     => ['nullable', 'string', 'max:20'],
@@ -361,14 +387,14 @@ class PemakaianbarangController extends Controller
       'frefdtno'        => ['nullable', 'array'],
       'frefdtno.*'      => ['nullable', 'string', 'max:20'],
 
+      'frefso'        => ['nullable', 'array'],
+      'frefso.*'      => ['nullable', 'string', 'max:20'],
+
       'fnouref'         => ['nullable', 'array'],
       'fnouref.*'       => ['nullable', 'integer'],
 
       'fqty'            => ['required', 'array'],
       'fqty.*'          => ['numeric', 'min:0'],
-
-      'fprice'          => ['required', 'array'],
-      'fprice.*'        => ['numeric', 'min:0'],
 
       'fdesc'           => ['nullable', 'array'],
       'fdesc.*'         => ['nullable', 'string', 'max:500'],
@@ -388,16 +414,9 @@ class PemakaianbarangController extends Controller
     // =========================
     $fstockmtno   = trim((string)$request->input('fstockmtno'));
     $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
-    $fsupplier    = trim((string)$request->input('fsupplier'));
     $ffrom        = $request->input('fwhid'); // Gudang ID
     $fket         = trim((string)$request->input('fket', ''));
     $fbranchcode  = $request->input('fbranchcode');
-
-    $fcurrency    = $request->input('fcurrency', 'IDR');
-    $frate        = (float)$request->input('frate', 1);
-    if ($frate <= 0) $frate = 1;
-
-    $ppnAmount    = (float)$request->input('famountpopajak', 0); // PPN Nominal
 
     $userid       = auth('sysuser')->user()->fsysuserid ?? 'admin';
     $now          = now();
@@ -408,9 +427,9 @@ class PemakaianbarangController extends Controller
     $codes        = $request->input('fitemcode', []);
     $satuans      = $request->input('fsatuan', []);
     $refdtno      = $request->input('frefdtno', []);
+    $refso      = $request->input('frefso', []);
     $nourefs      = $request->input('fnouref', []);
     $qtys         = $request->input('fqty', []);
-    $prices       = $request->input('fprice', []);
     $descs        = $request->input('fdesc', []);
 
     $rowsDt       = [];
@@ -437,9 +456,9 @@ class PemakaianbarangController extends Controller
       $code  = trim((string)($codes[$i]   ?? ''));
       $sat   = trim((string)($satuans[$i] ?? ''));
       $rref  = trim((string)($refdtno[$i] ?? ''));
+      $rrso  = trim((string)($refso[$i] ?? ''));
       $rnour = $nourefs[$i] ?? null;
       $qty   = (float)($qtys[$i]   ?? 0);
-      $price = (float)($prices[$i] ?? 0);
       $desc  = (string)($descs[$i] ?? '');
 
       if ($code === '' || $qty <= 0) continue;
@@ -455,24 +474,17 @@ class PemakaianbarangController extends Controller
       $sat = mb_substr($sat, 0, 5);
       if ($sat === '') continue;
 
-      $amount = $qty * $price;
-      $subtotal += $amount;
-
       $rowsDt[] = [
         'fprdcode'       => $prdId,
         'frefdtno'       => $rref,
+        'frefso'         => $rrso,
         'fqty'           => $qty,
         'fqtyremain'     => $qty,
-        'fprice'         => $price,
-        'fprice_rp'      => $price * $frate,
-        'ftotprice'      => $amount,
-        'ftotprice_rp'   => $amount * $frate,
         'fuserid'        => $userid,
         'fdatetime'      => $now,
         'fketdt'         => '',
         'fcode'          => '0',
         'fnouref'        => $rnour !== null ? (int)$rnour : null,
-        'frefso'         => null,
         'fdesc'          => $desc,
         'fsatuan'        => $sat,
         'fqtykecil'      => $qty,
@@ -489,26 +501,20 @@ class PemakaianbarangController extends Controller
       ]);
     }
 
-    $grandTotal = $subtotal + $ppnAmount;
 
     // =========================
     // 5) TRANSAKSI DB
     // =========================
     DB::transaction(function () use (
       $fstockmtdate,
-      $fsupplier,
       $ffrom,
       $fket,
       $fbranchcode,
-      $fcurrency,
-      $frate,
       $userid,
       $now,
       &$fstockmtno,
       &$rowsDt,
-      $subtotal,
-      $ppnAmount,
-      $grandTotal
+      $subtotal
     ) {
       // ---- 5.1. Generate fstockmtno dan kodeCabang ----
       $kodeCabang = null;
@@ -527,7 +533,7 @@ class PemakaianbarangController extends Controller
 
       $yy = $fstockmtdate->format('y');
       $mm = $fstockmtdate->format('m');
-      $fstockmtcode = 'RCV';
+      $fstockmtcode = 'PBR';
 
       if (empty($fstockmtno)) {
         $prefix = sprintf('%s.%s.%s.%s.', $fstockmtcode, $kodeCabang, $yy, $mm);
@@ -550,17 +556,6 @@ class PemakaianbarangController extends Controller
         'fstockmtcode'     => $fstockmtcode,
         'fstockmtdate'     => $fstockmtdate,
         'fprdout'          => '0',
-        'fsupplier'        => $fsupplier,
-        'fcurrency'        => $fcurrency,
-        'frate'            => $frate,
-        'famount'          => round($subtotal, 2),
-        'famount_rp'       => round($subtotal * $frate, 2),
-        'famountpajak'     => round($ppnAmount, 2),
-        'famountpajak_rp'  => round($ppnAmount * $frate, 2),
-        'famountmt'        => round($grandTotal, 2),
-        'famountmt_rp'     => round($grandTotal * $frate, 2),
-        'famountremain'    => round($grandTotal, 2),
-        'famountremain_rp' => round($grandTotal * $frate, 2),
         'frefno'           => null, // Diisi jika ada referensi lain
         'frefpo'           => null,
         'ftrancode'        => null,
@@ -635,9 +630,7 @@ class PemakaianbarangController extends Controller
         'fjurnalno'   => $fjurnalno,
         'fjurnaltype' => $fjurnaltype,
         'fjurnaldate' => $fstockmtdate,
-        'fjurnalnote' => 'Jurnal Penerimaan Barang ' . $fstockmtno . ' dari Supplier: ' . $fsupplier,
-        'fbalance'    => round($grandTotal, 2),
-        'fbalance_rp' => round($grandTotal * $frate, 2),
+        'fjurnalnote' => 'Jurnal Penerimaan Barang ' . $fstockmtno,
         'fdatetime'   => $now,
         'fuserid'     => $userid,
       ];
@@ -663,57 +656,11 @@ class PemakaianbarangController extends Controller
         'flineno'      => $flineno++,
         'faccount'     => $INVENTORY_ACCOUNT_CODE,
         'fdk'          => 'D',
-        'fsubaccount'  => $fsupplier,
         'frefno'       => $fstockmtno,
-        'frate'        => $frate,
-        'famount'      => round($subtotal, 2),
-        'famount_rp'   => round($subtotal * $frate, 2),
         'faccountnote' => 'Persediaan Barang Dagang ' . $fstockmtno,
         'fuserid'      => $userid,
         'fdatetime'    => $now,
       ];
-
-      // --- DEBIT: PPN Masukan (Jika ada PPN) ---
-      if ($ppnAmount > 0) {
-        $jurnalDetails[] = [
-          'fjurnalmtid'  => $newJurnalMasterId,
-          'fbranchcode'  => $kodeCabang,
-          'fjurnaltype'  => $fjurnaltype,
-          'fjurnalno'    => $fjurnalno,
-          'flineno'      => $flineno++,
-          'faccount'     => $PPN_IN_ACCOUNT_CODE,
-          'fdk'          => 'D',
-          'fsubaccount'  => null,
-          'frefno'       => $fstockmtno,
-          'frate'        => $frate,
-          'famount'      => round($ppnAmount, 2),
-          'famount_rp'   => round($ppnAmount * $frate, 2),
-          'faccountnote' => 'PPN Masukan ' . $fstockmtno,
-          'fuserid'      => $userid,
-          'fdatetime'    => $now,
-        ];
-      }
-
-      // --- KREDIT: Hutang Dagang (Nilai Grand Total) ---
-      $jurnalDetails[] = [
-        'fjurnalmtid'  => $newJurnalMasterId,
-        'fbranchcode'  => $kodeCabang,
-        'fjurnaltype'  => $fjurnaltype,
-        'fjurnalno'    => $fjurnalno,
-        'flineno'      => $flineno++,
-        'faccount'     => $PAYABLE_ACCOUNT_CODE,
-        'fdk'          => 'K',
-        'fsubaccount'  => $fsupplier,
-        'frefno'       => $fstockmtno,
-        'frate'        => $frate,
-        'famount'      => round($grandTotal, 2),
-        'famount_rp'   => round($grandTotal * $frate, 2),
-        'faccountnote' => 'Hutang Dagang Supplier ' . $fsupplier . ' (Total Pembelian)',
-        'fuserid'      => $userid,
-        'fdatetime'    => $now,
-      ];
-
-      Log::debug('JURNAL DETAIL INSERT:', $jurnalDetails); // Debugging
 
       DB::table('jurnaldt')->insert($jurnalDetails);
     });
@@ -721,7 +668,7 @@ class PemakaianbarangController extends Controller
     // =================================================================
 
     return redirect()
-      ->route('penerimaanbarang.create')
+      ->route('pemakaianbarang.create')
       ->with('success', "Transaksi {$fstockmtno} tersimpan.");
   }
 

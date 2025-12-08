@@ -30,7 +30,7 @@
             <div></div>
 
             {{-- @if ($canCreate) --}}
-            <a href="{{ route('mutasi.create') }}"
+            <a href="{{ route('pemakaianbarang.create') }}"
                 class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
                 <x-heroicon-o-plus class="w-4 h-4 mr-1" /> Tambah Baru
             </a>
@@ -193,7 +193,7 @@
                 serverSide: true, // Aktifkan mode SSP
 
                 // Ambil data dari route ini
-                ajax: '{{ route('mutasi.index') }}',
+                ajax: '{{ route('pemakaianbarang.index') }}',
                 // -------------------------
 
                 // Terapkan kolom dari langkah 1 & 2

@@ -46,11 +46,6 @@
                             class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none" title="Browse Account">
                             <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                         </button>
-
-                        <a href="{{ route('account.create') }}" target="_blank" rel="noopener"
-                            class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50" title="Tambah Account">
-                            <x-heroicon-o-plus class="w-5 h-5" />
-                        </a>
                     </div>
 
                     @error('faccupline')

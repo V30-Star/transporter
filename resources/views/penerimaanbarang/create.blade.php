@@ -279,7 +279,6 @@
                                                 <input type="hidden" name="fitemname[]" :value="it.fitemname">
                                                 <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
                                                 <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
-                                                <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
                                                 <input type="hidden" name="frefpr[]" :value="it.frefpr">
                                                 <input type="hidden" name="fqty[]" :value="it.fqty">
                                                 <input type="hidden" name="fprice[]" :value="it.fprice">
