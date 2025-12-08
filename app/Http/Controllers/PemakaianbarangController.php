@@ -675,7 +675,7 @@ class PemakaianbarangController extends Controller
   public function edit($fstockmtid)
   {
     $supplier = Supplier::all();
-    
+
     $accounts = DB::table('account')
       ->select('faccid', 'faccount', 'faccname', 'fnonactive')
       ->where('fnonactive', '0')
@@ -1031,12 +1031,12 @@ class PemakaianbarangController extends Controller
     if (request()->wantsJson()) {
       return response()->json([
         'success' => true,
-        'message' => 'Penerimaan Barang berhasil dihapus.'
+        'message' => 'Pemakaian Barang berhasil dihapus.'
       ]);
     }
 
     return redirect()
       ->route('pemakaianbarang.index')
-      ->with('success', 'Penerimaan Barang Berhasil Dihapus.');
+      ->with('success', 'Pemakaian Barang Berhasil Dihapus.');
   }
 }
