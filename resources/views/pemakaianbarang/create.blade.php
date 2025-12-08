@@ -651,6 +651,66 @@
 @push('styles')
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
 @endpush
+<style>
+    /* Targeting lebih spesifik untuk length select */
+    div#warehouseTable_length select,
+    .dataTables_wrapper #warehouseTable_length select,
+    table#warehouseTable+.dataTables_wrapper .dataTables_length select {
+        min-width: 140px !important;
+        width: auto !important;
+        padding: 8px 45px 8px 16px !important;
+        font-size: 14px !important;
+        border: 1px solid #d1d5db !important;
+        border-radius: 0.375rem !important;
+    }
+
+    /* Wrapper length */
+    div#warehouseTable_length,
+    .dataTables_wrapper #warehouseTable_length,
+    .dataTables_wrapper .dataTables_length {
+        min-width: 250px !important;
+    }
+
+    /* Label wrapper */
+    div#warehouseTable_length label,
+    .dataTables_wrapper #warehouseTable_length label,
+    .dataTables_wrapper .dataTables_length label {
+        font-size: 14px !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+    }
+
+
+    /* Targeting lebih spesifik untuk length select */
+    div#productTable_length select,
+    .dataTables_wrapper #productTable_length select,
+    table#supplierBrowseTable+.dataTables_wrapper .dataTables_length select {
+        min-width: 140px !important;
+        width: auto !important;
+        padding: 8px 45px 8px 16px !important;
+        font-size: 14px !important;
+        border: 1px solid #d1d5db !important;
+        border-radius: 0.375rem !important;
+    }
+
+    /* Wrapper length */
+    div#productTable_length,
+    .dataTables_wrapper #productTable_length,
+    .dataTables_wrapper .dataTables_length {
+        min-width: 250px !important;
+    }
+
+    /* Label wrapper */
+    div#productTable_length label,
+    .dataTables_wrapper #productTable_length label,
+    .dataTables_wrapper .dataTables_length label {
+        font-size: 14px !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+    }
+</style>
 {{-- DATA & SCRIPTS --}}
 
 @push('scripts')

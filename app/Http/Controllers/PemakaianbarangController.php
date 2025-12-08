@@ -414,7 +414,7 @@ class PemakaianbarangController extends Controller
     // =========================
     $fstockmtno   = trim((string)$request->input('fstockmtno'));
     $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
-    $ffrom        = $request->input('fwhid'); // Gudang ID
+    $ffrom        = $request->input('ffrom'); // Gudang ID
     $fket         = trim((string)$request->input('fket', ''));
     $fbranchcode  = $request->input('fbranchcode');
 
@@ -711,42 +711,45 @@ class PemakaianbarangController extends Controller
     $pemakaianbarang = PenerimaanPembelianHeader::with([
       'details' => function ($query) {
         $query
-          // 2. Join ke msprd berdasarkan ID
           ->join('msprd', 'msprd.fprdid', '=', 'trstockdt.fprdcode')
-          // 3. Select kolom yang dibutuhkan
+          ->with(['account', 'subaccount']) // Eager load relasi
           ->select(
-            'trstockdt.*', // Ambil semua kolom dari tabel detail
-            'msprd.fprdname', // Ambil nama produk
-            'msprd.fprdcode as fitemcode_text' // Ambil KODE string produk
+            'trstockdt.*',
+            'msprd.fprdname',
+            'msprd.fprdcode as fitemcode_text'
           )
           ->orderBy('trstockdt.fstockdtid', 'asc');
       }
-    ])
-      ->findOrFail($fstockmtid); // Temukan header berdasarkan $fstockmtid dari URL
-
+    ])->findOrFail($fstockmtid);
 
     // 4. Map the data for savedItems (sudah menggunakan data yang benar)
     $savedItems = $pemakaianbarang->details->map(function ($d) {
       return [
-        'uid'       => $d->fstockdtid,
+        'uid' => $d->fstockdtid,
         'fitemcode' => $d->fitemcode_text ?? '',
         'fitemname' => $d->fprdname ?? '',
-        'fsatuan'   => $d->fsatuan ?? '',
-        'fprno'     => $d->frefpr ?? '-',
-        'frefpr'    => $d->frefpr ?? null,
-        'fpono'     => $d->fpono ?? null,
+        'fsatuan' => $d->fsatuan ?? '',
+        'fprno' => $d->frefpr ?? '-',
+        'frefpr' => $d->frefpr ?? null,
+        'frefso' => $d->frefso ?? null,
+        'fpono' => $d->fpono ?? null,
         'famountponet' => $d->famountponet ?? null,
         'famountpo' => $d->famountpo ?? null,
-        'frefdtno'  => $d->frefdtno ?? null,
-        'fnouref'   => $d->fnouref ?? null,
-        'fqty'      => (float)($d->fqty ?? 0),
-        'fterima'   => (float)($d->fterima ?? 0),
-        'fprice'    => (float)($d->fprice ?? 0),
-        'fdisc'     => (float)($d->fdiscpersen ?? 0),
-        'ftotal'    => (float)($d->ftotprice ?? 0),
-        'fdesc'     => is_array($d->fdesc) ? implode(', ', $d->fdesc) : ($d->fdesc ?? ''),
-        'fketdt'    => $d->fketdt ?? '',
-        'units'     => [],
+        'frefdtno' => $d->frefdtno ?? null,
+        'fnouref' => $d->fnouref ?? null,
+        'fqty' => (float)($d->fqty ?? 0),
+        'fterima' => (float)($d->fterima ?? 0),
+        'fdisc' => (float)($d->fdiscpersen ?? 0),
+        'ftotal' => (float)($d->ftotprice ?? 0),
+        'fdesc' => is_array($d->fdesc) ? implode(', ', $d->fdesc) : ($d->fdesc ?? ''),
+        'fketdt' => $d->fketdt ?? '',
+        'units' => [],
+
+        // TAMBAHKAN INI - untuk JavaScript
+        'faccid' => $d->frefdtno ?? null,
+        'faccname' => $d->account ? $d->account->faccname : null,
+        'fsubaccountid' => $d->frefso ?? null,
+        'fsubaccountname' => $d->subaccount ? $d->subaccount->fsubaccountname : null,
       ];
     })->values();
 
@@ -799,7 +802,6 @@ class PemakaianbarangController extends Controller
     $request->validate([
       'fstockmtno'     => ['nullable', 'string', 'max:100'],
       'fstockmtdate'   => ['required', 'date'],
-      'fsupplier'      => ['required', 'string', 'max:30'],
       'ffrom'          => ['nullable', 'integer', 'exists:mswh,fwhid'],
       'fket'           => ['nullable', 'string', 'max:50'],
       'fbranchcode'    => ['nullable', 'string', 'max:20'],
@@ -809,20 +811,14 @@ class PemakaianbarangController extends Controller
       'fsatuan.*'      => ['nullable', 'string', 'max:5'],
       'frefdtno'       => ['nullable', 'array'],
       'frefdtno.*'     => ['nullable', 'string', 'max:20'],
+      'frefso'        => ['nullable', 'array'],
+      'frefso.*'      => ['nullable', 'string', 'max:20'],
       'fnouref'        => ['nullable', 'array'],
       'fnouref.*'      => ['nullable', 'integer'],
-      'fqty'           => ['required', 'array'],
-      'fqty.*'         => ['numeric', 'min:0.01'],
-      'fprice'         => ['required', 'array'],
-      'fprice.*'       => ['numeric', 'min:0'],
       'fdesc'          => ['nullable', 'array'],
       'fdesc.*'        => ['nullable', 'string', 'max:500'],
-      'fcurrency'      => ['nullable', 'string', 'max:5'],
-      'frate'          => ['nullable', 'numeric', 'min:0'],
-      'famountpopajak' => ['nullable', 'numeric', 'min:0'],
     ], [
       'fstockmtdate.required' => 'Tanggal transaksi wajib diisi.',
-      'fsupplier.required'    => 'Supplier wajib diisi.',
       'fitemcode.required'    => 'Minimal 1 item.',
       'fqty.*.min'            => 'Qty tidak boleh 0.',
       'ffrom.exists'          => 'Gudang (ffrom/fwhid) tidak valid.',
@@ -835,14 +831,10 @@ class PemakaianbarangController extends Controller
     $header = PenerimaanPembelianHeader::findOrFail($fstockmtid);
 
     $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
-    $fsupplier    = trim((string)$request->input('fsupplier'));
     $ffrom        = $request->input('ffrom');
     $fket         = trim((string)$request->input('fket', ''));
     $fbranchcode  = $request->input('fbranchcode');
-    $fcurrency    = $request->input('fcurrency', 'IDR');
-    $frate        = (float)$request->input('frate', 1);
-    if ($frate <= 0) $frate = 1;
-    $ppnAmount    = (float)$request->input('famountpopajak', 0);
+
     $userid       = auth('sysuser')->user()->fsysuserid ?? 'admin';
     $now          = now();
 
@@ -851,10 +843,10 @@ class PemakaianbarangController extends Controller
     // =========================
     $codes   = $request->input('fitemcode', []);
     $satuans = $request->input('fsatuan', []);
-    $refdtno = $request->input('frefdtno', []);
+    $refdtno      = $request->input('frefdtno', []);
+    $refso      = $request->input('frefso', []);
     $nourefs = $request->input('fnouref', []);
     $qtys    = $request->input('fqty', []);
-    $prices  = $request->input('fprice', []);
     $descs   = $request->input('fdesc', []);
 
     // =========================
@@ -883,6 +875,7 @@ class PemakaianbarangController extends Controller
       $code  = trim((string)($codes[$i]   ?? ''));
       $sat   = trim((string)($satuans[$i] ?? ''));
       $rref  = trim((string)($refdtno[$i] ?? ''));
+      $rrso  = trim((string)($refso[$i] ?? ''));
       $rnour = $nourefs[$i] ?? null;
       $qty   = (float)($qtys[$i]   ?? 0);
       $price = (float)($prices[$i] ?? 0);
@@ -907,18 +900,13 @@ class PemakaianbarangController extends Controller
       $rowsDt[] = [
         'fprdcode'       => $prdId,
         'frefdtno'       => $rref,
+        'frefso'         => $rrso,
         'fqty'           => $qty,
-        'fqtyremain'     => $qty,
-        'fprice'         => $price,
-        'fprice_rp'      => $price * $frate,
-        'ftotprice'      => $amount,
-        'ftotprice_rp'   => $amount * $frate,
         'fuserid'        => $userid,
         'fdatetime'      => $now, // Tetap gunakan fdatetime
         'fketdt'         => '',
         'fcode'          => '0',
         'fnouref'        => $rnour !== null ? (int)$rnour : null,
-        'frefso'         => null,
         'fdesc'          => $desc,
         'fsatuan'        => $sat,
         'fqtykecil'      => $qty,
@@ -934,8 +922,6 @@ class PemakaianbarangController extends Controller
       ]);
     }
 
-    $grandTotal = $subtotal + $ppnAmount;
-
     // =========================
     // 5) TRANSAKSI DB
     // =========================
@@ -943,23 +929,18 @@ class PemakaianbarangController extends Controller
       $header,
       $fstockmtid,
       $fstockmtdate,
-      $fsupplier,
       $ffrom,
       $fket,
       $fbranchcode,
-      $fcurrency,
-      $frate,
       $userid,
       $now,
       &$rowsDt,
-      $subtotal,
-      $ppnAmount,
-      $grandTotal
+      $subtotal
     ) {
 
       // ---- 5.1. Cek Kode Cabang ----
-      $kodeCabang = $header->fbranchcode;
-      if ($fbranchcode !== null && $fbranchcode !== $header->fbranchcode) {
+      $kodeCabang = null;
+      if ($fbranchcode !== null) {
         $needle = trim((string)$fbranchcode);
         if ($needle !== '') {
           if (is_numeric($needle)) {
@@ -969,23 +950,33 @@ class PemakaianbarangController extends Controller
               ?: DB::table('mscabang')->whereRaw('LOWER(fcabangname)=LOWER(?)', [$needle])->value('fcabangkode');
           }
         }
-        if (!$kodeCabang) $kodeCabang = 'NA';
+      }
+      if (!$kodeCabang) $kodeCabang = 'NA';
+
+      $yy = $fstockmtdate->format('y');
+      $mm = $fstockmtdate->format('m');
+      $fstockmtcode = 'PBR';
+
+      if (empty($fstockmtno)) {
+        $prefix = sprintf('%s.%s.%s.%s.', $fstockmtcode, $kodeCabang, $yy, $mm);
+
+        $lockKey = crc32('STOCKMT|' . $fstockmtcode . '|' . $kodeCabang . '|' . $fstockmtdate->format('Y-m'));
+        DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
+
+        $last = DB::table('trstockmt')
+          ->where('fstockmtno', 'like', $prefix . '%')
+          ->selectRaw("MAX(CAST(split_part(fstockmtno, '.', 5) AS int)) AS lastno")
+          ->value('lastno');
+
+        $next = (int)$last + 1;
+        $fstockmtno = $prefix . str_pad((string)$next, 4, '0', STR_PAD_LEFT);
       }
 
       // ---- 5.2. UPDATE HEADER: trstockmt ----
       $masterData = [
+        'fstockmtno'       => $fstockmtno,
+        'fstockmtcode'     => $fstockmtcode,
         'fstockmtdate'     => $fstockmtdate,
-        'fsupplier'        => $fsupplier,
-        'fcurrency'        => $fcurrency,
-        'frate'            => $frate,
-        'famount'          => round($subtotal, 2),
-        'famount_rp'       => round($subtotal * $frate, 2),
-        'famountpajak'     => round($ppnAmount, 2),
-        'famountpajak_rp'  => round($ppnAmount * $frate, 2),
-        'famountmt'        => round($grandTotal, 2),
-        'famountmt_rp'     => round($grandTotal * $frate, 2),
-        'famountremain'    => round($grandTotal, 2),
-        'famountremain_rp' => round($grandTotal * $frate, 2),
         'ffrom'            => $ffrom,
         'fket'             => $fket,
         'fuserid'          => $userid,

@@ -92,8 +92,8 @@
             savedItems: []
         }" class="lg:col-span-5">
             <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
-                <form action="{{ route('pemakaianbarang.update', $pemakaianbarang->fstockmtid) }}" method="POST" class="mt-6" @submit="onSubmit($event)"
-                    x-data="{ showNoItems: false }">
+                <form action="{{ route('pemakaianbarang.update', $pemakaianbarang->fstockmtid) }}" method="POST"
+                    class="mt-6" @submit="onSubmit($event)" x-data="{ showNoItems: false }">
                     @csrf
                     @method('PATCH')
 
@@ -134,51 +134,46 @@
                             <label class="block text-sm font-medium mb-1">Gudang</label>
                             <div class="flex">
                                 <div class="relative flex-1">
+
                                     <select id="warehouseSelectFrom"
                                         class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
                                         disabled>
                                         <option value=""></option>
                                         @foreach ($warehouses as $wh)
-                                            <option value="{{ $wh->fwhid }}" data-code="{{ $wh->fwhcode }}"
+                                            <option value="{{ $wh->fwhid }}" data-id="{{ $wh->fwhid }}"
                                                 data-branch="{{ $wh->fbranchcode }}"
-                                                {{ old('ffrom', $mutasi->ffrom ?? '') == $wh->fwhid ? 'selected' : '' }}>
+                                                {{ old('ffrom', $pemakaianbarang->ffrom) == $wh->fwhid ? 'selected' : '' }}>
                                                 {{ $wh->fwhcode }} - {{ $wh->fwhname }}
                                             </option>
                                         @endforeach
                                     </select>
 
+                                    {{-- Overlay untuk buka browser gudang --}}
                                     <div class="absolute inset-0" role="button" aria-label="Browse warehouse"
-                                        @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open', { detail: 'from' }))">
-                                    </div>
+                                        @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"></div>
                                 </div>
-
-                                <!-- Simpan fwhid di ffrom -->
                                 <input type="hidden" name="ffrom" id="warehouseCodeHiddenFrom"
-                                    value="{{ old('ffrom', $mutasi->ffrom ?? '') }}">
+                                    value="{{ old('ffrom', $pemakaianbarang->ffrom) }}">
 
+                                {{-- Tombol-tombol Anda --}}
                                 <button type="button"
-                                    @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open', { detail: 'from' }))"
+                                    @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"
                                     class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
                                     title="Browse Gudang">
                                     <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                                 </button>
-
                                 <a href="{{ route('gudang.create') }}" target="_blank" rel="noopener"
                                     class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
-                                    title="Tambah Gudang">
+                                    title="Tambah Supplier">
                                     <x-heroicon-o-plus class="w-5 h-5" />
                                 </a>
                             </div>
-
-                            @error('ffrom')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
                         </div>
 
                         <div class="lg:col-span-12">
                             <label class="block text-sm font-medium">Keterangan</label>
                             <textarea name="fket" rows="3" class="w-full border rounded px-3 py-2 @error('fket') border-red-500 @enderror"
-                                placeholder="Tulis keterangan tambahan di sini...">{{ old('fket') }}</textarea>
+                                placeholder="Tulis keterangan tambahan di sini...">{{ old('fket', $pemakaianbarang->fket) }}</textarea>
                             @error('fket')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
@@ -639,7 +634,7 @@
                             class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
                             <x-heroicon-o-check class="w-5 h-5 mr-2" /> Simpan
                         </button>
-                        <button type="button" @click="window.location.href='{{ route('mutasi.index') }}'"
+                        <button type="button" @click="window.location.href='{{ route('pemakaianbarang.index') }}'"
                             class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
                             <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" /> Keluar
                         </button>
@@ -652,6 +647,66 @@
 @push('styles')
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
 @endpush
+<style>
+    /* Targeting lebih spesifik untuk length select */
+    div#warehouseTable_length select,
+    .dataTables_wrapper #warehouseTable_length select,
+    table#warehouseTable+.dataTables_wrapper .dataTables_length select {
+        min-width: 140px !important;
+        width: auto !important;
+        padding: 8px 45px 8px 16px !important;
+        font-size: 14px !important;
+        border: 1px solid #d1d5db !important;
+        border-radius: 0.375rem !important;
+    }
+
+    /* Wrapper length */
+    div#warehouseTable_length,
+    .dataTables_wrapper #warehouseTable_length,
+    .dataTables_wrapper .dataTables_length {
+        min-width: 250px !important;
+    }
+
+    /* Label wrapper */
+    div#warehouseTable_length label,
+    .dataTables_wrapper #warehouseTable_length label,
+    .dataTables_wrapper .dataTables_length label {
+        font-size: 14px !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+    }
+
+
+    /* Targeting lebih spesifik untuk length select */
+    div#productTable_length select,
+    .dataTables_wrapper #productTable_length select,
+    table#supplierBrowseTable+.dataTables_wrapper .dataTables_length select {
+        min-width: 140px !important;
+        width: auto !important;
+        padding: 8px 45px 8px 16px !important;
+        font-size: 14px !important;
+        border: 1px solid #d1d5db !important;
+        border-radius: 0.375rem !important;
+    }
+
+    /* Wrapper length */
+    div#productTable_length,
+    .dataTables_wrapper #productTable_length,
+    .dataTables_wrapper .dataTables_length {
+        min-width: 250px !important;
+    }
+
+    /* Label wrapper */
+    div#productTable_length label,
+    .dataTables_wrapper #productTable_length label,
+    .dataTables_wrapper .dataTables_length label {
+        font-size: 14px !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+    }
+</style>
 {{-- DATA & SCRIPTS --}}
 
 @push('scripts')
@@ -1022,6 +1077,10 @@
                     fdesc: '',
                     fketdt: '',
                     maxqty: 0,
+                    faccid: null,
+                    faccname: '',
+                    fsubaccountid: null,
+                    fsubaccountname: '',
                 };
             }
 

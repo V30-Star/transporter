@@ -27,4 +27,13 @@ class PenerimaanPembelianDetail extends Model
   {
     return $this->hasMany(PenerimaanPembelianHeader::class, 'fstockmtid', 'fstockdtid');
   }
+  public function account()
+  {
+    return $this->belongsTo(Account::class, 'frefdtno', 'faccid');
+  }
+
+  public function subaccount()
+  {
+    return $this->belongsTo(Subaccount::class, 'frefso', 'fsubaccountid');
+  }
 }
