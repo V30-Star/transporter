@@ -638,7 +638,7 @@
                             class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
                             <x-heroicon-o-check class="w-5 h-5 mr-2" /> Simpan
                         </button>
-                        <button type="button" @click="window.location.href='{{ route('mutasi.index') }}'"
+                        <button type="button" @click="window.location.href='{{ route('pemakaianbarang.index') }}'"
                             class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
                             <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" /> Keluar
                         </button>
