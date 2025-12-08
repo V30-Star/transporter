@@ -296,7 +296,7 @@ class PemakaianbarangController extends Controller
       ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y')
       : '-';
 
-    return view('penerimaanbarang.print', [
+    return view('pemakaianbarang.print', [
       'hdr'          => $hdr,
       'dt'           => $dt,
       'fmt'          => $fmt,
@@ -675,6 +675,18 @@ class PemakaianbarangController extends Controller
   public function edit($fstockmtid)
   {
     $supplier = Supplier::all();
+    
+    $accounts = DB::table('account')
+      ->select('faccid', 'faccount', 'faccname', 'fnonactive')
+      ->where('fnonactive', '0')
+      ->orderBy('account')
+      ->get();
+
+    $subaccounts = DB::table('mssubaccount')
+      ->select('fsubaccountid', 'fsubaccountcode', 'fsubaccountname')
+      ->where('fnonactive', '0')
+      ->orderBy('fsubaccountcode')
+      ->get();
 
     $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
@@ -696,7 +708,7 @@ class PemakaianbarangController extends Controller
 
     // 1. Ambil data Header (trstockmt) DAN relasi Details (trstockdt)
     // Biarkan query ini. Sekarang $fstockmtid di sini adalah integer (misal: 8)
-    $penerimaanbarang = PenerimaanPembelianHeader::with([
+    $pemakaianbarang = PenerimaanPembelianHeader::with([
       'details' => function ($query) {
         $query
           // 2. Join ke msprd berdasarkan ID
@@ -714,7 +726,7 @@ class PemakaianbarangController extends Controller
 
 
     // 4. Map the data for savedItems (sudah menggunakan data yang benar)
-    $savedItems = $penerimaanbarang->details->map(function ($d) {
+    $savedItems = $pemakaianbarang->details->map(function ($d) {
       return [
         'uid'       => $d->fstockdtid,
         'fitemcode' => $d->fitemcode_text ?? '',
@@ -739,7 +751,7 @@ class PemakaianbarangController extends Controller
     })->values();
 
     // Sisa kode Anda sudah benar
-    $selectedSupplierCode = $penerimaanbarang->fsupplier;
+    $selectedSupplierCode = $pemakaianbarang->fsupplier;
 
     $products = Product::select(
       'fprdid',
@@ -761,19 +773,21 @@ class PemakaianbarangController extends Controller
       ];
     })->toArray();
 
-    return view('penerimaanbarang.edit', [
+    return view('pemakaianbarang.edit', [
       'supplier'           => $supplier,
       'selectedSupplierCode' => $selectedSupplierCode,
       'fcabang'            => $fcabang,
+      'accounts'           => $accounts,
+      'subaccounts'        => $subaccounts,
       'fbranchcode'        => $fbranchcode,
       'warehouses'         => $warehouses,
       'products'           => $products,
       'productMap'         => $productMap,
-      'penerimaanbarang'    => $penerimaanbarang,
+      'pemakaianbarang'    => $pemakaianbarang,
       'savedItems'         => $savedItems,
-      'ppnAmount'          => (float) ($penerimaanbarang->famountpopajak ?? 0),
-      'famountponet'       => (float) ($penerimaanbarang->famountponet ?? 0),
-      'famountpo'          => (float) ($penerimaanbarang->famountpo ?? 0),
+      'ppnAmount'          => (float) ($pemakaianbarang->famountpopajak ?? 0),
+      'famountponet'       => (float) ($pemakaianbarang->famountponet ?? 0),
+      'famountpo'          => (float) ($pemakaianbarang->famountpo ?? 0),
     ]);
   }
 
@@ -1003,17 +1017,17 @@ class PemakaianbarangController extends Controller
     });
 
     return redirect()
-      ->route('penerimaanbarang.index')
+      ->route('pemakaianbarang.index')
       ->with('success', "Transaksi {$header->fstockmtno} berhasil diperbarui.");
   }
 
   public function destroy($fstockmtid)
   {
-    $penerimaanbarang = PenerimaanPembelianHeader::findOrFail($fstockmtid);
-    $penerimaanbarang->details()->delete();
+    $pemakaianbarang = PenerimaanPembelianHeader::findOrFail($fstockmtid);
+    $pemakaianbarang->details()->delete();
 
     // 2. Baru hapus header
-    $penerimaanbarang->delete();
+    $pemakaianbarang->delete();
     if (request()->wantsJson()) {
       return response()->json([
         'success' => true,
@@ -1022,7 +1036,7 @@ class PemakaianbarangController extends Controller
     }
 
     return redirect()
-      ->route('penerimaanbarang.index')
+      ->route('pemakaianbarang.index')
       ->with('success', 'Penerimaan Barang Berhasil Dihapus.');
   }
 }
