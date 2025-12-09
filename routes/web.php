@@ -27,6 +27,7 @@ use App\Http\Controllers\FakturpembelianController;
 use App\Http\Controllers\MutasiController;
 use App\Http\Controllers\PemakaianbarangController;
 use App\Http\Controllers\ReportingController;
+use App\Http\Controllers\ReturPembelianController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -237,6 +238,19 @@ Route::middleware('auth')->group(function () {
             ->name('pemakaianbarang.items');
         Route::get('/pemakaianbarang/pickable', [PemakaianbarangController::class, 'pickable'])
             ->name('pemakaianbarang.pickable');
+
+        Route::get('/returpembelian',  [ReturPembelianController::class, 'index'])->name('returpembelian.index');
+        Route::post('/returpembelian',        [ReturPembelianController::class, 'store'])->name('returpembelian.store');
+        Route::get('/returpembelian/create', [ReturPembelianController::class, 'create'])->name('returpembelian.create');
+        Route::get('/returpembelian/{fstockmtid}/edit', [ReturPembelianController::class, 'edit'])->name('returpembelian.edit');
+        Route::patch('/returpembelian/{fstockmtid}', [ReturPembelianController::class, 'update'])->name('returpembelian.update');
+        Route::delete('/returpembelian/{fstockmtid}', [ReturPembelianController::class, 'destroy'])->name('returpembelian.destroy');
+        Route::get('/returpembelian/{fstockmtno}/print', [ReturPembelianController::class, 'print'])
+            ->name('returpembelian.print');
+        Route::get('/returpembelian/{id}/items', [ReturPembelianController::class, 'items'])
+            ->name('returpembelian.items');
+        Route::get('/returpembelian/pickable', [ReturPembelianController::class, 'pickable'])
+            ->name('returpembelian.pickable');
 
         Route::get('/products/browse', [\App\Http\Controllers\ProductBrowseController::class, 'index'])
             ->name('products.browse');

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Faktur Pembelian')
+@section('title', 'Retur Pembelian')
 
 @section('content')
     <style>
@@ -84,9 +84,9 @@
     </style>
 
     <div x-data="{ open: true }">
-        <div x-data="{ includePPN: false, ppnRate: 0, ppnAmount: 0, totalHarga: 100000, selectedType: 0 }" class="lg:col-span-5">
+        <div x-data="{ includePPN: false, totalHarga: 100000}" class="lg:col-span-5">
             <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
-                <form action="{{ route('fakturpembelian.store') }}" method="POST" class="mt-6" x-data="{ showNoItems: false }"
+                <form action="{{ route('returpembelian.store') }}" method="POST" class="mt-6" x-data="{ showNoItems: false }"
                     @submit.prevent="
         const n = Number(document.getElementById('itemsCount')?.value || 0);
         if (n < 1) { showNoItems = true } else { $el.submit() }
@@ -113,19 +113,6 @@
                                     <span class="ml-2 text-sm text-gray-700">Auto</span>
                                 </label>
                             </div>
-                        </div>
-
-                        <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium">Type</label>
-                            <select name="ftypebuy" x-model="selectedType"
-                                class="w-full border rounded px-3 py-2 @error('ftypebuy') border-red-500 @enderror">
-                                <option value="0" {{ old('ftypebuy') == '0' ? 'selected' : '' }}>Stok</option>
-                                <option value="1" {{ old('ftypebuy') == '1' ? 'selected' : '' }}>Non Stok</option>
-                                <option value="2" {{ old('ftypebuy') == '2' ? 'selected' : '' }}>Uang Muka</option>
-                            </select>
-                            @error('ftypebuy')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
                         </div>
 
                         <div class="lg:col-span-4">
@@ -219,98 +206,6 @@
                             @enderror
                         </div>
 
-                        <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium mb-1">Account</label>
-                            <div class="flex">
-                                <div class="relative flex-1">
-                                    <select id="accountSelect" class="w-full border rounded-l px-3 py-2"
-                                        :class="{
-                                            'bg-gray-100 text-gray-700 cursor-not-allowed': selectedType != '1',
-                                            'bg-white cursor-pointer': selectedType == '1'
-                                        }"
-                                        disabled>
-                                        <option value=""></option>
-                                        @foreach ($accounts as $account)
-                                            <option value="{{ $account->faccount }}"
-                                                data-faccid="{{ $account->faccid }}"
-                                                data-branch="{{ $account->faccount }}"
-                                                {{ old('fprdjadi') == $account->faccount ? 'selected' : '' }}>
-                                                {{ $account->faccount }} - {{ $account->faccname }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-
-                                    <div class="absolute inset-0" role="button" aria-label="Browse account"
-                                        @click="window.dispatchEvent(new CustomEvent('account-browse-open'))"
-                                        x-show="selectedType == '1'"></div>
-                                </div>
-
-                                <input type="hidden" name="fprdjadi" id="accountCodeHidden"
-                                    value="{{ old('fprdjadi') }}">
-                                <input type="hidden" name="faccid" id="accountIdHidden" value="{{ old('faccid') }}">
-
-                                <button type="button"
-                                    @click="window.dispatchEvent(new CustomEvent('account-browse-open'))"
-                                    class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
-                                    :disabled="selectedType != '1'"
-                                    :class="{ 'opacity-50 cursor-not-allowed': selectedType != '1' }"
-                                    title="Browse Account">
-                                    <x-heroicon-o-magnifying-glass class="w-5 h-5" />
-                                </button>
-
-                                <a href="{{ route('account.create') }}" target="_blank" rel="noopener"
-                                    class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
-                                    :class="{ 'opacity-50 cursor-not-allowed pointer-events-none': selectedType != '1' }"
-                                    @click="selectedType != '1' && $event.preventDefault()" title="Tambah Account">
-                                    <x-heroicon-o-plus class="w-5 h-5" />
-                                </a>
-                            </div>
-
-                            @error('fprdjadi')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <div class="lg:col-span-4">
-                            <label class="block text-npsm font-medium mb-1">Faktur</label>
-                            <div class="flex items-center gap-3">
-                                <input type="text" name="frefno" class="w-full border rounded px-3 py-2">
-                                <label class="inline-flex items-center select-none">
-                                </label>
-                            </div>
-                        </div>
-
-                        <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium mb-1">Faktur Pajak#</label>
-                            <div class="flex items-center">
-                                <input type="text" id="frefpo" name="frefpo"
-                                    class="w-full border rounded px-3 py-2 @error('frefpo') border-red-500 @enderror">
-                            </div>
-                            @error('frefpo')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium">TOP (Hari)</label>
-                            <input type="number" id="ftempohr" name="ftempohr" value="{{ old('ftempohr', '0') }}"
-                                class="w-full border rounded px-3 py-2 @error('ftempohr') border-red-500 @enderror"
-                                placeholder="Masukkan jumlah hari">
-                            @error('ftempohr')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium">Tgl. Jatuh Tempo</label>
-                            <input type="date" id="fjatuhtempo" name="fjatuhtempo"
-                                value="{{ old('fjatuhtempo') ?? date('Y-m-d') }}" readonly
-                                class="w-full border rounded px-3 py-2 bg-gray-100 @error('fjatuhtempo') border-red-500 @enderror">
-                            @error('fjatuhtempo')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-
                         <div class="lg:col-span-12">
                             <label class="block text-sm font-medium">Keterangan</label>
                             <textarea name="fket" rows="3"
@@ -321,55 +216,6 @@
                             @enderror
                         </div>
                     </div>
-
-                    <script>
-                        function calculateDueDate() {
-                            const poDate = document.getElementById('fstockmtdate').value;
-                            const tempoDays = parseInt(document.getElementById('ftempohr').value) || 0;
-
-                            // --- LOGIKA DIPERBAIKI ---
-                            if (poDate) {
-                                // JIKA poDate ada, LAKUKAN kalkulasi
-                                const date = new Date(poDate);
-                                date.setMinutes(date.getMinutes() + date.getTimezoneOffset()); // Fix Timezone
-
-                                // Menambah 0 hari tidak akan mengubah tanggal, dan itu benar
-                                date.setDate(date.getDate() + tempoDays);
-
-                                // Format ke YYYY-MM-DD
-                                const year = date.getFullYear();
-                                const month = String(date.getMonth() + 1).padStart(2, '0');
-                                const day = String(date.getDate()).padStart(2, '0');
-
-                                document.getElementById('fjatuhtempo').value = `${year}-${month}-${day}`;
-
-                            } else {
-                                // HANYA JIKA poDate kosong, baru kosongkan jatuh tempo
-                                document.getElementById('fjatuhtempo').value = '';
-                            }
-                        }
-
-                        // Event listener Anda (ini sudah benar)
-                        document.getElementById('fstockmtdate').addEventListener('change', calculateDueDate);
-                        document.getElementById('ftempohr').addEventListener('input', calculateDueDate);
-                        document.addEventListener('DOMContentLoaded', calculateDueDate);
-                    </script>
-
-                    <script>
-                        function updateTempo() {
-                            const supplierSelect = document.getElementById('supplierSelect');
-                            const tempoInput = document.getElementById('ftempohr');
-
-                            const selectedOption = supplierSelect.options[supplierSelect.selectedIndex];
-                            const tempo = selectedOption.getAttribute('data-tempo');
-
-                            tempoInput.value = tempo || 0;
-                        }
-
-                        document.addEventListener('DOMContentLoaded', function() {
-                            updateTempo();
-                        });
-                    </script>
 
                     <div x-data="itemsTable()" x-init="init()" class="mt-6 space-y-2">
 
@@ -387,8 +233,6 @@
                                         <th class="p-2 text-left w-28">Satuan</th>
                                         <th class="p-2 text-right w-24 whitespace-nowrap">Qty.</th>
                                         <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
-                                        <th class="p-2 text-right w-32 whitespace-nowrap">@ Biaya</th>
-                                        <th class="p-2 text-right w-24 whitespace-nowrap">Disc. %</th>
                                         <th class="p-2 text-right w-36 whitespace-nowrap">Total Harga</th>
                                         <th class="p-2 text-center w-28">Aksi</th>
                                     </tr>
@@ -412,8 +256,6 @@
                                             <td class="p-2 text-right" x-text="it.fsatuan"></td>
                                             <td class="p-2 text-right" x-text="fmt(it.fqty)"></td>
                                             <td class="p-2 text-right" x-text="fmt(it.fprice)"></td>
-                                            <td class="p-2 text-right" x-text="fmt(it.fbiaya)"></td>
-                                            <td class="p-2 text-right" x-text="fmt(it.fdiscpersen)"></td>
                                             <td class="p-2 text-right" x-text="fmt(it.ftotprice)"></td>
                                             <td class="p-2 text-center">
                                                 <div class="flex items-center justify-center gap-2 flex-wrap">
@@ -448,8 +290,6 @@
                                                 <textarea x-model="draft.fdesc" rows="2" class="w-full border rounded px-4 py-1"
                                                     placeholder="Deskripsi (opsional)"></textarea>
                                             </td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
                                             <td class="p-0"></td>
                                             <td class="p-0"></td>
                                             <td class="p-0"></td>
@@ -532,22 +372,6 @@
                                                 @keydown.enter.prevent="$refs.editDisc?.focus()">
                                         </td>
 
-                                        <!-- @ Biaya -->
-                                        <td class="p-2 text-right">
-                                            <input type="number" class="border rounded px-2 py-1 w-28 text-right"
-                                                min="0" step="0.01" x-ref="editBiaya"
-                                                x-model.number="editRow.fbiaya" default="0"
-                                                @keydown.enter.prevent="$refs.editDisc?.focus()">
-                                        </td>
-
-                                        <!-- Disc.% -->
-                                        <td class="p-2 text-right">
-                                            <input type="number" class="border rounded px-2 py-1 w-24 text-right"
-                                                min="0" max="100" step="0.01" x-ref="editDisc"
-                                                x-model.number="editRow.fdiscpersen" @input="recalc(editRow)"
-                                                @keydown.enter.prevent="applyEdit()">
-                                        </td>
-
                                         <!-- Total Harga (readonly) -->
                                         <td class="p-2 text-right" x-text="fmt(editRow.ftotprice)"></td>
 
@@ -570,8 +394,6 @@
                                             <textarea x-model="draft.fdesc" rows="2" class="w-full border rounded px-4 py-1"
                                                 placeholder="Deskripsi (opsional)"></textarea>
                                         </td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
                                         <td class="p-0"></td>
                                         <td class="p-0"></td>
                                         <td class="p-0"></td>
@@ -650,22 +472,6 @@
                                                 @keydown.enter.prevent="$refs.draftDisc?.focus()">
                                         </td>
 
-                                        <!-- @ Biaya -->
-                                        <td class="p-2 text-right">
-                                            <input type="number" class="border rounded px-2 py-1 w-28 text-right"
-                                                min="0" step="0.01" x-ref="draftBiaya"
-                                                x-model.number="draft.fbiaya" @input="recalc(draft)" default="0"
-                                                @keydown.enter.prevent="$refs.draftBiaya?.focus()">
-                                        </td>
-
-                                        <!-- Disc.% -->
-                                        <td class="p-2 text-right">
-                                            <input type="number" class="border rounded px-2 py-1 w-24 text-right"
-                                                min="0" max="100" step="0.01" x-ref="draftDisc"
-                                                x-model.number="draft.fdiscpersen" @input="recalc(draft)"
-                                                @keydown.enter.prevent="addIfComplete()">
-                                        </td>
-
                                         <!-- Total Harga (readonly) -->
                                         <td class="p-2 text-right" x-text="fmt(draft.ftotprice)"></td>
 
@@ -689,8 +495,6 @@
                                         <td class="p-0"></td>
                                         <td class="p-0"></td>
                                         <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -702,7 +506,7 @@
                             <div class="mt-3 flex justify-between items-start gap-4">
                                 <div class="w-full flex justify-start mb-3">
                                     <!-- Button ini sekarang bisa akses openModal() -->
-                                    <button type="button" @click="openModal()"
+                                    {{-- <button type="button" @click="openModal()"
                                         class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
                                             viewBox="0 0 24 24" stroke="currentColor">
@@ -710,7 +514,7 @@
                                                 d="M12 4.5v15m7.5-7.5h-15" />
                                         </svg>
                                         Add PR
-                                    </button>
+                                    </button> --}}
                                 </div>
                                 <!-- Kanan: Panel Totals -->
                                 <div class="w-1/2">
@@ -1114,57 +918,6 @@
                         </div>
                     </div>
 
-                    {{-- MODAL ACCOUNT dengan DataTables --}}
-                    <div x-data="accountBrowser()" x-show="open" x-cloak x-transition.opacity
-                        class="fixed inset-0 z-50 flex items-center justify-center p-4">
-                        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="close()"></div>
-
-                        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-6xl flex flex-col overflow-hidden"
-                            style="height: 650px;">
-
-                            <div
-                                class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
-                                <div>
-                                    <h3 class="text-xl font-bold text-gray-800">Browse Account</h3>
-                                    <p class="text-sm text-gray-500 mt-0.5">Pilih account yang diinginkan</p>
-                                </div>
-                                <button type="button" @click="close()"
-                                    class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">
-                                    Tutup
-                                </button>
-                            </div>
-
-                            <div class="px-6 pt-4 pb-2 flex-shrink-0 border-b border-gray-100">
-                            </div>
-
-                            <div class="flex-1 overflow-y-auto px-6" style="min-height: 0;">
-                                <div class="bg-white">
-                                    <table id="accountTable" class="min-w-full text-sm display nowrap stripe hover"
-                                        style="width:100%">
-                                        <thead class="sticky top-0 z-10">
-                                            <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
-                                                <th
-                                                    class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                    Account Kode</th>
-                                                <th
-                                                    class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                    Account Nama</th>
-                                                <th
-                                                    class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                    Aksi</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-
-                            <div class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">
-                            </div>
-                        </div>
-                    </div>
-
                     @php
                         $canApproval = in_array('approvalpr', explode(',', session('user_restricted_permissions', '')));
                     @endphp
@@ -1190,7 +943,7 @@
                             class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
                             <x-heroicon-o-check class="w-5 h-5 mr-2" /> Simpan
                         </button>
-                        <button type="button" @click="window.location.href='{{ route('fakturpembelian.index') }}'"
+                        <button type="button" @click="window.location.href='{{ route('returpembelian.index') }}'"
                             class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
                             <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" /> Keluar
                         </button>
@@ -1284,35 +1037,6 @@
     /* Label wrapper */
     div#supplierTable_length label,
     .dataTables_wrapper #supplierTable_length label,
-    .dataTables_wrapper .dataTables_length label {
-        font-size: 14px !important;
-        display: flex !important;
-        align-items: center !important;
-        gap: 8px !important;
-    }
-
-    /* Targeting lebih spesifik untuk length select */
-    div#accountTable_length select,
-    .dataTables_wrapper #accountTable_length select,
-    table#supplierBrowseTable+.dataTables_wrapper .dataTables_length select {
-        min-width: 140px !important;
-        width: auto !important;
-        padding: 8px 45px 8px 16px !important;
-        font-size: 14px !important;
-        border: 1px solid #d1d5db !important;
-        border-radius: 0.375rem !important;
-    }
-
-    /* Wrapper length */
-    div#accountTable_length,
-    .dataTables_wrapper #accountTable_length,
-    .dataTables_wrapper .dataTables_length {
-        min-width: 250px !important;
-    }
-
-    /* Label wrapper */
-    div#accountTable_length label,
-    .dataTables_wrapper #accountTable_length label,
     .dataTables_wrapper .dataTables_length label {
         font-size: 14px !important;
         display: flex !important;
@@ -2007,197 +1731,6 @@
         const pad = n => n.toString().padStart(2, '0');
         return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
     }
-</script>
-
-<script>
-    window.accountBrowser = function() {
-        return {
-            open: false,
-            table: null,
-
-            initDataTable() {
-                if (this.table) {
-                    this.table.destroy();
-                }
-
-                this.table = $('#accountTable').DataTable({
-                    processing: true,
-                    serverSide: true,
-                    ajax: {
-                        url: "{{ route('account.browse') }}",
-                        type: 'GET',
-                        data: function(d) {
-                            // Mengirim parameter standar DataTables untuk server-side processing
-                            return {
-                                draw: d.draw,
-                                start: d.start,
-                                length: d.length,
-                                search: d.search.value,
-                                // Menambahkan parameter order untuk sorting (diperlukan serverSide)
-                                order_column: d.columns[d.order[0].column].data,
-                                order_dir: d.order[0].dir
-                            };
-                        },
-                        dataSrc: function(json) {
-                            // Asumsi backend mengembalikan data di properti 'data' (seperti Laravel DataTables)
-                            return json.data;
-                        }
-                    },
-                    columns: [{
-                            data: 'faccount',
-                            name: 'faccount',
-                            className: 'font-mono text-sm',
-                            width: '30%'
-                        },
-                        {
-                            data: 'faccname',
-                            name: 'faccname',
-                            className: 'text-sm',
-                            width: '55%'
-                        },
-                        {
-                            data: null,
-                            orderable: false,
-                            searchable: false,
-                            className: 'text-center',
-                            width: '15%',
-                            render: function(data, type, row) {
-                                // Menggunakan styling yang mirip dengan button 'Pilih' di Supplier
-                                return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>';
-                            }
-                        }
-                    ],
-                    pageLength: 10,
-                    lengthMenu: [
-                        [10, 25, 50, 100],
-                        [10, 25, 50, 100]
-                    ],
-                    // Menggunakan DOM custom untuk kontrol DataTables (sama seperti Supplier)
-                    dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
-                    language: {
-                        processing: "Memuat data...",
-                        search: "Cari:",
-                        lengthMenu: "Tampilkan _MENU_",
-                        info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
-                        infoEmpty: "Tidak ada data",
-                        infoFiltered: "(disaring dari _MAX_ total data)",
-                        zeroRecords: "Tidak ada data yang ditemukan",
-                        emptyTable: "Tidak ada data tersedia",
-                        paginate: {
-                            first: "Pertama",
-                            last: "Terakhir",
-                            next: "Selanjutnya",
-                            previous: "Sebelumnya"
-                        }
-                    },
-                    order: [
-                        [1, 'asc'] // Default order by Account Name
-                    ],
-                    autoWidth: false,
-                    initComplete: function() {
-                        const api = this.api();
-                        const $container = $(api.table().container());
-
-                        // Style search input (disamakan dengan Supplier)
-                        $container.find('.dt-search .dt-input, .dataTables_filter input').css({
-                            width: '300px',
-                            padding: '8px 12px',
-                            border: '2px solid #e5e7eb',
-                            borderRadius: '8px',
-                            fontSize: '14px'
-                        }).focus();
-
-                        // Style length select (disamakan dengan Supplier)
-                        $container.find('.dt-length select, .dataTables_length select').css({
-                            padding: '6px 32px 6px 10px',
-                            border: '2px solid #e5e7eb',
-                            borderRadius: '8px',
-                            fontSize: '14px'
-                        });
-                    }
-                });
-
-                // Handle button click
-                $('#accountTable').on('click', '.btn-choose', (e) => {
-                    const data = this.table.row($(e.target).closest('tr')).data();
-                    this.choose(data);
-                });
-            },
-
-            openModal() {
-                this.open = true;
-                this.$nextTick(() => {
-                    this.initDataTable();
-                });
-            },
-
-            close() {
-                this.open = false;
-                if (this.table) {
-                    // Bersihkan pencarian saat ditutup (sama seperti Supplier)
-                    this.table.search('').draw();
-                }
-            },
-
-            choose(w) {
-                // Dispatches event (tetap)
-                window.dispatchEvent(new CustomEvent('account-picked', {
-                    detail: {
-                        faccid: w.faccid,
-                        faccount: w.faccount,
-                        faccname: w.faccname,
-                    }
-                }));
-                this.close();
-            },
-
-            init() {
-                window.addEventListener('account-browse-open', () => this.openModal(), {
-                    passive: true
-                });
-            }
-        }
-    };
-
-    // Helper: update field saat account-picked
-    document.addEventListener('DOMContentLoaded', () => {
-        window.addEventListener('account-picked', (ev) => {
-            let {
-                faccount,
-                faccid
-            } = ev.detail || {};
-
-            // Fallback untuk mencari faccid dari option jika tidak ada
-            if (!faccid && faccount) {
-                const sel = document.getElementById('accountSelect');
-                if (sel) {
-                    const option = sel.querySelector(`option[value="${faccount}"]`);
-                    if (option) {
-                        faccid = option.getAttribute('data-faccid');
-                    }
-                }
-            }
-
-            const sel = document.getElementById('accountSelect');
-            const hidId = document.getElementById('accountIdHidden');
-            const hidCode = document.getElementById('accountCodeHidden');
-
-            if (sel) {
-                sel.value = faccount || '';
-                sel.dispatchEvent(new Event('change', {
-                    bubbles: true
-                }));
-            }
-
-            if (hidId) {
-                hidId.value = faccid || '';
-            }
-
-            if (hidCode) {
-                hidCode.value = faccount || '';
-            }
-        });
-    });
 </script>
 
 <script>
