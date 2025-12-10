@@ -430,6 +430,13 @@
                                 <span class="ml-3">Retur Pembelian</span>
                             </a>
                         </li>
+                        <li>
+                            <a href="{{ route('assembling.index') }}"
+                                class="flex items-center p-2 rounded hover:bg-gray-700">
+                                <x-heroicon-o-user-circle class="w-5 h-5" />
+                                <span class="ml-3">Assembling</span>
+                            </a>
+                        </li>
                     @endif
                 </ul>
 

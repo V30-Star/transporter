@@ -21,6 +21,7 @@ use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\SysUserController;
 use App\Http\Controllers\Tr_prhController;
 use App\Http\Controllers\ApprovalController;
+use App\Http\Controllers\AssemblingController;
 use App\Http\Controllers\WhController;
 use App\Http\Controllers\PenerimaanBarangController;
 use App\Http\Controllers\FakturpembelianController;
@@ -251,6 +252,19 @@ Route::middleware('auth')->group(function () {
             ->name('returpembelian.items');
         Route::get('/returpembelian/pickable', [ReturPembelianController::class, 'pickable'])
             ->name('returpembelian.pickable');
+
+        Route::get('/assembling',  [AssemblingController::class, 'index'])->name('assembling.index');
+        Route::post('/assembling',        [AssemblingController::class, 'store'])->name('assembling.store');
+        Route::get('/assembling/create', [AssemblingController::class, 'create'])->name('assembling.create');
+        Route::get('/assembling/{fstockmtid}/edit', [AssemblingController::class, 'edit'])->name('assembling.edit');
+        Route::patch('/assembling/{fstockmtid}', [AssemblingController::class, 'update'])->name('assembling.update');
+        Route::delete('/assembling/{fstockmtid}', [AssemblingController::class, 'destroy'])->name('assembling.destroy');
+        Route::get('/assembling/{fstockmtno}/print', [AssemblingController::class, 'print'])
+            ->name('assembling.print');
+        Route::get('/assembling/{id}/items', [AssemblingController::class, 'items'])
+            ->name('assembling.items');
+        Route::get('/assembling/pickable', [AssemblingController::class, 'pickable'])
+            ->name('assembling.pickable');
 
         Route::get('/products/browse', [\App\Http\Controllers\ProductBrowseController::class, 'index'])
             ->name('products.browse');
