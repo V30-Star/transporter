@@ -644,14 +644,19 @@ class AssemblingController extends Controller
 
     // 4. Map the data for savedItems (sudah menggunakan data yang benar)
     $savedItems = $assembling->details->map(function ($d) {
-      $fitemtype = 'bahan_baku'; // default
+      $fitemtype = 'barang_jadi'; // default
 
-      if (isset($row->fcode)) {
-        $fcode = trim((string)$d->fcode);
-        if ($fcode === 'B') {
+      $fcode = trim((string)($d->fcode ?? '')); // Ambil nilai fcode dengan aman
+
+      // **INI ADALAH PERBAIKAN UTAMA**
+      if (!empty($fcode)) {
+        if (strtoupper($fcode) === 'B') {
           $fitemtype = 'bahan_baku';
-        } elseif ($fcode === 'J') {
+        } elseif (strtoupper($fcode) === 'J') {
           $fitemtype = 'barang_jadi';
+        } else {
+          // Jika ada kode lain selain B atau J, Anda bisa tentukan di sini
+          $fitemtype = 'lain_lain';
         }
       }
       return [
