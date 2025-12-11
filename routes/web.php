@@ -88,6 +88,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/salesman',        [SalesmanController::class, 'store'])->name('salesman.store');
         Route::get('/salesman/create', [SalesmanController::class, 'create'])->name('salesman.create');
         Route::get('/salesman/{fsalesmanid}/edit', [SalesmanController::class, 'edit'])->name('salesman.edit');
+        Route::get('/salesman/{fsalesmanid}/delete', [SalesmanController::class, 'delete'])->name('salesman.delete');
         Route::patch('/salesman/{fsalesmanid}', [SalesmanController::class, 'update'])->name('salesman.update');
         Route::delete('/salesman/{fsalesmanid}', [SalesmanController::class, 'destroy'])->name('salesman.destroy');
 

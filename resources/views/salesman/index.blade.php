@@ -73,12 +73,13 @@
                                 @endif
 
                                 @if ($canDelete)
-                                    <button
-                                        @click="openDelete('{{ route('salesman.destroy', $item->fsalesmanid) }}', $event)"
-                                        class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
-                                        <x-heroicon-o-trash class="w-4 h-4 mr-1" />
-                                        Hapus
-                                    </button>
+                                    <a href="{{ route('salesman.delete', $item->fsalesmanid) }}">
+                                        <button
+                                            class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                                            <x-heroicon-o-trash class="w-4 h-4 mr-1" />
+                                            Hapus
+                                        </button>
+                                    </a>
                                 @endif
                             </td>
                         @endif
@@ -255,7 +256,7 @@
 
                             if (result.ok) {
                                 // Hapus row dari DataTable
-                            const table = $('#salesmanTable').DataTable();
+                                const table = $('#salesmanTable').DataTable();
                                 if (rowToDelete) {
                                     table.row($(rowToDelete)).remove().draw(false);
                                 }

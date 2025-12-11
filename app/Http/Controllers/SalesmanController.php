@@ -82,7 +82,10 @@ class SalesmanController extends Controller
         // Ambil data berdasarkan PK fsalesmanid
         $salesman = Salesman::findOrFail($fsalesmanid);
 
-        return view('salesman.edit', compact('salesman'));
+        return view('salesman.form', [
+            'salesman' => $salesman,
+            'action' => 'edit'
+        ]);
     }
 
     /**
@@ -122,6 +125,15 @@ class SalesmanController extends Controller
             ->with('success', 'Salesman berhasil di-update.');
     }
 
+    public function delete($fsalesmanid)
+    {
+        $salesman = Salesman::findOrFail($fsalesmanid);
+        return view('salesman.form', [
+            'salesman' => $salesman,
+            'action' => 'delete'
+        ]);
+    }
+    
     public function destroy(Request $request, $fsalesmanid)
     {
         $salesman = Salesman::findOrFail($fsalesmanid);
