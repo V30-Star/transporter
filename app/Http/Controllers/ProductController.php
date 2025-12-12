@@ -275,7 +275,13 @@ class ProductController extends Controller
         $merks = Merek::where('fnonactive', 0)->get();
         $satuan = Satuan::where('fnonactive', 0)->get();
 
-        return view('product.edit', compact('product', 'groups', 'merks', 'satuan'));
+        return view('product.edit', [
+            'product' => $product,
+            'groups' => $groups,
+            'merks' => $merks,
+            'satuan' => $satuan,
+            'action' => 'edit'
+        ]);
     }
 
     public function update(Request $request, $fprdid)
@@ -348,43 +354,61 @@ class ProductController extends Controller
             ->with('success', 'Product berhasil di-update.');
     }
 
+    public function delete($fprdid)
+    {
+        $product = Product::findOrFail($fprdid);
+        $groups = Groupproduct::where('fnonactive', 0)->get();
+        $merks = Merek::where('fnonactive', 0)->get();
+        $satuan = Satuan::where('fnonactive', 0)->get();
+
+        return view('product.edit', [
+            'product' => $product,
+            'groups' => $groups,
+            'merks' => $merks,
+            'satuan' => $satuan,
+            'action' => 'delete'
+        ]);
+    }
+
     public function destroy($fprdid)
     {
-        // 1. Cari produknya dulu
-        // findOrFail akan error jika produk tidak ada, langsung masuk ke catch
-        $product = Product::findOrFail($fprdid);
+        try {
+            // 1. Cari produknya dulu
+            // findOrFail akan error jika produk tidak ada, langsung masuk ke catch
+            $product = Product::findOrFail($fprdid);
 
-        // 2. Lakukan pengecekan satu per satu MENGGUNAKAN RELASI
+            // 2. Lakukan pengecekan satu per satu MENGGUNAKAN RELASI
 
-        // Cek ke tr_pod
-        if ($product->trPods()->exists()) {
-            return redirect()->route('product.index')
-                ->with('danger', 'Gagal hapus: Produk masih digunakan di data PO (tr_pod).');
-        }
+            // Cek ke tr_pod
+            if ($product->trPods()->exists()) {
+                return redirect()->route('product.index')
+                    ->with('danger', 'Gagal hapus: Produk masih digunakan di data PO (tr_pod).');
+            }
 
-        // Cek ke tr_prd (asumsi dari fungsi Anda)
-        if ($product->trPrds()->exists()) {
-            return redirect()->route('product.index')
-                ->with('danger', 'Gagal hapus: Produk masih digunakan di data PR (tr_prd).');
-        }
+            // Cek ke tr_prd (asumsi dari fungsi Anda)
+            if ($product->trPrds()->exists()) {
+                return redirect()->route('product.index')
+                    ->with('danger', 'Gagal hapus: Produk masih digunakan di data PR (tr_prd).');
+            }
 
-        // Cek ke trstockdt
-        if ($product->trstockdts()->exists()) {
-            return redirect()->route('product.index')
-                ->with('danger', 'Gagal hapus: Produk masih digunakan di data Transaksi Stok (trstockdt).');
-        }
+            // Cek ke trstockdt
+            if ($product->trstockdts()->exists()) {
+                return redirect()->route('product.index')
+                    ->with('danger', 'Gagal hapus: Produk masih digunakan di data Transaksi Stok (trstockdt).');
+            }
 
-        // 3. Jika semua pengecekan lolos, baru hapus
-        $product->delete();
-        if (request()->wantsJson()) {
+            // 3. Jika semua pengecekan lolos, baru hapus
+            $product->delete();
             return response()->json([
                 'success' => true,
-                'message' => 'Product berhasil dihapus.'
+                'message' => 'Data product berhasil dihapus'
             ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus data: ' . $e->getMessage()
+            ], 500);
         }
-
-        return redirect()->route('product.index')
-            ->with('success', 'Produk berhasil dihapus.');
     }
 
     public function browse(Request $request)

@@ -78,7 +78,10 @@ class RekeningController extends Controller
         // Find Rekening by primary key
         $rekening = Rekening::findOrFail($frekeningid);
 
-        return view('rekening.edit', compact('rekening'));
+        return view('rekening.edit', [
+            'rekening' => $rekening,
+            'action' => 'edit'
+        ]);
     }
 
     public function update(Request $request, $frekeningid)
@@ -113,21 +116,30 @@ class RekeningController extends Controller
             ->with('success', 'Rekening berhasil di-update.');
     }
 
+    public function delete($frekeningid)
+    {
+        $rekening = Rekening::findOrFail($frekeningid);
+        return view('rekening.edit', [
+            'rekening' => $rekening,
+            'action' => 'delete'
+        ]);
+    }
+
     public function destroy($frekeningid)
     {
-        // Find Rekening and delete it
-        $rekening = Rekening::findOrFail($frekeningid);
-        $rekening->delete();
+        try {
+            $rekening = Rekening::findOrFail($frekeningid);
+            $rekening->delete();
 
-        if (request()->wantsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Rekening berhasil dihapus.'
+                'message' => 'Data rekening berhasil dihapus'
             ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus data: ' . $e->getMessage()
+            ], 500);
         }
-
-        return redirect()
-            ->route('rekening.index')
-            ->with('success', 'Rekening berhasil dihapus.');
     }
 }

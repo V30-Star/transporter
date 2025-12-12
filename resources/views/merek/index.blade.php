@@ -71,10 +71,13 @@
                                     </a>
                                 @endif
                                 @if ($canDelete)
-                                    <button @click="openDelete('{{ route('merek.destroy', $item->fmerekid) }}', $event)"
-                                        class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
-                                        <x-heroicon-o-trash class="w-4 h-4 mr-1" /> Hapus
-                                    </button>
+                                    <a href="{{ route('merek.delete', $item->fmerekid) }}">
+                                        <button
+                                            class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                                            <x-heroicon-o-trash class="w-4 h-4 mr-1" />
+                                            Hapus
+                                        </button>
+                                    </a>
                                 @endif
                             </td>
                         @endif
@@ -199,7 +202,7 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.datatables.net/2.1.6/js/dataTables.min.js"></script>
     <script>
-         document.addEventListener('alpine:init', () => {
+        document.addEventListener('alpine:init', () => {
             Alpine.data('merekData', () => ({
                 showDeleteModal: false,
                 deleteUrl: '',

@@ -84,7 +84,10 @@ class SatuanController extends Controller
         // Ambil data berdasarkan PK fsatuanid
         $satuan = Satuan::findOrFail($fsatuanid);
 
-        return view('satuan.edit', compact('satuan'));
+        return view('satuan.edit', [
+            'satuan' => $satuan,
+            'action' => 'edit'
+        ]);
     }
 
     /**
@@ -127,35 +130,30 @@ class SatuanController extends Controller
             ->with('success', 'Satuan berhasil di-update.');
     }
 
+    public function delete($fsatuanid)
+    {
+        $satuan = Satuan::findOrFail($fsatuanid);
+        return view('satuan.edit', [
+            'satuan' => $satuan,
+            'action' => 'delete'
+        ]);
+    }
+
     public function destroy($fsatuanid)
     {
         try {
             $satuan = Satuan::findOrFail($fsatuanid);
             $satuan->delete();
 
-            // Cek apakah request dari AJAX
-            if (request()->wantsJson()) {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Satuan berhasil dihapus.'
-                ]);
-            }
-
-            // Fallback untuk non-AJAX (opsional)
-            return redirect()
-                ->route('satuan.index')
-                ->with('success', 'Satuan berhasil dihapus.');
+            return response()->json([
+                'success' => true,
+                'message' => 'Data satuan berhasil dihapus'
+            ]);
         } catch (\Exception $e) {
-            if (request()->wantsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Gagal menghapus satuan: ' . $e->getMessage()
-                ], 500);
-            }
-
-            return redirect()
-                ->route('satuan.index')
-                ->with('error', 'Gagal menghapus satuan.');
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus data: ' . $e->getMessage()
+            ], 500);
         }
     }
 }

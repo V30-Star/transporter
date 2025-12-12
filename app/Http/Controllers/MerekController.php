@@ -82,7 +82,10 @@ class MerekController extends Controller
         // Ambil data berdasarkan PK fmerekid
         $merek = Merek::findOrFail($fmerekid);
 
-        return view('merek.edit', compact('merek'));
+        return view('merek.edit', [
+            'merek' => $merek,
+            'action' => 'edit'
+        ]);
     }
 
     /**
@@ -121,21 +124,31 @@ class MerekController extends Controller
             ->with('success', 'Merek berhasil di-update.');
     }
 
-    public function destroy($fmerekid)
+    public function delete($fmerekid)
     {
         $merek = Merek::findOrFail($fmerekid);
-        $merek->delete();
+        return view('merek.edit', [
+            'merek' => $merek,
+            'action' => 'delete'
+        ]);
+    }
 
-        if (request()->wantsJson()) {
+    public function destroy($fmerekid)
+    {
+        try {
+            $merek = Merek::findOrFail($fmerekid);
+            $merek->delete();
+
             return response()->json([
                 'success' => true,
-                'message' => 'Merek berhasil dihapus.'
+                'message' => 'Data merek berhasil dihapus'
             ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus data: ' . $e->getMessage()
+            ], 500);
         }
-
-        return redirect()
-            ->route('merek.index')
-            ->with('success', 'Merek berhasil dihapus.');
     }
 
     public function browse(Request $request)

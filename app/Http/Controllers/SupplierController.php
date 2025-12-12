@@ -94,7 +94,10 @@ class SupplierController extends Controller
         $supplier = Supplier::findOrFail($fsupplierid);
 
         // Pass the supplier data to the edit view
-        return view('supplier.edit', compact('supplier'));
+        return view('supplier.edit', [
+            'supplier' => $supplier,
+            'action' => 'edit'
+        ]);
     }
 
     public function update(Request $request, $fsupplierid)
@@ -148,23 +151,33 @@ class SupplierController extends Controller
             ->with('success', 'Supplier berhasil di-update.');
     }
 
+    public function delete($fsupplierid)
+    {
+        $supplier = Supplier::findOrFail($fsupplierid);
+        return view('supplier.edit', [
+            'supplier' => $supplier,
+            'action' => 'delete'
+        ]);
+    }
+
     public function destroy($fsupplierid)
     {
-        // Find and delete the Supplier
-        $supplier = Supplier::findOrFail($fsupplierid);
-        $supplier->delete();
+        try {
+            $supplier = Supplier::findOrFail($fsupplierid);
+            $supplier->delete();
 
-        if (request()->wantsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Supplier berhasil dihapus.'
+                'message' => 'Data supplier berhasil dihapus'
             ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus data: ' . $e->getMessage()
+            ], 500);
         }
-
-        return redirect()
-            ->route('supplier.index')
-            ->with('success', 'Supplier berhasil dihapus.');
     }
+
     public function browse(Request $request)
     {
         // Base query

@@ -91,43 +91,6 @@
                 @endforelse
             </tbody>
         </table>
-
-        {{-- Modal Delete --}}
-        <div x-show="showDeleteModal" x-cloak
-            class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" x-transition>
-            <div @click.away="!isDeleting && closeDelete()" class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
-                <h3 class="text-lg font-semibold mb-4">Konfirmasi Hapus</h3>
-                <p class="mb-6">Apakah Anda yakin ingin menghapus data ini?</p>
-                <div class="flex justify-end space-x-2">
-                    <button @click="closeDelete()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-                        :disabled="isDeleting">
-                        Batal
-                    </button>
-                    <button @click="confirmDelete()"
-                        class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                        :disabled="isDeleting">
-                        <span x-show="!isDeleting">Hapus</span>
-                        <span x-show="isDeleting">Menghapus...</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        {{-- Toast Notification --}}
-        <div x-show="showNotification" x-cloak x-transition:enter="transition ease-out duration-300"
-            x-transition:enter-start="opacity-0 transform translate-y-2"
-            x-transition:enter-end="opacity-100 transform translate-y-0"
-            x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100"
-            x-transition:leave-end="opacity-0" class="fixed top-4 right-4 z-50 max-w-sm">
-            <div :class="notificationType === 'success' ? 'bg-green-500' : 'bg-red-500'"
-                class="text-white px-6 py-4 rounded-lg shadow-lg flex items-center space-x-3">
-                <span x-text="notificationMessage"></span>
-                <button @click="showNotification = false" class="ml-4 text-white hover:text-gray-200">
-                    ×
-                </button>
-            </div>
-        </div>
-
     </div>
 @endsection
 

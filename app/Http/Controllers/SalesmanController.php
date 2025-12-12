@@ -82,7 +82,7 @@ class SalesmanController extends Controller
         // Ambil data berdasarkan PK fsalesmanid
         $salesman = Salesman::findOrFail($fsalesmanid);
 
-        return view('salesman.form', [
+        return view('salesman.edit', [
             'salesman' => $salesman,
             'action' => 'edit'
         ]);
@@ -128,26 +128,27 @@ class SalesmanController extends Controller
     public function delete($fsalesmanid)
     {
         $salesman = Salesman::findOrFail($fsalesmanid);
-        return view('salesman.form', [
+        return view('salesman.edit', [
             'salesman' => $salesman,
             'action' => 'delete'
         ]);
     }
-    
-    public function destroy(Request $request, $fsalesmanid)
-    {
-        $salesman = Salesman::findOrFail($fsalesmanid);
-        $salesman->delete();
 
-        if (request()->wantsJson()) {
+    public function destroy($id)
+    {
+        try {
+            $salesman = Salesman::findOrFail($id);
+            $salesman->delete();
+
             return response()->json([
                 'success' => true,
-                'message' => 'Salesman berhasil dihapus.'
+                'message' => 'Data salesman berhasil dihapus'
             ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus data: ' . $e->getMessage()
+            ], 500);
         }
-
-        return redirect()
-            ->route('salesman.index', $request->only(['status', 'search', 'filter_by', 'sort_by', 'sort_dir', 'page']))
-            ->with('success', 'Salesman dihapus.');
     }
 }

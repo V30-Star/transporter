@@ -124,10 +124,10 @@ class AccountController extends Controller
 
     public function edit($faccid)
     {
-        $account  = Account::findOrFail($faccid);
+        $account = Account::findOrFail($faccid);
 
         // preload 50 header untuk dropdown view
-        $headers  = Account::where('fend', 0)
+        $headers = Account::where('fend', 0)
             ->orderBy('faccount')
             ->limit(50)
             ->get();
@@ -135,10 +135,15 @@ class AccountController extends Controller
         // header yang sedang terset di record ini (jika ada)
         $selectedHeader = null;
         if (!empty($account->faccupline)) {
-            $selectedHeader = Account::find($account->faccupline); // faccupline menyimpan faccid header
+            $selectedHeader = Account::find($account->faccupline);
         }
 
-        return view('account.edit', compact('account', 'headers', 'selectedHeader'));
+        return view('account.edit', [
+            'account' => $account,
+            'headers' => $headers,
+            'selectedHeader' => $selectedHeader,
+            'action' => 'edit' // Tambahkan ini
+        ]);
     }
 
     public function update(Request $request, $faccid)
@@ -203,6 +208,17 @@ class AccountController extends Controller
         $account->update($validated);
 
         return redirect()->route('account.index')->with('success', 'Account berhasil di-update.');
+    }
+    public function delete($faccid)
+    {
+        $account = Account::findOrFail($faccid);
+
+        return view('account.edit', [
+            'account' => $account,
+            'headers' => [], // Tidak perlu headers untuk delete
+            'selectedHeader' => null,
+            'action' => 'delete' // Tambahkan ini
+        ]);
     }
 
     public function destroy($faccid)

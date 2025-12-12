@@ -75,10 +75,13 @@ class GroupcustomerController extends Controller
     public function edit($fgroupid)
     {
         // Mengambil data grup customer berdasarkan ID
-        $groupCustomer = Groupcustomer::findOrFail($fgroupid);
+        $groupcustomer = Groupcustomer::findOrFail($fgroupid);
 
         // Menampilkan form untuk mengedit grup customer
-        return view('master.groupcustomer.edit', compact('groupCustomer'));
+        return view('master.groupcustomer.edit', [
+            'groupcustomer' => $groupcustomer,
+            'action' => 'edit'
+        ]);
     }
 
     public function update(Request $request, $fgroupid)
@@ -104,31 +107,38 @@ class GroupcustomerController extends Controller
         $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
 
         // Mengambil data grup customer berdasarkan ID dan mengupdate
-        $groupCustomer = Groupcustomer::findOrFail($fgroupid);
-        $groupCustomer->update($validated);
+        $groupcustomer = Groupcustomer::findOrFail($fgroupid);
+        $groupcustomer->update($validated);
 
         // Mengarahkan kembali dengan pesan sukses
         return redirect()->route('groupcustomer.index')
             ->with('success', 'Group Customer berhasil diupdate.');
     }
 
+    public function delete($fgroupid)
+    {
+        $groupcustomer = Groupcustomer::findOrFail($fgroupid);
+        return view('master.groupcustomer.edit', [
+            'groupcustomer' => $groupcustomer,
+            'action' => 'delete'
+        ]);
+    }
+
     public function destroy($fgroupid)
     {
-        // Mengambil data grup customer berdasarkan ID
-        $groupCustomer = Groupcustomer::findOrFail($fgroupid);
+        try {
+            $groupcustomer = Groupcustomer::findOrFail($fgroupid);
+            $groupcustomer->delete();
 
-        // Menghapus data grup customer
-        $groupCustomer->delete();
-
-        if (request()->wantsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Group Customer berhasil dihapus.'
+                'message' => 'Data Group Customer berhasil dihapus'
             ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus data: ' . $e->getMessage()
+            ], 500);
         }
-
-        // Mengarahkan kembali dengan pesan sukses
-        return redirect()->route('groupcustomer.index')
-            ->with('success', 'Group Customer berhasil dihapus.');
     }
 }

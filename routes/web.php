@@ -59,6 +59,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/customer',        [CustomerController::class, 'store'])->name('customer.store');
         Route::get('/customer/create', [CustomerController::class, 'create'])->name('customer.create');
         Route::get('/customer/{fcustomerid}/edit', [CustomerController::class, 'edit'])->name('customer.edit');
+        Route::get('/customer/{fcustomerid}/delete', [CustomerController::class, 'delete'])->name('customer.delete');
         Route::patch('/customer/{fcustomerid}', [CustomerController::class, 'update'])->name('customer.update');
         Route::delete('/customer/{fcustomerid}', [CustomerController::class, 'destroy'])->name('customer.destroy');
 
@@ -66,6 +67,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/groupcustomer',        [GroupcustomerController::class, 'store'])->name('groupcustomer.store');
         Route::get('/groupcustomer/create', [GroupcustomerController::class, 'create'])->name('groupcustomer.create');
         Route::get('/groupcustomer/{fgroupid}/edit', [GroupcustomerController::class, 'edit'])->name('groupcustomer.edit');
+        Route::get('/groupcustomer/{fgroupid}/delete', [GroupcustomerController::class, 'delete'])->name('groupcustomer.delete');
         Route::patch('/groupcustomer/{fgroupid}', [GroupcustomerController::class, 'update'])->name('groupcustomer.update');
         Route::delete('/groupcustomer/{fgroupid}', [GroupcustomerController::class, 'destroy'])->name('groupcustomer.destroy');
 
@@ -81,6 +83,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/wilayah',        [WilayahController::class, 'store'])->name('wilayah.store');
         Route::get('/wilayah/create', [WilayahController::class, 'create'])->name('wilayah.create');
         Route::get('/wilayah/{fwilayahid}/edit', [WilayahController::class, 'edit'])->name('wilayah.edit');
+        Route::get('/wilayah/{fwilayahid}/delete', [WilayahController::class, 'delete'])->name('wilayah.delete');
         Route::patch('/wilayah/{fwilayahid}', [WilayahController::class, 'update'])->name('wilayah.update');
         Route::delete('/wilayah/{fwilayahid}', [WilayahController::class, 'destroy'])->name('wilayah.destroy');
 
@@ -96,6 +99,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/satuan',        [SatuanController::class, 'store'])->name('satuan.store');
         Route::get('/satuan/create', [SatuanController::class, 'create'])->name('satuan.create');
         Route::get('/satuan/{fsatuanid}/edit', [SatuanController::class, 'edit'])->name('satuan.edit');
+        Route::get('/satuan/{fsatuanid}/delete', [SatuanController::class, 'delete'])->name('satuan.delete');
         Route::patch('/satuan/{fsatuanid}', [SatuanController::class, 'update'])->name('satuan.update');
         Route::delete('/satuan/{fsatuanid}', [SatuanController::class, 'destroy'])->name('satuan.destroy');
 
@@ -103,6 +107,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/merek',        [MerekController::class, 'store'])->name('merek.store');
         Route::get('/merek/create', [MerekController::class, 'create'])->name('merek.create');
         Route::get('/merek/{fmerekid}/edit', [MerekController::class, 'edit'])->name('merek.edit');
+        Route::get('/merek/{fmerekid}/delete', [MerekController::class, 'delete'])->name('merek.delete');
         Route::patch('/merek/{fmerekid}', [MerekController::class, 'update'])->name('merek.update');
         Route::delete('/merek/{fmerekid}', [MerekController::class, 'destroy'])->name('merek.destroy');
 
@@ -110,6 +115,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/gudang',        [WhController::class, 'store'])->name('gudang.store');
         Route::get('/gudang/create', [WhController::class, 'create'])->name('gudang.create');
         Route::get('/gudang/{fwhid}/edit', [WhController::class, 'edit'])->name('gudang.edit');
+        Route::get('/gudang/{fwhid}/delete', [WhController::class, 'delete'])->name('gudang.delete');
         Route::patch('/gudang/{fwhid}', [WhController::class, 'update'])->name('gudang.update');
         Route::delete('/gudang/{fwhid}', [WhController::class, 'destroy'])->name('gudang.destroy');
 
@@ -117,6 +123,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/groupproduct',        [GroupproductController::class, 'store'])->name('groupproduct.store');
         Route::get('/groupproduct/create', [GroupproductController::class, 'create'])->name('groupproduct.create');
         Route::get('/groupproduct/{fgroupid}/edit', [GroupproductController::class, 'edit'])->name('groupproduct.edit');
+        Route::get('/groupproduct/{fgroupid}/delete', [GroupproductController::class, 'delete'])->name('groupproduct.delete');
         Route::patch('/groupproduct/{fgroupid}', [GroupproductController::class, 'update'])->name('groupproduct.update');
         Route::delete('/groupproduct/{fgroupid}', [GroupproductController::class, 'destroy'])->name('groupproduct.destroy');
 
@@ -124,20 +131,23 @@ Route::middleware('auth')->group(function () {
         Route::post('/product',        [ProductController::class, 'store'])->name('product.store');
         Route::get('/product/create', [ProductController::class, 'create'])->name('product.create');
         Route::get('/product/{fprdid}/edit', [ProductController::class, 'edit'])->name('product.edit');
+        Route::get('/product/{fprdid}/delete', [ProductController::class, 'delete'])->name('product.delete');
         Route::patch('/product/{fprdid}', [ProductController::class, 'update'])->name('product.update');
         Route::delete('/product/{fprdid}', [ProductController::class, 'destroy'])->name('product.destroy');
 
         Route::get('/supplier', [SupplierController::class, 'index'])->name('supplier.index');
         Route::post('/supplier',        [SupplierController::class, 'store'])->name('supplier.store');
         Route::get('/supplier/create', [SupplierController::class, 'create'])->name('supplier.create');
-        Route::get('/supplier/{fprdid}/edit', [SupplierController::class, 'edit'])->name('supplier.edit');
-        Route::patch('/supplier/{fprdid}', [SupplierController::class, 'update'])->name('supplier.update');
-        Route::delete('/supplier/{fprdid}', [SupplierController::class, 'destroy'])->name('supplier.destroy');
+        Route::get('/supplier/{fsupplierid}/edit', [SupplierController::class, 'edit'])->name('supplier.edit');
+        Route::get('/supplier/{fsupplierid}/delete', [SupplierController::class, 'delete'])->name('supplier.delete');
+        Route::patch('/supplier/{fsupplierid}', [SupplierController::class, 'update'])->name('supplier.update');
+        Route::delete('/supplier/{fsupplierid}', [SupplierController::class, 'destroy'])->name('supplier.destroy');
 
         Route::get('/subaccount', [SubaccountController::class, 'index'])->name('subaccount.index');
         Route::post('/subaccount',        [SubaccountController::class, 'store'])->name('subaccount.store');
         Route::get('/subaccount/create', [SubaccountController::class, 'create'])->name('subaccount.create');
         Route::get('/subaccount/{fsubaccountid}/edit', [SubaccountController::class, 'edit'])->name('subaccount.edit');
+        Route::get('/subaccount/{fsubaccountid}/delete', [SubaccountController::class, 'delete'])->name('subaccount.delete');
         Route::patch('/subaccount/{fsubaccountid}', [SubaccountController::class, 'update'])->name('subaccount.update');
         Route::delete('/subaccount/{fsubaccountid}', [SubaccountController::class, 'destroy'])->name('subaccount.destroy');
 
@@ -145,6 +155,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/rekening',        [RekeningController::class, 'store'])->name('rekening.store');
         Route::get('/rekening/create', [RekeningController::class, 'create'])->name('rekening.create');
         Route::get('/rekening/{frekeningid}/edit', [RekeningController::class, 'edit'])->name('rekening.edit');
+        Route::get('/rekening/{frekeningid}/delete', [RekeningController::class, 'delete'])->name('rekening.delete');
         Route::patch('/rekening/{frekeningid}', [RekeningController::class, 'update'])->name('rekening.update');
         Route::delete('/rekening/{frekeningid}', [RekeningController::class, 'destroy'])->name('rekening.destroy');
 
@@ -152,6 +163,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/account',        [AccountController::class, 'store'])->name('account.store');
         Route::get('/account/create', [AccountController::class, 'create'])->name('account.create');
         Route::get('/account/{faccid}/edit', [AccountController::class, 'edit'])->name('account.edit');
+        Route::get('/account/{faccid}/delete', [AccountController::class, 'delete'])->name('account.delete');
         Route::patch('/account/{faccid}', [AccountController::class, 'update'])->name('account.update');
         Route::delete('/account/{faccid}', [AccountController::class, 'destroy'])->name('account.destroy');
 

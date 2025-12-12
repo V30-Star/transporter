@@ -64,15 +64,18 @@
                             <td class="border px-2 py-1 space-x-2">
                                 @if ($canEdit)
                                     <a href="{{ route('satuan.edit', $item->fsatuanid) }}"
-                                        class="btn-aksi inline-flex items-center bg-yellow-500 text-white rounded hover:bg-yellow-600">
+                                        class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
                                         <x-heroicon-o-pencil-square class="w-4 h-4 mr-1" /> Edit
                                     </a>
                                 @endif
                                 @if ($canDelete)
-                                    <button @click="openDelete('{{ route('satuan.destroy', $item->fsatuanid) }}', $event)"
-                                        class="btn-aksi inline-flex items-center bg-red-600 text-white rounded hover:bg-red-700">
-                                        <x-heroicon-o-trash class="w-4 h-4 mr-1" /> Hapus
-                                    </button>
+                                    <a href="{{ route('satuan.delete', $item->fsatuanid) }}">
+                                        <button
+                                            class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                                            <x-heroicon-o-trash class="w-4 h-4 mr-1" />
+                                            Hapus
+                                        </button>
+                                    </a>
                                 @endif
                             </td>
                         @endif

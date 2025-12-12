@@ -80,7 +80,10 @@ class GroupproductController extends Controller
         // Fetch the Groupproduct data by its primary key
         $groupproduct = Groupproduct::findOrFail($fgroupid);
 
-        return view('groupproduct.edit', compact('groupproduct'));
+        return view('groupproduct.edit', [
+            'groupproduct' => $groupproduct,
+            'action' => 'delete'
+        ]);
     }
 
     public function update(Request $request, $fgroupid)
@@ -117,22 +120,31 @@ class GroupproductController extends Controller
             ->with('success', 'Groupproduct berhasil di-update.');
     }
 
+    public function delete($fgroupid)
+    {
+        $groupproduct = Groupproduct::findOrFail($fgroupid);
+        return view('groupproduct.edit', [
+            'groupproduct' => $groupproduct,
+            'action' => 'delete'
+        ]);
+    }
+
     public function destroy($fgroupid)
     {
-        // Find and delete the Groupproduct
-        $groupproduct = Groupproduct::findOrFail($fgroupid);
-        $groupproduct->delete();
+        try {
+            $groupproduct = Groupproduct::findOrFail($fgroupid);
+            $groupproduct->delete();
 
-        if (request()->wantsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Group Product berhasil dihapus.'
+                'message' => 'Data groupproduct berhasil dihapus'
             ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus data: ' . $e->getMessage()
+            ], 500);
         }
-
-        return redirect()
-            ->route('groupproduct.index')
-            ->with('success', 'Groupproduct berhasil dihapus.');
     }
 
     public function browse(Request $request)

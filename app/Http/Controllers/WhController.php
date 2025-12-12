@@ -99,7 +99,11 @@ class WhController extends Controller
             ->orderBy('fcabangname')
             ->get();
 
-        return view('gudang.edit', compact('gudang', 'cabangOptions'));
+        return view('gudang.edit', [
+            'gudang' => $gudang,
+            'cabangOptions' => $cabangOptions,
+            'action' => 'edit'
+        ]);
     }
 
     /**
@@ -144,22 +148,42 @@ class WhController extends Controller
             ->with('success', 'Wh berhasil di-update.');
     }
 
-    public function destroy($fwhid)
+    public function delete($fwhid)
     {
         $gudang = Wh::findOrFail($fwhid);
-        $gudang->delete();
 
-        if (request()->wantsJson()) {
+        $cabangOptions = Cabang::query()
+            ->selectRaw('TRIM(BOTH FROM fcabangkode) AS fbranchcode, fcabangname')
+            ->where('fnonactive', '0')
+            ->whereNotNull('fcabangkode')
+            ->orderBy('fcabangname')
+            ->get();
+
+        return view('gudang.edit', [
+            'gudang' => $gudang,
+            'cabangOptions' => $cabangOptions,
+            'action' => 'delete'
+        ]);
+    }
+
+    public function destroy($fwhid)
+    {
+        try {
+            $gudang = Wh::findOrFail($fwhid);
+            $gudang->delete();
+
             return response()->json([
                 'success' => true,
-                'message' => 'Gudang berhasil dihapus.'
+                'message' => 'Data gudang berhasil dihapus'
             ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus data: ' . $e->getMessage()
+            ], 500);
         }
-
-        return redirect()
-            ->route('gudang.index')
-            ->with('success', 'Wh berhasil dihapus.');
     }
+
     public function browse(Request $request)
     {
         // Base query

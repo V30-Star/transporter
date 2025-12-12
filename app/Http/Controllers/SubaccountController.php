@@ -79,8 +79,11 @@ class SubaccountController extends Controller
     {
         // Ambil data berdasarkan PK fsubaccountid
         $subaccount = Subaccount::findOrFail($fsubaccountid);
-
-        return view('subaccount.edit', compact('subaccount'));
+        
+        return view('subaccount.edit', [
+            'subaccount' => $subaccount,
+            'action' => 'edit'
+        ]);
     }
 
     /**
@@ -120,20 +123,30 @@ class SubaccountController extends Controller
             ->with('success', 'Subaccount berhasil di-update.');
     }
 
-    public function destroy($fsubaccountid)
+    public function delete($fsubaccountid)
     {
         $subaccount = Subaccount::findOrFail($fsubaccountid);
-        $subaccount->delete();
+        return view('subaccount.edit', [
+            'subaccount' => $subaccount,
+            'action' => 'delete'
+        ]);
+    }
 
-        if (request()->wantsJson()) {
+    public function destroy($fsubaccountid)
+    {
+        try {
+            $subaccount = Subaccount::findOrFail($fsubaccountid);
+            $subaccount->delete();
+
             return response()->json([
                 'success' => true,
-                'message' => 'Sub Account berhasil dihapus.'
+                'message' => 'Data subaccount berhasil dihapus'
             ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus data: ' . $e->getMessage()
+            ], 500);
         }
-
-        return redirect()
-            ->route('subaccount.index')
-            ->with('success', 'Subaccount berhasil dihapus.');
     }
 }

@@ -82,7 +82,10 @@ class WilayahController extends Controller
     {
         $wilayah = Wilayah::findOrFail($fwilayahid);
 
-        return view('master.wilayah.edit', compact('wilayah'));
+        return view('master.wilayah.edit', [
+            'wilayah' => $wilayah,
+            'action' => 'edit'
+        ]);
     }
 
     public function update(Request $request, $fwilayahid)
@@ -116,20 +119,30 @@ class WilayahController extends Controller
             ->with('success', 'Wilayah berhasil di-update.');
     }
 
-    public function destroy($fwilayahid)
+    public function delete($fwilayahid)
     {
         $wilayah = Wilayah::findOrFail($fwilayahid);
-        $wilayah->delete();
+        return view('master.wilayah.edit', [
+            'wilayah' => $wilayah,
+            'action' => 'delete'
+        ]);
+    }
 
-        if (request()->wantsJson()) {
+    public function destroy($fwilayahid)
+    {
+        try {
+            $wilayah = Wilayah::findOrFail($fwilayahid);
+            $wilayah->delete();
+
             return response()->json([
                 'success' => true,
-                'message' => 'Wilayah berhasil dihapus.'
+                'message' => 'Data wilayah berhasil dihapus'
             ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus data: ' . $e->getMessage()
+            ], 500);
         }
-
-        return redirect()
-            ->route('wilayah.index')
-            ->with('success', 'Wilayah berhasil dihapus.');
     }
 }

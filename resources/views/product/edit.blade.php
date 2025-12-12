@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Master Product')
+@section('title', $action === 'delete' ? 'Hapus Product' : 'Edit Product')
 
 @section('content')
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.3/themes/base/jquery-ui.css">
@@ -120,496 +120,1096 @@
 
     <div x-data="{ open: false, keyword: '', rows: [], page: 1, lastPage: 1, total: 0 }">
         <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1500px] w-full mx-auto">
-            <form action="{{ route('product.update', $product->fprdid) }}" method="POST">
-                @csrf
-                @method('PATCH')
+            {{-- HEADER --}}
+            <h2 class="text-2xl font-bold mb-6 text-center">
+                {{ $action === 'delete' ? 'Data Product' : 'Edit Product' }}
+            </h2>
+
+            {{-- ============================================ --}}
+            {{-- MODE DELETE: VIEW ONLY + BUTTON HAPUS       --}}
+            {{-- ============================================ --}}
+            @if ($action === 'delete')
                 @php
                     $isApproved = !empty($product->fapproval);
                 @endphp
-                <div>
-                    <!-- Group Produk Dropdown -->
-                    <div class="mt-2 w-1/2" x-data="{ isEditable: false }">
-                        <label class="block text-sm font-medium">Group Produk</label>
-                        <div class="flex items-center gap-2">
-                            <select name="fgroupcodeSelect" :disabled="!isEditable"
-                                class="w-full border rounded px-3 py-2 @error('fgroupcode') border-red-500 @enderror"
-                                id="groupSelect">
-                                <option value=""></option>
-                                @foreach ($groups as $group)
-                                    <option value="{{ $group->fgroupid }}"
-                                        {{ old('fgroupcode', $product->fgroupcode) == $group->fgroupid ? 'selected' : '' }}>
-                                        {{ $group->fgroupname }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            <input type="hidden" name="fgroupcode" value="{{ old('fgroupcode', $product->fgroupcode) }}">
+                <div class="space-y-4">
+                    <div>
+                        <!-- Group Produk Dropdown -->
+                        <div class="mt-2 w-1/2" x-data="{ isEditable: false }">
+                            <label class="block text-sm font-medium">Group Produk</label>
+                            <div class="flex items-center gap-2">
+                                <select disabled name="fgroupcodeSelect" :disabled="!isEditable"
+                                    class="w-full border rounded px-3 py-2 bg-gray-100 @error('fgroupcode') border-red-500 @enderror"
+                                    id="groupSelect">
+                                    <option value=""></option>
+                                    @foreach ($groups as $group)
+                                        <option value="{{ $group->fgroupid }}"
+                                            {{ old('fgroupcode', $product->fgroupcode) == $group->fgroupid ? 'selected' : '' }}>
+                                            {{ $group->fgroupname }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <input type="hidden" name="fgroupcode"
+                                    value="{{ old('fgroupcode', $product->fgroupcode) }}">
 
-                            <!-- Add Group Produk (Icon Button) -->
-                            <button type="button" @click="isEditable = true; $dispatch('open-group-modal')"
-                                class="whitespace-nowrap bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700">
-                                <i class="fa fa-plus"></i>
-                            </button>
+                                <!-- Add Group Produk (Icon Button) -->
+                                <button disabled type="button" @click="isEditable = true; $dispatch('open-group-modal')"
+                                    class="whitespace-nowrap bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700">
+                                    <i class="fa fa-plus"></i>
+                                </button>
 
-                            <!-- Browse Group (Icon Button) -->
-                            <button type="button" @click="window.dispatchEvent(new CustomEvent('group-browse-open'))"
-                                class="whitespace-nowrap bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700">
-                                <i class="fa fa-search"></i>
-                            </button>
-                        </div>
-
-                        @error('fgroupcode')
-                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <!-- Merek Dropdown -->
-                    <div class="mt-2 w-1/2" x-data="{ isMerekEditable: false }">
-                        <label class="block text-sm font-medium">Merek</label>
-                        <div class="flex items-center gap-2">
-                            <select name="fmerekSelect" :disabled="!isMerekEditable"
-                                class="w-full border rounded px-3 py-2 @error('fmerek') border-red-500 @enderror"
-                                id="merkSelect">
-                                <option value=""></option>
-                                @foreach ($merks as $merk)
-                                    <option value="{{ $merk->fmerekid }}"
-                                        {{ old('fmerek', $product->fmerek) == $merk->fmerekid ? 'selected' : '' }}>
-                                        {{ $merk->fmerekname }}
-                                    </option>
-                                @endforeach
-                            </select>
-
-                            <input type="hidden" name="fmerek" id="fmerek" value="{{ old('fmerek') }}">
-
-                            <!-- Button Tambah Merek -->
-                            <button type="button" @click="isMerekEditable = true; $dispatch('open-merk-modal')"
-                                class="whitespace-nowrap bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700">
-                                <i class="fa fa-plus"></i>
-
-                                <!-- Button Browse Merek -->
-                                <button type="button" @click="window.dispatchEvent(new CustomEvent('merek-browse-open'))"
+                                <!-- Browse Group (Icon Button) -->
+                                <button disabled type="button"
+                                    @click="window.dispatchEvent(new CustomEvent('group-browse-open'))"
                                     class="whitespace-nowrap bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700">
                                     <i class="fa fa-search"></i>
                                 </button>
+                            </div>
+
+                            @error('fgroupcode')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
-                        @error('fmerek')
-                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
 
-                    <!-- Kode Product -->
-                    <div class="mt-2 w-1/3">
-                        <label class="block text-sm font-medium">Kode Product</label>
-                        <input type="text" name="fprdcode" id="fprdcode"
-                            value="{{ old('fprdcode', $product->fprdcode) }}"
-                            class="w-full border rounded px-3 py-2 uppercase @error('fprdcode') border-red-500 @enderror">
-                        @error('fprdcode')
-                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
+                        <!-- Merek Dropdown -->
+                        <div class="mt-2 w-1/2" x-data="{ isMerekEditable: false }">
+                            <label class="block text-sm font-medium">Merek</label>
+                            <div class="flex items-center gap-2">
+                                <select name="fmerekSelect" :disabled="!isMerekEditable"
+                                    class="w-full border rounded px-3 py-2 @error('fmerek') border-red-500 @enderror"
+                                    id="merkSelect">
+                                    <option value=""></option>
+                                    @foreach ($merks as $merk)
+                                        <option value="{{ $merk->fmerekid }}"
+                                            {{ old('fmerek', $product->fmerek) == $merk->fmerekid ? 'selected' : '' }}>
+                                            {{ $merk->fmerekname }}
+                                        </option>
+                                    @endforeach
+                                </select>
 
-                    <div x-show="open" x-transition.opacity x-cloak
-                        class="fixed inset-0 z-50 flex items-center justify-center">
-                        <div class="absolute inset-0 bg-black/40" @click="open = false"></div>
-                        <div class="relative bg-white rounded-2xl shadow-xl w-[92vw] max-w-4xl max-h-[85vh] flex flex-col">
-                            <div class="p-4 border-b flex items-center gap-3">
-                                <h3 class="text-lg font-semibold">Browse Merek</h3>
-                                <div class="ml-auto flex items-center gap-2">
-                                    <input type="text" x-model="keyword" @keydown.enter.prevent="search()"
-                                        placeholder="Cari kode / nama…" class="border rounded px-3 py-2 w-64">
-                                    <button type="button" @click="search()"
-                                        class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Search</button>
+                                <input type="hidden" name="fmerek" id="fmerek" value="{{ old('fmerek') }}">
+
+                                <!-- Button Tambah Merek -->
+                                <button type="button" disabled @click="isMerekEditable = true; $dispatch('open-merk-modal')"
+                                    class="whitespace-nowrap bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700">
+                                    <i class="fa fa-plus"></i>
+
+                                    <!-- Button Browse Merek -->
+                                    <button type="button" disabled
+                                        @click="window.dispatchEvent(new CustomEvent('merek-browse-open'))"
+                                        class="whitespace-nowrap bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700">
+                                        <i class="fa fa-search"></i>
+                                    </button>
+                            </div>
+                            @error('fmerek')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <!-- Kode Product -->
+                        <div class="mt-2 w-1/3">
+                            <label class="block text-sm font-medium">Kode Product</label>
+                            <input type="text" name="fprdcode" id="fprdcode" readonly
+                                value="{{ old('fprdcode', $product->fprdcode) }}"
+                                class="w-full border rounded px-3 py-2 bg-gray-100 uppercase @error('fprdcode') border-red-500 @enderror">
+                            @error('fprdcode')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div x-show="open" x-transition.opacity x-cloak
+                            class="fixed inset-0 z-50 flex items-center justify-center">
+                            <div class="absolute inset-0 bg-black/40" @click="open = false"></div>
+                            <div
+                                class="relative bg-white rounded-2xl shadow-xl w-[92vw] max-w-4xl max-h-[85vh] flex flex-col">
+                                <div class="p-4 border-b flex items-center gap-3">
+                                    <h3 class="text-lg font-semibold">Browse Merek</h3>
+                                    <div class="ml-auto flex items-center gap-2">
+                                        <input type="text" x-model="keyword" @keydown.enter.prevent="search()"
+                                            placeholder="Cari kode / nama…" class="border rounded px-3 py-2 w-64">
+                                        <button type="button" @click="search()"
+                                            class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Search</button>
+                                    </div>
+                                </div>
+
+                                <div class="p-3 border-t flex items-center gap-2">
+                                    <div class="text-sm text-gray-600"><span
+                                            x-text="`Page ${page} / ${lastPage} • Total ${total}`"></span></div>
+                                    <div class="ml-auto flex items-center gap-2">
+                                        <button type="button" @click="prev()" :disabled="page <= 1"
+                                            class="px-3 py-1 rounded border"
+                                            :class="page <= 1 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' :
+                                                'bg-gray-100 hover:bg-gray-200'">Prev</button>
+                                        <button type="button" @click="next()" :disabled="page >= lastPage"
+                                            class="px-3 py-1 rounded border"
+                                            :class="page >= lastPage ? 'bg-gray-200 text-gray-400 cursor-not-allowed' :
+                                                'bg-gray-100 hover:bg-gray-200'">Next</button>
+                                        <button type="button" @click="open = false"
+                                            class="px-3 py-1 rounded border bg-gray-100 hover:bg-gray-200">Close</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Nama Product -->
+                        <div class="mt-2 w-1/2">
+                            <label class="block text-sm font-medium">Nama Product</label>
+                            <input type="text" name="fprdname" id="fprdname" readonly
+                                value="{{ old('fprdname', $product->fprdname) }}"
+                                class="w-full border rounded px-3 py-2 bg-gray-100 uppercase @error('fprdname') border-red-500 @enderror"
+                                autofocus>
+                            @error('fprdname')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <!-- Barcode -->
+                        <div class="mt-2 w-1/3">
+                            <label class="block text-sm font-medium">Barcode</label>
+                            <input readonly type="text" name="fbarcode"
+                                value="{{ old('fbarcode', $product->fbarcode) }}"
+                                class="w-full border rounded px-3 py-2 bg-gray-100 @error('fbarcode') border-red-500 @enderror">
+                            @error('fbarcode')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div id="satuan-container">
+
+                            {{-- Satuan Kecil --}}
+                            <div class="mt-2 w-1/4">
+                                <label class="block text-sm font-medium">Satuan Kecil</label>
+                                <select disabled
+                                    class="w-full border rounded px-3 py-2 bg-gray-100 @error('fsatuankecil') border-red-500 @enderror"
+                                    name="fsatuankecil" id="fsatuankecil" onchange="updateSatuanLogic();">
+                                    <option value="" selected> Pilih Satuan 1</option>
+                                    @foreach ($satuan as $satu)
+                                        <option value="{{ $satu->fsatuancode }}"
+                                            {{ old('fsatuankecil', $product->fsatuankecil) == $satu->fsatuancode ? 'selected' : '' }}>
+                                            {{ $satu->fsatuancode }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('fsatuankecil')
+                                    <div class="text-red-600 text-sm mt-1">
+                                        {{ $message }}
+                                    </div>
+                                @enderror
+                            </div>
+
+                            {{-- Satuan 2 --}}
+                            <div id="satuan2-block" style="display: none;">
+                                <div class="flex items-end gap-4">
+                                    <div class="w-1/3">
+                                        <label class="block text-sm font-medium">Satuan 2</label>
+                                        <select disabled
+                                            class="w-full border rounded px-3 py-2 bg-gray-100 @error('fsatuanbesar') border-red-500 @enderror"
+                                            name="fsatuanbesar" id="fsatuanbesar" disabled
+                                            onchange="updateSatuanLogic();">
+                                            <option value="" selected>Pilih Satuan 2</option>
+                                            @foreach ($satuan as $satu)
+                                                <option value="{{ $satu->fsatuancode }}"
+                                                    data-name="{{ $satu->fsatuanname }}"
+                                                    {{ old('fsatuanbesar', $product->fsatuanbesar) == $satu->fsatuancode ? 'selected' : '' }}>
+                                                    {{ $satu->fsatuancode }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        @error('fsatuanbesar')
+                                            <div class="text-red-600 text-sm mt-1">
+                                                {{ $message }}
+                                            </div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="w-1/6">
+                                        <label class="block text-sm font-medium">Isi</label>
+                                        <div class="flex items-baseline gap-2">
+                                            <input type="number" readonly
+                                                class="w-full border rounded px-3 py-2 bg-gray-100 @error('fqtykecil') border-red-500 @enderror"
+                                                name="fqtykecil" id="fqtykecil"
+                                                value="{{ old('fqtykecil', $product->fqtykecil) }}">
+                                            <span id="satuanKecilTarget"
+                                                class="satuan-kecil-display text-gray-700 font-semibold whitespace-nowrap">
+                                            </span>
+                                        </div>
+                                        @error('fqtykecil')
+                                            <div class="text-red-600 text-sm mt-1">
+                                                {{ $message }}
+                                            </div>
+                                        @enderror
+                                    </div>
+                                    <div class="w-1/6">
+                                        <label id="fsatuanname-label"
+                                            class="block text-sm font-medium text-red-500 font-bold"></label>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div class="p-3 border-t flex items-center gap-2">
-                                <div class="text-sm text-gray-600"><span
-                                        x-text="`Page ${page} / ${lastPage} • Total ${total}`"></span></div>
-                                <div class="ml-auto flex items-center gap-2">
-                                    <button type="button" @click="prev()" :disabled="page <= 1"
-                                        class="px-3 py-1 rounded border"
-                                        :class="page <= 1 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' :
-                                            'bg-gray-100 hover:bg-gray-200'">Prev</button>
-                                    <button type="button" @click="next()" :disabled="page >= lastPage"
-                                        class="px-3 py-1 rounded border"
-                                        :class="page >= lastPage ? 'bg-gray-200 text-gray-400 cursor-not-allowed' :
-                                            'bg-gray-100 hover:bg-gray-200'">Next</button>
-                                    <button type="button" @click="open = false"
-                                        class="px-3 py-1 rounded border bg-gray-100 hover:bg-gray-200">Close</button>
+                            {{-- Satuan 3 --}}
+                            <div id="satuan3-block" style="display: none;">
+                                <div class="flex items-end gap-4">
+                                    <div class="w-1/3">
+                                        <label class="block text-sm font-medium">Satuan 3</label>
+                                        <select disabled
+                                            class="w-full border rounded px-3 py-2 bg-gray-100 @error('fsatuanbesar2') border-red-500 @enderror"
+                                            name="fsatuanbesar2" id="fsatuanbesar2"
+                                            data-select2-id="select2-data-fsatuanbesar2" tabindex="-1"
+                                            aria-hidden="true">
+                                            <option value="" selected>Pilih Satuan 3</option>
+                                            @foreach ($satuan as $satu)
+                                                <option value="{{ $satu->fsatuancode }}"
+                                                    data-name="{{ $satu->fsatuanname }}"
+                                                    {{ old('fsatuanbesar2', $product->fsatuanbesar2) == $satu->fsatuancode ? 'selected' : '' }}>
+                                                    {{ $satu->fsatuancode }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        @error('fsatuanbesar2')
+                                            <div class="text-red-600 text-sm mt-1">
+                                                {{ $message }}
+                                            </div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="w-1/6">
+                                        <label class="block text-sm font-medium">Isi</label>
+                                        <div class="flex items-baseline gap-2">
+                                            <input type="number" readonly
+                                                class="w-full border rounded px-3 py-2 bg-gray-100 @error('fqtykecil2') border-red-500 @enderror"
+                                                name="fqtykecil2" id="fqtykecil2"
+                                                value="{{ old('fqtykecil2', $product->fqtykecil2) }}">
+                                            <span id="satuanKecilTarget"
+                                                class="satuan-kecil-display text-gray-700 font-semibold whitespace-nowrap">
+                                            </span>
+                                        </div>
+                                        @error('fqtykecil2')
+                                            <div class="text-red-600 text-sm mt-1">
+                                                {{ $message }}
+                                            </div>
+                                        @enderror
+                                    </div>
+                                    <div class="w-1/6">
+                                        <label id="fsatuanname-label-2"
+                                            class="block text-sm font-medium text-red-500 font-bold"></label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Nama Product -->
-                    <div class="mt-2 w-1/2">
-                        <label class="block text-sm font-medium">Nama Product</label>
-                        <input type="text" name="fprdname" id="fprdname"
-                            value="{{ old('fprdname', $product->fprdname) }}"
-                            class="w-full border rounded px-3 py-2 uppercase @error('fprdname') border-red-500 @enderror"
-                            autofocus>
-                        @error('fprdname')
-                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <!-- Barcode -->
-                    <div class="mt-2 w-1/3">
-                        <label class="block text-sm font-medium">Barcode</label>
-                        <input type="text" name="fbarcode" value="{{ old('fbarcode', $product->fbarcode) }}"
-                            class="w-full border rounded px-3 py-2 @error('fbarcode') border-red-500 @enderror">
-                        @error('fbarcode')
-                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div id="satuan-container">
-
-                        {{-- Satuan Kecil --}}
-                        <div class="mt-2 w-1/4">
-                            <label class="block text-sm font-medium">Satuan Kecil</label>
-                            <select class="w-full border rounded px-3 py-2 @error('fsatuankecil') border-red-500 @enderror"
-                                name="fsatuankecil" id="fsatuankecil" onchange="updateSatuanLogic();">
-                                <option value="" selected> Pilih Satuan 1</option>
-                                @foreach ($satuan as $satu)
-                                    <option value="{{ $satu->fsatuancode }}"
-                                        {{ old('fsatuankecil', $product->fsatuankecil) == $satu->fsatuancode ? 'selected' : '' }}>
-                                        {{ $satu->fsatuancode }}
-                                    </option>
-                                @endforeach
+                        <!-- Satuan Default Dropdown -->
+                        <div class="mt-2 w-1/4 bg-gray-100">
+                            <label class="block text-sm font-medium">Satuan Default</label>
+                            <select name="fsatuandefault" disabled
+                                class="w-full border rounded px-3 py-2 @error('fsatuandefault') border-red-500 @enderror">
+                                <option value="1"
+                                    {{ old('fsatuandefault', $product->fsatuandefault) == '1' ? 'selected' : '' }}>Satuan 1
+                                </option>
+                                <option value="2"
+                                    {{ old('fsatuandefault', $product->fsatuandefault) == '2' ? 'selected' : '' }}>Satuan 2
+                                </option>
+                                <option value="3"
+                                    {{ old('fsatuandefault', $product->fsatuandefault) == '3' ? 'selected' : '' }}>Satuan 3
+                                </option>
                             </select>
-                            @error('fsatuankecil')
+                            @error('fsatuandefault')
                                 <div class="text-red-600 text-sm mt-1">
                                     {{ $message }}
                                 </div>
                             @enderror
                         </div>
 
-                        {{-- Satuan 2 --}}
-                        <div id="satuan2-block" style="display: none;">
-                            <div class="flex items-end gap-4">
-                                <div class="w-1/3">
-                                    <label class="block text-sm font-medium">Satuan 2</label>
-                                    <select
-                                        class="w-full border rounded px-3 py-2 @error('fsatuanbesar') border-red-500 @enderror"
-                                        name="fsatuanbesar" id="fsatuanbesar" disabled onchange="updateSatuanLogic();">
-                                        <option value="" selected>Pilih Satuan 2</option>
-                                        @foreach ($satuan as $satu)
-                                            <option value="{{ $satu->fsatuancode }}"
-                                                data-name="{{ $satu->fsatuanname }}"
-                                                {{ old('fsatuanbesar', $product->fsatuanbesar) == $satu->fsatuancode ? 'selected' : '' }}>
-                                                {{ $satu->fsatuancode }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    @error('fsatuanbesar')
+                        <!-- Harga Pokok Produksi -->
+                        <div class="mt-2 w-1/4">
+                            <label class="block text-sm font-medium">Harga Pokok Produksi</label>
+                            <input type="text" name="fhpp" id="fhpp" readonly
+                                value="{{ old('fhpp', $product->fhpp) }}"
+                                class="w-full border rounded px-3 py-2 bg-gray-100 @error('fhpp') border-red-500 @enderror">
+                            @error('fhpp')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <!-- Harga Satuan 3 Level 1 -->
+                            <div>
+                                <label for="fhargasatuankecillevel1" class="block text-sm font-medium">HJ. Kecil Level
+                                    1</label>
+                                <div class="d-flex">
+                                    <input type="text" readonly
+                                        class="w-1/10 border rounded px-3 py-2 bg-gray-100 @error('fhargasatuankecillevel1') is-invalid @enderror"
+                                        name="fhargasatuankecillevel1" id="fhargasatuankecillevel1"
+                                        value="{{ old('fhargasatuankecillevel1', $product->fhargasatuankecillevel1) }}">
+                                    @error('fhargasatuankecillevel1')
                                         <div class="text-red-600 text-sm mt-1">
                                             {{ $message }}
                                         </div>
                                     @enderror
                                 </div>
+                            </div>
 
-                                <div class="w-1/6">
-                                    <label class="block text-sm font-medium">Isi</label>
-                                    <div class="flex items-baseline gap-2">
-                                        <input type="number"
-                                            class="w-full border rounded px-3 py-2 @error('fqtykecil') border-red-500 @enderror"
-                                            name="fqtykecil" id="fqtykecil"
-                                            value="{{ old('fqtykecil', $product->fqtykecil) }}">
-                                        <span id="satuanKecilTarget"
-                                            class="satuan-kecil-display text-gray-700 font-semibold whitespace-nowrap">
-                                        </span>
-                                    </div>
-                                    @error('fqtykecil')
+                            <!-- Harga Satuan 3 Level 2 -->
+                            <div>
+                                <label for="fhargasatuankecillevel2" class="block text-sm font-medium">HJ. Kecil Level
+                                    2</label>
+                                <div class="d-flex">
+                                    <input type="text" readonly
+                                        class="w-1/10 border rounded px-3 py-2 bg-gray-100 @error('fhargasatuankecillevel2') is-invalid @enderror"
+                                        name="fhargasatuankecillevel2" id="fhargasatuankecillevel2"
+                                        value="{{ old('fhargasatuankecillevel2', $product->fhargasatuankecillevel2) }}">
+                                    @error('fhargasatuankecillevel2')
                                         <div class="text-red-600 text-sm mt-1">
                                             {{ $message }}
                                         </div>
                                     @enderror
                                 </div>
-                                <div class="w-1/6">
-                                    <label id="fsatuanname-label"
-                                        class="block text-sm font-medium text-red-500 font-bold"></label>
-                                </div>
                             </div>
-                        </div>
 
-                        {{-- Satuan 3 --}}
-                        <div id="satuan3-block" style="display: none;">
-                            <div class="flex items-end gap-4">
-                                <div class="w-1/3">
-                                    <label class="block text-sm font-medium">Satuan 3</label>
-                                    <select
-                                        class="w-full border rounded px-3 py-2 @error('fsatuanbesar2') border-red-500 @enderror"
-                                        name="fsatuanbesar2" id="fsatuanbesar2"
-                                        data-select2-id="select2-data-fsatuanbesar2" tabindex="-1" aria-hidden="true">
-                                        <option value="" selected>Pilih Satuan 3</option>
-                                        @foreach ($satuan as $satu)
-                                            <option value="{{ $satu->fsatuancode }}"
-                                                data-name="{{ $satu->fsatuanname }}"
-                                                {{ old('fsatuanbesar2', $product->fsatuanbesar2) == $satu->fsatuancode ? 'selected' : '' }}>
-                                                {{ $satu->fsatuancode }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    @error('fsatuanbesar2')
+                            <!-- Harga Satuan 3 Level 3 -->
+                            <div>
+                                <label for="fhargasatuankecillevel3" class="block text-sm font-medium">HJ. Kecil Level
+                                    3</label>
+                                <div class="d-flex">
+                                    <input type="text" readonly
+                                        class="w-1/10 border rounded px-3 py-2 bg-gray-100 @error('fhargasatuankecillevel3') is-invalid @enderror"
+                                        name="fhargasatuankecillevel3" id="fhargasatuankecillevel3"
+                                        value="{{ old('fhargasatuankecillevel3', $product->fhargasatuankecillevel3) }}">
+                                    @error('fhargasatuankecillevel3')
                                         <div class="text-red-600 text-sm mt-1">
                                             {{ $message }}
                                         </div>
                                     @enderror
                                 </div>
+                            </div>
+                        </div>
 
-                                <div class="w-1/6">
-                                    <label class="block text-sm font-medium">Isi</label>
-                                    <div class="flex items-baseline gap-2">
-                                        <input type="number"
-                                            class="w-full border rounded px-3 py-2 @error('fqtykecil2') border-red-500 @enderror"
-                                            name="fqtykecil2" id="fqtykecil2"
-                                            value="{{ old('fqtykecil2', $product->fqtykecil2) }}">
-                                        <span id="satuanKecilTarget"
-                                            class="satuan-kecil-display text-gray-700 font-semibold whitespace-nowrap">
-                                        </span>
-                                    </div>
-                                    @error('fqtykecil2')
+                        <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <!-- Harga Satuan 2 Level 1 -->
+                            <div>
+                                <label for="fhargajuallevel1" class="block text-sm font-medium">HJ. Besar Level
+                                    1</label>
+                                <div class="d-flex">
+                                    <input type="text" readonly
+                                        class="w-1/10 border rounded px-3 py-2 bg-gray-100 @error('fhargajuallevel1') is-invalid @enderror"
+                                        name="fhargajuallevel1" id="fhargajuallevel1"
+                                        value="{{ old('fhargajuallevel1', $product->fhargajuallevel1) }}">
+                                    @error('fhargajuallevel1')
                                         <div class="text-red-600 text-sm mt-1">
                                             {{ $message }}
                                         </div>
                                     @enderror
                                 </div>
-                                <div class="w-1/6">
-                                    <label id="fsatuanname-label-2"
-                                        class="block text-sm font-medium text-red-500 font-bold"></label>
+                            </div>
+
+                            <!-- Harga Satuan 2 Level 2 -->
+                            <div>
+                                <label for="fhargajuallevel2" class="block text-sm font-medium">HJ. Besar Level
+                                    2</label>
+                                <div class="d-flex">
+                                    <input type="text" readonly
+                                        class="w-1/10 border rounded px-3 py-2 bg-gray-100 @error('fhargajuallevel2') is-invalid @enderror"
+                                        name="fhargajuallevel2" id="fhargajuallevel2"
+                                        value="{{ old('fhargajuallevel2', $product->fhargajuallevel2) }}">
+                                    @error('fhargajuallevel2')
+                                        <div class="text-red-600 text-sm mt-1">
+                                            {{ $message }}
+                                        </div>
+                                    @enderror
+                                </div>
+                            </div>
+
+                            <!-- Harga Satuan 2 Level 3 -->
+                            <div>
+                                <label for="fhargajuallevel3" class="block text-sm font-medium">HJ. Besar Level
+                                    3</label>
+                                <div class="d-flex">
+                                    <input type="text" readonly
+                                        class="w-1/10 border rounded px-3 py-2 bg-gray-100 @error('fhargajuallevel3') is-invalid @enderror"
+                                        name="fhargajuallevel3" id="fhargajuallevel3"
+                                        value="{{ old('fhargajuallevel3', $product->fhargajuallevel3) }}">
+                                    @error('fhargajuallevel3')
+                                        <div class="text-red-600 text-sm mt-1">
+                                            {{ $message }}
+                                        </div>
+                                    @enderror
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Satuan Default Dropdown -->
-                    <div class="mt-2 w-1/4">
-                        <label class="block text-sm font-medium">Satuan Default</label>
-                        <select name="fsatuandefault"
-                            class="w-full border rounded px-3 py-2 @error('fsatuandefault') border-red-500 @enderror">
-                            <option value="1"
-                                {{ old('fsatuandefault', $product->fsatuandefault) == '1' ? 'selected' : '' }}>Satuan 1
-                            </option>
-                            <option value="2"
-                                {{ old('fsatuandefault', $product->fsatuandefault) == '2' ? 'selected' : '' }}>Satuan 2
-                            </option>
-                            <option value="3"
-                                {{ old('fsatuandefault', $product->fsatuandefault) == '3' ? 'selected' : '' }}>Satuan 3
-                            </option>
-                        </select>
-                        @error('fsatuandefault')
-                            <div class="text-red-600 text-sm mt-1">
-                                {{ $message }}
+                        <!-- Min.Stok -->
+                        <div class="mt-2 w-1/4">
+                            <label class="block text-sm font-medium">Min.Stok</label>
+                            <div class="flex items-baseline">
+                                <input type="text" name="fminstock" readonly
+                                    value="{{ old('fminstock', $product->fminstock) }}"
+                                    class="w-full border rounded px-3 py-2 bg-gray-100 @error('fminstock') border-red-500 @enderror">
+                                <span id="satuanKecilTarget"
+                                    class="satuan-kecil-display text-gray-700 font-semibold whitespace-nowrap">
+                                </span>
                             </div>
-                        @enderror
-                    </div>
-
-                    <!-- Harga Pokok Produksi -->
-                    <div class="mt-2 w-1/4">
-                        <label class="block text-sm font-medium">Harga Pokok Produksi</label>
-                        <input type="text" name="fhpp" id="fhpp" value="{{ old('fhpp', $product->fhpp) }}"
-                            class="w-full border rounded px-3 py-2 @error('fhpp') border-red-500 @enderror">
-                        @error('fhpp')
-                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <!-- Harga Satuan 3 Level 1 -->
-                        <div>
-                            <label for="fhargasatuankecillevel1" class="block text-sm font-medium">HJ. Kecil Level
-                                1</label>
-                            <div class="d-flex">
-                                <input type="text"
-                                    class="w-1/10 border rounded px-3 py-2 @error('fhargasatuankecillevel1') is-invalid @enderror"
-                                    name="fhargasatuankecillevel1" id="fhargasatuankecillevel1"
-                                    value="{{ old('fhargasatuankecillevel1', $product->fhargasatuankecillevel1) }}">
-                                @error('fhargasatuankecillevel1')
-                                    <div class="text-red-600 text-sm mt-1">
-                                        {{ $message }}
-                                    </div>
-                                @enderror
-                            </div>
+                            @error('fminstock')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
 
-                        <!-- Harga Satuan 3 Level 2 -->
-                        <div>
-                            <label for="fhargasatuankecillevel2" class="block text-sm font-medium">HJ. Kecil Level
-                                2</label>
-                            <div class="d-flex">
-                                <input type="text"
-                                    class="w-1/10 border rounded px-3 py-2 @error('fhargasatuankecillevel2') is-invalid @enderror"
-                                    name="fhargasatuankecillevel2" id="fhargasatuankecillevel2"
-                                    value="{{ old('fhargasatuankecillevel2', $product->fhargasatuankecillevel2) }}">
-                                @error('fhargasatuankecillevel2')
-                                    <div class="text-red-600 text-sm mt-1">
-                                        {{ $message }}
-                                    </div>
-                                @enderror
-                            </div>
+                        {{-- Jenis --}}
+                        <div class="mt-2 w-1/4">
+                            <label class="block text-sm font-medium">Jenis</label>
+                            <select name="ftype" disabled
+                                class="w-full border rounded px-3 py-2 bg-gray-100 @error('ftype') border-red-500 @enderror">
+                                <option value="Produk" {{ old('ftype', $product->ftype) == 'Produk' ? 'selected' : '' }}>
+                                    Product</option>
+                                <option value="Jasa" {{ old('ftype', $product->ftype) == 'Jasa' ? 'selected' : '' }}>
+                                    Jasa</option>
+                            </select>
+                            @error('ftype')
+                                <div class="text-red-600 text-sm mt-1">
+                                    {{ $message }}
+                                </div>
+                            @enderror
                         </div>
 
-                        <!-- Harga Satuan 3 Level 3 -->
-                        <div>
-                            <label for="fhargasatuankecillevel3" class="block text-sm font-medium">HJ. Kecil Level
-                                3</label>
-                            <div class="d-flex">
-                                <input type="text"
-                                    class="w-1/10 border rounded px-3 py-2 @error('fhargasatuankecillevel3') is-invalid @enderror"
-                                    name="fhargasatuankecillevel3" id="fhargasatuankecillevel3"
-                                    value="{{ old('fhargasatuankecillevel3', $product->fhargasatuankecillevel3) }}">
-                                @error('fhargasatuankecillevel3')
-                                    <div class="text-red-600 text-sm mt-1">
-                                        {{ $message }}
-                                    </div>
-                                @enderror
-                            </div>
+                        <div class="md:col-span-2 flex justify-center items-center space-x-2">
+                            <fieldset {{ $isApproved ? 'disabled' : '' }}>
+                                <div class="flex items-center space-x-2">
+                                    <label class="text-sm font-medium">Approval</label>
+                                    <label class="switch">
+                                        <input type="checkbox" name="approve_now" id="approvalToggle"
+                                            {{ !empty($product->fapproval) ? 'checked' : '' }} disabled>
+                                        <span class="slider round"></span>
+                                    </label>
+                                </div>
+                            </fieldset>
                         </div>
-                    </div>
-
-                    <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <!-- Harga Satuan 2 Level 1 -->
-                        <div>
-                            <label for="fhargajuallevel1" class="block text-sm font-medium">HJ. Besar Level
-                                1</label>
-                            <div class="d-flex">
-                                <input type="text"
-                                    class="w-1/10 border rounded px-3 py-2 @error('fhargajuallevel1') is-invalid @enderror"
-                                    name="fhargajuallevel1" id="fhargajuallevel1"
-                                    value="{{ old('fhargajuallevel1', $product->fhargajuallevel1) }}">
-                                @error('fhargajuallevel1')
-                                    <div class="text-red-600 text-sm mt-1">
-                                        {{ $message }}
-                                    </div>
-                                @enderror
-                            </div>
+                        <br>
+                        <div class="flex justify-center mt-4">
+                            <label for="statusToggle"
+                                class="flex items-center justify-between w-40 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition bg-gray-100">
+                                <span class="text-sm font-medium">Non Aktif</span>
+                                <input type="checkbox" name="fnonactive" id="statusToggle"
+                                    class="h-5 w-5 text-green-600 rounded focus:ring-green-500"
+                                    {{ old('fnonactive', $product->fnonactive) == '1' ? 'checked' : '' }} disabled>
+                            </label>
                         </div>
-
-                        <!-- Harga Satuan 2 Level 2 -->
-                        <div>
-                            <label for="fhargajuallevel2" class="block text-sm font-medium">HJ. Besar Level
-                                2</label>
-                            <div class="d-flex">
-                                <input type="text"
-                                    class="w-1/10 border rounded px-3 py-2 @error('fhargajuallevel2') is-invalid @enderror"
-                                    name="fhargajuallevel2" id="fhargajuallevel2"
-                                    value="{{ old('fhargajuallevel2', $product->fhargajuallevel2) }}">
-                                @error('fhargajuallevel2')
-                                    <div class="text-red-600 text-sm mt-1">
-                                        {{ $message }}
-                                    </div>
-                                @enderror
-                            </div>
-                        </div>
-
-                        <!-- Harga Satuan 2 Level 3 -->
-                        <div>
-                            <label for="fhargajuallevel3" class="block text-sm font-medium">HJ. Besar Level
-                                3</label>
-                            <div class="d-flex">
-                                <input type="text"
-                                    class="w-1/10 border rounded px-3 py-2 @error('fhargajuallevel3') is-invalid @enderror"
-                                    name="fhargajuallevel3" id="fhargajuallevel3"
-                                    value="{{ old('fhargajuallevel3', $product->fhargajuallevel3) }}">
-                                @error('fhargajuallevel3')
-                                    <div class="text-red-600 text-sm mt-1">
-                                        {{ $message }}
-                                    </div>
-                                @enderror
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Min.Stok -->
-                    <div class="mt-2 w-1/4">
-                        <label class="block text-sm font-medium">Min.Stok</label>
-                        <div class="flex items-baseline">
-                            <input type="text" name="fminstock" value="{{ old('fminstock', $product->fminstock) }}"
-                                class="w-full border rounded px-3 py-2 @error('fminstock') border-red-500 @enderror">
-                            <span id="satuanKecilTarget"
-                                class="satuan-kecil-display text-gray-700 font-semibold whitespace-nowrap">
-                            </span>
-                        </div>
-                        @error('fminstock')
-                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    {{-- Jenis --}}
-                    <div class="mt-2 w-1/4">
-                        <label class="block text-sm font-medium">Jenis</label>
-                        <select name="ftype"
-                            class="w-full border rounded px-3 py-2 @error('ftype') border-red-500 @enderror">
-                            <option value="Produk" {{ old('ftype', $product->ftype) == 'Produk' ? 'selected' : '' }}>
-                                Product</option>
-                            <option value="Jasa" {{ old('ftype', $product->ftype) == 'Jasa' ? 'selected' : '' }}>
-                                Jasa</option>
-                        </select>
-                        @error('ftype')
-                            <div class="text-red-600 text-sm mt-1">
-                                {{ $message }}
-                            </div>
-                        @enderror
-                    </div>
-
-                    <div class="md:col-span-2 flex justify-center items-center space-x-2">
-                        <fieldset {{ $isApproved ? 'disabled' : '' }}>
-                            <div class="flex items-center space-x-2">
-                                <label class="text-sm font-medium">Approval</label>
-                                <label class="switch">
-                                    <input type="checkbox" name="approve_now" id="approvalToggle"
-                                        {{ !empty($product->fapproval) ? 'checked' : '' }}>
-                                    <span class="slider round"></span>
-                                </label>
-                            </div>
-                        </fieldset>
-                    </div>
-                    <br>
-                    <div class="flex justify-center mt-4">
-                        <label for="statusToggle"
-                            class="flex items-center justify-between w-40 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition">
-                            <span class="text-sm font-medium">Non Aktif</span>
-                            <input type="checkbox" name="fnonactive" id="statusToggle"
-                                class="h-5 w-5 text-green-600 rounded focus:ring-green-500"
-                                {{ old('fnonactive', $product->fnonactive) == '1' ? 'checked' : '' }}>
-                        </label>
                     </div>
                 </div>
-                <br>
-                <!-- Tombol Aksi -->
-                <div class="mt-6 flex justify-center space-x-4">
-                    <!-- Simpan -->
-                    <button type="submit"
-                        class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
-                        <x-heroicon-o-check class="w-5 h-5 mr-2" />
-                        Simpan
-                    </button>
 
-                    <!-- Keluar -->
-                    <button type="button" @click="window.location.href='{{ route('product.index') }}'"
+                <div class="mt-6 flex justify-center space-x-4">
+                    <button type="button" onclick="showDeleteModal()"
+                        class="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700 flex items-center">
+                        <x-heroicon-o-trash class="w-5 h-5 mr-2" />
+                        Hapus
+                    </button>
+                    <button type="button" onclick="window.location.href='{{ route('rekening.index') }}'"
                         class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
                         <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" />
-                        Keluar
+                        Kembali
                     </button>
                 </div>
-                <br>
-                <hr>
-                <br>
-                @php
-                    $lastUpdate = $product->fupdatedat ?: $product->fcreatedat;
-                    $isUpdated = !empty($product->fupdatedat);
-                @endphp
 
-                <span class="text-sm text-gray-600 md:col-span-2 flex justify-between items-center">
-                    <strong>{{ auth('sysuser')->user()->fname ?? '—' }}</strong>
+                {{-- ============================================ --}}
+                {{-- MODE EDIT: FORM EDITABLE                    --}}
+                {{-- ============================================ --}}
+            @else
+                <form action="{{ route('product.update', $product->fprdid) }}" method="POST">
+                    @csrf
+                    @method('PATCH')
+                    @php
+                        $isApproved = !empty($product->fapproval);
+                    @endphp
+                    <div>
+                        <!-- Group Produk Dropdown -->
+                        <div class="mt-2 w-1/2" x-data="{ isEditable: false }">
+                            <label class="block text-sm font-medium">Group Produk</label>
+                            <div class="flex items-center gap-2">
+                                <select name="fgroupcodeSelect" :disabled="!isEditable"
+                                    class="w-full border rounded px-3 py-2 @error('fgroupcode') border-red-500 @enderror"
+                                    id="groupSelect">
+                                    <option value=""></option>
+                                    @foreach ($groups as $group)
+                                        <option value="{{ $group->fgroupid }}"
+                                            {{ old('fgroupcode', $product->fgroupcode) == $group->fgroupid ? 'selected' : '' }}>
+                                            {{ $group->fgroupname }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <input type="hidden" name="fgroupcode"
+                                    value="{{ old('fgroupcode', $product->fgroupcode) }}">
 
-                    <span class="ml-2 text-right">
-                        {{ \Carbon\Carbon::parse($lastUpdate)->timezone('Asia/Jakarta')->format('d M Y, H:i:s') }}
-                    </span>
-                </span>
-            </form>
+                                <!-- Add Group Produk (Icon Button) -->
+                                <button type="button" @click="isEditable = true; $dispatch('open-group-modal')"
+                                    class="whitespace-nowrap bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700">
+                                    <i class="fa fa-plus"></i>
+                                </button>
+
+                                <!-- Browse Group (Icon Button) -->
+                                <button type="button" @click="window.dispatchEvent(new CustomEvent('group-browse-open'))"
+                                    class="whitespace-nowrap bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700">
+                                    <i class="fa fa-search"></i>
+                                </button>
+                            </div>
+
+                            @error('fgroupcode')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <!-- Merek Dropdown -->
+                        <div class="mt-2 w-1/2" x-data="{ isMerekEditable: false }">
+                            <label class="block text-sm font-medium">Merek</label>
+                            <div class="flex items-center gap-2">
+                                <select name="fmerekSelect" :disabled="!isMerekEditable"
+                                    class="w-full border rounded px-3 py-2 @error('fmerek') border-red-500 @enderror"
+                                    id="merkSelect">
+                                    <option value=""></option>
+                                    @foreach ($merks as $merk)
+                                        <option value="{{ $merk->fmerekid }}"
+                                            {{ old('fmerek', $product->fmerek) == $merk->fmerekid ? 'selected' : '' }}>
+                                            {{ $merk->fmerekname }}
+                                        </option>
+                                    @endforeach
+                                </select>
+
+                                <input type="hidden" name="fmerek" id="fmerek" value="{{ old('fmerek') }}">
+
+                                <!-- Button Tambah Merek -->
+                                <button type="button" @click="isMerekEditable = true; $dispatch('open-merk-modal')"
+                                    class="whitespace-nowrap bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700">
+                                    <i class="fa fa-plus"></i>
+
+                                    <!-- Button Browse Merek -->
+                                    <button type="button"
+                                        @click="window.dispatchEvent(new CustomEvent('merek-browse-open'))"
+                                        class="whitespace-nowrap bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700">
+                                        <i class="fa fa-search"></i>
+                                    </button>
+                            </div>
+                            @error('fmerek')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <!-- Kode Product -->
+                        <div class="mt-2 w-1/3">
+                            <label class="block text-sm font-medium">Kode Product</label>
+                            <input type="text" name="fprdcode" id="fprdcode"
+                                value="{{ old('fprdcode', $product->fprdcode) }}"
+                                class="w-full border rounded px-3 py-2 uppercase @error('fprdcode') border-red-500 @enderror">
+                            @error('fprdcode')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div x-show="open" x-transition.opacity x-cloak
+                            class="fixed inset-0 z-50 flex items-center justify-center">
+                            <div class="absolute inset-0 bg-black/40" @click="open = false"></div>
+                            <div
+                                class="relative bg-white rounded-2xl shadow-xl w-[92vw] max-w-4xl max-h-[85vh] flex flex-col">
+                                <div class="p-4 border-b flex items-center gap-3">
+                                    <h3 class="text-lg font-semibold">Browse Merek</h3>
+                                    <div class="ml-auto flex items-center gap-2">
+                                        <input type="text" x-model="keyword" @keydown.enter.prevent="search()"
+                                            placeholder="Cari kode / nama…" class="border rounded px-3 py-2 w-64">
+                                        <button type="button" @click="search()"
+                                            class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Search</button>
+                                    </div>
+                                </div>
+
+                                <div class="p-3 border-t flex items-center gap-2">
+                                    <div class="text-sm text-gray-600"><span
+                                            x-text="`Page ${page} / ${lastPage} • Total ${total}`"></span></div>
+                                    <div class="ml-auto flex items-center gap-2">
+                                        <button type="button" @click="prev()" :disabled="page <= 1"
+                                            class="px-3 py-1 rounded border"
+                                            :class="page <= 1 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' :
+                                                'bg-gray-100 hover:bg-gray-200'">Prev</button>
+                                        <button type="button" @click="next()" :disabled="page >= lastPage"
+                                            class="px-3 py-1 rounded border"
+                                            :class="page >= lastPage ? 'bg-gray-200 text-gray-400 cursor-not-allowed' :
+                                                'bg-gray-100 hover:bg-gray-200'">Next</button>
+                                        <button type="button" @click="open = false"
+                                            class="px-3 py-1 rounded border bg-gray-100 hover:bg-gray-200">Close</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Nama Product -->
+                        <div class="mt-2 w-1/2">
+                            <label class="block text-sm font-medium">Nama Product</label>
+                            <input type="text" name="fprdname" id="fprdname"
+                                value="{{ old('fprdname', $product->fprdname) }}"
+                                class="w-full border rounded px-3 py-2 uppercase @error('fprdname') border-red-500 @enderror"
+                                autofocus>
+                            @error('fprdname')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <!-- Barcode -->
+                        <div class="mt-2 w-1/3">
+                            <label class="block text-sm font-medium">Barcode</label>
+                            <input type="text" name="fbarcode" value="{{ old('fbarcode', $product->fbarcode) }}"
+                                class="w-full border rounded px-3 py-2 @error('fbarcode') border-red-500 @enderror">
+                            @error('fbarcode')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div id="satuan-container">
+
+                            {{-- Satuan Kecil --}}
+                            <div class="mt-2 w-1/4">
+                                <label class="block text-sm font-medium">Satuan Kecil</label>
+                                <select
+                                    class="w-full border rounded px-3 py-2 @error('fsatuankecil') border-red-500 @enderror"
+                                    name="fsatuankecil" id="fsatuankecil" onchange="updateSatuanLogic();">
+                                    <option value="" selected> Pilih Satuan 1</option>
+                                    @foreach ($satuan as $satu)
+                                        <option value="{{ $satu->fsatuancode }}"
+                                            {{ old('fsatuankecil', $product->fsatuankecil) == $satu->fsatuancode ? 'selected' : '' }}>
+                                            {{ $satu->fsatuancode }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('fsatuankecil')
+                                    <div class="text-red-600 text-sm mt-1">
+                                        {{ $message }}
+                                    </div>
+                                @enderror
+                            </div>
+
+                            {{-- Satuan 2 --}}
+                            <div id="satuan2-block" style="display: none;">
+                                <div class="flex items-end gap-4">
+                                    <div class="w-1/3">
+                                        <label class="block text-sm font-medium">Satuan 2</label>
+                                        <select
+                                            class="w-full border rounded px-3 py-2 @error('fsatuanbesar') border-red-500 @enderror"
+                                            name="fsatuanbesar" id="fsatuanbesar" disabled
+                                            onchange="updateSatuanLogic();">
+                                            <option value="" selected>Pilih Satuan 2</option>
+                                            @foreach ($satuan as $satu)
+                                                <option value="{{ $satu->fsatuancode }}"
+                                                    data-name="{{ $satu->fsatuanname }}"
+                                                    {{ old('fsatuanbesar', $product->fsatuanbesar) == $satu->fsatuancode ? 'selected' : '' }}>
+                                                    {{ $satu->fsatuancode }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        @error('fsatuanbesar')
+                                            <div class="text-red-600 text-sm mt-1">
+                                                {{ $message }}
+                                            </div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="w-1/6">
+                                        <label class="block text-sm font-medium">Isi</label>
+                                        <div class="flex items-baseline gap-2">
+                                            <input type="number"
+                                                class="w-full border rounded px-3 py-2 @error('fqtykecil') border-red-500 @enderror"
+                                                name="fqtykecil" id="fqtykecil"
+                                                value="{{ old('fqtykecil', $product->fqtykecil) }}">
+                                            <span id="satuanKecilTarget"
+                                                class="satuan-kecil-display text-gray-700 font-semibold whitespace-nowrap">
+                                            </span>
+                                        </div>
+                                        @error('fqtykecil')
+                                            <div class="text-red-600 text-sm mt-1">
+                                                {{ $message }}
+                                            </div>
+                                        @enderror
+                                    </div>
+                                    <div class="w-1/6">
+                                        <label id="fsatuanname-label"
+                                            class="block text-sm font-medium text-red-500 font-bold"></label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Satuan 3 --}}
+                            <div id="satuan3-block" style="display: none;">
+                                <div class="flex items-end gap-4">
+                                    <div class="w-1/3">
+                                        <label class="block text-sm font-medium">Satuan 3</label>
+                                        <select
+                                            class="w-full border rounded px-3 py-2 @error('fsatuanbesar2') border-red-500 @enderror"
+                                            name="fsatuanbesar2" id="fsatuanbesar2"
+                                            data-select2-id="select2-data-fsatuanbesar2" tabindex="-1"
+                                            aria-hidden="true">
+                                            <option value="" selected>Pilih Satuan 3</option>
+                                            @foreach ($satuan as $satu)
+                                                <option value="{{ $satu->fsatuancode }}"
+                                                    data-name="{{ $satu->fsatuanname }}"
+                                                    {{ old('fsatuanbesar2', $product->fsatuanbesar2) == $satu->fsatuancode ? 'selected' : '' }}>
+                                                    {{ $satu->fsatuancode }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        @error('fsatuanbesar2')
+                                            <div class="text-red-600 text-sm mt-1">
+                                                {{ $message }}
+                                            </div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="w-1/6">
+                                        <label class="block text-sm font-medium">Isi</label>
+                                        <div class="flex items-baseline gap-2">
+                                            <input type="number"
+                                                class="w-full border rounded px-3 py-2 @error('fqtykecil2') border-red-500 @enderror"
+                                                name="fqtykecil2" id="fqtykecil2"
+                                                value="{{ old('fqtykecil2', $product->fqtykecil2) }}">
+                                            <span id="satuanKecilTarget"
+                                                class="satuan-kecil-display text-gray-700 font-semibold whitespace-nowrap">
+                                            </span>
+                                        </div>
+                                        @error('fqtykecil2')
+                                            <div class="text-red-600 text-sm mt-1">
+                                                {{ $message }}
+                                            </div>
+                                        @enderror
+                                    </div>
+                                    <div class="w-1/6">
+                                        <label id="fsatuanname-label-2"
+                                            class="block text-sm font-medium text-red-500 font-bold"></label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Satuan Default Dropdown -->
+                        <div class="mt-2 w-1/4">
+                            <label class="block text-sm font-medium">Satuan Default</label>
+                            <select name="fsatuandefault"
+                                class="w-full border rounded px-3 py-2 @error('fsatuandefault') border-red-500 @enderror">
+                                <option value="1"
+                                    {{ old('fsatuandefault', $product->fsatuandefault) == '1' ? 'selected' : '' }}>Satuan 1
+                                </option>
+                                <option value="2"
+                                    {{ old('fsatuandefault', $product->fsatuandefault) == '2' ? 'selected' : '' }}>Satuan 2
+                                </option>
+                                <option value="3"
+                                    {{ old('fsatuandefault', $product->fsatuandefault) == '3' ? 'selected' : '' }}>Satuan 3
+                                </option>
+                            </select>
+                            @error('fsatuandefault')
+                                <div class="text-red-600 text-sm mt-1">
+                                    {{ $message }}
+                                </div>
+                            @enderror
+                        </div>
+
+                        <!-- Harga Pokok Produksi -->
+                        <div class="mt-2 w-1/4">
+                            <label class="block text-sm font-medium">Harga Pokok Produksi</label>
+                            <input type="text" name="fhpp" id="fhpp"
+                                value="{{ old('fhpp', $product->fhpp) }}"
+                                class="w-full border rounded px-3 py-2 @error('fhpp') border-red-500 @enderror">
+                            @error('fhpp')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <!-- Harga Satuan 3 Level 1 -->
+                            <div>
+                                <label for="fhargasatuankecillevel1" class="block text-sm font-medium">HJ. Kecil Level
+                                    1</label>
+                                <div class="d-flex">
+                                    <input type="text"
+                                        class="w-1/10 border rounded px-3 py-2 @error('fhargasatuankecillevel1') is-invalid @enderror"
+                                        name="fhargasatuankecillevel1" id="fhargasatuankecillevel1"
+                                        value="{{ old('fhargasatuankecillevel1', $product->fhargasatuankecillevel1) }}">
+                                    @error('fhargasatuankecillevel1')
+                                        <div class="text-red-600 text-sm mt-1">
+                                            {{ $message }}
+                                        </div>
+                                    @enderror
+                                </div>
+                            </div>
+
+                            <!-- Harga Satuan 3 Level 2 -->
+                            <div>
+                                <label for="fhargasatuankecillevel2" class="block text-sm font-medium">HJ. Kecil Level
+                                    2</label>
+                                <div class="d-flex">
+                                    <input type="text"
+                                        class="w-1/10 border rounded px-3 py-2 @error('fhargasatuankecillevel2') is-invalid @enderror"
+                                        name="fhargasatuankecillevel2" id="fhargasatuankecillevel2"
+                                        value="{{ old('fhargasatuankecillevel2', $product->fhargasatuankecillevel2) }}">
+                                    @error('fhargasatuankecillevel2')
+                                        <div class="text-red-600 text-sm mt-1">
+                                            {{ $message }}
+                                        </div>
+                                    @enderror
+                                </div>
+                            </div>
+
+                            <!-- Harga Satuan 3 Level 3 -->
+                            <div>
+                                <label for="fhargasatuankecillevel3" class="block text-sm font-medium">HJ. Kecil Level
+                                    3</label>
+                                <div class="d-flex">
+                                    <input type="text"
+                                        class="w-1/10 border rounded px-3 py-2 @error('fhargasatuankecillevel3') is-invalid @enderror"
+                                        name="fhargasatuankecillevel3" id="fhargasatuankecillevel3"
+                                        value="{{ old('fhargasatuankecillevel3', $product->fhargasatuankecillevel3) }}">
+                                    @error('fhargasatuankecillevel3')
+                                        <div class="text-red-600 text-sm mt-1">
+                                            {{ $message }}
+                                        </div>
+                                    @enderror
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <!-- Harga Satuan 2 Level 1 -->
+                            <div>
+                                <label for="fhargajuallevel1" class="block text-sm font-medium">HJ. Besar Level
+                                    1</label>
+                                <div class="d-flex">
+                                    <input type="text"
+                                        class="w-1/10 border rounded px-3 py-2 @error('fhargajuallevel1') is-invalid @enderror"
+                                        name="fhargajuallevel1" id="fhargajuallevel1"
+                                        value="{{ old('fhargajuallevel1', $product->fhargajuallevel1) }}">
+                                    @error('fhargajuallevel1')
+                                        <div class="text-red-600 text-sm mt-1">
+                                            {{ $message }}
+                                        </div>
+                                    @enderror
+                                </div>
+                            </div>
+
+                            <!-- Harga Satuan 2 Level 2 -->
+                            <div>
+                                <label for="fhargajuallevel2" class="block text-sm font-medium">HJ. Besar Level
+                                    2</label>
+                                <div class="d-flex">
+                                    <input type="text"
+                                        class="w-1/10 border rounded px-3 py-2 @error('fhargajuallevel2') is-invalid @enderror"
+                                        name="fhargajuallevel2" id="fhargajuallevel2"
+                                        value="{{ old('fhargajuallevel2', $product->fhargajuallevel2) }}">
+                                    @error('fhargajuallevel2')
+                                        <div class="text-red-600 text-sm mt-1">
+                                            {{ $message }}
+                                        </div>
+                                    @enderror
+                                </div>
+                            </div>
+
+                            <!-- Harga Satuan 2 Level 3 -->
+                            <div>
+                                <label for="fhargajuallevel3" class="block text-sm font-medium">HJ. Besar Level
+                                    3</label>
+                                <div class="d-flex">
+                                    <input type="text"
+                                        class="w-1/10 border rounded px-3 py-2 @error('fhargajuallevel3') is-invalid @enderror"
+                                        name="fhargajuallevel3" id="fhargajuallevel3"
+                                        value="{{ old('fhargajuallevel3', $product->fhargajuallevel3) }}">
+                                    @error('fhargajuallevel3')
+                                        <div class="text-red-600 text-sm mt-1">
+                                            {{ $message }}
+                                        </div>
+                                    @enderror
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Min.Stok -->
+                        <div class="mt-2 w-1/4">
+                            <label class="block text-sm font-medium">Min.Stok</label>
+                            <div class="flex items-baseline">
+                                <input type="text" name="fminstock"
+                                    value="{{ old('fminstock', $product->fminstock) }}"
+                                    class="w-full border rounded px-3 py-2 @error('fminstock') border-red-500 @enderror">
+                                <span id="satuanKecilTarget"
+                                    class="satuan-kecil-display text-gray-700 font-semibold whitespace-nowrap">
+                                </span>
+                            </div>
+                            @error('fminstock')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        {{-- Jenis --}}
+                        <div class="mt-2 w-1/4">
+                            <label class="block text-sm font-medium">Jenis</label>
+                            <select name="ftype"
+                                class="w-full border rounded px-3 py-2 @error('ftype') border-red-500 @enderror">
+                                <option value="Produk" {{ old('ftype', $product->ftype) == 'Produk' ? 'selected' : '' }}>
+                                    Product</option>
+                                <option value="Jasa" {{ old('ftype', $product->ftype) == 'Jasa' ? 'selected' : '' }}>
+                                    Jasa</option>
+                            </select>
+                            @error('ftype')
+                                <div class="text-red-600 text-sm mt-1">
+                                    {{ $message }}
+                                </div>
+                            @enderror
+                        </div>
+
+                        <div class="md:col-span-2 flex justify-center items-center space-x-2">
+                            <fieldset {{ $isApproved ? 'disabled' : '' }}>
+                                <div class="flex items-center space-x-2">
+                                    <label class="text-sm font-medium">Approval</label>
+                                    <label class="switch">
+                                        <input type="checkbox" name="approve_now" id="approvalToggle"
+                                            {{ !empty($product->fapproval) ? 'checked' : '' }}>
+                                        <span class="slider round"></span>
+                                    </label>
+                                </div>
+                            </fieldset>
+                        </div>
+                        <br>
+                        <div class="flex justify-center mt-4">
+                            <label for="statusToggle"
+                                class="flex items-center justify-between w-40 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition">
+                                <span class="text-sm font-medium">Non Aktif</span>
+                                <input type="checkbox" name="fnonactive" id="statusToggle"
+                                    class="h-5 w-5 text-green-600 rounded focus:ring-green-500"
+                                    {{ old('fnonactive', $product->fnonactive) == '1' ? 'checked' : '' }}>
+                            </label>
+                        </div>
+                    </div>
+                    <br>
+                    <!-- Tombol Aksi -->
+                    <div class="mt-6 flex justify-center space-x-4">
+                        <!-- Simpan -->
+                        <button type="submit"
+                            class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
+                            <x-heroicon-o-check class="w-5 h-5 mr-2" />
+                            Simpan
+                        </button>
+
+                        <!-- Keluar -->
+                        <button type="button" @click="window.location.href='{{ route('product.index') }}'"
+                            class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
+                            <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" />
+                            Keluar
+                        </button>
+                    </div>
+                    @php
+                        $lastUpdate = $product->fupdatedat ?: $product->fcreatedat;
+                        $isUpdated = !empty($product->fupdatedat);
+                    @endphp
+                </form>
+            @endif
+            <br>
+            <hr><br>
+            <span class="text-sm text-gray-600 flex justify-between items-center">
+                <strong>{{ auth('sysuser')->user()->fname ?? '—' }}</strong>
+                <span>{{ \Carbon\Carbon::parse($product->fupdatedat ?: $product->fcreatedat)->timezone('Asia/Jakarta')->format('d M Y, H:i:s') }}</span>
+            </span>
         </div>
     </div>
+
+    {{-- ============================================ --}}
+    {{-- MODAL & TOAST (HANYA UNTUK MODE DELETE)     --}}
+    {{-- ============================================ --}}
+    @if ($action === 'delete')
+        {{-- Modal Delete --}}
+        <div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
+                <h3 class="text-lg font-semibold mb-4">Konfirmasi Hapus</h3>
+                <p class="mb-2 font-medium">Hapus product ini?</p>
+                <p class="mb-1 text-sm text-gray-600">Kode: <strong>{{ $product->fprdcode }}</strong></p>
+                <p class="mb-6 text-sm text-gray-600">Nama: <strong>{{ $product->fprdname }}</strong></p>
+
+                <div class="flex justify-end space-x-2">
+                    <button onclick="closeDeleteModal()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                        id="btnTidak">
+                        Tidak
+                    </button>
+                    <button onclick="confirmDelete()" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                        id="btnYa">
+                        Ya, Hapus
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        {{-- Toast Notification --}}
+        <div id="toast" class="hidden fixed top-4 right-4 z-50 max-w-sm">
+            <div id="toastContent" class="text-white px-6 py-4 rounded-lg shadow-lg flex items-center">
+                <span id="toastMessage"></span>
+                <button onclick="closeToast()" class="ml-4 text-white hover:text-gray-200">×</button>
+            </div>
+        </div>
+
+        <script>
+            // Tampilkan Modal
+            function showDeleteModal() {
+                document.getElementById('deleteModal').classList.remove('hidden');
+            }
+
+            // Tutup Modal
+            function closeDeleteModal() {
+                document.getElementById('deleteModal').classList.add('hidden');
+            }
+
+            // Tutup Toast
+            function closeToast() {
+                document.getElementById('toast').classList.add('hidden');
+            }
+
+            // Tampilkan Toast
+            function showToast(message, isSuccess = true) {
+                const toast = document.getElementById('toast');
+                const toastContent = document.getElementById('toastContent');
+                const toastMessage = document.getElementById('toastMessage');
+
+                toastMessage.textContent = message;
+                toastContent.className = isSuccess ?
+                    'bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg flex items-center' :
+                    'bg-red-500 text-white px-6 py-4 rounded-lg shadow-lg flex items-center';
+
+                toast.classList.remove('hidden');
+            }
+
+            // Konfirmasi Delete
+            function confirmDelete() {
+                const btnYa = document.getElementById('btnYa');
+                const btnTidak = document.getElementById('btnTidak');
+
+                // Disable buttons
+                btnYa.disabled = true;
+                btnTidak.disabled = true;
+                btnYa.textContent = 'Menghapus...';
+
+                // Kirim request delete
+                fetch('{{ route('product.destroy', $product->fprdid) }}', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            _method: 'DELETE'
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        closeDeleteModal();
+                        showToast(data.message || 'Data berhasil dihapus', true);
+
+                        // Redirect ke index setelah 1.5 detik
+                        setTimeout(() => {
+                            window.location.href = '{{ route('product.index') }}';
+                        }, 1500);
+                    })
+                    .catch(error => {
+                        btnYa.disabled = false;
+                        btnTidak.disabled = false;
+                        btnYa.textContent = 'Ya, Hapus';
+                        showToast('Terjadi kesalahan saat menghapus data', false);
+                    });
+            }
+        </script>
+    @endif
 
     <div x-data="{
         open: false,
@@ -814,8 +1414,8 @@
             </div>
         </div>
     </div>
-
 @endsection
+
 @push('styles')
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
 @endpush

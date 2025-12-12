@@ -73,11 +73,13 @@
                                 @endif
 
                                 @if ($canDelete)
-                                    <button @click="openDelete('{{ route('wilayah.destroy', $item->fwilayahid) }}', $event)"
-                                        class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
-                                        <x-heroicon-o-trash class="w-4 h-4 mr-1" />
-                                        Hapus
-                                    </button>
+                                    <a href="{{ route('wilayah.delete', $item->fwilayahid) }}">
+                                        <button
+                                            class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                                            <x-heroicon-o-trash class="w-4 h-4 mr-1" />
+                                            Hapus
+                                        </button>
+                                    </a>
                                 @endif
                             </td>
                         @endif

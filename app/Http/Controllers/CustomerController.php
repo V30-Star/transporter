@@ -261,7 +261,15 @@ class CustomerController extends Controller
         $rekening = Rekening::where('fnonactive', 0)->get();
         $newCustomerCode = $this->generateCustomerCode();
 
-        return view('master.customer.edit', compact('customer', 'groups', 'salesman', 'wilayah', 'rekening', 'newCustomerCode'));
+        return view('master.customer.edit', [
+            'customer' => $customer,
+            'groups' => $groups,
+            'salesman' => $salesman,
+            'wilayah' => $wilayah,
+            'rekening' => $rekening,
+            'newCustomerCode' => $newCustomerCode,
+            'action' => 'edit'
+        ]);
     }
 
     // Update method to save the updated customer data in the database
@@ -362,21 +370,42 @@ class CustomerController extends Controller
             ->with('success', 'Customer berhasil di-update.');
     }
 
-    public function destroy($fcustomerid)
+    public function delete($fcustomerid)
     {
         $customer = Customer::findOrFail($fcustomerid);
-        $customer->delete();
-        if (request()->wantsJson()) {
+        $groups = Groupcustomer::where('fnonactive', 0)->get();
+        $salesman = Salesman::where('fnonactive', 0)->get();
+        $wilayah = Wilayah::where('fnonactive', 0)->get();
+        $rekening = Rekening::where('fnonactive', 0)->get();
+        $newCustomerCode = $this->generateCustomerCode();
+
+        return view('master.customer.edit', [
+            'customer' => $customer,
+            'groups' => $groups,
+            'salesman' => $salesman,
+            'wilayah' => $wilayah,
+            'rekening' => $rekening,
+            'newCustomerCode' => $newCustomerCode,
+            'action' => 'delete'
+        ]);
+    }
+
+    public function destroy($fcustomerid)
+    {
+        try {
+            $customer = Customer::findOrFail($fcustomerid);
+            $customer->delete();
+
             return response()->json([
                 'success' => true,
-                'message' => 'Customer berhasil dihapus.'
+                'message' => 'Data customer berhasil dihapus'
             ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus data: ' . $e->getMessage()
+            ], 500);
         }
-
-
-        return redirect()
-            ->route('customer.index')
-            ->with('success', 'Customer berhasil dihapus.');
     }
 
     public function suggestNames(Request $request)
