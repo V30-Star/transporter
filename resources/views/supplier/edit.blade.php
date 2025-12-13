@@ -4,10 +4,6 @@
 
 @section('content')
     <div class="bg-white rounded shadow p-6 md:p-8 max-w-5xl mx-auto">
-        {{-- HEADER --}}
-        <h2 class="text-2xl font-bold mb-6 text-center">
-            {{ $action === 'delete' ? 'Data Supplier' : 'Edit Supplier' }}
-        </h2>
 
         @if ($action === 'delete')
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
@@ -334,10 +330,7 @@
         {{-- Modal Delete --}}
         <div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
-                <h3 class="text-lg font-semibold mb-4">Konfirmasi Hapus</h3>
-                <p class="mb-2 font-medium">Hapus supplier ini?</p>
-                <p class="mb-1 text-sm text-gray-600">Kode: <strong>{{ $supplier->fsuppliercode }}</strong></p>
-                <p class="mb-6 text-sm text-gray-600">Nama: <strong>{{ $supplier->fsuppliername }}</strong></p>
+                <h3 class="text-lg font-semibold mb-4">Konfirmasi hapus supplier ini?</h3>
 
                 <div class="flex justify-end space-x-2">
                     <button onclick="closeDeleteModal()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"

@@ -310,8 +310,9 @@ class PemakaianbarangController extends Controller
     $supplier = Supplier::all();
 
     $accounts = DB::table('account')
-      ->select('faccid', 'faccount', 'faccname', 'fnonactive')
+      ->select('faccid', 'faccount', 'faccname', 'fnonactive', 'fhavesubaccount')
       ->where('fnonactive', '0')
+      ->where('fhavesubaccount', '1')
       ->orderBy('account')
       ->get();
 

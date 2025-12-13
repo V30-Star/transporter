@@ -300,7 +300,7 @@
                                         </td>
 
                                         <td class="p-2">
-                                            <select class="w-full border rounded px-2 py-1" :value="editRow.faccid"
+                                            <select class="w-full border rounded px-2 py-1 select2" :value="editRow.faccid"
                                                 @input="updateAccount(editRow, $event.target.value, $event.target.options[$event.target.selectedIndex].dataset.name)">
                                                 <option value="">Pilih Akun</option>
                                                 <template x-for="acc in accounts" :key="acc.faccid">
@@ -311,7 +311,7 @@
                                         </td>
 
                                         <td class="p-2">
-                                            <select class="w-full border rounded px-2 py-1" :value="editRow.fsubaccountid"
+                                            <select class="w-full border rounded px-2 py-1 select2" :value="editRow.fsubaccountid"
                                                 @input="updateSubAccount(editRow, $event.target.value, $event.target.options[$event.target.selectedIndex].dataset.name)">
                                                 <option value="">Pilih Sub Akun</option>
                                                 <template x-for="sacc in subaccounts" :key="sacc.fsubaccountid">
@@ -407,7 +407,7 @@
                                         </td>
 
                                         <td class="p-2">
-                                            <select class="w-full border rounded px-2 py-1" :value="draft.faccid"
+                                            <select class="w-full border rounded px-2 py-1 select2" :value="draft.faccid"
                                                 @input="updateAccount(draft, $event.target.value, $event.target.options[$event.target.selectedIndex].dataset.name)">
                                                 <option value="">Pilih Akun</option>
                                                 <template x-for="acc in accounts" :key="acc.faccid">
@@ -418,7 +418,8 @@
                                         </td>
 
                                         <td class="p-2">
-                                            <select class="w-full border rounded px-2 py-1" :value="draft.fsubaccountid"
+                                            <select class="w-full border rounded px-2 py-1 select2"
+                                                :value="draft.fsubaccountid"
                                                 @input="updateSubAccount(draft, $event.target.value, $event.target.options[$event.target.selectedIndex].dataset.name)">
                                                 <option value="">Pilih Sub Akun</option>
                                                 <template x-for="sacc in subaccounts" :key="sacc.fsubaccountid">
@@ -716,8 +717,17 @@
 @push('scripts')
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <script>
+        $(document).ready(function() {
+            $('.select2').select2({
+                width: '100%'
+            });
+        });
+
         // Map produk untuk auto-fill tabel
         window.PRODUCT_MAP = {
             @foreach ($products as $p)
@@ -933,7 +943,7 @@
 
                     const dupe = this.savedItems.find(it =>
                         it.fitemcode === r.fitemcode &&
-                        it.fsatuan === r.fsatuan &&  (it.fdesc || '') === (r.fdesc || '') &&
+                        it.fsatuan === r.fsatuan && (it.fdesc || '') === (r.fdesc || '') &&
                         (it.frefpr || '') === (r.frefpr || '')
                     );
 
