@@ -171,6 +171,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/tr_prh',        [Tr_prhController::class, 'store'])->name('tr_prh.store');
         Route::get('/tr_prh/create', [Tr_prhController::class, 'create'])->name('tr_prh.create');
         Route::get('/tr_prh/{fprid}/edit', [Tr_prhController::class, 'edit'])->name('tr_prh.edit');
+        Route::get('/tr_prh/{fprid}/view', [Tr_prhController::class, 'view'])->name('tr_prh.view');
         Route::get('/tr_prh/{fprid}/delete', [Tr_prhController::class, 'delete'])->name('tr_prh.delete');
         Route::patch('/tr_prh/{fprid}', [Tr_prhController::class, 'update'])->name('tr_prh.update');
         Route::delete('/tr_prh/{fprid}', [Tr_prhController::class, 'destroy'])->name('tr_prh.destroy');

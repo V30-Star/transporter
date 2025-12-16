@@ -563,6 +563,89 @@ class Tr_prhController extends Controller
     ]);
   }
 
+  public function view(Request $request, $fprid)
+  {
+    $suppliers = Supplier::orderBy('fsuppliername', 'asc')
+      ->get(['fsupplierid', 'fsuppliername']);
+
+    $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
+
+    $branch = DB::table('mscabang')
+      ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
+      ->when(!is_numeric($raw), fn($q) => $q
+        ->where('fcabangkode', $raw)
+        ->orWhere('fcabangname', $raw))
+      ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
+
+    $fcabang     = $branch->fcabangname ?? (string) $raw;   // tampilan
+    $fbranchcode = $branch->fcabangkode ?? (string) $raw;   // hidden post
+
+    $tr_prh = Tr_prh::with(['details' => function ($q) {
+      $q->leftJoin('msprd as p', 'p.fprdid', '=', 'tr_prd.fprdcode') // tr_prd.fprdcode = ID produk
+        ->orderBy('p.fprdname')
+        ->select(
+          'tr_prd.*',
+          'p.fprdcode as product_code',   // <- kode untuk tampilan
+          'p.fprdname  as product_name'   // <- nama untuk tampilan
+        );
+    }])->findOrFail($fprid);
+
+    // Map ke savedItems (agar cocok dengan table di Blade yang biasa kamu pakai)
+    $savedItems = $tr_prh->details->map(function ($d) {
+      return [
+        'uid'        => $d->fprdid,                    // PK detail untuk :key
+        'fitemcode'  => (string)($d->product_code ?? ''),    // KODE PRODUK (string)
+        'fitemname'  => (string)($d->product_name ?? ''),    // NAMA PRODUK
+        'fsatuan'    => (string)($d->fsatuan ?? ''),
+        'frefdtno'   => (string)($d->frefdtno ?? ''),
+        'fnouref'    => (string)($d->fnouref ?? ''),
+        'fqty'       => (float)($d->fqty ?? 0),
+        'fterima'    => (float)($d->fterima ?? 0),
+        'fprice'     => (float)($d->fprice ?? 0),
+        'fdisc'      => (float)($d->fdisc ?? 0),
+        'ftotal'     => (float)($d->famount ?? 0),
+        'fdesc'      => (string)($d->fdesc ?? ''),
+        'fketdt'     => (string)($d->fketdt ?? ''),
+        // kalau perlu kirim ID produk buat update:
+        'fprdid'     => (int)($d->fprdcode ?? 0),       // ini ID produk di kolom detail
+      ];
+    })->values();
+
+    // Fetch all products for product mapping
+    $products = Product::select(
+      'fprdid',
+      'fprdcode',
+      'fprdname',
+      'fsatuankecil',
+      'fsatuanbesar',
+      'fsatuanbesar2',
+      'fminstock'
+    )->orderBy('fprdname')->get();
+
+    // Prepare the product map for frontend
+    $productMap = $products->mapWithKeys(function ($p) {
+      return [
+        $p->fprdcode => [
+          'id'    => $p->fprdid,  // ⬅️ penting
+          'name'  => $p->fprdname,
+          'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
+          'stock' => $p->fminstock ?? 0,
+        ],
+      ];
+    })->toArray();
+
+    return view('tr_prh.view', [
+      'suppliers'      => $suppliers,
+      'fcabang'      => $fcabang,
+      'fbranchcode'  => $fbranchcode,
+      'products'     => $products,
+      'productMap'   => $productMap, // jika dipakai di Blade
+      'tr_prh'       => $tr_prh,     // <<— PENTING
+      'savedItems'  => $savedItems,   // <— tambahkan ini
+      'filterSupplierId' => $request->query('filter_supplier_id'),
+    ]);
+  }
+
   public function update(Request $request, int $fprid)
   {
     // ===== 1) AMBIL HEADER DULU =====
