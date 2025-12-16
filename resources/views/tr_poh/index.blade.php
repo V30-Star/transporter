@@ -307,58 +307,60 @@
 
             // Tambahkan kolom actions jika ada permission
             // if (hasActions) {
-                columns.push({
-                    data: 'fpohdid',
-                    name: 'actions',
-                    orderable: false,
-                    searchable: false,
-                    render: function(data, type, row) {
-                        let html = '<div class="flex gap-2">';
+            columns.push({
+                data: 'fpohdid',
+                name: 'actions',
+                orderable: false,
+                searchable: false,
+                render: function(data, type, row) {
+                    let html = '<div class="flex gap-2">';
 
-                        // Edit Button
-                        // if (canEdit) {
-                            html += `<a href="tr_poh/${data}/edit" class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
+                    // Edit Button
+                    // if (canEdit) {
+                    html += `<a href="tr_poh/${data}/edit" class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                             </svg>
                             Edit
                         </a>`;
-                        // }
+                    // }
 
-                        // Delete Button
-                        // if (canDelete) {
-                            html += `<button onclick="event.stopPropagation(); Alpine.store('tr_pohStore').openDelete('tr_poh/${data}', event)" 
-                            class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
-                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                            </svg>
-                            Hapus
-                        </button>`;
-                        // }
+                    // Delete Button
+                    // if (canDelete) {
+                    let deleteUrl = '{{ route('tr_poh.index') }}/' + data + '/delete';
+                    html += `<a href="${deleteUrl}">
+                                <button class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                    </svg>
+                                    Hapus
+                                </button>
+                            </a>`;
+                    // }
 
-                        // Print Button - Selalu tampil, pakai fpono
-                        html += `<a href="tr_poh/${row.fpono}/print" target="_blank" class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                    // Print Button - Selalu tampil, pakai fpono
+                    html += `<a href="tr_poh/${row.fpono}/print" target="_blank" class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m10 0v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5m10 0v5H7v-5"></path>
                         </svg>
                         Print
                     </a>`;
 
-                        html += '</div>';
-                        return html;
-                    }
-                });
+                    html += '</div>';
+                    return html;
+                }
+            });
             // }
 
             // 2. Definisi columnDefs
             const columnDefs = [];
             // if (hasActions) {
-                columnDefs.push({
-                    targets: -1,
-                    orderable: false,
-                    searchable: false,
-                    width: '280px'
-                });
+            columnDefs.push({
+                targets: -1,
+                orderable: false,
+                searchable: false,
+                width: '280px'
+            });
             // }
 
             // 3. Inisialisasi DataTables
@@ -392,7 +394,7 @@
 
                     // Clone filters
                     const $statusFilter = $('#statusFilterTemplate #statusFilterWrap').clone(true,
-                    true);
+                        true);
                     const $statusSelect = $statusFilter.find('select[data-role="status-filter"]');
                     $statusSelect.attr('id', 'statusFilterDT');
                     $toolbarSearch.append($statusFilter);

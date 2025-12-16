@@ -87,12 +87,15 @@ class PemakaianbarangController extends Controller
         // --- Tombol Delete ---
         // if ($canDelete) {
         // Asumsi route destroy Anda: pemakaianbarang.destroy
-        $deleteUrl = route('pemakaianbarang.destroy', $row->fstockmtid);
-        $actions .= ' <button @click="$dispatch(\'open-delete\', \'' . $deleteUrl . '\')" class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
-                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                </svg> Delete
-            </button>';
+        $deleteUrl = route('pemakaianbarang.delete', $row->fstockmtid);
+        $actions .= '<a href="' . $deleteUrl . '">
+                <button class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                    Hapus
+                </button>
+            </a>';
         // }
 
         // --- Tombol Print ---
@@ -792,6 +795,7 @@ class PemakaianbarangController extends Controller
       'ppnAmount'          => (float) ($pemakaianbarang->famountpopajak ?? 0),
       'famountponet'       => (float) ($pemakaianbarang->famountponet ?? 0),
       'famountpo'          => (float) ($pemakaianbarang->famountpo ?? 0),
+      'action' => 'edit'
     ]);
   }
 
@@ -1013,22 +1017,146 @@ class PemakaianbarangController extends Controller
       ->with('success', "Transaksi {$header->fstockmtno} berhasil diperbarui.");
   }
 
+  public function delete($fstockmtid)
+  {
+    $supplier = Supplier::all();
+
+    $accounts = DB::table('account')
+      ->select('faccid', 'faccount', 'faccname', 'fnonactive')
+      ->where('fnonactive', '0')
+      ->orderBy('account')
+      ->get();
+
+    $subaccounts = DB::table('mssubaccount')
+      ->select('fsubaccountid', 'fsubaccountcode', 'fsubaccountname')
+      ->where('fnonactive', '0')
+      ->orderBy('fsubaccountcode')
+      ->get();
+
+    $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
+
+    $branch = DB::table('mscabang')
+      ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
+      ->when(!is_numeric($raw), fn($q) => $q
+        ->where('fcabangkode', $raw)
+        ->orWhere('fcabangname', $raw))
+      ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
+
+    $warehouses = DB::table('mswh')
+      ->select('fwhid', 'fwhcode', 'fwhname', 'fbranchcode', 'fnonactive')
+      ->where('fnonactive', '0') // hanya yang aktif
+      ->orderBy('fwhcode')
+      ->get();
+
+    $fcabang     = $branch->fcabangname ?? (string) $raw;
+    $fbranchcode = $branch->fcabangkode ?? (string) $raw;
+
+    // 1. Ambil data Header (trstockmt) DAN relasi Details (trstockdt)
+    // Biarkan query ini. Sekarang $fstockmtid di sini adalah integer (misal: 8)
+    $pemakaianbarang = PenerimaanPembelianHeader::with([
+      'details' => function ($query) {
+        $query
+          ->join('msprd', 'msprd.fprdid', '=', 'trstockdt.fprdcode')
+          ->with(['account', 'subaccount']) // Eager load relasi
+          ->select(
+            'trstockdt.*',
+            'msprd.fprdname',
+            'msprd.fprdcode as fitemcode_text'
+          )
+          ->orderBy('trstockdt.fstockdtid', 'asc');
+      }
+    ])->findOrFail($fstockmtid);
+
+    // 4. Map the data for savedItems (sudah menggunakan data yang benar)
+    $savedItems = $pemakaianbarang->details->map(function ($d) {
+      return [
+        'uid' => $d->fstockdtid,
+        'fitemcode' => $d->fitemcode_text ?? '',
+        'fitemname' => $d->fprdname ?? '',
+        'fsatuan' => $d->fsatuan ?? '',
+        'fprno' => $d->frefpr ?? '-',
+        'frefpr' => $d->frefpr ?? null,
+        'frefso' => $d->frefso ?? null,
+        'fpono' => $d->fpono ?? null,
+        'famountponet' => $d->famountponet ?? null,
+        'famountpo' => $d->famountpo ?? null,
+        'frefdtno' => $d->frefdtno ?? null,
+        'fnouref' => $d->fnouref ?? null,
+        'fqty' => (float)($d->fqty ?? 0),
+        'fterima' => (float)($d->fterima ?? 0),
+        'fdisc' => (float)($d->fdiscpersen ?? 0),
+        'ftotal' => (float)($d->ftotprice ?? 0),
+        'fdesc' => is_array($d->fdesc) ? implode(', ', $d->fdesc) : ($d->fdesc ?? ''),
+        'fketdt' => $d->fketdt ?? '',
+        'units' => [],
+
+        // TAMBAHKAN INI - untuk JavaScript
+        'faccid' => $d->frefdtno ?? null,
+        'faccname' => $d->account ? $d->account->faccname : null,
+        'fsubaccountid' => $d->frefso ?? null,
+        'fsubaccountname' => $d->subaccount ? $d->subaccount->fsubaccountname : null,
+      ];
+    })->values();
+
+    // Sisa kode Anda sudah benar
+    $selectedSupplierCode = $pemakaianbarang->fsupplier;
+
+    $products = Product::select(
+      'fprdid',
+      'fprdcode',
+      'fprdname',
+      'fsatuankecil',
+      'fsatuanbesar',
+      'fsatuanbesar2',
+      'fminstock'
+    )->orderBy('fprdname')->get();
+
+    $productMap = $products->mapWithKeys(function ($p) {
+      return [
+        $p->fprdcode => [
+          'name'  => $p->fprdname,
+          'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
+          'stock' => $p->fminstock ?? 0,
+        ],
+      ];
+    })->toArray();
+
+    return view('pemakaianbarang.edit', [
+      'supplier'           => $supplier,
+      'selectedSupplierCode' => $selectedSupplierCode,
+      'fcabang'            => $fcabang,
+      'accounts'           => $accounts,
+      'subaccounts'        => $subaccounts,
+      'fbranchcode'        => $fbranchcode,
+      'warehouses'         => $warehouses,
+      'products'           => $products,
+      'productMap'         => $productMap,
+      'pemakaianbarang'    => $pemakaianbarang,
+      'savedItems'         => $savedItems,
+      'ppnAmount'          => (float) ($pemakaianbarang->famountpopajak ?? 0),
+      'famountponet'       => (float) ($pemakaianbarang->famountponet ?? 0),
+      'famountpo'          => (float) ($pemakaianbarang->famountpo ?? 0),
+      'action' => 'delete'
+    ]);
+  }
+
   public function destroy($fstockmtid)
   {
-    $pemakaianbarang = PenerimaanPembelianHeader::findOrFail($fstockmtid);
-    $pemakaianbarang->details()->delete();
+    try {
+      $pemakaianbarang = PenerimaanPembelianHeader::findOrFail($fstockmtid);
+      $pemakaianbarang->details()->delete();
 
-    // 2. Baru hapus header
-    $pemakaianbarang->delete();
-    if (request()->wantsJson()) {
+      // 2. Baru hapus header
+      $pemakaianbarang->delete();
       return response()->json([
         'success' => true,
-        'message' => 'Pemakaian Barang berhasil dihapus.'
+        'message' => 'Data Pemakaian Barang berhasil dihapus'
       ]);
+    } catch (\Exception $e) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Gagal menghapus data: ' . $e->getMessage()
+      ], 500);
     }
-
-    return redirect()
-      ->route('pemakaianbarang.index')
-      ->with('success', 'Pemakaian Barang Berhasil Dihapus.');
   }
 }

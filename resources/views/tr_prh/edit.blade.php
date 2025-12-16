@@ -155,8 +155,9 @@
 
                         <div class="lg:col-span-4">
                             <label class="block text-sm font-medium">Tanggal</label>
-                            <input disabled type="date" name="fprdate" value="{{ old('fprdate', $fmt($tr_prh->fprdate)) }}"
-                                class="w-full border rounded px-3 py-2 @error('fprdate') border-red-500 @enderror">
+                            <input disabled type="date" name="fprdate"
+                                value="{{ old('fprdate', $fmt($tr_prh->fprdate)) }}"
+                                class="w-full border rounded px-3 py-2 text-gray-700 @error('fprdate') border-red-500 @enderror">
                             @error('fprdate')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
@@ -164,8 +165,9 @@
 
                         <div class="lg:col-span-4">
                             <label class="block text-sm font-medium">Tanggal Dibutuhkan</label>
-                            <input type="date" name="fneeddate" value="{{ old('fneeddate', $fmt($tr_prh->fneeddate)) }}"
-                                class="w-full border rounded px-3 py-2 @error('fneeddate') border-red-500 @enderror">
+                            <input disabled type="date" name="fneeddate"
+                                value="{{ old('fneeddate', $fmt($tr_prh->fneeddate)) }}"
+                                class="w-full border rounded px-3 py-2 text-gray-700 @error('fneeddate') border-red-500 @enderror">
                             @error('fneeddate')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
@@ -173,8 +175,9 @@
 
                         <div class="lg:col-span-4">
                             <label class="block text-sm font-medium">Tanggal Paling Lambat</label>
-                            <input type="date" name="fduedate" value="{{ old('fduedate', $fmt($tr_prh->fduedate)) }}"
-                                class="w-full border rounded px-3 py-2 @error('fduedate') border-red-500 @enderror">
+                            <input disabled type="date" name="fduedate"
+                                value="{{ old('fduedate', $fmt($tr_prh->fduedate)) }}"
+                                class="w-full border rounded px-3 py-2 text-gray-700 @error('fduedate') border-red-500 @enderror">
                             @error('fduedate')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
@@ -182,7 +185,8 @@
 
                         <div class="lg:col-span-12">
                             <label class="block text-sm font-medium">Keterangan</label>
-                            <textarea name="fket" rows="3" class="w-full border rounded px-3 py-2 @error('fket') border-red-500 @enderror"
+                            <textarea readonly name="fket" rows="3"
+                                class="w-full border rounded px-3 py-2 text-gray-700 @error('fket') border-red-500 @enderror"
                                 placeholder="Tulis keterangan tambahan di sini...">{{ old('fket', $tr_prh->fket) }}</textarea>
                             @error('fket')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -205,7 +209,6 @@
                                         <th class="p-2 text-right w-28">Qty</th>
                                         <th class="p-2 text-right w-28">Qty PO</th>
                                         <th class="p-2 text-left w-56">Ket Item</th>
-                                        <th class="p-2 text-center w-28">Aksi</th>
                                     </tr>
                                 </thead>
 
@@ -229,14 +232,6 @@
                                             <td class="p-2 text-right" x-text="it.fqty"></td>
                                             <td class="p-2 text-right" x-text="it.fqtypo"></td>
                                             <td class="p-2" x-text="it.fketdt || '-'"></td>
-                                            <td class="p-2 text-center">
-                                                <div class="flex items-center justify-center gap-2 flex-wrap">
-                                                    <button type="button" @click="edit(i)"
-                                                        class="px-3 py-1 rounded text-xs bg-amber-100 text-amber-700 hover:bg-amber-200">Edit</button>
-                                                    <button type="button" @click="removeSaved(i)"
-                                                        class="px-3 py-1 rounded text-xs bg-red-100 text-red-600 hover:bg-red-200">Hapus</button>
-                                                </div>
-                                            </td>
 
                                             <!-- hidden inputs -->
                                             <td class="hidden">
@@ -332,15 +327,6 @@
                                                 x-model="editRow.fketdt" x-ref="editKet"
                                                 @keydown.enter.prevent="applyEdit()">
                                         </td>
-
-                                        <td class="p-2 text-center">
-                                            <div class="flex items-center justify-center gap-2 flex-wrap">
-                                                <button type="button" @click="applyEdit()"
-                                                    class="px-3 py-1 rounded text-xs bg-emerald-600 text-white">Simpan</button>
-                                                <button type="button" @click="cancelEdit()"
-                                                    class="px-3 py-1 rounded text-xs bg-gray-100">Batal</button>
-                                            </div>
-                                        </td>
                                     </tr>
 
                                     <!-- ROW EDIT DESC -->
@@ -358,87 +344,10 @@
                                         <td class="p-0"></td>
                                     </tr>
 
-                                    <!-- ROW DRAFT UTAMA -->
-                                    <tr class="border-t bg-green-50 align-top">
-                                        <td class="p-2" x-text="savedItems.length + 1"></td>
-
-                                        <td class="p-2">
-                                            <div class="flex">
-                                                <input type="text" class="flex-1 border rounded-l px-2 py-1 font-mono"
-                                                    x-ref="draftCode" x-model.trim="draft.fitemcode"
-                                                    @input="onCodeTypedRow(draft)"
-                                                    @keydown.enter.prevent="handleEnterOnCode('draft')">
-                                                <button type="button" @click="openBrowseFor('draft')"
-                                                    class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
-                                                    title="Cari Produk">
-                                                    <x-heroicon-o-magnifying-glass class="w-4 h-4" />
-                                                </button>
-                                                <a href="{{ route('product.create') }}" target="_blank" rel="noopener"
-                                                    class="border border-l-0 rounded-r px-2 py-1 bg-white hover:bg-gray-50"
-                                                    title="Tambah Produk">
-                                                    <x-heroicon-o-plus class="w-4 h-4" />
-                                                </a>
-                                            </div>
-                                        </td>
-
-                                        <td class="p-2">
-                                            <input type="text"
-                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
-                                                :value="draft.fitemname" disabled>
-                                        </td>
-
-                                        <td class="p-2">
-                                            <template x-if="draft.units.length > 1">
-                                                <select class="w-full border rounded px-2 py-1" x-ref="draftUnit"
-                                                    x-model="draft.fsatuan"
-                                                    @keydown.enter.prevent="$refs.draftQty?.focus()">
-                                                    <template x-for="u in draft.units" :key="u">
-                                                        <option :value="u" x-text="u"></option>
-                                                    </template>
-                                                </select>
-                                            </template>
-                                            <template x-if="draft.units.length <= 1">
-                                                <input type="text"
-                                                    class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
-                                                    :value="draft.fsatuan || '-'" disabled>
-                                            </template>
-                                        </td>
-
-                                        <td class="p-2 text-right">
-                                            <input type="number" class="border rounded px-2 py-1 w-24 text-right"
-                                                min="1" :max="draft.maxqty || null" step="1"
-                                                x-model.number="draft.fqty" x-ref="draftQty"
-                                                @focus="$event.target.select()" @input="enforceQtyRow(draft)"
-                                                @keydown.enter.prevent="$refs.draftKet?.focus()">
-                                        </td>
-
-                                        <td class="p-2 text-right">
-                                            <input type="number" class="w-full border rounded px-2 py-1 text-gray-600"
-                                                min="0" step="1" x-model.number="draft.fqtypo" disabled>
-                                        </td>
-
-                                        <td class="p-2">
-                                            <input type="text" class="border rounded px-2 py-1 w-full"
-                                                x-model="draft.fketdt" x-ref="draftKet"
-                                                @keydown.enter.prevent="addIfComplete()">
-                                        </td>
-
-                                        <td class="p-2 text-center">
-                                            <div class="flex items-center justify-center gap-2 flex-wrap">
-                                                <button type="button" @click="addIfComplete()"
-                                                    class="px-3 py-1 rounded text-xs bg-emerald-600 text-white">Tambah</button>
-                                            </div>
-                                        </td>
-                                    </tr>
-
                                     <!-- ROW DRAFT DESC -->
                                     <tr class="bg-green-50 border-b">
                                         <td class="p-0"></td>
                                         <td class="p-0"></td>
-                                        <td class="p-2">
-                                            <textarea x-model="draft.fdesc" rows="2" class="w-full border rounded px-2 py-1"
-                                                placeholder="Deskripsi (opsional)"></textarea>
-                                        </td>
                                         <td class="p-0"></td>
                                         <td class="p-0"></td>
                                         <td class="p-0"></td>
@@ -632,7 +541,7 @@
                         <label for="statusToggle"
                             class="flex items-center justify-between w-40 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition">
                             <span class="text-sm font-medium">Tutup</span>
-                            <input type="checkbox" name="fnonactive" id="statusToggle"
+                            <input disabled type="checkbox" name="fnonactive" id="statusToggle"
                                 class="h-5 w-5 text-green-600 rounded focus:ring-green-500"
                                 {{ old('fnonactive') == '1' ? 'checked' : '' }}>
                         </label>
@@ -646,7 +555,7 @@
                             <input type="hidden" name="fapproval" value="0">
 
                             <label class="switch">
-                                <input type="checkbox" name="fapproval" id="approvalToggle" value="1"
+                                <input disabled type="checkbox" name="fapproval" id="approvalToggle" value="1"
                                     {{ $isApproved ? 'checked' : '' }}>
                                 <span class="slider round"></span>
                             </label>
@@ -1376,10 +1285,10 @@
                         closeDeleteModal();
                         showToast(data.message || 'Data berhasil dihapus', true);
 
-                        // Redirect ke index setelah 1.5 detik
+                        // Redirect ke index setelah 0.5 detik
                         setTimeout(() => {
                             window.location.href = '{{ route('tr_prh.index') }}';
-                        }, 1500);
+                        }, 500);
                     })
                     .catch(error => {
                         btnYa.disabled = false;

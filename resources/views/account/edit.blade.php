@@ -361,7 +361,7 @@
 
                         setTimeout(() => {
                             window.location.href = '{{ route('account.index') }}';
-                        }, 1500);
+                        }, 500);
                     })
                     .catch(error => {
                         btnYa.disabled = false;

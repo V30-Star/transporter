@@ -120,7 +120,7 @@
         <div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
                 <h3 class="text-lg font-semibold mb-4">Konfirmasi hapus group product ini?</h3>
-                
+
                 <div class="flex justify-end space-x-2">
                     <button onclick="closeDeleteModal()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
                         id="btnTidak">
@@ -199,10 +199,10 @@
                         closeDeleteModal();
                         showToast(data.message || 'Data berhasil dihapus', true);
 
-                        // Redirect ke index setelah 1.5 detik
+                        // Redirect ke index setelah 0.5 detik
                         setTimeout(() => {
                             window.location.href = '{{ route('groupproduct.index') }}';
-                        }, 1500);
+                        }, 500);
                     })
                     .catch(error => {
                         btnYa.disabled = false;

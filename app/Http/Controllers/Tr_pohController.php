@@ -679,6 +679,7 @@ class Tr_pohController extends Controller
       'famountponet'    => (float) ($tr_poh->famountponet ?? 0),  // nilai Grand Total dari DB
       'famountpo'    => (float) ($tr_poh->famountpo ?? 0),  // nilai Grand Total dari DB
       'filterSupplierId' => $request->query('filter_supplier_id'),
+      'action' => 'edit'
     ]);
   }
 
@@ -864,20 +865,115 @@ class Tr_pohController extends Controller
       ->with('success', "PO {$header->fpono} berhasil diperbarui.");
   }
 
+  public function delete(Request $request, $fpohdid)
+  {
+    $suppliers = Supplier::orderBy('fsuppliername', 'asc')
+      ->get(['fsupplierid', 'fsuppliername']);
+
+    $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
+
+    $branch = DB::table('mscabang')
+      ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
+      ->when(!is_numeric($raw), fn($q) => $q
+        ->where('fcabangkode', $raw)
+        ->orWhere('fcabangname', $raw))
+      ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
+
+    $fcabang     = $branch->fcabangname ?? (string) $raw;   // tampilan
+    $fbranchcode = $branch->fcabangkode ?? (string) $raw;   // hidden post
+
+    $tr_poh = Tr_poh::with(['details' => function ($q) {
+      $q->orderBy('fpodid')
+        ->leftJoin('msprd', function ($j) {
+          $j->on('msprd.fprdid', '=', DB::raw('CAST(tr_pod.fprdcode AS INTEGER)'));
+        })
+        ->select(
+          'tr_pod.*',
+          'msprd.fprdcode as fitemcode',
+          'msprd.fprdname'
+        );
+    }])->findOrFail($fpohdid);
+
+    $savedItems = $tr_poh->details->map(function ($d) {
+      return [
+        'uid'        => $d->fpodid,
+        'fitemcode'  => (string)($d->fitemcode ?? ''),  // dari alias msprd.fprdcode
+        'fitemname'  => (string)($d->fprdname ?? ''),   // dari msprd.fprdname
+        'fsatuan'    => (string)($d->fsatuan ?? ''),
+        'frefdtno'   => (string)($d->frefdtno ?? ''),
+        'fnouref'    => (string)($d->fnouref ?? ''),
+        'fqty'       => (float)($d->fqty ?? 0),
+        'fterima'    => (float)($d->fterima ?? 0),
+        'fprice'     => (float)($d->fprice ?? 0),
+        'fdisc'      => (float)($d->fdisc ?? 0),
+        'ftotal'     => (float)($d->famount ?? 0),
+        'fdesc'      => (string)($d->fdesc ?? ''),
+        'fketdt'     => (string)($d->fketdt ?? ''),
+      ];
+    })->values();
+    $selectedSupplierCode = $tr_poh->fsupplier;
+
+    // Fetch all products for product mapping
+    $products = Product::select(
+      'fprdid',
+      'fprdcode',
+      'fprdname',
+      'fsatuankecil',
+      'fsatuanbesar',
+      'fsatuanbesar2',
+      'fminstock'
+    )->orderBy('fprdname')->get();
+
+    // Prepare the product map for frontend
+    $productMap = $products->mapWithKeys(function ($p) {
+      return [
+        $p->fprdcode => [
+          'name'  => $p->fprdname,
+          'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
+          'stock' => $p->fminstock ?? 0,
+        ],
+      ];
+    })->toArray();
+
+    // Pass the data to the view
+    return view('tr_poh.edit', [
+      'suppliers'      => $suppliers,
+      'selectedSupplierCode' => $selectedSupplierCode, // Kirim kode supplier ke view
+      'fcabang'      => $fcabang,
+      'fbranchcode'  => $fbranchcode,
+      'products'     => $products,
+      'productMap'   => $productMap,
+      'tr_poh'       => $tr_poh,
+      'savedItems'   => $savedItems,
+      'ppnAmount'    => (float) ($tr_poh->famountpopajak ?? 0), // total PPN from DB
+      'famountponet'    => (float) ($tr_poh->famountponet ?? 0),  // nilai Grand Total dari DB
+      'famountpo'    => (float) ($tr_poh->famountpo ?? 0),  // nilai Grand Total dari DB
+      'filterSupplierId' => $request->query('filter_supplier_id'),
+      'action' => 'delete'
+    ]);
+  }
+
   public function destroy($fpohdid)
   {
-    $tr_poh = Tr_poh::findOrFail($fpohdid);
-    $tr_poh->delete();
+    try {
+      $tr_poh = Tr_poh::findOrFail($fpohdid);
+      $tr_poh->delete();
 
-    if (request()->wantsJson()) {
+      if (request()->wantsJson()) {
+        return response()->json([
+          'success' => true,
+          'message' => 'Order Pembelian berhasil dihapus.'
+        ]);
+      }
+
+      return redirect()
+        ->route('tr_poh.index')
+        ->with('success', 'Tr_Poh berhasil dihapus.');
+    } catch (\Exception $e) {
       return response()->json([
-        'success' => true,
-        'message' => 'Order Pembelian berhasil dihapus.'
-      ]);
+        'success' => false,
+        'message' => 'Gagal menghapus data: ' . $e->getMessage()
+      ], 500);
     }
-
-    return redirect()
-      ->route('tr_poh.index')
-      ->with('success', 'Tr_Poh berhasil dihapus.');
   }
 }

@@ -181,6 +181,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/tr_poh',        [Tr_pohController::class, 'store'])->name('tr_poh.store');
         Route::get('/tr_poh/create', [Tr_pohController::class, 'create'])->name('tr_poh.create');
         Route::get('/tr_poh/{fpohdid}/edit', [Tr_pohController::class, 'edit'])->name('tr_poh.edit');
+        Route::get('/tr_poh/{fpohdid}/delete', [Tr_pohController::class, 'delete'])->name('tr_poh.delete');
         Route::patch('/tr_poh/{fpohdid}', [Tr_pohController::class, 'update'])->name('tr_poh.update');
         Route::delete('/tr_poh/{fpohdid}', [Tr_pohController::class, 'destroy'])->name('tr_poh.destroy');
         Route::get('/tr_poh/{fpono}/print', [Tr_pohController::class, 'print'])
@@ -195,6 +196,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/penerimaanbarang',        [PenerimaanBarangController::class, 'store'])->name('penerimaanbarang.store');
         Route::get('/penerimaanbarang/create', [PenerimaanBarangController::class, 'create'])->name('penerimaanbarang.create');
         Route::get('/penerimaanbarang/{fstockmtid}/edit', [PenerimaanBarangController::class, 'edit'])->name('penerimaanbarang.edit');
+        Route::get('/penerimaanbarang/{fstockmtid}/delete', [PenerimaanBarangController::class, 'delete'])->name('penerimaanbarang.delete');
         Route::patch('/penerimaanbarang/{fstockmtid}', [PenerimaanBarangController::class, 'update'])->name('penerimaanbarang.update');
         Route::delete('/penerimaanbarang/{fstockmtid}', [PenerimaanBarangController::class, 'destroy'])->name('penerimaanbarang.destroy');
         Route::get('/penerimaanbarang/{fstockmtno}/print', [PenerimaanBarangController::class, 'print'])
@@ -206,6 +208,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/fakturpembelian',        [FakturpembelianController::class, 'store'])->name('fakturpembelian.store');
         Route::get('/fakturpembelian/create', [FakturpembelianController::class, 'create'])->name('fakturpembelian.create');
         Route::get('/fakturpembelian/{fstockmtid}/edit', [FakturpembelianController::class, 'edit'])->name('fakturpembelian.edit');
+        Route::get('/fakturpembelian/{fstockmtid}/delete', [FakturpembelianController::class, 'delete'])->name('fakturpembelian.delete');
         Route::patch('/fakturpembelian/{fstockmtid}', [FakturpembelianController::class, 'update'])->name('fakturpembelian.update');
         Route::delete('/fakturpembelian/{fstockmtid}', [FakturpembelianController::class, 'destroy'])->name('fakturpembelian.destroy');
         Route::get('/fakturpembelian/{fstockmtno}/print', [FakturpembelianController::class, 'print'])
@@ -219,6 +222,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/adjstock',        [AdjstockController::class, 'store'])->name('adjstock.store');
         Route::get('/adjstock/create', [AdjstockController::class, 'create'])->name('adjstock.create');
         Route::get('/adjstock/{fstockmtid}/edit', [AdjstockController::class, 'edit'])->name('adjstock.edit');
+        Route::get('/adjstock/{fstockmtid}/delete', [AdjstockController::class, 'delete'])->name('adjstock.delete');
         Route::patch('/adjstock/{fstockmtid}', [AdjstockController::class, 'update'])->name('adjstock.update');
         Route::delete('/adjstock/{fstockmtid}', [AdjstockController::class, 'destroy'])->name('adjstock.destroy');
         Route::get('/adjstock/{fstockmtno}/print', [AdjstockController::class, 'print'])
@@ -232,6 +236,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/mutasi',        [MutasiController::class, 'store'])->name('mutasi.store');
         Route::get('/mutasi/create', [MutasiController::class, 'create'])->name('mutasi.create');
         Route::get('/mutasi/{fstockmtid}/edit', [MutasiController::class, 'edit'])->name('mutasi.edit');
+        Route::get('/mutasi/{fstockmtid}/delete', [MutasiController::class, 'delete'])->name('mutasi.delete');
         Route::patch('/mutasi/{fstockmtid}', [MutasiController::class, 'update'])->name('mutasi.update');
         Route::delete('/mutasi/{fstockmtid}', [MutasiController::class, 'destroy'])->name('mutasi.destroy');
         Route::get('/mutasi/{fstockmtno}/print', [MutasiController::class, 'print'])
@@ -245,6 +250,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/pemakaianbarang',        [PemakaianbarangController::class, 'store'])->name('pemakaianbarang.store');
         Route::get('/pemakaianbarang/create', [PemakaianbarangController::class, 'create'])->name('pemakaianbarang.create');
         Route::get('/pemakaianbarang/{fstockmtid}/edit', [PemakaianbarangController::class, 'edit'])->name('pemakaianbarang.edit');
+        Route::get('/pemakaianbarang/{fstockmtid}/delete', [PemakaianbarangController::class, 'delete'])->name('pemakaianbarang.delete');
         Route::patch('/pemakaianbarang/{fstockmtid}', [PemakaianbarangController::class, 'update'])->name('pemakaianbarang.update');
         Route::delete('/pemakaianbarang/{fstockmtid}', [PemakaianbarangController::class, 'destroy'])->name('pemakaianbarang.destroy');
         Route::get('/pemakaianbarang/{fstockmtno}/print', [PemakaianbarangController::class, 'print'])
@@ -258,6 +264,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/returpembelian',        [ReturPembelianController::class, 'store'])->name('returpembelian.store');
         Route::get('/returpembelian/create', [ReturPembelianController::class, 'create'])->name('returpembelian.create');
         Route::get('/returpembelian/{fstockmtid}/edit', [ReturPembelianController::class, 'edit'])->name('returpembelian.edit');
+        Route::get('/returpembelian/{fstockmtid}/delete', [ReturPembelianController::class, 'delete'])->name('returpembelian.delete');
         Route::patch('/returpembelian/{fstockmtid}', [ReturPembelianController::class, 'update'])->name('returpembelian.update');
         Route::delete('/returpembelian/{fstockmtid}', [ReturPembelianController::class, 'destroy'])->name('returpembelian.destroy');
         Route::get('/returpembelian/{fstockmtno}/print', [ReturPembelianController::class, 'print'])
@@ -271,6 +278,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/assembling',        [AssemblingController::class, 'store'])->name('assembling.store');
         Route::get('/assembling/create', [AssemblingController::class, 'create'])->name('assembling.create');
         Route::get('/assembling/{fstockmtid}/edit', [AssemblingController::class, 'edit'])->name('assembling.edit');
+        Route::get('/assembling/{fstockmtid}/delete', [AssemblingController::class, 'delete'])->name('assembling.delete');
         Route::patch('/assembling/{fstockmtid}', [AssemblingController::class, 'update'])->name('assembling.update');
         Route::delete('/assembling/{fstockmtid}', [AssemblingController::class, 'destroy'])->name('assembling.destroy');
         Route::get('/assembling/{fstockmtno}/print', [AssemblingController::class, 'print'])

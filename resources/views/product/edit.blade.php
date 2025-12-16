@@ -186,7 +186,8 @@
                                 <input type="hidden" name="fmerek" id="fmerek" value="{{ old('fmerek') }}">
 
                                 <!-- Button Tambah Merek -->
-                                <button type="button" disabled @click="isMerekEditable = true; $dispatch('open-merk-modal')"
+                                <button type="button" disabled
+                                    @click="isMerekEditable = true; $dispatch('open-merk-modal')"
                                     class="whitespace-nowrap bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700">
                                     <i class="fa fa-plus"></i>
 
@@ -1189,10 +1190,10 @@
                         closeDeleteModal();
                         showToast(data.message || 'Data berhasil dihapus', true);
 
-                        // Redirect ke index setelah 1.5 detik
+                        // Redirect ke index setelah 0.5 detik
                         setTimeout(() => {
                             window.location.href = '{{ route('product.index') }}';
-                        }, 1500);
+                        }, 500);
                     })
                     .catch(error => {
                         btnYa.disabled = false;

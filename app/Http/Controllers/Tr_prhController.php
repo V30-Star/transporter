@@ -841,7 +841,7 @@ class Tr_prhController extends Controller
 
       return response()->json([
         'success' => true,
-        'message' => 'Data tr_prh berhasil dihapus'
+        'message' => 'Data Permintaan Pembelian berhasil dihapus'
       ]);
     } catch (\Exception $e) {
       return response()->json([

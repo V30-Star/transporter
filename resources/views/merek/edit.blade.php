@@ -252,7 +252,7 @@
                         closeDeleteModal();
                         showToast(data.message || 'Data berhasil dihapus', true);
 
-                        // Redirect ke index setelah 1.5 detik
+                        // Redirect ke index setelah 0.5 detik
                         setTimeout(() => {
                             window.location.href = '{{ route('merek.index') }}';
                         }, 1500);

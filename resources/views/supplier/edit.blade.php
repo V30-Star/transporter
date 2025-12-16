@@ -9,7 +9,8 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                 <div>
                     <label class="block text-sm font-medium">Kode Supplier</label>
-                    <input readonly type="text" name="fsuppliercode" value="{{ old('fsuppliercode', $supplier->fsuppliercode) }}"
+                    <input readonly type="text" name="fsuppliercode"
+                        value="{{ old('fsuppliercode', $supplier->fsuppliercode) }}"
                         class="w-full border rounded px-3 py-2 bg-gray-100 uppercase @error('fsuppliercode') border-red-500 @enderror"
                         autofocus>
                     @error('fsuppliercode')
@@ -19,7 +20,8 @@
 
                 <div>
                     <label class="block text-sm font-medium">Nama Supplier</label>
-                    <input readonly type="text" name="fsuppliername" value="{{ old('fsuppliername', $supplier->fsuppliername) }}"
+                    <input readonly type="text" name="fsuppliername"
+                        value="{{ old('fsuppliername', $supplier->fsuppliername) }}"
                         class="w-full border rounded px-3 py-2 bg-gray-100 uppercase @error('fsuppliername') border-red-500 @enderror">
                     @error('fsuppliername')
                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -65,8 +67,9 @@
                 <div>
                     <label class="block text-sm font-medium">Jatuh Tempo</label>
                     <input readonly type="number" name="ftempo" value="{{ old('ftempo', $supplier->ftempo) }}"
-                        class="w-full border rounded px-3 py-2 bg-gray-100 @error('ftempo') border-red-500 @enderror" min="0"
-                        max="999" step="1" oninput="this.value = this.value.replace(/[^0-9]/g,'').slice(0,3)">
+                        class="w-full border rounded px-3 py-2 bg-gray-100 @error('ftempo') border-red-500 @enderror"
+                        min="0" max="999" step="1"
+                        oninput="this.value = this.value.replace(/[^0-9]/g,'').slice(0,3)">
                     @error('ftempo')
                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                     @enderror
@@ -74,7 +77,8 @@
 
                 <div>
                     <label class="block text-sm font-medium">Kontak Person</label>
-                    <input readonly type="text" name="fkontakperson" value="{{ old('fkontakperson', $supplier->fkontakperson) }}"
+                    <input readonly type="text" name="fkontakperson"
+                        value="{{ old('fkontakperson', $supplier->fkontakperson) }}"
                         class="w-full border rounded px-3 py-2 bg-gray-100 @error('fkontakperson') border-red-500 @enderror">
                     @error('fkontakperson')
                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -92,7 +96,8 @@
 
                 <div>
                     <label class="block text-sm font-medium">No. Rekening</label>
-                    <input readonly type="text" name="fnorekening" value="{{ old('fnorekening', $supplier->fnorekening) }}"
+                    <input readonly type="text" name="fnorekening"
+                        value="{{ old('fnorekening', $supplier->fnorekening) }}"
                         class="w-full border rounded px-3 py-2 bg-gray-100 @error('fnorekening') border-red-500 @enderror">
                     @error('fnorekening')
                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -101,7 +106,8 @@
 
                 <div>
                     <label class="block text-sm font-medium">Memo</label>
-                    <textarea readonly name="fmemo" class="w-full border rounded px-3 py-2 bg-gray-100 @error('fmemo') border-red-500 @enderror">{{ old('fmemo', $supplier->fmemo) }}</textarea>
+                    <textarea readonly name="fmemo"
+                        class="w-full border rounded px-3 py-2 bg-gray-100 @error('fmemo') border-red-500 @enderror">{{ old('fmemo', $supplier->fmemo) }}</textarea>
                     @error('fmemo')
                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                     @enderror
@@ -410,10 +416,10 @@
                         closeDeleteModal();
                         showToast(data.message || 'Data berhasil dihapus', true);
 
-                        // Redirect ke index setelah 1.5 detik
+                        // Redirect ke index setelah 0.5 detik
                         setTimeout(() => {
                             window.location.href = '{{ route('supplier.index') }}';
-                        }, 1500);
+                        }, 500);
                     })
                     .catch(error => {
                         btnYa.disabled = false;

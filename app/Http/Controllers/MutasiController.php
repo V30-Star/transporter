@@ -87,12 +87,15 @@ class MutasiController extends Controller
                 // --- Tombol Delete ---
                 // if ($canDelete) {
                 // Asumsi route destroy Anda: mutasi.destroy
-                $deleteUrl = route('mutasi.destroy', $row->fstockmtid);
-                $actions .= ' <button @click="$dispatch(\'open-delete\', \'' . $deleteUrl . '\')" class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
-                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                </svg> Delete
-            </button>';
+                $deleteUrl = route('mutasi.delete', $row->fstockmtid);
+                $actions .= '<a href="' . $deleteUrl . '">
+                <button class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                    Hapus
+                </button>
+            </a>';
                 // }
 
                 // --- Tombol Print ---
@@ -737,6 +740,7 @@ class MutasiController extends Controller
             'ppnAmount'          => (float) ($mutasi->famountpopajak ?? 0),
             'famountponet'       => (float) ($mutasi->famountponet ?? 0),
             'famountpo'          => (float) ($mutasi->famountpo ?? 0),
+            'action' => 'edit',
         ]);
     }
 
@@ -967,6 +971,120 @@ class MutasiController extends Controller
             ->with('success', "Transaksi {$header->fstockmtno} berhasil diperbarui.");
     }
 
+    public function delete($fstockmtid)
+    {
+        $supplier = Supplier::all();
+
+        $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
+
+        $branch = DB::table('mscabang')
+            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
+            ->when(!is_numeric($raw), fn($q) => $q
+                ->where('fcabangkode', $raw)
+                ->orWhere('fcabangname', $raw))
+            ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
+
+        $warehouses = DB::table('mswh')
+            ->select('fwhid', 'fwhcode', 'fwhname', 'fbranchcode', 'fnonactive')
+            ->where('fnonactive', '0') // hanya yang aktif
+            ->orderBy('fwhcode')
+            ->get();
+
+        $accounts = DB::table('account')
+            ->select('faccid', 'faccount', 'faccname', 'fnonactive')
+            ->where('fnonactive', '0')
+            ->orderBy('account')
+            ->get();
+
+        $fcabang     = $branch->fcabangname ?? (string) $raw;
+        $fbranchcode = $branch->fcabangkode ?? (string) $raw;
+
+        // 1. Ambil data Header (trstockmt) DAN relasi Details (trstockdt)
+        // Biarkan query ini. Sekarang $fstockmtid di sini adalah integer (misal: 8)
+        $mutasi = PenerimaanPembelianHeader::with([
+            'details' => function ($query) {
+                $query
+                    // 2. Join ke msprd berdasarkan ID
+                    ->join('msprd', 'msprd.fprdid', '=', 'trstockdt.fprdcode')
+                    // 3. Select kolom yang dibutuhkan
+                    ->select(
+                        'trstockdt.*', // Ambil semua kolom dari tabel detail
+                        'msprd.fprdname', // Ambil nama produk
+                        'msprd.fprdcode as fitemcode_text' // Ambil KODE string produk
+                    )
+                    ->orderBy('trstockdt.fstockdtid', 'asc');
+            }
+        ])
+            ->findOrFail($fstockmtid); // Temukan header berdasarkan $fstockmtid dari URL
+
+
+        // 4. Map the data for savedItems (sudah menggunakan data yang benar)
+        $savedItems = $mutasi->details->map(function ($d) {
+            return [
+                'uid'       => $d->fstockdtid,
+                'fitemcode' => $d->fitemcode_text ?? '',
+                'fitemname' => $d->fprdname ?? '',
+                'fsatuan'   => $d->fsatuan ?? '',
+                'fprno'     => $d->frefpr ?? '-',
+                'frefpr'    => $d->frefpr ?? null,
+                'fpono'     => $d->fpono ?? null,
+                'famountponet' => $d->famountponet ?? null,
+                'famountpo' => $d->famountpo ?? null,
+                'frefdtno'  => $d->frefdtno ?? null,
+                'fnouref'   => $d->fnouref ?? null,
+                'fqty'      => (float)($d->fqty ?? 0),
+                'fterima'   => (float)($d->fterima ?? 0),
+                'fprice'    => (float)($d->fprice ?? 0),
+                'fdisc'     => (float)($d->fdiscpersen ?? 0),
+                'ftotal'    => (float)($d->ftotprice ?? 0),
+                'fdesc'     => is_array($d->fdesc) ? implode(', ', $d->fdesc) : ($d->fdesc ?? ''),
+                'fketdt'    => $d->fketdt ?? '',
+                'units'     => [],
+            ];
+        })->values();
+
+        // Sisa kode Anda sudah benar
+        $selectedSupplierCode = $mutasi->fsupplier;
+
+        $products = Product::select(
+            'fprdid',
+            'fprdcode',
+            'fprdname',
+            'fsatuankecil',
+            'fsatuanbesar',
+            'fsatuanbesar2',
+            'fminstock'
+        )->orderBy('fprdname')->get();
+
+        $productMap = $products->mapWithKeys(function ($p) {
+            return [
+                $p->fprdcode => [
+                    'name'  => $p->fprdname,
+                    'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
+                    'stock' => $p->fminstock ?? 0,
+                ],
+            ];
+        })->toArray();
+
+        return view('mutasi.edit', [
+            'supplier'           => $supplier,
+            'selectedSupplierCode' => $selectedSupplierCode,
+            'fcabang'            => $fcabang,
+            'fbranchcode'        => $fbranchcode,
+            'warehouses'         => $warehouses,
+            'accounts'           => $accounts,
+            'products'           => $products,
+            'productMap'         => $productMap,
+            'mutasi'             => $mutasi,
+            'savedItems'         => $savedItems,
+            'ppnAmount'          => (float) ($mutasi->famountpopajak ?? 0),
+            'famountponet'       => (float) ($mutasi->famountponet ?? 0),
+            'famountpo'          => (float) ($mutasi->famountpo ?? 0),
+            'action' => 'delete'
+        ]);
+    }
+
+
     public function destroy($fstockmtid)
     {
         try {
@@ -985,20 +1103,16 @@ class MutasiController extends Controller
             DB::commit();
 
             if ($deleted) {
-                return redirect()
-                    ->route('mutasi.index')
-                    ->with('success', 'Data mutasi berhasil dihapus.');
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Data Mutasi berhasil dihapus'
+                ]);
             }
-
-            return redirect()
-                ->route('mutasi.index')
-                ->with('error', 'Data tidak ditemukan.');
         } catch (\Exception $e) {
-            DB::rollBack();
-
-            return redirect()
-                ->route('mutasi.index')
-                ->with('error', 'Gagal menghapus data: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus data: ' . $e->getMessage()
+            ], 500);
         }
     }
 }

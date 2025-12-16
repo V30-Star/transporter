@@ -94,7 +94,8 @@
                 <p class="mb-6">Apakah Anda yakin ingin menghapus data ini?</p>
                 <div class="flex justify-end space-x-2">
                     <button @click="$store.penerimaanbarangStore.closeDelete()"
-                        class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400" :disabled="$store.penerimaanbarangStore.isDeleting">
+                        class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                        :disabled="$store.penerimaanbarangStore.isDeleting">
                         Batal
                     </button>
                     <button @click="$store.penerimaanbarangStore.confirmDelete()"
@@ -108,7 +109,8 @@
         </div>
 
         {{-- Toast Notification --}}
-        <div x-show="$store.penerimaanbarangStore.showNotification" x-cloak x-transition:enter="transition ease-out duration-300"
+        <div x-show="$store.penerimaanbarangStore.showNotification" x-cloak
+            x-transition:enter="transition ease-out duration-300"
             x-transition:enter-start="opacity-0 transform translate-y-2"
             x-transition:enter-end="opacity-100 transform translate-y-0"
             x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100"
@@ -116,7 +118,8 @@
             <div :class="$store.penerimaanbarangStore.notificationType === 'success' ? 'bg-green-500' : 'bg-red-500'"
                 class="text-white px-6 py-4 rounded-lg shadow-lg flex items-center space-x-3">
                 <span x-text="$store.penerimaanbarangStore.notificationMessage"></span>
-                <button @click="$store.penerimaanbarangStore.showNotification = false" class="ml-4 text-white hover:text-gray-200">
+                <button @click="$store.penerimaanbarangStore.showNotification = false"
+                    class="ml-4 text-white hover:text-gray-200">
                     ×
                 </button>
             </div>
@@ -301,58 +304,60 @@
 
             // Tambahkan kolom actions jika ada permission
             // if (hasActions) {
-                columns.push({
-                    data: 'fstockmtid',
-                    name: 'actions',
-                    orderable: false,
-                    searchable: false,
-                    render: function(data, type, row) {
-                        let html = '<div class="flex gap-2">';
+            columns.push({
+                data: 'fstockmtid',
+                name: 'actions',
+                orderable: false,
+                searchable: false,
+                render: function(data, type, row) {
+                    let html = '<div class="flex gap-2">';
 
-                        // Edit Button
-                        // if (canEdit) {
-                            html += `<a href="penerimaanbarang/${data}/edit" class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
+                    // Edit Button
+                    // if (canEdit) {
+                    html += `<a href="penerimaanbarang/${data}/edit" class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                             </svg>
                             Edit
                         </a>`;
-                        // }
+                    // }
 
-                        // Delete Button
-                        // if (canDelete) {
-                            html += `<button onclick="event.stopPropagation(); Alpine.store('penerimaanbarangStore').openDelete('penerimaanbarang/${data}', event)" 
-                            class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
-                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                            </svg>
-                            Delete
-                        </button>`;
-                        // }
+                    // Delete Button
+                    // if (canDelete) {
+                    let deleteUrl = '{{ route('penerimaanbarang.index') }}/' + data + '/delete';
+                    html += `<a href="${deleteUrl}">
+                                <button class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                    </svg>
+                                    Hapus
+                                </button>
+                            </a>`;
+                    // }
 
-                        // Print Button - Selalu tampil, pakai fstockmtno
-                        html += `<a href="penerimaanbarang/${row.fstockmtno}/print" target="_blank" class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                    // Print Button - Selalu tampil, pakai fstockmtno
+                    html += `<a href="penerimaanbarang/${row.fstockmtno}/print" target="_blank" class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m10 0v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5m10 0v5H7v-5"></path>
                         </svg>
                         Print
                     </a>`;
 
-                        html += '</div>';
-                        return html;
-                    }
-                });
+                    html += '</div>';
+                    return html;
+                }
+            });
             // }
 
             // 2. Definisi columnDefs
             const columnDefs = [];
             // if (hasActions) {
-                columnDefs.push({
-                    targets: -1,
-                    orderable: false,
-                    searchable: false,
-                    width: '280px'
-                });
+            columnDefs.push({
+                targets: -1,
+                orderable: false,
+                searchable: false,
+                width: '280px'
+            });
             // }
 
             // 3. Inisialisasi DataTables
