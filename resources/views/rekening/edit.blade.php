@@ -12,17 +12,14 @@
         @if ($action === 'delete')
             <div class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Kode Rekening</label>
-                    <input type="text" value="{{ $rekening->frekeningcode }}"
-                        class="w-full border rounded px-3 py-2 bg-gray-100 uppercase" readonly>
+                    <label class="block text-sm font-medium">Nama Rekening</label>
+                    <textarea name="frekeningname" rows="6" readonly
+                        class="w-full border rounded px-3 py-2 bg-gray-100 uppercase @error('frekeningname') border-red-500 @enderror">{{ old('frekeningname', $rekening->frekeningname) }}</textarea>
+                    @error('frekeningname')
+                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Nama Rekening</label>
-                    <input type="text" value="{{ $rekening->frekeningname }}"
-                        class="w-full border rounded px-3 py-2 bg-gray-100 uppercase" readonly>
-                </div>
-
+            
                 <div class="flex justify-center mt-4">
                     <label class="flex items-center justify-between w-40 p-3 border rounded-lg bg-gray-100">
                         <span class="text-sm font-medium">Non Active</span>
