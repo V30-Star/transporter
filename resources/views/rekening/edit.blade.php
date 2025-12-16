@@ -113,7 +113,7 @@
             <span>{{ \Carbon\Carbon::parse($rekening->fupdatedat ?: $rekening->fcreatedat)->timezone('Asia/Jakarta')->format('d M Y, H:i:s') }}</span>
         </span>
     </div>
-    
+
     {{-- ============================================ --}}
     {{-- MODAL & TOAST (HANYA UNTUK MODE DELETE)     --}}
     {{-- ============================================ --}}
@@ -122,25 +122,21 @@
         <div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
                 <h3 class="text-lg font-semibold mb-4">Konfirmasi Hapus rekening ini?</h3>
-                
-                <div class="flex justify-end space-x-2">
-                    <button onclick="closeDeleteModal()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-                        id="btnTidak">
-                        Tidak
-                    </button>
-                    <button onclick="confirmDelete()" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-                        id="btnYa">
-                        Ya, Hapus
-                    </button>
-                </div>
-            </div>
-        </div>
 
-        {{-- Toast Notification --}}
-        <div id="toast" class="hidden fixed top-4 right-4 z-50 max-w-sm">
-            <div id="toastContent" class="text-white px-6 py-4 rounded-lg shadow-lg flex items-center">
-                <span id="toastMessage"></span>
-                <button onclick="closeToast()" class="ml-4 text-white hover:text-gray-200">×</button>
+                <form id="deleteForm" action="{{ route('rekening.destroy', $rekening->frekeningid) }}" method="POST">
+                    @csrf
+                    @method('DELETE')
+                    <div class="flex justify-end space-x-2">
+                        <button type="button" onclick="closeDeleteModal()"
+                            class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">
+                            Tidak
+                        </button>
+                        {{-- PASTIKAN TYPE ADALAH "submit" dan tidak ada onclick yang aneh-aneh --}}
+                        <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+                            Ya, Hapus
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
 
