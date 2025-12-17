@@ -959,21 +959,10 @@ class Tr_pohController extends Controller
       $tr_poh = Tr_poh::findOrFail($fpohdid);
       $tr_poh->delete();
 
-      if (request()->wantsJson()) {
-        return response()->json([
-          'success' => true,
-          'message' => 'Order Pembelian berhasil dihapus.'
-        ]);
-      }
-
-      return redirect()
-        ->route('tr_poh.index')
-        ->with('success', 'Tr_Poh berhasil dihapus.');
+      return redirect()->route('tr_poh.index')->with('success', 'Data Order Pembelian ' . $tr_poh->fpono . ' berhasil dihapus.');
     } catch (\Exception $e) {
-      return response()->json([
-        'success' => false,
-        'message' => 'Gagal menghapus data: ' . $e->getMessage()
-      ], 500);
+      // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
+      return redirect()->route('tr_poh.delete', $fpohdid)->with('error', 'Gakey: gal menghapus data: ' . $e->getMessage());
     }
   }
 }

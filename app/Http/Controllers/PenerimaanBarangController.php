@@ -1190,7 +1190,7 @@ class PenerimaanBarangController extends Controller
       'action' => 'delete'
     ]);
   }
-  
+
   public function destroy($fstockmtid)
   {
     try {
@@ -1200,15 +1200,10 @@ class PenerimaanBarangController extends Controller
       // 2. Baru hapus header
       $penerimaanbarang->delete();
 
-      return response()->json([
-        'success' => true,
-        'message' => 'Data Penerimaan Barang berhasil dihapus'
-      ]);
+      return redirect()->route('penerimaanbarang.index')->with('success', 'Data Penerimaan Barang ' . $penerimaanbarang->fpono . ' berhasil dihapus.');
     } catch (\Exception $e) {
-      return response()->json([
-        'success' => false,
-        'message' => 'Gagal menghapus data: ' . $e->getMessage()
-      ], 500);
+      // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
+      return redirect()->route('penerimaanbarang.delete', $fstockmtid)->with('error', 'Gagal menghapus data: ' . $e->getMessage());
     }
   }
 }

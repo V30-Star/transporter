@@ -1132,15 +1132,10 @@ class ReturPembelianController extends Controller
       $returpembelian->details()->delete();
       $returpembelian->delete();
 
-      return response()->json([
-        'success' => true,
-        'message' => 'Data Retur Pembelian berhasil dihapus'
-      ]);
+      return redirect()->route('returpembelian.index')->with('success', 'Data Retur Pembelian ' . $returpembelian->fpono . ' berhasil dihapus.');
     } catch (\Exception $e) {
-      return response()->json([
-        'success' => false,
-        'message' => 'Gagal menghapus data: ' . $e->getMessage()
-      ], 500);
+      // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
+      return redirect()->route('returpembelian.delete', $fstockmtid)->with('error', 'Gagal menghapus data: ' . $e->getMessage());
     }
   }
 }

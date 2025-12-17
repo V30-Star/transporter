@@ -922,15 +922,10 @@ class Tr_prhController extends Controller
       $tr_prh = Tr_prh::findOrFail($fprid);
       $tr_prh->delete();
 
-      return response()->json([
-        'success' => true,
-        'message' => 'Data Permintaan Pembelian berhasil dihapus'
-      ]);
+      return redirect()->route('tr_prh.index')->with('success', 'Data Permintaan Pembelian ' . $tr_prh->fprno. ' berhasil dihapus.');
     } catch (\Exception $e) {
-      return response()->json([
-        'success' => false,
-        'message' => 'Gagal menghapus data: ' . $e->getMessage()
-      ], 500);
+      // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
+      return redirect()->route('tr_prh.delete', $fprid)->with('error', 'Gakey: gal menghapus data: ' . $e->getMessage());
     }
   }
 }

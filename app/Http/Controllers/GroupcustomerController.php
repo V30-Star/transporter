@@ -130,15 +130,10 @@ class GroupcustomerController extends Controller
             $groupcustomer = Groupcustomer::findOrFail($fgroupid);
             $groupcustomer->delete();
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Data Group Customer berhasil dihapus'
-            ]);
+            return redirect()->route('groupcustomer.index')->with('success', 'Data groupcustomer ' . $groupcustomer->fgroupname . ' berhasil dihapus.');
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal menghapus data: ' . $e->getMessage()
-            ], 500);
+            // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
+            return redirect()->route('groupcustomer.delete', $fgroupid)->with('error', 'Gagal menghapus data: ' . $e->getMessage());
         }
     }
 }

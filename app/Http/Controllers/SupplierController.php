@@ -166,15 +166,10 @@ class SupplierController extends Controller
             $supplier = Supplier::findOrFail($fsupplierid);
             $supplier->delete();
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Data supplier berhasil dihapus'
-            ]);
+            return redirect()->route('supplier.index')->with('success', 'Data supplier ' . $supplier->fsuppliername . ' berhasil dihapus.');
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal menghapus data: ' . $e->getMessage()
-            ], 500);
+            // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
+            return redirect()->route('supplier.delete', $fsupplierid)->with('error', 'Gakey: gal menghapus data: ' . $e->getMessage());
         }
     }
 

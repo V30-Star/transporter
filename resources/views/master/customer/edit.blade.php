@@ -131,8 +131,9 @@
                             <!-- Input Kode Customer -->
                             <div class="flex-1">
                                 <label class="block text-sm font-medium">Kode Customer</label>
-                                <input type="text" name="fcustomercode" readonly class="w-full border rounded px-3 py-2 uppercase"
-                                    placeholder="Masukkan Kode Customer" :disabled="autoCode"
+                                <input type="text" name="fcustomercode" readonly
+                                    class="w-full border rounded px-3 py-2 uppercase" placeholder="Masukkan Kode Customer"
+                                    :disabled="autoCode"
                                     :value="autoCode
                                         ?
                                         '{{ $customer->fcustomercode }}' :
@@ -141,7 +142,8 @@
                             </div>
                             <!-- Checkbox Auto Generate -->
                             <label class="inline-flex items-center mt-6">
-                                <input disabled type="checkbox" x-model="autoCode" class="form-checkbox text-indigo-600 uppercase"
+                                <input disabled type="checkbox" x-model="autoCode"
+                                    class="form-checkbox text-indigo-600 uppercase"
                                     {{ old('fcustomercode', $customer->fcustomercode) ? 'checked' : '' }}>
                                 <span class="ml-2 text-sm text-gray-700">Auto</span>
                             </label>
@@ -210,8 +212,9 @@
                         <div>
                             <label class="block text-sm font-medium">NPWP</label>
                             <input type="text" readonly
-                                class="w-full border rounded px-3 py-2 bg-gray-100 @error('fnpwp') is-invalid @enderror" name="fnpwp"
-                                id="fnpwp" placeholder="Masukkan NPWP" value="{{ old('fnpwp', $customer->fnpwp) }}">
+                                class="w-full border rounded px-3 py-2 bg-gray-100 @error('fnpwp') is-invalid @enderror"
+                                name="fnpwp" id="fnpwp" placeholder="Masukkan NPWP"
+                                value="{{ old('fnpwp', $customer->fnpwp) }}">
                             @error('fnpwp')
                                 <div class="invalid-feedback">
                                     {{ $message }}
@@ -222,8 +225,9 @@
                         <div>
                             <label class="block text-sm font-medium">No. NIK</label>
                             <input type="text" readonly
-                                class="w-full border rounded px-3 py-2 bg-gray-100 @error('fnik') is-invalid @enderror" name="fnik"
-                                id="fnik" placeholder="Masukkan NIK" value="{{ old('fnik', $customer->fnik) }}">
+                                class="w-full border rounded px-3 py-2 bg-gray-100 @error('fnik') is-invalid @enderror"
+                                name="fnik" id="fnik" placeholder="Masukkan NIK"
+                                value="{{ old('fnik', $customer->fnik) }}">
                             @error('fnik')
                                 <div class="invalid-feedback">
                                     {{ $message }}
@@ -316,8 +320,8 @@
                                     class="px-4 py-2 rounded border">Alamat Pajak</button>
                             </div>
                             <div x-show="selected === 'alamatsurat'">
-                                <textarea readonly class="w-full border rounded px-3 py-2 bg-gray-100 @error('faddress') is-invalid @enderror" name="faddress"
-                                    id="faddress" placeholder="Masukkan Alamat Surat" cols="10" rows="6">{{ old('faddress', $customer->faddress) }}</textarea>
+                                <textarea readonly class="w-full border rounded px-3 py-2 bg-gray-100 @error('faddress') is-invalid @enderror"
+                                    name="faddress" id="faddress" placeholder="Masukkan Alamat Surat" cols="10" rows="6">{{ old('faddress', $customer->faddress) }}</textarea>
                                 @error('faddress')
                                     <div class="invalid-feedback">
                                         {{ $message }}
@@ -325,21 +329,24 @@
                                 @enderror
                             </div>
                             <div x-show="selected === 'alamat1'">
-                                <textarea readonly class="w-full border rounded px-3 py-2 bg-gray-100 mb-4 @error('fkirimaddress1') is-invalid @enderror"
+                                <textarea readonly
+                                    class="w-full border rounded px-3 py-2 bg-gray-100 mb-4 @error('fkirimaddress1') is-invalid @enderror"
                                     name="fkirimaddress1" id="fkirimaddress1" placeholder="Masukkan Alamat Kirim 1" cols="10" rows="6">{{ old('fkirimaddress1', $customer->fkirimaddress1) }}</textarea>
                                 @error('fkirimaddress1')
                                     <div class="invalid-feedback">
                                         {{ $message }}
                                     </div>
                                 @enderror
-                                <textarea readonly class="w-full border rounded px-3 py-2 bg-gray-100 mb-4 @error('fkirimaddress2') is-invalid @enderror"
+                                <textarea readonly
+                                    class="w-full border rounded px-3 py-2 bg-gray-100 mb-4 @error('fkirimaddress2') is-invalid @enderror"
                                     name="fkirimaddress2" id="fkirimaddress2" placeholder="Masukkan Alamat Kirim 2" cols="10" rows="6">{{ old('fkirimaddress2', $customer->fkirimaddress2) }}</textarea>
                                 @error('fkirimaddress2')
                                     <div class="invalid-feedback">
                                         {{ $message }}
                                     </div>
                                 @enderror
-                                <textarea readonly class="w-full border rounded px-3 py-2 bg-gray-100 mb-4 @error('fkirimaddress3') is-invalid @enderror"
+                                <textarea readonly
+                                    class="w-full border rounded px-3 py-2 bg-gray-100 mb-4 @error('fkirimaddress3') is-invalid @enderror"
                                     name="fkirimaddress3" id="fkirimaddress3" placeholder="Masukkan Alamat Kirim 3" cols="10" rows="6">{{ old('fkirimaddress3', $customer->fkirimaddress3) }}</textarea>
                                 @error('fkirimaddress3')
                                     <div class="invalid-feedback">
@@ -348,8 +355,8 @@
                                 @enderror
                             </div>
                             <div x-show="selected === 'alamatpajak'">
-                                <textarea readonly class="w-full border rounded px-3 py-2 bg-gray-100 @error('ftaxaddress') is-invalid @enderror" name="ftaxaddress"
-                                    id="ftaxaddress" placeholder="Masukkan Alamat Pajak" cols="10" rows="6">{{ old('ftaxaddress', $customer->ftaxaddress) }}</textarea>
+                                <textarea readonly class="w-full border rounded px-3 py-2 bg-gray-100 @error('ftaxaddress') is-invalid @enderror"
+                                    name="ftaxaddress" id="ftaxaddress" placeholder="Masukkan Alamat Pajak" cols="10" rows="6">{{ old('ftaxaddress', $customer->ftaxaddress) }}</textarea>
                                 @error('ftaxaddress')
                                     <div class="invalid-feedback">
                                         {{ $message }}
@@ -436,7 +443,8 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium">Set Harga</label>
-                            <select disabled class="w-full border rounded px-3 py-2 bg-gray-100 @error('fhargalevel') is-invalid @enderror"
+                            <select disabled
+                                class="w-full border rounded px-3 py-2 bg-gray-100 @error('fhargalevel') is-invalid @enderror"
                                 name="fhargalevel" id="fhargalevel">
                                 <option value="0"
                                     {{ old('fhargalevel', $customer->fhargalevel) == 0 ? 'selected' : '' }}>Harga Level 1
@@ -482,7 +490,8 @@
 
                         <div class="md:col-span-2">
                             <label class="block text-sm font-medium">Kode Rekening</label>
-                            <select disabled class="w-full border rounded px-3 py-2 bg-gray-100 @error('frekening') is-invalid @enderror"
+                            <select disabled
+                                class="w-full border rounded px-3 py-2 bg-gray-100 @error('frekening') is-invalid @enderror"
                                 name="frekening" id="frekening">
                                 <option value="" selected> Pilih Kode Rekening </option>
                                 @foreach ($rekening as $rek)
@@ -501,8 +510,8 @@
 
                         <div class="md:col-span-2">
                             <label class="block text-sm font-medium">Memo</label>
-                            <textarea readonly class="w-full border rounded px-3 py-2 bg-gray-100 @error('fmemo') is-invalid @enderror" name="fmemo" id="fmemo"
-                                placeholder="Masukkan Memo" cols="10" rows="6">{{ old('fmemo', $customer->fmemo) }}</textarea>
+                            <textarea readonly class="w-full border rounded px-3 py-2 bg-gray-100 @error('fmemo') is-invalid @enderror"
+                                name="fmemo" id="fmemo" placeholder="Masukkan Memo" cols="10" rows="6">{{ old('fmemo', $customer->fmemo) }}</textarea>
                             @error('fmemo')
                                 <div class="invalid-feedback">
                                     {{ $message }}
@@ -1005,17 +1014,21 @@
                 class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                 <div class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
                     <h3 class="text-lg font-semibold mb-4">Konfirmasi hapus customer ini?</h3>
+                    <form id="deleteForm" action="{{ route('customer.destroy', $customer->fcustomerid) }}"
+                        method="POST">
+                        @csrf
+                        @method('DELETE')
+                        <div class="flex justify-end space-x-2">
+                            <button onclick="closeDeleteModal()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                                id="btnTidak">
+                                Tidak
+                            </button>
+                            <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+                                Ya, Hapus
+                            </button>
+                        </div>
+                    </form>
 
-                    <div class="flex justify-end space-x-2">
-                        <button onclick="closeDeleteModal()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-                            id="btnTidak">
-                            Tidak
-                        </button>
-                        <button onclick="confirmDelete()" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-                            id="btnYa">
-                            Ya, Hapus
-                        </button>
-                    </div>
                 </div>
             </div>
 

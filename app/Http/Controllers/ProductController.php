@@ -399,15 +399,10 @@ class ProductController extends Controller
 
             // 3. Jika semua pengecekan lolos, baru hapus
             $product->delete();
-            return response()->json([
-                'success' => true,
-                'message' => 'Data product berhasil dihapus'
-            ]);
+            return redirect()->route('product.index')->with('success', 'Data product ' . $product->fprdname . ' berhasil dihapus.');
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal menghapus data: ' . $e->getMessage()
-            ], 500);
+            // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
+            return redirect()->route('product.delete', $fprdid)->with('error', 'Gagal menghapus data: ' . $e->getMessage());
         }
     }
 

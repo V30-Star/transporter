@@ -174,7 +174,8 @@
                             <div class="lg:col-span-4">
                                 <label class="block text-sm font-medium mb-1">Tempo</label>
                                 <div class="flex items-center">
-                                    <input disabled type="number" id="ftempohr" name="ftempohr" value="{{ old('ftempohr', 0) }}"
+                                    <input disabled type="number" id="ftempohr" name="ftempohr"
+                                        value="{{ old('ftempohr', 0) }}"
                                         class="w-full border rounded px-3 py-2 text-gray-700 @error('ftempohr') border-red-500 @enderror">
                                     <span class="ml-2">Hari</span>
                                 </div>
@@ -284,7 +285,8 @@
 
                             <div class="lg:col-span-5">
                                 <input disabled id="fincludeppn" type="checkbox" name="fincludeppn" value="1"
-                                    x-model="includePPN" class="h-4 w-4 text-blue-600 border-gray-300 text-gray-700 rounded"
+                                    x-model="includePPN"
+                                    class="h-4 w-4 text-blue-600 border-gray-300 text-gray-700 rounded"
                                     {{ old('fincludeppn', $tr_poh->fincludeppn ?? 0) ? 'checked' : '' }}>
                                 <label for="fincludeppn" class="ml-2 text-sm font-medium text-gray-700">
                                     Harga Termasuk <span class="font-bold">PPN</span>
@@ -1374,8 +1376,7 @@
                                     <div class="flex-1 overflow-y-auto px-6" style="min-height: 0;">
                                         <div class="bg-white">
                                             <table id="supplierBrowseTable"
-                                                class="min-w-full text-sm display nowrap stripe hover"
-                                                style="width:100%">
+                                                class="min-w-full text-sm display nowrap stripe hover" style="width:100%">
                                                 <thead class="sticky top-0 z-10">
                                                     <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
                                                         <th
@@ -1438,8 +1439,7 @@
                                     <div class="flex-1 overflow-y-auto px-6" style="min-height: 0;">
                                         <div class="bg-white">
                                             <table id="productTable"
-                                                class="min-w-full text-sm display nowrap stripe hover"
-                                                style="width:100%">
+                                                class="min-w-full text-sm display nowrap stripe hover" style="width:100%">
                                                 <thead class="sticky top-0 z-10">
                                                     <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
                                                         <th
@@ -1523,25 +1523,19 @@
         <div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
                 <h3 class="text-lg font-semibold mb-4">Konfirmasi hapus Permintaan Pembelian ini?</h3>
-
-                <div class="flex justify-end space-x-2">
-                    <button onclick="closeDeleteModal()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-                        id="btnTidak">
-                        Tidak
-                    </button>
-                    <button onclick="confirmDelete()" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-                        id="btnYa">
-                        Ya, Hapus
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        {{-- Toast Notification --}}
-        <div id="toast" class="hidden fixed top-4 right-4 z-50 max-w-sm">
-            <div id="toastContent" class="text-white px-6 py-4 rounded-lg shadow-lg flex items-center">
-                <span id="toastMessage"></span>
-                <button onclick="closeToast()" class="ml-4 text-white hover:text-gray-200">×</button>
+                <form id="deleteForm" action="{{ route('tr_poh.destroy', $tr_poh->fpohid) }}" method="POST">
+                    @csrf
+                    @method('DELETE')
+                    <div class="flex justify-end space-x-2">
+                        <button onclick="closeDeleteModal()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                            id="btnTidak">
+                            Tidak
+                        </button>
+                        <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+                            Ya, Hapus
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
 

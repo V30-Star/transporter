@@ -161,7 +161,8 @@
                                 <label class="block text-sm font-medium mb-1">Account</label>
                                 <div class="flex">
                                     <div class="relative flex-1">
-                                        <select id="accountSelect" class="w-full border rounded-l px-3 py-2 bg-gray-100" disabled>
+                                        <select id="accountSelect" class="w-full border rounded-l px-3 py-2 bg-gray-100"
+                                            disabled>
                                             <option value=""></option>
                                             @foreach ($accounts as $account)
                                                 <option value="{{ $account->faccid }}" data-id="{{ $account->faccid }}"
@@ -313,7 +314,7 @@
                                                 </tr>
                                             </template>
 
-                                           
+
                                         </tbody>
                                     </table>
                                 </div>
@@ -883,9 +884,9 @@
                                     <!-- Qty -->
                                     <td class="p-2 text-right">
                                         <input type="number" class="border rounded px-2 py-1 w-24 text-right"
-                                            min="0" step="1" x-ref="editQty"
-                                            x-model.number="editRow.fqty" @change="recalc(editRow)"
-                                            @blur="recalc(editRow)" @keydown.enter.prevent="$refs.editPrice?.focus()">
+                                            min="0" step="1" x-ref="editQty" x-model.number="editRow.fqty"
+                                            @change="recalc(editRow)" @blur="recalc(editRow)"
+                                            @keydown.enter.prevent="$refs.editPrice?.focus()">
                                     </td>
 
                                     <!-- Aksi -->
@@ -953,8 +954,8 @@
                                     <!-- Qty -->
                                     <td class="p-2 text-right">
                                         <input type="number" class="border rounded px-2 py-1 w-24 text-right"
-                                            min="0" step="1" x-ref="draftQty"
-                                            x-model.number="draft.fqty" @change="recalc(draft)" @blur="recalc(draft)"
+                                            min="0" step="1" x-ref="draftQty" x-model.number="draft.fqty"
+                                            @change="recalc(draft)" @blur="recalc(draft)"
                                             @keydown.enter.prevent="$refs.draftPrice?.focus()">
                                     </td>
 
@@ -991,9 +992,8 @@
                         @keydown.escape.window="closeModal()"></div>
 
                     <!-- Modal panel PR-->
-                    <div x-show="show" x-transition
-                        class="fixed inset-0 z-50 flex items-start justify-center p-4 md:p-8" aria-modal="true"
-                        role="dialog">
+                    <div x-show="show" x-transition class="fixed inset-0 z-50 flex items-start justify-center p-4 md:p-8"
+                        aria-modal="true" role="dialog">
                         <div class="w-full max-w-3xl rounded-xl bg-white shadow-xl">
                             <div class="flex items-center justify-between border-b px-4 py-3">
                                 <h3 class="text-lg font-semibold">Add PO</h3>
@@ -1018,8 +1018,7 @@
 
                                         <!-- Chevron custom -->
                                         <svg class="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500"
-                                            xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
-                                            fill="currentColor">
+                                            xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                             <path fill-rule="evenodd"
                                                 d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z"
                                                 clip-rule="evenodd" />
@@ -1166,8 +1165,7 @@
                 class="fixed inset-0 z-[90] flex items-center justify-center" x-transition.opacity>
                 <div class="absolute inset-0 bg-black/50" @click="showNoItems=false"></div>
 
-                <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden"
-                    x-transition.scale>
+                <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden" x-transition.scale>
                     <div class="px-5 py-4 border-b flex items-center">
                         <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-red-500 mr-2" />
                         <h3 class="text-lg font-semibold text-gray-800">Tidak Ada Item</h3>
@@ -1226,8 +1224,7 @@
                                             Gudang (Kode - Nama)</th>
                                         <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
                                             Branch</th>
-                                        <th
-                                            class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                        <th class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
                                             Aksi</th>
                                     </tr>
                                 </thead>
@@ -1285,11 +1282,9 @@
                                             Satuan</th>
                                         <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
                                             Merek</th>
-                                        <th
-                                            class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                        <th class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
                                             Stock</th>
-                                        <th
-                                            class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                        <th class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
                                             Aksi</th>
                                     </tr>
                                 </thead>
@@ -1340,8 +1335,7 @@
                                             Account Kode</th>
                                         <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
                                             Account Nama</th>
-                                        <th
-                                            class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                        <th class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
                                             Aksi</th>
                                     </tr>
                                 </thead>
@@ -1356,7 +1350,8 @@
                 </div>
             </div>
             <div class="mt-8 flex justify-center gap-4">
-                <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
+                <button type="submit"
+                    class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
                     <x-heroicon-o-check class="w-5 h-5 mr-2" /> Simpan
                 </button>
                 <button type="button" @click="window.location.href='{{ route('adjstock.index') }}'"
@@ -1365,8 +1360,8 @@
                 </button>
             </div>
         </form>
-        </div>
-        @endif
+    </div>
+    @endif
 
     {{-- ============================================ --}}
     {{-- MODAL & TOAST (HANYA UNTUK MODE DELETE)     --}}
@@ -1376,25 +1371,20 @@
         <div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
                 <h3 class="text-lg font-semibold mb-4">Konfirmasi Hapus adjstock ini?</h3>
-
-                <div class="flex justify-end space-x-2">
-                    <button onclick="closeDeleteModal()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-                        id="btnTidak">
-                        Tidak
-                    </button>
-                    <button onclick="confirmDelete()" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-                        id="btnYa">
-                        Ya, Hapus
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        {{-- Toast Notification --}}
-        <div id="toast" class="hidden fixed top-4 right-4 z-50 max-w-sm">
-            <div id="toastContent" class="text-white px-6 py-4 rounded-lg shadow-lg flex items-center">
-                <span id="toastMessage"></span>
-                <button onclick="closeToast()" class="ml-4 text-white hover:text-gray-200">×</button>
+                <form id="deleteForm" action="{{ route('adjstock.destroy', $adjstock->fstockmtid) }}"
+                    method="POST">
+                    @csrf
+                    @method('DELETE')
+                    <div class="flex justify-end space-x-2">
+                        <button onclick="closeDeleteModal()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                            id="btnTidak">
+                            Tidak
+                        </button>
+                        <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+                            Ya, Hapus
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
 

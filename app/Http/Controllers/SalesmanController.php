@@ -134,21 +134,16 @@ class SalesmanController extends Controller
         ]);
     }
 
-    public function destroy($id)
+    public function destroy($fsalesmanid)
     {
         try {
-            $salesman = Salesman::findOrFail($id);
+            $salesman = Salesman::findOrFail($fsalesmanid);
             $salesman->delete();
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Data salesman berhasil dihapus'
-            ]);
+            return redirect()->route('salesman.index')->with('success', 'Data salesman ' . $salesman->fsalesmanname . ' berhasil dihapus.');
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal menghapus data: ' . $e->getMessage()
-            ], 500);
+            // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
+            return redirect()->route('salesman.delete', $fsalesmanid)->with('error', 'Gagal menghapus data: ' . $e->getMessage());
         }
     }
 }

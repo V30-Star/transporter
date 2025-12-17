@@ -1070,15 +1070,10 @@ class AssemblingController extends Controller
       $assembling->details()->delete();
 
       $assembling->delete();
-      return response()->json([
-        'success' => true,
-        'message' => 'Data Assembling berhasil dihapus'
-      ]);
+      return redirect()->route('assembling.index')->with('success', 'Data assembling ' . $assembling->fpono . ' berhasil dihapus.');
     } catch (\Exception $e) {
-      return response()->json([
-        'success' => false,
-        'message' => 'Gagal menghapus data: ' . $e->getMessage()
-      ], 500);
+      // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
+      return redirect()->route('assembling.delete', $fstockmtid)->with('error', 'Gagal menghapus data: ' . $e->getMessage());
     }
   }
 }

@@ -396,15 +396,10 @@ class CustomerController extends Controller
             $customer = Customer::findOrFail($fcustomerid);
             $customer->delete();
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Data customer berhasil dihapus'
-            ]);
+            return redirect()->route('customer.index')->with('success', 'Data customer ' . $customer->fcustomername . ' berhasil dihapus.');
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal menghapus data: ' . $e->getMessage()
-            ], 500);
+            // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
+            return redirect()->route('customer.delete', $fcustomerid)->with('error', 'Gagal menghapus data: ' . $e->getMessage());
         }
     }
 

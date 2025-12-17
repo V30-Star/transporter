@@ -79,7 +79,7 @@ class SubaccountController extends Controller
     {
         // Ambil data berdasarkan PK fsubaccountid
         $subaccount = Subaccount::findOrFail($fsubaccountid);
-        
+
         return view('subaccount.edit', [
             'subaccount' => $subaccount,
             'action' => 'edit'
@@ -138,15 +138,10 @@ class SubaccountController extends Controller
             $subaccount = Subaccount::findOrFail($fsubaccountid);
             $subaccount->delete();
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Data subaccount berhasil dihapus'
-            ]);
+            return redirect()->route('subaccount.index')->with('success', 'Data subaccount ' . $subaccount->fsubaccountname . ' berhasil dihapus.');
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal menghapus data: ' . $e->getMessage()
-            ], 500);
+            // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
+            return redirect()->route('subaccount.delete', $fsubaccountid)->with('error', 'Gagal menghapus data: ' . $e->getMessage());
         }
     }
 }

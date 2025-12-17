@@ -223,51 +223,47 @@ class AccountController extends Controller
 
     public function destroy($faccid)
     {
-        // Find Account
-        $account = Account::findOrFail($faccid);
+        try {
+            // Find Account
+            $account = Account::findOrFail($faccid);
 
-        // --- Validation Check ---
+            // --- Validation Check ---
 
-        // 1. Cek apakah kolom 'fend' bernilai 0
-        if ($account->fend == 0) {
-            return redirect()
-                ->route('account.index')
-                ->with('error', 'Account tidak dapat dihapus karena Header.');
+            // 1. Cek apakah kolom 'fend' bernilai 0
+            if ($account->fend == 0) {
+                return redirect()
+                    ->route('account.index')
+                    ->with('error', 'Account tidak dapat dihapus karena Header.');
+            }
+
+            // 2. Cek apakah account ini memiliki sub-account (child account)
+            $hasChildren = Account::where('faccupline', $faccid)->exists();
+
+            if ($hasChildren) {
+                return redirect()
+                    ->route('account.index')
+                    ->with('error', 'Account tidak dapat dihapus karena memiliki sub-account.');
+            }
+
+            // 3. (Opsional) Cek apakah account sudah digunakan di transaksi
+            // Uncomment jika Anda ingin cek di tabel jurnal/transaksi
+            $usedInTransaction = DB::table('jurnaldt')->where('faccount', $account->faccount)->exists();
+
+            if ($usedInTransaction) {
+                return redirect()
+                    ->route('account.index')
+                    ->with('error', 'Account tidak dapat dihapus karena sudah digunakan dalam transaksi.');
+            }
+
+            // --- End Validation Check ---
+
+            // Delete the Account
+            $account->delete();
+            return redirect()->route('rekening.index')->with('success', 'Data account ' . $account->faccname . ' berhasil dihapus.');
+        } catch (\Exception $e) {
+            // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
+            return redirect()->route('rekening.delete', $faccid)->with('error', 'Gagal menghapus data: ' . $e->getMessage());
         }
-
-        // 2. Cek apakah account ini memiliki sub-account (child account)
-        $hasChildren = Account::where('faccupline', $faccid)->exists();
-
-        if ($hasChildren) {
-            return redirect()
-                ->route('account.index')
-                ->with('error', 'Account tidak dapat dihapus karena memiliki sub-account.');
-        }
-
-        // 3. (Opsional) Cek apakah account sudah digunakan di transaksi
-        // Uncomment jika Anda ingin cek di tabel jurnal/transaksi
-        $usedInTransaction = DB::table('jurnaldt')->where('faccount', $account->faccount)->exists();
-
-        if ($usedInTransaction) {
-            return redirect()
-                ->route('account.index')
-                ->with('error', 'Account tidak dapat dihapus karena sudah digunakan dalam transaksi.');
-        }
-
-        // --- End Validation Check ---
-
-        // Delete the Account
-        $account->delete();
-        if (request()->wantsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Account berhasil dihapus.'
-            ]);
-        }
-
-        return redirect()
-            ->route('account.index')
-            ->with('success', 'Account berhasil dihapus.');
     }
 
     public function suggestAccounts(Request $request)

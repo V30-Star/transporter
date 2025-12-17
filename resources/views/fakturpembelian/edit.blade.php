@@ -308,7 +308,8 @@
                         <div class="lg:col-span-4">
                             <label class="block text-npsm font-medium mb-1">Faktur</label>
                             <div class="flex items-center gap-3">
-                                <input disabled type="text" name="frefno" class="w-full border rounded px-3 py-2 text-gray-700"
+                                <input disabled type="text" name="frefno"
+                                    class="w-full border rounded px-3 py-2 text-gray-700"
                                     value="{{ old('frefno', $fakturpembelian->frefno) }}">
                                 <label class="inline-flex items-center select-none">
                                 </label>
@@ -329,8 +330,9 @@
 
                         <div class="lg:col-span-4">
                             <label class="block text-sm font-medium">TOP (Hari)</label>
-                            <input disabled type="number" id="ftempohr" name="ftempohr" class="w-full border rounded px-3 py-2 text-gray-700"
-                                {{-- Hapus 'value' yang duplikat. Cukup satu baris ini: --}} value="{{ old('ftempohr', $fakturpembelian->ftempohr) }}"
+                            <input disabled type="number" id="ftempohr" name="ftempohr"
+                                class="w-full border rounded px-3 py-2 text-gray-700" {{-- Hapus 'value' yang duplikat. Cukup satu baris ini: --}}
+                                value="{{ old('ftempohr', $fakturpembelian->ftempohr) }}"
                                 placeholder="Masukkan jumlah hari">
                             @error('ftempohr')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -638,8 +640,8 @@
                                         <div class="flex items-center justify-between gap-6">
                                             <!-- Checkbox -->
                                             <div class="flex items-center">
-                                                <input disabled id="fapplyppn" type="checkbox" name="fapplyppn" value="1"
-                                                    x-model="includePPN"
+                                                <input disabled id="fapplyppn" type="checkbox" name="fapplyppn"
+                                                    value="1" x-model="includePPN"
                                                     class="h-4 w-4 text-blue-600 border-gray-300 rounded">
                                                 <label for="fapplyppn" class="ml-2 text-sm font-medium text-gray-700">
                                                     <span class="font-bold">PPN</span>
@@ -648,8 +650,9 @@
 
                                             <!-- Dropdown Include / Exclude (tengah) -->
                                             <div class="flex items-center gap-2">
-                                                <select disabled id="includePPN" name="includePPN" x-model.number="fapplyppn"
-                                                    x-init="fapplyppn = 0" :disabled="!(includePPN || fapplyppn)"
+                                                <select disabled id="includePPN" name="includePPN"
+                                                    x-model.number="fapplyppn" x-init="fapplyppn = 0"
+                                                    :disabled="!(includePPN || fapplyppn)"
                                                     class="w-28 h-9 px-2 text-sm leading-tight border rounded transition-opacity appearance-none
                                                            disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
                                                     <option value="0">Exclude</option>
@@ -659,8 +662,9 @@
 
                                             <!-- Input Rate + Nominal (kanan) -->
                                             <div class="flex items-center gap-2">
-                                                <input disabled type="number" min="0" max="100" step="0.01"
-                                                    x-model.number="ppnRate" :disabled="!(includePPN || fapplyppn)"
+                                                <input disabled type="number" min="0" max="100"
+                                                    step="0.01" x-model.number="ppnRate"
+                                                    :disabled="!(includePPN || fapplyppn)"
                                                     class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
                                                             [appearance:textfield]
                                                             [&::-webkit-outer-spin-button]:appearance-none
@@ -1389,8 +1393,8 @@
                                             class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
                                                 viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                    stroke-width="1.5" d="M12 4.5v15m7.5-7.5h-15" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                                    d="M12 4.5v15m7.5-7.5h-15" />
                                             </svg>
                                             Add PR
                                         </button>
@@ -1409,17 +1413,15 @@
                                                     <input id="fapplyppn" type="checkbox" name="fapplyppn"
                                                         value="1" x-model="includePPN"
                                                         class="h-4 w-4 text-blue-600 border-gray-300 rounded">
-                                                    <label for="fapplyppn"
-                                                        class="ml-2 text-sm font-medium text-gray-700">
+                                                    <label for="fapplyppn" class="ml-2 text-sm font-medium text-gray-700">
                                                         <span class="font-bold">PPN</span>
                                                     </label>
                                                 </div>
 
                                                 <!-- Dropdown Include / Exclude (tengah) -->
                                                 <div class="flex items-center gap-2">
-                                                    <select id="includePPN" name="includePPN"
-                                                        x-model.number="fapplyppn" x-init="fapplyppn = 0"
-                                                        :disabled="!(includePPN || fapplyppn)"
+                                                    <select id="includePPN" name="includePPN" x-model.number="fapplyppn"
+                                                        x-init="fapplyppn = 0" :disabled="!(includePPN || fapplyppn)"
                                                         class="w-28 h-9 px-2 text-sm leading-tight border rounded transition-opacity appearance-none
                                                            disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
                                                         <option value="0">Exclude</option>
@@ -1429,9 +1431,8 @@
 
                                                 <!-- Input Rate + Nominal (kanan) -->
                                                 <div class="flex items-center gap-2">
-                                                    <input type="number" min="0" max="100"
-                                                        step="0.01" x-model.number="ppnRate"
-                                                        :disabled="!(includePPN || fapplyppn)"
+                                                    <input type="number" min="0" max="100" step="0.01"
+                                                        x-model.number="ppnRate" :disabled="!(includePPN || fapplyppn)"
                                                         class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
                                                             [appearance:textfield]
                                                             [&::-webkit-outer-spin-button]:appearance-none
@@ -1889,25 +1890,20 @@
                 class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                 <div class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
                     <h3 class="text-lg font-semibold mb-4">Konfirmasi Hapus fakturpembelian ini?</h3>
-
-                    <div class="flex justify-end space-x-2">
-                        <button onclick="closeDeleteModal()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-                            id="btnTidak">
-                            Tidak
-                        </button>
-                        <button onclick="confirmDelete()"
-                            class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700" id="btnYa">
-                            Ya, Hapus
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Toast Notification --}}
-            <div id="toast" class="hidden fixed top-4 right-4 z-50 max-w-sm">
-                <div id="toastContent" class="text-white px-6 py-4 rounded-lg shadow-lg flex items-center">
-                    <span id="toastMessage"></span>
-                    <button onclick="closeToast()" class="ml-4 text-white hover:text-gray-200">×</button>
+                    <form id="deleteForm" action="{{ route('fakturpembelian.destroy', $fakturpembelian->fstockmtid) }}"
+                        method="POST">
+                        @csrf
+                        @method('DELETE')
+                        <div class="flex justify-end space-x-2">
+                            <button onclick="closeDeleteModal()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                                id="btnTidak">
+                                Tidak
+                            </button>
+                            <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+                                Ya, Hapus
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
 

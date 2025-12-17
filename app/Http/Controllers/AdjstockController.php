@@ -1103,15 +1103,10 @@ class AdjstockController extends Controller
       $adjstock->details()->delete();
       $adjstock->delete();
 
-      return response()->json([
-        'success' => true,
-        'message' => 'Data Adjustment Stock berhasil dihapus'
-      ]);
+      return redirect()->route('adjstock.index')->with('success', 'Data Adjustment Stock ' . $adjstock->fpono . ' berhasil dihapus.');
     } catch (\Exception $e) {
-      return response()->json([
-        'success' => false,
-        'message' => 'Gagal menghapus data: ' . $e->getMessage()
-      ], 500);
+      // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
+      return redirect()->route('adjstock.delete', $fstockmtid)->with('error', 'Gagal menghapus data: ' . $e->getMessage());
     }
   }
 }

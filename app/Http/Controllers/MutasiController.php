@@ -1090,29 +1090,25 @@ class MutasiController extends Controller
         try {
             DB::beginTransaction();
 
-            // 1. Hapus detail dulu (trstockdt)
+            $mutasi = DB::table('trstockmt')
+                ->where('fstockmtid', $fstockmtid)
+                ->first(); // Mengambil data sebagai object
+
             DB::table('trstockdt')
                 ->where('fstockmtid', $fstockmtid)
                 ->delete();
 
-            // 2. Baru hapus header (trstockmt)
-            $deleted = DB::table('trstockmt')
+            // 3. Hapus header (trstockmt)
+            DB::table('trstockmt')
                 ->where('fstockmtid', $fstockmtid)
                 ->delete();
 
             DB::commit();
 
-            if ($deleted) {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Data Mutasi berhasil dihapus'
-                ]);
-            }
+            return redirect()->route('mutasi.index')->with('success', 'Data Mutasi ' . $mutasi->fpono . ' berhasil dihapus.');
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal menghapus data: ' . $e->getMessage()
-            ], 500);
+            // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
+            return redirect()->route('mutasi.delete', $fstockmtid)->with('error', 'Gagal menghapus data: ' . $e->getMessage());
         }
     }
 }

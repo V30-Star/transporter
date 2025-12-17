@@ -1111,17 +1111,19 @@
         <div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
                 <h3 class="text-lg font-semibold mb-4">Konfirmasi hapus product ini?</h3>
-
-                <div class="flex justify-end space-x-2">
-                    <button onclick="closeDeleteModal()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-                        id="btnTidak">
-                        Tidak
-                    </button>
-                    <button onclick="confirmDelete()" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-                        id="btnYa">
-                        Ya, Hapus
-                    </button>
-                </div>
+                <form id="deleteForm" action="{{ route('product.destroy', $product->fprdid) }}" method="POST">
+                    @csrf
+                    @method('DELETE')
+                    <div class="flex justify-end space-x-2">
+                        <button onclick="closeDeleteModal()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                            id="btnTidak">
+                            Tidak
+                        </button>
+                        <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+                            Ya, Hapus
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
 

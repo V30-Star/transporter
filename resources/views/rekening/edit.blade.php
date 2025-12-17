@@ -119,7 +119,6 @@
         <div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
                 <h3 class="text-lg font-semibold mb-4">Konfirmasi Hapus rekening ini?</h3>
-
                 <form id="deleteForm" action="{{ route('rekening.destroy', $rekening->frekeningid) }}" method="POST">
                     @csrf
                     @method('DELETE')
@@ -128,8 +127,7 @@
                             class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">
                             Tidak
                         </button>
-                        {{-- PASTIKAN TYPE ADALAH "submit" dan tidak ada onclick yang aneh-aneh --}}
-                        <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+=                        <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
                             Ya, Hapus
                         </button>
                     </div>

@@ -172,15 +172,10 @@ class WhController extends Controller
             $gudang = Wh::findOrFail($fwhid);
             $gudang->delete();
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Data gudang berhasil dihapus'
-            ]);
+                return redirect()->route('gudang.index')->with('success', 'Data gudang ' . $gudang->fwhname . ' berhasil dihapus.');
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal menghapus data: ' . $e->getMessage()
-            ], 500);
+            // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
+            return redirect()->route('gudang.delete', $fwhid)->with('error', 'Gagal menghapus data: ' . $e->getMessage());
         }
     }
 

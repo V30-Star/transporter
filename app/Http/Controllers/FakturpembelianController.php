@@ -1171,15 +1171,10 @@ class FakturPembelianController extends Controller
       $fakturpembelian->details()->delete();
       $fakturpembelian->delete();
 
-      return response()->json([
-        'success' => true,
-        'message' => 'Data Faktur Pembelian berhasil dihapus'
-      ]);
+      return redirect()->route('fakturpembelian.index')->with('success', 'Data Faktur Pembelian ' . $fakturpembelian->fpono . ' berhasil dihapus.');
     } catch (\Exception $e) {
-      return response()->json([
-        'success' => false,
-        'message' => 'Gagal menghapus data: ' . $e->getMessage()
-      ], 500);
+      // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
+      return redirect()->route('fakturpembelian.delete', $fstockmtid)->with('error', 'Gagal menghapus data: ' . $e->getMessage());
     }
   }
 }
