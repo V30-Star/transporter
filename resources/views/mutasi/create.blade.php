@@ -440,17 +440,6 @@
                                     Add PO
                                 </button>
                             </div>
-
-                            <!-- Panel Totals -->
-                            <div class="w-1/2">
-                                <div class="rounded-lg border bg-gray-50 p-3 space-y-2">
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-sm text-gray-700">Total Harga</span>
-                                        <span class="min-w-[140px] text-right font-medium"
-                                            x-text="rupiah(totalHarga)"></span>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
 
                         {{-- MODAL PO --}}
@@ -587,7 +576,7 @@
                     </div>
 
                     <!-- MODAL DESC (di dalam itemsTable) -->
-                    <div x-show="showDescModal" x-cloak class="fixed inset-0 z-[95] flex items-center justify-center"
+                    {{-- <div x-show="showDescModal" x-cloak class="fixed inset-0 z-[95] flex items-center justify-center"
                         x-transition.opacity>
                         <div class="absolute inset-0 bg-black/50" @click="closeDesc()"></div>
 
@@ -615,7 +604,7 @@
                                 </button>
                             </div>
                         </div>
-                    </div>
+                    </div> --}}
 
                     <input type="hidden" id="itemsCount" :value="savedItems.length">
 
@@ -1474,6 +1463,7 @@
         return {
             open: false,
             table: null,
+            currentTarget: '', // Tambahkan variabel untuk mencatat target
 
             initDataTable() {
                 if (this.table) {
@@ -1585,7 +1575,8 @@
                 });
             },
 
-            openModal() {
+            openModal(target) {
+                this.currentTarget = target;
                 this.open = true;
                 this.$nextTick(() => {
                     this.initDataTable();
@@ -1594,25 +1585,22 @@
 
             close() {
                 this.open = false;
-                if (this.table) {
-                    this.table.search('').draw();
-                }
             },
-
             choose(w) {
                 window.dispatchEvent(new CustomEvent('warehouse-picked', {
                     detail: {
                         fwhid: w.fwhid,
                         fwhcode: w.fwhcode,
                         fwhname: w.fwhname,
-                        fbranchcode: w.fbranchcode
+                        target: this.currentTarget // Kirim balik targetnya ('from' atau 'to')
                     }
                 }));
                 this.close();
             },
 
             init() {
-                window.addEventListener('warehouse-browse-open', () => this.openModal());
+                // Tangkap target dari detail event
+                window.addEventListener('warehouse-browse-open', (e) => this.openModal(e.detail));
             }
         }
     };
@@ -1622,17 +1610,28 @@
         window.addEventListener('warehouse-picked', (ev) => {
             const {
                 fwhcode,
-                fwhid
+                fwhid,
+                target
             } = ev.detail || {};
-            const sel = document.getElementById('warehouseSelect');
-            const hid = document.getElementById('warehouseIdHidden');
+
+            // Tentukan suffix ID berdasarkan target ('From' atau 'To')
+            const suffix = target === 'from' ? 'From' : 'To';
+
+            const sel = document.getElementById('warehouseSelect' + suffix);
+            const hid = document.getElementById('warehouseCodeHidden' + suffix);
+
             if (sel) {
-                sel.value = fwhcode || '';
+                // Set value select (fwhid harus cocok dengan value di <option>)
+                sel.value = fwhid;
+                // Penting: beritahu browser/Alpine bahwa value berubah
                 sel.dispatchEvent(new Event('change', {
                     bubbles: true
                 }));
             }
-            if (hid) hid.value = fwhid || '';
+
+            if (hid) {
+                hid.value = fwhid;
+            }
         });
     });
 </script>
