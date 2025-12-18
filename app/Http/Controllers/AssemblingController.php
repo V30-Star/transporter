@@ -73,6 +73,17 @@ class AssemblingController extends Controller
 
         $actions = '';
 
+        // --- Tombol view ---
+        // if ($canView) {
+        // Asumsi route edit Anda: assembling.edit
+        $viewUrl = route('assembling.view', $row->fstockmtid);
+        $actions .= ' <a href="' . $viewUrl . '" class="inline-flex items-center bg-slate-500 text-white px-4 py-2 rounded hover:bg-slate-600">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                    </svg> View
+                                </a>';
+        // }
+
         // --- Tombol Edit ---
         // if ($canEdit) {
         // Asumsi route edit Anda: assembling.edit
@@ -723,6 +734,123 @@ class AssemblingController extends Controller
       'famountponet'       => (float) ($assembling->famountponet ?? 0),
       'famountpo'          => (float) ($assembling->famountpo ?? 0),
       'action' => 'edit',
+    ]);
+  }
+  public function view($fstockmtid)
+  {
+    $supplier = Supplier::all();
+
+    $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
+
+    $branch = DB::table('mscabang')
+      ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
+      ->when(!is_numeric($raw), fn($q) => $q
+        ->where('fcabangkode', $raw)
+        ->orWhere('fcabangname', $raw))
+      ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
+
+    $warehouses = DB::table('mswh')
+      ->select('fwhid', 'fwhcode', 'fwhname', 'fbranchcode', 'fnonactive')
+      ->where('fnonactive', '0') // hanya yang aktif
+      ->orderBy('fwhcode')
+      ->get();
+
+    $fcabang     = $branch->fcabangname ?? (string) $raw;
+    $fbranchcode = $branch->fcabangkode ?? (string) $raw;
+
+    // 1. Ambil data Header (trstockmt) DAN relasi Details (trstockdt)
+    // Biarkan query ini. Sekarang $fstockmtid di sini adalah integer (misal: 8)
+    $assembling = PenerimaanPembelianHeader::with([
+      'details' => function ($query) {
+        $query
+          ->join('msprd', 'msprd.fprdid', '=', 'trstockdt.fprdcode')
+          ->with(['account', 'subaccount']) // Eager load relasi
+          ->select(
+            'trstockdt.*',
+            'msprd.fprdname',
+            'msprd.fprdcode as fitemcode_text'
+          )
+          ->orderBy('trstockdt.fstockdtid', 'asc');
+      }
+    ])->findOrFail($fstockmtid);
+
+    // 4. Map the data for savedItems (sudah menggunakan data yang benar)
+    $savedItems = $assembling->details->map(function ($d) {
+      $fitemtype = 'barang_jadi'; // default
+
+      $fcode = trim((string)($d->fcode ?? '')); // Ambil nilai fcode dengan aman
+
+      // **INI ADALAH PERBAIKAN UTAMA**
+      if (!empty($fcode)) {
+        if (strtoupper($fcode) === 'B') {
+          $fitemtype = 'bahan_baku';
+        } elseif (strtoupper($fcode) === 'J') {
+          $fitemtype = 'barang_jadi';
+        } else {
+          // Jika ada kode lain selain B atau J, Anda bisa tentukan di sini
+          $fitemtype = 'lain_lain';
+        }
+      }
+      return [
+        'uid' => $d->fstockdtid,
+        'fitemcode' => $d->fitemcode_text ?? '',
+        'fitemname' => $d->fprdname ?? '',
+        'fsatuan' => $d->fsatuan ?? '',
+        'fprno' => $d->frefpr ?? '-',
+        'frefpr' => $d->frefpr ?? null,
+        'frefso' => $d->frefso ?? null,
+        'fpono' => $d->fpono ?? null,
+        'famountponet' => $d->famountponet ?? null,
+        'famountpo' => $d->famountpo ?? null,
+        'frefdtno' => $d->frefdtno ?? null,
+        'fnouref' => $d->fnouref ?? null,
+        'fqty' => (float)($d->fqty ?? 0),
+        'fterima' => (float)($d->fterima ?? 0),
+        'fdisc' => (float)($d->fdiscpersen ?? 0),
+        'ftotal' => (float)($d->ftotprice ?? 0),
+        'fdesc' => is_array($d->fdesc) ? implode(', ', $d->fdesc) : ($d->fdesc ?? ''),
+        'fketdt' => $d->fketdt ?? '',
+        'fitemtype'       => $fitemtype,
+        'units' => [],
+      ];
+    })->values();
+
+    // Sisa kode Anda sudah benar
+    $selectedSupplierCode = $assembling->fsupplier;
+
+    $products = Product::select(
+      'fprdid',
+      'fprdcode',
+      'fprdname',
+      'fsatuankecil',
+      'fsatuanbesar',
+      'fsatuanbesar2',
+      'fminstock'
+    )->orderBy('fprdname')->get();
+
+    $productMap = $products->mapWithKeys(function ($p) {
+      return [
+        $p->fprdcode => [
+          'name'  => $p->fprdname,
+          'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
+          'stock' => $p->fminstock ?? 0,
+        ],
+      ];
+    })->toArray();
+
+    return view('assembling.view', [
+      'supplier'           => $supplier,
+      'selectedSupplierCode' => $selectedSupplierCode,
+      'fcabang'            => $fcabang,
+      'fbranchcode'        => $fbranchcode,
+      'warehouses'         => $warehouses,
+      'products'           => $products,
+      'productMap'         => $productMap,
+      'assembling'    => $assembling,
+      'savedItems'         => $savedItems,
+      'ppnAmount'          => (float) ($assembling->famountpopajak ?? 0),
+      'famountponet'       => (float) ($assembling->famountponet ?? 0),
+      'famountpo'          => (float) ($assembling->famountpo ?? 0),
     ]);
   }
 

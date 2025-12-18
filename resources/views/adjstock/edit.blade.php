@@ -1853,6 +1853,15 @@
             },
 
             init() {
+                this.$watch('savedItems', () => {
+                this.recalcTotals();
+                }, {
+                    deep: true
+                });
+
+                // Kalkulasi pertama kali saat init
+                this.recalcTotals();
+
                 window.getCurrentItemKeys = () => this.getCurrentItemKeys();
 
                 window.addEventListener('pr-picked', this.onPrPicked.bind(this), {
@@ -2179,6 +2188,15 @@
             },
 
             init() {
+                this.$watch('savedItems', () => {
+                this.recalcTotals();
+                }, {
+                    deep: true
+                });
+
+                // Kalkulasi pertama kali saat init
+                this.recalcTotals();
+
                 window.getCurrentItemKeys = () => this.getCurrentItemKeys();
 
                 window.addEventListener('pr-picked', this.onPrPicked.bind(this), {

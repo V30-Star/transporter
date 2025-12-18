@@ -764,6 +764,125 @@ class FakturPembelianController extends Controller
       'action' => 'edit'
     ]);
   }
+  public function view(Request $request, $fstockmtid)
+  {
+    $suppliers = Supplier::orderBy('fsuppliername', 'asc')
+      ->get(['fsupplierid', 'fsuppliername']);
+
+    // 1. PINDAHKAN INI KE ATAS
+    // Ambil data Header (trstockmt) DULU
+    $fakturpembelian = PenerimaanPembelianHeader::with([
+      'details' => function ($query) {
+        $query
+          ->join('msprd', 'msprd.fprdid', '=', 'trstockdt.fprdcode')
+          ->select(
+            'trstockdt.*',
+            'msprd.fprdname',
+            'msprd.fprdcode as fitemcode_text'
+          )
+          ->orderBy('trstockdt.fstockdtid', 'asc');
+      }
+    ])
+      ->findOrFail($fstockmtid); // Temukan header berdasarkan $fstockmtid
+
+    // 2. Ambil kode akun yang tersimpan dari faktur
+    $savedAccountCode = $fakturpembelian->fprdjadi;
+
+    // 3. UBAH QUERY INI: Gunakan $savedAccountCode
+    $accounts = DB::table('account')
+      ->select('faccid', 'faccount', 'faccname', 'fnonactive')
+      ->where('fnonactive', '0') // Ambil semua yang aktif
+      ->orderBy('faccount') // <-- Perbaikan nama kolom
+      ->get();
+
+    // --- Sisa kode Anda ---
+    $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
+
+    $branch = DB::table('mscabang')
+      ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
+      ->when(!is_numeric($raw), fn($q) => $q
+        ->where('fcabangkode', $raw)
+        ->orWhere('fcabangname', $raw))
+      ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
+
+    $warehouses = DB::table('mswh')
+      ->select('fwhid', 'fwhcode', 'fwhname', 'fbranchcode', 'fnonactive')
+      ->where('fnonactive', '0') // hanya yang aktif
+      ->orderBy('fwhcode')
+      ->get();
+
+    $fcabang = $branch->fcabangname ?? (string) $raw;
+    $fbranchcode = $branch->fcabangkode ?? (string) $raw;
+
+    // (Query $fakturpembelian sudah dipindah ke atas)
+
+    // 4. Map the data for savedItems
+    $savedItems = $fakturpembelian->details->map(function ($d) {
+      return [
+        'uid' => $d->fstockdtid,
+        'fitemcode' => $d->fitemcode_text ?? '',
+        'fitemname' => $d->fprdname ?? '',
+        'fsatuan' => $d->fsatuan ?? '',
+        'fprno' => $d->frefpr ?? '-',
+        'frefpr' => $d->frefpr ?? null,
+        'fpono' => $d->fpono ?? null,
+        'famountponet' => $d->famountponet ?? null,
+        'famountpo' => $d->famountpo ?? null,
+        'frefdtno' => $d->frefdtno ?? null,
+        'fnouref' => $d->fnouref ?? null,
+        'fqty' => (float)($d->fqty ?? 0),
+        'fterima' => (float)($d->fterima ?? 0),
+        'fprice' => (float)($d->fprice ?? 0),
+        'fdiscpersen' => (float)($d->fdiscpersen ?? 0),
+        'fbiaya' => (float)($d->fbiaya ?? 0),
+        'ftotprice' => (float)($d->ftotprice ?? 0),
+        'ftotal' => (float)($d->ftotprice ?? 0),
+        'fdesc' => is_array($d->fdesc) ? implode(', ', $d->fdesc) : ($d->fdesc ?? ''),
+        'fketdt' => $d->fketdt ?? '',
+        'units' => [],
+      ];
+    })->values();
+
+    $selectedSupplierCode = $fakturpembelian->fsupplier;
+
+    $products = Product::select(
+      'fprdid',
+      'fprdcode',
+      'fprdname',
+      'fsatuankecil',
+      'fsatuanbesar',
+      'fsatuanbesar2',
+      'fminstock'
+    )->orderBy('fprdname')->get();
+
+    $productMap = $products->mapWithKeys(function ($p) {
+      return [
+        $p->fprdcode => [
+          'name' => $p->fprdname,
+          'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
+          'stock' => $p->fminstock ?? 0,
+        ],
+      ];
+    })->toArray();
+
+    return view('fakturpembelian.view', [
+      'suppliers' => $suppliers,
+      'selectedSupplierCode' => $selectedSupplierCode,
+      'fcabang' => $fcabang,
+      'fbranchcode' => $fbranchcode,
+      'warehouses' => $warehouses,
+      'products' => $products,
+      'accounts' => $accounts,
+      'productMap' => $productMap,
+      'fakturpembelian' => $fakturpembelian,
+      'savedItems' => $savedItems,
+      'ppnAmount' => (float) ($fakturpembelian->famountpopajak ?? 0),
+      'famountponet' => (float) ($fakturpembelian->famountponet ?? 0),
+      'famountpo' => (float) ($fakturpembelian->famountpo ?? 0),
+      'filterSupplierId' => $request->query('filter_supplier_id'),
+      'action' => 'edit'
+    ]);
+  }
 
   public function update(Request $request, $fstockmtid)
   {

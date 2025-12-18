@@ -297,7 +297,7 @@
                                 <label class="block text-sm font-medium">Keterangan</label>
                                 <textarea readonly name="fket" rows="3"
                                     class="w-full border rounded px-3 py-2 text-gray-700 @error('fket') border-red-500 @enderror"
-                                    placeholder="Tulis keterangan tambahan di sini...">{{ old('fket') }}</textarea>
+                                    placeholder="Tulis keterangan tambahan di sini...">{{ old('fket', $tr_poh->fket) }}</textarea>
                                 @error('fket')
                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                 @enderror
