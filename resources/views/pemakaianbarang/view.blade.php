@@ -92,187 +92,194 @@
             savedItems: []
         }" class="lg:col-span-5">
             <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
-                    <div class="space-y-4">
-                        {{-- HEADER FORM --}}
-                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-                            <div class="lg:col-span-4">
-                                <label class="block text-sm font-medium">Cabang</label>
-                                <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
-                                    value="{{ $fcabang }}" disabled>
-                                <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
-                            </div>
-                            <div class="lg:col-span-4" x-data="{ autoCode: true }">
-                                <label class="block text-sm font-medium mb-1">Transaksi#</label>
-                                <div class="flex items-center gap-3">
-                                    <input type="text" name="fstockmtno" class="w-full border rounded px-3 py-2"
-                                        :disabled="autoCode"
-                                        :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
-                                    <label class="inline-flex items-center select-none">
-                                        <input type="checkbox" x-model="autoCode" checked>
-                                        <span class="ml-2 text-sm text-gray-700">Auto</span>
-                                    </label>
-                                </div>
-                            </div>
-
-                            <input type="hidden" name="fstockmtid" value="fstockmtid">
-
-                            <div class="lg:col-span-4">
-                                <label class="block text-sm font-medium">Tanggal</label>
-                                <input disabled type="date" name="fstockmtdate"
-                                    value="{{ old('fstockmtdate') ?? date('Y-m-d') }}"
-                                    class="w-full border rounded px-3 py-2 bg-gray-100 @error('fstockmtdate') border-red-500 @enderror">
-                                @error('fstockmtdate')
-                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
-
-                            <!-- Field FROM -->
-                            <div class="lg:col-span-4">
-                                <label class="block text-sm font-medium mb-1">Gudang</label>
-                                <div class="flex">
-                                    <div class="relative flex-1">
-
-                                        <select id="warehouseSelectFrom"
-                                            class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
-                                            disabled>
-                                            <option value=""></option>
-                                            @foreach ($warehouses as $wh)
-                                                <option value="{{ $wh->fwhid }}" data-id="{{ $wh->fwhid }}"
-                                                    data-branch="{{ $wh->fbranchcode }}"
-                                                    {{ old('ffrom', $pemakaianbarang->ffrom) == $wh->fwhid ? 'selected' : '' }}>
-                                                    {{ $wh->fwhcode }} - {{ $wh->fwhname }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-
-                                        {{-- Overlay untuk buka browser gudang --}}
-                                        <div class="absolute inset-0" role="button" aria-label="Browse warehouse"
-                                            @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"></div>
-                                    </div>
-                                    <input type="hidden" name="ffrom" id="warehouseCodeHiddenFrom"
-                                        value="{{ old('ffrom', $pemakaianbarang->ffrom) }}">
-
-                                    {{-- Tombol-tombol Anda --}}
-                                    <button type="button" disabled
-                                        @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"
-                                        class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
-                                        title="Browse Gudang">
-                                        <x-heroicon-o-magnifying-glass class="w-5 h-5" />
-                                    </button>
-                                    <a href="{{ route('gudang.create') }}" target="_blank" rel="noopener"
-                                        class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
-                                        title="Tambah Supplier">
-                                        <x-heroicon-o-plus class="w-5 h-5" />
-                                    </a>
-                                </div>
-                            </div>
-
-                            <div class="lg:col-span-12">
-                                <label class="block text-sm font-medium">Keterangan</label>
-                                <textarea readonly name="fket" rows="3"
-                                    class="w-full border rounded px-3 py-2 bg-gray-100 @error('fket') border-red-500 @enderror"
-                                    placeholder="Tulis keterangan tambahan di sini...">{{ old('fket', $pemakaianbarang->fket) }}</textarea>
-                                @error('fket')
-                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                @enderror
+                <div class="space-y-4">
+                    {{-- HEADER FORM --}}
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                        <div class="lg:col-span-4">
+                            <label class="block text-sm font-medium">Cabang</label>
+                            <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
+                                value="{{ $fcabang }}" disabled>
+                            <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
+                        </div>
+                        <div class="lg:col-span-4" x-data="{ autoCode: true }">
+                            <label class="block text-sm font-medium mb-1">Transaksi#</label>
+                            <div class="flex items-center gap-3">
+                                <input type="text" name="fstockmtno" class="w-full border rounded px-3 py-2"
+                                    :disabled="autoCode"
+                                    :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
+                                <label class="inline-flex items-center select-none">
+                                    <input type="checkbox" x-model="autoCode" checked>
+                                    <span class="ml-2 text-sm text-gray-700">Auto</span>
+                                </label>
                             </div>
                         </div>
 
-                        <div x-data="itemsTable()" x-init="init()" class="mt-6 space-y-2">
+                        <input type="hidden" name="fstockmtid" value="fstockmtid">
 
-                            {{-- DETAIL ITEM (tabel input) --}}
-                            <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
+                        <div class="lg:col-span-4">
+                            <label class="block text-sm font-medium">Tanggal</label>
+                            <input disabled type="date" name="fstockmtdate"
+                                value="{{ old('fstockmtdate') ?? date('Y-m-d') }}"
+                                class="w-full border rounded px-3 py-2 bg-gray-100 @error('fstockmtdate') border-red-500 @enderror">
+                            @error('fstockmtdate')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
 
-                            <div class="overflow-auto border rounded">
-                                <table class="min-w-full text-sm">
-                                    <thead class="bg-gray-100">
-                                        <tr>
-                                            <th class="p-2 text-left w-10">#</th>
-                                            <th class="p-2 text-left w-40">Kode Produk</th>
-                                            <th class="p-2 text-left w-102">Nama Produk</th>
-                                            <th class="p-2 text-left w-48">Account</th>
-                                            <th class="p-2 text-left w-48">Sub Account</th>
-                                            <th class="p-2 text-left w-24">Sat</th>
-                                            <th class="p-2 text-right w-36">Qty</th>
-                                        </tr>
-                                    </thead>
+                        <!-- Field FROM -->
+                        <div class="lg:col-span-4">
+                            <label class="block text-sm font-medium mb-1">Gudang</label>
+                            <div class="flex">
+                                <div class="relative flex-1">
 
-                                    <tbody>
-                                        <template x-for="(it, i) in savedItems" :key="it.uid">
-                                            <!-- ROW UTAMA -->
-                                            <tr class="border-t align-top">
-                                                <td class="p-2" x-text="i + 1"></td>
-                                                <td class="p-2 font-mono" x-text="it.fitemcode"></td>
-                                                <td class="p-2 text-gray-800">
-                                                    <div x-text="it.fitemname"></div>
-                                                    <div x-show="it.fdesc" class="mt-1 text-xs">
-                                                        <span
-                                                            class="inline-block px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 mr-2">
-                                                            Deskripsi
-                                                        </span>
-                                                        <span class="align-middle text-gray-600" x-text="it.fdesc"></span>
-                                                    </div>
-                                                </td>
-                                                <td class="p-2 text-left">
-                                                    <span x-text="it.faccname"></span>
-                                                </td>
-                                                <td class="p-2 text-left">
-                                                    <span x-text="it.fsubaccountname"></span>
-                                                </td>
-                                                <td class="p-2 text-left" x-text="it.fsatuan"></td>
-                                                <td class="p-2 text-right" x-text="fmt(it.fqty)"></td>
+                                    <select id="warehouseSelectFrom"
+                                        class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
+                                        disabled>
+                                        <option value=""></option>
+                                        @foreach ($warehouses as $wh)
+                                            <option value="{{ $wh->fwhid }}" data-id="{{ $wh->fwhid }}"
+                                                data-branch="{{ $wh->fbranchcode }}"
+                                                {{ old('ffrom', $pemakaianbarang->ffrom) == $wh->fwhid ? 'selected' : '' }}>
+                                                {{ $wh->fwhcode }} - {{ $wh->fwhname }}
+                                            </option>
+                                        @endforeach
+                                    </select>
 
-                                                <!-- hidden inputs -->
-                                                <td class="hidden">
-                                                    <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
-                                                    <input type="hidden" name="fitemname[]" :value="it.fitemname">
-                                                    <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
-                                                    <input type="hidden" name="frefdtno[]" :value="it.faccid">
-                                                    <input type="hidden" name="frefso[]" :value="it.fsubaccountid">
-                                                    <input type="hidden" name="frefpr[]" :value="it.frefpr">
-                                                    <input type="hidden" name="fqty[]" :value="it.fqty">
-                                                    <input type="hidden" name="fdesc[]" :value="it.fdesc">
-                                                    <input type="hidden" name="fketdt[]" :value="it.fketdt">
-                                                </td>
-                                            </tr>
+                                    {{-- Overlay untuk buka browser gudang --}}
+                                    <div class="absolute inset-0" role="button" aria-label="Browse warehouse"
+                                        @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"></div>
+                                </div>
+                                <input type="hidden" name="ffrom" id="warehouseCodeHiddenFrom"
+                                    value="{{ old('ffrom', $pemakaianbarang->ffrom) }}">
 
-                                            <tr class="border-b">
-                                                <td class="p-0"></td> <!-- # -->
-                                                <td class="p-0"></td> <!-- Kode -->
-                                                <!-- Deskripsi HANYA di kolom Nama Produk -->
-                                                <!-- Kolom sisanya kosong supaya total 7 kolom -->
-                                                <td class="p-0"></td> <!-- Satuan -->
-                                                <td class="p-0"></td> <!-- Qty -->
-                                                <td class="p-0"></td> <!-- Ket Item -->
-                                                <td class="p-0"></td> <!-- Aksi -->
-                                            </tr>
-                                        </template>
-
-                                        <!-- ROW EDIT DESC -->
-                                        <tr x-show="editingIndex !== null" class="bg-amber-50 border-b" x-cloak>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                        </tr>
-
-                                        <!-- ROW DRAFT DESC -->
-                                        <tr class="bg-green-50 border-b">
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                                {{-- Tombol-tombol Anda --}}
+                                <button type="button" disabled
+                                    @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"
+                                    class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
+                                    title="Browse Gudang">
+                                    <x-heroicon-o-magnifying-glass class="w-5 h-5" />
+                                </button>
+                                <a href="{{ route('gudang.create') }}" target="_blank" rel="noopener"
+                                    class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
+                                    title="Tambah Supplier">
+                                    <x-heroicon-o-plus class="w-5 h-5" />
+                                </a>
                             </div>
+                        </div>
+
+                        <div class="lg:col-span-12">
+                            <label class="block text-sm font-medium">Keterangan</label>
+                            <textarea readonly name="fket" rows="3"
+                                class="w-full border rounded px-3 py-2 bg-gray-100 @error('fket') border-red-500 @enderror"
+                                placeholder="Tulis keterangan tambahan di sini...">{{ old('fket', $pemakaianbarang->fket) }}</textarea>
+                            @error('fket')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
                     </div>
+
+                    <div x-data="itemsTable()" x-init="init()" class="mt-6 space-y-2">
+
+                        {{-- DETAIL ITEM (tabel input) --}}
+                        <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
+
+                        <div class="overflow-auto border rounded">
+                            <table class="min-w-full text-sm">
+                                <thead class="bg-gray-100">
+                                    <tr>
+                                        <th class="p-2 text-left w-10">#</th>
+                                        <th class="p-2 text-left w-40">Kode Produk</th>
+                                        <th class="p-2 text-left w-102">Nama Produk</th>
+                                        <th class="p-2 text-left w-48">Account</th>
+                                        <th class="p-2 text-left w-48">Sub Account</th>
+                                        <th class="p-2 text-left w-24">Sat</th>
+                                        <th class="p-2 text-right w-36">Qty</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    <template x-for="(it, i) in savedItems" :key="it.uid">
+                                        <!-- ROW UTAMA -->
+                                        <tr class="border-t align-top">
+                                            <td class="p-2" x-text="i + 1"></td>
+                                            <td class="p-2 font-mono" x-text="it.fitemcode"></td>
+                                            <td class="p-2 text-gray-800">
+                                                <div x-text="it.fitemname"></div>
+                                                <div x-show="it.fdesc" class="mt-1 text-xs">
+                                                    <span
+                                                        class="inline-block px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 mr-2">
+                                                        Deskripsi
+                                                    </span>
+                                                    <span class="align-middle text-gray-600" x-text="it.fdesc"></span>
+                                                </div>
+                                            </td>
+                                            <td class="p-2 text-left">
+                                                <span x-text="it.faccname"></span>
+                                            </td>
+                                            <td class="p-2 text-left">
+                                                <span x-text="it.fsubaccountname"></span>
+                                            </td>
+                                            <td class="p-2 text-left" x-text="it.fsatuan"></td>
+                                            <td class="p-2 text-right" x-text="fmt(it.fqty)"></td>
+
+                                            <!-- hidden inputs -->
+                                            <td class="hidden">
+                                                <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
+                                                <input type="hidden" name="fitemname[]" :value="it.fitemname">
+                                                <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
+                                                <input type="hidden" name="frefdtno[]" :value="it.faccid">
+                                                <input type="hidden" name="frefso[]" :value="it.fsubaccountid">
+                                                <input type="hidden" name="frefpr[]" :value="it.frefpr">
+                                                <input type="hidden" name="fqty[]" :value="it.fqty">
+                                                <input type="hidden" name="fdesc[]" :value="it.fdesc">
+                                                <input type="hidden" name="fketdt[]" :value="it.fketdt">
+                                            </td>
+                                        </tr>
+
+                                        <tr class="border-b">
+                                            <td class="p-0"></td> <!-- # -->
+                                            <td class="p-0"></td> <!-- Kode -->
+                                            <!-- Deskripsi HANYA di kolom Nama Produk -->
+                                            <!-- Kolom sisanya kosong supaya total 7 kolom -->
+                                            <td class="p-0"></td> <!-- Satuan -->
+                                            <td class="p-0"></td> <!-- Qty -->
+                                            <td class="p-0"></td> <!-- Ket Item -->
+                                            <td class="p-0"></td> <!-- Aksi -->
+                                        </tr>
+                                    </template>
+
+                                    <!-- ROW EDIT DESC -->
+                                    <tr x-show="editingIndex !== null" class="bg-amber-50 border-b" x-cloak>
+                                        <td class="p-0"></td>
+                                        <td class="p-0"></td>
+                                        <td class="p-0"></td>
+                                        <td class="p-0"></td>
+                                        <td class="p-0"></td>
+                                        <td class="p-0"></td>
+                                        <td class="p-0"></td>
+                                    </tr>
+
+                                    <!-- ROW DRAFT DESC -->
+                                    <tr class="bg-green-50 border-b">
+                                        <td class="p-0"></td>
+                                        <td class="p-0"></td>
+                                        <td class="p-0"></td>
+                                        <td class="p-0"></td>
+                                        <td class="p-0"></td>
+                                        <td class="p-0"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-6 flex justify-center space-x-4">
+                    <button type="button" onclick="window.location.href='{{ route('pemakaianbarang.index') }}'"
+                        class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
+                        <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" />
+                        Kembali
+                    </button>
+                </div>
             </div>
         </div>
     </div>
