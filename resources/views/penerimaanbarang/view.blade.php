@@ -124,17 +124,17 @@
                                 {{-- kirim ID supplier ke server --}}
                                 <input type="hidden" name="fsupplier" id="supplierCodeHidden"
                                     value="{{ old('fsupplier', $penerimaanbarang->fsupplier) }}">
-                                <button type="button"
+                                <button type="button" disabled
                                     @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"
                                     class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
                                     title="Browse Supplier">
                                     <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                                 </button>
-                                <a href="{{ route('supplier.create') }}" target="_blank" rel="noopener"
+                                <button disabled href="{{ route('supplier.create') }}" target="_blank" rel="noopener"
                                     class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
                                     title="Tambah Supplier">
                                     <x-heroicon-o-plus class="w-5 h-5" />
-                                </a>
+                                </button>
                             </div>
                             @error('fsupplier')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -167,17 +167,17 @@
                                     value="{{ old('ffrom', $penerimaanbarang->ffrom) }}">
 
                                 {{-- Tombol-tombol Anda --}}
-                                <button type="button"
+                                <button type="button" disabled
                                     @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"
                                     class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
                                     title="Browse Gudang">
                                     <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                                 </button>
-                                <a href="{{ route('supplier.create') }}" target="_blank" rel="noopener"
+                                <button disabled href="{{ route('supplier.create') }}" target="_blank" rel="noopener"
                                     class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
                                     title="Tambah Supplier">
                                     <x-heroicon-o-plus class="w-5 h-5" />
-                                </a>
+                                </button>
                             </div>
                         </div>
 

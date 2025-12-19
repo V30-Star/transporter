@@ -83,9 +83,11 @@ class Tr_prhController extends Controller
       // Sesuaikan dengan urutan columns di DataTables
       $columns = [
         0 => 'fprno',
-        1 => 'fprdin',
-        2 => 'fclose',  // Ganti ke fclose
-        3 => null // Kolom 'Actions'
+        1 => 'fuserid',
+        2 => 'fcreateat',
+        3 => 'fupdateat',
+        4 => 'fclose',  // Ganti ke fclose
+        5 => null // Kolom 'Actions'
       ];
 
       if (isset($columns[$orderColumnIndex]) && $columns[$orderColumnIndex] !== null) {
@@ -102,13 +104,16 @@ class Tr_prhController extends Controller
       }
 
       // Select kolom yang dibutuhkan - PASTIKAN fclose ADA
-      $records = $query->get(['fprid', 'fprno', 'fprdin', 'fcreatedat', 'fclose']);
+      $records = $query->get(['fprid', 'fprno', 'fprdin', 'fuserid', 'fcreatedat', 'fupdatedat', 'fclose']);
 
       // Format data untuk DataTables
       $data = $records->map(function ($record) {
         return [
           'fprno'    => $record->fprno,
           'fprdin'   => $record->fprdin,
+          'fuserid'  => $record->fuserid,
+          'fcreatedat' => $record->fcreatedat ? Carbon::parse($record->fcreatedat)->format('d-m-Y H:i:s') : '',
+          'fupdatedat' => $record->fupdatedat ? Carbon::parse($record->fupdatedat)->format('d-m-Y H:i:s') : '',
           'fclose'   => $record->fclose, // Ganti ke fclose
           'fprid'    => $record->fprid,
           'DT_RowId' => 'row_' . $record->fprid

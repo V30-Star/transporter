@@ -157,11 +157,11 @@
                                     title="Browse Gudang">
                                     <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                                 </button>
-                                <a href="{{ route('gudang.create') }}" target="_blank" rel="noopener"
+                                <button disabled href="{{ route('gudang.create') }}" target="_blank" rel="noopener"
                                     class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
                                     title="Tambah Supplier">
                                     <x-heroicon-o-plus class="w-5 h-5" />
-                                </a>
+                                </button>
                             </div>
                         </div>
 

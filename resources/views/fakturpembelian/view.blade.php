@@ -188,15 +188,16 @@
                             {{-- kirim ID supplier ke server --}}
                             <input type="hidden" name="fsupplier" id="supplierCodeHidden"
                                 value="{{ old('fsupplier', $fakturpembelian->fsupplier) }}">
-                            <button type="button" @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"
+                            <button disabled type="button"
+                                @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"
                                 class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
                                 title="Browse Supplier">
                                 <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                             </button>
-                            <a href="{{ route('supplier.create') }}" target="_blank" rel="noopener"
+                            <button disabled href="{{ route('supplier.create') }}" target="_blank" rel="noopener"
                                 class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50" title="Tambah Supplier">
                                 <x-heroicon-o-plus class="w-5 h-5" />
-                            </a>
+                            </button>
                         </div>
                         @error('fsupplier')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -228,15 +229,16 @@
                                 value="{{ old('ffrom', $fakturpembelian->ffrom) }}">
 
                             {{-- Tombol-tombol Anda --}}
-                            <button type="button" @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"
+                            <button disabled type="button"
+                                @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"
                                 class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
                                 title="Browse Gudang">
                                 <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                             </button>
-                            <a href="{{ route('gudang.create') }}" target="_blank" rel="noopener"
+                            <button disabled href="{{ route('gudang.create') }}" target="_blank" rel="noopener"
                                 class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50" title="Tambah Gudang">
                                 <x-heroicon-o-plus class="w-5 h-5" />
-                            </a>
+                            </button>
                         </div>
                     </div>
 
@@ -272,17 +274,12 @@
                             <input type="hidden" name="faccid" id="accountIdHidden" value="{{ $currentAccountId }}">
 
                             {{-- Tombol-tombol ini sudah benar --}}
-                            <button type="button" @click="window.dispatchEvent(new CustomEvent('account-browse-open'))"
+                            <button disabled type="button" @click="window.dispatchEvent(new CustomEvent('account-browse-open'))"
                                 class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
                                 :disabled="selectedType != '1'"
                                 :class="{ 'opacity-50 cursor-not-allowed': selectedType != '1' }" title="Browse Account">
                                 <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                             </button>
-                            <a href="{{ route('account.create') }}" target="_blank" rel="noopener"
-                                class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
-                                title="Tambah Account">
-                                <x-heroicon-o-plus class="w-5 h-5" />
-                            </a>
                         </div>
 
                         @error('fprdjadi')
@@ -677,6 +674,57 @@
                                 <input type="hidden" name="" :value="ppnAmount">
                                 <input type="hidden" name="famountpo" :value="grandTotal">
                                 <input type="hidden" name="famountpopajak" :value="ppnRate">
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- MODAL ACCOUNT dengan DataTables --}}
+                    <div x-data="accountBrowser()" x-show="open" x-cloak x-transition.opacity
+                        class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="close()"></div>
+
+                        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-6xl flex flex-col overflow-hidden"
+                            style="height: 650px;">
+
+                            <div
+                                class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
+                                <div>
+                                    <h3 class="text-xl font-bold text-gray-800">Browse Account</h3>
+                                    <p class="text-sm text-gray-500 mt-0.5">Pilih account yang diinginkan</p>
+                                </div>
+                                <button type="button" @click="close()"
+                                    class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">
+                                    Tutup
+                                </button>
+                            </div>
+
+                            <div class="px-6 pt-4 pb-2 flex-shrink-0 border-b border-gray-100">
+                            </div>
+
+                            <div class="flex-1 overflow-y-auto px-6" style="min-height: 0;">
+                                <div class="bg-white">
+                                    <table id="accountTable" class="min-w-full text-sm display nowrap stripe hover"
+                                        style="width:100%">
+                                        <thead class="sticky top-0 z-10">
+                                            <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
+                                                <th
+                                                    class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                    Account Kode</th>
+                                                <th
+                                                    class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                    Account Nama</th>
+                                                <th
+                                                    class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                    Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">
                             </div>
                         </div>
                     </div>
