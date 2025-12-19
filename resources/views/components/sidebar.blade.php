@@ -321,74 +321,13 @@
                 </ul>
             </li>
 
-            <!-- Utility -->
+            <!-- Transaksi Stock-->
             <li x-data="{ open: false }" x-effect="if(!openSidebar) open = false">
                 <button @click="open = !open"
                     class="flex items-center w-full p-2 rounded-lg hover:bg-gray-700 focus:outline-none">
                     <x-heroicon-o-folder class="w-5 h-5 flex-shrink-0" />
                     <span class="ml-3 flex-1 text-left" x-show="openSidebar"
-                        x-transition.opacity.duration.150>Utility</span>
-                    <!-- caret -->
-                    <svg x-show="openSidebar" :class="{ 'rotate-180': open }"
-                        class="w-4 h-4 transition-transform ml-auto" fill="none" stroke="currentColor"
-                        viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                    </svg>
-                </button>
-
-                <!-- Submenu -->
-                <ul x-show="open && openSidebar" x-transition
-                    class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
-
-                    @if (in_array('viewSysuser', explode(',', session('user_restricted_permissions', ''))))
-                        <li>
-                            <a href="{{ route('sysuser.index') }}"
-                                class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-user-circle class="w-5 h-5" />
-                                <span class="ml-3">Wewenang User</span>
-                            </a>
-                        </li>
-                    @endif
-                </ul>
-            </li>
-
-            {{-- Reporting --}}
-            <li x-data="{ open: false }" x-effect="if(!openSidebar) open = false">
-                <button @click="open = !open"
-                    class="flex items-center w-full p-2 rounded-lg hover:bg-gray-700 focus:outline-none">
-                    <x-heroicon-o-folder class="w-5 h-5 flex-shrink-0" />
-                    <span class="ml-3 flex-1 text-left" x-show="openSidebar"
-                        x-transition.opacity.duration.150>Reporting</span>
-                    <!-- caret -->
-                    <svg x-show="openSidebar" :class="{ 'rotate-180': open }"
-                        class="w-4 h-4 transition-transform ml-auto" fill="none" stroke="currentColor"
-                        viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                    </svg>
-                </button>
-
-                <!-- Reporting -->
-                <ul x-show="open && openSidebar" x-transition
-                    class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
-                    @if (in_array('viewSysuser', explode(',', session('user_restricted_permissions', ''))))
-                        <li>
-                            <a href="{{ route('reporting.index') }}"
-                                class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-user-circle class="w-5 h-5" />
-                                <span class="ml-3">Reporting</span>
-                            </a>
-                        </li>
-                    @endif
-                </ul>
-            </li>
-
-            <!-- Mutasi-->
-            <li x-data="{ open: false }" x-effect="if(!openSidebar) open = false">
-                <button @click="open = !open"
-                    class="flex items-center w-full p-2 rounded-lg hover:bg-gray-700 focus:outline-none">
-                    <x-heroicon-o-folder class="w-5 h-5 flex-shrink-0" />
-                    <span class="ml-3 flex-1 text-left" x-show="openSidebar"
-                        x-transition.opacity.duration.150>Stock</span>
+                        x-transition.opacity.duration.150>Transaksi Stock</span>
                     <!-- caret -->
                     <svg x-show="openSidebar" :class="{ 'rotate-180': open }"
                         class="w-4 h-4 transition-transform ml-auto" fill="none" stroke="currentColor"
@@ -439,9 +378,68 @@
                         </li>
                     @endif
                 </ul>
-
             </li>
 
+            {{-- Reporting --}}
+            <li x-data="{ open: false }" x-effect="if(!openSidebar) open = false">
+                <button @click="open = !open"
+                    class="flex items-center w-full p-2 rounded-lg hover:bg-gray-700 focus:outline-none">
+                    <x-heroicon-o-folder class="w-5 h-5 flex-shrink-0" />
+                    <span class="ml-3 flex-1 text-left" x-show="openSidebar" x-transition.opacity.duration.150>Laporan
+                        Pembelian</span>
+                    <!-- caret -->
+                    <svg x-show="openSidebar" :class="{ 'rotate-180': open }"
+                        class="w-4 h-4 transition-transform ml-auto" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+
+                <!-- Reporting -->
+                <ul x-show="open && openSidebar" x-transition
+                    class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
+                    @if (in_array('viewSysuser', explode(',', session('user_restricted_permissions', ''))))
+                        <li>
+                            <a href="{{ route('reporting.index') }}"
+                                class="flex items-center p-2 rounded hover:bg-gray-700">
+                                <x-heroicon-o-user-circle class="w-5 h-5" />
+                                <span class="ml-3">Listing Order Pembelian (PO)</span>
+                            </a>
+                        </li>
+                    @endif
+                </ul>
+            </li>
+
+            <!-- Utility -->
+            <li x-data="{ open: false }" x-effect="if(!openSidebar) open = false">
+                <button @click="open = !open"
+                    class="flex items-center w-full p-2 rounded-lg hover:bg-gray-700 focus:outline-none">
+                    <x-heroicon-o-folder class="w-5 h-5 flex-shrink-0" />
+                    <span class="ml-3 flex-1 text-left" x-show="openSidebar"
+                        x-transition.opacity.duration.150>Utility</span>
+                    <!-- caret -->
+                    <svg x-show="openSidebar" :class="{ 'rotate-180': open }"
+                        class="w-4 h-4 transition-transform ml-auto" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+
+                <!-- Submenu -->
+                <ul x-show="open && openSidebar" x-transition
+                    class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
+
+                    @if (in_array('viewSysuser', explode(',', session('user_restricted_permissions', ''))))
+                        <li>
+                            <a href="{{ route('sysuser.index') }}"
+                                class="flex items-center p-2 rounded hover:bg-gray-700">
+                                <x-heroicon-o-user-circle class="w-5 h-5" />
+                                <span class="ml-3">Wewenang User</span>
+                            </a>
+                        </li>
+                    @endif
+                </ul>
+            </li>
         </ul>
     </nav>
 </div>

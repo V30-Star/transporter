@@ -702,6 +702,13 @@
                     </div>
                 </div>
             </div>
+            <div class="mt-6 flex justify-center space-x-4">
+                <button type="button" onclick="window.location.href='{{ route('fakturpembelian.index') }}'"
+                    class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
+                    <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" />
+                    Kembali
+                </button>
+            </div>
         @endsection
         @push('styles')
             <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">

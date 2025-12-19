@@ -1,10 +1,10 @@
 @extends('layouts.app')
 
-@section('title', 'Listing Order Pembelian / PO')
+@section('title', 'Laporan Pembelian / PO')
 
 @section('content')
     <div class="p-6 bg-white shadow-md rounded-lg">
-        <h2 class="text-xl font-bold mb-4">Listing Order Pembelian / PO</h2>
+        <h2 class="text-xl font-bold mb-4">Laporan Pembelian / PO</h2>
 
         <div class="flex flex-wrap items-center gap-4 mb-6">
             {{-- Tombol Pemicu Modal --}}
@@ -12,29 +12,13 @@
                 style="padding: 6px 16px; background-color: #3b82f6; color: white; font-size: 0.875rem; border-radius: 0.25rem; display: inline-flex; align-items: center;"
                 class="hover:bg-blue-600 transition-colors"> Search Data
             </button>
-            {{-- Tombol Export Excel di Kanan --}}
-            <div class="flex gap-2 ml-auto">
-                @php
-                    // Ambil semua parameter query saat ini (termasuk filter)
-                    $exportUrl = route('reporting.exportExcel', request()->query());
-                @endphp
-                <a href="{{ $exportUrl }}"
-                    class="px-4 py-1.5 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition-colors flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd"
-                            d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L10 11.586l2.293-2.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
-                            clip-rule="evenodd" />
-                    </svg>
-                    Export Excel
-                </a>
-            </div>
         </div>
 
         {{-- --- MODAL FILTER POP-UP --- --}}
         <div id="filterModal" class="fixed inset-0 z-50 bg-black bg-opacity-50 hidden flex items-center justify-center">
             <div class="bg-white rounded-lg shadow-2xl max-w-xl w-full p-6" onclick="event.stopPropagation()">
                 <div class="flex justify-between items-center border-b pb-3 mb-4">
-                    <h3 class="text-lg font-semibold">Filter Listing Order Pembelian / PO</h3>
+                    <h3 class="text-lg font-semibold">Laporan Pembelian / PO</h3>
                     <button onclick="toggleModal(false)"
                         class="text-gray-500 hover:text-gray-800 text-xl font-bold">&times;</button>
                 </div>
@@ -86,11 +70,6 @@
                                     title="Browse Supplier">
                                     <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                                 </button>
-                                <a href="{{ route('supplier.create') }}" target="_blank" rel="noopener"
-                                    class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
-                                    title="Tambah Supplier">
-                                    <x-heroicon-o-plus class="w-5 h-5" />
-                                </a>
                             </div>
                             @error('fsupplier')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -102,12 +81,12 @@
                         {{-- Tombol Reset --}}
                         <a href="{{ route('reporting.index') }}"
                             class="px-4 py-2 bg-gray-300 text-gray-800 text-sm rounded hover:bg-gray-400 transition-colors">
-                            Reset Filter
+                            Reset
                         </a>
                         {{-- Tombol Terapkan Filter --}}
                         <button type="submit" formaction="{{ route('reporting.printPoh') }}" formtarget="_blank"
                             class="px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors">
-                            Terapkan Filter
+                            Preview & Print
                         </button>
                     </div>
                 </form>
@@ -115,91 +94,6 @@
 
         </div>
         {{-- --- END MODAL FILTER POP-UP --- --}}
-
-        <p class="mt-8 text-gray-700">
-            @php
-                // Ambil semua parameter query yang ada di URL saat ini
-                $printUrl = route('reporting.printPoh', request()->query());
-            @endphp
-            <a href="{{ $printUrl }}" target="_blank"
-                class="px-3 py-1 bg-gray-200 text-sm rounded hover:bg-gray-300 inline-flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2z" />
-                </svg>
-                Cetak Laporan Master-Detail
-            </a>
-        </p>
-
-        {{-- --- BAGIAN TABEL DATA TR_POH (HEADER) DIKEMBALIKAN --- --}}
-        <div class="mt-6 overflow-x-auto">
-            <table id="pohReportTable" class="min-w-full border text-sm">
-                <thead class="bg-gray-100">
-                    <tr>
-                        <th class="border px-2 py-2">ID PO</th>
-                        <th class="border px-2 py-2">Nomor PO</th>
-                        <th class="border px-2 py-2">Tanggal PO</th>
-                        <th class="border px-2 py-2">Supplier</th>
-                        <th class="border px-2 py-2">Mata Uang</th>
-                        <th class="border px-2 py-2 text-right">Total PO</th>
-                        <th class="border px-2 py-2">Status Close</th>
-                        <th class="border px-2 py-2">Status Approval</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (!$hasFilter)
-                        {{-- Pesan ketika belum ada filter --}}
-                        <tr>
-                            <td colspan="8" class="text-center py-8 text-gray-500">
-                                <div class="flex flex-col items-center">
-                                    <svg class="w-16 h-16 mb-3 text-gray-400" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z">
-                                        </path>
-                                    </svg>
-                                    <p class="text-lg font-medium">Silakan gunakan filter untuk menampilkan data</p>
-                                    <p class="text-sm">Pilih tanggal atau supplier untuk memulai pencarian</p>
-                                </div>
-                            </td>
-                        </tr>
-                    @else
-                        {{-- Data setelah filter dijalankan --}}
-                        @forelse($pohData as $data)
-                            <tr class="hover:bg-gray-50">
-                                <td class="border px-2 py-1">{{ $data->fpohdid }}</td>
-                                <td class="border px-2 py-1">{{ $data->fpono }}</td>
-                                <td class="border px-2 py-1">{{ \Carbon\Carbon::parse($data->fpodate)->format('d-m-Y') }}
-                                </td>
-                                <td class="border px-2 py-1">{{ $data->supplier->fsuppliername ?? 'N/A' }}</td>
-                                <td class="border px-2 py-1">{{ $data->fcurrency }}</td>
-                                <td class="border px-2 py-1 text-right">
-                                    {{ number_format($data->famountpo, 2, ',', '.') }}
-                                </td>
-                                <td class="border px-2 py-1 text-center">
-                                    <span
-                                        class="inline-flex items-center px-2 py-0.5 rounded text-xs 
-                                {{ $data->fclose === '1' ? 'bg-red-200 text-red-700' : 'bg-green-100 text-green-700' }}">
-                                        {{ $data->fclose === '1' ? 'Closed' : 'Open' }}
-                                    </span>
-                                </td>
-                                <td class="border px-2 py-1 text-center">
-                                    {{ $data->fapproval ?? '-' }}
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="8" class="text-center py-4 text-gray-500">
-                                    Tidak ada data Purchase Order Header yang ditemukan.
-                                </td>
-                            </tr>
-                        @endforelse
-                    @endif
-                </tbody>
-            </table>
-        </div>
-        {{-- --- BAGIAN TABEL DATA TR_POH SELESAI --- --}}
     </div>
 
     {{-- MODAL SUPPLIER --}}

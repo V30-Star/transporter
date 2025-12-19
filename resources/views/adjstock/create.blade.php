@@ -167,12 +167,6 @@
                                     title="Browse Account">
                                     <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                                 </button>
-
-                                <a href="{{ route('account.create') }}" target="_blank" rel="noopener"
-                                    class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
-                                    title="Tambah Account">
-                                    <x-heroicon-o-plus class="w-5 h-5" />
-                                </a>
                             </div>
 
                             @error('frefno')
@@ -266,7 +260,7 @@
                                         </tr>
                                     </thead>
 
-                                    <tbody>
+                                    <tbody class="bg-blue-100 text-blue-900">
                                         <template x-for="(it, i) in savedItems" :key="it.uid">
                                             <!-- ROW UTAMA -->
                                             <tr class="border-t align-top">
@@ -500,7 +494,7 @@
                                         </tr>
                                     </thead>
 
-                                    <tbody>
+                                    <tbody class="bg-green-100 text-green-900">
                                         <template x-for="(it, i) in savedItems" :key="it.uid">
                                             <!-- ROW UTAMA -->
                                             <tr class="border-t align-top">
