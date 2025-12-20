@@ -487,7 +487,7 @@ class PenerimaanBarangController extends Controller
         'fprice_rp'      => $price * $frate,
         'ftotprice'      => $amount,
         'ftotprice_rp'   => $amount * $frate,
-        'fuserid'        => $userid,
+        'fusercreate'     => (Auth::user()->fname ?? 'system'),
         'fdatetime'      => $now,
         'fketdt'         => '',
         'fcode'          => '0',
@@ -590,7 +590,7 @@ class PenerimaanBarangController extends Controller
         'fprdjadi'         => null,
         'fqtyjadi'         => null,
         'fket'             => $fket,
-        'fuserid'          => $userid,
+        'fusercreate'      => (Auth::user()->fname ?? 'system'),
         'fdatetime'        => $now,
         'fsalesman'        => null,
         'fjatuhtempo'      => null,
@@ -659,7 +659,7 @@ class PenerimaanBarangController extends Controller
         'fbalance'    => round($grandTotal, 2),
         'fbalance_rp' => round($grandTotal * $frate, 2),
         'fdatetime'   => $now,
-        'fuserid'     => $userid,
+        'fusercreate'     => $userid,
       ];
 
       Log::debug('JURNAL HEADER INSERT:', $jurnalHeader); // Debugging
@@ -689,7 +689,7 @@ class PenerimaanBarangController extends Controller
         'famount'      => round($subtotal, 2),
         'famount_rp'   => round($subtotal * $frate, 2),
         'faccountnote' => 'Persediaan Barang Dagang ' . $fstockmtno,
-        'fuserid'      => $userid,
+        'fusercreate'      => $userid,
         'fdatetime'    => $now,
       ];
 
@@ -709,7 +709,7 @@ class PenerimaanBarangController extends Controller
           'famount'      => round($ppnAmount, 2),
           'famount_rp'   => round($ppnAmount * $frate, 2),
           'faccountnote' => 'PPN Masukan ' . $fstockmtno,
-          'fuserid'      => $userid,
+          'fusercreate'      => $userid,
           'fdatetime'    => $now,
         ];
       }
@@ -729,7 +729,7 @@ class PenerimaanBarangController extends Controller
         'famount'      => round($grandTotal, 2),
         'famount_rp'   => round($grandTotal * $frate, 2),
         'faccountnote' => 'Hutang Dagang Supplier ' . $fsupplier . ' (Total Pembelian)',
-        'fuserid'      => $userid,
+        'fusercreate'      => $userid,
         'fdatetime'    => $now,
       ];
 
@@ -1081,7 +1081,7 @@ class PenerimaanBarangController extends Controller
         'fprice_rp'      => $price * $frate,
         'ftotprice'      => $amount,
         'ftotprice_rp'   => $amount * $frate,
-        'fuserid'        => $userid,
+        'fuserupdate'     => (Auth::user()->fname ?? 'system'),
         'fdatetime'      => $now, // Tetap gunakan fdatetime
         'fketdt'         => '',
         'fcode'          => '0',
@@ -1156,7 +1156,7 @@ class PenerimaanBarangController extends Controller
         'famountremain_rp' => round($grandTotal * $frate, 2),
         'ffrom'            => $ffrom,
         'fket'             => $fket,
-        'fuserid'          => $userid,
+        'fuserupdate'     => (Auth::user()->fname ?? 'system'),
         'fbranchcode'      => $kodeCabang,
       ];
 

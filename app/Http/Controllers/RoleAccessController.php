@@ -14,7 +14,7 @@ class RoleAccessController extends Controller
         $user = Sysuser::findOrFail($fuid);
 
         // RoleAccess untuk user target
-        $roleAccess = RoleAccess::where('fuserid', $user->fuid)->first();
+        $roleAccess = RoleAccess::where('fusercreate', $user->fuid)->first();
 
         // Kirim daftar user lain untuk dropdown "copy from user"
         // (kalau mau exclude diri sendiri, pakai ->where('fuid', '!=', $user->fuid))
@@ -36,7 +36,7 @@ class RoleAccessController extends Controller
             ? implode(',', $request->permission)
             : null;
 
-        $roleAccess = RoleAccess::where('fuserid', $user->fuid)->first();
+        $roleAccess = RoleAccess::where('fusercreate', $user->fuid)->first();
 
         if ($roleAccess) {
             if ($restrictedPermissions === null) {
@@ -49,7 +49,7 @@ class RoleAccessController extends Controller
         } else {
             if ($restrictedPermissions !== null) {
                 RoleAccess::create([
-                    'fuserid'     => $user->fuid,      // relasi ke Sysuser.fuid
+                    'fusercreate'     => $user->fuid,      // relasi ke Sysuser.fuid
                     'fpermission' => $restrictedPermissions,
                 ]);
             }
@@ -65,7 +65,7 @@ class RoleAccessController extends Controller
     public function getPermissions(string $fuid)
     {
         // fuid = Sysuser.fuid
-        $ra = RoleAccess::where('fuserid', $fuid)->first();
+        $ra = RoleAccess::where('fusercreate', $fuid)->first();
 
         return response()->json([
             'permissions' => $ra && $ra->fpermission
@@ -82,16 +82,16 @@ class RoleAccessController extends Controller
         $request->validate([
             'source_fuid' => 'required|exists:sysuser,fuid',
             'fuid'        => 'required|exists:sysuser,fuid', // target
-            'fuserid'     => 'required',                      // target fsysuserid (untuk disimpan bila perlu)
+            'fusercreate'     => 'required',                      // target fsysuserid (untuk disimpan bila perlu)
         ]);
 
         // Ambil permission dari sumber
-        $source = RoleAccess::where('fuserid', $request->source_fuid)->first();
+        $source = RoleAccess::where('fusercreate', $request->source_fuid)->first();
         $permissions = $source?->fpermission ?? '';
 
         // Tulis/replace ke user target
         RoleAccess::updateOrCreate(
-            ['fuserid' => $request->fuid], // kunci unik role access = fuserid (Sysuser.fuid)
+            ['fusercreate' => $request->fuid], // kunci unik role access = fusercreate (Sysuser.fuid)
             [
                 // simpan permission hasil clone, kosongkan jadi null jika string kosong
                 'fpermission' => $permissions !== '' ? $permissions : null,

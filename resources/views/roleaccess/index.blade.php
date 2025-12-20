@@ -14,8 +14,8 @@
                 <div class="form-group mb-4 flex justify-between items-center">
                     <!-- User Input -->
                     <div>
-                        <label for="fuserid" class="form-label">User</label>
-                        <input type="text" name="fuserid" id="fuserid" class="form-control" readonly
+                        <label for="fusercreate" class="form-label">User</label>
+                        <input type="text" name="fusercreate" id="fusercreate" class="form-control" readonly
                             value="{{ $user->fsysuserid }}">
                     </div>
 

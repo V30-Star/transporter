@@ -461,7 +461,7 @@ class AdjstockController extends Controller
           'fprice_rp'      => $price * $frate,
           'ftotprice'      => $amount,
           'ftotprice_rp'   => $amount * $frate,
-          'fuserid'        => $userid,
+          'fusercreate' => (Auth::user()->fname ?? 'system'),
           'fdatetime'      => $now,
           'fketdt'         => '',
           'fcode'          => '0',
@@ -519,7 +519,7 @@ class AdjstockController extends Controller
         'fprdjadi'         => null,
         'fqtyjadi'         => null,
         'fket'             => trim((string)$request->input('fket', '')),
-        'fuserid'          => $userid,
+        'fusercreate'          => (Auth::user()->fname ?? 'system'),
         'fdatetime'        => $now,
         'fsalesman'        => null,
         'fjatuhtempo'      => null,
@@ -982,7 +982,7 @@ class AdjstockController extends Controller
         'fprice_rp'      => $price * $frate,
         'ftotprice'      => $amount,
         'ftotprice_rp'   => $amount * $frate,
-        'fuserid'        => $userid,
+        'fuserupdate'    => (Auth::user()->fname ?? 'system'),
         'fdatetime'      => $now, // Tetap gunakan fdatetime
         'fketdt'         => '',
         'fcode'          => '0',
@@ -1062,7 +1062,7 @@ class AdjstockController extends Controller
         'ftrancode'            => $ftrancode,
         'frefno'           => $frefno,
         'fket'             => $fket,
-        'fuserid'          => $userid,
+        'fuserupdate'      => (Auth::user()->fname ?? 'system'),
         'fbranchcode'      => $kodeCabang,
       ];
 

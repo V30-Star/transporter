@@ -495,7 +495,7 @@ class PemakaianbarangController extends Controller
         'frefso'         => $rrso,
         'fqty'           => $qty,
         'fqtyremain'     => $qty,
-        'fuserid'        => $userid,
+        'fusercreate'        => (Auth::user()->fname ?? 'system'),
         'fdatetime'      => $now,
         'fketdt'         => '',
         'fcode'          => '0',
@@ -580,7 +580,7 @@ class PemakaianbarangController extends Controller
         'fprdjadi'         => null,
         'fqtyjadi'         => null,
         'fket'             => $fket,
-        'fuserid'          => $userid,
+        'fusercreate' => (Auth::user()->fname ?? 'system'),
         'fdatetime'        => $now,
         'fsalesman'        => null,
         'fjatuhtempo'      => null,
@@ -647,7 +647,7 @@ class PemakaianbarangController extends Controller
         'fjurnaldate' => $fstockmtdate,
         'fjurnalnote' => 'Jurnal Penerimaan Barang ' . $fstockmtno,
         'fdatetime'   => $now,
-        'fuserid'     => $userid,
+        'fusercreate' => (Auth::user()->fname ?? 'system'),
       ];
 
       Log::debug('JURNAL HEADER INSERT:', $jurnalHeader); // Debugging
@@ -673,7 +673,7 @@ class PemakaianbarangController extends Controller
         'fdk'          => 'D',
         'frefno'       => $fstockmtno,
         'faccountnote' => 'Persediaan Barang Dagang ' . $fstockmtno,
-        'fuserid'      => $userid,
+        'fusercreate'      => (Auth::user()->fname ?? 'system'),
         'fdatetime'    => $now,
       ];
 
@@ -1040,7 +1040,7 @@ class PemakaianbarangController extends Controller
         'frefdtno'       => $rref,
         'frefso'         => $rrso,
         'fqty'           => $qty,
-        'fuserid'        => $userid,
+        'fuserupdate'     => (Auth::user()->fname ?? 'system'),
         'fdatetime'      => $now, // Tetap gunakan fdatetime
         'fketdt'         => '',
         'fcode'          => '0',
@@ -1117,7 +1117,7 @@ class PemakaianbarangController extends Controller
         'fstockmtdate'     => $fstockmtdate,
         'ffrom'            => $ffrom,
         'fket'             => $fket,
-        'fuserid'          => $userid,
+        'fuserupdate'     => (Auth::user()->fname ?? 'system'),
         'fbranchcode'      => $kodeCabang,
       ];
 

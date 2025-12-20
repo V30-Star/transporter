@@ -523,7 +523,7 @@ class ReturPembelianController extends Controller
           'fqtyremain' => $qty,
           'fprice' => $price,
           'ftotprice' => $amount,
-          'fuserid' => $userid,
+          'fusercreate' => (Auth::user()->fname ?? 'system'),
           'fdatetime' => $now,
           'fketdt' => '',
           'fcode' => '0',
@@ -614,7 +614,7 @@ class ReturPembelianController extends Controller
           'fkirim' => null,
           'fqtyjadi' => null,
           'fket' => $fket,
-          'fuserid' => $userid,
+          'fusercreate' => (Auth::user()->fname ?? 'system'),
           'fdatetime' => $now,
           'fsalesman' => null,
           'fjatuhtempo' => null,
@@ -775,7 +775,7 @@ class ReturPembelianController extends Controller
       'action' => 'edit'
     ]);
   }
-  
+
   public function view(Request $request, $fstockmtid)
   {
     $suppliers = Supplier::orderBy('fsuppliername', 'asc')
@@ -1016,7 +1016,7 @@ class ReturPembelianController extends Controller
           'fqtyremain' => $qty,
           'fprice' => $price,
           'ftotprice' => $amount,
-          'fuserid' => $userid,
+          'fuserupdate'     => (Auth::user()->fname ?? 'system'),
           'fdatetime' => $now,
           'fketdt' => '',
           'fcode' => '0',
@@ -1096,7 +1096,7 @@ class ReturPembelianController extends Controller
           'fkirim' => null,
           'fqtyjadi' => null,
           'fket' => $fket,
-          'fuserid' => $userid,
+          'fuserupdate'     => (Auth::user()->fname ?? 'system'),
           'fdatetime' => $now,
           'fsalesman' => null,
           'fprint' => 0,

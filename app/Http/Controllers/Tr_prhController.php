@@ -83,11 +83,10 @@ class Tr_prhController extends Controller
       // Sesuaikan dengan urutan columns di DataTables
       $columns = [
         0 => 'fprno',
-        1 => 'fuserid',
-        2 => 'fcreateat',
-        3 => 'fupdateat',
-        4 => 'fclose',  // Ganti ke fclose
-        5 => null // Kolom 'Actions'
+        1 => 'fusercreate',
+        2 => 'fuserupdate',
+        3 => 'fclose',  // Ganti ke fclose
+        4 => null // Kolom 'Actions'
       ];
 
       if (isset($columns[$orderColumnIndex]) && $columns[$orderColumnIndex] !== null) {
@@ -104,16 +103,15 @@ class Tr_prhController extends Controller
       }
 
       // Select kolom yang dibutuhkan - PASTIKAN fclose ADA
-      $records = $query->get(['fprid', 'fprno', 'fprdin', 'fuserid', 'fcreatedat', 'fupdatedat', 'fclose']);
+      $records = $query->get(['fprid', 'fprno', 'fprdin', 'fusercreate', 'fuserupdate', 'fclose']);
 
       // Format data untuk DataTables
       $data = $records->map(function ($record) {
         return [
           'fprno'    => $record->fprno,
           'fprdin'   => $record->fprdin,
-          'fuserid'  => $record->fuserid,
-          'fcreatedat' => $record->fcreatedat ? Carbon::parse($record->fcreatedat)->format('d-m-Y H:i:s') : '',
-          'fupdatedat' => $record->fupdatedat ? Carbon::parse($record->fupdatedat)->format('d-m-Y H:i:s') : '',
+          'fusercreate'  => $record->fusercreate,
+          'fuserupdate'  => $record->fuserupdate,
           'fclose'   => $record->fclose, // Ganti ke fclose
           'fprid'    => $record->fprid,
           'DT_RowId' => 'row_' . $record->fprid
@@ -406,7 +404,7 @@ class Tr_prhController extends Controller
         'fcreatedat'    => now(),
         'fneeddate'     => $fneeddate,
         'fduedate'      => $fduedate,
-        'fuserid'       => $userName,
+        'fusercreate'       => $userName,
         'fuserapproved' => $request->has('fuserapproved') ? $userName : null,
         'fdateapproved' => $request->has('fuserapproved') ? now() : null,
         'fupdatedat'    => null,
@@ -440,7 +438,7 @@ class Tr_prhController extends Controller
             'fcreatedat' => $now,
             'fsatuan'    => $sat,
             'fdesc'      => $desc,
-            'fuserid'    => $userName,
+            'fusercreate'    => $userName,
           ];
         }
       }
@@ -473,7 +471,7 @@ class Tr_prhController extends Controller
           ]);
 
         $productNameList = $dt->pluck('product_name')->implode(', ');
-        $approver = auth('sysuser')->user()->fname ?? $tr_prh->fuserid ?? 'System';
+        $approver = auth('sysuser')->user()->fname ?? $tr_prh->fusercreate ?? 'System';
 
         Mail::to('vierybiliam8@gmail.com')
           ->send(new ApprovalEmail($tr_prh, $dt, $productNameList, $approver, 'Permintaan Pembelian (PR)'));
@@ -761,7 +759,7 @@ class Tr_prhController extends Controller
           'fcreatedat'  => $now,
           'fsatuan'     => $sat,
           'fdesc'       => $desc,
-          'fuserid'     => (Auth::user()->fname ?? 'system'),
+          'fuserupdate'     => (Auth::user()->fname ?? 'system'),
         ];
       }
     }
@@ -806,7 +804,7 @@ class Tr_prhController extends Controller
         'fbranchcode' => $request->fbranchcode,
         'fneeddate'   => $fneeddate,
         'fduedate'    => $fduedate,
-        'fuserid'     => (Auth::user()->fname ?? 'system'),
+        'fuserupdate'     => (Auth::user()->fname ?? 'system'),
         'fupdatedat'  => now(),
       ], $setApproval));
 
@@ -927,7 +925,7 @@ class Tr_prhController extends Controller
       $tr_prh = Tr_prh::findOrFail($fprid);
       $tr_prh->delete();
 
-      return redirect()->route('tr_prh.index')->with('success', 'Data Permintaan Pembelian ' . $tr_prh->fprno. ' berhasil dihapus.');
+      return redirect()->route('tr_prh.index')->with('success', 'Data Permintaan Pembelian ' . $tr_prh->fprno . ' berhasil dihapus.');
     } catch (\Exception $e) {
       // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
       return redirect()->route('tr_prh.delete', $fprid)->with('error', 'Gakey: gal menghapus data: ' . $e->getMessage());

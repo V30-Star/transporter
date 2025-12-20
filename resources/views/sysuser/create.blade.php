@@ -18,7 +18,7 @@
             <form action="{{ route('sysuser.store') }}" method="POST">
                 @csrf
                 <input type="hidden" name="created_at" value="{{ now()->format('Y-m-d H:i:s') }}">
-                <input type="hidden" name="fuserid" value="{{ auth()->user()->id ?? 'system' }}">
+                <input type="hidden" name="fusercreate" value="{{ auth()->user()->id ?? 'system' }}">
 
                 <div class="space-y-4 mt-4">
                     {{-- Cabang --}}

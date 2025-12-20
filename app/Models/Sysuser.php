@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -13,7 +14,7 @@ class Sysuser extends Model implements Authenticatable
     protected $table = 'sysuser';
     protected $primaryKey = 'fuid'; // Make sure this is the correct primary key
 
-    protected $fillable = ['fsysuserid', 'fname', 'password', 'fsalesman', 'fuserlevel', 'fcabang', 'fuserid'];
+    protected $fillable = ['fsysuserid', 'fname', 'password', 'fsalesman', 'fuserlevel', 'fcabang', 'fusercreate'];
 
     protected $hidden = ['password'];
     public $timestamps = true;

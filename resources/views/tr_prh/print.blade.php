@@ -320,7 +320,7 @@
                         <td class="head">Plant Manager,</td>
                     </tr>
                     <tr>
-                        <td class="center" style="vertical-align:bottom">{{ strtoupper($hdr->fuserid ?? '') }}</td>
+                        <td class="center" style="vertical-align:bottom">{{ strtoupper($hdr->fusercreate ?? '') }}</td>
                         <td></td>
                         <td></td>
                     </tr>

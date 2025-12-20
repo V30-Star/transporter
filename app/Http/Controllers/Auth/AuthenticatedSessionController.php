@@ -38,7 +38,7 @@ class AuthenticatedSessionController extends Controller
             $request->session()->regenerate();
             $user = Auth::user();
 
-            $restrictedPermissions = RoleAccess::where('fuserid', $user->fuid)
+            $restrictedPermissions = RoleAccess::where('fusercreate', $user->fuid)
                 ->pluck('fpermission')
                 ->implode(',');
 

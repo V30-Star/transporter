@@ -15,7 +15,7 @@ class SysUserController extends Controller
 {
     public function index(Request $request)
     {
-        $allowedSorts = ['fuid', 'fsysuserid', 'fname', 'created_at', 'fuserid', 'fcabang', 'sysuser.fsalesman', 'salesman_name'];
+        $allowedSorts = ['fuid', 'fsysuserid', 'fname', 'created_at', 'fusercreate', 'fcabang', 'sysuser.fsalesman', 'salesman_name'];
         $sortBy     = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fsysuserid';
         $sortDir    = $request->sort_dir === 'asc' ? 'asc' : 'desc';
 
@@ -25,7 +25,7 @@ class SysUserController extends Controller
             'sysuser.fsysuserid',
             'sysuser.fname',
             'sysuser.created_at',
-            'sysuser.fuserid',
+            'sysuser.fusercreate',
             'sysuser.fcabang',
             'sysuser.fsalesman',
             // Mengambil nama salesman, dan memberikan alias 'fsalesmanname' atau 'salesman_name'
@@ -94,7 +94,7 @@ class SysUserController extends Controller
 
         $validated['fcabang'] = $request->fcabang ?? '-';
         $validated['fuserlevel'] = $validated['fuserlevel'] == 'Admin' ? '2' : '1';
-        $validated['fuserid'] = auth('sysuser')->user()->fname ?? null;
+        $validated['fusercreate'] = auth('sysuser')->user()->fname ?? null;
         $validated['created_at'] = now();
 
         // Pastikan ini menangani kasus jika fsalesman tidak dikirim sama sekali
@@ -177,7 +177,7 @@ class SysUserController extends Controller
 
         $validated['fcabang'] = $request->fcabang ?? '-';
         $validated['fuserlevel'] = $validated['fuserlevel'] == 'Admin' ? '2' : '1';
-        $validated['fuserid'] = auth('sysuser')->user()->fname ?? null;
+        $validated['fusercreate'] = auth('sysuser')->user()->fname ?? null;
         $validated['updated_at'] = now();
         // Pastikan ini menangani kasus jika fsalesman tidak dikirim sama sekali
         // CATATAN: Karena Anda mengubah default menjadi '0', ini akan menghindari error INTEGER jika 0 adalah ID Salesman yang valid.

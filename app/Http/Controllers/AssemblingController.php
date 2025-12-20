@@ -491,7 +491,7 @@ class AssemblingController extends Controller
         'frefso'         => '0',
         'fqty'           => $qty,
         'fqtyremain'     => $qty,
-        'fuserid'        => $userid,
+        'fusercreate' => (Auth::user()->fname ?? 'system'),
         'fdatetime'      => $now,
         'fketdt'         => '',
         'fcode'          => $fcode, // SET FCODE SESUAI TYPE
@@ -574,7 +574,7 @@ class AssemblingController extends Controller
         'fprdjadi'         => null,
         'fqtyjadi'         => null,
         'fket'             => $fket,
-        'fuserid'          => $userid,
+        'fusercreate' => (Auth::user()->fname ?? 'system'),
         'fdatetime'        => $now,
         'fsalesman'        => null,
         'fjatuhtempo'      => null,
@@ -608,9 +608,6 @@ class AssemblingController extends Controller
       unset($r);
 
       DB::table('trstockdt')->insert($rowsDt);
-
-      // ---- 5.3. AKUNTANSI JURNAL (opsional) ----
-      // ... kode jurnal tetap sama seperti sebelumnya ...
     });
 
     return redirect()
@@ -964,7 +961,7 @@ class AssemblingController extends Controller
         'frefdtno'       => '0',
         'frefso'         => '0',
         'fqty'           => $qty,
-        'fuserid'        => $userid,
+        'fuserupdate'     => (Auth::user()->fname ?? 'system'),
         'fdatetime'      => $now, // Tetap gunakan fdatetime
         'fketdt'         => '',
         'fnouref'        => $rnour !== null ? (int)$rnour : null,
@@ -1041,7 +1038,7 @@ class AssemblingController extends Controller
         'fstockmtdate'     => $fstockmtdate,
         'ffrom'            => $ffrom,
         'fket'             => $fket,
-        'fuserid'          => $userid,
+        'fuserupdate'     => (Auth::user()->fname ?? 'system'),
         'fbranchcode'      => $kodeCabang,
       ];
 

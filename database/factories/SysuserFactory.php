@@ -31,7 +31,7 @@ class SysuserFactory extends Factory
             'fsalesman' => $this->faker->randomElement(['0', '1']),  // Salesman (0 or 1)
             'fuserlevel' => $this->faker->randomElement(['1', '2']),  // User level (1 for regular user, 2 for admin)
             'fcabang' => $this->faker->word(),  // Example value for the branch code (use real branch codes if needed)
-            'fuserid' => 'System',  // This can be set to a default value
+            'fusercreate' => 'System',  // This can be set to a default value
             'created_at' => now(),
             'updated_at' => now(),
         ];
@@ -42,7 +42,7 @@ class SysuserFactory extends Factory
      */
     public function salesman(): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn(array $attributes) => [
             'fsalesman' => '1',
         ]);
     }
@@ -52,7 +52,7 @@ class SysuserFactory extends Factory
      */
     public function admin(): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn(array $attributes) => [
             'fuserlevel' => '2',  // Set to admin
         ]);
     }

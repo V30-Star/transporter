@@ -148,7 +148,7 @@
                 <td class="head">Plant Manager,</td>
             </tr>
             <tr>
-                <td class="center">{{ strtoupper($hdr->fuserid ?? '-') }}</td>
+                <td class="center">{{ strtoupper($hdr->fusercreate ?? '-') }}</td>
                 <td></td>
                 <td></td>
             </tr>

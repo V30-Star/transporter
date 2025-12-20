@@ -77,8 +77,7 @@
                     <th>ID PR</th>
                     <th>No. PR</th>
                     <th>User Create</th>
-                    <th>Date Time Create</th>
-                    <th>Update Time Create</th>
+                    <th>User Update</th>
                     <th class="border px-2 py-2 col-aksi">Aksi</th>
                 </tr>
             </thead>
@@ -309,16 +308,12 @@
                     name: 'fprdin'
                 },
                 {
-                    data: 'fuserid',
-                    name: 'fuserid'
+                    data: 'fusercreate',
+                    name: 'fusercreate'
                 },
                 {
-                    data: 'fcreatedat',
-                    name: 'fcreatedat'
-                },
-                {
-                    data: 'fupdatedat',
-                    name: 'fupdatedat'
+                    data: 'fuserupdate',
+                    name: 'fuserupdate'
                 },
                 {
                     data: 'fclose', // TAMBAHKAN KOLOM INI
