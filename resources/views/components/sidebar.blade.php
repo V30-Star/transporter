@@ -400,10 +400,40 @@
                     class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
                     @if (in_array('viewSysuser', explode(',', session('user_restricted_permissions', ''))))
                         <li>
+                            <a href="{{ route('reportingpr.index') }}"
+                                class="flex items-center p-2 rounded hover:bg-gray-700">
+                                <x-heroicon-o-user-circle class="w-5 h-5" />
+                                <span class="ml-3">Listing Permintaan Pembelian (PR)</span>
+                            </a>
+                        </li>
+                    @endif
+                    
+                    @if (in_array('viewSysuser', explode(',', session('user_restricted_permissions', ''))))
+                        <li>
                             <a href="{{ route('reporting.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
                                 <x-heroicon-o-user-circle class="w-5 h-5" />
                                 <span class="ml-3">Listing Order Pembelian (PO)</span>
+                            </a>
+                        </li>
+                    @endif
+
+                    @if (in_array('viewSysuser', explode(',', session('user_restricted_permissions', ''))))
+                        <li>
+                            <a href="{{ route('reportingpenerimaanbarang.index') }}"
+                                class="flex items-center p-2 rounded hover:bg-gray-700">
+                                <x-heroicon-o-user-circle class="w-5 h-5" />
+                                <span class="ml-3">Listing Penerimaan Barang</span>
+                            </a>
+                        </li>
+                    @endif
+
+                    @if (in_array('viewSysuser', explode(',', session('user_restricted_permissions', ''))))
+                        <li>
+                            <a href="{{ route('reportingfakturpembelian.index') }}"
+                                class="flex items-center p-2 rounded hover:bg-gray-700">
+                                <x-heroicon-o-user-circle class="w-5 h-5" />
+                                <span class="ml-3">Listing Faktur Pembelian</span>
                             </a>
                         </li>
                     @endif

@@ -1,11 +1,10 @@
 @extends('layouts.app')
 
-@section('title', 'Laporan Pembelian / PO')
+@section('title', 'Laporan Penerimaan Barang')
 
 @section('content')
     <div class="p-6 bg-white shadow-md rounded-lg">
-        <h2 class="text-xl font-bold mb-4">Laporan Pembelian / PO</h2>
-
+        <h2 class="text-xl font-bold mb-4">Laporan Penerimaan Barang</h2>
         <div class="flex flex-wrap items-center gap-4 mb-6">
             {{-- Tombol Pemicu Modal --}}
             <button onclick="toggleModal(true)"
@@ -18,12 +17,12 @@
         <div id="filterModal" class="fixed inset-0 z-50 bg-black bg-opacity-50 hidden flex items-center justify-center">
             <div class="bg-white rounded-lg shadow-2xl max-w-xl w-full p-6" onclick="event.stopPropagation()">
                 <div class="flex justify-between items-center border-b pb-3 mb-4">
-                    <h3 class="text-lg font-semibold">Laporan Pembelian / PO</h3>
+                    <h3 class="text-lg font-semibold">Laporan Penerimaan Barang</h3>
                     <button onclick="toggleModal(false)"
                         class="text-gray-500 hover:text-gray-800 text-xl font-bold">&times;</button>
                 </div>
 
-                <form method="GET" action="{{ route('reporting.printPoh') }}">
+                <form method="GET" action="{{ route('reportingpenerimaanbarang.printPenerimaanBarang') }}">
                     <div class="grid grid-cols-2 gap-4">
                         {{-- Filter Tanggal Dari --}}
                         <div>
@@ -84,7 +83,7 @@
                             Reset
                         </a>
                         {{-- Tombol Terapkan Filter --}}
-                        <button type="submit" formaction="{{ route('reporting.printPoh') }}" formtarget="_blank"
+                        <button type="submit" formaction="{{ route('reportingpenerimaanbarang.printPenerimaanBarang') }}" formtarget="_blank"
                             class="px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors">
                             Preview & Print
                         </button>

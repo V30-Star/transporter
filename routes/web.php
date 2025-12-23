@@ -28,6 +28,9 @@ use App\Http\Controllers\FakturpembelianController;
 use App\Http\Controllers\MutasiController;
 use App\Http\Controllers\PemakaianbarangController;
 use App\Http\Controllers\ReportingController;
+use App\Http\Controllers\ReportingFakturPembelianController;
+use App\Http\Controllers\ReportingPrController;
+use App\Http\Controllers\ReportingPenerimaanBarangController;
 use App\Http\Controllers\ReturPembelianController;
 
 Route::get('/', function () {
@@ -303,6 +306,18 @@ Route::middleware('auth')->group(function () {
         Route::get('/reporting',  [ReportingController::class, 'index'])->name('reporting.index');
         Route::get('/reporting/exportExcel', [ReportingController::class, 'exportExcel'])->name('reporting.exportExcel');
         Route::get('/reporting/print', [ReportingController::class, 'printPoh'])->name('reporting.printPoh');
+
+        Route::get('/reportingpr',  [ReportingPrController::class, 'index'])->name('reportingpr.index');
+        Route::get('/reportingpr/exportExcel', [ReportingPrController::class, 'exportExcel'])->name('reportingpr.exportExcel');
+        Route::get('/reportingpr/print', [ReportingPrController::class, 'printPrh'])->name('reportingpr.printPrh');
+
+        Route::get('/reportingpenerimaanbarang',  [ReportingPenerimaanBarangController::class, 'index'])->name('reportingpenerimaanbarang.index');
+        Route::get('/reportingpenerimaanbarang/exportExcel', [ReportingPenerimaanBarangController::class, 'exportExcel'])->name('reportingpenerimaanbarang.exportExcel');
+        Route::get('/reportingpenerimaanbarang/print', [ReportingPenerimaanBarangController::class, 'printPenerimaanBarang'])->name('reportingpenerimaanbarang.printPenerimaanBarang');
+
+        Route::get('/reportingfakturpembelian',  [ReportingFakturPembelianController::class, 'index'])->name('reportingfakturpembelian.index');
+        Route::get('/reportingfakturpembelian/exportExcel', [ReportingFakturPembelianController::class, 'exportExcel'])->name('reportingfakturpembelian.exportExcel');
+        Route::get('/reportingfakturpembelian/print', [ReportingFakturPembelianController::class, 'printFakturPembelian'])->name('reportingfakturpembelian.printFakturPembelian');
 
         Route::get('/gudang/browse', [WhController::class, 'browse'])
             ->name('gudang.browse');
