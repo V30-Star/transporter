@@ -77,22 +77,31 @@
             padding: 6px 5px;
         }
 
-        /* --- PO DETAIL STYLES (7 Kolom) --- */
+
+        /* --- PO DETAIL STYLES (7 Kolom) - DIPERBAIKI --- */
         .po-detail-labels,
         .po-detail {
             display: grid;
-            grid-template-columns: 25mm 1fr 15mm 20mm 20mm 25mm 30mm;
+            grid-template-columns: 30mm 20mm 1fr 30mm 25mm 20mm 25mm;
             gap: 5px;
             font-size: 8px;
-            padding: 4px 5px 4px 15mm;
+            padding: 4px 5px;
         }
 
         .po-detail-labels {
             font-weight: bold;
             color: #c00;
+            background-color: #ffe6e6;
+            border: 1px solid #ccc;
+            border-bottom: none;
             margin-top: 2px;
-            padding-top: 5px;
-            padding-bottom: 5px;
+            padding: 6px 5px;
+        }
+
+        /* Indent untuk kolom pertama (Produk#) pada label dan data */
+        .po-detail-labels>div:first-child,
+        .po-detail>div:first-child {
+            padding-left: 10mm;
         }
 
         .po-detail {
@@ -100,6 +109,30 @@
             border-left: 1px solid #ccc;
             border-right: 1px solid #ccc;
             background-color: #fff;
+        }
+
+        .po-detail {
+            color: #c00;
+            border-left: 1px solid #ccc;
+            border-right: 1px solid #ccc;
+            background-color: #fff;
+        }
+
+        /* Text alignment untuk detail */
+        .po-detail-labels>div:nth-child(3),
+        .po-detail>div:nth-child(3) {
+            text-align: center;
+        }
+
+        .po-detail-labels>div:nth-child(4),
+        .po-detail-labels>div:nth-child(5),
+        .po-detail-labels>div:nth-child(6),
+        .po-detail-labels>div:nth-child(7),
+        .po-detail>div:nth-child(4),
+        .po-detail>div:nth-child(5),
+        .po-detail>div:nth-child(6),
+        .po-detail>div:nth-child(7) {
+            text-align: right;
         }
 
         .separator {
@@ -128,14 +161,15 @@
 
         .grand-total-detail {
             display: grid;
-            grid-template-columns: 25mm 1fr 15mm 20mm 20mm 25mm 30mm;
+            grid-template-columns: 30mm 20mm 1fr 30mm 25mm 20mm 25mm;
             gap: 5px;
             font-size: 9px;
             font-weight: bold;
-            padding: 8px 5px 8px 15mm;
+            padding: 8px 5px;
             background-color: #f0f0f0;
             border: 1px solid #333;
         }
+
 
         .text-right {
             text-align: right;
@@ -159,7 +193,7 @@
             font-size: 10px;
             color: #333;
             margin-top: 0;
-            text-align: right;
+            text-align: left;
             display: block;
             line-height: 1.4;
         }
@@ -355,15 +389,15 @@
                             {{ \Carbon\Carbon::now()->setTimezone('Asia/Jakarta')->format('d/m/Y') }}
                         </div>
                         <div>
-                            <span class="info-label">Waktu:</span>
-                            {{ \Carbon\Carbon::now()->setTimezone('Asia/Jakarta')->format('H:i:s') }}
+                            <span class="info-label">Jam:</span>
+                            {{ \Carbon\Carbon::now()->setTimezone('Asia/Jakarta')->format('H:i') }}
+                        </div>
+                        <div>
+                            <span class="info-label">Hal:</span> 1 / 1
                         </div>
                         <div>
                             <span class="info-label">Opr:</span>
                             {{ $user_session->fname ?? 'Guest' }}
-                        </div>
-                        <div>
-                            <span class="info-label">Hal:</span> 1 / 1
                         </div>
                     </div>
                 </div>
@@ -396,21 +430,25 @@
                             </div>
                         @endif
                         <div class="info-tambahan">
-                            <div>
-                                <span class="info-label">Tanggal:</span>
-                                {{ \Carbon\Carbon::now()->setTimezone('Asia/Jakarta')->format('d/m/Y') }}
+                            <div class="row-info">
+                                <span class="info-label">Tanggal</span>
+                                <span class="info-separator">:</span>
+                                <span>{{ \Carbon\Carbon::now()->setTimezone('Asia/Jakarta')->format('d/m/Y') }}</span>
                             </div>
-                            <div>
-                                <span class="info-label">Waktu:</span>
-                                {{ \Carbon\Carbon::now()->setTimezone('Asia/Jakarta')->format('H:i:s') }}
+                            <div class="row-info">
+                                <span class="info-label">Jam</span>
+                                <span class="info-separator">:</span>
+                                <span>{{ \Carbon\Carbon::now()->setTimezone('Asia/Jakarta')->format('H:i') }}</span>
                             </div>
-                            <div>
-                                <span class="info-label">Opr:</span>
-                                {{ $user_session->fname ?? 'Guest' }}
+                            <div class="row-info">
+                                <span class="info-label">Hal</span>
+                                <span class="info-separator">:</span>
+                                <span>{{ $pageIndex + 1 }} / {{ $totalPages }}</span>
                             </div>
-                            <div>
-                                <span class="info-label">Hal:</span>
-                                {{ $pageIndex + 1 }} / {{ $totalPages }}
+                            <div class="row-info">
+                                <span class="info-label">Opr</span>
+                                <span class="info-separator">:</span>
+                                <span>{{ $user_session->fname ?? 'Guest' }}</span>
                             </div>
                         </div>
                     </div>
@@ -424,16 +462,16 @@
                         <div class="text-right">Total Harga</div>
                         <div class="text-right">PPN</div>
                         <div class="text-right">Total PO</div>
+                    </div>
 
-                        <div class="po-detail-labels">
-                            <div>Produk#</div>
-                            <div>Nama Produk</div>
-                            <div class="text-right">Satuan</div>
-                            <div class="text-right">Qty Order</div>
-                            <div class="text-right">Qty Terima</div>
-                            <div class="text-right">@ Harga</div>
-                            <div class="text-right">Total Harga</div>
-                        </div>
+                    <div class="po-detail-labels">
+                        <div>Produk#</div>
+                        <div>Nama Produk</div>
+                        <div class="text-right">Satuan</div>
+                        <div class="text-right">Qty Order</div>
+                        <div class="text-right">Qty Terima</div>
+                        <div class="text-right">@ Harga</div>
+                        <div class="text-right">Total Harga</div>
                     </div>
 
                     @foreach ($pageData as $index => $poh)
