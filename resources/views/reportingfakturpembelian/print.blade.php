@@ -55,7 +55,7 @@
         .po-header-labels,
         .po-header {
             display: grid;
-            grid-template-columns: 30mm 20mm 1fr 30mm 25mm 20mm 25mm;
+            grid-template-columns: 30mm 20mm 18mm 32mm 20mm 18mm 27mm;
             gap: 5px;
             font-size: 9px;
             padding: 8px 5px;
@@ -77,12 +77,12 @@
             padding: 6px 5px;
         }
 
-        /* --- PO DETAIL STYLES (7 Kolom) - DIPERBAIKI --- */
+        /* --- PO DETAIL STYLES (8 Kolom) --- */
         .po-detail-labels,
         .po-detail {
             display: grid;
-            grid-template-columns: 30mm 20mm 1fr 30mm 25mm 20mm 25mm;
-            gap: 5px;
+            grid-template-columns: 18mm 35mm 18mm 18mm 18mm 18mm 18mm 22mm;
+            gap: 3px;
             font-size: 8px;
             padding: 4px 5px;
         }
@@ -92,15 +92,14 @@
             color: #c00;
             background-color: #ffe6e6;
             border: 1px solid #ccc;
-            border-bottom: none;
+            border-bottom: 1px solid #ccc;
             margin-top: 2px;
             padding: 6px 5px;
         }
 
-        /* Indent untuk kolom pertama (Produk#) pada label dan data */
-        .po-detail-labels>div:first-child,
+        /* Indent untuk kolom pertama (Kode Barang) pada data */
         .po-detail>div:first-child {
-            padding-left: 10mm;
+            padding-left: 8mm;
         }
 
         .po-detail {
@@ -110,11 +109,14 @@
             background-color: #fff;
         }
 
-        .po-detail {
-            color: #c00;
-            border-left: 1px solid #ccc;
-            border-right: 1px solid #ccc;
-            background-color: #fff;
+        /* Text alignment untuk header */
+        .po-header-labels>div:nth-child(5),
+        .po-header-labels>div:nth-child(6),
+        .po-header-labels>div:nth-child(7),
+        .po-header>div:nth-child(5),
+        .po-header>div:nth-child(6),
+        .po-header>div:nth-child(7) {
+            text-align: right;
         }
 
         /* Text alignment untuk detail */
@@ -127,11 +129,19 @@
         .po-detail-labels>div:nth-child(5),
         .po-detail-labels>div:nth-child(6),
         .po-detail-labels>div:nth-child(7),
+        .po-detail-labels>div:nth-child(8),
         .po-detail>div:nth-child(4),
         .po-detail>div:nth-child(5),
         .po-detail>div:nth-child(6),
-        .po-detail>div:nth-child(7) {
+        .po-detail>div:nth-child(7),
+        .po-detail>div:nth-child(8) {
             text-align: right;
+        }
+
+        /* Wrap text untuk kolom yang panjang */
+        .po-detail>div:nth-child(2) {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
         }
 
         .separator {
@@ -453,23 +463,24 @@
 
                     {{-- Header Labels --}}
                     <div class="po-header-labels">
-                        <div>No.PO</div>
+                        <div>No. Transaksi</div>
                         <div>Tanggal</div>
+                        <div>Type</div>
                         <div>Nama Supplier</div>
-                        <div>Keterangan</div>
-                        <div class="text-right">Total Harga</div>
-                        <div class="text-right">PPN</div>
-                        <div class="text-right">Total PO</div>
+                        <div>Total Harga</div>
+                        <div>PPN</div>
+                        <div>Total Faktur</div>
                     </div>
 
                     <div class="po-detail-labels">
-                        <div>Produk#</div>
-                        <div>Nama Produk</div>
-                        <div class="text-right">Satuan</div>
-                        <div class="text-right">Qty Order</div>
-                        <div class="text-right">Qty Terima</div>
-                        <div class="text-right">@ Harga</div>
-                        <div class="text-right">Total Harga</div>
+                        <div>Kode Barang</div>
+                        <div>Nama Barang</div>
+                        <div>No.Ref</div>
+                        <div>Quantity</div>
+                        <div>Qty.Ad</div>
+                        <div>@ Harga</div>
+                        <div>@ Biaya</div>
+                        <div>Jumlah</div>
                     </div>
 
                     @foreach ($pageData as $index => $fakturpembelian)
@@ -477,10 +488,19 @@
                         <div class="po-header">
                             <div>{{ $fakturpembelian->fstockmtno }}</div>
                             <div>{{ \Carbon\Carbon::parse($fakturpembelian->fstockmtdate)->format('d/m/Y') }}</div>
+                            <div>
+                                @if (($fakturpembelian->ftypebuy ?? '') == '0')
+                                    Stok
+                                @elseif(($fakturpembelian->ftypebuy ?? '') == '1')
+                                    Non Stok
+                                @elseif(($fakturpembelian->ftypebuy ?? '') == '2')
+                                    Uang Muka
+                                @else
+                                    -
+                                @endif
+                            </div>
                             <div>{{ $fakturpembelian->supplier_name ?? $fakturpembelian->fsupplier }}</div>
-                            <div>{{ $fakturpembelian->fket ?? 'LOCO BL' }}</div>
-                            <div class="text-right">
-                                {{ number_format($fakturpembelian->famountremain ?? 0, 2, ',', '.') }}</div>
+                            <div>{{ $fakturpembelian->famount ?? 'LOCO BL' }}</div>
                             <div class="text-right">
                                 {{ number_format($fakturpembelian->famountpajak ?? 0, 2, ',', '.') }}</div>
                             <div class="text-right">{{ number_format($fakturpembelian->famountmt ?? 0, 2, ',', '.') }}
@@ -493,13 +513,15 @@
                                 <div class="po-detail">
                                     <div>{{ $detail->fprdcode }}</div>
                                     <div>{{ $detail->product_name ?? $detail->fprdcode }}</div>
-                                    <div>{{ $detail->funit ?? 'PCS' }}</div>
+                                    <div>{{ blank($detail->frefdtno) ? '-' : $detail->frefdtno }}</div>
                                     <div class="text-right">{{ number_format($detail->fqty ?? 0, 2, ',', '.') }}</div>
                                     <div class="text-right">
-                                        {{ number_format($detail->fqty_receive ?? 0, 2, ',', '.') }}</div>
+                                        {{ number_format($detail->fqtyremain ?? 0, 2, ',', '.') }}</div>
                                     <div class="text-right">{{ number_format($detail->fprice ?? 0, 0, ',', '.') }}
                                     </div>
-                                    <div class="text-right">{{ number_format($detail->famount ?? 0, 0, ',', '.') }}
+                                    <div class="text-right">{{ number_format($detail->fbiaya ?? 0, 0, ',', '.') }}
+                                    </div>
+                                    <div class="text-right">{{ number_format($detail->ftotprice ?? 0, 0, ',', '.') }}
                                     </div>
                                 </div>
                             @endforeach

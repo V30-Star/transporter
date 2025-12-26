@@ -77,13 +77,12 @@
             padding: 6px 5px;
         }
 
-
-        /* --- PO DETAIL STYLES (7 Kolom) - DIPERBAIKI --- */
+        /* --- PO DETAIL STYLES (7 Kolom) --- */
         .po-detail-labels,
         .po-detail {
             display: grid;
-            grid-template-columns: 30mm 20mm 1fr 30mm 25mm 20mm 25mm;
-            gap: 5px;
+            grid-template-columns: 25mm 45mm 15mm 20mm 20mm 20mm 25mm;
+            gap: 3px;
             font-size: 8px;
             padding: 4px 5px;
         }
@@ -98,17 +97,9 @@
             padding: 6px 5px;
         }
 
-        /* Indent untuk kolom pertama (Produk#) pada label dan data */
-        .po-detail-labels>div:first-child,
+        /* Indent untuk kolom pertama (Produk#) pada data */
         .po-detail>div:first-child {
-            padding-left: 10mm;
-        }
-
-        .po-detail {
-            color: #c00;
-            border-left: 1px solid #ccc;
-            border-right: 1px solid #ccc;
-            background-color: #fff;
+            padding-left: 5mm;
         }
 
         .po-detail {
@@ -133,6 +124,12 @@
         .po-detail>div:nth-child(6),
         .po-detail>div:nth-child(7) {
             text-align: right;
+        }
+
+        /* Wrap text untuk kolom Nama Produk */
+        .po-detail>div:nth-child(2) {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
         }
 
         .separator {
