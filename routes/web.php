@@ -32,6 +32,9 @@ use App\Http\Controllers\ReportingFakturPembelianController;
 use App\Http\Controllers\ReportingPrController;
 use App\Http\Controllers\ReportingPenerimaanBarangController;
 use App\Http\Controllers\ReturPembelianController;
+use App\Http\Controllers\ReportingAdjStockController;
+use App\Http\Controllers\ReportingAssemblingController;
+use App\Http\Controllers\ReportingPemakaianBarangController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -318,6 +321,18 @@ Route::middleware('auth')->group(function () {
         Route::get('/reportingfakturpembelian',  [ReportingFakturPembelianController::class, 'index'])->name('reportingfakturpembelian.index');
         Route::get('/reportingfakturpembelian/exportExcel', [ReportingFakturPembelianController::class, 'exportExcel'])->name('reportingfakturpembelian.exportExcel');
         Route::get('/reportingfakturpembelian/print', [ReportingFakturPembelianController::class, 'printFakturPembelian'])->name('reportingfakturpembelian.printFakturPembelian');
+
+        Route::get('/reportingadjstock',  [ReportingAdjStockController::class, 'index'])->name('reportingadjstock.index');
+        Route::get('/reportingadjstock/exportExcel', [ReportingAdjStockController::class, 'exportExcel'])->name('reportingadjstock.exportExcel');
+        Route::get('/reportingadjstock/print', [ReportingAdjStockController::class, 'printAdjStock'])->name('reportingadjstock.printAdjStock');
+
+        Route::get('/reportingpemakaianbarang',  [ReportingPemakaianBarangController::class, 'index'])->name('reportingpemakaianbarang.index');
+        Route::get('/reportingpemakaianbarang/exportExcel', [ReportingPemakaianBarangController::class, 'exportExcel'])->name('reportingpemakaianbarang.exportExcel');
+        Route::get('/reportingpemakaianbarang/print', [ReportingPemakaianBarangController::class, 'printPemakaianBarang'])->name('reportingpemakaianbarang.printPemakaianBarang');
+
+        Route::get('/reportingassembling',  [ReportingAssemblingController::class, 'index'])->name('reportingassembling.index');
+        Route::get('/reportingassembling/exportExcel', [ReportingAssemblingController::class, 'exportExcel'])->name('reportingassembling.exportExcel');
+        Route::get('/reportingassembling/print', [ReportingAssemblingController::class, 'printAssembling'])->name('reportingassembling.printAssembling');
 
         Route::get('/gudang/browse', [WhController::class, 'browse'])
             ->name('gudang.browse');
