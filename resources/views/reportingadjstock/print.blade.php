@@ -360,7 +360,7 @@
 <body>
     <div class="no-print">
         <button class="print-button" onclick="window.print()">🖨️ Cetak Laporan</button>
-        <a href="{{ route('reporting.exportExcel', request()->query()) }}" class="excel-button">
+        <a href="{{ route('reportingadjstock.exportExcel', request()->query()) }}" class="excel-button">
             📊 Download Excel
         </a>
         <div class="zoom-controls">

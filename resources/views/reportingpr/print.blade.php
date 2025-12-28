@@ -324,7 +324,7 @@
 <body>
     <div class="no-print">
         <button class="print-button" onclick="window.print()">🖨️ Cetak Laporan</button>
-        <a href="{{ route('reporting.exportExcel', request()->query()) }}" class="excel-button">
+        <a href="{{ route('reportingpr.exportExcel', request()->query()) }}" class="excel-button">
             📊 Download Excel
         </a>
         <div class="zoom-controls">
@@ -416,7 +416,7 @@
 
                     {{-- Header Labels --}}
                     <div class="po-header-labels">
-                        <div>No.PO</div>
+                        <div>No.PR</div>
                         <div>Tanggal</div>
                         <div>Nama Supplier</div>
                         <div>Keterangan</div>

@@ -188,35 +188,26 @@ class ReportingPrController extends Controller
 
   public function exportExcel(Request $request)
   {
-    $dataToExport = $this->getPrdQuery($request)
-      ->with('details')
-      ->get();
+    // Ambil data utama
+    $dataToExport = $this->getPrdQuery($request)->get();
 
-    // Buat Spreadsheet baru
     $spreadsheet = new Spreadsheet();
     $sheet = $spreadsheet->getActiveSheet();
     $sheet->setTitle('PR Report');
 
     // Header kolom
     $headers = [
-      'ID PR',
-      'NOMOR PR',
-      'TANGGAL PR',
-      'SUPPLIER ID',
-      'MATA UANG',
-      'TOTAL PR',
-      'STATUS CLOSE',
-      'STATUS APPROVAL',
-      'NO. URUT ITEM',
-      'KODE PRODUK',
-      'DESKRIPSI ITEM',
-      'QTY',
-      'SATUAN',
-      'HARGA SATUAN',
-      'JUMLAH ITEM',
+      'No. PR',
+      'Tanggal',
+      'Nama Supplier',
+      'Keterangan',
+      'Produk#',
+      'Nama Produk',
+      'Satuan',
+      'Qty',
     ];
 
-    // Tulis header di baris 1
+    // Tulis header
     $col = 'A';
     foreach ($headers as $header) {
       $sheet->setCellValue($col . '1', $header);
@@ -224,162 +215,90 @@ class ReportingPrController extends Controller
     }
 
     // Style header
-    $headerRange = 'A1:O1';
-    $sheet->getStyle($headerRange)->applyFromArray([
-      'font' => [
-        'bold' => true,
-        'color' => ['rgb' => 'FFFFFF'],
-      ],
+    $sheet->getStyle('A1:H1')->applyFromArray([
+      'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
       'fill' => [
-        'fillType' => Fill::FILL_SOLID,
+        'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
         'startColor' => ['rgb' => '4472C4'],
       ],
       'alignment' => [
-        'horizontal' => Alignment::HORIZONTAL_CENTER,
-        'vertical' => Alignment::VERTICAL_CENTER,
+        'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+        'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
       ],
       'borders' => [
-        'allBorders' => [
-          'borderStyle' => Border::BORDER_THIN,
-        ],
+        'allBorders' => ['borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN],
       ],
     ]);
 
-    // Tulis data mulai baris 2
     $row = 2;
     foreach ($dataToExport as $prh) {
-      $pohBaseData = [
-        $prh->fpohdid,
-        $prh->fpono,
-        Carbon::parse($prh->fpodate)->format('d-m-Y'),
-        $prh->fsupplier,
-        $prh->fcurrency,
-        $prh->famountpo,
-        $prh->fclose === '1' ? 'Closed' : 'Open',
-        $prh->fapproval ?? '-',
-      ];
+      // --- LOGIKA JOIN MANUAL SESUAI PERMINTAAN ---
 
-      if ($prh->details->isNotEmpty()) {
-        foreach ($prh->details as $pod) {
-          $col = 'A';
+      // 1. Ambil Nama Supplier
+      $supplier = DB::table('mssupplier')
+        ->where('fsupplierid', $prh->fsupplier)
+        ->first();
+      $supplier_name = $supplier->fsuppliername ?? $prh->fsupplier;
 
-          // Tulis data header PR
-          foreach ($pohBaseData as $value) {
-            $sheet->setCellValue($col . $row, $value);
-            $col++;
-          }
+      // 2. Ambil Details
+      $details = DB::table('tr_prd')
+        ->where('fprnoid', $prh->fprid)
+        ->get();
 
-          // Tulis data detail
-          $sheet->setCellValue('I' . $row, $pod->fnou);
-          $sheet->setCellValue('J' . $row, $pod->fprdcode);
-          $sheet->setCellValue('K' . $row, $pod->fdesc ?? '-');
-          $sheet->setCellValue('L' . $row, $pod->fqty);
-          $sheet->setCellValue('M' . $row, $pod->fsatuan);
-          $sheet->setCellValue('N' . $row, $pod->fprice);
-          $sheet->setCellValue('O' . $row, $pod->famount);
+      if ($details->isNotEmpty()) {
+        foreach ($details as $detail) {
+          // 3. Ambil Nama Produk per Detail
+          $product = DB::table('msprd')
+            ->where('fprdid', $detail->fprdcode)
+            ->first();
+          $product_name = $product->fprdname ?? $detail->fprdcode;
+
+          // Tulis ke Excel
+          $sheet->setCellValue('A' . $row, $prh->fprno);
+          $sheet->setCellValue('B' . $row, \Carbon\Carbon::parse($prh->fprdate)->format('d/m/Y'));
+          $sheet->setCellValue('C' . $row, $supplier_name);
+          $sheet->setCellValue('D' . $row, $prh->fket ?? 'LOCO BL');
+          $sheet->setCellValue('E' . $row, $detail->fprdcode);
+          $sheet->setCellValue('F' . $row, $product_name);
+          $sheet->setCellValue('G' . $row, $detail->funit ?? 'PCS');
+          $sheet->setCellValue('H' . $row, $detail->fqty ?? 0);
 
           $row++;
         }
       } else {
-        $col = 'A';
-        foreach ($pohBaseData as $value) {
-          $sheet->setCellValue($col . $row, $value);
-          $col++;
-        }
+        // Jika PR tidak punya item detail
+        $sheet->setCellValue('A' . $row, $prh->fprno);
+        $sheet->setCellValue('B' . $row, \Carbon\Carbon::parse($prh->fprdate)->format('d/m/Y'));
+        $sheet->setCellValue('C' . $row, $supplier_name);
+        $sheet->setCellValue('D' . $row, $prh->fket ?? 'LOCO BL');
         $row++;
       }
     }
 
-    // Auto-size kolom
-    foreach (range('A', 'O') as $column) {
+    // Auto-size kolom A-H
+    foreach (range('A', 'H') as $column) {
       $sheet->getColumnDimension($column)->setAutoSize(true);
     }
 
-    // Style untuk data (border)
+    // Border untuk semua data
     $lastDataRow = $row - 1;
     if ($lastDataRow >= 2) {
-      $sheet->getStyle('A2:O' . $lastDataRow)->applyFromArray([
+      $sheet->getStyle('A2:H' . $lastDataRow)->applyFromArray([
         'borders' => [
-          'allBorders' => [
-            'borderStyle' => Border::BORDER_THIN,
-          ],
+          'allBorders' => ['borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN],
         ],
       ]);
-
-      // Format angka untuk kolom numerik
-      $sheet->getStyle('F2:F' . $lastDataRow)->getNumberFormat()->setFormatCode('#,##0.00');
-      $sheet->getStyle('L2:L' . $lastDataRow)->getNumberFormat()->setFormatCode('#,##0.00');
-      $sheet->getStyle('N2:O' . $lastDataRow)->getNumberFormat()->setFormatCode('#,##0.00');
+      // Format angka Qty
+      $sheet->getStyle('H2:H' . $lastDataRow)->getNumberFormat()->setFormatCode('#,##0.00');
     }
 
-    // ===============================
-    // GRAND TOTAL
-    // ===============================
-    $row++; // Baris kosong
-    $grandTotalRow = $row;
-
-    // Hitung Grand Total
-    $grandTotalPO = 0;
-    $grandTotalQty = 0;
-    $grandTotalPrice = 0;
-    $grandTotalAmount = 0;
-
-    foreach ($dataToExport as $prh) {
-      $grandTotalPO += $prh->famountpo ?? 0;
-      foreach ($prh->details as $pod) {
-        $grandTotalQty += $pod->fqty ?? 0;
-        $grandTotalPrice += $pod->fprice ?? 0;
-        $grandTotalAmount += $pod->famount ?? 0;
-      }
-    }
-
-    // Tulis Grand Total
-    $sheet->setCellValue('A' . $grandTotalRow, 'GRAND TOTAL');
-    $sheet->mergeCells('A' . $grandTotalRow . ':E' . $grandTotalRow);
-    $sheet->setCellValue('F' . $grandTotalRow, $grandTotalPO);
-    $sheet->setCellValue('L' . $grandTotalRow, $grandTotalQty);
-    $sheet->setCellValue('N' . $grandTotalRow, $grandTotalPrice);
-    $sheet->setCellValue('O' . $grandTotalRow, $grandTotalAmount);
-
-    // Style Grand Total
-    $sheet->getStyle('A' . $grandTotalRow . ':O' . $grandTotalRow)->applyFromArray([
-      'font' => [
-        'bold' => true,
-        'color' => ['rgb' => 'FFFFFF'],
-      ],
-      'fill' => [
-        'fillType' => Fill::FILL_SOLID,
-        'startColor' => ['rgb' => '333333'],
-      ],
-      'alignment' => [
-        'horizontal' => Alignment::HORIZONTAL_CENTER,
-        'vertical' => Alignment::VERTICAL_CENTER,
-      ],
-      'borders' => [
-        'allBorders' => [
-          'borderStyle' => Border::BORDER_THIN,
-        ],
-      ],
-    ]);
-
-    // Alignment kiri untuk label GRAND TOTAL
-    $sheet->getStyle('A' . $grandTotalRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
-
-    // Format angka untuk grand total
-    $sheet->getStyle('F' . $grandTotalRow)->getNumberFormat()->setFormatCode('#,##0.00');
-    $sheet->getStyle('L' . $grandTotalRow)->getNumberFormat()->setFormatCode('#,##0.00');
-    $sheet->getStyle('N' . $grandTotalRow . ':O' . $grandTotalRow)->getNumberFormat()->setFormatCode('#,##0.00');
-
-    // Generate filename
-    $filename = 'PO_Report_' . now()->format('Ymd_His') . '.xlsx';
-
-    // Set headers untuk download
+    // Download file
+    $filename = 'PR_Report_' . now()->format('Ymd_His') . '.xlsx';
     header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     header('Content-Disposition: attachment; filename="' . $filename . '"');
     header('Cache-Control: max-age=0');
 
-    // Output file
-    $writer = new Xlsx($spreadsheet);
+    $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
     $writer->save('php://output');
     exit;
   }

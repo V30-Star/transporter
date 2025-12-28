@@ -361,7 +361,7 @@
 <body>
     <div class="no-print">
         <button class="print-button" onclick="window.print()">🖨️ Cetak Laporan</button>
-        <a href="{{ route('reporting.exportExcel', request()->query()) }}" class="excel-button">
+        <a href="{{ route('reportingpemakaianbarang.exportExcel', request()->query()) }}" class="excel-button">
             📊 Download Excel
         </a>
         <div class="zoom-controls">
@@ -477,7 +477,7 @@
                         <div class="po-header">
                             <div>{{ $fakturpembelian->fstockmtno }}</div>
                             <div>{{ \Carbon\Carbon::parse($fakturpembelian->fstockmtdate)->format('d/m/Y') }}</div>
-                            <div>{{ $fakturpembelian->ffrom }}</div>
+                            <div>{{ $fakturpembelian->fwhname }}</div>
                             <div>{{ $fakturpembelian->fket }}</div>
                             <div>{{ $fakturpembelian->famount }}</div>
                             <div>{{ $fakturpembelian->fusercreate }}</div>

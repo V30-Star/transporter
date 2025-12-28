@@ -111,8 +111,9 @@ class ReportingPemakaianBarangController extends Controller
     $filterSupplierId = $request->query('fsupplier');
 
     $query = DB::table('trstockmt')
-      ->select('trstockmt.*', 'account.faccname')
+      ->select('trstockmt.*', 'account.faccname', 'mswh.fwhname')
       ->leftJoin('account', 'trstockmt.frefno', '=', 'account.faccid')
+      ->leftJoin('mswh', 'trstockmt.ffrom', '=', 'mswh.fwhid')
       ->where('fstockmtcode', 'PBR');
 
     // Filter berdasarkan tanggal jika ada
@@ -212,198 +213,137 @@ class ReportingPemakaianBarangController extends Controller
 
   public function exportExcel(Request $request)
   {
+    // 1. Ambil data Header menggunakan join account (sesuai query Anda)
     $dataToExport = $this->getPemakaianBarangQuery($request)
-      ->with('details')
+      ->leftJoin('mswh', 'trstockmt.ffrom', '=', 'mswh.fwhid')
+      ->where('fstockmtcode', 'PBR')
       ->get();
 
-    // Buat Spreadsheet baru
     $spreadsheet = new Spreadsheet();
     $sheet = $spreadsheet->getActiveSheet();
-    $sheet->setTitle('PR Report');
+    $sheet->setTitle('Pemakaian Barang Report');
 
-    // Header kolom
+    // Header kolom Excel
     $headers = [
-      'ID PR',
-      'NOMOR PR',
-      'TANGGAL PR',
-      'SUPPLIER ID',
-      'MATA UANG',
-      'TOTAL PR',
-      'STATUS CLOSE',
-      'STATUS APPROVAL',
-      'NO. URUT ITEM',
-      'KODE PRODUK',
-      'DESKRIPSI ITEM',
-      'QTY',
-      'SATUAN',
-      'HARGA SATUAN',
-      'JUMLAH ITEM',
+      'No. Transaksi',
+      'Tanggal',
+      'Gudang',
+      'Keterangan Header',
+      'Total Harga Header',
+      'User-id',
+      'Kode Produk',
+      'Nama Barang',
+      'Sub Account',
+      'Nama Account',
+      'Quantity',
+      '@ Harga',
+      'Total Harga Detail',
+      'Keterangan Detail'
     ];
 
-    // Tulis header di baris 1
     $col = 'A';
     foreach ($headers as $header) {
       $sheet->setCellValue($col . '1', $header);
       $col++;
     }
 
-    // Style header
-    $headerRange = 'A1:O1';
-    $sheet->getStyle($headerRange)->applyFromArray([
-      'font' => [
-        'bold' => true,
-        'color' => ['rgb' => 'FFFFFF'],
-      ],
+    // Style Header
+    $sheet->getStyle('A1:N1')->applyFromArray([
+      'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
       'fill' => [
-        'fillType' => Fill::FILL_SOLID,
+        'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
         'startColor' => ['rgb' => '4472C4'],
       ],
-      'alignment' => [
-        'horizontal' => Alignment::HORIZONTAL_CENTER,
-        'vertical' => Alignment::VERTICAL_CENTER,
-      ],
-      'borders' => [
-        'allBorders' => [
-          'borderStyle' => Border::BORDER_THIN,
-        ],
-      ],
+      'alignment' => ['horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER],
+      'borders' => ['allBorders' => ['borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN]],
     ]);
 
-    // Tulis data mulai baris 2
     $row = 2;
+    $gtAmountHeader = 0;
+    $gtQty = 0;
+    $gtHargaSatuan = 0;
+    $gtTotalHargaDetail = 0;
+
     foreach ($dataToExport as $fakturpembelian) {
-      $pohBaseData = [
-        $fakturpembelian->fpohdid,
-        $fakturpembelian->fpono,
-        Carbon::parse($fakturpembelian->fpodate)->format('d-m-Y'),
-        $fakturpembelian->fsupplier,
-        $fakturpembelian->fcurrency,
-        $fakturpembelian->famountpo,
-        $fakturpembelian->fclose === '1' ? 'Closed' : 'Open',
-        $fakturpembelian->fapproval ?? '-',
-      ];
+      // Akumulasi Grand Total Header
+      $gtAmountHeader += $fakturpembelian->famount ?? 0;
 
-      if ($fakturpembelian->details->isNotEmpty()) {
-        foreach ($fakturpembelian->details as $pod) {
-          $col = 'A';
+      // 2. Ambil data Detail menggunakan join sesuai struktur Anda
+      $details = DB::table('trstockdt')
+        ->select('trstockdt.*', 'account.faccname', 'mssubaccount.fsubaccountname')
+        ->leftJoin('account', 'trstockdt.frefdtno', '=', 'account.faccid')
+        ->leftJoin('mssubaccount', 'trstockdt.frefso', '=', 'mssubaccount.fsubaccountid')
+        ->where('fstockmtno', $fakturpembelian->fstockmtno)
+        ->get();
 
-          // Tulis data header PR
-          foreach ($pohBaseData as $value) {
-            $sheet->setCellValue($col . $row, $value);
-            $col++;
-          }
+      if ($details->isNotEmpty()) {
+        foreach ($details as $detail) {
+          // Ambil Nama Produk (Manual Join)
+          $product = DB::table('msprd')->where('fprdid', $detail->fprdcode)->first();
+          $product_name = $product->fprdname ?? $detail->fprdcode;
 
-          // Tulis data detail
-          $sheet->setCellValue('I' . $row, $pod->fnou);
-          $sheet->setCellValue('J' . $row, $pod->fprdcode);
-          $sheet->setCellValue('K' . $row, $pod->fdesc ?? '-');
-          $sheet->setCellValue('L' . $row, $pod->fqty);
-          $sheet->setCellValue('M' . $row, $pod->fsatuan);
-          $sheet->setCellValue('N' . $row, $pod->fprice);
-          $sheet->setCellValue('O' . $row, $pod->famount);
+          // Akumulasi Grand Total Detail
+          $gtQty += $detail->fqty ?? 0;
+          $gtHargaSatuan += $detail->fprice ?? 0;
+          $gtTotalHargaDetail += $detail->ftotprice ?? 0;
+
+          // Isi data ke baris Excel
+          $sheet->setCellValue('A' . $row, $fakturpembelian->fstockmtno);
+          $sheet->setCellValue('B' . $row, \Carbon\Carbon::parse($fakturpembelian->fstockmtdate)->format('d/m/Y'));
+          $sheet->setCellValue('C' . $row, $fakturpembelian->fwhname);
+          $sheet->setCellValue('D' . $row, $fakturpembelian->fket);
+          $sheet->setCellValue('E' . $row, $fakturpembelian->famount ?? 0);
+          $sheet->setCellValue('F' . $row, $fakturpembelian->fusercreate);
+
+          $sheet->setCellValue('G' . $row, $detail->fprdcode);
+          $sheet->setCellValue('H' . $row, $product_name);
+          $sheet->setCellValue('I' . $row, $detail->fsubaccountname ?? '-'); // Hasil Join
+          $sheet->setCellValue('J' . $row, $detail->faccname ?? '-');        // Hasil Join
+          $sheet->setCellValue('K' . $row, $detail->fqty ?? 0);
+          $sheet->setCellValue('L' . $row, $detail->fprice ?? 0);
+          $sheet->setCellValue('M' . $row, $detail->ftotprice ?? 0);
+          $sheet->setCellValue('N' . $row, $detail->fketdt);
 
           $row++;
         }
-      } else {
-        $col = 'A';
-        foreach ($pohBaseData as $value) {
-          $sheet->setCellValue($col . $row, $value);
-          $col++;
-        }
-        $row++;
       }
     }
 
-    // Auto-size kolom
-    foreach (range('A', 'O') as $column) {
+    // --- GRAND TOTAL ---
+    $sheet->setCellValue('A' . $row, 'GRAND TOTAL');
+    $sheet->mergeCells("A$row:D$row");
+
+    $sheet->setCellValue('E' . $row, $gtAmountHeader);
+    $sheet->setCellValue('K' . $row, $gtQty);
+    $sheet->setCellValue('L' . $row, $gtHargaSatuan);
+    $sheet->setCellValue('M' . $row, $gtTotalHargaDetail);
+
+    // Style Grand Total
+    $sheet->getStyle("A$row:N$row")->applyFromArray([
+      'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+      'fill' => [
+        'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+        'startColor' => ['rgb' => '333333'],
+      ],
+      'borders' => ['allBorders' => ['borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN]],
+    ]);
+
+    // Final Touch: Formatting
+    foreach (range('A', 'N') as $column) {
       $sheet->getColumnDimension($column)->setAutoSize(true);
     }
 
-    // Style untuk data (border)
-    $lastDataRow = $row - 1;
-    if ($lastDataRow >= 2) {
-      $sheet->getStyle('A2:O' . $lastDataRow)->applyFromArray([
-        'borders' => [
-          'allBorders' => [
-            'borderStyle' => Border::BORDER_THIN,
-          ],
-        ],
-      ]);
+    $numFormat = '#,##0.00';
+    $sheet->getStyle('E2:E' . $row)->getNumberFormat()->setFormatCode($numFormat);
+    $sheet->getStyle('K2:M' . $row)->getNumberFormat()->setFormatCode($numFormat);
+    $sheet->getStyle('A2:N' . ($row - 1))->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
-      // Format angka untuk kolom numerik
-      $sheet->getStyle('F2:F' . $lastDataRow)->getNumberFormat()->setFormatCode('#,##0.00');
-      $sheet->getStyle('L2:L' . $lastDataRow)->getNumberFormat()->setFormatCode('#,##0.00');
-      $sheet->getStyle('N2:O' . $lastDataRow)->getNumberFormat()->setFormatCode('#,##0.00');
-    }
-
-    // ===============================
-    // GRAND TOTAL
-    // ===============================
-    $row++; // Baris kosong
-    $grandTotalRow = $row;
-
-    // Hitung Grand Total
-    $grandTotalPO = 0;
-    $grandTotalQty = 0;
-    $grandTotalPrice = 0;
-    $grandTotalAmount = 0;
-
-    foreach ($dataToExport as $fakturpembelian) {
-      $grandTotalPO += $fakturpembelian->famountpo ?? 0;
-      foreach ($fakturpembelian->details as $pod) {
-        $grandTotalQty += $pod->fqty ?? 0;
-        $grandTotalPrice += $pod->fprice ?? 0;
-        $grandTotalAmount += $pod->famount ?? 0;
-      }
-    }
-
-    // Tulis Grand Total
-    $sheet->setCellValue('A' . $grandTotalRow, 'GRAND TOTAL');
-    $sheet->mergeCells('A' . $grandTotalRow . ':E' . $grandTotalRow);
-    $sheet->setCellValue('F' . $grandTotalRow, $grandTotalPO);
-    $sheet->setCellValue('L' . $grandTotalRow, $grandTotalQty);
-    $sheet->setCellValue('N' . $grandTotalRow, $grandTotalPrice);
-    $sheet->setCellValue('O' . $grandTotalRow, $grandTotalAmount);
-
-    // Style Grand Total
-    $sheet->getStyle('A' . $grandTotalRow . ':O' . $grandTotalRow)->applyFromArray([
-      'font' => [
-        'bold' => true,
-        'color' => ['rgb' => 'FFFFFF'],
-      ],
-      'fill' => [
-        'fillType' => Fill::FILL_SOLID,
-        'startColor' => ['rgb' => '333333'],
-      ],
-      'alignment' => [
-        'horizontal' => Alignment::HORIZONTAL_CENTER,
-        'vertical' => Alignment::VERTICAL_CENTER,
-      ],
-      'borders' => [
-        'allBorders' => [
-          'borderStyle' => Border::BORDER_THIN,
-        ],
-      ],
-    ]);
-
-    // Alignment kiri untuk label GRAND TOTAL
-    $sheet->getStyle('A' . $grandTotalRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
-
-    // Format angka untuk grand total
-    $sheet->getStyle('F' . $grandTotalRow)->getNumberFormat()->setFormatCode('#,##0.00');
-    $sheet->getStyle('L' . $grandTotalRow)->getNumberFormat()->setFormatCode('#,##0.00');
-    $sheet->getStyle('N' . $grandTotalRow . ':O' . $grandTotalRow)->getNumberFormat()->setFormatCode('#,##0.00');
-
-    // Generate filename
-    $filename = 'PO_Report_' . now()->format('Ymd_His') . '.xlsx';
-
-    // Set headers untuk download
+    // Download File
+    $filename = 'Pemakaian_Barang_Report_' . now()->format('Ymd_His') . '.xlsx';
     header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     header('Content-Disposition: attachment; filename="' . $filename . '"');
-    header('Cache-Control: max-age=0');
 
-    // Output file
-    $writer = new Xlsx($spreadsheet);
+    $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
     $writer->save('php://output');
     exit;
   }
