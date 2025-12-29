@@ -111,7 +111,8 @@ class ReportingAssemblingController extends Controller
     $filterSupplierId = $request->query('fsupplier');
 
     $query = DB::table('trstockmt')
-      ->select('trstockmt.*')
+      ->select('trstockmt.*', 'mswh.fwhname')
+      ->leftJoin('mswh', 'trstockmt.ffrom', '=', 'mswh.fwhid')
       ->where('fstockmtcode', 'LHP');
 
     // Filter berdasarkan tanggal jika ada
@@ -152,6 +153,12 @@ class ReportingAssemblingController extends Controller
           ->where('fprdid', $detail->fprdcode)
           ->first();
         $detail->product_name = $product->fprdname ?? $detail->fprdcode;
+        $fhpp = $product->fhpp ?? 0;
+        $qty = (float) ($detail->fqty ?? 0);
+        $hpp = (float) ($fhpp);
+
+        $detail->fhpp = $hpp;
+        $detail->total_hpp = $qty * $hpp;
       }
     }
 
@@ -200,112 +207,117 @@ class ReportingAssemblingController extends Controller
     $sheet = $spreadsheet->getActiveSheet();
     $sheet->setTitle('Assembling Report');
 
-    // Header kolom sesuai urutan di Blade
+    // Header Baru: Gudang ditambahkan setelah Tanggal
     $headers = [
-      'No.PO',
+      'No. Transaksi',
       'Tanggal',
-      'Nama Supplier',
+      'Gudang',
       'Keterangan',
-      'Produk#',
+      'Kode Produk',
       'Nama Produk',
       'Qty',
-      'Satuan',
+      'Qty. Rijeks',
+      '@ HPP',
+      'Total HPP',
     ];
 
-    // Tulis header
+    // Tulis header (A1 sampai J1)
     $col = 'A';
     foreach ($headers as $header) {
       $sheet->setCellValue($col . '1', $header);
       $col++;
     }
 
-    // Style header (A1 sampai H1)
-    $sheet->getStyle('A1:H1')->applyFromArray([
+    // Style header
+    $sheet->getStyle('A1:J1')->applyFromArray([
       'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
       'fill' => [
         'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
         'startColor' => ['rgb' => '4472C4'],
       ],
-      'alignment' => [
-        'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
-        'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
-      ],
-      'borders' => [
-        'allBorders' => ['borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN],
-      ],
+      'alignment' => ['horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER],
     ]);
 
     $row = 2;
+
+    // Inisialisasi Grand Total menggunakan template yang Anda inginkan
+    $grandTotal = [
+      'qty' => 0,
+      'qty_rijeks' => 0,
+      'total_hpp' => 0,
+    ];
+
     foreach ($dataToExport as $assembling) {
+      // Ambil nama gudang (Join manual jika tidak ada di getAssemblingQuery)
+      $warehouse = DB::table('mswh')->where('fwhid', $assembling->ffrom)->first();
+      $wh_name = $warehouse->fwhname ?? '-';
 
-      // 1. Join Manual Supplier
-      $supplier = \DB::table('mssupplier')
-        ->where('fsupplierid', $assembling->fsupplier)
-        ->first();
-      $supplier_name = $supplier->fsuppliername ?? $assembling->fsupplier;
-
-      // 2. Ambil Details dari table trstockdt (Gunakan fstockmtid sebagai link)
-      $details = \DB::table('trstockdt')
+      // Ambil Details
+      $details = DB::table('trstockdt')
         ->where('fstockmtid', $assembling->fstockmtid)
         ->get();
 
-      if ($details->isNotEmpty()) {
-        foreach ($details as $detail) {
-          // 3. Join Manual Produk
-          $product = \DB::table('msprd')
-            ->where('fprdid', $detail->fprdcode)
-            ->first();
-          $product_name = $product->fprdname ?? $detail->fprdcode;
+      foreach ($details as $detail) {
+        $product = DB::table('msprd')->where('fprdid', $detail->fprdcode)->first();
 
-          // Isi Baris Excel (Kolom A-H)
-          $sheet->setCellValue('A' . $row, $assembling->fstockmtno);
-          $sheet->setCellValue('B' . $row, \Carbon\Carbon::parse($assembling->fstockmtdate)->format('d/m/Y'));
-          $sheet->setCellValue('C' . $row, $supplier_name);
-          $sheet->setCellValue('D' . $row, $assembling->fket ?? 'LOCO BL');
+        $product_name = $product->fprdname ?? $detail->fprdcode;
+        $hpp = (float) ($product->fhpp ?? 0);
+        $qty = (float) ($detail->fqty ?? 0);
+        $rijeks = (float) ($detail->fqtyremain ?? 0);
+        $total_hpp = $qty * $hpp;
 
-          $sheet->setCellValue('E' . $row, $detail->fprdcode);
-          $sheet->setCellValue('F' . $row, $product_name);
-          $sheet->setCellValue('G' . $row, $detail->fqty ?? 0);
-          $sheet->setCellValue('H' . $row, $detail->funit ?? 'PCS');
+        // Akumulasi ke template grandTotal
+        $grandTotal['qty'] += $qty;
+        $grandTotal['qty_rijeks'] += $rijeks;
+        $grandTotal['total_hpp'] += $total_hpp;
 
-          $row++;
-        }
-      } else {
-        // Jika header ada tapi detail kosong
+        // Isi Baris Excel (Kolom A-J)
         $sheet->setCellValue('A' . $row, $assembling->fstockmtno);
         $sheet->setCellValue('B' . $row, \Carbon\Carbon::parse($assembling->fstockmtdate)->format('d/m/Y'));
-        $sheet->setCellValue('C' . $row, $supplier_name);
+        $sheet->setCellValue('C' . $row, $wh_name); // Kolom Gudang Baru
         $sheet->setCellValue('D' . $row, $assembling->fket ?? 'LOCO BL');
+        $sheet->setCellValue('E' . $row, $detail->fprdcode);
+        $sheet->setCellValue('F' . $row, $product_name);
+        $sheet->setCellValue('G' . $row, $qty);
+        $sheet->setCellValue('H' . $row, $rijeks);
+        $sheet->setCellValue('I' . $row, $hpp);
+        $sheet->setCellValue('J' . $row, $total_hpp);
+
         $row++;
       }
     }
 
-    // Auto-size kolom A-H
-    foreach (range('A', 'H') as $column) {
+    // --- BARIS GRAND TOTAL ---
+    $sheet->setCellValue('F' . $row, 'GRAND TOTAL');
+    $sheet->setCellValue('G' . $row, $grandTotal['qty']);
+    $sheet->setCellValue('H' . $row, $grandTotal['qty_rijeks']);
+    $sheet->setCellValue('J' . $row, $grandTotal['total_hpp']);
+
+    // Style Grand Total (Bold & Warna Kuning)
+    $sheet->getStyle('F' . $row . ':J' . $row)->getFont()->setBold(true);
+    $sheet->getStyle('F' . $row . ':J' . $row)->getFill()
+      ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+      ->getStartColor()->setRGB('FFFF00');
+
+    // Auto-size kolom A-J
+    foreach (range('A', 'J') as $column) {
       $sheet->getColumnDimension($column)->setAutoSize(true);
     }
 
-    // Style Border & Format Angka Qty
-    $lastDataRow = $row - 1;
+    // Style Border & Format Angka 10.000,00
+    $lastDataRow = $row;
     if ($lastDataRow >= 2) {
-      $sheet->getStyle('A2:H' . $lastDataRow)->applyFromArray([
-        'borders' => [
-          'allBorders' => ['borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN],
-        ],
-      ]);
-      // Format angka Qty (Kolom G)
-      $sheet->getStyle('G2:G' . $lastDataRow)->getNumberFormat()->setFormatCode('#,##0.00');
+      $sheet->getStyle('A1:J' . $lastDataRow)->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+
+      // G, H, I, J adalah kolom numerik (Qty, Rijeks, HPP, Total)
+      $sheet->getStyle('G2:J' . $lastDataRow)->getNumberFormat()->setFormatCode('#,##0.00');
     }
 
-    // Generate filename
     $filename = 'Assembling_Report_LHP_' . now()->format('Ymd_His') . '.xlsx';
-
-    // Set headers untuk download
     header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     header('Content-Disposition: attachment; filename="' . $filename . '"');
     header('Cache-Control: max-age=0');
 
-    // Output file
     $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
     $writer->save('php://output');
     exit;

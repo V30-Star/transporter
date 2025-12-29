@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Listing Assembling</title>
+    <title>Listing Hasil Produksi Dgn HPP</title>
     <style>
         * {
             margin: 0;
@@ -51,12 +51,12 @@
             margin-bottom: 5px;
         }
 
-        /* --- PO HEADER STYLES (4 Kolom) --- */
+        /* --- PO HEADER STYLES (5 Kolom) --- */
         .po-header-labels,
         .po-header {
             display: grid;
-            grid-template-columns: 35mm 35mm 80mm 40mm;
-            gap: 5px;
+            grid-template-columns: 35mm 22mm 30mm 1fr 20mm;
+            gap: 3px;
             font-size: 9px;
             padding: 8px 5px;
         }
@@ -77,11 +77,11 @@
             padding: 6px 5px;
         }
 
-        /* --- PO DETAIL STYLES (4 Kolom) --- */
+        /* --- PO DETAIL STYLES (6 Kolom) --- */
         .po-detail-labels,
         .po-detail {
             display: grid;
-            grid-template-columns: 25mm 1fr 25mm 30mm;
+            grid-template-columns: 22mm 1fr 20mm 22mm 22mm 25mm;
             gap: 3px;
             font-size: 8px;
             padding: 4px 5px;
@@ -97,7 +97,7 @@
             padding: 6px 5px;
         }
 
-        /* Indent untuk kolom pertama (Produk#) pada data */
+        /* Indent untuk kolom pertama (Kode Produk) pada data */
         .po-detail>div:first-child {
             padding-left: 5mm;
         }
@@ -109,18 +109,41 @@
             background-color: #fff;
         }
 
-        /* Text alignment untuk detail */
-        .po-detail-labels>div:nth-child(3),
-        .po-detail>div:nth-child(3) {
-            text-align: center;
+        /* Section Headers - Bahan Baku & Barang Jadi */
+        .section-header {
+            display: grid;
+            grid-template-columns: 1fr;
+            font-weight: bold;
+            font-size: 9px;
+            padding: 6px 10mm;
+            border-left: 1px solid #ccc;
+            border-right: 1px solid #ccc;
+            background-color: #fff;
+            margin-top: 3px;
         }
 
+        .section-bahan-baku {
+            color: #28a745;
+        }
+
+        .section-barang-jadi {
+            color: #17a2b8;
+        }
+
+        /* Text alignment untuk detail */
+        .po-detail-labels>div:nth-child(3),
         .po-detail-labels>div:nth-child(4),
-        .po-detail>div:nth-child(4) {
+        .po-detail-labels>div:nth-child(5),
+        .po-detail-labels>div:nth-child(6),
+        .po-detail>div:nth-child(3),
+        .po-detail>div:nth-child(4),
+        .po-detail>div:nth-child(5),
+        .po-detail>div:nth-child(6) {
             text-align: right;
         }
 
-        /* Wrap text untuk kolom Nama Produk */
+        /* Wrap text untuk kolom yang panjang */
+        .po-header>div:nth-child(4),
         .po-detail>div:nth-child(2) {
             word-wrap: break-word;
             overflow-wrap: break-word;
@@ -343,7 +366,7 @@
                     <div class="supplier-info-kiri">
                         Supplier: {{ $activeSupplierName ?? 'Semua' }}
                     </div>
-                    <h2>Listing Assembling</h2>
+                    <h2>Listing Hasil Produksi Dgn HPP</h2>
                     <div class="info-tambahan">
                         <div>
                             <span class="info-label">Tanggal:</span>
@@ -378,7 +401,7 @@
                                 Supplier: Semua
                             @endif
                         </div>
-                        <h2>Listing Assembling</h2>
+                        <h2>Listing Hasil Produksi Dgn HPP</h2>
                         @if (request('filter_date_from') || request('filter_date_to'))
                             <div class="filter-info">
                                 Periode:
@@ -416,17 +439,20 @@
 
                     {{-- Header Labels --}}
                     <div class="po-header-labels">
-                        <div>No.PO</div>
+                        <div>No.Transaksi</div>
                         <div>Tanggal</div>
-                        <div>Nama Supplier</div>
+                        <div>Gudang</div>
                         <div>Keterangan</div>
+                        <div>User-id</div>
                     </div>
 
                     <div class="po-detail-labels">
-                        <div>Produk#</div>
-                        <div>Nama Produk</div>
-                        <div class="text-right">Qty</div>
-                        <div class="text-right">Satuan</div>
+                        <div>Kode Produk</div>
+                        <div>Nama Barang</div>
+                        <div class="text-right">Quantity</div>
+                        <div class="text-right">Qty.Rijeks</div>
+                        <div class="text-right">@ HPP</div>
+                        <div class="text-right">Total HPP</div>
                     </div>
 
                     @foreach ($pageData as $index => $penerimaanbarang)
@@ -434,20 +460,61 @@
                         <div class="po-header">
                             <div>{{ $penerimaanbarang->fstockmtno }}</div>
                             <div>{{ \Carbon\Carbon::parse($penerimaanbarang->fstockmtdate)->format('d/m/Y') }}</div>
-                            <div>{{ $penerimaanbarang->supplier_name ?? $penerimaanbarang->fsupplier }}</div>
+                            <div>{{ $penerimaanbarang->fwhname }}</div>
                             <div>{{ $penerimaanbarang->fket ?? 'LOCO BL' }}</div>
+                            <div>{{ $penerimaanbarang->fusercreate }}</div>
                         </div>
 
                         {{-- PO Detail Rows (Child) - Merah --}}
                         @if ($penerimaanbarang->details && $penerimaanbarang->details->count() > 0)
-                            @foreach ($penerimaanbarang->details as $detail)
-                                <div class="po-detail">
-                                    <div>{{ $detail->fprdcode }}</div>
-                                    <div>{{ $detail->product_name ?? $detail->fprdcode }}</div>
-                                    <div class="text-right">{{ number_format($detail->fqty ?? 0, 2, ',', '.') }}</div>
-                                    <div>{{ $detail->funit ?? 'PCS' }}</div>
+                            @php
+                                $bahanBaku = $penerimaanbarang->details->filter(fn($d) => $d->fcode == 'B');
+                                $barangJadi = $penerimaanbarang->details->filter(fn($d) => $d->fcode == 'J');
+                            @endphp
+
+                            {{-- Section Bahan Baku --}}
+                            @if ($bahanBaku->count() > 0)
+                                <div class="section-header section-bahan-baku">
+                                    <div>Bahan Baku</div>
                                 </div>
-                            @endforeach
+                                @foreach ($bahanBaku as $detail)
+                                    <div class="po-detail">
+                                        <div>{{ $detail->fprdcode }}</div>
+                                        <div>{{ $detail->product_name ?? $detail->fprdcode }}</div>
+                                        <div class="text-right">{{ number_format($detail->fqty ?? 0, 2, ',', '.') }}
+                                        </div>
+                                        <div class="text-right">{{ $detail->fqtyremain ?? '-' }}</div>
+                                        <div class="text-right">
+                                            {{ number_format((float) ($detail->fhpp ?? 0), 2, ',', '.') }}
+                                        </div>
+                                        <div class="text-right">
+                                            {{ number_format((float) ($detail->total_hpp ?? 0), 2, ',', '.') }}
+                                        </div>
+                                    </div>
+                                @endforeach
+                            @endif
+
+                            {{-- Section Barang Jadi --}}
+                            @if ($barangJadi->count() > 0)
+                                <div class="section-header section-barang-jadi">
+                                    <div>Barang Jadi</div>
+                                </div>
+                                @foreach ($barangJadi as $detail)
+                                    <div class="po-detail">
+                                        <div>{{ $detail->fprdcode }}</div>
+                                        <div>{{ $detail->product_name ?? $detail->fprdcode }}</div>
+                                        <div class="text-right">{{ number_format($detail->fqty ?? 0, 2, ',', '.') }}
+                                        </div>
+                                        <div class="text-right">{{ $detail->fqtyremain ?? '-' }}</div>
+                                        <div class="text-right">
+                                            {{ number_format((float) ($detail->fhpp ?? 0), 2, ',', '.') }}
+                                        </div>
+                                        <div class="text-right">
+                                            {{ number_format((float) ($detail->total_hpp ?? 0), 2, ',', '.') }}
+                                        </div>
+                                    </div>
+                                @endforeach
+                            @endif
                         @endif
 
                         @if (!$loop->last)
