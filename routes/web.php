@@ -35,6 +35,7 @@ use App\Http\Controllers\ReturPembelianController;
 use App\Http\Controllers\ReportingAdjStockController;
 use App\Http\Controllers\ReportingAssemblingController;
 use App\Http\Controllers\ReportingPemakaianBarangController;
+use App\Http\Controllers\SalesOrderController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -303,6 +304,21 @@ Route::middleware('auth')->group(function () {
         Route::get('/assembling/pickable', [AssemblingController::class, 'pickable'])
             ->name('assembling.pickable');
 
+        Route::get('/salesorder',  [SalesOrderController::class, 'index'])->name('salesorder.index');
+        Route::post('/salesorder',        [SalesOrderController::class, 'store'])->name('salesorder.store');
+        Route::get('/salesorder/create', [SalesOrderController::class, 'create'])->name('salesorder.create');
+        Route::get('/salesorder/{fstockmtid}/view', [SalesOrderController::class, 'view'])->name('salesorder.view');
+        Route::get('/salesorder/{fstockmtid}/edit', [SalesOrderController::class, 'edit'])->name('salesorder.edit');
+        Route::get('/salesorder/{fstockmtid}/delete', [SalesOrderController::class, 'delete'])->name('salesorder.delete');
+        Route::patch('/salesorder/{fstockmtid}', [SalesOrderController::class, 'update'])->name('salesorder.update');
+        Route::delete('/salesorder/{fstockmtid}', [SalesOrderController::class, 'destroy'])->name('salesorder.destroy');
+        Route::get('/salesorder/{fstockmtno}/print', [SalesOrderController::class, 'print'])
+            ->name('salesorder.print');
+        Route::get('/salesorder/{id}/items', [SalesOrderController::class, 'items'])
+            ->name('salesorder.items');
+        Route::get('/salesorder/pickable', [SalesOrderController::class, 'pickable'])
+            ->name('salesorder.pickable');
+
         Route::get('/products/browse', [\App\Http\Controllers\ProductBrowseController::class, 'index'])
             ->name('products.browse');
 
@@ -341,6 +357,8 @@ Route::middleware('auth')->group(function () {
             ->name('account.browse');
 
         Route::get('/suppliers/browse', [SupplierController::class, 'browse'])->name('suppliers.browse');
+        Route::get('/customer/browse', [CustomerController::class, 'browse'])->name('customer.browse');
+        Route::get('/salesman/browse', [SalesmanController::class, 'browse'])->name('salesman.browse');
         Route::get('/product/browse', [ProductController::class, 'browse'])->name('product.browse');
         Route::get('/wh/browse', [WhController::class, 'browse'])->name('wh.browse');
         Route::get('/account/browse', [AccountController::class, 'browse'])->name('account.browse');

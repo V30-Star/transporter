@@ -10,6 +10,7 @@ use App\Models\Wilayah;  // Add this import to get the groups
 use App\Models\Rekening;  // Add this import to get the groups
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Pest\ArchPresets\Custom;
 
 class CustomerController extends Controller
 {
@@ -418,5 +419,55 @@ class CustomerController extends Controller
             ->pluck('fcustomername');
 
         return response()->json($names);
+    }
+
+    public function browse(Request $request)
+    {
+        // Base query
+        $query = Customer::query();
+
+        // Total records tanpa filter
+        $recordsTotal = Customer::count();
+
+        // Search
+        if ($request->filled('search') && $request->search != '') {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('fcustomercode', 'ilike', "%{$search}%")
+                    ->orWhere('fcustomername', 'ilike', "%{$search}%")
+                    ->orWhere('faddress', 'ilike', "%{$search}%")
+                    ->orWhere('ftelp', 'ilike', "%{$search}%");
+            });
+        }
+
+        // Total records setelah filter
+        $recordsFiltered = $query->count();
+
+        // Sorting
+        $orderColumn = $request->input('order_column', 'fcustomername');
+        $orderDir = $request->input('order_dir', 'asc');
+
+        $allowedColumns = ['fcustomercode', 'fcustomername', 'faddress', 'ftelp'];
+        if (in_array($orderColumn, $allowedColumns)) {
+            $query->orderBy($orderColumn, $orderDir);
+        } else {
+            $query->orderBy('fcustomername', 'asc');
+        }
+
+        // Pagination
+        $start = (int) $request->input('start', 0);
+        $length = (int) $request->input('length', 10);
+
+        $data = $query->skip($start)
+            ->take($length)
+            ->get();
+
+        // Response format untuk DataTables
+        return response()->json([
+            'draw' => (int) $request->input('draw', 1),
+            'recordsTotal' => (int) $recordsTotal,
+            'recordsFiltered' => (int) $recordsFiltered,
+            'data' => $data
+        ]);
     }
 }

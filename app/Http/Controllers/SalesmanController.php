@@ -146,4 +146,52 @@ class SalesmanController extends Controller
             return redirect()->route('salesman.delete', $fsalesmanid)->with('error', 'Gagal menghapus data: ' . $e->getMessage());
         }
     }
+
+    public function browse(Request $request)
+    {
+        // Base query
+        $query = Salesman::query();
+
+        // Total records tanpa filter
+        $recordsTotal = Salesman::count();
+
+        // Search
+        if ($request->filled('search') && $request->search != '') {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('fsalesmancode', 'ilike', "%{$search}%")
+                    ->orWhere('fsalesmanname', 'ilike', "%{$search}%");
+            });
+        }
+
+        // Total records setelah filter
+        $recordsFiltered = $query->count();
+
+        // Sorting
+        $orderColumn = $request->input('order_column', 'fsalesmanname');
+        $orderDir = $request->input('order_dir', 'asc');
+
+        $allowedColumns = ['fsalesmancode', 'fsalesmanname'];
+        if (in_array($orderColumn, $allowedColumns)) {
+            $query->orderBy($orderColumn, $orderDir);
+        } else {
+            $query->orderBy('fsalesmanname', 'asc');
+        }
+
+        // Pagination
+        $start = (int) $request->input('start', 0);
+        $length = (int) $request->input('length', 10);
+
+        $data = $query->skip($start)
+            ->take($length)
+            ->get();
+
+        // Response format untuk DataTables
+        return response()->json([
+            'draw' => (int) $request->input('draw', 1),
+            'recordsTotal' => (int) $recordsTotal,
+            'recordsFiltered' => (int) $recordsFiltered,
+            'data' => $data
+        ]);
+    }
 }
