@@ -14,6 +14,8 @@ class Customer extends Model
 
     // Define the primary key column
     protected $primaryKey = 'fcustomerid';
+    public $incrementing = true; // Set true jika auto-increment integer
+    protected $keyType = 'int';  // Set ke 'int'
 
     // Specify the columns that should not be mass assignable
     protected $guarded = ['fcustomerid'];
@@ -27,8 +29,8 @@ class Customer extends Model
     {
         return $query->when($search, function ($query) use ($search) {
             $query->where(function ($query) use ($search) {
-                $query->where('fcustomercode', 'ILIKE', '%'.$search.'%')
-                      ->orWhere('fcustomername', 'ILIKE', '%'.$search.'%');
+                $query->where('fcustomercode', 'ILIKE', '%' . $search . '%')
+                    ->orWhere('fcustomername', 'ILIKE', '%' . $search . '%');
             });
         });
     }

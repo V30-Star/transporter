@@ -222,11 +222,11 @@ class SalesOrderController extends Controller
 
     // PERBAIKAN: Gunakan fprid (integer) bukan fprno (varchar)
     $items = Tr_prd::where('tr_prd.fprnoid', $header->fprid) // <- Gunakan fprid
-      ->leftJoin('msprd as m', 'm.fprdid', '=', 'tr_prd.fprdcode')
+      ->leftJoin('msprd as m', 'm.fprdid', '=', 'tr_prd.fitemid')
       ->select([
         'tr_prd.fprdid as frefdtno',
         'tr_prd.fprnoid as fnouref',
-        'tr_prd.fprdcode as fitemcode',
+        'tr_prd.fitemid as fitemcode',
         'm.fprdname as fitemname',
         'tr_prd.fqty',
         'tr_prd.fsatuan as fsatuan',
@@ -234,7 +234,7 @@ class SalesOrderController extends Controller
         'tr_prd.fprice as fharga',
         DB::raw('0::numeric as fdiskon')
       ])
-      ->orderBy('tr_prd.fprdcode')
+      ->orderBy('tr_prd.fitemid')
       ->get();
 
     return response()->json([
@@ -310,12 +310,12 @@ class SalesOrderController extends Controller
 
     $dt = DB::table('trsodt')
       ->leftJoin('msprd as p', function ($j) {
-        $j->on('p.fprdid', '=', DB::raw('CAST(trsodt.fprdcode AS INTEGER)'));
+        $j->on('p.fprdid', '=', DB::raw('CAST(trsodt.fitemid AS INTEGER)'));
       })->where('trsodt.fsono', $ftrsomtid)                            // detail FK = header ID
-      ->orderBy('trsodt.fprdcode')
+      ->orderBy('trsodt.fitemid')
       ->get([
         'trsodt.*',
-        'p.fprdcode as product_code',
+        'p.fitemid as product_code',
         'p.fprdname as product_name',
         'p.fminstock as stock',
         'trsodt.fqtyremain',
@@ -428,6 +428,7 @@ class SalesOrderController extends Controller
     $now          = now();
 
     // DETAIL ARRAYS
+    $itemId       = $request->input('fitemid', []);
     $itemCodes    = $request->input('fitemcode', []);
     $itemNames    = $request->input('fitemname', []);
     $satuans      = $request->input('fsatuan', []);
@@ -449,12 +450,17 @@ class SalesOrderController extends Controller
     );
 
     for ($i = 0; $i < $rowCount; $i++) {
+      $itemeId = trim($itemId[$i] ?? '');
       $itemCode   = trim($itemCodes[$i] ?? '');
       $itemName   = trim((string)($itemNames[$i] ?? ''));
       $satuan     = trim((string)($satuans[$i] ?? ''));
       $qty        = (float)($qtys[$i] ?? 0);
       $price      = (float)($prices[$i] ?? 0);
       $discInput  = $discs[$i] ?? 0; // ✅ Simpan input asli dulu
+
+      if (empty($itemCode) || $qty <= 0) {
+        continue;
+      }
 
       // ✅ PARSE DISCOUNT: support format "10+2"
       $discPersen = $this->parseDiscount($discInput);
@@ -469,7 +475,14 @@ class SalesOrderController extends Controller
       $totalGross += $subtotal;
       $totalDisc += $discount;
 
+      if (empty($itemeId) && !empty($itemCode)) {
+        $itemeId = DB::table('msprd')
+          ->where('fprdcode', '=', $itemCode) // ✅ Gunakan binding parameter
+          ->value('fprdid');
+      }
+
       $rowsSodt[] = [
+        'fitemid'     => mb_substr($itemeId ?: $itemCode, 0, 20), // Fallback ke itemCode
         'fitemno'     => mb_substr($itemCode, 0, 20),
         'fitemdesc'   => mb_substr($itemName, 0, 200),
         'funit'       => mb_substr($satuan, 0, 10),
@@ -622,8 +635,11 @@ class SalesOrderController extends Controller
   }
   public function edit(Request $request, $ftrsomtid)
   {
-    $suppliers = Supplier::orderBy('fsuppliername', 'asc')
-      ->get(['fsupplierid', 'fsuppliername']);
+    $customers = Customer::orderBy('fcustomername', 'asc')
+      ->get(['fcustomerid', 'fcustomername']);
+
+    $salesmans = Salesman::orderBy('fsalesmanname', 'asc')
+      ->get(['fsalesmanid', 'fsalesmanname']);
 
     $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
@@ -637,10 +653,10 @@ class SalesOrderController extends Controller
     $fcabang     = $branch->fcabangname ?? (string) $raw;   // tampilan
     $fbranchcode = $branch->fcabangkode ?? (string) $raw;   // hidden post
 
-    $salesorder = SalesOrderHeader::with(['details' => function ($q) {
-      $q->orderBy('fpodid')
+    $salesorder = SalesOrderHeader::with(['customer', 'details' => function ($q) { // TAMBAHKAN 'customer' di sini
+      $q->orderBy('ftrsomtid')
         ->leftJoin('msprd', function ($j) {
-          $j->on('msprd.fprdid', '=', DB::raw('CAST(trsodt.fprdcode AS INTEGER)'));
+          $j->on('msprd.fprdid', '=', DB::raw('CAST(trsodt.fitemid AS INTEGER)'));
         })
         ->select(
           'trsodt.*',
@@ -649,10 +665,14 @@ class SalesOrderController extends Controller
         );
     }])->findOrFail($ftrsomtid);
 
+    if (!$salesorder->customer) {
+      $salesorder->setRelation('customer', Customer::find(trim($salesorder->fcustno)));
+    }
+
     $savedItems = $salesorder->details->map(function ($d) {
       return [
         'uid'        => $d->fpodid,
-        'fitemcode'  => (string)($d->fitemcode ?? ''),  // dari alias msprd.fprdcode
+        'fitemcode'  => (string)($d->fitemcode ?? ''),  // dari alias msprd.fprdid
         'fitemname'  => (string)($d->fprdname ?? ''),   // dari msprd.fprdname
         'fsatuan'    => (string)($d->fsatuan ?? ''),
         'frefdtno'   => (string)($d->frefdtno ?? ''),
@@ -682,7 +702,7 @@ class SalesOrderController extends Controller
     // Prepare the product map for frontend
     $productMap = $products->mapWithKeys(function ($p) {
       return [
-        $p->fprdcode => [
+        $p->fitemid => [
           'name'  => $p->fprdname,
           'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
           'stock' => $p->fminstock ?? 0,
@@ -692,7 +712,8 @@ class SalesOrderController extends Controller
 
     // Pass the data to the view
     return view('salesorder.edit', [
-      'suppliers'      => $suppliers,
+      'customers' => $customers,
+      'salesmans' => $salesmans,
       'selectedSupplierCode' => $selectedSupplierCode, // Kirim kode supplier ke view
       'fcabang'      => $fcabang,
       'fbranchcode'  => $fbranchcode,
@@ -704,6 +725,7 @@ class SalesOrderController extends Controller
       'famountgross'    => (float) ($salesorder->famountgross ?? 0),  // nilai Grand Total dari DB
       'famountso'    => (float) ($salesorder->famountso ?? 0),  // nilai Grand Total dari DB
       'filterSupplierId' => $request->query('filter_supplier_id'),
+      'filterSalesmanId' => $request->query('filter_salesman_id'),
       'action' => 'edit'
     ]);
   }
@@ -728,7 +750,7 @@ class SalesOrderController extends Controller
     $salesorder = SalesOrderHeader::with(['details' => function ($q) {
       $q->orderBy('fpodid')
         ->leftJoin('msprd', function ($j) {
-          $j->on('msprd.fprdid', '=', DB::raw('CAST(trsodt.fprdcode AS INTEGER)'));
+          $j->on('msprd.fprdid', '=', DB::raw('CAST(trsodt.fitemid AS INTEGER)'));
         })
         ->select(
           'trsodt.*',
@@ -740,7 +762,7 @@ class SalesOrderController extends Controller
     $savedItems = $salesorder->details->map(function ($d) {
       return [
         'uid'        => $d->fpodid,
-        'fitemcode'  => (string)($d->fitemcode ?? ''),  // dari alias msprd.fprdcode
+        'fitemcode'  => (string)($d->fitemcode ?? ''),  // dari alias msprd.fprdid
         'fitemname'  => (string)($d->fprdname ?? ''),   // dari msprd.fprdname
         'fsatuan'    => (string)($d->fsatuan ?? ''),
         'frefdtno'   => (string)($d->frefdtno ?? ''),
@@ -759,7 +781,7 @@ class SalesOrderController extends Controller
     // Fetch all products for product mapping
     $products = Product::select(
       'fprdid',
-      'fprdcode',
+      'fitemid',
       'fprdname',
       'fsatuankecil',
       'fsatuanbesar',
@@ -770,7 +792,7 @@ class SalesOrderController extends Controller
     // Prepare the product map for frontend
     $productMap = $products->mapWithKeys(function ($p) {
       return [
-        $p->fprdcode => [
+        $p->fitemid => [
           'name'  => $p->fprdname,
           'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
           'stock' => $p->fminstock ?? 0,
@@ -797,184 +819,174 @@ class SalesOrderController extends Controller
 
   public function update(Request $request, $ftrsomtid)
   {
-    // VALIDASI
+    // 1. VALIDATION (Sama seperti store)
     $request->validate([
       'fsono'        => ['nullable', 'string', 'max:25'],
       'fsodate'      => ['required', 'date'],
       'fkirimdate'   => ['nullable', 'date'],
-      'fsupplier'    => ['required', 'string', 'max:30'],
+      'fcustno'      => ['required', 'string', 'max:10'],
+      'fsalesman'    => ['nullable', 'string', 'max:15'],
       'fincludeppn'  => ['nullable'],
       'fket'         => ['nullable', 'string', 'max:300'],
-      'fbranchcode'  => ['nullable', 'string', 'max:20'],
+      'falamatkirim' => ['nullable', 'string', 'max:300'],
+      'fbranchcode'  => ['nullable', 'string', 'max:2'],
+      'ftempohr'     => ['nullable', 'string', 'max:3'],
 
       'fitemcode'    => ['required', 'array', 'min:1'],
-      'fitemcode.*'  => ['required', 'string', 'max:50'],
+      'fitemcode.*'  => ['required', 'string', 'max:20'],
 
       'fsatuan'      => ['nullable', 'array'],
-      'fsatuan.*'    => ['nullable', 'string', 'max:5'],
-      'frefdtno'     => ['nullable'],
-      'frefdtno.*'   => ['nullable'],
-      'fnouref'      => ['nullable'],
-      'fnouref.*'    => ['nullable'],
+      'fsatuan.*'    => ['nullable', 'string', 'max:10'],
+
+      'fitemname'    => ['nullable', 'array'],
+      'fitemname.*'  => ['nullable', 'string', 'max:200'],
 
       'fqty'         => ['required', 'array'],
       'fqty.*'       => ['numeric', 'min:0'],
+
       'fprice'       => ['nullable', 'array'],
       'fprice.*'     => ['numeric', 'min:0'],
+
       'fdisc'        => ['nullable', 'array'],
-      'fdisc.*'      => ['numeric', 'min:0'],
-      'frefpr'       => ['nullable', 'array'],
-      'frefpr.*'     => ['nullable', 'string', 'max:30'],
-      'fdesc'        => ['nullable', 'array'],
-      'fdesc.*'      => ['nullable', 'string', 'max:500'],
-      'ppn_rate'     => ['nullable', 'numeric', 'min:0', 'max:100'],
+      'fdisc.*'      => ['nullable'], // Support "10+2"
     ], [
-      'fsodate.required'   => 'Tanggal PO wajib diisi.',
-      'fsupplier.required' => 'Supplier wajib diisi.',
+      'fsodate.required'   => 'Tanggal SO wajib diisi.',
+      'fcustno.required'   => 'Customer wajib diisi.',
       'fitemcode.required' => 'Minimal 1 item.',
     ]);
 
-    $header  = SalesOrderHeader::where('ftrsomtid', $ftrsomtid)->firstOrFail();
-    $fponoId = (int) $header->ftrsomtid;   // ← PAKAI INI, BUKAN $header->fsono (string)
+    // 2. LOAD HEADER
+    $header = DB::table('trsomt')->where('ftrsomtid', $ftrsomtid)->first();
+    if (!$header) {
+      return abort(404, 'Sales Order tidak ditemukan.');
+    }
 
-    // HEADER DATA
-    $fsodate    = \Carbon\Carbon::parse($request->fsodate)->startOfDay();
-    $fkirimdate = $request->filled('fkirimdate') ? \Carbon\Carbon::parse($request->fkirimdate)->startOfDay() : null;
-    $fincludeppn = $request->boolean('fincludeppn') ? 1 : 0;
-    $userid = 'admin';
-    $now = now();
+    // 3. HEADER VALUES
+    $fsodate     = Carbon::parse($request->fsodate)->startOfDay();
+    $fincludeppn = $request->boolean('fincludeppn') ? '1' : '0';
+    $userid      = auth('sysuser')->user()->fname ?? 'admin';
+    $now         = now();
 
-    // DETAIL ARRAYS
-    $codes   = $request->input('fitemcode', []);
-    $satuan  = $request->input('fsatuan', []);
-    $refdtno = $request->input('frefdtno', []);
-    $nouref  = $request->input('fnouref', []);
-    $qtys    = $request->input('fqty', []);
-    $prices  = $request->input('fprice', []);
-    $discs   = $request->input('fdisc', []);
-    $refprs  = $request->input('frefpr', []);
-    $descs   = $request->input('fdesc', []);
+    // 4. DETAIL ARRAYS
+    $itemId    = $request->input('fitemid', []);
+    $itemCodes = $request->input('fitemcode', []);
+    $itemNames = $request->input('fitemname', []);
+    $satuans   = $request->input('fsatuan', []);
+    $qtys      = $request->input('fqty', []);
+    $prices    = $request->input('fprice', []);
+    $discs     = $request->input('fdisc', []);
 
-    $ppnRate = (float) $request->input('ppn_rate', $request->input('famountpajak', 0));
-    $ppnRate = max(0, min(100, $ppnRate));
-
-    $totalHarga  = (float) $request->input('famountgross', 0);
-    $ppnAmount  = $request->boolean('fincludeppn') ? round($totalHarga * ($ppnRate / 100), 2) : 0.0;
-    $grandTotal = round($totalHarga + $ppnAmount, 2);
-
-    // Get product metadata
-    $uniqueCodes = array_values(array_unique(array_filter(array_map(fn($c) => trim((string)$c), $codes))));
-    $prodMeta = DB::table('msprd')
-      ->whereIn('fprdcode', $uniqueCodes)
-      ->get(['fprdid', 'fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2'])
-      ->keyBy('fprdcode');
-
-    $pickDefaultSat = function ($code) use ($prodMeta) {
-      $m = $prodMeta[$code] ?? null;
-      if (!$m) return '';
-      foreach (['fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2'] as $k) {
-        $v = trim((string)($m->$k ?? ''));
-        if ($v !== '') return mb_substr($v, 0, 5); // patuhi varchar(5)
-      }
-      return '';
-    };
-
-    // RAKIT DETAIL
-    $rowsPod = [];
-    $totalHarga = 0.0; // subtotal sebelum PPN
-    $rowCount = max(count($codes), count($satuan), count($refdtno), count($nouref), count($qtys), count($prices), count($discs), count($refprs), count($descs));
+    // 5. BUILD DETAIL ROWS (Logika sama dengan store)
+    $rowsSodt   = [];
+    $totalGross = 0.0;
+    $totalDisc  = 0.0;
+    $rowCount   = max(
+      count($itemCodes),
+      count($satuans),
+      count($qtys),
+      count($prices),
+      count($discs),
+      count($itemNames)
+    );
 
     for ($i = 0; $i < $rowCount; $i++) {
-      $code    = trim((string)($codes[$i]  ?? ''));
-      $sat     = trim((string)($satuan[$i] ?? ''));
-      $refdtno = trim((string)($refdtno[$i] ?? ''));
-      $nouref  = trim((string)($nouref[$i] ?? ''));
-      $qty     = (float)($qtys[$i]   ?? 0);
-      $price   = (float)($prices[$i] ?? 0);
-      $discP   = (float)($discs[$i]  ?? 0);
-      $desc    = (string)($descs[$i]  ?? '');
+      $itemeId   = trim($itemId[$i] ?? '');
+      $itemCode  = trim($itemCodes[$i] ?? '');
+      $itemName  = trim((string)($itemNames[$i] ?? ''));
+      $satuan    = trim((string)($satuans[$i] ?? ''));
+      $qty       = (float)($qtys[$i] ?? 0);
+      $price     = (float)($prices[$i] ?? 0);
+      $discInput = $discs[$i] ?? 0;
 
-      if ($code === '' || $qty <= 0) continue;
+      if (empty($itemCode) || $qty <= 0) {
+        continue;
+      }
 
-      if ($sat === '') $sat = $pickDefaultSat($code);
-      $sat = mb_substr($sat, 0, 5);
-      if ($sat === '') continue;
+      // Parse discount (support "10+2")
+      $discPersen = $this->parseDiscount($discInput);
 
-      $productId = (int) (($prodMeta[$code]->fprdid ?? null) ?? 0);
-      if ($productId === 0) continue;
+      // Calculate amounts
+      $subtotal = $qty * $price;
+      $discount = $subtotal * ($discPersen / 100);
+      $amount   = $subtotal - $discount;
 
-      $priceGross = $price;
-      $priceNet   = $priceGross * (1 - ($discP / 100));
-      $amount     = $qty * $priceNet;
+      $totalGross += $subtotal;
+      $totalDisc  += $discount;
 
-      $totalHarga += $amount;
+      if (empty($itemeId) && !empty($itemCode)) {
+        $itemeId = DB::table('msprd')
+          ->where('fprdcode', $itemCode) // ✅ Gunakan fprdcode, bukan fprdid
+          ->value('fprdid'); // Return fprdid (integer)
+      }
 
-      $rowsPod[] = [
-        'fprdcode'    => $productId,
+      $rowsSodt[] = [
+        'ftrsomtid'   => $ftrsomtid, // Foreign Key
+        'fsono'       => $header->fsono, // Gunakan fsono yang sudah ada
+        'fitemid'     => !empty($itemeId) && is_numeric($itemeId) ? (int)$itemeId : null,
+        'fitemno'     => mb_substr($itemCode, 0, 20), // Kode produk (string)
+        'fitemdesc'   => mb_substr($itemName, 0, 200),
+        'funit'       => mb_substr($satuan, 0, 10),
         'fqty'        => $qty,
-        'fqtyremain'  => $qty,
-        'fdisc'       => (string)$discP,
         'fprice'      => $price,
-        'fprice_rp'   => $price,
-        'fpricegross' => $priceGross,
-        'fpricenet'   => $priceNet,
-        'famount'     => $amount,
-        'famount_rp'  => $amount,
-        'fuserupdate'     => (Auth::user()->fname ?? 'system'),
-        'fdatetime'   => $now,
-        'fsatuan'     => $sat,
-        'fqtykecil'   => $qty,
-        'frefdtno'    => $refdtno,
-        'fnouref'     => $nouref,
-        'fdesc'       => $desc,
+        'fdiscpersen' => $discPersen,
+        'fdiscount'   => round($discount, 2),
+        'famount'     => round($amount, 2),
       ];
     }
 
-    if (empty($rowsPod)) {
-      return back()->withInput()->withErrors(['detail' => 'Minimal satu item valid (Kode, Satuan, Qty > 0).']);
-    }
+    // 6. CALCULATE TOTALS
+    $amountNet  = $totalGross - $totalDisc;
+    $ppnRate    = $fincludeppn === '1' ? (float)$request->input('ppn_rate', 11) : 0;
+    $ppnAmount  = $amountNet * ($ppnRate / 100);
+    $grandTotal = $amountNet + $ppnAmount;
 
-    // TRANSACTION UPDATE
-    DB::transaction(function () use ($request, $header, $fsodate, $fkirimdate, $userid, $now, $rowsPod, $fponoId, $totalHarga, $ppnAmount, $grandTotal) {
-
-      $fcurrency = $request->input('fcurrency', 'IDR');
-      $frate     = $request->input('frate', 15500);
-      $fincludeppn = $request->boolean('fincludeppn') ? 1 : 0;
-
-      // Update header
-      $header->update([
-        'fsodate'        => $fsodate,
-        'fkirimdate'     => $fkirimdate,
-        'fcurrency'      => $fcurrency,
-        'frate'          => $frate,
-        'fsupplier'      => $request->input('fsupplier'),
-        'fincludeppn'    => $fincludeppn,
-        'fket'           => $request->input('fket'),
-        'fuserupdate'     => (Auth::user()->fname ?? 'system'),
-        'fdatetime'      => $now,
-        'famountgross'   => round($totalHarga, 2),
-        'famountpopajak' => $ppnAmount,
-        'famountso'      => $grandTotal,
+    // 7. TRANSACTION
+    DB::transaction(function () use (
+      $request,
+      $ftrsomtid,
+      $header,
+      $fsodate,
+      $fincludeppn,
+      $userid,
+      $now,
+      $rowsSodt,
+      $totalGross,
+      $totalDisc,
+      $amountNet,
+      $ppnAmount,
+      $grandTotal
+    ) {
+      // Update Header
+      DB::table('trsomt')->where('ftrsomtid', $ftrsomtid)->update([
+        'fsodate'       => $fsodate,
+        'fbranchcode'   => mb_substr($request->input('fbranchcode', ''), 0, 2),
+        'fcustno'       => mb_substr($request->input('fcustno', ''), 0, 10),
+        'fsalesman'     => mb_substr($request->input('fsalesman', ''), 0, 15),
+        'ftempohr'      => mb_substr($request->input('ftempohr', '0'), 0, 3),
+        'fincludeppn'   => $fincludeppn,
+        'fket'          => mb_substr($request->input('fket', ''), 0, 300),
+        'fketinternal'  => mb_substr($request->input('fketinternal', ''), 0, 300),
+        'falamatkirim'  => mb_substr($request->input('falamatkirim', ''), 0, 300),
+        'fuserupdate'   => mb_substr($userid, 0, 10),
+        'fdatetime'     => $now,
+        'famountgross'  => round($totalGross, 2),
+        'fdiscount'     => round($totalDisc, 2),
+        'famountsonet'  => round($amountNet, 2),
+        'famountpajak'  => round($ppnAmount, 2),
+        'famountso'     => round($grandTotal, 2),
       ]);
 
-      // Hapus detail lama berdasarkan ID header
-      DB::table('trsodt')->where('fsono', $fponoId)->delete();
+      // Delete old details and insert new ones
+      DB::table('trsodt')->where('ftrsomtid', $ftrsomtid)->delete();
 
-      // Isi FK detail dengan ID header
-      $nextNou = 1;
-      foreach ($rowsPod as &$r) {
-        $r['fsono'] = $fponoId;  // ← integer FK
-        $r['fnou']  = $nextNou++;
+      if (!empty($rowsSodt)) {
+        DB::table('trsodt')->insert($rowsSodt);
       }
-      unset($r);
-
-      DB::table('trsodt')->insert($rowsPod);
     });
 
-    // Pesan sukses tetap pakai nomor PO string untuk tampilan
     return redirect()
       ->route('salesorder.index')
-      ->with('success', "PO {$header->fsono} berhasil diperbarui.");
+      ->with('success', "Sales Order {$header->fsono} berhasil diperbarui.");
   }
 
   public function delete(Request $request, $ftrsomtid)
@@ -997,11 +1009,11 @@ class SalesOrderController extends Controller
     $salesorder = SalesOrderHeader::with(['details' => function ($q) {
       $q->orderBy('fpodid')
         ->leftJoin('msprd', function ($j) {
-          $j->on('msprd.fprdid', '=', DB::raw('CAST(trsodt.fprdcode AS INTEGER)'));
+          $j->on('msprd.fprdid', '=', DB::raw('CAST(trsodt.fitemid AS INTEGER)'));
         })
         ->select(
           'trsodt.*',
-          'msprd.fprdcode as fitemcode',
+          'msprd.fprdid as fitemcode',
           'msprd.fprdname'
         );
     }])->findOrFail($ftrsomtid);
@@ -1009,7 +1021,7 @@ class SalesOrderController extends Controller
     $savedItems = $salesorder->details->map(function ($d) {
       return [
         'uid'        => $d->fpodid,
-        'fitemcode'  => (string)($d->fitemcode ?? ''),  // dari alias msprd.fprdcode
+        'fitemcode'  => (string)($d->fitemcode ?? ''),  // dari alias msprd.fprdid
         'fitemname'  => (string)($d->fprdname ?? ''),   // dari msprd.fprdname
         'fsatuan'    => (string)($d->fsatuan ?? ''),
         'frefdtno'   => (string)($d->frefdtno ?? ''),
@@ -1028,7 +1040,7 @@ class SalesOrderController extends Controller
     // Fetch all products for product mapping
     $products = Product::select(
       'fprdid',
-      'fprdcode',
+      'fitemid',
       'fprdname',
       'fsatuankecil',
       'fsatuanbesar',
@@ -1039,7 +1051,7 @@ class SalesOrderController extends Controller
     // Prepare the product map for frontend
     $productMap = $products->mapWithKeys(function ($p) {
       return [
-        $p->fprdcode => [
+        $p->fitemid => [
           'name'  => $p->fprdname,
           'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
           'stock' => $p->fminstock ?? 0,

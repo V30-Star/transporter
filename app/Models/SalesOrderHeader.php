@@ -28,4 +28,8 @@ class SalesOrderHeader extends Model
   {
     return $this->hasMany(SalesOrderDetail::class, 'ftrsomtid', 'ftrsomtid');
   }
+  public function customer()
+  {
+    return $this->belongsTo(Customer::class, 'fcustno', 'fcustomerid');
+  }
 }
