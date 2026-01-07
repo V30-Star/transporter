@@ -424,6 +424,7 @@ class SalesOrderController extends Controller
     $qtys         = $request->input('fqty', []);
     $prices       = $request->input('fprice', []);
     $discs        = $request->input('fdisc', []);
+    $descs        = $request->input('fdesc', []);
 
     // BUILD DETAIL ROWS
     $rowsSodt     = [];
@@ -435,6 +436,7 @@ class SalesOrderController extends Controller
       count($qtys),
       count($prices),
       count($discs),
+      count($descs),
       count($itemNames)
     );
 
@@ -446,6 +448,7 @@ class SalesOrderController extends Controller
       $qty        = (float)($qtys[$i] ?? 0);
       $price      = (float)($prices[$i] ?? 0);
       $discInput  = $discs[$i] ?? 0; // ✅ Simpan input asli dulu
+      $desc   = (string)($descs[$i]  ?? '');
 
       if (empty($itemCode) || $qty <= 0) {
         continue;
@@ -475,6 +478,8 @@ class SalesOrderController extends Controller
         'fitemno'     => mb_substr($itemCode, 0, 20),
         'fitemdesc'   => mb_substr($itemName, 0, 200),
         'funit'       => mb_substr($satuan, 0, 10),
+        'fsatuan'     => mb_substr($satuan, 0, 20),
+        'fdesc'       => $desc,
         'fqty'        => $qty,
         'fprice'      => $price,
         'fdiscpersen' => $discPersen,
@@ -872,6 +877,7 @@ class SalesOrderController extends Controller
     $qtys      = $request->input('fqty', []);
     $prices    = $request->input('fprice', []);
     $discs     = $request->input('fdisc', []);
+    $descs        = $request->input('fdesc', []);
 
     // 5. BUILD DETAIL ROWS (Logika sama dengan store)
     $rowsSodt   = [];
@@ -883,6 +889,7 @@ class SalesOrderController extends Controller
       count($qtys),
       count($prices),
       count($discs),
+      count($descs),
       count($itemNames)
     );
 
@@ -894,6 +901,7 @@ class SalesOrderController extends Controller
       $qty       = (float)($qtys[$i] ?? 0);
       $price     = (float)($prices[$i] ?? 0);
       $discInput = $discs[$i] ?? 0;
+      $desc   = (string)($descs[$i]  ?? '');
 
       if (empty($itemCode) || $qty <= 0) {
         continue;
@@ -923,6 +931,8 @@ class SalesOrderController extends Controller
         'fitemno'     => mb_substr($itemCode, 0, 20), // Kode produk (string)
         'fitemdesc'   => mb_substr($itemName, 0, 200),
         'funit'       => mb_substr($satuan, 0, 10),
+        'fsatuan'     => mb_substr($satuan, 0, 20),
+        'fdesc'       => $desc,
         'fqty'        => $qty,
         'fprice'      => $price,
         'fdiscpersen' => $discPersen,

@@ -232,11 +232,14 @@
 
                                         <div
                                             class="flex-1 border-2 border-gray-200 rounded-b-xl bg-gray-200 rounded-tr-xl p-3 shadow-sm min-h-[150px]">
-                                            <textarea readonly x-show="tab === 1" x-model="addr1" class="w-full h-full border-none focus:ring-0 p-0 text-sm resize-none bg-gray-200"
+                                            <textarea readonly x-show="tab === 1" x-model="addr1"
+                                                class="w-full h-full border-none focus:ring-0 p-0 text-sm resize-none bg-gray-200"
                                                 placeholder="Alamat Kirim 1..."></textarea>
-                                            <textarea readonly x-show="tab === 2" x-model="addr2" class="w-full h-full border-none focus:ring-0 p-0 text-sm resize-none bg-gray-200"
+                                            <textarea readonly x-show="tab === 2" x-model="addr2"
+                                                class="w-full h-full border-none focus:ring-0 p-0 text-sm resize-none bg-gray-200"
                                                 placeholder="Alamat Kirim 2..."></textarea>
-                                            <textarea readonly x-show="tab === 3" x-model="addr3" class="w-full h-full border-none focus:ring-0 p-0 text-sm resize-none bg-gray-200"
+                                            <textarea readonly x-show="tab === 3" x-model="addr3"
+                                                class="w-full h-full border-none focus:ring-0 p-0 text-sm resize-none bg-gray-200"
                                                 placeholder="Alamat Kirim 3..."></textarea>
                                         </div>
                                     </div>
@@ -460,8 +463,9 @@
 
                                                 <!-- Dropdown Include / Exclude (tengah) -->
                                                 <div class="flex items-center gap-2">
-                                                    <select disabled id="includePPN" name="includePPN" x-model.number="fapplyppn"
-                                                        x-init="fapplyppn = 0" :disabled="!(includePPN || fapplyppn)"
+                                                    <select disabled id="includePPN" name="includePPN"
+                                                        x-model.number="fapplyppn" x-init="fapplyppn = 0"
+                                                        :disabled="!(includePPN || fapplyppn)"
                                                         class="w-28 h-9 px-2 text-sm leading-tight border rounded transition-opacity appearance-none
                                                            disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
                                                         <option value="0">Exclude</option>
@@ -471,8 +475,9 @@
 
                                                 <!-- Input Rate + Nominal (kanan) -->
                                                 <div class="flex items-center gap-2">
-                                                    <input disabled type="number" min="0" max="100" step="0.01"
-                                                        x-model.number="ppnRate" :disabled="!(includePPN || fapplyppn)"
+                                                    <input disabled type="number" min="0" max="100"
+                                                        step="0.01" x-model.number="ppnRate"
+                                                        :disabled="!(includePPN || fapplyppn)"
                                                         class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
                                                             [appearance:textfield]
                                                             [&::-webkit-outer-spin-button]:appearance-none
@@ -589,8 +594,8 @@
                                     <input type="hidden" name="fapproval" value="0">
 
                                     <label class="switch">
-                                        <input type="checkbox" name="fapproval" id="approvalToggle" value="1" disabled
-                                            {{ old('fapproval', session('fapproval') ? 1 : 0) ? 'checked' : '' }}>
+                                        <input type="checkbox" name="fapproval" id="approvalToggle" value="1"
+                                            disabled {{ old('fapproval', session('fapproval') ? 1 : 0) ? 'checked' : '' }}>
                                         <span class="slider"></span>
                                     </label>
                                 @endif
@@ -861,15 +866,16 @@
                                                     <th class="p-2 text-center w-28">Aksi</th>
                                                 </tr>
                                             </thead>
-
-                                            <tbody>
-                                                <template x-for="(it, i) in savedItems" :key="String(it.uid)">
-                                                    <!-- ROW UTAMA -->
-                                                    <tr class="border-t align-top">
+                                            <!-- Loop untuk setiap item yang sudah disimpan -->
+                                            <template x-for="(it, i) in savedItems" :key="it.uid || `item-${i}`">
+                                                <tbody>
+                                                    <!-- ROW UTAMA - SAVED ITEM (READ ONLY) -->
+                                                    <tr class="border-t border-b align-top">
                                                         <td class="p-2" x-text="i + 1"></td>
                                                         <td class="p-2 font-mono" x-text="it.fitemcode"></td>
                                                         <td class="p-2 text-gray-800">
                                                             <div x-text="it.fitemname"></div>
+                                                            <!-- Tampilkan deskripsi yang sudah tersimpan (READ ONLY) -->
                                                             <div x-show="it.fdesc" class="mt-1 text-xs">
                                                                 <span
                                                                     class="inline-block px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 mr-2">Deskripsi</span>
@@ -890,9 +896,11 @@
                                                                     class="px-3 py-1 rounded text-xs bg-red-100 text-red-600 hover:bg-red-200">Hapus</button>
                                                             </div>
                                                         </td>
+                                                    </tr>
 
-                                                        <!-- hidden inputs -->
-                                                        <td class="hidden">
+                                                    <!-- Hidden inputs row -->
+                                                    <tr class="hidden">
+                                                        <td colspan="9">
                                                             <input type="hidden" name="fitemcode[]"
                                                                 :value="it.fitemcode">
                                                             <input type="hidden" name="fitemname[]"
@@ -915,27 +923,14 @@
                                                         </td>
                                                     </tr>
 
-                                                    <!-- ROW DESC (di bawah Nama Produk) -->
-                                                    <tr class="border-b">
-                                                        <td class="p-0"></td>
-                                                        <td class="p-0"></td>
-                                                        <td class="p-2" colspan="3">
-                                                            <textarea x-model="draft.fdesc" rows="2" class="w-full border rounded px-4 py-1"
-                                                                placeholder="Deskripsi (opsional)"></textarea>
-                                                        </td>
-                                                        <td class="p-0"></td>
-                                                        <td class="p-0"></td>
-                                                        <td class="p-0"></td>
-                                                        <td class="p-0"></td>
-                                                        <td class="p-0"></td>
-                                                        <td class="p-0"></td>
-                                                        <td class="p-0"></td>
-                                                    </tr>
-                                                </template>
+                                                    <!-- TIDAK ADA TEXTAREA DI SINI! -->
+                                                </tbody>
+                                            </template>
 
+                                            <!-- Row Edit & Draft (di luar loop) -->
+                                            <tbody>
                                                 <!-- ROW EDIT UTAMA -->
                                                 <tr x-show="editingIndex !== null" class="border-t align-top" x-cloak>
-                                                    <!-- # -->
                                                     <td class="p-2" x-text="(editingIndex ?? 0) + 1"></td>
 
                                                     <!-- Kode Produk -->
@@ -972,7 +967,7 @@
                                                         <template x-if="editRow.units.length > 1">
                                                             <select class="w-full border rounded px-2 py-1"
                                                                 x-ref="editUnit" x-model="editRow.fsatuan"
-                                                                @keydown.enter.prevent="$refs.editRefPr?.focus()">
+                                                                @keydown.enter.prevent="$refs.editQty?.focus()">
                                                                 <template x-for="u in editRow.units"
                                                                     :key="u">
                                                                     <option :value="u" x-text="u">
@@ -993,7 +988,7 @@
                                                             class="border rounded px-2 py-1 w-24 text-right"
                                                             min="0" step="1" x-ref="editQty"
                                                             x-model.number="editRow.fqty" @input="recalc(editRow)"
-                                                            @keydown.enter.prevent="$refs.editTerima?.focus()">
+                                                            @keydown.enter.prevent="$refs.editPrice?.focus()">
                                                     </td>
 
                                                     <!-- @ Harga -->
@@ -1010,7 +1005,8 @@
                                                         <input type="text"
                                                             class="border rounded px-2 py-1 w-24 text-right"
                                                             x-ref="editDisc" x-model="editRow.fdisc"
-                                                            @input="recalc(editRow)" @keydown.enter.prevent="applyEdit()"
+                                                            @input="recalc(editRow)"
+                                                            @keydown.enter.prevent="$refs.editDesc?.focus()"
                                                             placeholder="10+2">
                                                     </td>
 
@@ -1028,25 +1024,19 @@
                                                     </td>
                                                 </tr>
 
-                                                <!-- ROW EDIT DESC -->
+                                                <!-- ROW EDIT DESC - Menggunakan editRow.fdesc -->
                                                 <tr x-show="editingIndex !== null" class="border-b" x-cloak>
                                                     <td class="p-0"></td>
                                                     <td class="p-0"></td>
-                                                    <td class="p-2" colspan="3">
-                                                        <textarea x-model="draft.fdesc" rows="2" class="w-full border rounded px-4 py-1"
-                                                            placeholder="Deskripsi (opsional)"></textarea>
+                                                    <td class="p-2" colspan="6">
+                                                        <textarea x-model="editRow.fdesc" x-ref="editDesc" rows="2" class="w-full border rounded px-4 py-1"
+                                                            placeholder="Deskripsi (opsional)" @keydown.enter.prevent="applyEdit()"></textarea>
                                                     </td>
-                                                    <td class="p-0"></td>
-                                                    <td class="p-0"></td>
-                                                    <td class="p-0"></td>
-                                                    <td class="p-0"></td>
-                                                    <td class="p-0"></td>
                                                     <td class="p-0"></td>
                                                 </tr>
 
                                                 <!-- ROW DRAFT UTAMA -->
                                                 <tr class="border-t align-top">
-                                                    <!-- # -->
                                                     <td class="p-2" x-text="savedItems.length + 1"></td>
 
                                                     <!-- Kode Produk -->
@@ -1083,7 +1073,7 @@
                                                         <template x-if="draft.units.length > 1">
                                                             <select class="w-full border rounded px-2 py-1"
                                                                 x-ref="draftUnit" x-model="draft.fsatuan"
-                                                                @keydown.enter.prevent="$refs.draftRefPr?.focus()">
+                                                                @keydown.enter.prevent="$refs.draftQty?.focus()">
                                                                 <template x-for="u in draft.units" :key="u">
                                                                     <option :value="u" x-text="u">
                                                                     </option>
@@ -1103,7 +1093,7 @@
                                                             class="border rounded px-2 py-1 w-24 text-right"
                                                             min="0" step="1" x-ref="draftQty"
                                                             x-model.number="draft.fqty" @input="recalc(draft)"
-                                                            @keydown.enter.prevent="$refs.draftTerima?.focus()">
+                                                            @keydown.enter.prevent="$refs.draftPrice?.focus()">
                                                     </td>
 
                                                     <!-- @ Harga -->
@@ -1121,7 +1111,8 @@
                                                             class="border rounded px-2 py-1 w-24 text-right"
                                                             x-ref="draftDisc" x-model="draft.fdisc"
                                                             @input="recalc(draft)"
-                                                            @keydown.enter.prevent="addIfComplete()" placeholder="10+2">
+                                                            @keydown.enter.prevent="$refs.draftDesc?.focus()"
+                                                            placeholder="10+2">
                                                     </td>
 
                                                     <!-- Total Harga (readonly) -->
@@ -1136,18 +1127,14 @@
                                                     </td>
                                                 </tr>
 
-                                                <!-- ROW DRAFT DESC -->
+                                                <!-- ROW DRAFT DESC - Menggunakan draft.fdesc -->
                                                 <tr class="border-b">
                                                     <td class="p-0"></td>
                                                     <td class="p-0"></td>
-                                                    <td class="p-2" colspan="3">
-                                                        <textarea x-model="draft.fdesc" rows="2" class="w-full border rounded px-4 py-1"
-                                                            placeholder="Deskripsi (opsional)"></textarea>
+                                                    <td class="p-2" colspan="6">
+                                                        <textarea x-model="draft.fdesc" x-ref="draftDesc" rows="2" class="w-full border rounded px-4 py-1"
+                                                            placeholder="Deskripsi (opsional)" @keydown.enter.prevent="addIfComplete()"></textarea>
                                                     </td>
-                                                    <td class="p-0"></td>
-                                                    <td class="p-0"></td>
-                                                    <td class="p-0"></td>
-                                                    <td class="p-0"></td>
                                                     <td class="p-0"></td>
                                                 </tr>
                                             </tbody>
@@ -1272,8 +1259,7 @@
 
                                     {{-- MODAL ERROR: belum ada item --}}
                                     <div x-show="showNoItems && savedItems.length === 0" x-cloak
-                                        class="fixed inset-0 z-[90] flex items-center justify-center"
-                                        x-transition.opacity>
+                                        class="fixed inset-0 z-[90] flex items-center justify-center" x-transition.opacity>
                                         <div class="absolute inset-0 bg-black/50" @click="showNoItems=false"></div>
 
                                         <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden"
@@ -1542,8 +1528,7 @@
         <div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
                 <h3 class="text-lg font-semibold mb-4">Konfirmasi Hapus sales order ini?</h3>
-                <form id="deleteForm" action="{{ route('salesorder.destroy', $salesorder->ftrsomtid) }}"
-                    method="POST">
+                <form id="deleteForm" action="{{ route('salesorder.destroy', $salesorder->ftrsomtid) }}" method="POST">
                     @csrf
                     @method('DELETE')
                     <div class="flex justify-end space-x-2">

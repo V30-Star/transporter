@@ -26,7 +26,7 @@
                 this.showDeleteModal = false;
                 this.deleteUrl = '';
             }
-        }" class="bg-white rounded shadow p-4" @open-delete.window="openDelete($event.detail)"></div>
+        }" @open-delete.window="openDelete($event.detail)"></div>
 
         <div class="flex justify-end items-center mb-4">
             <div></div>
