@@ -47,17 +47,14 @@ class SalesOrderController extends Controller
 
       // DEBUG: Cek total data di tabel
       $totalRecords = SalesOrderHeader::count();
-      Log::info('Total Records in DB: ' . $totalRecords);
 
       // Handle Search
       if ($search = $request->input('search.value')) {
         $query->where('fsono', 'like', "%{$search}%");
-        Log::info('Search filter applied: ' . $search);
       }
 
       // Filter status - DEFAULT ke 'active' jika tidak ada
       $statusFilter = $request->query('status', 'active');
-      Log::info('Status Filter: ' . $statusFilter);
 
       if ($statusFilter === 'active') {
         $query->where('fclose', '0');
@@ -69,21 +66,14 @@ class SalesOrderController extends Controller
       // Filter tahun
       if ($year) {
         $query->whereRaw('EXTRACT(YEAR FROM fdatetime) = ?', [$year]);
-        Log::info('Year filter applied: ' . $year);
       }
 
       // Filter bulan
       if ($month) {
         $query->whereRaw('EXTRACT(MONTH FROM fdatetime) = ?', [$month]);
-        Log::info('Month filter applied: ' . $month);
       }
 
-      // DEBUG: Print SQL Query
-      Log::info('SQL Query: ' . $query->toSql());
-      Log::info('Query Bindings: ' . json_encode($query->getBindings()));
-
       $filteredRecords = (clone $query)->count();
-      Log::info('Filtered Records: ' . $filteredRecords);
 
       // Sorting
       $orderColIdx = $request->input('order.0.column', 0);
@@ -101,8 +91,6 @@ class SalesOrderController extends Controller
       $records = $query->skip($start)
         ->take($length)
         ->get();
-
-      Log::info('Records found: ' . $records->count());
 
       // Format Data
       $data = $records->map(function ($row) {
@@ -287,40 +275,41 @@ class SalesOrderController extends Controller
 
   public function print(string $fsono)
   {
-    // Use the model’s actual table name
-    $supplierTable = (new Supplier)->getTable(); // e.g. ms_supplier
-
-    // Header: find by PO code (string)
-    $hdr = SalesOrderHeader::query()
-      ->leftJoin("{$supplierTable} as s", 's.fsupplierid', '=', 'salesorder.fsupplier') // integer ↔ integer
-      ->leftJoin('mscabang as c', 'c.fcabangkode', '=', 'salesorder.fbranchcode')
-      ->where('salesorder.fsono', $fsono)
+    // Header: find by SO code (string)
+    $hdr = DB::table('trsomt')
+      ->leftJoin('mscustomer as c', 'c.fcustomerid', '=', DB::raw('CAST(trsomt.fcustno AS INTEGER)'))
+      ->leftJoin('mscabang as b', 'b.fcabangkode', '=', 'trsomt.fbranchcode')
+      ->leftJoin('mssalesman as s', 's.fsalesmanid', '=', DB::raw('CAST(trsomt.fsalesman AS INTEGER)'))
+      ->where('trsomt.fsono', $fsono)
       ->first([
-        'salesorder.*',
-        's.fsuppliername as supplier_name',
-        'c.fcabangname as cabang_name',
+        'trsomt.*',
+        'c.fcustomername as customer_name',
+        'b.fcabangname as cabang_name',
+        's.fsalesmanname as salesman_name',
       ]);
 
     if (!$hdr) {
-      return redirect()->back()->with('error', 'PO tidak ditemukan.');
+      return redirect()->back()->with('error', 'Sales Order tidak ditemukan.');
     }
 
     // Use header ID (integer) for detail FK
     $ftrsomtid = (int) $hdr->ftrsomtid;
 
+    // Detail: join dengan product
     $dt = DB::table('trsodt')
       ->leftJoin('msprd as p', function ($j) {
-        $j->on('p.fprdid', '=', DB::raw('CAST(trsodt.fitemid AS INTEGER)'));
-      })->where('trsodt.fsono', $ftrsomtid)                            // detail FK = header ID
-      ->orderBy('trsodt.fitemid')
+        $j->on('p.fprdid', '=', 'trsodt.fitemid');
+      })
+      ->where('trsodt.ftrsomtid', $ftrsomtid)
+      ->orderBy('trsodt.ftrsodtid')
       ->get([
         'trsodt.*',
-        'p.fitemid as product_code',
+        'p.fprdcode as product_code',
         'p.fprdname as product_name',
         'p.fminstock as stock',
-        'trsodt.fqtyremain',
       ]);
 
+    // Format date helper
     $fmt = fn($d) => $d
       ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y')
       : '-';
@@ -732,9 +721,11 @@ class SalesOrderController extends Controller
 
   public function view(Request $request, $ftrsomtid)
   {
-    $suppliers = Supplier::orderBy('fsuppliername', 'asc')
-      ->get(['fsupplierid', 'fsuppliername']);
+    $customers = Customer::orderBy('fcustomername', 'asc')
+      ->get(['fcustomerid', 'fcustomername']);
 
+    $salesmans = Salesman::orderBy('fsalesmanname', 'asc')
+      ->get(['fsalesmanid', 'fsalesmanname']);
     $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
     $branch = DB::table('mscabang')
@@ -747,8 +738,8 @@ class SalesOrderController extends Controller
     $fcabang     = $branch->fcabangname ?? (string) $raw;   // tampilan
     $fbranchcode = $branch->fcabangkode ?? (string) $raw;   // hidden post
 
-    $salesorder = SalesOrderHeader::with(['details' => function ($q) {
-      $q->orderBy('fpodid')
+    $salesorder = SalesOrderHeader::with(['customer', 'details' => function ($q) { // TAMBAHKAN 'customer' di sini
+      $q->orderBy('ftrsomtid')
         ->leftJoin('msprd', function ($j) {
           $j->on('msprd.fprdid', '=', DB::raw('CAST(trsodt.fitemid AS INTEGER)'));
         })
@@ -758,6 +749,10 @@ class SalesOrderController extends Controller
           'msprd.fprdname'
         );
     }])->findOrFail($ftrsomtid);
+
+    if (!$salesorder->customer) {
+      $salesorder->setRelation('customer', Customer::find(trim($salesorder->fcustno)));
+    }
 
     $savedItems = $salesorder->details->map(function ($d) {
       return [
@@ -781,7 +776,7 @@ class SalesOrderController extends Controller
     // Fetch all products for product mapping
     $products = Product::select(
       'fprdid',
-      'fitemid',
+      'fprdcode',
       'fprdname',
       'fsatuankecil',
       'fsatuanbesar',
@@ -802,7 +797,8 @@ class SalesOrderController extends Controller
 
     // Pass the data to the view
     return view('salesorder.view', [
-      'suppliers'      => $suppliers,
+      'customers' => $customers,
+      'salesmans' => $salesmans,
       'selectedSupplierCode' => $selectedSupplierCode, // Kirim kode supplier ke view
       'fcabang'      => $fcabang,
       'fbranchcode'  => $fbranchcode,
@@ -814,6 +810,7 @@ class SalesOrderController extends Controller
       'famountgross'    => (float) ($salesorder->famountgross ?? 0),  // nilai Grand Total dari DB
       'famountso'    => (float) ($salesorder->famountso ?? 0),  // nilai Grand Total dari DB
       'filterSupplierId' => $request->query('filter_supplier_id'),
+      'filterSalesmanId' => $request->query('filter_salesman_id'),
     ]);
   }
 
@@ -991,8 +988,11 @@ class SalesOrderController extends Controller
 
   public function delete(Request $request, $ftrsomtid)
   {
-    $suppliers = Supplier::orderBy('fsuppliername', 'asc')
-      ->get(['fsupplierid', 'fsuppliername']);
+    $customers = Customer::orderBy('fcustomername', 'asc')
+      ->get(['fcustomerid', 'fcustomername']);
+
+    $salesmans = Salesman::orderBy('fsalesmanname', 'asc')
+      ->get(['fsalesmanid', 'fsalesmanname']);
 
     $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
@@ -1006,17 +1006,21 @@ class SalesOrderController extends Controller
     $fcabang     = $branch->fcabangname ?? (string) $raw;   // tampilan
     $fbranchcode = $branch->fcabangkode ?? (string) $raw;   // hidden post
 
-    $salesorder = SalesOrderHeader::with(['details' => function ($q) {
-      $q->orderBy('fpodid')
+    $salesorder = SalesOrderHeader::with(['customer', 'details' => function ($q) { // TAMBAHKAN 'customer' di sini
+      $q->orderBy('ftrsomtid')
         ->leftJoin('msprd', function ($j) {
           $j->on('msprd.fprdid', '=', DB::raw('CAST(trsodt.fitemid AS INTEGER)'));
         })
         ->select(
           'trsodt.*',
-          'msprd.fprdid as fitemcode',
+          'msprd.fprdcode as fitemcode',
           'msprd.fprdname'
         );
     }])->findOrFail($ftrsomtid);
+
+    if (!$salesorder->customer) {
+      $salesorder->setRelation('customer', Customer::find(trim($salesorder->fcustno)));
+    }
 
     $savedItems = $salesorder->details->map(function ($d) {
       return [
@@ -1040,7 +1044,7 @@ class SalesOrderController extends Controller
     // Fetch all products for product mapping
     $products = Product::select(
       'fprdid',
-      'fitemid',
+      'fprdcode',
       'fprdname',
       'fsatuankecil',
       'fsatuanbesar',
@@ -1061,7 +1065,8 @@ class SalesOrderController extends Controller
 
     // Pass the data to the view
     return view('salesorder.edit', [
-      'suppliers'      => $suppliers,
+      'customers' => $customers,
+      'salesmans' => $salesmans,
       'selectedSupplierCode' => $selectedSupplierCode, // Kirim kode supplier ke view
       'fcabang'      => $fcabang,
       'fbranchcode'  => $fbranchcode,
@@ -1073,6 +1078,7 @@ class SalesOrderController extends Controller
       'famountgross'    => (float) ($salesorder->famountgross ?? 0),  // nilai Grand Total dari DB
       'famountso'    => (float) ($salesorder->famountso ?? 0),  // nilai Grand Total dari DB
       'filterSupplierId' => $request->query('filter_supplier_id'),
+      'filterSalesmanId' => $request->query('filter_salesman_id'),
       'action' => 'delete'
     ]);
   }
@@ -1083,7 +1089,7 @@ class SalesOrderController extends Controller
       $salesorder = SalesOrderHeader::findOrFail($ftrsomtid);
       $salesorder->delete();
 
-      return redirect()->route('salesorder.index')->with('success', 'Data Order Pembelian ' . $salesorder->fsono . ' berhasil dihapus.');
+      return redirect()->route('salesorder.index')->with('success', 'Data Sales Order ' . $salesorder->fsono . ' berhasil dihapus.');
     } catch (\Exception $e) {
       // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
       return redirect()->route('salesorder.delete', $ftrsomtid)->with('error', 'Gakey: gal menghapus data: ' . $e->getMessage());

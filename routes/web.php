@@ -307,11 +307,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/salesorder',  [SalesOrderController::class, 'index'])->name('salesorder.index');
         Route::post('/salesorder',        [SalesOrderController::class, 'store'])->name('salesorder.store');
         Route::get('/salesorder/create', [SalesOrderController::class, 'create'])->name('salesorder.create');
-        Route::get('/salesorder/{fstockmtid}/view', [SalesOrderController::class, 'view'])->name('salesorder.view');
-        Route::get('/salesorder/{fstockmtid}/edit', [SalesOrderController::class, 'edit'])->name('salesorder.edit');
-        Route::get('/salesorder/{fstockmtid}/delete', [SalesOrderController::class, 'delete'])->name('salesorder.delete');
-        Route::patch('/salesorder/{fstockmtid}', [SalesOrderController::class, 'update'])->name('salesorder.update');
-        Route::delete('/salesorder/{fstockmtid}', [SalesOrderController::class, 'destroy'])->name('salesorder.destroy');
+        Route::get('/salesorder/{ftrsomtid}/view', [SalesOrderController::class, 'view'])->name('salesorder.view');
+        Route::get('/salesorder/{ftrsomtid}/edit', [SalesOrderController::class, 'edit'])->name('salesorder.edit');
+        Route::get('/salesorder/{ftrsomtid}/delete', [SalesOrderController::class, 'delete'])->name('salesorder.delete');
+        Route::patch('/salesorder/{ftrsomtid}', [SalesOrderController::class, 'update'])->name('salesorder.update');
+        Route::delete('/salesorder/{ftrsomtid}', [SalesOrderController::class, 'destroy'])->name('salesorder.destroy');
         Route::get('/salesorder/{fstockmtno}/print', [SalesOrderController::class, 'print'])
             ->name('salesorder.print');
         Route::get('/salesorder/{id}/items', [SalesOrderController::class, 'items'])

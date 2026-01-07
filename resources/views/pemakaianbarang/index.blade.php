@@ -18,7 +18,6 @@
         }
     }" class="bg-white rounded shadow p-4" @open-delete.window="openDelete($event.detail)">
 
-
         {{-- @php
             $canCreate = in_array('createTr_prh', explode(',', session('user_restricted_permissions', '')));
             $canEdit = in_array('updateTr_prh', explode(',', session('user_restricted_permissions', '')));

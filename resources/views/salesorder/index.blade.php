@@ -13,6 +13,21 @@
             $showActionsColumn = $canEdit || $canDelete;
         @endphp
 
+        <div x-data="{
+            showDeleteModal: false,
+            deleteUrl: '',
+        
+            openDelete(url) {
+                this.deleteUrl = url;
+                this.showDeleteModal = true;
+            },
+        
+            closeDelete() {
+                this.showDeleteModal = false;
+                this.deleteUrl = '';
+            }
+        }" class="bg-white rounded shadow p-4" @open-delete.window="openDelete($event.detail)"></div>
+
         <div class="flex justify-end items-center mb-4">
             <div></div>
             {{-- @if ($canCreate) --}}
@@ -340,7 +355,7 @@
                     }
                 }
             ];
-            
+
             // Tambahkan kolom actions jika ada permission
             // if (hasActions) {
             columns.push({
@@ -384,14 +399,6 @@
                                 </button>
                             </a>`;
                     // }
-
-                    // Print Button - Selalu tampil, pakai fpono
-                    html += `<a href="salesorder/${row.fpono}/print" target="_blank" class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m10 0v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5m10 0v5H7v-5"></path>
-                        </svg>
-                        Print
-                    </a>`;
 
                     html += '</div>';
                     return html;

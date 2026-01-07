@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Order Pembelian - {{ $hdr->fpono ?? '-' }}</title>
+    <title>Sales Order - {{ $hdr->fsono ?? '-' }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         :root {
@@ -23,20 +23,15 @@
             color: var(--fg)
         }
 
-        /* --- PERUBAHAN UTAMA UNTUK A4 --- */
         .sheet {
             width: 8.27in;
-            /* Lebar A4 */
             min-height: 11.69in;
-            /* Tinggi A4 */
             margin: 0.4in auto;
             padding: 0.4in 0.5in;
             background: #fff;
             border: 1px solid #cfcfcf;
             box-shadow: 0 6px 18px rgba(0, 0, 0, .12);
         }
-
-        /* -------------------------------- */
 
         .row {
             display: flex;
@@ -94,6 +89,10 @@
             text-align: center
         }
 
+        .tb td.right {
+            text-align: right
+        }
+
         table.sign {
             width: 100%;
             border-collapse: collapse;
@@ -138,12 +137,6 @@
             margin-top: 10px;
             font-size: 11px;
             width: 50%;
-            /* Mengembalikan lebar relatif */
-        }
-
-        .hal {
-            text-align: right;
-            margin-top: 12px;
         }
 
         .hr-strong {
@@ -160,7 +153,9 @@
         }
 
         .print-hide button {
-            margin-right: 6px
+            margin-right: 6px;
+            padding: 8px 16px;
+            cursor: pointer;
         }
 
         @media print {
@@ -173,9 +168,7 @@
                 border: none;
                 box-shadow: none;
                 width: 8.27in;
-                /* A4 Print Width */
                 min-height: 11.69in;
-                /* A4 Print Height */
                 padding: 0.4in 0.5in;
             }
 
@@ -185,7 +178,6 @@
 
             @page {
                 size: A4;
-                /* Mengatur halaman cetak ke A4 */
                 margin: 0;
             }
         }
@@ -194,7 +186,6 @@
             display: flex;
             flex-direction: column;
             width: 60%;
-            /* Disesuaikan untuk A4 */
         }
 
         .footer-right {
@@ -202,9 +193,7 @@
             flex-direction: column;
             align-items: flex-end;
             width: 40%;
-            /* Disesuaikan untuk A4 */
             margin-left: 18px;
-            /* Menggunakan gap yang lebih konsisten */
         }
 
         .total-section {
@@ -221,16 +210,6 @@
         .value {
             font-weight: 550;
             text-align: right;
-        }
-
-        .sign td {
-            padding: 8px 10px;
-            border: 1px solid var(--bd);
-        }
-
-        .sign .head {
-            font-weight: 700;
-            text-align: center;
         }
 
         .grand-total {
@@ -256,8 +235,8 @@
                 <div class="muted">{{ $company_city }}</div>
             </div>
             <div class="right">
-                <div class="title">ORDER PEMBELIAN</div>
-                <div>No. <span class="mono">{{ $hdr->fpono ?? '-' }}</span></div>
+                <div class="title">SALES ORDER</div>
+                <div>No. <span class="mono">{{ $hdr->fsono ?? '-' }}</span></div>
             </div>
         </div>
 
@@ -266,12 +245,11 @@
         <table style="width:100%;border-collapse:collapse;margin-bottom:8px">
             <tr>
                 <td style="border:0;padding:0 0 4px 0">
-                    <strong>Kepada</strong> :
-                    {{ !empty($hdr->supplier_name) ? $hdr->supplier_name : '' }}
+                    <strong>Kepada</strong> : {{ !empty($hdr->customer_name) ? $hdr->customer_name : '-' }}
                 </td>
                 <td style="border:0;padding:0;text-align:right">
-                    <div><strong>Tanggal</strong> : {{ $fmt($hdr->fpodate) }}</div>
-                    <div><strong>Tempo</strong> : {{ $hdr->ftempohr }} Hari</div>
+                    <div><strong>Tanggal</strong> : {{ $fmt($hdr->fsodate) }}</div>
+                    <div><strong>Tempo</strong> : {{ $hdr->ftempohr ?? '0' }} Hari</div>
                 </td>
             </tr>
         </table>
@@ -281,12 +259,12 @@
         <table class="tb">
             <thead>
                 <tr>
-                    <th style="width:5px">No.</th>
+                    <th style="width:30px">No.</th>
                     <th style="width:200px">Nama Barang</th>
-                    <th style="width:50px">Qty.</th>
-                    <th style="width:50px">Harga</th>
-                    <th style="width:50px">Disc%</th>
-                    <th style="width:60px;text-align:left">Total Harga</th>
+                    <th style="width:80px">Qty.</th>
+                    <th style="width:100px">Harga</th>
+                    <th style="width:60px">Disc%</th>
+                    <th style="width:120px">Total Harga</th>
                 </tr>
             </thead>
             <tbody>
@@ -294,16 +272,20 @@
                     <tr>
                         <td class="center">{{ $i + 1 }}</td>
                         <td>
-                            <div>{{ $r->product_name ?? '-' }}</div>
-                            @if (!empty($r->fdesc))
-                                <div class="muted">({{ $r->fdesc }})</div>
+                            <div>{{ $r->product_name ?? ($r->fitemdesc ?? '-') }}</div>
+                            @if (!empty($r->fitemno))
+                                <div class="muted" style="font-size:11px">({{ $r->fitemno }})</div>
                             @endif
                         </td>
-                        <td class="center">{{ number_format((float) ($r->fqty ?? 0), 0, ',', '.') }}
-                            {{ $r->fsatuan ?? '' }}</td>
-                        <td class="center">{{ (int) ($r->fprice ?? ($r->fprice ?? 0)) }}</td>
-                        <td>{{ $r->fdisc ?? '' }}</td>
-                        <td>{{ $r->famount ?? '' }}</td>
+                        <td class="center">
+                            {{ number_format((float) ($r->fqty ?? 0), 0, ',', '.') }}
+                            {{ $r->funit ?? '' }}
+                        </td>
+                        <td class="right">
+                            {{ number_format((float) ($r->fprice ?? 0), 0, ',', '.') }}
+                        </td>
+                        <td class="center">{{ number_format((float) ($r->fdiscpersen ?? 0), 2, ',', '.') }}%</td>
+                        <td class="right">{{ number_format((float) ($r->famount ?? 0), 0, ',', '.') }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -317,34 +299,42 @@
             <div class="footer-left">
                 <div class="note-box">
                     <div class="note-top">Terbilang :</div>
-                    <div>#{{ ucwords(trim(terbilang($hdr->famountpo ?? 0))) }} Rupiah#</div>
+                    <div>#{{ ucwords(trim(terbilang($hdr->famountso ?? 0))) }} Rupiah#</div>
                 </div>
+                @if (!empty($hdr->fket))
+                    <div style="margin-top:10px">
+                        <div class="note-top">Keterangan :</div>
+                        <div style="font-size:11px">{{ $hdr->fket }}</div>
+                    </div>
+                @endif
             </div>
 
             <div class="footer-right">
                 <div class="total-section">
                     <div class="label">TOTAL HARGA :</div>
-                    <div class="value">Rp {{ number_format((float) ($hdr->famountponet ?? 0), 2, ',', '.') }}</div>
+                    <div class="value">Rp {{ number_format((float) ($hdr->famountsonet ?? 0), 0, ',', '.') }}</div>
                 </div>
 
                 <div class="total-section">
                     <div class="label">PPN :</div>
-                    <div class="value">{{ number_format($hdr->famountpopajak ?? 0) }}</div>
+                    <div class="value">Rp {{ number_format((float) ($hdr->famountpajak ?? 0), 0, ',', '.') }}</div>
                 </div>
 
                 <div class="total-section grand-total">
                     <div class="label">GRAND TOTAL :</div>
-                    <div class="value">Rp {{ number_format((float) ($hdr->famountpo ?? 0), 2, ',', '.') }}</div>
+                    <div class="value">Rp {{ number_format((float) ($hdr->famountso ?? 0), 0, ',', '.') }}</div>
                 </div>
 
                 <table class="sign">
                     <tr>
                         <td class="head">Dibuat,</td>
-                        <td class="head">User,</td>
-                        <td class="head">Plant Manager,</td>
+                        <td class="head">Disetujui,</td>
+                        <td class="head">Diterima,</td>
                     </tr>
                     <tr>
-                        <td class="center" style="vertical-align:bottom">{{ strtoupper($hdr->fusercreate ?? '') }}</td>
+                        <td class="center" style="vertical-align:bottom">
+                            {{ strtoupper($hdr->fusercreate ?? '') }}
+                        </td>
                         <td></td>
                         <td></td>
                     </tr>
