@@ -354,16 +354,6 @@
                             </a>`;
                         // }
 
-                        // Print Button
-                        // if (canPrint) {
-                        html += `<a href="fakturpembelian/${row.fstockmtno}/print" target="_blank" class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m10 0v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5m10 0v5H7v-5"></path>
-                            </svg>
-                            Print
-                        </a>`;
-                        // }
-
                         html += '</div>';
                         return html;
                     }
