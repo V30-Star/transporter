@@ -203,7 +203,7 @@ class ProductController extends Controller
                 'fprdcode' => 'nullable|string|unique:msprd,fprdcode',
                 'fprdname' => 'required|string',
                 'ftype' => 'string',
-                'fbarcode' => 'string',
+                'fbarcode' => 'nullable',
                 'fgroupcode' => 'required', // Validate that fgroupcode exists in groups table
                 'fmerek' => 'required', // Validate the Merek field
                 'fsatuankecil' => '', // Validate Satuan 1 field
@@ -293,7 +293,7 @@ class ProductController extends Controller
                 'fprdcode' => "required|string|unique:msprd,fprdcode,{$fprdid},fprdid",
                 'fprdname' => 'required|string',
                 'ftype' => 'string',
-                'fbarcode' => 'string',
+                'fbarcode' => 'nullable',
                 'fgroupcode' => 'required', // Validate that fgroupcode exists in groups table
                 'fmerek' => 'required', // Validate the Merek field
                 'fsatuankecil' => '', // Validate Satuan 1 field
