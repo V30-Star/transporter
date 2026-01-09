@@ -617,7 +617,7 @@
                     <div>
                         <!-- Group Produk Dropdown -->
                         <div class="mt-2 w-1/2" x-data="{ isEditable: false }">
-                            <label class="block text-sm font-medium">Group Produk</label>
+                            <label class="block text-sm font-medium text-gray-700">Group Produk</label>
                             <div class="flex items-center gap-2">
                                 <select name="fgroupcodeSelect" :disabled="!isEditable"
                                     class="w-full border rounded px-3 py-2 @error('fgroupcode') border-red-500 @enderror"
@@ -630,16 +630,15 @@
                                         </option>
                                     @endforeach
                                 </select>
-                                <input type="hidden" name="fgroupcode"
+
+                                <input type="hidden" name="fgroupcode" id="groupCodeHidden"
                                     value="{{ old('fgroupcode', $product->fgroupcode) }}">
 
-                                <!-- Add Group Produk (Icon Button) -->
                                 <button type="button" @click="isEditable = true; $dispatch('open-group-modal')"
                                     class="whitespace-nowrap bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700">
                                     <i class="fa fa-plus"></i>
                                 </button>
 
-                                <!-- Browse Group (Icon Button) -->
                                 <button type="button" @click="window.dispatchEvent(new CustomEvent('group-browse-open'))"
                                     class="whitespace-nowrap bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700">
                                     <i class="fa fa-search"></i>
@@ -655,8 +654,7 @@
                         <div class="mt-2 w-1/2" x-data="{ isMerekEditable: false }">
                             <label class="block text-sm font-medium">Merek</label>
                             <div class="flex items-center gap-2">
-                                <select name="fmerekSelect" :disabled="!isMerekEditable"
-                                    class="w-full border rounded px-3 py-2 @error('fmerek') border-red-500 @enderror"
+                                <select name="fmerek" {{-- Nama langsung fmerek, tidak perlu input hidden lagi --}} class="w-full border rounded px-3 py-2"
                                     id="merkSelect">
                                     <option value=""></option>
                                     @foreach ($merks as $merk)
@@ -667,7 +665,8 @@
                                     @endforeach
                                 </select>
 
-                                <input type="hidden" name="fmerek" id="fmerek" value="{{ old('fmerek') }}">
+                                <input type="hidden" name="fmerek" id="fmerek"
+                                    value="{{ old('fmerek', $product->fmerek) }}">
 
                                 <!-- Button Tambah Merek -->
                                 <button type="button" @click="isMerekEditable = true; $dispatch('open-merk-modal')"
@@ -1210,6 +1209,107 @@
     <div x-data="{
         open: false,
         loading: false,
+        isEditable: false,
+        errors: {},
+        form: { fgroupcode: '', fgroupname: '', fnonactive: false },
+        saveData() {
+            this.loading = true;
+            this.errors = {};
+    
+            $.ajax({
+                    url: '{{ route('groupproduct.store') }}',
+                    type: 'POST',
+                    headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                    data: {
+                        fgroupcode: this.form.fgroupcode,
+                        fgroupname: this.form.fgroupname,
+                        fnonactive: this.form.fnonactive ? 1 : 0
+                    }
+                })
+                .done((res) => {
+                    if (res && res.id && res.name) {
+                        const opt = new Option(res.name, res.id, true, true);
+                        $('#groupSelect').append(opt).trigger('change');
+    
+                        const hidCode = document.getElementById('groupCodeHidden');
+                        if (hidCode) {
+                            hidCode.value = res.id;
+                        }
+    
+                        this.open = false;
+                        this.form = { fgroupcode: '', fgroupname: '', fnonactive: false };
+                        this.errors = {};
+                        this.isEditable = true;
+                    } else {
+                        alert('Format respon server salah.');
+                    }
+                    this.loading = false;
+                })
+                .fail((xhr) => {
+                    this.loading = false;
+                    if (xhr.status === 422) {
+                        this.errors = xhr.responseJSON?.errors || {};
+                    } else {
+                        alert('Gagal menyimpan group produk.');
+                    }
+                });
+        }
+    }" x-on:open-group-modal.window="open = true; errors = {}; loading = false;" x-show="open"
+        style="display:none" class="fixed inset-0 z-[10000] flex items-center justify-center">
+
+        <div class="absolute inset-0 bg-black/50" @click="open = false"></div>
+
+        <div class="relative bg-white w-full max-w-lg rounded-lg shadow-lg p-6">
+            <h3 class="text-lg font-semibold mb-4 text-gray-800">Tambah Group Produk</h3>
+
+            <div class="space-y-4 mt-2">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Kode Group</label>
+                    <input type="text" x-model="form.fgroupcode" class="w-full border rounded px-3 py-2 uppercase"
+                        maxlength="10" :class="errors.fgroupcode ? 'border-red-500' : 'border-gray-300'">
+                    <template x-if="errors.fgroupcode">
+                        <p class="text-red-600 text-sm mt-1" x-text="errors.fgroupcode[0]"></p>
+                    </template>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Nama Group</label>
+                    <input type="text" x-model="form.fgroupname" class="w-full border rounded px-3 py-2 uppercase"
+                        :class="errors.fgroupname ? 'border-red-500' : 'border-gray-300'">
+                    <template x-if="errors.fgroupname">
+                        <p class="text-red-600 text-sm mt-1" x-text="errors.fgroupname[0]"></p>
+                    </template>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" x-model="form.fnonactive" id="modal_group_fnonactive"
+                        class="form-checkbox h-5 w-5 text-indigo-600">
+                    <label for="modal_group_fnonactive" class="text-sm font-medium text-gray-700">Non Aktif</label>
+                </div>
+            </div>
+
+            <div class="mt-6 flex justify-end gap-3">
+                <button type="button" @click="open=false"
+                    class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition">Batal</button>
+
+                <button type="button" @click="saveData()"
+                    class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 flex items-center gap-2 disabled:opacity-60 transition"
+                    :disabled="loading">
+
+                    <svg x-show="loading" class="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
+                            opacity=".25"></circle>
+                        <path d="M4 12a8 8 0 018-8" stroke="currentColor" stroke-width="4" opacity=".75"></path>
+                    </svg>
+                    <span x-text="loading ? 'Menyimpan...' : 'Simpan Group'"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div x-data="{
+        open: false,
+        loading: false,
         errors: {},
         form: { fmerekcode: '', fmerekname: '', fnonactive: false },
         saveData() {
@@ -1227,15 +1327,22 @@
                     }
                 })
                 .done((res) => {
-                    if (res && res.name && res.id) {
+                    if (res && res.id && res.name) {
+                        // 1. Buat opsi baru dan masukkan ke Select
                         const opt = new Option(res.name, res.id, true, true);
                         $('#merkSelect').append(opt).trigger('change');
+    
+                        // 2. SINKRONISASI KE INPUT HIDDEN (PENTING!)
+                        // Tanpa ini, server akan tetap menerima data lama dari input hidden
+                        const hidMerek = document.getElementById('fmerek');
+                        if (hidMerek) {
+                            hidMerek.value = res.id;
+                        }
+    
+                        // 3. TUTUP MODAL & RESET
                         this.open = false;
-                        this.form.fmerekcode = '';
-                        this.form.fmerekname = '';
-                        this.form.fnonactive = false;
-                    } else {
-                        alert('Response format is incorrect or missing expected data.');
+                        this.form = { fmerekcode: '', fmerekname: '', fnonactive: false };
+                        this.errors = {};
                     }
                     this.loading = false;
                 })
@@ -1261,7 +1368,7 @@
             <div class="space-y-4 mt-2">
                 <div>
                     <label class="block text-sm font-medium">Kode Merek</label>
-                    <input type="text" x-model="form.fmerekcode" class="w-full border rounded px-3 py-2"
+                    <input type="text" x-model="form.fmerekcode" class="w-full border rounded px-3 py-2 uppercase"
                         maxlength="10" :class="errors.fmerekcode ? 'border-red-500' : ''">
                     <template x-if="errors.fmerekcode">
                         <p class="text-red-600 text-sm mt-1" x-text="errors.fmerekcode[0]"></p>
@@ -1270,7 +1377,7 @@
 
                 <div>
                     <label class="block text-sm font-medium">Nama Merek</label>
-                    <input type="text" x-model="form.fmerekname" class="w-full border rounded px-3 py-2"
+                    <input type="text" x-model="form.fmerekname" class="w-full border rounded px-3 py-2 uppercase"
                         :class="errors.fmerekname ? 'border-red-500' : ''">
                     <template x-if="errors.fmerekname">
                         <p class="text-red-600 text-sm mt-1" x-text="errors.fmerekname[0]"></p>
@@ -1778,7 +1885,9 @@
                                 draw: d.draw,
                                 page: (d.start / d.length) + 1,
                                 per_page: d.length,
-                                search: d.search.value
+                                search: d.search.value,
+                                order_column: d.columns[d.order[0].column].data,
+                                order_dir: d.order[0].dir
                             };
                         },
                         dataSrc: function(json) {
@@ -1891,28 +2000,20 @@
     document.addEventListener('DOMContentLoaded', () => {
         window.addEventListener('group-picked', (ev) => {
             const {
-                fgroupcode,
-                fgroupid,
-                fgroupname
+                fgroupid
             } = ev.detail || {};
-
             const sel = document.getElementById('groupSelect');
-            const hidId = document.getElementById('groupIdHidden');
             const hidCode = document.getElementById('groupCodeHidden');
 
             if (sel) {
-                sel.value = fgroupcode || '';
+                sel.value = fgroupid || '';
                 sel.dispatchEvent(new Event('change', {
                     bubbles: true
                 }));
             }
 
-            if (hidId) {
-                hidId.value = fgroupid || '';
-            }
-
             if (hidCode) {
-                hidCode.value = fgroupcode || '';
+                hidCode.value = fgroupid || ''; // Update nilai tersembunyi agar masuk ke database
             }
         });
     });

@@ -123,12 +123,12 @@
                                             class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 bg-gray-200 cursor-not-allowed"
                                             disabled>
                                             <option value=""></option>
-                                            @foreach ($customers as $customer)
-                                                <option value="{{ $customer->fcustomerid }}" {{-- CEK DISINI: Bandingkan dengan data yang tersimpan di DB --}}
-                                                    {{ old('fcustno', $salesorder->fcustno) == $customer->fcustomerid ? 'selected' : '' }}>
-                                                    {{ $customer->fcustomername }} ({{ $customer->fcustomerid }})
-                                                </option>
-                                            @endforeach
+                                                @foreach ($customers as $customer)
+                                                    <option value="{{ $customer->fcustomerid }}" {{-- CEK DISINI: Bandingkan dengan data yang tersimpan di DB --}}
+                                                        {{ old('fcustno', $salesorder->fcustno) == $customer->fcustomerid ? 'selected' : '' }}>
+                                                        {{ $customer->fcustomername }} ({{ $customer->fcustomerid }})
+                                                    </option>
+                                                @endforeach
                                         </select>
                                         <div class="absolute inset-0" role="button" aria-label="Browse Customer"
                                             @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))">

@@ -36,6 +36,7 @@ use App\Http\Controllers\ReportingAdjStockController;
 use App\Http\Controllers\ReportingAssemblingController;
 use App\Http\Controllers\ReportingPemakaianBarangController;
 use App\Http\Controllers\SalesOrderController;
+use App\Http\Controllers\SuratJalanController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -318,6 +319,21 @@ Route::middleware('auth')->group(function () {
             ->name('salesorder.items');
         Route::get('/salesorder/pickable', [SalesOrderController::class, 'pickable'])
             ->name('salesorder.pickable');
+
+        Route::get('/suratjalan',  [SuratJalanController::class, 'index'])->name('suratjalan.index');
+        Route::post('/suratjalan',        [SuratJalanController::class, 'store'])->name('suratjalan.store');
+        Route::get('/suratjalan/create', [SuratJalanController::class, 'create'])->name('suratjalan.create');
+        Route::get('/suratjalan/{ftrsomtid}/view', [SuratJalanController::class, 'view'])->name('suratjalan.view');
+        Route::get('/suratjalan/{ftrsomtid}/edit', [SuratJalanController::class, 'edit'])->name('suratjalan.edit');
+        Route::get('/suratjalan/{ftrsomtid}/delete', [SuratJalanController::class, 'delete'])->name('suratjalan.delete');
+        Route::patch('/suratjalan/{ftrsomtid}', [SuratJalanController::class, 'update'])->name('suratjalan.update');
+        Route::delete('/suratjalan/{ftrsomtid}', [SuratJalanController::class, 'destroy'])->name('suratjalan.destroy');
+        Route::get('/suratjalan/{fstockmtno}/print', [SuratJalanController::class, 'print'])
+            ->name('suratjalan.print');
+        Route::get('/suratjalan/{id}/items', [SuratJalanController::class, 'items'])
+            ->name('suratjalan.items');
+        Route::get('/suratjalan/pickable', [SuratJalanController::class, 'pickable'])
+            ->name('suratjalan.pickable');
 
         Route::get('/products/browse', [\App\Http\Controllers\ProductBrowseController::class, 'index'])
             ->name('products.browse');

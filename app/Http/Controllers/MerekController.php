@@ -67,10 +67,18 @@ class MerekController extends Controller
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? 'system';  // Fallback jika tidak ada
         $validated['fcreatedat'] = now(); // Use the current time
 
-        $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
-
+        $validated['fnonactive'] = $request->input('fnonactive', 0) == 1 ? '1' : '0';
+        
         // Create the new Merek
-        Merek::create($validated);
+        $merek = Merek::create($validated);
+
+        if ($request->ajax()) {
+            return response()->json([
+                'id'   => $merek->fmerekid, // Pastikan ini nama Primary Key di tabel ms_merek
+                'code'   => $merek->fmerekcode, // Pastikan ini nama Primary Key di tabel ms_merek
+                'name' => $merek->fmerekname
+            ]);
+        }
 
         return redirect()
             ->route('merek.create')

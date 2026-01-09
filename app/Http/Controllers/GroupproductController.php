@@ -65,10 +65,18 @@ class GroupproductController extends Controller
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? 'system';  // Fallback jika tidak ada
         $validated['fcreatedat'] = now(); // Use the current time
 
-        $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
+        $validated['fnonactive'] = $request->input('fnonactive', 0) == 1 ? '1' : '0';
 
         // Create the new Groupproduct
-        Groupproduct::create($validated);
+        $group = Groupproduct::create($validated);
+        
+        if ($request->ajax()) {
+            return response()->json([
+                'id'   => $group->fgroupid,   // Pastikan ini nama Primary Key di tabel Anda
+                'name' => $group->fgroupname,
+                'code' => $group->fgroupcode
+            ]);
+        }
 
         return redirect()
             ->route('groupproduct.create')

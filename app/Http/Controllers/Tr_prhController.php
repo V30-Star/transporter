@@ -40,11 +40,12 @@ class Tr_prhController extends Controller
     // --- Handle Request AJAX dari DataTables ---
     if ($request->ajax()) {
 
-      $query = Tr_prh::query();
+      $query = Tr_prh::query()
+        ->leftJoin('mssupplier', 'tr_prh.fsupplier', '=', 'mssupplier.fsupplierid');
       $totalRecords = Tr_prh::count();
 
       // Kolom yang bisa dicari
-      $searchableColumns = ['fprno', 'fprdin'];
+      $searchableColumns = ['tr_prh.fprno', 'tr_prh.fprdin', 'mssupplier.fsuppliername'];
 
       // Handle Search
       if ($search = $request->input('search.value')) {
@@ -83,10 +84,10 @@ class Tr_prhController extends Controller
       // Sesuaikan dengan urutan columns di DataTables
       $columns = [
         0 => 'fprno',
-        1 => 'fusercreate',
-        2 => 'fuserupdate',
-        3 => 'fclose',  // Ganti ke fclose
-        4 => null // Kolom 'Actions'
+        1 => 'mssupplier.fsuppliername', // Update kolom sorting ke nama supplier        2 => 'fusercreate',
+        3 => 'fuserupdate',
+        4 => 'fclose',  // Ganti ke fclose
+        5 => null // Kolom 'Actions'
       ];
 
       if (isset($columns[$orderColumnIndex]) && $columns[$orderColumnIndex] !== null) {
@@ -103,13 +104,14 @@ class Tr_prhController extends Controller
       }
 
       // Select kolom yang dibutuhkan - PASTIKAN fclose ADA
-      $records = $query->get(['fprid', 'fprno', 'fprdin', 'fusercreate', 'fuserupdate', 'fclose']);
+      $records = $query->get(['fprid', 'fprno', 'fprdin', 'fsupplier', 'fusercreate', 'fuserupdate', 'fclose', 'mssupplier.fsuppliername']);
 
       // Format data untuk DataTables
       $data = $records->map(function ($record) {
         return [
           'fprno'    => $record->fprno,
           'fprdin'   => $record->fprdin,
+          'fsuppliername' => $record->fsuppliername,
           'fusercreate'  => $record->fusercreate,
           'fuserupdate'  => $record->fuserupdate,
           'fclose'   => $record->fclose, // Ganti ke fclose
