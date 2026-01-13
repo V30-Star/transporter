@@ -81,6 +81,17 @@
         input[type=number] {
             -moz-appearance: textfield;
         }
+
+        .hpp-box {
+            border: 1px solid #e5e7eb;
+            background-color: #f9fafb;
+            transition: all 0.3s ease;
+        }
+
+        .hpp-box:hover {
+            border-color: #2563eb;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
     </style>
 
     <div x-data="{ open: true }">
@@ -355,23 +366,23 @@
                         document.addEventListener('DOMContentLoaded', calculateDueDate);
                     </script>
 
-                    <script>
-                        function updateTempo() {
-                            const supplierSelect = document.getElementById('supplierSelect');
-                            const tempoInput = document.getElementById('ftempohr');
-
-                            const selectedOption = supplierSelect.options[supplierSelect.selectedIndex];
-                            const tempo = selectedOption.getAttribute('data-tempo');
-
-                            tempoInput.value = tempo || 0;
-                        }
-
-                        document.addEventListener('DOMContentLoaded', function() {
-                            updateTempo();
-                        });
-                    </script>
-
                     <div x-data="itemsTable()" x-init="init()" class="mt-6 space-y-2">
+                        <div class="flex justify-end mt-6">
+                            <div
+                                class="hpp-box bg-gray-50 p-3 rounded-lg border border-gray-200 shadow-sm flex items-center gap-4">
+                                <label class="text-sm font-semibold text-gray-700 whitespace-nowrap">Hitung Biaya</label>
+                                <div class="flex items-center gap-2">
+                                    <input type="number" x-model.number="biayaGlobal"
+                                        placeholder="Masukkan Total Ongkir"
+                                        class="w-40 border rounded px-3 py-2 text-right font-mono bg-white">
+
+                                    <button type="button" @click="alokasiBiaya()"
+                                        class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded transition flex items-center gap-2">
+                                        Hitung
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
 
                         {{-- DETAIL ITEM (tabel input) --}}
                         <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
@@ -755,7 +766,6 @@
                                                 <span class="min-w-[140px] text-right font-medium"
                                                     x-text="rupiah(ppnAmount)"></span>
                                             </div>
-
                                         </div>
 
                                         <div class="border-t my-1"></div>
@@ -770,6 +780,18 @@
                                             <span class="text-sm font-semibold text-gray-800">Grand Total (RP)</span>
                                             <span class="min-w-[140px] text-right text-lg font-semibold"
                                                 x-text="rupiah(grandTotal)"></span>
+                                        </div>
+
+                                        <div class="flex items-center justify-between bg-blue-50 p-2 rounded">
+                                            <span class="text-sm font-bold text-blue-700">Total DPP</span>
+                                            <span class="min-w-[140px] text-right font-bold text-blue-700"
+                                                x-text="rupiah(totalDPP)"></span>
+                                        </div>
+
+                                        <div class="flex items-center justify-between bg-blue-50 p-2 rounded">
+                                            <span class="text-sm font-bold text-blue-700">Total Biaya (HPP)</span>
+                                            <span class="min-w-[140px] text-right font-bold text-blue-700"
+                                                x-text="rupiah(biayaGlobal)"></span>
                                         </div>
                                     </div>
 
@@ -1395,6 +1417,7 @@
             editingIndex: null,
             editRow: newRow(),
 
+            biayaGlobal: 0,
             totalHarga: 0,
             ppnRate: 11,
 
@@ -1479,15 +1502,29 @@
 
             recalc(row) {
                 row.fqty = Math.max(0, +row.fqty || 0);
-                row.fterima = Math.max(0, +row.fterima || 0);
                 row.fprice = Math.max(0, +row.fprice || 0);
+                row.fbiaya = Math.max(0, +row.fbiaya || 0); 
                 row.fdiscpersen = Math.min(100, Math.max(0, +row.fdiscpersen || 0));
-                row.ftotprice = +(row.fqty * row.fprice * (1 - row.fdiscpersen / 100)).toFixed(2);
+
+                const basePrice = (row.fprice + row.fbiaya) * row.fqty;
+                const diskon = (row.fqty * row.fprice) * (row.fdiscpersen / 11100);
+
+                row.ftotprice = +(basePrice - diskon).toFixed(2);
+
                 this.recalcTotals();
             },
 
+            get totalDPP() {
+                return this.savedItems.reduce((sum, item) => {
+                    const hargaBarang = (item.fqty * item.fprice);
+                    const diskon = hargaBarang * (item.fdiscpersen / 100);
+                    return sum + (hargaBarang - diskon);
+                }, 0);
+            },
+
             recalcTotals() {
-                this.totalHarga = this.savedItems.reduce((sum, item) => sum + item.ftotprice, 0);
+                this.totalHarga = this.savedItems.reduce((sum, item) => sum + (item.ftotprice || 0), 0);
+                this.biayaGlobal = this.savedItems.reduce((sum, item) => sum + (item.fbiaya * item.fqty || 0), 0);
             },
 
             productMeta(code) {
@@ -1696,6 +1733,24 @@
 
             getCurrentItemKeys() {
                 return this.savedItems.map(it => this.itemKey(it));
+            },
+
+            alokasiBiaya() {
+                if (this.biayaGlobal <= 0 || this.totalHarga <= 0) {
+                    alert("Masukkan total ongkir dan pastikan item sudah ada.");
+                    return;
+                }
+
+                this.savedItems.forEach((item) => {
+                    let proporsi = item.ftotprice / this.totalHarga;
+                    let alokasiTotalBaris = this.biayaGlobal * proporsi;
+
+                    if (item.fqty > 0) {
+                        item.fbiaya = parseFloat((alokasiTotalBaris / item.fqty).toFixed(2));
+                        // Jalankan ulang recalc agar ftotprice di baris ini terupdate otomatis
+                        this.recalc(item);
+                    }
+                });
             },
 
             init() {
