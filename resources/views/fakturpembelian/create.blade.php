@@ -731,6 +731,13 @@
                                             <span class="min-w-[140px] text-right font-medium"
                                                 x-text="rupiah(totalHarga)"></span>
                                         </div>
+                                        
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-sm text-gray-700">Total DPP</span>
+                                            <span class="min-w-[140px] text-right font-medium"
+                                                x-text="rupiah(totalDPP)"></span>
+                                        </div>
+
                                         <div class="flex items-center justify-between gap-6">
                                             <!-- Checkbox -->
                                             <div class="flex items-center">
@@ -743,14 +750,15 @@
                                             </div>
 
                                             <!-- Dropdown Include / Exclude (tengah) -->
-                                            <div class="flex items-center gap-2">
+                                            {{-- <div class="flex items-center gap-2">
                                                 <select id="includePPN" name="includePPN" x-model.number="fapplyppn"
                                                     x-init="fapplyppn = 0" :disabled="!(includePPN || fapplyppn)"
                                                     class="w-28 h-9 px-2 text-sm leading-tight border rounded transition-opacity appearance-none
                                                            disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
                                                     <option value="0">Exclude</option>
+                                                    <option value="1">Include</option>
                                                 </select>
-                                            </div>
+                                            </div> --}}
 
                                             <!-- Input Rate + Nominal (kanan) -->
                                             <div class="flex items-center gap-2">
@@ -779,12 +787,6 @@
                                             <span class="text-sm font-semibold text-gray-800">Grand Total (RP)</span>
                                             <span class="min-w-[140px] text-right text-lg font-semibold"
                                                 x-text="rupiah(grandTotal)"></span>
-                                        </div>
-
-                                        <div class="flex items-center justify-between bg-blue-50 p-2 rounded">
-                                            <span class="text-sm font-bold text-blue-700">Total DPP</span>
-                                            <span class="min-w-[140px] text-right font-bold text-blue-700"
-                                                x-text="rupiah(totalDPP)"></span>
                                         </div>
 
                                         <div class="flex items-center justify-between bg-blue-50 p-2 rounded">
@@ -1506,7 +1508,7 @@
                 row.fdiscpersen = Math.min(100, Math.max(0, +row.fdiscpersen || 0));
 
                 const basePrice = (row.fprice + row.fbiaya) * row.fqty;
-                const diskon = (row.fqty * row.fprice) * (row.fdiscpersen / 11100);
+                const diskon = (row.fqty * row.fprice) * (row.fdiscpersen / 100);
 
                 row.ftotprice = +(basePrice - diskon).toFixed(2);
 
