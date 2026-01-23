@@ -1,10 +1,8 @@
 @extends('layouts.app')
 
-@section('title', 'Sales Order')
+@section('title', 'Invoice')
 
 @section('content')
-    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         input:focus,
         select:focus,
@@ -75,20 +73,11 @@
     <div x-data="{ open: true }">
         <div x-data="{ includePPN: false, ppnRate: 0, ppnAmount: 0, selected: 'alamatsurat', totalHarga: 100000 }" class="lg:col-span-5">
             <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
-                <form action="{{ route('salesorder.store') }}" method="POST" class="mt-6" x-data="{ showNoItems: false }"
+                <form action="{{ route('invoice.store') }}" method="POST" class="mt-6" x-data="{ showNoItems: false }"
                     @submit.prevent="
-                        const count = Number(document.getElementById('itemsCount')?.value || 0);
-                        if (count < 1) {
-                            Swal.fire({
-                                icon: 'warning',
-                                title: 'Tidak Ada Item',
-                                text: 'Silakan tambahkan minimal 1 item terlebih dahulu.',
-                                confirmButtonText: 'OK'
-                            });
-                            return;
-                        }
-                        $el.submit();
-                    ">
+        const n = Number(document.getElementById('itemsCount')?.value || 0);
+        if (n < 1) { showNoItems = true } else { $el.submit() }
+      ">
                     @csrf
 
                     {{-- HEADER FORM --}}
@@ -114,13 +103,85 @@
                         </div>
 
                         <div class="lg:col-span-4">
+                            <label class="block text-sm font-medium">Type</label>
+                            <select name="ftypesales" id="ftypesales" x-model.number="ftypesales" x-init="ftypesales = 0"
+                                class="w-full border rounded px-3 py-2 @error('ftypesales') border-red-500 @enderror">
+                                <option value="0">Penjualan</option>
+                                <option value="1">Uang Muka</option>
+                            </select>
+                            @error('ftypesales')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div class="lg:col-span-4">
+                            <label class="block text-sm font-medium">Faktur Pajak#</label>
+                            <input type="text" name="ftaxno" value="{{ old('ftaxno') }}"
+                                class="w-full border rounded px-3 py-2 @error('ftaxno') border-red-500 @enderror">
+                            @error('ftaxno')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div class="lg:col-span-4">
                             <label class="block text-sm font-medium">Tanggal</label>
-                            <input type="date" name="fsodate" value="{{ old('fsodate') ?? date('Y-m-d') }}"
+                            <input type="date" id="fsodate" name="fsodate"
+                                value="{{ old('fsodate') ?? date('Y-m-d') }}"
                                 class="w-full border rounded px-3 py-2 @error('fsodate') border-red-500 @enderror">
                             @error('fsodate')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
                         </div>
+
+                        <div class="lg:col-span-4">
+                            <label class="block text-sm font-medium">TOP (Hari)</label>
+                            <input type="number" id="ftempohr" name="ftempohr" value="{{ old('ftempohr', '0') }}"
+                                class="w-full border rounded px-3 py-2 @error('ftempohr') border-red-500 @enderror"
+                                placeholder="Masukkan jumlah hari">
+                            @error('ftempohr')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div class="lg:col-span-4">
+                            <label class="block text-sm font-medium">Tgl. Jatuh Tempo</label>
+                            <input type="date" id="fjatuhtempo" name="fjatuhtempo"
+                                value="{{ old('fjatuhtempo') ?? date('Y-m-d') }}" readonly
+                                class="w-full border rounded px-3 py-2 bg-gray-100 @error('fjatuhtempo') border-red-500 @enderror">
+                            @error('fjatuhtempo')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <script>
+                            document.addEventListener('DOMContentLoaded', function() {
+                                function calculateDueDate() {
+                                    const poDate = document.getElementById('fsodate').value;
+                                    const tempoDays = parseInt(document.getElementById('ftempohr').value) || 0;
+
+                                    if (poDate) {
+                                        const date = new Date(poDate);
+                                        date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
+                                        date.setDate(date.getDate() + tempoDays);
+
+                                        const year = date.getFullYear();
+                                        const month = String(date.getMonth() + 1).padStart(2, '0');
+                                        const day = String(date.getDate()).padStart(2, '0');
+
+                                        document.getElementById('fjatuhtempo').value = `${year}-${month}-${day}`;
+                                    } else {
+                                        document.getElementById('fjatuhtempo').value = '';
+                                    }
+                                }
+
+                                // Event listeners
+                                document.getElementById('fsodate').addEventListener('change', calculateDueDate);
+                                document.getElementById('ftempohr').addEventListener('input', calculateDueDate);
+
+                                // Initial calculation
+                                calculateDueDate();
+                            });
+                        </script>
 
                         {{-- Customer --}}
                         <div class="lg:col-span-4">
@@ -197,69 +258,11 @@
                             @enderror
                         </div>
 
-                        <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium mb-1">Tempo</label>
-                            <div class="flex items-center">
-                                <input type="number" id="ftempohr" name="ftempohr" value="{{ old('ftempohr', 0) }}"
-                                    class="w-full border rounded px-3 py-2 @error('ftempohr') border-red-500 @enderror">
-                                <span class="ml-2">Hari</span>
-                            </div>
-                            @error('ftempohr')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-
                         <div class="col-span-12 mt-4">
                             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
-
-                                <div x-data="{
-                                    tab: 1,
-                                    addr1: '{{ old('fkirimaddress1') }}',
-                                    addr2: '{{ old('fkirimaddress2') }}',
-                                    addr3: '{{ old('fkirimaddress3') }}',
-                                    updateFinal() {
-                                        let val = '';
-                                        if (this.tab === 1) val = this.addr1;
-                                        else if (this.tab === 2) val = this.addr2;
-                                        else if (this.tab === 3) val = this.addr3;
-                                        document.getElementById('falamatkirim_final').value = val;
-                                    }
-                                }" x-init="$watch('tab', v => updateFinal());
-                                $watch('addr1', v => updateFinal());
-                                $watch('addr2', v => updateFinal());
-                                $watch('addr3', v => updateFinal());"
-                                    @customer-selected.window="addr1 = $event.detail.f1; addr2 = $event.detail.f2; addr3 = $event.detail.f3; tab = 1; updateFinal();"
-                                    class="flex flex-col">
-
-                                    <input type="hidden" name="falamatkirim" id="falamatkirim_final"
-                                        value="{{ old('falamatkirim') }}">
-
-                                    <label class="block text-sm font-bold text-gray-700 mb-2">Alamat Kirim</label>
-
-                                    <div class="flex">
-                                        <template x-for="i in [1, 2, 3]">
-                                            <button type="button" @click="tab = i"
-                                                :class="tab === i ? 'bg-blue-600 text-white border-blue-600' :
-                                                    'bg-gray-100 text-gray-500 border-gray-200 hover:bg-gray-200'"
-                                                class="px-4 py-2 text-xs font-bold rounded-t-lg border-t border-x transition-all mr-1"
-                                                x-text="'PILIH ALAMAT ' + i">
-                                            </button>
-                                        </template>
-                                    </div>
-
-                                    <div
-                                        class="flex-1 bg-white border-2 border-blue-600 rounded-b-xl rounded-tr-xl p-3 shadow-sm min-h-[150px]">
-                                        <textarea x-show="tab === 1" x-model="addr1" class="w-full h-full border-none focus:ring-0 p-0 text-sm resize-none"
-                                            placeholder="Alamat Kirim 1..."></textarea>
-                                        <textarea x-show="tab === 2" x-model="addr2" class="w-full h-full border-none focus:ring-0 p-0 text-sm resize-none"
-                                            placeholder="Alamat Kirim 2..."></textarea>
-                                        <textarea x-show="tab === 3" x-model="addr3" class="w-full h-full border-none focus:ring-0 p-0 text-sm resize-none"
-                                            placeholder="Alamat Kirim 3..."></textarea>
-                                    </div>
-                                </div>
-
                                 <div class="flex flex-col">
-                                    <label class="block text-sm font-bold text-gray-700 mb-2">Keterangan</label>
+                                    <label class="block text-sm font-bold text-gray-700 mb-2">Keterangan
+                                        Tambahan</label>
                                     <div
                                         class="flex-1 border-2 border-gray-200 rounded-xl p-3 bg-white min-h-[150px] focus-within:border-blue-400">
                                         <textarea name="fket" class="w-full h-full border-none focus:ring-0 p-0 text-sm resize-none"
@@ -271,15 +274,6 @@
                                 </div>
 
                             </div>
-                        </div>
-                        <div class="lg:col-span-12">
-                            <label class="block text-sm font-medium">Catatan Internal</label>
-                            <textarea name="fketinternal" rows="3"
-                                class="w-full border rounded px-3 py-2 @error('fketinternal') border-red-500 @enderror"
-                                placeholder="Tulis Catatan Internal tambahan di sini...">{{ old('fketinternal') }}</textarea>
-                            @error('fketinternal')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
                         </div>
                     </div>
 
@@ -664,7 +658,8 @@
                                         <!-- Header -->
                                         <div
                                             class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
-                                            <h3 class="text-xl font-bold text-gray-800">Pilih Purchase Request (PR)</h3>
+                                            <h3 class="text-xl font-bold text-gray-800">Pilih Purchase Request (PR)
+                                            </h3>
                                             <button type="button" @click="closeModal()"
                                                 class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">
                                                 Tutup
@@ -677,10 +672,14 @@
                                                 style="width:100%">
                                                 <thead class="sticky top-0 z-10">
                                                     <tr class="bg-gray-50 border-b-2 border-gray-200">
-                                                        <th class="p-3 text-left font-semibold text-gray-700">PR No</th>
-                                                        <th class="p-3 text-left font-semibold text-gray-700">Customer</th>
-                                                        <th class="p-3 text-left font-semibold text-gray-700">Tanggal</th>
-                                                        <th class="p-3 text-center font-semibold text-gray-700">Aksi</th>
+                                                        <th class="p-3 text-left font-semibold text-gray-700">PR No
+                                                        </th>
+                                                        <th class="p-3 text-left font-semibold text-gray-700">Customer
+                                                        </th>
+                                                        <th class="p-3 text-left font-semibold text-gray-700">Tanggal
+                                                        </th>
+                                                        <th class="p-3 text-center font-semibold text-gray-700">Aksi
+                                                        </th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -702,7 +701,8 @@
                                     <div class="relative bg-white rounded-xl shadow-xl max-w-2xl w-full p-6">
                                         <h3 class="text-lg font-semibold mb-4">Peringatan Duplikasi</h3>
                                         <p class="mb-4">
-                                            Ditemukan <strong x-text="dupCount"></strong> item yang sudah ada dalam daftar.
+                                            Ditemukan <strong x-text="dupCount"></strong> item yang sudah ada dalam
+                                            daftar.
                                             Hanya item unik yang akan ditambahkan.
                                         </p>
 
@@ -764,6 +764,35 @@
                         </div>
 
                         <input type="hidden" id="itemsCount" :value="savedItems.length">
+                    </div>
+
+                    {{-- MODAL ERROR: belum ada item --}}
+                    <div x-show="showNoItems && savedItems.length === 0" x-cloak
+                        class="fixed inset-0 z-[90] flex items-center justify-center" x-transition.opacity>
+                        <div class="absolute inset-0 bg-black/50" @click="showNoItems=false"></div>
+
+                        <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden"
+                            x-transition.scale>
+                            <div class="px-5 py-4 border-b flex items-center">
+                                <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-red-500 mr-2" />
+                                <h3 class="text-lg font-semibold text-gray-800">Tidak Ada Item</h3>
+                            </div>
+
+                            <div class="px-5 py-4">
+                                <p class="text-sm text-gray-700">
+                                    Anda belum menambahkan item apa pun pada tabel. Silakan isi baris “Detail Item”
+                                    terlebih
+                                    dahulu.
+                                </p>
+                            </div>
+
+                            <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
+                                <button type="button" @click="showNoItems=false"
+                                    class="h-9 px-4 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
+                                    OK
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
                     {{-- MODAL CUSTOMER --}}

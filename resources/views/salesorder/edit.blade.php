@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', $action === 'delete' ? 'Hapus Order Pembelian' : 'Edit Order Pembelian')
+@section('title', $action === 'delete' ? 'Hapus Sales Order' : 'Edit Sales Order')
 
 @section('title', 'Sales Order')
 
@@ -73,7 +73,7 @@
     </style>
 
     <div x-data="{ open: true }">
-        <div x-data="{ includePPN: false, ppnRate: 0, ppnAmount: 0, selected: 'alamatsurat', totalHarga: 100000 }" class="lg:col-span-5">
+        <div x-data="{ fclose: {{ old('fclose', $salesorder->fclose) == '1' ? 'true' : 'false' }}, includePPN: false, ppnRate: 0, ppnAmount: 0, selected: 'alamatsurat', totalHarga: 100000 }" class="lg:col-span-5">
             <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
                 @if ($action === 'delete')
                     <div class="space-y-4">
@@ -105,13 +105,24 @@
                             </div>
 
                             {{-- Tanggal --}}
-                            <div class="lg:col-span-4">
+                            <div class="lg:col-span-2">
                                 <label class="block text-sm font-medium">Tanggal</label>
                                 <input disabled type="date" name="fsodate" value="{{ old('fsodate') ?? date('Y-m-d') }}"
                                     class="w-full border rounded px-3 py-2 bg-gray-200 @error('fsodate') border-red-500 @enderror">
                                 @error('fsodate')
                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                 @enderror
+                            </div>
+
+                            <div class="lg:col-span-2 flex items-end pb-2">
+                                <div class="inline-flex items-center">
+                                    <input id="fclose" type="checkbox" name="fclose" value="1" x-model="fclose"
+                                        class="h-4 w-4 text-blue-600 border-gray-300 rounded"
+                                        {{ old('fclose', $salesorder->fclose) ? 'checked' : '' }}>
+                                    <label for="fclose" class="ml-2 text-sm font-medium text-gray-700 whitespace-nowrap">
+                                        Close
+                                    </label>
+                                </div>
                             </div>
 
                             {{-- Customer --}}
@@ -123,12 +134,12 @@
                                             class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 bg-gray-200 cursor-not-allowed"
                                             disabled>
                                             <option value=""></option>
-                                                @foreach ($customers as $customer)
-                                                    <option value="{{ $customer->fcustomerid }}" {{-- CEK DISINI: Bandingkan dengan data yang tersimpan di DB --}}
-                                                        {{ old('fcustno', $salesorder->fcustno) == $customer->fcustomerid ? 'selected' : '' }}>
-                                                        {{ $customer->fcustomername }} ({{ $customer->fcustomerid }})
-                                                    </option>
-                                                @endforeach
+                                            @foreach ($customers as $customer)
+                                                <option value="{{ $customer->fcustomerid }}" {{-- CEK DISINI: Bandingkan dengan data yang tersimpan di DB --}}
+                                                    {{ old('fcustno', $salesorder->fcustno) == $customer->fcustomerid ? 'selected' : '' }}>
+                                                    {{ $customer->fcustomername }} ({{ $customer->fcustomerid }})
+                                                </option>
+                                            @endforeach
                                         </select>
                                         <div class="absolute inset-0" role="button" aria-label="Browse Customer"
                                             @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))">
@@ -221,11 +232,11 @@
 
                                         <div class="flex">
                                             <template x-for="i in [1, 2, 3]">
-                                                <button type="button" @click="tab = i"
+                                                <button type="button" @click="tab = i" disabled
                                                     :class="tab === i ? 'bg-blue-600 text-white border-blue-600' :
                                                         'bg-gray-100 text-gray-500 border-gray-200 hover:bg-gray-200'"
                                                     class="px-4 py-2 text-xs font-bold rounded-t-lg border-t border-x transition-all mr-1"
-                                                    x-text="'ALAMAT ' + i">
+                                                    x-text="'PILIH ALAMAT' + i">
                                                 </button>
                                             </template>
                                         </div>
@@ -245,8 +256,7 @@
                                     </div>
 
                                     <div class="flex flex-col">
-                                        <label class="block text-sm font-bold text-gray-700 mb-2">Keterangan
-                                            Tambahan</label>
+                                        <label class="block text-sm font-bold text-gray-700 mb-2">Keterangan</label>
                                         <div
                                             class="flex-1 border-2 border-gray-200 rounded-xl p-3 bg-gray-200 focus-within:border-blue-400">
                                             <textarea readonly name="fket" class="w-full h-full border-none focus:ring-0 p-0 text-sm resize-none bg-gray-200"
@@ -658,7 +668,7 @@
                                     </div>
 
                                     {{-- Tanggal --}}
-                                    <div class="lg:col-span-4">
+                                    <div class="lg:col-span-2">
                                         <label class="block text-sm font-medium">Tanggal</label>
                                         <input type="date" name="fsodate"
                                             value="{{ old('fsodate') ?? date('Y-m-d') }}"
@@ -666,6 +676,18 @@
                                         @error('fsodate')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                         @enderror
+                                    </div>
+
+                                    <div class="lg:col-span-2 flex items-end pb-2">
+                                        <div class="inline-flex items-center">
+                                            <input id="fclose" type="checkbox" name="fclose" value="1"
+                                                x-model="fclose" class="h-4 w-4 text-blue-600 border-gray-300 rounded"
+                                                {{ old('fclose', $salesorder->fclose) ? 'checked' : '' }}>
+                                            <label for="fclose"
+                                                class="ml-2 text-sm font-medium text-gray-700 whitespace-nowrap">
+                                                Close
+                                            </label>
+                                        </div>
                                     </div>
 
                                     {{-- Customer --}}
@@ -800,11 +822,11 @@
 
                                                 <div class="flex">
                                                     <template x-for="i in [1, 2, 3]">
-                                                        <button type="button" @click="tab = i"
+                                                        <button type="button" @click="tab = i" disabled
                                                             :class="tab === i ? 'bg-blue-600 text-white border-blue-600' :
                                                                 'bg-gray-100 text-gray-500 border-gray-200 hover:bg-gray-200'"
                                                             class="px-4 py-2 text-xs font-bold rounded-t-lg border-t border-x transition-all mr-1"
-                                                            x-text="'ALAMAT ' + i">
+                                                            x-text="'PILIH ALAMAT' + i">
                                                         </button>
                                                     </template>
                                                 </div>
@@ -821,8 +843,8 @@
                                             </div>
 
                                             <div class="flex flex-col">
-                                                <label class="block text-sm font-bold text-gray-700 mb-2">Keterangan
-                                                    Tambahan</label>
+                                                <label
+                                                    class="block text-sm font-bold text-gray-700 mb-2">Keterangan</label>
                                                 <div
                                                     class="flex-1 border-2 border-gray-200 rounded-xl p-3 bg-white min-h-[150px] focus-within:border-blue-400">
                                                     <textarea name="fket" class="w-full h-full border-none focus:ring-0 p-0 text-sm resize-none"
@@ -1528,7 +1550,8 @@
         <div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
                 <h3 class="text-lg font-semibold mb-4">Konfirmasi Hapus sales order ini?</h3>
-                <form id="deleteForm" action="{{ route('salesorder.destroy', $salesorder->ftrsomtid) }}" method="POST">
+                <form id="deleteForm" action="{{ route('salesorder.destroy', $salesorder->ftrsomtid) }}"
+                    method="POST">
                     @csrf
                     @method('DELETE')
                     <div class="flex justify-end space-x-2">

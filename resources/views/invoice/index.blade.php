@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Sales Order')
+@section('title', 'Invoice')
 
 @section('content')
     <div x-data class="bg-white rounded shadow p-4">
@@ -31,7 +31,7 @@
         <div class="flex justify-end items-center mb-4">
             <div></div>
             {{-- @if ($canCreate) --}}
-            <a href="{{ route('salesorder.create') }}"
+            <a href="{{ route('invoice.create') }}"
                 class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
                 <x-heroicon-o-plus class="w-4 h-4 mr-1" /> Tambah Baru
             </a>
@@ -88,13 +88,17 @@
             <thead class="bg-gray-100">
                 <tr>
                     <th class="border px-2 py-1">Cab.</th>
-                    <th class="border px-2 py-1">No.SO</th> {{-- Sesuai data simpel (bukan nama) --}}
+                    <th class="border px-2 py-1">No.Faktur</th> {{-- Sesuai data simpel (bukan nama) --}}
+                    <th class="border px-2 py-1">Faktur Pajak#</th>
                     <th class="border px-2 py-1">Tanggal</th>
                     <th class="border px-2 py-1">No.Ref</th>
+                    <th class="border px-2 py-1">SO#</th>
                     <th class="border px-2 py-1">Nama Customer</th>
-                    <th class="border px-2 py-1">Nilai SO</th>
+                    <th class="border px-2 py-1">Nilai Faktur</th>
+                    <th class="border px-2 py-1">Sisa Piutang</th>
+                    <th class="border px-2 py-1">Ref.PO</th>
                     <th class="border px-2 py-1">User Create</th>
-                    <th class="border px-2 py-1">Status</th>
+                    <th class="border px-2 py-1">Tagih?</th>
                     <th class="border px-2 py-1 col-aksi">Aksi</th>
                 </tr>
             </thead>
@@ -341,6 +345,22 @@
                     name: 'fusercreate'
                 },
                 {
+                    data: 'fusercreate',
+                    name: 'fusercreate'
+                },
+                {
+                    data: 'fusercreate',
+                    name: 'fusercreate'
+                },
+                {
+                    data: 'fusercreate',
+                    name: 'fusercreate'
+                },
+                {
+                    data: 'fusercreate',
+                    name: 'fusercreate'
+                },
+                {
                     data: 'fclose',
                     name: 'fclose',
                     visible: false,
@@ -367,7 +387,7 @@
                     let html = '<div class="flex gap-2">';
 
                     // if (canView) {
-                    html += `<a href="salesorder/${data}/view">
+                    html += `<a href="invoice/${data}/view">
                         <button class="inline-flex items-center bg-slate-500 text-white px-4 py-2 rounded hover:bg-slate-600">
                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
@@ -379,7 +399,7 @@
 
                     // Edit Button
                     // if (canEdit) {
-                    html += `<a href="salesorder/${data}/edit" class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
+                    html += `<a href="invoice/${data}/edit" class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                             </svg>
@@ -389,7 +409,7 @@
 
                     // Delete Button
                     // if (canDelete) {
-                    let deleteUrl = '{{ route('salesorder.index') }}/' + data + '/delete';
+                    let deleteUrl = '{{ route('invoice.index') }}/' + data + '/delete';
                     html += `<a href="${deleteUrl}">
                                 <button class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
                                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -422,7 +442,7 @@
                 processing: true,
                 serverSide: true,
                 ajax: {
-                    url: '{{ route('salesorder.index') }}',
+                    url: '{{ route('invoice.index') }}',
                     type: 'GET',
                     data: function(d) {
                         const urlParams = new URLSearchParams(window.location.search);
@@ -446,56 +466,106 @@
                     const api = this.api();
                     const $toolbarSearch = $(api.table().container()).find('.dt-search');
 
-                    // Clone & Append Filters (Status, Year, Month)
-                    const $statusSelect = $('#statusFilterTemplate select').clone().attr('id',
-                        'statusFilterDT');
-                    const $yearSelect = $('#yearFilterTemplate select').clone().attr('id',
-                        'yearFilterDT');
-                    const $monthSelect = $('#monthFilterTemplate select').clone().attr('id',
-                        'monthFilterDT');
+                    // Clone filters
+                    const $statusFilter = $('#statusFilterTemplate #statusFilterWrap').clone(true,
+                        true);
+                    const $statusSelect = $statusFilter.find('select[data-role="status-filter"]');
+                    $statusSelect.attr('id', 'statusFilterDT');
+                    $toolbarSearch.append($statusFilter);
 
-                    $toolbarSearch.append($(
-                            '<div class="flex items-center gap-2"><span>Status</span></div>')
-                        .append($statusSelect));
-                    $toolbarSearch.append($(
-                        '<div class="flex items-center gap-2"><span>Tahun</span></div>').append(
-                        $yearSelect));
-                    $toolbarSearch.append($(
-                        '<div class="flex items-center gap-2"><span>Bulan</span></div>').append(
-                        $monthSelect));
+                    const $yearFilter = $('#yearFilterTemplate #yearFilterWrap').clone(true, true);
+                    const $yearSelect = $yearFilter.find('select[data-role="year-filter"]');
+                    $yearSelect.attr('id', 'yearFilterDT');
+                    $toolbarSearch.append($yearFilter);
 
-                    // Set nilai awal dari URL agar tampilan Select Box sinkron
+                    const $monthFilter = $('#monthFilterTemplate #monthFilterWrap').clone(true, true);
+                    const $monthSelect = $monthFilter.find('select[data-role="month-filter"]');
+                    $monthSelect.attr('id', 'monthFilterDT');
+                    $toolbarSearch.append($monthFilter);
+
+                    // Cari kolom fclose
+                    const statusColIdx = api.columns().indexes().toArray()
+                        .find(i => api.column(i).dataSrc() === 'fclose');
+
+                    if (statusColIdx === undefined) {
+                        console.warn('Kolom fclose tidak ditemukan.');
+                        return;
+                    }
+
+                    // Baca status dari URL, default 'active'
                     const urlParams = new URLSearchParams(window.location.search);
-                    $statusSelect.val(urlParams.get('status') || 'active');
-                    $yearSelect.val(urlParams.get('year') || '');
-                    $monthSelect.val(urlParams.get('month') || '');
+                    const currentStatus = urlParams.get('status') || 'active';
 
-                    // Fungsi tunggal untuk update URL dan Reload Table
-                    const refreshTable = () => {
+                    // Set selected option sesuai URL
+                    $statusSelect.val(currentStatus);
+
+                    // Apply filter sesuai status dari URL
+                    if (currentStatus === 'active') {
+                        api.column(statusColIdx).search('^0$', true, false).draw();
+                    } else if (currentStatus === 'nonactive') {
+                        api.column(statusColIdx).search('^1$', true, false).draw();
+                    } else {
+                        api.column(statusColIdx).search('', true, false).draw();
+                    }
+
+                    const $searchInput = $toolbarSearch.find('.dt-input');
+                    $searchInput.css({
+                        width: '400px',
+                        maxWidth: '100%'
+                    });
+
+                    // Event handler untuk Status Filter
+                    $statusSelect.on('change', function() {
+                        const v = this.value;
+                        if (v === 'active') {
+                            api.column(statusColIdx).search('^0$', true, false).draw();
+                        } else if (v === 'nonactive') {
+                            api.column(statusColIdx).search('^1$', true, false).draw();
+                        } else {
+                            api.column(statusColIdx).search('', true, false).draw();
+                        }
+
+                        updateUrlParams();
+                    });
+
+                    // Event handlers untuk Year dan Month
+                    $yearSelect.on('change', function() {
+                        updateUrlParams();
+                        api.ajax.reload();
+                    });
+
+                    $monthSelect.on('change', function() {
+                        updateUrlParams();
+                        api.ajax.reload();
+                    });
+
+                    // Fungsi untuk update URL params tanpa reload halaman
+                    function updateUrlParams() {
+                        const year = $yearSelect.val();
+                        const month = $monthSelect.val();
+                        const status = $statusSelect.val();
                         const url = new URL(window.location.href);
 
-                        // Update URL Params agar saat di-refresh posisi filter tidak hilang
-                        const s = $statusSelect.val();
-                        const y = $yearSelect.val();
-                        const m = $monthSelect.val();
+                        if (year) {
+                            url.searchParams.set('year', year);
+                        } else {
+                            url.searchParams.delete('year');
+                        }
 
-                        if (s) url.searchParams.set('status', s);
-                        else url.searchParams.delete('status');
-                        if (y) url.searchParams.set('year', y);
-                        else url.searchParams.delete('year');
-                        if (m) url.searchParams.set('month', m);
-                        else url.searchParams.delete('month');
+                        if (month) {
+                            url.searchParams.set('month', month);
+                        } else {
+                            url.searchParams.delete('month');
+                        }
+
+                        if (status && status !== 'all') {
+                            url.searchParams.set('status', status);
+                        } else {
+                            url.searchParams.delete('status');
+                        }
 
                         window.history.pushState({}, '', url.toString());
-
-                        // Reload DataTables (ini akan memicu fungsi data: function(d) di inisialisasi awal)
-                        api.ajax.reload();
-                    };
-
-                    // Event listeners
-                    $statusSelect.on('change', refreshTable);
-                    $yearSelect.on('change', refreshTable);
-                    $monthSelect.on('change', refreshTable);
+                    }
                 }
             });
         });

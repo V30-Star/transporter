@@ -172,7 +172,7 @@ class WhController extends Controller
             $gudang = Wh::findOrFail($fwhid);
             $gudang->delete();
 
-                return redirect()->route('gudang.index')->with('success', 'Data gudang ' . $gudang->fwhname . ' berhasil dihapus.');
+            return redirect()->route('gudang.index')->with('success', 'Data gudang ' . $gudang->fwhname . ' berhasil dihapus.');
         } catch (\Exception $e) {
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
             return redirect()->route('gudang.delete', $fwhid)->with('error', 'Gagal menghapus data: ' . $e->getMessage());
@@ -181,11 +181,24 @@ class WhController extends Controller
 
     public function browse(Request $request)
     {
-        // Base query
+        // 1. Ambil kode cabang dari session user login
+        // Pastikan session 'fcabang' sudah diset saat proses login
+        $userBranch = session('fcabang');
+
+        // 2. Base query
         $query = Wh::query();
 
-        // Total records tanpa filter
-        $recordsTotal = Wh::count();
+        // 3. TAMBAHKAN VALIDASI CABANG DISINI
+        // Wh hanya boleh melihat data yang fbranchcode-nya sama dengan session user
+        if ($userBranch) {
+            $query->where('fbranchcode', $userBranch);
+        } else {
+            // Opsional: Jika session kosong, kembalikan data kosong atau tangani sesuai kebijakan
+            // $query->whereRaw('1 = 0'); 
+        }
+
+        // Total records tanpa filter pencarian (tapi tetap terfilter cabang)
+        $recordsTotal = (clone $query)->count();
 
         // Search
         if ($request->filled('search') && $request->search != '') {
@@ -197,7 +210,7 @@ class WhController extends Controller
             });
         }
 
-        // Total records setelah filter
+        // Total records setelah filter pencarian
         $recordsFiltered = $query->count();
 
         // Sorting

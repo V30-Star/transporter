@@ -89,6 +89,12 @@
             <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
                 <div class="space-y-4">
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                        <div class="lg:col-span-4">
+                            <label class="block text-sm font-medium">Cabang</label>
+                            <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
+                                value="{{ $fcabang }}" disabled>
+                            <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
+                        </div>
                         <div class="lg:col-span-4" x-data="{ autoCode: true }">
                             <label class="block text-sm font-medium mb-1">Transaksi#</label>
                             <div class="flex items-center gap-3">
@@ -100,6 +106,15 @@
                                     <span class="ml-2 text-sm text-gray-700">Auto</span>
                                 </label>
                             </div>
+                        </div>
+
+                        <div class="lg:col-span-4">
+                            <label class="block text-sm font-medium">Tanggal</label>
+                            <input type="date" name="fstockmtdate" value="{{ old('fstockmtdate') ?? date('Y-m-d') }}"
+                                class="w-full border rounded px-3 py-2 @error('fstockmtdate') border-red-500 @enderror">
+                            @error('fstockmtdate')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
 
                         <div class="lg:col-span-4">
@@ -156,16 +171,6 @@
                             </div>
                         </div>
 
-                        <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium">Tanggal</label>
-                            <input disabled type="date" name="fstockmtdate"
-                                value="{{ old('fstockmtdate') ?? date('Y-m-d') }}"
-                                class="w-full border rounded px-3 py-2 text-gray-700 @error('fstockmtdate') border-red-500 @enderror">
-                            @error('fstockmtdate')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-
                         <div class="lg:col-span-12">
                             <label class="block text-sm font-medium">Kirim ke</label>
                             <textarea readonly name="fkirim" rows="3"
@@ -202,9 +207,6 @@
                                         <th class="p-2 text-left w-36">Ref.PO#</th>
                                         <th class="p-2 text-right w-24">Sat</th>
                                         <th class="p-2 text-right w-28">Qty</th>
-                                        <th class="p-2 text-right w-32">@ Harga</th>
-                                        <th class="p-2 text-right w-36">Total Harga</th>
-                                        <th class="p-2 text-center w-36">Aksi</th>
                                     </tr>
                                 </thead>
 
@@ -224,8 +226,6 @@
                                             <td class="p-2" x-text="it.frefdtno || '-'"></td>
                                             <td class="p-2 text-right" x-text="it.fsatuan"></td>
                                             <td class="p-2 text-right" x-text="fmt(it.fqty)"></td>
-                                            <td class="p-2 text-right" x-text="fmt(it.fprice)"></td>
-                                            <td class="p-2 text-right" x-text="fmt(it.ftotal)"></td>
                                             <td class="hidden">
                                                 <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
                                                 <input type="hidden" name="fitemname[]" :value="it.fitemname">
@@ -301,16 +301,6 @@
                                                 x-model.number="editRow.fqty" @change="recalc(editRow)"
                                                 @blur="recalc(editRow)" @keydown.enter.prevent="$refs.editPrice?.focus()">
                                         </td>
-
-                                        <td class="p-2 text-right">
-                                            <input type="number" class="border rounded px-2 py-1 w-28 text-right"
-                                                min="0" step="0.01" x-ref="editPrice"
-                                                x-model.number="editRow.fprice" @change="recalc(editRow)"
-                                                @blur="recalc(editRow)"
-                                                @keydown.enter.prevent="handleEnterOnPrice('edit')">
-                                        </td>
-
-                                        <td class="p-2 text-right font-semibold" x-text="rupiah(editRow.ftotal)"></td>
                                     </tr>
 
                                     <tr x-show="editingIndex !== null" class="border-b" x-cloak>

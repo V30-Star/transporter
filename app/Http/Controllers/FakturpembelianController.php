@@ -901,7 +901,7 @@ class FakturPembelianController extends Controller
         'fitemcode' => ['required', 'array', 'min:1'],
         'fitemcode.*' => ['required', 'string', 'max:50'],
         'fsatuan' => ['nullable', 'array'],
-        'fsatuan.*' => ['nullable', 'string', 'max:5'],
+        'fsatuan.*' => ['nullable', 'string', 'max:20'],
         'frefdtno' => ['nullable', 'array'],
         'frefdtno.*' => ['nullable', 'string', 'max:20'],
         'fnouref' => ['nullable', 'array'],
@@ -996,7 +996,7 @@ class FakturPembelianController extends Controller
         $price = (float)($prices[$i] ?? 0);
         $biaya = (float)($biayas[$i] ?? 0);
         $discP = (float)($discs[$i] ?? 0);
-        $desc = (string)($descs[$i] ?? '');
+        $desc = trim((string)($descs[$i] ?? ''));
 
         if ($code === '' || $qty <= 0) {
           continue;
@@ -1006,6 +1006,7 @@ class FakturPembelianController extends Controller
           continue;
         }
         $prdId = $meta->fprdid;
+        $fPriceNet = $price + $biaya;
         if ($sat === '') {
           $sat = $pickDefaultSat($meta);
         }
@@ -1021,21 +1022,22 @@ class FakturPembelianController extends Controller
 
         $rowsDt[] = [
           'fprdcode' => $prdId,
-          'frefdtno' => $rref,
+          'frefdtno' => $rref !== '' ? $rref : null,
           'fqty' => $qty,
           'fqtyremain' => $qty,
           'fprice' => $price,
           'fbiaya' => $biaya,
+          'fpricenet' => $fPriceNet,
           'fprice_rp' => $price * $frate,
           'ftotprice' => $amount,
           'ftotprice_rp' => $amount * $frate,
           'fuserupdate'     => (Auth::user()->fname ?? 'system'),
           'fdatetime' => $now,
-          'fketdt' => '',
+          'fketdt' => $desc !== '' ? $desc : null,
           'fcode' => '0',
           'fnouref' => $rnour !== null ? (int)$rnour : null,
           'frefso' => null,
-          'fdesc' => $desc,
+          'fdesc' => $desc !== '' ? $desc : null,
           'fdiscpersen' => (string)$discP,
           'fsatuan' => $sat,
           'fqtykecil' => $qty,

@@ -274,19 +274,31 @@
                         <div id="satuan-container">
 
                             {{-- Satuan Kecil --}}
-                            <div class="mt-2 w-1/4">
-                                <label class="block text-sm font-medium">Satuan Kecil</label>
-                                <select disabled
-                                    class="w-full border rounded px-3 py-2 bg-gray-100 @error('fsatuankecil') border-red-500 @enderror"
-                                    name="fsatuankecil" id="fsatuankecil" onchange="updateSatuanLogic();">
-                                    <option value="" selected> Pilih Satuan 1</option>
-                                    @foreach ($satuan as $satu)
-                                        <option value="{{ $satu->fsatuancode }}"
-                                            {{ old('fsatuankecil', $product->fsatuankecil) == $satu->fsatuancode ? 'selected' : '' }}>
-                                            {{ $satu->fsatuancode }}
-                                        </option>
-                                    @endforeach
-                                </select>
+                            <div class="mt-2 flex items-end gap-4">
+                                <div class="w-1/3">
+
+                                    <label class="block text-sm font-medium">Satuan Kecil</label>
+                                    <select
+                                        class="w-full border rounded px-3 py-2 bg-blue-50 border-blue-300 focus:ring-blue-500 @error('fsatuankecil') border-red-500 @enderror"
+                                        name="fsatuankecil" id="fsatuankecil" onchange="updateSatuanLogic();">
+                                        <option value="" selected> Pilih Satuan 1</option>
+                                        @foreach ($satuan as $satu)
+                                            <option value="{{ $satu->fsatuancode }}"
+                                                {{ old('fsatuankecil', $product->fsatuankecil) == $satu->fsatuancode ? 'selected' : '' }}>
+                                                {{ $satu->fsatuancode }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <div class="w-1/4 invisible"></div>
+
+                                <div class="w-1/6">
+                                    <label class="block text-sm font-medium">HPP Satuan Kecil</label>
+                                    <input type="text" name="fhpp" id="fhpp" disabled
+                                        class="autonumeric w-full border border-blue-300 rounded px-3 py-2 bg-blue-50 focus:bg-white transition-colors"
+                                        {{-- Gunakan format murni angka tanpa ribuan agar AutoNumeric yang memformatnya --}} value="{{ old('fhpp', $product->fhpp ?? 0) }}">
+                                </div>
                                 @error('fsatuankecil')
                                     <div class="text-red-600 text-sm mt-1">
                                         {{ $message }}
@@ -299,8 +311,8 @@
                                 <div class="flex items-end gap-4">
                                     <div class="w-1/3">
                                         <label class="block text-sm font-medium">Satuan 2</label>
-                                        <select disabled
-                                            class="w-full border rounded px-3 py-2 bg-gray-100 @error('fsatuanbesar') border-red-500 @enderror"
+                                        <select
+                                            class="w-full border rounded px-3 py-2 bg-yellow-50 @error('fsatuanbesar') border-red-500 @enderror"
                                             name="fsatuanbesar" id="fsatuanbesar" disabled
                                             onchange="updateSatuanLogic();">
                                             <option value="" selected>Pilih Satuan 2</option>
@@ -319,26 +331,28 @@
                                         @enderror
                                     </div>
 
-                                    <div class="w-1/6">
+                                    <div class="w-1/4"> {{-- Kita lebarkan sedikit dari 1/6 ke 1/4 agar ruang teks lebih lega --}}
                                         <label class="block text-sm font-medium">Isi</label>
-                                        <div class="flex items-baseline gap-2">
-                                            <input type="number" readonly
-                                                class="w-full border rounded px-3 py-2 bg-gray-100 @error('fqtykecil') border-red-500 @enderror"
-                                                name="fqtykecil" id="fqtykecil"
-                                                value="{{ old('fqtykecil', $product->fqtykecil) }}">
-                                            <span id="satuanKecilTarget"
-                                                class="satuan-kecil-display text-gray-700 font-semibold whitespace-nowrap">
+                                        <div
+                                            class="flex items-center border border-yellow-300 rounded bg-yellow-50 focus-within:bg-white focus-within:ring-1 focus-within:ring-yellow-400 transition-all">
+                                            {{-- Input tanpa border agar menyatu dengan container --}}
+                                            <input type="text" name="fqtykecil" id="fqtykecil"
+                                                value={{ old('fqtykecil', $product->fqtykecil) }}
+                                                class="autonumeric flex-1 bg-transparent border-none focus:ring-0 px-3 py-2 text-right"
+                                                disabled>
+
+                                            {{-- Span sebagai prefix/suffix di dalam kotak --}}
+                                            <span
+                                                class="satuan-kecil-display text-gray-500 font-bold text-[10px] pr-3 flex-shrink-0 border-l border-yellow-200 ml-2 pl-2">
                                             </span>
                                         </div>
-                                        @error('fqtykecil')
-                                            <div class="text-red-600 text-sm mt-1">
-                                                {{ $message }}
-                                            </div>
-                                        @enderror
                                     </div>
                                     <div class="w-1/6">
-                                        <label id="fsatuanname-label"
-                                            class="block text-sm font-medium text-red-500 font-bold"></label>
+                                        <label class="block text-sm font-medium">HPP Satuan 2</label>
+                                        <input type="text" name="fhpp2" id="fhpp2"
+                                            value="{{ old('fhpp2', $product->fhpp2) }}"
+                                            class="autonumeric w-full border border-yellow-300 rounded px-3 py-2 bg-yellow-100 font-semibold"
+                                            readonly>
                                     </div>
                                 </div>
                             </div>
@@ -348,8 +362,8 @@
                                 <div class="flex items-end gap-4">
                                     <div class="w-1/3">
                                         <label class="block text-sm font-medium">Satuan 3</label>
-                                        <select disabled
-                                            class="w-full border rounded px-3 py-2 bg-gray-100 @error('fsatuanbesar2') border-red-500 @enderror"
+                                        <select
+                                            class="w-full border rounded px-3 py-2 bg-purple-50 @error('fsatuanbesar2') border-red-500 @enderror"
                                             name="fsatuanbesar2" id="fsatuanbesar2"
                                             data-select2-id="select2-data-fsatuanbesar2" tabindex="-1"
                                             aria-hidden="true">
@@ -369,30 +383,79 @@
                                         @enderror
                                     </div>
 
-                                    <div class="w-1/6">
+                                    <div class="w-1/4"> {{-- Lebar dinaikkan ke 1/4 agar ruang teks lebih lega --}}
                                         <label class="block text-sm font-medium">Isi</label>
-                                        <div class="flex items-baseline gap-2">
-                                            <input type="number" readonly
-                                                class="w-full border rounded px-3 py-2 bg-gray-100 @error('fqtykecil2') border-red-500 @enderror"
-                                                name="fqtykecil2" id="fqtykecil2"
-                                                value="{{ old('fqtykecil2', $product->fqtykecil2) }}">
-                                            <span id="satuanKecilTarget"
-                                                class="satuan-kecil-display text-gray-700 font-semibold whitespace-nowrap">
+                                        <div
+                                            class="flex items-center border border-purple-300 rounded bg-purple-50 focus-within:bg-white focus-within:ring-1 focus-within:ring-purple-400 transition-all">
+                                            {{-- Input tanpa border agar menyatu dengan container --}}
+                                            <input type="text" name="fqtykecil2" id="fqtykecil2"
+                                                value={{ old('fqtykecil2', $product->fqtykecil2) }}
+                                                class="autonumeric flex-1 bg-transparent border-none focus:ring-0 px-3 py-2 text-right"
+                                                disabled>
+
+                                            {{-- Span sebagai teks di dalam kotak --}}
+                                            <span
+                                                class="satuan-kecil-display text-purple-700 font-bold text-[10px] pr-3 flex-shrink-0 border-l border-purple-200 ml-2 pl-2 uppercase">
                                             </span>
                                         </div>
-                                        @error('fqtykecil2')
-                                            <div class="text-red-600 text-sm mt-1">
-                                                {{ $message }}
-                                            </div>
-                                        @enderror
                                     </div>
                                     <div class="w-1/6">
-                                        <label id="fsatuanname-label-2"
-                                            class="block text-sm font-medium text-red-500 font-bold"></label>
+                                        <label class="block text-sm font-medium">HPP Satuan 3</label>
+                                        <input type="text" name="fhpp3" id="fhpp3"
+                                            value="{{ old('fhpp3', $product->fhpp3) }}"
+                                            class="autonumeric w-full border border-purple-300 rounded px-3 py-2 bg-purple-100 font-semibold"
+                                            readonly>
                                     </div>
                                 </div>
                             </div>
                         </div>
+
+                        <script>
+                            $(document).ready(function() {
+                                // 1. Inisialisasi AutoNumeric secara individual agar lebih stabil
+                                const autoNumericOptions = {
+                                    digitGroupSeparator: '.',
+                                    decimalCharacter: ',',
+                                    decimalPlaces: 2,
+                                    unformatOnSubmit: true,
+                                    allowDecimalPadding: true,
+                                    outputFormat: "number"
+                                };
+
+                                // Inisialisasi dan simpan instance ke dalam variabel
+                                const anHpp = new AutoNumeric('#fhpp', autoNumericOptions);
+                                const anHpp2 = new AutoNumeric('#fhpp2', autoNumericOptions);
+                                const anHpp3 = new AutoNumeric('#fhpp3', autoNumericOptions);
+                                const anQty2 = new AutoNumeric('#fqtykecil', autoNumericOptions);
+                                const anQty3 = new AutoNumeric('#fqtykecil2', autoNumericOptions);
+
+                                function calculateHPPRows() {
+                                    const valHppKecil = anHpp.getNumber();
+                                    const valQty2 = anQty2.getNumber();
+                                    const valQty3 = anQty3.getNumber();
+
+                                    // Update HPP 2 & 3
+                                    if (valQty2 > 0) {
+                                        anHpp2.set(valHppKecil * valQty2);
+                                    }
+                                    if (valQty3 > 0) {
+                                        anHpp3.set(valHppKecil * valQty3);
+                                    }
+                                }
+
+                                // 2. Event Listener khusus AutoNumeric
+                                // Gunakan event 'autoNumeric:newValue' agar kalkulasi akurat setelah format selesai
+                                $('#fhpp, #fqtykecil, #fqtykecil2').on('autoNumeric:newValue', function() {
+                                    calculateHPPRows();
+                                });
+
+                                // 3. Jalankan kalkulasi pertama kali saat halaman terbuka
+                                // Gunakan sedikit delay agar AutoNumeric selesai memformat nilai awal dari DB
+                                setTimeout(() => {
+                                    calculateHPPRows();
+                                }, 300);
+                            });
+                        </script>
 
                         <!-- Satuan Default Dropdown -->
                         <div class="mt-2 w-1/4 bg-gray-100">
@@ -416,25 +479,14 @@
                             @enderror
                         </div>
 
-                        <!-- Harga Pokok Produksi -->
-                        <div class="mt-2 w-1/4">
-                            <label class="block text-sm font-medium">Harga Pokok Produksi</label>
-                            <input type="text" name="fhpp" id="fhpp" readonly
-                                value="{{ old('fhpp', $product->fhpp) }}"
-                                class="w-full border rounded px-3 py-2 bg-gray-100 @error('fhpp') border-red-500 @enderror">
-                            @error('fhpp')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-
                         <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <!-- Harga Satuan 3 Level 1 -->
                             <div>
                                 <label for="fhargasatuankecillevel1" class="block text-sm font-medium">HJ. Kecil Level
                                     1</label>
                                 <div class="d-flex">
-                                    <input type="text" readonly
-                                        class="w-1/10 border rounded px-3 py-2 bg-gray-100 @error('fhargasatuankecillevel1') is-invalid @enderror"
+                                    <input type="text"
+                                        class="w-1/10 border rounded px-3 py-2 bg-blue-50 border-blue-300 focus:ring-blue-500 @error('fhargasatuankecillevel1') is-invalid @enderror"
                                         name="fhargasatuankecillevel1" id="fhargasatuankecillevel1"
                                         value="{{ old('fhargasatuankecillevel1', $product->fhargasatuankecillevel1) }}">
                                     @error('fhargasatuankecillevel1')
@@ -450,8 +502,8 @@
                                 <label for="fhargasatuankecillevel2" class="block text-sm font-medium">HJ. Kecil Level
                                     2</label>
                                 <div class="d-flex">
-                                    <input type="text" readonly
-                                        class="w-1/10 border rounded px-3 py-2 bg-gray-100 @error('fhargasatuankecillevel2') is-invalid @enderror"
+                                    <input type="text"
+                                        class="w-1/10 border rounded px-3 py-2 bg-yellow-50 @error('fhargasatuankecillevel2') is-invalid @enderror"
                                         name="fhargasatuankecillevel2" id="fhargasatuankecillevel2"
                                         value="{{ old('fhargasatuankecillevel2', $product->fhargasatuankecillevel2) }}">
                                     @error('fhargasatuankecillevel2')
@@ -467,8 +519,8 @@
                                 <label for="fhargasatuankecillevel3" class="block text-sm font-medium">HJ. Kecil Level
                                     3</label>
                                 <div class="d-flex">
-                                    <input type="text" readonly
-                                        class="w-1/10 border rounded px-3 py-2 bg-gray-100 @error('fhargasatuankecillevel3') is-invalid @enderror"
+                                    <input type="text"
+                                        class="w-1/10 border rounded px-3 py-2 bg-purple-50 @error('fhargasatuankecillevel3') is-invalid @enderror"
                                         name="fhargasatuankecillevel3" id="fhargasatuankecillevel3"
                                         value="{{ old('fhargasatuankecillevel3', $product->fhargasatuankecillevel3) }}">
                                     @error('fhargasatuankecillevel3')
@@ -486,8 +538,8 @@
                                 <label for="fhargajuallevel1" class="block text-sm font-medium">HJ. Besar Level
                                     1</label>
                                 <div class="d-flex">
-                                    <input type="text" readonly
-                                        class="w-1/10 border rounded px-3 py-2 bg-gray-100 @error('fhargajuallevel1') is-invalid @enderror"
+                                    <input type="text"
+                                        class="w-1/10 border rounded px-3 py-2 bg-blue-50 border-blue-300 focus:ring-blue-500 @error('fhargajuallevel1') is-invalid @enderror"
                                         name="fhargajuallevel1" id="fhargajuallevel1"
                                         value="{{ old('fhargajuallevel1', $product->fhargajuallevel1) }}">
                                     @error('fhargajuallevel1')
@@ -503,8 +555,8 @@
                                 <label for="fhargajuallevel2" class="block text-sm font-medium">HJ. Besar Level
                                     2</label>
                                 <div class="d-flex">
-                                    <input type="text" readonly
-                                        class="w-1/10 border rounded px-3 py-2 bg-gray-100 @error('fhargajuallevel2') is-invalid @enderror"
+                                    <input type="text"
+                                        class="w-1/10 border rounded px-3 py-2 bg-yellow-50 @error('fhargajuallevel2') is-invalid @enderror"
                                         name="fhargajuallevel2" id="fhargajuallevel2"
                                         value="{{ old('fhargajuallevel2', $product->fhargajuallevel2) }}">
                                     @error('fhargajuallevel2')
@@ -520,8 +572,8 @@
                                 <label for="fhargajuallevel3" class="block text-sm font-medium">HJ. Besar Level
                                     3</label>
                                 <div class="d-flex">
-                                    <input type="text" readonly
-                                        class="w-1/10 border rounded px-3 py-2 bg-gray-100 @error('fhargajuallevel3') is-invalid @enderror"
+                                    <input type="text"
+                                        class="w-1/10 border rounded px-3 py-2 bg-purple-50 @error('fhargajuallevel3') is-invalid @enderror"
                                         name="fhargajuallevel3" id="fhargajuallevel3"
                                         value="{{ old('fhargajuallevel3', $product->fhargajuallevel3) }}">
                                     @error('fhargajuallevel3')
@@ -755,19 +807,31 @@
                         <div id="satuan-container">
 
                             {{-- Satuan Kecil --}}
-                            <div class="mt-2 w-1/4">
-                                <label class="block text-sm font-medium">Satuan Kecil</label>
-                                <select
-                                    class="w-full border rounded px-3 py-2 @error('fsatuankecil') border-red-500 @enderror"
-                                    name="fsatuankecil" id="fsatuankecil" onchange="updateSatuanLogic();">
-                                    <option value="" selected> Pilih Satuan 1</option>
-                                    @foreach ($satuan as $satu)
-                                        <option value="{{ $satu->fsatuancode }}"
-                                            {{ old('fsatuankecil', $product->fsatuankecil) == $satu->fsatuancode ? 'selected' : '' }}>
-                                            {{ $satu->fsatuancode }}
-                                        </option>
-                                    @endforeach
-                                </select>
+                            <div class="mt-2 flex items-end gap-4">
+                                <div class="w-1/3">
+
+                                    <label class="block text-sm font-medium">Satuan Kecil</label>
+                                    <select
+                                        class="w-full border rounded px-3 py-2 bg-blue-50 border-blue-300 focus:ring-blue-500 @error('fsatuankecil') border-red-500 @enderror"
+                                        name="fsatuankecil" id="fsatuankecil" onchange="updateSatuanLogic();">
+                                        <option value="" selected> Pilih Satuan 1</option>
+                                        @foreach ($satuan as $satu)
+                                            <option value="{{ $satu->fsatuancode }}"
+                                                {{ old('fsatuankecil', $product->fsatuankecil) == $satu->fsatuancode ? 'selected' : '' }}>
+                                                {{ $satu->fsatuancode }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <div class="w-1/4 invisible"></div>
+
+                                <div class="w-1/6">
+                                    <label class="block text-sm font-medium">HPP Satuan Kecil</label>
+                                    <input type="text" name="fhpp" id="fhpp"
+                                        class="autonumeric w-full border border-blue-300 rounded px-3 py-2 bg-blue-50 focus:bg-white transition-colors"
+                                        {{-- Gunakan format murni angka tanpa ribuan agar AutoNumeric yang memformatnya --}} value="{{ old('fhpp', $product->fhpp ?? 0) }}">
+                                </div>
                                 @error('fsatuankecil')
                                     <div class="text-red-600 text-sm mt-1">
                                         {{ $message }}
@@ -781,7 +845,7 @@
                                     <div class="w-1/3">
                                         <label class="block text-sm font-medium">Satuan 2</label>
                                         <select
-                                            class="w-full border rounded px-3 py-2 @error('fsatuanbesar') border-red-500 @enderror"
+                                            class="w-full border rounded px-3 py-2 bg-yellow-50 @error('fsatuanbesar') border-red-500 @enderror"
                                             name="fsatuanbesar" id="fsatuanbesar" disabled
                                             onchange="updateSatuanLogic();">
                                             <option value="" selected>Pilih Satuan 2</option>
@@ -800,26 +864,28 @@
                                         @enderror
                                     </div>
 
-                                    <div class="w-1/6">
+                                    <div class="w-1/4"> {{-- Kita lebarkan sedikit dari 1/6 ke 1/4 agar ruang teks lebih lega --}}
                                         <label class="block text-sm font-medium">Isi</label>
-                                        <div class="flex items-baseline gap-2">
-                                            <input type="number"
-                                                class="w-full border rounded px-3 py-2 @error('fqtykecil') border-red-500 @enderror"
-                                                name="fqtykecil" id="fqtykecil"
-                                                value="{{ old('fqtykecil', $product->fqtykecil) }}">
-                                            <span id="satuanKecilTarget"
-                                                class="satuan-kecil-display text-gray-700 font-semibold whitespace-nowrap">
+                                        <div
+                                            class="flex items-center border border-yellow-300 rounded bg-yellow-50 focus-within:bg-white focus-within:ring-1 focus-within:ring-yellow-400 transition-all">
+                                            {{-- Input tanpa border agar menyatu dengan container --}}
+                                            <input type="text" name="fqtykecil" id="fqtykecil"
+                                                value={{ old('fqtykecil', $product->fqtykecil) }}
+                                                class="autonumeric flex-1 bg-transparent border-none focus:ring-0 px-3 py-2 text-right"
+                                                disabled>
+
+                                            {{-- Span sebagai prefix/suffix di dalam kotak --}}
+                                            <span
+                                                class="satuan-kecil-display text-gray-500 font-bold text-[10px] pr-3 flex-shrink-0 border-l border-yellow-200 ml-2 pl-2">
                                             </span>
                                         </div>
-                                        @error('fqtykecil')
-                                            <div class="text-red-600 text-sm mt-1">
-                                                {{ $message }}
-                                            </div>
-                                        @enderror
                                     </div>
                                     <div class="w-1/6">
-                                        <label id="fsatuanname-label"
-                                            class="block text-sm font-medium text-red-500 font-bold"></label>
+                                        <label class="block text-sm font-medium">HPP Satuan 2</label>
+                                        <input type="text" name="fhpp2" id="fhpp2"
+                                            value="{{ old('fhpp2', $product->fhpp2) }}"
+                                            class="autonumeric w-full border border-yellow-300 rounded px-3 py-2 bg-yellow-100 font-semibold"
+                                            readonly>
                                     </div>
                                 </div>
                             </div>
@@ -829,11 +895,10 @@
                                 <div class="flex items-end gap-4">
                                     <div class="w-1/3">
                                         <label class="block text-sm font-medium">Satuan 3</label>
-                                        <select
-                                            class="w-full border rounded px-3 py-2 @error('fsatuanbesar2') border-red-500 @enderror"
-                                            name="fsatuanbesar2" id="fsatuanbesar2"
-                                            data-select2-id="select2-data-fsatuanbesar2" tabindex="-1"
-                                            aria-hidden="true">
+                                        <select class="w-full border rounded px-3 py-2 bg-purple-50"
+                                            @error('fsatuanbesar2') border-red-500 @enderror" name="fsatuanbesar2"
+                                            id="fsatuanbesar2" data-select2-id="select2-data-fsatuanbesar2"
+                                            tabindex="-1" aria-hidden="true">
                                             <option value="" selected>Pilih Satuan 3</option>
                                             @foreach ($satuan as $satu)
                                                 <option value="{{ $satu->fsatuancode }}"
@@ -850,30 +915,79 @@
                                         @enderror
                                     </div>
 
-                                    <div class="w-1/6">
+                                    <div class="w-1/4"> {{-- Lebar dinaikkan ke 1/4 agar ruang teks lebih lega --}}
                                         <label class="block text-sm font-medium">Isi</label>
-                                        <div class="flex items-baseline gap-2">
-                                            <input type="number"
-                                                class="w-full border rounded px-3 py-2 @error('fqtykecil2') border-red-500 @enderror"
-                                                name="fqtykecil2" id="fqtykecil2"
-                                                value="{{ old('fqtykecil2', $product->fqtykecil2) }}">
-                                            <span id="satuanKecilTarget"
-                                                class="satuan-kecil-display text-gray-700 font-semibold whitespace-nowrap">
+                                        <div
+                                            class="flex items-center border border-purple-300 rounded bg-purple-50 focus-within:bg-white focus-within:ring-1 focus-within:ring-purple-400 transition-all">
+                                            {{-- Input tanpa border agar menyatu dengan container --}}
+                                            <input type="text" name="fqtykecil2" id="fqtykecil2"
+                                                value={{ old('fqtykecil2', $product->fqtykecil2) }}
+                                                class="autonumeric flex-1 bg-transparent border-none focus:ring-0 px-3 py-2 text-right"
+                                                disabled>
+
+                                            {{-- Span sebagai teks di dalam kotak --}}
+                                            <span
+                                                class="satuan-kecil-display text-purple-700 font-bold text-[10px] pr-3 flex-shrink-0 border-l border-purple-200 ml-2 pl-2 uppercase">
                                             </span>
                                         </div>
-                                        @error('fqtykecil2')
-                                            <div class="text-red-600 text-sm mt-1">
-                                                {{ $message }}
-                                            </div>
-                                        @enderror
                                     </div>
                                     <div class="w-1/6">
-                                        <label id="fsatuanname-label-2"
-                                            class="block text-sm font-medium text-red-500 font-bold"></label>
+                                        <label class="block text-sm font-medium">HPP Satuan 3</label>
+                                        <input type="text" name="fhpp3" id="fhpp3"
+                                            value="{{ old('fhpp3', $product->fhpp3) }}"
+                                            class="autonumeric w-full border border-purple-300 rounded px-3 py-2 bg-purple-100 font-semibold"
+                                            readonly>
                                     </div>
                                 </div>
                             </div>
                         </div>
+
+                        <script>
+                            $(document).ready(function() {
+                                // 1. Inisialisasi AutoNumeric secara individual agar lebih stabil
+                                const autoNumericOptions = {
+                                    digitGroupSeparator: '.',
+                                    decimalCharacter: ',',
+                                    decimalPlaces: 2,
+                                    unformatOnSubmit: true,
+                                    allowDecimalPadding: true,
+                                    outputFormat: "number"
+                                };
+
+                                // Inisialisasi dan simpan instance ke dalam variabel
+                                const anHpp = new AutoNumeric('#fhpp', autoNumericOptions);
+                                const anHpp2 = new AutoNumeric('#fhpp2', autoNumericOptions);
+                                const anHpp3 = new AutoNumeric('#fhpp3', autoNumericOptions);
+                                const anQty2 = new AutoNumeric('#fqtykecil', autoNumericOptions);
+                                const anQty3 = new AutoNumeric('#fqtykecil2', autoNumericOptions);
+
+                                function calculateHPPRows() {
+                                    const valHppKecil = anHpp.getNumber();
+                                    const valQty2 = anQty2.getNumber();
+                                    const valQty3 = anQty3.getNumber();
+
+                                    // Update HPP 2 & 3
+                                    if (valQty2 > 0) {
+                                        anHpp2.set(valHppKecil * valQty2);
+                                    }
+                                    if (valQty3 > 0) {
+                                        anHpp3.set(valHppKecil * valQty3);
+                                    }
+                                }
+
+                                // 2. Event Listener khusus AutoNumeric
+                                // Gunakan event 'autoNumeric:newValue' agar kalkulasi akurat setelah format selesai
+                                $('#fhpp, #fqtykecil, #fqtykecil2').on('autoNumeric:newValue', function() {
+                                    calculateHPPRows();
+                                });
+
+                                // 3. Jalankan kalkulasi pertama kali saat halaman terbuka
+                                // Gunakan sedikit delay agar AutoNumeric selesai memformat nilai awal dari DB
+                                setTimeout(() => {
+                                    calculateHPPRows();
+                                }, 300);
+                            });
+                        </script>
 
                         <!-- Satuan Default Dropdown -->
                         <div class="mt-2 w-1/4">
@@ -887,24 +1001,14 @@
                                     {{ old('fsatuandefault', $product->fsatuandefault) == '2' ? 'selected' : '' }}>Satuan 2
                                 </option>
                                 <option value="3"
-                                    {{ old('fsatuandefault', $product->fsatuandefault) == '3' ? 'selected' : '' }}>Satuan 3
+                                    {{ old('fsatuandefault', $product->fsatuandefault) == '3' ? 'selected' : '' }}>Satuan
+                                    3
                                 </option>
                             </select>
                             @error('fsatuandefault')
                                 <div class="text-red-600 text-sm mt-1">
                                     {{ $message }}
                                 </div>
-                            @enderror
-                        </div>
-
-                        <!-- Harga Pokok Produksi -->
-                        <div class="mt-2 w-1/4">
-                            <label class="block text-sm font-medium">Harga Pokok Produksi</label>
-                            <input type="text" name="fhpp" id="fhpp"
-                                value="{{ old('fhpp', $product->fhpp) }}"
-                                class="w-full border rounded px-3 py-2 @error('fhpp') border-red-500 @enderror">
-                            @error('fhpp')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
                         </div>
 
@@ -915,7 +1019,7 @@
                                     1</label>
                                 <div class="d-flex">
                                     <input type="text"
-                                        class="w-1/10 border rounded px-3 py-2 @error('fhargasatuankecillevel1') is-invalid @enderror"
+                                        class="w-1/10 border rounded px-3 py-2 bg-blue-50 border-blue-300 focus:ring-blue-500 @error('fhargasatuankecillevel1') is-invalid @enderror"
                                         name="fhargasatuankecillevel1" id="fhargasatuankecillevel1"
                                         value="{{ old('fhargasatuankecillevel1', $product->fhargasatuankecillevel1) }}">
                                     @error('fhargasatuankecillevel1')
@@ -932,7 +1036,7 @@
                                     2</label>
                                 <div class="d-flex">
                                     <input type="text"
-                                        class="w-1/10 border rounded px-3 py-2 @error('fhargasatuankecillevel2') is-invalid @enderror"
+                                        class="w-1/10 border rounded px-3 py-2 bg-yellow-50 @error('fhargasatuankecillevel2') is-invalid @enderror"
                                         name="fhargasatuankecillevel2" id="fhargasatuankecillevel2"
                                         value="{{ old('fhargasatuankecillevel2', $product->fhargasatuankecillevel2) }}">
                                     @error('fhargasatuankecillevel2')
@@ -949,7 +1053,7 @@
                                     3</label>
                                 <div class="d-flex">
                                     <input type="text"
-                                        class="w-1/10 border rounded px-3 py-2 @error('fhargasatuankecillevel3') is-invalid @enderror"
+                                        class="w-1/10 border rounded px-3 py-2 bg-purple-50 @error('fhargasatuankecillevel3') is-invalid @enderror"
                                         name="fhargasatuankecillevel3" id="fhargasatuankecillevel3"
                                         value="{{ old('fhargasatuankecillevel3', $product->fhargasatuankecillevel3) }}">
                                     @error('fhargasatuankecillevel3')
@@ -968,7 +1072,7 @@
                                     1</label>
                                 <div class="d-flex">
                                     <input type="text"
-                                        class="w-1/10 border rounded px-3 py-2 @error('fhargajuallevel1') is-invalid @enderror"
+                                        class="w-1/10 border rounded px-3 py-2 bg-blue-50 border-blue-300 focus:ring-blue-500 @error('fhargajuallevel1') is-invalid @enderror"
                                         name="fhargajuallevel1" id="fhargajuallevel1"
                                         value="{{ old('fhargajuallevel1', $product->fhargajuallevel1) }}">
                                     @error('fhargajuallevel1')
@@ -985,7 +1089,7 @@
                                     2</label>
                                 <div class="d-flex">
                                     <input type="text"
-                                        class="w-1/10 border rounded px-3 py-2 @error('fhargajuallevel2') is-invalid @enderror"
+                                        class="w-1/10 border rounded px-3 py-2 bg-yellow-50 @error('fhargajuallevel2') is-invalid @enderror"
                                         name="fhargajuallevel2" id="fhargajuallevel2"
                                         value="{{ old('fhargajuallevel2', $product->fhargajuallevel2) }}">
                                     @error('fhargajuallevel2')
@@ -1002,7 +1106,7 @@
                                     3</label>
                                 <div class="d-flex">
                                     <input type="text"
-                                        class="w-1/10 border rounded px-3 py-2 @error('fhargajuallevel3') is-invalid @enderror"
+                                        class="w-1/10 border rounded px-3 py-2 bg-purple-50 @error('fhargajuallevel3') is-invalid @enderror"
                                         name="fhargajuallevel3" id="fhargajuallevel3"
                                         value="{{ old('fhargajuallevel3', $product->fhargajuallevel3) }}">
                                     @error('fhargajuallevel3')

@@ -11,9 +11,9 @@ use App\Http\Controllers\GroupproductController;
 use App\Http\Controllers\MerekController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\RekeningController;
+use App\Http\Controllers\CurrencyController;
 use App\Http\Controllers\RoleAccessController;
 use App\Http\Controllers\WilayahController;
-use App\Http\Controllers\RuteController;
 use App\Http\Controllers\SalesmanController;
 use App\Http\Controllers\SatuanController;
 use App\Http\Controllers\SubaccountController;
@@ -25,6 +25,7 @@ use App\Http\Controllers\AssemblingController;
 use App\Http\Controllers\WhController;
 use App\Http\Controllers\PenerimaanBarangController;
 use App\Http\Controllers\FakturpembelianController;
+use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\MutasiController;
 use App\Http\Controllers\PemakaianbarangController;
 use App\Http\Controllers\ReportingController;
@@ -166,6 +167,14 @@ Route::middleware('auth')->group(function () {
         Route::get('/rekening/{frekeningid}/delete', [RekeningController::class, 'delete'])->name('rekening.delete');
         Route::patch('/rekening/{frekeningid}', [RekeningController::class, 'update'])->name('rekening.update');
         Route::delete('/rekening/{frekeningid}', [RekeningController::class, 'destroy'])->name('rekening.destroy');
+
+        Route::get('/currency', [CurrencyController::class, 'index'])->name('currency.index');
+        Route::post('/currency',        [CurrencyController::class, 'store'])->name('currency.store');
+        Route::get('/currency/create', [CurrencyController::class, 'create'])->name('currency.create');
+        Route::get('/currency/{frekeningid}/edit', [CurrencyController::class, 'edit'])->name('currency.edit');
+        Route::get('/currency/{frekeningid}/delete', [CurrencyController::class, 'delete'])->name('currency.delete');
+        Route::patch('/currency/{frekeningid}', [CurrencyController::class, 'update'])->name('currency.update');
+        Route::delete('/currency/{frekeningid}', [CurrencyController::class, 'destroy'])->name('currency.destroy');
 
         Route::get('/account', [AccountController::class, 'index'])->name('account.index');
         Route::post('/account',        [AccountController::class, 'store'])->name('account.store');
@@ -334,6 +343,21 @@ Route::middleware('auth')->group(function () {
             ->name('suratjalan.items');
         Route::get('/suratjalan/pickable', [SuratJalanController::class, 'pickable'])
             ->name('suratjalan.pickable');
+
+        Route::get('/invoice',  [InvoiceController::class, 'index'])->name('invoice.index');
+        Route::post('/invoice',        [InvoiceController::class, 'store'])->name('invoice.store');
+        Route::get('/invoice/create', [InvoiceController::class, 'create'])->name('invoice.create');
+        Route::get('/invoice/{ftrsomtid}/view', [InvoiceController::class, 'view'])->name('invoice.view');
+        Route::get('/invoice/{ftrsomtid}/edit', [InvoiceController::class, 'edit'])->name('invoice.edit');
+        Route::get('/invoice/{ftrsomtid}/delete', [InvoiceController::class, 'delete'])->name('invoice.delete');
+        Route::patch('/invoice/{ftrsomtid}', [InvoiceController::class, 'update'])->name('invoice.update');
+        Route::delete('/invoice/{ftrsomtid}', [InvoiceController::class, 'destroy'])->name('invoice.destroy');
+        Route::get('/invoice/{fstockmtno}/print', [InvoiceController::class, 'print'])
+            ->name('invoice.print');
+        Route::get('/invoice/{id}/items', [InvoiceController::class, 'items'])
+            ->name('invoice.items');
+        Route::get('/invoice/pickable', [InvoiceController::class, 'pickable'])
+            ->name('invoice.pickable');
 
         Route::get('/products/browse', [\App\Http\Controllers\ProductBrowseController::class, 'index'])
             ->name('products.browse');

@@ -96,6 +96,12 @@
 
                     {{-- HEADER FORM --}}
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                        <div class="lg:col-span-4">
+                            <label class="block text-sm font-medium">Cabang</label>
+                            <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
+                                value="{{ $fcabang }}" disabled>
+                            <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
+                        </div>
                         <div class="lg:col-span-4" x-data="{ autoCode: true }">
                             <label class="block text-sm font-medium mb-1">Transaksi#</label>
                             <div class="flex items-center gap-3">
@@ -110,6 +116,15 @@
                         </div>
 
                         <input type="hidden" name="fstockmtid" value="fstockmtid">
+
+                        <div class="lg:col-span-4">
+                            <label class="block text-sm font-medium">Tanggal</label>
+                            <input type="date" name="fstockmtdate" value="{{ old('fstockmtdate') ?? date('Y-m-d') }}"
+                                class="w-full border rounded px-3 py-2 @error('fstockmtdate') border-red-500 @enderror">
+                            @error('fstockmtdate')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
 
                         <div class="lg:col-span-4">
                             <label class="block text-sm font-medium mb-1">Customer</label>
@@ -193,27 +208,6 @@
                             @enderror
                         </div>
 
-                        <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium">Tanggal</label>
-                            <input type="date" name="fstockmtdate" value="{{ old('fstockmtdate') ?? date('Y-m-d') }}"
-                                class="w-full border rounded px-3 py-2 @error('fstockmtdate') border-red-500 @enderror">
-                            @error('fstockmtdate')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        {{-- <div>
-                            <label class="block text-sm font-medium mb-1">Timbangan</label>
-                            <div class="flex items-center gap-2">
-                                <input type="text" name="fwhname" value="{{ old('fwhname') }}"
-                                    class="w-full border rounded px-3 py-2 @error('fwhname') border-red-500 @enderror">
-                                <span class="text-gray-600 text-sm font-medium">KG</span>
-                            </div>
-                            @error('fwhname')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div> --}}
-
                         <div class="lg:col-span-12">
                             <label class="block text-sm font-medium">Kirim ke</label>
                             <textarea name="fkirim" rows="3"
@@ -246,7 +240,7 @@
                                         <th class="p-2 text-left w-10">#</th>
                                         <th class="p-2 text-left w-40">Kode Produk</th>
                                         <th class="p-2 text-left w-102">Nama Produk</th>
-                                        <th class="p-2 text-left w-36">Ref.PO#</th>
+                                        <th class="p-2 text-left w-36">No. Ref</th>
                                         <th class="p-2 text-right w-24">Sat</th>
                                         <th class="p-2 text-right w-28">Qty</th>
                                         <th class="p-2 text-center w-36">Aksi</th>
@@ -496,8 +490,8 @@
                             </table>
                         </div>
 
-                        {{-- PO --}}
-                        <div x-data="pohFormModal()" class="mt-3">
+                        {{-- SO --}}
+                        <div x-data="soFormModal()" class="mt-3">
                             <div class="mt-3 flex justify-between items-start gap-4">
                                 <div class="w-full flex justify-start mb-3">
                                     <button type="button" @click="openModal()"
@@ -507,12 +501,12 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                                 d="M12 4.5v15m7.5-7.5h-15" />
                                         </svg>
-                                        Add PO
+                                        Add SO
                                     </button>
                                 </div>
                             </div>
 
-                            {{-- MODAL PO --}}
+                            {{-- MODAL SO --}}
                             <div x-show="show" x-cloak x-transition.opacity
                                 class="fixed inset-0 z-50 flex items-center justify-center p-4">
                                 <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="closeModal()"></div>
@@ -523,7 +517,7 @@
                                     <div
                                         class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-teal-50 to-white">
                                         <div>
-                                            <h3 class="text-xl font-bold text-gray-800">Add PO</h3>
+                                            <h3 class="text-xl font-bold text-gray-800">Add SO</h3>
                                             <p class="text-sm text-gray-500 mt-0.5">Pilih Purchase Order yang diinginkan
                                             </p>
                                         </div>
@@ -547,13 +541,10 @@
                                                     <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
                                                         <th
                                                             class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                            PO No</th>
+                                                            SO No</th>
                                                         <th
                                                             class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                            Ref No PO</th>
-                                                        <th
-                                                            class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                            Supplier</th>
+                                                            No Ref</th>
                                                         <th
                                                             class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
                                                             Tanggal</th>
@@ -636,10 +627,6 @@
                                         <button type="button" @click="closeDupModal()"
                                             class="h-9 px-4 rounded-lg border-2 border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-100 transition-colors">
                                             Batal
-                                        </button>
-                                        <button type="button" @click="confirmAddUniques()"
-                                            class="h-9 px-4 rounded-lg bg-teal-600 text-white text-sm font-medium hover:bg-teal-700 transition-colors">
-                                            Tambahkan Item Unik Saja
                                         </button>
                                     </div>
                                 </div>
@@ -1166,26 +1153,52 @@
             },
 
             addManyFromPR(header, items) {
+                if (!items || !Array.isArray(items)) {
+                    window.toast?.error('Data items tidak valid atau kosong.');
+                    return;
+                }
+
                 const existing = new Set(this.getCurrentItemKeys());
-
                 let added = 0,
-                    duplicates = [];
+                    duplicates = [],
+                    skipped = [];
 
-                items.forEach(src => {
-                    const meta = this.productMeta(src.fitemcode);
+                items.forEach((src, index) => {
+                    const itemcode = (src.fitemcode ?? '').toString().trim();
+                    const itemname = (src.fitemname ?? '').toString().trim();
+                    const satuan = (src.fsatuan ?? '').toString().trim();
+                    const frefdtno = src.frefdtno ?? '';
+
+                    // VALIDASI MINIMAL: harus ada kode, nama, dan satuan
+                    if (!itemcode || !itemname || !satuan) {
+                        skipped.push({
+                            code: itemcode || 'NO_CODE',
+                            reason: 'Data tidak lengkap'
+                        });
+                        return;
+                    }
+
+                    const meta = this.productMeta(itemcode);
+
                     const row = {
                         uid: cryptoRandom(),
-                        fitemcode: src.fitemcode ?? '',
-                        fitemname: src.fitemname ?? '',
-                        fsatuan: src.fsatuan ?? '',
-                        frefdtno: meta ? meta.fprdid : (src.frefdtno ?? ''),
-                        frefpr: src.frefpr ?? (header?.fpono ?? ''),
-                        fqty: Number(src.fqty ?? 0),
-                        fdesc: src.fdesc ?? '',
-                        fketdt: src.fketdt ?? '',
-                        units: Array.isArray(src.units) && src.units.length ? src.units : [src.fsatuan]
-                            .filter(Boolean),
+                        fitemcode: itemcode,
+                        fitemname: itemname,
+                        fsatuan: satuan,
+                        frefdtno: frefdtno,
+                        frefpr: (src.frefpr ?? header?.fpono ?? header?.fsono ?? '').toString().trim(),
+                        fqty: Math.max(1, Number(src.fqty ?? 0)), // ← Minimal qty = 1
+                        fprice: Number(src.fprice ?? src.fharga ?? 0), // ← Boleh 0
+                        fterima: Number(src.fterima ?? 0),
+                        ftotal: 0,
+                        fdesc: src.fdesc ? src.fdesc.toString().trim() : '',
+                        fketdt: src.fketdt ? src.fketdt.toString().trim() : '',
+                        units: meta ? [...new Set((meta.units || []).map(u => (u ?? '').toString().trim())
+                            .filter(Boolean))] : [satuan].filter(Boolean),
+                        maxqty: meta ? (Number(meta.stock) || 0) : 0,
                     };
+
+                    row.ftotal = Number((row.fqty * row.fprice).toFixed(2));
 
                     const key = this.itemKey({
                         fitemcode: row.fitemcode,
@@ -1207,16 +1220,43 @@
                 });
 
                 this.recalcTotals();
-            },
 
+                // Tampilkan notifikasi
+                if (added > 0) {
+                    window.toast?.success(`✓ Berhasil menambahkan ${added} item ke detail`);
+                }
+
+                if (duplicates.length > 0) {
+                    window.toast?.info(`${duplicates.length} item diabaikan (sudah ada)`);
+                }
+
+                if (skipped.length > 0) {
+                    window.toast?.error(`${skipped.length} item diabaikan (data tidak lengkap)`);
+                }
+
+                if (added === 0 && duplicates.length === 0 && skipped.length === 0) {
+                    window.toast?.error('Tidak ada item yang valid untuk ditambahkan');
+                }
+            },
             addIfComplete() {
                 const r = this.draft;
                 if (!this.isComplete(r)) {
-                    if (!r.fitemcode) return this.$refs.draftCode?.focus();
-                    if (!r.fitemname) return this.$refs.draftCode?.focus();
-                    if (!r.fsatuan) return (r.units.length > 1 ? this.$refs.draftUnit?.focus() : this.$refs.draftCode
-                        ?.focus());
-                    if (!(Number(r.fqty) > 0)) return this.$refs.draftQty?.focus();
+                    if (!r.fitemcode) {
+                        window.toast?.error('Kode item harus diisi');
+                        return this.$refs.draftCode?.focus();
+                    }
+                    if (!r.fitemname) {
+                        window.toast?.error('Nama item harus diisi');
+                        return this.$refs.draftCode?.focus();
+                    }
+                    if (!r.fsatuan) {
+                        window.toast?.error('Satuan harus dipilih');
+                        return (r.units.length > 1 ? this.$refs.draftUnit?.focus() : this.$refs.draftCode?.focus());
+                    }
+                    if (!(Number(r.fqty) > 0)) {
+                        window.toast?.error('Quantity harus lebih dari 0');
+                        return this.$refs.draftQty?.focus();
+                    }
                     return;
                 }
 
@@ -1229,7 +1269,7 @@
                 );
 
                 if (dupe) {
-                    alert('Item sama sudah ada.');
+                    window.toast?.error('Item ini sudah ada dalam daftar');
                     return;
                 }
 
@@ -1238,9 +1278,30 @@
                     uid: cryptoRandom()
                 });
 
+                window.toast?.success('Item berhasil ditambahkan');
+
                 this.showNoItems = false;
                 this.resetDraft();
                 this.$nextTick(() => this.$refs.draftCode?.focus());
+                this.syncDescList?.();
+                this.recalcTotals();
+            },
+
+            applyEdit() {
+                const r = this.editRow;
+                if (!this.isComplete(r)) {
+                    window.toast?.error('Lengkapi data item terlebih dahulu');
+                    return;
+                }
+
+                this.recalc(r);
+                this.savedItems.splice(this.editingIndex, 1, {
+                    ...r
+                });
+
+                window.toast?.success('Item berhasil diupdate');
+
+                this.cancelEdit();
                 this.syncDescList?.();
                 this.recalcTotals();
             },
@@ -1386,7 +1447,7 @@
 </script>
 
 <script>
-    window.pohFormModal = function() {
+    window.soFormModal = function() {
         return {
             show: false,
             table: null,
@@ -1407,7 +1468,7 @@
                     processing: true,
                     serverSide: true,
                     ajax: {
-                        url: "{{ route('penerimaanbarang.pickable') }}",
+                        url: "{{ route('salesorder.pickable') }}",
                         type: 'GET',
                         data: function(d) {
                             return {
@@ -1421,26 +1482,18 @@
                         }
                     },
                     columns: [{
-                            data: 'fpono',
-                            name: 'fpono',
+                            data: 'fsono', // Nomor SO
+                            name: 'trsomt.fsono',
                             className: 'font-mono text-sm'
                         },
                         {
-                            data: 'fpono',
-                            name: 'fpono',
+                            data: 'frefno', // Nomor SO
+                            name: 'frefno',
                             className: 'font-mono text-sm'
                         },
                         {
-                            data: 'fsuppliername',
-                            name: 'fsuppliername',
-                            className: 'text-sm',
-                            render: function(data) {
-                                return data || '<span class="text-gray-400">-</span>';
-                            }
-                        },
-                        {
-                            data: 'fpodate',
-                            name: 'fpodate',
+                            data: 'fsodate', // Tanggal SO
+                            name: 'trsomt.fsodate',
                             className: 'text-sm',
                             render: function(data) {
                                 return formatDate(data);
@@ -1564,42 +1617,46 @@
 
             async pick(row) {
                 try {
-                    const url = `{{ route('penerimaanbarang.items', ['id' => 'PO_ID_PLACEHOLDER']) }}`
-                        .replace('PO_ID_PLACEHOLDER', row.fpohdid);
+                    const url = `{{ route('salesorder.items', ['id' => 'SO_ID_PLACEHOLDER']) }}`
+                        .replace('SO_ID_PLACEHOLDER', row.ftrsomtid);
 
                     const res = await fetch(url, {
                         headers: {
                             'X-Requested-With': 'XMLHttpRequest'
                         }
                     });
+
+                    if (!res.ok) {
+                        throw new Error(`Server error: ${res.status}`);
+                    }
+
                     const json = await res.json();
 
                     const items = json.items || [];
                     const currentKeys = new Set((window.getCurrentItemKeys?.() || []).map(String));
 
                     const keyOf = (src) =>
-                        `${(src.fprdcode ?? '').toString().trim()}::${(src.frefdtno ?? '').toString().trim()}`;
+                        `${(src.fitemcode ?? '').toString().trim()}::${(src.frefdtno ?? '').toString().trim()}`;
 
                     const duplicates = items.filter(src => currentKeys.has(keyOf(src)));
                     const uniques = items.filter(src => !currentKeys.has(keyOf(src)));
 
                     if (duplicates.length > 0) {
-                        this.openDupModal(row, duplicates, uniques);
+                        this.openDupModal(json.header, duplicates, uniques);
                         return;
                     }
 
-                    // Tidak ada duplikat
                     window.dispatchEvent(new CustomEvent('pr-picked', {
                         detail: {
-                            header: row,
-                            items
+                            header: json.header,
+                            items: items
                         }
                     }));
 
                     this.closeModal();
                 } catch (e) {
-                    console.error(e);
-                    alert('Gagal mengambil detail PO');
+                    console.error('Error:', e);
+                    window.toast?.error(`Gagal mengambil detail Sales Order: ${e.message}`);
                 }
             }
         };

@@ -94,6 +94,12 @@
                     <div class="space-y-4">
 
                         <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                            <div class="lg:col-span-4">
+                                <label class="block text-sm font-medium">Cabang</label>
+                                <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
+                                    value="{{ $fcabang }}" disabled>
+                                <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
+                            </div>
                             <div class="lg:col-span-4" x-data="{ autoCode: true }">
                                 <label class="block text-sm font-medium mb-1">Transaksi#</label>
                                 <div class="flex items-center gap-3">
@@ -105,6 +111,15 @@
                                         <span class="ml-2 text-sm text-gray-700">Auto</span>
                                     </label>
                                 </div>
+                            </div>
+
+                            <div class="lg:col-span-4">
+                                <label class="block text-sm font-medium">Tanggal</label>
+                                <input type="date" name="fstockmtdate" value="{{ old('fstockmtdate') ?? date('Y-m-d') }}"
+                                    class="w-full border rounded px-3 py-2 @error('fstockmtdate') border-red-500 @enderror">
+                                @error('fstockmtdate')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
 
                             <div class="lg:col-span-4">
@@ -158,30 +173,7 @@
                                     </div>
                                     <input type="hidden" name="ffrom" id="warehouseIdHidden"
                                         value="{{ old('ffrom', $suratjalan->ffrom) }}">
-
-                                    {{-- Tombol-tombol Anda --}}
-                                    <button type="button"
-                                        @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"
-                                        class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
-                                        title="Browse Gudang">
-                                        <x-heroicon-o-magnifying-glass class="w-5 h-5" />
-                                    </button>
-                                    <a href="{{ route('supplier.create') }}" target="_blank" rel="noopener"
-                                        class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
-                                        title="Tambah Supplier">
-                                        <x-heroicon-o-plus class="w-5 h-5" />
-                                    </a>
                                 </div>
-                            </div>
-
-                            <div class="lg:col-span-4">
-                                <label class="block text-sm font-medium">Tanggal</label>
-                                <input disabled type="date" name="fstockmtdate"
-                                    value="{{ old('fstockmtdate') ?? date('Y-m-d') }}"
-                                    class="w-full border rounded px-3 py-2 text-gray-700 @error('fstockmtdate') border-red-500 @enderror">
-                                @error('fstockmtdate')
-                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                @enderror
                             </div>
 
                             <div class="lg:col-span-12">
@@ -193,7 +185,7 @@
                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                 @enderror
                             </div>
-                            
+
                             <div class="lg:col-span-12">
                                 <label class="block text-sm font-medium">Keterangan</label>
                                 <textarea readonly name="fket" rows="3"
@@ -217,12 +209,9 @@
                                             <th class="p-2 text-left w-10">#</th>
                                             <th class="p-2 text-left w-40">Kode Produk</th>
                                             <th class="p-2 text-left w-102">Nama Produk</th>
-                                            <th class="p-2 text-left w-36">Ref.PO#</th>
+                                            <th class="p-2 text-left w-36">Ref.SO#</th>
                                             <th class="p-2 text-right w-24">Sat</th>
                                             <th class="p-2 text-right w-28">Qty</th>
-                                            <th class="p-2 text-right w-32">@ Harga</th>
-                                            <th class="p-2 text-right w-36">Total Harga</th>
-                                            <th class="p-2 text-center w-36">Aksi</th>
                                         </tr>
                                     </thead>
 
@@ -242,8 +231,6 @@
                                                 <td class="p-2" x-text="it.frefdtno || '-'"></td>
                                                 <td class="p-2 text-right" x-text="it.fsatuan"></td>
                                                 <td class="p-2 text-right" x-text="fmt(it.fqty)"></td>
-                                                <td class="p-2 text-right" x-text="fmt(it.fprice)"></td>
-                                                <td class="p-2 text-right" x-text="fmt(it.ftotal)"></td>
                                                 <td class="hidden">
                                                     <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
                                                     <input type="hidden" name="fitemname[]" :value="it.fitemname">
@@ -322,16 +309,6 @@
                                                     @blur="recalc(editRow)"
                                                     @keydown.enter.prevent="$refs.editPrice?.focus()">
                                             </td>
-
-                                            <td class="p-2 text-right">
-                                                <input type="number" class="border rounded px-2 py-1 w-28 text-right"
-                                                    min="0" step="0.01" x-ref="editPrice"
-                                                    x-model.number="editRow.fprice" @change="recalc(editRow)"
-                                                    @blur="recalc(editRow)"
-                                                    @keydown.enter.prevent="handleEnterOnPrice('edit')">
-                                            </td>
-
-                                            <td class="p-2 text-right font-semibold" x-text="rupiah(editRow.ftotal)"></td>
                                         </tr>
 
                                         <tr x-show="editingIndex !== null" class="border-b" x-cloak>
@@ -388,6 +365,13 @@
 
                             {{-- HEADER FORM --}}
                             <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                                <div class="lg:col-span-4">
+                                    <label class="block text-sm font-medium">Cabang</label>
+                                    <input type="text"
+                                        class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
+                                        value="{{ $fcabang }}" disabled>
+                                    <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
+                                </div>
                                 <div class="lg:col-span-4" x-data="{ autoCode: true }">
                                     <label class="block text-sm font-medium mb-1">Transaksi#</label>
                                     <div class="flex items-center gap-3">
@@ -399,6 +383,16 @@
                                             <span class="ml-2 text-sm text-gray-700">Auto</span>
                                         </label>
                                     </div>
+                                </div>
+
+                                <div class="lg:col-span-4">
+                                    <label class="block text-sm font-medium">Tanggal</label>
+                                    <input type="date" name="fstockmtdate"
+                                        value="{{ old('fstockmtdate') ?? date('Y-m-d') }}"
+                                        class="w-full border rounded px-3 py-2 @error('fstockmtdate') border-red-500 @enderror">
+                                    @error('fstockmtdate')
+                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                    @enderror
                                 </div>
 
                                 <div class="lg:col-span-4">
@@ -481,16 +475,6 @@
                                     </div>
                                 </div>
 
-                                <div class="lg:col-span-4">
-                                    <label class="block text-sm font-medium">Tanggal</label>
-                                    <input type="date" name="fstockmtdate"
-                                        value="{{ old('fstockmtdate') ?? date('Y-m-d') }}"
-                                        class="w-full border rounded px-3 py-2 @error('fstockmtdate') border-red-500 @enderror">
-                                    @error('fstockmtdate')
-                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                    @enderror
-                                </div>
-
                                 <div class="lg:col-span-12">
                                     <label class="block text-sm font-medium">Kirim Ke</label>
                                     <textarea name="fkirim" rows="3"
@@ -524,11 +508,9 @@
                                                 <th class="p-2 text-left w-10">#</th>
                                                 <th class="p-2 text-left w-40">Kode Produk</th>
                                                 <th class="p-2 text-left w-102">Nama Produk</th>
-                                                <th class="p-2 text-left w-36">Ref.PO#</th>
+                                                <th class="p-2 text-left w-36">No. Ref</th>
                                                 <th class="p-2 text-right w-24">Sat</th>
-                                                <th class="p-2 text-right w-28">Qty</th>
-                                                <th class="p-2 text-right w-32">@ Harga</th>
-                                                <th class="p-2 text-right w-36">Total Harga</th>
+                                                <th class="p-2 text-right w-24">Qty</th>
                                                 <th class="p-2 text-center w-36">Aksi</th>
                                             </tr>
                                         </thead>
@@ -550,8 +532,6 @@
                                                     <td class="p-2" x-text="it.frefdtno || '-'"></td>
                                                     <td class="p-2 text-right" x-text="it.fsatuan"></td>
                                                     <td class="p-2 text-right" x-text="fmt(it.fqty)"></td>
-                                                    <td class="p-2 text-right" x-text="fmt(it.fprice)"></td>
-                                                    <td class="p-2 text-right" x-text="fmt(it.ftotal)"></td>
                                                     <td class="p-2 text-center">
                                                         <div class="flex items-center justify-center gap-2 flex-wrap">
                                                             <button type="button" @click="edit(i)"
@@ -638,17 +618,6 @@
                                                         x-model.number="editRow.fqty" @change="recalc(editRow)"
                                                         @blur="recalc(editRow)"
                                                         @keydown.enter.prevent="$refs.editPrice?.focus()">
-                                                </td>
-
-                                                <td class="p-2 text-right">
-                                                    <input type="number" class="border rounded px-2 py-1 w-28 text-right"
-                                                        min="0" step="0.01" x-ref="editPrice"
-                                                        x-model.number="editRow.fprice" @change="recalc(editRow)"
-                                                        @blur="recalc(editRow)"
-                                                        @keydown.enter.prevent="handleEnterOnPrice('edit')">
-                                                </td>
-
-                                                <td class="p-2 text-right font-semibold" x-text="rupiah(editRow.ftotal)">
                                                 </td>
 
                                                 <td class="p-2 text-center">
@@ -739,17 +708,6 @@
                                                         @keydown.enter.prevent="$refs.draftPrice?.focus()">
                                                 </td>
 
-                                                <td class="p-2 text-right">
-                                                    <input type="number" class="border rounded px-2 py-1 w-28 text-right"
-                                                        min="0" step="0.01" x-ref="draftPrice"
-                                                        x-model.number="draft.fprice" @change="recalc(draft)"
-                                                        @blur="recalc(draft)"
-                                                        @keydown.enter.prevent="handleEnterOnPrice('draft')">
-                                                </td>
-
-                                                <td class="p-2 text-right font-semibold" x-text="rupiah(draft.ftotal)">
-                                                </td>
-
                                                 <td class="p-2 text-center">
                                                     <div class="flex items-center justify-center gap-2 flex-wrap">
                                                         <button type="button" @click="addIfComplete()"
@@ -776,8 +734,8 @@
                                     </table>
                                 </div>
 
-                                {{-- PO --}}
-                                <div x-data="pohFormModal()" class="mt-3">
+                                {{-- SO --}}
+                                <div x-data="soFormModal()" class="mt-3">
                                     <div class="mt-3 flex justify-between items-start gap-4">
                                         <div class="w-full flex justify-start mb-3">
                                             <button type="button" @click="openModal()"
@@ -787,23 +745,12 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round"
                                                         stroke-width="1.5" d="M12 4.5v15m7.5-7.5h-15" />
                                                 </svg>
-                                                Add PO
+                                                Add SO
                                             </button>
-                                        </div>
-
-                                        <!-- Panel Totals -->
-                                        <div class="w-1/2">
-                                            <div class="rounded-lg border bg-gray-50 p-3 space-y-2">
-                                                <div class="flex items-center justify-between">
-                                                    <span class="text-sm text-gray-700">Total Harga</span>
-                                                    <span class="min-w-[140px] text-right font-medium"
-                                                        x-text="rupiah(totalHarga)"></span>
-                                                </div>
-                                            </div>
                                         </div>
                                     </div>
 
-                                    {{-- MODAL PO --}}
+                                    {{-- MODAL SO --}}
                                     <div x-show="show" x-cloak x-transition.opacity
                                         class="fixed inset-0 z-50 flex items-center justify-center p-4">
                                         <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="closeModal()">
@@ -815,7 +762,7 @@
                                             <div
                                                 class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-teal-50 to-white">
                                                 <div>
-                                                    <h3 class="text-xl font-bold text-gray-800">Add PO</h3>
+                                                    <h3 class="text-xl font-bold text-gray-800">Add SO</h3>
                                                     <p class="text-sm text-gray-500 mt-0.5">Pilih Purchase Order yang
                                                         diinginkan
                                                     </p>
@@ -841,13 +788,10 @@
                                                             <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
                                                                 <th
                                                                     class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                    PO No</th>
+                                                                    SO No</th>
                                                                 <th
                                                                     class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                    Ref No PO</th>
-                                                                <th
-                                                                    class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                    Supplier</th>
+                                                                    No Ref</th>
                                                                 <th
                                                                     class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
                                                                     Tanggal</th>
@@ -936,10 +880,6 @@
                                                 <button type="button" @click="closeDupModal()"
                                                     class="h-9 px-4 rounded-lg border-2 border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-100 transition-colors">
                                                     Batal
-                                                </button>
-                                                <button type="button" @click="confirmAddUniques()"
-                                                    class="h-9 px-4 rounded-lg bg-teal-600 text-white text-sm font-medium hover:bg-teal-700 transition-colors">
-                                                    Tambahkan Item Unik Saja
                                                 </button>
                                             </div>
                                         </div>
@@ -1795,28 +1735,52 @@
             },
 
             addManyFromPR(header, items) {
+                if (!items || !Array.isArray(items)) {
+                    window.toast?.error('Data items tidak valid atau kosong.');
+                    return;
+                }
+
                 const existing = new Set(this.getCurrentItemKeys());
-
                 let added = 0,
-                    duplicates = [];
+                    duplicates = [],
+                    skipped = [];
 
-                items.forEach(src => {
+                items.forEach((src, index) => {
+                    const itemcode = (src.fitemcode ?? '').toString().trim();
+                    const itemname = (src.fitemname ?? '').toString().trim();
+                    const satuan = (src.fsatuan ?? '').toString().trim();
+                    const frefdtno = src.frefdtno ?? '';
+
+                    // VALIDASI MINIMAL: harus ada kode, nama, dan satuan
+                    if (!itemcode || !itemname || !satuan) {
+                        skipped.push({
+                            code: itemcode || 'NO_CODE',
+                            reason: 'Data tidak lengkap'
+                        });
+                        return;
+                    }
+
+                    const meta = this.productMeta(itemcode);
+
                     const row = {
                         uid: cryptoRandom(),
-                        fitemcode: src.fitemcode ?? '',
-                        fitemname: src.fitemname ?? '',
-                        fsatuan: src.fsatuan ?? '',
-                        frefdtno: src.frefdtno ?? '',
-                        // frefdtno: src.frefdtno ?? '', // <-- Ini duplikat, saya hapus 1
-                        frefpr: src.frefpr ?? (header?.fpono ?? ''),
-                        fqty: Number(src.fqty ?? 0),
-                        fprice: Number(src.fprice ?? 0),
-                        ftotal: Number(src.ftotal ?? 0),
-                        fdesc: src.fdesc ?? '',
-                        fketdt: src.fketdt ?? '',
-                        units: Array.isArray(src.units) && src.units.length ? src.units : [src.fsatuan]
-                            .filter(Boolean),
+                        fitemcode: itemcode,
+                        fitemname: itemname,
+                        fsatuan: satuan,
+                        frefdtno: frefdtno,
+                        frefpr: (src.frefpr ?? header?.fpono ?? header?.fsono ?? '').toString().trim(),
+                        fqty: Math.max(1, Number(src.fqty ?? 0)), // ← Minimal qty = 1
+                        fprice: Number(src.fprice ?? src.fharga ?? 0), // ← Boleh 0
+                        fterima: Number(src.fterima ?? 0),
+                        ftotal: 0,
+                        fdesc: src.fdesc ? src.fdesc.toString().trim() : '',
+                        fketdt: src.fketdt ? src.fketdt.toString().trim() : '',
+                        units: meta ? [...new Set((meta.units || []).map(u => (u ?? '').toString().trim())
+                            .filter(Boolean))] : [satuan].filter(Boolean),
+                        maxqty: meta ? (Number(meta.stock) || 0) : 0,
                     };
+
+                    row.ftotal = Number((row.fqty * row.fprice).toFixed(2));
 
                     const key = this.itemKey({
                         fitemcode: row.fitemcode,
@@ -1838,16 +1802,43 @@
                 });
 
                 this.recalcTotals();
-            },
 
+                // Tampilkan notifikasi
+                if (added > 0) {
+                    window.toast?.success(`✓ Berhasil menambahkan ${added} item ke detail`);
+                }
+
+                if (duplicates.length > 0) {
+                    window.toast?.info(`${duplicates.length} item diabaikan (sudah ada)`);
+                }
+
+                if (skipped.length > 0) {
+                    window.toast?.error(`${skipped.length} item diabaikan (data tidak lengkap)`);
+                }
+
+                if (added === 0 && duplicates.length === 0 && skipped.length === 0) {
+                    window.toast?.error('Tidak ada item yang valid untuk ditambahkan');
+                }
+            },
             addIfComplete() {
                 const r = this.draft;
                 if (!this.isComplete(r)) {
-                    if (!r.fitemcode) return this.$refs.draftCode?.focus();
-                    if (!r.fitemname) return this.$refs.draftCode?.focus();
-                    if (!r.fsatuan) return (r.units.length > 1 ? this.$refs.draftUnit?.focus() : this.$refs.draftCode
-                        ?.focus());
-                    if (!(Number(r.fqty) > 0)) return this.$refs.draftQty?.focus();
+                    if (!r.fitemcode) {
+                        window.toast?.error('Kode item harus diisi');
+                        return this.$refs.draftCode?.focus();
+                    }
+                    if (!r.fitemname) {
+                        window.toast?.error('Nama item harus diisi');
+                        return this.$refs.draftCode?.focus();
+                    }
+                    if (!r.fsatuan) {
+                        window.toast?.error('Satuan harus dipilih');
+                        return (r.units.length > 1 ? this.$refs.draftUnit?.focus() : this.$refs.draftCode?.focus());
+                    }
+                    if (!(Number(r.fqty) > 0)) {
+                        window.toast?.error('Quantity harus lebih dari 0');
+                        return this.$refs.draftQty?.focus();
+                    }
                     return;
                 }
 
@@ -1860,7 +1851,7 @@
                 );
 
                 if (dupe) {
-                    alert('Item sama sudah ada.');
+                    window.toast?.error('Item ini sudah ada dalam daftar');
                     return;
                 }
 
@@ -1869,9 +1860,30 @@
                     uid: cryptoRandom()
                 });
 
+                window.toast?.success('Item berhasil ditambahkan');
+
                 this.showNoItems = false;
                 this.resetDraft();
                 this.$nextTick(() => this.$refs.draftCode?.focus());
+                this.syncDescList?.();
+                this.recalcTotals();
+            },
+
+            applyEdit() {
+                const r = this.editRow;
+                if (!this.isComplete(r)) {
+                    window.toast?.error('Lengkapi data item terlebih dahulu');
+                    return;
+                }
+
+                this.recalc(r);
+                this.savedItems.splice(this.editingIndex, 1, {
+                    ...r
+                });
+
+                window.toast?.success('Item berhasil diupdate');
+
+                this.cancelEdit();
                 this.syncDescList?.();
                 this.recalcTotals();
             },
@@ -2021,7 +2033,7 @@
 </script>
 
 <script>
-    window.pohFormModal = function() {
+    window.soFormModal = function() {
         return {
             show: false,
             table: null,
@@ -2042,7 +2054,7 @@
                     processing: true,
                     serverSide: true,
                     ajax: {
-                        url: "{{ route('suratjalan.pickable') }}",
+                        url: "{{ route('salesorder.pickable') }}",
                         type: 'GET',
                         data: function(d) {
                             return {
@@ -2056,26 +2068,18 @@
                         }
                     },
                     columns: [{
-                            data: 'fpono',
-                            name: 'fpono',
+                            data: 'fsono', // Nomor SO
+                            name: 'trsomt.fsono',
                             className: 'font-mono text-sm'
                         },
                         {
-                            data: 'fpono',
-                            name: 'fpono',
+                            data: 'frefno', // Nomor SO
+                            name: 'frefno',
                             className: 'font-mono text-sm'
                         },
                         {
-                            data: 'fsuppliername',
-                            name: 'fsuppliername',
-                            className: 'text-sm',
-                            render: function(data) {
-                                return data || '<span class="text-gray-400">-</span>';
-                            }
-                        },
-                        {
-                            data: 'fpodate',
-                            name: 'fpodate',
+                            data: 'fsodate', // Tanggal SO
+                            name: 'trsomt.fsodate',
                             className: 'text-sm',
                             render: function(data) {
                                 return formatDate(data);
@@ -2199,42 +2203,46 @@
 
             async pick(row) {
                 try {
-                    const url = `{{ route('suratjalan.items', ['id' => 'PO_ID_PLACEHOLDER']) }}`
-                        .replace('PO_ID_PLACEHOLDER', row.fpohdid);
+                    const url = `{{ route('salesorder.items', ['id' => 'SO_ID_PLACEHOLDER']) }}`
+                        .replace('SO_ID_PLACEHOLDER', row.ftrsomtid);
 
                     const res = await fetch(url, {
                         headers: {
                             'X-Requested-With': 'XMLHttpRequest'
                         }
                     });
+
+                    if (!res.ok) {
+                        throw new Error(`Server error: ${res.status}`);
+                    }
+
                     const json = await res.json();
 
                     const items = json.items || [];
                     const currentKeys = new Set((window.getCurrentItemKeys?.() || []).map(String));
 
                     const keyOf = (src) =>
-                        `${(src.fprdcode ?? '').toString().trim()}::${(src.frefdtno ?? '').toString().trim()}`;
+                        `${(src.fitemcode ?? '').toString().trim()}::${(src.frefdtno ?? '').toString().trim()}`;
 
                     const duplicates = items.filter(src => currentKeys.has(keyOf(src)));
                     const uniques = items.filter(src => !currentKeys.has(keyOf(src)));
 
                     if (duplicates.length > 0) {
-                        this.openDupModal(row, duplicates, uniques);
+                        this.openDupModal(json.header, duplicates, uniques);
                         return;
                     }
 
-                    // Tidak ada duplikat
                     window.dispatchEvent(new CustomEvent('pr-picked', {
                         detail: {
-                            header: row,
-                            items
+                            header: json.header,
+                            items: items
                         }
                     }));
 
                     this.closeModal();
                 } catch (e) {
-                    console.error(e);
-                    alert('Gagal mengambil detail PO');
+                    console.error('Error:', e);
+                    window.toast?.error(`Gagal mengambil detail Sales Order: ${e.message}`);
                 }
             }
         };

@@ -115,13 +115,24 @@
                         </div>
 
                         {{-- Tanggal --}}
-                        <div class="lg:col-span-4">
+                        <div class="lg:col-span-2">
                             <label class="block text-sm font-medium">Tanggal</label>
                             <input disabled type="date" name="fsodate" value="{{ old('fsodate') ?? date('Y-m-d') }}"
                                 class="w-full border rounded px-3 py-2 bg-gray-200 @error('fsodate') border-red-500 @enderror">
                             @error('fsodate')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
+                        </div>
+
+                        <div class="lg:col-span-2 flex items-end pb-2">
+                            <div class="inline-flex items-center">
+                                <input id="fclose" type="checkbox" name="fclose" value="1" x-model="fclose"
+                                    class="h-4 w-4 text-blue-600 border-gray-300 rounded"
+                                    {{ old('fclose', $salesorder->fclose) ? 'checked' : '' }}>
+                                <label for="fclose" class="ml-2 text-sm font-medium text-gray-700 whitespace-nowrap">
+                                    Close
+                                </label>
+                            </div>
                         </div>
 
                         {{-- Customer --}}
@@ -190,6 +201,7 @@
                                 <span class="ml-2">Hari</span>
                             </div>
                         </div>
+
                         <div class="col-span-12 mt-4">
                             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
 
@@ -231,11 +243,11 @@
 
                                     <div class="flex">
                                         <template x-for="i in [1, 2, 3]">
-                                            <button type="button" @click="tab = i"
+                                            <button type="button" @click="tab = i" disabled
                                                 :class="tab === i ? 'bg-blue-600 text-white border-blue-600' :
                                                     'bg-gray-100 text-gray-500 border-gray-200 hover:bg-gray-200'"
                                                 class="px-4 py-2 text-xs font-bold rounded-t-lg border-t border-x transition-all mr-1"
-                                                x-text="'ALAMAT ' + i">
+                                                x-text="'PILIH ALAMAT' + i">
                                             </button>
                                         </template>
                                     </div>
@@ -255,8 +267,7 @@
                                 </div>
 
                                 <div class="flex flex-col">
-                                    <label class="block text-sm font-bold text-gray-700 mb-2">Keterangan
-                                        Tambahan</label>
+                                    <label class="block text-sm font-bold text-gray-700 mb-2">Keterangan</label>
                                     <div
                                         class="flex-1 border-2 border-gray-200 rounded-xl p-3 bg-gray-200 focus-within:border-blue-400">
                                         <textarea readonly name="fket" class="w-full h-full border-none focus:ring-0 p-0 text-sm resize-none bg-gray-200"

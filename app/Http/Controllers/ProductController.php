@@ -212,7 +212,6 @@ class ProductController extends Controller
                 'fsatuandefault' => 'in:1,2,3', // Validate Satuan Default field
                 'fqtykecil' => 'numeric', // Validate quantity for Satuan 1
                 'fqtykecil2' => 'numeric', // Validate quantity for Satuan 3
-                'fhpp' => '', // Validate if nonactive is checked
                 'fhargasatuankecillevel1' => '', // Validate if nonactive is checked
                 'fhargasatuankecillevel2' => '', // Validate if nonactive is checked
                 'fhargasatuankecillevel3' => '', // Validate if nonactive is checked
@@ -220,6 +219,9 @@ class ProductController extends Controller
                 'fhargajuallevel2' => '', // Validate if nonactive is checked
                 'fhargajuallevel3' => '', // Validate if nonactive is checked
                 'fminstock' => 'numeric', // Validate if nonactive is checked
+                'fhpp' => 'nullable',
+                'fhpp2' => 'nullable',
+                'fhpp3' => 'nullable',
             ],
             [
                 'fprdcode.unique' => 'Kode Produk sudah ada',
@@ -252,6 +254,10 @@ class ProductController extends Controller
             $validated['fgroupcode'],
             $validated['fmerek']
         );
+
+        $validated['fhpp'] = preg_replace('/[^0-9.]/', '', $request->fhpp);
+        $validated['fhpp2'] = preg_replace('/[^0-9.]/', '', $request->fhpp2);
+        $validated['fhpp3'] = preg_replace('/[^0-9.]/', '', $request->fhpp3);
 
         $validated['fapproval'] = auth('sysuser')->user()->fname ?? null;
         $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null;
@@ -302,7 +308,6 @@ class ProductController extends Controller
                 'fsatuandefault' => 'in:1,2,3', // Validate Satuan Default field
                 'fqtykecil' => 'numeric', // Validate quantity for Satuan 1
                 'fqtykecil2' => 'numeric', // Validate quantity for Satuan 3
-                'fhpp' => '', // Validate if nonactive is checked
                 'fhargasatuankecillevel1' => '', // Validate if nonactive is checked
                 'fhargasatuankecillevel2' => '', // Validate if nonactive is checked
                 'fhargasatuankecillevel3' => '', // Validate if nonactive is checked
@@ -310,6 +315,9 @@ class ProductController extends Controller
                 'fhargajuallevel2' => '', // Validate if nonactive is checked
                 'fhargajuallevel3' => '', // Validate if nonactive is checked
                 'fminstock' => 'numeric', // Validate if nonactive is checked
+                'fhpp' => 'nullable',
+                'fhpp2' => 'nullable',
+                'fhpp3' => 'nullable',
             ],
             [
                 'fprdcode.unique' => 'Kode Produk sudah ada',
@@ -341,6 +349,10 @@ class ProductController extends Controller
         } else {
             $validated['fapproval'] = null;
         }
+
+        $validated['fhpp'] = preg_replace('/[^0-9.]/', '', $request->fhpp);
+        $validated['fhpp2'] = preg_replace('/[^0-9.]/', '', $request->fhpp2);
+        $validated['fhpp3'] = preg_replace('/[^0-9.]/', '', $request->fhpp3);
 
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
         $validated['fupdatedat'] = now(); // Use the current time
