@@ -22,8 +22,9 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium">Nama Currency</label>
-                    <textarea disabled name="fcurrname" rows="6"
-                        class="w-full border rounded px-3 py-2 uppercase @error('fcurrname') border-red-500 @enderror">{{ old('fcurrname', $currency->fcurrname) }}</textarea>
+                    <input type="text" name="fcurrname"
+                        class="w-full border rounded px-3 py-2 uppercase @error('fcurrname') border-red-500 @enderror"
+                        value="{{ old('fcurrname', $currency->fcurrname) }}">
                     @error('fcurrname')
                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                     @enderror
@@ -82,8 +83,9 @@
                     <!-- Currency Name -->
                     <div>
                         <label class="block text-sm font-medium">Nama Currency</label>
-                        <textarea name="fcurrname" rows="6"
-                            class="w-full border rounded px-3 py-2 uppercase @error('fcurrname') border-red-500 @enderror">{{ old('fcurrname', $currency->fcurrname) }}</textarea>
+                        <input type="text" name="fcurrname"
+                            class="w-full border rounded px-3 py-2 uppercase @error('fcurrname') border-red-500 @enderror"
+                            value="{{ old('fcurrname', $currency->fcurrname) }}">
                         @error('fcurrname')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror

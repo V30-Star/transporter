@@ -32,8 +32,8 @@
                     <!-- Currency Name -->
                     <div>
                         <label class="block text-sm font-medium">Nama Currency</label>
-                        <textarea name="fcurrname" rows="6"
-                            class="w-full border rounded px-3 py-2 uppercase @error('fcurrname') border-red-500 @enderror"></textarea>
+                        <input type="text" name="fcurrname"
+                            class="w-full border rounded px-3 py-2 uppercase @error('fcurrname') border-red-500 @enderror">
                         @error('fcurrname')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
