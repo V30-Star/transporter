@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Master Group Product')
+@section('title', $action === 'delete' ? 'Hapus Group Product' : 'Edit Group Product')
 
 @section('content')
     <div class="bg-white rounded shadow p-6 md:p-8 max-w-[700px] mx-auto">
@@ -105,8 +105,7 @@
                 @endphp
             </form>
         @endif
-        <br>
-        <hr><br>
+
         <span class="text-sm text-gray-600 flex justify-between items-center">
             <strong>{{ auth('sysuser')->user()->fname ?? '—' }}</strong>
             <span>{{ \Carbon\Carbon::parse($groupproduct->fupdatedat ?: $groupproduct->fcreatedat)->timezone('Asia/Jakarta')->format('d M Y, H:i:s') }}</span>

@@ -90,7 +90,7 @@ class GroupproductController extends Controller
 
         return view('groupproduct.edit', [
             'groupproduct' => $groupproduct,
-            'action' => 'delete'
+            'action' => 'edit'
         ]);
     }
 
