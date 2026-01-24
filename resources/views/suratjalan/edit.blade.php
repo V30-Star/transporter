@@ -95,13 +95,13 @@
 
                         <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
                             <div class="lg:col-span-4">
-                                <label class="block text-sm font-medium">Cabang</label>
+                                <label class="block text-sm font-bold">Cabang</label>
                                 <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
                                     value="{{ $fcabang }}" disabled>
                                 <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
                             </div>
                             <div class="lg:col-span-4" x-data="{ autoCode: true }">
-                                <label class="block text-sm font-medium mb-1">Transaksi#</label>
+                                <label class="block text-sm font-bold mb-1">Transaksi#</label>
                                 <div class="flex items-center gap-3">
                                     <input type="text" name="fstockmtno" class="w-full border rounded px-3 py-2"
                                         :disabled="autoCode"
@@ -114,7 +114,7 @@
                             </div>
 
                             <div class="lg:col-span-4">
-                                <label class="block text-sm font-medium">Tanggal</label>
+                                <label class="block text-sm font-bold">Tanggal</label>
                                 <input type="date" name="fstockmtdate" value="{{ old('fstockmtdate') ?? date('Y-m-d') }}"
                                     class="w-full border rounded px-3 py-2 @error('fstockmtdate') border-red-500 @enderror">
                                 @error('fstockmtdate')
@@ -123,7 +123,7 @@
                             </div>
 
                             <div class="lg:col-span-4">
-                                <label class="block text-sm font-medium mb-1">Customer</label>
+                                <label class="block text-sm font-bold mb-1">Customer</label>
                                 <div class="flex">
                                     <div class="relative flex-1" for="modal_filter_customer_id">
                                         <select id="modal_filter_customer_id" name="filter_customer_id"
@@ -150,7 +150,7 @@
                             </div>
 
                             <div class="lg:col-span-4">
-                                <label class="block text-sm font-medium mb-1">Gudang</label>
+                                <label class="block text-sm font-bold mb-1">Gudang</label>
                                 <div class="flex">
                                     <div class="relative flex-1">
 
@@ -177,7 +177,7 @@
                             </div>
 
                             <div class="lg:col-span-12">
-                                <label class="block text-sm font-medium">Kirim ke</label>
+                                <label class="block text-sm font-bold">Kirim ke</label>
                                 <textarea name="fkirim" rows="3"
                                     class="w-full border rounded px-3 py-2 @error('fkirim') border-red-500 @enderror"
                                     placeholder="Tulis kirim tambahan di sini...">{{ old('fkirim', $suratjalan->fkirim) }}</textarea>
@@ -187,7 +187,7 @@
                             </div>
 
                             <div class="lg:col-span-12">
-                                <label class="block text-sm font-medium">Keterangan</label>
+                                <label class="block text-sm font-bold">Keterangan</label>
                                 <textarea readonly name="fket" rows="3"
                                     class="w-full border rounded px-3 py-2 text-gray-700 @error('fket') border-red-500 @enderror"
                                     placeholder="Tulis keterangan tambahan di sini...">{{ old('fket') }}</textarea>
@@ -366,14 +366,14 @@
                             {{-- HEADER FORM --}}
                             <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
                                 <div class="lg:col-span-4">
-                                    <label class="block text-sm font-medium">Cabang</label>
+                                    <label class="block text-sm font-bold">Cabang</label>
                                     <input type="text"
                                         class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
                                         value="{{ $fcabang }}" disabled>
                                     <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
                                 </div>
                                 <div class="lg:col-span-4" x-data="{ autoCode: true }">
-                                    <label class="block text-sm font-medium mb-1">Transaksi#</label>
+                                    <label class="block text-sm font-bold mb-1">Transaksi#</label>
                                     <div class="flex items-center gap-3">
                                         <input type="text" name="fstockmtno" class="w-full border rounded px-3 py-2"
                                             :disabled="autoCode"
@@ -386,7 +386,7 @@
                                 </div>
 
                                 <div class="lg:col-span-4">
-                                    <label class="block text-sm font-medium">Tanggal</label>
+                                    <label class="block text-sm font-bold">Tanggal</label>
                                     <input type="date" name="fstockmtdate"
                                         value="{{ old('fstockmtdate') ?? date('Y-m-d') }}"
                                         class="w-full border rounded px-3 py-2 @error('fstockmtdate') border-red-500 @enderror">
@@ -396,7 +396,7 @@
                                 </div>
 
                                 <div class="lg:col-span-4">
-                                    <label class="block text-sm font-medium mb-1">Customer</label>
+                                    <label class="block text-sm font-bold mb-1">Customer</label>
                                     <div class="flex">
                                         <div class="relative flex-1" for="modal_filter_customer_id">
                                             <select id="modal_filter_customer_id" name="filter_customer_id"
@@ -435,7 +435,7 @@
 
 
                                 <div class="lg:col-span-4">
-                                    <label class="block text-sm font-medium mb-1">Gudang</label>
+                                    <label class="block text-sm font-bold mb-1">Gudang</label>
                                     <div class="flex">
                                         <div class="relative flex-1">
 
@@ -476,7 +476,7 @@
                                 </div>
 
                                 <div class="lg:col-span-12">
-                                    <label class="block text-sm font-medium">Kirim Ke</label>
+                                    <label class="block text-sm font-bold">Kirim Ke</label>
                                     <textarea name="fkirim" rows="3"
                                         class="w-full border rounded px-3 py-2 @error('fkirim') border-red-500 @enderror"
                                         placeholder="Tulis Kirim Ke di sini...">{{ old('fkirim', $suratjalan->fkirim) }}</textarea>
@@ -486,7 +486,7 @@
                                 </div>
 
                                 <div class="lg:col-span-12">
-                                    <label class="block text-sm font-medium">Keterangan</label>
+                                    <label class="block text-sm font-bold">Keterangan</label>
                                     <textarea name="fket" rows="3"
                                         class="w-full border rounded px-3 py-2 @error('fket') border-red-500 @enderror"
                                         placeholder="Tulis keterangan tambahan di sini...">{{ old('fket', $suratjalan->fket) }}</textarea>
@@ -768,7 +768,7 @@
                                                     </p>
                                                 </div>
                                                 <button type="button" @click="closeModal()"
-                                                    class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">
+                                                    class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-bold text-gray-700 text-sm">
                                                     Tutup
                                                 </button>
                                             </div>
@@ -845,7 +845,7 @@
                                                 <!-- Preview list -->
                                                 <div class="rounded-lg border border-amber-200 bg-amber-50">
                                                     <div
-                                                        class="px-3 py-2 border-b border-amber-200 text-sm font-medium text-gray-800">
+                                                        class="px-3 py-2 border-b border-amber-200 text-sm font-bold text-gray-800">
                                                         Preview Item Duplikat
                                                     </div>
                                                     <ul class="max-h-40 overflow-auto divide-y divide-amber-100">
@@ -855,7 +855,7 @@
                                                                 class="px-3 py-2 text-sm flex items-center gap-2 hover:bg-amber-100 transition-colors">
                                                                 <span
                                                                     class="inline-flex w-5 h-5 items-center justify-center rounded-full bg-amber-200 text-amber-800 text-xs font-bold">!</span>
-                                                                <span class="font-mono font-medium text-gray-700"
+                                                                <span class="font-mono font-bold text-gray-700"
                                                                     x-text="d.fitemcode || '-'"></span>
                                                                 <span class="text-gray-400">•</span>
                                                                 <span class="text-gray-600 truncate"
@@ -878,7 +878,7 @@
                                             <!-- Footer -->
                                             <div class="px-5 py-3 border-t bg-gray-50 flex items-center justify-end gap-2">
                                                 <button type="button" @click="closeDupModal()"
-                                                    class="h-9 px-4 rounded-lg border-2 border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-100 transition-colors">
+                                                    class="h-9 px-4 rounded-lg border-2 border-gray-300 text-gray-700 text-sm font-bold hover:bg-gray-100 transition-colors">
                                                     Batal
                                                 </button>
                                             </div>
@@ -906,11 +906,11 @@
 
                                         <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
                                             <button type="button" @click="closeDesc()"
-                                                class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
+                                                class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-bold hover:bg-gray-200">
                                                 Batal
                                             </button>
                                             <button type="button" @click="applyDesc()"
-                                                class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
+                                                class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700">
                                                 Simpan
                                             </button>
                                         </div>
@@ -939,11 +939,11 @@
 
                                         <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
                                             <button type="button" @click="closeDesc()"
-                                                class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
+                                                class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-bold hover:bg-gray-200">
                                                 Batal
                                             </button>
                                             <button type="button" @click="applyDesc()"
-                                                class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
+                                                class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700">
                                                 Simpan
                                             </button>
                                         </div>
@@ -975,7 +975,7 @@
 
                                     <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
                                         <button type="button" @click="showNoItems=false"
-                                            class="h-9 px-4 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
+                                            class="h-9 px-4 rounded-lg bg-blue-600 text-white text-sm font-bold hover:bg-blue-700">
                                             OK
                                         </button>
                                     </div>
@@ -998,7 +998,7 @@
                                             </p>
                                         </div>
                                         <button type="button" @click="close()"
-                                            class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">
+                                            class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-bold text-gray-700 text-sm">
                                             Tutup
                                         </button>
                                     </div>
@@ -1068,7 +1068,7 @@
                             <p class="text-sm text-gray-500 mt-0.5">Pilih gudang yang diinginkan</p>
                         </div>
                         <button type="button" @click="close()"
-                            class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">
+                            class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-bold text-gray-700 text-sm">
                             Tutup
                         </button>
                     </div>
@@ -1086,9 +1086,9 @@
                                 <thead class="sticky top-0 z-10">
                                     <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
                                         <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                            Gudang (Kode - Nama)</th>
-                                        <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
                                             Branch</th>
+                                        <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                            Gudang (Kode - Nama)</th>
                                         <th class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
                                             Aksi</th>
                                     </tr>
@@ -1122,7 +1122,7 @@
                             <p class="text-sm text-gray-500 mt-0.5">Pilih produk yang diinginkan</p>
                         </div>
                         <button type="button" @click="close()"
-                            class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">
+                            class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-bold text-gray-700 text-sm">
                             Tutup
                         </button>
                     </div>
@@ -1490,7 +1490,7 @@
                             className: 'text-center',
                             width: '15%',
                             render: function(data, type, row) {
-                                return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>';
+                                return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>';
                             }
                         }
                     ],
@@ -2092,7 +2092,7 @@
                             className: 'text-center',
                             width: '100px',
                             render: function(data, type, row) {
-                                return '<button type="button" class="btn-pick px-4 py-1.5 rounded-md text-sm font-medium bg-teal-600 hover:bg-teal-700 text-white transition-colors duration-150">Pilih</button>';
+                                return '<button type="button" class="btn-pick px-4 py-1.5 rounded-md text-sm font-bold bg-teal-600 hover:bg-teal-700 text-white transition-colors duration-150">Pilih</button>';
                             }
                         }
                     ],
@@ -2287,14 +2287,6 @@
                         }
                     },
                     columns: [{
-                            data: null,
-                            name: 'fwhcode',
-                            className: 'text-sm',
-                            render: function(data, type, row) {
-                                return `<span class="font-mono font-semibold">${row.fwhcode}</span> - ${row.fwhname}`;
-                            }
-                        },
-                        {
                             data: 'fbranchcode',
                             name: 'fbranchcode',
                             className: 'text-sm',
@@ -2304,12 +2296,20 @@
                         },
                         {
                             data: null,
+                            name: 'fwhcode',
+                            className: 'text-sm',
+                            render: function(data, type, row) {
+                                return `<span class="font-mono font-semibold">${row.fwhcode}</span> - ${row.fwhname}`;
+                            }
+                        },
+                        {
+                            data: null,
                             orderable: false,
                             searchable: false,
                             className: 'text-center',
                             width: '100px',
                             render: function(data, type, row) {
-                                return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>';
+                                return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>';
                             }
                         }
                     ],
@@ -2499,7 +2499,7 @@
                                 className: 'text-center',
                                 width: '100px',
                                 render: function(data, type, row) {
-                                    return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>';
+                                    return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>';
                                 }
                             }
                         ],

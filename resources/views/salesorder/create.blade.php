@@ -94,14 +94,14 @@
                     {{-- HEADER FORM --}}
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium">Cabang</label>
+                            <label class="block text-sm font-bold">Cabang</label>
                             <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
                                 value="{{ $fcabang }}" disabled>
                             <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
                         </div>
 
                         <div class="lg:col-span-4" x-data="{ autoCode: true }">
-                            <label class="block text-sm font-medium mb-1">SO#</label>
+                            <label class="block text-sm font-bold mb-1">SO#</label>
                             <div class="flex items-center gap-3">
                                 <input type="text" name="fsono" class="w-full border rounded px-3 py-2"
                                     :disabled="autoCode"
@@ -114,7 +114,7 @@
                         </div>
 
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium">Tanggal</label>
+                            <label class="block text-sm font-bold">Tanggal</label>
                             <input type="date" name="fsodate" value="{{ old('fsodate') ?? date('Y-m-d') }}"
                                 class="w-full border rounded px-3 py-2 @error('fsodate') border-red-500 @enderror">
                             @error('fsodate')
@@ -124,7 +124,7 @@
 
                         {{-- Customer --}}
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium mb-1">Customer</label>
+                            <label class="block text-sm font-bold mb-1">Customer</label>
                             <div class="flex">
                                 <div class="relative flex-1" for="modal_filter_customer_id">
                                     <select id="modal_filter_customer_id" name="filter_customer_id"
@@ -161,7 +161,7 @@
 
                         {{-- Salesman --}}
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium mb-1">Salesman</label>
+                            <label class="block text-sm font-bold mb-1">Salesman</label>
                             <div class="flex">
                                 <div class="relative flex-1" for="modal_filter_salesman_id">
                                     <select id="modal_filter_salesman_id" name="filter_salesman_id"
@@ -198,7 +198,7 @@
                         </div>
 
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium mb-1">Tempo</label>
+                            <label class="block text-sm font-bold mb-1">Tempo</label>
                             <div class="flex items-center">
                                 <input type="number" id="ftempohr" name="ftempohr" value="{{ old('ftempohr', 0) }}"
                                     class="w-full border rounded px-3 py-2 @error('ftempohr') border-red-500 @enderror">
@@ -224,38 +224,56 @@
                                         else if (this.tab === 3) val = this.addr3;
                                         document.getElementById('falamatkirim_final').value = val;
                                     }
-                                }" x-init="$watch('tab', v => updateFinal());
-                                $watch('addr1', v => updateFinal());
-                                $watch('addr2', v => updateFinal());
-                                $watch('addr3', v => updateFinal());"
+                                }" x-init="updateFinal();
+                                $watch('tab', v => updateFinal());
+                                $watch('addr1', v => updateFinal());"
                                     @customer-selected.window="addr1 = $event.detail.f1; addr2 = $event.detail.f2; addr3 = $event.detail.f3; tab = 1; updateFinal();"
-                                    class="flex flex-col">
+                                    class="flex flex-col gap-2">
 
                                     <input type="hidden" name="falamatkirim" id="falamatkirim_final"
                                         value="{{ old('falamatkirim') }}">
 
-                                    <label class="block text-sm font-bold text-gray-700 mb-2">Alamat Kirim</label>
+                                    <div class="flex items-center gap-2">
+                                        <label class="text-sm font-bold text-gray-700 mr-2">Kirim ke :</label>
 
-                                    <div class="flex">
-                                        <template x-for="i in [1, 2, 3]">
-                                            <button type="button" @click="tab = i"
-                                                :class="tab === i ? 'bg-blue-600 text-white border-blue-600' :
-                                                    'bg-gray-100 text-gray-500 border-gray-200 hover:bg-gray-200'"
-                                                class="px-4 py-2 text-xs font-bold rounded-t-lg border-t border-x transition-all mr-1"
-                                                x-text="'PILIH ALAMAT ' + i">
+                                        <div class="inline-flex rounded-md shadow-sm" role="group">
+                                            <button type="button" @click="tab = 1"
+                                                :class="tab === 1 ? 'bg-blue-600 text-white z-10 ring-2 ring-blue-300' :
+                                                    'bg-white text-gray-700 hover:bg-gray-50'"
+                                                class="px-4 py-1.5 text-xs font-semibold border border-gray-300 rounded-l-md transition-all">
+                                                Alamat 1
                                             </button>
-                                        </template>
+                                            <button type="button" @click="tab = 2"
+                                                :class="tab === 2 ? 'bg-blue-600 text-white z-10 ring-2 ring-blue-300' :
+                                                    'bg-white text-gray-700 hover:bg-gray-50'"
+                                                class="px-4 py-1.5 text-xs font-semibold border-t border-b border-r border-gray-300 transition-all">
+                                                Alamat 2
+                                            </button>
+                                            <button type="button" @click="tab = 3"
+                                                :class="tab === 3 ? 'bg-blue-600 text-white z-10 ring-2 ring-blue-300' :
+                                                    'bg-white text-gray-700 hover:bg-gray-50'"
+                                                class="px-4 py-1.5 text-xs font-semibold border-t border-b border-r border-gray-300 rounded-r-md transition-all">
+                                                Alamat 3
+                                            </button>
+                                        </div>
                                     </div>
 
-                                    <div
-                                        class="flex-1 bg-white border-2 border-blue-600 rounded-b-xl rounded-tr-xl p-3 shadow-sm min-h-[150px]">
-                                        <textarea x-show="tab === 1" x-model="addr1" class="w-full h-full border-none focus:ring-0 p-0 text-sm resize-none"
-                                            placeholder="Alamat Kirim 1..."></textarea>
-                                        <textarea x-show="tab === 2" x-model="addr2" class="w-full h-full border-none focus:ring-0 p-0 text-sm resize-none"
-                                            placeholder="Alamat Kirim 2..."></textarea>
-                                        <textarea x-show="tab === 3" x-model="addr3" class="w-full h-full border-none focus:ring-0 p-0 text-sm resize-none"
-                                            placeholder="Alamat Kirim 3..."></textarea>
+                                    <div class="w-full">
+                                        <textarea x-show="tab === 1" x-model="addr1"
+                                            class="w-full p-2 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 min-h-[80px]"
+                                            placeholder="Isi Alamat 1..."></textarea>
+
+                                        <textarea x-show="tab === 2" x-model="addr2"
+                                            class="w-full p-2 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 min-h-[80px]"
+                                            placeholder="Isi Alamat 2..."></textarea>
+
+                                        <textarea x-show="tab === 3" x-model="addr3"
+                                            class="w-full p-2 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 min-h-[80px]"
+                                            placeholder="Isi Alamat 3..."></textarea>
                                     </div>
+
+                                    <p class="text-[10px] text-gray-500 italic">*Klik tombol Alamat 1/2/3 untuk memilih
+                                        alamat yang akan digunakan.</p>
                                 </div>
 
                                 <div class="flex flex-col">
@@ -273,7 +291,7 @@
                             </div>
                         </div>
                         <div class="lg:col-span-12">
-                            <label class="block text-sm font-medium">Catatan Internal</label>
+                            <label class="block text-sm font-bold">Catatan Internal</label>
                             <textarea name="fketinternal" rows="3"
                                 class="w-full border rounded px-3 py-2 @error('fketinternal') border-red-500 @enderror"
                                 placeholder="Tulis Catatan Internal tambahan di sini...">{{ old('fketinternal') }}</textarea>

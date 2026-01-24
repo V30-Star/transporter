@@ -185,16 +185,23 @@ class WhController extends Controller
         // Pastikan session 'fcabang' sudah diset saat proses login
         $userBranch = session('fcabang');
 
+        $rawPermissions = session('user_restricted_permissions', '');
+        $userPermissions = array_map('trim', explode(',', $rawPermissions));
+
         // 2. Base query
         $query = Wh::query();
 
+        $canAccessAllBranches = in_array('semuacabang', $userPermissions);
+
         // 3. TAMBAHKAN VALIDASI CABANG DISINI
         // Wh hanya boleh melihat data yang fbranchcode-nya sama dengan session user
-        if ($userBranch) {
-            $query->where('fbranchcode', $userBranch);
-        } else {
-            // Opsional: Jika session kosong, kembalikan data kosong atau tangani sesuai kebijakan
-            // $query->whereRaw('1 = 0'); 
+        if (!$canAccessAllBranches) {
+            if ($userBranch) {
+                $query->where('fbranchcode', $userBranch);
+            } else {
+                // Jika tidak punya akses semua dan tidak ada cabang, kosongkan data
+                $query->whereRaw('1 = 0');
+            }
         }
 
         // Total records tanpa filter pencarian (tapi tetap terfilter cabang)

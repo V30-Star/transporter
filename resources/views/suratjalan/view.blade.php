@@ -90,13 +90,13 @@
                 <div class="space-y-4">
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium">Cabang</label>
+                            <label class="block text-sm font-bold">Cabang</label>
                             <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
                                 value="{{ $fcabang }}" disabled>
                             <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
                         </div>
                         <div class="lg:col-span-4" x-data="{ autoCode: true }">
-                            <label class="block text-sm font-medium mb-1">Transaksi#</label>
+                            <label class="block text-sm font-bold mb-1">Transaksi#</label>
                             <div class="flex items-center gap-3">
                                 <input type="text" name="fstockmtno" class="w-full border rounded px-3 py-2"
                                     :disabled="autoCode"
@@ -109,7 +109,7 @@
                         </div>
 
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium">Tanggal</label>
+                            <label class="block text-sm font-bold">Tanggal</label>
                             <input type="date" name="fstockmtdate" value="{{ old('fstockmtdate') ?? date('Y-m-d') }}"
                                 class="w-full border rounded px-3 py-2 @error('fstockmtdate') border-red-500 @enderror">
                             @error('fstockmtdate')
@@ -118,7 +118,7 @@
                         </div>
 
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium mb-1">Customer</label>
+                            <label class="block text-sm font-bold mb-1">Customer</label>
                             <div class="flex">
                                 <div class="relative flex-1" for="modal_filter_customer_id">
                                     <select id="modal_filter_customer_id" name="filter_customer_id"
@@ -145,7 +145,7 @@
                         </div>
 
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium mb-1">Gudang</label>
+                            <label class="block text-sm font-bold mb-1">Gudang</label>
                             <div class="flex">
                                 <div class="relative flex-1">
 
@@ -172,7 +172,7 @@
                         </div>
 
                         <div class="lg:col-span-12">
-                            <label class="block text-sm font-medium">Kirim ke</label>
+                            <label class="block text-sm font-bold">Kirim ke</label>
                             <textarea readonly name="fkirim" rows="3"
                                 class="w-full border rounded px-3 py-2 bg-gray-200 @error('fkirim') border-red-500 @enderror"
                                 placeholder="Tulis kirim tambahan di sini...">{{ old('fkirim', $suratjalan->fkirim) }}</textarea>
@@ -182,7 +182,7 @@
                         </div>
 
                         <div class="lg:col-span-12">
-                            <label class="block text-sm font-medium">Keterangan</label>
+                            <label class="block text-sm font-bold">Keterangan</label>
                             <textarea readonly name="fket" rows="3"
                                 class="w-full border rounded px-3 py-2 text-gray-700 bg-gray-200 @error('fket') border-red-500 @enderror"
                                 placeholder="Tulis keterangan tambahan di sini...">{{ old('fket', $suratjalan->fket) }}</textarea>
@@ -558,7 +558,7 @@
                                 className: 'text-center',
                                 width: '15%',
                                 render: function(data, type, row) {
-                                    return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>';
+                                    return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>';
                                 }
                             }
                         ],
@@ -1096,7 +1096,7 @@
                                 className: 'text-center',
                                 width: '100px',
                                 render: function(data, type, row) {
-                                    return '<button type="button" class="btn-pick px-4 py-1.5 rounded-md text-sm font-medium bg-teal-600 hover:bg-teal-700 text-white transition-colors duration-150">Pilih</button>';
+                                    return '<button type="button" class="btn-pick px-4 py-1.5 rounded-md text-sm font-bold bg-teal-600 hover:bg-teal-700 text-white transition-colors duration-150">Pilih</button>';
                                 }
                             }
                         ],
@@ -1309,7 +1309,7 @@
                                 className: 'text-center',
                                 width: '100px',
                                 render: function(data, type, row) {
-                                    return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>';
+                                    return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>';
                                 }
                             }
                         ],
@@ -1499,7 +1499,7 @@
                                     className: 'text-center',
                                     width: '100px',
                                     render: function(data, type, row) {
-                                        return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>';
+                                        return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>';
                                     }
                                 }
                             ],
