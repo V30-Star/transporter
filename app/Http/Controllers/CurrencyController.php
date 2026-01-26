@@ -40,6 +40,10 @@ class CurrencyController extends Controller
 
   public function store(Request $request)
   {
+    $request->merge([
+      'fcurrcode' => strtoupper($request->fcurrcode),
+      'fcurrname' => strtoupper($request->fcurrname),
+    ]);
     // 1. Validasi semua data yang masuk
     $validated = $request->validate(
       [
@@ -92,13 +96,14 @@ class CurrencyController extends Controller
 
     $validated = $request->validate(
       [
+        'fcurrcode' => 'required|string|max:10|unique:mscurrency,fcurrcode',
         'fcurrname' => 'required|string|string|unique:mscurrency,fcurrname',
         'frate'     => 'required|numeric|min:0',
-        'fcurrcode' => 'required|string|max:10',
       ],
       [
         'fcurrname.required' => 'Nama currency harus diisi.',
-        'fcurrname.unique' => 'Nama Rekening ini sudah ada',
+        'fcurrname.unique' => 'Nama currency ini sudah ada',
+        'fcurrcode.unique' => 'Kode currency ini sudah ada',
         'frate.numeric' => 'Rate harus berupa angka.',
         'fcurrcode.required' => 'Kode currency harus diisi.',
         'fcurrcode.max' => 'Kode currency maksimal 10 karakter.',

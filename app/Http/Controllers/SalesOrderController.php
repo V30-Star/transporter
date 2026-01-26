@@ -462,8 +462,6 @@ class SalesOrderController extends Controller
 
       // Calculate amount
       $subtotal = $qty * $price;
-
-      // Apply discount percentage
       $discount = $subtotal * ($discPersen / 100);
       $amount = $subtotal - $discount;
 
@@ -576,6 +574,7 @@ class SalesOrderController extends Controller
         'fdatetime'     => $now,
         'famountgross'  => round($totalGross, 2),
         'fdiscount'     => round($totalDisc, 2),
+        'fdiscpersen'   => ($totalGross > 0) ? round(($totalDisc / $totalGross) * 100, 2) : 0,
         'famountsonet'  => round($amountNet, 2),
         'famountpajak'  => round($ppnAmount, 2),
         'famountso'     => round($grandTotal, 2),
@@ -992,6 +991,7 @@ class SalesOrderController extends Controller
         'fdatetime'     => $now,
         'famountgross'  => round($totalGross, 2),
         'fdiscount'     => round($totalDisc, 2),
+        'fdiscpersen'   => ($totalGross > 0) ? round(($totalDisc / $totalGross) * 100, 2) : 0,
         'famountsonet'  => round($amountNet, 2),
         'famountpajak'  => round($ppnAmount, 2),
         'famountso'     => round($grandTotal, 2),

@@ -492,7 +492,7 @@ class InvoiceController extends Controller
           'fdatetime'       => $now,
           'fincludeppn'     => $fincludeppn,
           'fppnpersen'      => $ppnPersen,
-          'ftrcode'         => 'INV',
+          'ftrcode'         => 'I',
           'fprdout'         => '0',
         ]);
 
