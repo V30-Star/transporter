@@ -120,111 +120,73 @@ class SuratJalanController extends Controller
   // Di PenerimaanBarangController
   public function pickable(Request $request)
   {
-    // Base query dengan JOIN
-    $query = DB::table('tr_poh')
-      ->leftJoin('mssupplier', 'tr_poh.fsupplier', '=', 'mssupplier.fsupplierid')
+    $query = DB::table('trstockmt')
+      ->leftJoin('mscustomer', 'trstockmt.fsupplier', '=', 'mscustomer.fcustomerid')
+      ->where('trstockmt.fstockmtcode', 'SRJ')
       ->select(
-        'tr_poh.*',
-        'mssupplier.fsuppliername',
-        'mssupplier.fsuppliercode'
+        'trstockmt.fstockmtid',
+        'trstockmt.fstockmtno',
+        'trstockmt.frefpo',
+        'trstockmt.fstockmtdate',
+        'mscustomer.fcustomername as fsuppliername'
       );
 
-    // Total records tanpa filter
-    $recordsTotal = DB::table('tr_poh')->count();
-
-    // Search
-    if ($request->filled('search') && $request->search != '') {
+    // Filter Search
+    if ($request->filled('search')) {
       $search = $request->search;
       $query->where(function ($q) use ($search) {
-        $q->where('tr_poh.fpono', 'ilike', "%{$search}%")
-          ->orWhere('mssupplier.fsuppliername', 'ilike', "%{$search}%")
-          ->orWhere('mssupplier.fsuppliercode', 'ilike', "%{$search}%");
+        $q->where('trstockmt.fstockmtno', 'ilike', "%{$search}%")
+          ->orWhere('trstockmt.frefpo', 'ilike', "%{$search}%")
+          ->orWhere('fsuppliername', 'ilike', "%{$search}%");
       });
     }
 
-    // Total records setelah filter
+    $recordsTotal = DB::table('trstockmt')->count();
     $recordsFiltered = $query->count();
 
-    // Sorting
-    $orderColumn = $request->input('order_column', 'fpodate');
-    $orderDir = $request->input('order_dir', 'desc');
-
-    $allowedColumns = ['fpono', 'fsupplier', 'fpodate'];
-    if (in_array($orderColumn, $allowedColumns)) {
-      // Prefix table name untuk kolom di tr_poh
-      if (in_array($orderColumn, ['fpono', 'fpodate'])) {
-        $query->orderBy('tr_poh.' . $orderColumn, $orderDir);
-      } else {
-        $query->orderBy('mssupplier.fsuppliername', $orderDir);
-      }
-    } else {
-      $query->orderBy('tr_poh.fpodate', 'desc');
-    }
-
-    // Pagination
-    $start = (int) $request->input('start', 0);
-    $length = (int) $request->input('length', 10);
-
-    $data = $query->skip($start)
-      ->take($length)
+    $data = $query->orderBy('trstockmt.fstockmtdate', 'desc')
+      ->skip($request->start)
+      ->take($request->length)
       ->get();
 
-    // Response format untuk DataTables
     return response()->json([
-      'draw' => (int) $request->input('draw', 1),
-      'recordsTotal' => (int) $recordsTotal,
-      'recordsFiltered' => (int) $recordsFiltered,
+      'draw' => intval($request->draw),
+      'recordsTotal' => $recordsTotal,
+      'recordsFiltered' => $recordsFiltered,
       'data' => $data
     ]);
   }
 
   public function items($id)
   {
-    // Ambil data header PO berdasarkan fpohdid
-    $header = DB::table('tr_poh')
-      ->where('fpohdid', $id)
+    $header = DB::table('trstockmt')
+      ->where('fstockmtid', $id)
+      ->where('fstockmtcode', 'SRJ')
       ->first();
 
-    if (!$header) {
-      return response()->json([
-        'message' => 'PO tidak ditemukan'
-      ], 404);
-    }
+    if (!$header) return response()->json(['message' => 'Data tidak ditemukan'], 404);
 
-    // Ambil items dari tr_pod dengan join ke msprd
-    $items = DB::table('tr_pod')
-      ->where('tr_pod.fpono', $header->fpohdid) // fpono (FK) = fpohdid (PK di tr_poh)
-      ->leftJoin('msprd as m', 'm.fprdid', '=', 'tr_pod.fprdcode')
-      ->select([
-        'tr_pod.fpodid as frefdtno',        // ID detail sebagai referensi
-        'tr_pod.fnou as fnouref',            // Nomor urut
-        'tr_pod.fprdcode as fitemcode',      // Kode produk
-        'm.fprdname as fitemname',           // Nama produk dari master
-        'tr_pod.fqty',                       // Qty
-        'tr_pod.fqtyremain',                 // Qty sisa (jika diperlukan)
-        'tr_pod.fsatuan as fsatuan',         // Satuan
-        'tr_pod.fpono',                      // FK ke PO header
-        'tr_pod.fprice as fprice',           // Harga
-        'tr_pod.fprice_rp as fprice_rp',     // Harga Rupiah (jika ada)
-        'tr_pod.famount as ftotal',          // Total amount
-        'tr_pod.fdesc as fdesc',             // Deskripsi
-        'tr_pod.frefdtno',                   // Referensi detail eksternal
-        DB::raw('0::numeric as fterima'),    // Default terima = 0
-      ])
-      ->orderBy('tr_pod.fnou')
+    $items = DB::table('trstockdt')
+      ->where('trstockdt.fstockmtid', $id)
+      ->leftJoin('msprd', 'msprd.fprdid', '=', 'trstockdt.fprdcode')
+      ->select(
+        'trstockdt.fstockdtid as frefdtno',
+        // UBAH BAGIAN INI: Ambil kolom kode dari msprd (misal: fprdcode_string) 
+        // atau pastikan kolom ini memang yang berisi kode produk
+        'msprd.fprdcode as fitemcode',
+        'msprd.fprdname as fitemname',
+        'trstockdt.fqty',
+        'trstockdt.fsatuan',
+        'trstockdt.fprice',
+        'trstockdt.ftotprice as ftotal'
+      )
       ->get();
 
     return response()->json([
-      'header' => [
-        'fpohdid'   => $header->fpohdid,
-        'fpono'     => $header->fpono,
-        'fsupplier' => trim($header->fsupplier ?? ''),
-        'fpodate'   => $header->fpodate ? date('Y-m-d H:i:s', strtotime($header->fpodate)) : null,
-      ],
-      'items'  => $items,
+      'header' => $header,
+      'items'  => $items
     ]);
   }
-
   private function generatetr_poh_Code(?Carbon $onDate = null, $branch = null): string
   {
     $date = $onDate ?: now();
@@ -253,9 +215,9 @@ class SuratJalanController extends Controller
     $lockKey = crc32('PO|' . $kodeCabang . '|' . $date->format('Y-m'));
     DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
-    $last = DB::table('tr_poh')
-      ->where('fpono', 'like', $prefix . '%')
-      ->selectRaw("MAX(CAST(split_part(fpono, '.', 5) AS int)) AS lastno")
+    $last = DB::table('trstockmt')
+      ->where('fstockmtno', 'like', $prefix . '%')
+      ->selectRaw("MAX(CAST(split_part(fstockmtno, '.', 5) AS int)) AS lastno")
       ->value('lastno');
 
     $next = (int)$last + 1;

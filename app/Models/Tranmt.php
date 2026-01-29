@@ -26,7 +26,9 @@ class Tranmt extends Model
 
   public function details()
   {
-    return $this->hasMany(Trandt::class, 'ftranmtid', 'ftranmtid');
+    // Parameter 2: Foreign key di tabel trandt
+    // Parameter 3: Local key di tabel tranmt
+    return $this->hasMany(Trandt::class, 'fsono', 'fsono');
   }
   public function customer()
   {

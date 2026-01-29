@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Invoice')
+@section('title', 'Faktur Penjualan')
 
 @section('content')
     <style>
@@ -258,22 +258,14 @@
                             @enderror
                         </div>
 
-                        <div class="col-span-12 mt-4">
-                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
-                                <div class="flex flex-col">
-                                    <label class="block text-sm font-bold text-gray-700 mb-2">Keterangan
-                                        Tambahan</label>
-                                    <div
-                                        class="flex-1 border-2 border-gray-200 rounded-xl p-3 bg-white min-h-[150px] focus-within:border-blue-400">
-                                        <textarea name="fket" class="w-full h-full border-none focus:ring-0 p-0 text-sm resize-none"
-                                            placeholder="Keterangan isi di sini...">{{ old('fket') }}</textarea>
-                                    </div>
-                                    @error('fket')
-                                        <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
-                                    @enderror
-                                </div>
-
-                            </div>
+                        <div class="lg:col-span-12">
+                            <label class="block text-sm font-medium">Keterangan Tambahan</label>
+                            <textarea name="fket" rows="3"
+                                class="w-full border rounded px-3 py-2 @error('fket') border-red-500 @enderror"
+                                placeholder="Keterangan isi di sini..."></textarea>
+                            @error('fket')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
                     </div>
 
@@ -290,6 +282,7 @@
                                         <th class="p-2 text-left w-42">Kode Produk</th>
                                         <th class="p-2 text-left w-96">Nama Produk</th>
                                         <th class="p-2 text-left w-36">Satuan</th>
+                                        <th class="p-2 text-left w-36">No.Ref</th>
                                         <th class="p-2 text-right w-36 whitespace-nowrap">Qty</th>
                                         <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
                                         <th class="p-2 text-right w-36 whitespace-nowrap">Disc. %</th>
@@ -313,6 +306,7 @@
                                                 </div>
                                             </td>
                                             <td class="p-2" x-text="it.fsatuan"></td>
+                                            <td class="p-2 text-blue-600 font-semibold" x-text="it.frefcode || '-'"></td>
                                             <td class="p-2 text-right" x-text="fmt(it.fqty)"></td>
                                             <td class="p-2 text-right" x-text="fmt(it.fprice)"></td>
                                             <td class="p-2 text-right" x-text="it.fdisc"></td>
@@ -410,6 +404,13 @@
                                                     class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
                                                     :value="editRow.fsatuan || '-'" disabled>
                                             </template>
+                                        </td>
+
+                                        <!-- Ref.PR# -->
+                                        <td class="p-2">
+                                            <input type="text"
+                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
+                                                :value="editRow.frefcode" disabled placeholder="Ref PR">
                                         </td>
 
                                         <!-- Qty -->
@@ -515,6 +516,13 @@
                                             </template>
                                         </td>
 
+                                        <!-- Ref.PR# -->
+                                        <td class="p-2">
+                                            <input type="text"
+                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
+                                                :value="draft.frefcode" disabled placeholder="Ref PR">
+                                        </td>
+
                                         <!-- Qty -->
                                         <td class="p-2 text-right">
                                             <input type="number" class="border rounded px-2 py-1 w-24 text-right"
@@ -567,165 +575,423 @@
                                 </tbody>
                             </table>
                         </div>
+                        <div class="mt-6 flex flex-col md:flex-row justify-between items-start gap-4 w-full">
+                            <div class="flex flex-wrap items-center gap-3 flex-shrink-0">
+                                {{-- Container Alpine.js --}}
+                                <div x-data="srjFormModal()" class="mt-3">
+                                    {{-- Button Trigger --}}
+                                    <button type="button" @click="openSrjModal()"
+                                        class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-3 py-2 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 ml-4">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                                d="M12 4.5v15m7.5-7.5h-15" />
+                                        </svg>
+                                        Add SRJ
+                                    </button>
 
-                        <!-- ===== Trigger: Add tr_prh dari panel kanan ===== -->
-                        <div x-data="prhFormModal()">
-                            <!-- Trigger: Add PR dari panel kanan -->
-                            <div class="mt-3 flex justify-between items-start gap-4">
-                                <div class="w-full flex justify-start mb-3">
-                                </div>
-                                <!-- Kanan: Panel Totals -->
-                                <div class="w-1/2">
-                                    <div class="rounded-lg border bg-gray-50 p-3 space-y-2">
-                                        <div class="flex items-center justify-between">
-                                            <span class="text-sm text-gray-700">Total Harga</span>
-                                            <span class="min-w-[140px] text-right font-medium"
-                                                x-text="rupiah(totalHarga)"></span>
-                                        </div>
-                                        <div class="flex items-center justify-between gap-6">
-                                            <!-- Checkbox -->
-                                            <div class="flex items-center">
-                                                <input id="fapplyppn" type="checkbox" name="fapplyppn" value="1"
-                                                    x-model="includePPN"
-                                                    class="h-4 w-4 text-blue-600 border-gray-300 rounded">
-                                                <label for="fapplyppn" class="ml-2 text-sm font-medium text-gray-700">
-                                                    <span class="font-bold">PPN</span>
-                                                </label>
-                                            </div>
-
-                                            <!-- Dropdown Include / Exclude (tengah) -->
-                                            <div class="flex items-center gap-2">
-                                                <select id="includePPN" name="includePPN" x-model.number="fapplyppn"
-                                                    x-init="fapplyppn = 0" :disabled="!(includePPN || fapplyppn)"
-                                                    class="w-28 h-9 px-2 text-sm leading-tight border rounded transition-opacity appearance-none
-                                                           disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
-                                                    <option value="0">Exclude</option>
-                                                    <option value="1">Include</option>
-                                                </select>
-                                            </div>
-
-                                            <!-- Input Rate + Nominal (kanan) -->
-                                            <div class="flex items-center gap-2">
-                                                <input type="number" min="0" max="100" step="0.01"
-                                                    x-model.number="ppnRate" :disabled="!(includePPN || fapplyppn)"
-                                                    class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
-                                                            [appearance:textfield]
-                                                            [&::-webkit-outer-spin-button]:appearance-none
-                                                            [&::-webkit-inner-spin-button]:appearance-none
-                                                            disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
-                                                <span class="text-sm">%</span>
-                                                <span class="min-w-[140px] text-right font-medium"
-                                                    x-text="rupiah(ppnAmount)"></span>
-                                            </div>
-
+                                    {{-- MODAL SRJ --}}
+                                    <div x-show="showSrjModal" x-cloak x-transition.opacity
+                                        class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                                        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"
+                                            @click="closeSrjModal()">
                                         </div>
 
-                                        <div class="border-t my-1"></div>
+                                        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-5xl flex flex-col overflow-hidden"
+                                            style="height: 650px;">
+                                            <div
+                                                class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-indigo-50 to-white">
+                                                <div>
+                                                    <h3 class="text-xl font-bold text-gray-800">Browse Surat Jalan
+                                                    </h3>
+                                                </div>
+                                                <button type="button" @click="closeSrjModal()"
+                                                    class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-bold text-gray-700 text-sm">
+                                                    Tutup
+                                                </button>
+                                            </div>
 
-                                        <div class="flex items-center justify-between">
-                                            <span class="text-sm font-semibold text-gray-800">Grand Total</span>
-                                            <span class="min-w-[140px] text-right text-lg font-semibold"
-                                                x-text="rupiah(grandTotal)"></span>
-                                        </div>
+                                            <div class="px-6 pt-4 pb-2 flex-shrink-0 border-b border-gray-100">
+                                                <div id="srjTableControls"></div>
+                                            </div>
 
-                                        <div class="flex items-center justify-between">
-                                            <span class="text-sm font-semibold text-gray-800">Grand Total (RP)</span>
-                                            <span class="min-w-[140px] text-right text-lg font-semibold"
-                                                x-text="rupiah(grandTotal)"></span>
+                                            <div class="flex-1 overflow-y-auto px-6" style="min-height: 0;">
+                                                <div class="bg-white">
+                                                    <table id="srjTable"
+                                                        class="min-w-full text-sm display nowrap stripe hover"
+                                                        style="width:100%">
+                                                        <thead class="sticky top-0 z-10">
+                                                            <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
+                                                                <th
+                                                                    class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                    No. Transaksi</th>
+                                                                <th
+                                                                    class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                    No. Ref PO</th>
+                                                                <th
+                                                                    class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                    Tanggal</th>
+                                                                <th
+                                                                    class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                    Custoomer</th>
+                                                                <th
+                                                                    class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                    Aksi</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody></tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+
+                                            <div class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">
+                                                <div id="srjTablePagination"></div>
+                                            </div>
                                         </div>
                                     </div>
 
-                                    <!-- Hidden inputs for submit -->
-                                    <input type="hidden" name="famountgross" :value="totalHarga">
-                                    <input type="hidden" name="" :value="ppnAmount">
-                                    <input type="hidden" name="famountso" :value="grandTotal">
-                                    <input type="hidden" name="famountpopajak" :value="ppnRate">
+                                    <div x-show="showDupModal" x-cloak x-transition.opacity
+                                        class="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                                        <div class="absolute inset-0 bg-black/50" @click="closeDupModal()"></div>
+                                        <div
+                                            class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden">
+                                            <div class="px-5 py-4 border-b flex items-center gap-2 bg-amber-50">
+                                                <h3 class="text-lg font-semibold text-gray-800">Item Duplikat SRJ</h3>
+                                            </div>
+                                            <div class="px-5 py-4">
+                                                <p class="text-sm text-gray-700 mb-3">
+                                                    Ditemukan <span x-text="dupCount" class="font-bold"></span> item sudah
+                                                    ada
+                                                    di
+                                                    daftar.
+                                                </p>
+                                                <div
+                                                    class="rounded-lg border border-amber-200 bg-amber-50 max-h-40 overflow-auto">
+                                                    <template x-for="d in dupSample">
+                                                        <div class="p-2 text-xs border-b border-amber-100">
+                                                            <span x-text="d.fitemcode" class="font-bold"></span> - <span
+                                                                x-text="d.fitemname"></span>
+                                                        </div>
+                                                    </template>
+                                                </div>
+                                            </div>
+                                            <div class="px-5 py-3 border-t bg-gray-50 flex justify-end gap-2">
+                                                <button type="button" @click="closeDupModal()"
+                                                    class="px-4 py-2 border rounded-lg">Batal</button>
+                                                <button type="button" @click="confirmAddUniques()"
+                                                    class="px-4 py-2 bg-indigo-600 text-white rounded-lg">Tambahkan Sisa
+                                                    Item</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- SO --}}
+                                <div x-data="soFormModal()" class="mt-3">
+                                    <div class="mt-3 flex justify-between items-start gap-4">
+                                        <div class="w-full flex justify-start mb-3">
+                                            <button type="button" @click="openModal()"
+                                                class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                                    viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="1.5" d="M12 4.5v15m7.5-7.5h-15" />
+                                                </svg>
+                                                Add SO
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {{-- MODAL SO --}}
+                                    <div x-show="show" x-cloak x-transition.opacity
+                                        class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                                        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="closeModal()">
+                                        </div>
+
+                                        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-5xl flex flex-col overflow-hidden"
+                                            style="height: 650px;">
+                                            <!-- Header -->
+                                            <div
+                                                class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-teal-50 to-white">
+                                                <div>
+                                                    <h3 class="text-xl font-bold text-gray-800">Add SO</h3>
+                                                    <p class="text-sm text-gray-500 mt-0.5">Pilih Purchase Order yang
+                                                        diinginkan
+                                                    </p>
+                                                </div>
+                                                <button type="button" @click="closeModal()"
+                                                    class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-bold text-gray-700 text-sm">
+                                                    Tutup
+                                                </button>
+                                            </div>
+
+                                            <!-- Search & Length Menu -->
+                                            <div class="px-6 pt-4 pb-2 flex-shrink-0 border-b border-gray-100">
+                                                <div id="poTableControls"></div>
+                                            </div>
+
+                                            <!-- Table with fixed height and scroll -->
+                                            <div class="flex-1 overflow-y-auto px-6" style="min-height: 0;">
+                                                <div class="bg-white">
+                                                    <table id="poTable"
+                                                        class="min-w-full text-sm display nowrap stripe hover"
+                                                        style="width:100%">
+                                                        <thead class="sticky top-0 z-10">
+                                                            <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
+                                                                <th
+                                                                    class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                    SO No</th>
+                                                                <th
+                                                                    class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                    No Ref</th>
+                                                                <th
+                                                                    class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                    Tanggal</th>
+                                                                <th
+                                                                    class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
+                                                                    Aksi</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <!-- Data will be populated by DataTables -->
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+
+                                            <!-- Pagination & Info -->
+                                            <div class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">
+                                                <div id="poTablePagination"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {{-- MODAL DUPLIKASI --}}
+                                    <div x-show="showDupModal" x-cloak x-transition.opacity
+                                        class="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                                        <div class="absolute inset-0 bg-black/50" @click="closeDupModal()"></div>
+
+                                        <div
+                                            class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden">
+                                            <!-- Header -->
+                                            <div class="px-5 py-4 border-b flex items-center gap-2 bg-amber-50">
+                                                <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                                </svg>
+                                                <h3 class="text-lg font-semibold text-gray-800">Item Duplikat Ditemukan
+                                                </h3>
+                                            </div>
+
+                                            <!-- Body -->
+                                            <div class="px-5 py-4 space-y-3">
+                                                <p class="text-sm text-gray-700">
+                                                    Ditemukan <span class="font-semibold text-amber-600"
+                                                        x-text="dupCount"></span>
+                                                    item duplikat.
+                                                    Item duplikat <span class="font-semibold">tidak akan
+                                                        ditambahkan</span>.
+                                                </p>
+
+                                                <!-- Preview list -->
+                                                <div class="rounded-lg border border-amber-200 bg-amber-50">
+                                                    <div
+                                                        class="px-3 py-2 border-b border-amber-200 text-sm font-bold text-gray-800">
+                                                        Preview Item Duplikat
+                                                    </div>
+                                                    <ul class="max-h-40 overflow-auto divide-y divide-amber-100">
+                                                        <template x-for="d in dupSample"
+                                                            :key="`${d.fitemcode}::${d.fitemname}`">
+                                                            <li
+                                                                class="px-3 py-2 text-sm flex items-center gap-2 hover:bg-amber-100 transition-colors">
+                                                                <span
+                                                                    class="inline-flex w-5 h-5 items-center justify-center rounded-full bg-amber-200 text-amber-800 text-xs font-bold">!</span>
+                                                                <span class="font-mono font-bold text-gray-700"
+                                                                    x-text="d.fitemcode || '-'"></span>
+                                                                <span class="text-gray-400">•</span>
+                                                                <span class="text-gray-600 truncate"
+                                                                    x-text="d.fitemname || '-'"></span>
+                                                            </li>
+                                                        </template>
+                                                        <template x-if="dupCount === 0">
+                                                            <li class="px-3 py-2 text-sm text-gray-500 text-center">Tidak
+                                                                ada
+                                                                contoh.</li>
+                                                        </template>
+                                                    </ul>
+                                                    <div x-show="dupCount > 6"
+                                                        class="px-3 py-2 text-xs text-center text-amber-700 border-t border-amber-200">
+                                                        ... dan <span x-text="dupCount - 6"></span> item lainnya
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Footer -->
+                                            <div class="px-5 py-3 border-t bg-gray-50 flex items-center justify-end gap-2">
+                                                <button type="button" @click="closeDupModal()"
+                                                    class="h-9 px-4 rounded-lg border-2 border-gray-300 text-gray-700 text-sm font-bold hover:bg-gray-100 transition-colors">
+                                                    Batal
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <!-- Modal backdrop - sekarang bisa akses 'show' -->
-                            <div x-show="show" x-transition.opacity class="fixed inset-0 z-40 bg-black/50"
-                                @keydown.escape.window="closeModal()"></div>
 
-                            {{-- MODAL PR dengan DataTables - HAPUS x-data di sini --}}
-                            <div>
-                                {{-- MODAL PR --}}
-                                <div x-show="show" x-cloak x-transition.opacity
-                                    class="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8"
-                                    aria-modal="true" role="dialog">
-
-                                    <div class="relative w-full max-w-5xl rounded-xl bg-white shadow-2xl flex flex-col"
-                                        style="height: 600px;">
-                                        <!-- Header -->
-                                        <div
-                                            class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
-                                            <h3 class="text-xl font-bold text-gray-800">Pilih Purchase Request (PR)
-                                            </h3>
-                                            <button type="button" @click="closeModal()"
-                                                class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">
-                                                Tutup
-                                            </button>
+                            <!-- ===== Panel Totals (DESAIN ASLI dipertahankan, hanya wrapper yang diperbaiki) ===== -->
+                            <div x-data="prhFormModal()" class="w-full md:w-auto md:min-w-[550px] lg:min-w-[650px]">
+                                <div class="rounded-lg border bg-gray-50 p-3 space-y-2">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm text-gray-700">Total Harga</span>
+                                        <span class="min-w-[140px] text-right font-medium"
+                                            x-text="rupiah(totalHarga)"></span>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-6">
+                                        <!-- Checkbox -->
+                                        <div class="flex items-center">
+                                            <input id="fapplyppn" type="checkbox" name="fapplyppn" value="1"
+                                                x-model="includePPN"
+                                                class="h-4 w-4 text-blue-600 border-gray-300 rounded">
+                                            <label for="fapplyppn" class="ml-2 text-sm font-medium text-gray-700">
+                                                <span class="font-bold">PPN</span>
+                                            </label>
                                         </div>
 
-                                        <!-- Table Container -->
-                                        <div class="flex-1 overflow-y-auto p-6" style="min-height: 0;">
-                                            <table id="prTable" class="min-w-full text-sm display nowrap stripe hover"
-                                                style="width:100%">
-                                                <thead class="sticky top-0 z-10">
-                                                    <tr class="bg-gray-50 border-b-2 border-gray-200">
-                                                        <th class="p-3 text-left font-semibold text-gray-700">PR No
-                                                        </th>
-                                                        <th class="p-3 text-left font-semibold text-gray-700">Customer
-                                                        </th>
-                                                        <th class="p-3 text-left font-semibold text-gray-700">Tanggal
-                                                        </th>
-                                                        <th class="p-3 text-center font-semibold text-gray-700">Aksi
-                                                        </th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <!-- DataTables data here -->
-                                                </tbody>
-                                            </table>
+                                        <!-- Dropdown Include / Exclude (tengah) -->
+                                        <div class="flex items-center gap-2">
+                                            <select id="includePPN" name="includePPN" x-model.number="fapplyppn"
+                                                x-init="fapplyppn = 0" :disabled="!(includePPN || fapplyppn)"
+                                                class="w-28 h-9 px-2 text-sm leading-tight border rounded transition-opacity appearance-none
+                               disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
+                                                <option value="0">Exclude</option>
+                                                <option value="1">Include</option>
+                                            </select>
                                         </div>
 
-                                        <!-- Footer (Pagination rendered by DataTables, just provide space if needed) -->
-                                        <div class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">
-                                            <!-- DataTables pagination will be rendered automatically based on the 'dom' setting. -->
+                                        <!-- Input Rate + Nominal (kanan) -->
+                                        <div class="flex items-center gap-2">
+                                            <input type="number" min="0" max="100" step="0.01"
+                                                x-model.number="ppnRate" :disabled="!(includePPN || fapplyppn)"
+                                                class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
+                            [appearance:textfield]
+                            [&::-webkit-outer-spin-button]:appearance-none
+                            [&::-webkit-inner-spin-button]:appearance-none
+                            disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
+                                            <span class="text-sm">%</span>
+                                            <span class="min-w-[140px] text-right font-medium"
+                                                x-text="rupiah(ppnAmount)"></span>
                                         </div>
+
+                                    </div>
+
+                                    <div class="border-t my-1"></div>
+
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm font-semibold text-gray-800">Grand Total</span>
+                                        <span class="min-w-[140px] text-right text-lg font-semibold"
+                                            x-text="rupiah(grandTotal)"></span>
+                                    </div>
+
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm font-semibold text-gray-800">Grand Total (RP)</span>
+                                        <span class="min-w-[140px] text-right text-lg font-semibold"
+                                            x-text="rupiah(grandTotal)"></span>
                                     </div>
                                 </div>
-                                {{-- Modal Duplikasi --}}
-                                <div x-show="showDupModal" x-cloak x-transition.opacity
-                                    class="fixed inset-0 z-[60] flex items-center justify-center p-4">
-                                    <div class="absolute inset-0 bg-black/40" @click="closeDupModal()"></div>
-                                    <div class="relative bg-white rounded-xl shadow-xl max-w-2xl w-full p-6">
-                                        <h3 class="text-lg font-semibold mb-4">Peringatan Duplikasi</h3>
-                                        <p class="mb-4">
-                                            Ditemukan <strong x-text="dupCount"></strong> item yang sudah ada dalam
-                                            daftar.
-                                            Hanya item unik yang akan ditambahkan.
-                                        </p>
 
-                                        <div class="mb-4 max-h-48 overflow-auto border rounded p-2 bg-gray-50"
-                                            x-show="dupSample.length > 0">
-                                            <p class="text-sm font-medium mb-2">Contoh item duplikat:</p>
-                                            <template x-for="(item, idx) in dupSample" :key="idx">
-                                                <div class="text-xs py-1">
-                                                    • <span x-text="item.fitemcode"></span> - <span
-                                                        x-text="item.frefdtno"></span>
-                                                </div>
-                                            </template>
+                                <!-- Hidden inputs for submit -->
+                                <input type="hidden" name="famountgross" :value="totalHarga">
+                                <input type="hidden" name="" :value="ppnAmount">
+                                <input type="hidden" name="famountso" :value="grandTotal">
+                                <input type="hidden" name="famountpopajak" :value="ppnRate">
+
+                                <!-- Modal backdrop - sekarang bisa akses 'show' -->
+                                <div x-show="show" x-transition.opacity class="fixed inset-0 z-40 bg-black/50"
+                                    @keydown.escape.window="closeModal()"></div>
+
+                                {{-- MODAL PR dengan DataTables - HAPUS x-data di sini --}}
+                                <div>
+                                    {{-- MODAL PR --}}
+                                    <div x-show="show" x-cloak x-transition.opacity
+                                        class="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8"
+                                        aria-modal="true" role="dialog">
+
+                                        <div class="relative w-full max-w-5xl rounded-xl bg-white shadow-2xl flex flex-col"
+                                            style="height: 600px;">
+                                            <!-- Header -->
+                                            <div
+                                                class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
+                                                <h3 class="text-xl font-bold text-gray-800">Pilih Purchase Request (PR)
+                                                </h3>
+                                                <button type="button" @click="closeModal()"
+                                                    class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">
+                                                    Tutup
+                                                </button>
+                                            </div>
+
+                                            <!-- Table Container -->
+                                            <div class="flex-1 overflow-y-auto p-6" style="min-height: 0;">
+                                                <table id="prTable"
+                                                    class="min-w-full text-sm display nowrap stripe hover"
+                                                    style="width:100%">
+                                                    <thead class="sticky top-0 z-10">
+                                                        <tr class="bg-gray-50 border-b-2 border-gray-200">
+                                                            <th class="p-3 text-left font-semibold text-gray-700">PR No
+                                                            </th>
+                                                            <th class="p-3 text-left font-semibold text-gray-700">Customer
+                                                            </th>
+                                                            <th class="p-3 text-left font-semibold text-gray-700">Tanggal
+                                                            </th>
+                                                            <th class="p-3 text-center font-semibold text-gray-700">Aksi
+                                                            </th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <!-- DataTables data here -->
+                                                    </tbody>
+                                                </table>
+                                            </div>
+
+                                            <!-- Footer (Pagination rendered by DataTables, just provide space if needed) -->
+                                            <div class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">
+                                                <!-- DataTables pagination will be rendered automatically based on the 'dom' setting. -->
+                                            </div>
                                         </div>
+                                    </div>
+                                    {{-- Modal Duplikasi --}}
+                                    <div x-show="showDupModal" x-cloak x-transition.opacity
+                                        class="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                                        <div class="absolute inset-0 bg-black/40" @click="closeDupModal()"></div>
+                                        <div class="relative bg-white rounded-xl shadow-xl max-w-2xl w-full p-6">
+                                            <h3 class="text-lg font-semibold mb-4">Peringatan Duplikasi</h3>
+                                            <p class="mb-4">
+                                                Ditemukan <strong x-text="dupCount"></strong> item yang sudah ada dalam
+                                                daftar.
+                                                Hanya item unik yang akan ditambahkan.
+                                            </p>
 
-                                        <div class="flex justify-end gap-2">
-                                            <button type="button" @click="closeDupModal()"
-                                                class="rounded bg-gray-200 px-4 py-2 text-sm font-medium hover:bg-gray-300">
-                                                Batal
-                                            </button>
-                                            <button type="button" @click="confirmAddUniques()"
-                                                class="rounded bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700">
-                                                Tambahkan Item Unik
-                                            </button>
+                                            <div class="mb-4 max-h-48 overflow-auto border rounded p-2 bg-gray-50"
+                                                x-show="dupSample.length > 0">
+                                                <p class="text-sm font-medium mb-2">Contoh item duplikat:</p>
+                                                <template x-for="(item, idx) in dupSample" :key="idx">
+                                                    <div class="text-xs py-1">
+                                                        • <span x-text="item.fitemcode"></span> - <span
+                                                            x-text="item.frefdtno"></span>
+                                                    </div>
+                                                </template>
+                                            </div>
+
+                                            <div class="flex justify-end gap-2">
+                                                <button type="button" @click="closeDupModal()"
+                                                    class="rounded bg-gray-200 px-4 py-2 text-sm font-medium hover:bg-gray-300">
+                                                    Batal
+                                                </button>
+                                                <button type="button" @click="confirmAddUniques()"
+                                                    class="rounded bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700">
+                                                    Tambahkan Item Unik
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -1692,10 +1958,12 @@
                     row.fitemname = '';
                     row.units = [];
                     row.fsatuan = '';
+                    row.frefcode = ''; // Reset jika produk tidak ditemukan
                     row.maxqty = 0;
                     return;
                 }
                 row.fitemname = meta.name || '';
+                row.frefcode = meta.id || meta.fprdid || '';
                 const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
                 row.units = units;
                 if (!units.includes(row.fsatuan)) row.fsatuan = units[0] || '';
@@ -1777,6 +2045,11 @@
 
             addIfComplete() {
                 const r = this.draft;
+
+                if (r.fitemcode === 'UM' && this.ftypesales === 0) {
+                    this.showToast('Produk UM hanya untuk tipe Uang Muka!', 'error');
+                    return;
+                }
 
                 if (!this.isComplete(r)) {
                     if (!r.fitemcode) return this.$refs.draftCode?.focus();
@@ -1919,6 +2192,9 @@
                 window.addEventListener('pr-picked', this.onPrPicked.bind(this), {
                     passive: true
                 });
+                window.addEventListener('srj-picked', this.onPrPicked.bind(this), {
+                    passive: true
+                });
 
                 window.addEventListener('product-chosen', (e) => {
                     const {
@@ -1927,6 +2203,7 @@
                     if (!product) return;
                     const apply = (row) => {
                         row.fitemcode = (product.fprdcode || '').toString();
+                        row.frefcode = product.fprdid || product.id || '';
                         this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
                         if (!row.fqty) row.fqty = 1;
                         this.recalc(row);
@@ -1959,6 +2236,7 @@
                 uid: null,
                 fitemcode: '',
                 fitemname: '',
+                frefcode: '', // Tambahkan ini
                 units: [],
                 fsatuan: '',
                 frefdtno: '',
@@ -1987,9 +2265,153 @@
     window.prhFormModal = function() {
         return {
             show: false,
+            rows: [],
+            search: '',
+            perPage: 10,
+            currentPage: 1,
+            lastPage: 1,
+            total: 0,
+            loading: false,
+
+            showDupModal: false,
+            dupCount: 0,
+            dupSample: [],
+            pendingHeader: null,
+            pendingUniques: [],
+
+            openDupModal(header, duplicates, uniques) {
+                this.dupCount = duplicates.length;
+                this.dupSample = duplicates.slice(0, 6); // simple preview (max 6 baris)
+                this.pendingHeader = header;
+                this.pendingUniques = uniques;
+                this.showDupModal = true;
+            },
+            closeDupModal() {
+                this.showDupModal = false;
+                this.dupCount = 0;
+                this.dupSample = [];
+                this.pendingHeader = null;
+                this.pendingUniques = [];
+            },
+            confirmAddUniques() {
+                // kirim hanya item unik
+                window.dispatchEvent(new CustomEvent('pr-picked', {
+                    detail: {
+                        header: this.pendingHeader,
+                        items: this.pendingUniques
+                    }
+                }));
+                this.closeDupModal();
+                this.closeModal?.();
+            },
+
+            openModal() {
+                this.show = true;
+                this.goToPage(1);
+            },
+            closeModal() {
+                this.show = false;
+            },
+
+            async fetchData() {
+                this.loading = true;
+                try {
+                    const params = new URLSearchParams({
+                        search: this.search ?? '',
+                        per_page: this.perPage,
+                        page: this.currentPage,
+                    });
+
+                    const res = await fetch(`{{ route('penerimaanbarang.pickable') }}?` + params.toString(), {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+                    const json = await res.json();
+
+                    this.rows = json.data ?? [];
+                    this.currentPage = (json.current_page ?? json.links?.current_page) ?? 1;
+                    this.lastPage = (json.last_page ?? json.links?.last_page) ?? 1;
+                    this.total = (json.total ?? json.links?.total) ?? (json.data_total ?? 0);
+                } catch (e) {
+                    console.error(e);
+                    this.rows = [];
+                } finally {
+                    this.loading = false;
+                }
+            },
+
+            goToPage(p) {
+                if (p < 1) p = 1;
+                this.currentPage = p;
+                this.fetchData();
+            },
+
+            formatDate(s) {
+                if (!s || s === 'No Date') return '-';
+                const d = new Date(s);
+                if (isNaN(d)) return '-';
+                const pad = n => n.toString().padStart(2, '0');
+                return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+            },
+
+            async pick(row) {
+                try {
+                    const url = `{{ route('penerimaanbarang.items', ['id' => 'PR_ID_PLACEHOLDER']) }}`
+                        .replace('PR_ID_PLACEHOLDER', row.fprid);
+
+                    const res = await fetch(url, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+                    const json = await res.json();
+
+                    const items = json.items || [];
+                    const currentKeys = new Set((window.getCurrentItemKeys?.() || []).map(String));
+
+                    const keyOf = (src) =>
+                        `${(src.fitemcode ?? '').toString().trim()}::${(src.frefdtno ?? '').toString().trim()}`;
+
+                    const duplicates = items.filter(src => currentKeys.has(keyOf(src)));
+                    const uniques = items.filter(src => !currentKeys.has(keyOf(src)));
+
+                    if (duplicates.length > 0) {
+                        this.openDupModal(row, duplicates, uniques);
+                        return; // tunggu aksi user di modal
+                    }
+
+                    // tidak ada duplikat → langsung kirim semua item yang unik (atau 'items' kalau mau semua)
+                    window.dispatchEvent(new CustomEvent('pr-picked', {
+                        detail: {
+                            header: row,
+                            items
+                        } // jika ingin hanya unik, ganti 'items' → 'uniques'
+                    }));
+                    this.closeModal();
+
+                    window.dispatchEvent(new CustomEvent('pr-picked', {
+                        detail: {
+                            header: row,
+                            items
+                        }
+                    }));
+
+                    this.closeModal();
+                } catch (e) {
+                    console.error(e);
+                    alert('Gagal mengambil detail PR');
+                }
+            },
+        };
+    };
+
+    window.soFormModal = function() {
+        return {
+            show: false,
             table: null,
 
-            // Duplikasi modal state
+            // Duplikasi modal
             showDupModal: false,
             dupCount: 0,
             dupSample: [],
@@ -2001,11 +2423,11 @@
                     this.table.destroy();
                 }
 
-                this.table = $('#prTable').DataTable({
+                this.table = $('#poTable').DataTable({
                     processing: true,
                     serverSide: true,
                     ajax: {
-                        url: "{{ route('tr_poh.pickable') }}",
+                        url: "{{ route('salesorder.pickable') }}",
                         type: 'GET',
                         data: function(d) {
                             return {
@@ -2013,35 +2435,25 @@
                                 start: d.start,
                                 length: d.length,
                                 search: d.search.value,
-                                // Menambahkan parameter order untuk server-side processing
                                 order_column: d.columns[d.order[0].column].data,
                                 order_dir: d.order[0].dir
                             };
-                        },
-                        // Karena kita sudah menggunakan parameter start/length standar DataTables,
-                        // properti dataSrc bisa dihilangkan jika backend langsung mengembalikan format DataTables.
-                        // Jika backend tetap menggunakan pagination Laravel, dataSrc perlu dipertahankan. 
-                        // Kita asumsikan backend sudah disesuaikan untuk server-side DataTables penuh.
-                        // Jika masih menggunakan format pagination Laravel, kita bisa menggunakan:
-                        // dataSrc: function(json) { return json.data; }
+                        }
                     },
                     columns: [{
-                            data: 'fprno',
-                            name: 'fprno',
-                            className: 'font-mono text-sm' // Styling konsisten
+                            data: 'fsono', // Nomor SO
+                            name: 'trsomt.fsono',
+                            className: 'font-mono text-sm'
                         },
                         {
-                            data: 'fsuppliername',
-                            name: 'fsuppliername',
-                            className: 'text-sm', // Styling konsisten
-                            render: function(data) {
-                                return data || '-';
-                            }
+                            data: 'frefno', // Nomor SO
+                            name: 'frefno',
+                            className: 'font-mono text-sm'
                         },
                         {
-                            data: 'fprdate',
-                            name: 'fprdate',
-                            className: 'text-sm', // Styling konsisten
+                            data: 'fsodate', // Tanggal SO
+                            name: 'trsomt.fsodate',
+                            className: 'text-sm',
                             render: function(data) {
                                 return formatDate(data);
                             }
@@ -2051,29 +2463,27 @@
                             orderable: false,
                             searchable: false,
                             className: 'text-center',
+                            width: '100px',
                             render: function(data, type, row) {
-                                // Menggunakan styling yang lebih seragam
-                                return '<button type="button" class="btn-pick px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>';
+                                return '<button type="button" class="btn-pick px-4 py-1.5 rounded-md text-sm font-bold bg-teal-600 hover:bg-teal-700 text-white transition-colors duration-150">Pilih</button>';
                             }
                         }
                     ],
                     pageLength: 10,
                     lengthMenu: [
-                        [10, 25, 50, 100], // Menambahkan 100
+                        [10, 25, 50, 100],
                         [10, 25, 50, 100]
                     ],
-                    // Menggunakan DOM custom yang sudah diseragamkan
-                    dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
-
+                    dom: '<"#poTableControls"fl>rt<"#poTablePagination"ip>',
                     language: {
-                        processing: "Memuat data...", // Diseragamkan
-                        search: "Cari:", // Diseragamkan
-                        lengthMenu: "Tampilkan _MENU_", // Diseragamkan
-                        info: "Menampilkan _START_ - _END_ dari _TOTAL_ data", // Diseragamkan
-                        infoEmpty: "Tidak ada data", // Diseragamkan
-                        infoFiltered: "(disaring dari _MAX_ total data)", // Diseragamkan
-                        zeroRecords: "Tidak ada data yang ditemukan", // Diseragamkan
-                        emptyTable: "Tidak ada data tersedia", // Diseragamkan
+                        processing: "Memuat data...",
+                        search: "Cari:",
+                        lengthMenu: "Tampilkan _MENU_",
+                        info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
+                        infoEmpty: "Tidak ada data",
+                        infoFiltered: "(disaring dari _MAX_ total data)",
+                        zeroRecords: "Tidak ada data yang ditemukan",
+                        emptyTable: "Tidak ada data tersedia",
                         paginate: {
                             first: "Pertama",
                             last: "Terakhir",
@@ -2082,23 +2492,29 @@
                         }
                     },
                     order: [
-                        [2, 'desc']
-                    ], // Sort by tanggal terbaru
+                        [3, 'desc']
+                    ],
                     autoWidth: false,
                     initComplete: function() {
                         const api = this.api();
                         const $container = $(api.table().container());
 
-                        // Style search input (disamakan dengan Customer)
+                        // Move controls to designated areas
+                        const $filter = $container.find('.dataTables_filter');
+                        const $length = $container.find('.dataTables_length');
+                        const $info = $container.find('.dataTables_info');
+                        const $paginate = $container.find('.dataTables_paginate');
+
+                        // Style search input
                         $container.find('.dt-search .dt-input, .dataTables_filter input').css({
-                            width: '300px', // Menggunakan 300px agar konsisten dengan customerBrowser
+                            width: '300px',
                             padding: '8px 12px',
                             border: '2px solid #e5e7eb',
                             borderRadius: '8px',
                             fontSize: '14px'
                         }).focus();
 
-                        // Style length select (disamakan dengan Customer)
+                        // Style length select
                         $container.find('.dt-length select, .dataTables_length select').css({
                             padding: '6px 32px 6px 10px',
                             border: '2px solid #e5e7eb',
@@ -2108,9 +2524,9 @@
                     }
                 });
 
-                // Handle button click (Menggunakan self for consistency)
+                // Handle button click
                 const self = this;
-                $('#prTable').off('click', '.btn-pick').on('click', '.btn-pick', function() {
+                $('#poTable').on('click', '.btn-pick', function() {
                     const data = self.table.row($(this).closest('tr')).data();
                     self.pick(data);
                 });
@@ -2130,7 +2546,7 @@
                 }
             },
 
-            // --- Duplikasi Handlers (Tetap sama, logic sudah baik) ---
+            // Duplikasi handlers
             openDupModal(header, duplicates, uniques) {
                 this.dupCount = duplicates.length;
                 this.dupSample = duplicates.slice(0, 6);
@@ -2160,20 +2576,22 @@
 
             async pick(row) {
                 try {
-                    // Tampilkan loading indicator (opsional)
-
-                    const url = `{{ route('tr_poh.items', ['id' => 'PR_ID_PLACEHOLDER']) }}`
-                        .replace('PR_ID_PLACEHOLDER', row.fprid);
+                    const url = `{{ route('salesorder.items', ['id' => 'SO_ID_PLACEHOLDER']) }}`
+                        .replace('SO_ID_PLACEHOLDER', row.ftrsomtid);
 
                     const res = await fetch(url, {
                         headers: {
                             'X-Requested-With': 'XMLHttpRequest'
                         }
                     });
+
+                    if (!res.ok) {
+                        throw new Error(`Server error: ${res.status}`);
+                    }
+
                     const json = await res.json();
 
                     const items = json.items || [];
-                    // Pastikan window.getCurrentItemKeys() tersedia
                     const currentKeys = new Set((window.getCurrentItemKeys?.() || []).map(String));
 
                     const keyOf = (src) =>
@@ -2183,40 +2601,243 @@
                     const uniques = items.filter(src => !currentKeys.has(keyOf(src)));
 
                     if (duplicates.length > 0) {
-                        this.openDupModal(row, duplicates, uniques);
+                        this.openDupModal(json.header, duplicates, uniques);
                         return;
                     }
 
-                    // Tidak ada duplikat
                     window.dispatchEvent(new CustomEvent('pr-picked', {
                         detail: {
-                            header: row,
-                            items
+                            header: json.header,
+                            items: items
                         }
                     }));
 
                     this.closeModal();
                 } catch (e) {
-                    console.error(e);
-                    // Menggunakan custom alert/modal, bukan alert() bawaan browser
-                    // Idealnya: tampilkan notifikasi di UI
-                    console.log('Gagal mengambil detail PR. Lihat konsol untuk detail.');
+                    console.error('Error:', e);
+                    window.toast?.error(`Gagal mengambil detail Sales Order: ${e.message}`);
                 }
             }
         };
     };
 
-    // Helper function untuk format tanggal (ditingkatkan sedikit)
+    // Helper function untuk format tanggal
     function formatDate(s) {
         if (!s || s === 'No Date') return '-';
-        // Mencoba parsing format standar ISO 8601 atau yang didukung Date
         const d = new Date(s);
-        if (isNaN(d.getTime())) return '-';
-
-        // Format YYYY-MM-DD HH:MM
+        if (isNaN(d)) return '-';
         const pad = n => n.toString().padStart(2, '0');
         return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
     }
+
+    window.srjFormModal = function() {
+        return {
+            showSrjModal: false,
+            table: null,
+
+            // Fitur Duplikasi (mirip logic SO)
+            showDupModal: false,
+            dupCount: 0,
+            dupSample: [],
+            pendingHeader: null,
+            pendingUniques: [],
+
+            initDataTable() {
+                if (this.table) {
+                    this.table.destroy();
+                }
+
+                this.table = $('#srjTable').DataTable({
+                    processing: true,
+                    serverSide: true,
+                    ajax: {
+                        url: "{{ route('suratjalan.pickable') }}", // Pastikan route ini ada di web.php
+                        type: 'GET',
+                        data: function(d) {
+                            return {
+                                draw: d.draw,
+                                start: d.start,
+                                length: d.length,
+                                search: d.search.value,
+                                order_column: d.columns[d.order[0].column].data,
+                                order_dir: d.order[0].dir
+                            };
+                        }
+                    },
+                    columns: [{
+                            data: 'fstockmtno',
+                            className: 'font-mono text-sm'
+                        },
+                        {
+                            data: 'frefpo',
+                            defaultContent: '-',
+                            className: 'font-mono text-sm'
+                        },
+                        {
+                            data: 'fstockmtdate',
+                            className: 'text-sm',
+                            render: function(data) {
+                                return formatDate(
+                                    data); // Menggunakan helper formatDate yang sudah Anda miliki
+                            }
+                        },
+                          {
+                            data: 'fsuppliername',
+                            name: 'fsuppliername',
+                        },
+                        {
+                            data: null,
+                            orderable: false,
+                            searchable: false,
+                            className: 'text-center',
+                            width: '100px',
+                            render: function() {
+                                return '<button type="button" class="btn-pick-srj px-4 py-1.5 rounded-md text-sm font-bold bg-indigo-600 hover:bg-indigo-700 text-white transition-colors duration-150">Pilih</button>';
+                            }
+                        }
+                    ],
+                    pageLength: 10,
+                    dom: '<"#srjHeader"fl>rt<"#srjFooter"ip>',
+                    language: {
+                        processing: "Memuat data...",
+                        search: "Cari:",
+                        lengthMenu: "Tampilkan _MENU_",
+                        paginate: {
+                            next: "Selanjutnya",
+                            previous: "Sebelumnya"
+                        }
+                    },
+                    order: [
+                        [2, 'desc']
+                    ], // Urutkan berdasarkan tanggal
+                    autoWidth: false,
+                    initComplete: function() {
+                        const api = this.api();
+                        const $container = $(api.table().container());
+
+                        // 1. Bungkus Header (Search & Length) supaya sejajar (Flex)
+                        const $header = $container.find('#srjHeader');
+                        $header.addClass('flex items-center justify-between mb-4 gap-4');
+
+                        // 2. Styling Input Search
+                        $header.find('.dataTables_filter input').css({
+                            'width': '300px',
+                            'padding': '8px 12px',
+                            'border': '2px solid #e5e7eb',
+                            'border-radius': '8px',
+                            'outline': 'none'
+                        }).addClass('focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500');
+
+                        // 3. Styling Dropdown "Tampilkan 10" (Length Menu)
+                        $header.find('.dataTables_length select').css({
+                            'padding': '6px 30px 6px 12px', // Beri padding kanan lebih untuk icon panah
+                            'border': '2px solid #e5e7eb',
+                            'border-radius': '8px',
+                            'background-position': 'right 8px center',
+                            'appearance': 'none', // Hilangkan style default browser
+                            'min-width': '80px'
+                        }).addClass('focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500');
+
+                        // 4. Bungkus Footer (Info & Pagination)
+                        const $footer = $container.find('#srjFooter');
+                        $footer.addClass('flex items-center justify-between mt-4');
+                    }
+                });
+
+                // Handle button click (pola delegasi jQuery)
+                const self = this;
+                $('#srjTable').off('click', '.btn-pick-srj').on('click', '.btn-pick-srj', function() {
+                    const data = self.table.row($(this).closest('tr')).data();
+                    self.pick(data);
+                });
+            },
+
+            // Handler Modal SRJ
+            openSrjModal() {
+                this.showSrjModal = true;
+                this.$nextTick(() => {
+                    this.initDataTable();
+                });
+            },
+
+            closeSrjModal() {
+                this.showSrjModal = false;
+                if (this.table) {
+                    this.table.search('').draw();
+                }
+            },
+
+            // Fitur Duplikasi SRJ
+            openDupModal(header, duplicates, uniques) {
+                this.dupCount = duplicates.length;
+                this.dupSample = duplicates.slice(0, 6);
+                this.pendingHeader = header;
+                this.pendingUniques = uniques;
+                this.showDupModal = true;
+            },
+
+            closeDupModal() {
+                this.showDupModal = false;
+            },
+
+            confirmAddUniques() {
+                window.dispatchEvent(new CustomEvent('srj-picked', {
+                    detail: {
+                        header: this.pendingHeader,
+                        items: this.pendingUniques
+                    }
+                }));
+                this.closeDupModal();
+                this.closeSrjModal();
+            },
+
+            async pick(row) {
+                try {
+                    // Pastikan route srj.items sudah didefinisikan di Laravel
+                    const url = `{{ route('suratjalan.items', ['id' => 'PLACEHOLDER']) }}`
+                        .replace('PLACEHOLDER', row.fstockmtid);
+
+                    const res = await fetch(url, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+
+                    if (!res.ok) throw new Error(`Server error: ${res.status}`);
+
+                    const json = await res.json();
+                    const items = json.items || [];
+
+                    // Ambil key item yang sudah ada di table input (untuk cek duplikat)
+                    const currentKeys = new Set((window.getCurrentItemKeys?.() || []).map(String));
+
+                    // Logic key unik (Item Code + Ref Detail No)
+                    const keyOf = (src) =>
+                        `${(src.fitemcode ?? '').toString().trim()}::${(src.frefdtno ?? '').toString().trim()}`;
+
+                    const duplicates = items.filter(src => currentKeys.has(keyOf(src)));
+                    const uniques = items.filter(src => !currentKeys.has(keyOf(src)));
+
+                    if (duplicates.length > 0) {
+                        this.openDupModal(json.header, duplicates, uniques);
+                        return;
+                    }
+
+                    window.dispatchEvent(new CustomEvent('srj-picked', {
+                        detail: {
+                            header: json.header,
+                            items: items
+                        }
+                    }));
+
+                    this.closeSrjModal();
+                } catch (e) {
+                    console.error('Error SRJ:', e);
+                    window.toast?.error(`Gagal mengambil detail SRJ: ${e.message}`);
+                }
+            }
+        };
+    };
 </script>
 
 @push('scripts')

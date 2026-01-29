@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Invoice')
+@section('title', 'Faktur Penjualan')
 
 @section('content')
     <div x-data class="bg-white rounded shadow p-4">
@@ -84,7 +84,7 @@
             </div>
         </div>
 
-        <table id="salesorderTable" class="min-w-full border text-sm">
+        <table id="invoiceorderTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
                     <th class="border px-2 py-1">Cab.</th>
@@ -164,24 +164,24 @@
         }
 
         /* Stabilkan tabel */
-        #salesorderTable {
+        #invoiceorderTable {
             width: 100% !important;
         }
 
-        #salesorderTable th,
-        #salesorderTable td {
+        #invoiceorderTable th,
+        #invoiceorderTable td {
             text-align: left !important;
             vertical-align: middle;
         }
 
         /* Kolom Aksi: jangan mepet, tapi tetap ringkas */
-        #salesorderTable th:last-child,
-        #salesorderTable td:last-child {
+        #invoiceorderTable th:last-child,
+        #invoiceorderTable td:last-child {
             white-space: nowrap;
             text-align: center;
         }
 
-        #salesorderTable td:last-child {
+        #invoiceorderTable td:last-child {
             padding: .25rem .5rem;
         }
 
@@ -190,14 +190,14 @@
             font-size: .825rem;
         }
 
-        #salesorderTable th,
-        #salesorderTable td {
+        #invoiceorderTable th,
+        #invoiceorderTable td {
             text-align: left !important;
             vertical-align: middle;
         }
 
-        #salesorderTable th:last-child,
-        #salesorderTable td:last-child {
+        #invoiceorderTable th:last-child,
+        #invoiceorderTable td:last-child {
             text-align: center;
             white-space: nowrap;
         }
@@ -270,7 +270,7 @@
                             this.isDeleting = false;
 
                             if (result.ok) {
-                                const table = $('#salesorderTable').DataTable();
+                                const table = $('#invoiceorderTable').DataTable();
                                 if (rowToDelete) {
                                     table.row($(rowToDelete)).remove().draw(false);
                                 }
@@ -379,7 +379,7 @@
             // Tambahkan kolom actions jika ada permission
             // if (hasActions) {
             columns.push({
-                data: 'ftrsomtid',
+                data: 'ftranmtid',
                 name: 'actions',
                 orderable: false,
                 searchable: false,
@@ -438,7 +438,7 @@
             // }
 
             // 3. Inisialisasi DataTables
-            $('#salesorderTable').DataTable({
+            $('#invoiceorderTable').DataTable({
                 processing: true,
                 serverSide: true,
                 ajax: {

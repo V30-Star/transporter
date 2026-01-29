@@ -127,9 +127,12 @@
                         <div class="lg:col-span-2 flex items-end pb-2">
                             <div class="inline-flex items-center">
                                 <input id="fclose" type="checkbox" name="fclose" value="1" x-model="fclose"
-                                    class="h-4 w-4 text-blue-600 border-gray-300 rounded"
+                                    {{-- Menambahkan class w-6 h-6 untuk ukuran dan accent-blue-600 untuk warna --}}
+                                    class="w-6 h-6 text-blue-600 border-gray-300 rounded cursor-pointer focus:ring-blue-500"
                                     {{ old('fclose', $salesorder->fclose) ? 'checked' : '' }}>
-                                <label for="fclose" class="ml-2 text-sm font-medium text-gray-700 whitespace-nowrap">
+
+                                <label for="fclose" {{-- Menambahkan ml-3 dan text-base agar seimbang dengan ukuran checkbox --}}
+                                    class="ml-3 text-base font-semibold text-gray-700 whitespace-nowrap cursor-pointer">
                                     Close
                                 </label>
                             </div>
@@ -234,49 +237,63 @@
                                 tab = 1; 
                                 updateFinal();
                                 "
-                                    class="flex flex-col">
+                                    class="flex flex-col gap-2">
 
                                     <input type="hidden" name="falamatkirim" id="falamatkirim_final"
-                                        value="{{ old('falamatkirim', $salesorder->falamatkirim) }}">
+                                        value="{{ old('falamatkirim') }}">
 
-                                    <label class="block text-sm font-bold text-gray-700 mb-2">Alamat Kirim</label>
+                                    <div class="flex items-center gap-2">
+                                        <label class="text-sm font-bold text-gray-700 mr-2">Kirim ke :</label>
 
-                                    <div class="flex">
-                                        <template x-for="i in [1, 2, 3]">
-                                            <button type="button" @click="tab = i" disabled
-                                                :class="tab === i ? 'bg-blue-600 text-white border-blue-600' :
-                                                    'bg-gray-100 text-gray-500 border-gray-200 hover:bg-gray-200'"
-                                                class="px-4 py-2 text-xs font-bold rounded-t-lg border-t border-x transition-all mr-1"
-                                                x-text="'PILIH ALAMAT' + i">
+                                        <div class="inline-flex rounded-md shadow-sm" role="group">
+                                            <button type="button" @click="tab = 1" disabled
+                                                :class="tab === 1 ? 'bg-blue-600 text-white z-10 ring-2 ring-blue-300' :
+                                                    'bg-white text-gray-700 hover:bg-gray-50'"
+                                                class="px-4 py-1.5 text-xs font-semibold border border-gray-300 rounded-l-md transition-all">
+                                                Alamat 1
                                             </button>
-                                        </template>
+                                            <button type="button" @click="tab = 2" disabled
+                                                :class="tab === 2 ? 'bg-blue-600 text-white z-10 ring-2 ring-blue-300' :
+                                                    'bg-white text-gray-700 hover:bg-gray-50'"
+                                                class="px-4 py-1.5 text-xs font-semibold border-t border-b border-r border-gray-300 transition-all">
+                                                Alamat 2
+                                            </button>
+                                            <button type="button" @click="tab = 3" disabled
+                                                :class="tab === 3 ? 'bg-blue-600 text-white z-10 ring-2 ring-blue-300' :
+                                                    'bg-white text-gray-700 hover:bg-gray-50'"
+                                                class="px-4 py-1.5 text-xs font-semibold border-t border-b border-r border-gray-300 rounded-r-md transition-all">
+                                                Alamat 3
+                                            </button>
+                                        </div>
                                     </div>
 
-                                    <div
-                                        class="flex-1 border-2 border-gray-200 rounded-b-xl bg-gray-200 rounded-tr-xl p-3 shadow-sm min-h-[150px]">
-                                        <textarea readonly x-show="tab === 1" x-model="addr1"
-                                            class="w-full h-full border-none focus:ring-0 p-0 text-sm resize-none bg-gray-200"
-                                            placeholder="Alamat Kirim 1..."></textarea>
-                                        <textarea readonly x-show="tab === 2" x-model="addr2"
-                                            class="w-full h-full border-none focus:ring-0 p-0 text-sm resize-none bg-gray-200"
-                                            placeholder="Alamat Kirim 2..."></textarea>
-                                        <textarea readonly x-show="tab === 3" x-model="addr3"
-                                            class="w-full h-full border-none focus:ring-0 p-0 text-sm resize-none bg-gray-200"
-                                            placeholder="Alamat Kirim 3..."></textarea>
+                                    <div class="w-full">
+                                        <textarea x-show="tab === 1" x-model="addr1" readonly
+                                            class="w-full p-2 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 min-h-[80px]"
+                                            placeholder="Isi Alamat 1..."></textarea>
+
+                                        <textarea x-show="tab === 2" x-model="addr2" readonly
+                                            class="w-full p-2 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 min-h-[80px]"
+                                            placeholder="Isi Alamat 2..."></textarea>
+
+                                        <textarea x-show="tab === 3" x-model="addr3" readonly
+                                            class="w-full p-2 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 min-h-[80px]"
+                                            placeholder="Isi Alamat 3..."></textarea>
                                     </div>
                                 </div>
 
                                 <div class="flex flex-col">
                                     <label class="block text-sm font-bold text-gray-700 mb-2">Keterangan</label>
                                     <div
-                                        class="flex-1 border-2 border-gray-200 rounded-xl p-3 bg-gray-200 focus-within:border-blue-400">
-                                        <textarea readonly name="fket" class="w-full h-full border-none focus:ring-0 p-0 text-sm resize-none bg-gray-200"
+                                        class="flex-1 border-2 border-gray-200 rounded-xl p-3 bg-white min-h-[150px] focus-within:border-blue-400">
+                                        <textarea name="fket" class="w-full h-full border-none focus:ring-0 p-0 text-sm resize-none" readonly
                                             placeholder="Keterangan isi di sini...">{{ old('fket', $salesorder->fket) }}</textarea>
                                     </div>
                                     @error('fket')
                                         <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
                                     @enderror
                                 </div>
+
                             </div>
                         </div>
 
@@ -310,15 +327,16 @@
                                         <th class="p-2 text-right w-36 whitespace-nowrap">Total Harga</th>
                                     </tr>
                                 </thead>
-
-                                <tbody>
-                                    <template x-for="(it, i) in savedItems" :key="String(it.uid)">
-                                        <!-- ROW UTAMA -->
-                                        <tr class="border-t align-top">
+                                <!-- Loop untuk setiap item yang sudah disimpan -->
+                                <template x-for="(it, i) in savedItems" :key="it.uid || `item-${i}`">
+                                    <tbody>
+                                        <!-- ROW UTAMA - SAVED ITEM (READ ONLY) -->
+                                        <tr class="border-t border-b align-top">
                                             <td class="p-2" x-text="i + 1"></td>
                                             <td class="p-2 font-mono" x-text="it.fitemcode"></td>
                                             <td class="p-2 text-gray-800">
                                                 <div x-text="it.fitemname"></div>
+                                                <!-- Tampilkan deskripsi yang sudah tersimpan (READ ONLY) -->
                                                 <div x-show="it.fdesc" class="mt-1 text-xs">
                                                     <span
                                                         class="inline-block px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 mr-2">Deskripsi</span>
@@ -330,9 +348,11 @@
                                             <td class="p-2 text-right" x-text="fmt(it.fprice)"></td>
                                             <td class="p-2 text-right" x-text="it.fdisc"></td>
                                             <td class="p-2 text-right" x-text="fmt(it.ftotal)"></td>
+                                        </tr>
 
-                                            <!-- hidden inputs -->
-                                            <td class="hidden">
+                                        <!-- Hidden inputs row -->
+                                        <tr class="hidden">
+                                            <td colspan="9">
                                                 <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
                                                 <input type="hidden" name="fitemname[]" :value="it.fitemname">
                                                 <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
@@ -349,23 +369,14 @@
                                             </td>
                                         </tr>
 
-                                        <!-- ROW DESC (di bawah Nama Produk) -->
-                                        <tr class="border-b">
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                        </tr>
-                                    </template>
+                                        <!-- TIDAK ADA TEXTAREA DI SINI! -->
+                                    </tbody>
+                                </template>
 
+                                <!-- Row Edit & Draft (di luar loop) -->
+                                <tbody>
                                     <!-- ROW EDIT UTAMA -->
                                     <tr x-show="editingIndex !== null" class="border-t align-top" x-cloak>
-                                        <!-- # -->
                                         <td class="p-2" x-text="(editingIndex ?? 0) + 1"></td>
 
                                         <!-- Kode Produk -->
@@ -375,6 +386,16 @@
                                                     x-ref="editCode" x-model.trim="editRow.fitemcode"
                                                     @input="onCodeTypedRow(editRow)"
                                                     @keydown.enter.prevent="handleEnterOnCode('edit')">
+                                                <button type="button" @click="openBrowseFor('edit')"
+                                                    class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
+                                                    title="Cari Produk">
+                                                    <x-heroicon-o-magnifying-glass class="w-4 h-4" />
+                                                </button>
+                                                <a href="{{ route('product.create') }}" target="_blank" rel="noopener"
+                                                    class="border border-l-0 rounded-r px-2 py-1 bg-white hover:bg-gray-50"
+                                                    title="Tambah Produk">
+                                                    <x-heroicon-o-plus class="w-4 h-4" />
+                                                </a>
                                             </div>
                                         </td>
 
@@ -390,9 +411,10 @@
                                             <template x-if="editRow.units.length > 1">
                                                 <select class="w-full border rounded px-2 py-1" x-ref="editUnit"
                                                     x-model="editRow.fsatuan"
-                                                    @keydown.enter.prevent="$refs.editRefPr?.focus()">
+                                                    @keydown.enter.prevent="$refs.editQty?.focus()">
                                                     <template x-for="u in editRow.units" :key="u">
-                                                        <option :value="u" x-text="u"></option>
+                                                        <option :value="u" x-text="u">
+                                                        </option>
                                                     </template>
                                                 </select>
                                             </template>
@@ -408,7 +430,7 @@
                                             <input type="number" class="border rounded px-2 py-1 w-24 text-right"
                                                 min="0" step="1" x-ref="editQty"
                                                 x-model.number="editRow.fqty" @input="recalc(editRow)"
-                                                @keydown.enter.prevent="$refs.editTerima?.focus()">
+                                                @keydown.enter.prevent="$refs.editPrice?.focus()">
                                         </td>
 
                                         <!-- @ Harga -->
@@ -423,33 +445,21 @@
                                         <td class="p-2 text-right">
                                             <input type="text" class="border rounded px-2 py-1 w-24 text-right"
                                                 x-ref="editDisc" x-model="editRow.fdisc" @input="recalc(editRow)"
-                                                @keydown.enter.prevent="applyEdit()" placeholder="10+2">
+                                                @keydown.enter.prevent="$refs.editDesc?.focus()" placeholder="10+2">
                                         </td>
 
                                         <!-- Total Harga (readonly) -->
                                         <td class="p-2 text-right" x-text="fmt(editRow.ftotal)"></td>
                                     </tr>
 
-                                    <!-- ROW EDIT DESC -->
+                                    <!-- ROW EDIT DESC - Menggunakan editRow.fdesc -->
                                     <tr x-show="editingIndex !== null" class="border-b" x-cloak>
                                         <td class="p-0"></td>
                                         <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                    </tr>
-
-                                    <!-- ROW DRAFT DESC -->
-                                    <tr class="border-b">
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
+                                        <td class="p-2" colspan="6">
+                                            <textarea x-model="editRow.fdesc" x-ref="editDesc" rows="2" class="w-full border rounded px-4 py-1"
+                                                placeholder="Deskripsi (opsional)" @keydown.enter.prevent="applyEdit()"></textarea>
+                                        </td>
                                         <td class="p-0"></td>
                                     </tr>
                                 </tbody>
@@ -483,9 +493,8 @@
 
                                             <!-- Dropdown Include / Exclude (tengah) -->
                                             <div class="flex items-center gap-2">
-                                                <select disabled id="includePPN" name="includePPN"
-                                                    x-model.number="fapplyppn" x-init="fapplyppn = 0"
-                                                    :disabled="!(includePPN || fapplyppn)"
+                                                <select id="includePPN" name="includePPN" x-model.number="fapplyppn"
+                                                    x-init="fapplyppn = 0" :disabled="!(includePPN || fapplyppn)"
                                                     class="w-28 h-9 px-2 text-sm leading-tight border rounded transition-opacity appearance-none
                                                            disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
                                                     <option value="0">Exclude</option>
@@ -495,8 +504,8 @@
 
                                             <!-- Input Rate + Nominal (kanan) -->
                                             <div class="flex items-center gap-2">
-                                                <input disabled type="number" min="0" max="100"
-                                                    step="0.01" x-model.number="ppnRate"
+                                                <input type="number" min="0" max="100" step="0.01"
+                                                    disabled x-model.number="ppnRate"
                                                     :disabled="!(includePPN || fapplyppn)"
                                                     class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
                                                             [appearance:textfield]
@@ -513,7 +522,8 @@
                                         <div class="border-t my-1"></div>
 
                                         <div class="flex items-center justify-between">
-                                            <span class="text-sm font-semibold text-gray-800">Grand Total</span>
+                                            <span class="text-sm font-semibold text-gray-800">Grand
+                                                Total</span>
                                             <span class="min-w-[140px] text-right text-lg font-semibold"
                                                 x-text="rupiah(grandTotal)"></span>
                                         </div>
@@ -543,7 +553,8 @@
                                     x-transition.scale>
                                     <div class="px-5 py-4 border-b flex items-center">
                                         <x-heroicon-o-document-text class="w-6 h-6 text-blue-600 mr-2" />
-                                        <h3 class="text-lg font-semibold text-gray-800">Isi Deskripsi Item</h3>
+                                        <h3 class="text-lg font-semibold text-gray-800">Isi Deskripsi Item
+                                        </h3>
                                     </div>
 
                                     <div class="px-5 py-4 space-y-2">
@@ -956,27 +967,51 @@
 
                         totalHarga: 0,
                         ppnRate: 11,
-                        grandTotal: @json($famountpo ?? 0),
 
-                        initialGrandTotal: @json($famountpo ?? 0),
+                        initialGrandTotal: @json($famountso ?? 0),
                         initialPpnAmount: @json($famountpopajak ?? 0),
 
-                        get ppnAmount() {
-                            if (!this.includePPN) return 0;
+                        includePPN: false,
+                        fapplyppn: false,
+
+                        get ppnIncluded() {
                             const total = +this.totalHarga || 0;
                             const rate = +this.ppnRate || 0;
-                            return Math.round(total * rate / 100);
-                        },
-                        get grandTotal() {
-                            if (!this.includePPN) {
-                                return this.initialGrandTotal; // pakai nilai lama dari DB
-                            }
-                            const total = +this.totalHarga || 0;
-                            return total + this.ppnAmount; // hitung baru kalau PPN aktif
+                            if (!this.fapplyppn) return 0;
+                            return Math.round((100 / (100 + rate)) * total * (rate / 100));
                         },
 
-                        fmtMoney(value) {
-                            return this.fmt(value); // format uang
+                        get netFromGross() {
+                            const total = +this.totalHarga || 0;
+                            return total - this.ppnIncluded;
+                        },
+
+                        get ppnAdded() {
+                            const rate = +this.ppnRate || 0;
+                            if (!this.includePPN || this.fapplyppn) return 0;
+                            const total = +this.totalHarga || 0;
+                            return Math.round(total * (rate / 100));
+                        },
+
+                        get ppnAmount() {
+                            if (this.fapplyppn) {
+                                return this.ppnIncluded;
+                            }
+                            if (this.includePPN) {
+                                return this.ppnAdded;
+                            }
+                            return 0;
+                        },
+
+                        get grandTotal() {
+                            const total = +this.totalHarga || 0;
+                            if (this.fapplyppn) {
+                                return total;
+                            }
+                            if (this.includePPN) {
+                                return total + this.ppnAdded;
+                            }
+                            return total;
                         },
 
                         fmt(n) {
@@ -984,14 +1019,13 @@
                             const v = Number(n);
                             if (!isFinite(v)) return '-';
 
-                            // Jika angka adalah bulat, hilangkan desimal
                             if (Number.isInteger(v)) {
-                                return v.toLocaleString('id-ID'); // Format sebagai angka bulat
+                                return v.toLocaleString('id-ID');
                             } else {
                                 return v.toLocaleString('id-ID', {
                                     style: 'currency',
                                     currency: 'IDR'
-                                }); // Jika angka desimal, tampilkan dalam format mata uang
+                                });
                             }
                         },
 
@@ -1004,22 +1038,67 @@
                             });
                         },
 
+                        fmtMoney(value) {
+                            return this.fmt(value);
+                        },
+
+                        // ✅ FUNGSI BARU: Parse diskon dengan format "10+2"
+                        parseDiscount(discStr) {
+                            if (!discStr && discStr !== 0) return 0;
+
+                            // Jika sudah berupa angka, langsung return
+                            if (typeof discStr === 'number') return discStr;
+
+                            const str = String(discStr).trim();
+
+                            // Jika string kosong
+                            if (!str) return 0;
+
+                            // Jika angka biasa (tanpa operator)
+                            if (!isNaN(str)) {
+                                return parseFloat(str) || 0;
+                            }
+
+                            // Parse ekspresi matematika sederhana (10+2, 5+3+2, dll)
+                            try {
+                                // Hapus semua spasi
+                                const cleaned = str.replace(/\s/g, '');
+
+                                // Validasi: hanya boleh angka, titik desimal, dan operator + - * /
+                                if (!/^[\d+\-*/.()]+$/.test(cleaned)) {
+                                    return 0;
+                                }
+
+                                // Hitung menggunakan Function (lebih aman dari eval)
+                                const result = new Function('return ' + cleaned)();
+
+                                // Return hasil jika valid, batasi maksimal 100%
+                                return isFinite(result) ? Math.min(100, Math.max(0, result)) : 0;
+                            } catch (e) {
+                                console.warn('Invalid discount format:', discStr);
+                                return 0;
+                            }
+                        },
+
+                        // ✅ UPDATE FUNGSI recalc untuk menggunakan parseDiscount
                         recalc(row) {
                             row.fqty = Math.max(0, +row.fqty || 0);
                             row.fterima = Math.max(0, +row.fterima || 0);
                             row.fprice = Math.max(0, +row.fprice || 0);
-                            row.fdisc = Math.min(100, Math.max(0, +row.fdisc || 0));
-                            row.ftotal = +(row.fqty * row.fprice * (1 - row.fdisc / 100)).toFixed(2);
+
+                            // Parse discount menggunakan fungsi baru
+                            const discPercent = this.parseDiscount(row.fdisc);
+
+                            // Hitung total
+                            const subtotal = row.fqty * row.fprice;
+                            const discAmount = subtotal * (discPercent / 100);
+                            row.ftotal = +(subtotal - discAmount).toFixed(2);
+
                             this.recalcTotals();
                         },
 
                         recalcTotals() {
-                            this.totalHarga = this.savedItems.reduce((sum, it) => sum + (+it.ftotal || 0), 0);
-                        },
-
-                        calculatePPN() {
-                            this.ppnAmount = this.includePPN ? (this.totalHarga * (this.ppnRate / 100)) : 0;
-                            this.grandTotal = this.totalHarga + this.ppnAmount;
+                            this.totalHarga = this.savedItems.reduce((sum, item) => sum + item.ftotal, 0);
                         },
 
                         productMeta(code) {
@@ -1058,19 +1137,17 @@
                                 items
                             } = e.detail || {};
                             if (!items || !Array.isArray(items)) return;
-
                             this.resetDraft();
-
                             this.addManyFromPR(header, items);
                         },
+
                         resetDraft() {
                             this.draft = newRow();
                             this.$nextTick(() => this.$refs.draftCode?.focus());
                         },
 
                         addManyFromPR(header, items) {
-                            const existing = new Set(this.getCurrentItemKeys()); // gunakan helper
-
+                            const existing = new Set(this.getCurrentItemKeys());
                             let added = 0,
                                 duplicates = [];
 
@@ -1079,22 +1156,22 @@
                                     uid: cryptoRandom(),
                                     fitemcode: src.fitemcode ?? '',
                                     fitemname: src.fitemname ?? '',
-                                    fsatuan: (src.fsatuan ?? ''),
+                                    fsatuan: src.fsatuan ?? '',
                                     frefdtno: src.frefdtno ?? '',
                                     fnouref: src.fnouref ?? '',
-                                    frefpr: src.frefpr ?? '',
-                                    fpono: header?.fpono ?? src.fpono ?? '',
+                                    frefpr: src.frefpr ?? (header?.fsono ?? ''),
                                     fprnoid: src.fprnoid ?? header?.fprnoid ?? '',
                                     fqty: Number(src.fqty ?? 0),
-                                    fterima: Number(src.ferima ?? 0),
+                                    fterima: Number(src.fterima ?? 0),
                                     fprice: Number(src.fprice ?? 0),
-                                    fdisc: Number(src.fdisc ?? 0),
+                                    fdisc: src.fdisc ?? 0, // ✅ Simpan format asli (bisa string "10+2")
                                     ftotal: Number(src.ftotal ?? 0),
                                     fdesc: src.fdesc ?? '',
                                     fketdt: src.fketdt ?? '',
                                     units: Array.isArray(src.units) && src.units.length ? src.units : [src.fsatuan]
                                         .filter(Boolean),
                                 };
+
                                 const key = this.itemKey({
                                     fitemcode: row.fitemcode,
                                     frefdtno: row.frefdtno
@@ -1113,11 +1190,13 @@
                                 existing.add(key);
                                 added++;
                             });
+
                             this.recalcTotals();
                         },
 
                         addIfComplete() {
                             const r = this.draft;
+
                             if (!this.isComplete(r)) {
                                 if (!r.fitemcode) return this.$refs.draftCode?.focus();
                                 if (!r.fitemname) return this.$refs.draftCode?.focus();
@@ -1129,10 +1208,14 @@
 
                             this.recalc(r);
 
-                            const dupe = this.savedItems.find(it => it.fitemcode === r.fitemcode && it.fsatuan === r.fsatuan && (it
-                                .frefpr || '') === (r.frefpr || ''));
+                            const dupe = this.savedItems.find(it =>
+                                it.fitemcode === r.fitemcode &&
+                                it.fsatuan === r.fsatuan &&
+                                (it.frefpr || '') === (r.frefpr || '')
+                            );
+
                             if (dupe) {
-                                alert('Item sama sudah ada.');
+                                this.showToast('Item sama sudah ada di daftar', 'warning');
                                 return;
                             }
 
@@ -1141,11 +1224,9 @@
                                 uid: cryptoRandom()
                             });
                             this.showNoItems = false;
-                            this.resetDraft(); // Reset draft setelah item ditambahkan
+                            this.resetDraft();
                             this.$nextTick(() => this.$refs.draftCode?.focus());
                             this.syncDescList?.();
-                            this.showNoItems = false;
-
                             this.recalcTotals();
                         },
 
@@ -1170,7 +1251,6 @@
                             });
                             this.cancelEdit();
                             this.syncDescList?.();
-
                             this.recalcTotals();
                         },
 
@@ -1182,10 +1262,7 @@
                         removeSaved(i) {
                             this.savedItems.splice(i, 1);
                             this.syncDescList?.();
-                        },
-
-                        resetDraft() {
-                            this.draft = newRow();
+                            this.recalcTotals();
                         },
 
                         onSubmit($event) {
@@ -1196,7 +1273,6 @@
                             }
                         },
 
-                        // Handle enter for navigating fields (similar to your current logic)
                         handleEnterOnCode(where) {
                             if (where === 'edit') {
                                 if (this.editRow.units.length > 1) this.$refs.editUnit?.focus();
@@ -1223,8 +1299,39 @@
                             return this.savedItems.map(it => this.itemKey(it));
                         },
 
+                        // Tambahkan di Alpine data
+                        showToast(message, type = 'info') {
+                            // Buat element toast
+                            const toast = document.createElement('div');
+                            toast.className = `fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 animate-slide-in ${
+        type === 'warning' ? 'bg-amber-100 text-amber-800 border border-amber-300' :
+        type === 'error' ? 'bg-red-100 text-red-800 border border-red-300' :
+        type === 'success' ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' :
+        'bg-blue-100 text-blue-800 border border-blue-300'
+    }`;
+
+                            toast.innerHTML = `
+        <svg class="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            ${type === 'warning' ? '<path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>' :
+            type === 'error' ? '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>' :
+            type === 'success' ? '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>' :
+            '<path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>'}
+        </svg>
+        <span class="font-medium">${message}</span>
+    `;
+
+                            document.body.appendChild(toast);
+
+                            // Auto remove setelah 3 detik
+                            setTimeout(() => {
+                                toast.classList.add('animate-slide-out');
+                                setTimeout(() => toast.remove(), 300);
+                            }, 3000);
+                        },
+
                         init() {
                             this.$watch('includePPN', () => this.recalcTotals());
+                            this.$watch('fapplyppn', () => this.recalcTotals());
                             this.$watch('ppnRate', () => this.recalcTotals());
 
                             window.getCurrentItemKeys = () => this.getCurrentItemKeys();
@@ -1232,7 +1339,6 @@
                                 passive: true
                             });
 
-                            // Listen for product picked from product modal
                             window.addEventListener('product-chosen', (e) => {
                                 const {
                                     product
@@ -1253,10 +1359,6 @@
                                 }
                             }, {
                                 passive: true
-                            });
-                            this.$watch('ppnAmount', () => {
-                                const ppnValue = (+this.totalHarga || 0) * (+this.ppnAmount || 0) / 100;
-                                this.grandTotal = (+this.totalHarga || 0) + ppnValue;
                             });
                         },
 
@@ -1284,7 +1386,7 @@
                             fqty: 0,
                             fterima: 0,
                             fprice: 0,
-                            fdisc: 0,
+                            fdisc: 0, // Bisa berupa string "10+2" atau angka 12
                             ftotal: 0,
                             fdesc: '',
                             fketdt: '',
@@ -1294,7 +1396,8 @@
 
                     function cryptoRandom() {
                         return (window.crypto?.getRandomValues ? [...window.crypto.getRandomValues(new Uint32Array(2))].map(n => n
-                            .toString(16)).join('') : Math.random().toString(36).slice(2)) + Date.now();
+                                .toString(16)).join('') :
+                            Math.random().toString(36).slice(2)) + Date.now();
                     }
                 }
             </script>

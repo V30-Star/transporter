@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Tr_prh;
 use App\Models\Tr_prd;
-use App\Models\SalesOrderHeader;
+use App\Models\Tranmt;
 use App\Models\SalesOrderDetail;
 use App\Models\Supplier;
 use App\Models\Customer;
@@ -25,17 +25,17 @@ class InvoiceController extends Controller
   public function index(Request $request)
   {
     // Ambil izin (permissions)
-    $canCreate = in_array('createTr_poh', explode(',', session('user_restricted_permissions', '')));
-    $canEdit   = in_array('updateTr_poh', explode(',', session('user_restricted_permissions', '')));
-    $canDelete = in_array('deleteTr_poh', explode(',', session('user_restricted_permissions', '')));
+    $canCreate = in_array('createInvoice', explode(',', session('user_restricted_permissions', '')));
+    $canEdit   = in_array('updateInvoice', explode(',', session('user_restricted_permissions', '')));
+    $canDelete = in_array('deleteInvoice', explode(',', session('user_restricted_permissions', '')));
     $showActionsColumn = $canEdit || $canDelete;
 
-    $status = $request->query('status');
+    // $status = $request->query('status');
     $year = $request->query('year');
     $month = $request->query('month');
 
     // Ambil tahun-tahun yang tersedia dari data
-    $availableYears = SalesOrderHeader::selectRaw('DISTINCT EXTRACT(YEAR FROM fdatetime) as year')
+    $availableYears = Tranmt::selectRaw('DISTINCT EXTRACT(YEAR FROM fdatetime) as year')
       ->whereNotNull('fdatetime')
       ->orderByRaw('EXTRACT(YEAR FROM fdatetime) DESC')
       ->pluck('year');
@@ -43,10 +43,10 @@ class InvoiceController extends Controller
     // --- Handle Request AJAX dari DataTables ---
     if ($request->ajax()) {
 
-      $query = SalesOrderHeader::query();
+      $query = Tranmt::query();
 
       // DEBUG: Cek total data di tabel
-      $totalRecords = SalesOrderHeader::count();
+      $totalRecords = Tranmt::count();
 
       // Handle Search
       if ($search = $request->input('search.value')) {
@@ -54,14 +54,13 @@ class InvoiceController extends Controller
       }
 
       // Filter status - DEFAULT ke 'active' jika tidak ada
-      $statusFilter = $request->query('status', 'active');
+      // $statusFilter = $request->query('status', 'active');
 
-      if ($statusFilter === 'active') {
-        $query->where('fclose', '0');
-      } elseif ($statusFilter === 'nonactive') {
-        $query->where('fclose', '1');
-      }
-      // Jika 'all', tidak ada filter fclose
+      // if ($statusFilter === 'active') {
+      //   $query->where('fclose', '0');
+      // } elseif ($statusFilter === 'nonactive') {
+      //   $query->where('fclose', '1');
+      // }
 
       // Filter tahun
       if ($year) {
@@ -79,7 +78,7 @@ class InvoiceController extends Controller
       $orderColIdx = $request->input('order.0.column', 0);
       $orderDir = $request->input('order.0.dir', 'asc');
 
-      $sortableColumns = ['fsono', 'fsodate', 'fclose'];
+      $sortableColumns = ['fsono', 'fsodate'];
 
       if (isset($sortableColumns[$orderColIdx])) {
         $query->orderBy($sortableColumns[$orderColIdx], $orderDir);
@@ -95,7 +94,7 @@ class InvoiceController extends Controller
       // Format Data
       $data = $records->map(function ($row) {
         return [
-          'ftrsomtid'     => $row->ftrsomtid,
+          'ftranmtid'     => $row->ftranmtid,
           'fbranchcode'   => $row->fbranchcode,
           'fsono'         => $row->fsono,
           'fsodate'       => $row->fsodate instanceof \Carbon\Carbon
@@ -139,7 +138,7 @@ class InvoiceController extends Controller
       'canEdit',
       'canDelete',
       'showActionsColumn',
-      'status',
+      // 'status',
       'availableYears',
       'year',
       'month'
@@ -278,13 +277,11 @@ class InvoiceController extends Controller
     // Header: find by SO code (string)
     $hdr = DB::table('tranmt')
       ->leftJoin('mscustomer as c', 'c.fcustomerid', '=', DB::raw('CAST(tranmt.fcustno AS INTEGER)'))
-      ->leftJoin('mscabang as b', 'b.fcabangkode', '=', 'tranmt.fbranchcode')
       ->leftJoin('mssalesman as s', 's.fsalesmanid', '=', DB::raw('CAST(tranmt.fsalesman AS INTEGER)'))
       ->where('tranmt.fsono', $fsono)
       ->first([
         'tranmt.*',
         'c.fcustomername as customer_name',
-        'b.fcabangname as cabang_name',
         's.fsalesmanname as salesman_name',
       ]);
 
@@ -293,15 +290,13 @@ class InvoiceController extends Controller
     }
 
     // Use header ID (integer) for detail FK
-    $ftrsomtid = (int) $hdr->ftrsomtid;
+    $ftranmtid = (int) $hdr->ftranmtid;
 
     // Detail: join dengan product
     $dt = DB::table('trandt')
-      ->leftJoin('msprd as p', function ($j) {
-        $j->on('p.fprdid', '=', 'trandt.fitemid');
-      })
-      ->where('trandt.ftrsomtid', $ftrsomtid)
-      ->orderBy('trandt.ftrsodtid')
+      ->leftJoin('msprd as p', 'p.fprdid', '=', 'trandt.fprdid')
+      ->where('trandt.fsono', $fsono) // Gunakan variabel $fsono dari parameter fungsi
+      ->orderBy('trandt.fnou', 'asc') // Urutkan berdasarkan nomor urut baris
       ->get([
         'trandt.*',
         'p.fprdcode as product_code',
@@ -377,6 +372,7 @@ class InvoiceController extends Controller
     $request->validate([
       'fsodate'    => ['required', 'date'],
       'fcustno'    => ['required', 'string', 'max:10'],
+      'ftypesales' => ['required', 'in:0,1'], // Pastikan ftypesales divalidasi
       'fitemcode'  => ['required', 'array', 'min:1'],
       'fitemcode.*' => ['required', 'string', 'max:30'],
       'fqty'       => ['required', 'array'],
@@ -385,7 +381,7 @@ class InvoiceController extends Controller
       'fprice.*'   => ['numeric', 'min:0'],
       'fdisc'      => ['nullable', 'array'],
     ], [
-      'fsodate.required'   => 'Tanggal Invoice wajib diisi.',
+      'fsodate.required'   => 'Tanggal Faktur Penjualan wajib diisi.',
       'fcustno.required'   => 'Customer wajib diisi.',
       'fitemcode.required' => 'Minimal harus ada 1 item barang.',
     ]);
@@ -400,6 +396,7 @@ class InvoiceController extends Controller
 
     // 3. PROSES DETAIL (ARRAY)
     $itemCodes = $request->input('fitemcode', []);
+    $typeSales = (int) $request->input('ftypesales'); // 0: Penjualan, 1: Uang Muka
     $itemDescs = $request->input('fitemname', []);
     $satuans   = $request->input('fsatuan', []);
     $qtys      = $request->input('fqty', []);
@@ -410,11 +407,29 @@ class InvoiceController extends Controller
     $totalGross  = 0;
     $totalDisc   = 0;
 
+    $hasUM = in_array('UM', $itemCodes);
+
+    if ($hasUM && $typeSales === 0) {
+      // Jika ada "UM" tapi Type adalah Penjualan (0) -> ERROR
+      return back()->withInput()->with('error', 'Produk Uang Muka (UM) hanya diperbolehkan untuk tipe transaksi Uang Muka.');
+    }
+
+    if (!$hasUM && $typeSales === 1) {
+      // Tambahan: Jika tipe Uang Muka (1) tapi tidak ada item "UM" -> ERROR (Opsional)
+      return back()->withInput()->with('error', 'Transaksi Uang Muka wajib menggunakan produk dengan kode UM.');
+    }
+
+    $products = DB::table('msprd')
+      ->whereIn('fprdcode', array_filter($itemCodes))
+      ->pluck('fprdid', 'fprdcode'); // Hasilnya: ['CODE01' => 1, 'CODE02' => 2]
+
     foreach ($itemCodes as $i => $code) {
       $qty   = (float)($qtys[$i] ?? 0);
       $price = (float)($prices[$i] ?? 0);
 
       if (empty($code) || $qty <= 0) continue;
+
+      $fprdid = $products[$code] ?? null;
 
       // Hitung Diskon per Baris (Support format 10+2 atau angka)
       $discPersen = $this->parseDiscount($discs[$i] ?? 0);
@@ -428,6 +443,7 @@ class InvoiceController extends Controller
 
       $detailRows[] = [
         'fnou'         => $i + 1,
+        'fprdid'       => $fprdid,
         'fprdcode'     => mb_substr($code, 0, 30),
         'fdesc'        => $itemDescs[$i] ?? '',
         'fqty'         => $qty,
@@ -455,17 +471,31 @@ class InvoiceController extends Controller
     // 5. DATABASE TRANSACTION
     try {
       DB::transaction(function () use ($request, $fsodate, $fincludeppn, $userid, $now, $detailRows, $totalGross, $totalDisc, $amountNet, $ppnAmount, $grandTotal, $fcurrency, $frate, $ppnPersen) {
-
-        // Penomoran Otomatis (Jika fsono kosong)
         $fsono = $request->input('fsono');
         if (empty($fsono)) {
           $prefix = 'INV.' . $fsodate->format('ym') . '.';
-          $lastNo = DB::table('tranmt')
+
+          // Gunakan lockForUpdate agar proses lain menunggu sampai nomor ini selesai digenerate
+          $lastRecord = DB::table('tranmt')
             ->where('fsono', 'like', $prefix . '%')
-            ->selectRaw("MAX(CAST(RIGHT(fsono, 4) AS INTEGER)) as total")
-            ->value('total');
-          $fsono = $prefix . str_pad((int)$lastNo + 1, 4, '0', STR_PAD_LEFT);
+            ->orderBy('fsono', 'desc')
+            ->lockForUpdate()
+            ->first();
+
+          if ($lastRecord) {
+            // Ambil string fsono terakhir (INV.2601.0001)
+            // Ambil 4 digit terakhir
+            $lastFullCode = trim($lastRecord->fsono);
+            $lastNumber = (int) substr($lastFullCode, -4);
+            $nextNumber = $lastNumber + 1;
+          } else {
+            $nextNumber = 1;
+          }
+
+          $fsono = $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
         }
+
+        $ftypesales = $request->input('ftypesales', 0);
 
         // Insert Header (tranmt)
         DB::table('tranmt')->insert([
@@ -492,6 +522,7 @@ class InvoiceController extends Controller
           'fdatetime'       => $now,
           'fincludeppn'     => $fincludeppn,
           'fppnpersen'      => $ppnPersen,
+          'ftypesales'      => $ftypesales,
           'ftrcode'         => 'I',
           'fprdout'         => '0',
         ]);
@@ -503,7 +534,7 @@ class InvoiceController extends Controller
         DB::table('trandt')->insert($detailRows);
       });
 
-      return redirect()->route('invoice.index')->with('success', "Invoice berhasil disimpan.");
+      return redirect()->route('invoice.index')->with('success', "Faktur Penjualan berhasil disimpan.");
     } catch (\Exception $e) {
       return back()->withInput()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
     }
@@ -545,7 +576,7 @@ class InvoiceController extends Controller
       return 0;
     }
   }
-  public function edit(Request $request, $ftrsomtid)
+  public function edit(Request $request, $ftranmtid)
   {
     $customers = Customer::orderBy('fcustomername', 'asc')
       ->get(['fcustomerid', 'fcustomername']);
@@ -565,23 +596,25 @@ class InvoiceController extends Controller
     $fcabang     = $branch->fcabangname ?? (string) $raw;   // tampilan
     $fbranchcode = $branch->fcabangkode ?? (string) $raw;   // hidden post
 
-    $salesorder = SalesOrderHeader::with(['customer', 'details' => function ($q) { // TAMBAHKAN 'customer' di sini
-      $q->orderBy('ftrsomtid')
-        ->leftJoin('msprd', function ($j) {
-          $j->on('msprd.fprdid', '=', DB::raw('CAST(trandt.fitemid AS INTEGER)'));
-        })
+    $invoice = Tranmt::with(['customer', 'details' => function ($q) {
+      $q->leftJoin('msprd', function ($j) {
+        // Gunakan trandt.fprdid karena sudah integer (tidak perlu CAST lagi)
+        $j->on('msprd.fprdid', '=', 'trandt.fprdid');
+      })
         ->select(
           'trandt.*',
           'msprd.fprdcode as fitemcode',
           'msprd.fprdname'
-        );
-    }])->findOrFail($ftrsomtid);
+        )
+        // Ubah order ke ftrandtid (Primary Key detail) karena ftranmtid tidak ada
+        ->orderBy('trandt.ftrandtid', 'asc');
+    }])->findOrFail($ftranmtid);
 
-    if (!$salesorder->customer) {
-      $salesorder->setRelation('customer', Customer::find(trim($salesorder->fcustno)));
+    if (!$invoice->customer) {
+      $invoice->setRelation('customer', Customer::find(trim($invoice->fcustno)));
     }
 
-    $savedItems = $salesorder->details->map(function ($d) {
+    $savedItems = $invoice->details->map(function ($d) {
       return [
         'uid'        => $d->fpodid,
         'fitemcode'  => (string)($d->fitemcode ?? ''),  // dari alias msprd.fprdid
@@ -598,7 +631,7 @@ class InvoiceController extends Controller
         'fketdt'     => (string)($d->fketdt ?? ''),
       ];
     })->values();
-    $selectedSupplierCode = $salesorder->fsupplier;
+    $selectedSupplierCode = $invoice->fsupplier;
 
     // Fetch all products for product mapping
     $products = Product::select(
@@ -623,7 +656,7 @@ class InvoiceController extends Controller
     })->toArray();
 
     // Pass the data to the view
-    return view('salesorder.edit', [
+    return view('invoice.edit', [
       'customers' => $customers,
       'salesmans' => $salesmans,
       'selectedSupplierCode' => $selectedSupplierCode, // Kirim kode supplier ke view
@@ -631,24 +664,25 @@ class InvoiceController extends Controller
       'fbranchcode'  => $fbranchcode,
       'products'     => $products,
       'productMap'   => $productMap,
-      'salesorder'       => $salesorder,
+      'invoice'       => $invoice,
       'savedItems'   => $savedItems,
-      'ppnAmount'    => (float) ($salesorder->famountpopajak ?? 0), // total PPN from DB
-      'famountgross'    => (float) ($salesorder->famountgross ?? 0),  // nilai Grand Total dari DB
-      'famountso'    => (float) ($salesorder->famountso ?? 0),  // nilai Grand Total dari DB
+      'ppnAmount'    => (float) ($invoice->famountpopajak ?? 0), // total PPN from DB
+      'famountgross'    => (float) ($invoice->famountgross ?? 0),  // nilai Grand Total dari DB
+      'famountso'    => (float) ($invoice->famountso ?? 0),  // nilai Grand Total dari DB
       'filterSupplierId' => $request->query('filter_supplier_id'),
       'filterSalesmanId' => $request->query('filter_salesman_id'),
       'action' => 'edit'
     ]);
   }
 
-  public function view(Request $request, $ftrsomtid)
+  public function view(Request $request, $ftranmtid)
   {
     $customers = Customer::orderBy('fcustomername', 'asc')
       ->get(['fcustomerid', 'fcustomername']);
 
     $salesmans = Salesman::orderBy('fsalesmanname', 'asc')
       ->get(['fsalesmanid', 'fsalesmanname']);
+
     $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
     $branch = DB::table('mscabang')
@@ -661,23 +695,25 @@ class InvoiceController extends Controller
     $fcabang     = $branch->fcabangname ?? (string) $raw;   // tampilan
     $fbranchcode = $branch->fcabangkode ?? (string) $raw;   // hidden post
 
-    $salesorder = SalesOrderHeader::with(['customer', 'details' => function ($q) { // TAMBAHKAN 'customer' di sini
-      $q->orderBy('ftrsomtid')
-        ->leftJoin('msprd', function ($j) {
-          $j->on('msprd.fprdid', '=', DB::raw('CAST(trandt.fitemid AS INTEGER)'));
-        })
+    $invoice = Tranmt::with(['customer', 'details' => function ($q) {
+      $q->leftJoin('msprd', function ($j) {
+        // Gunakan trandt.fprdid karena sudah integer (tidak perlu CAST lagi)
+        $j->on('msprd.fprdid', '=', 'trandt.fprdid');
+      })
         ->select(
           'trandt.*',
           'msprd.fprdcode as fitemcode',
           'msprd.fprdname'
-        );
-    }])->findOrFail($ftrsomtid);
+        )
+        // Ubah order ke ftrandtid (Primary Key detail) karena ftranmtid tidak ada
+        ->orderBy('trandt.ftrandtid', 'asc');
+    }])->findOrFail($ftranmtid);
 
-    if (!$salesorder->customer) {
-      $salesorder->setRelation('customer', Customer::find(trim($salesorder->fcustno)));
+    if (!$invoice->customer) {
+      $invoice->setRelation('customer', Customer::find(trim($invoice->fcustno)));
     }
 
-    $savedItems = $salesorder->details->map(function ($d) {
+    $savedItems = $invoice->details->map(function ($d) {
       return [
         'uid'        => $d->fpodid,
         'fitemcode'  => (string)($d->fitemcode ?? ''),  // dari alias msprd.fprdid
@@ -694,7 +730,7 @@ class InvoiceController extends Controller
         'fketdt'     => (string)($d->fketdt ?? ''),
       ];
     })->values();
-    $selectedSupplierCode = $salesorder->fsupplier;
+    $selectedSupplierCode = $invoice->fsupplier;
 
     // Fetch all products for product mapping
     $products = Product::select(
@@ -719,7 +755,7 @@ class InvoiceController extends Controller
     })->toArray();
 
     // Pass the data to the view
-    return view('salesorder.view', [
+    return view('invoice.view', [
       'customers' => $customers,
       'salesmans' => $salesmans,
       'selectedSupplierCode' => $selectedSupplierCode, // Kirim kode supplier ke view
@@ -727,194 +763,178 @@ class InvoiceController extends Controller
       'fbranchcode'  => $fbranchcode,
       'products'     => $products,
       'productMap'   => $productMap,
-      'salesorder'       => $salesorder,
+      'invoice'       => $invoice,
       'savedItems'   => $savedItems,
-      'ppnAmount'    => (float) ($salesorder->famountpopajak ?? 0), // total PPN from DB
-      'famountgross'    => (float) ($salesorder->famountgross ?? 0),  // nilai Grand Total dari DB
-      'famountso'    => (float) ($salesorder->famountso ?? 0),  // nilai Grand Total dari DB
+      'ppnAmount'    => (float) ($invoice->famountpopajak ?? 0), // total PPN from DB
+      'famountgross'    => (float) ($invoice->famountgross ?? 0),  // nilai Grand Total dari DB
+      'famountso'    => (float) ($invoice->famountso ?? 0),  // nilai Grand Total dari DB
       'filterSupplierId' => $request->query('filter_supplier_id'),
       'filterSalesmanId' => $request->query('filter_salesman_id'),
     ]);
   }
 
-  public function update(Request $request, $ftrsomtid)
+  public function update(Request $request, $ftranmtid)
   {
-    // 1. VALIDATION (Sama seperti store)
+    // 1. VALIDASI
     $request->validate([
-      'fsono'        => ['nullable', 'string', 'max:25'],
-      'fsodate'      => ['required', 'date'],
-      'fkirimdate'   => ['nullable', 'date'],
-      'fcustno'      => ['required', 'string', 'max:10'],
-      'fsalesman'    => ['nullable', 'string', 'max:15'],
-      'fincludeppn'  => ['nullable'],
-      'fket'         => ['nullable', 'string', 'max:300'],
-      'falamatkirim' => ['nullable', 'string', 'max:300'],
-      'fbranchcode'  => ['nullable', 'string', 'max:2'],
-      'ftempohr'     => ['nullable', 'string', 'max:3'],
-
-      'fitemcode'    => ['required', 'array', 'min:1'],
-      'fitemcode.*'  => ['required', 'string', 'max:20'],
-
-      'fsatuan'      => ['nullable', 'array'],
-      'fsatuan.*'    => ['nullable', 'string', 'max:10'],
-
-      'fitemname'    => ['nullable', 'array'],
-      'fitemname.*'  => ['nullable', 'string', 'max:200'],
-
-      'fqty'         => ['required', 'array'],
-      'fqty.*'       => ['numeric', 'min:0'],
-
-      'fprice'       => ['nullable', 'array'],
-      'fprice.*'     => ['numeric', 'min:0'],
-
-      'fdisc'        => ['nullable', 'array'],
-      'fdisc.*'      => ['nullable'], // Support "10+2"
-    ], [
-      'fsodate.required'   => 'Tanggal SO wajib diisi.',
-      'fcustno.required'   => 'Customer wajib diisi.',
-      'fitemcode.required' => 'Minimal 1 item.',
+      'fsodate'    => ['required', 'date'],
+      'fcustno'    => ['required', 'string', 'max:10'],
+      'ftypesales' => ['required', 'in:0,1'], // Pastikan ftypesales divalidasi
+      'fitemcode'  => ['required', 'array', 'min:1'],
+      'fitemcode.*' => ['required', 'string', 'max:30'],
+      'fqty'       => ['required', 'array'],
+      'fqty.*'     => ['numeric', 'min:0.01'],
+      'fprice'     => ['required', 'array'],
+      'fprice.*'   => ['numeric', 'min:0'],
     ]);
 
     // 2. LOAD HEADER
-    $header = DB::table('tranmt')->where('ftrsomtid', $ftrsomtid)->first();
+    $header = DB::table('tranmt')->where('ftranmtid', $ftranmtid)->first();
     if (!$header) {
-      return abort(404, 'Sales Order tidak ditemukan.');
+      return abort(404, 'Faktur Penjualan tidak ditemukan.');
     }
 
-    // 3. HEADER VALUES
-    $fsodate     = Carbon::parse($request->fsodate)->startOfDay();
+    // 3. INISIALISASI DATA
+    $fsodate     = Carbon::parse($request->fsodate);
     $fincludeppn = $request->boolean('fincludeppn') ? '1' : '0';
-    $userid      = auth('sysuser')->user()->fname ?? 'admin';
+    $userid      = mb_substr(auth('sysuser')->user()->fname ?? 'admin', 0, 10);
     $now         = now();
+    $frate       = (float)$request->input('frate', $header->frate ?? 1);
 
-    // 4. DETAIL ARRAYS
-    $itemId    = $request->input('fitemid', []);
     $itemCodes = $request->input('fitemcode', []);
-    $itemNames = $request->input('fitemname', []);
+    $typeSales = (int) $request->input('ftypesales'); // 0: Penjualan, 1: Uang Muka
+    $itemDescs = $request->input('fitemname', []);
     $satuans   = $request->input('fsatuan', []);
     $qtys      = $request->input('fqty', []);
     $prices    = $request->input('fprice', []);
     $discs     = $request->input('fdisc', []);
-    $descs        = $request->input('fdesc', []);
 
-    // 5. BUILD DETAIL ROWS (Logika sama dengan store)
-    $rowsSodt   = [];
-    $totalGross = 0.0;
-    $totalDisc  = 0.0;
-    $rowCount   = max(
-      count($itemCodes),
-      count($satuans),
-      count($qtys),
-      count($prices),
-      count($discs),
-      count($descs),
-      count($itemNames)
-    );
+    // Ambil mapping produk untuk mendapatkan fprdid
+    $products = DB::table('msprd')
+      ->whereIn('fprdcode', array_filter($itemCodes))
+      ->pluck('fprdid', 'fprdcode');
 
-    for ($i = 0; $i < $rowCount; $i++) {
-      $itemeId   = trim($itemId[$i] ?? '');
-      $itemCode  = trim($itemCodes[$i] ?? '');
-      $itemName  = trim((string)($itemNames[$i] ?? ''));
-      $satuan    = trim((string)($satuans[$i] ?? ''));
-      $qty       = (float)($qtys[$i] ?? 0);
-      $price     = (float)($prices[$i] ?? 0);
-      $discInput = $discs[$i] ?? 0;
-      $desc   = (string)($descs[$i]  ?? '');
+    // 4. BUILD DETAIL ROWS
+    $detailRows = [];
+    $totalGross = 0;
+    $totalDisc  = 0;
 
-      if (empty($itemCode) || $qty <= 0) {
-        continue;
-      }
+    $hasUM = in_array('UM', $itemCodes);
 
-      // Parse discount (support "10+2")
-      $discPersen = $this->parseDiscount($discInput);
+    if ($hasUM && $typeSales === 0) {
+      // Jika ada "UM" tapi Type adalah Penjualan (0) -> ERROR
+      return back()->withInput()->with('error', 'Produk Uang Muka (UM) hanya diperbolehkan untuk tipe transaksi Uang Muka.');
+    }
 
-      // Calculate amounts
-      $subtotal = $qty * $price;
-      $discount = $subtotal * ($discPersen / 100);
-      $amount   = $subtotal - $discount;
+    if (!$hasUM && $typeSales === 1) {
+      // Tambahan: Jika tipe Uang Muka (1) tapi tidak ada item "UM" -> ERROR (Opsional)
+      return back()->withInput()->with('error', 'Transaksi Uang Muka wajib menggunakan produk dengan kode UM.');
+    }
+
+    foreach ($itemCodes as $i => $code) {
+      $qty   = (float)($qtys[$i] ?? 0);
+      $price = (float)($prices[$i] ?? 0);
+
+      if (empty($code) || $qty <= 0) continue;
+
+      $discPersen = $this->parseDiscount($discs[$i] ?? 0);
+      $subtotal   = $qty * $price;
+      $discAmount = $subtotal * ($discPersen / 100);
+      $netPrice   = $price - ($price * ($discPersen / 100));
+      $amountRow  = $subtotal - $discAmount;
 
       $totalGross += $subtotal;
-      $totalDisc  += $discount;
+      $totalDisc  += $discAmount;
 
-      if (empty($itemeId) && !empty($itemCode)) {
-        $itemeId = DB::table('msprd')
-          ->where('fprdcode', $itemCode) // ✅ Gunakan fprdcode, bukan fprdid
-          ->value('fprdid'); // Return fprdid (integer)
-      }
-
-      $rowsSodt[] = [
-        'ftrsomtid'   => $ftrsomtid, // Foreign Key
-        'fsono'       => $header->fsono, // Gunakan fsono yang sudah ada
-        'fitemid'     => !empty($itemeId) && is_numeric($itemeId) ? (int)$itemeId : null,
-        'fitemno'     => mb_substr($itemCode, 0, 20), // Kode produk (string)
-        'fitemdesc'   => mb_substr($itemName, 0, 200),
-        'funit'       => mb_substr($satuan, 0, 10),
-        'fsatuan'     => mb_substr($satuan, 0, 20),
-        'fdesc'       => $desc,
-        'fqty'        => $qty,
-        'fprice'      => $price,
-        'fdiscpersen' => $discPersen,
-        'fdiscount'   => round($discount, 2),
-        'famount'     => round($amount, 2),
+      $detailRows[] = [
+        'fsono'        => $header->fsono, // Tetap gunakan fsono lama
+        'fnou'         => $i + 1,
+        'fprdid'       => $products[$code] ?? null,
+        'fprdcode'     => mb_substr($code, 0, 30),
+        'fdesc'        => $itemDescs[$i] ?? '',
+        'fqty'         => $qty,
+        'fqtydeliver'  => 0,
+        'fqtyremain'   => $qty,
+        'fprice'       => $price,
+        'fprice_rp'    => $price * $frate,
+        'fdisc'        => mb_substr((string)($discs[$i] ?? '0'), 0, 10),
+        'fpricenet'    => $netPrice,
+        'fpricenet_rp' => $netPrice * $frate,
+        'famount'      => $amountRow,
+        'famount_rp'   => $amountRow * $frate,
+        'fsatuan'      => mb_substr($satuans[$i] ?? '', 0, 5),
+        'fuserid'      => $userid,
+        'fdatetime'    => $now,
       ];
     }
 
-    // 6. CALCULATE TOTALS
+    // 5. KALKULASI TOTAL
     $amountNet  = $totalGross - $totalDisc;
-    $ppnRate    = $fincludeppn === '1' ? (float)$request->input('ppn_rate', 11) : 0;
-    $ppnAmount  = $amountNet * ($ppnRate / 100);
+    $ppnPersen  = (float)$request->input('fppnpersen', 11);
+    $ppnAmount  = ($fincludeppn === '1') ? ($amountNet * ($ppnPersen / 100)) : 0;
     $grandTotal = $amountNet + $ppnAmount;
 
-    // 7. TRANSACTION
-    DB::transaction(function () use (
-      $request,
-      $ftrsomtid,
-      $header,
-      $fsodate,
-      $fincludeppn,
-      $userid,
-      $now,
-      $rowsSodt,
-      $totalGross,
-      $totalDisc,
-      $amountNet,
-      $ppnAmount,
-      $grandTotal
-    ) {
-      // Update Header
-      DB::table('tranmt')->where('ftrsomtid', $ftrsomtid)->update([
-        'fsodate'       => $fsodate,
-        'fbranchcode'   => mb_substr($request->input('fbranchcode', ''), 0, 2),
-        'fcustno'       => mb_substr($request->input('fcustno', ''), 0, 10),
-        'fsalesman'     => mb_substr($request->input('fsalesman', ''), 0, 15),
-        'ftempohr'      => mb_substr($request->input('ftempohr', '0'), 0, 3),
-        'fincludeppn'   => $fincludeppn,
-        'fket'          => mb_substr($request->input('fket', ''), 0, 300),
-        'fketinternal'  => mb_substr($request->input('fketinternal', ''), 0, 300),
-        'falamatkirim'  => mb_substr($request->input('falamatkirim', ''), 0, 300),
-        'fuserupdate'   => mb_substr($userid, 0, 10),
-        'fdatetime'     => $now,
-        'famountgross'  => round($totalGross, 2),
-        'fdiscount'     => round($totalDisc, 2),
-        'famountsonet'  => round($amountNet, 2),
-        'famountpajak'  => round($ppnAmount, 2),
-        'famountso'     => round($grandTotal, 2),
-      ]);
+    $ftypesales = $request->input('ftypesales', 0);
 
-      // Delete old details and insert new ones
-      DB::table('trandt')->where('ftrsomtid', $ftrsomtid)->delete();
+    // 6. TRANSACTION
+    try {
+      DB::transaction(function () use (
+        $request,
+        $ftranmtid,
+        $header,
+        $fsodate,
+        $fincludeppn,
+        $userid,
+        $now,
+        $ftypesales,
+        $detailRows,
+        $totalGross,
+        $totalDisc,
+        $amountNet,
+        $ppnAmount,
+        $grandTotal,
+        $frate,
+        $ppnPersen
+      ) {
+        // Update Header (tranmt)
+        DB::table('tranmt')->where('ftranmtid', $ftranmtid)->update([
+          'fsodate'         => $fsodate,
+          'fcustno'         => mb_substr($request->fcustno, 0, 10),
+          'fsalesman'       => mb_substr($request->fsalesman ?? '', 0, 15),
+          'fdiscount'       => $totalDisc,
+          'fdiscount_rp'    => $totalDisc * $frate,
+          'famountgross'    => $totalGross,
+          'famountgross_rp' => $totalGross * $frate,
+          'famountsonet'    => $amountNet,
+          'famountsonet_rp' => $amountNet * $frate,
+          'famountpajak'    => $ppnAmount,
+          'famountpajak_rp' => $ppnAmount * $frate,
+          'famountso'       => $grandTotal,
+          'famountso_rp'    => $grandTotal * $frate,
+          'fket'            => $request->fket ?? '',
+          'fuserid'         => $userid,
+          'fdatetime'       => $now,
+          'fincludeppn'     => $fincludeppn,
+          'ftypesales'      => $ftypesales,
+          'fppnpersen'      => $ppnPersen,
+        ]);
 
-      if (!empty($rowsSodt)) {
-        DB::table('trandt')->insert($rowsSodt);
-      }
-    });
+        // Hapus detail lama berdasarkan fsono (karena trandt tidak punya ftranmtid)
+        DB::table('trandt')->where('fsono', $header->fsono)->delete();
 
-    return redirect()
-      ->route('salesorder.index')
-      ->with('success', "Sales Order {$header->fsono} berhasil diperbarui.");
+        // Insert detail baru
+        if (!empty($detailRows)) {
+          DB::table('trandt')->insert($detailRows);
+        }
+      });
+
+      return redirect()->route('invoice.index')->with('success', "Faktur Penjualan {$header->fsono} berhasil diperbarui.");
+    } catch (\Exception $e) {
+      return back()->withInput()->with('error', 'Gagal update: ' . $e->getMessage());
+    }
   }
 
-  public function delete(Request $request, $ftrsomtid)
+  public function delete(Request $request, $ftranmtid)
   {
     $customers = Customer::orderBy('fcustomername', 'asc')
       ->get(['fcustomerid', 'fcustomername']);
@@ -934,23 +954,25 @@ class InvoiceController extends Controller
     $fcabang     = $branch->fcabangname ?? (string) $raw;   // tampilan
     $fbranchcode = $branch->fcabangkode ?? (string) $raw;   // hidden post
 
-    $salesorder = SalesOrderHeader::with(['customer', 'details' => function ($q) { // TAMBAHKAN 'customer' di sini
-      $q->orderBy('ftrsomtid')
-        ->leftJoin('msprd', function ($j) {
-          $j->on('msprd.fprdid', '=', DB::raw('CAST(trandt.fitemid AS INTEGER)'));
-        })
+    $invoice = Tranmt::with(['customer', 'details' => function ($q) {
+      $q->leftJoin('msprd', function ($j) {
+        // Gunakan trandt.fprdid karena sudah integer (tidak perlu CAST lagi)
+        $j->on('msprd.fprdid', '=', 'trandt.fprdid');
+      })
         ->select(
           'trandt.*',
           'msprd.fprdcode as fitemcode',
           'msprd.fprdname'
-        );
-    }])->findOrFail($ftrsomtid);
+        )
+        // Ubah order ke ftrandtid (Primary Key detail) karena ftranmtid tidak ada
+        ->orderBy('trandt.ftrandtid', 'asc');
+    }])->findOrFail($ftranmtid);
 
-    if (!$salesorder->customer) {
-      $salesorder->setRelation('customer', Customer::find(trim($salesorder->fcustno)));
+    if (!$invoice->customer) {
+      $invoice->setRelation('customer', Customer::find(trim($invoice->fcustno)));
     }
 
-    $savedItems = $salesorder->details->map(function ($d) {
+    $savedItems = $invoice->details->map(function ($d) {
       return [
         'uid'        => $d->fpodid,
         'fitemcode'  => (string)($d->fitemcode ?? ''),  // dari alias msprd.fprdid
@@ -967,7 +989,7 @@ class InvoiceController extends Controller
         'fketdt'     => (string)($d->fketdt ?? ''),
       ];
     })->values();
-    $selectedSupplierCode = $salesorder->fsupplier;
+    $selectedSupplierCode = $invoice->fsupplier;
 
     // Fetch all products for product mapping
     $products = Product::select(
@@ -992,7 +1014,7 @@ class InvoiceController extends Controller
     })->toArray();
 
     // Pass the data to the view
-    return view('salesorder.edit', [
+    return view('invoice.edit', [
       'customers' => $customers,
       'salesmans' => $salesmans,
       'selectedSupplierCode' => $selectedSupplierCode, // Kirim kode supplier ke view
@@ -1000,27 +1022,27 @@ class InvoiceController extends Controller
       'fbranchcode'  => $fbranchcode,
       'products'     => $products,
       'productMap'   => $productMap,
-      'salesorder'       => $salesorder,
+      'invoice'       => $invoice,
       'savedItems'   => $savedItems,
-      'ppnAmount'    => (float) ($salesorder->famountpopajak ?? 0), // total PPN from DB
-      'famountgross'    => (float) ($salesorder->famountgross ?? 0),  // nilai Grand Total dari DB
-      'famountso'    => (float) ($salesorder->famountso ?? 0),  // nilai Grand Total dari DB
+      'ppnAmount'    => (float) ($invoice->famountpopajak ?? 0), // total PPN from DB
+      'famountgross'    => (float) ($invoice->famountgross ?? 0),  // nilai Grand Total dari DB
+      'famountso'    => (float) ($invoice->famountso ?? 0),  // nilai Grand Total dari DB
       'filterSupplierId' => $request->query('filter_supplier_id'),
       'filterSalesmanId' => $request->query('filter_salesman_id'),
       'action' => 'delete'
     ]);
   }
 
-  public function destroy($ftrsomtid)
+  public function destroy($ftranmtid)
   {
     try {
-      $salesorder = SalesOrderHeader::findOrFail($ftrsomtid);
-      $salesorder->delete();
+      $invoice = Tranmt::findOrFail($ftranmtid);
+      $invoice->delete();
 
-      return redirect()->route('salesorder.index')->with('success', 'Data Sales Order ' . $salesorder->fsono . ' berhasil dihapus.');
+      return redirect()->route('invoice.index')->with('success', 'Data Faktur Penjualan ' . $invoice->fsono . ' berhasil dihapus.');
     } catch (\Exception $e) {
       // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
-      return redirect()->route('salesorder.delete', $ftrsomtid)->with('error', 'Gakey: gal menghapus data: ' . $e->getMessage());
+      return redirect()->route('invoice.delete', $ftranmtid)->with('error', 'Gakey: gal menghapus data: ' . $e->getMessage());
     }
   }
 }

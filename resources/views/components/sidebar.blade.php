@@ -106,13 +106,12 @@
                     @endif
 
                     {{-- @if (in_array('viewCurrency', explode(',', session('user_restricted_permissions', '')))) --}}
-                        <li>
-                            <a href="{{ route('currency.index') }}"
-                                class="flex items-center p-2 rounded hover:bg-gray-700">
-                                <x-heroicon-o-credit-card class="w-5 h-5" />
-                                <span class="ml-3">Currency</span>
-                            </a>
-                        </li>
+                    <li>
+                        <a href="{{ route('currency.index') }}" class="flex items-center p-2 rounded hover:bg-gray-700">
+                            <x-heroicon-o-credit-card class="w-5 h-5" />
+                            <span class="ml-3">Currency</span>
+                        </a>
+                    </li>
                     {{-- @endif --}}
 
                 </ul>
@@ -326,7 +325,7 @@
                     @endif
                 </ul>
 
-                {{-- Invoice --}}
+                {{-- Faktur Penjualan --}}
                 <ul x-show="open && openSidebar" x-transition
                     class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
 
@@ -335,7 +334,7 @@
                             <a href="{{ route('invoice.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
                                 <x-heroicon-o-user-circle class="w-5 h-5" />
-                                <span class="ml-3">Invoice</span>
+                                <span class="ml-3">Faktur Penjualan</span>
                             </a>
                         </li>
                     @endif

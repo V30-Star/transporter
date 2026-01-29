@@ -347,11 +347,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/invoice',  [InvoiceController::class, 'index'])->name('invoice.index');
         Route::post('/invoice',        [InvoiceController::class, 'store'])->name('invoice.store');
         Route::get('/invoice/create', [InvoiceController::class, 'create'])->name('invoice.create');
-        Route::get('/invoice/{ftrsomtid}/view', [InvoiceController::class, 'view'])->name('invoice.view');
-        Route::get('/invoice/{ftrsomtid}/edit', [InvoiceController::class, 'edit'])->name('invoice.edit');
-        Route::get('/invoice/{ftrsomtid}/delete', [InvoiceController::class, 'delete'])->name('invoice.delete');
-        Route::patch('/invoice/{ftrsomtid}', [InvoiceController::class, 'update'])->name('invoice.update');
-        Route::delete('/invoice/{ftrsomtid}', [InvoiceController::class, 'destroy'])->name('invoice.destroy');
+        Route::get('/invoice/{ftranmtid}/view', [InvoiceController::class, 'view'])->name('invoice.view');
+        Route::get('/invoice/{ftranmtid}/edit', [InvoiceController::class, 'edit'])->name('invoice.edit');
+        Route::get('/invoice/{ftranmtid}/delete', [InvoiceController::class, 'delete'])->name('invoice.delete');
+        Route::patch('/invoice/{ftranmtid}', [InvoiceController::class, 'update'])->name('invoice.update');
+        Route::delete('/invoice/{ftranmtid}', [InvoiceController::class, 'destroy'])->name('invoice.destroy');
         Route::get('/invoice/{fstockmtno}/print', [InvoiceController::class, 'print'])
             ->name('invoice.print');
         Route::get('/invoice/{id}/items', [InvoiceController::class, 'items'])
