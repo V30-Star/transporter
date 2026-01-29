@@ -105,6 +105,16 @@
                             </div>
 
                             <div class="lg:col-span-4">
+                                <label class="block text-sm font-medium">Faktur Pajak#</label>
+                                <input type="text" name="ftaxno" value="{{ old('ftaxno', $invoice->ftaxno) }}"
+                                    class="w-full border rounded px-3 py-2 @error('ftaxno') border-red-500 @enderror"
+                                    readonly>
+                                @error('ftaxno')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div class="lg:col-span-4">
                                 <label class="block text-sm font-medium">Type</label>
                                 <select name="ftypesales" id="ftypesales" x-model.number="ftypesales"
                                     x-init="ftypesales = 0" disabled
@@ -113,16 +123,6 @@
                                     <option value="1">Uang Muka</option>
                                 </select>
                                 @error('ftypesales')
-                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
-
-                            <div class="lg:col-span-4">
-                                <label class="block text-sm font-medium">Faktur Pajak#</label>
-                                <input type="text" name="ftaxno" value="{{ old('ftaxno', $invoice->ftaxno) }}"
-                                    class="w-full border rounded px-3 py-2 @error('ftaxno') border-red-500 @enderror"
-                                    readonly>
-                                @error('ftaxno')
                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                 @enderror
                             </div>
@@ -136,57 +136,6 @@
                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                 @enderror
                             </div>
-
-                            <div class="lg:col-span-4">
-                                <label class="block text-sm font-medium">TOP (Hari)</label>
-                                <input type="number" id="ftempohr" name="ftempohr" value="{{ old('ftempohr', '0') }}"
-                                    readonly
-                                    class="w-full border rounded px-3 py-2 @error('ftempohr') border-red-500 @enderror"
-                                    placeholder="Masukkan jumlah hari">
-                                @error('ftempohr')
-                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
-
-                            <div class="lg:col-span-4">
-                                <label class="block text-sm font-medium">Tgl. Jatuh Tempo</label>
-                                <input type="date" id="fjatuhtempo" name="fjatuhtempo" readonly
-                                    value="{{ old('fjatuhtempo') ?? date('Y-m-d') }}" readonly
-                                    class="w-full border rounded px-3 py-2 bg-gray-100 @error('fjatuhtempo') border-red-500 @enderror">
-                                @error('fjatuhtempo')
-                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
-
-                            <script>
-                                document.addEventListener('DOMContentLoaded', function() {
-                                    function calculateDueDate() {
-                                        const poDate = document.getElementById('fsodate').value;
-                                        const tempoDays = parseInt(document.getElementById('ftempohr').value) || 0;
-
-                                        if (poDate) {
-                                            const date = new Date(poDate);
-                                            date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
-                                            date.setDate(date.getDate() + tempoDays);
-
-                                            const year = date.getFullYear();
-                                            const month = String(date.getMonth() + 1).padStart(2, '0');
-                                            const day = String(date.getDate()).padStart(2, '0');
-
-                                            document.getElementById('fjatuhtempo').value = `${year}-${month}-${day}`;
-                                        } else {
-                                            document.getElementById('fjatuhtempo').value = '';
-                                        }
-                                    }
-
-                                    // Event listeners
-                                    document.getElementById('fsodate').addEventListener('change', calculateDueDate);
-                                    document.getElementById('ftempohr').addEventListener('input', calculateDueDate);
-
-                                    // Initial calculation
-                                    calculateDueDate();
-                                });
-                            </script>
 
                             {{-- Customer --}}
                             <div class="lg:col-span-4">
@@ -244,8 +193,59 @@
                                 @enderror
                             </div>
 
+                            <div class="lg:col-span-4">
+                                <label class="block text-sm font-medium">TOP (Hari)</label>
+                                <input type="number" id="ftempohr" name="ftempohr" value="{{ old('ftempohr', '0') }}"
+                                    readonly
+                                    class="w-full border rounded px-3 py-2 @error('ftempohr') border-red-500 @enderror"
+                                    placeholder="Masukkan jumlah hari">
+                                @error('ftempohr')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div class="lg:col-span-4">
+                                <label class="block text-sm font-medium">Tgl. Jatuh Tempo</label>
+                                <input type="date" id="fjatuhtempo" name="fjatuhtempo" readonly
+                                    value="{{ old('fjatuhtempo') ?? date('Y-m-d') }}" readonly
+                                    class="w-full border rounded px-3 py-2 bg-gray-100 @error('fjatuhtempo') border-red-500 @enderror">
+                                @error('fjatuhtempo')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <script>
+                                document.addEventListener('DOMContentLoaded', function() {
+                                    function calculateDueDate() {
+                                        const poDate = document.getElementById('fsodate').value;
+                                        const tempoDays = parseInt(document.getElementById('ftempohr').value) || 0;
+
+                                        if (poDate) {
+                                            const date = new Date(poDate);
+                                            date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
+                                            date.setDate(date.getDate() + tempoDays);
+
+                                            const year = date.getFullYear();
+                                            const month = String(date.getMonth() + 1).padStart(2, '0');
+                                            const day = String(date.getDate()).padStart(2, '0');
+
+                                            document.getElementById('fjatuhtempo').value = `${year}-${month}-${day}`;
+                                        } else {
+                                            document.getElementById('fjatuhtempo').value = '';
+                                        }
+                                    }
+
+                                    // Event listeners
+                                    document.getElementById('fsodate').addEventListener('change', calculateDueDate);
+                                    document.getElementById('ftempohr').addEventListener('input', calculateDueDate);
+
+                                    // Initial calculation
+                                    calculateDueDate();
+                                });
+                            </script>
+
                             <div class="lg:col-span-12">
-                                <label class="block text-sm font-medium">Keterangan Tambahan</label>
+                                <label class="block text-sm font-medium">Keterangan</label>
                                 <textarea name="fket" rows="3" disabled
                                     class="w-full border rounded px-3 py-2 @error('fket') border-red-500 @enderror"
                                     placeholder="Keterangan isi di sini...">{{ old('fket', $invoice->fket) }}</textarea>
@@ -643,6 +643,15 @@
                                 </div>
 
                                 <div class="lg:col-span-4">
+                                    <label class="block text-sm font-medium">Faktur Pajak#</label>
+                                    <input type="text" name="ftaxno" value="{{ old('ftaxno', $invoice->ftaxno) }}"
+                                        class="w-full border rounded px-3 py-2 @error('ftaxno') border-red-500 @enderror">
+                                    @error('ftaxno')
+                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <div class="lg:col-span-4">
                                     <label class="block text-sm font-medium">Type</label>
                                     <select name="ftypesales" id="ftypesales" x-model.number="ftypesales"
                                         x-init="ftypesales = {{ old('ftypesales', $invoice->ftypesales) }}"
@@ -651,15 +660,6 @@
                                         <option value="1">Uang Muka</option>
                                     </select>
                                     @error('ftypesales')
-                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                    @enderror
-                                </div>
-
-                                <div class="lg:col-span-4">
-                                    <label class="block text-sm font-medium">Faktur Pajak#</label>
-                                    <input type="text" name="ftaxno" value="{{ old('ftaxno', $invoice->ftaxno) }}"
-                                        class="w-full border rounded px-3 py-2 @error('ftaxno') border-red-500 @enderror">
-                                    @error('ftaxno')
                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                     @enderror
                                 </div>
@@ -673,57 +673,6 @@
                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                     @enderror
                                 </div>
-
-                                <div class="lg:col-span-4">
-                                    <label class="block text-sm font-medium">TOP (Hari)</label>
-                                    <input type="number" id="ftempohr" name="ftempohr"
-                                        value="{{ old('ftempohr', '0') }}"
-                                        class="w-full border rounded px-3 py-2 @error('ftempohr') border-red-500 @enderror"
-                                        placeholder="Masukkan jumlah hari">
-                                    @error('ftempohr')
-                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                    @enderror
-                                </div>
-
-                                <div class="lg:col-span-4">
-                                    <label class="block text-sm font-medium">Tgl. Jatuh Tempo</label>
-                                    <input type="date" id="fjatuhtempo" name="fjatuhtempo"
-                                        value="{{ old('fjatuhtempo') ?? date('Y-m-d') }}" readonly
-                                        class="w-full border rounded px-3 py-2 bg-gray-100 @error('fjatuhtempo') border-red-500 @enderror">
-                                    @error('fjatuhtempo')
-                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                                    @enderror
-                                </div>
-
-                                <script>
-                                    document.addEventListener('DOMContentLoaded', function() {
-                                        function calculateDueDate() {
-                                            const poDate = document.getElementById('fsodate').value;
-                                            const tempoDays = parseInt(document.getElementById('ftempohr').value) || 0;
-
-                                            if (poDate) {
-                                                const date = new Date(poDate);
-                                                date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
-                                                date.setDate(date.getDate() + tempoDays);
-
-                                                const year = date.getFullYear();
-                                                const month = String(date.getMonth() + 1).padStart(2, '0');
-                                                const day = String(date.getDate()).padStart(2, '0');
-
-                                                document.getElementById('fjatuhtempo').value = `${year}-${month}-${day}`;
-                                            } else {
-                                                document.getElementById('fjatuhtempo').value = '';
-                                            }
-                                        }
-
-                                        // Event listeners
-                                        document.getElementById('fsodate').addEventListener('change', calculateDueDate);
-                                        document.getElementById('ftempohr').addEventListener('input', calculateDueDate);
-
-                                        // Initial calculation
-                                        calculateDueDate();
-                                    });
-                                </script>
 
                                 {{-- Customer --}}
                                 <div class="lg:col-span-4">
@@ -803,8 +752,59 @@
                                     @enderror
                                 </div>
 
+                                <div class="lg:col-span-4">
+                                    <label class="block text-sm font-medium">TOP (Hari)</label>
+                                    <input type="number" id="ftempohr" name="ftempohr"
+                                        value="{{ old('ftempohr', '0') }}"
+                                        class="w-full border rounded px-3 py-2 @error('ftempohr') border-red-500 @enderror"
+                                        placeholder="Masukkan jumlah hari">
+                                    @error('ftempohr')
+                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <div class="lg:col-span-4">
+                                    <label class="block text-sm font-medium">Tgl. Jatuh Tempo</label>
+                                    <input type="date" id="fjatuhtempo" name="fjatuhtempo"
+                                        value="{{ old('fjatuhtempo') ?? date('Y-m-d') }}" readonly
+                                        class="w-full border rounded px-3 py-2 bg-gray-100 @error('fjatuhtempo') border-red-500 @enderror">
+                                    @error('fjatuhtempo')
+                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <script>
+                                    document.addEventListener('DOMContentLoaded', function() {
+                                        function calculateDueDate() {
+                                            const poDate = document.getElementById('fsodate').value;
+                                            const tempoDays = parseInt(document.getElementById('ftempohr').value) || 0;
+
+                                            if (poDate) {
+                                                const date = new Date(poDate);
+                                                date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
+                                                date.setDate(date.getDate() + tempoDays);
+
+                                                const year = date.getFullYear();
+                                                const month = String(date.getMonth() + 1).padStart(2, '0');
+                                                const day = String(date.getDate()).padStart(2, '0');
+
+                                                document.getElementById('fjatuhtempo').value = `${year}-${month}-${day}`;
+                                            } else {
+                                                document.getElementById('fjatuhtempo').value = '';
+                                            }
+                                        }
+
+                                        // Event listeners
+                                        document.getElementById('fsodate').addEventListener('change', calculateDueDate);
+                                        document.getElementById('ftempohr').addEventListener('input', calculateDueDate);
+
+                                        // Initial calculation
+                                        calculateDueDate();
+                                    });
+                                </script>
+
                                 <div class="lg:col-span-12">
-                                    <label class="block text-sm font-medium">Keterangan Tambahan</label>
+                                    <label class="block text-sm font-medium">Keterangan</label>
                                     <textarea name="fket" rows="3"
                                         class="w-full border rounded px-3 py-2 @error('fket') border-red-500 @enderror"
                                         placeholder="Keterangan isi di sini...">{{ old('fket', $invoice->fket) }}</textarea>

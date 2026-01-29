@@ -202,6 +202,7 @@ class InvoiceController extends Controller
       'data' => $data
     ]);
   }
+
   public function items($id)
   {
     // Ambil data header PR berdasarkan fprid
@@ -380,6 +381,9 @@ class InvoiceController extends Controller
       'fprice'     => ['required', 'array'],
       'fprice.*'   => ['numeric', 'min:0'],
       'fdisc'      => ['nullable', 'array'],
+      'frefcode' => ['nullable', 'string', 'in:SO,SRJ,UM'],
+      'frefso'   => ['nullable'],
+      'frefsrj'  => ['nullable'],
     ], [
       'fsodate.required'   => 'Tanggal Faktur Penjualan wajib diisi.',
       'fcustno.required'   => 'Customer wajib diisi.',
@@ -403,6 +407,12 @@ class InvoiceController extends Controller
     $prices    = $request->input('fprice', []);
     $discs     = $request->input('fdisc', []);
 
+    if ($typeSales === 1) {
+      $frefcode = 'UM';
+      $frefso   = null;
+      $frefsrj  = null;
+    }
+
     $detailRows  = [];
     $totalGross  = 0;
     $totalDisc   = 0;
@@ -421,7 +431,8 @@ class InvoiceController extends Controller
 
     $products = DB::table('msprd')
       ->whereIn('fprdcode', array_filter($itemCodes))
-      ->pluck('fprdid', 'fprdcode'); // Hasilnya: ['CODE01' => 1, 'CODE02' => 2]
+      ->get(['fprdid', 'fprdcode', 'fprdname', 'fdiscontinue'])
+      ->keyBy('fprdcode');
 
     foreach ($itemCodes as $i => $code) {
       $qty   = (float)($qtys[$i] ?? 0);
@@ -431,6 +442,13 @@ class InvoiceController extends Controller
 
       $fprdid = $products[$code] ?? null;
 
+      $product = $products->get($code);
+
+      if ($product && $product->fdiscontinue == '1') {
+        return back()
+          ->withInput()
+          ->with('error', "Produk [{$code}] {$product->fprdname} Sudah Discontinue. Silakan hapus atau ganti dengan produk lain.");
+      }
       // Hitung Diskon per Baris (Support format 10+2 atau angka)
       $discPersen = $this->parseDiscount($discs[$i] ?? 0);
       $subtotal   = $qty * $price;
@@ -440,6 +458,10 @@ class InvoiceController extends Controller
 
       $totalGross += $subtotal;
       $totalDisc  += $discAmount;
+
+      $frefcode  = $request->input('frefcode');
+      $frefso    = $request->input('frefso');
+      $frefsrj   = $request->input('frefsrj');
 
       $detailRows[] = [
         'fnou'         => $i + 1,
@@ -459,6 +481,9 @@ class InvoiceController extends Controller
         'fsatuan'      => mb_substr($satuans[$i] ?? '', 0, 5),
         'fuserid'      => $userid,
         'fdatetime'    => $now,
+        'frefcode'        => $frefcode,  // Berisi: 'SO', 'SRJ', atau 'UM'
+        'frefso'          => $frefso,    // ID SO asli
+        'frefsrj'         => $frefsrj,   // ID SRJ asli
       ];
     }
 

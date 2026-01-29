@@ -103,6 +103,15 @@
                         </div>
 
                         <div class="lg:col-span-4">
+                            <label class="block text-sm font-medium">Faktur Pajak#</label>
+                            <input type="text" name="ftaxno" value="{{ old('ftaxno') }}"
+                                class="w-full border rounded px-3 py-2 @error('ftaxno') border-red-500 @enderror">
+                            @error('ftaxno')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div class="lg:col-span-4">
                             <label class="block text-sm font-medium">Type</label>
                             <select name="ftypesales" id="ftypesales" x-model.number="ftypesales" x-init="ftypesales = 0"
                                 class="w-full border rounded px-3 py-2 @error('ftypesales') border-red-500 @enderror">
@@ -110,15 +119,6 @@
                                 <option value="1">Uang Muka</option>
                             </select>
                             @error('ftypesales')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium">Faktur Pajak#</label>
-                            <input type="text" name="ftaxno" value="{{ old('ftaxno') }}"
-                                class="w-full border rounded px-3 py-2 @error('ftaxno') border-red-500 @enderror">
-                            @error('ftaxno')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
                         </div>
@@ -132,56 +132,6 @@
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
                         </div>
-
-                        <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium">TOP (Hari)</label>
-                            <input type="number" id="ftempohr" name="ftempohr" value="{{ old('ftempohr', '0') }}"
-                                class="w-full border rounded px-3 py-2 @error('ftempohr') border-red-500 @enderror"
-                                placeholder="Masukkan jumlah hari">
-                            @error('ftempohr')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium">Tgl. Jatuh Tempo</label>
-                            <input type="date" id="fjatuhtempo" name="fjatuhtempo"
-                                value="{{ old('fjatuhtempo') ?? date('Y-m-d') }}" readonly
-                                class="w-full border rounded px-3 py-2 bg-gray-100 @error('fjatuhtempo') border-red-500 @enderror">
-                            @error('fjatuhtempo')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <script>
-                            document.addEventListener('DOMContentLoaded', function() {
-                                function calculateDueDate() {
-                                    const poDate = document.getElementById('fsodate').value;
-                                    const tempoDays = parseInt(document.getElementById('ftempohr').value) || 0;
-
-                                    if (poDate) {
-                                        const date = new Date(poDate);
-                                        date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
-                                        date.setDate(date.getDate() + tempoDays);
-
-                                        const year = date.getFullYear();
-                                        const month = String(date.getMonth() + 1).padStart(2, '0');
-                                        const day = String(date.getDate()).padStart(2, '0');
-
-                                        document.getElementById('fjatuhtempo').value = `${year}-${month}-${day}`;
-                                    } else {
-                                        document.getElementById('fjatuhtempo').value = '';
-                                    }
-                                }
-
-                                // Event listeners
-                                document.getElementById('fsodate').addEventListener('change', calculateDueDate);
-                                document.getElementById('ftempohr').addEventListener('input', calculateDueDate);
-
-                                // Initial calculation
-                                calculateDueDate();
-                            });
-                        </script>
 
                         {{-- Customer --}}
                         <div class="lg:col-span-4">
@@ -258,8 +208,59 @@
                             @enderror
                         </div>
 
+
+                        <div class="lg:col-span-4">
+                            <label class="block text-sm font-medium">TOP (Hari)</label>
+                            <input type="number" id="ftempohr" name="ftempohr" value="{{ old('ftempohr', '0') }}"
+                                class="w-full border rounded px-3 py-2 @error('ftempohr') border-red-500 @enderror"
+                                placeholder="Masukkan jumlah hari">
+                            @error('ftempohr')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div class="lg:col-span-4">
+                            <label class="block text-sm font-medium">Tgl. Jatuh Tempo</label>
+                            <input type="date" id="fjatuhtempo" name="fjatuhtempo"
+                                value="{{ old('fjatuhtempo') ?? date('Y-m-d') }}" readonly
+                                class="w-full border rounded px-3 py-2 bg-gray-100 @error('fjatuhtempo') border-red-500 @enderror">
+                            @error('fjatuhtempo')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <script>
+                            document.addEventListener('DOMContentLoaded', function() {
+                                function calculateDueDate() {
+                                    const poDate = document.getElementById('fsodate').value;
+                                    const tempoDays = parseInt(document.getElementById('ftempohr').value) || 0;
+
+                                    if (poDate) {
+                                        const date = new Date(poDate);
+                                        date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
+                                        date.setDate(date.getDate() + tempoDays);
+
+                                        const year = date.getFullYear();
+                                        const month = String(date.getMonth() + 1).padStart(2, '0');
+                                        const day = String(date.getDate()).padStart(2, '0');
+
+                                        document.getElementById('fjatuhtempo').value = `${year}-${month}-${day}`;
+                                    } else {
+                                        document.getElementById('fjatuhtempo').value = '';
+                                    }
+                                }
+
+                                // Event listeners
+                                document.getElementById('fsodate').addEventListener('change', calculateDueDate);
+                                document.getElementById('ftempohr').addEventListener('input', calculateDueDate);
+
+                                // Initial calculation
+                                calculateDueDate();
+                            });
+                        </script>
+
                         <div class="lg:col-span-12">
-                            <label class="block text-sm font-medium">Keterangan Tambahan</label>
+                            <label class="block text-sm font-medium">Keterangan</label>
                             <textarea name="fket" rows="3"
                                 class="w-full border rounded px-3 py-2 @error('fket') border-red-500 @enderror"
                                 placeholder="Keterangan isi di sini..."></textarea>
@@ -575,6 +576,35 @@
                                 </tbody>
                             </table>
                         </div>
+
+                        <input type="hidden" name="frefcode" id="frefcode" value="{{ old('frefcode') }}">
+                        <input type="hidden" name="frefso" id="frefso" value="{{ old('frefso') }}">
+                        <input type="hidden" name="frefsrj" id="frefsrj" value="{{ old('frefsrj') }}">
+
+                        <script>
+                            document.addEventListener('DOMContentLoaded', () => {
+                                const inputRefCode = document.getElementById('frefcode');
+                                const inputRefSo = document.getElementById('frefso');
+                                const inputRefSrj = document.getElementById('frefsrj');
+
+                                // Menangkap Event saat SO dipilih
+                                window.addEventListener('pr-picked', (e) => {
+                                    const header = e.detail.header;
+                                    inputRefCode.value = 'SO';
+                                    inputRefSo.value = header.ftrsomtid; // Sesuaikan ID header SO
+                                    inputRefSrj.value = ''; // Reset yang lain
+                                });
+
+                                // Menangkap Event saat SRJ dipilih
+                                window.addEventListener('srj-picked', (e) => {
+                                    const header = e.detail.header;
+                                    inputRefCode.value = 'SRJ';
+                                    inputRefSrj.value = header.fstockmtid; // Sesuaikan ID header SRJ
+                                    inputRefSo.value = ''; // Reset yang lain
+                                });
+                            });
+                        </script>
+
                         <div class="mt-6 flex flex-col md:flex-row justify-between items-start gap-4 w-full">
                             <div class="flex flex-wrap items-center gap-3 flex-shrink-0">
                                 {{-- Container Alpine.js --}}
@@ -1408,6 +1438,7 @@
     }
 </style>
 {{-- DATA & SCRIPTS --}}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     // Map produk untuk auto-fill tabel
     window.PRODUCT_MAP = {
@@ -2260,7 +2291,32 @@
         }
     }
 </script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Cek jika ada flash message "error" dari controller
+        @if (session('error'))
+            Swal.fire({
+                icon: 'error',
+                title: 'Penyimpanan Batal',
+                text: "{{ session('error') }}",
+                confirmButtonColor: '#ef4444', // Warna merah tailwind
+                confirmButtonText: 'OK',
+                allowOutsideClick: false
+            });
+        @endif
 
+        // Cek jika ada flash message "success"
+        @if (session('success'))
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil',
+                text: "{{ session('success') }}",
+                timer: 2000,
+                showConfirmButton: false
+            });
+        @endif
+    });
+</script>
 <script>
     window.prhFormModal = function() {
         return {
@@ -2357,6 +2413,16 @@
 
             async pick(row) {
                 try {
+                    if (row.fdiscontinue == '1') {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Produk Discontinue',
+                            html: `Produk <b>${row.fprdname}</b> sudah tidak diproduksi lagi.<br><br>Penyimpanan Batal.`,
+                            confirmButtonColor: '#f59e0b', // Warna orange amber
+                            confirmButtonText: 'Kembali'
+                        });
+                        return; // Hentikan proses, jangan tambahkan ke tabel
+                    }
                     const url = `{{ route('penerimaanbarang.items', ['id' => 'PR_ID_PLACEHOLDER']) }}`
                         .replace('PR_ID_PLACEHOLDER', row.fprid);
 
@@ -2576,6 +2642,17 @@
 
             async pick(row) {
                 try {
+                    if (row.fdiscontinue == '1') {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Produk Discontinue',
+                            html: `Produk <b>${row.fprdname}</b> sudah tidak diproduksi lagi.<br><br>Penyimpanan Batal.`,
+                            confirmButtonColor: '#f59e0b', // Warna orange amber
+                            confirmButtonText: 'Kembali'
+                        });
+                        return; // Hentikan proses, jangan tambahkan ke tabel
+                    }
+
                     const url = `{{ route('salesorder.items', ['id' => 'SO_ID_PLACEHOLDER']) }}`
                         .replace('SO_ID_PLACEHOLDER', row.ftrsomtid);
 
@@ -2681,7 +2758,7 @@
                                     data); // Menggunakan helper formatDate yang sudah Anda miliki
                             }
                         },
-                          {
+                        {
                             data: 'fsuppliername',
                             name: 'fsuppliername',
                         },
@@ -2793,6 +2870,16 @@
 
             async pick(row) {
                 try {
+                    if (row.fdiscontinue == '1') {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Produk Discontinue',
+                            html: `Produk <b>${row.fprdname}</b> sudah tidak diproduksi lagi.<br><br>Penyimpanan Batal.`,
+                            confirmButtonColor: '#f59e0b', // Warna orange amber
+                            confirmButtonText: 'Kembali'
+                        });
+                        return; // Hentikan proses, jangan tambahkan ke tabel
+                    }
                     // Pastikan route srj.items sudah didefinisikan di Laravel
                     const url = `{{ route('suratjalan.items', ['id' => 'PLACEHOLDER']) }}`
                         .replace('PLACEHOLDER', row.fstockmtid);

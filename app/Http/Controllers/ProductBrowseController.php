@@ -17,9 +17,10 @@ class ProductBrowseController extends Controller
     $orderColumn = $request->input('order_column', 'fprdname');
     $orderDir = $request->input('order_dir', 'asc');
 
-    // Base query
+    // Base query dengan filter fdiscontinue
     $builder = DB::table('msprd')
       ->leftJoin('msmerek', 'msprd.fmerek', '=', 'msmerek.fmerekid')
+      ->where('msprd.fdiscontinue', '!=', 1)
       ->select([
         'msprd.fprdcode',
         'msprd.fprdname',
@@ -37,8 +38,10 @@ class ProductBrowseController extends Controller
             "),
       ]);
 
-    // Total records tanpa filter
-    $recordsTotal = DB::table('msprd')->count();
+    // Total records tanpa filter (dengan filter discontinued)
+    $recordsTotal = DB::table('msprd')
+      ->where('fdiscontinue', '!=', 1)
+      ->count();
 
     // Search/Filter
     if ($searchValue !== '') {

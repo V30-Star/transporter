@@ -115,6 +115,15 @@
                         </div>
 
                         <div class="lg:col-span-4">
+                            <label class="block text-sm font-medium">Faktur Pajak#</label>
+                            <input type="text" name="ftaxno" value="{{ old('ftaxno', $invoice->ftaxno) }}"
+                                class="w-full border rounded px-3 py-2 @error('ftaxno') border-red-500 @enderror" readonly>
+                            @error('ftaxno')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div class="lg:col-span-4">
                             <label class="block text-sm font-medium">Type</label>
                             <select name="ftypesales" id="ftypesales" x-model.number="ftypesales" x-init="ftypesales = 0"
                                 disabled
@@ -123,15 +132,6 @@
                                 <option value="1">Uang Muka</option>
                             </select>
                             @error('ftypesales')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium">Faktur Pajak#</label>
-                            <input type="text" name="ftaxno" value="{{ old('ftaxno', $invoice->ftaxno) }}"
-                                class="w-full border rounded px-3 py-2 @error('ftaxno') border-red-500 @enderror" readonly>
-                            @error('ftaxno')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
                         </div>
@@ -145,56 +145,6 @@
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
                         </div>
-
-                        <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium">TOP (Hari)</label>
-                            <input type="number" id="ftempohr" name="ftempohr" value="{{ old('ftempohr', '0') }}" readonly
-                                class="w-full border rounded px-3 py-2 @error('ftempohr') border-red-500 @enderror"
-                                placeholder="Masukkan jumlah hari">
-                            @error('ftempohr')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium">Tgl. Jatuh Tempo</label>
-                            <input type="date" id="fjatuhtempo" name="fjatuhtempo" readonly
-                                value="{{ old('fjatuhtempo') ?? date('Y-m-d') }}" readonly
-                                class="w-full border rounded px-3 py-2 bg-gray-100 @error('fjatuhtempo') border-red-500 @enderror">
-                            @error('fjatuhtempo')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <script>
-                            document.addEventListener('DOMContentLoaded', function() {
-                                function calculateDueDate() {
-                                    const poDate = document.getElementById('fsodate').value;
-                                    const tempoDays = parseInt(document.getElementById('ftempohr').value) || 0;
-
-                                    if (poDate) {
-                                        const date = new Date(poDate);
-                                        date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
-                                        date.setDate(date.getDate() + tempoDays);
-
-                                        const year = date.getFullYear();
-                                        const month = String(date.getMonth() + 1).padStart(2, '0');
-                                        const day = String(date.getDate()).padStart(2, '0');
-
-                                        document.getElementById('fjatuhtempo').value = `${year}-${month}-${day}`;
-                                    } else {
-                                        document.getElementById('fjatuhtempo').value = '';
-                                    }
-                                }
-
-                                // Event listeners
-                                document.getElementById('fsodate').addEventListener('change', calculateDueDate);
-                                document.getElementById('ftempohr').addEventListener('input', calculateDueDate);
-
-                                // Initial calculation
-                                calculateDueDate();
-                            });
-                        </script>
 
                         {{-- Customer --}}
                         <div class="lg:col-span-4">
@@ -251,6 +201,56 @@
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
                         </div>
+
+                        <div class="lg:col-span-4">
+                            <label class="block text-sm font-medium">TOP (Hari)</label>
+                            <input type="number" id="ftempohr" name="ftempohr" value="{{ old('ftempohr', '0') }}"
+                                readonly class="w-full border rounded px-3 py-2 @error('ftempohr') border-red-500 @enderror"
+                                placeholder="Masukkan jumlah hari">
+                            @error('ftempohr')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div class="lg:col-span-4">
+                            <label class="block text-sm font-medium">Tgl. Jatuh Tempo</label>
+                            <input type="date" id="fjatuhtempo" name="fjatuhtempo" readonly
+                                value="{{ old('fjatuhtempo') ?? date('Y-m-d') }}" readonly
+                                class="w-full border rounded px-3 py-2 bg-gray-100 @error('fjatuhtempo') border-red-500 @enderror">
+                            @error('fjatuhtempo')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <script>
+                            document.addEventListener('DOMContentLoaded', function() {
+                                function calculateDueDate() {
+                                    const poDate = document.getElementById('fsodate').value;
+                                    const tempoDays = parseInt(document.getElementById('ftempohr').value) || 0;
+
+                                    if (poDate) {
+                                        const date = new Date(poDate);
+                                        date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
+                                        date.setDate(date.getDate() + tempoDays);
+
+                                        const year = date.getFullYear();
+                                        const month = String(date.getMonth() + 1).padStart(2, '0');
+                                        const day = String(date.getDate()).padStart(2, '0');
+
+                                        document.getElementById('fjatuhtempo').value = `${year}-${month}-${day}`;
+                                    } else {
+                                        document.getElementById('fjatuhtempo').value = '';
+                                    }
+                                }
+
+                                // Event listeners
+                                document.getElementById('fsodate').addEventListener('change', calculateDueDate);
+                                document.getElementById('ftempohr').addEventListener('input', calculateDueDate);
+
+                                // Initial calculation
+                                calculateDueDate();
+                            });
+                        </script>
 
                         <div class="lg:col-span-12">
                             <label class="block text-sm font-medium">Keterangan Tambahan</label>
@@ -687,795 +687,795 @@
             }
         </style>
         {{-- DATA & SCRIPTS --}}
- <script>
-    // Map produk untuk auto-fill tabel
-    window.PRODUCT_MAP = {
-        @foreach ($products as $p)
-            "{{ $p->fprdcode }}": {
-                name: @json($p->fprdname),
-                units: @json(array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2]))),
-                stock: @json($p->fminstock ?? 0)
-            },
-        @endforeach
-    };
-
-    // id unik
-    window.cryptoRandom = function() {
-        try {
-            if (window.crypto?.getRandomValues) {
-                const arr = new Uint32Array(1);
-                window.crypto.getRandomValues(arr);
-                return 'r' + arr[0].toString(16);
-            }
-        } catch (e) {}
-        return 'r' + (Date.now().toString(16) + Math.random().toString(16).slice(2));
-    };
-
-    // Modal customer
-    function customerBrowser() {
-        return {
-            open: false,
-            dataTable: null,
-
-            initDataTable() {
-                if (this.dataTable) {
-                    this.dataTable.destroy();
-                }
-
-                this.dataTable = $('#customerBrowseTable').DataTable({
-                    processing: true,
-                    serverSide: true,
-                    ajax: {
-                        url: "{{ route('customer.browse') }}",
-                        type: 'GET',
-                        data: function(d) {
-                            return {
-                                draw: d.draw,
-                                start: d.start,
-                                length: d.length,
-                                search: d.search.value,
-                                order_column: d.columns[d.order[0].column].data,
-                                order_dir: d.order[0].dir
-                            };
-                        }
+        <script>
+            // Map produk untuk auto-fill tabel
+            window.PRODUCT_MAP = {
+                @foreach ($products as $p)
+                    "{{ $p->fprdcode }}": {
+                        name: @json($p->fprdname),
+                        units: @json(array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2]))),
+                        stock: @json($p->fminstock ?? 0)
                     },
-                    columns: [{
-                            data: 'fcustomercode',
-                            name: 'fcustomercode',
-                            className: 'font-mono text-sm',
-                            width: '15%'
-                        },
-                        {
-                            data: 'fcustomername',
-                            name: 'fcustomername',
-                            className: 'text-sm',
-                            width: '25%'
-                        },
-                        {
-                            data: 'faddress',
-                            name: 'faddress',
-                            className: 'text-sm',
-                            defaultContent: '-',
-                            orderable: false,
-                            width: '30%'
-                        },
-                        {
-                            data: 'ftelp',
-                            name: 'ftelp',
-                            className: 'text-sm',
-                            defaultContent: '-',
-                            orderable: false,
-                            width: '15%'
-                        },
-                        {
-                            data: null,
-                            orderable: false,
-                            searchable: false,
-                            className: 'text-center',
-                            width: '15%',
-                            render: function(data, type, row) {
-                                return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>';
-                            }
-                        }
-                    ],
-                    pageLength: 10,
-                    lengthMenu: [
-                        [10, 25, 50, 100],
-                        [10, 25, 50, 100]
-                    ],
-                    dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
-                    language: {
-                        processing: "Memuat data...",
-                        search: "Cari:",
-                        lengthMenu: "Tampilkan _MENU_",
-                        info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
-                        infoEmpty: "Tidak ada data",
-                        infoFiltered: "(disaring dari _MAX_ total data)",
-                        zeroRecords: "Tidak ada data yang ditemukan",
-                        emptyTable: "Tidak ada data tersedia",
-                        paginate: {
-                            first: "Pertama",
-                            last: "Terakhir",
-                            next: "Selanjutnya",
-                            previous: "Sebelumnya"
-                        }
-                    },
-                    order: [
-                        [1, 'asc']
-                    ],
-                    autoWidth: false,
-                    initComplete: function() {
-                        const api = this.api();
-                        const $container = $(api.table().container());
+                @endforeach
+            };
 
-                        // Move controls to designated areas
-                        const $filter = $container.find('.dataTables_filter');
-                        const $length = $container.find('.dataTables_length');
-                        const $info = $container.find('.dataTables_info');
-                        const $paginate = $container.find('.dataTables_paginate');
-
-                        // Style search input
-                        $container.find('.dt-search .dt-input, .dataTables_filter input').css({
-                            width: '300px',
-                            padding: '8px 12px',
-                            border: '2px solid #e5e7eb',
-                            borderRadius: '8px',
-                            fontSize: '14px'
-                        }).focus();
-
-                        // Style length select
-                        $container.find('.dt-length select, .dataTables_length select').css({
-                            padding: '6px 32px 6px 10px',
-                            border: '2px solid #e5e7eb',
-                            borderRadius: '8px',
-                            fontSize: '14px'
-                        });
-                    }
-                });
-
-                // Handle button click
-                $('#customerBrowseTable').on('click', '.btn-choose', (e) => {
-                    const data = this.dataTable.row($(e.target).closest('tr')).data();
-                    this.chooseCustomer(data);
-                });
-            },
-
-            openBrowse() {
-                this.open = true;
-                this.$nextTick(() => {
-                    this.initDataTable();
-                });
-            },
-
-            close() {
-                this.open = false;
-                if (this.dataTable) {
-                    this.dataTable.search('').draw();
-                }
-            },
-
-            chooseCustomer(customer) {
-                const sel = document.getElementById('modal_filter_customer_id');
-                const hid = document.getElementById('customerCodeHidden');
-
-                if (!sel) {
-                    this.close();
-                    return;
-                }
-
-                // 1. Set Dropdown Customer (Logika lama Anda)
-                let opt = [...sel.options].find(o => o.value == String(customer.fcustomerid));
-                if (!opt) {
-                    opt = new Option(`${customer.fcustomername} (${customer.fcustomercode})`, customer.fcustomerid,
-                        true, true);
-                    sel.add(opt);
-                } else {
-                    opt.selected = true;
-                }
-                if (hid) hid.value = customer.fcustomerid;
-
-                // 2. Kirim data alamat ke Alpine.js menggunakan Event
-                window.dispatchEvent(new CustomEvent('customer-selected', {
-                    detail: {
-                        f1: customer.fkirimaddress1 || '',
-                        f2: customer.fkirimaddress2 || '',
-                        f3: customer.fkirimaddress3 || ''
-                    }
-                }));
-
-                sel.dispatchEvent(new Event('change'));
-                this.close();
-            },
-
-            init() {
-                window.addEventListener('customer-browse-open', () => this.openBrowse(), {
-                    passive: true
-                });
-            }
-        }
-    }
-
-    document.addEventListener('alpine:init', () => {
-        Alpine.store('trsomt', {
-            // desc yang sedang dipreview
-            descPreview: {
-                uid: null,
-                index: null,
-                label: '',
-                text: ''
-            },
-            // optional: daftar semua desc
-            descList: []
-        });
-    });
-
-    // Modal salesman
-    function salesmanBrowser() {
-        return {
-            open: false,
-            dataTable: null,
-
-            initDataTable() {
-                if (this.dataTable) {
-                    this.dataTable.destroy();
-                }
-
-                this.dataTable = $('#salesmanBrowseTable').DataTable({
-                    processing: true,
-                    serverSide: true,
-                    ajax: {
-                        url: "{{ route('salesman.browse') }}",
-                        type: 'GET',
-                        data: function(d) {
-                            return {
-                                draw: d.draw,
-                                start: d.start,
-                                length: d.length,
-                                search: d.search.value,
-                                order_column: d.columns[d.order[0].column].data,
-                                order_dir: d.order[0].dir
-                            };
-                        }
-                    },
-                    columns: [{
-                            data: 'fsalesmancode',
-                            name: 'fsalesmancode',
-                            className: 'font-mono text-sm',
-                            width: '15%'
-                        },
-                        {
-                            data: 'fsalesmanname',
-                            name: 'fsalesmanname',
-                            className: 'text-sm',
-                            width: '25%'
-                        },
-                        {
-                            data: null,
-                            orderable: false,
-                            searchable: false,
-                            className: 'text-center',
-                            width: '15%',
-                            render: function(data, type, row) {
-                                return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>';
-                            }
-                        }
-                    ],
-                    pageLength: 10,
-                    lengthMenu: [
-                        [10, 25, 50, 100],
-                        [10, 25, 50, 100]
-                    ],
-                    dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
-                    language: {
-                        processing: "Memuat data...",
-                        search: "Cari:",
-                        lengthMenu: "Tampilkan _MENU_",
-                        info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
-                        infoEmpty: "Tidak ada data",
-                        infoFiltered: "(disaring dari _MAX_ total data)",
-                        zeroRecords: "Tidak ada data yang ditemukan",
-                        emptyTable: "Tidak ada data tersedia",
-                        paginate: {
-                            first: "Pertama",
-                            last: "Terakhir",
-                            next: "Selanjutnya",
-                            previous: "Sebelumnya"
-                        }
-                    },
-                    order: [
-                        [1, 'asc']
-                    ],
-                    autoWidth: false,
-                    initComplete: function() {
-                        const api = this.api();
-                        const $container = $(api.table().container());
-
-                        // Move controls to designated areas
-                        const $filter = $container.find('.dataTables_filter');
-                        const $length = $container.find('.dataTables_length');
-                        const $info = $container.find('.dataTables_info');
-                        const $paginate = $container.find('.dataTables_paginate');
-
-                        // Style search input
-                        $container.find('.dt-search .dt-input, .dataTables_filter input').css({
-                            width: '300px',
-                            padding: '8px 12px',
-                            border: '2px solid #e5e7eb',
-                            borderRadius: '8px',
-                            fontSize: '14px'
-                        }).focus();
-
-                        // Style length select
-                        $container.find('.dt-length select, .dataTables_length select').css({
-                            padding: '6px 32px 6px 10px',
-                            border: '2px solid #e5e7eb',
-                            borderRadius: '8px',
-                            fontSize: '14px'
-                        });
-                    }
-                });
-
-                // Handle button click
-                $('#salesmanBrowseTable').on('click', '.btn-choose', (e) => {
-                    const data = this.dataTable.row($(e.target).closest('tr')).data();
-                    this.chooseSalesman(data);
-                });
-            },
-
-            openBrowse() {
-                this.open = true;
-                this.$nextTick(() => {
-                    this.initDataTable();
-                });
-            },
-
-            close() {
-                this.open = false;
-                if (this.dataTable) {
-                    this.dataTable.search('').draw();
-                }
-            },
-
-            chooseSalesman(salesman) {
-                const sel = document.getElementById('modal_filter_salesman_id');
-                const hid = document.getElementById('salesmanCodeHidden');
-
-                if (!sel) {
-                    this.close();
-                    return;
-                }
-
-                let opt = [...sel.options].find(o => o.value == String(salesman.fsalesmanid));
-                const label = `${salesman.fsalesmanname} (${salesman.fsalesmancode})`;
-
-                if (!opt) {
-                    opt = new Option(label, salesman.fsalesmanid, true, true);
-                    sel.add(opt);
-                } else {
-                    opt.text = label;
-                    opt.selected = true;
-                }
-
-                sel.dispatchEvent(new Event('change'));
-                if (hid) hid.value = salesman.fsalesmanid;
-                this.close();
-            },
-
-            init() {
-                window.addEventListener('salesman-browse-open', () => this.openBrowse(), {
-                    passive: true
-                });
-            }
-        }
-    }
-
-    document.addEventListener('alpine:init', () => {
-        Alpine.store('trsomt', {
-            // desc yang sedang dipreview
-            descPreview: {
-                uid: null,
-                index: null,
-                label: '',
-                text: ''
-            },
-            // optional: daftar semua desc
-            descList: []
-        });
-    });
-
-    function itemsTable() {
-        return {
-            showNoItems: false,
-            savedItems: @json($savedItems ?? []),
-            draft: newRow(),
-            editingIndex: null,
-            editRow: newRow(),
-
-            totalHarga: 0,
-            ppnRate: 11,
-
-            initialGrandTotal: @json($famountso ?? 0),
-            initialPpnAmount: @json($famountpopajak ?? 0),
-
-            includePPN: false,
-            fapplyppn: false,
-
-            get ppnIncluded() {
-                const total = +this.totalHarga || 0;
-                const rate = +this.ppnRate || 0;
-                if (!this.fapplyppn) return 0;
-                return Math.round((100 / (100 + rate)) * total * (rate / 100));
-            },
-
-            get netFromGross() {
-                const total = +this.totalHarga || 0;
-                return total - this.ppnIncluded;
-            },
-
-            get ppnAdded() {
-                const rate = +this.ppnRate || 0;
-                if (!this.includePPN || this.fapplyppn) return 0;
-                const total = +this.totalHarga || 0;
-                return Math.round(total * (rate / 100));
-            },
-
-            get ppnAmount() {
-                if (this.fapplyppn) {
-                    return this.ppnIncluded;
-                }
-                if (this.includePPN) {
-                    return this.ppnAdded;
-                }
-                return 0;
-            },
-
-            get grandTotal() {
-                const total = +this.totalHarga || 0;
-                if (this.fapplyppn) {
-                    return total;
-                }
-                if (this.includePPN) {
-                    return total + this.ppnAdded;
-                }
-                return total;
-            },
-
-            fmt(n) {
-                if (n === null || n === undefined || n === '') return '-';
-                const v = Number(n);
-                if (!isFinite(v)) return '-';
-
-                if (Number.isInteger(v)) {
-                    return v.toLocaleString('id-ID');
-                } else {
-                    return v.toLocaleString('id-ID', {
-                        style: 'currency',
-                        currency: 'IDR'
-                    });
-                }
-            },
-
-            rupiah(n) {
-                const v = Number(n || 0);
-                if (!isFinite(v)) return 'Rp -';
-                return 'Rp ' + v.toLocaleString('id-ID', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                });
-            },
-
-            fmtMoney(value) {
-                return this.fmt(value);
-            },
-
-            // ✅ FUNGSI BARU: Parse diskon dengan format "10+2"
-            parseDiscount(discStr) {
-                if (!discStr && discStr !== 0) return 0;
-
-                // Jika sudah berupa angka, langsung return
-                if (typeof discStr === 'number') return discStr;
-
-                const str = String(discStr).trim();
-
-                // Jika string kosong
-                if (!str) return 0;
-
-                // Jika angka biasa (tanpa operator)
-                if (!isNaN(str)) {
-                    return parseFloat(str) || 0;
-                }
-
-                // Parse ekspresi matematika sederhana (10+2, 5+3+2, dll)
+            // id unik
+            window.cryptoRandom = function() {
                 try {
-                    // Hapus semua spasi
-                    const cleaned = str.replace(/\s/g, '');
+                    if (window.crypto?.getRandomValues) {
+                        const arr = new Uint32Array(1);
+                        window.crypto.getRandomValues(arr);
+                        return 'r' + arr[0].toString(16);
+                    }
+                } catch (e) {}
+                return 'r' + (Date.now().toString(16) + Math.random().toString(16).slice(2));
+            };
 
-                    // Validasi: hanya boleh angka, titik desimal, dan operator + - * /
-                    if (!/^[\d+\-*/.()]+$/.test(cleaned)) {
+            // Modal customer
+            function customerBrowser() {
+                return {
+                    open: false,
+                    dataTable: null,
+
+                    initDataTable() {
+                        if (this.dataTable) {
+                            this.dataTable.destroy();
+                        }
+
+                        this.dataTable = $('#customerBrowseTable').DataTable({
+                            processing: true,
+                            serverSide: true,
+                            ajax: {
+                                url: "{{ route('customer.browse') }}",
+                                type: 'GET',
+                                data: function(d) {
+                                    return {
+                                        draw: d.draw,
+                                        start: d.start,
+                                        length: d.length,
+                                        search: d.search.value,
+                                        order_column: d.columns[d.order[0].column].data,
+                                        order_dir: d.order[0].dir
+                                    };
+                                }
+                            },
+                            columns: [{
+                                    data: 'fcustomercode',
+                                    name: 'fcustomercode',
+                                    className: 'font-mono text-sm',
+                                    width: '15%'
+                                },
+                                {
+                                    data: 'fcustomername',
+                                    name: 'fcustomername',
+                                    className: 'text-sm',
+                                    width: '25%'
+                                },
+                                {
+                                    data: 'faddress',
+                                    name: 'faddress',
+                                    className: 'text-sm',
+                                    defaultContent: '-',
+                                    orderable: false,
+                                    width: '30%'
+                                },
+                                {
+                                    data: 'ftelp',
+                                    name: 'ftelp',
+                                    className: 'text-sm',
+                                    defaultContent: '-',
+                                    orderable: false,
+                                    width: '15%'
+                                },
+                                {
+                                    data: null,
+                                    orderable: false,
+                                    searchable: false,
+                                    className: 'text-center',
+                                    width: '15%',
+                                    render: function(data, type, row) {
+                                        return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>';
+                                    }
+                                }
+                            ],
+                            pageLength: 10,
+                            lengthMenu: [
+                                [10, 25, 50, 100],
+                                [10, 25, 50, 100]
+                            ],
+                            dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
+                            language: {
+                                processing: "Memuat data...",
+                                search: "Cari:",
+                                lengthMenu: "Tampilkan _MENU_",
+                                info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
+                                infoEmpty: "Tidak ada data",
+                                infoFiltered: "(disaring dari _MAX_ total data)",
+                                zeroRecords: "Tidak ada data yang ditemukan",
+                                emptyTable: "Tidak ada data tersedia",
+                                paginate: {
+                                    first: "Pertama",
+                                    last: "Terakhir",
+                                    next: "Selanjutnya",
+                                    previous: "Sebelumnya"
+                                }
+                            },
+                            order: [
+                                [1, 'asc']
+                            ],
+                            autoWidth: false,
+                            initComplete: function() {
+                                const api = this.api();
+                                const $container = $(api.table().container());
+
+                                // Move controls to designated areas
+                                const $filter = $container.find('.dataTables_filter');
+                                const $length = $container.find('.dataTables_length');
+                                const $info = $container.find('.dataTables_info');
+                                const $paginate = $container.find('.dataTables_paginate');
+
+                                // Style search input
+                                $container.find('.dt-search .dt-input, .dataTables_filter input').css({
+                                    width: '300px',
+                                    padding: '8px 12px',
+                                    border: '2px solid #e5e7eb',
+                                    borderRadius: '8px',
+                                    fontSize: '14px'
+                                }).focus();
+
+                                // Style length select
+                                $container.find('.dt-length select, .dataTables_length select').css({
+                                    padding: '6px 32px 6px 10px',
+                                    border: '2px solid #e5e7eb',
+                                    borderRadius: '8px',
+                                    fontSize: '14px'
+                                });
+                            }
+                        });
+
+                        // Handle button click
+                        $('#customerBrowseTable').on('click', '.btn-choose', (e) => {
+                            const data = this.dataTable.row($(e.target).closest('tr')).data();
+                            this.chooseCustomer(data);
+                        });
+                    },
+
+                    openBrowse() {
+                        this.open = true;
+                        this.$nextTick(() => {
+                            this.initDataTable();
+                        });
+                    },
+
+                    close() {
+                        this.open = false;
+                        if (this.dataTable) {
+                            this.dataTable.search('').draw();
+                        }
+                    },
+
+                    chooseCustomer(customer) {
+                        const sel = document.getElementById('modal_filter_customer_id');
+                        const hid = document.getElementById('customerCodeHidden');
+
+                        if (!sel) {
+                            this.close();
+                            return;
+                        }
+
+                        // 1. Set Dropdown Customer (Logika lama Anda)
+                        let opt = [...sel.options].find(o => o.value == String(customer.fcustomerid));
+                        if (!opt) {
+                            opt = new Option(`${customer.fcustomername} (${customer.fcustomercode})`, customer.fcustomerid,
+                                true, true);
+                            sel.add(opt);
+                        } else {
+                            opt.selected = true;
+                        }
+                        if (hid) hid.value = customer.fcustomerid;
+
+                        // 2. Kirim data alamat ke Alpine.js menggunakan Event
+                        window.dispatchEvent(new CustomEvent('customer-selected', {
+                            detail: {
+                                f1: customer.fkirimaddress1 || '',
+                                f2: customer.fkirimaddress2 || '',
+                                f3: customer.fkirimaddress3 || ''
+                            }
+                        }));
+
+                        sel.dispatchEvent(new Event('change'));
+                        this.close();
+                    },
+
+                    init() {
+                        window.addEventListener('customer-browse-open', () => this.openBrowse(), {
+                            passive: true
+                        });
+                    }
+                }
+            }
+
+            document.addEventListener('alpine:init', () => {
+                Alpine.store('trsomt', {
+                    // desc yang sedang dipreview
+                    descPreview: {
+                        uid: null,
+                        index: null,
+                        label: '',
+                        text: ''
+                    },
+                    // optional: daftar semua desc
+                    descList: []
+                });
+            });
+
+            // Modal salesman
+            function salesmanBrowser() {
+                return {
+                    open: false,
+                    dataTable: null,
+
+                    initDataTable() {
+                        if (this.dataTable) {
+                            this.dataTable.destroy();
+                        }
+
+                        this.dataTable = $('#salesmanBrowseTable').DataTable({
+                            processing: true,
+                            serverSide: true,
+                            ajax: {
+                                url: "{{ route('salesman.browse') }}",
+                                type: 'GET',
+                                data: function(d) {
+                                    return {
+                                        draw: d.draw,
+                                        start: d.start,
+                                        length: d.length,
+                                        search: d.search.value,
+                                        order_column: d.columns[d.order[0].column].data,
+                                        order_dir: d.order[0].dir
+                                    };
+                                }
+                            },
+                            columns: [{
+                                    data: 'fsalesmancode',
+                                    name: 'fsalesmancode',
+                                    className: 'font-mono text-sm',
+                                    width: '15%'
+                                },
+                                {
+                                    data: 'fsalesmanname',
+                                    name: 'fsalesmanname',
+                                    className: 'text-sm',
+                                    width: '25%'
+                                },
+                                {
+                                    data: null,
+                                    orderable: false,
+                                    searchable: false,
+                                    className: 'text-center',
+                                    width: '15%',
+                                    render: function(data, type, row) {
+                                        return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>';
+                                    }
+                                }
+                            ],
+                            pageLength: 10,
+                            lengthMenu: [
+                                [10, 25, 50, 100],
+                                [10, 25, 50, 100]
+                            ],
+                            dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
+                            language: {
+                                processing: "Memuat data...",
+                                search: "Cari:",
+                                lengthMenu: "Tampilkan _MENU_",
+                                info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
+                                infoEmpty: "Tidak ada data",
+                                infoFiltered: "(disaring dari _MAX_ total data)",
+                                zeroRecords: "Tidak ada data yang ditemukan",
+                                emptyTable: "Tidak ada data tersedia",
+                                paginate: {
+                                    first: "Pertama",
+                                    last: "Terakhir",
+                                    next: "Selanjutnya",
+                                    previous: "Sebelumnya"
+                                }
+                            },
+                            order: [
+                                [1, 'asc']
+                            ],
+                            autoWidth: false,
+                            initComplete: function() {
+                                const api = this.api();
+                                const $container = $(api.table().container());
+
+                                // Move controls to designated areas
+                                const $filter = $container.find('.dataTables_filter');
+                                const $length = $container.find('.dataTables_length');
+                                const $info = $container.find('.dataTables_info');
+                                const $paginate = $container.find('.dataTables_paginate');
+
+                                // Style search input
+                                $container.find('.dt-search .dt-input, .dataTables_filter input').css({
+                                    width: '300px',
+                                    padding: '8px 12px',
+                                    border: '2px solid #e5e7eb',
+                                    borderRadius: '8px',
+                                    fontSize: '14px'
+                                }).focus();
+
+                                // Style length select
+                                $container.find('.dt-length select, .dataTables_length select').css({
+                                    padding: '6px 32px 6px 10px',
+                                    border: '2px solid #e5e7eb',
+                                    borderRadius: '8px',
+                                    fontSize: '14px'
+                                });
+                            }
+                        });
+
+                        // Handle button click
+                        $('#salesmanBrowseTable').on('click', '.btn-choose', (e) => {
+                            const data = this.dataTable.row($(e.target).closest('tr')).data();
+                            this.chooseSalesman(data);
+                        });
+                    },
+
+                    openBrowse() {
+                        this.open = true;
+                        this.$nextTick(() => {
+                            this.initDataTable();
+                        });
+                    },
+
+                    close() {
+                        this.open = false;
+                        if (this.dataTable) {
+                            this.dataTable.search('').draw();
+                        }
+                    },
+
+                    chooseSalesman(salesman) {
+                        const sel = document.getElementById('modal_filter_salesman_id');
+                        const hid = document.getElementById('salesmanCodeHidden');
+
+                        if (!sel) {
+                            this.close();
+                            return;
+                        }
+
+                        let opt = [...sel.options].find(o => o.value == String(salesman.fsalesmanid));
+                        const label = `${salesman.fsalesmanname} (${salesman.fsalesmancode})`;
+
+                        if (!opt) {
+                            opt = new Option(label, salesman.fsalesmanid, true, true);
+                            sel.add(opt);
+                        } else {
+                            opt.text = label;
+                            opt.selected = true;
+                        }
+
+                        sel.dispatchEvent(new Event('change'));
+                        if (hid) hid.value = salesman.fsalesmanid;
+                        this.close();
+                    },
+
+                    init() {
+                        window.addEventListener('salesman-browse-open', () => this.openBrowse(), {
+                            passive: true
+                        });
+                    }
+                }
+            }
+
+            document.addEventListener('alpine:init', () => {
+                Alpine.store('trsomt', {
+                    // desc yang sedang dipreview
+                    descPreview: {
+                        uid: null,
+                        index: null,
+                        label: '',
+                        text: ''
+                    },
+                    // optional: daftar semua desc
+                    descList: []
+                });
+            });
+
+            function itemsTable() {
+                return {
+                    showNoItems: false,
+                    savedItems: @json($savedItems ?? []),
+                    draft: newRow(),
+                    editingIndex: null,
+                    editRow: newRow(),
+
+                    totalHarga: 0,
+                    ppnRate: 11,
+
+                    initialGrandTotal: @json($famountso ?? 0),
+                    initialPpnAmount: @json($famountpopajak ?? 0),
+
+                    includePPN: false,
+                    fapplyppn: false,
+
+                    get ppnIncluded() {
+                        const total = +this.totalHarga || 0;
+                        const rate = +this.ppnRate || 0;
+                        if (!this.fapplyppn) return 0;
+                        return Math.round((100 / (100 + rate)) * total * (rate / 100));
+                    },
+
+                    get netFromGross() {
+                        const total = +this.totalHarga || 0;
+                        return total - this.ppnIncluded;
+                    },
+
+                    get ppnAdded() {
+                        const rate = +this.ppnRate || 0;
+                        if (!this.includePPN || this.fapplyppn) return 0;
+                        const total = +this.totalHarga || 0;
+                        return Math.round(total * (rate / 100));
+                    },
+
+                    get ppnAmount() {
+                        if (this.fapplyppn) {
+                            return this.ppnIncluded;
+                        }
+                        if (this.includePPN) {
+                            return this.ppnAdded;
+                        }
                         return 0;
-                    }
+                    },
 
-                    // Hitung menggunakan Function (lebih aman dari eval)
-                    const result = new Function('return ' + cleaned)();
+                    get grandTotal() {
+                        const total = +this.totalHarga || 0;
+                        if (this.fapplyppn) {
+                            return total;
+                        }
+                        if (this.includePPN) {
+                            return total + this.ppnAdded;
+                        }
+                        return total;
+                    },
 
-                    // Return hasil jika valid, batasi maksimal 100%
-                    return isFinite(result) ? Math.min(100, Math.max(0, result)) : 0;
-                } catch (e) {
-                    console.warn('Invalid discount format:', discStr);
-                    return 0;
-                }
-            },
+                    fmt(n) {
+                        if (n === null || n === undefined || n === '') return '-';
+                        const v = Number(n);
+                        if (!isFinite(v)) return '-';
 
-            // ✅ UPDATE FUNGSI recalc untuk menggunakan parseDiscount
-            recalc(row) {
-                row.fqty = Math.max(0, +row.fqty || 0);
-                row.fterima = Math.max(0, +row.fterima || 0);
-                row.fprice = Math.max(0, +row.fprice || 0);
+                        if (Number.isInteger(v)) {
+                            return v.toLocaleString('id-ID');
+                        } else {
+                            return v.toLocaleString('id-ID', {
+                                style: 'currency',
+                                currency: 'IDR'
+                            });
+                        }
+                    },
 
-                // Parse discount menggunakan fungsi baru
-                const discPercent = this.parseDiscount(row.fdisc);
-
-                // Hitung total
-                const subtotal = row.fqty * row.fprice;
-                const discAmount = subtotal * (discPercent / 100);
-                row.ftotal = +(subtotal - discAmount).toFixed(2);
-
-                this.recalcTotals();
-            },
-
-            recalcTotals() {
-                this.totalHarga = this.savedItems.reduce((sum, item) => sum + item.ftotal, 0);
-            },
-
-            productMeta(code) {
-                const key = (code || '').trim();
-                return window.PRODUCT_MAP?.[key] || null;
-            },
-
-            hydrateRowFromMeta(row, meta) {
-                if (!meta) {
-                    row.fitemname = '';
-                    row.units = [];
-                    row.fsatuan = '';
-                    row.maxqty = 0;
-                    return;
-                }
-                row.fitemname = meta.name || '';
-                const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
-                row.units = units;
-                if (!units.includes(row.fsatuan)) row.fsatuan = units[0] || '';
-                row.fsatuan = row.fsatuan;
-                const stock = Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0;
-                row.maxqty = stock;
-            },
-
-            onCodeTypedRow(row) {
-                this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
-            },
-
-            isComplete(row) {
-                return row.fitemcode && row.fitemname && row.fsatuan && Number(row.fqty) > 0;
-            },
-
-            onPrPicked(e) {
-                const {
-                    header,
-                    items
-                } = e.detail || {};
-                if (!items || !Array.isArray(items)) return;
-                this.resetDraft();
-                this.addManyFromPR(header, items);
-            },
-
-            resetDraft() {
-                this.draft = newRow();
-                this.$nextTick(() => this.$refs.draftCode?.focus());
-            },
-
-            addManyFromPR(header, items) {
-                if (!items || !Array.isArray(items)) {
-                    window.toast?.error('Data items tidak valid atau kosong.');
-                    return;
-                }
-
-                const existing = new Set(this.getCurrentItemKeys());
-                let added = 0,
-                    duplicates = [],
-                    skipped = [];
-
-                items.forEach((src, index) => {
-                    const itemcode = (src.fitemcode ?? '').toString().trim();
-                    const itemname = (src.fitemname ?? '').toString().trim();
-                    const satuan = (src.fsatuan ?? '').toString().trim();
-                    const frefcode = src.frefcode ?? '';
-
-                    // VALIDASI MINIMAL: harus ada kode, nama, dan satuan
-                    if (!itemcode || !itemname || !satuan) {
-                        skipped.push({
-                            code: itemcode || 'NO_CODE',
-                            reason: 'Data tidak lengkap'
+                    rupiah(n) {
+                        const v = Number(n || 0);
+                        if (!isFinite(v)) return 'Rp -';
+                        return 'Rp ' + v.toLocaleString('id-ID', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
                         });
-                        return;
-                    }
+                    },
 
-                    const meta = this.productMeta(itemcode);
+                    fmtMoney(value) {
+                        return this.fmt(value);
+                    },
 
-                    const row = {
-                        uid: cryptoRandom(),
-                        fitemcode: itemcode,
-                        fitemname: itemname,
-                        fsatuan: satuan,
-                        frefcode: frefcode,
-                        frefpr: (src.frefpr ?? header?.fpono ?? header?.fsono ?? '').toString().trim(),
-                        fqty: Math.max(1, Number(src.fqty ?? 0)), // ← Minimal qty = 1
-                        fprice: Number(src.fprice ?? src.fharga ?? 0), // ← Boleh 0
-                        fterima: Number(src.fterima ?? 0),
-                        ftotal: 0,
-                        fdesc: src.fdesc ? src.fdesc.toString().trim() : '',
-                        fketdt: src.fketdt ? src.fketdt.toString().trim() : '',
-                        units: meta ? [...new Set((meta.units || []).map(u => (u ?? '').toString().trim())
-                            .filter(Boolean))] : [satuan].filter(Boolean),
-                        maxqty: meta ? (Number(meta.stock) || 0) : 0,
-                    };
+                    // ✅ FUNGSI BARU: Parse diskon dengan format "10+2"
+                    parseDiscount(discStr) {
+                        if (!discStr && discStr !== 0) return 0;
 
-                    row.ftotal = Number((row.fqty * row.fprice).toFixed(2));
+                        // Jika sudah berupa angka, langsung return
+                        if (typeof discStr === 'number') return discStr;
 
-                    const key = this.itemKey({
-                        fitemcode: row.fitemcode,
-                        frefcode: row.frefcode
-                    });
+                        const str = String(discStr).trim();
 
-                    if (existing.has(key)) {
-                        duplicates.push({
-                            key,
-                            code: row.fitemcode,
-                            ref: row.frefcode
+                        // Jika string kosong
+                        if (!str) return 0;
+
+                        // Jika angka biasa (tanpa operator)
+                        if (!isNaN(str)) {
+                            return parseFloat(str) || 0;
+                        }
+
+                        // Parse ekspresi matematika sederhana (10+2, 5+3+2, dll)
+                        try {
+                            // Hapus semua spasi
+                            const cleaned = str.replace(/\s/g, '');
+
+                            // Validasi: hanya boleh angka, titik desimal, dan operator + - * /
+                            if (!/^[\d+\-*/.()]+$/.test(cleaned)) {
+                                return 0;
+                            }
+
+                            // Hitung menggunakan Function (lebih aman dari eval)
+                            const result = new Function('return ' + cleaned)();
+
+                            // Return hasil jika valid, batasi maksimal 100%
+                            return isFinite(result) ? Math.min(100, Math.max(0, result)) : 0;
+                        } catch (e) {
+                            console.warn('Invalid discount format:', discStr);
+                            return 0;
+                        }
+                    },
+
+                    // ✅ UPDATE FUNGSI recalc untuk menggunakan parseDiscount
+                    recalc(row) {
+                        row.fqty = Math.max(0, +row.fqty || 0);
+                        row.fterima = Math.max(0, +row.fterima || 0);
+                        row.fprice = Math.max(0, +row.fprice || 0);
+
+                        // Parse discount menggunakan fungsi baru
+                        const discPercent = this.parseDiscount(row.fdisc);
+
+                        // Hitung total
+                        const subtotal = row.fqty * row.fprice;
+                        const discAmount = subtotal * (discPercent / 100);
+                        row.ftotal = +(subtotal - discAmount).toFixed(2);
+
+                        this.recalcTotals();
+                    },
+
+                    recalcTotals() {
+                        this.totalHarga = this.savedItems.reduce((sum, item) => sum + item.ftotal, 0);
+                    },
+
+                    productMeta(code) {
+                        const key = (code || '').trim();
+                        return window.PRODUCT_MAP?.[key] || null;
+                    },
+
+                    hydrateRowFromMeta(row, meta) {
+                        if (!meta) {
+                            row.fitemname = '';
+                            row.units = [];
+                            row.fsatuan = '';
+                            row.maxqty = 0;
+                            return;
+                        }
+                        row.fitemname = meta.name || '';
+                        const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
+                        row.units = units;
+                        if (!units.includes(row.fsatuan)) row.fsatuan = units[0] || '';
+                        row.fsatuan = row.fsatuan;
+                        const stock = Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0;
+                        row.maxqty = stock;
+                    },
+
+                    onCodeTypedRow(row) {
+                        this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                    },
+
+                    isComplete(row) {
+                        return row.fitemcode && row.fitemname && row.fsatuan && Number(row.fqty) > 0;
+                    },
+
+                    onPrPicked(e) {
+                        const {
+                            header,
+                            items
+                        } = e.detail || {};
+                        if (!items || !Array.isArray(items)) return;
+                        this.resetDraft();
+                        this.addManyFromPR(header, items);
+                    },
+
+                    resetDraft() {
+                        this.draft = newRow();
+                        this.$nextTick(() => this.$refs.draftCode?.focus());
+                    },
+
+                    addManyFromPR(header, items) {
+                        if (!items || !Array.isArray(items)) {
+                            window.toast?.error('Data items tidak valid atau kosong.');
+                            return;
+                        }
+
+                        const existing = new Set(this.getCurrentItemKeys());
+                        let added = 0,
+                            duplicates = [],
+                            skipped = [];
+
+                        items.forEach((src, index) => {
+                            const itemcode = (src.fitemcode ?? '').toString().trim();
+                            const itemname = (src.fitemname ?? '').toString().trim();
+                            const satuan = (src.fsatuan ?? '').toString().trim();
+                            const frefcode = src.frefcode ?? '';
+
+                            // VALIDASI MINIMAL: harus ada kode, nama, dan satuan
+                            if (!itemcode || !itemname || !satuan) {
+                                skipped.push({
+                                    code: itemcode || 'NO_CODE',
+                                    reason: 'Data tidak lengkap'
+                                });
+                                return;
+                            }
+
+                            const meta = this.productMeta(itemcode);
+
+                            const row = {
+                                uid: cryptoRandom(),
+                                fitemcode: itemcode,
+                                fitemname: itemname,
+                                fsatuan: satuan,
+                                frefcode: frefcode,
+                                frefpr: (src.frefpr ?? header?.fpono ?? header?.fsono ?? '').toString().trim(),
+                                fqty: Math.max(1, Number(src.fqty ?? 0)), // ← Minimal qty = 1
+                                fprice: Number(src.fprice ?? src.fharga ?? 0), // ← Boleh 0
+                                fterima: Number(src.fterima ?? 0),
+                                ftotal: 0,
+                                fdesc: src.fdesc ? src.fdesc.toString().trim() : '',
+                                fketdt: src.fketdt ? src.fketdt.toString().trim() : '',
+                                units: meta ? [...new Set((meta.units || []).map(u => (u ?? '').toString().trim())
+                                    .filter(Boolean))] : [satuan].filter(Boolean),
+                                maxqty: meta ? (Number(meta.stock) || 0) : 0,
+                            };
+
+                            row.ftotal = Number((row.fqty * row.fprice).toFixed(2));
+
+                            const key = this.itemKey({
+                                fitemcode: row.fitemcode,
+                                frefcode: row.frefcode
+                            });
+
+                            if (existing.has(key)) {
+                                duplicates.push({
+                                    key,
+                                    code: row.fitemcode,
+                                    ref: row.frefcode
+                                });
+                                return;
+                            }
+
+                            this.savedItems.push(row);
+                            existing.add(key);
+                            added++;
                         });
-                        return;
-                    }
 
-                    this.savedItems.push(row);
-                    existing.add(key);
-                    added++;
-                });
+                        this.recalcTotals();
 
-                this.recalcTotals();
+                        // Tampilkan notifikasi
+                        if (added > 0) {
+                            window.toast?.success(`✓ Berhasil menambahkan ${added} item ke detail`);
+                        }
 
-                // Tampilkan notifikasi
-                if (added > 0) {
-                    window.toast?.success(`✓ Berhasil menambahkan ${added} item ke detail`);
-                }
+                        if (duplicates.length > 0) {
+                            window.toast?.info(`${duplicates.length} item diabaikan (sudah ada)`);
+                        }
 
-                if (duplicates.length > 0) {
-                    window.toast?.info(`${duplicates.length} item diabaikan (sudah ada)`);
-                }
+                        if (skipped.length > 0) {
+                            window.toast?.error(`${skipped.length} item diabaikan (data tidak lengkap)`);
+                        }
 
-                if (skipped.length > 0) {
-                    window.toast?.error(`${skipped.length} item diabaikan (data tidak lengkap)`);
-                }
+                        if (added === 0 && duplicates.length === 0 && skipped.length === 0) {
+                            window.toast?.error('Tidak ada item yang valid untuk ditambahkan');
+                        }
+                    },
 
-                if (added === 0 && duplicates.length === 0 && skipped.length === 0) {
-                    window.toast?.error('Tidak ada item yang valid untuk ditambahkan');
-                }
-            },
+                    addIfComplete() {
+                        const r = this.draft;
 
-            addIfComplete() {
-                const r = this.draft;
+                        if (!this.isComplete(r)) {
+                            if (!r.fitemcode) return this.$refs.draftCode?.focus();
+                            if (!r.fitemname) return this.$refs.draftCode?.focus();
+                            if (!r.fsatuan) return (r.units.length > 1 ? this.$refs.draftUnit?.focus() : this.$refs.draftCode
+                                ?.focus());
+                            if (!(Number(r.fqty) > 0)) return this.$refs.draftQty?.focus();
+                            return;
+                        }
 
-                if (!this.isComplete(r)) {
-                    if (!r.fitemcode) return this.$refs.draftCode?.focus();
-                    if (!r.fitemname) return this.$refs.draftCode?.focus();
-                    if (!r.fsatuan) return (r.units.length > 1 ? this.$refs.draftUnit?.focus() : this.$refs.draftCode
-                        ?.focus());
-                    if (!(Number(r.fqty) > 0)) return this.$refs.draftQty?.focus();
-                    return;
-                }
+                        this.recalc(r);
 
-                this.recalc(r);
+                        const dupe = this.savedItems.find(it =>
+                            it.fitemcode === r.fitemcode &&
+                            it.fsatuan === r.fsatuan &&
+                            (it.frefpr || '') === (r.frefpr || '')
+                        );
 
-                const dupe = this.savedItems.find(it =>
-                    it.fitemcode === r.fitemcode &&
-                    it.fsatuan === r.fsatuan &&
-                    (it.frefpr || '') === (r.frefpr || '')
-                );
+                        if (dupe) {
+                            this.showToast('Item sama sudah ada di daftar', 'warning');
+                            return;
+                        }
 
-                if (dupe) {
-                    this.showToast('Item sama sudah ada di daftar', 'warning');
-                    return;
-                }
+                        this.savedItems.push({
+                            ...r,
+                            uid: cryptoRandom()
+                        });
+                        this.showNoItems = false;
+                        this.resetDraft();
+                        this.$nextTick(() => this.$refs.draftCode?.focus());
+                        this.syncDescList?.();
+                        this.recalcTotals();
+                    },
 
-                this.savedItems.push({
-                    ...r,
-                    uid: cryptoRandom()
-                });
-                this.showNoItems = false;
-                this.resetDraft();
-                this.$nextTick(() => this.$refs.draftCode?.focus());
-                this.syncDescList?.();
-                this.recalcTotals();
-            },
+                    edit(i) {
+                        this.editingIndex = i;
+                        this.editRow = {
+                            ...this.savedItems[i]
+                        };
+                        this.hydrateRowFromMeta(this.editRow, this.productMeta(this.editRow.fitemcode));
+                        this.$nextTick(() => this.$refs.editQty?.focus());
+                    },
 
-            edit(i) {
-                this.editingIndex = i;
-                this.editRow = {
-                    ...this.savedItems[i]
-                };
-                this.hydrateRowFromMeta(this.editRow, this.productMeta(this.editRow.fitemcode));
-                this.$nextTick(() => this.$refs.editQty?.focus());
-            },
+                    applyEdit() {
+                        const r = this.editRow;
+                        if (!this.isComplete(r)) {
+                            alert('Lengkapi data item.');
+                            return;
+                        }
+                        this.recalc(r);
+                        this.savedItems.splice(this.editingIndex, 1, {
+                            ...r
+                        });
+                        this.cancelEdit();
+                        this.syncDescList?.();
+                        this.recalcTotals();
+                    },
 
-            applyEdit() {
-                const r = this.editRow;
-                if (!this.isComplete(r)) {
-                    alert('Lengkapi data item.');
-                    return;
-                }
-                this.recalc(r);
-                this.savedItems.splice(this.editingIndex, 1, {
-                    ...r
-                });
-                this.cancelEdit();
-                this.syncDescList?.();
-                this.recalcTotals();
-            },
+                    cancelEdit() {
+                        this.editingIndex = null;
+                        this.editRow = newRow();
+                    },
 
-            cancelEdit() {
-                this.editingIndex = null;
-                this.editRow = newRow();
-            },
+                    removeSaved(i) {
+                        this.savedItems.splice(i, 1);
+                        this.syncDescList?.();
+                        this.recalcTotals();
+                    },
 
-            removeSaved(i) {
-                this.savedItems.splice(i, 1);
-                this.syncDescList?.();
-                this.recalcTotals();
-            },
+                    onSubmit($event) {
+                        if (this.savedItems.length === 0) {
+                            $event.preventDefault();
+                            this.showNoItems = true;
+                            return;
+                        }
+                    },
 
-            onSubmit($event) {
-                if (this.savedItems.length === 0) {
-                    $event.preventDefault();
-                    this.showNoItems = true;
-                    return;
-                }
-            },
+                    handleEnterOnCode(where) {
+                        if (where === 'edit') {
+                            if (this.editRow.units.length > 1) this.$refs.editUnit?.focus();
+                            else this.$refs.editQty?.focus();
+                        } else {
+                            if (this.draft.units.length > 1) this.$refs.draftUnit?.focus();
+                            else this.$refs.draftQty?.focus();
+                        }
+                    },
 
-            handleEnterOnCode(where) {
-                if (where === 'edit') {
-                    if (this.editRow.units.length > 1) this.$refs.editUnit?.focus();
-                    else this.$refs.editQty?.focus();
-                } else {
-                    if (this.draft.units.length > 1) this.$refs.draftUnit?.focus();
-                    else this.$refs.draftQty?.focus();
-                }
-            },
+                    showDescModal: false,
+                    descTarget: 'draft',
+                    descSavedIndex: null,
+                    descValue: '',
+                    openDesc() {},
+                    closeDesc() {},
+                    applyDesc() {},
 
-            showDescModal: false,
-            descTarget: 'draft',
-            descSavedIndex: null,
-            descValue: '',
-            openDesc() {},
-            closeDesc() {},
-            applyDesc() {},
+                    itemKey(it) {
+                        return `${(it.fitemcode ?? '').toString().trim()}::${(it.frefcode ?? '').toString().trim()}`;
+                    },
 
-            itemKey(it) {
-                return `${(it.fitemcode ?? '').toString().trim()}::${(it.frefcode ?? '').toString().trim()}`;
-            },
+                    getCurrentItemKeys() {
+                        return this.savedItems.map(it => this.itemKey(it));
+                    },
 
-            getCurrentItemKeys() {
-                return this.savedItems.map(it => this.itemKey(it));
-            },
-
-            // Tambahkan di Alpine data
-            showToast(message, type = 'info') {
-                // Buat element toast
-                const toast = document.createElement('div');
-                toast.className = `fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 animate-slide-in ${
+                    // Tambahkan di Alpine data
+                    showToast(message, type = 'info') {
+                        // Buat element toast
+                        const toast = document.createElement('div');
+                        toast.className = `fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 animate-slide-in ${
         type === 'warning' ? 'bg-amber-100 text-amber-800 border border-amber-300' :
         type === 'error' ? 'bg-red-100 text-red-800 border border-red-300' :
         type === 'success' ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' :
         'bg-blue-100 text-blue-800 border border-blue-300'
     }`;
 
-                toast.innerHTML = `
+                        toast.innerHTML = `
         <svg class="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
             ${type === 'warning' ? '<path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>' :
             type === 'error' ? '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>' :
@@ -1485,506 +1485,506 @@
         <span class="font-medium">${message}</span>
     `;
 
-                document.body.appendChild(toast);
+                        document.body.appendChild(toast);
 
-                // Auto remove setelah 3 detik
-                setTimeout(() => {
-                    toast.classList.add('animate-slide-out');
-                    setTimeout(() => toast.remove(), 300);
-                }, 3000);
-            },
-
-            init() {
-                this.$watch('includePPN', () => this.recalcTotals());
-                this.$watch('fapplyppn', () => this.recalcTotals());
-                this.$watch('ppnRate', () => this.recalcTotals());
-
-                window.getCurrentItemKeys = () => this.getCurrentItemKeys();
-                window.addEventListener('pr-picked', this.onPrPicked.bind(this), {
-                    passive: true
-                });
-
-                window.addEventListener('product-chosen', (e) => {
-                    const {
-                        product
-                    } = e.detail || {};
-                    if (!product) return;
-                    const apply = (row) => {
-                        row.fitemcode = (product.fprdcode || '').toString();
-                        row.frefcode = product.fprdid || '';
-                        this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
-                        if (!row.fqty) row.fqty = 1;
-                        this.recalc(row);
-                    };
-                    if (this.browseTarget === 'edit') {
-                        apply(this.editRow);
-                        this.$nextTick(() => this.$refs.editQty?.focus());
-                    } else {
-                        apply(this.draft);
-                        this.$nextTick(() => this.$refs.draftQty?.focus());
-                    }
-                }, {
-                    passive: true
-                });
-            },
-
-            browseTarget: 'draft',
-            openBrowseFor(where) {
-                this.browseTarget = (where === 'edit' ? 'edit' : 'draft');
-                window.dispatchEvent(new CustomEvent('browse-open', {
-                    detail: {
-                        forEdit: this.browseTarget === 'edit'
-                    }
-                }));
-            },
-        };
-
-        function newRow() {
-            return {
-                uid: null,
-                fitemcode: '',
-                fitemname: '',
-                units: [],
-                fsatuan: '',
-                frefcode: '',
-                fnouref: '',
-                frefpr: '',
-                fqty: 0,
-                fterima: 0,
-                fprice: 0,
-                fdisc: 0, // Bisa berupa string "10+2" atau angka 12
-                ftotal: 0,
-                fdesc: '',
-                fketdt: '',
-                maxqty: 0,
-            };
-        }
-
-        function cryptoRandom() {
-            return (window.crypto?.getRandomValues ? [...window.crypto.getRandomValues(new Uint32Array(2))].map(n => n
-                    .toString(16)).join('') :
-                Math.random().toString(36).slice(2)) + Date.now();
-        }
-    }
-</script>
-
-<script>
-    window.prhFormModal = function() {
-        return {
-            show: false,
-            table: null,
-
-            // Duplikasi modal state
-            showDupModal: false,
-            dupCount: 0,
-            dupSample: [],
-            pendingHeader: null,
-            pendingUniques: [],
-
-            initDataTable() {
-                if (this.table) {
-                    this.table.destroy();
-                }
-
-                this.table = $('#prTable').DataTable({
-                    processing: true,
-                    serverSide: true,
-                    ajax: {
-                        url: "{{ route('tr_poh.pickable') }}",
-                        type: 'GET',
-                        data: function(d) {
-                            return {
-                                draw: d.draw,
-                                start: d.start,
-                                length: d.length,
-                                search: d.search.value,
-                                // Menambahkan parameter order untuk server-side processing
-                                order_column: d.columns[d.order[0].column].data,
-                                order_dir: d.order[0].dir
-                            };
-                        },
-                        // Karena kita sudah menggunakan parameter start/length standar DataTables,
-                        // properti dataSrc bisa dihilangkan jika backend langsung mengembalikan format DataTables.
-                        // Jika backend tetap menggunakan pagination Laravel, dataSrc perlu dipertahankan. 
-                        // Kita asumsikan backend sudah disesuaikan untuk server-side DataTables penuh.
-                        // Jika masih menggunakan format pagination Laravel, kita bisa menggunakan:
-                        // dataSrc: function(json) { return json.data; }
+                        // Auto remove setelah 3 detik
+                        setTimeout(() => {
+                            toast.classList.add('animate-slide-out');
+                            setTimeout(() => toast.remove(), 300);
+                        }, 3000);
                     },
-                    columns: [{
-                            data: 'fprno',
-                            name: 'fprno',
-                            className: 'font-mono text-sm' // Styling konsisten
-                        },
-                        {
-                            data: 'fsuppliername',
-                            name: 'fsuppliername',
-                            className: 'text-sm', // Styling konsisten
-                            render: function(data) {
-                                return data || '-';
-                            }
-                        },
-                        {
-                            data: 'fprdate',
-                            name: 'fprdate',
-                            className: 'text-sm', // Styling konsisten
-                            render: function(data) {
-                                return formatDate(data);
-                            }
-                        },
-                        {
-                            data: null,
-                            orderable: false,
-                            searchable: false,
-                            className: 'text-center',
-                            render: function(data, type, row) {
-                                // Menggunakan styling yang lebih seragam
-                                return '<button type="button" class="btn-pick px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>';
-                            }
-                        }
-                    ],
-                    pageLength: 10,
-                    lengthMenu: [
-                        [10, 25, 50, 100], // Menambahkan 100
-                        [10, 25, 50, 100]
-                    ],
-                    // Menggunakan DOM custom yang sudah diseragamkan
-                    dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
 
-                    language: {
-                        processing: "Memuat data...", // Diseragamkan
-                        search: "Cari:", // Diseragamkan
-                        lengthMenu: "Tampilkan _MENU_", // Diseragamkan
-                        info: "Menampilkan _START_ - _END_ dari _TOTAL_ data", // Diseragamkan
-                        infoEmpty: "Tidak ada data", // Diseragamkan
-                        infoFiltered: "(disaring dari _MAX_ total data)", // Diseragamkan
-                        zeroRecords: "Tidak ada data yang ditemukan", // Diseragamkan
-                        emptyTable: "Tidak ada data tersedia", // Diseragamkan
-                        paginate: {
-                            first: "Pertama",
-                            last: "Terakhir",
-                            next: "Selanjutnya",
-                            previous: "Sebelumnya"
-                        }
-                    },
-                    order: [
-                        [2, 'desc']
-                    ], // Sort by tanggal terbaru
-                    autoWidth: false,
-                    initComplete: function() {
-                        const api = this.api();
-                        const $container = $(api.table().container());
+                    init() {
+                        this.$watch('includePPN', () => this.recalcTotals());
+                        this.$watch('fapplyppn', () => this.recalcTotals());
+                        this.$watch('ppnRate', () => this.recalcTotals());
 
-                        // Style search input (disamakan dengan Customer)
-                        $container.find('.dt-search .dt-input, .dataTables_filter input').css({
-                            width: '300px', // Menggunakan 300px agar konsisten dengan customerBrowser
-                            padding: '8px 12px',
-                            border: '2px solid #e5e7eb',
-                            borderRadius: '8px',
-                            fontSize: '14px'
-                        }).focus();
-
-                        // Style length select (disamakan dengan Customer)
-                        $container.find('.dt-length select, .dataTables_length select').css({
-                            padding: '6px 32px 6px 10px',
-                            border: '2px solid #e5e7eb',
-                            borderRadius: '8px',
-                            fontSize: '14px'
+                        window.getCurrentItemKeys = () => this.getCurrentItemKeys();
+                        window.addEventListener('pr-picked', this.onPrPicked.bind(this), {
+                            passive: true
                         });
-                    }
-                });
 
-                // Handle button click (Menggunakan self for consistency)
-                const self = this;
-                $('#prTable').off('click', '.btn-pick').on('click', '.btn-pick', function() {
-                    const data = self.table.row($(this).closest('tr')).data();
-                    self.pick(data);
-                });
-            },
+                        window.addEventListener('product-chosen', (e) => {
+                            const {
+                                product
+                            } = e.detail || {};
+                            if (!product) return;
+                            const apply = (row) => {
+                                row.fitemcode = (product.fprdcode || '').toString();
+                                row.frefcode = product.fprdid || '';
+                                this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                                if (!row.fqty) row.fqty = 1;
+                                this.recalc(row);
+                            };
+                            if (this.browseTarget === 'edit') {
+                                apply(this.editRow);
+                                this.$nextTick(() => this.$refs.editQty?.focus());
+                            } else {
+                                apply(this.draft);
+                                this.$nextTick(() => this.$refs.draftQty?.focus());
+                            }
+                        }, {
+                            passive: true
+                        });
+                    },
 
-            openModal() {
-                this.show = true;
-                this.$nextTick(() => {
-                    this.initDataTable();
-                });
-            },
+                    browseTarget: 'draft',
+                    openBrowseFor(where) {
+                        this.browseTarget = (where === 'edit' ? 'edit' : 'draft');
+                        window.dispatchEvent(new CustomEvent('browse-open', {
+                            detail: {
+                                forEdit: this.browseTarget === 'edit'
+                            }
+                        }));
+                    },
+                };
 
-            closeModal() {
-                this.show = false;
-                if (this.table) {
-                    this.table.search('').draw();
+                function newRow() {
+                    return {
+                        uid: null,
+                        fitemcode: '',
+                        fitemname: '',
+                        units: [],
+                        fsatuan: '',
+                        frefcode: '',
+                        fnouref: '',
+                        frefpr: '',
+                        fqty: 0,
+                        fterima: 0,
+                        fprice: 0,
+                        fdisc: 0, // Bisa berupa string "10+2" atau angka 12
+                        ftotal: 0,
+                        fdesc: '',
+                        fketdt: '',
+                        maxqty: 0,
+                    };
                 }
-            },
 
-            // --- Duplikasi Handlers (Tetap sama, logic sudah baik) ---
-            openDupModal(header, duplicates, uniques) {
-                this.dupCount = duplicates.length;
-                this.dupSample = duplicates.slice(0, 6);
-                this.pendingHeader = header;
-                this.pendingUniques = uniques;
-                this.showDupModal = true;
-            },
-
-            closeDupModal() {
-                this.showDupModal = false;
-                this.dupCount = 0;
-                this.dupSample = [];
-                this.pendingHeader = null;
-                this.pendingUniques = [];
-            },
-
-            confirmAddUniques() {
-                window.dispatchEvent(new CustomEvent('pr-picked', {
-                    detail: {
-                        header: this.pendingHeader,
-                        items: this.pendingUniques
-                    }
-                }));
-                this.closeDupModal();
-                this.closeModal();
-            },
-
-            async pick(row) {
-                try {
-                    // Tampilkan loading indicator (opsional)
-
-                    const url = `{{ route('tr_poh.items', ['id' => 'PR_ID_PLACEHOLDER']) }}`
-                        .replace('PR_ID_PLACEHOLDER', row.fprid);
-
-                    const res = await fetch(url, {
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest'
-                        }
-                    });
-                    const json = await res.json();
-
-                    const items = json.items || [];
-                    // Pastikan window.getCurrentItemKeys() tersedia
-                    const currentKeys = new Set((window.getCurrentItemKeys?.() || []).map(String));
-
-                    const keyOf = (src) =>
-                        `${(src.fitemcode ?? '').toString().trim()}::${(src.frefcode ?? '').toString().trim()}`;
-
-                    const duplicates = items.filter(src => currentKeys.has(keyOf(src)));
-                    const uniques = items.filter(src => !currentKeys.has(keyOf(src)));
-
-                    if (duplicates.length > 0) {
-                        this.openDupModal(row, duplicates, uniques);
-                        return;
-                    }
-
-                    // Tidak ada duplikat
-                    window.dispatchEvent(new CustomEvent('pr-picked', {
-                        detail: {
-                            header: row,
-                            items
-                        }
-                    }));
-
-                    this.closeModal();
-                } catch (e) {
-                    console.error(e);
-                    // Menggunakan custom alert/modal, bukan alert() bawaan browser
-                    // Idealnya: tampilkan notifikasi di UI
-                    console.log('Gagal mengambil detail PR. Lihat konsol untuk detail.');
+                function cryptoRandom() {
+                    return (window.crypto?.getRandomValues ? [...window.crypto.getRandomValues(new Uint32Array(2))].map(n => n
+                            .toString(16)).join('') :
+                        Math.random().toString(36).slice(2)) + Date.now();
                 }
             }
-        };
-    };
+        </script>
 
-    // Helper function untuk format tanggal (ditingkatkan sedikit)
-    function formatDate(s) {
-        if (!s || s === 'No Date') return '-';
-        // Mencoba parsing format standar ISO 8601 atau yang didukung Date
-        const d = new Date(s);
-        if (isNaN(d.getTime())) return '-';
+        <script>
+            window.prhFormModal = function() {
+                return {
+                    show: false,
+                    table: null,
 
-        // Format YYYY-MM-DD HH:MM
-        const pad = n => n.toString().padStart(2, '0');
-        return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-    }
-</script>
+                    // Duplikasi modal state
+                    showDupModal: false,
+                    dupCount: 0,
+                    dupSample: [],
+                    pendingHeader: null,
+                    pendingUniques: [],
 
-@push('scripts')
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
-
-    <script>
-        // Modal produk dengan DataTables
-        function productBrowser() {
-            return {
-                open: false,
-                forEdit: false,
-                table: null,
-
-                initDataTable() {
-                    if (this.table) {
-                        this.table.destroy();
-                    }
-
-                    this.table = $('#productTable').DataTable({
-                        processing: true,
-                        serverSide: true,
-                        ajax: {
-                            url: "{{ route('products.browse') }}",
-                            type: 'GET',
-                            data: function(d) {
-                                return {
-                                    draw: d.draw,
-                                    start: d.start,
-                                    length: d.length,
-                                    search: d.search.value,
-                                    order_column: d.columns[d.order[0].column].data,
-                                    order_dir: d.order[0].dir
-                                };
-                            }
-                        },
-                        columns: [{
-                                data: 'fprdcode',
-                                name: 'fprdcode',
-                                className: 'font-mono text-sm'
-                            },
-                            {
-                                data: 'fprdname',
-                                name: 'fprdname',
-                                className: 'text-sm'
-                            },
-                            {
-                                data: 'fsatuanbesar',
-                                name: 'fsatuanbesar',
-                                className: 'text-sm',
-                                render: function(data) {
-                                    return data || '-';
-                                }
-                            },
-                            {
-                                data: 'fmerekname',
-                                name: 'fmerekname',
-                                className: 'text-center text-sm',
-                                render: function(data) {
-                                    return data || '-';
-                                }
-                            },
-                            {
-                                data: 'fminstock',
-                                name: 'fminstock',
-                                className: 'text-center text-sm'
-                            },
-                            {
-                                data: null,
-                                orderable: false,
-                                searchable: false,
-                                className: 'text-center',
-                                width: '100px',
-                                render: function(data, type, row) {
-                                    return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>';
-                                }
-                            }
-                        ],
-                        pageLength: 10,
-                        lengthMenu: [
-                            [10, 25, 50, 100],
-                            [10, 25, 50, 100]
-                        ],
-                        dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
-                        language: {
-                            processing: "Memuat data...",
-                            search: "Cari:",
-                            lengthMenu: "Tampilkan _MENU_",
-                            info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
-                            infoEmpty: "Tidak ada data",
-                            infoFiltered: "(disaring dari _MAX_ total data)",
-                            zeroRecords: "Tidak ada data yang ditemukan",
-                            emptyTable: "Tidak ada data tersedia",
-                            paginate: {
-                                first: "Pertama",
-                                last: "Terakhir",
-                                next: "Selanjutnya",
-                                previous: "Sebelumnya"
-                            }
-                        },
-                        order: [
-                            [1, 'asc']
-                        ],
-                        autoWidth: false,
-                        initComplete: function() {
-                            const api = this.api();
-                            const $container = $(api.table().container());
-
-                            // Move controls to designated areas
-                            const $filter = $container.find('.dataTables_filter');
-                            const $length = $container.find('.dataTables_length');
-                            const $info = $container.find('.dataTables_info');
-                            const $paginate = $container.find('.dataTables_paginate');
-
-                            // Style search input
-                            $container.find('.dt-search .dt-input, .dataTables_filter input').css({
-                                width: '300px',
-                                padding: '8px 12px',
-                                border: '2px solid #e5e7eb',
-                                borderRadius: '8px',
-                                fontSize: '14px'
-                            }).focus();
-
-                            // Style length select
-                            $container.find('.dt-length select, .dataTables_length select').css({
-                                padding: '6px 32px 6px 10px',
-                                border: '2px solid #e5e7eb',
-                                borderRadius: '8px',
-                                fontSize: '14px'
-                            });
+                    initDataTable() {
+                        if (this.table) {
+                            this.table.destroy();
                         }
-                    });
 
-                    // Handle button click
-                    $('#productTable').on('click', '.btn-choose', (e) => {
-                        const data = this.table.row($(e.target).closest('tr')).data();
-                        this.choose(data);
-                    });
-                },
+                        this.table = $('#prTable').DataTable({
+                            processing: true,
+                            serverSide: true,
+                            ajax: {
+                                url: "{{ route('tr_poh.pickable') }}",
+                                type: 'GET',
+                                data: function(d) {
+                                    return {
+                                        draw: d.draw,
+                                        start: d.start,
+                                        length: d.length,
+                                        search: d.search.value,
+                                        // Menambahkan parameter order untuk server-side processing
+                                        order_column: d.columns[d.order[0].column].data,
+                                        order_dir: d.order[0].dir
+                                    };
+                                },
+                                // Karena kita sudah menggunakan parameter start/length standar DataTables,
+                                // properti dataSrc bisa dihilangkan jika backend langsung mengembalikan format DataTables.
+                                // Jika backend tetap menggunakan pagination Laravel, dataSrc perlu dipertahankan. 
+                                // Kita asumsikan backend sudah disesuaikan untuk server-side DataTables penuh.
+                                // Jika masih menggunakan format pagination Laravel, kita bisa menggunakan:
+                                // dataSrc: function(json) { return json.data; }
+                            },
+                            columns: [{
+                                    data: 'fprno',
+                                    name: 'fprno',
+                                    className: 'font-mono text-sm' // Styling konsisten
+                                },
+                                {
+                                    data: 'fsuppliername',
+                                    name: 'fsuppliername',
+                                    className: 'text-sm', // Styling konsisten
+                                    render: function(data) {
+                                        return data || '-';
+                                    }
+                                },
+                                {
+                                    data: 'fprdate',
+                                    name: 'fprdate',
+                                    className: 'text-sm', // Styling konsisten
+                                    render: function(data) {
+                                        return formatDate(data);
+                                    }
+                                },
+                                {
+                                    data: null,
+                                    orderable: false,
+                                    searchable: false,
+                                    className: 'text-center',
+                                    render: function(data, type, row) {
+                                        // Menggunakan styling yang lebih seragam
+                                        return '<button type="button" class="btn-pick px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>';
+                                    }
+                                }
+                            ],
+                            pageLength: 10,
+                            lengthMenu: [
+                                [10, 25, 50, 100], // Menambahkan 100
+                                [10, 25, 50, 100]
+                            ],
+                            // Menggunakan DOM custom yang sudah diseragamkan
+                            dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
 
-                close() {
-                    this.open = false;
-                    if (this.table) {
-                        this.table.search('').draw();
-                    }
-                },
+                            language: {
+                                processing: "Memuat data...", // Diseragamkan
+                                search: "Cari:", // Diseragamkan
+                                lengthMenu: "Tampilkan _MENU_", // Diseragamkan
+                                info: "Menampilkan _START_ - _END_ dari _TOTAL_ data", // Diseragamkan
+                                infoEmpty: "Tidak ada data", // Diseragamkan
+                                infoFiltered: "(disaring dari _MAX_ total data)", // Diseragamkan
+                                zeroRecords: "Tidak ada data yang ditemukan", // Diseragamkan
+                                emptyTable: "Tidak ada data tersedia", // Diseragamkan
+                                paginate: {
+                                    first: "Pertama",
+                                    last: "Terakhir",
+                                    next: "Selanjutnya",
+                                    previous: "Sebelumnya"
+                                }
+                            },
+                            order: [
+                                [2, 'desc']
+                            ], // Sort by tanggal terbaru
+                            autoWidth: false,
+                            initComplete: function() {
+                                const api = this.api();
+                                const $container = $(api.table().container());
 
-                choose(product) {
-                    window.dispatchEvent(new CustomEvent('product-chosen', {
-                        detail: {
-                            product: product,
-                            forEdit: this.forEdit
-                        }
-                    }));
-                    this.close();
-                },
+                                // Style search input (disamakan dengan Customer)
+                                $container.find('.dt-search .dt-input, .dataTables_filter input').css({
+                                    width: '300px', // Menggunakan 300px agar konsisten dengan customerBrowser
+                                    padding: '8px 12px',
+                                    border: '2px solid #e5e7eb',
+                                    borderRadius: '8px',
+                                    fontSize: '14px'
+                                }).focus();
 
-                init() {
-                    window.addEventListener('browse-open', (e) => {
-                        this.open = true;
-                        this.forEdit = !!(e.detail && e.detail.forEdit);
+                                // Style length select (disamakan dengan Customer)
+                                $container.find('.dt-length select, .dataTables_length select').css({
+                                    padding: '6px 32px 6px 10px',
+                                    border: '2px solid #e5e7eb',
+                                    borderRadius: '8px',
+                                    fontSize: '14px'
+                                });
+                            }
+                        });
 
-                        // Initialize DataTable setelah modal terbuka
+                        // Handle button click (Menggunakan self for consistency)
+                        const self = this;
+                        $('#prTable').off('click', '.btn-pick').on('click', '.btn-pick', function() {
+                            const data = self.table.row($(this).closest('tr')).data();
+                            self.pick(data);
+                        });
+                    },
+
+                    openModal() {
+                        this.show = true;
                         this.$nextTick(() => {
                             this.initDataTable();
                         });
-                    }, {
-                        passive: true
-                    });
-                }
-            }
-        }
+                    },
 
-        document.addEventListener('alpine:init', () => {
-            Alpine.store('trsomt', {
-                descPreview: {
-                    uid: null,
-                    index: null,
-                    label: '',
-                    text: ''
-                },
-                descList: []
-            });
-        });
-    </script>
-@endpush
+                    closeModal() {
+                        this.show = false;
+                        if (this.table) {
+                            this.table.search('').draw();
+                        }
+                    },
+
+                    // --- Duplikasi Handlers (Tetap sama, logic sudah baik) ---
+                    openDupModal(header, duplicates, uniques) {
+                        this.dupCount = duplicates.length;
+                        this.dupSample = duplicates.slice(0, 6);
+                        this.pendingHeader = header;
+                        this.pendingUniques = uniques;
+                        this.showDupModal = true;
+                    },
+
+                    closeDupModal() {
+                        this.showDupModal = false;
+                        this.dupCount = 0;
+                        this.dupSample = [];
+                        this.pendingHeader = null;
+                        this.pendingUniques = [];
+                    },
+
+                    confirmAddUniques() {
+                        window.dispatchEvent(new CustomEvent('pr-picked', {
+                            detail: {
+                                header: this.pendingHeader,
+                                items: this.pendingUniques
+                            }
+                        }));
+                        this.closeDupModal();
+                        this.closeModal();
+                    },
+
+                    async pick(row) {
+                        try {
+                            // Tampilkan loading indicator (opsional)
+
+                            const url = `{{ route('tr_poh.items', ['id' => 'PR_ID_PLACEHOLDER']) }}`
+                                .replace('PR_ID_PLACEHOLDER', row.fprid);
+
+                            const res = await fetch(url, {
+                                headers: {
+                                    'X-Requested-With': 'XMLHttpRequest'
+                                }
+                            });
+                            const json = await res.json();
+
+                            const items = json.items || [];
+                            // Pastikan window.getCurrentItemKeys() tersedia
+                            const currentKeys = new Set((window.getCurrentItemKeys?.() || []).map(String));
+
+                            const keyOf = (src) =>
+                                `${(src.fitemcode ?? '').toString().trim()}::${(src.frefcode ?? '').toString().trim()}`;
+
+                            const duplicates = items.filter(src => currentKeys.has(keyOf(src)));
+                            const uniques = items.filter(src => !currentKeys.has(keyOf(src)));
+
+                            if (duplicates.length > 0) {
+                                this.openDupModal(row, duplicates, uniques);
+                                return;
+                            }
+
+                            // Tidak ada duplikat
+                            window.dispatchEvent(new CustomEvent('pr-picked', {
+                                detail: {
+                                    header: row,
+                                    items
+                                }
+                            }));
+
+                            this.closeModal();
+                        } catch (e) {
+                            console.error(e);
+                            // Menggunakan custom alert/modal, bukan alert() bawaan browser
+                            // Idealnya: tampilkan notifikasi di UI
+                            console.log('Gagal mengambil detail PR. Lihat konsol untuk detail.');
+                        }
+                    }
+                };
+            };
+
+            // Helper function untuk format tanggal (ditingkatkan sedikit)
+            function formatDate(s) {
+                if (!s || s === 'No Date') return '-';
+                // Mencoba parsing format standar ISO 8601 atau yang didukung Date
+                const d = new Date(s);
+                if (isNaN(d.getTime())) return '-';
+
+                // Format YYYY-MM-DD HH:MM
+                const pad = n => n.toString().padStart(2, '0');
+                return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+            }
+        </script>
+
+        @push('scripts')
+            <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+            <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+
+            <script>
+                // Modal produk dengan DataTables
+                function productBrowser() {
+                    return {
+                        open: false,
+                        forEdit: false,
+                        table: null,
+
+                        initDataTable() {
+                            if (this.table) {
+                                this.table.destroy();
+                            }
+
+                            this.table = $('#productTable').DataTable({
+                                processing: true,
+                                serverSide: true,
+                                ajax: {
+                                    url: "{{ route('products.browse') }}",
+                                    type: 'GET',
+                                    data: function(d) {
+                                        return {
+                                            draw: d.draw,
+                                            start: d.start,
+                                            length: d.length,
+                                            search: d.search.value,
+                                            order_column: d.columns[d.order[0].column].data,
+                                            order_dir: d.order[0].dir
+                                        };
+                                    }
+                                },
+                                columns: [{
+                                        data: 'fprdcode',
+                                        name: 'fprdcode',
+                                        className: 'font-mono text-sm'
+                                    },
+                                    {
+                                        data: 'fprdname',
+                                        name: 'fprdname',
+                                        className: 'text-sm'
+                                    },
+                                    {
+                                        data: 'fsatuanbesar',
+                                        name: 'fsatuanbesar',
+                                        className: 'text-sm',
+                                        render: function(data) {
+                                            return data || '-';
+                                        }
+                                    },
+                                    {
+                                        data: 'fmerekname',
+                                        name: 'fmerekname',
+                                        className: 'text-center text-sm',
+                                        render: function(data) {
+                                            return data || '-';
+                                        }
+                                    },
+                                    {
+                                        data: 'fminstock',
+                                        name: 'fminstock',
+                                        className: 'text-center text-sm'
+                                    },
+                                    {
+                                        data: null,
+                                        orderable: false,
+                                        searchable: false,
+                                        className: 'text-center',
+                                        width: '100px',
+                                        render: function(data, type, row) {
+                                            return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>';
+                                        }
+                                    }
+                                ],
+                                pageLength: 10,
+                                lengthMenu: [
+                                    [10, 25, 50, 100],
+                                    [10, 25, 50, 100]
+                                ],
+                                dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
+                                language: {
+                                    processing: "Memuat data...",
+                                    search: "Cari:",
+                                    lengthMenu: "Tampilkan _MENU_",
+                                    info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
+                                    infoEmpty: "Tidak ada data",
+                                    infoFiltered: "(disaring dari _MAX_ total data)",
+                                    zeroRecords: "Tidak ada data yang ditemukan",
+                                    emptyTable: "Tidak ada data tersedia",
+                                    paginate: {
+                                        first: "Pertama",
+                                        last: "Terakhir",
+                                        next: "Selanjutnya",
+                                        previous: "Sebelumnya"
+                                    }
+                                },
+                                order: [
+                                    [1, 'asc']
+                                ],
+                                autoWidth: false,
+                                initComplete: function() {
+                                    const api = this.api();
+                                    const $container = $(api.table().container());
+
+                                    // Move controls to designated areas
+                                    const $filter = $container.find('.dataTables_filter');
+                                    const $length = $container.find('.dataTables_length');
+                                    const $info = $container.find('.dataTables_info');
+                                    const $paginate = $container.find('.dataTables_paginate');
+
+                                    // Style search input
+                                    $container.find('.dt-search .dt-input, .dataTables_filter input').css({
+                                        width: '300px',
+                                        padding: '8px 12px',
+                                        border: '2px solid #e5e7eb',
+                                        borderRadius: '8px',
+                                        fontSize: '14px'
+                                    }).focus();
+
+                                    // Style length select
+                                    $container.find('.dt-length select, .dataTables_length select').css({
+                                        padding: '6px 32px 6px 10px',
+                                        border: '2px solid #e5e7eb',
+                                        borderRadius: '8px',
+                                        fontSize: '14px'
+                                    });
+                                }
+                            });
+
+                            // Handle button click
+                            $('#productTable').on('click', '.btn-choose', (e) => {
+                                const data = this.table.row($(e.target).closest('tr')).data();
+                                this.choose(data);
+                            });
+                        },
+
+                        close() {
+                            this.open = false;
+                            if (this.table) {
+                                this.table.search('').draw();
+                            }
+                        },
+
+                        choose(product) {
+                            window.dispatchEvent(new CustomEvent('product-chosen', {
+                                detail: {
+                                    product: product,
+                                    forEdit: this.forEdit
+                                }
+                            }));
+                            this.close();
+                        },
+
+                        init() {
+                            window.addEventListener('browse-open', (e) => {
+                                this.open = true;
+                                this.forEdit = !!(e.detail && e.detail.forEdit);
+
+                                // Initialize DataTable setelah modal terbuka
+                                this.$nextTick(() => {
+                                    this.initDataTable();
+                                });
+                            }, {
+                                passive: true
+                            });
+                        }
+                    }
+                }
+
+                document.addEventListener('alpine:init', () => {
+                    Alpine.store('trsomt', {
+                        descPreview: {
+                            uid: null,
+                            index: null,
+                            label: '',
+                            text: ''
+                        },
+                        descList: []
+                    });
+                });
+            </script>
+        @endpush

@@ -127,12 +127,12 @@
                         <div class="lg:col-span-2 flex items-end pb-2">
                             <div class="inline-flex items-center">
                                 <input id="fclose" type="checkbox" name="fclose" value="1" x-model="fclose"
-                                    {{-- Menambahkan class w-6 h-6 untuk ukuran dan accent-blue-600 untuk warna --}}
-                                    class="w-6 h-6 text-blue-600 border-gray-300 rounded cursor-pointer focus:ring-blue-500"
+                                    {{-- text-red-600 mengubah isi centang, border-red-400 mengubah bingkai --}}
+                                    class="w-6 h-6 text-red-600 border-red-400 rounded cursor-pointer focus:ring-red-500"
                                     {{ old('fclose', $salesorder->fclose) ? 'checked' : '' }}>
 
-                                <label for="fclose" {{-- Menambahkan ml-3 dan text-base agar seimbang dengan ukuran checkbox --}}
-                                    class="ml-3 text-base font-semibold text-gray-700 whitespace-nowrap cursor-pointer">
+                                <label for="fclose" {{-- text-red-600 mengubah warna tulisan menjadi merah --}}
+                                    class="ml-3 text-base font-bold text-red-600 whitespace-nowrap cursor-pointer">
                                     Close
                                 </label>
                             </div>
