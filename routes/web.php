@@ -398,7 +398,7 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/suppliers/browse', [SupplierController::class, 'browse'])->name('suppliers.browse');
         Route::get('/customer/browse', [CustomerController::class, 'browse'])->name('customer.browse');
-        Route::get('/salesman/browse', [SalesmanController::class, 'browse'])->name(name: 'salesman.browse');
+        Route::get('/salesman/browse', [SalesmanController::class, 'browse'])->name('salesman.browse');
         Route::get('/product/browse', [ProductController::class, 'browse'])->name('product.browse');
         Route::get('/wh/browse', [WhController::class, 'browse'])->name('wh.browse');
         Route::get('/account/browse', [AccountController::class, 'browse'])->name('account.browse');
