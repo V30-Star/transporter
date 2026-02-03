@@ -147,17 +147,24 @@
                         </label>
                     </div>
 
-                    <div>
-                        <label class="block text-sm font-medium">Nama Customer</label>
-                        <input type="text"
-                            class="w-full border rounded px-3 py-2 uppercase @error('fcustomername') is-invalid @enderror"
-                            name="fcustomername" id="fcustomername" placeholder="Masukkan Nama Customer"
-                            value="{{ old('fcustomername') }}" autofocus>
-                        @error('fcustomername')
-                            <div class="invalid-feedback">
-                                {{ $message }}
-                            </div>
-                        @enderror
+                    <div class="flex items-center gap-4">
+                        <div class="flex-1">
+                            <label class="block text-sm font-medium">Nama Customer</label>
+                            <input type="text"
+                                class="w-full border rounded px-3 py-2 uppercase @error('fcustomername') is-invalid @enderror"
+                                name="fcustomername" id="fcustomername" placeholder="Masukkan Nama Customer"
+                                value="{{ old('fcustomername') }}" autofocus>
+                            @error('fcustomername')
+                                <div class="invalid-feedback">
+                                    {{ $message }}
+                                </div>
+                            @enderror
+                        </div>
+
+                        <label class="inline-flex items-center mt-6">
+                            <input type="checkbox" x-model="autoCode" class="form-checkbox text-indigo-600" checked name="fblokir">
+                            <span class="ml-2 text-sm text-red-600 font-bold">Blokir</span>
+                        </label>
                     </div>
 
                     <div>

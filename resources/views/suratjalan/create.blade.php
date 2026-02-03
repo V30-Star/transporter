@@ -1840,6 +1840,7 @@
         });
     });
 
+      // Modal customer
     function customerBrowser() {
         return {
             open: false,
@@ -1867,6 +1868,14 @@
                             };
                         }
                     },
+                    // --- MODIFIKASI: Mewarnai Baris ---
+                    createdRow: function(row, data, dataIndex) {
+                        if (data.fblokir == 1) {
+                            $(row).addClass('text-red-600 italic'); // Menggunakan class Tailwind
+                            // Atau jika ingin manual: $(row).css('color', 'red');
+                        }
+                    },
+                    // ----------------------------------
                     columns: [{
                             data: 'fcustomercode',
                             name: 'fcustomercode',
@@ -1902,7 +1911,11 @@
                             className: 'text-center',
                             width: '15%',
                             render: function(data, type, row) {
-                                return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>';
+                                // --- MODIFIKASI: Disable tombol jika diblokir ---
+                                if (row.fblokir == 1) {
+                                    return '<span class="text-xs font-bold text-red-500">BLOKIR</span>';
+                                }
+                                return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>';
                             }
                         }
                     ],
@@ -1936,12 +1949,6 @@
                         const api = this.api();
                         const $container = $(api.table().container());
 
-                        // Move controls to designated areas
-                        const $filter = $container.find('.dataTables_filter');
-                        const $length = $container.find('.dataTables_length');
-                        const $info = $container.find('.dataTables_info');
-                        const $paginate = $container.find('.dataTables_paginate');
-
                         // Style search input
                         $container.find('.dt-search .dt-input, .dataTables_filter input').css({
                             width: '300px',
@@ -1962,9 +1969,12 @@
                 });
 
                 // Handle button click
-                $('#customerBrowseTable').on('click', '.btn-choose', (e) => {
+                $('#customerBrowseTable').off('click', '.btn-choose').on('click', '.btn-choose', (e) => {
                     const data = this.dataTable.row($(e.target).closest('tr')).data();
-                    this.chooseCustomer(data);
+                    // Pastikan fblokir tidak bernilai 1 sebelum diproses
+                    if (data.fblokir != 1) {
+                        this.chooseCustomer(data);
+                    }
                 });
             },
 
@@ -1991,7 +2001,6 @@
                     return;
                 }
 
-                // 1. Set Dropdown Customer (Logika lama Anda)
                 let opt = [...sel.options].find(o => o.value == String(customer.fcustomerid));
                 if (!opt) {
                     opt = new Option(`${customer.fcustomername} (${customer.fcustomercode})`, customer.fcustomerid,
@@ -2002,7 +2011,6 @@
                 }
                 if (hid) hid.value = customer.fcustomerid;
 
-                // 2. Kirim data alamat ke Alpine.js menggunakan Event
                 window.dispatchEvent(new CustomEvent('customer-selected', {
                     detail: {
                         f1: customer.fkirimaddress1 || '',
@@ -2025,14 +2033,12 @@
 
     document.addEventListener('alpine:init', () => {
         Alpine.store('trsomt', {
-            // desc yang sedang dipreview
             descPreview: {
                 uid: null,
                 index: null,
                 label: '',
                 text: ''
             },
-            // optional: daftar semua desc
             descList: []
         });
     });
