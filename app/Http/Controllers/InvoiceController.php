@@ -440,8 +440,8 @@ class InvoiceController extends Controller
 
       if (empty($code) || $qty <= 0) continue;
 
-      $fprdid = $products[$code] ?? null;
-
+      $fprdid = $product ? $product->fprdid : null;
+      
       $product = $products->get($code);
 
       if ($product && $product->fdiscontinue == '1') {
