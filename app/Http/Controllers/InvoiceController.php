@@ -440,8 +440,6 @@ class InvoiceController extends Controller
 
       if (empty($code) || $qty <= 0) continue;
 
-      $fprdid = $product ? $product->fprdid : null;
-      
       $product = $products->get($code);
 
       if ($product && $product->fdiscontinue == '1') {
@@ -449,6 +447,9 @@ class InvoiceController extends Controller
           ->withInput()
           ->with('error', "Produk [{$code}] {$product->fprdname} Sudah Discontinue. Silakan hapus atau ganti dengan produk lain.");
       }
+
+      $fprdid = $product ? $product->fprdid : null;
+
       // Hitung Diskon per Baris (Support format 10+2 atau angka)
       $discPersen = $this->parseDiscount($discs[$i] ?? 0);
       $subtotal   = $qty * $price;
