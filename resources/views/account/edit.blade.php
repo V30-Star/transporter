@@ -11,25 +11,25 @@
         @if ($action === 'delete')
             <div class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Kode Account</label>
+                    <label class="block text-sm font-medium text-gray-700" style="font-weight: bold;">Kode Account</label>
                     <input type="text" value="{{ $account->faccount }}"
                         class="w-full border rounded px-3 py-2 bg-gray-100 uppercase" readonly>
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Nama Account</label>
+                    <label class="block text-sm font-medium text-gray-700" style="font-weight: bold;">Nama Account</label>
                     <input type="text" value="{{ $account->faccname }}"
                         class="w-full border rounded px-3 py-2 bg-gray-100 uppercase" readonly>
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Saldo Normal</label>
+                    <label class="block text-sm font-medium text-gray-700" style="font-weight: bold;">Saldo Normal</label>
                     <input type="text" value="{{ $account->fnormal == 'D' ? 'Debit' : 'Kredit' }}"
                         class="w-full border rounded px-3 py-2 bg-gray-100" readonly>
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Account Type</label>
+                    <label class="block text-sm font-medium text-gray-700" style="font-weight: bold;">Account Type</label>
                     <input type="text" value="{{ $account->fend == '1' ? 'Detil' : 'Header' }}"
                         class="w-full border rounded px-3 py-2 bg-gray-100" readonly>
                 </div>
@@ -66,7 +66,7 @@
 
                 {{-- Account Header (Browse) --}}
                 <div class="lg:col-span-4">
-                    <label class="block text-sm font-medium mb-1">Account</label>
+                    <label class="block text-sm font-medium mb-1" style="font-weight: bold;">Account</label>
                     <div class="flex">
                         <div class="relative flex-1">
                             <select id="accountSelect" class="w-full border rounded-l px-3 py-2" disabled>
@@ -148,7 +148,7 @@
 
                 {{-- Kode Account --}}
                 <div class="mt-4">
-                    <label class="block text-sm font-medium">Kode Account</label>
+                    <label class="block text-sm font-medium" style="font-weight: bold;">Kode Account</label>
                     <input type="text" name="faccount" id="faccount" value="{{ old('faccount', $account->faccount) }}"
                         class="w-full border rounded px-3 py-2 uppercase @error('faccount') border-red-500 @enderror"
                         maxlength="10" pattern="^\d+(-\d+)*$" title="Format harus angka & boleh pakai '-' (mis: 1-123)"
@@ -161,7 +161,7 @@
 
                 {{-- Nama Account --}}
                 <div class="mt-4">
-                    <label class="block text-sm font-medium">Nama Account</label>
+                    <label class="block text-sm font-medium" style="font-weight: bold;">Nama Account</label>
                     <input type="text" name="faccname" id="faccname"
                         value="{{ old('faccname', $account->faccname) }}"
                         class="w-full border rounded px-3 py-2 uppercase @error('faccname') border-red-500 @enderror"
@@ -174,7 +174,7 @@
 
                 {{-- Saldo Normal --}}
                 <div class="mt-4">
-                    <label for="fnormal" class="block text-sm font-medium">Saldo Normal</label>
+                    <label for="fnormal" class="block text-sm font-medium" style="font-weight: bold;">Saldo Normal</label>
                     <select name="fnormal" id="fnormal" class="w-full border rounded px-3 py-2">
                         <option value="D" {{ old('fnormal', $account->fnormal) == 'D' ? 'selected' : '' }}>Debit
                         </option>
@@ -185,7 +185,7 @@
 
                 {{-- Account Type --}}
                 <div class="mt-4">
-                    <label for="fend" class="block text-sm font-medium">Account Type</label>
+                    <label for="fend" class="block text-sm font-medium" style="font-weight: bold;">Type Account</label>
                     <select name="fend" id="fend" class="w-full border rounded px-3 py-2">
                         <option value="1" {{ old('fend', $account->fend) == '1' ? 'selected' : '' }}>Detil</option>
                         <option value="0" {{ old('fend', $account->fend) == '0' ? 'selected' : '' }}>Header</option>
@@ -197,11 +197,11 @@
                     <label for="fhavesubaccount" class="flex items-center space-x-2">
                         <input type="checkbox" name="fhavesubaccount" id="fhavesubaccount" value="1"
                             x-model="subAccount">
-                        <span class="text-sm">Ada Sub Account?</span>
+                        <span class="text-sm" style="font-weight: bold;">Ada Sub Account?</span>
                     </label>
 
-                    <div class="mt-3">
-                        <label for="ftypesubaccount" class="block text-sm font-medium">Type</label>
+                    <div class="mt-3" x-show="subAccount" x-transition>
+                        <label for="ftypesubaccount" class="block text-sm font-medium" style="font-weight: bold;">Type Sub Account</label>
                         <select name="ftypesubaccount" id="ftypesubaccount" class="w-full border rounded px-3 py-2"
                             :disabled="!subAccount" :class="!subAccount ? 'bg-gray-200' : ''">
                             <option value="Sub Account"
@@ -219,7 +219,7 @@
 
                 {{-- Initial Jurnal --}}
                 <div class="mt-4">
-                    <label class="block text-sm font-medium">Initial Jurnal#</label>
+                    <label class="block text-sm font-medium" style="font-weight: bold;">Initial Jurnal#</label>
                     <input type="text" name="finitjurnal" value="{{ old('finitjurnal', $account->finitjurnal) }}"
                         class="w-full border rounded px-3 py-2 @error('finitjurnal') border-red-500 @enderror"
                         maxlength="2">
@@ -231,7 +231,7 @@
 
                 {{-- User Level --}}
                 <div class="mt-4">
-                    <label for="fuserlevel" class="block text-sm font-medium">User Level</label>
+                    <label for="fuserlevel" class="block text-sm font-medium" style="font-weight: bold;">User Level</label>
                     <select name="fuserlevel" id="fuserlevel" class="w-full border rounded px-3 py-2">
                         <option value="1" {{ old('fuserlevel', $account->fuserlevel) == '1' ? 'selected' : '' }}>User
                         </option>

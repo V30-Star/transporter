@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Faktur Penjualan')
+@section('title', 'Retur Penjualan')
 
 @section('content')
     <style>
@@ -103,7 +103,7 @@
                         </div>
 
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium">Faktur Pajak#</label>
+                            <label class="block text-sm font-medium">Retur Pajak#</label>
                             <input type="text" name="ftaxno" value="{{ old('ftaxno') }}"
                                 class="w-full border rounded px-3 py-2 @error('ftaxno') border-red-500 @enderror">
                             @error('ftaxno')
@@ -207,57 +207,6 @@
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
                         </div>
-
-
-                        <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium">TOP (Hari)</label>
-                            <input type="number" id="ftempohr" name="ftempohr" value="{{ old('ftempohr', '0') }}"
-                                class="w-full border rounded px-3 py-2 @error('ftempohr') border-red-500 @enderror"
-                                placeholder="Masukkan jumlah hari">
-                            @error('ftempohr')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium">Tgl. Jatuh Tempo</label>
-                            <input type="date" id="fjatuhtempo" name="fjatuhtempo"
-                                value="{{ old('fjatuhtempo') ?? date('Y-m-d') }}" readonly
-                                class="w-full border rounded px-3 py-2 bg-gray-100 @error('fjatuhtempo') border-red-500 @enderror">
-                            @error('fjatuhtempo')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <script>
-                            document.addEventListener('DOMContentLoaded', function() {
-                                function calculateDueDate() {
-                                    const poDate = document.getElementById('fsodate').value;
-                                    const tempoDays = parseInt(document.getElementById('ftempohr').value) || 0;
-
-                                    if (poDate) {
-                                        const date = new Date(poDate);
-                                        date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
-                                        date.setDate(date.getDate() + tempoDays);
-
-                                        const year = date.getFullYear();
-                                        const month = String(date.getMonth() + 1).padStart(2, '0');
-                                        const day = String(date.getDate()).padStart(2, '0');
-
-                                        document.getElementById('fjatuhtempo').value = `${year}-${month}-${day}`;
-                                    } else {
-                                        document.getElementById('fjatuhtempo').value = '';
-                                    }
-                                }
-
-                                // Event listeners
-                                document.getElementById('fsodate').addEventListener('change', calculateDueDate);
-                                document.getElementById('ftempohr').addEventListener('input', calculateDueDate);
-
-                                // Initial calculation
-                                calculateDueDate();
-                            });
-                        </script>
 
                         <div class="lg:col-span-12">
                             <label class="block text-sm font-medium">Keterangan</label>

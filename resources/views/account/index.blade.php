@@ -42,6 +42,8 @@
                     <th class="border px-2 py-2">Nama Account</th>
                     <th class="border px-2 py-2 no-sort">Type</th>
                     <th class="border px-2 py-2 no-sort">Saldo Normal</th>
+                    <th class="border px-2 py-2 no-sort">Initial Jurnal</th>
+                    <th class="border px-2 py-2 no-sort">Sub Account</th>
                     <th class="border px-2 py-2 no-sort">Status</th>
                     <th class="border px-2 py-2" data-col="statusRaw">StatusRaw</th>
                     @if ($showActionsColumn)
@@ -51,13 +53,15 @@
             </thead>
             <tbody id="tableBody">
                 @forelse($accounts as $account)
-                    <tr class="hover:bg-gray-50">
+                    <tr class="hover:bg-gray-50 {{ $account->fend == 0 ? 'font-bold' : '' }}">
                         <td>{{ $account->faccount }}</td>
                         <td>{{ $account->faccname }}</td>
                         <td>{{ $account->fend == 1 ? 'Detil' : 'Header' }}</td>
                         <td>
                             {{ $account->fnormal == 'D' ? 'Debit' : ($account->fnormal == 'K' ? 'Kredit' : '-') }}
                         </td>
+                        <td>{{ $account->finitjurnal ?? '-' }}</td>
+                        <td>{{ $account->fhavesubaccount == 1 ? 'Yes' : 'No' }}</td>
                         <td>
                             @php $isActive = (string)$account->fnonactive === '0'; @endphp
                             <span
@@ -309,6 +313,12 @@
                     title: 'Type'
                 },
                 {
+                    title: 'Initial Jurnal'
+                },
+                {
+                    title: 'Sub Account'
+                },
+                {
                     title: 'Saldo Normal'
                 },
                 {
@@ -324,6 +334,12 @@
                 },
                 {
                     title: 'Type'
+                },
+                {
+                    title: 'Initial Jurnal'
+                },
+                {
+                    title: 'Sub Account'
                 },
                 {
                     title: 'Saldo Normal'

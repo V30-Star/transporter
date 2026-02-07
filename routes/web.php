@@ -26,6 +26,7 @@ use App\Http\Controllers\WhController;
 use App\Http\Controllers\PenerimaanBarangController;
 use App\Http\Controllers\FakturpembelianController;
 use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\ReturPenjualanController;
 use App\Http\Controllers\MutasiController;
 use App\Http\Controllers\PemakaianbarangController;
 use App\Http\Controllers\ReportingController;
@@ -358,6 +359,21 @@ Route::middleware('auth')->group(function () {
             ->name('invoice.items');
         Route::get('/invoice/pickable', [InvoiceController::class, 'pickable'])
             ->name('invoice.pickable');
+
+        Route::get('/returpenjualan',  [ReturPenjualanController::class, 'index'])->name('returpenjualan.index');
+        Route::post('/returpenjualan',        [ReturPenjualanController::class, 'store'])->name('returpenjualan.store');
+        Route::get('/returpenjualan/create', [ReturPenjualanController::class, 'create'])->name('returpenjualan.create');
+        Route::get('/returpenjualan/{ftranmtid}/view', [ReturPenjualanController::class, 'view'])->name('returpenjualan.view');
+        Route::get('/returpenjualan/{ftranmtid}/edit', [ReturPenjualanController::class, 'edit'])->name('returpenjualan.edit');
+        Route::get('/returpenjualan/{ftranmtid}/delete', [ReturPenjualanController::class, 'delete'])->name('returpenjualan.delete');
+        Route::patch('/returpenjualan/{ftranmtid}', [ReturPenjualanController::class, 'update'])->name('returpenjualan.update');
+        Route::delete('/returpenjualan/{ftranmtid}', [ReturPenjualanController::class, 'destroy'])->name('returpenjualan.destroy');
+        Route::get('/returpenjualan/{fstockmtno}/print', [ReturPenjualanController::class, 'print'])
+            ->name('returpenjualan.print');
+        Route::get('/returpenjualan/{id}/items', [ReturPenjualanController::class, 'items'])
+            ->name('returpenjualan.items');
+        Route::get('/returpenjualan/pickable', [ReturPenjualanController::class, 'pickable'])
+            ->name('returpenjualan.pickable');
 
         Route::get('/products/browse', [\App\Http\Controllers\ProductBrowseController::class, 'index'])
             ->name('products.browse');

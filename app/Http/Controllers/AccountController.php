@@ -11,7 +11,7 @@ class AccountController extends Controller
 {
     public function index(Request $request)
     {
-        $allowedSorts = ['faccount', 'faccname', 'faccid', 'fnormal', 'fend', 'fnonactive'];
+        $allowedSorts = ['faccount', 'faccname', 'faccid', 'fnormal', 'fend', 'finitjurnal', 'ftypesubaccount', 'fnonactive'];
         $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'faccount';
         $sortDir = $request->sort_dir === 'desc' ? 'desc' : 'asc';
 
@@ -40,7 +40,7 @@ class AccountController extends Controller
 
         $accounts = $query
             ->orderBy($sortBy, $sortDir)
-            ->get(['faccount', 'faccname', 'faccid', 'fnormal', 'fend', 'fnonactive', 'fcreatedat']);
+            ->get(['faccount', 'faccname', 'faccid', 'fnormal', 'fend', 'finitjurnal', 'ftypesubaccount', 'fnonactive', 'fcreatedat']);
 
         // Ambil tahun-tahun yang tersedia dari data (PostgreSQL syntax)
         $availableYears = Account::selectRaw('DISTINCT EXTRACT(YEAR FROM fcreatedat) as year')
