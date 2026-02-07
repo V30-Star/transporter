@@ -110,7 +110,8 @@
                     </div>
 
                     <div class="mt-4" x-show="subAccount" x-transition>
-                        <label for="ftypesubaccount" class="block text-sm font-medium" style="font-weight: bold;">Type Sub Account</label>
+                        <label for="ftypesubaccount" class="block text-sm font-medium" style="font-weight: bold;">Type Sub
+                            Account</label>
                         <select name="ftypesubaccount" id="ftypesubaccount" class="w-full border rounded px-3 py-2"
                             :disabled="!subAccount" :class="!subAccount ? 'bg-gray-200' : ''">
                             <option value="Sub Account" {{ old('ftypesubaccount') == 'Sub Account' ? 'selected' : '' }}>
@@ -138,7 +139,8 @@
                 </div>
 
                 <div class="mt-4">
-                    <label for="fuserlevel" class="block text-sm font-medium" style="font-weight: bold;">User Level</label>
+                    <label for="fuserlevel" class="block text-sm font-medium" style="font-weight: bold;">User
+                        Level</label>
                     <select name="fuserlevel" id="fuserlevel" class="w-full border rounded px-3 py-2">
                         <option value="1" {{ old('fuserlevel') == '1' ? 'selected' : '' }}>User</option>
                         <option value="2" {{ old('fuserlevel') == '2' ? 'selected' : '' }}>
@@ -512,7 +514,7 @@
 
                             // Style search input (disamakan dengan Supplier)
                             $container.find('.dt-search .dt-input, .dataTables_filter input').css({
-                                width: '300px',
+                                width: '500px',
                                 padding: '8px 12px',
                                 border: '2px solid #e5e7eb',
                                 borderRadius: '8px',
@@ -589,6 +591,9 @@
                         }
                     }
                 }
+
+                const inputInit = document.getElementsByName('finitjurnal')[0];
+                inputInit.placeholder = "Cek Initial jika ini Header khusus...";
 
                 const sel = document.getElementById('accountSelect');
                 const hidId = document.getElementById('accountIdHidden');

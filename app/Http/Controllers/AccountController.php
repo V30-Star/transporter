@@ -66,6 +66,10 @@ class AccountController extends Controller
 
     public function store(Request $request)
     {
+        $isSetAccount = DB::table('set_account')
+            ->where('faccount_id', $request->faccid) // faccid dari input hidden 'faccid'
+            ->exists();
+
         $request->merge([
             'faccount' => strtoupper($request->faccount),
             'faccname' => strtoupper($request->faccname),
@@ -74,8 +78,8 @@ class AccountController extends Controller
             [
                 'faccount'     => 'required|string|unique:account,faccount|max:10',
                 'faccname'     => 'required|string',
-                'faccupline'   => 'nullable|integer', // <— ganti ke faccid
-                'finitjurnal'  => 'nullable|string|max:2',
+                'faccupline'   => 'nullable|string',
+                'finitjurnal'  => $isSetAccount ? 'required|string|max:2' : 'nullable|string|max:2',
                 'fnormal'      => 'required|in:D',
                 'fend'         => 'required|in:1,0',
                 'fuserlevel'   => 'required|in:1,2,3',
@@ -89,6 +93,7 @@ class AccountController extends Controller
                 'faccount.max'      => 'Kode account maksimal 10 karakter.',
                 'faccname.max'      => 'Nama account maksimal 50 karakter.',
                 'finitjurnal.max'   => 'Inisial jurnal maksimal 2 karakter.',
+                'finitjurnal.required' => 'Initial Jurnal wajib diisi untuk account KAS/BANK.',
                 'faccupline.exists' => 'Account header tidak valid.',
             ]
         );
@@ -148,21 +153,22 @@ class AccountController extends Controller
 
     public function update(Request $request, $faccid)
     {
-        $request->merge([
-            'faccount' => strtoupper($request->faccount),
-        ]);
+        $isSetAccount = DB::table('set_account')
+            ->where('faccount_id', $request->faccid) // faccid dari input hidden 'faccid'
+            ->exists();
+
 
         $validated = $request->validate(
             [
                 'faccount'     => "required|string|unique:account,faccount,{$faccid},faccid|max:10",
                 'faccname'     => 'required|string|max:50',
                 'fnormal'      => 'required|in:D',
-                'finitjurnal'  => 'nullable|string|max:2',
+                'finitjurnal'  => $isSetAccount ? 'required|string|max:2' : 'nullable|string|max:2',
                 'fend'         => 'required|in:1,0',
                 'fuserlevel'   => 'required|in:1,2,3',
                 'faccupline'   => [
                     'nullable',
-                    'integer',
+                    'string',
                     // Rule::exists('account', 'faccid')->where(fn($q) => $q->where('fend', 0)),
                     // Rule::notIn([$faccid]),
                 ],
@@ -173,6 +179,7 @@ class AccountController extends Controller
                 'faccount.max'      => 'Kode account maksimal 10 karakter.',
                 'faccname.required' => 'Nama account harus diisi.',
                 'faccname.max'      => 'Nama account maksimal 50 karakter.',
+                'finitjurnal.required' => 'Inisial jurnal harus diisi untuk KASBANKHEADER.',
                 'finitjurnal.max'   => 'Inisial jurnal maksimal 2 karakter.',
                 'faccupline.exists' => 'Account header tidak valid.',
             ]
@@ -209,6 +216,7 @@ class AccountController extends Controller
 
         return redirect()->route('account.index')->with('success', 'Account berhasil di-update.');
     }
+    
     public function delete($faccid)
     {
         $account = Account::findOrFail($faccid);

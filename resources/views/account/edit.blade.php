@@ -174,7 +174,8 @@
 
                 {{-- Saldo Normal --}}
                 <div class="mt-4">
-                    <label for="fnormal" class="block text-sm font-medium" style="font-weight: bold;">Saldo Normal</label>
+                    <label for="fnormal" class="block text-sm font-medium" style="font-weight: bold;">Saldo
+                        Normal</label>
                     <select name="fnormal" id="fnormal" class="w-full border rounded px-3 py-2">
                         <option value="D" {{ old('fnormal', $account->fnormal) == 'D' ? 'selected' : '' }}>Debit
                         </option>
@@ -185,7 +186,8 @@
 
                 {{-- Account Type --}}
                 <div class="mt-4">
-                    <label for="fend" class="block text-sm font-medium" style="font-weight: bold;">Type Account</label>
+                    <label for="fend" class="block text-sm font-medium" style="font-weight: bold;">Type
+                        Account</label>
                     <select name="fend" id="fend" class="w-full border rounded px-3 py-2">
                         <option value="1" {{ old('fend', $account->fend) == '1' ? 'selected' : '' }}>Detil</option>
                         <option value="0" {{ old('fend', $account->fend) == '0' ? 'selected' : '' }}>Header</option>
@@ -201,7 +203,8 @@
                     </label>
 
                     <div class="mt-3" x-show="subAccount" x-transition>
-                        <label for="ftypesubaccount" class="block text-sm font-medium" style="font-weight: bold;">Type Sub Account</label>
+                        <label for="ftypesubaccount" class="block text-sm font-medium" style="font-weight: bold;">Type
+                            Sub Account</label>
                         <select name="ftypesubaccount" id="ftypesubaccount" class="w-full border rounded px-3 py-2"
                             :disabled="!subAccount" :class="!subAccount ? 'bg-gray-200' : ''">
                             <option value="Sub Account"
@@ -231,7 +234,8 @@
 
                 {{-- User Level --}}
                 <div class="mt-4">
-                    <label for="fuserlevel" class="block text-sm font-medium" style="font-weight: bold;">User Level</label>
+                    <label for="fuserlevel" class="block text-sm font-medium" style="font-weight: bold;">User
+                        Level</label>
                     <select name="fuserlevel" id="fuserlevel" class="w-full border rounded px-3 py-2">
                         <option value="1" {{ old('fuserlevel', $account->fuserlevel) == '1' ? 'selected' : '' }}>User
                         </option>
@@ -547,7 +551,7 @@
 
                             // Style search input (disamakan dengan Supplier)
                             $container.find('.dt-search .dt-input, .dataTables_filter input').css({
-                                width: '300px',
+                                width: '500px',
                                 padding: '8px 12px',
                                 border: '2px solid #e5e7eb',
                                 borderRadius: '8px',
@@ -628,6 +632,9 @@
                 const sel = document.getElementById('accountSelect');
                 const hidId = document.getElementById('accountIdHidden');
                 const hidCode = document.getElementById('accountCodeHidden');
+
+                const inputInit = document.getElementsByName('finitjurnal')[0];
+                inputInit.placeholder = "Cek Initial jika ini Header khusus...";
 
                 if (sel) {
                     sel.value = faccount || '';

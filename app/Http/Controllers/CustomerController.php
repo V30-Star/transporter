@@ -306,8 +306,6 @@ class CustomerController extends Controller
             'fgroup' => '', // Validate the Group Produk field
             'fsalesman' => '', // Validate the Group Produk field
             'fwilayah' => '', // Validate the Group Produk field
-            'fnpwp' => '', // Validate the Group Produk field
-            'fnik' => '', // Validate the Group Produk field
             'fjadwaltukarfakturmingguan' => '',
             'fjadwaltukarfakturhari' => '',
             'fkodefp' => '',
@@ -327,6 +325,8 @@ class CustomerController extends Controller
             'fjabatan' => '',
             'frekening' => '',
             'fmemo' => '',
+            'fnpwp' => 'required_without:fnik|nullable|string|prohibits:fnik',
+            'fnik'  => 'required_without:fnpwp|nullable|string|prohibits:fnpwp',
         ], [
             'fcustomername.required' => 'Nama Customer harus diisi.',
             'fgroup.required' => 'Group Produk harus dipilih.',
@@ -353,6 +353,8 @@ class CustomerController extends Controller
             'fjabatan.required' => 'Jabatan harus diisi.',
             'frekening.required' => 'Rekening harus dipilih.',
             'fcustomercode.unique' => 'Kode Customer ini sudah ada',
+            'fnpwp.prohibits'        => 'Hanya boleh mengisi satu: NPWP atau NIK saja.',
+            'fnik.prohibits'         => 'Hanya boleh mengisi satu: NPWP atau NIK saja.',
         ]);
         $customer = Customer::findOrFail($fcustomerid);
 
