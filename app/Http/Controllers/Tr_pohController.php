@@ -584,6 +584,7 @@ class Tr_pohController extends Controller
         $r['fpono'] = $fpohdid;  // FK → tr_poh.fpohdid (integer)
         $r['fnou']  = $nextNou++;
         // $r['fprdid'] already set above
+        $r['frefdtno'] = $fpono;
       }
       unset($r);
 

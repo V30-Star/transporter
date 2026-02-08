@@ -101,11 +101,11 @@
                             <label class="block text-sm font-medium mb-1">SO#</label>
                             <div class="flex items-center gap-3">
                                 <input type="text" name="fsono" value="{{ old('fsono', $salesorder->fsono) }}"
-                                    class="w-full border rounded px-3 py-2" :disabled="autoCode" readonly
-                                    :class="autoCode ? 'bg-gray-200 cursor-not-allowed text-gray-500' : 'bg-white'">
+                                    class="w-full border rounded px-3 py-2 bg-gray-200" :disabled="autoCode" readonly
+                                    :class="autoCode ? 'cursor-not-allowed text-gray-500'">
 
                                 <label class="inline-flex items-center select-none">
-                                    <input type="checkbox" x-model="autoCode" disabled>
+                                    <input class="bg-gray-200" type="checkbox" x-model="autoCode" disabled>
                                     <span class="ml-2 text-sm text-gray-700">Auto</span>
                                 </label>
                             </div>
@@ -127,8 +127,8 @@
                         <div class="lg:col-span-2 flex items-end pb-2">
                             <div class="inline-flex items-center">
                                 <input id="fclose" type="checkbox" name="fclose" value="1" x-model="fclose"
-                                    {{-- text-red-600 mengubah isi centang, border-red-400 mengubah bingkai --}}
-                                    class="w-6 h-6 text-red-600 border-red-400 rounded cursor-pointer focus:ring-red-500"
+                                    disabled {{-- text-red-600 mengubah isi centang, border-red-400 mengubah bingkai --}}
+                                    class="w-6 h-6 text-red-600 border-red-400 bg-gray-200 rounded cursor-pointer focus:ring-red-500"
                                     {{ old('fclose', $salesorder->fclose) ? 'checked' : '' }}>
 
                                 <label for="fclose" {{-- text-red-600 mengubah warna tulisan menjadi merah --}}
@@ -208,92 +208,60 @@
                         <div class="col-span-12 mt-4">
                             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
 
-                                <div x-data="{
-                                    tab: 1,
-                                    addr1: {{ json_encode(old('fkirimaddress1', $salesorder->customer->fkirimaddress1 ?? '')) }},
-                                    addr2: {{ json_encode(old('fkirimaddress2', $salesorder->customer->fkirimaddress2 ?? '')) }},
-                                    addr3: {{ json_encode(old('fkirimaddress3', $salesorder->customer->fkirimaddress3 ?? '')) }},
-                                
-                                    updateFinal() {
-                                        let val = '';
-                                        if (this.tab === 1) val = this.addr1;
-                                        else if (this.tab === 2) val = this.addr2;
-                                        else if (this.tab === 3) val = this.addr3;
-                                
-                                        const el = document.getElementById('falamatkirim_final');
-                                        if (el) el.value = val;
+                                @php
+                                    // Ambil alamat dari customer untuk pembanding
+                                    $a1 = trim($salesorder->customer->fkirimaddress1 ?? '');
+                                    $a2 = trim($salesorder->customer->fkirimaddress2 ?? '');
+                                    $a3 = trim($salesorder->customer->fkirimaddress3 ?? '');
+                                    $saved = trim($salesorder->falamatkirim ?? '');
+
+                                    // Tentukan tab mana yang aktif berdasarkan kecocokan string
+                                    $activeTab = 1;
+                                    if ($saved !== '' && $saved === $a2) {
+                                        $activeTab = 2;
+                                    } elseif ($saved !== '' && $saved === $a3) {
+                                        $activeTab = 3;
                                     }
-                                }" x-init="const savedAddr = {{ json_encode(trim($salesorder->falamatkirim ?? '')) }};
-                                if (savedAddr && savedAddr === addr2) { tab = 2; } else if (savedAddr && savedAddr === addr3) { tab = 3; } else { tab = 1; if (savedAddr) addr1 = savedAddr; }
-                                updateFinal();
-                                $watch('tab', v => updateFinal());
-                                $watch('addr1', v => updateFinal());
-                                $watch('addr2', v => updateFinal());
-                                $watch('addr3', v => updateFinal());"
-                                    @customer-selected.window="
-                                addr1 = $event.detail.f1 || ''; 
-                                addr2 = $event.detail.f2 || ''; 
-                                addr3 = $event.detail.f3 || ''; 
-                                tab = 1; 
-                                updateFinal();
-                                "
-                                    class="flex flex-col gap-2">
+                                @endphp
 
-                                    <input type="hidden" name="falamatkirim" id="falamatkirim_final"
-                                        value="{{ old('falamatkirim') }}">
-
+                                <div x-data="{ tab: {{ $activeTab }} }" class="flex flex-col gap-2">
                                     <div class="flex items-center gap-2">
                                         <label class="text-sm font-bold text-gray-700 mr-2">Kirim ke :</label>
 
-                                        <div class="inline-flex rounded-md shadow-sm" role="group">
-                                            <button type="button" @click="tab = 1" disabled
-                                                :class="tab === 1 ? 'bg-blue-600 text-white z-10 ring-2 ring-blue-300' :
-                                                    'bg-white text-gray-700 hover:bg-gray-50'"
-                                                class="px-4 py-1.5 text-xs font-semibold border border-gray-300 rounded-l-md transition-all">
+                                        <div class="inline-flex rounded-md shadow-sm">
+                                            <button type="button" x-show="tab === 1"
+                                                class="px-4 py-1.5 text-xs font-semibold bg-blue-600 text-white border border-blue-600 rounded-md">
                                                 Alamat 1
                                             </button>
-                                            <button type="button" @click="tab = 2" disabled
-                                                :class="tab === 2 ? 'bg-blue-600 text-white z-10 ring-2 ring-blue-300' :
-                                                    'bg-white text-gray-700 hover:bg-gray-50'"
-                                                class="px-4 py-1.5 text-xs font-semibold border-t border-b border-r border-gray-300 transition-all">
+
+                                            <button type="button" x-show="tab === 2"
+                                                class="px-4 py-1.5 text-xs font-semibold bg-blue-600 text-white border border-blue-600 rounded-md">
                                                 Alamat 2
                                             </button>
-                                            <button type="button" @click="tab = 3" disabled
-                                                :class="tab === 3 ? 'bg-blue-600 text-white z-10 ring-2 ring-blue-300' :
-                                                    'bg-white text-gray-700 hover:bg-gray-50'"
-                                                class="px-4 py-1.5 text-xs font-semibold border-t border-b border-r border-gray-300 rounded-r-md transition-all">
+
+                                            <button type="button" x-show="tab === 3"
+                                                class="px-4 py-1.5 text-xs font-semibold bg-blue-600 text-white border border-blue-600 rounded-md">
                                                 Alamat 3
                                             </button>
                                         </div>
                                     </div>
 
                                     <div class="w-full">
-                                        <textarea x-show="tab === 1" x-model="addr1" readonly
-                                            class="w-full p-2 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 min-h-[80px]"
-                                            placeholder="Isi Alamat 1..."></textarea>
-
-                                        <textarea x-show="tab === 2" x-model="addr2" readonly
-                                            class="w-full p-2 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 min-h-[80px]"
-                                            placeholder="Isi Alamat 2..."></textarea>
-
-                                        <textarea x-show="tab === 3" x-model="addr3" readonly
-                                            class="w-full p-2 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 min-h-[80px]"
-                                            placeholder="Isi Alamat 3..."></textarea>
+                                        <div
+                                            class="w-full p-2 text-sm border border-gray-300 rounded bg-gray-200 text-gray-700 min-h-[80px] whitespace-pre-line shadow-sm">
+                                            {{ $saved ?: 'Alamat tidak ditemukan' }}
+                                        </div>
                                     </div>
                                 </div>
 
                                 <div class="flex flex-col">
                                     <label class="block text-sm font-bold text-gray-700 mb-2">Keterangan</label>
-                                    <div
-                                        class="flex-1 border-2 border-gray-200 rounded-xl p-3 bg-white min-h-[150px] focus-within:border-blue-400">
-                                        <textarea name="fket" class="w-full h-full border-none focus:ring-0 p-0 text-sm resize-none" readonly
-                                            placeholder="Keterangan isi di sini...">{{ old('fket', $salesorder->fket) }}</textarea>
-                                    </div>
+                                    <textarea name="fket" class="w-full border rounded px-3 py-2 bg-gray-200" readonly
+                                        placeholder="Keterangan isi di sini...">{{ old('fket', $salesorder->fket) }}</textarea>
                                     @error('fket')
                                         <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
                                     @enderror
                                 </div>
-
                             </div>
                         </div>
 
@@ -466,119 +434,6 @@
                             </table>
                         </div>
 
-                        <!-- ===== Trigger: Add tr_prh dari panel kanan ===== -->
-                        <div x-data="prhFormModal()">
-                            <!-- Trigger: Add PR dari panel kanan -->
-                            <div class="mt-3 flex justify-between items-start gap-4">
-                                <div class="w-full flex justify-start mb-3">
-                                </div>
-                                <!-- Kanan: Panel Totals -->
-                                <div class="w-1/2">
-                                    <div class="rounded-lg border bg-gray-50 p-3 space-y-2">
-                                        <div class="flex items-center justify-between">
-                                            <span class="text-sm text-gray-700">Total Harga</span>
-                                            <span class="min-w-[140px] text-right font-medium"
-                                                x-text="rupiah(totalHarga)"></span>
-                                        </div>
-                                        <div class="flex items-center justify-between gap-6">
-                                            <!-- Checkbox -->
-                                            <div class="flex items-center">
-                                                <input id="fapplyppn" type="checkbox" name="fapplyppn" value="1"
-                                                    x-model="includePPN" disabled
-                                                    class="h-4 w-4 text-blue-600 border-gray-300 rounded">
-                                                <label for="fapplyppn" class="ml-2 text-sm font-medium text-gray-700">
-                                                    <span class="font-bold">PPN</span>
-                                                </label>
-                                            </div>
-
-                                            <!-- Dropdown Include / Exclude (tengah) -->
-                                            <div class="flex items-center gap-2">
-                                                <select id="includePPN" name="includePPN" x-model.number="fapplyppn"
-                                                    x-init="fapplyppn = 0" :disabled="!(includePPN || fapplyppn)"
-                                                    class="w-28 h-9 px-2 text-sm leading-tight border rounded transition-opacity appearance-none
-                                                           disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
-                                                    <option value="0">Exclude</option>
-                                                    <option value="1">Include</option>
-                                                </select>
-                                            </div>
-
-                                            <!-- Input Rate + Nominal (kanan) -->
-                                            <div class="flex items-center gap-2">
-                                                <input type="number" min="0" max="100" step="0.01"
-                                                    disabled x-model.number="ppnRate"
-                                                    :disabled="!(includePPN || fapplyppn)"
-                                                    class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
-                                                            [appearance:textfield]
-                                                            [&::-webkit-outer-spin-button]:appearance-none
-                                                            [&::-webkit-inner-spin-button]:appearance-none
-                                                            disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
-                                                <span class="text-sm">%</span>
-                                                <span class="min-w-[140px] text-right font-medium"
-                                                    x-text="rupiah(ppnAmount)"></span>
-                                            </div>
-
-                                        </div>
-
-                                        <div class="border-t my-1"></div>
-
-                                        <div class="flex items-center justify-between">
-                                            <span class="text-sm font-semibold text-gray-800">Grand
-                                                Total</span>
-                                            <span class="min-w-[140px] text-right text-lg font-semibold"
-                                                x-text="rupiah(grandTotal)"></span>
-                                        </div>
-
-                                        <div class="flex items-center justify-between">
-                                            <span class="text-sm font-semibold text-gray-800">Grand Total
-                                                (RP)</span>
-                                            <span class="min-w-[140px] text-right text-lg font-semibold"
-                                                x-text="rupiah(grandTotal)"></span>
-                                        </div>
-                                    </div>
-
-                                    <!-- Hidden inputs for submit -->
-                                    <input type="hidden" name="famountgross" :value="totalHarga">
-                                    <input type="hidden" name="" :value="ppnAmount">
-                                    <input type="hidden" name="famountso" :value="grandTotal">
-                                    <input type="hidden" name="famountpopajak" :value="ppnRate">
-                                </div>
-                            </div>
-
-                            <!-- MODAL DESC (di dalam itemsTable) -->
-                            <div x-show="showDescModal" x-cloak
-                                class="fixed inset-0 z-[95] flex items-center justify-center" x-transition.opacity>
-                                <div class="absolute inset-0 bg-black/50" @click="closeDesc()"></div>
-
-                                <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
-                                    x-transition.scale>
-                                    <div class="px-5 py-4 border-b flex items-center">
-                                        <x-heroicon-o-document-text class="w-6 h-6 text-blue-600 mr-2" />
-                                        <h3 class="text-lg font-semibold text-gray-800">Isi Deskripsi Item
-                                        </h3>
-                                    </div>
-
-                                    <div class="px-5 py-4 space-y-2">
-                                        <label class="block text-sm text-gray-700">Deskripsi</label>
-                                        <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2"
-                                            placeholder="Tulis deskripsi item di sini..."></textarea>
-                                    </div>
-
-                                    <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
-                                        <button type="button" @click="closeDesc()"
-                                            class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
-                                            Batal
-                                        </button>
-                                        <button type="button" @click="applyDesc()"
-                                            class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
-                                            Simpan
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <input type="hidden" id="itemsCount" :value="savedItems.length">
-                        </div>
-
                         {{-- MODAL ERROR: belum ada item --}}
                         <div x-show="showNoItems && savedItems.length === 0" x-cloak
                             class="fixed inset-0 z-[90] flex items-center justify-center" x-transition.opacity>
@@ -609,28 +464,7 @@
                             </div>
                         </div>
 
-                        @php
-                            $canApproval = in_array(
-                                'approvalpr',
-                                explode(',', session('user_restricted_permissions', '')),
-                            );
-                        @endphp
-
-                        {{-- APPROVAL & ACTIONS --}}
-                        <div class="md:col-span-2 flex justify-center items-center space-x-2 mt-6">
-                            @if ($canApproval)
-                                <label class="block text-sm font-medium">Approval</label>
-
-                                {{-- fallback 0 saat checkbox tidak dicentang --}}
-                                <input type="hidden" name="fapproval" value="0">
-
-                                <label class="switch">
-                                    <input type="checkbox" name="fapproval" id="approvalToggle" value="1" disabled
-                                        {{ old('fapproval', session('fapproval') ? 1 : 0) ? 'checked' : '' }}>
-                                    <span class="slider"></span>
-                                </label>
-                            @endif
-                        </div>
+                        <br>
 
                         <div class="mt-6 flex justify-center space-x-4">
                             <a href="{{ route('salesorder.print', $salesorder->fsono) }}" target="_blank"

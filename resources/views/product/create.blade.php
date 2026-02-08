@@ -309,7 +309,10 @@
                                 name="fsatuankecil" id="fsatuankecil" onchange="updateSatuanLogic();">
                                 <option value="" selected>Pilih Satuan 1</option>
                                 @foreach ($satuan as $satu)
-                                    <option value="{{ $satu->fsatuancode }}">{{ $satu->fsatuancode }}</option>
+                                    <option value="{{ $satu->fsatuancode }}"
+                                        {{ old('fsatuankecil') == $satu->fsatuancode ? 'selected' : '' }}>
+                                        {{ $satu->fsatuancode }}
+                                    </option>
                                 @endforeach
                             </select>
                         </div>
@@ -333,9 +336,15 @@
                                     name="fsatuanbesar" id="fsatuanbesar" disabled onchange="updateSatuanLogic();">
                                     <option value="" selected>Pilih Satuan 2</option>
                                     @foreach ($satuan as $satu)
-                                        <option value="{{ $satu->fsatuancode }}">{{ $satu->fsatuancode }}</option>
+                                        <option value="{{ $satu->fsatuancode }}"
+                                            {{ old('fsatuanbesar') == $satu->fsatuancode ? 'selected' : '' }}>
+                                            {{ $satu->fsatuancode }}
+                                        </option>
                                     @endforeach
                                 </select>
+                                @error('fsatuanbesar')
+                                    <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
+                                @enderror
                             </div>
 
                             <div class="w-1/4"> {{-- Kita lebarkan sedikit dari 1/6 ke 1/4 agar ruang teks lebih lega --}}
@@ -372,9 +381,15 @@
                                     name="fsatuanbesar2" id="fsatuanbesar2" disabled onchange="updateSatuanLogic();">
                                     <option value="" selected>Pilih Satuan 3</option>
                                     @foreach ($satuan as $satu)
-                                        <option value="{{ $satu->fsatuancode }}">{{ $satu->fsatuancode }}</option>
+                                        <option value="{{ $satu->fsatuancode }}"
+                                            {{ old('fsatuanbesar2') == $satu->fsatuancode ? 'selected' : '' }}>
+                                            {{ $satu->fsatuancode }}
+                                        </option>
                                     @endforeach
                                 </select>
+                                @error('fsatuanbesar2')
+                                    <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
+                                @enderror
                             </div>
 
                             <div class="w-1/4"> {{-- Lebar dinaikkan ke 1/4 agar ruang teks lebih lega --}}

@@ -207,8 +207,18 @@ class ProductController extends Controller
                 'fgroupcode' => 'required', // Validate that fgroupcode exists in groups table
                 'fmerek' => 'required', // Validate the Merek field
                 'fsatuankecil' => '', // Validate Satuan 1 field
-                'fsatuanbesar' => '', // Validate Satuan 2 field
-                'fsatuanbesar2' => '', // Validate Satuan 3 field
+                'fsatuanbesar'  => [
+                    'nullable',               // Boleh kosong
+                    'string',
+                    'different:fsatuankecil'  // Jika diisi, harus beda dengan fsatuankecil
+                ],
+
+                'fsatuanbesar2' => [
+                    'nullable',               // Boleh kosong
+                    'string',
+                    'different:fsatuankecil', // Jika diisi, harus beda dengan fsatuankecil
+                    'different:fsatuanbesar'  // Jika diisi, harus beda dengan fsatuanbesar
+                ],
                 'fsatuandefault' => 'in:1,2,3', // Validate Satuan Default field
                 'fqtykecil' => 'numeric', // Validate quantity for Satuan 1
                 'fqtykecil2' => 'numeric', // Validate quantity for Satuan 3
@@ -244,6 +254,8 @@ class ProductController extends Controller
                 'fhargajuallevel2.required' => 'Harga Satuan 2 harus diisi.',
                 'fhargajuallevel3.required' => 'Harga Satuan 3 harus diisi.',
                 'fminstock.required' => 'Harga Satuan 3 harus diisi.',
+                'fsatuanbesar.different'  => 'Satuan Besar tidak boleh sama dengan Satuan Kecil.',
+                'fsatuanbesar2.different' => 'Satuan Besar 2 tidak boleh sama dengan Satuan Kecil atau Satuan Besar.',
             ]
         );
 
@@ -303,8 +315,18 @@ class ProductController extends Controller
                 'fgroupcode' => 'required', // Validate that fgroupcode exists in groups table
                 'fmerek' => 'required', // Validate the Merek field
                 'fsatuankecil' => '', // Validate Satuan 1 field
-                'fsatuanbesar' => '', // Validate Satuan 2 field
-                'fsatuanbesar2' => '', // Validate Satuan 3 field
+                'fsatuanbesar'  => [
+                    'nullable',               // Boleh kosong
+                    'string',
+                    'different:fsatuankecil'  // Jika diisi, harus beda dengan fsatuankecil
+                ],
+
+                'fsatuanbesar2' => [
+                    'nullable',               // Boleh kosong
+                    'string',
+                    'different:fsatuankecil', // Jika diisi, harus beda dengan fsatuankecil
+                    'different:fsatuanbesar'  // Jika diisi, harus beda dengan fsatuanbesar
+                ],
                 'fsatuandefault' => 'in:1,2,3', // Validate Satuan Default field
                 'fqtykecil' => 'numeric', // Validate quantity for Satuan 1
                 'fqtykecil2' => 'numeric', // Validate quantity for Satuan 3
@@ -338,6 +360,8 @@ class ProductController extends Controller
                 'fhargajuallevel1.required' => 'Harga Satuan 1 harus diisi.',
                 'fhargajuallevel2.required' => 'Harga Satuan 2 harus diisi.',
                 'fminstock.required' => 'Harga Satuan 3 harus diisi.',
+                'fsatuanbesar.different'  => 'Satuan Besar tidak boleh sama dengan Satuan Kecil.',
+                'fsatuanbesar2.different' => 'Satuan Besar 2 tidak boleh sama dengan Satuan Kecil atau Satuan Besar.',
             ]
         );
 

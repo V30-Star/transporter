@@ -52,7 +52,7 @@
             <tbody id="tableBody">
                 @forelse($gudangs as $item)
                     <tr class="hover:bg-gray-50">
-                        <td>{{ $item->cabang->fcabangname ?? 'N/A' }}</td>
+                        <td>{{ $item->fcabangname ?? 'N/A' }}</td>
                         <td>{{ $item->fwhcode }}</td>
                         <td>{{ $item->fwhname }}</td>
                         <td>{{ $item->faddress }}</td>

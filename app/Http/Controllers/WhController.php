@@ -11,23 +11,35 @@ class WhController extends Controller
 {
     public function index(Request $request)
     {
-        $allowedSorts = ['fwhcode', 'fwhname', 'fwhid', 'faddress', 'fnonactive'];
+        // Tambahkan fbranchname ke allowedSorts jika ingin bisa diurutkan berdasarkan nama cabang
+        $allowedSorts = ['fwhcode', 'fwhname', 'fwhid', 'faddress', 'fnonactive', 'fbranchcode', 'fbranchname'];
         $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fwhid';
         $sortDir = $request->sort_dir === 'asc' ? 'asc' : 'desc';
 
         $status = $request->query('status');
 
-        $query = Wh::query();
+        // Memulai query dengan join ke mscabang
+        $query = Wh::query()
+            ->leftJoin('mscabang', 'mswh.fbranchcode', '=', 'mscabang.fcabangkode');
+        // Catatan: Pastikan nama tabel & primary key sesuai (biasanya mscabang.fbranchcode atau fcabangkode)
 
         if ($status === 'active') {
-            $query->where('fnonactive', '0');
+            $query->where('mswh.fnonactive', '0');
         } elseif ($status === 'nonactive') {
-            $query->where('fnonactive', '1');
+            $query->where('mswh.fnonactive', '1');
         }
 
         $gudangs = $query
             ->orderBy($sortBy, $sortDir)
-            ->get(['fwhcode', 'fwhname', 'fwhid', 'faddress', 'fnonactive']);
+            ->get([
+                'mswh.fwhcode',
+                'mswh.fwhname',
+                'mswh.fwhid',
+                'mswh.faddress',
+                'mswh.fnonactive',
+                'mswh.fbranchcode',
+                'mscabang.fcabangname' // Mengambil kolom nama cabang dari tabel mscabang
+            ]);
 
         $permsArr  = explode(',', (string) session('user_restricted_permissions', ''));
         $canCreate = in_array('createGudang', $permsArr, true);
