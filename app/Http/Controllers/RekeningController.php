@@ -84,6 +84,16 @@ class RekeningController extends Controller
         ]);
     }
 
+    public function view($frekeningid)
+    {
+        // Find Rekening by primary key
+        $rekening = Rekening::findOrFail($frekeningid);
+
+        return view('rekening.view', [
+            'rekening' => $rekening
+        ]);
+    }
+
     public function update(Request $request, $frekeningid)
     {
         $request->merge([

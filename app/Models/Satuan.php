@@ -12,8 +12,8 @@ class Satuan extends Model
     protected $table = 'mssatuan';
     protected $primaryKey = 'fsatuanid';
     protected $guarded = ['fsatuanid'];
-    const CREATED_AT = 'fcreatedat';
-    const UPDATED_AT = 'fupdatedat';
+    public $timestamps = false;
+
 
     public function scopeSearch($query, $search)
     {

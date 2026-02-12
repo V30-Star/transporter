@@ -86,6 +86,16 @@ class SubaccountController extends Controller
         ]);
     }
 
+    public function view($fsubaccountid)
+    {
+        // Ambil data berdasarkan PK fsubaccountid
+        $subaccount = Subaccount::findOrFail($fsubaccountid);
+
+        return view('subaccount.view', [
+            'subaccount' => $subaccount
+        ]);
+    }
+
     /**
      * Update the specified resource in storage.
      */

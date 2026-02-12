@@ -66,6 +66,15 @@
                         <td>{{ (string) $item->fnonactive }}</td>
                         @if ($showActionsColumn)
                             <td class="border px-2 py-1 space-x-2">
+                                {{-- @if ($canEdit) --}}
+                                <a href="{{ route('gudang.view', $item->fwhid) }}">
+                                    <button
+                                        class="inline-flex items-center bg-slate-500 text-white px-4 py-2 rounded hover:bg-slate-600">
+                                        <x-heroicon-o-pencil-square class="w-4 h-4 mr-1" /> View
+                                    </button>
+                                </a>
+                                {{-- @endif --}}
+
                                 @if ($canEdit)
                                     <a href="{{ route('gudang.edit', $item->fwhid) }}">
                                         <button

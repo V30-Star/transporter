@@ -86,6 +86,16 @@ class CurrencyController extends Controller
     ]);
   }
 
+  public function view($fcurrid)
+  {
+    // Find Currency by primary key
+    $currency = Currency::findOrFail($fcurrid);
+
+    return view('currency.view', [
+      'currency' => $currency
+    ]);
+  }
+
   public function update(Request $request, $fcurrid)
   {
     $request->merge([

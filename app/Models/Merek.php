@@ -12,10 +12,9 @@ class Merek extends Model
     protected $table = 'msmerek';
     protected $primaryKey = 'fmerekid';
     protected $guarded = ['fmerekid'];
-    const CREATED_AT = 'fcreatedat';
-    const UPDATED_AT = 'fupdatedat';
-
-    public function scopeSearch($query, $search) {
+    public $timestamps = false;
+    public function scopeSearch($query, $search)
+    {
         $query->when($search ?? false, function ($query, $search) {
             $query->where(function ($query) use ($search) {
                 $query->whereAny(['fmerekid', 'fmerekcode', 'fmerekname'], 'like', '%' . $search . '%');
@@ -23,4 +22,3 @@ class Merek extends Model
         });
     }
 }
-

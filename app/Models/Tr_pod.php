@@ -12,8 +12,7 @@ class Tr_pod extends Model
   protected $table = 'tr_pod';
   protected $primaryKey = 'fpodid';
   protected $guarded = ['fpodid'];
-  const CREATED_AT = 'fdatetime';
-  const UPDATED_AT = 'fupdatedat';
+  public $timestamps = false;
 
   public function header()
   {

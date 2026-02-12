@@ -88,6 +88,16 @@ class SalesmanController extends Controller
         ]);
     }
 
+    public function view($fsalesmanid)
+    {
+        // Ambil data berdasarkan PK fsalesmanid
+        $salesman = Salesman::findOrFail($fsalesmanid);
+
+        return view('salesman.view', [
+            'salesman' => $salesman
+        ]);
+    }
+
     /**
      * Update the specified resource in storage.
      */

@@ -276,6 +276,25 @@ class CustomerController extends Controller
             'action' => 'edit'
         ]);
     }
+    public function view($fcustomerid)
+    {
+        // Find Customer by primary key
+        $customer = Customer::findOrFail($fcustomerid);
+        $groups = Groupcustomer::where('fnonactive', 0)->get();
+        $salesman = Salesman::where('fnonactive', 0)->get();
+        $wilayah = Wilayah::where('fnonactive', 0)->get();
+        $rekening = Rekening::where('fnonactive', 0)->get();
+        $newCustomerCode = $this->generateCustomerCode();
+
+        return view('master.customer.view', [
+            'customer' => $customer,
+            'groups' => $groups,
+            'salesman' => $salesman,
+            'wilayah' => $wilayah,
+            'rekening' => $rekening,
+            'newCustomerCode' => $newCustomerCode
+        ]);
+    }
 
     // Update method to save the updated customer data in the database
     public function update(Request $request, $fcustomerid)

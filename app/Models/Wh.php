@@ -19,8 +19,7 @@ class Wh extends Model
     protected $guarded = ['fwhid'];
 
     // Define custom timestamps if using custom field names for created_at and updated_at
-    const CREATED_AT = 'fcreatedat';
-    const UPDATED_AT = 'fupdatedat';
+    public $timestamps = false;
 
     // Relationship to the Cabang model (assuming it's called Cabang)
     public function cabang()

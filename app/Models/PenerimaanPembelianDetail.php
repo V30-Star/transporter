@@ -12,8 +12,7 @@ class PenerimaanPembelianDetail extends Model
   protected $table = 'trstockdt';
   protected $primaryKey = 'fstockdtid';
   protected $guarded = ['fstockdtid'];
-  const CREATED_AT = 'fdatetime';
-  const UPDATED_AT = 'fupdatedat';
+  public $timestamps = false;
 
   public function scopeSearch($query, $search)
   {

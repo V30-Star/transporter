@@ -75,6 +75,9 @@
                     <th class="border px-2 py-1">No. PO</th>
                     <th class="border px-2 py-1">Supplier ID</th> {{-- Sesuai data simpel (bukan nama) --}}
                     <th class="border px-2 py-1">Tanggal</th>
+                    <th class="border px-2 py-1">User-id</th>
+                    <th class="border px-2 py-1">Status</th>
+                    <th class="border px-2 py-1">Approved</th>
                     <th class="border px-2 py-1 col-aksi">Aksi</th>
                 </tr>
             </thead>
@@ -292,18 +295,24 @@
                     name: 'fpono'
                 },
                 {
-                    data: 'fsupplier',
-                    name: 'fsupplier'
+                    data: 'fsuppliername',
+                    name: 'fsuppliername'
                 },
                 {
                     data: 'fpodate',
                     name: 'fpodate'
                 },
                 {
+                    data: 'fusercreate',
+                    name: 'fusercreate'
+                },
+                {
                     data: 'fclose',
-                    name: 'fclose',
-                    visible: false,
-                    searchable: true
+                    name: 'fclose'
+                },
+                {
+                    data: 'fapproval',
+                    name: 'fapproval'
                 }
             ];
 

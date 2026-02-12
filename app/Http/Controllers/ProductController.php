@@ -261,11 +261,16 @@ class ProductController extends Controller
 
         $validated['fprdname'] = strtoupper($validated['fprdname']);
 
-        // Panggil generator baru dengan ID grup dan merek dari data yang sudah tervalidasi
-        $validated['fprdcode'] = $this->generateProductCode(
-            $validated['fgroupcode'],
-            $validated['fmerek']
-        );
+        if (empty($request->fprdcode)) {
+            // Jika input fprdcode kosong, maka generate otomatis
+            $validated['fprdcode'] = $this->generateProductCode(
+                $validated['fgroupcode'],
+                $validated['fmerek']
+            );
+        } else {
+            // Jika user isi manual, gunakan input tersebut (sudah ada di $validated dari hasil validasi)
+            $validated['fprdcode'] = $request->fprdcode;
+        }
 
         $validated['fhpp'] = preg_replace('/[^0-9.]/', '', $request->fhpp);
         $validated['fhpp2'] = preg_replace('/[^0-9.]/', '', $request->fhpp2);

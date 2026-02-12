@@ -21,9 +21,7 @@ class Customer extends Model
     protected $guarded = ['fcustomerid'];
 
     // Define the custom created and updated timestamp columns
-    const CREATED_AT = 'fcreatedat';
-    const UPDATED_AT = 'fupdatedat';
-
+    public $timestamps = false;
     // Scope method for searching
     public function scopeSearch($query, $search)
     {

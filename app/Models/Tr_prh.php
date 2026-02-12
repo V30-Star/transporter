@@ -12,8 +12,8 @@ class Tr_prh extends Model
   protected $table = 'tr_prh';
   protected $primaryKey = 'fprid';
   protected $guarded = ['fprid'];
-  const CREATED_AT = 'fcreatedat';
-  const UPDATED_AT = 'fupdatedat';
+  public $timestamps = false;
+
 
   public function scopeSearch($query, $search)
   {

@@ -12,8 +12,7 @@ class Groupcustomer extends Model
     protected $table = 'msgroupcustomer';
     protected $primaryKey = 'fgroupid';
     protected $guarded = ['fgroupid'];
-    const CREATED_AT = 'fcreatedat';
-    const UPDATED_AT = 'fupdatedat';
+public $timestamps = false;
 
     // Scope untuk pencarian
     public function scopeSearch($query, $search)

@@ -88,6 +88,15 @@ class WilayahController extends Controller
         ]);
     }
 
+    public function view($fwilayahid)
+    {
+        $wilayah = Wilayah::findOrFail($fwilayahid);
+
+        return view('master.wilayah.view', [
+            'wilayah' => $wilayah
+        ]);
+    }
+
     public function update(Request $request, $fwilayahid)
     {
         $request->merge([

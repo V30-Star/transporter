@@ -12,10 +12,10 @@ class Account extends Model
     protected $table = 'account';
     protected $primaryKey = 'faccid';
     protected $guarded = ['faccid'];
-    const CREATED_AT = 'fcreatedat';
-    const UPDATED_AT = 'fupdatedat';
+    public $timestamps = false;
 
-    public function scopeSearch($query, $search) {
+    public function scopeSearch($query, $search)
+    {
         $query->when($search ?? false, function ($query, $search) {
             $query->where(function ($query) use ($search) {
                 $query->whereAny(['faccount', 'faccname'], 'like', '%' . $search . '%');

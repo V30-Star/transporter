@@ -12,8 +12,7 @@ class PenerimaanPembelianHeader extends Model
   protected $table = 'trstockmt';
   protected $primaryKey = 'fstockmtid';
   protected $guarded = ['fstockmtid'];
-  const CREATED_AT = 'fdatetime';
-  const UPDATED_AT = 'fupdatedat';
+  public $timestamps = false;
 
   protected $casts = [
     'fstockmtid' => 'integer',

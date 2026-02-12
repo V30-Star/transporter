@@ -19,8 +19,7 @@ class Supplier extends Model
     protected $guarded = ['fsupplierid'];
 
     // Define custom timestamps if using custom field names for created_at and updated_at
-    const CREATED_AT = 'fcreatedat';
-    const UPDATED_AT = 'fupdatedat';
+    public $timestamps = false;
 
     // Scope function to perform search query
     public function scopeSearch($query, $search)

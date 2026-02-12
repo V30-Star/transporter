@@ -41,7 +41,8 @@ class Tr_pohController extends Controller
     // --- Handle Request AJAX dari DataTables ---
     if ($request->ajax()) {
 
-      $query = Tr_poh::query();
+      $query = Tr_poh::query()
+        ->leftJoin('mssupplier', 'tr_poh.fsupplier', '=', 'mssupplier.fsupplierid');
       $totalRecords = Tr_poh::count();
 
       // Handle Search
@@ -73,7 +74,7 @@ class Tr_pohController extends Controller
       $orderColIdx = $request->input('order.0.column', 0);
       $orderDir = $request->input('order.0.dir', 'asc');
 
-      $sortableColumns = ['fpono', 'fsupplier', 'fpodate', 'fclose'];
+      $sortableColumns = ['fpono', 'fsupplier', 'fpodate', 'fclose', 'fusercreate', 'fapproval', 'mssupplier.fsuppliername'];
 
       if (isset($sortableColumns[$orderColIdx])) {
         $query->orderBy($sortableColumns[$orderColIdx], $orderDir);
@@ -84,7 +85,7 @@ class Tr_pohController extends Controller
       $length = $request->input('length', 10);
       $records = $query->skip($start)
         ->take($length)
-        ->get(['fpohdid', 'fpono', 'fsupplier', 'fpodate', 'fclose']);
+        ->get(['fpohdid', 'fpono', 'fsupplier', 'fpodate', 'fclose', 'fusercreate', 'fapproval', 'mssupplier.fsuppliername']);
 
       // Format Data - HANYA RETURN DATA MENTAH
       $data = $records->map(function ($row) {
@@ -93,7 +94,10 @@ class Tr_pohController extends Controller
           'fpono'     => $row->fpono,
           'fsupplier' => $row->fsupplier,
           'fpodate'   => $row->fpodate,
-          'fclose'    => $row->fclose
+          'fclose'    => $row->fclose == '1' ? 'Done' : 'Not Done',
+          'fusercreate'    => $row->fusercreate,
+          'fapproval'    => $row->fapproval,
+          'fsuppliername' => $row->fsuppliername
         ];
       });
 

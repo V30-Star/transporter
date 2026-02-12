@@ -74,11 +74,11 @@
         <table id="tr_prhTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
-                    <th>ID PR</th>
                     <th>No. PR</th>
+                    <th>Tanggal</th>
                     <th>Nama Supplier</th>
-                    <th>User Create</th>
-                    <th>User Update</th>
+                    <th>User-id</th>
+                    <th>Status</th>
                     <th class="border px-2 py-2 col-aksi">Aksi</th>
                 </tr>
             </thead>
@@ -305,8 +305,8 @@
                     name: 'fprno'
                 },
                 {
-                    data: 'fprdin',
-                    name: 'fprdin'
+                    data: 'fprdate',
+                    name: 'fprdate'
                 },
                 {
                     data: 'fsuppliername',
@@ -317,15 +317,9 @@
                     name: 'fusercreate'
                 },
                 {
-                    data: 'fuserupdate',
-                    name: 'fuserupdate'
+                    data: 'fclose',
+                    name: 'fclose'
                 },
-                {
-                    data: 'fclose', // TAMBAHKAN KOLOM INI
-                    name: 'fclose',
-                    visible: false,
-                    searchable: true
-                }
             ];
 
             // --- 3. Tambahkan Kolom Aksi (Gaya Product) ---

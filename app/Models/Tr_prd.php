@@ -12,8 +12,8 @@ class Tr_prd extends Model
   protected $table = 'tr_prd';
   protected $primaryKey = 'fprdid';
   protected $guarded = ['fprdid'];
-  const CREATED_AT = 'fcreatedat';
-  const UPDATED_AT = 'fupdatedat';
+  public $timestamps = false;
+
 
   public function header()
   {

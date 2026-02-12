@@ -12,10 +12,10 @@ class Salesman extends Model
     protected $table = 'mssalesman';
     protected $primaryKey = 'fsalesmanid';
     protected $guarded = ['fsalesmanid'];
-    const CREATED_AT = 'fcreatedat';
-    const UPDATED_AT = 'fupdatedat';
+    public $timestamps = false;
 
-    public function scopeSearch($query, $search) {
+    public function scopeSearch($query, $search)
+    {
         $query->when($search ?? false, function ($query, $search) {
             $query->where(function ($query) use ($search) {
                 $query->whereAny(['fsalesmancode', 'fsalesmanname'], 'like', '%' . $search . '%');
@@ -23,4 +23,3 @@ class Salesman extends Model
         });
     }
 }
-

@@ -84,6 +84,17 @@ class GroupcustomerController extends Controller
         ]);
     }
 
+    public function view($fgroupid)
+    {
+        // Mengambil data grup customer berdasarkan ID
+        $groupcustomer = Groupcustomer::findOrFail($fgroupid);
+
+        // Menampilkan form untuk mengedit grup customer
+        return view('master.groupcustomer.view', [
+            'groupcustomer' => $groupcustomer
+        ]);
+    }
+
     public function update(Request $request, $fgroupid)
     {
         $request->merge([

@@ -118,6 +118,23 @@ class WhController extends Controller
         ]);
     }
 
+    public function view($fwhid)
+    {
+        $gudang = Wh::findOrFail($fwhid);
+
+        $cabangOptions = Cabang::query()
+            ->selectRaw('TRIM(BOTH FROM fcabangkode) AS fbranchcode, fcabangname')
+            ->where('fnonactive', '0')
+            ->whereNotNull('fcabangkode')
+            ->orderBy('fcabangname')
+            ->get();
+
+        return view('gudang.view', [
+            'gudang' => $gudang,
+            'cabangOptions' => $cabangOptions
+        ]);
+    }
+
     /**
      * Update the specified resource in storage.
      */

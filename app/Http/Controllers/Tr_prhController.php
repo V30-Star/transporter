@@ -85,9 +85,11 @@ class Tr_prhController extends Controller
       $columns = [
         0 => 'fprno',
         1 => 'mssupplier.fsuppliername', // Update kolom sorting ke nama supplier        2 => 'fusercreate',
-        3 => 'fuserupdate',
-        4 => 'fclose',  // Ganti ke fclose
-        5 => null // Kolom 'Actions'
+        2 => 'fprdate',
+        3 => 'fusercreate',
+        4 => 'fuserupdate',
+        5 => 'fclose',  // Ganti ke fclose
+        6 => '' // Kolom 'Actions'
       ];
 
       if (isset($columns[$orderColumnIndex]) && $columns[$orderColumnIndex] !== null) {
@@ -104,17 +106,17 @@ class Tr_prhController extends Controller
       }
 
       // Select kolom yang dibutuhkan - PASTIKAN fclose ADA
-      $records = $query->get(['fprid', 'fprno', 'fprdin', 'fsupplier', 'fusercreate', 'fuserupdate', 'fclose', 'mssupplier.fsuppliername']);
+      $records = $query->get(['fprid', 'fprno', 'fprdate', 'fsupplier', 'fusercreate', 'fuserupdate', 'fclose', 'mssupplier.fsuppliername']);
 
       // Format data untuk DataTables
       $data = $records->map(function ($record) {
         return [
           'fprno'    => $record->fprno,
-          'fprdin'   => $record->fprdin,
+          'fprdate'   => $record->fprdate,
           'fsuppliername' => $record->fsuppliername,
           'fusercreate'  => $record->fusercreate,
           'fuserupdate'  => $record->fuserupdate,
-          'fclose'   => $record->fclose, // Ganti ke fclose
+          'fclose'        => $record->fclose == '1' ? 'Done' : 'Not Done',
           'fprid'    => $record->fprid,
           'DT_RowId' => 'row_' . $record->fprid
         ];

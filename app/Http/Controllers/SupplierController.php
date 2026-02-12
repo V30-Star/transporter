@@ -99,6 +99,17 @@ class SupplierController extends Controller
             'action' => 'edit'
         ]);
     }
+    
+    public function view($fsupplierid)
+    {
+        // Fetch the Supplier data by its primary key
+        $supplier = Supplier::findOrFail($fsupplierid);
+
+        // Pass the supplier data to the view view
+        return view('supplier.view', [
+            'supplier' => $supplier
+        ]);
+    }
 
     public function update(Request $request, $fsupplierid)
     {
