@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Faktur Penjualan')
+@section('title', 'Retur Penjualan')
 
 @section('content')
     <style>
@@ -100,7 +100,7 @@
                         <div class="lg:col-span-4" x-data="{ autoCode: false }">
                             <label class="block text-sm font-medium mb-1">SO#</label>
                             <div class="flex items-center gap-3">
-                                <input type="text" name="fsono" value="{{ old('fsono', $invoice->fsono) }}"
+                                <input type="text" name="fsono" value="{{ old('fsono', $returpenjualan->fsono) }}"
                                     class="w-full border rounded px-3 py-2" :disabled="autoCode" readonly
                                     :class="autoCode ? 'bg-gray-200 cursor-not-allowed text-gray-500' : 'bg-white'">
 
@@ -115,8 +115,8 @@
                         </div>
 
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium">Faktur Pajak#</label>
-                            <input type="text" name="ftaxno" value="{{ old('ftaxno', $invoice->ftaxno) }}"
+                            <label class="block text-sm font-medium">Retur Pajak#</label>
+                            <input type="text" name="ftaxno" value="{{ old('ftaxno', $returpenjualan->ftaxno) }}"
                                 class="w-full border rounded px-3 py-2 @error('ftaxno') border-red-500 @enderror" readonly>
                             @error('ftaxno')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -157,7 +157,7 @@
                                         <option value=""></option>
                                         @foreach ($customers as $customer)
                                             <option value="{{ $customer->fcustomerid }}" {{-- CEK DISINI: Bandingkan dengan data yang tersimpan di DB --}}
-                                                {{ old('fcustno', $invoice->fcustno) == $customer->fcustomerid ? 'selected' : '' }}>
+                                                {{ old('fcustno', $returpenjualan->fcustno) == $customer->fcustomerid ? 'selected' : '' }}>
                                                 {{ $customer->fcustomername }} ({{ $customer->fcustomerid }})
                                             </option>
                                         @endforeach
@@ -167,7 +167,7 @@
                                     </div>
                                 </div>
                                 <input type="hidden" name="fcustno" id="customerCodeHidden"
-                                    value="{{ old('fcustno', $invoice->fcustno) }}">
+                                    value="{{ old('fcustno', $returpenjualan->fcustno) }}">
                             </div>
                             @error('fcustno')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -185,7 +185,7 @@
                                         <option value=""></option>
                                         @foreach ($salesmans as $salesman)
                                             <option value="{{ $salesman->fsalesmanid }}" {{-- CEK DISINI: Bandingkan old input atau data dari database --}}
-                                                {{ old('fsalesman', $invoice->fsalesman) == $salesman->fsalesmanid ? 'selected' : '' }}>
+                                                {{ old('fsalesman', $returpenjualan->fsalesman) == $salesman->fsalesmanid ? 'selected' : '' }}>
                                                 {{ $salesman->fsalesmanname }} ({{ $salesman->fsalesmanid }})
                                             </option>
                                         @endforeach
@@ -195,7 +195,7 @@
                                     </div>
                                 </div>
                                 <input type="hidden" name="fsalesman" id="salesmanCodeHidden"
-                                    value="{{ old('fsalesman', $invoice->fsalesman) }}">
+                                    value="{{ old('fsalesman', $returpenjualan->fsalesman) }}">
                             </div>
                             @error('fsalesman')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -256,7 +256,7 @@
                             <label class="block text-sm font-medium">Keterangan Tambahan</label>
                             <textarea name="fket" rows="3" disabled
                                 class="w-full border rounded px-3 py-2 @error('fket') border-red-500 @enderror"
-                                placeholder="Keterangan isi di sini...">{{ old('fket', $invoice->fket) }}</textarea>
+                                placeholder="Keterangan isi di sini...">{{ old('fket', $returpenjualan->fket) }}</textarea>
                             @error('fket')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
@@ -577,7 +577,7 @@
                     @endphp
 
                     <div class="mt-6 flex justify-center space-x-4">
-                        <a href="{{ route('invoice.print', $invoice->fsono) }}" target="_blank"
+                        <a href="{{ route('returpenjualan.print', $returpenjualan->fsono) }}" target="_blank"
                             class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -586,7 +586,7 @@
                             </svg>
                             Print
                         </a>
-                        <button type="button" onclick="window.location.href='{{ route('invoice.index') }}'"
+                        <button type="button" onclick="window.location.href='{{ route('returpenjualan.index') }}'"
                             class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
                             <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" />
                             Kembali
