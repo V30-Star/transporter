@@ -8,47 +8,73 @@
         {{-- ============================================ --}}
         {{-- MODE DELETE: VIEW ONLY + BUTTON HAPUS       --}}
         {{-- ============================================ --}}
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700" style="font-weight: bold;">Kode Account</label>
-                    <input type="text" value="{{ $account->faccount }}"
-                        class="w-full border rounded px-3 py-2 bg-gray-100 uppercase" readonly>
+        <div class="space-y-4">
+            <div class="lg:col-span-4">
+                <label class="block text-sm font-medium mb-1" style="font-weight: bold;">Account Header</label>
+                <div class="flex">
+                    <div class="relative flex-1">
+                        <select id="accountSelect" class="bg-gray-100 w-full border rounded-l px-3 py-2" disabled>
+                            <option value=""></option>
+                            @foreach ($headers as $header)
+                                <option disabled value="{{ $header->faccount }}" data-faccid="{{ $header->faccid }}"
+                                    data-branch="{{ $header->faccount }}"
+                                    {{ old('faccupline', $account->faccupline) == $header->faccount ? 'selected' : '' }}>
+                                    {{ $header->faccount }} - {{ $header->faccname }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <input type="hidden" name="faccupline" id="accountCodeHidden"
+                        value="{{ old('faccupline', $account->faccupline) }}">
+                    <input type="hidden" name="faccid" id="accountIdHidden" value="{{ old('faccid', $account->faccid) }}">
                 </div>
 
-                <div>
-                    <label class="block text-sm font-medium text-gray-700" style="font-weight: bold;">Nama Account</label>
-                    <input type="text" value="{{ $account->faccname }}"
-                        class="w-full border rounded px-3 py-2 bg-gray-100 uppercase" readonly>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700" style="font-weight: bold;">Saldo Normal</label>
-                    <input type="text" value="{{ $account->fnormal == 'D' ? 'Debit' : 'Kredit' }}"
-                        class="w-full border rounded px-3 py-2 bg-gray-100" readonly>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700" style="font-weight: bold;">Account Type</label>
-                    <input type="text" value="{{ $account->fend == '1' ? 'Detil' : 'Header' }}"
-                        class="w-full border rounded px-3 py-2 bg-gray-100" readonly>
-                </div>
-
-                <div class="flex justify-center mt-4">
-                    <label class="flex items-center justify-between w-40 p-3 border rounded-lg bg-gray-100">
-                        <span class="text-sm font-medium">Non Active</span>
-                        <input type="checkbox" class="h-5 w-5 text-green-600 rounded"
-                            {{ $account->fnonactive == '1' ? 'checked' : '' }} disabled>
-                    </label>
-                </div>
+                @error('faccupline')
+                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                @enderror
             </div>
 
-            <div class="mt-6 flex justify-center space-x-4">
-                <button type="button" onclick="window.location.href='{{ route('account.index') }}'"
-                    class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
-                    <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" />
-                    Kembali
-                </button>
+            <div>
+                <label class="block text-sm font-medium text-gray-700" style="font-weight: bold;">Kode Account</label>
+                <input type="text" value="{{ $account->faccount }}"
+                    class="w-full border rounded px-3 py-2 bg-gray-100 uppercase" readonly>
             </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700" style="font-weight: bold;">Nama Account</label>
+                <input type="text" value="{{ $account->faccname }}"
+                    class="w-full border rounded px-3 py-2 bg-gray-100 uppercase" readonly>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700" style="font-weight: bold;">Saldo Normal</label>
+                <input type="text" value="{{ $account->fnormal == 'D' ? 'Debit' : 'Kredit' }}"
+                    class="w-full border rounded px-3 py-2 bg-gray-100" readonly>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700" style="font-weight: bold;">Account Type</label>
+                <input type="text" value="{{ $account->fend == '1' ? 'Detil' : 'Header' }}"
+                    class="w-full border rounded px-3 py-2 bg-gray-100" readonly>
+            </div>
+
+            <div class="flex justify-center mt-4">
+                <label class="flex items-center justify-between w-40 p-3 border rounded-lg bg-gray-100">
+                    <span class="text-sm font-medium">Non Active</span>
+                    <input type="checkbox" class="h-5 w-5 text-green-600 rounded"
+                        {{ $account->fnonactive == '1' ? 'checked' : '' }} disabled>
+                </label>
+            </div>
+        </div>
+
+        <div class="mt-6 flex justify-center space-x-4">
+            <button type="button" onclick="window.location.href='{{ route('account.index') }}'"
+                class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
+                <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" />
+                Kembali
+            </button>
+        </div>
         {{-- FOOTER INFO --}}
         <br>
         <hr><br>
@@ -60,94 +86,6 @@
             <span>{{ \Carbon\Carbon::parse($lastUpdate)->timezone('Asia/Jakarta')->format('d M Y, H:i:s') }}</span>
         </span>
     </div>
-
-    {{-- ============================================ --}}
-    {{-- MODAL & TOAST (HANYA UNTUK MODE DELETE)     --}}
-    {{-- ============================================ --}}
-    @if ($action === 'delete')
-        {{-- Modal Delete --}}
-        <div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
-                <h3 class="text-lg font-semibold mb-4">Konfirmasi hapus account ini?</h3>
-                <form id="deleteForm" action="{{ route('account.destroy', $account->faccid) }}" method="POST">
-                    @csrf
-                    @method('DELETE')
-                    <div class="flex justify-end space-x-2">
-                        <button onclick="closeDeleteModal()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-                            id="btnTidak">
-                            Tidak
-                        </button>
-                        <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
-                            Ya, Hapus
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <script>
-            function showDeleteModal() {
-                document.getElementById('deleteModal').classList.remove('hidden');
-            }
-
-            function closeDeleteModal() {
-                document.getElementById('deleteModal').classList.add('hidden');
-            }
-
-            function closeToast() {
-                document.getElementById('toast').classList.add('hidden');
-            }
-
-            function showToast(message, isSuccess = true) {
-                const toast = document.getElementById('toast');
-                const toastContent = document.getElementById('toastContent');
-                const toastMessage = document.getElementById('toastMessage');
-
-                toastMessage.textContent = message;
-                toastContent.className = isSuccess ?
-                    'bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg flex items-center' :
-                    'bg-red-500 text-white px-6 py-4 rounded-lg shadow-lg flex items-center';
-
-                toast.classList.remove('hidden');
-            }
-
-            function confirmDelete() {
-                const btnYa = document.getElementById('btnYa');
-                const btnTidak = document.getElementById('btnTidak');
-
-                btnYa.disabled = true;
-                btnTidak.disabled = true;
-                btnYa.textContent = 'Menghapus...';
-
-                fetch('{{ route('account.destroy', $account->faccid) }}', {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            _method: 'DELETE'
-                        })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        closeDeleteModal();
-                        showToast(data.message || 'Data berhasil dihapus', true);
-
-                        setTimeout(() => {
-                            window.location.href = '{{ route('account.index') }}';
-                        }, 500);
-                    })
-                    .catch(error => {
-                        btnYa.disabled = false;
-                        btnTidak.disabled = false;
-                        btnYa.textContent = 'Ya, Hapus';
-                        showToast('Terjadi kesalahan saat menghapus data', false);
-                    });
-            }
-        </script>
-    @endif
 @endsection
 @push('styles')
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">

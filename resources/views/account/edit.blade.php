@@ -11,7 +11,7 @@
         @if ($action === 'delete')
             <div class="space-y-4">
                 <div class="lg:col-span-4">
-                    <label class="block text-sm font-medium mb-1" style="font-weight: bold;">Account</label>
+                    <label class="block text-sm font-medium mb-1" style="font-weight: bold;">Account Header</label>
                     <div class="flex">
                         <div class="relative flex-1">
                             <select id="accountSelect" class="bg-gray-100 w-full border rounded-l px-3 py-2" disabled>

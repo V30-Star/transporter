@@ -54,7 +54,7 @@
                 </div>
 
                 <div class="mt-4">
-                    <label class="block text-sm font-medium" style="font-weight: bold;">Account #</label>
+                    <label class="block text-sm font-medium" style="font-weight: bold;">Kode Account</label>
                     <input type="text" name="faccount" id="faccount" value="{{ old('faccount') }}"
                         class="w-full border rounded px-3 py-2 uppercase @error('faccount') border-red-500 @enderror"
                         maxlength="10" pattern="^\d+(-\d+)*$"
