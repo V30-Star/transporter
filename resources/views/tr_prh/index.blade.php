@@ -313,8 +313,8 @@
                     name: 'fsuppliername'
                 },
                 {
-                    data: 'fusercreate',
-                    name: 'fusercreate'
+                    data: 'display_user',
+                    name: 'display_user'
                 },
                 {
                     data: 'fclose',

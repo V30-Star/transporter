@@ -102,7 +102,6 @@ class AccountController extends Controller
         $validated['faccname'] = strtoupper($validated['faccname']);
 
         $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null;
-        $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? 'system';
         $validated['fcreatedat'] = now();
 
         // Non aktif (checkbox)

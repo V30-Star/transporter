@@ -60,7 +60,6 @@ class RekeningController extends Controller
 
         // Add default values for created and updated fields
         $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null; // Or use the authenticated user's name
-        $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? 'system';  // Fallback jika tidak ada
         $validated['fcreatedat'] = now(); // Set current time
 
         $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';

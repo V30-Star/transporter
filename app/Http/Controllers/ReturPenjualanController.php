@@ -551,6 +551,7 @@ class ReturPenjualanController extends Controller
           'ftypesales'      => $ftypesales,
           'ftrcode'         => 'I',
           'fprdout'         => '0',
+          'ftaxno'          => $request->ftaxno ?? '0',
         ]);
 
         // Insert Detail (trandt)
@@ -943,6 +944,7 @@ class ReturPenjualanController extends Controller
           'fincludeppn'     => $fincludeppn,
           'ftypesales'      => $ftypesales,
           'fppnpersen'      => $ppnPersen,
+          'ftaxno'          => $request->ftaxno ?? '0',
         ]);
 
         // Hapus detail lama berdasarkan fsono (karena trandt tidak punya ftranmtid)

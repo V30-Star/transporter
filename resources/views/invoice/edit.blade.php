@@ -2122,7 +2122,7 @@
             totalHarga: 0,
             ppnRate: 11,
 
-            initialGrandTotal: @json($famountso ?? 0),
+            initialGrandTotal: @json($famountso ?? e0),
             initialPpnAmount: @json($famountpopajak ?? 0),
 
             includePPN: false,

@@ -118,7 +118,7 @@
                         <div class="flex">
                             <div class="relative flex-1" for="modal_filter_supplier_id">
                                 <select disabled id="modal_filter_supplier_id" name="filter_supplier_id"
-                                    class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
+                                    class="w-full border rounded-l px-3 py-2 bg-gray-200 text-gray-700 cursor-not-allowed"
                                     disabled>
                                     <option value=""></option>
                                     @foreach ($suppliers as $supplier)
@@ -129,8 +129,6 @@
                                         </option>
                                     @endforeach
                                 </select>
-                                <div class="absolute inset-0" role="button" aria-label="Browse supplier"
-                                    @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"></div>
                             </div>
                             {{-- kirim ID supplier ke server --}}
                             <input type="hidden" name="fsupplier" id="supplierCodeHidden"
@@ -153,7 +151,7 @@
                     <div class="lg:col-span-4">
                         <label class="block text-sm font-medium">Tanggal</label>
                         <input disabled type="date" name="fprdate" value="{{ old('fprdate', $fmt($tr_prh->fprdate)) }}"
-                            class="w-full border rounded px-3 py-2 text-gray-700 @error('fprdate') border-red-500 @enderror">
+                            class="bg-gray-200 w-full border rounded px-3 py-2 text-gray-700 @error('fprdate') border-red-500 @enderror">
                         @error('fprdate')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
@@ -163,7 +161,7 @@
                         <label class="block text-sm font-medium">Tanggal Dibutuhkan</label>
                         <input disabled type="date" name="fneeddate"
                             value="{{ old('fneeddate', $fmt($tr_prh->fneeddate)) }}"
-                            class="w-full border rounded px-3 py-2 text-gray-700 @error('fneeddate') border-red-500 @enderror">
+                            class="bg-gray-200 w-full border rounded px-3 py-2 text-gray-700 @error('fneeddate') border-red-500 @enderror">
                         @error('fneeddate')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
@@ -173,7 +171,7 @@
                         <label class="block text-sm font-medium">Tanggal Paling Lambat</label>
                         <input disabled type="date" name="fduedate"
                             value="{{ old('fduedate', $fmt($tr_prh->fduedate)) }}"
-                            class="w-full border rounded px-3 py-2 text-gray-700 @error('fduedate') border-red-500 @enderror">
+                            class="bg-gray-200 w-full border rounded px-3 py-2 text-gray-700 @error('fduedate') border-red-500 @enderror">
                         @error('fduedate')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
@@ -182,7 +180,7 @@
                     <div class="lg:col-span-12">
                         <label class="block text-sm font-medium">Keterangan</label>
                         <textarea readonly name="fket" rows="3"
-                            class="w-full border rounded px-3 py-2 text-gray-700 @error('fket') border-red-500 @enderror"
+                            class="bg-gray-200 w-full border rounded px-3 py-2 text-gray-700 @error('fket') border-red-500 @enderror"
                             placeholder="Tulis keterangan tambahan di sini...">{{ old('fket', $tr_prh->fket) }}</textarea>
                         @error('fket')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -378,28 +376,6 @@
                     </div>
 
                     <input type="hidden" id="itemsCount" :value="savedItems.length">
-                </div>
-
-                {{-- MODAL ERROR: belum ada item --}}
-                <div x-show="showNoItems" x-cloak class="fixed inset-0 z-[90] flex items-center justify-center"
-                    x-transition.opacity>
-                    <div class="absolute inset-0 bg-black/50" @click="showNoItems=false"></div>
-                    <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden"
-                        x-transition.scale>
-                        <div class="px-5 py-4 border-b flex items-center">
-                            <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-red-500 mr-2" />
-                            <h3 class="text-lg font-semibold text-gray-800">Tidak Ada Item</h3>
-                        </div>
-                        <div class="px-5 py-4">
-                            <p class="text-sm text-gray-700">Anda belum menambahkan item apa pun pada tabel. Silakan
-                                isi
-                                baris “Detail Item” terlebih dahulu.</p>
-                        </div>
-                        <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
-                            <button type="button" @click="showNoItems=false"
-                                class="h-9 px-4 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">OK</button>
-                        </div>
-                    </div>
                 </div>
 
                 {{-- MODAL SUPPLIER --}}
