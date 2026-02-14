@@ -10,6 +10,33 @@
         {{-- ============================================ --}}
         @if ($action === 'delete')
             <div class="space-y-4">
+                <div class="lg:col-span-4">
+                    <label class="block text-sm font-medium mb-1" style="font-weight: bold;">Account</label>
+                    <div class="flex">
+                        <div class="relative flex-1">
+                            <select id="accountSelect" class="bg-gray-100 w-full border rounded-l px-3 py-2" disabled>
+                                <option value=""></option>
+                                @foreach ($headers as $header)
+                                    <option disabled value="{{ $header->faccount }}" data-faccid="{{ $header->faccid }}"
+                                        data-branch="{{ $header->faccount }}"
+                                        {{ old('faccupline', $account->faccupline) == $header->faccount ? 'selected' : '' }}>
+                                        {{ $header->faccount }} - {{ $header->faccname }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <input type="hidden" name="faccupline" id="accountCodeHidden"
+                            value="{{ old('faccupline', $account->faccupline) }}">
+                        <input type="hidden" name="faccid" id="accountIdHidden"
+                            value="{{ old('faccid', $account->faccid) }}">
+                    </div>
+
+                    @error('faccupline')
+                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
                 <div>
                     <label class="block text-sm font-medium text-gray-700" style="font-weight: bold;">Kode Account</label>
                     <input type="text" value="{{ $account->faccount }}"
@@ -149,7 +176,8 @@
                 {{-- Kode Account --}}
                 <div class="mt-4">
                     <label class="block text-sm font-medium" style="font-weight: bold;">Kode Account</label>
-                    <input type="text" name="faccount" id="faccount" value="{{ old('faccount', $account->faccount) }}"
+                    <input type="text" name="faccount" id="faccount"
+                        value="{{ old('faccount', $account->faccount) }}"
                         class="w-full border rounded px-3 py-2 uppercase @error('faccount') border-red-500 @enderror"
                         maxlength="10" pattern="^\d+(-\d+)*$" title="Format harus angka & boleh pakai '-' (mis: 1-123)"
                         placeholder="Ketik untuk mencari..." autofocus>

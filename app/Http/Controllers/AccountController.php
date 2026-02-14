@@ -79,7 +79,12 @@ class AccountController extends Controller
                 'faccount'     => 'required|string|unique:account,faccount|max:10',
                 'faccname'     => 'required|string',
                 'faccupline'   => 'nullable|string',
-                'finitjurnal'  => $isSetAccount ? 'required|string|max:2' : 'nullable|string|max:2',
+                'finitjurnal'  => [
+                    $isSetAccount ? 'required' : 'nullable',
+                    'string',
+                    'max:2',
+                    'unique:account,finitjurnal'
+                ],
                 'fnormal'      => 'required|in:D',
                 'fend'         => 'required|in:1,0',
                 'fuserlevel'   => 'required|in:1,2,3',
@@ -93,6 +98,7 @@ class AccountController extends Controller
                 'faccount.max'      => 'Kode account maksimal 10 karakter.',
                 'faccname.max'      => 'Nama account maksimal 50 karakter.',
                 'finitjurnal.max'   => 'Inisial jurnal maksimal 2 karakter.',
+                'finitjurnal.unique' => 'Initial Jurnal sudah digunakan oleh account lain.',
                 'finitjurnal.required' => 'Initial Jurnal wajib diisi untuk account KAS/BANK.',
                 'faccupline.exists' => 'Account header tidak valid.',
             ]
@@ -185,7 +191,12 @@ class AccountController extends Controller
                 'faccount'     => "required|string|unique:account,faccount,{$faccid},faccid|max:10",
                 'faccname'     => 'required|string|max:50',
                 'fnormal'      => 'required|in:D',
-                'finitjurnal'  => $isSetAccount ? 'required|string|max:2' : 'nullable|string|max:2',
+                'finitjurnal'  => [
+                    $isSetAccount ? 'required' : 'nullable',
+                    'string',
+                    'max:2',
+                    'unique:account,finitjurnal'
+                ],
                 'fend'         => 'required|in:1,0',
                 'fuserlevel'   => 'required|in:1,2,3',
                 'faccupline'   => [
@@ -202,6 +213,7 @@ class AccountController extends Controller
                 'faccname.required' => 'Nama account harus diisi.',
                 'faccname.max'      => 'Nama account maksimal 50 karakter.',
                 'finitjurnal.required' => 'Inisial jurnal harus diisi untuk KASBANKHEADER.',
+                'finitjurnal.unique' => 'Initial Jurnal sudah digunakan oleh account lain.',
                 'finitjurnal.max'   => 'Inisial jurnal maksimal 2 karakter.',
                 'faccupline.exists' => 'Account header tidak valid.',
             ]
@@ -243,10 +255,22 @@ class AccountController extends Controller
     {
         $account = Account::findOrFail($faccid);
 
+        // preload 50 header untuk dropdown view
+        $headers = Account::where('fend', 0)
+            ->orderBy('faccount')
+            ->limit(50)
+            ->get();
+
+        // header yang sedang terset di record ini (jika ada)
+        $selectedHeader = null;
+        if (!empty($account->faccupline)) {
+            $selectedHeader = Account::find($account->faccupline);
+        }
+
         return view('account.edit', [
             'account' => $account,
-            'headers' => [], // Tidak perlu headers untuk delete
-            'selectedHeader' => null,
+            'headers' => $headers,
+            'selectedHeader' => $selectedHeader,
             'action' => 'delete' // Tambahkan ini
         ]);
     }
