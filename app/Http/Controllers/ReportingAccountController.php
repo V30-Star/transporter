@@ -10,7 +10,7 @@ class ReportingAccountController extends Controller
 {
   private array $arrDist = [];
   private array $arrNormList = [];
-  private int $ribu = 1000;
+  private int $ribu = 1;
 
   public function index()
   {
