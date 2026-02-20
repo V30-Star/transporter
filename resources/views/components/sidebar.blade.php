@@ -114,6 +114,15 @@
                     </li>
                     {{-- @endif --}}
 
+                    {{-- @if (in_array('viewCurrency', explode(',', session('user_restricted_permissions', '')))) --}}
+                    <li>
+                        <a href="{{ route('reportingaccount.index') }}" class="flex items-center p-2 rounded hover:bg-gray-700">
+                            <x-heroicon-o-credit-card class="w-5 h-5" />
+                            <span class="ml-3">Laporan Account (Tree)</span>
+                        </a>
+                    </li>
+                    {{-- @endif --}}
+
                 </ul>
             </li>
 
