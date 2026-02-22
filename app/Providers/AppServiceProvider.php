@@ -18,15 +18,17 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Bootstrap any application services.
      */
-public function boot()
-{
-    Validator::extend('fsysuserid', function ($attribute, $value, $parameters, $validator) {
-        return preg_match('/^[a-zA-Z0-9_]+$/', $value);
-    });
+    public function boot()
+    {
+        Validator::extend('fsysuserid', function ($attribute, $value, $parameters, $validator) {
+            return preg_match('/^[a-zA-Z0-9_]+$/', $value);
+        });
 
-    // TAMBAHKAN KODE INI
+        // HAPUS atau COMMENT bagian forceRootUrl ini
+        /*
     if (!empty(env('APP_URL'))) {
         \URL::forceRootUrl(env('APP_URL'));
     }
-}
+    */
+    }
 }
