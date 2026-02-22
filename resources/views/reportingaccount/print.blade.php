@@ -52,7 +52,7 @@
                         {{-- Membuat indentasi berdasarkan level --}}
                         <span class="level-indent" style="margin-left: {{ ($row->flevel - 1) * 20 }}px;">
                             @if($row->flevel > 1) └── @endif 
-                            <strong>{{ trim($row->faccount) }}</strong>
+                            <strong>{{ trim($row->faccount) }} || {{ trim($row->faccountname) }}</strong>
                         </span>
                     </td>
                     <td class="text-center">{{ $row->flevel }}</td>
