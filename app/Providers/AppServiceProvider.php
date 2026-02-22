@@ -20,15 +20,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        Validator::extend('fsysuserid', function ($attribute, $value, $parameters, $validator) {
+        \Illuminate\Support\Facades\Validator::extend('fsysuserid', function ($attribute, $value, $parameters, $validator) {
             return preg_match('/^[a-zA-Z0-9_]+$/', $value);
         });
 
-        // HAPUS atau COMMENT bagian forceRootUrl ini
-        /*
-    if (!empty(env('APP_URL'))) {
-        \URL::forceRootUrl(env('APP_URL'));
-    }
-    */
+        // NYALAKAN KEMBALI INI
+        if (!empty(env('APP_URL'))) {
+            \Illuminate\Support\Facades\URL::forceRootUrl(env('APP_URL'));
+        }
     }
 }
