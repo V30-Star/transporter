@@ -10,6 +10,7 @@ class ReportingAccountController extends Controller
 {
   private array $arrDist = [];
   private array $arrNormList = [];
+  private array $nameMap = []; // Tambahkan ini untuk mapping nama
   private int $ribu = 1;
 
   public function index()
@@ -19,26 +20,28 @@ class ReportingAccountController extends Controller
 
   public function rebuildAndPrint(Request $request)
   {
-    // 1. Jalankan proses rebuild logic
-    // Kita panggil method rebuildTree secara internal
     $this->rebuildTreeLogic();
-
-    // 2. Setelah selesai rebuild, arahkan ke fungsi print atau tampilkan view
-    // Di sini saya asumsikan kamu mau lanjat ke halaman preview/print
     return $this->printAccount($request);
   }
 
   private function rebuildTreeLogic()
   {
     return DB::transaction(function () {
-      $accounts = DB::table('account')->select('faccount', 'faccupline')->get();
+      // 1. Ambil faccname juga dari database
+      $accounts = DB::table('account')->select('faccount', 'faccupline', 'faccname')->get();
       if ($accounts->isEmpty()) return;
 
       $this->arrDist = [];
+      $this->nameMap = []; // Reset mapping nama
+
       foreach ($accounts as $row) {
         $acc = trim($row->faccount);
         $upline = trim($row->faccupline ?? '');
+        $name = trim($row->faccname ?? '');
+
         $this->arrDist[$upline][$acc] = null;
+        // 2. Simpan nama ke dalam mapping array
+        $this->nameMap[$acc] = $name;
       }
 
       // Cari Root
@@ -47,27 +50,30 @@ class ReportingAccountController extends Controller
         return $upline === '' || $upline === '0';
       });
 
-      $rootId = $rootAccount ? trim($rootAccount->faccount) : trim($accounts->first()->faccount);
+      // Ambil objek root yang benar
+      $rootObj = $rootAccount ?? $accounts->first();
+      $rootId = trim($rootObj->faccount);
+      $rootName = trim($rootObj->faccname ?? '');
 
       $this->arrNormList = [];
-      $nIndx = 1; // Mulai dari 1
+      $nIndx = 1;
       $nLevel = 1;
 
       // Inisialisasi Root
       $this->arrNormList[$nIndx] = [
-        'faccount'   => $rootId,
-        'faccupline' => '',
-        'flevel'     => $nLevel,
-        'forder'     => $nIndx, // Kolom forder jadi 1, 2, 3...
-        'fsporder'   => ($nIndx - 1) * $this->ribu, // (1-1) * 1000 = 0
-        'fdxorder'   => ($nIndx + 1) * $this->ribu, // (1+1) * 1000 = 2000
-        'fleafend'   => isset($this->arrDist[$rootId]) ? '0' : '1',
+        'faccount'      => $rootId,
+        'faccountname'  => $rootName, // Isi nama di sini
+        'faccupline'    => '',
+        'flevel'        => $nLevel,
+        'forder'        => $nIndx,
+        'fsporder'      => ($nIndx - 1) * $this->ribu,
+        'fdxorder'      => ($nIndx + 1) * $this->ribu,
+        'fleafend'      => isset($this->arrDist[$rootId]) ? '0' : '1',
       ];
 
       // Jalankan Rekursif
       $this->traceTree($rootId, $nIndx, $nLevel);
 
-      // Koreksi fdxorder untuk item terakhir agar jadi 0
       if (!empty($this->arrNormList)) {
         $lastKey = array_key_last($this->arrNormList);
         $this->arrNormList[$lastKey]['fdxorder'] = 0;
@@ -75,10 +81,9 @@ class ReportingAccountController extends Controller
 
       // Simpan ke Database
       DB::table('accounttree')->truncate();
-      $dataToInsert = [];
-      foreach ($this->arrNormList as $val) {
-        $dataToInsert[] = $val;
-      }
+
+      // Gunakan array_values untuk memastikan array numerik sebelum chunk
+      $dataToInsert = array_values($this->arrNormList);
 
       foreach (array_chunk($dataToInsert, 1000) as $chunk) {
         DB::table('accounttree')->insert($chunk);
@@ -86,21 +91,15 @@ class ReportingAccountController extends Controller
     });
   }
 
-  /**
-   * Fungsi untuk handle tampilan Print/Preview
-   */
   public function printAccount(Request $request)
   {
     $data = DB::table('accounttree')
-      ->orderBy('forder') // Sangat penting urut berdasarkan forder!
+      ->orderBy('forder')
       ->get();
 
     return view('reportingaccount.print', compact('data'));
   }
 
-  /**
-   * Pengganti TraceTree legacy
-   */
   private function traceTree($parentAcc, &$nIndx, $nLevel)
   {
     $parentAcc = trim($parentAcc);
@@ -108,17 +107,18 @@ class ReportingAccountController extends Controller
 
     $nLevel++;
     foreach ($this->arrDist[$parentAcc] as $childAcc => $null) {
-      $nIndx++; // Indeks naik terus (2, 3, 4...)
+      $nIndx++;
       $childAcc = trim($childAcc);
 
       $this->arrNormList[$nIndx] = [
-        'faccount'   => $childAcc,
-        'faccupline' => $parentAcc,
-        'flevel'     => $nLevel,
-        'forder'     => $nIndx,
-        'fsporder'   => ($nIndx - 1) * $this->ribu,
-        'fdxorder'   => ($nIndx + 1) * $this->ribu,
-        'fleafend'   => isset($this->arrDist[$childAcc]) ? '0' : '1',
+        'faccount'      => $childAcc,
+        'faccountname'  => $this->nameMap[$childAcc] ?? '', // Ambil nama dari mapping
+        'faccupline'    => $parentAcc,
+        'flevel'        => $nLevel,
+        'forder'        => $nIndx,
+        'fsporder'      => ($nIndx - 1) * $this->ribu,
+        'fdxorder'      => ($nIndx + 1) * $this->ribu,
+        'fleafend'      => isset($this->arrDist[$childAcc]) ? '0' : '1',
       ];
 
       $this->traceTree($childAcc, $nIndx, $nLevel);
