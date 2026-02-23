@@ -1,70 +1,297 @@
-
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Account Tree Report</title>
     <style>
-        body { font-family: 'Courier New', Courier, monospace; font-size: 12px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th { background-color: #f2f2f2; border: 1px solid #000; padding: 8px; }
-        td { border: 1px solid #ccc; padding: 6px; }
-        .text-center { text-align: center; }
-        .level-indent { display: inline-block; }
-        @media print {
-            .no-print { display: none; }
-            body { margin: 0; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        .header { text-align: center; margin-bottom: 30px; }
+
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 12px;
+            background: #fff;
+        }
+
+        /* ── Header ── */
+        .header-wrap {
+            width: 100%;
+            border-bottom: 2px solid #000;
+            margin-bottom: 6px;
+        }
+
+        .header-wrap table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .header-title {
+            font-family: Verdana, sans-serif;
+            font-size: 18px;
+            font-weight: bold;
+            color: #000;
+        }
+
+        .header-date {
+            font-family: Verdana, sans-serif;
+            font-size: 13px;
+            color: #333;
+            text-align: right;
+            vertical-align: top;
+            padding-bottom: 4px;
+        }
+
+        /* ── Tree Table ── */
+        .tree-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .tree-table thead tr {
+            background-color: #000099;
+            color: #fff;
+            height: 22px;
+        }
+
+        .tree-table thead th {
+            font-family: Verdana, sans-serif;
+            font-size: 12px;
+            font-weight: normal;
+            border: 1px dashed #7777cc;
+            padding: 2px 6px;
+            white-space: nowrap;
+        }
+
+        .tree-table tbody tr:hover {
+            background-color: #f0f4ff;
+        }
+
+        .tree-table tbody td {
+            font-family: Verdana, sans-serif;
+            font-size: 11px;
+            border: 1px dashed #aaa;
+            padding: 2px 4px;
+            white-space: nowrap;
+        }
+
+        .tree-table tfoot td {
+            border-top: 1px dashed #aaa;
+            padding: 4px;
+        }
+
+        /* ── Tree glyph images (inline SVG data-URI pengganti gif) ── */
+        .ti {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            vertical-align: middle;
+        }
+
+        /* garis tegak lurus  │  */
+        .ti-line {
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cline x1='8' y1='0' x2='8' y2='16' stroke='%23555' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat center;
+        }
+
+        /* ├── joinbottom */
+        .ti-joinbot {
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cline x1='8' y1='0' x2='8' y2='16' stroke='%23555' stroke-width='1.5'/%3E%3Cline x1='8' y1='8' x2='16' y2='8' stroke='%23555' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat center;
+        }
+
+        /* └── join (corner) */
+        .ti-join {
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cline x1='8' y1='0' x2='8' y2='8' stroke='%23555' stroke-width='1.5'/%3E%3Cline x1='8' y1='8' x2='16' y2='8' stroke='%23555' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat center;
+        }
+
+        /* spasi kosong */
+        .ti-empty {
+            background: none;
+        }
+
+        /* ── Footer ── */
+        .footer {
+            text-align: center;
+            font-family: Verdana, sans-serif;
+            font-size: 13px;
+            font-weight: bold;
+            padding: 10px 0;
+        }
+
+        /* ── No-print button ── */
+        .no-print {
+            margin: 10px;
+        }
+
+        .no-print button {
+            padding: 8px 18px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        @media print {
+            .no-print {
+                display: none;
+            }
+
+            body {
+                margin: 0;
+            }
+        }
     </style>
 </head>
-<body>
 
-    <div class="no-print" style="margin-bottom: 20px;">
-        <button onclick="window.print()" style="padding: 10px 20px; cursor: pointer;">
-            Cetak Laporan
-        </button>
+<body onload="window.print()">
+
+    {{-- Tombol cetak (hilang saat print) --}}
+    <div class="no-print">
+        <button onclick="window.print()">&#128438; Cetak Laporan</button>
     </div>
 
-    <div class="header">
-        <h2>LAPORAN STRUKTUR AKUN (ACCOUNT TREE)</h2>
-        <p>Tanggal Cetak: {{ date('d-m-Y H:i:s') }}</p>
-    </div>
+    @php
+        /* ────────────────────────────────────────────────────
+         * Persiapan data untuk render tree ala legacy PHP
+         * ──────────────────────────────────────────────────── */
+        $rows = $data->values(); // reindex 0-based
+        $nrows = $rows->count();
+        $nBegin = $nrows > 0 ? $rows[0]->flevel : 1;
 
-    <table>
-        <thead>
+        $lPreviousLeafEnd = true;
+        $nPreviousLevel = $nBegin;
+
+        /**
+         * cTree adalah string "token" — sama persis pola legacy:
+         *   $8 = kosong/spasi
+         *   $9 = garis tegak │
+         *   $1 = ├── (joinbottom)
+         *   $2 = └── (join/corner)
+         *
+         * Setelah dirakit, token diganti jadi HTML span.
+         */
+        $cTree = '';
+    @endphp
+
+    {{-- ── Header ── --}}
+    <div class="header-wrap">
+        <table>
             <tr>
-                <th>No</th>
-                <th>Kode Akun</th>
-                <th>Level</th>
-                <th>Upline</th>
-                <th>Urutan (Order)</th>
-                <th>Status</th>
+                <td rowspan="2" style="width:120px; padding:4px;">
+                    {{-- Logo (ganti path sesuai project) --}}
+                    @if (file_exists(public_path('images/logo.jpg')))
+                        <img src="{{ asset('images/logo.jpg') }}" style="max-height:60px;" alt="Logo">
+                    @else
+                        <div
+                            style="width:100px;height:50px;background:#eee;display:flex;align-items:center;justify-content:center;font-size:10px;color:#888;">
+                            LOGO</div>
+                    @endif
+                </td>
+                <td class="header-date">Tanggal : {{ date('j M Y') }}</td>
             </tr>
-        </thead>
-        <tbody>
-            @php $no = 1; @endphp
-            @foreach($data as $row)
-                <tr>
-                    <td class="text-center">{{ $no++ }}</td>
-                    <td>
-                        {{-- Membuat indentasi berdasarkan level --}}
-                        <span class="level-indent" style="margin-left: {{ ($row->flevel - 1) * 20 }}px;">
-                            @if($row->flevel > 1) └── @endif 
-                            <strong>{{ trim($row->faccount) }} || {{ trim($row->faccountname) }}</strong>
-                        </span>
-                    </td>
-                    <td class="text-center">{{ $row->flevel }}</td>
-                    <td class="text-center">{{ trim($row->faccupline) ?: '-' }}</td>
-                    <td class="text-center">{{ $row->forder }}</td>
-                    <td class="text-center">
-                        {{ $row->fleafend == '1' ? 'Leaf (Ujung)' : 'Parent' }}
-                    </td>
-                </tr>
-            @endforeach
-        </tbody>
-    </table>
+            <tr>
+                <td class="header-date">Account Tree</td>
+            </tr>
+            <tr>
+                <td colspan="2" style="height:6px;"></td>
+            </tr>
+            <tr>
+                <td colspan="2" style="padding-bottom:4px;">
+
+                    {{-- ── Tree Table ── --}}
+                    <table class="tree-table">
+                        <thead>
+                            <tr>
+                                <th style="text-align:left;">&nbsp;Account&nbsp;</th>
+                                <th>&nbsp;Lvl&nbsp;</th>
+                                <th>&nbsp;Order&nbsp;</th>
+                                <th>&nbsp;SpOrder&nbsp;</th>
+                                <th>&nbsp;DxOrder&nbsp;</th>
+                                <th style="border-right:1px dashed #7777cc;">&nbsp;End&nbsp;</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($rows as $i => $row)
+                                @php
+                                    /* ── Bangun cTree untuk baris ini ── */
+                                    $nEnd = $row->flevel;
+                                    $lDraw = true;
+
+                                    if ($nBegin != $nEnd) {
+                                        /* Masuk lebih dalam: tambah garis tegak jika parent belum leaf-end */
+                                        if (!$lPreviousLeafEnd && $nPreviousLevel < $nEnd) {
+                                            $cTree .= '$9';
+                                        } elseif ($lPreviousLeafEnd && $nPreviousLevel < $nEnd) {
+                                            if ($i > 1) {
+                                                $cTree .= '$8';
+                                            }
+                                        }
+
+                                        /* Naik level: potong cTree */
+                                        if ($nPreviousLevel > $nEnd) {
+                                            $nTreeInd = strlen($cTree) - ($nPreviousLevel - $nEnd) * 2;
+                                            if ($nTreeInd < 0) {
+                                                $nTreeInd = 0;
+                                            }
+                                            $cTree = substr($cTree, 0, $nTreeInd);
+                                        }
+
+                                        /* Pilih simbol ujung cabang */
+                                        $symbol = $row->fleafend == '1' ? '$2' : '$1';
+                                        $cetak = $cTree . $symbol;
+                                    } else {
+                                        $cetak = ''; /* root — tidak ada garis */
+                                    }
+
+                                    /* Ganti token → HTML */
+                                    $cetak = str_replace('$2', '<span class="ti ti-join"></span>', $cetak);
+                                    $cetak = str_replace('$1', '<span class="ti ti-joinbot"></span>', $cetak);
+                                    $cetak = str_replace('$9', '<span class="ti ti-line"></span>', $cetak);
+                                    $cetak = str_replace('$8', '<span class="ti ti-empty"></span>', $cetak);
+
+                                    /* Simpan state untuk iterasi berikutnya */
+                                    $lPreviousLeafEnd = $row->fleafend == '1';
+                                    $nPreviousLevel = $nEnd;
+                                    if ($nEnd == $nBegin) {
+                                        $lPreviousLeafEnd = true;
+                                    }
+                                @endphp
+
+                                <tr>
+                                    {{-- Kolom Account (dengan tree glyph) --}}
+                                    <td>
+                                        {!! $cetak !!}
+                                        <span style="font-family:'Courier New',monospace; font-size:11px;">
+                                            <strong>{{ trim($row->faccount) }} || {{ trim($row->faccname) }}</strong>
+                                        </span>
+                                    </td>
+                                    <td style="text-align:center;">{{ $nEnd - $nBegin }}</td>
+                                    <td style="text-align:center;">{{ $row->forder }}</td>
+                                    <td style="text-align:center;">{{ $row->fsporder }}</td>
+                                    <td style="text-align:center;">{{ $row->fdxorder }}</td>
+                                    <td style="text-align:center; border-right:1px dashed #aaa;">
+                                        {{ $row->fleafend == '1' ? '✓' : '' }}
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="6">&nbsp;</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" style="height:30px; vertical-align:bottom; text-align:center; padding-bottom:6px;">
+                    <span class="footer">*** end of report ***</span>
+                </td>
+            </tr>
+        </table>
+    </div>
 
 </body>
+
 </html>

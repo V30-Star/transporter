@@ -4,14 +4,12 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Exception;
 
 class ReportingAccountController extends Controller
 {
-  private array $arrDist = [];
-  private array $arrNormList = [];
-  private array $nameMap = []; // Tambahkan ini untuk mapping nama
-  private int $ribu = 1;
+  private array $arrDist      = [];   // parent => [children]
+  private array $arrNormList  = [];   // hasil tree
+  private int   $nIndx        = 0;    // counter global (naik terus saat traverse)
 
   public function index()
   {
@@ -24,104 +22,134 @@ class ReportingAccountController extends Controller
     return $this->printAccount($request);
   }
 
-  private function rebuildTreeLogic()
+  // -----------------------------------------------------------------------
+  // REBUILD TREE
+  // -----------------------------------------------------------------------
+  private function rebuildTreeLogic(): void
   {
-    return DB::transaction(function () {
-      // 1. Ambil faccname juga dari database
-      $accounts = DB::table('account')->select('faccount', 'faccupline', 'faccname')->get();
+    DB::transaction(function () {
+
+      $accounts = DB::table('account')
+        ->select('faccount', 'faccupline')
+        ->get();
+
       if ($accounts->isEmpty()) return;
 
+      // -- 1. Bangun arrDist: parent => [child1, child2, ...]
       $this->arrDist = [];
-      $this->nameMap = []; // Reset mapping nama
-
       foreach ($accounts as $row) {
-        $acc = trim($row->faccount);
+        $acc    = trim($row->faccount);
         $upline = trim($row->faccupline ?? '');
-        $name = trim($row->faccname ?? '');
-
-        $this->arrDist[$upline][$acc] = null;
-        // 2. Simpan nama ke dalam mapping array
-        $this->nameMap[$acc] = $name;
+        $this->arrDist[$upline][] = $acc;
       }
 
-      // Cari Root
-      $rootAccount = $accounts->first(function ($item) {
-        $upline = trim($item->faccupline ?? '');
-        return $upline === '' || $upline === '0';
-      });
+      // -- 2. Cari root (upline kosong atau '0')
+      $rootAcc = null;
+      foreach ($accounts as $row) {
+        $upline = trim($row->faccupline ?? '');
+        if ($upline === '' || $upline === '0') {
+          $rootAcc = trim($row->faccount);
+          break;
+        }
+      }
+      if ($rootAcc === null) {
+        $rootAcc = trim($accounts->first()->faccount);
+      }
 
-      // Ambil objek root yang benar
-      $rootObj = $rootAccount ?? $accounts->first();
-      $rootId = trim($rootObj->faccount);
-      $rootName = trim($rootObj->faccname ?? '');
-
+      // -- 3. Inisialisasi
       $this->arrNormList = [];
-      $nIndx = 1;
-      $nLevel = 1;
+      $this->nIndx       = 1;
 
-      // Inisialisasi Root
-      $this->arrNormList[$nIndx] = [
-        'faccount'      => $rootId,
-        'faccountname'  => $rootName, // Isi nama di sini
-        'faccupline'    => '',
-        'flevel'        => $nLevel,
-        'forder'        => $nIndx,
-        'fsporder'      => ($nIndx - 1) * $this->ribu,
-        'fdxorder'      => ($nIndx + 1) * $this->ribu,
-        'fleafend'      => isset($this->arrDist[$rootId]) ? '0' : '1',
+      // Root node — fdxorder diisi setelah rekursi selesai
+      $this->arrNormList[1] = [
+        'faccount'   => $rootAcc,
+        'faccupline' => '',
+        'flevel'     => 1,
+        'forder'     => 1,
+        'fsporder'   => 0,          // parent dari root = 0
+        'fdxorder'   => 0,          // akan di-patch setelah rekursi
+        'fleafend'   => '0',        // root pasti punya anak
       ];
 
-      // Jalankan Rekursif
-      $this->traceTree($rootId, $nIndx, $nLevel);
+      // -- 4. Rekursi DFS
+      $this->traceTree($rootAcc, 1 /*parentOrder*/, 1 /*level*/);
 
-      if (!empty($this->arrNormList)) {
-        $lastKey = array_key_last($this->arrNormList);
-        $this->arrNormList[$lastKey]['fdxorder'] = 0;
-      }
+      // -- 5. Patch fdxorder setiap node = forder node terakhir di subtree-nya
+      //       Caranya: setelah DFS selesai, nIndx sudah final.
+      //       fdxorder node = forder dari elemen tepat sebelum sibling berikutnya.
+      //       Tapi cara paling mudah: kita sudah simpan posisi akhir subtree
+      //       di dalam rekursi (return value).
+      //
+      //       Karena traceTree sudah men-patch langsung (lihat implementasi bawah),
+      //       root tinggal di-patch dengan nilai nIndx terakhir.
+      $this->arrNormList[1]['fdxorder'] = $this->nIndx;
 
-      // Simpan ke Database
+      // -- 6. Simpan ke DB
       DB::table('accounttree')->truncate();
 
-      // Gunakan array_values untuk memastikan array numerik sebelum chunk
-      $dataToInsert = array_values($this->arrNormList);
-
-      foreach (array_chunk($dataToInsert, 1000) as $chunk) {
+      $rows = array_values($this->arrNormList); // reindex 0-based untuk insert
+      foreach (array_chunk($rows, 500) as $chunk) {
         DB::table('accounttree')->insert($chunk);
       }
     });
   }
 
+  // -----------------------------------------------------------------------
+  // DFS REKURSIF
+  // Mengembalikan forder terakhir yang dipakai dalam subtree node ini.
+  // -----------------------------------------------------------------------
+  private function traceTree(string $parentAcc, int $parentOrder, int $level): int
+  {
+    $parentAcc = trim($parentAcc);
+
+    if (!isset($this->arrDist[$parentAcc])) {
+      // Node daun — tidak punya anak
+      return $this->nIndx;
+    }
+
+    $children  = $this->arrDist[$parentAcc];
+    $lastIndex = count($children) - 1;
+    $level++;
+
+    foreach ($children as $i => $childAcc) {
+      $childAcc  = trim($childAcc);
+      $this->nIndx++;
+      $myOrder   = $this->nIndx;
+      $isLastChild = ($i === $lastIndex);
+
+      // Tulis dulu dengan fdxorder sementara (akan di-patch setelah rekursi)
+      $this->arrNormList[$myOrder] = [
+        'faccount'   => $childAcc,
+        'faccupline' => $parentAcc,
+        'flevel'     => $level,
+        'forder'     => $myOrder,
+        'fsporder'   => $parentOrder,   // forder dari parent
+        'fdxorder'   => $myOrder,       // sementara; di-patch setelah rekursi
+        'fleafend'   => $isLastChild ? '1' : '0',
+      ];
+
+      // Rekursi → dapat forder terakhir subtree anak ini
+      $lastInSubtree = $this->traceTree($childAcc, $myOrder, $level);
+
+      // Patch fdxorder node ini = forder node terakhir di subtree-nya
+      $this->arrNormList[$myOrder]['fdxorder'] = $lastInSubtree;
+    }
+
+    // Kembalikan forder terakhir yang sudah dipakai (= nIndx sekarang)
+    return $this->nIndx;
+  }
+
+  // -----------------------------------------------------------------------
+  // PRINT / PREVIEW
+  // -----------------------------------------------------------------------
   public function printAccount(Request $request)
   {
     $data = DB::table('accounttree')
+      ->join('account', 'accounttree.faccount', '=', 'account.faccount')
+      ->select('accounttree.*', 'account.faccname')
       ->orderBy('forder')
       ->get();
 
     return view('reportingaccount.print', compact('data'));
-  }
-
-  private function traceTree($parentAcc, &$nIndx, $nLevel)
-  {
-    $parentAcc = trim($parentAcc);
-    if (!isset($this->arrDist[$parentAcc])) return;
-
-    $nLevel++;
-    foreach ($this->arrDist[$parentAcc] as $childAcc => $null) {
-      $nIndx++;
-      $childAcc = trim($childAcc);
-
-      $this->arrNormList[$nIndx] = [
-        'faccount'      => $childAcc,
-        'faccountname'  => $this->nameMap[$childAcc] ?? '', // Ambil nama dari mapping
-        'faccupline'    => $parentAcc,
-        'flevel'        => $nLevel,
-        'forder'        => $nIndx,
-        'fsporder'      => ($nIndx - 1) * $this->ribu,
-        'fdxorder'      => ($nIndx + 1) * $this->ribu,
-        'fleafend'      => isset($this->arrDist[$childAcc]) ? '0' : '1',
-      ];
-
-      $this->traceTree($childAcc, $nIndx, $nLevel);
-    }
   }
 }
