@@ -45,14 +45,13 @@
                     <th class="border px-2 py-2 no-sort">Initial Jurnal</th>
                     <th class="border px-2 py-2 no-sort">Sub Account</th>
                     <th class="border px-2 py-2 no-sort">Status</th>
-                    <th class="border px-2 py-2" data-col="statusRaw">StatusRaw</th>
                     @if ($showActionsColumn)
                         <th class="border px-2 py-2 col-aksi">Aksi</th>
                     @endif
                 </tr>
             </thead>
             <tbody id="tableBody">
-                @forelse($accounts as $account)
+                @foreach ($accounts as $account)
                     <tr class="hover:bg-gray-50 {{ $account->fend == 0 ? 'font-bold' : '' }}">
                         <td>{{ $account->faccount }}</td>
                         <td>{{ $account->faccname }}</td>
@@ -69,16 +68,15 @@
                                 {{ $isActive ? 'Active' : 'Non Active' }}
                             </span>
                         </td>
-                        <td>{{ (string) $account->fnonactive }}</td>
                         @if ($showActionsColumn)
                             <td class="border px-2 py-1 space-x-2">
                                 {{-- @if ($canEdit) --}}
-                                    <a href="{{ route('account.view', $account->faccid) }}">
-                                        <button
-                                            class="inline-flex items-center bg-slate-500 text-white px-4 py-2 rounded hover:bg-slate-600">
-                                            <x-heroicon-o-pencil-square class="w-4 h-4 mr-1" /> View
-                                        </button>
-                                    </a>
+                                <a href="{{ route('account.view', $account->faccid) }}">
+                                    <button
+                                        class="inline-flex items-center bg-slate-500 text-white px-4 py-2 rounded hover:bg-slate-600">
+                                        <x-heroicon-o-pencil-square class="w-4 h-4 mr-1" /> View
+                                    </button>
+                                </a>
                                 {{-- @endif --}}
 
                                 @if ($canEdit)
@@ -102,8 +100,7 @@
                             </td>
                         @endif
                     </tr>
-                @empty
-                @endforelse
+                @endforeach
             </tbody>
         </table>
 

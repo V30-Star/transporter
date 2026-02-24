@@ -40,14 +40,13 @@
                     <th class="border px-2 py-2">Kode Group Customer</th>
                     <th class="border px-2 py-2">Nama Group Customer</th>
                     <th class="border px-2 py-2 no-sort">Status</th>
-                    <th class="border px-2 py-2" data-col="statusRaw">StatusRaw</th>
                     @if ($showActionsColumn)
                         <th class="border px-2 py-2 col-aksi">Aksi</th>
                     @endif
                 </tr>
             </thead>
             <tbody id="tableBody">
-                @forelse($groupcustomers as $gc)
+                @foreach($groupcustomers as $gc)
                     <tr class="hover:bg-gray-50">
                         <td>{{ $gc->fgroupcode }}</td>
                         <td>{{ $gc->fgroupname }}</td>
@@ -58,7 +57,6 @@
                                 {{ $isActive ? 'Active' : 'Non Active' }}
                             </span>
                         </td>
-                        <td>{{ (string) $gc->fnonactive }}</td>
                         @if ($showActionsColumn)
                             <td class="border px-2 py-1 space-x-2">
                                 {{-- @if ($canEdit) --}}
@@ -87,11 +85,7 @@
                             </td>
                         @endif
                     </tr>
-                @empty
-                    <tr>
-                        <td colspan="{{ $showActionsColumn ? 3 : 2 }}" class="text-center py-4">Tidak ada data.</td>
-                    </tr>
-                @endforelse
+                @endforeach
             </tbody>
         </table>
 

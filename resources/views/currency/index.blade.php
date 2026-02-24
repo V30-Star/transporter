@@ -47,7 +47,7 @@
                 </tr>
             </thead>
             <tbody id="tableBody">
-                @forelse($currencys as $item)
+                @foreach($currencys as $item)
                     <tr class="hover:bg-gray-50">
                         <td>{{ $item->fcurrcode }}</td>
                         <td>{{ $item->fcurrname }}</td>
@@ -88,11 +88,7 @@
                         </td>
                         {{-- @endif --}}
                     </tr>
-                @empty
-                    <tr>
-                        <td colspan="{{ $showActionsColumn ? 3 : 2 }}" class="text-center py-4">Tidak ada data.</td>
-                    </tr>
-                @endforelse
+                @endforeach
             </tbody>
         </table>
 

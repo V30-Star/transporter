@@ -41,50 +41,40 @@
                     <th>Kode Satuan</th>
                     <th>Nama Satuan</th>
                     <th class="border px-2 py-2 no-sort">Status</th>
-                    <th class="border px-2 py-2" data-col="statusRaw">StatusRaw</th>
                     @if ($showActionsColumn)
                         <th class="border px-2 py-2 col-aksi">Aksi</th>
                     @endif
                 </tr>
             </thead>
             <tbody>
-                @forelse($satuans as $item)
+                @foreach ($satuans as $item)
                     <tr>
                         <td>{{ $item->fsatuancode }}</td>
                         <td>{{ $item->fsatuanname }}</td>
                         <td>
                             @php $isActive = (string)$item->fnonactive === '0'; @endphp
-                            <span
-                                class="inline-flex items-center px-2 py-0.5 rounded text-xs {{ $isActive ? 'bg-green-100 text-green-700' : 'bg-red-200 text-red-700' }}">
-                                {{ $isActive ? 'Active' : 'Non Active' }}
+                            <span class="status-label" data-status="{{ $item->fnonactive }}">
+                                <span
+                                    class="inline-flex items-center px-2 py-0.5 rounded text-xs {{ $isActive ? 'bg-green-100 text-green-700' : 'bg-red-200 text-red-700' }}">
+                                    {{ $isActive ? 'Active' : 'Non Active' }}
+                                </span>
                             </span>
                         </td>
-                        <td>{{ (string) $item->fnonactive }}</td>
                         @if ($showActionsColumn)
                             <td class="border px-2 py-1 space-x-2">
-                                @if ($canEdit)
-                                    <a href="{{ route('satuan.edit', $item->fsatuanid) }}"
-                                        class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
-                                        <x-heroicon-o-pencil-square class="w-4 h-4 mr-1" /> Edit
-                                    </a>
-                                @endif
-                                @if ($canDelete)
-                                    <a href="{{ route('satuan.delete', $item->fsatuanid) }}">
-                                        <button
-                                            class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
-                                            <x-heroicon-o-trash class="w-4 h-4 mr-1" />
-                                            Hapus
-                                        </button>
-                                    </a>
-                                @endif
+                                {{-- Tombol Edit & Hapus --}}
+                                <a href="{{ route('satuan.edit', $item->fsatuanid) }}"
+                                    class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
+                                    Edit
+                                </a>
+                                <button @click="openDelete('{{ route('satuan.delete', $item->fsatuanid) }}', $event)"
+                                    class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                                    Hapus
+                                </button>
                             </td>
                         @endif
                     </tr>
-                @empty
-                    <tr>
-                        <td colspan="{{ $showActionsColumn ? 5 : 3 }}" class="text-center py-4">Tidak ada data.</td>
-                    </tr>
-                @endforelse
+                @endforeach
             </tbody>
         </table>
 
@@ -506,18 +496,18 @@
                         setTimeout(() => {
                             // Create search icon wrapper
                             const searchWrapper = $(`
-                <span class="column-search-wrapper">
-                    <span class="column-search-icon" data-column="${index}">
-                        <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                        </svg>
-                    </span>
-                    <div class="column-search-dropdown" data-column="${index}">
-                        <input type="text" class="column-search-input" placeholder="Cari..." />
-                        <button class="column-search-clear">Clear</button>
-                    </div>
-                </span>
-            `);
+                                <span class="column-search-wrapper">
+                                    <span class="column-search-icon" data-column="${index}">
+                                        <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                        </svg>
+                                    </span>
+                                    <div class="column-search-dropdown" data-column="${index}">
+                                        <input type="text" class="column-search-input" placeholder="Cari..." />
+                                        <button class="column-search-clear">Clear</button>
+                                    </div>
+                                </span>
+                            `);
 
                             // Cari dan letakkan di sebelah sort icon
                             const sortIcon = header.find('.dt-column-order');
@@ -606,34 +596,10 @@
 
                     $toolbarSearch.append($filter);
 
-                    const statusRawIdx = api.columns().indexes().toArray()
-                        .find(i => $(api.column(i).header()).attr('data-col') === 'statusRaw');
-
-                    if (statusRawIdx === undefined) {
-                        console.warn('Kolom StatusRaw tidak ditemukan.');
-                        return;
-                    }
-
-                    api.column(statusRawIdx).visible(false);
-
                     const $searchInput = $toolbarSearch.find('.dt-input');
                     $searchInput.css({
                         width: '400px',
                         maxWidth: '100%'
-                    });
-
-                    // Set default filter ke Active
-                    api.column(statusRawIdx).search('^0$', true, false).draw();
-
-                    $select.on('change', function() {
-                        const v = this.value;
-                        if (v === 'active') {
-                            api.column(statusRawIdx).search('^0$', true, false).draw();
-                        } else if (v === 'nonactive') {
-                            api.column(statusRawIdx).search('^1$', true, false).draw();
-                        } else {
-                            api.column(statusRawIdx).search('', true, false).draw();
-                        }
                     });
                 }
             });
