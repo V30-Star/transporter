@@ -384,6 +384,10 @@
                         maxWidth: '100%'
                     });
 
+                    $searchInput.on('input', function() {
+                        this.value = this.value.toUpperCase();
+                    });
+
                     $select.on('change', function() {
                         table.ajax.reload();
                     });
