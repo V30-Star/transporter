@@ -47,7 +47,7 @@
                 </tr>
             </thead>
             <tbody id="tableBody">
-                @foreach($salesmans as $item)
+                @foreach ($salesmans as $item)
                     <tr class="hover:bg-gray-50">
                         <td>{{ $item->fsalesmancode }}</td>
                         <td>{{ $item->fsalesmanname }}</td>
@@ -278,10 +278,10 @@
                     searchable: false
                 }
             ] : [{
-                    title: 'Kode Wilayah'
+                    title: 'Kode Salesman'
                 },
                 {
-                    title: 'Nama Wilayah'
+                    title: 'Nama Salesman'
                 },
                 {
                     title: 'Status'
@@ -296,8 +296,8 @@
                     [0, 'asc']
                 ],
                 layout: {
-                    topStart: 'search', // Search pindah ke kiri
-                    topEnd: 'pageLength', // Length menu pindah ke kanan
+                    topStart: 'search',
+                    topEnd: 'pageLength',
                     bottomStart: 'info',
                     bottomEnd: 'paging'
                 },
@@ -317,33 +317,49 @@
                 },
                 initComplete: function() {
                     const api = this.api();
+                    const $container = $(api.table().container());
+                    const $toolbarSearch = $container.find('.dt-search');
 
-                    const $toolbarSearch = $(api.table().container()).find('.dt-search');
+                    // 1. Setup Status Filter
                     const $filter = $('#statusFilterTemplate #statusFilterWrap').clone(true, true);
-
                     const $select = $filter.find('select[data-role="status-filter"]');
                     $select.attr('id', 'statusFilterDT');
-
                     $toolbarSearch.append($filter);
 
+                    // 2. Logika Kolom StatusRaw
                     const statusRawIdx = api.columns().indexes().toArray()
                         .find(i => $(api.column(i).header()).attr('data-col') === 'statusRaw');
 
-                    if (statusRawIdx === undefined) {
-                        console.warn('Kolom StatusRaw tidak ditemukan.');
-                        return;
+                    if (statusRawIdx !== undefined) {
+                        api.column(statusRawIdx).visible(false);
+                        // Default ke Active (0)
+                        api.column(statusRawIdx).search('^0$', true, false).draw();
                     }
 
-                    api.column(statusRawIdx).visible(false);
-
+                    // 3. FORCE UPPERCASE & STYLING SEARCH
                     const $searchInput = $toolbarSearch.find('.dt-input');
+
+                    // CSS agar visual langsung uppercase
                     $searchInput.css({
-                        width: '400px',
-                        maxWidth: '100%'
+                        'width': '400px',
+                        'maxWidth': '100%',
+                        'text-transform': 'uppercase'
                     });
 
-                    api.column(statusRawIdx).search('^0$', true, false).draw();
+                    // Handler input dengan delegasi dan fix posisi kursor
+                    $container.on('input', '.dt-search .dt-input', function() {
+                        const start = this.selectionStart;
+                        const end = this.selectionEnd;
 
+                        this.value = this.value.toUpperCase();
+
+                        this.setSelectionRange(start, end);
+
+                        // Jalankan pencarian manual
+                        api.search(this.value).draw();
+                    });
+
+                    // 4. Event Handler Filter Status
                     $select.on('change', function() {
                         const v = this.value;
                         if (v === 'active') {
@@ -351,7 +367,7 @@
                         } else if (v === 'nonactive') {
                             api.column(statusRawIdx).search('^1$', true, false).draw();
                         } else {
-                            api.column(statusRawIdx).search('', true, false).draw(); // all
+                            api.column(statusRawIdx).search('', true, false).draw();
                         }
                     });
                 }

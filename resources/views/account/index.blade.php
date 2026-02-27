@@ -381,49 +381,62 @@
                 },
                 initComplete: function() {
                     const api = this.api();
-                    const $toolbarSearch = $(api.table().container()).find('.dt-search');
+                    const $container = $(api.table().container());
+                    const $toolbarSearch = $container.find('.dt-search');
 
-                    // Clone dan append Status Filter
+                    // 1. Tambahkan Custom Filters (Status, Year, Month)
                     const $statusFilter = $('#statusFilterTemplate #statusFilterWrap').clone(true,
-                        true);
+                    true);
                     const $statusSelect = $statusFilter.find('select[data-role="status-filter"]');
                     $statusSelect.attr('id', 'statusFilterDT');
                     $toolbarSearch.append($statusFilter);
 
-                    // Clone dan append Year Filter
                     const $yearFilter = $('#yearFilterTemplate #yearFilterWrap').clone(true, true);
                     const $yearSelect = $yearFilter.find('select[data-role="year-filter"]');
                     $yearSelect.attr('id', 'yearFilterDT');
                     $toolbarSearch.append($yearFilter);
 
-                    // Clone dan append Month Filter
                     const $monthFilter = $('#monthFilterTemplate #monthFilterWrap').clone(true, true);
                     const $monthSelect = $monthFilter.find('select[data-role="month-filter"]');
                     $monthSelect.attr('id', 'monthFilterDT');
                     $toolbarSearch.append($monthFilter);
 
-                    // Cari index kolom StatusRaw
+                    // 2. Cari index kolom StatusRaw
                     const statusRawIdx = api.columns().indexes().toArray()
                         .find(i => $(api.column(i).header()).attr('data-col') === 'statusRaw');
 
-                    if (statusRawIdx === undefined) {
+                    if (statusRawIdx !== undefined) {
+                        api.column(statusRawIdx).visible(false);
+                        // Set filter status default (Active)
+                        api.column(statusRawIdx).search('^0$', true, false).draw();
+                    } else {
                         console.warn('Kolom StatusRaw tidak ditemukan.');
-                        return;
                     }
 
-                    api.column(statusRawIdx).visible(false);
+                    // 3. FORCE UPPERCASE pada Search Input
+                    // Menggunakan delegasi agar event tidak hilang saat redraw
+                    $container.on('input', '.dt-search input', function() {
+                        const start = this.selectionStart;
+                        const end = this.selectionEnd;
 
-                    // Perlebar search input
-                    const $searchInput = $toolbarSearch.find('.dt-input');
-                    $searchInput.css({
-                        width: '400px',
-                        maxWidth: '100%'
+                        // Paksa uppercase
+                        this.value = this.value.toUpperCase();
+
+                        // Kembalikan posisi kursor agar tidak jumping
+                        this.setSelectionRange(start, end);
+
+                        // Jalankan pencarian manual
+                        api.search(this.value).draw();
                     });
 
-                    // Set filter status default
-                    api.column(statusRawIdx).search('^0$', true, false).draw();
+                    // Styling Search Input
+                    $container.find('.dt-search input').css({
+                        'width': '400px',
+                        'max-width': '100%',
+                        'text-transform': 'uppercase'
+                    });
 
-                    // Event handler untuk Status Filter
+                    // 4. Event Handlers untuk Custom Filters
                     $statusSelect.on('change', function() {
                         const v = this.value;
                         if (v === 'active') {
@@ -435,14 +448,12 @@
                         }
                     });
 
-                    // Event handler untuk Year dan Month Filter
-                    // Menggunakan server-side filtering dengan reload halaman
                     $yearSelect.on('change', function() {
-                        applyDateFilters();
+                        if (typeof applyDateFilters === "function") applyDateFilters();
                     });
 
                     $monthSelect.on('change', function() {
-                        applyDateFilters();
+                        if (typeof applyDateFilters === "function") applyDateFilters();
                     });
                 }
             });

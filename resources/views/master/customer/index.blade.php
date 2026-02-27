@@ -253,20 +253,19 @@
         });
 
         $(function() {
+            // Inisialisasi DataTables
             const hasActions = {{ $showActionsColumn ? 'true' : 'false' }};
             const canEdit = {{ $canEdit ? 'true' : 'false' }};
             const canDelete = {{ $canDelete ? 'true' : 'false' }};
 
-            // Targetkan kolom yg tidak bisa di-sort (index 2, 3, 4, 5)
+            // Targetkan kolom yg tidak bisa di-sort
             const columnDefs = [{
                 targets: [2, 3, 4, 5],
                 orderable: false
             }];
 
-            // 'data' HARUS cocok dengan key JSON dari Controller BARU
             const columns = [{
                     data: 'fcustomercode'
-                    // Hapus 'title' karena sudah ada di <thead> HTML
                 },
                 {
                     data: 'fcustomername'
@@ -286,64 +285,55 @@
                 }
             ];
 
-            // Tambahkan kolom 'Aksi' secara kondisional
             if (hasActions) {
                 columns.push({
-                    // --- PERUBAHAN DI SINI ---
                     data: 'fcustomerid',
                     name: 'actions',
                     orderable: false,
                     searchable: false,
-                    className: 'col-aksi', // Untuk styling
+                    className: 'col-aksi',
                     render: function(data, type, row) {
-                        // 'data' sekarang berisi fcustomerid
                         let html = '<div class="space-x-2">';
-
                         let viewUrl = '{{ route('customer.index') }}/' + data + '/view';
+
                         html += `<a href="${viewUrl}" class="inline-flex items-center bg-slate-500 text-white px-4 py-2 rounded hover:bg-slate-600">
-                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                        </svg> View
-                    </a>`;
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                    </svg> View
+                </a>`;
 
                         if (canEdit) {
-                            // Ganti route('customer.edit') jika perlu
                             let editUrl = '{{ route('customer.index') }}/' + data + '/edit';
                             html += `<a href="${editUrl}" class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
-                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                    </svg> Edit
-                            </a>`;
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                        </svg> Edit
+                    </a>`;
                         }
 
                         if (canDelete) {
-                            // Gunakan template literal JavaScript, jangan gunakan helper route() Laravel untuk ID-nya
                             let deleteUrl = '{{ route('customer.index') }}/' + data + '/delete';
-
                             html += `<a href="${deleteUrl}">
-                                <button class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
-                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                    </svg>
-                                    Hapus
-                                </button>
-                            </a>`;
+                        <button class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg> Hapus
+                        </button>
+                    </a>`;
                         }
                         html += '</div>';
                         return html;
                     }
                 });
 
-                // Tambahkan definisi untuk kolom Aksi
                 columnDefs.push({
-                    targets: -1, // Kolom terakhir
+                    targets: -1,
                     orderable: false,
                     searchable: false
                 });
             }
 
-            // Inisialisasi DataTables
             const table = $('#customerTable').DataTable({
                 processing: true,
                 serverSide: true,
@@ -355,7 +345,7 @@
                     }
                 },
                 columns: columns,
-                columnDefs: columnDefs, // Terapkan columnDefs
+                columnDefs: columnDefs,
                 autoWidth: false,
                 pageLength: 10,
                 lengthMenu: [10, 25, 50, 100],
@@ -373,31 +363,40 @@
                     processing: '<div class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading...</div>'
                 },
                 initComplete: function() {
-                    // --- Logika Filter Status (Sudah Benar) ---
                     const api = this.api();
-                    const $toolbarSearch = $(api.table().container()).find('.dt-search');
+                    const $container = $(api.table().container());
+                    const $toolbarSearch = $container.find('.dt-search');
+
+                    // 1. Setup Status Filter
                     const $filter = $('#statusFilterTemplate #statusFilterWrap').clone(true, true);
                     const $select = $filter.find('select[data-role="status-filter"]');
-
                     $select.attr('id', 'statusFilterDT');
                     $toolbarSearch.append($filter);
-
-                    // Atur nilai default dropdown
                     $select.val('{{ $status ?? 'active' }}');
 
+                    // 2. FORCE UPPERCASE & STYLING SEARCH
                     const $searchInput = $toolbarSearch.find('.dt-input');
                     $searchInput.css({
-                        width: '400px',
-                        maxWidth: '100%'
+                        'width': '400px',
+                        'maxWidth': '100%',
+                        'text-transform': 'uppercase'
                     });
 
+                    // Handler input dengan delegasi agar kursor tidak meloncat
+                    $container.on('input', '.dt-search .dt-input', function() {
+                        const start = this.selectionStart;
+                        const end = this.selectionEnd;
+                        this.value = this.value.toUpperCase();
+                        this.setSelectionRange(start, end);
+
+                        // Pada server-side, draw() akan memicu request ajax baru dengan search term yang baru
+                        api.search(this.value).draw();
+                    });
+
+                    // 3. Event Handler Change Filter
                     $select.on('change', function() {
-                        // table.ajax.reload() lebih cepat
                         table.ajax.reload();
                     });
-
-                    // Panggil draw() untuk memuat data awal
-                    table.draw();
                 }
             });
         });

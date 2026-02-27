@@ -266,36 +266,33 @@
             // STEP 1: Inisialisasi DataTables
             // ========================================
             const table = $('#subaccountTable').DataTable({
-                pageLength: 10, // Tampilkan 10 data per halaman
-                lengthMenu: [10, 25, 50, 100], // Pilihan jumlah data per halaman
+                pageLength: 10,
+                lengthMenu: [10, 25, 50, 100],
                 order: [
                     [0, 'asc']
-                ], // Urutkan berdasarkan kolom pertama (Kode)
+                ],
                 layout: {
-                    topStart: 'search', // Search pindah ke kiri
-                    topEnd: 'pageLength', // Length menu pindah ke kanan
+                    topStart: 'search',
+                    topEnd: 'pageLength',
                     bottomStart: 'info',
                     bottomEnd: 'paging'
                 },
-                // Pengaturan kolom
                 columnDefs: [{
-                        targets: 2, // Kolom Status (index 2)
-                        orderable: false // Tidak bisa diurutkan
+                        targets: 2, // Kolom Status
+                        orderable: false
                     },
                     {
-                        targets: 3, // Kolom StatusRaw (index 3)
-                        visible: false // Disembunyikan
+                        targets: 3, // Kolom StatusRaw
+                        visible: false
                     },
                     @if ($showActionsColumn)
                         {
-                            targets: 4, // Kolom Aksi (index 4)
-                            orderable: false, // Tidak bisa diurutkan
-                            searchable: false // Tidak bisa dicari
+                            targets: 4, // Kolom Aksi
+                            orderable: false,
+                            searchable: false
                         }
                     @endif
                 ],
-
-                // Terjemahan Bahasa Indonesia
                 language: {
                     lengthMenu: "Show _MENU_ entries",
                     search: "Search:",
@@ -311,41 +308,55 @@
             });
 
             // ========================================
-            // STEP 2: Tambahkan Filter Status
+            // STEP 2: Tambahkan Filter Status & Force Uppercase
             // ========================================
 
-            // Ambil template filter dan clone
+            const $container = $(table.table().container());
+            const $searchWrapper = $container.find('.dt-search');
+
+            // Clone template filter
             const filterHtml = $('#statusFilterTemplate #statusFilterWrap').clone();
+            $searchWrapper.append(filterHtml);
 
-            // Tambahkan filter ke sebelah kotak pencarian
-            $('.dt-search').append(filterHtml);
+            // Styling & Force Uppercase secara visual
+            const $searchInput = $searchWrapper.find('input');
+            $searchInput.css({
+                'width': '400px',
+                'text-transform': 'uppercase'
+            });
 
-            // Perbesar kotak pencarian
-            $('.dt-search .dt-input').css('width', '400px');
+            // Event Handler untuk Uppercase (Delegasi Event)
+            $container.on('input', '.dt-search input', function() {
+                const start = this.selectionStart;
+                const end = this.selectionEnd;
+
+                // Paksa nilai menjadi Uppercase
+                this.value = this.value.toUpperCase();
+
+                // Kembalikan posisi kursor agar tidak loncat
+                this.setSelectionRange(start, end);
+
+                // Trigger pencarian manual dengan nilai yang sudah besar
+                table.search(this.value).draw();
+            });
 
             // ========================================
             // STEP 3: Filter Default ke "Active"
             // ========================================
-
-            // Filter otomatis menampilkan hanya data Active saat pertama load
             table.column(3).search('^0$', true, false).draw();
 
             // ========================================
             // STEP 4: Event Handler untuk Filter Status
             // ========================================
-
-            $('select[data-role="status-filter"]').on('change', function() {
+            // Menggunakan delegasi event agar lebih aman
+            $container.on('change', 'select[data-role="status-filter"]', function() {
                 const selectedValue = $(this).val();
 
-                // Kolom index 3 adalah StatusRaw (0 = Active, 1 = Non Active)
                 if (selectedValue === 'active') {
-                    // Filter hanya yang bernilai '0' (Active)
                     table.column(3).search('^0$', true, false).draw();
                 } else if (selectedValue === 'nonactive') {
-                    // Filter hanya yang bernilai '1' (Non Active)
                     table.column(3).search('^1$', true, false).draw();
                 } else {
-                    // Tampilkan semua (kosongkan filter)
                     table.column(3).search('').draw();
                 }
             });

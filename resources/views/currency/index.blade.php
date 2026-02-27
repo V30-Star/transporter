@@ -47,7 +47,7 @@
                 </tr>
             </thead>
             <tbody id="tableBody">
-                @foreach($currencys as $item)
+                @foreach ($currencys as $item)
                     <tr class="hover:bg-gray-50">
                         <td>{{ $item->fcurrcode }}</td>
                         <td>{{ $item->fcurrname }}</td>
@@ -196,7 +196,7 @@
                 }
             ];
 
-            $('#currencyTable').DataTable({
+            const table = $('#currencyTable').DataTable({
                 autoWidth: false,
                 pageLength: 10,
                 lengthMenu: [10, 25, 50, 100],
@@ -223,7 +223,53 @@
                 language: {
                     lengthMenu: "Show _MENU_ entries"
                 },
+                initComplete: function() {
+                    const api = this.api();
+                    const $container = $(api.table().container());
+                    const $toolbarSearch = $container.find('.dt-search');
+                    const $searchInput = $toolbarSearch.find('.dt-input');
 
+                    // 1. STYLING & FORCE UPPERCASE
+                    $searchInput.css({
+                        'width': '400px',
+                        'maxWidth': '100%',
+                        'text-transform': 'uppercase'
+                    });
+
+                    // Handler untuk memastikan input menjadi uppercase dan kursor tidak melompat
+                    $container.on('input', '.dt-search .dt-input', function() {
+                        const start = this.selectionStart;
+                        const end = this.selectionEnd;
+
+                        this.value = this.value.toUpperCase();
+
+                        this.setSelectionRange(start, end);
+
+                        // Jalankan pencarian manual
+                        api.search(this.value).draw();
+                    });
+
+                    // 2. OPTIONAL: Tambahkan Filter Status (Jika ada template-nya)
+                    if ($('#statusFilterTemplate').length) {
+                        const $filter = $('#statusFilterTemplate #statusFilterWrap').clone(true, true);
+                        const $select = $filter.find('select[data-role="status-filter"]');
+                        $select.attr('id', 'statusFilterCurrency');
+                        $toolbarSearch.append($filter);
+
+                        // Event handler filter status
+                        $select.on('change', function() {
+                            const v = this.value;
+                            // Sesuaikan index kolom Status (biasanya index 2)
+                            if (v === 'active') {
+                                api.column(2).search('Active').draw();
+                            } else if (v === 'nonactive') {
+                                api.column(2).search('Non Active').draw();
+                            } else {
+                                api.column(2).search('').draw();
+                            }
+                        });
+                    }
+                }
             });
         });
     </script>

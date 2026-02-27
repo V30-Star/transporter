@@ -480,36 +480,33 @@
                 },
                 initComplete: function() {
                     const api = this.api();
+                    const $container = $(api.table().container());
 
-                    // Add search icon to searchable columns
+                    // 1. SET UP COLUMN SEARCH (PER KOLOM)
                     api.columns().every(function(index) {
                         const column = this;
                         const header = $(column.header());
 
-                        // Skip non-searchable columns
                         if (!column.orderable() || header.hasClass('col-aksi') || header
                             .hasClass('no-sort')) {
                             return;
                         }
 
-                        // Tunggu DataTables selesai render sorting icon
                         setTimeout(() => {
-                            // Create search icon wrapper
                             const searchWrapper = $(`
-                                <span class="column-search-wrapper">
-                                    <span class="column-search-icon" data-column="${index}">
-                                        <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                                        </svg>
-                                    </span>
-                                    <div class="column-search-dropdown" data-column="${index}">
-                                        <input type="text" class="column-search-input" placeholder="Cari..." />
-                                        <button class="column-search-clear">Clear</button>
-                                    </div>
-                                </span>
-                            `);
+                        <span class="column-search-wrapper">
+                            <span class="column-search-icon" data-column="${index}">
+                                <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                            </span>
+                            <div class="column-search-dropdown" data-column="${index}">
+                                <input type="text" class="column-search-input" placeholder="CARI..." style="text-transform: uppercase;" />
+                                <button class="column-search-clear">Clear</button>
+                            </div>
+                        </span>
+                    `);
 
-                            // Cari dan letakkan di sebelah sort icon
                             const sortIcon = header.find('.dt-column-order');
                             if (sortIcon.length > 0) {
                                 sortIcon.after(searchWrapper);
@@ -517,40 +514,37 @@
                                 header.append(searchWrapper);
                             }
 
-                            // Get elements
                             const icon = searchWrapper.find('.column-search-icon');
                             const dropdown = searchWrapper.find(
                                 '.column-search-dropdown');
                             const input = searchWrapper.find('.column-search-input');
                             const clearBtn = searchWrapper.find('.column-search-clear');
 
-                            // Toggle dropdown
                             icon.on('click', function(e) {
                                 e.stopPropagation();
-
-                                // Close other dropdowns
                                 $('.column-search-dropdown').not(dropdown)
                                     .removeClass('show');
                                 $('.column-search-icon').not(icon).removeClass(
                                     'active');
-
-                                // Toggle current dropdown
                                 dropdown.toggleClass('show');
                                 icon.toggleClass('active');
-
                                 if (dropdown.hasClass('show')) {
                                     input.focus();
                                 }
                             });
 
-                            // Search on input
-                            input.on('keyup change', function() {
+                            // FORCE UPPERCASE UNTUK SEARCH PER KOLOM
+                            input.on('input', function() {
+                                const start = this.selectionStart;
+                                const end = this.selectionEnd;
+                                this.value = this.value.toUpperCase();
+                                this.setSelectionRange(start, end);
+
                                 const value = this.value;
                                 if (column.search() !== value) {
                                     column.search(value).draw();
                                 }
 
-                                // Update icon state
                                 if (value) {
                                     icon.addClass('active');
                                 } else {
@@ -558,7 +552,6 @@
                                 }
                             });
 
-                            // Clear search
                             clearBtn.on('click', function() {
                                 input.val('');
                                 column.search('').draw();
@@ -566,41 +559,47 @@
                                 dropdown.removeClass('show');
                             });
 
-                            // Prevent dropdown close when clicking inside
                             dropdown.on('click', function(e) {
                                 e.stopPropagation();
                             });
                         }, 50);
                     });
 
-                    // Close dropdowns when clicking outside
+                    // 2. CLOSE DROPDOWNS ON OUTSIDE CLICK
                     $(document).on('click', function() {
                         $('.column-search-dropdown').removeClass('show');
                         $('.column-search-icon').each(function() {
                             const $icon = $(this);
                             const columnIndex = $icon.data('column');
-                            const columnValue = api.column(columnIndex).search();
-
-                            if (!columnValue) {
+                            if (!api.column(columnIndex).search()) {
                                 $icon.removeClass('active');
                             }
                         });
                     });
 
-                    // Setup status filter
-                    const $toolbarSearch = $(api.table().container()).find('.dt-search');
-                    const $filter = $('#statusFilterTemplate #statusFilterWrap').clone(true, true);
+                    // 3. SET UP GLOBAL SEARCH (UPPERCASE)
+                    const $toolbarSearch = $container.find('.dt-search');
+                    const $globalInput = $toolbarSearch.find('.dt-input');
 
+                    $globalInput.css({
+                        'width': '400px',
+                        'maxWidth': '100%',
+                        'text-transform': 'uppercase'
+                    });
+
+                    $container.on('input', '.dt-search .dt-input', function() {
+                        const start = this.selectionStart;
+                        const end = this.selectionEnd;
+                        this.value = this.value.toUpperCase();
+                        this.setSelectionRange(start, end);
+                        api.search(this.value).draw();
+                    });
+
+                    // 4. SET UP STATUS FILTER
+                    const $filter = $('#statusFilterTemplate #statusFilterWrap').clone(true, true);
                     const $select = $filter.find('select[data-role="status-filter"]');
                     $select.attr('id', 'statusFilterDT');
-
                     $toolbarSearch.append($filter);
-
-                    const $searchInput = $toolbarSearch.find('.dt-input');
-                    $searchInput.css({
-                        width: '400px',
-                        maxWidth: '100%'
-                    });
                 }
             });
         });
