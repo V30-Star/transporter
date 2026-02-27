@@ -452,6 +452,10 @@
                         if (typeof applyDateFilters === "function") applyDateFilters();
                     });
 
+                    $searchInput.on('input', function() {
+                        this.value = this.value.toUpperCase();
+                    });
+
                     $monthSelect.on('change', function() {
                         if (typeof applyDateFilters === "function") applyDateFilters();
                     });
