@@ -441,6 +441,10 @@
                         applyDateFilters();
                     });
 
+                    $searchInput.on('input', function() {
+                        this.value = this.value.toUpperCase();
+                    });
+
                     $monthSelect.on('change', function() {
                         applyDateFilters();
                     });
