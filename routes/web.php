@@ -12,6 +12,7 @@ use App\Http\Controllers\MerekController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\RekeningController;
 use App\Http\Controllers\CurrencyController;
+use App\Http\Controllers\JurnalTransaksiController;
 use App\Http\Controllers\RoleAccessController;
 use App\Http\Controllers\WilayahController;
 use App\Http\Controllers\SalesmanController;
@@ -186,6 +187,15 @@ Route::middleware('auth')->group(function () {
         Route::get('/currency/{fcurrid}/delete', [CurrencyController::class, 'delete'])->name('currency.delete');
         Route::patch('/currency/{fcurrid}', [CurrencyController::class, 'update'])->name('currency.update');
         Route::delete('/currency/{fcurrid}', [CurrencyController::class, 'destroy'])->name('currency.destroy');
+
+        Route::get('/jurnaltransaksi', [JurnalTransaksiController::class, 'index'])->name('jurnaltransaksi.index');
+        Route::post('/jurnaltransaksi',        [JurnalTransaksiController::class, 'store'])->name('jurnaltransaksi.store');
+        Route::get('/jurnaltransaksi/create', [JurnalTransaksiController::class, 'create'])->name('jurnaltransaksi.create');
+        Route::get('/jurnaltransaksi/{fcurrid}/view', [JurnalTransaksiController::class, 'view'])->name('jurnaltransaksi.view');
+        Route::get('/jurnaltransaksi/{fcurrid}/edit', [JurnalTransaksiController::class, 'edit'])->name('jurnaltransaksi.edit');
+        Route::get('/jurnaltransaksi/{fcurrid}/delete', [JurnalTransaksiController::class, 'delete'])->name('jurnaltransaksi.delete');
+        Route::patch('/jurnaltransaksi/{fcurrid}', [JurnalTransaksiController::class, 'update'])->name('jurnaltransaksi.update');
+        Route::delete('/jurnaltransaksi/{fcurrid}', [JurnalTransaksiController::class, 'destroy'])->name('jurnaltransaksi.destroy');
 
         Route::get('/account', [AccountController::class, 'index'])->name('account.index');
         Route::post('/account',        [AccountController::class, 'store'])->name('account.store');
@@ -409,7 +419,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/reportingadjstock/exportExcel', [ReportingAdjStockController::class, 'exportExcel'])->name('reportingadjstock.exportExcel');
         Route::get('/reportingadjstock/print', [ReportingAdjStockController::class, 'printAdjStock'])->name('reportingadjstock.printAdjStock');
 
-    Route::get('/reportingpemakaianbarang',  [ReportingPemakaianBarangController::class, 'index'])->name('reportingpemakaianbarang.index');
+        Route::get('/reportingpemakaianbarang',  [ReportingPemakaianBarangController::class, 'index'])->name('reportingpemakaianbarang.index');
         Route::get('/reportingpemakaianbarang/exportExcel', [ReportingPemakaianBarangController::class, 'exportExcel'])->name('reportingpemakaianbarang.exportExcel');
         Route::get('/reportingpemakaianbarang/print', [ReportingPemakaianBarangController::class, 'printPemakaianBarang'])->name('reportingpemakaianbarang.printPemakaianBarang');
 
