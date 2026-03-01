@@ -457,10 +457,11 @@ class PenerimaanBarangController extends Controller
       $code  = trim((string)($codes[$i]   ?? ''));
       $sat   = trim((string)($satuans[$i] ?? ''));
       $rref  = trim((string)($refdtno[$i] ?? ''));
+      $rref_val = ($rref === '') ? 0 : $rref;
       $rnour = $nourefs[$i] ?? null;
       $qty   = (float)($qtys[$i]   ?? 0);
       $price = (float)($prices[$i] ?? 0);
-      $desc  = (string)($descs[$i] ?? '');
+      $desc  = isset($descs[$i]) ? trim((string)$descs[$i]) : '';
 
       if ($code === '' || $qty <= 0) continue;
 
@@ -480,23 +481,23 @@ class PenerimaanBarangController extends Controller
 
       $rowsDt[] = [
         'fprdcode'       => $prdId,
-        'frefdtno'       => $rref,
+        'frefdtno'       => $rref_val,
         'fqty'           => $qty,
         'fqtyremain'     => $qty,
-        'fprice'         => $price,
+        'fprice'         => $price ?? 0,
         'fprice_rp'      => $price * $frate,
         'ftotprice'      => $amount,
         'ftotprice_rp'   => $amount * $frate,
         'fusercreate'     => (Auth::user()->fname ?? 'system'),
         'fdatetime'      => $now,
-        'fketdt'         => '',
-        'fcode'          => '0',
+        'fketdt'         => '-',
+        'fcode'          => 'R',
         'fnouref'        => $rnour !== null ? (int)$rnour : null,
         'frefso'         => null,
-        'fdesc'          => $desc,
+        'fdesc'          => $desc ?? 0,
         'fsatuan'        => $sat,
         'fqtykecil'      => $qty,
-        'fclosedt'       => '0',
+        'fclosedt'       => 0,
         'fdiscpersen'    => 0,
         'fbiaya'         => 0,
         // Kolom header akan diisi di dalam transaksi
@@ -635,7 +636,7 @@ class PenerimaanBarangController extends Controller
       $PAYABLE_ACCOUNT_CODE   = '21100'; // Contoh: Hutang Dagang
 
       // 2. Generate Nomor Jurnal
-      $fjurnaltype = 'JV';
+      $fjurnaltype = 'JTB';
       $jurnalPrefix = sprintf('%s.%s.%s.%s.', $fjurnaltype, $kodeCabang, $yy, $mm);
 
       $jurnalLockKey = crc32('JURNAL|' . $fjurnaltype . '|' . $kodeCabang . '|' . $fstockmtdate->format('Y-m'));
@@ -659,10 +660,8 @@ class PenerimaanBarangController extends Controller
         'fbalance'    => round($grandTotal, 2),
         'fbalance_rp' => round($grandTotal * $frate, 2),
         'fdatetime'   => $now,
-        'fusercreate'     => $userid,
+        'fuserid'     => $userid,
       ];
-
-      Log::debug('JURNAL HEADER INSERT:', $jurnalHeader); // Debugging
 
       $newJurnalMasterId = DB::table('jurnalmt')->insertGetId($jurnalHeader, 'fjurnalmtid');
 
@@ -732,8 +731,6 @@ class PenerimaanBarangController extends Controller
         'fusercreate'      => $userid,
         'fdatetime'    => $now,
       ];
-
-      Log::debug('JURNAL DETAIL INSERT:', $jurnalDetails); // Debugging
 
       DB::table('jurnaldt')->insert($jurnalDetails);
     });

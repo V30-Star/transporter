@@ -203,73 +203,71 @@
                         <thead>
                             <tr>
                                 <th style="text-align:left;">&nbsp;Account&nbsp;</th>
-                                <th>&nbsp;Lvl&nbsp;</th>
+                                <th>&nbsp;D/K&nbsp;</th>
                                 <th>&nbsp;Sub Account&nbsp;</th>
-                                <th style="border-right:1px dashed #7777cc;">&nbsp;End&nbsp;</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach ($rows as $i => $row)
                                 @php
-                                    /* ── Bangun cTree untuk baris ini ── */
                                     $nEnd = $row->flevel;
-                                    $lDraw = true;
+                                    $cetak = '';
 
-                                    if ($nBegin != $nEnd) {
-                                        /* Masuk lebih dalam: tambah garis tegak jika parent belum leaf-end */
-                                        if (!$lPreviousLeafEnd && $nPreviousLevel < $nEnd) {
-                                            $cTree .= '$9';
-                                        } elseif ($lPreviousLeafEnd && $nPreviousLevel < $nEnd) {
-                                            if ($i > 1) {
-                                                $cTree .= '$8';
-                                            }
+                                    if ($i == 0) {
+                                        // Root element (Level teratas biasanya tidak punya garis)
+                                        $nBegin = $nEnd;
+                                        $cTree = '';
+                                    } else {
+                                        // Logika pemotongan cTree berdasarkan level
+                                        // Setiap level biasanya diwakili oleh 2 karakter/token di string cTree
+                                        if ($nEnd > $nPreviousLevel) {
+                                            // Jika masuk lebih dalam, tambahkan spasi atau garis tegak dari parent sebelumnya
+                                            $cTree .= $lPreviousLeafEnd ? '$8' : '$9';
+                                        } elseif ($nEnd < $nPreviousLevel) {
+                                            // Jika naik level, potong string cTree sesuai selisih level
+                                            $cTree = substr($cTree, 0, ($nEnd - $nBegin) * 2);
                                         }
 
-                                        /* Naik level: potong cTree */
-                                        if ($nPreviousLevel > $nEnd) {
-                                            $nTreeInd = strlen($cTree) - ($nPreviousLevel - $nEnd) * 2;
-                                            if ($nTreeInd < 0) {
-                                                $nTreeInd = 0;
-                                            }
-                                            $cTree = substr($cTree, 0, $nTreeInd);
-                                        }
-
-                                        /* Pilih simbol ujung cabang */
+                                        // Pilih simbol ujung cabang untuk baris aktif
                                         $symbol = $row->fleafend == '1' ? '$2' : '$1';
                                         $cetak = $cTree . $symbol;
-                                    } else {
-                                        $cetak = ''; /* root — tidak ada garis */
                                     }
 
                                     /* Ganti token → HTML */
-                                    $cetak = str_replace('$2', '<span class="ti ti-join"></span>', $cetak);
-                                    $cetak = str_replace('$1', '<span class="ti ti-joinbot"></span>', $cetak);
-                                    $cetak = str_replace('$9', '<span class="ti ti-line"></span>', $cetak);
-                                    $cetak = str_replace('$8', '<span class="ti ti-empty"></span>', $cetak);
+                                    $cetak = str_replace(
+                                        ['$9', '$8', '$1', '$2'],
+                                        [
+                                            '<span class="ti ti-line"></span>',
+                                            '<span class="ti ti-empty"></span>',
+                                            '<span class="ti ti-joinbot"></span>',
+                                            '<span class="ti ti-join"></span>',
+                                        ],
+                                        $cetak,
+                                    );
 
-                                    /* Simpan state untuk iterasi berikutnya */
-                                    $lPreviousLeafEnd = $row->fleafend == '1';
+                                    /* Simpan state untuk baris berikutnya */
                                     $nPreviousLevel = $nEnd;
-                                    if ($nEnd == $nBegin) {
-                                        $lPreviousLeafEnd = true;
-                                    }
+                                    $lPreviousLeafEnd = $row->fleafend == '1';
                                 @endphp
 
-                                <tr>
-                                    {{-- Kolom Account (dengan tree glyph) --}}
+                                <tr class="hover:bg-gray-50">
                                     <td>
-                                        {!! $cetak !!}
-                                        <span style="font-family:'Courier New',monospace; font-size:11px;">
-                                            <strong>{{ trim($row->faccount) }} {{ trim($row->faccname) }}</strong>
-                                        </span>
+                                        <div style="display: flex; align-items: center;">
+                                            {!! $cetak !!}
+                                            <span
+                                                style="font-family:'Courier New', monospace; font-size:11px; margin-left: 5px;">
+                                                @if ($row->fend == 0)
+                                                    <strong style="font-weight: 900;">
+                                                        {{ trim($row->faccount) }} {{ trim($row->faccname) }}
+                                                    </strong>
+                                                @else
+                                                    {{ trim($row->faccount) }} {{ trim($row->faccname) }}
+                                                @endif
+                                            </span>
+                                        </div>
                                     </td>
-                                    <td style="text-align:center;">{{ $nEnd - $nBegin }}</td>
-                                    <td style="text-align:center;">
-                                        {{ $row->fhavesubaccount == 1 ? 'Yes' : 'No' }}
-                                    </td>
-                                    <td style="text-align:center; border-right:1px dashed #aaa;">
-                                        {{ $row->fleafend == '1' ? '✓' : '' }}
-                                    </td>
+                                    <td style="text-align:center;">{{ $row->fnormal == 'D' ? 'Debit' : 'Kredit' }}</td>
+                                    <td style="text-align:center;">{{ $row->fhavesubaccount == 1 ? 'Yes' : 'No' }}</td>
                                 </tr>
                             @endforeach
                         </tbody>

@@ -62,13 +62,13 @@
                         {{-- Tombol Reset --}}
                         <a href="{{ route('reportingaccount.index') }}"
                             class="px-4 py-2 bg-gray-300 text-gray-800 text-sm rounded hover:bg-gray-400 transition-colors">
-                            Reset
+                            Close
                         </a>
                         {{-- Tombol Terapkan Filter --}}
                         <button type="submit" formaction="{{ route('reportingaccount.rebuildAndPrint') }}"
                             formtarget="_blank"
                             class="px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors">
-                            Build Tree & Preview
+                            Print & Preview
                         </button>
                     </div>
                 </form>

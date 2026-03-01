@@ -232,9 +232,8 @@
                                         <select class="w-full border rounded px-2 py-1 select2-dk-edit"
                                             :value="editRow.fdk"
                                             @input="editRow.fdk = $event.target.value; recalcTotals()">
-                                            <option value="">D/K</option>
-                                            <option value="D">Debit</option>
-                                            <option value="K">Kredit</option>
+                                            <option value="D">D</option>
+                                            <option value="K">K</option>
                                         </select>
                                     </td>
 
@@ -317,9 +316,8 @@
                                         <select class="w-full border rounded px-2 py-1 select2-dk-draft"
                                             :value="draft.fdk"
                                             @input="draft.fdk = $event.target.value; recalcTotals()">
-                                            <option value="">D/K</option>
-                                            <option value="D">Debit</option>
-                                            <option value="K">Kredit</option>
+                                            <option value="D">D</option>
+                                            <option value="K">K</option>
                                         </select>
                                     </td>
 

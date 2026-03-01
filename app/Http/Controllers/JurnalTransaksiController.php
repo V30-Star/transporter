@@ -315,6 +315,7 @@ class JurnalTransaksiController extends Controller
     $accounts = DB::table('account')
       ->select('faccid', 'faccount', 'faccname', 'fnonactive', 'fhavesubaccount')
       ->where('fnonactive', '0')
+      ->where('fend', '1')
       ->orderBy('account')
       ->get();
 
