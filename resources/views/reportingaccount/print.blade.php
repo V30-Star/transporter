@@ -71,6 +71,18 @@
         }
 
         .tree-table tbody td {
+            padding: 0px 4px;
+            /* Kecilkan padding vertikal agar garis menyambung */
+            line-height: 1;
+        }
+
+        .ti {
+            width: 20px;
+            /* Sesuaikan lebar langkah identasi */
+            height: 20px;
+        }
+
+        .tree-table tbody td {
             font-family: Verdana, sans-serif;
             font-size: 11px;
             border: 1px dashed #aaa;
@@ -214,24 +226,22 @@
                                     $cetak = '';
 
                                     if ($i == 0) {
-                                        // Root element (Level teratas biasanya tidak punya garis)
                                         $nBegin = $nEnd;
                                         $cTree = '';
                                     } else {
-                                        // Logika pemotongan cTree berdasarkan level
-                                        // Setiap level biasanya diwakili oleh 2 karakter/token di string cTree
                                         if ($nEnd > $nPreviousLevel) {
-                                            // Jika masuk lebih dalam, tambahkan spasi atau garis tegak dari parent sebelumnya
                                             $cTree .= $lPreviousLeafEnd ? '$8' : '$9';
                                         } elseif ($nEnd < $nPreviousLevel) {
-                                            // Jika naik level, potong string cTree sesuai selisih level
                                             $cTree = substr($cTree, 0, ($nEnd - $nBegin) * 2);
                                         }
 
-                                        // Pilih simbol ujung cabang untuk baris aktif
                                         $symbol = $row->fleafend == '1' ? '$2' : '$1';
                                         $cetak = $cTree . $symbol;
                                     }
+
+                                    // Set state — hanya di sini, tidak ada duplikasi
+                                    $nPreviousLevel = $nEnd;
+                                    $lPreviousLeafEnd = $nEnd === $nBegin ? true : $row->fleafend == '1';
 
                                     /* Ganti token → HTML */
                                     $cetak = str_replace(
@@ -244,12 +254,7 @@
                                         ],
                                         $cetak,
                                     );
-
-                                    /* Simpan state untuk baris berikutnya */
-                                    $nPreviousLevel = $nEnd;
-                                    $lPreviousLeafEnd = $row->fleafend == '1';
                                 @endphp
-
                                 <tr class="hover:bg-gray-50">
                                     <td>
                                         <div style="display: flex; align-items: center;">

@@ -138,9 +138,15 @@ class ReportingAccountController extends Controller
   {
     $data = DB::table('accounttree')
       ->join('account', 'accounttree.faccount', '=', 'account.faccount')
-      ->select('accounttree.*', 'account.faccname', 'account.fhavesubaccount', 'account.fnormal', 'account.fend')
-      ->orderBy('faccid')    // Urutan tambahan berdasarkan faccid
-      ->orderBy('faccupline')
+      ->select(
+        'accounttree.*',
+        'account.faccname',
+        'account.fhavesubaccount',
+        'account.fnormal',
+        'account.fend'
+      )
+      // Hanya menggunakan forder untuk menjaga integritas hirarki
+      ->orderBy('accounttree.forder', 'asc')
       ->get();
 
     return view('reportingaccount.print', compact('data'));
