@@ -139,7 +139,7 @@ class ReportingAccountController extends Controller
     $data = DB::table('accounttree')
       ->join('account', 'accounttree.faccount', '=', 'account.faccount')
       ->select('accounttree.*', 'account.faccname', 'account.fhavesubaccount')
-      ->orderBy('forder', 'faccupline')
+      ->orderBy('faccupline')
       ->get();
 
     return view('reportingaccount.print', compact('data'));
