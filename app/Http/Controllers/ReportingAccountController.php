@@ -146,6 +146,7 @@ class ReportingAccountController extends Controller
         'account.fend'
       )
       // Hanya menggunakan forder untuk menjaga integritas hirarki
+      ->orderBy('accounttree.faccount', 'asc')
       ->orderBy('accounttree.forder', 'asc')
       ->get();
 
