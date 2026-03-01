@@ -43,6 +43,11 @@ class ReportingAccountController extends Controller
         $this->arrDist[$upline][] = $acc;
       }
 
+      foreach ($this->arrDist as $parent => &$children) {
+        sort($children);
+      }
+      unset($children);
+      
       // -- 2. Cari root (upline kosong atau '0')
       $rootAcc = null;
       foreach ($accounts as $row) {
@@ -146,7 +151,6 @@ class ReportingAccountController extends Controller
         'account.fend'
       )
       // Hanya menggunakan forder untuk menjaga integritas hirarki
-      ->orderBy('accounttree.faccount', 'asc')
       ->orderBy('accounttree.forder', 'asc')
       ->get();
 
