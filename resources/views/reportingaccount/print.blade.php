@@ -249,7 +249,7 @@
                                         [
                                             '<span class="ti ti-line"></span>',
                                             '<span class="ti ti-empty"></span>',
-                                            '<span class="ti ti-joinbot"></span>',
+                                            '<span class="ti ti-join"></span>',
                                             '<span class="ti ti-join"></span>',
                                         ],
                                         $cetak,
