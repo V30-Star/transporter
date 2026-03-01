@@ -74,14 +74,6 @@ class ReportingAccountController extends Controller
       // -- 4. Rekursi DFS
       $this->traceTree($rootAcc, 1 /*parentOrder*/, 1 /*level*/);
 
-      // -- 5. Patch fdxorder setiap node = forder node terakhir di subtree-nya
-      //       Caranya: setelah DFS selesai, nIndx sudah final.
-      //       fdxorder node = forder dari elemen tepat sebelum sibling berikutnya.
-      //       Tapi cara paling mudah: kita sudah simpan posisi akhir subtree
-      //       di dalam rekursi (return value).
-      //
-      //       Karena traceTree sudah men-patch langsung (lihat implementasi bawah),
-      //       root tinggal di-patch dengan nilai nIndx terakhir.
       $this->arrNormList[1]['fdxorder'] = $this->nIndx;
 
       // -- 6. Simpan ke DB
@@ -146,8 +138,8 @@ class ReportingAccountController extends Controller
   {
     $data = DB::table('accounttree')
       ->join('account', 'accounttree.faccount', '=', 'account.faccount')
-      ->select('accounttree.*', 'account.faccname')
-      ->orderBy('forder')
+      ->select('accounttree.*', 'account.faccname', 'account.fhavesubaccount')
+      ->orderBy('forder', 'faccupline')
       ->get();
 
     return view('reportingaccount.print', compact('data'));

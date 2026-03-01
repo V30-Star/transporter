@@ -204,9 +204,7 @@
                             <tr>
                                 <th style="text-align:left;">&nbsp;Account&nbsp;</th>
                                 <th>&nbsp;Lvl&nbsp;</th>
-                                <th>&nbsp;Order&nbsp;</th>
-                                <th>&nbsp;SpOrder&nbsp;</th>
-                                <th>&nbsp;DxOrder&nbsp;</th>
+                                <th>&nbsp;Sub Account&nbsp;</th>
                                 <th style="border-right:1px dashed #7777cc;">&nbsp;End&nbsp;</th>
                             </tr>
                         </thead>
@@ -262,13 +260,13 @@
                                     <td>
                                         {!! $cetak !!}
                                         <span style="font-family:'Courier New',monospace; font-size:11px;">
-                                            <strong>{{ trim($row->faccount) }} || {{ trim($row->faccname) }}</strong>
+                                            <strong>{{ trim($row->faccount) }} {{ trim($row->faccname) }}</strong>
                                         </span>
                                     </td>
                                     <td style="text-align:center;">{{ $nEnd - $nBegin }}</td>
-                                    <td style="text-align:center;">{{ $row->forder }}</td>
-                                    <td style="text-align:center;">{{ $row->fsporder }}</td>
-                                    <td style="text-align:center;">{{ $row->fdxorder }}</td>
+                                    <td style="text-align:center;">
+                                        {{ $row->fhavesubaccount == 1 ? 'Yes' : 'No' }}
+                                    </td>
                                     <td style="text-align:center; border-right:1px dashed #aaa;">
                                         {{ $row->fleafend == '1' ? '✓' : '' }}
                                     </td>
