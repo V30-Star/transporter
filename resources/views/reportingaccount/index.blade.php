@@ -3,326 +3,124 @@
 @section('title', 'Laporan Account')
 
 @section('content')
-    <div class="p-6 bg-white shadow-md rounded-lg">
-        <h2 class="text-xl font-bold mb-4">Laporan Account</h2>
-        <div class="flex flex-wrap items-center gap-4 mb-6">
-            {{-- Tombol Pemicu Modal --}}
-            <button onclick="toggleModal(true)"
-                style="padding: 6px 16px; background-color: #3b82f6; color: white; font-size: 0.875rem; border-radius: 0.25rem; display: inline-flex; align-items: center;"
-                class="hover:bg-blue-600 transition-colors"> Search Data
-            </button>
-        </div>
-
-        {{-- --- MODAL FILTER POP-UP --- --}}
-        <div id="filterModal" class="fixed inset-0 z-50 bg-black bg-opacity-50 hidden flex items-center justify-center">
-            <div class="bg-white rounded-lg shadow-2xl max-w-xl w-full p-6" onclick="event.stopPropagation()">
-                <div class="flex justify-between items-center border-b pb-3 mb-4">
-                    <h3 class="text-lg font-semibold">Laporan Account</h3>
-                    <button onclick="toggleModal(false)"
-                        class="text-gray-500 hover:text-gray-800 text-xl font-bold">&times;</button>
-                </div>
-
-                <form method="GET" action="{{ route('reportingpenerimaanbarang.printPenerimaanBarang') }}">
-                    <div class="grid grid-cols-2 gap-4">
-                        {{-- Filter Supplier --}}
-                        {{-- <div class="col-span-2">
-                            <label class="block text-sm font-medium mb-1">Account</label>
-                            <div class="flex">
-                                <div class="relative flex-1" for="modal_filter_supplier_id">
-                                    <select id="modal_filter_supplier_id" name="filter_supplier_id"
-                                        class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
-                                        disabled>
-                                        <option value=""></option>
-                                        @foreach ($suppliers as $supplier)
-                                            <option value="{{ $supplier->fsupplierid }}"
-                                                {{ $filterSupplierId == $supplier->fsupplierid ? 'selected' : '' }}>
-                                                {{ $supplier->fsuppliername }} ({{ $supplier->fsupplierid }})
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    <div class="absolute inset-0" role="button" aria-label="Browse supplier"
-                                        @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"></div>
-                                </div>
-                                <input type="hidden" name="fsupplier" id="supplierCodeHidden"
-                                    value="{{ old('fsupplier') }}">
-                                <button type="button"
-                                    @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"
-                                    class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
-                                    title="Browse Supplier">
-                                    <x-heroicon-o-magnifying-glass class="w-5 h-5" />
-                                </button>
-                            </div>
-                            @error('fsupplier')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div> --}}
-                    </div>
-
-                    <div class="flex justify-end space-x-2 mt-6">
-                        {{-- Tombol Reset --}}
-                        <a href="{{ route('reportingaccount.index') }}"
-                            class="px-4 py-2 bg-gray-300 text-gray-800 text-sm rounded hover:bg-gray-400 transition-colors">
-                            Close
-                        </a>
-                        {{-- Tombol Terapkan Filter --}}
-                        <button type="submit" formaction="{{ route('reportingaccount.rebuildAndPrint') }}"
-                            formtarget="_blank"
-                            class="px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors">
-                            Print & Preview
-                        </button>
-                    </div>
-                </form>
+    <div class="container mx-auto px-4 py-8">
+        {{-- Main Card --}}
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
+            {{-- Card Header --}}
+            <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 flex justify-between items-center">
+                <h2 class="text-xl font-bold text-white flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="9 17v-2m3 2v-4m3 4v-6m2 10H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" />
+                    </svg>
+                    Laporan Chart of Account (COA)
+                </h2>
             </div>
 
+            {{-- Card Body --}}
+            <div class="p-8 text-center">
+                <div class="mb-6">
+                    <div class="bg-blue-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-blue-500" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-medium text-gray-800">Cetak Laporan Akun</h3>
+                    <p class="text-gray-500 max-w-sm mx-auto">Klik tombol di bawah untuk memfilter data akun atau langsung
+                        mencetak daftar akun perusahaan.</p>
+                </div>
+
+                <button onclick="toggleModal(true)"
+                    class="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md transition duration-300 ease-in-out transform hover:-translate-y-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd"
+                            d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                            clip-rule="evenodd" />
+                    </svg>
+                    Buka Filter & Cetak
+                </button>
+            </div>
         </div>
     </div>
-@endsection
 
-@push('styles')
-    <style>
-        /* DataTables Custom Styling */
-        #supplierBrowseTable_wrapper .dataTables_length select {
-            @apply border rounded px-2 py-1 text-sm;
-        }
+    {{-- --- MODAL FILTER POP-UP --- --}}
+    <div id="filterModal" class="fixed inset-0 z-50 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog"
+        aria-modal="true">
+        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            {{-- Overlay --}}
+            <div class="fixed inset-0 transition-opacity bg-gray-900 bg-opacity-75" onclick="toggleModal(false)"></div>
 
-        #supplierBrowseTable_wrapper .dataTables_filter input {
-            @apply border rounded px-3 py-2 text-sm w-64;
-        }
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
-        #supplierBrowseTable_wrapper .dataTables_info {
-            @apply text-sm text-gray-600;
-        }
+            {{-- Modal Content --}}
+            <div
+                class="inline-block align-bottom bg-white rounded-xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full border border-gray-200">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="flex justify-between items-center border-b border-gray-100 pb-4 mb-4">
+                        <h3 class="text-xl font-semibold text-gray-900" id="modal-title">Parameter Laporan</h3>
+                        <button onclick="toggleModal(false)" class="text-gray-400 hover:text-gray-600 transition-colors">
+                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l18 18" />
+                            </svg>
+                        </button>
+                    </div>
 
-        #supplierBrowseTable_wrapper .dataTables_paginate {
-            @apply flex items-center gap-1;
-        }
+                    <form method="GET" action="{{ route('reportingaccount.rebuildAndPrint') }}" target="_blank">
+                        <div class="space-y-4">
+                            {{-- Filter Range Account --}}
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Dari Account (Faccount)</label>
+                                <input type="text" name="faccount_start" placeholder="Contoh: 10000"
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Sampai Account</label>
+                                <input type="text" name="faccount_end" placeholder="Contoh: 90000"
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                            </div>
 
-        #supplierBrowseTable_wrapper .dataTables_paginate .paginate_button {
-            @apply px-3 py-2 border rounded text-sm cursor-pointer transition-colors inline-flex items-center justify-center min-w-[36px];
-        }
+                            {{-- Opsi Tambahan --}}
+                            <div class="bg-gray-50 p-3 rounded-lg border border-gray-100 mt-4">
+                                <p class="text-xs text-gray-500 italic">* Kosongkan filter jika ingin mencetak seluruh data
+                                    account.</p>
+                            </div>
+                        </div>
 
-        #supplierBrowseTable_wrapper .dataTables_paginate .paginate_button:hover:not(.disabled) {
-            @apply bg-gray-100;
-        }
+                        <div class="flex justify-end space-x-3 mt-8">
+                            <button type="button" onclick="toggleModal(false)"
+                                class="px-5 py-2.5 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors">
+                                Batal
+                            </button>
+                            <button type="submit"
+                                class="px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 shadow-md transition-colors flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                                </svg>
+                                Print & Preview
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        #supplierBrowseTable_wrapper .dataTables_paginate .paginate_button.current {
-            @apply bg-blue-600 text-white border-blue-600 font-semibold;
-        }
-
-        #supplierBrowseTable_wrapper .dataTables_paginate .paginate_button.current:hover {
-            @apply bg-blue-700;
-        }
-
-        #supplierBrowseTable_wrapper .dataTables_paginate .paginate_button.disabled {
-            @apply opacity-30 cursor-not-allowed;
-        }
-
-        #supplierBrowseTable_wrapper .dataTables_paginate .paginate_button.disabled:hover {
-            @apply bg-transparent;
-        }
-
-        /* Icon buttons styling */
-        #supplierBrowseTable_wrapper .dataTables_paginate .paginate_button svg {
-            @apply w-4 h-4;
-        }
-
-        #supplierBrowseTable_wrapper .dataTables_processing {
-            @apply bg-white/90 flex items-center justify-center;
-        }
-
-        /* Table styling */
-        #supplierBrowseTable thead th {
-            @apply bg-gray-100 font-semibold text-left p-3 border-b-2;
-        }
-
-        #supplierBrowseTable tbody td {
-            @apply p-3 border-b;
-        }
-
-        #supplierBrowseTable tbody tr:hover {
-            @apply bg-gray-50;
-        }
-
-        /* Ellipsis styling */
-        #supplierBrowseTable_wrapper .dataTables_paginate .ellipsis {
-            @apply px-2 py-2 text-gray-400;
-        }
-    </style>
-@endpush
-@push('scripts')
-    {{-- jQuery + DataTables JS (CDN) --}}
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="https://cdn.datatables.net/2.1.6/js/dataTables.min.js"></script>
     <script>
-        // Fungsi untuk mengontrol modal
         function toggleModal(show) {
             const modal = document.getElementById('filterModal');
             if (show) {
                 modal.classList.remove('hidden');
+                document.body.style.overflow = 'hidden'; // Disable scroll
             } else {
                 modal.classList.add('hidden');
-            }
-        }
-
-        function supplierBrowser() {
-            return {
-                open: false,
-                dataTable: null,
-
-                initDataTable() {
-                    if (this.dataTable) {
-                        this.dataTable.destroy();
-                    }
-
-                    this.dataTable = $('#supplierBrowseTable').DataTable({
-                        processing: true,
-                        serverSide: true,
-                        ajax: {
-                            url: "{{ route('suppliers.browse') }}",
-                            type: 'GET',
-                            data: function(d) {
-                                return {
-                                    q: d.search.value,
-                                    page: (d.start / d.length) + 1,
-                                    per_page: d.length,
-                                    draw: d.draw // ✅ Tambahkan draw
-                                };
-                            },
-                            dataSrc: function(json) {
-                                // ✅ PERBAIKAN: Return json langsung, bukan hanya data
-                                return json.data || [];
-                            }
-                        },
-                        columns: [{
-                                data: 'fsuppliercode',
-                                name: 'fsuppliercode',
-                                width: '15%'
-                            },
-                            {
-                                data: 'fsuppliername',
-                                name: 'fsuppliername',
-                                width: '20%'
-                            },
-                            {
-                                data: 'faddress',
-                                name: 'faddress',
-                                defaultContent: '-',
-                                orderable: false,
-                                width: '30%'
-                            },
-                            {
-                                data: 'ftelp',
-                                name: 'ftelp',
-                                defaultContent: '-',
-                                orderable: false,
-                                width: '20%'
-                            },
-                            {
-                                data: null,
-                                orderable: false,
-                                searchable: false,
-                                className: 'text-center',
-                                width: '20%',
-                                render: function(data, type, row) {
-                                    // ✅ PERBAIKAN: Escape quotes untuk mencegah error
-                                    const code = (row.fsuppliercode || '').replace(/'/g, "\\'");
-                                    const name = (row.fsuppliername || '').replace(/'/g, "\\'");
-                                    const address = (row.faddress || '').replace(/'/g, "\\'");
-                                    const telp = (row.ftelp || '').replace(/'/g, "\\'");
-
-                                    return `<button type="button" 
-                                onclick="window.chooseSupplier('${row.fsupplierid}', '${code}', '${name}', '${address}', '${telp}')" 
-                                class="px-3 py-1 rounded text-xs bg-emerald-600 hover:bg-emerald-700 text-white">
-                                Pilih
-                            </button>`;
-                                }
-                            }
-                        ],
-                        pageLength: 10,
-                        lengthMenu: [10, 25, 50, 100],
-                        order: [
-                            [1, 'asc']
-                        ],
-                        dom: '<"flex items-center justify-between mb-4"<"flex items-center gap-2"l><"flex-1"><"flex items-center"f>>' +
-                            '<"overflow-x-auto"t>' +
-                            '<"flex items-center justify-between mt-4"<"text-sm text-gray-600"i><"flex items-center gap-2"p>>',
-                        language: {
-                            search: "_INPUT_",
-                            searchPlaceholder: "Cari kode atau nama supplier...",
-                            lengthMenu: "Tampilkan _MENU_",
-                            info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
-                            infoEmpty: "Tidak ada data",
-                            infoFiltered: "(difilter dari _MAX_ total data)",
-                            paginate: {
-                                first: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/></svg>',
-                                last: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg>',
-                                next: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>',
-                                previous: '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>'
-                            },
-                            processing: '<div class="flex items-center justify-center"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>',
-                            zeroRecords: "Tidak ada data yang ditemukan"
-                        },
-                        drawCallback: function() {
-                            $('.dataTables_paginate .paginate_button').addClass(
-                                'px-3 py-2 border rounded mx-0.5 hover:bg-gray-100 transition-colors inline-flex items-center justify-center'
-                            );
-                            $('.dataTables_paginate .paginate_button.current').addClass(
-                                'bg-blue-600 text-white border-blue-600 hover:bg-blue-700');
-                            $('.dataTables_paginate .paginate_button.disabled').addClass(
-                                'opacity-50 cursor-not-allowed hover:bg-transparent');
-
-                            $('.dataTables_paginate .paginate_button.first, .dataTables_paginate .paginate_button.last, .dataTables_paginate .paginate_button.previous, .dataTables_paginate .paginate_button.next')
-                                .css('min-width', '36px');
-                        }
-                    });
-                },
-
-                openBrowse() {
-                    this.open = true;
-                    this.$nextTick(() => {
-                        this.initDataTable();
-                    });
-                },
-
-                close() {
-                    this.open = false;
-                    if (this.dataTable) {
-                        this.dataTable.destroy();
-                        this.dataTable = null;
-                    }
-                },
-
-                init() {
-                    window.chooseSupplier = (id, code, name, address, telp) => {
-                        const sel = document.getElementById('modal_filter_supplier_id');
-                        const hid = document.getElementById('supplierCodeHidden');
-
-                        if (!sel) {
-                            this.close();
-                            return;
-                        }
-
-                        let opt = [...sel.options].find(o => o.value == String(id));
-                        const label = `${name} (${code})`;
-
-                        if (!opt) {
-                            opt = new Option(label, id, true, true);
-                            sel.add(opt);
-                        } else {
-                            opt.text = label;
-                            opt.selected = true;
-                        }
-
-                        sel.dispatchEvent(new Event('change'));
-                        if (hid) hid.value = id;
-                        this.close();
-                    };
-
-                    window.addEventListener('supplier-browse-open', () => this.openBrowse(), {
-                        passive: true
-                    });
-                }
+                document.body.style.overflow = 'auto'; // Enable scroll
             }
         }
     </script>
-@endpush
+@endsection
