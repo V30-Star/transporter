@@ -28,14 +28,12 @@ class ReportingAccountController extends Controller
   private function rebuildTreeLogic(): void
   {
     DB::transaction(function () {
-
       $accounts = DB::table('account')
         ->select('faccount', 'faccupline')
         ->get();
 
       if ($accounts->isEmpty()) return;
 
-      // -- 1. Bangun arrDist: parent => [child1, child2, ...]
       $this->arrDist = [];
       foreach ($accounts as $row) {
         $acc    = trim($row->faccount);
@@ -43,49 +41,47 @@ class ReportingAccountController extends Controller
         $this->arrDist[$upline][] = $acc;
       }
 
-      foreach ($this->arrDist as $parent => &$children) {
+      foreach ($this->arrDist as &$children) {
         sort($children);
       }
       unset($children);
-      
-      // -- 2. Cari root (upline kosong atau '0')
-      $rootAcc = null;
+
+      $this->arrNormList = [];
+      $this->nIndx = 0;
+
+      // Ambil semua top-level accounts (upline = '' atau '0')
+      // SKIP node "0" sendiri, langsung ambil yang upline-nya '0' atau ''
+      $topLevelAccounts = [];
       foreach ($accounts as $row) {
+        $acc    = trim($row->faccount);
         $upline = trim($row->faccupline ?? '');
-        if ($upline === '' || $upline === '0') {
-          $rootAcc = trim($row->faccount);
-          break;
+        if (($upline === '' || $upline === '0') && $acc !== '0') {
+          $topLevelAccounts[] = $acc;
         }
       }
-      if ($rootAcc === null) {
-        $rootAcc = trim($accounts->first()->faccount);
-      }
+      sort($topLevelAccounts);
 
-      // -- 3. Inisialisasi
-      $this->arrNormList = [];
-      $this->nIndx       = 1;
-
-      // Root node — fdxorder diisi setelah rekursi selesai
+      // Buat virtual root "0" sebagai container
+      $this->nIndx = 1;
       $this->arrNormList[1] = [
-        'faccount'   => $rootAcc,
+        'faccount'   => '0',
         'faccupline' => '',
         'flevel'     => 1,
         'forder'     => 1,
-        'fsporder'   => 0,          // parent dari root = 0
-        'fdxorder'   => 0,          // akan di-patch setelah rekursi
-        'fleafend'   => '0',        // root pasti punya anak
+        'fsporder'   => 0,
+        'fdxorder'   => 0,
+        'fleafend'   => '0',
       ];
 
-      // -- 4. Rekursi DFS
-      $this->traceTree($rootAcc, 1 /*parentOrder*/, 1 /*level*/);
+      // Override arrDist["0"] dengan topLevelAccounts yang sudah disorted
+      $this->arrDist['0'] = $topLevelAccounts;
 
+      // Traverse dari virtual root
+      $this->traceTree('0', 1, 1);
       $this->arrNormList[1]['fdxorder'] = $this->nIndx;
 
-      // -- 6. Simpan ke DB
       DB::table('accounttree')->truncate();
-
-      $rows = array_values($this->arrNormList); // reindex 0-based untuk insert
-      foreach (array_chunk($rows, 500) as $chunk) {
+      foreach (array_chunk(array_values($this->arrNormList), 500) as $chunk) {
         DB::table('accounttree')->insert($chunk);
       }
     });
