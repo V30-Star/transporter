@@ -143,8 +143,7 @@ class ReportingAccountController extends Controller
   // -----------------------------------------------------------------------
   public function printAccount(Request $request)
   {
-    // 1. Ambil fdxorder dari tabel accounttree (bukan account)
-    // Gunakan nama kolom yang benar: fdxorder
+    // 1. Ambil batasan fdxorder dari tabel accounttree
     $startOrder = DB::table('accounttree')
       ->where('faccount', $request->account_from)
       ->value('fdxorder');
@@ -153,24 +152,25 @@ class ReportingAccountController extends Controller
       ->where('faccount', $request->account_to)
       ->value('fdxorder');
 
-    // 2. Query data utama dengan join
+    // 2. Bangun Query Utama
     $query = DB::table('accounttree')
       ->join('account', 'accounttree.faccount', '=', 'account.faccount')
       ->select(
-        'accounttree.*', // Ini akan mengambil faccount, fdxorder, forder, flevel, dll
+        'accounttree.*',
         'account.faccname',
         'account.fhavesubaccount',
         'account.fnormal',
         'account.fend'
       );
 
-    // 3. Filter berdasarkan fdxorder jika parameter ada
+    // 3. Terapkan Filter Rentang (Jika user memilih filter)
     if ($startOrder !== null && $endOrder !== null) {
       $query->whereBetween('accounttree.fdxorder', [$startOrder, $endOrder]);
     }
 
-    // 4. Urutkan berdasarkan fdxorder agar hirarki tetap rapi
-    $data = $query->orderBy('accounttree.fdxorder', 'asc')->get();
+    // 4. KEMBALIKAN URUTAN SEPERTI DULU (Menggunakan forder)
+    // Ini menjaga integritas hirarki sesuai tampilan lama Anda
+    $data = $query->orderBy('accounttree.forder', 'asc')->get();
 
     return view('reportingaccount.print', compact('data'));
   }

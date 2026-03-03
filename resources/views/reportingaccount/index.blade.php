@@ -49,7 +49,7 @@
             {{-- Modal Content --}}
             <div class="relative bg-white rounded-xl shadow-2xl max-w-lg w-full p-6 overflow-hidden">
                 <div class="flex justify-between items-center border-b pb-4 mb-6">
-                    <h3 class="text-xl font-bold text-gray-800">Cetak Laporan Account</h3>
+                    <h3 class="text-xl font-bold text-gray-800">Chart of Account</h3>
                     <button onclick="toggleModal(false)"
                         class="text-gray-400 hover:text-gray-600 text-2xl font-bold">&times;</button>
                 </div>
@@ -127,5 +127,10 @@
                 document.body.style.overflow = 'auto';
             }
         }
+
+        // Tambahkan ini agar modal langsung muncul saat halaman di-load
+        document.addEventListener('DOMContentLoaded', function() {
+            toggleModal(true);
+        });
     </script>
 @endsection
