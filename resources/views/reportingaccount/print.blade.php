@@ -155,7 +155,7 @@
     </style>
 </head>
 
-<body onload="window.print()">
+<body>
 
     {{-- Tombol cetak (hilang saat print) --}}
     <div class="no-print">

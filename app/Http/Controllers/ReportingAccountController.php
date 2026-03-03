@@ -143,34 +143,34 @@ class ReportingAccountController extends Controller
   // -----------------------------------------------------------------------
   public function printAccount(Request $request)
   {
-    // 1. Ambil batasan fdxorder dari tabel accounttree
-    $startOrder = DB::table('accounttree')
+    // 1. Ambil batasan forder
+    $cforderMin = DB::table('accounttree')
       ->where('faccount', $request->account_from)
-      ->value('fdxorder');
+      ->value('forder');
 
-    $endOrder = DB::table('accounttree')
+    $cforderMax = DB::table('accounttree')
       ->where('faccount', $request->account_to)
-      ->value('fdxorder');
+      ->value('forder');
 
-    // 2. Bangun Query Utama
-    $query = DB::table('accounttree')
-      ->join('account', 'accounttree.faccount', '=', 'account.faccount')
+    // 2. Query Utama (Gunakan nama tabel langsung atau alias huruf kecil agar aman)
+    $query = DB::table('account as d')
+      ->join('accounttree as t', 'd.faccount', '=', 't.faccount')
       ->select(
-        'accounttree.*',
-        'account.faccname',
-        'account.fhavesubaccount',
-        'account.fnormal',
-        'account.fend'
+        'd.*',
+        't.*',
+        // Pastikan referensi tabel di dalam CASE WHEN menggunakan alias huruf kecil 'd'
+        DB::raw("CASE WHEN d.fend = '1' THEN CAST('Detil' AS char(8)) ELSE CAST('Header' AS char(8)) END as fjudul"),
+        DB::raw("CASE WHEN d.fhavesubaccount = '1' THEN CAST('Ya' AS char(5)) ELSE CAST('Tidak' AS char(5)) END as fsubacc")
       );
 
-    // 3. Terapkan Filter Rentang (Jika user memilih filter)
-    if ($startOrder !== null && $endOrder !== null) {
-      $query->whereBetween('accounttree.fdxorder', [$startOrder, $endOrder]);
+    // 3. Filter berdasarkan forder
+    if ($cforderMin !== null && $cforderMax !== null) {
+      $query->whereRaw('CAST(t.forder AS int) >= ?', [(int)$cforderMin])
+        ->whereRaw('CAST(t.forder AS int) <= ?', [(int)$cforderMax]);
     }
 
-    // 4. KEMBALIKAN URUTAN SEPERTI DULU (Menggunakan forder)
-    // Ini menjaga integritas hirarki sesuai tampilan lama Anda
-    $data = $query->orderBy('accounttree.forder', 'asc')->get();
+    // 4. Order by forder
+    $data = $query->orderBy('t.forder', 'asc')->get();
 
     return view('reportingaccount.print', compact('data'));
   }
