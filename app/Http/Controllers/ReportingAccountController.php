@@ -14,11 +14,12 @@ class ReportingAccountController extends Controller
 
   public function index()
   {
-    $accounts = DB::table('account')
-      ->select('faccount', 'faccname')
-      ->orderBy('faccount', 'asc')
+    $accounts = DB::table('accounttree')
+      ->join('account', 'accounttree.faccount', '=', 'account.faccount')
+      ->select('account.faccount', 'account.faccname', 'accounttree.fdxorder', 'accounttree.forder')
+      ->orderBy('account.faccount', 'asc')
       ->get();
-
+      
     return view('reportingaccount.index', compact('accounts'));
   }
 
