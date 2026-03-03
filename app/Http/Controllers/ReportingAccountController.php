@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Account;
 use Illuminate\Support\Facades\DB;
 
 class ReportingAccountController extends Controller
@@ -13,7 +14,12 @@ class ReportingAccountController extends Controller
 
   public function index()
   {
-    return view('reportingaccount.index');
+    $accounts = DB::table('account')
+      ->select('faccount', 'faccname')
+      ->orderBy('faccount', 'asc')
+      ->get();
+
+    return view('reportingaccount.index', compact('accounts'));
   }
 
   public function rebuildAndPrint(Request $request)
@@ -137,18 +143,34 @@ class ReportingAccountController extends Controller
   // -----------------------------------------------------------------------
   public function printAccount(Request $request)
   {
-    $data = DB::table('accounttree')
+    // 1. Ambil fdxorder dari tabel accounttree (bukan account)
+    // Gunakan nama kolom yang benar: fdxorder
+    $startOrder = DB::table('accounttree')
+      ->where('faccount', $request->account_from)
+      ->value('fdxorder');
+
+    $endOrder = DB::table('accounttree')
+      ->where('faccount', $request->account_to)
+      ->value('fdxorder');
+
+    // 2. Query data utama dengan join
+    $query = DB::table('accounttree')
       ->join('account', 'accounttree.faccount', '=', 'account.faccount')
       ->select(
-        'accounttree.*',
+        'accounttree.*', // Ini akan mengambil faccount, fdxorder, forder, flevel, dll
         'account.faccname',
         'account.fhavesubaccount',
         'account.fnormal',
         'account.fend'
-      )
-      // Hanya menggunakan forder untuk menjaga integritas hirarki
-      ->orderBy('accounttree.forder', 'asc')
-      ->get();
+      );
+
+    // 3. Filter berdasarkan fdxorder jika parameter ada
+    if ($startOrder !== null && $endOrder !== null) {
+      $query->whereBetween('accounttree.fdxorder', [$startOrder, $endOrder]);
+    }
+
+    // 4. Urutkan berdasarkan fdxorder agar hirarki tetap rapi
+    $data = $query->orderBy('accounttree.fdxorder', 'asc')->get();
 
     return view('reportingaccount.print', compact('data'));
   }
