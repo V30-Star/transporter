@@ -1,45 +1,8 @@
 @extends('layouts.app')
 
-@section('title', 'Chart of Account Report')
+@section('title', '')
 
 @section('content')
-    <div class="container mx-auto px-4 py-8">
-        <div class="max-w-4xl mx-auto bg-white shadow-lg rounded-xl overflow-hidden border border-gray-100">
-            <div class="bg-gradient-to-r from-blue-700 to-indigo-800 px-6 py-4">
-                <h2 class="text-xl font-bold text-white flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M9 17v-2m3 2v-4m3 4v-6m2 10H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" />
-                    </svg>
-                    Laporan Chart of Account (COA)
-                </h2>
-            </div>
-
-            <div class="p-8 text-center">
-                <div class="bg-blue-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-blue-500" fill="none"
-                        viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                </div>
-                <h3 class="text-lg font-semibold text-gray-800">Filter & Cetak Laporan</h3>
-                <p class="text-gray-500 mb-6">Tentukan rentang akun yang ingin ditampilkan dalam laporan.</p>
-
-                <button onclick="toggleModal(true)"
-                    class="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-lg transition-all transform hover:-translate-y-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-                    </svg>
-                    Set Filter Account
-                </button>
-            </div>
-        </div>
-    </div>
-
     {{-- --- MODAL FILTER --- --}}
     <div id="filterModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
         <div class="flex items-center justify-center min-h-screen p-4">
@@ -98,7 +61,7 @@
                             </svg>
                             Print & Preview
                         </button>
-                        <button type="button" onclick="toggleModal(false)"
+                        <button type="button" onclick="window.location.href='{{ route('dashboard') }}'"
                             class="px-5 py-2.5 bg-gray-100 text-gray-600 font-semibold rounded-lg hover:bg-gray-200 transition-colors">
                             Cancel
                         </button>
