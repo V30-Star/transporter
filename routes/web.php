@@ -39,6 +39,9 @@ use App\Http\Controllers\ReturPembelianController;
 use App\Http\Controllers\ReportingAdjStockController;
 use App\Http\Controllers\ReportingAssemblingController;
 use App\Http\Controllers\ReportingPemakaianBarangController;
+use App\Http\Controllers\ReportingSubaccountController;
+use App\Http\Controllers\ReportingSupplierController;
+use App\Http\Controllers\ReportingProductController;
 use App\Http\Controllers\SalesOrderController;
 use App\Http\Controllers\SuratJalanController;
 
@@ -431,6 +434,15 @@ Route::middleware('auth')->group(function () {
         Route::get('/reportingaccount/exportExcel', [ReportingAccountController::class, 'exportExcel'])->name('reportingaccount.exportExcel');
         Route::get('/reportingaccount/print', [ReportingAccountController::class, 'printAccount'])->name('reportingaccount.printAccount');
         Route::get('/reportingaccount/rebuildAndPrint', [ReportingAccountController::class, 'rebuildAndPrint'])->name('reportingaccount.rebuildAndPrint');
+
+        Route::get('/reportingsubaccount', [ReportingSubaccountController::class, 'index'])->name('reportingsubaccount.index');
+        Route::get('/reportingsubaccount/print', [ReportingSubaccountController::class, 'print'])->name('reportingsubaccount.print');
+
+        Route::get('/reportingsupplier', [ReportingSupplierController::class, 'index'])->name('reportingsupplier.index');
+        Route::get('/reportingsupplier/print', [ReportingSupplierController::class, 'print'])->name('reportingsupplier.print');
+
+        Route::get('/reportingproduct', [ReportingProductController::class, 'index'])->name('reportingproduct.index');
+        Route::get('/reportingproduct/print', [ReportingProductController::class, 'print'])->name('reportingproduct.print');
 
         Route::get('/gudang/browse', [WhController::class, 'browse'])
             ->name('gudang.browse');

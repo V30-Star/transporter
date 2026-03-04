@@ -12,36 +12,37 @@
             {{-- Modal Content --}}
             <div class="relative bg-white rounded-xl shadow-2xl max-w-lg w-full p-6 overflow-hidden">
                 <div class="flex justify-between items-center border-b pb-4 mb-6">
-                    <h3 class="text-xl font-bold text-gray-800">Chart of Account</h3>
+                    <h3 class="text-xl font-bold text-gray-800">Master Sub Account</h3>
                 </div>
 
-                <form method="GET" action="{{ route('reportingaccount.rebuildAndPrint') }}" target="_blank">
-                    <div class="space-y-4"> {{-- Menggunakan space-y untuk jarak antar grup --}}
+                <form method="GET" action="{{ route('reportingsubaccount.print') }}" target="_blank">
+                    <div class="space-y-4">
 
-                        {{-- Grup Account From --}}
+                        {{-- Sub Account From --}}
                         <div class="flex flex-col">
-                            <label for="account_from" class="block text-sm font-bold text-gray-700 mb-1">Account
+                            <label for="subaccount_from" class="block text-sm font-bold text-gray-700 mb-1">Sub Account
                                 From</label>
-                            <select name="account_from" id="account_from" onchange="autoFillAccountTo()"
+                            <select name="subaccount_from" id="subaccount_from"
                                 class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all">
                                 <option value="">-- Pilih Akun Awal --</option>
-                                @foreach ($accounts as $acc)
-                                    <option value="{{ $acc->faccount }}" data-fdxorder="{{ $acc->fdxorder }}">
-                                        {{ $acc->faccount }} - {{ $acc->faccname }}
+                                @foreach ($subAccounts as $sub)
+                                    <option value="{{ $sub->fsubaccountcode }}">
+                                        {{ $sub->fsubaccountcode }} - {{ $sub->fsubaccountname }}
                                     </option>
                                 @endforeach
                             </select>
                         </div>
 
-                        {{-- Grup Account To --}}
+                        {{-- Sub Account To --}}
                         <div class="flex flex-col">
-                            <label for="account_to" class="block text-sm font-bold text-gray-700 mb-1">Account To</label>
-                            <select name="account_to" id="account_to"
+                            <label for="subaccount_to" class="block text-sm font-bold text-gray-700 mb-1">Sub Account
+                                To</label>
+                            <select name="subaccount_to" id="subaccount_to"
                                 class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all">
                                 <option value="">-- Pilih Akun Akhir --</option>
-                                @foreach ($accounts as $acc)
-                                    <option value="{{ $acc->faccount }}" data-forder="{{ $acc->forder }}">
-                                        {{ $acc->faccount }} - {{ $acc->faccname }}
+                                @foreach ($subAccounts as $sub)
+                                    <option value="{{ $sub->fsubaccountcode }}">
+                                        {{ $sub->fsubaccountcode }} - {{ $sub->fsubaccountname }}
                                     </option>
                                 @endforeach
                             </select>
@@ -68,6 +69,8 @@
             </div>
         </div>
     </div>
+
+    {{-- Assets --}}
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
@@ -75,25 +78,27 @@
     <script>
         $(document).ready(function() {
             // Inisialisasi Select2
-            const fromSelect = $('#account_from').select2({
+            $('#subaccount_from').select2({
+                width: '100%',
+                placeholder: '-- Pilih Akun --',
+                allowClear: true
+            });
+            $('#subaccount_to').select2({
                 width: '100%',
                 placeholder: '-- Pilih Akun --',
                 allowClear: true
             });
 
-            $('#account_to').select2({
-                width: '100%',
-                placeholder: '-- Pilih Akun --',
-                allowClear: true
+            // Auto-fill Account To saat Account From dipilih
+            $('#subaccount_from').on('select2:select', function(e) {
+                const val = $(this).val();
+                $('#subaccount_to').val(val).trigger('change');
             });
 
-            // Pemicu otomatis saat Select2 "Account From" berubah
-            fromSelect.on('select2:select', function(e) {
-                autoFillAccountTo();
-            });
+            // Tampilkan Modal Otomatis
+            toggleModal(true);
         });
-    </script>
-    <script>
+
         function toggleModal(show) {
             const modal = document.getElementById('filterModal');
             if (show) {
@@ -103,34 +108,6 @@
                 modal.classList.add('hidden');
                 document.body.style.overflow = 'auto';
             }
-        }
-
-        // Tambahkan ini agar modal langsung muncul saat halaman di-load
-        document.addEventListener('DOMContentLoaded', function() {
-            toggleModal(true);
-        });
-
-        function autoFillAccountTo() {
-            // 1. Dapatkan fdxorder dari akun yang dipilih di Account From
-            // Menggunakan jQuery agar kompatibel dengan Select2
-            const selectedOption = $('#account_from').find(':selected');
-            const targetDxOrder = selectedOption.data('fdxorder');
-
-            if (!targetDxOrder) return;
-
-            // 2. Cari di dropdown Account To yang memiliki data-forder == targetDxOrder
-            // Kita lakukan loop pada semua option di account_to
-            $('#account_to option').each(function() {
-                if ($(this).data('forder') == targetDxOrder) {
-                    // 3. Set nilai di select asli
-                    $('#account_to').val($(this).val());
-
-                    // 4. PENTING: Update tampilan Select2
-                    $('#account_to').trigger('change');
-
-                    return false; // Berhenti looping (break)
-                }
-            });
         }
     </script>
 @endsection
