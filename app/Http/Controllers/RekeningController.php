@@ -9,29 +9,14 @@ class RekeningController extends Controller
 {
     public function index(Request $request)
     {
-        $allowedSorts = ['frekeningcode', 'frekeningname', 'frekeningid', 'fnonactive'];
-        $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'frekeningid';
-        $sortDir = $request->sort_dir === 'asc' ? 'asc' : 'desc';
-
-        $status = $request->query('status');
-
-        $query = Rekening::query();
-
-        if ($status === 'active') {
-            $query->where('fnonactive', '0');
-        } elseif ($status === 'nonactive') {
-            $query->where('fnonactive', '1');
-        }
-
-        $rekenings = $query
-            ->orderBy($sortBy, $sortDir)
+        $rekenings = Rekening::orderBy('frekeningname', 'asc')
             ->get(['frekeningcode', 'frekeningname', 'frekeningid', 'fnonactive']);
 
         $canCreate = in_array('createRekening', explode(',', session('user_restricted_permissions', '')));
         $canEdit   = in_array('updateRekening', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deleteRekening', explode(',', session('user_restricted_permissions', '')));
 
-        return view('rekening.index', compact('rekenings', 'canCreate', 'canEdit', 'canDelete', 'status'));
+        return view('rekening.index', compact('rekenings', 'canCreate', 'canEdit', 'canDelete'));
     }
 
     public function create()

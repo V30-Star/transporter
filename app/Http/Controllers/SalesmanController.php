@@ -9,22 +9,7 @@ class SalesmanController extends Controller
 {
     public function index(Request $request)
     {
-        $allowedSorts = ['fsalesmancode', 'fsalesmanname', 'fsalesmanid', 'fnonactive'];
-        $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fsalesmanid';
-        $sortDir = $request->sort_dir === 'asc' ? 'asc' : 'desc';
-
-        $status = $request->query('status');
-
-        $query = Salesman::query();
-
-        if ($status === 'active') {
-            $query->where('fnonactive', '0');
-        } elseif ($status === 'nonactive') {
-            $query->where('fnonactive', '1');
-        }
-
-        $salesmans = $query
-            ->orderBy($sortBy, $sortDir)
+        $salesmans = Salesman::orderBy('fsalesmancode', 'asc')
             ->get(['fsalesmancode', 'fsalesmanname', 'fsalesmanid', 'fnonactive']);
 
         $permsStr  = (string) session('user_restricted_permissions', '');
@@ -33,7 +18,7 @@ class SalesmanController extends Controller
         $canEdit   = in_array('updateSalesman', $permsArr, true);
         $canDelete = in_array('deleteSalesman', $permsArr, true);
 
-        return view('salesman.index', compact('salesmans', 'canCreate', 'canEdit', 'canDelete', 'status'));
+        return view('salesman.index', compact('salesmans', 'canCreate', 'canEdit', 'canDelete'));
     }
 
     public function create()

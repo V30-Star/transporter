@@ -3,18 +3,17 @@
 @section('title', 'Master Satuan')
 
 @section('content')
+    @php
+        $canCreate = in_array('createSatuan', explode(',', session('user_restricted_permissions', '')));
+        $canEdit   = in_array('updateSatuan', explode(',', session('user_restricted_permissions', '')));
+        $canDelete = in_array('deleteSatuan', explode(',', session('user_restricted_permissions', '')));
+        $showActionsColumn = $canEdit || $canDelete;
+    @endphp
+
     <div x-data="satuanData()" class="bg-white rounded shadow p-4">
 
-        @php
-            $canCreate = in_array('createSatuan', explode(',', session('user_restricted_permissions', '')));
-            $canEdit = in_array('updateSatuan', explode(',', session('user_restricted_permissions', '')));
-            $canDelete = in_array('deleteSatuan', explode(',', session('user_restricted_permissions', '')));
-            $showActionsColumn = $canEdit || $canDelete;
-        @endphp
-
+        {{-- Tombol Tambah Baru --}}
         <div class="flex justify-end items-center mb-4">
-            <div></div>
-
             @if ($canCreate)
                 <a href="{{ route('satuan.create') }}"
                     class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
@@ -23,6 +22,7 @@
             @endif
         </div>
 
+        {{-- Template Filter Status (hidden, akan di-clone ke toolbar DataTables) --}}
         <div id="statusFilterTemplate" class="hidden">
             <div class="flex items-center gap-2" id="statusFilterWrap">
                 <span class="text-sm text-gray-700">Status</span>
@@ -34,13 +34,15 @@
             </div>
         </div>
 
-        {{-- TABEL DataTables --}}
+        {{-- Tabel --}}
         <table id="satuanTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
-                    <th>Kode Satuan</th>
-                    <th>Nama Satuan</th>
+                    <th class="border px-2 py-2">Kode Satuan</th>
+                    <th class="border px-2 py-2">Nama Satuan</th>
                     <th class="border px-2 py-2 no-sort">Status</th>
+                    {{-- Kolom hidden untuk filter client-side, berisi nilai mentah 0/1 --}}
+                    <th data-col="statusRaw" class="border px-2 py-2">StatusRaw</th>
                     @if ($showActionsColumn)
                         <th class="border px-2 py-2 col-aksi">Aksi</th>
                     @endif
@@ -48,29 +50,37 @@
             </thead>
             <tbody>
                 @foreach ($satuans as $item)
-                    <tr>
-                        <td>{{ $item->fsatuancode }}</td>
-                        <td>{{ $item->fsatuanname }}</td>
-                        <td>
-                            @php $isActive = (string)$item->fnonactive === '0'; @endphp
-                            <span class="status-label" data-status="{{ $item->fnonactive }}">
-                                <span
-                                    class="inline-flex items-center px-2 py-0.5 rounded text-xs {{ $isActive ? 'bg-green-100 text-green-700' : 'bg-red-200 text-red-700' }}">
-                                    {{ $isActive ? 'Active' : 'Non Active' }}
-                                </span>
+                    @php $isActive = (string) $item->fnonactive === '0'; @endphp
+                    <tr class="hover:bg-gray-50">
+                        <td class="border px-2 py-1">{{ $item->fsatuancode }}</td>
+                        <td class="border px-2 py-1">{{ $item->fsatuanname }}</td>
+
+                        {{-- Tampilan badge Status --}}
+                        <td class="border px-2 py-1">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs
+                                {{ $isActive ? 'bg-green-100 text-green-700' : 'bg-red-200 text-red-700' }}">
+                                {{ $isActive ? 'Active' : 'Non Active' }}
                             </span>
                         </td>
+
+                        {{-- Nilai mentah fnonactive (0 atau 1) — disembunyikan oleh DataTables --}}
+                        <td class="border px-2 py-1">{{ $item->fnonactive }}</td>
+
                         @if ($showActionsColumn)
-                            <td class="border px-2 py-1 space-x-2">
-                                {{-- Tombol Edit & Hapus --}}
-                                <a href="{{ route('satuan.edit', $item->fsatuanid) }}"
-                                    class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
-                                    Edit
-                                </a>
-                                <button @click="openDelete('{{ route('satuan.delete', $item->fsatuanid) }}', $event)"
-                                    class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
-                                    Hapus
-                                </button>
+                            <td class="border px-2 py-1 space-x-2 text-center">
+                                @if ($canEdit)
+                                    <a href="{{ route('satuan.edit', $item->fsatuanid) }}"
+                                        class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
+                                        Edit
+                                    </a>
+                                @endif
+                                @if ($canDelete)
+                                    <button
+                                        @click="openDelete('{{ route('satuan.delete', $item->fsatuanid) }}', $event)"
+                                        class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                                        Hapus
+                                    </button>
+                                @endif
                             </td>
                         @endif
                     </tr>
@@ -78,7 +88,7 @@
             </tbody>
         </table>
 
-        {{-- Modal Delete --}}
+        {{-- Modal Konfirmasi Hapus --}}
         <div x-show="showDeleteModal" x-cloak
             class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" x-transition>
             <div @click.away="!isDeleting && closeDelete()" class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
@@ -86,9 +96,7 @@
                 <p class="mb-6">Apakah Anda yakin ingin menghapus data ini?</p>
                 <div class="flex justify-end space-x-2">
                     <button @click="closeDelete()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-                        :disabled="isDeleting">
-                        Batal
-                    </button>
+                        :disabled="isDeleting">Batal</button>
                     <button @click="confirmDelete()"
                         class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
                         :disabled="isDeleting">
@@ -99,7 +107,7 @@
             </div>
         </div>
 
-        {{-- Toast Notification --}}
+        {{-- Toast Notifikasi --}}
         <div x-show="showNotification" x-cloak x-transition:enter="transition ease-out duration-300"
             x-transition:enter-start="opacity-0 transform translate-y-2"
             x-transition:enter-end="opacity-100 transform translate-y-0"
@@ -108,14 +116,13 @@
             <div :class="notificationType === 'success' ? 'bg-green-500' : 'bg-red-500'"
                 class="text-white px-6 py-4 rounded-lg shadow-lg flex items-center space-x-3">
                 <span x-text="notificationMessage"></span>
-                <button @click="showNotification = false" class="ml-4 text-white hover:text-gray-200">
-                    ×
-                </button>
+                <button @click="showNotification = false" class="ml-4 text-white hover:text-gray-200">×</button>
             </div>
         </div>
 
     </div>
 @endsection
+
 
 @push('styles')
     <link rel="stylesheet" href="https://cdn.datatables.net/2.1.6/css/dataTables.dataTables.min.css">
@@ -144,20 +151,14 @@
             vertical-align: middle;
         }
 
-        /* Kolom Aksi: jangan mepet, tapi tetap ringkas */
         #satuanTable th:last-child,
         #satuanTable td:last-child {
-            white-space: nowrap;
             text-align: center;
+            white-space: nowrap;
         }
 
         #satuanTable td:last-child {
             padding: .25rem .5rem;
-        }
-
-        .btn-aksi {
-            padding: .25rem .5rem;
-            font-size: .825rem;
         }
 
         .dataTables_wrapper .dt-search {
@@ -171,7 +172,7 @@
             margin-right: .25rem;
         }
 
-        /* Column Search Dropdown Styles */
+        /* Column Search Icon */
         .column-search-wrapper {
             position: relative;
             display: inline-block;
@@ -184,124 +185,12 @@
             border-radius: 4px;
             transition: background-color 0.2s;
             display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .column-search-icon:hover {
-            background-color: #e5e7eb;
-        }
-
-        .column-search-icon.active {
-            background-color: #3b82f6;
-            color: white;
-        }
-
-        .column-search-dropdown {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            margin-top: 4px;
-            background: white;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            padding: 8px;
-            min-width: 200px;
-            z-index: 1000;
-            display: none;
-        }
-
-        .column-search-dropdown.show {
-            display: block;
-        }
-
-        .column-search-input {
-            width: 100%;
-            padding: 6px 10px;
-            border: 1px solid #d1d5db;
-            border-radius: 4px;
-            font-size: 0.875rem;
-        }
-
-        .column-search-input:focus {
-            outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
-
-        .column-search-clear {
-            margin-top: 6px;
-            width: 100%;
-            padding: 4px 8px;
-            background-color: #f3f4f6;
-            border: none;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        .column-search-clear:hover {
-            background-color: #e5e7eb;
-        }
-
-        /* Icon SVG */
-        .search-icon {
-            width: 16px;
-            height: 16px;
-        }
-
-        /* Adjust header position */
-        #satuanTable thead th {
-            position: relative;
-        }
-
-        .dt-column-order {
-            display: inline-flex;
-            align-items: center;
-        }
-
-        /* Tambahkan di bawah style yang sudah ada */
-
-        /* Header layout untuk sort + search icon */
-        #satuanTable thead th {
-            position: relative;
-        }
-
-        .header-content {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            width: 100%;
-        }
-
-        .header-icons {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            margin-left: 8px;
-        }
-
-        /* Column Search Icon */
-        .column-search-icon {
-            cursor: pointer;
-            padding: 4px;
-            border-radius: 4px;
-            transition: background-color 0.2s;
-            display: inline-flex;
             width: 20px;
             height: 20px;
         }
 
-        .column-search-icon:hover {
-            background-color: #e5e7eb;
-        }
-
-        .column-search-icon.active {
-            background-color: #3b82f6;
-            color: white;
-        }
+        .column-search-icon:hover { background-color: #e5e7eb; }
+        .column-search-icon.active { background-color: #3b82f6; color: white; }
 
         .column-search-dropdown {
             position: absolute;
@@ -311,16 +200,14 @@
             background: white;
             border: 1px solid #d1d5db;
             border-radius: 6px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             padding: 8px;
             min-width: 200px;
             z-index: 1000;
             display: none;
         }
 
-        .column-search-dropdown.show {
-            display: block;
-        }
+        .column-search-dropdown.show { display: block; }
 
         .column-search-input {
             width: 100%;
@@ -333,7 +220,7 @@
         .column-search-input:focus {
             outline: none;
             border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
         }
 
         .column-search-clear {
@@ -347,43 +234,43 @@
             cursor: pointer;
         }
 
-        .column-search-clear:hover {
-            background-color: #e5e7eb;
-        }
-
-        .search-icon {
-            width: 14px;
-            height: 14px;
-        }
+        .column-search-clear:hover { background-color: #e5e7eb; }
+        .search-icon { width: 14px; height: 14px; }
+        #satuanTable thead th { position: relative; }
     </style>
 @endpush
+
 
 @push('scripts')
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.datatables.net/2.1.6/js/dataTables.min.js"></script>
+
     <script>
+        // =============================================
+        // Alpine.js — Modal Delete
+        // =============================================
         document.addEventListener('alpine:init', () => {
             Alpine.data('satuanData', () => ({
-                showDeleteModal: false,
-                deleteUrl: '',
-                isDeleting: false,
-                showNotification: false,
-                notificationMessage: '',
-                notificationType: 'success',
-                currentRow: null,
+                showDeleteModal     : false,
+                deleteUrl           : '',
+                isDeleting          : false,
+                currentRow          : null,
+                showNotification    : false,
+                notificationMessage : '',
+                notificationType    : 'success',
 
                 openDelete(url, event) {
-                    this.deleteUrl = url;
+                    this.deleteUrl       = url;
+                    this.currentRow      = event.target.closest('tr');
                     this.showDeleteModal = true;
-                    this.isDeleting = false;
-                    this.currentRow = event.target.closest('tr');
+                    this.isDeleting      = false;
                 },
 
                 closeDelete() {
                     if (!this.isDeleting) {
                         this.showDeleteModal = false;
-                        this.deleteUrl = '';
-                        this.currentRow = null;
+                        this.deleteUrl       = '';
+                        this.currentRow      = null;
                     }
                 },
 
@@ -392,216 +279,225 @@
                     const rowToDelete = this.currentRow;
 
                     fetch(this.deleteUrl, {
-                            method: 'DELETE',
-                            headers: {
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
-                                    .content,
-                                'Accept': 'application/json',
-                                'Content-Type': 'application/json'
+                        method  : 'DELETE',
+                        headers : {
+                            'X-CSRF-TOKEN' : document.querySelector('meta[name="csrf-token"]').content,
+                            'Accept'       : 'application/json',
+                            'Content-Type' : 'application/json',
+                        }
+                    })
+                    .then(response => {
+                        return response.json().then(data => ({
+                            ok: response.ok,
+                            status: response.status,
+                            data: data
+                        }));
+                    })
+                    .then(result => {
+                        this.showDeleteModal = false;
+                        this.isDeleting      = false;
+
+                        if (result.ok) {
+                            const table = $('#satuanTable').DataTable();
+                            if (rowToDelete) {
+                                table.row($(rowToDelete)).remove().draw(false);
                             }
-                        })
-                        .then(response => {
-                            return response.json().then(data => ({
-                                ok: response.ok,
-                                status: response.status,
-                                data: data
-                            }));
-                        })
-                        .then(result => {
-                            this.showDeleteModal = false;
-                            this.isDeleting = false;
+                            this.showNotificationMsg('success', result.data.message || 'Data berhasil dihapus');
+                        } else {
+                            this.showNotificationMsg('error', result.data.message || 'Gagal menghapus data');
+                        }
 
-                            if (result.ok) {
-                                const table = $('#satuanTable').DataTable();
-                                if (rowToDelete) {
-                                    table.row($(rowToDelete)).remove().draw(false);
-                                }
-
-                                this.showNotificationMsg('success', result.data.message ||
-                                    'Data berhasil dihapus');
-                            } else {
-                                this.showNotificationMsg('error', result.data.message ||
-                                    'Gagal menghapus data');
-                            }
-
-                            this.currentRow = null;
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                            this.showDeleteModal = false;
-                            this.isDeleting = false;
-                            this.showNotificationMsg('error',
-                                'Terjadi kesalahan. Silakan coba lagi.');
-                            this.currentRow = null;
-                        });
+                        this.currentRow = null;
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        this.showDeleteModal = false;
+                        this.isDeleting      = false;
+                        this.showNotificationMsg('error', 'Terjadi kesalahan. Silakan coba lagi.');
+                        this.currentRow = null;
+                    });
                 },
 
                 showNotificationMsg(type, message) {
-                    this.notificationType = type;
+                    this.notificationType    = type;
                     this.notificationMessage = message;
-                    this.showNotification = true;
-
-                    setTimeout(() => {
-                        this.showNotification = false;
-                    }, 3000);
+                    this.showNotification    = true;
+                    setTimeout(() => { this.showNotification = false; }, 3000);
                 }
             }));
         });
 
-        $(function() {
-            const hasActions = {{ $showActionsColumn ? 'true' : 'false' }};
+
+        // =============================================
+        // jQuery — Inisialisasi DataTables
+        // =============================================
+        $(function () {
 
             const table = $('#satuanTable').DataTable({
-                autoWidth: false,
-                pageLength: 10,
-                lengthMenu: [10, 25, 50, 100],
-                order: [
-                    [0, 'asc']
-                ],
+                autoWidth  : false,
+                pageLength : 10,
+                lengthMenu : [10, 25, 50, 100],
+                order      : [[0, 'asc']],
                 layout: {
-                    topStart: 'search',
-                    topEnd: 'pageLength',
+                    topStart   : 'search',
+                    topEnd     : 'pageLength',
                     bottomStart: 'info',
-                    bottomEnd: 'paging'
+                    bottomEnd  : 'paging',
                 },
-                columnDefs: [{
-                        targets: 'col-aksi',
-                        orderable: false,
-                        searchable: false,
-                        width: 120
-                    },
-                    {
-                        targets: 'no-sort',
-                        orderable: false
-                    }
+                columnDefs: [
+                    { targets: 'col-aksi', orderable: false, searchable: false, width: 120 },
+                    { targets: 'no-sort',  orderable: false },
                 ],
                 language: {
-                    lengthMenu: "Show _MENU_ entries"
+                    lengthMenu: "Show _MENU_ entries",
                 },
-                initComplete: function() {
-                    const api = this.api();
-                    const $container = $(api.table().container());
+            });
 
-                    // 1. SET UP COLUMN SEARCH (PER KOLOM)
-                    api.columns().every(function(index) {
-                        const column = this;
-                        const header = $(column.header());
+            // ------------------------------------------
+            // 1. Cari index kolom statusRaw & sembunyikan
+            // ------------------------------------------
+            const statusRawIdx = table.columns().indexes().toArray()
+                .find(i => $(table.column(i).header()).attr('data-col') === 'statusRaw');
 
-                        if (!column.orderable() || header.hasClass('col-aksi') || header
-                            .hasClass('no-sort')) {
-                            return;
-                        }
+            if (statusRawIdx === undefined) {
+                console.warn('Kolom statusRaw tidak ditemukan.');
+                return;
+            }
 
-                        setTimeout(() => {
-                            const searchWrapper = $(`
+            table.column(statusRawIdx).visible(false);
+
+            // Default: tampilkan hanya Active (fnonactive = 0)
+            table.column(statusRawIdx).search('^0$', true, false).draw();
+
+            // ------------------------------------------
+            // 2. Clone template filter Status ke toolbar Search
+            // ------------------------------------------
+            const $container     = $(table.table().container());
+            const $toolbarSearch = $container.find('.dt-search');
+
+            const $filter = $('#statusFilterTemplate #statusFilterWrap').clone(true, true);
+            const $select = $filter.find('select[data-role="status-filter"]');
+            $select.attr('id', 'statusFilterDT');
+            $toolbarSearch.append($filter); // sebelah kanan kotak search
+
+            // Event: dropdown filter Status berubah
+            $select.on('change', function () {
+                const val = this.value;
+                if (val === 'active') {
+                    table.column(statusRawIdx).search('^0$', true, false).draw();
+                } else if (val === 'nonactive') {
+                    table.column(statusRawIdx).search('^1$', true, false).draw();
+                } else {
+                    table.column(statusRawIdx).search('', true, false).draw();
+                }
+            });
+
+            // ------------------------------------------
+            // 3. Paksa input Search Global jadi UPPERCASE
+            // ------------------------------------------
+            const $searchInput = $toolbarSearch.find('.dt-input');
+            $searchInput.css({
+                'width'          : '400px',
+                'maxWidth'       : '100%',
+                'text-transform' : 'uppercase',
+            });
+
+            $container.on('input', '.dt-search .dt-input', function () {
+                const start = this.selectionStart;
+                const end   = this.selectionEnd;
+                this.value  = this.value.toUpperCase();
+                this.setSelectionRange(start, end);
+                table.search(this.value).draw();
+            });
+
+            // ------------------------------------------
+            // 4. Column Search (per kolom) — dari kode asli
+            // ------------------------------------------
+            table.columns().every(function (index) {
+                const column  = this;
+                const header  = $(column.header());
+
+                // Skip kolom yang tidak bisa diurutkan (status, aksi, statusRaw)
+                if (!column.orderable() || header.hasClass('col-aksi') || header.hasClass('no-sort')) {
+                    return;
+                }
+
+                setTimeout(() => {
+                    const searchWrapper = $(`
                         <span class="column-search-wrapper">
                             <span class="column-search-icon" data-column="${index}">
                                 <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                                 </svg>
                             </span>
                             <div class="column-search-dropdown" data-column="${index}">
-                                <input type="text" class="column-search-input" placeholder="CARI..." style="text-transform: uppercase;" />
+                                <input type="text" class="column-search-input" placeholder="CARI..."
+                                    style="text-transform: uppercase;" />
                                 <button class="column-search-clear">Clear</button>
                             </div>
                         </span>
                     `);
 
-                            const sortIcon = header.find('.dt-column-order');
-                            if (sortIcon.length > 0) {
-                                sortIcon.after(searchWrapper);
-                            } else {
-                                header.append(searchWrapper);
-                            }
+                    const sortIcon = header.find('.dt-column-order');
+                    if (sortIcon.length > 0) {
+                        sortIcon.after(searchWrapper);
+                    } else {
+                        header.append(searchWrapper);
+                    }
 
-                            const icon = searchWrapper.find('.column-search-icon');
-                            const dropdown = searchWrapper.find(
-                                '.column-search-dropdown');
-                            const input = searchWrapper.find('.column-search-input');
-                            const clearBtn = searchWrapper.find('.column-search-clear');
+                    const icon     = searchWrapper.find('.column-search-icon');
+                    const dropdown = searchWrapper.find('.column-search-dropdown');
+                    const input    = searchWrapper.find('.column-search-input');
+                    const clearBtn = searchWrapper.find('.column-search-clear');
 
-                            icon.on('click', function(e) {
-                                e.stopPropagation();
-                                $('.column-search-dropdown').not(dropdown)
-                                    .removeClass('show');
-                                $('.column-search-icon').not(icon).removeClass(
-                                    'active');
-                                dropdown.toggleClass('show');
-                                icon.toggleClass('active');
-                                if (dropdown.hasClass('show')) {
-                                    input.focus();
-                                }
-                            });
-
-                            // FORCE UPPERCASE UNTUK SEARCH PER KOLOM
-                            input.on('input', function() {
-                                const start = this.selectionStart;
-                                const end = this.selectionEnd;
-                                this.value = this.value.toUpperCase();
-                                this.setSelectionRange(start, end);
-
-                                const value = this.value;
-                                if (column.search() !== value) {
-                                    column.search(value).draw();
-                                }
-
-                                if (value) {
-                                    icon.addClass('active');
-                                } else {
-                                    icon.removeClass('active');
-                                }
-                            });
-
-                            clearBtn.on('click', function() {
-                                input.val('');
-                                column.search('').draw();
-                                icon.removeClass('active');
-                                dropdown.removeClass('show');
-                            });
-
-                            dropdown.on('click', function(e) {
-                                e.stopPropagation();
-                            });
-                        }, 50);
+                    icon.on('click', function (e) {
+                        e.stopPropagation();
+                        $('.column-search-dropdown').not(dropdown).removeClass('show');
+                        $('.column-search-icon').not(icon).removeClass('active');
+                        dropdown.toggleClass('show');
+                        icon.toggleClass('active');
+                        if (dropdown.hasClass('show')) input.focus();
                     });
 
-                    // 2. CLOSE DROPDOWNS ON OUTSIDE CLICK
-                    $(document).on('click', function() {
-                        $('.column-search-dropdown').removeClass('show');
-                        $('.column-search-icon').each(function() {
-                            const $icon = $(this);
-                            const columnIndex = $icon.data('column');
-                            if (!api.column(columnIndex).search()) {
-                                $icon.removeClass('active');
-                            }
-                        });
-                    });
-
-                    // 3. SET UP GLOBAL SEARCH (UPPERCASE)
-                    const $toolbarSearch = $container.find('.dt-search');
-                    const $globalInput = $toolbarSearch.find('.dt-input');
-
-                    $globalInput.css({
-                        'width': '400px',
-                        'maxWidth': '100%',
-                        'text-transform': 'uppercase'
-                    });
-
-                    $container.on('input', '.dt-search .dt-input', function() {
+                    // Force uppercase untuk search per kolom
+                    input.on('input', function () {
                         const start = this.selectionStart;
-                        const end = this.selectionEnd;
-                        this.value = this.value.toUpperCase();
+                        const end   = this.selectionEnd;
+                        this.value  = this.value.toUpperCase();
                         this.setSelectionRange(start, end);
-                        api.search(this.value).draw();
+
+                        const value = this.value;
+                        if (column.search() !== value) {
+                            column.search(value).draw();
+                        }
+
+                        icon.toggleClass('active', !!value);
                     });
 
-                    // 4. SET UP STATUS FILTER
-                    const $filter = $('#statusFilterTemplate #statusFilterWrap').clone(true, true);
-                    const $select = $filter.find('select[data-role="status-filter"]');
-                    $select.attr('id', 'statusFilterDT');
-                    $toolbarSearch.append($filter);
-                }
+                    clearBtn.on('click', function () {
+                        input.val('');
+                        column.search('').draw();
+                        icon.removeClass('active');
+                        dropdown.removeClass('show');
+                    });
+
+                    dropdown.on('click', function (e) { e.stopPropagation(); });
+
+                }, 50);
             });
+
+            // Tutup semua dropdown saat klik di luar
+            $(document).on('click', function () {
+                $('.column-search-dropdown').removeClass('show');
+                $('.column-search-icon').each(function () {
+                    const $icon = $(this);
+                    if (!table.column($icon.data('column')).search()) {
+                        $icon.removeClass('active');
+                    }
+                });
+            });
+
         });
     </script>
 @endpush

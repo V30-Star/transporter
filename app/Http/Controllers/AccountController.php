@@ -11,38 +11,13 @@ class AccountController extends Controller
 {
     public function index(Request $request)
     {
-        $allowedSorts = ['faccount', 'faccname', 'faccid', 'fnormal', 'fend', 'finitjurnal', 'ftypesubaccount', 'fnonactive'];
-        $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'faccount';
-        $sortDir = $request->sort_dir === 'desc' ? 'desc' : 'asc';
+        $accounts = Account::orderBy('faccount', 'asc')
+            ->get([
+                'faccount', 'faccname', 'faccid', 'fnormal',
+                'fend', 'finitjurnal', 'ftypesubaccount', 'fnonactive', 'fcreatedat',
+            ]);
 
-        $status = $request->query('status');
-        $year = $request->query('year');
-        $month = $request->query('month');
-
-        $query = Account::query();
-
-        // Filter status
-        if ($status === 'active') {
-            $query->where('fnonactive', '0');
-        } elseif ($status === 'nonactive') {
-            $query->where('fnonactive', '1');
-        }
-
-        // Filter tahun (PostgreSQL syntax)
-        if ($year) {
-            $query->whereRaw('EXTRACT(YEAR FROM fcreatedat) = ?', [$year]);
-        }
-
-        // Filter bulan (PostgreSQL syntax)
-        if ($month) {
-            $query->whereRaw('EXTRACT(MONTH FROM fcreatedat) = ?', [$month]);
-        }
-
-        $accounts = $query
-            ->orderBy($sortBy, $sortDir)
-            ->get(['faccount', 'faccname', 'faccid', 'fnormal', 'fend', 'finitjurnal', 'ftypesubaccount', 'fnonactive', 'fcreatedat']);
-
-        // Ambil tahun-tahun yang tersedia dari data (PostgreSQL syntax)
+        // Ambil tahun-tahun yang tersedia untuk dropdown filter Year
         $availableYears = Account::selectRaw('DISTINCT EXTRACT(YEAR FROM fcreatedat) as year')
             ->whereNotNull('fcreatedat')
             ->orderByRaw('EXTRACT(YEAR FROM fcreatedat) DESC')
@@ -52,7 +27,7 @@ class AccountController extends Controller
         $canEdit   = in_array('updateAccount', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deleteAccount', explode(',', session('user_restricted_permissions', '')));
 
-        return view('account.index', compact('accounts', 'canCreate', 'canEdit', 'canDelete', 'status', 'availableYears', 'year', 'month'));
+        return view('account.index', compact('accounts', 'canCreate', 'canEdit', 'canDelete', 'availableYears'));
     }
 
     public function create()
@@ -99,7 +74,7 @@ class AccountController extends Controller
                 'faccname.max'      => 'Nama account maksimal 50 karakter.',
                 'finitjurnal.max'   => 'Inisial jurnal maksimal 2 karakter.',
                 'finitjurnal.unique' => 'Initial Jurnal sudah digunakan oleh account lain.',
-                'finitjurnal.required' => 'Initial Jurnal wajib diisi untuk account KAS/BANK.',
+                'finitjurnal.required' => 'Initial Jurnal wajib diisi.',
                 'faccupline.exists' => 'Account header tidak valid.',
             ]
         );

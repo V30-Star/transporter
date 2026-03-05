@@ -9,31 +9,16 @@ class GroupcustomerController extends Controller
 {
     public function index(Request $request)
     {
-        $allowedSorts = ['fgroupcode', 'fgroupname', 'fgroupid', 'fnonactive'];
-        $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fgroupid';
-        $sortDir = $request->sort_dir === 'asc' ? 'asc' : 'desc';
-
-        $status = $request->query('status');
-
-        $query = Groupcustomer::query();
-
-        if ($status === 'active') {
-            $query->where('fnonactive', '0');
-        } elseif ($status === 'nonactive') {
-            $query->where('fnonactive', '1');
-        }
-
-        $groupcustomers = $query
-            ->orderBy($sortBy, $sortDir)
+        $groupcustomers = Groupcustomer::orderBy('fgroupcode', 'asc')
             ->get(['fgroupcode', 'fgroupname', 'fgroupid', 'fnonactive']);
 
         $canCreate = in_array('createGroupCustomer', explode(',', session('user_restricted_permissions', '')));
         $canEdit   = in_array('updateGroupCustomer', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deleteGroupCustomer', explode(',', session('user_restricted_permissions', '')));
 
-        return view('master.groupcustomer.index', compact('groupcustomers', 'canCreate', 'canEdit', 'canDelete', 'status'));
+        return view('master.groupcustomer.index', compact('groupcustomers', 'canCreate', 'canEdit', 'canDelete'));
     }
-
+    
     public function create()
     {
         // Menampilkan form untuk menambah grup customer baru

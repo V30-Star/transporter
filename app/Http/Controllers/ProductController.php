@@ -17,105 +17,98 @@ class ProductController extends Controller
     {
         if ($request->ajax()) {
             $query = Product::query()
-                // Menggunakan alias 'msprd' untuk memastikan kolomnya jelas
                 ->from('msprd')
+                ->leftJoin('msmerek', 'msmerek.fmerekid', '=', 'msprd.fmerek');
 
-                // --- 1. MELAKUKAN JOIN KE TABEL MEREK ---
-                // Join sekarang membandingkan fmerek (teks/string) dengan fmerekcode (teks/string)
-                ->leftJoin('msmerek', function ($join) {
-                    $join->on('msmerek.fmerekid', '=', 'msprd.fmerek');
-                });
-            // ... (Filter Status) ...
-            $status = $request->input('status');
+            // Filter Status
+            $status = $request->input('status', 'active'); // default active
             if ($status === 'active') {
                 $query->where('msprd.fnonactive', '0');
             } elseif ($status === 'nonactive') {
                 $query->where('msprd.fnonactive', '1');
             }
+            // 'all' = tidak ada filter
 
-            // Total records sebelum filtering DataTables (hanya status)
-            $totalRecords = Product::count();
+            // Total records
+            $totalRecords          = Product::count();
             $totalAfterStatusFilter = (clone $query)->count();
 
-            // Kolom yang bisa dicari
-            // Tambahkan msmerek.fmerekname agar nama merek yang di-join juga bisa dicari
-            $searchableColumns = ['fprdcode', 'fprdname', 'fsatuankecil', 'fminstock', 'msmerek.fmerekname'];
-
-            // ... (Logika Pencarian) ...
+            // Pencarian global
+            $searchableColumns = ['msprd.fprdcode', 'msprd.fprdname', 'msprd.fsatuankecil', 'msprd.fminstock', 'msmerek.fmerekname'];
             if ($search = $request->input('search.value')) {
                 $query->where(function ($q) use ($search, $searchableColumns) {
                     foreach ($searchableColumns as $column) {
-                        // Gunakan whereRaw atau where jika kolom bukan dari tabel utama
-                        $q->orWhere($column, 'like', "%{$search}%");
+                        $q->orWhere($column, 'ilike', "%{$search}%"); // PostgreSQL: ilike (case-insensitive)
                     }
                 });
             }
 
-            // ... (Total records setelah filter search) ...
             $filteredRecords = (clone $query)->count();
 
             // Sorting
             $orderColumnIndex = $request->input('order.0.column', 0);
-            $orderDir = $request->input('order.0.dir', 'asc');
-            // Tambahkan alias 'fmerekname' ke daftar kolom untuk sorting
-            $columns = ['fprdcode', 'fprdname', 'msmerek.fmerekname', 'fsatuankecil', 'fminstock', 'fnonactive'];
-
+            $orderDir         = $request->input('order.0.dir', 'asc');
+            $columns          = [
+                'msprd.fprdcode',
+                'msprd.fprdname',
+                'msmerek.fmerekname',
+                'msprd.fsatuankecil',
+                'msprd.fminstock',
+                'msprd.fnonactive',
+            ];
             if (isset($columns[$orderColumnIndex])) {
                 $query->orderBy($columns[$orderColumnIndex], $orderDir);
             }
 
             // Pagination
-            $start = $request->input('start', 0);
+            $start  = $request->input('start', 0);
             $length = $request->input('length', 10);
 
-            $products = $query->skip($start)
-                ->take($length)
-                ->get([
-                    'msprd.fprdcode',
-                    'msprd.fprdname',
-                    'msprd.fsatuankecil',
-                    'msprd.fminstock',
-                    'msprd.fprdid',
-                    'msprd.fnonactive',
-                    'msprd.fmerek',
-                    'msmerek.fmerekname AS merek_name',
-                ]);
+            $products = $query->skip($start)->take($length)->get([
+                'msprd.fprdcode',
+                'msprd.fprdname',
+                'msprd.fsatuankecil',
+                'msprd.fminstock',
+                'msprd.fprdid',
+                'msprd.fnonactive',
+                'msprd.fmerek',
+                'msmerek.fmerekname AS merek_name',
+            ]);
 
             // Format data untuk DataTables
             $data = $products->map(function ($item) {
-                $isActive = (string)$item->fnonactive === '0';
+                $isActive    = (string) $item->fnonactive === '0';
                 $statusBadge = $isActive
                     ? '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-green-100 text-green-700">Active</span>'
                     : '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-red-200 text-red-700">Non Active</span>';
 
                 return [
-                    'fprdcode' => $item->fprdcode,
-                    'fprdname' => $item->fprdname,
-                    'fmerek' => $item->merek_name, // Menggunakan ALIAS yang di-join
-                    'fsatuankecil' => $item->fsatuankecil,
-                    'fminstock' => $item->fminstock,
-                    'status' => $statusBadge,
-                    'statusRaw' => (string)$item->fnonactive,
-                    'fprdid' => $item->fprdid,
+                    'fprdcode'    => $item->fprdcode,
+                    'fprdname'    => $item->fprdname,
+                    'fmerek'      => $item->merek_name,
+                    'fsatuankecil'=> $item->fsatuankecil,
+                    'fminstock'   => $item->fminstock,
+                    'status'      => $statusBadge,
+                    'fprdid'      => $item->fprdid,
                 ];
             });
 
             return response()->json([
-                'draw' => intval($request->input('draw')),
-                'recordsTotal' => $totalRecords,
+                'draw'            => intval($request->input('draw')),
+                'recordsTotal'    => $totalRecords,
                 'recordsFiltered' => $filteredRecords,
-                'data' => $data
+                'data'            => $data,
             ]);
         }
 
-        // ... (Render view untuk non-AJAX request) ...
+        // Non-AJAX: render view
         $canCreate = in_array('createProduct', explode(',', session('user_restricted_permissions', '')));
         $canEdit   = in_array('updateProduct', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deleteProduct', explode(',', session('user_restricted_permissions', '')));
 
         return view('product.index', compact('canCreate', 'canEdit', 'canDelete'));
     }
-
+    
     public function suggestNames(Request $request)
     {
         $term = (string) $request->get('term', '');

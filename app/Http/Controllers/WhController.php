@@ -11,26 +11,9 @@ class WhController extends Controller
 {
     public function index(Request $request)
     {
-        // Tambahkan fbranchname ke allowedSorts jika ingin bisa diurutkan berdasarkan nama cabang
-        $allowedSorts = ['fwhcode', 'fwhname', 'fwhid', 'faddress', 'fnonactive', 'fbranchcode', 'fbranchname'];
-        $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fwhid';
-        $sortDir = $request->sort_dir === 'asc' ? 'asc' : 'desc';
-
-        $status = $request->query('status');
-
-        // Memulai query dengan join ke mscabang
-        $query = Wh::query()
-            ->leftJoin('mscabang', 'mswh.fbranchcode', '=', 'mscabang.fcabangkode');
-        // Catatan: Pastikan nama tabel & primary key sesuai (biasanya mscabang.fbranchcode atau fcabangkode)
-
-        if ($status === 'active') {
-            $query->where('mswh.fnonactive', '0');
-        } elseif ($status === 'nonactive') {
-            $query->where('mswh.fnonactive', '1');
-        }
-
-        $gudangs = $query
-            ->orderBy($sortBy, $sortDir)
+        $gudangs = Wh::query()
+            ->leftJoin('mscabang', 'mswh.fbranchcode', '=', 'mscabang.fcabangkode')
+            ->orderBy('fwhcode', 'asc')
             ->get([
                 'mswh.fwhcode',
                 'mswh.fwhname',
@@ -38,7 +21,7 @@ class WhController extends Controller
                 'mswh.faddress',
                 'mswh.fnonactive',
                 'mswh.fbranchcode',
-                'mscabang.fcabangname' // Mengambil kolom nama cabang dari tabel mscabang
+                'mscabang.fcabangname',
             ]);
 
         $permsArr  = explode(',', (string) session('user_restricted_permissions', ''));
@@ -46,7 +29,7 @@ class WhController extends Controller
         $canEdit   = in_array('updateGudang', $permsArr, true);
         $canDelete = in_array('deleteGudang', $permsArr, true);
 
-        return view('gudang.index', compact('gudangs', 'canCreate', 'canEdit', 'canDelete', 'status'));
+        return view('gudang.index', compact('gudangs', 'canCreate', 'canEdit', 'canDelete'));
     }
 
     public function create()

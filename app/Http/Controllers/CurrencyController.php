@@ -9,28 +9,14 @@ class CurrencyController extends Controller
 {
   public function index(Request $request)
   {
-    $allowedSorts = ['fcurrcode', 'fcurrname', 'frate', 'fcurrid', 'fnonactive'];
-    $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fcurrid';
-    $sortDir = $request->sort_dir === 'asc' ? 'asc' : 'desc';
+      $currencys = Currency::orderBy('fcurrcode', 'asc')
+          ->get(['fcurrcode', 'fcurrname', 'fcurrid', 'fnonactive']);
 
-    $status = $request->query('status');
+      $canCreate = in_array('createCurrency', explode(',', session('user_restricted_permissions', '')));
+      $canEdit   = in_array('updateCurrency', explode(',', session('user_restricted_permissions', '')));
+      $canDelete = in_array('deleteCurrency', explode(',', session('user_restricted_permissions', '')));
 
-    $query = Currency::query();
-
-    if ($status === 'active') {
-      $query->where('fnonactive', '0');
-    } elseif ($status === 'nonactive') {
-      $query->where('fnonactive', '1');
-    }
-
-    $currencys = $query
-      ->orderBy($sortBy, $sortDir)
-      ->get(['fcurrcode', 'fcurrname', 'fcurrid', 'fnonactive']);
-    $canCreate = in_array('createCurrency', explode(',', session('user_restricted_permissions', '')));
-    $canEdit   = in_array('updateCurrency', explode(',', session('user_restricted_permissions', '')));
-    $canDelete = in_array('deleteCurrency', explode(',', session('user_restricted_permissions', '')));
-
-    return view('currency.index', compact('currencys', 'canCreate', 'canEdit', 'canDelete', 'status'));
+      return view('currency.index', compact('currencys', 'canCreate', 'canEdit', 'canDelete'));
   }
 
   public function create()

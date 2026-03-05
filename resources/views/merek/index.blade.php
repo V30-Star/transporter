@@ -3,18 +3,17 @@
 @section('title', 'Master Merek')
 
 @section('content')
+    @php
+        $canCreate = in_array('createMerek', explode(',', session('user_restricted_permissions', '')));
+        $canEdit   = in_array('updateMerek', explode(',', session('user_restricted_permissions', '')));
+        $canDelete = in_array('deleteMerek', explode(',', session('user_restricted_permissions', '')));
+        $showActionsColumn = $canEdit || $canDelete;
+    @endphp
+
     <div x-data="merekData()" class="bg-white rounded shadow p-4">
 
-        @php
-            $canCreate = in_array('createMerek', explode(',', session('user_restricted_permissions', '')));
-            $canEdit = in_array('updateMerek', explode(',', session('user_restricted_permissions', '')));
-            $canDelete = in_array('deleteMerek', explode(',', session('user_restricted_permissions', '')));
-            $showActionsColumn = $canEdit || $canDelete;
-        @endphp
-
+        {{-- Tombol Tambah Baru --}}
         <div class="flex justify-end items-center mb-4">
-            <div></div>
-
             @if ($canCreate)
                 <a href="{{ route('merek.create') }}"
                     class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
@@ -23,9 +22,10 @@
             @endif
         </div>
 
+        {{-- Template Filter Status (hidden, akan di-clone ke toolbar DataTables) --}}
         <div id="statusFilterTemplate" class="hidden">
             <div class="flex items-center gap-2" id="statusFilterWrap">
-                <span class="text-sm text-gray-700 no-sort">Status</span>
+                <span class="text-sm text-gray-700">Status</span>
                 <select data-role="status-filter" class="border rounded px-2 py-1">
                     <option value="all">All</option>
                     <option value="active" selected>Active</option>
@@ -34,48 +34,53 @@
             </div>
         </div>
 
-        {{-- Table --}}
+        {{-- Tabel --}}
         <table id="merekTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
                     <th class="border px-2 py-2">Kode Merek</th>
                     <th class="border px-2 py-2">Nama Merek</th>
-                    <th class="border px-2 py-2">Status</th>
+                    <th class="border px-2 py-2 no-sort">Status</th>
+                    {{-- Kolom hidden untuk filter client-side, berisi nilai mentah 0/1 --}}
+                    <th data-col="statusRaw" class="border px-2 py-2">StatusRaw</th>
                     @if ($showActionsColumn)
                         <th class="border px-2 py-2 col-aksi">Aksi</th>
                     @endif
                 </tr>
             </thead>
-            <tbody id="tableBody">
+            <tbody>
                 @foreach ($mereks as $item)
+                    @php $isActive = (string) $item->fnonactive === '0'; @endphp
                     <tr class="hover:bg-gray-50">
-                        <td>{{ $item->fmerekcode }}</td>
-                        <td>{{ $item->fmerekname }}</td>
-                        <td>
-                            @php $isActive = (string)$item->fnonactive === '0'; @endphp
-                            <span
-                                class="inline-flex items-center px-2 py-0.5 rounded text-xs {{ $isActive ? 'bg-green-100 text-green-700' : 'bg-red-200 text-red-700' }}">
+                        <td class="border px-2 py-1">{{ $item->fmerekcode }}</td>
+                        <td class="border px-2 py-1">{{ $item->fmerekname }}</td>
+
+                        {{-- Tampilan badge Status --}}
+                        <td class="border px-2 py-1">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs
+                                {{ $isActive ? 'bg-green-100 text-green-700' : 'bg-red-200 text-red-700' }}">
                                 {{ $isActive ? 'Active' : 'Non Active' }}
                             </span>
                         </td>
+
+                        {{-- Nilai mentah fnonactive (0 atau 1) — disembunyikan oleh DataTables --}}
+                        <td class="border px-2 py-1">{{ $item->fnonactive }}</td>
+
                         @if ($showActionsColumn)
-                            <td class="border px-2 py-1 space-x-2">
+                            <td class="border px-2 py-1 space-x-2 text-center">
                                 @if ($canEdit)
                                     <a href="{{ route('merek.edit', $item->fmerekid) }}">
-                                        <button
-                                            class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
+                                        <button class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
                                             <x-heroicon-o-pencil-square class="w-4 h-4 mr-1" /> Edit
                                         </button>
                                     </a>
                                 @endif
                                 @if ($canDelete)
-                                    <a href="{{ route('merek.delete', $item->fmerekid) }}">
-                                        <button
-                                            class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
-                                            <x-heroicon-o-trash class="w-4 h-4 mr-1" />
-                                            Hapus
-                                        </button>
-                                    </a>
+                                    <button
+                                        @click="openDelete('{{ route('merek.delete', $item->fmerekid) }}', $event)"
+                                        class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                                        <x-heroicon-o-trash class="w-4 h-4 mr-1" /> Hapus
+                                    </button>
                                 @endif
                             </td>
                         @endif
@@ -84,7 +89,7 @@
             </tbody>
         </table>
 
-        {{-- Modal Delete --}}
+        {{-- Modal Konfirmasi Hapus --}}
         <div x-show="showDeleteModal" x-cloak
             class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" x-transition>
             <div @click.away="!isDeleting && closeDelete()" class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
@@ -92,9 +97,7 @@
                 <p class="mb-6">Apakah Anda yakin ingin menghapus data ini?</p>
                 <div class="flex justify-end space-x-2">
                     <button @click="closeDelete()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-                        :disabled="isDeleting">
-                        Batal
-                    </button>
+                        :disabled="isDeleting">Batal</button>
                     <button @click="confirmDelete()"
                         class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
                         :disabled="isDeleting">
@@ -105,7 +108,7 @@
             </div>
         </div>
 
-        {{-- Toast Notification --}}
+        {{-- Toast Notifikasi --}}
         <div x-show="showNotification" x-cloak x-transition:enter="transition ease-out duration-300"
             x-transition:enter-start="opacity-0 transform translate-y-2"
             x-transition:enter-end="opacity-100 transform translate-y-0"
@@ -114,14 +117,13 @@
             <div :class="notificationType === 'success' ? 'bg-green-500' : 'bg-red-500'"
                 class="text-white px-6 py-4 rounded-lg shadow-lg flex items-center space-x-3">
                 <span x-text="notificationMessage"></span>
-                <button @click="showNotification = false" class="ml-4 text-white hover:text-gray-200">
-                    ×
-                </button>
+                <button @click="showNotification = false" class="ml-4 text-white hover:text-gray-200">×</button>
             </div>
         </div>
 
     </div>
 @endsection
+
 
 @push('styles')
     <link rel="stylesheet" href="https://cdn.datatables.net/2.1.6/css/dataTables.dataTables.min.css">
@@ -150,32 +152,14 @@
             vertical-align: middle;
         }
 
-        /* Kolom Aksi: jangan mepet, tapi tetap ringkas */
-        #merekTable th:last-child,
-        #merekTable td:last-child {
-            white-space: nowrap;
-            text-align: center;
-        }
-
-        #merekTable td:last-child {
-            padding: .25rem .5rem;
-        }
-
-        .btn-aksi {
-            padding: .25rem .5rem;
-            font-size: .825rem;
-        }
-
-        #merekTable th,
-        #merekTable td {
-            text-align: left !important;
-            vertical-align: middle;
-        }
-
         #merekTable th:last-child,
         #merekTable td:last-child {
             text-align: center;
             white-space: nowrap;
+        }
+
+        #merekTable td:last-child {
+            padding: .25rem .5rem;
         }
 
         .dataTables_wrapper .dt-search {
@@ -191,211 +175,178 @@
     </style>
 @endpush
 
+
 @push('scripts')
-    {{-- jQuery + DataTables JS (CDN) --}}
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.datatables.net/2.1.6/js/dataTables.min.js"></script>
+
     <script>
+        // =============================================
+        // Alpine.js — Modal Delete
+        // =============================================
         document.addEventListener('alpine:init', () => {
             Alpine.data('merekData', () => ({
-                showDeleteModal: false,
-                deleteUrl: '',
-                isDeleting: false,
-                showNotification: false,
-                notificationMessage: '',
-                notificationType: 'success',
-                currentRow: null, // Tambahkan ini untuk menyimpan row
+                showDeleteModal     : false,
+                deleteUrl           : '',
+                isDeleting          : false,
+                currentRow          : null,
+                showNotification    : false,
+                notificationMessage : '',
+                notificationType    : 'success',
 
                 openDelete(url, event) {
-                    this.deleteUrl = url;
+                    this.deleteUrl       = url;
+                    this.currentRow      = event.target.closest('tr');
                     this.showDeleteModal = true;
-                    this.isDeleting = false;
-                    // Simpan referensi row saat membuka modal
-                    this.currentRow = event.target.closest('tr');
+                    this.isDeleting      = false;
                 },
 
                 closeDelete() {
                     if (!this.isDeleting) {
                         this.showDeleteModal = false;
-                        this.deleteUrl = '';
-                        this.currentRow = null;
+                        this.deleteUrl       = '';
+                        this.currentRow      = null;
                     }
                 },
 
                 confirmDelete() {
                     this.isDeleting = true;
-                    const rowToDelete = this.currentRow; // Simpan ke variable lokal
+                    const rowToDelete = this.currentRow;
 
                     fetch(this.deleteUrl, {
-                            method: 'DELETE',
-                            headers: {
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
-                                    .content,
-                                'Accept': 'application/json',
-                                'Content-Type': 'application/json'
+                        method  : 'DELETE',
+                        headers : {
+                            'X-CSRF-TOKEN' : document.querySelector('meta[name="csrf-token"]').content,
+                            'Accept'       : 'application/json',
+                            'Content-Type' : 'application/json',
+                        }
+                    })
+                    .then(response => {
+                        return response.json().then(data => ({
+                            ok: response.ok,
+                            status: response.status,
+                            data: data
+                        }));
+                    })
+                    .then(result => {
+                        this.showDeleteModal = false;
+                        this.isDeleting      = false;
+
+                        if (result.ok) {
+                            const table = $('#merekTable').DataTable();
+                            if (rowToDelete) {
+                                table.row($(rowToDelete)).remove().draw(false);
                             }
-                        })
-                        .then(response => {
-                            return response.json().then(data => ({
-                                ok: response.ok,
-                                status: response.status,
-                                data: data
-                            }));
-                        })
-                        .then(result => {
-                            this.showDeleteModal = false;
-                            this.isDeleting = false;
+                            this.showNotificationMsg('success', result.data.message || 'Data berhasil dihapus');
+                        } else {
+                            this.showNotificationMsg('error', result.data.message || 'Gagal menghapus data');
+                        }
 
-                            if (result.ok) {
-                                // Hapus row dari DataTable
-                                const table = $('#merekTable').DataTable();
-                                if (rowToDelete) {
-                                    table.row($(rowToDelete)).remove().draw(false);
-                                }
-
-                                // Tampilkan notifikasi sukses
-                                this.showNotificationMsg('success', result.data.message ||
-                                    'Data berhasil dihapus');
-                            } else {
-                                // Tampilkan error dari server
-                                this.showNotificationMsg('error', result.data.message ||
-                                    'Gagal menghapus data');
-                            }
-
-                            this.currentRow = null;
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                            this.showDeleteModal = false;
-                            this.isDeleting = false;
-                            this.showNotificationMsg('error',
-                                'Terjadi kesalahan. Silakan coba lagi.');
-                            this.currentRow = null;
-                        });
+                        this.currentRow = null;
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        this.showDeleteModal = false;
+                        this.isDeleting      = false;
+                        this.showNotificationMsg('error', 'Terjadi kesalahan. Silakan coba lagi.');
+                        this.currentRow = null;
+                    });
                 },
 
                 showNotificationMsg(type, message) {
-                    this.notificationType = type;
+                    this.notificationType    = type;
                     this.notificationMessage = message;
-                    this.showNotification = true;
-
-                    // Auto hide setelah 3 detik
-                    setTimeout(() => {
-                        this.showNotification = false;
-                    }, 3000);
+                    this.showNotification    = true;
+                    setTimeout(() => { this.showNotification = false; }, 3000);
                 }
             }));
         });
 
-        $(function() {
-            // Inisialisasi DataTables
-            const hasActions = {{ $showActionsColumn ? 'true' : 'false' }};
-            const columns = hasActions ? [{
-                    title: 'Kode Merek'
-                },
-                {
-                    title: 'Nama Merek'
-                },
-                {
-                    title: 'Aksi',
-                    orderable: false,
-                    searchable: false
-                }
-            ] : [{
-                    title: 'Kode Merek'
-                },
-                {
-                    title: 'Nama Merek'
-                }
-            ];
 
-            $('#merekTable').DataTable({
-                autoWidth: false,
-                pageLength: 10,
-                lengthMenu: [10, 25, 50, 100],
-                order: [
-                    [0, 'asc']
-                ],
+        // =============================================
+        // jQuery — Inisialisasi DataTables
+        // =============================================
+        $(function () {
+
+            const table = $('#merekTable').DataTable({
+                autoWidth  : false,
+                pageLength : 10,
+                lengthMenu : [10, 25, 50, 100],
+                order      : [[0, 'asc']],
                 layout: {
-                    topStart: 'search',
-                    topEnd: 'pageLength',
+                    topStart   : 'search',
+                    topEnd     : 'pageLength',
                     bottomStart: 'info',
-                    bottomEnd: 'paging'
+                    bottomEnd  : 'paging',
                 },
-                columnDefs: [{
-                        targets: 'col-aksi',
-                        orderable: false,
-                        searchable: false,
-                        width: 120
-                    },
-                    {
-                        targets: 'no-sort',
-                        orderable: false
-                    }
+                columnDefs: [
+                    { targets: 'col-aksi', orderable: false, searchable: false, width: 120 },
+                    { targets: 'no-sort',  orderable: false },
                 ],
                 language: {
-                    lengthMenu: "Show _MENU_ entries"
+                    lengthMenu: "Show _MENU_ entries",
                 },
-                initComplete: function() {
-                    const api = this.api();
-                    const $container = $(api.table().container());
-                    const $toolbarSearch = $container.find('.dt-search');
+            });
 
-                    // 1. Tambahkan Filter Status
-                    const $filter = $('#statusFilterTemplate #statusFilterWrap').clone(true, true);
-                    const $select = $filter.find('select[data-role="status-filter"]');
-                    $select.attr('id', 'statusFilterDT');
-                    $toolbarSearch.append($filter);
+            // ------------------------------------------
+            // 1. Cari index kolom statusRaw
+            // ------------------------------------------
+            const statusRawIdx = table.columns().indexes().toArray()
+                .find(i => $(table.column(i).header()).attr('data-col') === 'statusRaw');
 
-                    // 2. Cari index kolom StatusRaw
-                    const statusRawIdx = api.columns().indexes().toArray()
-                        .find(i => $(api.column(i).header()).attr('data-col') === 'statusRaw');
+            if (statusRawIdx === undefined) {
+                console.warn('Kolom statusRaw tidak ditemukan.');
+                return;
+            }
 
-                    if (statusRawIdx !== undefined) {
-                        api.column(statusRawIdx).visible(false);
-                        // Set default filter ke Active (0)
-                        api.column(statusRawIdx).search('^0$', true, false).draw();
-                    } else {
-                        console.warn('Kolom StatusRaw tidak ditemukan.');
-                    }
+            // Sembunyikan kolom statusRaw dari tampilan
+            table.column(statusRawIdx).visible(false);
 
-                    // 3. FORCE UPPERCASE & STYLING SEARCH
-                    const $searchInput = $toolbarSearch.find('.dt-input');
+            // Default: tampilkan hanya Active (fnonactive = 0)
+            table.column(statusRawIdx).search('^0$', true, false).draw();
 
-                    // Tambahkan CSS agar visual langsung uppercase
-                    $searchInput.css({
-                        'width': '400px',
-                        'maxWidth': '100%',
-                        'text-transform': 'uppercase'
-                    });
+            // ------------------------------------------
+            // 2. Clone template filter Status ke toolbar Search
+            // ------------------------------------------
+            const $container     = $(table.table().container());
+            const $toolbarSearch = $container.find('.dt-search');
 
-                    // Handler input dengan delegasi untuk memastikan teks jadi Uppercase & kursor tidak loncat
-                    $container.on('input', '.dt-search .dt-input', function() {
-                        const start = this.selectionStart;
-                        const end = this.selectionEnd;
+            const $filter = $('#statusFilterTemplate #statusFilterWrap').clone(true, true);
+            const $select = $filter.find('select[data-role="status-filter"]');
+            $select.attr('id', 'statusFilterDT');
+            $toolbarSearch.append($filter); // sebelah kanan kotak search
 
-                        this.value = this.value.toUpperCase();
-
-                        // Kembalikan posisi kursor agar tidak jumping
-                        this.setSelectionRange(start, end);
-
-                        // Jalankan pencarian manual agar sinkron dengan nilai uppercase
-                        api.search(this.value).draw();
-                    });
-
-                    // 4. Event Handler Filter Status
-                    $select.on('change', function() {
-                        const v = this.value;
-                        if (v === 'active') {
-                            api.column(statusRawIdx).search('^0$', true, false).draw();
-                        } else if (v === 'nonactive') {
-                            api.column(statusRawIdx).search('^1$', true, false).draw();
-                        } else {
-                            api.column(statusRawIdx).search('', true, false).draw();
-                        }
-                    });
+            // Event: dropdown filter Status berubah
+            $select.on('change', function () {
+                const val = this.value;
+                if (val === 'active') {
+                    table.column(statusRawIdx).search('^0$', true, false).draw();
+                } else if (val === 'nonactive') {
+                    table.column(statusRawIdx).search('^1$', true, false).draw();
+                } else {
+                    // "all" — hapus filter
+                    table.column(statusRawIdx).search('', true, false).draw();
                 }
             });
+
+            // ------------------------------------------
+            // 3. Paksa input Search jadi UPPERCASE
+            // ------------------------------------------
+            const $searchInput = $toolbarSearch.find('.dt-input');
+            $searchInput.css({
+                'width'          : '400px',
+                'maxWidth'       : '100%',
+                'text-transform' : 'uppercase',
+            });
+
+            $container.on('input', '.dt-search .dt-input', function () {
+                const start = this.selectionStart;
+                const end   = this.selectionEnd;
+                this.value  = this.value.toUpperCase();
+                this.setSelectionRange(start, end); // jaga posisi kursor
+                table.search(this.value).draw();
+            });
+
         });
     </script>
 @endpush

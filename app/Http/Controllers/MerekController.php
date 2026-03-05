@@ -7,24 +7,9 @@ use Illuminate\Http\Request;
 
 class MerekController extends Controller
 {
-    public function index(Request $request)
+   public function index(Request $request)
     {
-        $allowedSorts = ['fmerekcode', 'fmerekname', 'fmerekid', 'fnonactive'];
-        $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fmerekid';
-        $sortDir = $request->sort_dir === 'asc' ? 'asc' : 'desc';
-
-        $status = $request->query('status');
-
-        $query = Merek::query();
-
-        if ($status === 'active') {
-            $query->where('fnonactive', '0');
-        } elseif ($status === 'nonactive') {
-            $query->where('fnonactive', '1');
-        }
-
-        $mereks = $query
-            ->orderBy($sortBy, $sortDir)
+        $mereks = Merek::orderBy('fmerekcode', 'asc')
             ->get(['fmerekid', 'fmerekcode', 'fmerekname', 'fnonactive']);
 
         $permsStr  = (string) session('user_restricted_permissions', '');
@@ -33,7 +18,7 @@ class MerekController extends Controller
         $canEdit   = in_array('updateMerek', $permsArr, true);
         $canDelete = in_array('deleteMerek', $permsArr, true);
 
-        return view('merek.index', compact('mereks', 'canCreate', 'canEdit', 'canDelete', 'status'));
+        return view('merek.index', compact('mereks', 'canCreate', 'canEdit', 'canDelete'));
     }
 
     public function create()
