@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', '')
+
 @section('content')
     <div id="filterModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
         <div class="flex items-center justify-center min-h-screen p-4">
@@ -8,8 +10,6 @@
             <div class="relative bg-white rounded-xl shadow-2xl max-w-lg w-full p-6 overflow-hidden">
                 <div class="flex justify-between items-center border-b pb-4 mb-4">
                     <h3 class="text-xl font-bold text-gray-800">Product Inventory Report</h3>
-                    <button onclick="toggleModal(false)"
-                        class="text-gray-400 hover:text-gray-600 text-2xl font-bold">&times;</button>
                 </div>
 
                 <form method="GET" action="{{ route('reportingproduct.print') }}" target="_blank">

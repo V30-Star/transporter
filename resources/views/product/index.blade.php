@@ -5,7 +5,7 @@
 @section('content')
     @php
         $canCreate = in_array('createProduct', explode(',', session('user_restricted_permissions', '')));
-        $canEdit   = in_array('updateProduct', explode(',', session('user_restricted_permissions', '')));
+        $canEdit = in_array('updateProduct', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deleteProduct', explode(',', session('user_restricted_permissions', '')));
         $showActionsColumn = $canEdit || $canDelete;
     @endphp
@@ -80,14 +80,11 @@
         </div>
 
         {{-- Toast Notifikasi --}}
-        <div x-show="$store.productStore.showNotification" x-cloak
-            x-transition:enter="transition ease-out duration-300"
+        <div x-show="$store.productStore.showNotification" x-cloak x-transition:enter="transition ease-out duration-300"
             x-transition:enter-start="opacity-0 transform translate-y-2"
             x-transition:enter-end="opacity-100 transform translate-y-0"
-            x-transition:leave="transition ease-in duration-200"
-            x-transition:leave-start="opacity-100"
-            x-transition:leave-end="opacity-0"
-            class="fixed top-4 right-4 z-50 max-w-sm">
+            x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0" class="fixed top-4 right-4 z-50 max-w-sm">
             <div :class="$store.productStore.notificationType === 'success' ? 'bg-green-500' : 'bg-red-500'"
                 class="text-white px-6 py-4 rounded-lg shadow-lg flex items-center space-x-3">
                 <span x-text="$store.productStore.notificationMessage"></span>
@@ -147,6 +144,56 @@
         #statusFilterWrap {
             margin-right: .25rem;
         }
+
+        .dt-paging .dt-paging-button.first::before {
+            content: '⏮';
+            font-size: 1rem;
+        }
+
+        .dt-paging .dt-paging-button.last::before {
+            content: '⏭';
+            font-size: 1rem;
+        }
+
+        .dt-paging .dt-paging-button.first,
+        .dt-paging .dt-paging-button.last {
+            font-size: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2rem;
+            height: 2rem;
+            border-radius: .375rem;
+            border: 1px solid #d1d5db;
+            background: #fff;
+            color: #374151;
+            cursor: pointer;
+            transition: all .15s;
+        }
+
+        .dt-paging .dt-paging-button.first::before {
+            content: '⏮';
+            font-size: 1rem;
+        }
+
+        .dt-paging .dt-paging-button.last::before {
+            content: '⏭';
+            font-size: 1rem;
+        }
+
+        .dt-paging .dt-paging-button.first:hover,
+        .dt-paging .dt-paging-button.last:hover {
+            background: #eff6ff;
+            border-color: #93c5fd;
+            color: #1d4ed8;
+        }
+
+        .dt-paging .dt-paging-button.first.disabled,
+        .dt-paging .dt-paging-button.last.disabled {
+            opacity: .35;
+            cursor: not-allowed;
+            background: #f9fafb;
+        }
     </style>
 @endpush
 
@@ -163,26 +210,26 @@
         // =============================================
         document.addEventListener('alpine:init', () => {
             Alpine.store('productStore', {
-                showDeleteModal     : false,
-                deleteUrl           : '',
-                isDeleting          : false,
-                currentRow          : null,
-                showNotification    : false,
-                notificationMessage : '',
-                notificationType    : 'success',
+                showDeleteModal: false,
+                deleteUrl: '',
+                isDeleting: false,
+                currentRow: null,
+                showNotification: false,
+                notificationMessage: '',
+                notificationType: 'success',
 
                 openDelete(url, rowEl) {
-                    this.deleteUrl       = url;
-                    this.currentRow      = rowEl;
+                    this.deleteUrl = url;
+                    this.currentRow = rowEl;
                     this.showDeleteModal = true;
-                    this.isDeleting      = false;
+                    this.isDeleting = false;
                 },
 
                 closeDelete() {
                     if (!this.isDeleting) {
                         this.showDeleteModal = false;
-                        this.deleteUrl       = '';
-                        this.currentRow      = null;
+                        this.deleteUrl = '';
+                        this.currentRow = null;
                     }
                 },
 
@@ -191,39 +238,45 @@
                     const rowToDelete = this.currentRow;
 
                     fetch(this.deleteUrl, {
-                        method  : 'DELETE',
-                        headers : {
-                            'X-CSRF-TOKEN' : document.querySelector('meta[name="csrf-token"]').content,
-                            'Accept'       : 'application/json',
-                            'Content-Type' : 'application/json',
-                        }
-                    })
-                    .then(response => response.json().then(data => ({ ok: response.ok, data })))
-                    .then(result => {
-                        this.showDeleteModal = false;
-                        this.isDeleting      = false;
-                        this.currentRow      = null;
+                            method: 'DELETE',
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                    .content,
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json',
+                            }
+                        })
+                        .then(response => response.json().then(data => ({
+                            ok: response.ok,
+                            data
+                        })))
+                        .then(result => {
+                            this.showDeleteModal = false;
+                            this.isDeleting = false;
+                            this.currentRow = null;
 
-                        if (result.ok) {
-                            // Server-side: cukup reload DataTables
-                            $('#productTable').DataTable().ajax.reload(null, false);
-                            this.notify('success', result.data.message || 'Data berhasil dihapus');
-                        } else {
-                            this.notify('error', result.data.message || 'Gagal menghapus data');
-                        }
-                    })
-                    .catch(() => {
-                        this.showDeleteModal = false;
-                        this.isDeleting      = false;
-                        this.notify('error', 'Terjadi kesalahan. Silakan coba lagi.');
-                    });
+                            if (result.ok) {
+                                // Server-side: cukup reload DataTables
+                                $('#productTable').DataTable().ajax.reload(null, false);
+                                this.notify('success', result.data.message || 'Data berhasil dihapus');
+                            } else {
+                                this.notify('error', result.data.message || 'Gagal menghapus data');
+                            }
+                        })
+                        .catch(() => {
+                            this.showDeleteModal = false;
+                            this.isDeleting = false;
+                            this.notify('error', 'Terjadi kesalahan. Silakan coba lagi.');
+                        });
                 },
 
                 notify(type, message) {
-                    this.notificationType    = type;
+                    this.notificationType = type;
                     this.notificationMessage = message;
-                    this.showNotification    = true;
-                    setTimeout(() => { this.showNotification = false; }, 3000);
+                    this.showNotification = true;
+                    setTimeout(() => {
+                        this.showNotification = false;
+                    }, 3000);
                 }
             });
         });
@@ -232,30 +285,51 @@
         // =============================================
         // jQuery — Inisialisasi DataTables (server-side)
         // =============================================
-        $(function () {
-            const canEdit   = {{ $canEdit   ? 'true' : 'false' }};
+        $(function() {
+            const canEdit = {{ $canEdit ? 'true' : 'false' }};
             const canDelete = {{ $canDelete ? 'true' : 'false' }};
             const hasActions = {{ $showActionsColumn ? 'true' : 'false' }};
 
             // ------------------------------------------
             // Definisi kolom
             // ------------------------------------------
-            const columns = [
-                { data: 'fprdcode',     name: 'fprdcode' },
-                { data: 'fprdname',     name: 'fprdname' },
-                { data: 'fmerek',       name: 'fmerek' },
-                { data: 'fsatuankecil', name: 'fsatuankecil', orderable: false },
-                { data: 'fminstock',    name: 'fminstock',    orderable: false },
-                { data: 'status',       name: 'status',       orderable: false, searchable: false },
+            const columns = [{
+                    data: 'fprdcode',
+                    name: 'fprdcode'
+                },
+                {
+                    data: 'fprdname',
+                    name: 'fprdname'
+                },
+                {
+                    data: 'fmerek',
+                    name: 'fmerek'
+                },
+                {
+                    data: 'fsatuankecil',
+                    name: 'fsatuankecil',
+                    orderable: false
+                },
+                {
+                    data: 'fminstock',
+                    name: 'fminstock',
+                    orderable: false
+                },
+                {
+                    data: 'status',
+                    name: 'status',
+                    orderable: false,
+                    searchable: false
+                },
             ];
 
             if (hasActions) {
                 columns.push({
-                    data      : 'fprdid',
-                    name      : 'actions',
-                    orderable : false,
+                    data: 'fprdid',
+                    name: 'actions',
+                    orderable: false,
                     searchable: false,
-                    render    : function (fprdid) {
+                    render: function(fprdid) {
                         let html = '<div class="space-x-2">';
 
                         if (canEdit) {
@@ -294,37 +368,39 @@
             // Inisialisasi DataTables server-side
             // ------------------------------------------
             const table = $('#productTable').DataTable({
-                processing : true,
-                serverSide : true,
+                processing: true,
+                serverSide: true,
                 ajax: {
-                    url : '{{ route('product.index') }}',
+                    url: '{{ route('product.index') }}',
                     type: 'GET',
-                    data: function (d) {
+                    data: function(d) {
                         // Kirim nilai filter status ke server
                         d.status = $('#statusFilterDT').val() || 'active';
                     }
                 },
-                columns    : columns,
-                autoWidth  : false,
-                pageLength : 10,
-                lengthMenu : [10, 25, 50, 100],
-                order      : [[0, 'asc']],
+                columns: columns,
+                autoWidth: false,
+                pageLength: 10,
+                lengthMenu: [10, 25, 50, 100],
+                order: [
+                    [0, 'asc']
+                ],
                 layout: {
-                    topStart   : 'search',
-                    topEnd     : 'pageLength',
+                    topStart: 'search',
+                    topEnd: 'pageLength',
                     bottomStart: 'info',
-                    bottomEnd  : 'paging',
+                    bottomEnd: 'paging',
                 },
                 language: {
-                    lengthMenu : "Show _MENU_ entries",
-                    processing : 'Loading...',
+                    lengthMenu: "Show _MENU_ entries",
+                    processing: 'Loading...',
                 },
             });
 
             // ------------------------------------------
             // Clone template filter Status ke toolbar Search
             // ------------------------------------------
-            const $container     = $(table.table().container());
+            const $container = $(table.table().container());
             const $toolbarSearch = $container.find('.dt-search');
 
             const $filter = $('#statusFilterTemplate #statusFilterWrap').clone(true, true);
@@ -333,7 +409,7 @@
             $toolbarSearch.append($filter); // sebelah kanan kotak search
 
             // Event: saat dropdown berubah, reload AJAX dengan status baru
-            $select.on('change', function () {
+            $select.on('change', function() {
                 table.ajax.reload();
             });
 
@@ -341,15 +417,15 @@
             // Paksa input Search jadi UPPERCASE
             // ------------------------------------------
             $toolbarSearch.find('.dt-input').css({
-                'width'          : '400px',
-                'maxWidth'       : '100%',
-                'text-transform' : 'uppercase',
+                'width': '400px',
+                'maxWidth': '100%',
+                'text-transform': 'uppercase',
             });
 
-            $container.on('input', '.dt-search .dt-input', function () {
+            $container.on('input', '.dt-search .dt-input', function() {
                 const start = this.selectionStart;
-                const end   = this.selectionEnd;
-                this.value  = this.value.toUpperCase();
+                const end = this.selectionEnd;
+                this.value = this.value.toUpperCase();
                 this.setSelectionRange(start, end);
                 table.search(this.value).draw();
             });
