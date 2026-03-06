@@ -253,45 +253,33 @@ class AccountController extends Controller
     public function destroy($faccid)
     {
         try {
-            // Find Account
             $account = Account::findOrFail($faccid);
 
-            // --- Validation Check ---
-
-            // 1. Cek apakah kolom 'fend' bernilai 0
+            // Validasi
             if ($account->fend == 0) {
-                return redirect()
-                    ->route('account.index')
-                    ->with('error', 'Account tidak dapat dihapus karena Header.');
+                return response()->json(['message' => 'Account tidak dapat dihapus karena Header.'], 422);
             }
 
-            // 2. Cek apakah account ini memiliki sub-account (child account)
-            $hasChildren = Account::where('faccupline', $faccid)->exists();
-
-            if ($hasChildren) {
-                return redirect()
-                    ->route('account.index')
-                    ->with('error', 'Account tidak dapat dihapus karena memiliki sub-account.');
+            if (Account::where('faccupline', $faccid)->exists()) {
+                return response()->json(['message' => 'Account memiliki sub-account.'], 422);
             }
 
-            // 3. (Opsional) Cek apakah account sudah digunakan di transaksi
-            // Uncomment jika Anda ingin cek di tabel jurnal/transaksi
-            $usedInTransaction = DB::table('jurnaldt')->where('faccount', $account->faccount)->exists();
-
-            if ($usedInTransaction) {
-                return redirect()
-                    ->route('account.index')
-                    ->with('error', 'Account tidak dapat dihapus karena sudah digunakan dalam transaksi.');
+            if (DB::table('jurnaldt')->where('faccount', $account->faccount)->exists()) {
+                return response()->json(['message' => 'Account sudah digunakan dalam transaksi.'], 422);
             }
 
-            // --- End Validation Check ---
-
-            // Delete the Account
             $account->delete();
-            return redirect()->route('rekening.index')->with('success', 'Data account ' . $account->faccname . ' berhasil dihapus.');
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data account ' . $account->faccname . ' berhasil dihapus.'
+            ]);
+
         } catch (\Exception $e) {
-            // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
-            return redirect()->route('rekening.delete', $faccid)->with('error', 'Gagal menghapus data: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
         }
     }
 

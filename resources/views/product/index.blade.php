@@ -144,56 +144,6 @@
         #statusFilterWrap {
             margin-right: .25rem;
         }
-
-        .dt-paging .dt-paging-button.first::before {
-            content: '⏮';
-            font-size: 1rem;
-        }
-
-        .dt-paging .dt-paging-button.last::before {
-            content: '⏭';
-            font-size: 1rem;
-        }
-
-        .dt-paging .dt-paging-button.first,
-        .dt-paging .dt-paging-button.last {
-            font-size: 0;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 2rem;
-            height: 2rem;
-            border-radius: .375rem;
-            border: 1px solid #d1d5db;
-            background: #fff;
-            color: #374151;
-            cursor: pointer;
-            transition: all .15s;
-        }
-
-        .dt-paging .dt-paging-button.first::before {
-            content: '⏮';
-            font-size: 1rem;
-        }
-
-        .dt-paging .dt-paging-button.last::before {
-            content: '⏭';
-            font-size: 1rem;
-        }
-
-        .dt-paging .dt-paging-button.first:hover,
-        .dt-paging .dt-paging-button.last:hover {
-            background: #eff6ff;
-            border-color: #93c5fd;
-            color: #1d4ed8;
-        }
-
-        .dt-paging .dt-paging-button.first.disabled,
-        .dt-paging .dt-paging-button.last.disabled {
-            opacity: .35;
-            cursor: not-allowed;
-            background: #f9fafb;
-        }
     </style>
 @endpush
 

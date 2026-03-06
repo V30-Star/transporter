@@ -35,7 +35,7 @@
             </div>
         </div>
 
-        {{-- Template Filter Year (hidden, akan di-clone ke toolbar DataTables) --}}
+        <!-- {{-- Template Filter Year (hidden, akan di-clone ke toolbar DataTables) --}}
         <div id="yearFilterTemplate" class="hidden">
             <div class="flex items-center gap-2" id="yearFilterWrap">
                 <span class="text-sm text-gray-700">Year</span>
@@ -68,7 +68,7 @@
                     <option value="12">December</option>
                 </select>
             </div>
-        </div>
+        </div> -->
 
         {{-- Tabel --}}
         <table id="accountTable" class="min-w-full border text-sm">
@@ -136,7 +136,7 @@
                                 @endif
                                 @if ($canDelete)
                                     <button
-                                        @click="openDelete('{{ route('account.delete', $account->faccid) }}', $event)"
+                                        @click="openDelete('{{ route(   'account.destroy', $account->faccid) }}', $event)"
                                         class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
                                         <x-heroicon-o-trash class="w-4 h-4 mr-1" /> Hapus
                                     </button>
@@ -320,7 +320,6 @@
                 }
             }));
         });
-
 
         // =============================================
         // jQuery — Inisialisasi DataTables

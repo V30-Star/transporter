@@ -41,6 +41,7 @@ use App\Http\Controllers\ReportingAssemblingController;
 use App\Http\Controllers\ReportingPemakaianBarangController;
 use App\Http\Controllers\ReportingSubaccountController;
 use App\Http\Controllers\ReportingSupplierController;
+use App\Http\Controllers\reportingCustomerController;
 use App\Http\Controllers\ReportingProductController;
 use App\Http\Controllers\SalesOrderController;
 use App\Http\Controllers\SuratJalanController;
@@ -440,6 +441,9 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/reportingsupplier', [ReportingSupplierController::class, 'index'])->name('reportingsupplier.index');
         Route::get('/reportingsupplier/print', [ReportingSupplierController::class, 'print'])->name('reportingsupplier.print');
+
+        Route::get('/reportingcustomer', [ReportingCustomerController::class, 'index'])->name('reportingcustomer.index');
+        Route::get('/reportingcustomer/print', [ReportingCustomerController::class, 'print'])->name('reportingcustomer.print');
 
         Route::get('/reportingproduct', [ReportingProductController::class, 'index'])->name('reportingproduct.index');
         Route::get('/reportingproduct/print', [ReportingProductController::class, 'print'])->name('reportingproduct.print');
