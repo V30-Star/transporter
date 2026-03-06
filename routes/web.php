@@ -43,6 +43,7 @@ use App\Http\Controllers\ReportingSubaccountController;
 use App\Http\Controllers\ReportingSupplierController;
 use App\Http\Controllers\reportingCustomerController;
 use App\Http\Controllers\ReportingProductController;
+use App\Http\Controllers\ListingSOController;
 use App\Http\Controllers\SalesOrderController;
 use App\Http\Controllers\SuratJalanController;
 
@@ -447,6 +448,9 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/reportingproduct', [ReportingProductController::class, 'index'])->name('reportingproduct.index');
         Route::get('/reportingproduct/print', [ReportingProductController::class, 'print'])->name('reportingproduct.print');
+
+        Route::get('/listingso', [ListingSOController::class, 'index'])->name('listingso.index');
+        Route::get('/listingso/print', [ListingSOController::class, 'print'])->name('listingso.print');
 
         Route::get('/gudang/browse', [WhController::class, 'browse'])
             ->name('gudang.browse');
