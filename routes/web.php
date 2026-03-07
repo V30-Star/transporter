@@ -44,6 +44,11 @@ use App\Http\Controllers\ReportingSupplierController;
 use App\Http\Controllers\reportingCustomerController;
 use App\Http\Controllers\ReportingProductController;
 use App\Http\Controllers\ListingSOController;
+use App\Http\Controllers\ListingSOBelumController;
+use App\Http\Controllers\ListingPRController;
+use App\Http\Controllers\ListingPOController;
+use App\Http\Controllers\ListingPenerimaanBarangController;
+use App\Http\Controllers\ListingFakturPembelianController;
 use App\Http\Controllers\SalesOrderController;
 use App\Http\Controllers\SuratJalanController;
 
@@ -451,6 +456,21 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/listingso', [ListingSOController::class, 'index'])->name('listingso.index');
         Route::get('/listingso/print', [ListingSOController::class, 'print'])->name('listingso.print');
+
+        Route::get('/listingsobelum', [ListingSOBelumController::class, 'index'])->name('listingsobelum.index');
+        Route::get('/listingsobelum/print', [ListingSOBelumController::class, 'print'])->name('listingsobelum.print');
+
+        Route::get('/listingpr', [ListingPRController::class, 'index'])->name('listingpr.index');
+        Route::get('/listingpr/print', [ListingPRController::class, 'print'])->name('listingpr.print');
+
+        Route::get('/listingpo', [ListingPOController::class, 'index'])->name('listingpo.index');
+        Route::get('/listingpo/print', [ListingPOController::class, 'print'])->name('listingpo.print');
+
+        Route::get('/listingpenerimaanbarang', [ListingPenerimaanBarangController::class, 'index'])->name('listingpenerimaanbarang.index');
+        Route::get('/listingpenerimaanbarang/print', [ListingPenerimaanBarangController::class, 'print'])->name('listingpenerimaanbarang.print');
+
+        Route::get('/listingfakturpembelian', [ListingFakturPembelianController::class, 'index'])->name('listingfakturpembelian.index');
+        Route::get('/listingfakturpembelian/print', [ListingFakturPembelianController::class, 'print'])->name('listingfakturpembelian.print');
 
         Route::get('/gudang/browse', [WhController::class, 'browse'])
             ->name('gudang.browse');

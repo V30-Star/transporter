@@ -36,7 +36,7 @@ class PenerimaanBarangController extends Controller
 
     // Ambil tahun-tahun yang tersedia dari data
     $availableYears = PenerimaanPembelianHeader::selectRaw('DISTINCT EXTRACT(YEAR FROM fdatetime) as year')
-      ->where('fstockmtcode', 'RCV')
+      ->where('fstockmtcode', 'TER')
       ->whereNotNull('fdatetime')
       ->orderByRaw('EXTRACT(YEAR FROM fdatetime) DESC')
       ->pluck('year');
@@ -44,11 +44,11 @@ class PenerimaanBarangController extends Controller
     // --- 2. Handle Request AJAX dari DataTables ---
     if ($request->ajax()) {
 
-      // Query dasar HANYA untuk 'RCV' (Receiving)
-      $query = PenerimaanPembelianHeader::where('fstockmtcode', 'RCV');
+      // Query dasar HANYA untuk 'TER' (Receiving)
+      $query = PenerimaanPembelianHeader::where('fstockmtcode', 'TER');
 
-      // Total records (dengan filter 'RCV')
-      $totalRecords = PenerimaanPembelianHeader::where('fstockmtcode', 'RCV')->count();
+      // Total records (dengan filter 'TER')
+      $totalRecords = PenerimaanPembelianHeader::where('fstockmtcode', 'TER')->count();
 
       // Handle Search (cari di No. Penerimaan)
       if ($search = $request->input('search.value')) {
@@ -548,7 +548,7 @@ class PenerimaanBarangController extends Controller
 
       $yy = $fstockmtdate->format('y');
       $mm = $fstockmtdate->format('m');
-      $fstockmtcode = 'RCV';
+      $fstockmtcode = 'TER';
 
       if (empty($fstockmtno)) {
         $prefix = sprintf('%s.%s.%s.%s.', $fstockmtcode, $kodeCabang, $yy, $mm);

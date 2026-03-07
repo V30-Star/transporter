@@ -38,7 +38,7 @@ class FakturPembelianController extends Controller
 
     // Ambil tahun-tahun yang tersedia dari data
     $availableYears = PenerimaanPembelianHeader::selectRaw('DISTINCT EXTRACT(YEAR FROM fdatetime) as year')
-      ->where('fstockmtcode', 'TER')
+      ->where('fstockmtcode', 'BUY')
       ->whereNotNull('fdatetime')
       ->orderByRaw('EXTRACT(YEAR FROM fdatetime) DESC')
       ->pluck('year');
@@ -46,11 +46,11 @@ class FakturPembelianController extends Controller
     // --- 2. Handle Request AJAX dari DataTables ---
     if ($request->ajax()) {
 
-      // Query dasar HANYA untuk 'TER' (Faktur)
-      $query = PenerimaanPembelianHeader::where('fstockmtcode', 'TER');
+      // Query dasar HANYA untuk 'BUY' (Faktur)
+      $query = PenerimaanPembelianHeader::where('fstockmtcode', 'BUY');
 
-      // Total records (dengan filter 'TER')
-      $totalRecords = PenerimaanPembelianHeader::where('fstockmtcode', 'TER')->count();
+      // Total records (dengan filter 'BUY')
+      $totalRecords = PenerimaanPembelianHeader::where('fstockmtcode', 'BUY')->count();
 
       // Handle Search (cari di No. Faktur)
       if ($search = $request->input('search.value')) {
@@ -388,7 +388,7 @@ class FakturPembelianController extends Controller
         'ftempohr' => ['nullable', 'integer'],
         'ftypebuy' => ['nullable', 'integer'],
         'frefno' => ['nullable', 'integer'],
-        'frefpo' => ['nullable', 'integer'],
+        'frefpo' => ['nullable', 'string'],
         'fcurrency' => ['nullable', 'string', 'max:5'],
         'frate' => ['nullable', 'numeric', 'min:0'],
         'famountpopajak' => ['nullable', 'numeric', 'min:0'],
@@ -560,7 +560,7 @@ class FakturPembelianController extends Controller
         // GENERATE DOCUMENT NUMBER
         $yy = $fstockmtdate->format('y');
         $mm = $fstockmtdate->format('m');
-        $fstockmtcode = 'TER';
+        $fstockmtcode = 'BUY';
 
         if (empty($fstockmtno)) {
           $prefix = sprintf('%s.%s.%s.%s.', $fstockmtcode, $kodeCabang, $yy, $mm);
@@ -1092,7 +1092,7 @@ class FakturPembelianController extends Controller
 
         if (!$kodeCabang) $kodeCabang = 'NA';
 
-        $fstockmtcode = 'TER';
+        $fstockmtcode = 'BUY';
 
         if (empty($fstockmtno)) {
           $fstockmtno = $header->fstockmtno; // <-- Ambil dari record yang ada

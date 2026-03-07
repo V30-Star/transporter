@@ -285,7 +285,7 @@
                         <div class="lg:col-span-4">
                             <label class="block text-npsm font-medium mb-1">Faktur</label>
                             <div class="flex items-center gap-3">
-                                <input type="text" name="frefno" class="w-full border rounded px-3 py-2">
+                                <input type="number" name="frefno" class="w-full border rounded px-3 py-2">
                                 <label class="inline-flex items-center select-none">
                                 </label>
                             </div>
