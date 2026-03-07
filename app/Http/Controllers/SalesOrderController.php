@@ -577,7 +577,7 @@ class SalesOrderController extends Controller
         'fdiscpersen'   => ($totalGross > 0) ? round(($totalDisc / $totalGross) * 100, 2) : 0,
         'famountsonet'  => round($amountNet, 2),
         'famountpajak'  => round($ppnAmount, 2),
-        'famountso'     => round($grandTotal, 2),
+        'famountso'     => 0,
         'fprdout'       => '0',
         'fclose'        => '0',
         'fneedacc'      => '0',
@@ -593,6 +593,17 @@ class SalesOrderController extends Controller
       unset($r);
 
       DB::table('trsodt')->insert($rowsSodt);
+      // ✅ Hitung famountso dari SUM(famount) di trsodt
+      $totalAmountSo = DB::table('trsodt')
+        ->where('ftrsomtid', $ftrsomtid)
+        ->sum('famount');
+
+      // ✅ Update header dengan nilai yang benar
+      DB::table('trsomt')
+        ->where('ftrsomtid', $ftrsomtid)
+        ->update([
+          'famountso' => round($totalAmountSo, 2),
+        ]);
     });
 
     return redirect()
