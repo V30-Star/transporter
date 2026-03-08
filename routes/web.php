@@ -41,7 +41,7 @@ use App\Http\Controllers\ReportingAssemblingController;
 use App\Http\Controllers\ReportingPemakaianBarangController;
 use App\Http\Controllers\ReportingSubaccountController;
 use App\Http\Controllers\ReportingSupplierController;
-use App\Http\Controllers\reportingCustomerController;
+use App\Http\Controllers\ReportingCustomerController;
 use App\Http\Controllers\ReportingProductController;
 use App\Http\Controllers\ListingSOController;
 use App\Http\Controllers\ListingSOBelumController;
