@@ -69,7 +69,7 @@
                                 @endif
                                 @if ($canDelete)
                                     <button
-                                        @click="openDelete('{{ route('groupcustomer.delete', $gc->fgroupid) }}', $event)"
+                                        @click="openDelete('{{ route('groupcustomer.destroy', $gc->fgroupid) }}', $event)"
                                         class="inline-flex items-center bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 text-xs">
                                         <x-heroicon-o-trash class="w-3 h-3 mr-1" /> Hapus
                                     </button>

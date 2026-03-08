@@ -18,7 +18,7 @@ class GroupcustomerController extends Controller
 
         return view('master.groupcustomer.index', compact('groupcustomers', 'canCreate', 'canEdit', 'canDelete'));
     }
-    
+
     public function create()
     {
         // Menampilkan form untuk menambah grup customer baru
@@ -125,10 +125,9 @@ class GroupcustomerController extends Controller
             $groupcustomer = Groupcustomer::findOrFail($fgroupid);
             $groupcustomer->delete();
 
-            return redirect()->route('groupcustomer.index')->with('success', 'Data groupcustomer ' . $groupcustomer->fgroupname . ' berhasil dihapus.');
+            return response()->json(['message' => 'Data groupcustomer ' . $groupcustomer->fgroupname . ' berhasil dihapus.']);
         } catch (\Exception $e) {
-            // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
-            return redirect()->route('groupcustomer.delete', $fgroupid)->with('error', 'Gagal menghapus data: ' . $e->getMessage());
+            return response()->json(['message' => 'Gagal menghapus data: ' . $e->getMessage()], 500);
         }
     }
 }

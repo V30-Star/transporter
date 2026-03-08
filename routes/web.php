@@ -125,6 +125,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/satuan',        [SatuanController::class, 'store'])->name('satuan.store');
         Route::get('/satuan/create', [SatuanController::class, 'create'])->name('satuan.create');
         Route::get('/satuan/{fsatuanid}/edit', [SatuanController::class, 'edit'])->name('satuan.edit');
+        Route::get('/satuan/{fsatuanid}/view', [SatuanController::class, 'view'])->name('satuan.view');
         Route::get('/satuan/{fsatuanid}/delete', [SatuanController::class, 'delete'])->name('satuan.delete');
         Route::patch('/satuan/{fsatuanid}', [SatuanController::class, 'update'])->name('satuan.update');
         Route::delete('/satuan/{fsatuanid}', [SatuanController::class, 'destroy'])->name('satuan.destroy');

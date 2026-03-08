@@ -76,7 +76,7 @@
                                 @endif
                                 @if ($canDelete)
                                     <button
-                                        @click="openDelete('{{ route('satuan.delete', $item->fsatuanid) }}', $event)"
+                                        @click="openDelete('{{ route('satuan.destroy', $item->fsatuanid) }}', $event)"
                                         class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
                                         Hapus
                                     </button>

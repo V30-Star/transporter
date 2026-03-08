@@ -77,7 +77,7 @@
                                 @endif
                                 @if ($canDelete)
                                     <button
-                                        @click="openDelete('{{ route('merek.delete', $item->fmerekid) }}', $event)"
+                                        @click="openDelete('{{ route('merek.destroy', $item->fmerekid) }}', $event)"
                                         class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
                                         <x-heroicon-o-trash class="w-4 h-4 mr-1" /> Hapus
                                     </button>

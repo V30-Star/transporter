@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 
 class MerekController extends Controller
 {
-   public function index(Request $request)
+    public function index(Request $request)
     {
         $mereks = Merek::orderBy('fmerekcode', 'asc')
             ->get(['fmerekid', 'fmerekcode', 'fmerekname', 'fnonactive']);
@@ -52,7 +52,7 @@ class MerekController extends Controller
         $validated['fcreatedat'] = now(); // Use the current time
 
         $validated['fnonactive'] = $request->input('fnonactive', 0) == 1 ? '1' : '0';
-        
+
         // Create the new Merek
         $merek = Merek::create($validated);
 
@@ -131,13 +131,12 @@ class MerekController extends Controller
             $merek = Merek::findOrFail($fmerekid);
             $merek->delete();
 
-            return redirect()->route('merek.index')->with('success', 'Data merek ' . $merek->fmerekname . ' berhasil dihapus.');
+            return response()->json(['message' => 'Data merek ' . $merek->fmerekname . ' berhasil dihapus.']);
         } catch (\Exception $e) {
-            // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
-            return redirect()->route('merek.delete', $fmerekid)->with('error', 'Gagal menghapus data: ' . $e->getMessage());
+            return response()->json(['message' => 'Gagal menghapus data: ' . $e->getMessage()], 500);
         }
     }
-
+    
     public function browse(Request $request)
     {
         // Base query

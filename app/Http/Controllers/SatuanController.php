@@ -129,10 +129,9 @@ class SatuanController extends Controller
             $satuan = Satuan::findOrFail($fsatuanid);
             $satuan->delete();
 
-            return redirect()->route('satuan.index')->with('success', 'Data satuan ' . $satuan->fsatuanname . ' berhasil dihapus.');
+            return response()->json(['message' => 'Data satuan ' . $satuan->fsatuanname . ' berhasil dihapus.']);
         } catch (\Exception $e) {
-            // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
-            return redirect()->route('satuan.delete', $fsatuanid)->with('error', 'Gagal menghapus data: ' . $e->getMessage());
+            return response()->json(['message' => 'Gagal menghapus data: ' . $e->getMessage()], 500);
         }
     }
 }

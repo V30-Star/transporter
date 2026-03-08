@@ -134,10 +134,10 @@ class SalesmanController extends Controller
             $salesman = Salesman::findOrFail($fsalesmanid);
             $salesman->delete();
 
-            return redirect()->route('salesman.index')->with('success', 'Data salesman ' . $salesman->fsalesmanname . ' berhasil dihapus.');
+            return response()->json(['message' => 'Data salesman ' . $salesman->fsalesmanname . ' berhasil dihapus.']);
         } catch (\Exception $e) {
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
-            return redirect()->route('salesman.delete', $fsalesmanid)->with('error', 'Gagal menghapus data: ' . $e->getMessage());
+            return response()->json(['message' => 'Gagal menghapus data: ' . $e->getMessage()], 500);
         }
     }
 
