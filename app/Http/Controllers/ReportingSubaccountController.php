@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\SubAccount;
+use App\Models\Subaccount;
 use Carbon\Carbon;
 
 class ReportingSubaccountController extends Controller
@@ -11,13 +11,13 @@ class ReportingSubaccountController extends Controller
   public function index()
   {
     // Mengambil semua sub account untuk dropdown di modal
-    $subAccounts = SubAccount::orderBy('fsubaccountcode', 'asc')->get();
+    $subAccounts = Subaccount::orderBy('fsubaccountcode', 'asc')->get();
     return view('reportingsubaccount.index', compact('subAccounts'));
   }
 
   public function print(Request $request)
   {
-    $query = SubAccount::query();
+    $query = Subaccount::query();
 
     // Filter Rentang Kode (From - To)
     if ($request->subaccount_from && $request->subaccount_to) {

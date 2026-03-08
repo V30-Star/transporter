@@ -137,7 +137,7 @@
                     <td class="text-center">{{ $i + 1 }}</td>
                     <td style="font-weight: bold;">{{ $row->fsuppliercode }}</td>
                     <td>{{ $row->fsuppliername }}</td>
-                    <td>{{ $row->faddress }} {{ $row->fcity ? ', ' . $row->fcity : '' }}</td>
+                    <td>{{ $row->faddress }}</td>
                     <td>{{ $row->ftelp }}</td>
                     <td>{{ $row->fkontakperson }}</td>
                     <td class="text-center">{{ $row->ftempo ?? '0' }} Hari</td>
