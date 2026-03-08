@@ -296,7 +296,7 @@
                         }
 
                         if (canDelete) {
-                            const deleteUrl = '/master/product/' + fprdid + '/delete';
+                            const deleteUrl = '/master/product/' + fprdid;
                             html += `
                                 <button onclick="openProductDelete('${deleteUrl}', this)"
                                     class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">

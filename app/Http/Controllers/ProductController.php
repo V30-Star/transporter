@@ -86,7 +86,7 @@ class ProductController extends Controller
                     'fprdcode'    => $item->fprdcode,
                     'fprdname'    => $item->fprdname,
                     'fmerek'      => $item->merek_name,
-                    'fsatuankecil'=> $item->fsatuankecil,
+                    'fsatuankecil' => $item->fsatuankecil,
                     'fminstock'   => $item->fminstock,
                     'status'      => $statusBadge,
                     'fprdid'      => $item->fprdid,
@@ -108,7 +108,7 @@ class ProductController extends Controller
 
         return view('product.index', compact('canCreate', 'canEdit', 'canDelete'));
     }
-    
+
     public function suggestNames(Request $request)
     {
         $term = (string) $request->get('term', '');
@@ -406,36 +406,24 @@ class ProductController extends Controller
     public function destroy($fprdid)
     {
         try {
-            // 1. Cari produknya dulu
-            // findOrFail akan error jika produk tidak ada, langsung masuk ke catch
             $product = Product::findOrFail($fprdid);
 
-            // 2. Lakukan pengecekan satu per satu MENGGUNAKAN RELASI
-
-            // Cek ke tr_pod
             if ($product->trPods()->exists()) {
-                return redirect()->route('product.index')
-                    ->with('danger', 'Gagal hapus: Produk masih digunakan di data PO (tr_pod).');
+                return response()->json(['message' => 'Gagal hapus: Produk masih digunakan di data PO.'], 422);
             }
 
-            // Cek ke tr_prd (asumsi dari fungsi Anda)
             if ($product->trPrds()->exists()) {
-                return redirect()->route('product.index')
-                    ->with('danger', 'Gagal hapus: Produk masih digunakan di data PR (tr_prd).');
+                return response()->json(['message' => 'Gagal hapus: Produk masih digunakan di data PR.'], 422);
             }
 
-            // Cek ke trstockdt
             if ($product->trstockdts()->exists()) {
-                return redirect()->route('product.index')
-                    ->with('danger', 'Gagal hapus: Produk masih digunakan di data Transaksi Stok (trstockdt).');
+                return response()->json(['message' => 'Gagal hapus: Produk masih digunakan di Transaksi Stok.'], 422);
             }
 
-            // 3. Jika semua pengecekan lolos, baru hapus
             $product->delete();
-            return redirect()->route('product.index')->with('success', 'Data product ' . $product->fprdname . ' berhasil dihapus.');
+            return response()->json(['message' => 'Data produk ' . $product->fprdname . ' berhasil dihapus.']);
         } catch (\Exception $e) {
-            // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
-            return redirect()->route('product.delete', $fprdid)->with('error', 'Gagal menghapus data: ' . $e->getMessage());
+            return response()->json(['message' => 'Gagal menghapus: ' . $e->getMessage()], 500);
         }
     }
 
