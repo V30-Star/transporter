@@ -14,12 +14,10 @@
 
         {{-- Tombol Tambah Baru --}}
         <div class="flex justify-end items-center mb-4">
-            @if ($canCreate)
                 <a href="{{ route('currency.create') }}"
                     class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
                     <x-heroicon-o-plus class="w-4 h-4 mr-1" /> Tambah Baru
                 </a>
-            @endif
         </div>
 
         {{-- Template Filter Status (hidden, akan di-clone ke toolbar DataTables) --}}
@@ -43,9 +41,7 @@
                     <th class="border px-2 py-2 no-sort">Status</th>
                     {{-- Kolom hidden untuk filter client-side, berisi nilai mentah 0/1 --}}
                     <th data-col="statusRaw" class="border px-2 py-2">StatusRaw</th>
-                    @if ($showActionsColumn)
                         <th class="border px-2 py-2 col-aksi">Aksi</th>
-                    @endif
                 </tr>
             </thead>
             <tbody>
@@ -66,29 +62,23 @@
                         {{-- Nilai mentah fnonactive (0 atau 1) — disembunyikan oleh DataTables --}}
                         <td class="border px-2 py-1">{{ $item->fnonactive }}</td>
 
-                        @if ($showActionsColumn)
                             <td class="border px-2 py-1 space-x-2 text-center">
                                 <a href="{{ route('currency.view', $item->fcurrid) }}">
                                     <button class="inline-flex items-center bg-slate-500 text-white px-4 py-2 rounded hover:bg-slate-600">
                                         <x-heroicon-o-pencil-square class="w-4 h-4 mr-1" /> View
                                     </button>
                                 </a>
-                                @if ($canEdit)
                                     <a href="{{ route('currency.edit', $item->fcurrid) }}">
                                         <button class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
                                             <x-heroicon-o-pencil-square class="w-4 h-4 mr-1" /> Edit
                                         </button>
                                     </a>
-                                @endif
-                                @if ($canDelete)
                                     <button
                                         @click="openDelete('{{ route('currency.delete', $item->fcurrid) }}', $event)"
                                         class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
                                         <x-heroicon-o-trash class="w-4 h-4 mr-1" /> Hapus
                                     </button>
-                                @endif
                             </td>
-                        @endif
                     </tr>
                 @endforeach
             </tbody>
