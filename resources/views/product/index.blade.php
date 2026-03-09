@@ -284,7 +284,7 @@
 
                         if (canEdit) {
                             html += `
-                                <a href="/master/product/${fprdid}/edit">
+                                <a href="{{ config('app.url') }}/master/product/${fprdid}/edit">
                                     <button class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
                                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
