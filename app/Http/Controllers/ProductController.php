@@ -299,6 +299,21 @@ class ProductController extends Controller
         ]);
     }
 
+    public function view($id)
+    {
+        $product = Product::findOrFail($id);
+        $groups = Groupproduct::where('fnonactive', 0)->get();
+        $merks = Merek::where('fnonactive', 0)->get();
+        $satuan = Satuan::where('fnonactive', 0)->get();
+
+        return view('product.view', [
+            'product' => $product,
+            'groups' => $groups,
+            'merks' => $merks,
+            'satuan' => $satuan
+        ]);
+    }
+
     public function update(Request $request, $fprdid)
     {
 

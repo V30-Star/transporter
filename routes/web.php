@@ -159,6 +159,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/product',        [ProductController::class, 'store'])->name('product.store');
         Route::get('/product/create', [ProductController::class, 'create'])->name('product.create');
         Route::get('/product/{fprdid}/edit', [ProductController::class, 'edit'])->name('product.edit');
+        Route::get('/product/{fprdid}/view', [ProductController::class, 'view'])->name('product.view');
         Route::get('/product/{fprdid}/delete', [ProductController::class, 'delete'])->name('product.delete');
         Route::patch('/product/{fprdid}', [ProductController::class, 'update'])->name('product.update');
         Route::delete('/product/{fprdid}', [ProductController::class, 'destroy'])->name('product.destroy');
