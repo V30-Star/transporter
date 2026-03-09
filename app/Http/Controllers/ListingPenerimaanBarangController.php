@@ -109,98 +109,106 @@ class ListingPenerimaanBarangController extends Controller
         ]);
     }
 
-   public function exportExcel(Request $request)
-{
-    $results = $this->getRawData($request);
-    $dataGrouped = $results->groupBy('fstockmtno');
+    public function exportExcel(Request $request)
+    {
+        $results = $this->getRawData($request);
+        $dataGrouped = $results->groupBy('fstockmtno');
 
-    $filename = "Listing_Penerimaan_" . date('YmdHis') . ".xlsx";
-    $tempFile = tempnam(sys_get_temp_dir(), 'xlsx_');
+        $filename = "Listing_Penerimaan_" . date('YmdHis') . ".xlsx";
+        $tempFile = tempnam(sys_get_temp_dir(), 'xlsx_');
 
-    $writer = new Writer();
-    $writer->openToFile($tempFile);
+        $writer = new Writer();
+        $writer->openToFile($tempFile);
 
-    // --- Styles (OpenSpout v5) ---
-    $styleTitle = new Style(fontBold: true, fontSize: 14);
-    $styleHeader = new Style(fontBold: true, backgroundColor: 'D3D3D3');
-    $styleMaster = new Style(fontBold: true);
-    $styleDetail = new Style(fontColor: 'FF0000');
-    $styleGrandTotal = new Style(fontBold: true, backgroundColor: '333333', fontColor: 'FFFFFF');
+        // --- Styles ---
+        $styleTitle      = new Style(fontBold: true, fontSize: 14);
+        $styleHeader     = new Style(fontBold: true, backgroundColor: 'D3D3D3');
+        $styleMaster     = new Style(fontBold: false);
+        $styleGrandTotal = new Style(fontBold: true, backgroundColor: '333333', fontColor: 'FFFFFF');
 
-    // Helper: buat Row dari array values dengan style yang sama di semua cell
-    $makeRow = function (array $values, ?Style $style = null): Row {
-        $cells = array_map(
-            fn($value) => $style ? Cell::fromValue($value, $style) : Cell::fromValue($value),
-            $values
-        );
-        return new Row($cells);
-    };
+        $makeRow = function (array $values, ?Style $style = null): Row {
+            $cells = array_map(
+                fn($value) => $style ? Cell::fromValue($value, $style) : Cell::fromValue($value),
+                $values
+            );
+            return new Row($cells);
+        };
 
-    // --- Header Informasi ---
-    $writer->addRow($makeRow(['LISTING PENERIMAAN BARANG'], $styleTitle));
-    $writer->addRow($makeRow([
-        'Supplier:',
-        $request->sup_from
-            ? '[' . $request->sup_from . '] s/d [' . $request->sup_to . ']'
-            : 'Semua'
-    ]));
-    $writer->addRow($makeRow([
-        'Periode:',
-        ($request->date_from ?? '...') . ' s/d ' . ($request->date_to ?? '...')
-    ]));
-    $writer->addRow($makeRow([]));
-
-    // --- Header Kolom ---
-    $writer->addRow($makeRow([
-        'No. Transaksi / Kode Barang',
-        'Tanggal / Nama Barang',
-        'Gudang / Ref PO',
-        'Supplier / Qty',
-        'Harga Satuan',
-        'Total Harga',
-        'User-id'
-    ], $styleHeader));
-
-    $totalKeseluruhan = 0;
-
-    foreach ($dataGrouped as $fstockmtno => $details) {
-        $h = $details->first();
-        $totalKeseluruhan += $h->famountmt;
-
-        // Baris Master
+        // --- Header Informasi ---
+        $writer->addRow($makeRow(['LISTING PENERIMAAN BARANG'], $styleTitle));
         $writer->addRow($makeRow([
-            $h->fstockmtno,
-            Carbon::parse($h->fstockmtdate)->format('d/m/Y'),
-            $h->fwhname,
-            $h->fsuppliername,
-            '',
-            (float) $h->famountmt,
-            trim($h->fusercreate)
-        ], $styleMaster));
+            'Supplier:',
+            $request->sup_from
+                ? '[' . $request->sup_from . '] s/d [' . $request->sup_to . ']'
+                : 'Semua'
+        ]));
+        $writer->addRow($makeRow([
+            'Periode:',
+            ($request->date_from ?? '...') . ' s/d ' . ($request->date_to ?? '...')
+        ]));
+        $writer->addRow($makeRow([]));
 
-        // Baris Detail
-        foreach ($details as $d) {
-            $writer->addRow($makeRow([
-                '    ' . $d->fprdcode,
-                $d->fprdname,
-                $d->frefpo,
-                (float) $d->fqty,
-                (float) $d->fprice,
-                (float) $d->ftotprice,
-                ''
-            ], $styleDetail));
+        // --- Header Kolom ---
+        $writer->addRow($makeRow([
+            'No. Transaksi',
+            'Tanggal',
+            'Gudang',
+            'Supplier',
+            'User-id',
+            'Kode Barang',
+            'Nama Barang',
+            'Ref PO',
+            'Qty',
+            'Harga Satuan',
+            'Total Harga',
+        ], $styleHeader));
+
+        $totalKeseluruhan = 0;
+
+        foreach ($dataGrouped as $fstockmtno => $details) {
+            $h = $details->first();
+            $totalKeseluruhan += $h->famountmt;
+
+            $isFirstDetail = true;
+
+            foreach ($details as $d) {
+                $writer->addRow($makeRow([
+                    $isFirstDetail ? $h->fstockmtno : '',                          // No. Transaksi
+                    $isFirstDetail ? Carbon::parse($h->fstockmtdate)->format('d/m/Y') : '', // Tanggal
+                    $isFirstDetail ? $h->fwhname : '',                             // Gudang
+                    $isFirstDetail ? $h->fsuppliername : '',                       // Supplier
+                    $isFirstDetail ? trim($h->fusercreate) : '',                   // User-id
+                    $d->fprdcode,                                                   // Kode Barang
+                    $d->fprdname,                                                   // Nama Barang
+                    $d->frefpo,                                                     // Ref PO
+                    (float) $d->fqty,                                              // Qty
+                    (float) $d->fprice,                                            // Harga Satuan
+                    (float) $d->ftotprice,                                         // Total Harga
+                ], $styleMaster));
+
+                $isFirstDetail = false;
+            }
         }
+
+        // --- Grand Total ---
+        $writer->addRow($makeRow([
+            'TOTAL KESELURUHAN PENERIMAAN',
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            '',
+            (float) $totalKeseluruhan,
+        ], $styleGrandTotal));
+
+        $writer->close();
+
+        return response()->download($tempFile, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ])->deleteFileAfterSend(true);
     }
-
-    // --- Grand Total ---
-    $writer->addRow($makeRow([
-        'TOTAL KESELURUHAN PENERIMAAN', '', '', '', '', (float) $totalKeseluruhan, ''
-    ], $styleGrandTotal));
-
-    $writer->close();
-
-    return response()->download($tempFile, $filename, [
-        'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    ])->deleteFileAfterSend(true);
-}
 }
