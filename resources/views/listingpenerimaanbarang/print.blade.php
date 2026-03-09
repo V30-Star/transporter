@@ -183,13 +183,29 @@
                 padding: 10mm;
                 box-shadow: none;
             }
+            .btn-excel {
+                display: none !important;
+            }
         }
+        .btn-excel:hover {
+            background-color: #0e630e !important;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
     </style>
 </head>
 
 <body>
-    <div class="no-print"><button class="btn-print" onclick="window.print()">🖨️ CETAK PENERIMAAN BARANG</button></div>
-    @if ($chunkedData->isEmpty())
+<div class="no-print">
+    <button class="btn-print" onclick="window.print()">🖨️ CETAK PENERIMAAN BARANG</button>
+
+    <a href="{{ route('listingpenerimaan.excel', request()->all()) }}" 
+       class="btn-excel" 
+       style="background: #107c10; color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none; font-weight: bold; margin-left: 10px; display: inline-block;">
+        📊 EXCEL (FAST EXPORT)
+    </a>
+</div>    
+@if ($chunkedData->isEmpty())
         <div class="a4-container">
             <div class="header-section">
                 <h2>Listing Purchase Request</h2>

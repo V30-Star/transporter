@@ -608,7 +608,7 @@
                     @endif
                 </ul>
 
-                <ul x-show="open && openSidebar" x-transition
+                <!-- <ul x-show="open && openSidebar" x-transition
                     class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
                     @if (in_array('viewSysuser', explode(',', session('user_restricted_permissions', ''))))
                         <li>
@@ -658,7 +658,7 @@
                             </a>
                         </li>
                     @endif
-                </ul>
+                </ul> -->
             </li>
             
             {{-- Reporting Pembelian --}}
@@ -681,7 +681,7 @@
                     class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
                     @if (in_array('viewSysuser', explode(',', session('user_restricted_permissions', ''))))
                         <li>
-                            <a href="{{ route('reportingpr.index') }}"
+                            <a href="{{ route('listingpr.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
                                 <x-heroicon-o-user-circle class="w-5 h-5" />
                                 <span class="ml-3">Listing Permintaan Pembelian (PR)</span>
@@ -691,7 +691,7 @@
 
                     @if (in_array('viewSysuser', explode(',', session('user_restricted_permissions', ''))))
                         <li>
-                            <a href="{{ route('reporting.index') }}"
+                            <a href="{{ route('listingpo.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
                                 <x-heroicon-o-user-circle class="w-5 h-5" />
                                 <span class="ml-3">Listing Order Pembelian (PO)</span>
@@ -701,7 +701,7 @@
 
                     @if (in_array('viewSysuser', explode(',', session('user_restricted_permissions', ''))))
                         <li>
-                            <a href="{{ route('reportingpenerimaanbarang.index') }}"
+                            <a href="{{ route('listingpenerimaanbarang.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
                                 <x-heroicon-o-user-circle class="w-5 h-5" />
                                 <span class="ml-3">Listing Penerimaan Barang</span>
@@ -711,7 +711,7 @@
 
                     @if (in_array('viewSysuser', explode(',', session('user_restricted_permissions', ''))))
                         <li>
-                            <a href="{{ route('reportingfakturpembelian.index') }}"
+                            <a href="{{ route('listingfakturpembelian.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
                                 <x-heroicon-o-user-circle class="w-5 h-5" />
                                 <span class="ml-3">Listing Faktur Pembelian</span>

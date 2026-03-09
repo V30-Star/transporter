@@ -470,6 +470,7 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/listingpenerimaanbarang', [ListingPenerimaanBarangController::class, 'index'])->name('listingpenerimaanbarang.index');
         Route::get('/listingpenerimaanbarang/print', [ListingPenerimaanBarangController::class, 'print'])->name('listingpenerimaanbarang.print');
+        Route::get('/listingpenerimaanbarang/excel', [ListingPenerimaanBarangController::class, 'exportExcel'])->name('listingpenerimaan.excel');
 
         Route::get('/listingfakturpembelian', [ListingFakturPembelianController::class, 'index'])->name('listingfakturpembelian.index');
         Route::get('/listingfakturpembelian/print', [ListingFakturPembelianController::class, 'print'])->name('listingfakturpembelian.print');

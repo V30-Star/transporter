@@ -5,6 +5,11 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use OpenSpout\Writer\XLSX\Writer;
+use OpenSpout\Common\Entity\Row;
+use OpenSpout\Common\Entity\Style\Style;
+use OpenSpout\Common\Entity\Cell;
+use OpenSpout\Common\Entity\Style\Color;
 
 class ListingPenerimaanBarangController extends Controller
 {
@@ -15,7 +20,10 @@ class ListingPenerimaanBarangController extends Controller
         return view('listingpenerimaanbarang.index', compact('suppliers', 'warehouses'));
     }
 
-    public function print(Request $request)
+    /**
+     * Fungsi Private untuk mengambil data agar logic query tidak duplikat
+     */
+    private function getRawData(Request $request)
     {
         // 1. Subquery untuk mengecek Qty yang sudah ditagih (BUY)
         $subBuy = DB::table('trstockdt')
@@ -45,6 +53,7 @@ class ListingPenerimaanBarangController extends Controller
                 'm.fusercreate',
                 'm.famountmt',
                 's.fsuppliername',
+                's.fsuppliercode',
                 'w.fwhname',
                 'p.fprdcode',
                 'p.fprdname',
@@ -70,9 +79,9 @@ class ListingPenerimaanBarangController extends Controller
         }
 
         // Filter Status Tagihan
-        if ($request->status == '1') { // Sudah ditagih
+        if ($request->status == '1') {
             $query->whereRaw('d.fqtykecil - COALESCE(buy.fqtybuy, 0) = 0');
-        } elseif ($request->status == '2') { // Belum ditagih
+        } elseif ($request->status == '2') {
             $query->whereRaw('d.fqtykecil - COALESCE(buy.fqtybuy, 0) > 0');
         }
 
@@ -83,7 +92,12 @@ class ListingPenerimaanBarangController extends Controller
             $query->orderBy('m.fstockmtno', 'asc');
         }
 
-        $results = $query->get();
+        return $query->get();
+    }
+
+    public function print(Request $request)
+    {
+        $results = $this->getRawData($request);
         $totalLaporan = $results->unique('fstockmtno')->sum('famountmt');
         $chunkedData = $results->groupBy('fstockmtno')->chunk(5);
 
@@ -94,4 +108,99 @@ class ListingPenerimaanBarangController extends Controller
             'user_session' => auth()->user()
         ]);
     }
+
+   public function exportExcel(Request $request)
+{
+    $results = $this->getRawData($request);
+    $dataGrouped = $results->groupBy('fstockmtno');
+
+    $filename = "Listing_Penerimaan_" . date('YmdHis') . ".xlsx";
+    $tempFile = tempnam(sys_get_temp_dir(), 'xlsx_');
+
+    $writer = new Writer();
+    $writer->openToFile($tempFile);
+
+    // --- Styles (OpenSpout v5) ---
+    $styleTitle = new Style(fontBold: true, fontSize: 14);
+    $styleHeader = new Style(fontBold: true, backgroundColor: 'D3D3D3');
+    $styleMaster = new Style(fontBold: true);
+    $styleDetail = new Style(fontColor: 'FF0000');
+    $styleGrandTotal = new Style(fontBold: true, backgroundColor: '333333', fontColor: 'FFFFFF');
+
+    // Helper: buat Row dari array values dengan style yang sama di semua cell
+    $makeRow = function (array $values, ?Style $style = null): Row {
+        $cells = array_map(
+            fn($value) => $style ? Cell::fromValue($value, $style) : Cell::fromValue($value),
+            $values
+        );
+        return new Row($cells);
+    };
+
+    // --- Header Informasi ---
+    $writer->addRow($makeRow(['LISTING PENERIMAAN BARANG'], $styleTitle));
+    $writer->addRow($makeRow([
+        'Supplier:',
+        $request->sup_from
+            ? '[' . $request->sup_from . '] s/d [' . $request->sup_to . ']'
+            : 'Semua'
+    ]));
+    $writer->addRow($makeRow([
+        'Periode:',
+        ($request->date_from ?? '...') . ' s/d ' . ($request->date_to ?? '...')
+    ]));
+    $writer->addRow($makeRow([]));
+
+    // --- Header Kolom ---
+    $writer->addRow($makeRow([
+        'No. Transaksi / Kode Barang',
+        'Tanggal / Nama Barang',
+        'Gudang / Ref PO',
+        'Supplier / Qty',
+        'Harga Satuan',
+        'Total Harga',
+        'User-id'
+    ], $styleHeader));
+
+    $totalKeseluruhan = 0;
+
+    foreach ($dataGrouped as $fstockmtno => $details) {
+        $h = $details->first();
+        $totalKeseluruhan += $h->famountmt;
+
+        // Baris Master
+        $writer->addRow($makeRow([
+            $h->fstockmtno,
+            Carbon::parse($h->fstockmtdate)->format('d/m/Y'),
+            $h->fwhname,
+            $h->fsuppliername,
+            '',
+            (float) $h->famountmt,
+            trim($h->fusercreate)
+        ], $styleMaster));
+
+        // Baris Detail
+        foreach ($details as $d) {
+            $writer->addRow($makeRow([
+                '    ' . $d->fprdcode,
+                $d->fprdname,
+                $d->frefpo,
+                (float) $d->fqty,
+                (float) $d->fprice,
+                (float) $d->ftotprice,
+                ''
+            ], $styleDetail));
+        }
+    }
+
+    // --- Grand Total ---
+    $writer->addRow($makeRow([
+        'TOTAL KESELURUHAN PENERIMAAN', '', '', '', '', (float) $totalKeseluruhan, ''
+    ], $styleGrandTotal));
+
+    $writer->close();
+
+    return response()->download($tempFile, $filename, [
+        'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    ])->deleteFileAfterSend(true);
+}
 }
