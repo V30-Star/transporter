@@ -443,30 +443,38 @@ Route::middleware('auth')->group(function () {
         Route::get('/reportingaccount/exportExcel', [ReportingAccountController::class, 'exportExcel'])->name('reportingaccount.exportExcel');
         Route::get('/reportingaccount/print', [ReportingAccountController::class, 'printAccount'])->name('reportingaccount.printAccount');
         Route::get('/reportingaccount/rebuildAndPrint', [ReportingAccountController::class, 'rebuildAndPrint'])->name('reportingaccount.rebuildAndPrint');
+        Route::get('/reportingaccount/excel', [ReportingAccountController::class, 'exportExcel'])->name('reportingaccount.excel');
 
         Route::get('/reportingsubaccount', [ReportingSubaccountController::class, 'index'])->name('reportingsubaccount.index');
         Route::get('/reportingsubaccount/print', [ReportingSubaccountController::class, 'print'])->name('reportingsubaccount.print');
+        Route::get('/reportingsubaccount/excel', [ReportingSubaccountController::class, 'exportExcel'])->name('reportingsubaccount.excel');
 
         Route::get('/reportingsupplier', [ReportingSupplierController::class, 'index'])->name('reportingsupplier.index');
         Route::get('/reportingsupplier/print', [ReportingSupplierController::class, 'print'])->name('reportingsupplier.print');
+        Route::get('/reportingsupplier/excel', [ReportingSupplierController::class, 'exportExcel'])->name('reportingsupplier.excel');
 
         Route::get('/reportingcustomer', [ReportingCustomerController::class, 'index'])->name('reportingcustomer.index');
         Route::get('/reportingcustomer/print', [ReportingCustomerController::class, 'print'])->name('reportingcustomer.print');
+        Route::get('/reportingcustomer/excel', [ReportingCustomerController::class, 'exportExcel'])->name('reportingcustomer.excel');
 
         Route::get('/reportingproduct', [ReportingProductController::class, 'index'])->name('reportingproduct.index');
         Route::get('/reportingproduct/print', [ReportingProductController::class, 'print'])->name('reportingproduct.print');
+        Route::get('/reportingproduct/excel', [ReportingProductController::class, 'exportExcel'])->name('reportingproduct.excel');
 
         Route::get('/listingso', [ListingSOController::class, 'index'])->name('listingso.index');
         Route::get('/listingso/print', [ListingSOController::class, 'print'])->name('listingso.print');
+        Route::get('/listingso/excel', [ListingSOController::class, 'exportExcel'])->name('listingso.excel');
 
         Route::get('/listingsobelum', [ListingSOBelumController::class, 'index'])->name('listingsobelum.index');
         Route::get('/listingsobelum/print', [ListingSOBelumController::class, 'print'])->name('listingsobelum.print');
 
         Route::get('/listingpr', [ListingPRController::class, 'index'])->name('listingpr.index');
         Route::get('/listingpr/print', [ListingPRController::class, 'print'])->name('listingpr.print');
+        Route::get('/listingpr/excel', [ListingPRController::class, 'exportExcel'])->name('listingpr.excel');
 
         Route::get('/listingpo', [ListingPOController::class, 'index'])->name('listingpo.index');
         Route::get('/listingpo/print', [ListingPOController::class, 'print'])->name('listingpo.print');
+        Route::get('/listingpo/excel', [ListingPOController::class, 'exportExcel'])->name('listingpo.excel');
 
         Route::get('/listingpenerimaanbarang', [ListingPenerimaanBarangController::class, 'index'])->name('listingpenerimaanbarang.index');
         Route::get('/listingpenerimaanbarang/print', [ListingPenerimaanBarangController::class, 'print'])->name('listingpenerimaanbarang.print');
@@ -474,6 +482,7 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/listingfakturpembelian', [ListingFakturPembelianController::class, 'index'])->name('listingfakturpembelian.index');
         Route::get('/listingfakturpembelian/print', [ListingFakturPembelianController::class, 'print'])->name('listingfakturpembelian.print');
+        Route::get('/listingfakturpembelian/excel', [ListingFakturPembelianController::class, 'exportExcel'])->name('listingfakturpembelian.excel');
 
         Route::get('/gudang/browse', [WhController::class, 'browse'])
             ->name('gudang.browse');

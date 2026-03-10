@@ -1,79 +1,261 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
-    <title>Customer Report</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Listing Master Customer</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Courier New', Courier, monospace; font-size: 10px; background: #fff; padding: 15px; }
-        .header-wrap { width: 100%; border-bottom: 2px solid #000; margin-bottom: 10px; }
-        .report-table { width: 100%; border-collapse: collapse; }
-        .report-table thead tr { background-color: #000099; color: #fff; height: 22px; }
-        .report-table thead th { font-family: Verdana, sans-serif; border: 1px dashed #7777cc; padding: 4px; text-align: left; font-weight: normal; }
-        .report-table tbody td { font-family: Verdana, sans-serif; border: 1px dashed #aaa; padding: 4px; vertical-align: top; }
-        .text-center { text-align: center !important; }
-        .text-right { text-align: right !important; }
-        .no-print { margin-bottom: 15px; }
-        @media print { .no-print { display: none; } body { padding: 0; } }
+        /* Pengaturan Dasar Kertas A4 */
+        @page {
+            size: A4 portrait;
+            margin: 10mm;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 10px;
+            color: #000;
+            background-color: #f5f5f5;
+            line-height: 1.2;
+        }
+
+        /* Container A4 agar tampilan layar sama dengan hasil cetak */
+        .a4-container {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 20px auto;
+            background: white;
+            padding: 15mm;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+            page-break-after: always;
+        }
+
+        /* ── Header Section ── */
+        .header-section {
+            position: relative;
+            margin-bottom: 20px;
+            text-align: center;
+            border-bottom: 2px solid #000;
+            padding-bottom: 30px;
+        }
+
+        .header-section h2 {
+            font-size: 18px;
+            margin-bottom: 8px;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #c00;
+            /* Warna Merah khas laporan Anda */
+        }
+
+        .info-tambahan {
+            position: absolute;
+            top: 0;
+            right: 0;
+            font-size: 10px;
+            color: #333;
+            text-align: left;
+            line-height: 1.4;
+        }
+
+        .info-label {
+            font-weight: bold;
+            display: inline-block;
+            width: 45px;
+        }
+
+        /* ── Grid Table Styles (8 Kolom) ── */
+        .grid-header-labels {
+            display: grid;
+            /* Kolom: No, Cust#, Nama, Alamat, Telp, Salesman, Kontak/Email, Limit/Tempo */
+            grid-template-columns: 8mm 20mm 25mm 30mm 25mm 20mm 20mm 25mm;
+            gap: 2px;
+            font-weight: bold;
+            background-color: #f0f0f0 !important;
+            /* Abu-abu header */
+            border: 1px solid #000;
+            border-bottom: 2px solid #000;
+            padding: 8px 5px;
+            -webkit-print-color-adjust: exact;
+        }
+
+        .grid-row {
+            display: grid;
+            grid-template-columns: 8mm 20mm 25mm 30mm 25mm 20mm 20mm 25mm;
+            gap: 2px;
+            padding: 6px 5px;
+            border-left: 1px solid #ccc;
+            border-right: 1px solid #ccc;
+            border-bottom: 1px dashed #aaa;
+            background-color: #fff;
+            align-items: start;
+        }
+
+        .truncate {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        /* ── Footer / Grand Total ── */
+        .grand-total {
+            border: 2px solid #000;
+            margin-top: 20px;
+            padding: 10px;
+            font-weight: bold;
+            background-color: #333 !important;
+            color: #fff;
+            display: flex;
+            justify-content: space-between;
+            -webkit-print-color-adjust: exact;
+        }
+
+        /* ── No Print UI ── */
+        .no-print {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            display: flex;
+            gap: 8px;
+            z-index: 1000;
+        }
+
+        .print-button {
+            background-color: #3b82f6;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            border: none;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        @media print {
+            body {
+                background-color: white !important;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+
+            .a4-container {
+                width: 100%;
+                margin: 0;
+                padding: 10mm;
+                box-shadow: none;
+            }
+        }
     </style>
 </head>
+
 <body>
 
     <div class="no-print">
-        <button onclick="window.print()" style="padding: 6px 12px; cursor: pointer;">&#128438; Cetak Laporan</button>
-        <button onclick="window.close()" style="padding: 6px 12px; margin-left:10px; cursor: pointer;">Tutup</button>
+        <button class="print-button" onclick="window.print()">🖨️ CETAK LAPORAN CUSTOMER</button>
+        <button onclick="adjustZoom(-0.1)"
+            style="padding: 6px 12px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px;">
+            −
+        </button>
+
+        <span id="zoomLabel"
+            style="min-width: 48px; text-align: center; font-size: 13px; font-weight: bold; color: #333;">
+            100%
+        </span>
+
+        <button onclick="adjustZoom(0.1)"
+            style="padding: 6px 12px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px;">
+            +
+        </button>
+
+        <a href="{{ route('reportingcustomer.excel', request()->query()) }}"
+            style="padding: 6px 14px; background: #1d6f42; color: white; border-radius: 4px; text-decoration: none; font-size: 13px; font-weight: bold;">
+            ⬇ Export Excel
+        </a>
     </div>
 
-    <div class="header-wrap">
-        <table style="width: 100%">
-            <tr>
-                <td style="font-family: Verdana; font-size: 14px; font-weight: bold;">LIST OF MASTER CUSTOMER</td>
-                <td style="text-align: right; font-family: Verdana; font-size: 10px;">Tanggal: {{ date('d/m/Y H:i') }}</td>
-            </tr>
-        </table>
+    <div class="a4-container">
+        <div class="header-section">
+            <h2>List of Master Customer</h2>
+            <div class="info-tambahan">
+                <div><span class="info-label">Tanggal</span>: {{ date('d/m/Y') }}</div>
+                <div><span class="info-label">Jam</span>: {{ date('H:i') }}</div>
+                <div><span class="info-label">Hal</span>: 1 / 1</div>
+                <div><span class="info-label">Opr</span>: {{ $user_session->fname ?? 'admin' }}</div>
+            </div>
+        </div>
+
+        {{-- Header Labels --}}
+        <div class="grid-header-labels">
+            <div class="text-center">No</div>
+            <div>Cust#</div>
+            <div>Nama Customer</div>
+            <div>Alamat</div>
+            <div>Telp</div>
+            <div>Salesman</div>
+            <div>Kontak/Email</div>
+            <div class="text-right">Limit/Tempo</div>
+        </div>
+
+        {{-- Data Rows --}}
+        @forelse ($data as $i => $row)
+            <div class="grid-row">
+                <div class="text-center">{{ $i + 1 }}</div>
+                <div style="font-weight: bold;">{{ $row->fcustomercode }}</div>
+                <div class="truncate" title="{{ $row->fcustomername }}">{{ $row->fcustomername }}</div>
+                <div class="truncate">{{ $row->faddress }}</div>
+                <div class="truncate">{{ $row->ftelp }}</div>
+                <div class="truncate">{{ $row->fsalesmanname ?? $row->fsalesman }}</div>
+                <div class="truncate">
+                    {{ $row->fkontakperson }}<br>
+                    <small style="color: #666;">{{ $row->femail }}</small>
+                </div>
+                <div class="text-right">
+                    L: {{ number_format($row->flimit, 0, ',', '.') }}<br>
+                    T: {{ $row->ftempo }} Hr
+                </div>
+            </div>
+        @empty
+            <div style="padding: 20px; text-align: center; border: 1px solid #ccc;">
+                Data customer tidak ditemukan.
+            </div>
+        @endforelse
+
+        {{-- Grand Total Penutup --}}
+        <div class="grand-total">
+            <span>TOTAL KESELURUHAN DATA CUSTOMER</span>
+            <span>{{ count($data) }} Records</span>
+        </div>
     </div>
 
-    <table class="report-table">
-        <thead>
-            <tr>
-                <th width="3%" class="text-center">No</th>
-                <th width="8%">Cust#</th>
-                <th width="15%">Nama Customer</th>
-                <th width="20%">Alamat</th>
-                <th width="10%">Telp</th>
-                <th width="10%">Salesman</th>
-                <th width="17%">Kontak/Email</th>
-                <th width="17%" class="text-right">Limit/Tempo</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse ($data as $i => $row)
-            <tr>
-                <td class="text-center">{{ $i + 1 }}</td>
-                <td><strong>{{ $row->fcustomercode }}</strong></td>
-                <td>{{ $row->fcustomername }}</td>
-                <td>{{ $row->faddress }}</td>
-                <td>{{ $row->ftelp }}</td>
-                <td>{{ $row->fsalesmanname ?? $row->fsalesman }}</td>
-                <td>
-                    {{ $row->fkontakperson }} <br>
-                    <small>{{ $row->femail }}</small>
-                </td>
-                <td class="text-right">
-                    L: {{ number_format($row->flimit, 0, ',', '.') }} <br>
-                    T: {{ $row->ftempo }} Hari
-                </td>
-            </tr>
-            @empty
-            <tr>
-                <td colspan="8" class="text-center">Data tidak ditemukan</td>
-            </tr>
-            @endforelse
-        </tbody>
-    </table>
-
-    <div style="text-align: center; margin-top: 20px; font-family: Verdana; font-size: 10px; font-weight: bold;">
-        *** end of report ***
-    </div>
 </body>
+
 </html>
+
+<script>
+    let currentZoom = 1.0;
+
+    function adjustZoom(delta) {
+        currentZoom = Math.min(2.0, Math.max(0.3, currentZoom + delta));
+        document.querySelector('.a4-container').style.transform = `scale(${currentZoom})`;
+        document.querySelector('.a4-container').style.transformOrigin = 'top center';
+        document.getElementById('zoomLabel').textContent = Math.round(currentZoom * 100) + '%';
+    }
+</script>

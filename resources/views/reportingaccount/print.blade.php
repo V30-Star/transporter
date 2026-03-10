@@ -3,8 +3,14 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Account Tree Report</title>
     <style>
+        @page {
+            size: A4 portrait;
+            margin: 10mm;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -12,90 +18,92 @@
         }
 
         body {
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 12px;
-            background: #fff;
-        }
-
-        /* ── Header ── */
-        .header-wrap {
-            width: 100%;
-            border-bottom: 2px solid #000;
-            margin-bottom: 6px;
-        }
-
-        .header-wrap table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .header-title {
-            font-family: Verdana, sans-serif;
-            font-size: 18px;
-            font-weight: bold;
+            font-family: Arial, sans-serif;
+            font-size: 10px;
             color: #000;
+            background-color: #f5f5f5;
+            line-height: 1.2;
         }
 
-        .header-date {
-            font-family: Verdana, sans-serif;
-            font-size: 13px;
+        /* Container A4 */
+        .a4-container {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 20px auto;
+            background: white;
+            padding: 15mm;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        /* ── Header Section ── */
+        .header-section {
+            position: relative;
+            margin-bottom: 20px;
+            text-align: center;
+            border-bottom: 2px solid #000;
+            padding-bottom: 30px;
+        }
+
+        .header-section h2 {
+            font-size: 18px;
+            margin-bottom: 8px;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #c00;
+            /* Merah sesuai laporan lainnya */
+        }
+
+        .info-tambahan {
+            position: absolute;
+            top: 0;
+            right: 0;
+            font-size: 10px;
             color: #333;
-            text-align: right;
-            vertical-align: top;
-            padding-bottom: 4px;
+            text-align: left;
+            line-height: 1.4;
         }
 
-        /* ── Tree Table ── */
-        .tree-table {
-            width: 100%;
-            border-collapse: collapse;
+        .info-label {
+            font-weight: bold;
+            display: inline-block;
+            width: 45px;
         }
 
-        .tree-table thead tr {
-            background-color: #000099;
-            color: #fff;
-            height: 22px;
+        /* ── Grid Table Styles ── */
+        .grid-header-labels {
+            display: grid;
+            /* Kolom: Account (Tree), D/K, Sub Account */
+            grid-template-columns: 140mm 20mm 20mm;
+            gap: 2px;
+            font-weight: bold;
+            background-color: #f0f0f0 !important;
+            border: 1px solid #000;
+            border-bottom: 2px solid #000;
+            padding: 8px 5px;
+            -webkit-print-color-adjust: exact;
         }
 
-        .tree-table thead th {
-            font-family: Verdana, sans-serif;
-            font-size: 12px;
-            font-weight: normal;
-            border: 1px dashed #7777cc;
-            padding: 2px 6px;
-            white-space: nowrap;
+        .grid-row {
+            display: grid;
+            grid-template-columns: 140mm 20mm 20mm;
+            gap: 2px;
+            padding: 4px 5px;
+            border-left: 1px solid #ccc;
+            border-right: 1px solid #ccc;
+            border-bottom: 1px dashed #aaa;
+            background-color: #fff;
+            align-items: center;
         }
 
-        .tree-table tbody tr:hover {
-            background-color: #f0f4ff;
+        /* Baris Header Akun (fend == 0) diberi warna merah muda seperti detail laporan lain */
+        .row-header-akun {
+            background-color: #ffe6e6 !important;
+            font-weight: bold;
+            -webkit-print-color-adjust: exact;
         }
 
-        .tree-table tbody td {
-            padding: 0px 4px;
-            /* Kecilkan padding vertikal agar garis menyambung */
-            line-height: 1;
-        }
-
-        .ti {
-            width: 20px;
-            /* Sesuaikan lebar langkah identasi */
-            height: 20px;
-        }
-
-        .tree-table tbody td {
-            font-family: Verdana, sans-serif;
-            font-size: 11px;
-            border: 1px dashed #aaa;
-            padding: 2px 4px;
-            white-space: nowrap;
-        }
-
-        .tree-table tfoot td {
-            border-top: 1px dashed #aaa;
-            padding: 4px;
-        }
-
-        /* ── Tree glyph images (inline SVG data-URI pengganti gif) ── */
+        /* ── Tree Glyph Icons (SVG) ── */
         .ti {
             display: inline-block;
             width: 16px;
@@ -103,53 +111,57 @@
             vertical-align: middle;
         }
 
-        /* garis tegak lurus  │  */
         .ti-line {
             background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cline x1='8' y1='0' x2='8' y2='16' stroke='%23555' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat center;
         }
 
-        /* ├── joinbottom */
         .ti-joinbot {
             background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cline x1='8' y1='0' x2='8' y2='16' stroke='%23555' stroke-width='1.5'/%3E%3Cline x1='8' y1='8' x2='16' y2='8' stroke='%23555' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat center;
         }
 
-        /* └── join (corner) */
         .ti-join {
             background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cline x1='8' y1='0' x2='8' y2='8' stroke='%23555' stroke-width='1.5'/%3E%3Cline x1='8' y1='8' x2='16' y2='8' stroke='%23555' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat center;
         }
 
-        /* spasi kosong */
-        .ti-empty {
-            background: none;
-        }
-
-        /* ── Footer ── */
-        .footer {
+        .text-center {
             text-align: center;
-            font-family: Verdana, sans-serif;
-            font-size: 13px;
-            font-weight: bold;
-            padding: 10px 0;
         }
 
-        /* ── No-print button ── */
+        /* ── No Print UI ── */
         .no-print {
-            margin: 10px;
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            display: flex;
+            gap: 8px;
+            z-index: 1000;
         }
 
-        .no-print button {
-            padding: 8px 18px;
+        .print-button {
+            background-color: #3b82f6;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
             cursor: pointer;
-            font-size: 13px;
+            border: none;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 
         @media print {
-            .no-print {
-                display: none;
+            body {
+                background-color: white !important;
             }
 
-            body {
+            .no-print {
+                display: none !important;
+            }
+
+            .a4-container {
+                width: 100%;
                 margin: 0;
+                padding: 10mm;
+                box-shadow: none;
             }
         }
     </style>
@@ -157,142 +169,119 @@
 
 <body>
 
-    {{-- Tombol cetak (hilang saat print) --}}
     <div class="no-print">
-        <button onclick="window.print()">&#128438; Cetak Laporan</button>
+        <button class="print-button" onclick="window.print()">🖨️ Cetak Laporan</button>
+        <button onclick="adjustZoom(-0.1)"
+            style="padding: 6px 12px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px;">
+            −
+        </button>
+
+        <span id="zoomLabel"
+            style="min-width: 48px; text-align: center; font-size: 13px; font-weight: bold; color: #333;">
+            100%
+        </span>
+
+        <button onclick="adjustZoom(0.1)"
+            style="padding: 6px 12px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px;">
+            +
+        </button>
+
+        <a href="{{ route('reportingaccount.excel', request()->query()) }}"
+            style="padding: 6px 14px; background: #1d6f42; color: white; border-radius: 4px; text-decoration: none; font-size: 13px; font-weight: bold;">
+            ⬇ Export Excel
+        </a>
     </div>
 
     @php
-        /* ────────────────────────────────────────────────────
-         * Persiapan data untuk render tree ala legacy PHP
-         * ──────────────────────────────────────────────────── */
-        $rows = $data->values(); // reindex 0-based
+        $rows = $data->values();
         $nrows = $rows->count();
         $nBegin = $nrows > 0 ? $rows[0]->flevel : 1;
-
         $lPreviousLeafEnd = true;
         $nPreviousLevel = $nBegin;
-
-        /**
-         * cTree adalah string "token" — sama persis pola legacy:
-         *   $8 = kosong/spasi
-         *   $9 = garis tegak │
-         *   $1 = ├── (joinbottom)
-         *   $2 = └── (join/corner)
-         *
-         * Setelah dirakit, token diganti jadi HTML span.
-         */
         $cTree = '';
     @endphp
 
-    {{-- ── Header ── --}}
-    <div class="header-wrap">
-        <table>
-            <tr>
-                <td rowspan="2" style="width:120px; padding:4px;">
-                    {{-- Logo (ganti path sesuai project) --}}
-                    @if (file_exists(public_path('images/logo.jpg')))
-                        <img src="{{ asset('images/logo.jpg') }}" style="max-height:60px;" alt="Logo">
-                    @else
-                        <div
-                            style="width:100px;height:50px;background:#eee;display:flex;align-items:center;justify-content:center;font-size:10px;color:#888;">
-                            LOGO</div>
-                    @endif
-                </td>
-                <td class="header-date">Tanggal : {{ date('j M Y') }}</td>
-            </tr>
-            <tr>
-                <td class="header-date">Account Tree</td>
-            </tr>
-            <tr>
-                <td colspan="2" style="height:6px;"></td>
-            </tr>
-            <tr>
-                <td colspan="2" style="padding-bottom:4px;">
+    <div class="a4-container">
+        <div class="header-section">
+            <h2>Account Tree Report</h2>
+            <div class="info-tambahan">
+                <div><span class="info-label">Tanggal</span>: {{ date('d/m/Y') }}</div>
+                <div><span class="info-label">Jam</span>: {{ date('H:i') }}</div>
+                <div><span class="info-label">Hal</span>: 1 / 1</div>
+                <div><span class="info-label">Opr</span>: {{ $user_session->fname ?? 'admin' }}</div>
+            </div>
+        </div>
 
-                    {{-- ── Tree Table ── --}}
-                    <table class="tree-table">
-                        <thead>
-                            <tr>
-                                <th style="text-align:left;">&nbsp;Account&nbsp;</th>
-                                <th>&nbsp;D/K&nbsp;</th>
-                                <th>&nbsp;Sub Account&nbsp;</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($rows as $i => $row)
-                                @php
-                                    $nEnd = $row->flevel;
-                                    $cetak = '';
+        {{-- Table Labels --}}
+        <div class="grid-header-labels">
+            <div>Account Name</div>
+            <div class="text-center">D/K</div>
+            <div class="text-center">Sub Acc</div>
+        </div>
 
-                                    if ($i == 0) {
-                                        $nBegin = $nEnd;
-                                        $cTree = '';
-                                    } else {
-                                        if ($nEnd > $nPreviousLevel) {
-                                            $cTree .= $lPreviousLeafEnd ? '$8' : '$9';
-                                        } elseif ($nEnd < $nPreviousLevel) {
-                                            $cTree = substr($cTree, 0, ($nEnd - $nBegin) * 2);
-                                        }
+        {{-- Loop Data --}}
+        @foreach ($rows as $i => $row)
+            @php
+                $nEnd = $row->flevel;
+                $cetak = '';
 
-                                        $symbol = $row->fleafend == '1' ? '$2' : '$1';
-                                        $cetak = $cTree . $symbol;
-                                    }
+                if ($i == 0) {
+                    $nBegin = $nEnd;
+                    $cTree = '';
+                } else {
+                    if ($nEnd > $nPreviousLevel) {
+                        $cTree .= $lPreviousLeafEnd ? '$8' : '$9';
+                    } elseif ($nEnd < $nPreviousLevel) {
+                        $cTree = substr($cTree, 0, ($nEnd - $nBegin) * 2);
+                    }
+                    $symbol = $row->fleafend == '1' ? '$2' : '$1';
+                    $cetak = $cTree . $symbol;
+                }
 
-                                    // Set state — hanya di sini, tidak ada duplikasi
-                                    $nPreviousLevel = $nEnd;
-                                    $lPreviousLeafEnd = $nEnd === $nBegin ? true : $row->fleafend == '1';
+                $nPreviousLevel = $nEnd;
+                $lPreviousLeafEnd = $nEnd === $nBegin ? true : $row->fleafend == '1';
 
-                                    /* Ganti token → HTML */
-                                    $cetak = str_replace(
-                                        ['$9', '$8', '$1', '$2'],
-                                        [
-                                            '<span class="ti ti-line"></span>',
-                                            '<span class="ti ti-empty"></span>',
-                                            '<span class="ti ti-joinbot"></span>',
-                                            '<span class="ti ti-join"></span>',
-                                        ],
-                                        $cetak,
-                                    );
-                                @endphp
-                                <tr class="hover:bg-gray-50">
-                                    <td>
-                                        <div style="display: flex; align-items: center;">
-                                            {!! $cetak !!}
-                                            <span
-                                                style="font-family:'Courier New', monospace; font-size:11px; margin-left: 5px;">
-                                                @if ($row->fend == 0)
-                                                    <strong style="font-weight: 900;">
-                                                        {{ trim($row->faccount) }} {{ trim($row->faccname) }}
-                                                    </strong>
-                                                @else
-                                                    {{ trim($row->faccount) }} {{ trim($row->faccname) }}
-                                                @endif
-                                            </span>
-                                        </div>
-                                    </td>
-                                    <td style="text-align:center;">{{ $row->fnormal == 'D' ? 'Debit' : 'Kredit' }}</td>
-                                    <td style="text-align:center;">{{ $row->fhavesubaccount == 1 ? 'Yes' : 'No' }}</td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                        <tfoot>
-                            <tr>
-                                <td colspan="6">&nbsp;</td>
-                            </tr>
-                        </tfoot>
-                    </table>
+                $cetakHtml = str_replace(
+                    ['$9', '$8', '$1', '$2'],
+                    [
+                        '<span class="ti ti-line"></span>',
+                        '<span class="ti ti-empty"></span>',
+                        '<span class="ti ti-joinbot"></span>',
+                        '<span class="ti ti-join"></span>',
+                    ],
+                    $cetak,
+                );
+            @endphp
 
-                </td>
-            </tr>
-            <tr>
-                <td colspan="2" style="height:30px; vertical-align:bottom; text-align:center; padding-bottom:6px;">
-                    <span class="footer">*** end of report ***</span>
-                </td>
-            </tr>
-        </table>
+            <div class="grid-row {{ $row->fend == 0 ? 'row-header-akun' : '' }}">
+                <div style="display: flex; align-items: center;">
+                    {!! $cetakHtml !!}
+                    <span style="font-family:'Courier New', monospace; font-size:11px; margin-left: 5px;">
+                        {{ trim($row->faccount) }} - {{ trim($row->faccname) }}
+                    </span>
+                </div>
+                <div class="text-center">{{ $row->fnormal == 'D' ? 'Debit' : 'Kredit' }}</div>
+                <div class="text-center">{{ $row->fhavesubaccount == 1 ? 'Yes' : 'No' }}</div>
+            </div>
+        @endforeach
+
+        <div
+            style="margin-top: 20px; text-align: center; font-weight: bold; border-top: 1px solid #000; padding-top: 10px;">
+            *** end of report ***
+        </div>
     </div>
 
 </body>
 
 </html>
+
+<script>
+    let currentZoom = 1.0;
+
+    function adjustZoom(delta) {
+        currentZoom = Math.min(2.0, Math.max(0.3, currentZoom + delta));
+        document.querySelector('.a4-container').style.transform = `scale(${currentZoom})`;
+        document.querySelector('.a4-container').style.transformOrigin = 'top center';
+        document.getElementById('zoomLabel').textContent = Math.round(currentZoom * 100) + '%';
+    }
+</script>

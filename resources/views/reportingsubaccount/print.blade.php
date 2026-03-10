@@ -3,8 +3,15 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Sub Account Report</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Sub Account Report</title>
     <style>
+        /* Pengaturan Dasar Kertas A4 */
+        @page {
+            size: A4 portrait;
+            margin: 10mm;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -12,114 +19,148 @@
         }
 
         body {
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 12px;
-            background: #fff;
-            padding: 20px;
-        }
-
-        /* ── Header ── */
-        .header-wrap {
-            width: 100%;
-            border-bottom: 2px solid #000;
-            margin-bottom: 6px;
-        }
-
-        .header-wrap table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .header-title {
-            font-family: Verdana, sans-serif;
-            font-size: 18px;
-            font-weight: bold;
+            font-family: Arial, sans-serif;
+            font-size: 10px;
             color: #000;
+            background-color: #f5f5f5;
+            line-height: 1.2;
         }
 
-        .header-date {
-            font-family: Verdana, sans-serif;
-            font-size: 13px;
+        /* Container A4 agar tampilan layar sama dengan hasil cetak */
+        .a4-container {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 20px auto;
+            background: white;
+            padding: 15mm;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+            page-break-after: always;
+        }
+
+        /* ── Header Section ── */
+        .header-section {
+            position: relative;
+            margin-bottom: 20px;
+            text-align: center;
+            border-bottom: 2px solid #000;
+            padding-bottom: 30px;
+        }
+
+        .header-section h2 {
+            font-size: 18px;
+            margin-bottom: 8px;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #c00;
+            /* Merah sesuai laporan Listing SO/PR */
+        }
+
+        .info-tambahan {
+            position: absolute;
+            top: 0;
+            right: 0;
+            font-size: 10px;
             color: #333;
-            text-align: right;
-            vertical-align: top;
-            padding-bottom: 4px;
-        }
-
-        /* ── Table Style ── */
-        .report-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .report-table thead tr {
-            background-color: #000099;
-            /* Biru Gelap sesuai COA */
-            color: #fff;
-            height: 25px;
-        }
-
-        .report-table thead th {
-            font-family: Verdana, sans-serif;
-            font-size: 12px;
-            font-weight: normal;
-            border: 1px dashed #7777cc;
-            padding: 4px 8px;
             text-align: left;
+            line-height: 1.4;
         }
 
-        .report-table tbody td {
-            font-family: Verdana, sans-serif;
-            font-size: 11px;
-            border: 1px dashed #aaa;
-            padding: 6px 8px;
+        .info-label {
+            font-weight: bold;
+            display: inline-block;
+            width: 45px;
+        }
+
+        /* ── Grid Table Styles ── */
+        .grid-header-labels {
+            display: grid;
+            /* Kolom: No, Code, Sub Account Name, Status, Created By, Created At */
+            grid-template-columns: 10mm 30mm 65mm 25mm 25mm 25mm;
+            gap: 2px;
+            font-weight: bold;
+            background-color: #f0f0f0 !important;
+            /* Abu-abu sesuai header SO/PR */
+            border: 1px solid #000;
+            border-bottom: 2px solid #000;
+            padding: 8px 5px;
+            -webkit-print-color-adjust: exact;
+        }
+
+        .grid-row {
+            display: grid;
+            grid-template-columns: 10mm 30mm 65mm 25mm 25mm 25mm;
+            gap: 2px;
+            padding: 6px 5px;
+            border-left: 1px solid #ccc;
+            border-right: 1px solid #ccc;
+            border-bottom: 1px dashed #aaa;
+            background-color: #fff;
+            align-items: center;
+        }
+
+        .truncate {
             white-space: nowrap;
-        }
-
-        .report-table tbody tr:hover {
-            background-color: #f0f4ff;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .text-center {
-            text-align: center !important;
-        }
-
-        /* ── Footer ── */
-        .footer-text {
             text-align: center;
-            font-family: Verdana, sans-serif;
-            font-size: 12px;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        /* ── Footer / Grand Total ── */
+        .grand-total {
+            border: 2px solid #000;
+            margin-top: 20px;
+            padding: 10px;
             font-weight: bold;
-            padding: 20px 0;
-            color: #000;
+            background-color: #333 !important;
+            color: #fff;
+            display: flex;
+            justify-content: space-between;
+            -webkit-print-color-adjust: exact;
         }
 
-        /* ── No-print button ── */
+        /* ── No Print UI ── */
         .no-print {
-            margin-bottom: 20px;
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            display: flex;
+            gap: 8px;
+            z-index: 1000;
         }
 
-        .no-print button {
-            padding: 8px 18px;
+        .print-button {
+            background-color: #3b82f6;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
             cursor: pointer;
-            font-size: 13px;
-            background: #f3f4f6;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-
-        .no-print button:hover {
-            background: #e5e7eb;
+            border: none;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 
         @media print {
-            .no-print {
-                display: none;
+            body {
+                background-color: white !important;
             }
 
-            body {
+            .no-print {
+                display: none !important;
+            }
+
+            .a4-container {
+                width: 100%;
                 margin: 0;
-                padding: 0;
+                padding: 10mm;
+                box-shadow: none;
             }
         }
     </style>
@@ -127,69 +168,86 @@
 
 <body>
 
-    {{-- Tombol cetak (Muncul di layar, hilang saat print) --}}
     <div class="no-print">
-        <button onclick="window.print()">&#128438; Cetak Laporan</button>
-        <button onclick="window.close()" style="margin-left: 10px;">Tutup</button>
+        <button class="print-button" onclick="window.print()">🖨️ CETAK LAPORAN SUB ACCOUNT</button>
+        <button onclick="adjustZoom(-0.1)"
+            style="padding: 6px 12px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px;">
+            −
+        </button>
+
+        <span id="zoomLabel"
+            style="min-width: 48px; text-align: center; font-size: 13px; font-weight: bold; color: #333;">
+            100%
+        </span>
+
+        <button onclick="adjustZoom(0.1)"
+            style="padding: 6px 12px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px;">
+            +
+        </button>
+
+        <a href="{{ route('reportingsubaccount.excel', request()->query()) }}"
+            style="padding: 6px 14px; background: #1d6f42; color: white; border-radius: 4px; text-decoration: none; font-size: 13px; font-weight: bold;">
+            ⬇ Export Excel
+        </a>
     </div>
 
-    {{-- ── Header ── --}}
-    <div class="header-wrap">
-        <table>
-            <tr>
-                <td rowspan="2" style="width:120px; padding:4px;">
-                    @if (file_exists(public_path('images/logo.jpg')))
-                        <img src="{{ asset('images/logo.jpg') }}" style="max-height:60px;" alt="Logo">
-                    @else
-                        <div
-                            style="width:100px;height:50px;background:#eee;display:flex;align-items:center;justify-content:center;font-size:10px;color:#888;">
-                            LOGO</div>
-                    @endif
-                </td>
-                <td class="header-date">Tanggal : {{ date('j M Y') }}</td>
-            </tr>
-            <tr>
-                <td class="header-date" style="font-weight: bold; font-size: 16px;">Master Sub Account Report</td>
-            </tr>
-        </table>
-    </div>
+    <div class="a4-container">
+        <div class="header-section">
+            <h2>Master Sub Account Report</h2>
+            <div class="info-tambahan">
+                <div><span class="info-label">Tanggal</span>: {{ date('d/m/Y') }}</div>
+                <div><span class="info-label">Jam</span>: {{ date('H:i') }}</div>
+                <div><span class="info-label">Hal</span>: 1 / 1</div>
+                <div><span class="info-label">Opr</span>: {{ $user_session->fname ?? 'admin' }}</div>
+            </div>
+        </div>
 
-    {{-- ── Data Table ── --}}
-    <table class="report-table">
-        <thead>
-            <tr>
-                <th width="5%" class="text-center">No</th>
-                <th width="15%">Sub Account Code</th>
-                <th>Sub Account Name</th>
-                <th width="10%" class="text-center">Status</th>
-                <th width="20%">Created By</th>
-                <th width="15%">Created At</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse ($data as $i => $row)
-                <tr>
-                    <td class="text-center">{{ $i + 1 }}</td>
-                    <td style="font-weight: bold;">{{ $row->fsubaccountcode }}</td>
-                    <td>{{ $row->fsubaccountname }}</td>
-                    <td class="text-center">
-                        {{ $row->fnonactive == 'N' ? 'Active' : 'Inactive' }}
-                    </td>
-                    <td>{{ $row->fcreatedby }}</td>
-                    <td>{{ $row->fcreatedat ? \Carbon\Carbon::parse($row->fcreatedat)->format('d/m/Y') : '-' }}</td>
-                </tr>
-            @empty
-                <tr>
-                    <td colspan="6" class="text-center" style="padding: 20px;">No data found.</td>
-                </tr>
-            @endforelse
-        </tbody>
-    </table>
+        {{-- Header Labels --}}
+        <div class="grid-header-labels">
+            <div class="text-center">No</div>
+            <div>Code</div>
+            <div>Sub Account Name</div>
+            <div class="text-center">Status</div>
+            <div>Created By</div>
+            <div>Created At</div>
+        </div>
 
-    <div class="footer-text">
-        *** end of report ***
+        {{-- Data Rows --}}
+        @forelse ($data as $i => $row)
+            <div class="grid-row">
+                <div class="text-center">{{ $i + 1 }}</div>
+                <div style="font-weight: bold;">{{ $row->fsubaccountcode }}</div>
+                <div class="truncate">{{ $row->fsubaccountname }}</div>
+                <div class="text-center">
+                    {{ $row->fnonactive == 'N' ? 'Active' : 'Inactive' }}
+                </div>
+                <div class="truncate">{{ $row->fcreatedby }}</div>
+                <div>{{ $row->fcreatedat ? \Carbon\Carbon::parse($row->fcreatedat)->format('d/m/Y') : '-' }}</div>
+            </div>
+        @empty
+            <div style="padding: 20px; text-align: center; border: 1px solid #ccc;">
+                Tidak ada data ditemukan.
+            </div>
+        @endforelse
+
+        {{-- Grand Total Section (Contoh untuk menyamakan style) --}}
+        <div class="grand-total">
+            <span>TOTAL RECORD SUB ACCOUNT</span>
+            <span>{{ count($data) }} Records</span>
+        </div>
     </div>
 
 </body>
 
 </html>
+
+<script>
+    let currentZoom = 1.0;
+
+    function adjustZoom(delta) {
+        currentZoom = Math.min(2.0, Math.max(0.3, currentZoom + delta));
+        document.querySelector('.a4-container').style.transform = `scale(${currentZoom})`;
+        document.querySelector('.a4-container').style.transformOrigin = 'top center';
+        document.getElementById('zoomLabel').textContent = Math.round(currentZoom * 100) + '%';
+    }
+</script>

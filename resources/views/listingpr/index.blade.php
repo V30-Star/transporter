@@ -73,7 +73,7 @@
                     </div>
 
                     <div class="flex justify-end space-x-3 mt-6 pt-4 border-t">
-                        <button type="submit" class="px-6 py-2 bg-red-600 text-white font-bold rounded-lg shadow-md">🖨️
+                        <button type="submit" class="px-6 py-2 bg-blue-600 text-white font-bold rounded-lg shadow-md">🖨️
                             Cetak</button>
                         <button type="button" onclick="window.location.href='{{ route('dashboard') }}'"
                             class="px-5 py-2 bg-gray-100 text-gray-600 rounded-lg">Cancel</button>
@@ -98,7 +98,7 @@
             toggleModal(true);
             $('#all_pr').change(function() {
                 if ($(this).is(':checked')) $('#only_pending').prop('checked', false).prop('disabled',
-                true);
+                    true);
                 else $('#only_pending').prop('disabled', false);
             }).trigger('change');
         });

@@ -228,6 +228,26 @@
 <body>
     <div class="no-print">
         <button class="print-button" onclick="window.print()">🖨️ CETAK LAPORAN PR</button>
+
+        <button onclick="adjustZoom(-0.1)"
+            style="padding: 6px 12px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px;">
+            −
+        </button>
+
+        <span id="zoomLabel"
+            style="min-width: 48px; text-align: center; font-size: 13px; font-weight: bold; color: #333;">
+            100%
+        </span>
+
+        <button onclick="adjustZoom(0.1)"
+            style="padding: 6px 12px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px;">
+            +
+        </button>
+
+        <a href="{{ route('listingpr.excel', request()->query()) }}"
+            style="padding: 6px 14px; background: #1d6f42; color: white; border-radius: 4px; text-decoration: none; font-size: 13px; font-weight: bold;">
+            ⬇ Export Excel
+        </a>
     </div>
 
     @if ($chunkedData->isEmpty())
@@ -318,3 +338,13 @@
 </body>
 
 </html>
+<script>
+    let currentZoom = 1.0;
+
+    function adjustZoom(delta) {
+        currentZoom = Math.min(2.0, Math.max(0.3, currentZoom + delta));
+        document.getElementById('reportWrapper').style.transform = `scale(${currentZoom})`;
+        document.getElementById('reportWrapper').style.transformOrigin = 'top center';
+        document.getElementById('zoomLabel').textContent = Math.round(currentZoom * 100) + '%';
+    }
+</script>
