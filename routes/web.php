@@ -466,7 +466,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/listingso/excel', [ListingSOController::class, 'exportExcel'])->name('listingso.excel');
 
         Route::get('/listingsobelum', [ListingSOBelumController::class, 'index'])->name('listingsobelum.index');
-        Route::get('/listingsobelum/print', [ListingSOBelumController::class, 'print'])->name('listingsobelum.print');
+        Route::get('/listingsobelum/printCustomer', [ListingSOBelumController::class, 'printCustomer'])->name('listingsobelum.printCustomer');
+        Route::get('/listingsobelum/printProduct', [ListingSOBelumController::class, 'printProduct'])->name('listingsobelum.printProduct');
+        Route::get('/listingsobelum/excelCustomer', [ListingSOBelumController::class, 'excelCustomer'])->name('listingsobelum.excelCustomer');
+        Route::get('/listingsobelum/excelProduct',  [ListingSOBelumController::class, 'excelProduct'])->name('listingsobelum.excelProduct');
 
         Route::get('/listingpr', [ListingPRController::class, 'index'])->name('listingpr.index');
         Route::get('/listingpr/print', [ListingPRController::class, 'print'])->name('listingpr.print');
