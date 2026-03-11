@@ -429,18 +429,25 @@ class InvoiceController extends Controller
       return back()->withInput()->with('error', 'Transaksi Uang Muka wajib menggunakan produk dengan kode UM.');
     }
 
-    $products = DB::table('msprd')
-      ->whereIn('fprdcode', array_filter($itemCodes))
-      ->get(['fprdid', 'fprdcode', 'fprdname', 'fdiscontinue'])
-      ->keyBy('fprdcode');
-
     foreach ($itemCodes as $i => $code) {
       $qty   = (float)($qtys[$i] ?? 0);
       $price = (float)($prices[$i] ?? 0);
 
       if (empty($code) || $qty <= 0) continue;
 
+      $products = DB::table('msprd')
+        ->whereIn('fprdcode', array_filter($itemCodes))
+        ->get(['fprdid', 'fprdcode', 'fprdname', 'fdiscontinue'])
+        ->keyBy('fprdcode');
+
       $product = $products->get($code);
+
+      $itemeId = $products ? $products->fprdid : $itemeId;
+
+      $qtyKecil = $qty;
+      if ($products && $satuans[$i] === $products->fsatuanbesar) {
+        $qtyKecil = $qty * (float)$products->rasio_konversi;
+      }
 
       if ($product && $product->fdiscontinue == '1') {
         return back()
@@ -471,7 +478,8 @@ class InvoiceController extends Controller
         'fdesc'        => $itemDescs[$i] ?? '',
         'fqty'         => $qty,
         'fqtydeliver'  => 0,
-        'fqtyremain'   => $qty,
+        'fqtykecil'   => $qtyKecil,
+        'fqtyremain'  => $qtyKecil,
         'fprice'       => $price,
         'fprice_rp'    => $price * $frate,
         'fdisc'        => mb_substr((string)($discs[$i] ?? '0'), 0, 10),
@@ -835,11 +843,6 @@ class InvoiceController extends Controller
     $prices    = $request->input('fprice', []);
     $discs     = $request->input('fdisc', []);
 
-    // Ambil mapping produk untuk mendapatkan fprdid
-    $products = DB::table('msprd')
-      ->whereIn('fprdcode', array_filter($itemCodes))
-      ->pluck('fprdid', 'fprdcode');
-
     // 4. BUILD DETAIL ROWS
     $detailRows = [];
     $totalGross = 0;
@@ -863,6 +866,28 @@ class InvoiceController extends Controller
 
       if (empty($code) || $qty <= 0) continue;
 
+      $products = DB::table('msprd')
+        ->whereIn('fprdcode', array_filter($itemCodes))
+        ->get(['fprdid', 'fprdcode', 'fprdname', 'fdiscontinue'])
+        ->keyBy('fprdcode');
+
+      $product = $products->get($code);
+
+      $itemeId = $products ? $products->fprdid : $itemeId;
+
+      $qtyKecil = $qty;
+      if ($products && $satuans[$i] === $products->fsatuanbesar) {
+        $qtyKecil = $qty * (float)$products->rasio_konversi;
+      }
+
+      if ($product && $product->fdiscontinue == '1') {
+        return back()
+          ->withInput()
+          ->with('error', "Produk [{$code}] {$product->fprdname} Sudah Discontinue. Silakan hapus atau ganti dengan produk lain.");
+      }
+
+      $fprdid = $product ? $product->fprdid : null;
+
       $discPersen = $this->parseDiscount($discs[$i] ?? 0);
       $subtotal   = $qty * $price;
       $discAmount = $subtotal * ($discPersen / 100);
@@ -875,12 +900,13 @@ class InvoiceController extends Controller
       $detailRows[] = [
         'fsono'        => $header->fsono, // Tetap gunakan fsono lama
         'fnou'         => $i + 1,
-        'fprdid'       => $products[$code] ?? null,
+        'fprdid'       => $fprdid,
         'fprdcode'     => mb_substr($code, 0, 30),
         'fdesc'        => $itemDescs[$i] ?? '',
         'fqty'         => $qty,
         'fqtydeliver'  => 0,
-        'fqtyremain'   => $qty,
+        'fqtykecil'   => $qtyKecil,
+        'fqtyremain'  => $qtyKecil,
         'fprice'       => $price,
         'fprice_rp'    => $price * $frate,
         'fdisc'        => mb_substr((string)($discs[$i] ?? '0'), 0, 10),

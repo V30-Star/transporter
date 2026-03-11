@@ -457,10 +457,19 @@ class SalesOrderController extends Controller
         continue;
       }
 
-      // ✅ PARSE DISCOUNT: support format "10+2"
-      $discPersen = $this->parseDiscount($discInput);
+      $produk = DB::table('msprd')
+        ->where('fprdcode', $itemCode)
+        ->select('fprdid', 'fsatuanbesar', 'fqtykecil as rasio_konversi')
+        ->first();
 
-      // Calculate amount
+      $itemeId = $produk ? $produk->fprdid : $itemeId;
+
+      $qtyKecil = $qty;
+      if ($produk && $satuan === $produk->fsatuanbesar) {
+        $qtyKecil = $qty * (float)$produk->rasio_konversi;
+      }
+
+      $discPersen = $this->parseDiscount($discInput);
       $subtotal = $qty * $price;
       $discount = $subtotal * ($discPersen / 100);
       $amount = $subtotal - $discount;
@@ -486,6 +495,8 @@ class SalesOrderController extends Controller
         'fdiscpersen' => $discPersen,
         'fdiscount'   => round($discount, 2),
         'famount'     => round($amount, 2),
+        'fqtykecil'   => $qtyKecil,
+        'fqtyremain'  => $qtyKecil,
       ];
     }
 
@@ -928,10 +939,19 @@ class SalesOrderController extends Controller
         continue;
       }
 
-      // Parse discount (support "10+2")
-      $discPersen = $this->parseDiscount($discInput);
+      $produk = DB::table('msprd')
+        ->where('fprdcode', $itemCode)
+        ->select('fprdid', 'fsatuanbesar', 'fqtykecil as rasio_konversi')
+        ->first();
 
-      // Calculate amounts
+      $itemeId = $produk ? $produk->fprdid : $itemeId;
+
+      $qtyKecil = $qty;
+      if ($produk && $satuan === $produk->fsatuanbesar) {
+        $qtyKecil = $qty * (float)$produk->rasio_konversi;
+      }
+
+      $discPersen = $this->parseDiscount($discInput);
       $subtotal = $qty * $price;
       $discount = $subtotal * ($discPersen / 100);
       $amount   = $subtotal - $discount;
@@ -960,6 +980,8 @@ class SalesOrderController extends Controller
         'fdiscpersen' => $discPersen,
         'fdiscount'   => round($discount, 2),
         'famount'     => round($amount, 2),
+        'fqtykecil'   => $qtyKecil,
+        'fqtyremain'  => $qtyKecil,
       ];
     }
 

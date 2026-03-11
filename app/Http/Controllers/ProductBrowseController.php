@@ -9,18 +9,40 @@ class ProductBrowseController extends Controller
 {
   public function index(Request $request)
   {
-    // DataTables parameters
-    $draw = (int) $request->input('draw', 1);
-    $start = (int) $request->input('start', 0);
-    $length = (int) $request->input('length', 10);
-    $searchValue = $request->input('search', '');
+    $draw        = (int) $request->input('draw', 1);
+    $start       = (int) $request->input('start', 0);
+    $length      = (int) $request->input('length', 10);
+    $searchValue = trim($request->input('search', ''));
     $orderColumn = $request->input('order_column', 'fprdname');
-    $orderDir = $request->input('order_dir', 'asc');
+    $orderDir    = $request->input('order_dir', 'asc') === 'desc' ? 'desc' : 'asc';
 
-    // Base query dengan filter fdiscontinue
-    $builder = DB::table('msprd')
+    $allowedColumns = ['fprdcode', 'fprdname', 'fsatuanbesar', 'fminstock'];
+    $orderColumn    = in_array($orderColumn, $allowedColumns) ? $orderColumn : 'fprdname';
+
+    // Total tanpa search
+    $recordsTotal = DB::table('msprd')
+      ->where('fdiscontinue', '!=', 1)
+      ->count();
+
+    // Base untuk filtered count & data
+    $baseQuery = fn() => DB::table('msprd')
       ->leftJoin('msmerek', 'msprd.fmerek', '=', 'msmerek.fmerekid')
-      ->where('msprd.fdiscontinue', '!=', 1)
+      ->where(function ($q) {
+        $q->where('msprd.fdiscontinue', '!=', 1)
+          ->orWhereNull('msprd.fdiscontinue');
+      })
+      ->when($searchValue !== '', function ($q) use ($searchValue) {
+        $q->where(function ($w) use ($searchValue) {
+          $w->where('msprd.fprdcode', 'ilike', "%{$searchValue}%")
+            ->orWhere('msprd.fprdname', 'ilike', "%{$searchValue}%");
+        });
+      });
+
+    // Count pakai query bersih (tanpa DB::raw di select)
+    $recordsFiltered = $baseQuery()->count();
+
+    // Data query dengan select lengkap
+    $data = $baseQuery()
       ->select([
         'msprd.fprdcode',
         'msprd.fprdname',
@@ -36,43 +58,23 @@ class ProductBrowseController extends Controller
                     ELSE 0::double precision
                 END AS fminstock
             "),
-      ]);
-
-    // Total records tanpa filter (dengan filter discontinued)
-    $recordsTotal = DB::table('msprd')
-      ->where('fdiscontinue', '!=', 1)
-      ->count();
-
-    // Search/Filter
-    if ($searchValue !== '') {
-      $builder->where(function ($w) use ($searchValue) {
-        $w->where('msprd.fprdcode', 'ilike', "%{$searchValue}%")
-          ->orWhere('msprd.fprdname', 'ilike', "%{$searchValue}%");
-      });
-    }
-
-    // Total records setelah filter
-    $recordsFiltered = $builder->count();
-
-    // Sorting
-    $allowedColumns = ['fprdcode', 'fprdname', 'fsatuanbesar', 'fminstock'];
-    if (in_array($orderColumn, $allowedColumns)) {
-      $builder->orderBy('msprd.' . $orderColumn, $orderDir);
-    } else {
-      $builder->orderBy('msprd.fprdname', 'asc');
-    }
-
-    // Pagination
-    $data = $builder->skip($start)
+      ])
+      ->orderBy($orderColumn === 'fminstock' ? DB::raw("
+            CASE 
+                WHEN msprd.fminstock ~ '^[0-9]+(\\.[0-9]+)?$' 
+                    THEN (msprd.fminstock)::double precision
+                ELSE 0::double precision
+            END
+        ") : 'msprd.' . $orderColumn, $orderDir)
+      ->skip($start)
       ->take($length)
       ->get();
 
-    // Response format untuk DataTables
     return response()->json([
-      'draw' => $draw,
-      'recordsTotal' => $recordsTotal,
+      'draw'            => $draw,
+      'recordsTotal'    => $recordsTotal,
       'recordsFiltered' => $recordsFiltered,
-      'data' => $data
+      'data'            => $data,
     ]);
   }
 }

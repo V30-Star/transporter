@@ -455,6 +455,18 @@ class Tr_pohController extends Controller
       $productId = (int) (($prodMeta[$code]->fprdid ?? null) ?? 0);
       if ($productId === 0) continue;
 
+      $produk = DB::table('msprd')
+        ->where('fprdcode', $code)
+        ->select('fprdid', 'fsatuanbesar', 'fqtykecil as rasio_konversi')
+        ->first();
+
+      $itemeId = $produk ? $produk->fprdid : $itemeId;
+
+      $qtyKecil = $qty;
+      if ($produk && $sat === $produk->fsatuanbesar) {
+        $qtyKecil = $qty * (float)$produk->rasio_konversi;
+      }
+
       $priceGross = $price;
       $priceNet   = $priceGross * (1 - ($discP / 100));
       $amount     = $qty * $priceNet;
@@ -464,7 +476,6 @@ class Tr_pohController extends Controller
       $rowsPod[] = [
         'fprdcode'      => $productId,   // <-- integer FK to msprd.fprdid
         'fqty'        => $qty,
-        'fqtyremain'  => $qty,
         'fdisc'       => (string)$discP,
         'fprice'      => $price,
         'fprice_rp'   => $price,
@@ -475,10 +486,11 @@ class Tr_pohController extends Controller
         'fusercreate'     => $userid,
         'fdatetime'   => $now,
         'fsatuan'     => $sat,
-        'fqtykecil'   => $qty,
         'frefdtno'    => $refdt,
         'fnouref'     => $nref,
         'fdesc'       => $desc,
+        'fqtykecil'   => $qtyKecil,
+        'fqtyremain'  => $qtyKecil,
       ];
     }
 
@@ -876,6 +888,18 @@ class Tr_pohController extends Controller
 
       if ($code === '' || $qty <= 0) continue;
 
+      $produk = DB::table('msprd')
+        ->where('fprdcode', $code)
+        ->select('fprdid', 'fsatuanbesar', 'fqtykecil as rasio_konversi')
+        ->first();
+
+      $itemeId = $produk ? $produk->fprdid : $itemeId;
+
+      $qtyKecil = $qty;
+      if ($produk && $sat === $produk->fsatuanbesar) {
+        $qtyKecil = $qty * (float)$produk->rasio_konversi;
+      }
+
       if ($sat === '') $sat = $pickDefaultSat($code);
       $sat = mb_substr($sat, 0, 5);
       if ($sat === '') continue;
@@ -892,7 +916,6 @@ class Tr_pohController extends Controller
       $rowsPod[] = [
         'fprdcode'    => $productId,
         'fqty'        => $qty,
-        'fqtyremain'  => $qty,
         'fdisc'       => (string)$discP,
         'fprice'      => $price,
         'fprice_rp'   => $price,
@@ -903,10 +926,11 @@ class Tr_pohController extends Controller
         'fuserupdate'     => (Auth::user()->fname ?? 'system'),
         'fdatetime'   => $now,
         'fsatuan'     => $sat,
-        'fqtykecil'   => $qty,
         'frefdtno'    => $refdtno,
         'fnouref'     => $nouref,
         'fdesc'       => $desc,
+        'fqtykecil'   => $qtyKecil,
+        'fqtyremain'  => $qtyKecil,
       ];
     }
 
