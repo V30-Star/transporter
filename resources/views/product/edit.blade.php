@@ -585,17 +585,26 @@
                             </div>
                         </div>
 
-                        <!-- Min.Stok -->
+                        {{-- Min Stok --}}
                         <div class="mt-2 w-1/4">
-                            <label class="block text-sm font-medium">Min.Stok</label>
-                            <div class="flex items-baseline">
-                                <input type="text" name="fminstock" readonly
+                            <label class="block text-sm font-medium mb-1">Min.Stok</label>
+
+                            {{-- Container yang membungkus input dan satuan --}}
+                            <div
+                                class="flex items-center border border-gray-300 rounded bg-gray-50 focus-within:bg-white focus-within:ring-1 focus-within:ring-blue-400 transition-all @error('fminstock') border-red-500 @enderror">
+
+                                {{-- Input tanpa border agar menyatu dengan container --}}
+                                <input type="text" name="fminstock" id="fminstock" readonly
                                     value="{{ old('fminstock', $product->fminstock) }}"
-                                    class="w-full border rounded px-3 py-2 bg-gray-100 @error('fminstock') border-red-500 @enderror">
+                                    class="flex-1 bg-transparent border-none focus:ring-0 px-3 py-2 text-right">
+
+                                {{-- Garis vertikal (border-l) dan teks satuan --}}
                                 <span id="satuanKecilTarget"
-                                    class="satuan-kecil-display text-gray-700 font-semibold whitespace-nowrap">
+                                    class="satuan-kecil-display text-gray-700 font-bold text-[10px] pr-3 flex-shrink-0 border-l border-gray-200 ml-2 pl-2 uppercase">
+                                    {{-- Isi satuan muncul via JavaScript --}}
                                 </span>
                             </div>
+
                             @error('fminstock')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
@@ -895,9 +904,8 @@
                                 <div class="flex items-end gap-4">
                                     <div class="w-1/3">
                                         <label class="block text-sm font-medium">Satuan 3</label>
-                                        <select class="w-full border rounded px-3 py-2 bg-purple-50"
-                                            @error('fsatuanbesar2') border-red-500 @enderror" name="fsatuanbesar2"
-                                            id="fsatuanbesar2" data-select2-id="select2-data-fsatuanbesar2"
+                                        <select class="w-full border rounded px-3 py-2 bg-purple-50 @error('fsatuanbesar2') border-red-500 @enderror" 
+                                            name="fsatuanbesar2" id="fsatuanbesar2" data-select2-id="select2-data-fsatuanbesar2"
                                             tabindex="-1" aria-hidden="true">
                                             <option value="" selected>Pilih Satuan 3</option>
                                             @foreach ($satuan as $satu)
@@ -1120,15 +1128,24 @@
 
                         <!-- Min.Stok -->
                         <div class="mt-2 w-1/4">
-                            <label class="block text-sm font-medium">Min.Stok</label>
-                            <div class="flex items-baseline">
-                                <input type="text" name="fminstock"
+                            <label class="block text-sm font-medium mb-1">Min.Stok</label>
+
+                            {{-- Container yang membungkus input dan satuan --}}
+                            <div
+                                class="flex items-center border border-gray-300 rounded bg-gray-50 focus-within:bg-white focus-within:ring-1 focus-within:ring-blue-400 transition-all @error('fminstock') border-red-500 @enderror">
+
+                                {{-- Input tanpa border agar menyatu dengan container --}}
+                                <input type="text" name="fminstock" id="fminstock"
                                     value="{{ old('fminstock', $product->fminstock) }}"
-                                    class="w-full border rounded px-3 py-2 @error('fminstock') border-red-500 @enderror">
+                                    class="flex-1 bg-transparent border-none focus:ring-0 px-3 py-2 text-right">
+
+                                {{-- Garis vertikal (border-l) dan teks satuan --}}
                                 <span id="satuanKecilTarget"
-                                    class="satuan-kecil-display text-gray-700 font-semibold whitespace-nowrap">
+                                    class="satuan-kecil-display text-gray-700 font-bold text-[10px] pr-3 flex-shrink-0 border-l border-gray-200 ml-2 pl-2 uppercase">
+                                    {{-- Isi satuan muncul via JavaScript --}}
                                 </span>
                             </div>
+
                             @error('fminstock')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
