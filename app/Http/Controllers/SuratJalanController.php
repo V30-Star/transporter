@@ -421,6 +421,18 @@ class SuratJalanController extends Controller
 
       if ($code === '' || $qty <= 0) continue;
 
+      $produk = DB::table('msprd')
+        ->where('fprdcode', $code)
+        ->select('fprdid', 'fsatuanbesar', 'fqtykecil as rasio_konversi')
+        ->first();
+
+      $itemeId = $produk ? $produk->fprdid : $itemeId;
+
+      $qtyKecil = $qty;
+      if ($produk && $sat === $produk->fsatuanbesar) {
+        $qtyKecil = $qty * (float)$produk->rasio_konversi;
+      }
+
       $meta = $prodMeta[$code] ?? null;
       if (!$meta) continue;
 
@@ -445,7 +457,6 @@ class SuratJalanController extends Controller
         'fprdcode'       => $prdId,
         'frefdtno'       => $frefdtnoValue,
         'fqty'           => $qty,
-        'fqtyremain'     => $qty,
         'fprice'         => '0',
         'fprice_rp'      => '0',
         'ftotprice'      => '0',
@@ -458,10 +469,11 @@ class SuratJalanController extends Controller
         'frefso'         => null,
         'fdesc'          => $desc,
         'fsatuan'        => $sat,
-        'fqtykecil'      => $qty,
         'fclosedt'       => '0',
         'fdiscpersen'    => 0,
         'fbiaya'         => 0,
+        'fqtykecil'   => $qtyKecil,
+        'fqtyremain'  => $qtyKecil,
       ];
     }
 
@@ -1025,6 +1037,18 @@ class SuratJalanController extends Controller
 
       if ($code === '' || $qty <= 0) continue;
 
+      $produk = DB::table('msprd')
+        ->where('fprdcode', $code)
+        ->select('fprdid', 'fsatuanbesar', 'fqtykecil as rasio_konversi')
+        ->first();
+
+      $itemeId = $produk ? $produk->fprdid : $itemeId;
+
+      $qtyKecil = $qty;
+      if ($produk && $sat === $produk->fsatuanbesar) {
+        $qtyKecil = $qty * (float)$produk->rasio_konversi;
+      }
+
       $meta = $prodMeta[$code] ?? null;
       if (!$meta) {
         \Illuminate\Support\Facades\Log::warning("PB_UPDATE_SKIPPED: Produk tidak ditemukan", ['fprdcode' => $code]);
@@ -1052,7 +1076,6 @@ class SuratJalanController extends Controller
         'fprdcode'       => $prdId,
         'frefdtno'       => $frefdtnoValue,
         'fqty'           => $qty,
-        'fqtyremain'     => $qty,
         'fprice'         => $price,
         'fprice_rp'       => $price * $frate,
         'ftotprice'      => $amount,
@@ -1065,10 +1088,11 @@ class SuratJalanController extends Controller
         'frefso'         => null,
         'fdesc'          => $desc,
         'fsatuan'        => $sat,
-        'fqtykecil'      => $qty,
         'fclosedt'       => '0',
         'fdiscpersen'    => 0,
         'fbiaya'         => 0,
+        'fqtykecil'   => $qtyKecil,
+        'fqtyremain'  => $qtyKecil,
       ];
     }
 

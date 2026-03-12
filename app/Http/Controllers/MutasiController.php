@@ -471,6 +471,18 @@ class MutasiController extends Controller
                     ];
                 }
 
+                $produk = DB::table('msprd')
+                    ->where('fprdcode', $code)
+                    ->select('fprdid', 'fsatuanbesar', 'fqtykecil as rasio_konversi')
+                    ->first();
+
+                $itemeId = $produk ? $produk->fprdid : $itemeId;
+
+                $qtyKecil = $qty;
+                if ($produk && $sat === $produk->fsatuanbesar) {
+                    $qtyKecil = $qty * (float)$produk->rasio_konversi;
+                }
+
                 $meta = $prodMeta[$code] ?? null;
 
                 $prdId = $meta->fprdid;
@@ -485,7 +497,6 @@ class MutasiController extends Controller
                     'fprdcode'       => $prdId,
                     'frefdtno'       => $rref,
                     'fqty'           => $qty,
-                    'fqtyremain'     => $qty,
                     'fprice'         => $price,
                     'fprice_rp'      => $price * $frate,
                     'ftotprice'      => $amount,
@@ -498,13 +509,14 @@ class MutasiController extends Controller
                     'frefso'         => null,
                     'fdesc'          => $desc,
                     'fsatuan'        => $sat,
-                    'fqtykecil'      => $qty,
                     'fclosedt'       => '0',
                     'fdiscpersen'    => 0,
                     'fbiaya'         => 0,
                     'fstockmtid'     => null,
                     'fstockmtcode'   => null,
                     'fstockmtno'     => null,
+                    'fqtykecil'   => $qtyKecil,
+                    'fqtyremain'  => $qtyKecil,
                 ];
             }
 
@@ -948,6 +960,18 @@ class MutasiController extends Controller
 
             if ($code === '' || $qty <= 0) continue;
 
+            $produk = DB::table('msprd')
+                ->where('fprdcode', $code)
+                ->select('fprdid', 'fsatuanbesar', 'fqtykecil as rasio_konversi')
+                ->first();
+
+            $itemeId = $produk ? $produk->fprdid : $itemeId;
+
+            $qtyKecil = $qty;
+            if ($produk && $sat === $produk->fsatuanbesar) {
+                $qtyKecil = $qty * (float)$produk->rasio_konversi;
+            }
+
             $meta = $prodMeta[$code] ?? null;
             if (!$meta) continue;
 
@@ -966,7 +990,6 @@ class MutasiController extends Controller
                 'fprdcode'       => $prdId,
                 'frefdtno'       => $rref,
                 'fqty'           => $qty,
-                'fqtyremain'     => $qty,
                 'fprice'         => $price,
                 'fprice_rp'      => $price * $frate,
                 'ftotprice'      => $amount,
@@ -979,13 +1002,14 @@ class MutasiController extends Controller
                 'frefso'         => null,
                 'fdesc'          => $desc,
                 'fsatuan'        => $sat,
-                'fqtykecil'      => $qty,
                 'fclosedt'       => '0',
                 'fdiscpersen'    => 0,
                 'fbiaya'         => 0,
-                'fstockmtid'     => null, // Akan diisi di Tahap 5
-                'fstockmtcode'   => null, // Akan diisi di Tahap 5
-                'fstockmtno'     => null, // Akan diisi di Tahap 5
+                'fstockmtid'     => null,
+                'fstockmtcode'   => null,
+                'fstockmtno'     => null,
+                'fqtykecil'   => $qtyKecil,
+                'fqtyremain'  => $qtyKecil,
             ];
         }
 

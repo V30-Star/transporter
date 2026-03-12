@@ -468,6 +468,18 @@ class PemakaianbarangController extends Controller
 
       if ($code === '' || $qty <= 0) continue;
 
+      $produk = DB::table('msprd')
+        ->where('fprdcode', $code)
+        ->select('fprdid', 'fsatuanbesar', 'fqtykecil as rasio_konversi')
+        ->first();
+
+      $itemeId = $produk ? $produk->fprdid : $itemeId;
+
+      $qtyKecil = $qty;
+      if ($produk && $sat === $produk->fsatuanbesar) {
+        $qtyKecil = $qty * (float)$produk->rasio_konversi;
+      }
+
       $meta = $prodMeta[$code] ?? null;
       if (!$meta) continue;
 
@@ -484,7 +496,6 @@ class PemakaianbarangController extends Controller
         'frefdtno'       => $rref,
         'frefso'         => $rrso,
         'fqty'           => $qty,
-        'fqtyremain'     => $qty,
         'fusercreate'        => (Auth::user()->fname ?? 'system'),
         'fdatetime'      => $now,
         'fketdt'         => '',
@@ -492,11 +503,11 @@ class PemakaianbarangController extends Controller
         'fnouref'        => $rnour !== null ? (int)$rnour : null,
         'fdesc'          => $desc,
         'fsatuan'        => $sat,
-        'fqtykecil'      => $qty,
         'fclosedt'       => '0',
         'fdiscpersen'    => 0,
         'fbiaya'         => 0,
-        // Kolom header akan diisi di dalam transaksi
+        'fqtykecil'   => $qtyKecil,
+        'fqtyremain'  => $qtyKecil,
       ];
     }
 
@@ -1011,6 +1022,18 @@ class PemakaianbarangController extends Controller
 
       if ($code === '' || $qty <= 0) continue;
 
+      $produk = DB::table('msprd')
+        ->where('fprdcode', $code)
+        ->select('fprdid', 'fsatuanbesar', 'fqtykecil as rasio_konversi')
+        ->first();
+
+      $itemeId = $produk ? $produk->fprdid : $itemeId;
+
+      $qtyKecil = $qty;
+      if ($produk && $sat === $produk->fsatuanbesar) {
+        $qtyKecil = $qty * (float)$produk->rasio_konversi;
+      }
+
       $meta = $prodMeta[$code] ?? null;
       if (!$meta) continue;
 
@@ -1037,10 +1060,11 @@ class PemakaianbarangController extends Controller
         'fnouref'        => $rnour !== null ? (int)$rnour : null,
         'fdesc'          => $desc,
         'fsatuan'        => $sat,
-        'fqtykecil'      => $qty,
         'fclosedt'       => '0',
         'fdiscpersen'    => 0,
         'fbiaya'         => 0,
+        'fqtykecil'   => $qtyKecil,
+        'fqtyremain'  => $qtyKecil,
       ];
     }
 

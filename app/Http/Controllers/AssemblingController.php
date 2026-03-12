@@ -453,6 +453,18 @@ class AssemblingController extends Controller
 
       if ($code === '' || $qty <= 0) continue;
 
+      $produk = DB::table('msprd')
+        ->where('fprdcode', $code)
+        ->select('fprdid', 'fsatuanbesar', 'fqtykecil as rasio_konversi')
+        ->first();
+
+      $itemeId = $produk ? $produk->fprdid : $itemeId;
+
+      $qtyKecil = $qty;
+      if ($produk && $sat === $produk->fsatuanbesar) {
+        $qtyKecil = $qty * (float)$produk->rasio_konversi;
+      }
+
       $meta = $prodMeta[$code] ?? null;
       if (!$meta) continue;
 
@@ -480,7 +492,6 @@ class AssemblingController extends Controller
         'frefdtno'       => '0',
         'frefso'         => '0',
         'fqty'           => $qty,
-        'fqtyremain'     => $qty,
         'fusercreate' => (Auth::user()->fname ?? 'system'),
         'fdatetime'      => $now,
         'fketdt'         => '',
@@ -488,10 +499,11 @@ class AssemblingController extends Controller
         'fnouref'        => $rnour !== null ? (int)$rnour : null,
         'fdesc'          => $desc,
         'fsatuan'        => $sat,
-        'fqtykecil'      => $qty,
         'fclosedt'       => '0',
         'fdiscpersen'    => 0,
         'fbiaya'         => 0,
+        'fqtykecil'   => $qtyKecil,
+        'fqtyremain'  => $qtyKecil,
       ];
     }
 
@@ -925,6 +937,18 @@ class AssemblingController extends Controller
 
       if ($code === '' || $qty <= 0) continue;
 
+      $produk = DB::table('msprd')
+        ->where('fprdcode', $code)
+        ->select('fprdid', 'fsatuanbesar', 'fqtykecil as rasio_konversi')
+        ->first();
+
+      $itemeId = $produk ? $produk->fprdid : $itemeId;
+
+      $qtyKecil = $qty;
+      if ($produk && $sat === $produk->fsatuanbesar) {
+        $qtyKecil = $qty * (float)$produk->rasio_konversi;
+      }
+
       $meta = $prodMeta[$code] ?? null;
       if (!$meta) continue;
 
@@ -958,10 +982,11 @@ class AssemblingController extends Controller
         'fdesc'          => $desc,
         'fcode'          => $fcode, // SET FCODE SESUAI TYPE
         'fsatuan'        => $sat,
-        'fqtykecil'      => $qty,
         'fclosedt'       => '0',
         'fdiscpersen'    => 0,
         'fbiaya'         => 0,
+        'fqtykecil'   => $qtyKecil,
+        'fqtyremain'  => $qtyKecil,
       ];
     }
 
