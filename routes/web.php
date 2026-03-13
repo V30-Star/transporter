@@ -49,6 +49,7 @@ use App\Http\Controllers\ListingPRController;
 use App\Http\Controllers\ListingPOController;
 use App\Http\Controllers\ListingPenerimaanBarangController;
 use App\Http\Controllers\ListingFakturPembelianController;
+use App\Http\Controllers\ListingPenjualanController;
 use App\Http\Controllers\SalesOrderController;
 use App\Http\Controllers\SuratJalanController;
 
@@ -486,6 +487,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/listingfakturpembelian', [ListingFakturPembelianController::class, 'index'])->name('listingfakturpembelian.index');
         Route::get('/listingfakturpembelian/print', [ListingFakturPembelianController::class, 'print'])->name('listingfakturpembelian.print');
         Route::get('/listingfakturpembelian/excel', [ListingFakturPembelianController::class, 'exportExcel'])->name('listingfakturpembelian.excel');
+
+        Route::get('/listingpenjualan', [ListingPenjualanController::class, 'index'])->name('listingpenjualan.index');
+        Route::get('/listingpenjualan/print', [ListingPenjualanController::class, 'print'])->name('listingpenjualan.print');
+        Route::get('/listingpenjualan/excel', [ListingPenjualanController::class, 'exportExcel'])->name('listingpenjualan.excel');
 
         Route::get('/gudang/browse', [WhController::class, 'browse'])
             ->name('gudang.browse');
