@@ -2192,6 +2192,10 @@
             if (hidCode) {
                 hidCode.value = fgroupid || ''; // Update nilai tersembunyi agar masuk ke database
             }
+            const alpineData = Alpine.$data(sel.closest('[x-data]'));
+            if (alpineData) {
+                alpineData.isEditable = true;
+            }
         });
     });
 
