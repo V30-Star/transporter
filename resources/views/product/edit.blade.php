@@ -904,9 +904,11 @@
                                 <div class="flex items-end gap-4">
                                     <div class="w-1/3">
                                         <label class="block text-sm font-medium">Satuan 3</label>
-                                        <select class="w-full border rounded px-3 py-2 bg-purple-50 @error('fsatuanbesar2') border-red-500 @enderror" 
-                                            name="fsatuanbesar2" id="fsatuanbesar2" data-select2-id="select2-data-fsatuanbesar2"
-                                            tabindex="-1" aria-hidden="true">
+                                        <select
+                                            class="w-full border rounded px-3 py-2 bg-purple-50 @error('fsatuanbesar2') border-red-500 @enderror"
+                                            name="fsatuanbesar2" id="fsatuanbesar2"
+                                            data-select2-id="select2-data-fsatuanbesar2" tabindex="-1"
+                                            aria-hidden="true">
                                             <option value="" selected>Pilih Satuan 3</option>
                                             @foreach ($satuan as $satu)
                                                 <option value="{{ $satu->fsatuancode }}"
@@ -1537,8 +1539,8 @@
         class="fixed inset-0 z-[9998] flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
 
-        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-5xl flex flex-col overflow-hidden"
-            style="height: 650px;">
+        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-7xl flex flex-col overflow-hidden"
+            style="height: 85vh;">
             <!-- Header -->
             <div
                 class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
@@ -1590,8 +1592,8 @@
         class="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="close()"></div>
 
-        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-6xl flex flex-col overflow-hidden"
-            style="height: 550px;">
+        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-7xl flex flex-col overflow-hidden"
+            style="height: 85vh;">
 
             <!-- Header (Disamakan dengan Supplier/PR) -->
             <div
@@ -1648,6 +1650,58 @@
 <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/autonumeric/4.8.1/autoNumeric.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+
+<style>
+    /* Lebarkan dropdown tampilkan data */
+    #merekTable_wrapper .dt-length select,
+    #merekTable_wrapper .dataTables_length select {
+        min-width: 80px !important;
+        width: auto !important;
+        padding-right: 30px !important;
+    }
+
+    /* Pastikan wrapper length cukup lebar */
+    #merekTable_wrapper .dt-length,
+    #merekTable_wrapper .dataTables_length {
+        min-width: 180px;
+        white-space: nowrap;
+    }
+
+    /* Styling untuk select agar lebih rapi */
+    #merekTable_wrapper .dt-length select,
+    #merekTable_wrapper .dataTables_length select {
+        padding: 6px 30px 6px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 0.375rem;
+        background-position: right 8px center;
+        background-size: 16px;
+    }
+
+    /* Lebarkan dropdown tampilkan data */
+    #groupTable_wrapper .dt-length select,
+    #groupTable_wrapper .dataTables_length select {
+        min-width: 80px !important;
+        width: auto !important;
+        padding-right: 30px !important;
+    }
+
+    /* Pastikan wrapper length cukup lebar */
+    #groupTable_wrapper .dt-length,
+    #groupTable_wrapper .dataTables_length {
+        min-width: 180px;
+        white-space: nowrap;
+    }
+
+    /* Styling untuk select agar lebih rapi */
+    #groupTable_wrapper .dt-length select,
+    #groupTable_wrapper .dataTables_length select {
+        padding: 6px 30px 6px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 0.375rem;
+        background-position: right 8px center;
+        background-size: 16px;
+    }
+</style>
 
 <script>
     $(document).ready(function() {
@@ -1896,7 +1950,7 @@
 
                         // Style search input (disamakan dengan Supplier/PR)
                         $container.find('.dt-search .dt-input, .dataTables_filter input').css({
-                            width: '300px',
+                            width: '400px',
                             padding: '8px 12px',
                             border: '2px solid #e5e7eb',
                             borderRadius: '8px',
@@ -2039,6 +2093,8 @@
                         [10, 25, 50, 100],
                         [10, 25, 50, 100]
                     ],
+                    dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
+
                     language: {
                         processing: "Memuat...",
                         search: "Cari:",
