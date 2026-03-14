@@ -9,14 +9,14 @@ class CurrencyController extends Controller
 {
   public function index(Request $request)
   {
-      $currencys = Currency::orderBy('fcurrcode', 'asc')
-          ->get(['fcurrcode', 'fcurrname', 'fcurrid', 'fnonactive']);
+    $currencys = Currency::orderBy('fcurrcode', 'asc')
+      ->get(['fcurrcode', 'fcurrname', 'fcurrid', 'fnonactive']);
 
-      $canCreate = in_array('createCurrency', explode(',', session('user_restricted_permissions', '')));
-      $canEdit   = in_array('updateCurrency', explode(',', session('user_restricted_permissions', '')));
-      $canDelete = in_array('deleteCurrency', explode(',', session('user_restricted_permissions', '')));
+    $canCreate = in_array('createCurrency', explode(',', session('user_restricted_permissions', '')));
+    $canEdit   = in_array('updateCurrency', explode(',', session('user_restricted_permissions', '')));
+    $canDelete = in_array('deleteCurrency', explode(',', session('user_restricted_permissions', '')));
 
-      return view('currency.index', compact('currencys', 'canCreate', 'canEdit', 'canDelete'));
+    return view('currency.index', compact('currencys', 'canCreate', 'canEdit', 'canDelete'));
   }
 
   public function create()
@@ -92,8 +92,8 @@ class CurrencyController extends Controller
 
     $validated = $request->validate(
       [
-        'fcurrcode' => 'required|string|max:10|unique:mscurrency,fcurrcode',
-        'fcurrname' => 'required|string|string|unique:mscurrency,fcurrname',
+        'fcurrcode' => 'required|string|max:10|unique:mscurrency,fcurrcode,' . $fcurrid . ',fcurrid',
+        'fcurrname' => 'required|string|unique:mscurrency,fcurrname,' . $fcurrid . ',fcurrid',
         'frate'     => 'required|numeric|min:0',
       ],
       [
