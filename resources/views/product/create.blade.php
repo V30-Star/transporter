@@ -845,8 +845,8 @@
         class="fixed inset-0 z-[9998] flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
 
-        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-5xl flex flex-col overflow-hidden"
-            style="height: 650px;">
+        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-7xl flex flex-col overflow-hidden"
+            style="height: 85vh;">
             <!-- Header -->
             <div
                 class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
@@ -898,8 +898,8 @@
         class="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="close()"></div>
 
-        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-6xl flex flex-col overflow-hidden"
-            style="height: 550px;">
+        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-7xl flex flex-col overflow-hidden"
+            style="height: 85vh;">
 
             <!-- Header (Disamakan dengan Supplier/PR) -->
             <div
@@ -1508,6 +1508,10 @@
 
             if (hidCode) {
                 hidCode.value = fgroupid || ''; // Update nilai tersembunyi agar masuk ke database
+            }
+            const alpineData = Alpine.$data(sel.closest('[x-data]'));
+            if (alpineData) {
+                alpineData.isEditable = true;
             }
         });
     });
