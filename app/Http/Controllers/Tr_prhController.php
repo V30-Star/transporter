@@ -338,7 +338,7 @@ class Tr_prhController extends Controller
 
     // PRODUCT MAP: code -> (id, stock)
     $productMap = Product::whereIn('fprdcode', array_filter($codes))
-      ->get(['fprdid', 'fprdcode', 'fminstock'])
+      ->get(['fprdid', 'fprdcode', 'fminstock', 'fsatuanbesar', 'fsatuankecil', 'fqtykecil as rasio_konversi'])
       ->keyBy('fprdcode');
 
     // STOCK VALIDATION
@@ -432,11 +432,17 @@ class Tr_prhController extends Controller
           $productId = (int)($productMap[$code]->fprdid ?? 0); // <-- use msprd.fprdid
           if ($productId === 0) continue;
 
+          $qtyKecil = $qty;
+          $product = $productMap[$code] ?? null;
+          if ($product && $sat === $product->fsatuanbesar) {
+            $qtyKecil = $qty * (float)$product->rasio_konversi;
+          }
+
           $detailRows[] = [
             'fprnoid'    => $tr_prh->fprid,   // header link
             'fprdcode'   => $productId,       // store msprd.fprdid
             'fqty'       => (int)$qty,
-            'fqtyremain' => (int)$qty,
+            'fqtyremain'  => $qtyKecil,
             'fprice'     => 0,
             'fketdt'     => $ketdt,
             'fcreatedat' => $now,
@@ -711,6 +717,7 @@ class Tr_prhController extends Controller
     // ===== 5) MAP KODE → ID produk (untuk baris yang punya kode valid) =====
     $codeIdMap = DB::table('msprd')
       ->whereIn('fprdcode', array_values(array_filter($codes)))
+      ->select('fprdid', 'fsatuanbesar', 'fqtykecil as rasio_konversi')
       ->pluck('fprdid', 'fprdcode');   // contoh: ['C-14' => 123]
 
     // ===== 6) VALIDASI STOK sederhana (opsional – bisa kamu sesuaikan) =====
@@ -750,6 +757,12 @@ class Tr_prhController extends Controller
       $desc  = $descs[$i]  ?? null;
       $ket   = $ketdts[$i] ?? null;
 
+      $qtyKecil = $qty;
+      $product = $productMap[$codeStr] ?? null;
+      if ($product && $sat === $product->fsatuanbesar) {
+        $qtyKecil = $qty * (float)$product->rasio_konversi;
+      }
+
       // Hanya terima baris valid: ada ID produk, satuan, qty >= 1
       if ($prodId > 0 && $sat !== '' && $qty >= 1) {
         $detailRows[] = [
@@ -757,7 +770,7 @@ class Tr_prhController extends Controller
           'fprdcode'    => $prodId,    // FK integer → msprd.fprdid (bukan kode string!)
           'fqty'        => $qty,
           'fqtypo'      => $qtypo,
-          'fqtyremain'  => $qty,
+          'fqtyremain'  => $qtyKecil,
           'fprice'      => 0,
           'fketdt'      => $ket,
           'fcreatedat'  => $now,
