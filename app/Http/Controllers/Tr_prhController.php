@@ -289,7 +289,7 @@ class Tr_prhController extends Controller
     // VALIDATION
     $request->validate([
       'fprdate'      => ['nullable', 'date'],
-      'fsupplier'    => ['nullable', 'string', 'max:10'],
+      'fsupplier'    => ['required', 'string', 'max:10'],
       'fneeddate'    => ['nullable', 'date'],
       'fduedate'     => ['nullable', 'date'],
       'fket'         => ['nullable', 'string', 'max:300'],
@@ -311,6 +311,12 @@ class Tr_prhController extends Controller
       'fketdt.*'     => ['nullable', 'string', 'max:50'],
 
       'fapproval'    => ['nullable'],
+    ], [
+      'fsupplier.required' => 'Supplier harus dipilih.',
+      'fitemcode.*.max' => 'Panjang kode produk maksimal 50 karakter.',
+      'fsatuan.*.max' => 'Panjang satuan maksimal 20 karakter.',
+      'fdesc.*.max' => 'Panjang deskripsi maksimal 300 karakter.',
+      'fketdt.*.max' => 'Panjang keterangan detail maksimal 50 karakter.',
     ]);
 
     // HEADER DATE + CODE
@@ -663,33 +669,39 @@ class Tr_prhController extends Controller
   {
     // ===== 1) AMBIL HEADER DULU =====
     $header = Tr_prh::where('fprid', $fprid)->firstOrFail();
-    $fprId  = (int) $header->fprid;   // FK integer utk detail
+    $fprId  = (int) $header->fprid;
 
     // ===== 2) VALIDASI INPUT HEADER & DETAIL =====
     $request->validate([
       'fprdate'      => ['nullable', 'date'],
-      'fsupplier'    => ['required', 'integer'],   // kolom fsupplier di DB bertipe integer
+      'fsupplier'    => ['required', 'string', 'max:10'],
       'fneeddate'    => ['nullable', 'date'],
       'fduedate'     => ['nullable', 'date'],
       'fket'         => ['nullable', 'string', 'max:300'],
       'fbranchcode'  => ['nullable', 'string', 'max:20'],
 
-      'fitemcode'    => ['array'],                 // kode produk (string)
+      'fitemcode'    => ['array'],
       'fitemcode.*'  => ['nullable', 'string', 'max:50'],
-      'fprdid'       => ['array'],                 // ID produk (integer) hidden dari form
+      'fprdid'       => ['array'],
       'fprdid.*'     => ['nullable', 'integer', 'min:1'],
       'fsatuan'      => ['array'],
       'fsatuan.*'    => ['nullable', 'string', 'max:20'],
       'fqty'         => ['array'],
       'fqty.*'       => ['nullable', 'numeric', 'min:1'],
-      'fqtypo'       => ['array'],
-      'fqtypo.*'     => ['nullable', 'numeric', 'min:0'],
       'fdesc'        => ['array'],
       'fdesc.*'      => ['nullable', 'string'],
       'fketdt'       => ['array'],
       'fketdt.*'     => ['nullable', 'string', 'max:50'],
 
       'fapproval'    => ['nullable', 'boolean'],
+    ], [
+      'fsupplier.required'  => 'Supplier harus dipilih.',
+      'fitemcode.*.max'     => 'Panjang kode produk maksimal 50 karakter.',
+      'fprdid.*.integer'    => 'ID produk tidak valid.',
+      'fprdid.*.min'        => 'ID produk harus lebih besar dari 0.',
+      'fsatuan.*.max'       => 'Panjang satuan maksimal 20 karakter.',
+      'fdesc.*.max'         => 'Panjang deskripsi maksimal 300 karakter.',
+      'fketdt.*.max'        => 'Panjang keterangan detail maksimal 50 karakter.',
     ]);
 
     // ===== 3) PARSE TANGGAL (fallback ke nilai header bila kosong) =====
@@ -706,59 +718,68 @@ class Tr_prhController extends Controller
       : $header->fduedate;
 
     // ===== 4) KUMPULKAN ARRAY DETAIL DARI FORM =====
-    $codes   = $request->input('fitemcode', []);   // kode produk (string) untuk display
-    $idsIn   = $request->input('fprdid', []);      // ID produk (integer) hidden dari form
+    $codes   = $request->input('fitemcode', []);
+    $idsIn   = $request->input('fprdid', []);
     $sats    = $request->input('fsatuan', []);
     $qtys    = $request->input('fqty', []);
-    $qtypos  = $request->input('fqtypo', []);
     $descs   = $request->input('fdesc', []);
     $ketdts  = $request->input('fketdt', []);
 
-    // ===== 5) MAP KODE → ID produk (untuk baris yang punya kode valid) =====
-    $codeIdMap = DB::table('msprd')
+    // ===== 5) MAP KODE → ID & detail produk (SATU QUERY) =====
+    $products = DB::table('msprd')
       ->whereIn('fprdcode', array_values(array_filter($codes)))
-      ->select('fprdid', 'fsatuanbesar', 'fqtykecil as rasio_konversi')
-      ->pluck('fprdid', 'fprdcode');   // contoh: ['C-14' => 123]
+      ->select('fprdcode', 'fprdid', 'fsatuanbesar', 'fqtykecil as rasio_konversi', 'fminstock')
+      ->get()
+      ->keyBy('fprdcode');  // Collection keyed by fprdcode string
 
-    // ===== 6) VALIDASI STOK sederhana (opsional – bisa kamu sesuaikan) =====
-    $stocks = DB::table('msprd')
-      ->whereIn('fprdcode', array_values(array_filter($codes)))
-      ->pluck('fminstock', 'fprdcode'); // map by kode (string)
+    $codeIdMap  = $products->pluck('fprdid', 'fprdcode');   // ['C-14' => 123]
+    $productMap = $products;                                 // full objects keyed by fprdcode
 
+    // ===== 6) VALIDASI STOK =====
     foreach ($codes as $i => $codeStr) {
       $qty = (int)($qtys[$i] ?? 0);
       if ($qty < 1) {
         return back()->withInput()->withErrors(["fqty.$i" => "Qty minimal 1."]);
       }
-      $max = (int)($stocks[$codeStr] ?? 0);
+      $product = $productMap[$codeStr] ?? null;
+      $max     = $product ? (int)$product->fminstock : 0;
       if ($max > 0 && $qty > $max) {
-        return back()->withInput()->withErrors(["fqty.$i" => "Qty untuk produk $codeStr tidak boleh melebihi stok ($max)."]);
+        return back()->withInput()->withErrors([
+          "fqty.$i" => "Qty untuk produk $codeStr tidak boleh melebihi stok ($max)."
+        ]);
       }
     }
 
-    // ===== 7) SUSUN BATCH DETAIL (PAKAI ID PRODUK!) =====
+    // ===== 7) SUSUN BATCH DETAIL =====
     $detailRows = [];
-    $now = now();
-    $rowCount = max(count($codes), count($idsIn), count($sats), count($qtys), count($qtypos), count($descs), count($ketdts));
+    $now        = now();
+    $rowCount   = max(
+      count($codes),
+      count($idsIn),
+      count($sats),
+      count($qtys),
+      count($descs),
+      count($ketdts)
+    );
 
     for ($i = 0; $i < $rowCount; $i++) {
-      $codeStr = trim((string)($codes[$i] ?? ''));      // contoh: "C-14" (string)
-      $idForm  = (int)($idsIn[$i]    ?? 0);             // contoh: 123 (integer)
-      $prodId  = (int)($codeIdMap[$codeStr] ?? 0);      // mapping kode → ID
+      $codeStr = trim((string)($codes[$i] ?? ''));
+      $idForm  = (int)($idsIn[$i] ?? 0);
+      $prodId  = (int)($codeIdMap[$codeStr] ?? 0);
 
-      // fallback: kalau mapping dari kode gagal, pakai ID dari hidden input
+      // Fallback: kalau mapping dari kode gagal, pakai ID dari hidden input
       if ($prodId === 0 && $idForm > 0) {
         $prodId = $idForm;
       }
 
       $sat   = trim((string)($sats[$i]  ?? ''));
       $qty   = (int)($qtys[$i]   ?? 0);
-      $qtypo = (int)($qtypos[$i] ?? 0);
       $desc  = $descs[$i]  ?? null;
       $ket   = $ketdts[$i] ?? null;
 
+      // Hitung qtyKecil dengan konversi satuan besar → kecil
       $qtyKecil = $qty;
-      $product = $productMap[$codeStr] ?? null;
+      $product  = $productMap[$codeStr] ?? null;
       if ($product && $sat === $product->fsatuanbesar) {
         $qtyKecil = $qty * (float)$product->rasio_konversi;
       }
@@ -766,17 +787,16 @@ class Tr_prhController extends Controller
       // Hanya terima baris valid: ada ID produk, satuan, qty >= 1
       if ($prodId > 0 && $sat !== '' && $qty >= 1) {
         $detailRows[] = [
-          'fprnoid'     => $fprId,     // FK integer → tr_prh.fprid
-          'fprdcode'    => $prodId,    // FK integer → msprd.fprdid (bukan kode string!)
+          'fprnoid'     => $fprId,
+          'fprdcode'    => $prodId,
           'fqty'        => $qty,
-          'fqtypo'      => $qtypo,
           'fqtyremain'  => $qtyKecil,
           'fprice'      => 0,
           'fketdt'      => $ket,
           'fcreatedat'  => $now,
           'fsatuan'     => $sat,
           'fdesc'       => $desc,
-          'fuserupdate'     => (Auth::user()->fname ?? 'system'),
+          'fuserupdate' => (Auth::user()->fname ?? 'system'),
         ];
       }
     }
@@ -787,14 +807,14 @@ class Tr_prhController extends Controller
       ]);
     }
 
-    // ===== 8) APPROVAL (opsional – set kalau diminta) =====
+    // ===== 8) APPROVAL =====
     $approveNow  = $request->boolean('fapproval');
     $setApproval = [];
     if ($approveNow && (empty($header->fuserapproved) && (int)$header->fapproval !== 1)) {
       $setApproval = [
-        'fapproval'      => 1,
-        'fuserapproved'  => (auth('sysuser')->user()->fname ?? (Auth::user()->fname ?? 'system')),
-        'fdateapproved'  => now(),
+        'fapproval'     => 1,
+        'fuserapproved' => (auth('sysuser')->user()->fname ?? (Auth::user()->fname ?? 'system')),
+        'fdateapproved' => now(),
       ];
     }
 
@@ -811,7 +831,7 @@ class Tr_prhController extends Controller
       $qtys,
       $setApproval
     ) {
-      // Update header via ID
+      // Update header
       Tr_prh::where('fprid', $header->fprid)->update(array_merge([
         'fprdate'     => $fprdate,
         'fsupplier'   => (int)$request->fsupplier,
@@ -821,23 +841,22 @@ class Tr_prhController extends Controller
         'fbranchcode' => $request->fbranchcode,
         'fneeddate'   => $fneeddate,
         'fduedate'    => $fduedate,
-        'fuserupdate'     => (Auth::user()->fname ?? 'system'),
+        'fuserupdate' => (Auth::user()->fname ?? 'system'),
         'fupdatedat'  => now(),
       ], $setApproval));
 
-      // Hapus semua detail lama PR ini (berdasarkan FK integer)
+      // Hapus semua detail lama PR ini
       DB::table('tr_prd')->where('fprnoid', $fprId)->delete();
 
       // Insert ulang detail
       DB::table('tr_prd')->insert($detailRows);
 
-      // (Opsional) Update stok berdasarkan KODE (msprd.fprdcode = kode string)
-      // NOTE: ini sekadar contoh koreksi stok sederhana. Sesuaikan dengan bisnis proses kamu.
+      // Update stok berdasarkan kode string
       foreach ($codes as $i => $codeStr) {
         $qty = (int)($qtys[$i] ?? 0);
         if ($qty > 0 && $codeStr !== '') {
           DB::table('msprd')
-            ->where('fprdcode', $codeStr)   // berdasarkan kode string
+            ->where('fprdcode', $codeStr)
             ->update([
               'fminstock'  => DB::raw("CAST(fminstock AS INTEGER) - {$qty}"),
               'fupdatedat' => now(),
