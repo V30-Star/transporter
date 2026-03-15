@@ -468,6 +468,18 @@ class PenerimaanBarangController extends Controller
       $meta = $prodMeta[$code] ?? null;
       if (!$meta) continue;
 
+      $produk = DB::table('msprd')
+        ->where('fprdcode', $code)
+        ->select('fprdid', 'fsatuanbesar', 'fqtykecil as rasio_konversi')
+        ->first();
+
+      $itemeId = $produk ? $produk->fprdid : $itemeId;
+
+      $qtyKecil = $qty;
+      if ($produk && $sat === $produk->fsatuanbesar) {
+        $qtyKecil = $qty * (float)$produk->rasio_konversi;
+      }
+
       $prdId = $meta->fprdid;
 
       if ($sat === '') {
@@ -483,7 +495,8 @@ class PenerimaanBarangController extends Controller
         'fprdcode'       => $prdId,
         'frefdtno'       => $rref_val,
         'fqty'           => $qty,
-        'fqtyremain'     => $qty,
+        'fqtykecil'   => $qtyKecil,
+        'fqtyremain'  => $qtyKecil,
         'fprice'         => $price ?? 0,
         'fprice_rp'      => $price * $frate,
         'ftotprice'      => $amount,
@@ -496,7 +509,6 @@ class PenerimaanBarangController extends Controller
         'frefso'         => null,
         'fdesc'          => $desc ?? 0,
         'fsatuan'        => $sat,
-        'fqtykecil'      => $qty,
         'fclosedt'       => 0,
         'fdiscpersen'    => 0,
         'fbiaya'         => 0,
@@ -1058,6 +1070,18 @@ class PenerimaanBarangController extends Controller
       $meta = $prodMeta[$code] ?? null;
       if (!$meta) continue;
 
+      $produk = DB::table('msprd')
+        ->where('fprdcode', $code)
+        ->select('fprdid', 'fsatuanbesar', 'fqtykecil as rasio_konversi')
+        ->first();
+
+      $itemeId = $produk ? $produk->fprdid : $itemeId;
+
+      $qtyKecil = $qty;
+      if ($produk && $sat === $produk->fsatuanbesar) {
+        $qtyKecil = $qty * (float)$produk->rasio_konversi;
+      }
+
       $prdId = $meta->fprdid;
 
       if ($sat === '') {
@@ -1073,7 +1097,8 @@ class PenerimaanBarangController extends Controller
         'fprdcode'       => $prdId,
         'frefdtno'       => $rref,
         'fqty'           => $qty,
-        'fqtyremain'     => $qty,
+        'fqtykecil'   => $qtyKecil,
+        'fqtyremain'  => $qtyKecil,
         'fprice'         => $price,
         'fprice_rp'      => $price * $frate,
         'ftotprice'      => $amount,
@@ -1086,7 +1111,6 @@ class PenerimaanBarangController extends Controller
         'frefso'         => null,
         'fdesc'          => $desc,
         'fsatuan'        => $sat,
-        'fqtykecil'      => $qty,
         'fclosedt'       => '0',
         'fdiscpersen'    => 0,
         'fbiaya'         => 0,

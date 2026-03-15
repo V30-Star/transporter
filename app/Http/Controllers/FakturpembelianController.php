@@ -481,6 +481,18 @@ class FakturPembelianController extends Controller
 
         if ($sat === '') continue;
 
+        $produk = DB::table('msprd')
+          ->where('fprdcode', $code)
+          ->select('fprdid', 'fsatuanbesar', 'fqtykecil as rasio_konversi')
+          ->first();
+
+        $itemeId = $produk ? $produk->fprdid : $itemeId;
+
+        $qtyKecil = $qty;
+        if ($produk && $sat === $produk->fsatuanbesar) {
+          $qtyKecil = $qty * (float)$produk->rasio_konversi;
+        }
+
         $priceGross = $price;
         $priceNet = $priceGross * (1 - ($discP / 100));
         $amount = $qty * $priceNet;
@@ -490,7 +502,7 @@ class FakturPembelianController extends Controller
           'fprdcode' => $prdId,
           'frefdtno' => $rref !== '' ? $rref : null,
           'fqty' => $qty,
-          'fqtyremain' => $qty,
+          'fqtyremain' => $qtyKecil,
           'fprice' => $price,
           'fbiaya' => $biaya,
           'fpricenet' => $fPriceNet,
@@ -506,7 +518,7 @@ class FakturPembelianController extends Controller
           'fdesc' => $desc !== '' ? $desc : null,
           'fdiscpersen' => (string)$discP,
           'fsatuan' => $sat,
-          'fqtykecil' => $qty,
+          'fqtykecil' => $qtyKecil,
           'fclosedt' => '0',
         ];
       }
@@ -1015,6 +1027,18 @@ class FakturPembelianController extends Controller
           continue;
         }
 
+        $produk = DB::table('msprd')
+          ->where('fprdcode', $code)
+          ->select('fprdid', 'fsatuanbesar', 'fqtykecil as rasio_konversi')
+          ->first();
+
+        $itemeId = $produk ? $produk->fprdid : $itemeId;
+
+        $qtyKecil = $qty;
+        if ($produk && $sat === $produk->fsatuanbesar) {
+          $qtyKecil = $qty * (float)$produk->rasio_konversi;
+        }
+
         $priceGross = $price;
         $priceNet = $priceGross * (1 - ($discP / 100));
         $amount = $qty * $priceNet;
@@ -1024,7 +1048,7 @@ class FakturPembelianController extends Controller
           'fprdcode' => $prdId,
           'frefdtno' => $rref !== '' ? $rref : null,
           'fqty' => $qty,
-          'fqtyremain' => $qty,
+          'fqtyremain' => $qtyKecil,
           'fprice' => $price,
           'fbiaya' => $biaya,
           'fpricenet' => $fPriceNet,
@@ -1040,7 +1064,7 @@ class FakturPembelianController extends Controller
           'fdesc' => $desc !== '' ? $desc : null,
           'fdiscpersen' => (string)$discP,
           'fsatuan' => $sat,
-          'fqtykecil' => $qty,
+          'fqtykecil' => $qtyKecil,
           'fclosedt' => '0',
         ];
       }
