@@ -289,7 +289,6 @@ class Tr_prhController extends Controller
     // VALIDATION
     $request->validate([
       'fprdate'      => ['nullable', 'date'],
-      'fsupplier'    => ['required', 'string', 'max:10'],
       'fneeddate'    => ['nullable', 'date'],
       'fduedate'     => ['nullable', 'date'],
       'fket'         => ['nullable', 'string', 'max:300'],
@@ -674,7 +673,6 @@ class Tr_prhController extends Controller
     // ===== 2) VALIDASI INPUT HEADER & DETAIL =====
     $request->validate([
       'fprdate'      => ['nullable', 'date'],
-      'fsupplier'    => ['required', 'string', 'max:10'],
       'fneeddate'    => ['nullable', 'date'],
       'fduedate'     => ['nullable', 'date'],
       'fket'         => ['nullable', 'string', 'max:300'],
@@ -695,16 +693,15 @@ class Tr_prhController extends Controller
 
       'fapproval'    => ['nullable', 'boolean'],
     ], [
-      'fsupplier.required'  => 'Supplier harus dipilih.',
-      'fitemcode.*.max'     => 'Panjang kode produk maksimal 50 karakter.',
-      'fprdid.*.integer'    => 'ID produk tidak valid.',
-      'fprdid.*.min'        => 'ID produk harus lebih besar dari 0.',
-      'fsatuan.*.max'       => 'Panjang satuan maksimal 20 karakter.',
-      'fdesc.*.max'         => 'Panjang deskripsi maksimal 300 karakter.',
-      'fketdt.*.max'        => 'Panjang keterangan detail maksimal 50 karakter.',
+      'fitemcode.*.max'  => 'Panjang kode produk maksimal 50 karakter.',
+      'fprdid.*.integer' => 'ID produk tidak valid.',
+      'fprdid.*.min'     => 'ID produk harus lebih besar dari 0.',
+      'fsatuan.*.max'    => 'Panjang satuan maksimal 20 karakter.',
+      'fdesc.*.max'      => 'Panjang deskripsi maksimal 300 karakter.',
+      'fketdt.*.max'     => 'Panjang keterangan detail maksimal 50 karakter.',
     ]);
 
-    // ===== 3) PARSE TANGGAL (fallback ke nilai header bila kosong) =====
+    // ===== 3) PARSE TANGGAL =====
     $fprdate   = $request->filled('fprdate')
       ? \Carbon\Carbon::parse($request->fprdate)->startOfDay()
       : $header->fprdate;
@@ -718,28 +715,39 @@ class Tr_prhController extends Controller
       : $header->fduedate;
 
     // ===== 4) KUMPULKAN ARRAY DETAIL DARI FORM =====
-    $codes   = $request->input('fitemcode', []);
-    $idsIn   = $request->input('fprdid', []);
-    $sats    = $request->input('fsatuan', []);
-    $qtys    = $request->input('fqty', []);
-    $descs   = $request->input('fdesc', []);
-    $ketdts  = $request->input('fketdt', []);
+    $codes  = $request->input('fitemcode', []);
+    $idsIn  = $request->input('fprdid', []);
+    $sats   = $request->input('fsatuan', []);
+    $qtys   = $request->input('fqty', []);
+    $descs  = $request->input('fdesc', []);
+    $ketdts = $request->input('fketdt', []);
 
-    // ===== 5) MAP KODE → ID & detail produk (SATU QUERY) =====
+    // ===== 5) MAP KODE → DETAIL PRODUK =====
     $products = DB::table('msprd')
       ->whereIn('fprdcode', array_values(array_filter($codes)))
-      ->select('fprdcode', 'fprdid', 'fsatuanbesar', 'fqtykecil as rasio_konversi', 'fminstock')
+      ->select(
+        'fprdcode',
+        'fprdid',
+        'fsatuankecil',
+        'fsatuanbesar',
+        'fqtykecil',    // rasio: 1 satuanbesar  = N satuankecil
+        'fsatuanbesar2',
+        'fqtykecil2',   // rasio: 1 satuanbesar2 = N satuankecil
+        'fminstock'
+      )
       ->get()
-      ->keyBy('fprdcode');  // Collection keyed by fprdcode string
+      ->keyBy('fprdcode');
 
-    $codeIdMap  = $products->pluck('fprdid', 'fprdcode');   // ['C-14' => 123]
-    $productMap = $products;                                 // full objects keyed by fprdcode
+    $codeIdMap  = $products->pluck('fprdid', 'fprdcode'); // ['C-14' => 123]
+    $productMap = $products;                               // full objects keyed by fprdcode
 
     // ===== 6) VALIDASI STOK =====
     foreach ($codes as $i => $codeStr) {
       $qty = (int)($qtys[$i] ?? 0);
       if ($qty < 1) {
-        return back()->withInput()->withErrors(["fqty.$i" => "Qty minimal 1."]);
+        return back()->withInput()->withErrors([
+          "fqty.$i" => "Qty minimal 1."
+        ]);
       }
       $product = $productMap[$codeStr] ?? null;
       $max     = $product ? (int)$product->fminstock : 0;
@@ -772,19 +780,27 @@ class Tr_prhController extends Controller
         $prodId = $idForm;
       }
 
-      $sat   = trim((string)($sats[$i]  ?? ''));
-      $qty   = (int)($qtys[$i]   ?? 0);
-      $desc  = $descs[$i]  ?? null;
-      $ket   = $ketdts[$i] ?? null;
+      $sat  = trim((string)($sats[$i]  ?? ''));
+      $qty  = (int)($qtys[$i]   ?? 0);
+      $desc = $descs[$i]  ?? null;
+      $ket  = $ketdts[$i] ?? null;
 
-      // Hitung qtyKecil dengan konversi satuan besar → kecil
-      $qtyKecil = $qty;
-      $product  = $productMap[$codeStr] ?? null;
-      if ($product && $sat === $product->fsatuanbesar) {
-        $qtyKecil = $qty * (float)$product->rasio_konversi;
+      // ===== KONVERSI SATUAN → SATUAN KECIL =====
+      $qtyKecil = $qty; // default: sudah satuan kecil
+
+      $product = $productMap[$codeStr] ?? null;
+      if ($product) {
+        if ($sat === $product->fsatuanbesar) {
+          // Contoh: 1 CTN = 10 PCS → qty=2 CTN → qtyKecil=20
+          $qtyKecil = $qty * (float)$product->fqtykecil;
+        } elseif (!empty($product->fsatuanbesar2) && $sat === $product->fsatuanbesar2) {
+          // Contoh: 1 DUS = 20 PCS → qty=1 DUS → qtyKecil=20
+          $qtyKecil = $qty * (float)$product->fqtykecil2;
+        }
+        // Kalau sat === fsatuankecil, tidak perlu konversi
       }
 
-      // Hanya terima baris valid: ada ID produk, satuan, qty >= 1
+      // Hanya terima baris valid
       if ($prodId > 0 && $sat !== '' && $qty >= 1) {
         $detailRows[] = [
           'fprnoid'     => $fprId,
@@ -796,7 +812,7 @@ class Tr_prhController extends Controller
           'fcreatedat'  => $now,
           'fsatuan'     => $sat,
           'fdesc'       => $desc,
-          'fuserupdate' => (Auth::user()->fname ?? 'system'),
+          'fuserupdate' => (auth('sysuser')->user()->fname ?? Auth::user()->fname ?? 'system'),
         ];
       }
     }
@@ -813,12 +829,12 @@ class Tr_prhController extends Controller
     if ($approveNow && (empty($header->fuserapproved) && (int)$header->fapproval !== 1)) {
       $setApproval = [
         'fapproval'     => 1,
-        'fuserapproved' => (auth('sysuser')->user()->fname ?? (Auth::user()->fname ?? 'system')),
+        'fuserapproved' => (auth('sysuser')->user()->fname ?? Auth::user()->fname ?? 'system'),
         'fdateapproved' => now(),
       ];
     }
 
-    // ===== 9) TRANSAKSI: update header, hapus detail lama, insert ulang =====
+    // ===== 9) TRANSAKSI =====
     DB::transaction(function () use (
       $request,
       $header,
@@ -834,21 +850,21 @@ class Tr_prhController extends Controller
       // Update header
       Tr_prh::where('fprid', $header->fprid)->update(array_merge([
         'fprdate'     => $fprdate,
-        'fsupplier'   => (int)$request->fsupplier,
+        'fsupplier'   => $request->filled('fsupplier') ? (int)$request->fsupplier : $header->fsupplier,
         'fprdin'      => '0',
         'fclose'      => $request->has('fclose') ? '1' : '0',
         'fket'        => $request->fket,
         'fbranchcode' => $request->fbranchcode,
         'fneeddate'   => $fneeddate,
         'fduedate'    => $fduedate,
-        'fuserupdate' => (Auth::user()->fname ?? 'system'),
+        'fuserupdate' => (auth('sysuser')->user()->fname ?? Auth::user()->fname ?? 'system'),
         'fupdatedat'  => now(),
       ], $setApproval));
 
-      // Hapus semua detail lama PR ini
+      // Hapus semua detail lama
       DB::table('tr_prd')->where('fprnoid', $fprId)->delete();
 
-      // Insert ulang detail
+      // Insert ulang detail baru
       DB::table('tr_prd')->insert($detailRows);
 
       // Update stok berdasarkan kode string
