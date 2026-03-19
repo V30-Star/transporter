@@ -6,7 +6,7 @@
     <style>
         input:focus,
         select:focus,
-        textarea:focus {
+        textarea:focus {r
             outline: none;
             border-color: #2563eb;
             box-shadow: 0 0 0 2px rgba(37, 99, 235, .2);
@@ -618,7 +618,7 @@
             // Map produk untuk auto-fill tabel
             window.PRODUCT_MAP = {
                 @foreach ($products as $p)
-                    "{{ $p->fprdcode }}": {
+                    "{{ $p->fprdcodeid }}": {
                         id: @json($p->fprdid),
                         name: @json($p->fprdname),
                         units: @json(array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2]))),
@@ -632,7 +632,7 @@
                 @foreach ($tr_prh->details as $d)
                     {
                         uid: null, // akan diisi cryptoRandom()
-                        fitemcode: @json($d->fprdcode),
+                        fitemcode: @json($d->fprdcodeid),
                         fitemname: @json($d->fprdname),
                         fsatuan: @json($d->fsatuan),
                         fqty: {{ (int) $d->fqty }},
@@ -1191,7 +1191,7 @@
                             if (!product) return;
 
                             const apply = (row) => {
-                                row.fitemcode = (product.fprdcode || '').toString();
+                                row.fitemcode = (product.fprdcodeid || '').toString();
                                 row.fprdid = product.fprdid ?? (window.PRODUCT_INDEX_BY_CODE?.[row.fitemcode]?.id ??
                                     null); // ⬅️ set ID
                                 // kalau browse nggak kirim name/units, hydrasi lewat PRODUCT_MAP:
@@ -1260,8 +1260,8 @@
                                     }
                                 },
                                 columns: [{
-                                        data: 'fprdcode',
-                                        name: 'fprdcode',
+                                        data: 'fprdcodeid',
+                                        name: 'fprdcodeid',
                                         className: 'font-mono text-sm'
                                     },
                                     {

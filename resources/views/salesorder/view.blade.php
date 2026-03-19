@@ -994,7 +994,7 @@
                                     frefdtno: src.frefdtno ?? '',
                                     fnouref: src.fnouref ?? '',
                                     frefpr: src.frefpr ?? (header?.fsono ?? ''),
-                                    fprnoid: src.fprnoid ?? header?.fprnoid ?? '',
+                                    fprhid: src.fprhid ?? header?.fprhid ?? '',
                                     fqty: Number(src.fqty ?? 0),
                                     fterima: Number(src.fterima ?? 0),
                                     fprice: Number(src.fprice ?? 0),

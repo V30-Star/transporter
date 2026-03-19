@@ -26,23 +26,23 @@ class Product extends Model
     {
         $query->when($search ?? false, function ($query, $search) {
             $query->where(function ($query) use ($search) {
-                $query->where('fprdcode', 'like', '%' . $search . '%')
+                $query->where('fprdid', 'like', '%' . $search . '%')
                     ->orWhere('fprdname', 'like', '%' . $search . '%');
             });
         });
     }
     public function trPods()
     {
-        return $this->hasMany(Tr_pod::class, 'fprdcode', 'fprdid');
+        return $this->hasMany(Tr_pod::class, 'fprdcodeid', 'fprdid');
     }
 
     public function trPrds()
     {
-        return $this->hasMany(Tr_prd::class, 'fprdcode', 'fprdid');
+        return $this->hasMany(Tr_prd::class, 'fprdcodeid', 'fprdid');
     }
     public function trstockdts()
     {
-        return $this->hasMany(PenerimaanPembelianDetail::class, 'fprdcode', 'fprdid');
+        return $this->hasMany(PenerimaanPembelianDetail::class, 'fprdcodeid', 'fprdid');
     }
 
     public function merek()

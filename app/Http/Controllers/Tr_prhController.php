@@ -216,9 +216,9 @@ class Tr_prhController extends Controller
     abort_if(!$hdr, 404);
 
     $dt = Tr_prd::query()
-      ->leftJoin('msprd as p', 'p.fprdid', '=', 'tr_prd.fprdcode')
-      ->where('tr_prd.fprnoid', $hdr->fprhid)
-      ->orderBy('tr_prd.fprdcode')
+      ->leftJoin('msprd as p', 'p.fprdid', '=', 'tr_prd.fprdcodeid')
+      ->where('tr_prd.fprhid', $hdr->fprhid)
+      ->orderBy('tr_prd.fprdcodeid')
       ->get([
         'tr_prd.*',
         'p.fprdname as product_name',
@@ -464,8 +464,9 @@ class Tr_prhController extends Controller
           }
 
           $detailRows[] = [
-            'fprnoid'     => $tr_prh->fprhid,
-            'fprdcode'    => $productId,
+            'fprhid'     => $tr_prh->fprhid,
+            'fprdcodeid'    => $productId,
+            'fprdcode'    => $product->fprdcode ?? '', // nama produk dari msprd.fprdname
             'fqty'        => (int)$qty,
             'fqtyremain'  => $qtyKecil,
             'fprice'      => 0,
@@ -497,8 +498,8 @@ class Tr_prhController extends Controller
       // KIRIM EMAIL JIKA APPROVAL
       if ($isApproval === 1) {
         $dt = Tr_prd::query()
-          ->leftJoin('msprd as p', 'p.fprdid', '=', 'tr_prd.fprdcode')
-          ->where('tr_prd.fprnoid', $tr_prh->fprhid)
+          ->leftJoin('msprd as p', 'p.fprdid', '=', 'tr_prd.fprdcodeid')
+          ->where('tr_prd.fprhid', $tr_prh->fprhid)
           ->orderBy('p.fprdname')
           ->get([
             'tr_prd.*',
@@ -537,7 +538,7 @@ class Tr_prhController extends Controller
     $fbranchcode = $branch->fcabangkode ?? (string) $raw;   // hidden post
 
     $tr_prh = Tr_prh::with(['details' => function ($q) {
-      $q->leftJoin('msprd as p', 'p.fprdid', '=', 'tr_prd.fprdcode') // tr_prd.fprdcode = ID produk
+      $q->leftJoin('msprd as p', 'p.fprdid', '=', 'tr_prd.fprdcodeid') // tr_prd.fprdcodeid = ID produk
         ->orderBy('p.fprdname')
         ->select(
           'tr_prd.*',
@@ -563,7 +564,7 @@ class Tr_prhController extends Controller
         'fdesc'      => (string)($d->fdesc ?? ''),
         'fketdt'     => (string)($d->fketdt ?? ''),
         // kalau perlu kirim ID produk buat update:
-        'fprdid'     => (int)($d->fprdcode ?? 0),       // ini ID produk di kolom detail
+        'fprdid'     => (int)($d->fprdcodeid ?? 0),       // ini ID produk di kolom detail
       ];
     })->values();
 
@@ -581,7 +582,7 @@ class Tr_prhController extends Controller
     // Prepare the product map for frontend
     $productMap = $products->mapWithKeys(function ($p) {
       return [
-        $p->fprdcode => [
+        $p->fprdcodeid => [
           'id'    => $p->fprdid,  // ⬅️ penting
           'name'  => $p->fprdname,
           'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
@@ -621,7 +622,7 @@ class Tr_prhController extends Controller
     $fbranchcode = $branch->fcabangkode ?? (string) $raw;   // hidden post
 
     $tr_prh = Tr_prh::with(['details' => function ($q) {
-      $q->leftJoin('msprd as p', 'p.fprdid', '=', 'tr_prd.fprdcode') // tr_prd.fprdcode = ID produk
+      $q->leftJoin('msprd as p', 'p.fprdid', '=', 'tr_prd.fprdcodeid') // tr_prd.fprdcodeid = ID produk
         ->orderBy('p.fprdname')
         ->select(
           'tr_prd.*',
@@ -647,7 +648,7 @@ class Tr_prhController extends Controller
         'fdesc'      => (string)($d->fdesc ?? ''),
         'fketdt'     => (string)($d->fketdt ?? ''),
         // kalau perlu kirim ID produk buat update:
-        'fprdid'     => (int)($d->fprdcode ?? 0),       // ini ID produk di kolom detail
+        'fprdid'     => (int)($d->fprdcodeid ?? 0),       // ini ID produk di kolom detail
       ];
     })->values();
 
@@ -665,7 +666,7 @@ class Tr_prhController extends Controller
     // Prepare the product map for frontend
     $productMap = $products->mapWithKeys(function ($p) {
       return [
-        $p->fprdcode => [
+        $p->fprdcodeid => [
           'id'    => $p->fprdid,  // ⬅️ penting
           'name'  => $p->fprdname,
           'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
@@ -827,8 +828,9 @@ class Tr_prhController extends Controller
       // Hanya terima baris valid
       if ($prodId > 0 && $sat !== '' && $qty >= 1) {
         $detailRows[] = [
-          'fprnoid'     => $fprhid,
-          'fprdcode'    => $prodId,
+          'fprhid'     => $fprhid,
+          'fprdcodeid'    => $prodId,
+          'fprdcode'    => $product->fprdcode ?? '', // nama produk dari msprd.fprdname
           'fqty'        => $qty,
           'fqtyremain'  => $qtyKecil,
           'fprice'      => 0,
@@ -886,7 +888,7 @@ class Tr_prhController extends Controller
       ], $setApproval));
 
       // Hapus semua detail lama
-      DB::table('tr_prd')->where('fprnoid', $fprhid)->delete();
+      DB::table('tr_prd')->where('fprhid', $fprhid)->delete();
 
       // Insert ulang detail baru
       DB::table('tr_prd')->insert($detailRows);
@@ -929,7 +931,7 @@ class Tr_prhController extends Controller
     $fbranchcode = $branch->fcabangkode ?? (string) $raw;   // hidden post
 
     $tr_prh = Tr_prh::with(['details' => function ($q) {
-      $q->leftJoin('msprd as p', 'p.fprdid', '=', 'tr_prd.fprdcode') // tr_prd.fprdcode = ID produk
+      $q->leftJoin('msprd as p', 'p.fprdid', '=', 'tr_prd.fprdcodeid') // tr_prd.fprdcodeid = ID produk
         ->orderBy('p.fprdname')
         ->select(
           'tr_prd.*',
@@ -955,7 +957,7 @@ class Tr_prhController extends Controller
         'fdesc'      => (string)($d->fdesc ?? ''),
         'fketdt'     => (string)($d->fketdt ?? ''),
         // kalau perlu kirim ID produk buat update:
-        'fprdid'     => (int)($d->fprdcode ?? 0),       // ini ID produk di kolom detail
+        'fprdid'     => (int)($d->fprdcodeid ?? 0),       // ini ID produk di kolom detail
       ];
     })->values();
 
@@ -973,7 +975,7 @@ class Tr_prhController extends Controller
     // Prepare the product map for frontend
     $productMap = $products->mapWithKeys(function ($p) {
       return [
-        $p->fprdcode => [
+        $p->fprdcodeid => [
           'id'    => $p->fprdid,  // ⬅️ penting
           'name'  => $p->fprdname,
           'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),

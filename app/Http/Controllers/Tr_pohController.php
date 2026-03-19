@@ -185,16 +185,16 @@ class Tr_pohController extends Controller
     $header = Tr_prh::where('fprhid', $id)->firstOrFail();
 
     // PERBAIKAN: Gunakan fprhid (integer) bukan fprno (varchar)
-    $items = Tr_prd::where('tr_prd.fprnoid', $header->fprhid) // <- Gunakan fprhid
+    $items = Tr_prd::where('tr_prd.fprhid', $header->fprhid) // <- Gunakan fprhid
       ->leftJoin('msprd as m', 'm.fprdid', '=', 'tr_prd.fprdcode')
       ->select([
         'tr_prd.fprdid as frefdtno',
-        'tr_prd.fprnoid as fnouref',
+        'tr_prd.fprhid as fnouref',
         'tr_prd.fprdcode as fitemcode',
         'm.fprdname as fitemname',
         'tr_prd.fqty',
         'tr_prd.fsatuan as fsatuan',
-        'tr_prd.fprnoid',
+        'tr_prd.fprhid',
         'tr_prd.fprice as fharga',
         DB::raw('0::numeric as fdiskon')
       ])

@@ -292,7 +292,7 @@
                                                 </div>
                                             </td>
                                             <td class="p-2" x-text="it.fsatuan"></td>
-                                            <td class="p-2" x-text="it.fprnoid || '-'"></td>
+                                            <td class="p-2" x-text="it.fprhid || '-'"></td>
                                             <td class="p-2 text-right" x-text="fmt(it.fqty)"></td>
                                             <td class="p-2 text-right" x-text="fmt(it.fterima)"></td>
                                             <td class="p-2 text-right" x-text="fmt(it.fprice)"></td>
@@ -1459,7 +1459,7 @@
                         frefdtno: src.frefdtno ?? '',
                         fnouref: src.fnouref ?? '',
                         frefpr: src.frefpr ?? (header?.fpono ?? ''),
-                        fprnoid: src.fprnoid ?? header?.fprnoid ?? '',
+                        fprhid: src.fprhid ?? header?.fprhid ?? '',
                         fqty: Number(src.fqty ?? 0),
                         fterima: Number(src.fterima ?? 0),
                         fprice: Number(src.fprice ?? 0),

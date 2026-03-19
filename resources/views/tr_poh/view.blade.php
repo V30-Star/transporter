@@ -1143,7 +1143,7 @@
                             fnouref: src.fnouref ?? '',
                             frefpr: src.frefpr ?? '',
                             fpono: header?.fpono ?? src.fpono ?? '',
-                            fprnoid: src.fprnoid ?? header?.fprnoid ?? '',
+                            fprhid: src.fprhid ?? header?.fprhid ?? '',
                             fqty: Number(src.fqty ?? 0),
                             fterima: Number(src.ferima ?? 0),
                             fprice: Number(src.fprice ?? 0),

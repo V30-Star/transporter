@@ -17,14 +17,14 @@ class Tr_prd extends Model
 
   public function header()
   {
-    return $this->belongsTo(Tr_prh::class, 'fprnoid', 'fprhid');
+    return $this->belongsTo(Tr_prh::class, 'fprhid', 'fprhid');
   }
 
   public function scopeSearch($query, $search)
   {
     $query->when($search ?? false, function ($query, $search) {
       $query->where(function ($query) use ($search) {
-        $query->whereAny(['fprnoid', 'fprdcode'], 'like', '%' . $search . '%');
+        $query->whereAny(['fprhid', 'fprdcode'], 'like', '%' . $search . '%');
       });
     });
   }
