@@ -590,7 +590,7 @@
                 {{-- MODE EDIT: FORM EDITABLE                    --}}
                 {{-- ============================================ --}}
             @else
-                <form action="{{ route('tr_prh.update', $tr_prh->fprid) }}" method="POST" class="mt-6"
+                <form action="{{ route('tr_prh.update', $tr_prh->fprhid) }}" method="POST" class="mt-6"
                     x-data="{ showNoItems: false }"
                     @submit.prevent="
                 window.__prh_flush_ok = true;
@@ -1206,8 +1206,7 @@
         <div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
                 <h3 class="text-lg font-semibold mb-4">Konfirmasi hapus Permintaan Pembelian ini?</h3>
-                <form id="deleteForm" action="{{ route('tr_prh.destroy', $tr_prh->fprid) }}"
-                    method="POST">
+                <form id="deleteForm" action="{{ route('tr_prh.destroy', $tr_prh->fprhid) }}" method="POST">
                     @csrf
                     @method('DELETE')
                     <div class="flex justify-end space-x-2">
@@ -1264,7 +1263,7 @@
                 btnYa.textContent = 'Menghapus...';
 
                 // Kirim request delete
-                fetch('{{ route('tr_prh.destroy', $tr_prh->fprid) }}', {
+                fetch('{{ route('tr_prh.destroy', $tr_prh->fprhid) }}', {
                         method: 'POST',
                         headers: {
                             'X-CSRF-TOKEN': '{{ csrf_token() }}',

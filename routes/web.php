@@ -222,18 +222,18 @@ Route::middleware('auth')->group(function () {
         Route::get('/tr_prh', [Tr_prhController::class, 'index'])->name('tr_prh.index');
         Route::post('/tr_prh',        [Tr_prhController::class, 'store'])->name('tr_prh.store');
         Route::get('/tr_prh/create', [Tr_prhController::class, 'create'])->name('tr_prh.create');
-        Route::get('/tr_prh/{fprid}/view', [Tr_prhController::class, 'view'])->name('tr_prh.view');
-        Route::get('/tr_prh/{fprid}/edit', [Tr_prhController::class, 'edit'])->name('tr_prh.edit');
-        Route::get('/tr_prh/{fprid}/delete', [Tr_prhController::class, 'delete'])->name('tr_prh.delete');
-        Route::patch('/tr_prh/{fprid}', [Tr_prhController::class, 'update'])->name('tr_prh.update');
-        Route::delete('/tr_prh/{fprid}', [Tr_prhController::class, 'destroy'])->name('tr_prh.destroy');
+        Route::get('/tr_prh/{fprhid}/view', [Tr_prhController::class, 'view'])->name('tr_prh.view');
+        Route::get('/tr_prh/{fprhid}/edit', [Tr_prhController::class, 'edit'])->name('tr_prh.edit');
+        Route::get('/tr_prh/{fprhid}/delete', [Tr_prhController::class, 'delete'])->name('tr_prh.delete');
+        Route::patch('/tr_prh/{fprhid}', [Tr_prhController::class, 'update'])->name('tr_prh.update');
+        Route::delete('/tr_prh/{fprhid}', [Tr_prhController::class, 'destroy'])->name('tr_prh.destroy');
         Route::get('/tr_prh/{fprno}/print', [Tr_prhController::class, 'print'])
             ->name('tr_prh.print');
 
         Route::get('/tr_poh',  [Tr_pohController::class, 'index'])->name('tr_poh.index');
         Route::post('/tr_poh',        [Tr_pohController::class, 'store'])->name('tr_poh.store');
         Route::get('/tr_poh/create', [Tr_pohController::class, 'create'])->name('tr_poh.create');
-        Route::get('/tr_poh/{fprid}/view', [Tr_pohController::class, 'view'])->name('tr_poh.view');
+        Route::get('/tr_poh/{fprhid}/view', [Tr_pohController::class, 'view'])->name('tr_poh.view');
         Route::get('/tr_poh/{fpohid}/edit', [Tr_pohController::class, 'edit'])->name('tr_poh.edit');
         Route::get('/tr_poh/{fpohid}/delete', [Tr_pohController::class, 'delete'])->name('tr_poh.delete');
         Route::patch('/tr_poh/{fpohid}', [Tr_pohController::class, 'update'])->name('tr_poh.update');

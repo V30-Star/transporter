@@ -1035,7 +1035,7 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <template x-for="row in rows" :key="row.fprid">
+                                            <template x-for="row in rows" :key="row.fprhid">
                                                 <tr class="border-t">
                                                     <td class="p-2" x-text="row.fprno"></td>
                                                     <td class="p-2" x-text="row.fprno"></td>
@@ -1366,8 +1366,7 @@
         <div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
                 <h3 class="text-lg font-semibold mb-4">Konfirmasi Hapus adjstock ini?</h3>
-                <form id="deleteForm" action="{{ route('adjstock.destroy', $adjstock->fstockmtid) }}"
-                    method="POST">
+                <form id="deleteForm" action="{{ route('adjstock.destroy', $adjstock->fstockmtid) }}" method="POST">
                     @csrf
                     @method('DELETE')
                     <div class="flex justify-end space-x-2">
@@ -1849,7 +1848,7 @@
 
             init() {
                 this.$watch('savedItems', () => {
-                this.recalcTotals();
+                    this.recalcTotals();
                 }, {
                     deep: true
                 });
@@ -2184,7 +2183,7 @@
 
             init() {
                 this.$watch('savedItems', () => {
-                this.recalcTotals();
+                    this.recalcTotals();
                 }, {
                     deep: true
                 });
@@ -2354,7 +2353,7 @@
             async pick(row) {
                 try {
                     const url = `{{ route('penerimaanbarang.items', ['id' => 'PR_ID_PLACEHOLDER']) }}`
-                        .replace('PR_ID_PLACEHOLDER', row.fprid);
+                        .replace('PR_ID_PLACEHOLDER', row.fprhid);
 
                     const res = await fetch(url, {
                         headers: {

@@ -325,7 +325,7 @@
             // --- 3. Tambahkan Kolom Aksi (Gaya Product) ---
             if (hasActions) {
                 columns.push({
-                    data: 'fprid', // Ambil 'fprid' dari controller
+                    data: 'fprhid', // Ambil 'fprhid' dari controller
                     name: 'actions',
                     orderable: false,
                     searchable: false,

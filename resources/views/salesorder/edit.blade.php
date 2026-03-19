@@ -2821,7 +2821,7 @@
                     // Tampilkan loading indicator (opsional)
 
                     const url = `{{ route('tr_poh.items', ['id' => 'PR_ID_PLACEHOLDER']) }}`
-                        .replace('PR_ID_PLACEHOLDER', row.fprid);
+                        .replace('PR_ID_PLACEHOLDER', row.fprhid);
 
                     const res = await fetch(url, {
                         headers: {

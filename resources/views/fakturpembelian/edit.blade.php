@@ -666,10 +666,10 @@
                                         </div>
 
                                         <div class="flex items-center justify-between">
-                                                <span class="text-sm text-gray-700">Total DPP</span>
-                                                <span class="min-w-[140px] text-right font-medium"
-                                                    x-text="rupiah(totalDPP)"></span>
-                                            </div>
+                                            <span class="text-sm text-gray-700">Total DPP</span>
+                                            <span class="min-w-[140px] text-right font-medium"
+                                                x-text="rupiah(totalDPP)"></span>
+                                        </div>
 
                                         <div class="flex items-center justify-between gap-6">
                                             <!-- Checkbox -->
@@ -724,12 +724,12 @@
                                             <span class="min-w-[140px] text-right text-lg font-semibold"
                                                 x-text="rupiah(grandTotal)"></span>
                                         </div>
-                                        
-                                         <div class="flex items-center justify-between bg-blue-50 p-2 rounded">
-                                                <span class="text-sm font-bold text-blue-700">Total Biaya (HPP)</span>
-                                                <span class="min-w-[140px] text-right font-bold text-blue-700"
-                                                    x-text="rupiah(biayaGlobal)"></span>
-                                            </div>
+
+                                        <div class="flex items-center justify-between bg-blue-50 p-2 rounded">
+                                            <span class="text-sm font-bold text-blue-700">Total Biaya (HPP)</span>
+                                            <span class="min-w-[140px] text-right font-bold text-blue-700"
+                                                x-text="rupiah(biayaGlobal)"></span>
+                                        </div>
                                     </div>
 
                                     <!-- Hidden inputs for submit -->
@@ -2839,7 +2839,7 @@
                         // Tampilkan loading indicator (opsional)
 
                         const url = `{{ route('tr_poh.items', ['id' => 'PR_ID_PLACEHOLDER']) }}`
-                            .replace('PR_ID_PLACEHOLDER', row.fprid);
+                            .replace('PR_ID_PLACEHOLDER', row.fprhid);
 
                         const res = await fetch(url, {
                             headers: {

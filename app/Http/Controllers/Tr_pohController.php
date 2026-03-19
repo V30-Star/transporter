@@ -85,12 +85,12 @@ class Tr_pohController extends Controller
       $length = $request->input('length', 10);
       $records = $query->skip($start)
         ->take($length)
-        ->get(['fpohid', 'fpono', 'fsupplier', 'fpodate', 'fclose', 'fusercreate', 'fapproval', 'mssupplier.fsuppliername']);
+        ->get(['fpohdid', 'fpono', 'fsupplier', 'fpodate', 'fclose', 'fusercreate', 'fapproval', 'mssupplier.fsuppliername']);
 
       // Format Data - HANYA RETURN DATA MENTAH
       $data = $records->map(function ($row) {
         return [
-          'fpohid'   => $row->fpohid,
+          'fpohdid'   => $row->fpohdid,
           'fpono'     => $row->fpono,
           'fsupplier' => $row->fsupplier,
           'fpodate'   => $row->fpodate,
@@ -181,11 +181,11 @@ class Tr_pohController extends Controller
   }
   public function items($id)
   {
-    // Ambil data header PR berdasarkan fprid
-    $header = Tr_prh::where('fprid', $id)->firstOrFail();
+    // Ambil data header PR berdasarkan fprhid
+    $header = Tr_prh::where('fprhid', $id)->firstOrFail();
 
-    // PERBAIKAN: Gunakan fprid (integer) bukan fprno (varchar)
-    $items = Tr_prd::where('tr_prd.fprnoid', $header->fprid) // <- Gunakan fprid
+    // PERBAIKAN: Gunakan fprhid (integer) bukan fprno (varchar)
+    $items = Tr_prd::where('tr_prd.fprnoid', $header->fprhid) // <- Gunakan fprhid
       ->leftJoin('msprd as m', 'm.fprdid', '=', 'tr_prd.fprdcode')
       ->select([
         'tr_prd.fprdid as frefdtno',
@@ -203,7 +203,7 @@ class Tr_pohController extends Controller
 
     return response()->json([
       'header' => [
-        'fprid'     => $header->fprid,
+        'fprhid'     => $header->fprhid,
         'fprno'     => $header->fprno,
         'fsupplier' => trim($header->fsupplier ?? ''),
         'fprdate'   => optional($header->fprdate)->format('Y-m-d H:i:s'),
@@ -270,12 +270,12 @@ class Tr_pohController extends Controller
     }
 
     // Use header ID (integer) for detail FK
-    $fpohid = (int) $hdr->fpohid;
+    $fpohdid = (int) $hdr->fpohdid;
 
     $dt = DB::table('tr_pod')
       ->leftJoin('msprd as p', function ($j) {
         $j->on('p.fprdid', '=', DB::raw('CAST(tr_pod.fprdcode AS INTEGER)'));
-      })->where('tr_pod.fpono', $fpohid)                            // detail FK = header ID
+      })->where('tr_pod.fpono', $fpohdid)                            // detail FK = header ID
       ->orderBy('tr_pod.fprdcode')
       ->get([
         'tr_pod.*',
@@ -348,7 +348,6 @@ class Tr_pohController extends Controller
       'fpono'        => ['nullable', 'string', 'max:25'],
       'fpodate'      => ['required', 'date'],
       'fkirimdate'   => ['nullable', 'date'],
-      'fsupplier'    => ['required', 'string', 'max:30'],
       'fincludeppn'  => ['nullable'],
       'fket'         => ['nullable', 'string', 'max:300'],
       'fbranchcode'  => ['nullable', 'string', 'max:20'],
@@ -550,8 +549,8 @@ class Tr_pohController extends Controller
       $ftempohr  = $request->input('ftempohr', 0);
       $isApproval = (int)($request->input('fapproval', 0));
 
-      // INSERT HEADER and GET fpohid
-      $fpohid = DB::table('tr_poh')->insertGetId([
+      // INSERT HEADER and GET fpohdid
+      $fpohdid = DB::table('tr_poh')->insertGetId([
         'fpono'          => $fpono,     // human-readable code stays in header
         'fpodate'        => $fpodate,
         'fkirimdate'     => $fkirimdate,
@@ -567,16 +566,16 @@ class Tr_pohController extends Controller
         'famountpopajak' => $ppnAmount,
         'famountpo'      => $grandTotal,
         'fapproval'      => $isApproval,
-      ], 'fpohid');
+      ], 'fpohdid');
 
-      // EMAIL after commit — use fpohid and fprdid
+      // EMAIL after commit — use fpohdid and fprdid
       if ($isApproval === 1) {
-        DB::afterCommit(function () use ($fpohid) {
-          $hdr = Tr_poh::where('fpohid', $fpohid)->first();
+        DB::afterCommit(function () use ($fpohdid) {
+          $hdr = Tr_poh::where('fpohdid', $fpohdid)->first();
 
           $dt  = Tr_pod::from('tr_pod as d')
             ->leftJoin('msprd as p', 'p.fprdid', '=', 'd.fprdid')  // <-- FK to msprd.fprdid
-            ->where('d.fpono', $fpohid) // integer FK now
+            ->where('d.fpono', $fpohdid) // integer FK now
             ->orderBy('p.fprdname')
             ->get([
               'd.*',
@@ -592,12 +591,12 @@ class Tr_pohController extends Controller
         });
       }
 
-      // numbering + insert details — use fpohid
-      $lastNou = (int) DB::table('tr_pod')->where('fpono', $fpohid)->max('fnou');
+      // numbering + insert details — use fpohdid
+      $lastNou = (int) DB::table('tr_pod')->where('fpono', $fpohdid)->max('fnou');
       $nextNou = $lastNou + 1;
 
       foreach ($rowsPod as &$r) {
-        $r['fpono'] = $fpohid;  // FK → tr_poh.fpohid (integer)
+        $r['fpono'] = $fpohdid;  // FK → tr_poh.fpohdid (integer)
         $r['fnou']  = $nextNou++;
         // $r['fprdid'] already set above
         $r['frefdtno'] = $fpono;
@@ -612,7 +611,7 @@ class Tr_pohController extends Controller
       ->with('success', "PO {$fpono} tersimpan, detail masuk ke TR_POD.");
   }
 
-  public function edit(Request $request, $fpohid)
+  public function edit(Request $request, $fpohdid)
   {
     $suppliers = Supplier::orderBy('fsuppliername', 'asc')
       ->get(['fsupplierid', 'fsuppliername']);
@@ -639,7 +638,7 @@ class Tr_pohController extends Controller
           'msprd.fprdcode as fitemcode',
           'msprd.fprdname'
         );
-    }])->findOrFail($fpohid);
+    }])->findOrFail($fpohdid);
 
     $savedItems = $tr_poh->details->map(function ($d) {
       return [
@@ -700,7 +699,7 @@ class Tr_pohController extends Controller
     ]);
   }
 
-  public function view(Request $request, $fpohid)
+  public function view(Request $request, $fpohdid)
   {
     $suppliers = Supplier::orderBy('fsuppliername', 'asc')
       ->get(['fsupplierid', 'fsuppliername']);
@@ -727,7 +726,7 @@ class Tr_pohController extends Controller
           'msprd.fprdcode as fitemcode',
           'msprd.fprdname'
         );
-    }])->findOrFail($fpohid);
+    }])->findOrFail($fpohdid);
 
     $savedItems = $tr_poh->details->map(function ($d) {
       return [
@@ -787,7 +786,7 @@ class Tr_pohController extends Controller
     ]);
   }
 
-  public function update(Request $request, $fpohid)
+  public function update(Request $request, $fpohdid)
   {
     // VALIDASI
     $request->validate([
@@ -826,8 +825,8 @@ class Tr_pohController extends Controller
       'fitemcode.required' => 'Minimal 1 item.',
     ]);
 
-    $header  = Tr_poh::where('fpohid', $fpohid)->firstOrFail();
-    $fponoId = (int) $header->fpohid;   // ← PAKAI INI, BUKAN $header->fpono (string)
+    $header  = Tr_poh::where('fpohdid', $fpohdid)->firstOrFail();
+    $fponoId = (int) $header->fpohdid;   // ← PAKAI INI, BUKAN $header->fpono (string)
 
     // HEADER DATA
     $fpodate    = \Carbon\Carbon::parse($request->fpodate)->startOfDay();
@@ -981,7 +980,7 @@ class Tr_pohController extends Controller
       ->with('success', "PO {$header->fpono} berhasil diperbarui.");
   }
 
-  public function delete(Request $request, $fpohid)
+  public function delete(Request $request, $fpohdid)
   {
     $suppliers = Supplier::orderBy('fsuppliername', 'asc')
       ->get(['fsupplierid', 'fsuppliername']);
@@ -1008,7 +1007,7 @@ class Tr_pohController extends Controller
           'msprd.fprdcode as fitemcode',
           'msprd.fprdname'
         );
-    }])->findOrFail($fpohid);
+    }])->findOrFail($fpohdid);
 
     $savedItems = $tr_poh->details->map(function ($d) {
       return [
@@ -1069,16 +1068,16 @@ class Tr_pohController extends Controller
     ]);
   }
 
-  public function destroy($fpohid)
+  public function destroy($fpohdid)
   {
     try {
-      $tr_poh = Tr_poh::findOrFail($fpohid);
+      $tr_poh = Tr_poh::findOrFail($fpohdid);
       $tr_poh->delete();
 
       return redirect()->route('tr_poh.index')->with('success', 'Data Order Pembelian ' . $tr_poh->fpono . ' berhasil dihapus.');
     } catch (\Exception $e) {
       // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
-      return redirect()->route('tr_poh.delete', $fpohid)->with('error', 'Gakey: gal menghapus data: ' . $e->getMessage());
+      return redirect()->route('tr_poh.delete', $fpohdid)->with('error', 'Gakey: gal menghapus data: ' . $e->getMessage());
     }
   }
 }

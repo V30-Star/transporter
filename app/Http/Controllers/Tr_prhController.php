@@ -95,7 +95,7 @@ class Tr_prhController extends Controller
       if (isset($columns[$orderColumnIndex]) && $columns[$orderColumnIndex] !== null) {
         $query->orderBy($columns[$orderColumnIndex], $orderDir);
       } else {
-        $query->orderBy('fprid', 'desc');
+        $query->orderBy('fprhid', 'desc');
       }
 
       // Pagination
@@ -106,7 +106,7 @@ class Tr_prhController extends Controller
       }
 
       // Select kolom yang dibutuhkan - PASTIKAN fclose ADA
-      $records = $query->get(['fprid', 'fprno', 'fprdate', 'fsupplier', 'fusercreate', 'fuserupdate', 'fclose', 'mssupplier.fsuppliername']);
+      $records = $query->get(['fprhid', 'fprno', 'fprdate', 'fsupplier', 'fusercreate', 'fuserupdate', 'fclose', 'mssupplier.fsuppliername']);
 
       // Format data untuk DataTables
       $data = $records->map(function ($record) {
@@ -117,8 +117,8 @@ class Tr_prhController extends Controller
           'display_user'  => $record->fuserupdate ?: $record->fusercreate,
           'fuserupdate'  => $record->fuserupdate,
           'fclose'        => $record->fclose == '1' ? 'Done' : 'Not Done',
-          'fprid'    => $record->fprid,
-          'DT_RowId' => 'row_' . $record->fprid
+          'fprhid'    => $record->fprhid,
+          'DT_RowId' => 'row_' . $record->fprhid
         ];
       });
 
@@ -217,7 +217,7 @@ class Tr_prhController extends Controller
 
     $dt = Tr_prd::query()
       ->leftJoin('msprd as p', 'p.fprdid', '=', 'tr_prd.fprdcode')
-      ->where('tr_prd.fprnoid', $hdr->fprid)
+      ->where('tr_prd.fprnoid', $hdr->fprhid)
       ->orderBy('tr_prd.fprdcode')
       ->get([
         'tr_prd.*',
@@ -464,7 +464,7 @@ class Tr_prhController extends Controller
           }
 
           $detailRows[] = [
-            'fprnoid'     => $tr_prh->fprid,
+            'fprnoid'     => $tr_prh->fprhid,
             'fprdcode'    => $productId,
             'fqty'        => (int)$qty,
             'fqtyremain'  => $qtyKecil,
@@ -498,7 +498,7 @@ class Tr_prhController extends Controller
       if ($isApproval === 1) {
         $dt = Tr_prd::query()
           ->leftJoin('msprd as p', 'p.fprdid', '=', 'tr_prd.fprdcode')
-          ->where('tr_prd.fprnoid', $tr_prh->fprid)
+          ->where('tr_prd.fprnoid', $tr_prh->fprhid)
           ->orderBy('p.fprdname')
           ->get([
             'tr_prd.*',
@@ -519,7 +519,7 @@ class Tr_prhController extends Controller
       ->with('success', 'Permintaan pembelian berhasil ditambahkan.');
   }
 
-  public function edit(Request $request, $fprid)
+  public function edit(Request $request, $fprhid)
   {
     $suppliers = Supplier::orderBy('fsuppliername', 'asc')
       ->get(['fsupplierid', 'fsuppliername']);
@@ -544,7 +544,7 @@ class Tr_prhController extends Controller
           'p.fprdcode as product_code',   // <- kode untuk tampilan
           'p.fprdname  as product_name'   // <- nama untuk tampilan
         );
-    }])->findOrFail($fprid);
+    }])->findOrFail($fprhid);
 
     // Map ke savedItems (agar cocok dengan table di Blade yang biasa kamu pakai)
     $savedItems = $tr_prh->details->map(function ($d) {
@@ -603,7 +603,7 @@ class Tr_prhController extends Controller
     ]);
   }
 
-  public function view(Request $request, $fprid)
+  public function view(Request $request, $fprhid)
   {
     $suppliers = Supplier::orderBy('fsuppliername', 'asc')
       ->get(['fsupplierid', 'fsuppliername']);
@@ -628,7 +628,7 @@ class Tr_prhController extends Controller
           'p.fprdcode as product_code',   // <- kode untuk tampilan
           'p.fprdname  as product_name'   // <- nama untuk tampilan
         );
-    }])->findOrFail($fprid);
+    }])->findOrFail($fprhid);
 
     // Map ke savedItems (agar cocok dengan table di Blade yang biasa kamu pakai)
     $savedItems = $tr_prh->details->map(function ($d) {
@@ -686,11 +686,11 @@ class Tr_prhController extends Controller
     ]);
   }
 
-  public function update(Request $request, int $fprid)
+  public function update(Request $request, int $fprhid)
   {
     // ===== 1) AMBIL HEADER DULU =====
-    $header = Tr_prh::where('fprid', $fprid)->firstOrFail();
-    $fprId  = (int) $header->fprid;
+    $header = Tr_prh::where('fprhid', $fprhid)->firstOrFail();
+    $fprhid  = (int) $header->fprhid;
 
     // ===== 2) VALIDASI INPUT =====
     $request->validate([
@@ -827,7 +827,7 @@ class Tr_prhController extends Controller
       // Hanya terima baris valid
       if ($prodId > 0 && $sat !== '' && $qty >= 1) {
         $detailRows[] = [
-          'fprnoid'     => $fprId,
+          'fprnoid'     => $fprhid,
           'fprdcode'    => $prodId,
           'fqty'        => $qty,
           'fqtyremain'  => $qtyKecil,
@@ -862,7 +862,7 @@ class Tr_prhController extends Controller
     DB::transaction(function () use (
       $request,
       $header,
-      $fprId,
+      $fprhid,
       $fprdate,
       $fneeddate,
       $fduedate,
@@ -872,7 +872,7 @@ class Tr_prhController extends Controller
       $setApproval
     ) {
       // Update header
-      Tr_prh::where('fprid', $header->fprid)->update(array_merge([
+      Tr_prh::where('fprhid', $header->fprhid)->update(array_merge([
         'fprdate'     => $fprdate,
         'fsupplier'   => $request->filled('fsupplier') ? (int)$request->fsupplier : $header->fsupplier,
         'fprdin'      => '0',
@@ -886,7 +886,7 @@ class Tr_prhController extends Controller
       ], $setApproval));
 
       // Hapus semua detail lama
-      DB::table('tr_prd')->where('fprnoid', $fprId)->delete();
+      DB::table('tr_prd')->where('fprnoid', $fprhid)->delete();
 
       // Insert ulang detail baru
       DB::table('tr_prd')->insert($detailRows);
@@ -911,7 +911,7 @@ class Tr_prhController extends Controller
       ->with('success', 'Permintaan pembelian berhasil diperbarui.');
   }
 
-  public function delete(Request $request, $fprid)
+  public function delete(Request $request, $fprhid)
   {
     $suppliers = Supplier::orderBy('fsuppliername', 'asc')
       ->get(['fsupplierid', 'fsuppliername']);
@@ -936,7 +936,7 @@ class Tr_prhController extends Controller
           'p.fprdcode as product_code',   // <- kode untuk tampilan
           'p.fprdname  as product_name'   // <- nama untuk tampilan
         );
-    }])->findOrFail($fprid);
+    }])->findOrFail($fprhid);
 
     // Map ke savedItems (agar cocok dengan table di Blade yang biasa kamu pakai)
     $savedItems = $tr_prh->details->map(function ($d) {
@@ -995,16 +995,16 @@ class Tr_prhController extends Controller
     ]);
   }
 
-  public function destroy($fprid)
+  public function destroy($fprhid)
   {
     try {
-      $tr_prh = Tr_prh::findOrFail($fprid);
+      $tr_prh = Tr_prh::findOrFail($fprhid);
       $tr_prh->delete();
 
       return redirect()->route('tr_prh.index')->with('success', 'Data Permintaan Pembelian ' . $tr_prh->fprno . ' berhasil dihapus.');
     } catch (\Exception $e) {
       // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
-      return redirect()->route('tr_prh.delete', $fprid)->with('error', 'Gakey: gal menghapus data: ' . $e->getMessage());
+      return redirect()->route('tr_prh.delete', $fprhid)->with('error', 'Gakey: gal menghapus data: ' . $e->getMessage());
     }
   }
 }

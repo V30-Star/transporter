@@ -227,7 +227,7 @@ class MutasiController extends Controller
         // Mengembalikan data dalam format JSON
         return response()->json([
             'header' => [
-                'fprid'     => $header->fpohid,
+                'fprhid'     => $header->fpohid,
                 'fprno'     => $header->fpono,
                 'fsupplier' => trim($header->fsupplier ?? ''),
                 'fprdate'   => optional($header->fpodate)->format('Y-m-d H-i-s'),

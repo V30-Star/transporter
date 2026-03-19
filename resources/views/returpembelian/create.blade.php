@@ -84,7 +84,7 @@
     </style>
 
     <div x-data="{ open: true }">
-        <div x-data="{ includePPN: false, totalHarga: 100000}" class="lg:col-span-5">
+        <div x-data="{ includePPN: false, totalHarga: 100000 }" class="lg:col-span-5">
             <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
                 <form action="{{ route('returpembelian.store') }}" method="POST" class="mt-6" x-data="{ showNoItems: false }"
                     @submit.prevent="
@@ -1677,7 +1677,7 @@
                     // Tampilkan loading indicator (opsional)
 
                     const url = `{{ route('tr_poh.items', ['id' => 'PR_ID_PLACEHOLDER']) }}`
-                        .replace('PR_ID_PLACEHOLDER', row.fprid);
+                        .replace('PR_ID_PLACEHOLDER', row.fprhid);
 
                     const res = await fetch(url, {
                         headers: {

@@ -17,7 +17,7 @@ class Tr_prd extends Model
 
   public function header()
   {
-    return $this->belongsTo(Tr_prh::class, 'fprnoid', 'fprid');
+    return $this->belongsTo(Tr_prh::class, 'fprnoid', 'fprhid');
   }
 
   public function scopeSearch($query, $search)

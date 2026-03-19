@@ -731,7 +731,7 @@
                                             <span class="min-w-[140px] text-right font-medium"
                                                 x-text="rupiah(totalHarga)"></span>
                                         </div>
-                                        
+
                                         <div class="flex items-center justify-between">
                                             <span class="text-sm text-gray-700">Total DPP</span>
                                             <span class="min-w-[140px] text-right font-medium"
@@ -1504,7 +1504,7 @@
             recalc(row) {
                 row.fqty = Math.max(0, +row.fqty || 0);
                 row.fprice = Math.max(0, +row.fprice || 0);
-                row.fbiaya = Math.max(0, +row.fbiaya || 0); 
+                row.fbiaya = Math.max(0, +row.fbiaya || 0);
                 row.fdiscpersen = Math.min(100, Math.max(0, +row.fdiscpersen || 0));
 
                 const basePrice = (row.fprice + row.fbiaya) * row.fqty;
@@ -2009,7 +2009,7 @@
                     // Tampilkan loading indicator (opsional)
 
                     const url = `{{ route('tr_poh.items', ['id' => 'PR_ID_PLACEHOLDER']) }}`
-                        .replace('PR_ID_PLACEHOLDER', row.fprid);
+                        .replace('PR_ID_PLACEHOLDER', row.fprhid);
 
                     const res = await fetch(url, {
                         headers: {

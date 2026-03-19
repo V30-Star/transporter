@@ -205,11 +205,11 @@ class ReturPenjualanController extends Controller
 
   public function items($id)
   {
-    // Ambil data header PR berdasarkan fprid
-    $header = Tr_prh::where('fprid', $id)->firstOrFail();
+    // Ambil data header PR berdasarkan fprhid
+    $header = Tr_prh::where('fprhid', $id)->firstOrFail();
 
-    // PERBAIKAN: Gunakan fprid (integer) bukan fprno (varchar)
-    $items = Tr_prd::where('tr_prd.fprnoid', $header->fprid) // <- Gunakan fprid
+    // PERBAIKAN: Gunakan fprhid (integer) bukan fprno (varchar)
+    $items = Tr_prd::where('tr_prd.fprnoid', $header->fprhid) // <- Gunakan fprhid
       ->leftJoin('msprd as m', 'm.fprdid', '=', 'tr_prd.fitemid')
       ->select([
         'tr_prd.fprdid as frefdtno',
@@ -227,7 +227,7 @@ class ReturPenjualanController extends Controller
 
     return response()->json([
       'header' => [
-        'fprid'     => $header->fprid,
+        'fprhid'     => $header->fprhid,
         'fprno'     => $header->fprno,
         'fsupplier' => trim($header->fsupplier ?? ''),
         'fprdate'   => optional($header->fprdate)->format('Y-m-d H:i:s'),

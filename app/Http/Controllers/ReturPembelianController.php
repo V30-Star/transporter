@@ -171,7 +171,7 @@ class ReturPembelianController extends Controller
     // Ambil dari tr_prh dengan kondisi yang kamu minta
     $query = Tr_prh::query()
       ->select([
-        'tr_prh.fprid',
+        'tr_prh.fprhid',
         'tr_prh.fprno',
         'tr_prh.fsupplier',
         'tr_prh.fprdate',
@@ -192,19 +192,19 @@ class ReturPembelianController extends Controller
 
     // Urutan paling baru
     $query->orderByDesc('tr_prh.fprdate')
-      ->orderByDesc('tr_prh.fprid');
+      ->orderByDesc('tr_prh.fprhid');
 
     $paginated = $query->paginate($perPage)->withQueryString();
 
     // Format JSON agar cocok dengan kode Alpine kamu
     $rows = collect($paginated->items())->map(function ($t) {
       return [
-        'fprid'     => $t->fprid,
+        'fprhid'     => $t->fprhid,
         'fprno'     => $t->fprno,
         'fsupplier' => trim($t->fsupplier ?? ''),
         'fprdate'   => $t->fprdate ? \Carbon\Carbon::parse($t->fprdate)->format('Y-m-d H:i:s') : 'No Date',
         // siapkan URL jika dibutuhkan
-        'items_url' => route('tr_poh.items', $t->fprid),
+        'items_url' => route('tr_poh.items', $t->fprhid),
       ];
     });
 
@@ -226,11 +226,11 @@ class ReturPembelianController extends Controller
 
   public function items($id)
   {
-    // Ambil data header PR berdasarkan fprid
-    $header = Tr_prh::where('fprid', $id)->firstOrFail();
+    // Ambil data header PR berdasarkan fprhid
+    $header = Tr_prh::where('fprhid', $id)->firstOrFail();
 
-    // PERBAIKAN: Gunakan fprid (integer) bukan fprno (varchar)
-    $items = Tr_prd::where('tr_prd.fprnoid', $header->fprid) // <- Gunakan fprid
+    // PERBAIKAN: Gunakan fprhid (integer) bukan fprno (varchar)
+    $items = Tr_prd::where('tr_prd.fprnoid', $header->fprhid) // <- Gunakan fprhid
       ->leftJoin('msprd as m', 'm.fprdid', '=', 'tr_prd.fprdcode')
       ->select([
         'tr_prd.fprdid as frefdtno',
@@ -248,7 +248,7 @@ class ReturPembelianController extends Controller
 
     return response()->json([
       'header' => [
-        'fprid'     => $header->fprid,
+        'fprhid'     => $header->fprhid,
         'fprno'     => $header->fprno,
         'fsupplier' => trim($header->fsupplier ?? ''),
         'fprdate'   => optional($header->fprdate)->format('Y-m-d H:i:s'),

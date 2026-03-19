@@ -745,7 +745,7 @@
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    <template x-for="row in rows" :key="row.fprid">
+                                                    <template x-for="row in rows" :key="row.fprhid">
                                                         <tr class="border-t">
                                                             <td class="p-2" x-text="row.fprno"></td>
                                                             <td class="p-2" x-text="row.fprno"></td>
@@ -1964,7 +1964,7 @@
             async pick(row) {
                 try {
                     const url = `{{ route('penerimaanbarang.items', ['id' => 'PR_ID_PLACEHOLDER']) }}`
-                        .replace('PR_ID_PLACEHOLDER', row.fprid);
+                        .replace('PR_ID_PLACEHOLDER', row.fprhid);
 
                     const res = await fetch(url, {
                         headers: {

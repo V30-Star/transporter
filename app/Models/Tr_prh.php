@@ -10,8 +10,8 @@ class Tr_prh extends Model
   use HasFactory;
 
   protected $table = 'tr_prh';
-  protected $primaryKey = 'fprid';
-  protected $guarded = ['fprid'];
+  protected $primaryKey = 'fprhid';
+  protected $guarded = ['fprhid'];
   public $timestamps = false;
 
 
@@ -26,6 +26,6 @@ class Tr_prh extends Model
 
   public function details()
   {
-    return $this->hasMany(Tr_prd::class, 'fprnoid', 'fprid');
+    return $this->hasMany(Tr_prd::class, 'fprnoid', 'fprhid');
   }
 }

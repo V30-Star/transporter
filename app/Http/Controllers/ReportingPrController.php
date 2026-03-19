@@ -136,7 +136,7 @@ class ReportingPrController extends Controller
 
     foreach ($prhData as $prh) {
       $prh->details = DB::table('tr_prd')
-        ->where('fprnoid', $prh->fprid)
+        ->where('fprnoid', $prh->fprhid)
         ->get();
 
       $supplier = DB::table('mssupplier')
@@ -242,7 +242,7 @@ class ReportingPrController extends Controller
 
       // 2. Ambil Details
       $details = DB::table('tr_prd')
-        ->where('fprnoid', $prh->fprid)
+        ->where('fprnoid', $prh->fprhid)
         ->get();
 
       if ($details->isNotEmpty()) {

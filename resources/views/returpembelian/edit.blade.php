@@ -223,7 +223,8 @@
 
                         <div class="lg:col-span-12">
                             <label class="block text-sm font-medium">Keterangan</label>
-                            <textarea readonly name="fket" rows="3" class="w-full border rounded px-3 py-2 bg-gray-100 @error('fket') border-red-500 @enderror"
+                            <textarea readonly name="fket" rows="3"
+                                class="w-full border rounded px-3 py-2 bg-gray-100 @error('fket') border-red-500 @enderror"
                                 placeholder="Tulis keterangan tambahan di sini...">{{ old('fket', $returpembelian->fket) }}</textarea>
                             @error('fket')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -346,8 +347,8 @@
                                         <div class="flex items-center justify-between gap-6">
                                             <!-- Checkbox -->
                                             <div class="flex items-center">
-                                                <input disabled id="fapplyppn" type="checkbox" name="fapplyppn" value="1"
-                                                    x-model="includePPN"
+                                                <input disabled id="fapplyppn" type="checkbox" name="fapplyppn"
+                                                    value="1" x-model="includePPN"
                                                     class="h-4 w-4 text-blue-600 border-gray-300 bg-gray-100 rounded">
                                                 <label for="fapplyppn" class="ml-2 text-sm font-medium text-gray-700">
                                                     <span class="font-bold">PPN</span>
@@ -356,8 +357,9 @@
 
                                             <!-- Dropdown Include / Exclude (tengah) -->
                                             <div class="flex items-center gap-2">
-                                                <select disabled id="includePPN" name="includePPN" x-model.number="fapplyppn"
-                                                    x-init="fapplyppn = 0" :disabled="!(includePPN || fapplyppn)"
+                                                <select disabled id="includePPN" name="includePPN"
+                                                    x-model.number="fapplyppn" x-init="fapplyppn = 0"
+                                                    :disabled="!(includePPN || fapplyppn)"
                                                     class="w-28 h-9 px-2 text-sm leading-tight border bg-gray-100 rounded transition-opacity appearance-none
                                                            disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
                                                     <option value="0">Exclude</option>
@@ -367,8 +369,9 @@
 
                                             <!-- Input Rate + Nominal (kanan) -->
                                             <div class="flex items-center gap-2">
-                                                <input disabled type="number" min="0" max="100" step="0.01"
-                                                    x-model.number="ppnRate" :disabled="!(includePPN || fapplyppn)"
+                                                <input disabled type="number" min="0" max="100"
+                                                    step="0.01" x-model.number="ppnRate"
+                                                    :disabled="!(includePPN || fapplyppn)"
                                                     class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
                                                             [appearance:textfield]
                                                             [&::-webkit-outer-spin-button]:appearance-none
@@ -1347,8 +1350,8 @@
                         </div>
 
                         <!-- MODAL DESC (di dalam itemsTable) -->
-                        <div x-show="showDescModal" x-cloak
-                            class="fixed inset-0 z-[95] flex items-center justify-center" x-transition.opacity>
+                        <div x-show="showDescModal" x-cloak class="fixed inset-0 z-[95] flex items-center justify-center"
+                            x-transition.opacity>
                             <div class="absolute inset-0 bg-black/50" @click="closeDesc()"></div>
 
                             <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
@@ -1437,8 +1440,8 @@
                             <!-- Table with fixed height and scroll -->
                             <div class="flex-1 overflow-y-auto px-6" style="min-height: 0;">
                                 <div class="bg-white">
-                                    <table id="supplierBrowseTable"
-                                        class="min-w-full text-sm display nowrap stripe hover" style="width:100%">
+                                    <table id="supplierBrowseTable" class="min-w-full text-sm display nowrap stripe hover"
+                                        style="width:100%">
                                         <thead class="sticky top-0 z-10">
                                             <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
                                                 <th
@@ -1638,15 +1641,16 @@
         <div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
                 <h3 class="text-lg font-semibold mb-4">Konfirmasi Hapus returpembelian ini?</h3>
-                <form id="deleteForm" action="{{ route('returpembelian.destroy', $returpembelian->fstockmtid) }}" method="POST">
+                <form id="deleteForm" action="{{ route('returpembelian.destroy', $returpembelian->fstockmtid) }}"
+                    method="POST">
                     @csrf
                     @method('DELETE')
-                <div class="flex justify-end space-x-2">
-                    <button onclick="closeDeleteModal()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-                        id="btnTidak">
-                        Tidak
-                    </button>
-                    <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+                    <div class="flex justify-end space-x-2">
+                        <button onclick="closeDeleteModal()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                            id="btnTidak">
+                            Tidak
+                        </button>
+                        <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
                             Ya, Hapus
                         </button>
                     </div>
@@ -2454,7 +2458,7 @@
                     // Tampilkan loading indicator (opsional)
 
                     const url = `{{ route('tr_poh.items', ['id' => 'PR_ID_PLACEHOLDER']) }}`
-                        .replace('PR_ID_PLACEHOLDER', row.fprid);
+                        .replace('PR_ID_PLACEHOLDER', row.fprhid);
 
                     const res = await fetch(url, {
                         headers: {
