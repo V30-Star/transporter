@@ -234,10 +234,10 @@ Route::middleware('auth')->group(function () {
         Route::post('/tr_poh',        [Tr_pohController::class, 'store'])->name('tr_poh.store');
         Route::get('/tr_poh/create', [Tr_pohController::class, 'create'])->name('tr_poh.create');
         Route::get('/tr_poh/{fprid}/view', [Tr_pohController::class, 'view'])->name('tr_poh.view');
-        Route::get('/tr_poh/{fpohdid}/edit', [Tr_pohController::class, 'edit'])->name('tr_poh.edit');
-        Route::get('/tr_poh/{fpohdid}/delete', [Tr_pohController::class, 'delete'])->name('tr_poh.delete');
-        Route::patch('/tr_poh/{fpohdid}', [Tr_pohController::class, 'update'])->name('tr_poh.update');
-        Route::delete('/tr_poh/{fpohdid}', [Tr_pohController::class, 'destroy'])->name('tr_poh.destroy');
+        Route::get('/tr_poh/{fpohid}/edit', [Tr_pohController::class, 'edit'])->name('tr_poh.edit');
+        Route::get('/tr_poh/{fpohid}/delete', [Tr_pohController::class, 'delete'])->name('tr_poh.delete');
+        Route::patch('/tr_poh/{fpohid}', [Tr_pohController::class, 'update'])->name('tr_poh.update');
+        Route::delete('/tr_poh/{fpohid}', [Tr_pohController::class, 'destroy'])->name('tr_poh.destroy');
         Route::get('/tr_poh/{fpono}/print', [Tr_pohController::class, 'print'])
             ->where('fpono', '.*')
             ->name('tr_poh.print');

@@ -75,7 +75,7 @@ class ReportingController extends Controller
       ? $this->getPohQuery($request)
       ->with('supplier:fsupplierid,fsuppliername')
       ->get([
-        'fpohdid',
+        'fpohid',
         'fpono',
         'fpodate',
         'fsupplier',
@@ -136,7 +136,7 @@ class ReportingController extends Controller
 
     foreach ($pohData as $poh) {
       $poh->details = DB::table('tr_pod')
-        ->where('fpono', $poh->fpohdid)
+        ->where('fpono', $poh->fpohid)
         ->orderBy('fnou')
         ->get();
       $grandTotalHarga += $poh->total_harga ?? 0;
@@ -260,7 +260,7 @@ class ReportingController extends Controller
     $row = 2;
     foreach ($dataToExport as $poh) {
       $pohBaseData = [
-        $poh->fpohdid,
+        $poh->fpohid,
         $poh->fpono,
         Carbon::parse($poh->fpodate)->format('d-m-Y'),
         $poh->fsupplier,

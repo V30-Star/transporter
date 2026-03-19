@@ -76,7 +76,7 @@ class ReportingAssemblingController extends Controller
       ? $this->getAssemblingQuery($request)
       ->with('supplier:fsupplierid,fsuppliername')
       ->get([
-        'fpohdid',
+        'fpohid',
         'fpono',
         'fstockmtdate',
         'fsupplier',

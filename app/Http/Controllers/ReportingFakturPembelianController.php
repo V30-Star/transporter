@@ -76,7 +76,7 @@ class ReportingFakturPembelianController extends Controller
       ? $this->getFakturPembelianQuery($request)
       ->with('supplier:fsupplierid,fsuppliername')
       ->get([
-        'fpohdid',
+        'fpohid',
         'fpono',
         'fstockmtdate',
         'fsupplier',

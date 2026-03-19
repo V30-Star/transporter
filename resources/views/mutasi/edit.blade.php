@@ -130,7 +130,8 @@
 
                             <div class="lg:col-span-4">
                                 <label class="block text-sm font-medium">Tanggal</label>
-                                <input disabled type="date" name="fstockmtdate" value="{{ old('fstockmtdate') ?? date('Y-m-d') }}"
+                                <input disabled type="date" name="fstockmtdate"
+                                    value="{{ old('fstockmtdate') ?? date('Y-m-d') }}"
                                     class="w-full border rounded px-3 py-2 bg-gray-100 @error('fstockmtdate') border-red-500 @enderror">
                                 @error('fstockmtdate')
                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -230,7 +231,8 @@
 
                             <div class="lg:col-span-12">
                                 <label class="block text-sm font-medium">Keterangan</label>
-                                <textarea readonly name="fket" rows="3" class="w-full border rounded px-3 py-2 bg-gray-100 @error('fket') border-red-500 @enderror"
+                                <textarea readonly name="fket" rows="3"
+                                    class="w-full border rounded px-3 py-2 bg-gray-100 @error('fket') border-red-500 @enderror"
                                     placeholder="Tulis keterangan tambahan di sini...">{{ old('fket', $mutasi->fket) }}</textarea>
                                 @error('fket')
                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -1334,12 +1336,12 @@
                 <form id="deleteForm" action="{{ route('mutasi.destroy', $mutasi->fstockmtid) }}" method="POST">
                     @csrf
                     @method('DELETE')
-                <div class="flex justify-end space-x-2">
-                    <button onclick="closeDeleteModal()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-                        id="btnTidak">
-                        Tidak
-                    </button>
-                    <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+                    <div class="flex justify-end space-x-2">
+                        <button onclick="closeDeleteModal()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                            id="btnTidak">
+                            Tidak
+                        </button>
+                        <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
                             Ya, Hapus
                         </button>
                     </div>
@@ -2054,7 +2056,7 @@
             async pick(row) {
                 try {
                     const url = `{{ route('penerimaanbarang.items', ['id' => 'PO_ID_PLACEHOLDER']) }}`
-                        .replace('PO_ID_PLACEHOLDER', row.fpohdid);
+                        .replace('PO_ID_PLACEHOLDER', row.fpohid);
 
                     const res = await fetch(url, {
                         headers: {

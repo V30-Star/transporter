@@ -75,7 +75,7 @@ class ReportingPrController extends Controller
       ? $this->getPrdQuery($request)
       ->with('supplier:fsupplierid,fsuppliername')
       ->get([
-        'fpohdid',
+        'fpohid',
         'fpono',
         'fprdate',
         'fsupplier',

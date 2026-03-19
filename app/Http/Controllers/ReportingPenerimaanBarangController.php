@@ -76,7 +76,7 @@ class ReportingPenerimaanBarangController extends Controller
       ? $this->getPenerimaanBarangQuery($request)
       ->with('supplier:fsupplierid,fsuppliername')
       ->get([
-        'fpohdid',
+        'fpohid',
         'fpono',
         'fstockmtdate',
         'fsupplier',

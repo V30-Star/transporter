@@ -76,7 +76,7 @@ class ReportingAdjStockController extends Controller
       ? $this->getAdjStockQuery($request)
       ->with('supplier:fsupplierid,fsuppliername')
       ->get([
-        'fpohdid',
+        'fpohid',
         'fpono',
         'fstockmtdate',
         'fsupplier',

@@ -10,8 +10,8 @@ class Tr_poh extends Model
   use HasFactory;
 
   protected $table = 'tr_poh';
-  protected $primaryKey = 'fpohdid';
-  protected $guarded = ['fpohdid'];
+  protected $primaryKey = 'fpohid';
+  protected $guarded = ['fpohid'];
   public $timestamps = false;
 
 
@@ -19,13 +19,13 @@ class Tr_poh extends Model
   {
     $query->when($search ?? false, function ($query, $search) {
       $query->where(function ($query) use ($search) {
-        $query->whereAny(['fpohdid', 'fprdin'], 'like', '%' . $search . '%');
+        $query->whereAny(['fpohid', 'fprdin'], 'like', '%' . $search . '%');
       });
     });
   }
   public function details()
   {
-    return $this->hasMany(Tr_pod::class, 'fpono', 'fpohdid');
+    return $this->hasMany(Tr_pod::class, 'fpono', 'fpohid');
   }
   public function supplier()
   {

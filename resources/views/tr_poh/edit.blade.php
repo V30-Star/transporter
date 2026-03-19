@@ -543,7 +543,7 @@
                         {{-- MODE EDIT: FORM EDITABLE                    --}}
                         {{-- ============================================ --}}
                     @else
-                        <form action="{{ route('tr_poh.update', $tr_poh->fpohdid) }}" method="POST" class="mt-6"
+                        <form action="{{ route('tr_poh.update', $tr_poh->fpohid) }}" method="POST" class="mt-6"
                             x-data="{ showNoItems: false }"
                             @submit.prevent="
         const n = Number(document.getElementById('itemsCount')?.value || 0);
@@ -1580,7 +1580,7 @@
                 btnYa.textContent = 'Menghapus...';
 
                 // Kirim request delete
-                fetch('{{ route('tr_poh.destroy', $tr_poh->fpohdid) }}', {
+                fetch('{{ route('tr_poh.destroy', $tr_poh->fpohid) }}', {
                         method: 'POST',
                         headers: {
                             'X-CSRF-TOKEN': '{{ csrf_token() }}',

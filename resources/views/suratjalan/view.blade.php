@@ -1208,7 +1208,7 @@
                 async pick(row) {
                     try {
                         const url = `{{ route('suratjalan.items', ['id' => 'PO_ID_PLACEHOLDER']) }}`
-                            .replace('PO_ID_PLACEHOLDER', row.fpohdid);
+                            .replace('PO_ID_PLACEHOLDER', row.fpohid);
 
                         const res = await fetch(url, {
                             headers: {

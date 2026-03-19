@@ -180,9 +180,9 @@ class PenerimaanBarangController extends Controller
 
   public function items($id)
   {
-    // Ambil data header PO berdasarkan fpohdid
+    // Ambil data header PO berdasarkan fpohid
     $header = DB::table('tr_poh')
-      ->where('fpohdid', $id)
+      ->where('fpohid', $id)
       ->first();
 
     if (!$header) {
@@ -193,7 +193,7 @@ class PenerimaanBarangController extends Controller
 
     // Ambil items dari tr_pod dengan join ke msprd
     $items = DB::table('tr_pod')
-      ->where('tr_pod.fpono', $header->fpohdid) // fpono (FK) = fpohdid (PK di tr_poh)
+      ->where('tr_pod.fpono', $header->fpohid) // fpono (FK) = fpohid (PK di tr_poh)
       ->leftJoin('msprd as m', 'm.fprdid', '=', 'tr_pod.fprdcode')
       ->select([
         'tr_pod.fpodid as frefdtno',        // ID detail sebagai referensi
@@ -216,7 +216,7 @@ class PenerimaanBarangController extends Controller
 
     return response()->json([
       'header' => [
-        'fpohdid'   => $header->fpohdid,
+        'fpohid'   => $header->fpohid,
         'fpono'     => $header->fpono,
         'fsupplier' => trim($header->fsupplier ?? ''),
         'fpodate'   => $header->fpodate ? date('Y-m-d H:i:s', strtotime($header->fpodate)) : null,

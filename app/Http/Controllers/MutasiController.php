@@ -198,15 +198,15 @@ class MutasiController extends Controller
     public function items($id)
     {
         // Langkah ini sudah benar: mendapatkan header berdasarkan Primary Key (ID)
-        $header = Tr_poh::where('fpohdid', $id)->firstOrFail();
+        $header = Tr_poh::where('fpohid', $id)->firstOrFail();
 
         // Mengambil detail dari tr_pod
         $items = DB::table('tr_pod')
             // =================================================================
-            // PERBAIKAN: Gunakan ID dari header (fpohdid) untuk mencocokkan.
-            // Kolom tr_pod.fpono (integer) dicocokkan dengan $header->fpohdid (integer).
+            // PERBAIKAN: Gunakan ID dari header (fpohid) untuk mencocokkan.
+            // Kolom tr_pod.fpono (integer) dicocokkan dengan $header->fpohid (integer).
             // =================================================================
-            ->where('tr_pod.fpono', $header->fpohdid) // <-- DIUBAH DARI $header->fpono
+            ->where('tr_pod.fpono', $header->fpohid) // <-- DIUBAH DARI $header->fpono
 
             // PERBAIKAN JOIN: tr_pod.fprdcode (sekarang integer) di-join ke msprd.fprdid (integer)
             ->leftJoin('msprd as m', 'm.fprdid', '=', 'tr_pod.fprdcode')
@@ -227,7 +227,7 @@ class MutasiController extends Controller
         // Mengembalikan data dalam format JSON
         return response()->json([
             'header' => [
-                'fprid'     => $header->fpohdid,
+                'fprid'     => $header->fpohid,
                 'fprno'     => $header->fpono,
                 'fsupplier' => trim($header->fsupplier ?? ''),
                 'fprdate'   => optional($header->fpodate)->format('Y-m-d H-i-s'),

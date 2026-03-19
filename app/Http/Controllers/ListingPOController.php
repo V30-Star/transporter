@@ -160,16 +160,16 @@ class ListingPOController extends Controller
             ->groupBy('frefdtno', 'fprdcode', 'fnouref');
 
         $query = DB::table('tr_poh as h')
-            ->leftJoin('tr_pod as d', 'h.fpohdid', '=', 'd.fpono')
+            ->leftJoin('tr_pod as d', 'h.fpohid', '=', 'd.fpono')
             ->leftJoin('mssupplier as s', 'h.fsupplier', '=', 's.fsupplierid')
             ->leftJoin('msprd as p', 'd.fprdcode', '=', 'p.fprdid')
             ->leftJoinSub($subTerima, 'ter', function ($join) {
-                $join->on('h.fpohdid', '=', 'ter.frefdtno')
+                $join->on('h.fpohid', '=', 'ter.frefdtno')
                     ->on(DB::raw('ter.fprdcode'), '=', DB::raw('p.fprdid'))
                     ->on(DB::raw('ter.fnouref'), '=', DB::raw('d.fnou'));
             })
             ->select(
-                'h.fpohdid',
+                'h.fpohid',
                 'h.fpono',
                 'h.fpodate',
                 'h.fusercreate',
