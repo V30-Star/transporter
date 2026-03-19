@@ -286,7 +286,7 @@ class Tr_prhController extends Controller
 
   public function store(Request $request)
   {
-    // VALIDATION
+    // ===== VALIDATION =====
     $request->validate([
       'fprdate'      => ['nullable', 'date'],
       'fneeddate'    => ['nullable', 'date'],
@@ -311,14 +311,13 @@ class Tr_prhController extends Controller
 
       'fapproval'    => ['nullable'],
     ], [
-      'fsupplier.required' => 'Supplier harus dipilih.',
       'fitemcode.*.max' => 'Panjang kode produk maksimal 50 karakter.',
-      'fsatuan.*.max' => 'Panjang satuan maksimal 20 karakter.',
-      'fdesc.*.max' => 'Panjang deskripsi maksimal 300 karakter.',
-      'fketdt.*.max' => 'Panjang keterangan detail maksimal 50 karakter.',
+      'fsatuan.*.max'   => 'Panjang satuan maksimal 20 karakter.',
+      'fdesc.*.max'     => 'Panjang deskripsi maksimal 300 karakter.',
+      'fketdt.*.max'    => 'Panjang keterangan detail maksimal 50 karakter.',
     ]);
 
-    // HEADER DATE + CODE
+    // ===== HEADER DATE + CODE =====
     $fprdate = $request->filled('fprdate')
       ? Carbon::parse($request->fprdate)->startOfDay()
       : now()->startOfDay();
@@ -334,19 +333,30 @@ class Tr_prhController extends Controller
     $authUser = auth('sysuser')->user();
     $userName = $authUser->fname ?? null;
 
-    // ARRAYS
-    $codes   = $request->input('fitemcode', []);
-    $sats    = $request->input('fsatuan', []);
-    $qtys    = $request->input('fqty', []);
-    $descs   = $request->input('fdesc', []);
-    $ketdts  = $request->input('fketdt', []);
+    // ===== ARRAYS =====
+    $codes  = $request->input('fitemcode', []);
+    $sats   = $request->input('fsatuan', []);
+    $qtys   = $request->input('fqty', []);
+    $descs  = $request->input('fdesc', []);
+    $ketdts = $request->input('fketdt', []);
 
-    // PRODUCT MAP: code -> (id, stock)
-    $productMap = Product::whereIn('fprdcode', array_filter($codes))
-      ->get(['fprdid', 'fprdcode', 'fminstock', 'fsatuanbesar', 'fsatuankecil', 'fqtykecil as rasio_konversi'])
+    // ===== PRODUCT MAP =====
+    $productMap = DB::table('msprd')
+      ->whereIn('fprdcode', array_values(array_filter($codes)))
+      ->select(
+        'fprdid',
+        'fprdcode',
+        'fminstock',
+        'fsatuankecil',
+        'fsatuanbesar',
+        'fqtykecil',     // rasio: 1 satuanbesar  = N satuankecil
+        'fsatuanbesar2',
+        'fqtykecil2',    // rasio: 1 satuanbesar2 = N satuankecil (varchar!)
+      )
+      ->get()
       ->keyBy('fprdcode');
 
-    // STOCK VALIDATION
+    // ===== STOCK VALIDATION =====
     $validator = Validator::make([], []);
     foreach ($codes as $i => $codeRaw) {
       $code = trim($codeRaw ?? '');
@@ -366,7 +376,7 @@ class Tr_prhController extends Controller
       return back()->withErrors($validator)->withInput();
     }
 
-    // CHECK DETAIL EXISTENCE
+    // ===== CHECK DETAIL EXISTENCE =====
     $hasValidDetail = false;
     $rowCount = max(count($codes), count($sats), count($qtys), count($descs), count($ketdts));
     for ($i = 0; $i < $rowCount; $i++) {
@@ -384,7 +394,7 @@ class Tr_prhController extends Controller
         ->withErrors(['detail' => 'Minimal satu item detail dengan Kode, Satuan, dan Qty ≥ 1.']);
     }
 
-    // TRANSACTION
+    // ===== TRANSACTION =====
     DB::transaction(function () use (
       $request,
       $fprno,
@@ -413,7 +423,7 @@ class Tr_prhController extends Controller
         'fcreatedat'    => now(),
         'fneeddate'     => $fneeddate,
         'fduedate'      => $fduedate,
-        'fusercreate'       => $userName,
+        'fusercreate'   => $userName,
         'fuserapproved' => $request->has('fuserapproved') ? $userName : null,
         'fdateapproved' => $request->has('fuserapproved') ? now() : null,
         'fupdatedat'    => null,
@@ -422,44 +432,55 @@ class Tr_prhController extends Controller
 
       // CREATE DETAILS
       $detailRows = [];
-      $now = now();
-      $rowCount = max(count($codes), count($sats), count($qtys), count($descs), count($ketdts));
+      $now        = now();
+      $rowCount   = max(count($codes), count($sats), count($qtys), count($descs), count($ketdts));
 
       for ($i = 0; $i < $rowCount; $i++) {
-        $code   = trim($codes[$i] ?? '');
-        $sat    = trim($sats[$i] ?? '');
-        $qty    = is_numeric($qtys[$i] ?? null) ? (int)$qtys[$i] : null;
-
-        $desc   = $descs[$i]  ?? null;
-        $ketdt  = $ketdts[$i] ?? null;
+        $code  = trim($codes[$i] ?? '');
+        $sat   = trim($sats[$i] ?? '');
+        $qty   = is_numeric($qtys[$i] ?? null) ? (int)$qtys[$i] : null;
+        $desc  = $descs[$i]  ?? null;
+        $ketdt = $ketdts[$i] ?? null;
 
         if ($code !== '' && $sat !== '' && is_numeric($qty) && $qty >= 1) {
-          $productId = (int)($productMap[$code]->fprdid ?? 0); // <-- use msprd.fprdid
+          $product   = $productMap[$code] ?? null;
+          $productId = (int)($product->fprdid ?? 0);
           if ($productId === 0) continue;
 
-          $qtyKecil = $qty;
-          $product = $productMap[$code] ?? null;
-          if ($product && $sat === $product->fsatuanbesar) {
-            $qtyKecil = $qty * (float)$product->rasio_konversi;
+          // ===== KONVERSI SATUAN → SATUAN KECIL =====
+          $qtyKecil = $qty; // default: sudah satuan kecil
+
+          if ($product) {
+            if ($sat === $product->fsatuanbesar) {
+              // Contoh: 1 CTN = 10 PCS
+              $rasio    = is_numeric($product->fqtykecil) ? (float)$product->fqtykecil : 1;
+              $qtyKecil = $qty * $rasio;
+            } elseif (!empty($product->fsatuanbesar2) && $sat === $product->fsatuanbesar2) {
+              // Contoh: 1 ROLL = 20 PCS (fqtykecil2 adalah varchar, harus is_numeric)
+              $rasio2   = is_numeric($product->fqtykecil2) ? (float)$product->fqtykecil2 : 1;
+              $qtyKecil = $qty * $rasio2;
+            }
+            // Kalau sat === fsatuankecil → tidak perlu konversi
           }
 
           $detailRows[] = [
-            'fprnoid'    => $tr_prh->fprid,   // header link
-            'fprdcode'   => $productId,       // store msprd.fprdid
-            'fqty'       => (int)$qty,
+            'fprnoid'     => $tr_prh->fprid,
+            'fprdcode'    => $productId,
+            'fqty'        => (int)$qty,
             'fqtyremain'  => $qtyKecil,
-            'fprice'     => 0,
-            'fketdt'     => $ketdt,
-            'fcreatedat' => $now,
-            'fsatuan'    => $sat,
-            'fdesc'      => $desc,
-            'fusercreate'    => $userName,
+            'fprice'      => 0,
+            'fketdt'      => $ketdt,
+            'fcreatedat'  => $now,
+            'fsatuan'     => $sat,
+            'fdesc'       => $desc,
+            'fusercreate' => $userName,
           ];
         }
       }
 
       Tr_prd::insert($detailRows);
 
+      // UPDATE STOK
       foreach ($codes as $i => $codeRaw) {
         $code = trim($codeRaw ?? '');
         $qty  = (int)($qtys[$i] ?? 0);
@@ -473,9 +494,10 @@ class Tr_prhController extends Controller
         }
       }
 
+      // KIRIM EMAIL JIKA APPROVAL
       if ($isApproval === 1) {
         $dt = Tr_prd::query()
-          ->leftJoin('msprd as p', 'p.fprdid', '=', 'tr_prd.fprdcode') // join by product ID
+          ->leftJoin('msprd as p', 'p.fprdid', '=', 'tr_prd.fprdcode')
           ->where('tr_prd.fprnoid', $tr_prh->fprid)
           ->orderBy('p.fprdname')
           ->get([
@@ -486,7 +508,7 @@ class Tr_prhController extends Controller
           ]);
 
         $productNameList = $dt->pluck('product_name')->implode(', ');
-        $approver = auth('sysuser')->user()->fname ?? $tr_prh->fusercreate ?? 'System';
+        $approver        = auth('sysuser')->user()->fname ?? $tr_prh->fusercreate ?? 'System';
 
         Mail::to('vierybiliam8@gmail.com')
           ->send(new ApprovalEmail($tr_prh, $dt, $productNameList, $approver, 'Permintaan Pembelian (PR)'));
@@ -670,7 +692,7 @@ class Tr_prhController extends Controller
     $header = Tr_prh::where('fprid', $fprid)->firstOrFail();
     $fprId  = (int) $header->fprid;
 
-    // ===== 2) VALIDASI INPUT HEADER & DETAIL =====
+    // ===== 2) VALIDASI INPUT =====
     $request->validate([
       'fprdate'      => ['nullable', 'date'],
       'fneeddate'    => ['nullable', 'date'],
@@ -728,18 +750,18 @@ class Tr_prhController extends Controller
       ->select(
         'fprdcode',
         'fprdid',
+        'fminstock',
         'fsatuankecil',
         'fsatuanbesar',
-        'fqtykecil',    // rasio: 1 satuanbesar  = N satuankecil
+        'fqtykecil',     // rasio: 1 satuanbesar  = N satuankecil (numeric)
         'fsatuanbesar2',
-        'fqtykecil2',   // rasio: 1 satuanbesar2 = N satuankecil
-        'fminstock'
+        'fqtykecil2',    // rasio: 1 satuanbesar2 = N satuankecil (varchar!)
       )
       ->get()
       ->keyBy('fprdcode');
 
-    $codeIdMap  = $products->pluck('fprdid', 'fprdcode'); // ['C-14' => 123]
-    $productMap = $products;                               // full objects keyed by fprdcode
+    $codeIdMap  = $products->pluck('fprdid', 'fprdcode');
+    $productMap = $products;
 
     // ===== 6) VALIDASI STOK =====
     foreach ($codes as $i => $codeStr) {
@@ -781,7 +803,7 @@ class Tr_prhController extends Controller
       }
 
       $sat  = trim((string)($sats[$i]  ?? ''));
-      $qty  = (int)($qtys[$i]   ?? 0);
+      $qty  = (int)($qtys[$i] ?? 0);
       $desc = $descs[$i]  ?? null;
       $ket  = $ketdts[$i] ?? null;
 
@@ -791,13 +813,15 @@ class Tr_prhController extends Controller
       $product = $productMap[$codeStr] ?? null;
       if ($product) {
         if ($sat === $product->fsatuanbesar) {
-          // Contoh: 1 CTN = 10 PCS → qty=2 CTN → qtyKecil=20
-          $qtyKecil = $qty * (float)$product->fqtykecil;
+          // Contoh: 1 CTN = 10 PCS
+          $rasio    = is_numeric($product->fqtykecil) ? (float)$product->fqtykecil : 1;
+          $qtyKecil = $qty * $rasio;
         } elseif (!empty($product->fsatuanbesar2) && $sat === $product->fsatuanbesar2) {
-          // Contoh: 1 DUS = 20 PCS → qty=1 DUS → qtyKecil=20
-          $qtyKecil = $qty * (float)$product->fqtykecil2;
+          // Contoh: 1 ROLL = 20 PCS (fqtykecil2 adalah varchar, harus is_numeric)
+          $rasio2   = is_numeric($product->fqtykecil2) ? (float)$product->fqtykecil2 : 1;
+          $qtyKecil = $qty * $rasio2;
         }
-        // Kalau sat === fsatuankecil, tidak perlu konversi
+        // Kalau sat === fsatuankecil → tidak perlu konversi
       }
 
       // Hanya terima baris valid
@@ -867,7 +891,7 @@ class Tr_prhController extends Controller
       // Insert ulang detail baru
       DB::table('tr_prd')->insert($detailRows);
 
-      // Update stok berdasarkan kode string
+      // Update stok
       foreach ($codes as $i => $codeStr) {
         $qty = (int)($qtys[$i] ?? 0);
         if ($qty > 0 && $codeStr !== '') {
