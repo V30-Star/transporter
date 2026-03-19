@@ -104,7 +104,7 @@
                             <div class="lg:col-span-4" x-data="{ autoCode: true }">
                                 <label class="block text-sm font-medium mb-1">PO#</label>
                                 <div class="flex items-center gap-3">
-                                    <input type="text" name="fpono" class="w-full border rounded px-3 py-2"
+                                    <input type="text" name="fpohid" class="w-full border rounded px-3 py-2"
                                         :disabled="autoCode"
                                         :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
                                     <label class="inline-flex items-center select-none">
@@ -340,7 +340,7 @@
                                                     </div>
                                                 </td>
                                                 <td class="p-2" x-text="it.fsatuan"></td>
-                                                <td class="p-2" x-text="it.fpono || '-'"></td>
+                                                <td class="p-2" x-text="it.fpohid || '-'"></td>
                                                 <td class="p-2 text-right" x-text="fmt(it.fqty)"></td>
                                                 <td class="p-2 text-right" x-text="fmt(it.fterima)"></td>
                                                 <td class="p-2 text-right" x-text="fmt(it.fprice)"></td>
@@ -565,7 +565,7 @@
                                 <div class="lg:col-span-4" x-data="{ autoCode: true }">
                                     <label class="block text-sm font-medium mb-1">PO#</label>
                                     <div class="flex items-center gap-3">
-                                        <input type="text" name="fpono" class="w-full border rounded px-3 py-2"
+                                        <input type="text" name="fpohid" class="w-full border rounded px-3 py-2"
                                             :disabled="autoCode"
                                             :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
                                         <label class="inline-flex items-center select-none">
@@ -806,7 +806,7 @@
                                                         </div>
                                                     </td>
                                                     <td class="p-2" x-text="it.fsatuan"></td>
-                                                    <td class="p-2" x-text="it.fpono || '-'"></td>
+                                                    <td class="p-2" x-text="it.fpohid || '-'"></td>
                                                     <td class="p-2 text-right" x-text="fmt(it.fqty)"></td>
                                                     <td class="p-2 text-right" x-text="fmt(it.fterima)"></td>
                                                     <td class="p-2 text-right" x-text="fmt(it.fprice)"></td>
@@ -1707,7 +1707,7 @@
     // Map produk untuk auto-fill tabel
     window.PRODUCT_MAP = {
         @foreach ($products as $p)
-            "{{ $p->fprdcode }}": {
+            "{{ $p->fprdid }}": {
                 name: @json($p->fprdname),
                 units: @json(array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2]))),
                 stock: @json($p->fminstock ?? 0)
@@ -2054,7 +2054,7 @@
                         frefdtno: src.frefdtno ?? '',
                         fnouref: src.fnouref ?? '',
                         frefpr: src.frefpr ?? '',
-                        fpono: header?.fpono ?? src.fpono ?? '',
+                        fpohid: header?.fpohid ?? src.fpohid ?? '',
                         fprhid: src.fprhid ?? header?.fprhid ?? '',
                         fqty: Number(src.fqty ?? 0),
                         fterima: Number(src.ferima ?? 0),
@@ -2210,7 +2210,7 @@
                     } = e.detail || {};
                     if (!product) return;
                     const apply = (row) => {
-                        row.fitemcode = (product.fprdcode || '').toString();
+                        row.fitemcode = (product.fprdid || '').toString();
                         this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
                         if (!row.fqty) row.fqty = 1;
                         this.recalc(row);
@@ -2541,8 +2541,8 @@
                             }
                         },
                         columns: [{
-                                data: 'fprdcode',
-                                name: 'fprdcode',
+                                data: 'fprdid',
+                                name: 'fprdid',
                                 className: 'font-mono text-sm'
                             },
                             {

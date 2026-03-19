@@ -16,7 +16,7 @@ class Tr_pod extends Model
 
   public function header()
   {
-    return $this->belongsTo(Tr_poh::class, 'fpono', 'fpohid');
+    return $this->belongsTo(Tr_poh::class, 'fpohid', 'fpohid');
   }
 
   public function scopeSearch($query, $search)

@@ -25,7 +25,7 @@ class Tr_poh extends Model
   }
   public function details()
   {
-    return $this->hasMany(Tr_pod::class, 'fpono', 'fpohid');
+    return $this->hasMany(Tr_pod::class, 'fpohid', 'fpohid');
   }
   public function supplier()
   {

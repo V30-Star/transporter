@@ -291,8 +291,8 @@
 
             // 1. Definisi Kolom
             const columns = [{
-                    data: 'fpono',
-                    name: 'fpono'
+                    data: 'fpohid',
+                    name: 'fpohid'
                 },
                 {
                     data: 'fsuppliername',

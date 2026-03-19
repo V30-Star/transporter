@@ -47,7 +47,7 @@ class Tr_pohController extends Controller
 
       // Handle Search
       if ($search = $request->input('search.value')) {
-        $query->where('fpono', 'like', "%{$search}%");
+        $query->where('fpohid', 'like', "%{$search}%");
       }
 
       // Filter status
@@ -74,7 +74,7 @@ class Tr_pohController extends Controller
       $orderColIdx = $request->input('order.0.column', 0);
       $orderDir = $request->input('order.0.dir', 'asc');
 
-      $sortableColumns = ['fpono', 'fsupplier', 'fpodate', 'fclose', 'fusercreate', 'fapproval', 'mssupplier.fsuppliername'];
+      $sortableColumns = ['fpohid', 'fsupplier', 'fpodate', 'fclose', 'fusercreate', 'fapproval', 'mssupplier.fsuppliername'];
 
       if (isset($sortableColumns[$orderColIdx])) {
         $query->orderBy($sortableColumns[$orderColIdx], $orderDir);
@@ -85,13 +85,12 @@ class Tr_pohController extends Controller
       $length = $request->input('length', 10);
       $records = $query->skip($start)
         ->take($length)
-        ->get(['fpohdid', 'fpono', 'fsupplier', 'fpodate', 'fclose', 'fusercreate', 'fapproval', 'mssupplier.fsuppliername']);
+        ->get(['fpohid', 'fsupplier', 'fpodate', 'fclose', 'fusercreate', 'fapproval', 'mssupplier.fsuppliername']);
 
       // Format Data - HANYA RETURN DATA MENTAH
       $data = $records->map(function ($row) {
         return [
-          'fpohdid'   => $row->fpohdid,
-          'fpono'     => $row->fpono,
+          'fpohid'     => $row->fpohid,
           'fsupplier' => $row->fsupplier,
           'fpodate'   => $row->fpodate,
           'fclose'    => $row->fclose == '1' ? 'Done' : 'Not Done',
@@ -186,11 +185,12 @@ class Tr_pohController extends Controller
 
     // PERBAIKAN: Gunakan fprhid (integer) bukan fprno (varchar)
     $items = Tr_prd::where('tr_prd.fprhid', $header->fprhid) // <- Gunakan fprhid
-      ->leftJoin('msprd as m', 'm.fprdid', '=', 'tr_prd.fprdcode')
+      ->leftJoin('msprd as m', 'm.fprdid', '=', 'tr_prd.fprdid')
       ->select([
         'tr_prd.fprdid as frefdtno',
         'tr_prd.fprhid as fnouref',
-        'tr_prd.fprdcode as fitemcode',
+        // 'tr_prd.fprdid as fitemcode',
+        'm.fprdcode as fitemcode',
         'm.fprdname as fitemname',
         'tr_prd.fqty',
         'tr_prd.fsatuan as fsatuan',
@@ -198,7 +198,7 @@ class Tr_pohController extends Controller
         'tr_prd.fprice as fharga',
         DB::raw('0::numeric as fdiskon')
       ])
-      ->orderBy('tr_prd.fprdcode')
+      ->orderBy('tr_prd.fprdid')
       ->get();
 
     return response()->json([
@@ -249,7 +249,7 @@ class Tr_pohController extends Controller
     return $prefix . str_pad((string)$next, 4, '0', STR_PAD_LEFT);
   }
 
-  public function print(string $fpono)
+  public function print(string $fpohid)
   {
     // Use the model’s actual table name
     $supplierTable = (new Supplier)->getTable(); // e.g. ms_supplier
@@ -258,7 +258,7 @@ class Tr_pohController extends Controller
     $hdr = Tr_poh::query()
       ->leftJoin("{$supplierTable} as s", 's.fsupplierid', '=', 'tr_poh.fsupplier') // integer ↔ integer
       ->leftJoin('mscabang as c', 'c.fcabangkode', '=', 'tr_poh.fbranchcode')
-      ->where('tr_poh.fpono', $fpono)
+      ->where('tr_poh.fpohid', $fpohid)
       ->first([
         'tr_poh.*',
         's.fsuppliername as supplier_name',
@@ -270,16 +270,16 @@ class Tr_pohController extends Controller
     }
 
     // Use header ID (integer) for detail FK
-    $fpohdid = (int) $hdr->fpohdid;
+    $fpohid = (int) $hdr->fpohid;
 
     $dt = DB::table('tr_pod')
       ->leftJoin('msprd as p', function ($j) {
-        $j->on('p.fprdid', '=', DB::raw('CAST(tr_pod.fprdcode AS INTEGER)'));
-      })->where('tr_pod.fpono', $fpohdid)                            // detail FK = header ID
-      ->orderBy('tr_pod.fprdcode')
+        $j->on('p.fprdid', '=', DB::raw('CAST(tr_pod.fprdid AS INTEGER)'));
+      })->where('tr_pod.fpohid', $fpohid)                            // detail FK = header ID
+      ->orderBy('tr_pod.fprdid')
       ->get([
         'tr_pod.*',
-        'p.fprdcode as product_code',
+        'p.fprdid as product_code',
         'p.fprdname as product_name',
         'p.fminstock as stock',
         'tr_pod.fqtyremain',
@@ -345,7 +345,7 @@ class Tr_pohController extends Controller
   {
     // VALIDATION
     $request->validate([
-      'fpono'        => ['nullable', 'string', 'max:25'],
+      'fpohid'        => ['nullable', 'string', 'max:25'],
       'fpodate'      => ['required', 'date'],
       'fkirimdate'   => ['nullable', 'date'],
       'fincludeppn'  => ['nullable'],
@@ -363,9 +363,6 @@ class Tr_pohController extends Controller
 
       'frefdtno'     => ['nullable'],
       'frefdtno.*'   => ['nullable'],
-
-      'fnouref'      => ['nullable'],
-      'fnouref.*'    => ['nullable'],
 
       'fqty'         => ['required', 'array'],
       'fqty.*'       => ['numeric', 'min:0'],
@@ -392,7 +389,7 @@ class Tr_pohController extends Controller
     // HEADER VALUES
     $fpodate     = Carbon::parse($request->fpodate)->startOfDay();
     $fkirimdate  = $request->filled('fkirimdate') ? Carbon::parse($request->fkirimdate)->startOfDay() : null;
-    $fpono       = $request->input('fpono'); // can be null; we will generate if empty
+    $fpohid       = $request->input('fpohid'); // can be null; we will generate if empty
     $fincludeppn = $request->boolean('fincludeppn') ? 1 : 0;
     $userid      = auth('sysuser')->user()->fname ?? 'admin';
     $now         = now();
@@ -401,7 +398,6 @@ class Tr_pohController extends Controller
     $codes   = $request->input('fitemcode', []);
     $satuans = $request->input('fsatuan', []);
     $refdtno = $request->input('frefdtno', []);
-    $nouref  = $request->input('fnouref', []);
     $qtys    = $request->input('fqty', []);
     $prices  = $request->input('fprice', []);
     $discs   = $request->input('fdisc', []);
@@ -430,7 +426,7 @@ class Tr_pohController extends Controller
       return '';
     };
 
-    // BUILD DETAIL ROWS (use fprdid, not fprdcode)
+    // BUILD DETAIL ROWS (use fprdid, not fprdid)
     $rowsPod    = [];
     $totalHarga = 0.0; // recompute to be safe
     $rowCount   = max(count($codes), count($satuans), count($refdtno), count($nouref), count($qtys), count($prices), count($discs), count($refprs), count($descs));
@@ -454,16 +450,16 @@ class Tr_pohController extends Controller
       $productId = (int) (($prodMeta[$code]->fprdid ?? null) ?? 0);
       if ($productId === 0) continue;
 
-      $produk = DB::table('msprd')
+      $product = DB::table('msprd')
         ->where('fprdcode', $code)
-        ->select('fprdid', 'fsatuanbesar', 'fqtykecil as rasio_konversi')
+        ->select('fprdid', 'fprdcode', 'fsatuanbesar', 'fqtykecil as rasio_konversi')
         ->first();
 
-      $itemeId = $produk ? $produk->fprdid : $itemeId;
+      $itemeId = $product ? $product->fprdid : $itemeId;
 
       $qtyKecil = $qty;
-      if ($produk && $sat === $produk->fsatuanbesar) {
-        $qtyKecil = $qty * (float)$produk->rasio_konversi;
+      if ($product && $sat === $product->fsatuanbesar) {
+        $qtyKecil = $qty * (float)$product->rasio_konversi;
       }
 
       $priceGross = $price;
@@ -473,7 +469,8 @@ class Tr_pohController extends Controller
       $totalHarga += $amount;
 
       $rowsPod[] = [
-        'fprdcode'      => $productId,   // <-- integer FK to msprd.fprdid
+        'fprdid'      => $productId,   // <-- integer FK to msprd.fprdid
+        'fprdcode'      => $product->fprdcode ?? '',   // <-- integer FK to msprd.fprdid
         'fqty'        => $qty,
         'fdisc'       => (string)$discP,
         'fprice'      => $price,
@@ -486,7 +483,6 @@ class Tr_pohController extends Controller
         'fdatetime'   => $now,
         'fsatuan'     => $sat,
         'frefdtno'    => $refdt,
-        'fnouref'     => $nref,
         'fdesc'       => $desc,
         'fqtykecil'   => $qtyKecil,
         'fqtyremain'  => $qtyKecil,
@@ -506,13 +502,13 @@ class Tr_pohController extends Controller
       $userid,
       $now,
       $rowsPod,
-      $fpono,
+      $fpohid,
       $totalHarga,
       $ppnAmount,
       $grandTotal
     ) {
       // Generate human code if not provided
-      if (empty($fpono)) {
+      if (empty($fpohid)) {
         $rawBranch = $request->input('fbranchcode');
         $kodeCabang = null;
         if ($rawBranch !== null) {
@@ -541,7 +537,7 @@ class Tr_pohController extends Controller
           ->value('lastno');
 
         $next = (int)$last + 1;
-        $fpono = $prefix . str_pad((string)$next, 4, '0', STR_PAD_LEFT);
+        $fpohid = $prefix . str_pad((string)$next, 4, '0', STR_PAD_LEFT);
       }
 
       $fcurrency = $request->input('fcurrency', 'IDR');
@@ -549,9 +545,9 @@ class Tr_pohController extends Controller
       $ftempohr  = $request->input('ftempohr', 0);
       $isApproval = (int)($request->input('fapproval', 0));
 
-      // INSERT HEADER and GET fpohdid
-      $fpohdid = DB::table('tr_poh')->insertGetId([
-        'fpono'          => $fpono,     // human-readable code stays in header
+      // INSERT HEADER and GET fpohid
+      $fpohid = DB::table('tr_poh')->insertGetId([
+        'fpono'          => $fpohid,     // human-readable code stays in header
         'fpodate'        => $fpodate,
         'fkirimdate'     => $fkirimdate,
         'fcurrency'      => $fcurrency,
@@ -566,16 +562,16 @@ class Tr_pohController extends Controller
         'famountpopajak' => $ppnAmount,
         'famountpo'      => $grandTotal,
         'fapproval'      => $isApproval,
-      ], 'fpohdid');
+      ], 'fpohid');
 
-      // EMAIL after commit — use fpohdid and fprdid
+      // EMAIL after commit — use fpohid and fprdid
       if ($isApproval === 1) {
-        DB::afterCommit(function () use ($fpohdid) {
-          $hdr = Tr_poh::where('fpohdid', $fpohdid)->first();
+        DB::afterCommit(function () use ($fpohid) {
+          $hdr = Tr_poh::where('fpohid', $fpohid)->first();
 
           $dt  = Tr_pod::from('tr_pod as d')
             ->leftJoin('msprd as p', 'p.fprdid', '=', 'd.fprdid')  // <-- FK to msprd.fprdid
-            ->where('d.fpono', $fpohdid) // integer FK now
+            ->where('d.fpohid', $fpohid) // integer FK now
             ->orderBy('p.fprdname')
             ->get([
               'd.*',
@@ -591,15 +587,15 @@ class Tr_pohController extends Controller
         });
       }
 
-      // numbering + insert details — use fpohdid
-      $lastNou = (int) DB::table('tr_pod')->where('fpono', $fpohdid)->max('fnou');
+      // numbering + insert details — use fpohid
+      $lastNou = (int) DB::table('tr_pod')->where('fpohid', $fpohid)->max('fnou');
       $nextNou = $lastNou + 1;
 
       foreach ($rowsPod as &$r) {
-        $r['fpono'] = $fpohdid;  // FK → tr_poh.fpohdid (integer)
+        $r['fpohid'] = $fpohid;  // FK → tr_poh.fpohid (integer)
         $r['fnou']  = $nextNou++;
         // $r['fprdid'] already set above
-        $r['frefdtno'] = $fpono;
+        $r['frefdtno'] = $fpohid;
       }
       unset($r);
 
@@ -608,10 +604,10 @@ class Tr_pohController extends Controller
 
     return redirect()
       ->route('tr_poh.create')
-      ->with('success', "PO {$fpono} tersimpan, detail masuk ke TR_POD.");
+      ->with('success', "PO {$fpohid} tersimpan, detail masuk ke TR_POD.");
   }
 
-  public function edit(Request $request, $fpohdid)
+  public function edit(Request $request, $fpohid)
   {
     $suppliers = Supplier::orderBy('fsuppliername', 'asc')
       ->get(['fsupplierid', 'fsuppliername']);
@@ -631,23 +627,22 @@ class Tr_pohController extends Controller
     $tr_poh = Tr_poh::with(['details' => function ($q) {
       $q->orderBy('fpodid')
         ->leftJoin('msprd', function ($j) {
-          $j->on('msprd.fprdid', '=', DB::raw('CAST(tr_pod.fprdcode AS INTEGER)'));
+          $j->on('msprd.fprdid', '=', DB::raw('CAST(tr_pod.fprdid AS INTEGER)'));
         })
         ->select(
           'tr_pod.*',
-          'msprd.fprdcode as fitemcode',
+          'msprd.fprdid as fitemcode',
           'msprd.fprdname'
         );
-    }])->findOrFail($fpohdid);
+    }])->findOrFail($fpohid);
 
     $savedItems = $tr_poh->details->map(function ($d) {
       return [
         'uid'        => $d->fpodid,
-        'fitemcode'  => (string)($d->fitemcode ?? ''),  // dari alias msprd.fprdcode
+        'fitemcode'  => (string)($d->fitemcode ?? ''),  // dari alias msprd.fprdid
         'fitemname'  => (string)($d->fprdname ?? ''),   // dari msprd.fprdname
         'fsatuan'    => (string)($d->fsatuan ?? ''),
         'frefdtno'   => (string)($d->frefdtno ?? ''),
-        'fnouref'    => (string)($d->fnouref ?? ''),
         'fqty'       => (float)($d->fqty ?? 0),
         'fterima'    => (float)($d->fterima ?? 0),
         'fprice'     => (float)($d->fprice ?? 0),
@@ -662,7 +657,7 @@ class Tr_pohController extends Controller
     // Fetch all products for product mapping
     $products = Product::select(
       'fprdid',
-      'fprdcode',
+      'fprdid',
       'fprdname',
       'fsatuankecil',
       'fsatuanbesar',
@@ -673,7 +668,7 @@ class Tr_pohController extends Controller
     // Prepare the product map for frontend
     $productMap = $products->mapWithKeys(function ($p) {
       return [
-        $p->fprdcode => [
+        $p->fprdid => [
           'name'  => $p->fprdname,
           'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
           'stock' => $p->fminstock ?? 0,
@@ -699,7 +694,7 @@ class Tr_pohController extends Controller
     ]);
   }
 
-  public function view(Request $request, $fpohdid)
+  public function view(Request $request, $fpohid)
   {
     $suppliers = Supplier::orderBy('fsuppliername', 'asc')
       ->get(['fsupplierid', 'fsuppliername']);
@@ -719,23 +714,22 @@ class Tr_pohController extends Controller
     $tr_poh = Tr_poh::with(['details' => function ($q) {
       $q->orderBy('fpodid')
         ->leftJoin('msprd', function ($j) {
-          $j->on('msprd.fprdid', '=', DB::raw('CAST(tr_pod.fprdcode AS INTEGER)'));
+          $j->on('msprd.fprdid', '=', DB::raw('CAST(tr_pod.fprdid AS INTEGER)'));
         })
         ->select(
           'tr_pod.*',
-          'msprd.fprdcode as fitemcode',
+          'msprd.fprdid as fitemcode',
           'msprd.fprdname'
         );
-    }])->findOrFail($fpohdid);
+    }])->findOrFail($fpohid);
 
     $savedItems = $tr_poh->details->map(function ($d) {
       return [
         'uid'        => $d->fpodid,
-        'fitemcode'  => (string)($d->fitemcode ?? ''),  // dari alias msprd.fprdcode
+        'fitemcode'  => (string)($d->fitemcode ?? ''),  // dari alias msprd.fprdid
         'fitemname'  => (string)($d->fprdname ?? ''),   // dari msprd.fprdname
         'fsatuan'    => (string)($d->fsatuan ?? ''),
         'frefdtno'   => (string)($d->frefdtno ?? ''),
-        'fnouref'    => (string)($d->fnouref ?? ''),
         'fqty'       => (float)($d->fqty ?? 0),
         'fterima'    => (float)($d->fterima ?? 0),
         'fprice'     => (float)($d->fprice ?? 0),
@@ -750,7 +744,7 @@ class Tr_pohController extends Controller
     // Fetch all products for product mapping
     $products = Product::select(
       'fprdid',
-      'fprdcode',
+      'fprdid',
       'fprdname',
       'fsatuankecil',
       'fsatuanbesar',
@@ -761,7 +755,7 @@ class Tr_pohController extends Controller
     // Prepare the product map for frontend
     $productMap = $products->mapWithKeys(function ($p) {
       return [
-        $p->fprdcode => [
+        $p->fprdid => [
           'name'  => $p->fprdname,
           'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
           'stock' => $p->fminstock ?? 0,
@@ -786,11 +780,11 @@ class Tr_pohController extends Controller
     ]);
   }
 
-  public function update(Request $request, $fpohdid)
+  public function update(Request $request, $fpohid)
   {
     // VALIDASI
     $request->validate([
-      'fpono'        => ['nullable', 'string', 'max:25'],
+      'fpohid'        => ['nullable', 'string', 'max:25'],
       'fpodate'      => ['required', 'date'],
       'fkirimdate'   => ['nullable', 'date'],
       'fsupplier'    => ['required', 'string', 'max:30'],
@@ -805,9 +799,6 @@ class Tr_pohController extends Controller
       'fsatuan.*'    => ['nullable', 'string', 'max:5'],
       'frefdtno'     => ['nullable'],
       'frefdtno.*'   => ['nullable'],
-      'fnouref'      => ['nullable'],
-      'fnouref.*'    => ['nullable'],
-
       'fqty'         => ['required', 'array'],
       'fqty.*'       => ['numeric', 'min:0'],
       'fprice'       => ['nullable', 'array'],
@@ -825,8 +816,8 @@ class Tr_pohController extends Controller
       'fitemcode.required' => 'Minimal 1 item.',
     ]);
 
-    $header  = Tr_poh::where('fpohdid', $fpohdid)->firstOrFail();
-    $fponoId = (int) $header->fpohdid;   // ← PAKAI INI, BUKAN $header->fpono (string)
+    $header  = Tr_poh::where('fpohid', $fpohid)->firstOrFail();
+    $fponoId = (int) $header->fpohid;   // ← PAKAI INI, BUKAN $header->fpohid (string)
 
     // HEADER DATA
     $fpodate    = \Carbon\Carbon::parse($request->fpodate)->startOfDay();
@@ -839,7 +830,6 @@ class Tr_pohController extends Controller
     $codes   = $request->input('fitemcode', []);
     $satuan  = $request->input('fsatuan', []);
     $refdtno = $request->input('frefdtno', []);
-    $nouref  = $request->input('fnouref', []);
     $qtys    = $request->input('fqty', []);
     $prices  = $request->input('fprice', []);
     $discs   = $request->input('fdisc', []);
@@ -856,9 +846,9 @@ class Tr_pohController extends Controller
     // Get product metadata
     $uniqueCodes = array_values(array_unique(array_filter(array_map(fn($c) => trim((string)$c), $codes))));
     $prodMeta = DB::table('msprd')
-      ->whereIn('fprdcode', $uniqueCodes)
-      ->get(['fprdid', 'fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2'])
-      ->keyBy('fprdcode');
+      ->whereIn('fprdid', $uniqueCodes)
+      ->get(['fprdid', 'fprdid', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2'])
+      ->keyBy('fprdid');
 
     $pickDefaultSat = function ($code) use ($prodMeta) {
       $m = $prodMeta[$code] ?? null;
@@ -887,16 +877,16 @@ class Tr_pohController extends Controller
 
       if ($code === '' || $qty <= 0) continue;
 
-      $produk = DB::table('msprd')
-        ->where('fprdcode', $code)
+      $product = DB::table('msprd')
+        ->where('fprdid', $code)
         ->select('fprdid', 'fsatuanbesar', 'fqtykecil as rasio_konversi')
         ->first();
 
-      $itemeId = $produk ? $produk->fprdid : $itemeId;
+      $itemeId = $product ? $product->fprdid : $itemeId;
 
       $qtyKecil = $qty;
-      if ($produk && $sat === $produk->fsatuanbesar) {
-        $qtyKecil = $qty * (float)$produk->rasio_konversi;
+      if ($product && $sat === $product->fsatuanbesar) {
+        $qtyKecil = $qty * (float)$product->rasio_konversi;
       }
 
       if ($sat === '') $sat = $pickDefaultSat($code);
@@ -913,7 +903,7 @@ class Tr_pohController extends Controller
       $totalHarga += $amount;
 
       $rowsPod[] = [
-        'fprdcode'    => $productId,
+        'fprdid'    => $productId,
         'fqty'        => $qty,
         'fdisc'       => (string)$discP,
         'fprice'      => $price,
@@ -926,7 +916,6 @@ class Tr_pohController extends Controller
         'fdatetime'   => $now,
         'fsatuan'     => $sat,
         'frefdtno'    => $refdtno,
-        'fnouref'     => $nouref,
         'fdesc'       => $desc,
         'fqtykecil'   => $qtyKecil,
         'fqtyremain'  => $qtyKecil,
@@ -961,12 +950,12 @@ class Tr_pohController extends Controller
       ]);
 
       // Hapus detail lama berdasarkan ID header
-      DB::table('tr_pod')->where('fpono', $fponoId)->delete();
+      DB::table('tr_pod')->where('fpohid', $fponoId)->delete();
 
       // Isi FK detail dengan ID header
       $nextNou = 1;
       foreach ($rowsPod as &$r) {
-        $r['fpono'] = $fponoId;  // ← integer FK
+        $r['fpohid'] = $fponoId;  // ← integer FK
         $r['fnou']  = $nextNou++;
       }
       unset($r);
@@ -977,10 +966,10 @@ class Tr_pohController extends Controller
     // Pesan sukses tetap pakai nomor PO string untuk tampilan
     return redirect()
       ->route('tr_poh.index')
-      ->with('success', "PO {$header->fpono} berhasil diperbarui.");
+      ->with('success', "PO {$header->fpohid} berhasil diperbarui.");
   }
 
-  public function delete(Request $request, $fpohdid)
+  public function delete(Request $request, $fpohid)
   {
     $suppliers = Supplier::orderBy('fsuppliername', 'asc')
       ->get(['fsupplierid', 'fsuppliername']);
@@ -1000,23 +989,22 @@ class Tr_pohController extends Controller
     $tr_poh = Tr_poh::with(['details' => function ($q) {
       $q->orderBy('fpodid')
         ->leftJoin('msprd', function ($j) {
-          $j->on('msprd.fprdid', '=', DB::raw('CAST(tr_pod.fprdcode AS INTEGER)'));
+          $j->on('msprd.fprdid', '=', DB::raw('CAST(tr_pod.fprdid AS INTEGER)'));
         })
         ->select(
           'tr_pod.*',
-          'msprd.fprdcode as fitemcode',
+          'msprd.fprdid as fitemcode',
           'msprd.fprdname'
         );
-    }])->findOrFail($fpohdid);
+    }])->findOrFail($fpohid);
 
     $savedItems = $tr_poh->details->map(function ($d) {
       return [
         'uid'        => $d->fpodid,
-        'fitemcode'  => (string)($d->fitemcode ?? ''),  // dari alias msprd.fprdcode
+        'fitemcode'  => (string)($d->fitemcode ?? ''),  // dari alias msprd.fprdid
         'fitemname'  => (string)($d->fprdname ?? ''),   // dari msprd.fprdname
         'fsatuan'    => (string)($d->fsatuan ?? ''),
         'frefdtno'   => (string)($d->frefdtno ?? ''),
-        'fnouref'    => (string)($d->fnouref ?? ''),
         'fqty'       => (float)($d->fqty ?? 0),
         'fterima'    => (float)($d->fterima ?? 0),
         'fprice'     => (float)($d->fprice ?? 0),
@@ -1031,7 +1019,7 @@ class Tr_pohController extends Controller
     // Fetch all products for product mapping
     $products = Product::select(
       'fprdid',
-      'fprdcode',
+      'fprdid',
       'fprdname',
       'fsatuankecil',
       'fsatuanbesar',
@@ -1042,7 +1030,7 @@ class Tr_pohController extends Controller
     // Prepare the product map for frontend
     $productMap = $products->mapWithKeys(function ($p) {
       return [
-        $p->fprdcode => [
+        $p->fprdid => [
           'name'  => $p->fprdname,
           'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
           'stock' => $p->fminstock ?? 0,
@@ -1068,16 +1056,16 @@ class Tr_pohController extends Controller
     ]);
   }
 
-  public function destroy($fpohdid)
+  public function destroy($fpohid)
   {
     try {
-      $tr_poh = Tr_poh::findOrFail($fpohdid);
+      $tr_poh = Tr_poh::findOrFail($fpohid);
       $tr_poh->delete();
 
-      return redirect()->route('tr_poh.index')->with('success', 'Data Order Pembelian ' . $tr_poh->fpono . ' berhasil dihapus.');
+      return redirect()->route('tr_poh.index')->with('success', 'Data Order Pembelian ' . $tr_poh->fpohid . ' berhasil dihapus.');
     } catch (\Exception $e) {
       // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
-      return redirect()->route('tr_poh.delete', $fpohdid)->with('error', 'Gakey: gal menghapus data: ' . $e->getMessage());
+      return redirect()->route('tr_poh.delete', $fpohid)->with('error', 'Gakey: gal menghapus data: ' . $e->getMessage());
     }
   }
 }
