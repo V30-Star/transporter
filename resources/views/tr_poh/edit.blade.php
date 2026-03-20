@@ -105,7 +105,7 @@
                                 <label class="block text-sm font-medium mb-1">PO#</label>
                                 <div class="flex items-center gap-3">
                                     <input type="text" name="fpohid" class="w-full border rounded px-3 py-2"
-                                        :disabled="autoCode"
+                                        :disabled="autoCode" disabled value="{{ old('fpohid', $tr_poh->fpono) }}"
                                         :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
                                     <label class="inline-flex items-center select-none">
                                         <input type="checkbox" x-model="autoCode" checked>
@@ -155,8 +155,9 @@
 
                             <div class="lg:col-span-4">
                                 <label class="block text-sm font-medium">Tanggal</label>
-                                <input disabled type="date" name="fpodate" value="{{ old('fpodate') ?? date('Y-m-d') }}"
-                                    class="w-full border rounded px-3 py-2 text-gray-700 @error('fpodate') border-red-500 @enderror">
+                                <input type="date" name="fpodate"
+                                    value="{{ old('fpodate', substr($tr_poh->fpodate, 0, 10)) }}" disabled
+                                    class="w-full border rounded px-3 py-2 @error('fpodate') border-red-500 @enderror">
                                 @error('fpodate')
                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                 @enderror
@@ -164,8 +165,9 @@
 
                             <div class="lg:col-span-4">
                                 <label class="block text-sm font-medium">Tgl. Kirim</label>
-                                <input disabled type="date" name="fkirimdate" value="{{ old('fkirimdate', '') }}"
-                                    class="w-full border rounded px-3 py-2 text-gray-700 @error('fkirimdate') border-red-500 @enderror">
+                                <input type="date" name="fkirimdate"
+                                    value="{{ old('fkirimdate', substr($tr_poh->fkirimdate, 0, 10)) }}" disabled
+                                    class="w-full border rounded px-3 py-2 @error('fkirimdate') border-red-500 @enderror">
                                 @error('fkirimdate')
                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                 @enderror
@@ -175,7 +177,7 @@
                                 <label class="block text-sm font-medium mb-1">Tempo</label>
                                 <div class="flex items-center">
                                     <input disabled type="number" id="ftempohr" name="ftempohr"
-                                        value="{{ old('ftempohr', 0) }}"
+                                        value="{{ old('ftempohr', $tr_poh->ftempohr ?? 0) }}"
                                         class="w-full border rounded px-3 py-2 text-gray-700 @error('ftempohr') border-red-500 @enderror">
                                     <span class="ml-2">Hari</span>
                                 </div>
@@ -285,7 +287,7 @@
 
                             <div class="lg:col-span-5">
                                 <input disabled id="fincludeppn" type="checkbox" name="fincludeppn" value="1"
-                                    x-model="includePPN"
+                                    x-model="includePPN" disabled
                                     class="h-4 w-4 text-blue-600 border-gray-300 text-gray-700 rounded"
                                     {{ old('fincludeppn', $tr_poh->fincludeppn ?? 0) ? 'checked' : '' }}>
                                 <label for="fincludeppn" class="ml-2 text-sm font-medium text-gray-700">
@@ -500,6 +502,175 @@
                                 </table>
                             </div>
 
+                            <!-- ===== Trigger: Add tr_prh dari panel kanan ===== -->
+                            <div x-data="prhFormModal()">
+                                <!-- Trigger: Add PR dari panel kanan -->
+                                <div class="mt-3 flex justify-between items-start gap-4">
+                                    <div class="w-full flex justify-start mb-3">
+                                    </div>
+                                    <!-- Kanan: Panel Totals -->
+                                    <div class="w-1/2">
+                                        <div class="rounded-lg border bg-gray-50 p-3 space-y-2">
+                                            <div class="flex items-center justify-between">
+                                                <span class="text-sm text-gray-700">Total Harga</span>
+                                                <span class="min-w-[140px] text-right font-medium"
+                                                    x-text="rupiah(totalHarga)"></span>
+                                            </div>
+                                            <div class="flex items-center justify-between gap-6">
+                                                <!-- Checkbox -->
+                                                <div class="flex items-center">
+                                                    <input id="fapplyppn" type="checkbox" name="fapplyppn"
+                                                        value="1" x-model="includePPN" disabled
+                                                        class="h-4 w-4 text-blue-600 border-gray-300 rounded">
+                                                    <label for="fapplyppn" class="ml-2 text-sm font-medium text-gray-700">
+                                                        <span class="font-bold">PPN</span>
+                                                    </label>
+                                                </div>
+
+                                                <!-- Dropdown Include / Exclude (tengah) -->
+                                                <div class="flex items-center gap-2">
+                                                    <select id="includePPN" name="includePPN" x-model.number="fapplyppn" disabled
+                                                        class="w-28 h-9 px-2 text-sm leading-tight border rounded transition-opacity appearance-none
+                                                           disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
+                                                        <option value="0">Exclude</option>
+                                                        <option value="1">Include</option>
+                                                    </select>
+                                                </div>
+
+                                                <!-- Input Rate + Nominal (kanan) -->
+                                                <div class="flex items-center gap-2">
+                                                    <input type="number" min="0" max="100" step="0.01"
+                                                        x-model.number="ppnRate" :disabled="!(includePPN || fapplyppn)" disabled
+                                                        class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
+                                                            [appearance:textfield]
+                                                            [&::-webkit-outer-spin-button]:appearance-none
+                                                            [&::-webkit-inner-spin-button]:appearance-none
+                                                            disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
+                                                    <span class="text-sm">%</span>
+                                                    <span class="min-w-[140px] text-right font-medium"
+                                                        x-text="rupiah(ppnAmount)"></span>
+                                                </div>
+
+                                            </div>
+
+                                            <div class="border-t my-1"></div>
+
+                                            <div class="flex items-center justify-between">
+                                                <span class="text-sm font-semibold text-gray-800">Grand Total</span>
+                                                <span class="min-w-[140px] text-right text-lg font-semibold"
+                                                    x-text="rupiah(grandTotal)"></span>
+                                            </div>
+
+                                            <div class="flex items-center justify-between">
+                                                <span class="text-sm font-semibold text-gray-800">Grand Total
+                                                    (RP)</span>
+                                                <span class="min-w-[140px] text-right text-lg font-semibold"
+                                                    x-text="rupiah(grandTotal)"></span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Hidden inputs for submit -->
+                                        <input type="hidden" name="famountponet" :value="totalHarga">
+                                        <input type="hidden" name="famountpopajak" :value="ppnAmount">
+                                        <!-- nominal PPN -->
+                                        <input type="hidden" name="famountpo" :value="grandTotal">
+                                        <input type="hidden" name="ppn_rate" :value="ppnRate">
+                                    </div>
+                                </div>
+                                <!-- Modal backdrop - sekarang bisa akses 'show' -->
+                                <div x-show="show" x-transition.opacity class="fixed inset-0 z-40 bg-black/50"
+                                    @keydown.escape.window="closeModal()"></div>
+
+                                {{-- MODAL PR dengan DataTables - HAPUS x-data di sini --}}
+                                <div>
+                                    {{-- MODAL PR --}}
+                                    <div x-show="show" x-cloak x-transition.opacity
+                                        class="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8"
+                                        aria-modal="true" role="dialog">
+
+                                        <div class="relative w-full max-w-5xl rounded-xl bg-white shadow-2xl flex flex-col"
+                                            style="height: 600px;">
+                                            <!-- Header -->
+                                            <div
+                                                class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
+                                                <h3 class="text-xl font-bold text-gray-800">Pilih Purchase Request (PR)
+                                                </h3>
+                                                <button type="button" @click="closeModal()"
+                                                    class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">
+                                                    Tutup
+                                                </button>
+                                            </div>
+
+                                            <!-- Table Container -->
+                                            <div class="flex-1 overflow-y-auto p-6" style="min-height: 0;">
+                                                <table id="prTable"
+                                                    class="min-w-full text-sm display nowrap stripe hover"
+                                                    style="width:100%">
+                                                    <thead class="sticky top-0 z-10">
+                                                        <tr class="bg-gray-50 border-b-2 border-gray-200">
+                                                            <th class="p-3 text-left font-semibold text-gray-700">PR No
+                                                            </th>
+                                                            <th class="p-3 text-left font-semibold text-gray-700">
+                                                                Supplier
+                                                            </th>
+                                                            <th class="p-3 text-left font-semibold text-gray-700">
+                                                                Tanggal
+                                                            </th>
+                                                            <th class="p-3 text-center font-semibold text-gray-700">
+                                                                Aksi
+                                                            </th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <!-- DataTables data here -->
+                                                    </tbody>
+                                                </table>
+                                            </div>
+
+                                            <!-- Footer (Pagination rendered by DataTables, just provide space if needed) -->
+                                            <div class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">
+                                                <!-- DataTables pagination will be rendered automatically based on the 'dom' setting. -->
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {{-- Modal Duplikasi --}}
+                                    <div x-show="showDupModal" x-cloak x-transition.opacity
+                                        class="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                                        <div class="absolute inset-0 bg-black/40" @click="closeDupModal()"></div>
+                                        <div class="relative bg-white rounded-xl shadow-xl max-w-2xl w-full p-6">
+                                            <h3 class="text-lg font-semibold mb-4">Peringatan Duplikasi</h3>
+                                            <p class="mb-4">
+                                                Ditemukan <strong x-text="dupCount"></strong> item yang sudah ada dalam
+                                                daftar.
+                                                Hanya item unik yang akan ditambahkan.
+                                            </p>
+
+                                            <div class="mb-4 max-h-48 overflow-auto border rounded p-2 bg-gray-50"
+                                                x-show="dupSample.length > 0">
+                                                <p class="text-sm font-medium mb-2">Contoh item duplikat:</p>
+                                                <template x-for="(item, idx) in dupSample" :key="idx">
+                                                    <div class="text-xs py-1">
+                                                        • <span x-text="item.fitemcode"></span> - <span
+                                                            x-text="item.frefdtno"></span>
+                                                    </div>
+                                                </template>
+                                            </div>
+
+                                            <div class="flex justify-end gap-2">
+                                                <button type="button" @click="closeDupModal()"
+                                                    class="rounded bg-gray-200 px-4 py-2 text-sm font-medium hover:bg-gray-300">
+                                                    Batal
+                                                </button>
+                                                <button type="button" @click="confirmAddUniques()"
+                                                    class="rounded bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700">
+                                                    Tambahkan Item Unik
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                         </div>
 
                         @php
@@ -519,7 +690,7 @@
 
                                 <label class="switch">
                                     <input type="checkbox" name="fapproval" id="approvalToggle" value="1"
-                                        {{ old('fapproval', session('fapproval') ? 1 : 0) ? 'checked' : '' }}>
+                                        {{ old('fapproval', session('fapproval') ? 1 : 0) ? 'checked' : '' }} disabled>
                                     <span class="slider"></span>
                                 </label>
                             @endif
@@ -617,7 +788,8 @@
 
                                 <div class="lg:col-span-4">
                                     <label class="block text-sm font-medium">Tanggal</label>
-                                    <input type="date" name="fpodate" value="{{ old('fpodate') ?? date('Y-m-d') }}"
+                                    <input type="date" name="fpodate"
+                                        value="{{ old('fpodate', substr($tr_poh->fpodate, 0, 10)) }}"
                                         class="w-full border rounded px-3 py-2 @error('fpodate') border-red-500 @enderror">
                                     @error('fpodate')
                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -626,7 +798,8 @@
 
                                 <div class="lg:col-span-4">
                                     <label class="block text-sm font-medium">Tgl. Kirim</label>
-                                    <input type="date" name="fkirimdate" value="{{ old('fkirimdate', '') }}"
+                                    <input type="date" name="fkirimdate"
+                                        value="{{ old('fkirimdate', substr($tr_poh->fkirimdate, 0, 10)) }}"
                                         class="w-full border rounded px-3 py-2 @error('fkirimdate') border-red-500 @enderror">
                                     @error('fkirimdate')
                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -637,7 +810,7 @@
                                     <label class="block text-sm font-medium mb-1">Tempo</label>
                                     <div class="flex items-center">
                                         <input type="number" id="ftempohr" name="ftempohr"
-                                            value="{{ old('ftempohr', 0) }}"
+                                            value="{{ old('ftempohr', $tr_poh->ftempohr ?? 0) }}"
                                             class="w-full border rounded px-3 py-2 @error('ftempohr') border-red-500 @enderror">
                                         <span class="ml-2">Hari</span>
                                     </div>
@@ -761,7 +934,7 @@
                                     <label class="block text-sm font-medium">Keterangan</label>
                                     <textarea name="fket" rows="3"
                                         class="w-full border rounded px-3 py-2 @error('fket') border-red-500 @enderror"
-                                        placeholder="Tulis keterangan tambahan di sini...">{{ old('fket') }}</textarea>
+                                        placeholder="Tulis keterangan tambahan di sini...">{{ old('fket', $tr_poh->fket) }}</textarea>
                                     @error('fket')
                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                     @enderror
@@ -769,7 +942,7 @@
                             </div>
 
                             <div x-data="itemsTable()" x-init="init();
-                            recalcTotals()" class="mt-6 space-y-2">
+                            $nextTick(() => recalcTotals())" class="mt-6 space-y-2">
                                 <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
 
                                 <div class="overflow-auto border rounded">
@@ -827,6 +1000,7 @@
                                                         <input type="hidden" name="fitemname[]" :value="it.fitemname">
                                                         <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
                                                         <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
+                                                        <input type="hidden" name="frefdtid[]" :value="it.frefdtid">
                                                         <input type="hidden" name="fnouref[]" :value="it.fnouref">
                                                         <input type="hidden" name="frefpr[]" :value="it.frefpr">
                                                         <input type="hidden" name="fqty[]" :value="it.fqty">
@@ -1184,9 +1358,10 @@
 
                                             <!-- Hidden inputs for submit -->
                                             <input type="hidden" name="famountponet" :value="totalHarga">
-                                            <input type="hidden" name="" :value="ppnAmount">
+                                            <input type="hidden" name="famountpopajak" :value="ppnAmount">
+                                            <!-- nominal PPN -->
                                             <input type="hidden" name="famountpo" :value="grandTotal">
-                                            <input type="hidden" name="famountpopajak" :value="ppnRate">
+                                            <input type="hidden" name="ppn_rate" :value="ppnRate">
                                         </div>
                                     </div>
                                     <!-- Modal backdrop - sekarang bisa akses 'show' -->
@@ -1376,7 +1551,8 @@
                                     <div class="flex-1 overflow-y-auto px-6" style="min-height: 0;">
                                         <div class="bg-white">
                                             <table id="supplierBrowseTable"
-                                                class="min-w-full text-sm display nowrap stripe hover" style="width:100%">
+                                                class="min-w-full text-sm display nowrap stripe hover"
+                                                style="width:100%">
                                                 <thead class="sticky top-0 z-10">
                                                     <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
                                                         <th
@@ -1439,7 +1615,8 @@
                                     <div class="flex-1 overflow-y-auto px-6" style="min-height: 0;">
                                         <div class="bg-white">
                                             <table id="productTable"
-                                                class="min-w-full text-sm display nowrap stripe hover" style="width:100%">
+                                                class="min-w-full text-sm display nowrap stripe hover"
+                                                style="width:100%">
                                                 <thead class="sticky top-0 z-10">
                                                     <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
                                                         <th
@@ -1522,7 +1699,7 @@
         {{-- Modal Delete --}}
         <div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
-                <h3 class="text-lg font-semibold mb-4">Konfirmasi hapus Permintaan Pembelian ini?</h3>
+                <h3 class="text-lg font-semibold mb-4">Konfirmasi hapus Order Pembelian ini?</h3>
                 <form id="deleteForm" action="{{ route('tr_poh.destroy', $tr_poh->fpohid) }}" method="POST">
                     @csrf
                     @method('DELETE')
@@ -1707,7 +1884,7 @@
     // Map produk untuk auto-fill tabel
     window.PRODUCT_MAP = {
         @foreach ($products as $p)
-            "{{ $p->fprdid }}": {
+            "{{ $p->fprdcode }}": {
                 name: @json($p->fprdname),
                 units: @json(array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2]))),
                 stock: @json($p->fminstock ?? 0)
@@ -1925,25 +2102,19 @@
             editingIndex: null,
             editRow: newRow(),
 
+            includePPN: {{ old('fincludeppn', $tr_poh->fincludeppn ?? 0) ? 'true' : 'false' }},
+            fapplyppn: 0,
+
             totalHarga: 0,
             ppnRate: 11,
-            grandTotal: @json($famountpo ?? 0),
-
-            initialGrandTotal: @json($famountpo ?? 0),
-            initialPpnAmount: @json($famountpopajak ?? 0),
 
             get ppnAmount() {
                 if (!this.includePPN) return 0;
-                const total = +this.totalHarga || 0;
-                const rate = +this.ppnRate || 0;
-                return Math.round(total * rate / 100);
+                return Math.round((+this.totalHarga || 0) * (+this.ppnRate || 0) / 100);
             },
+
             get grandTotal() {
-                if (!this.includePPN) {
-                    return this.initialGrandTotal; // pakai nilai lama dari DB
-                }
-                const total = +this.totalHarga || 0;
-                return total + this.ppnAmount; // hitung baru kalau PPN aktif
+                return (+this.totalHarga || 0) + this.ppnAmount;
             },
 
             fmtMoney(value) {
@@ -2210,7 +2381,7 @@
                     } = e.detail || {};
                     if (!product) return;
                     const apply = (row) => {
-                        row.fitemcode = (product.fprdid || '').toString();
+                        row.fitemcode = (product.fprdcode || '').toString();
                         this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
                         if (!row.fqty) row.fqty = 1;
                         this.recalc(row);
@@ -2225,10 +2396,10 @@
                 }, {
                     passive: true
                 });
-                this.$watch('ppnAmount', () => {
-                    const ppnValue = (+this.totalHarga || 0) * (+this.ppnAmount || 0) / 100;
-                    this.grandTotal = (+this.totalHarga || 0) + ppnValue;
-                });
+                // this.$watch('ppnAmount', () => {
+                //     const ppnValue = (+this.totalHarga || 0) * (+this.ppnAmount || 0) / 100;
+                //     this.grandTotal = (+this.totalHarga || 0) + ppnValue;
+                // });
             },
 
             browseTarget: 'draft',
@@ -2541,8 +2712,8 @@
                             }
                         },
                         columns: [{
-                                data: 'fprdid',
-                                name: 'fprdid',
+                                data: 'fprdcode',
+                                name: 'fprdcode',
                                 className: 'font-mono text-sm'
                             },
                             {

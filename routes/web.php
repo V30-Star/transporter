@@ -233,7 +233,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/tr_poh',  [Tr_pohController::class, 'index'])->name('tr_poh.index');
         Route::post('/tr_poh',        [Tr_pohController::class, 'store'])->name('tr_poh.store');
         Route::get('/tr_poh/create', [Tr_pohController::class, 'create'])->name('tr_poh.create');
-        Route::get('/tr_poh/{fprhid}/view', [Tr_pohController::class, 'view'])->name('tr_poh.view');
+        Route::get('/tr_poh/{fpohid}/view', [Tr_pohController::class, 'view'])->name('tr_poh.view');
         Route::get('/tr_poh/{fpohid}/edit', [Tr_pohController::class, 'edit'])->name('tr_poh.edit');
         Route::get('/tr_poh/{fpohid}/delete', [Tr_pohController::class, 'delete'])->name('tr_poh.delete');
         Route::patch('/tr_poh/{fpohid}', [Tr_pohController::class, 'update'])->name('tr_poh.update');

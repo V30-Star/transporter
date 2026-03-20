@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Order Pembelian - {{ $hdr->fsono ?? '-' }}</title>
+    <title>Order Pembelian - {{ $hdr->fpono ?? '-' }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         :root {
@@ -234,10 +234,10 @@
 
         <div style="overflow: hidden; margin-top: 10px;">
             <div class="customer-container">
-                <span class="customer-label">Customer</span>
-                <div style="font-weight: bold;">{{ $hdr->customer_name ?? 'PT. DWIBROS MULTI ENERGI' }}</div>
+                <span class="customer-label">Supplier</span>
+                <div style="font-weight: bold;">{{ $hdr->supplier_name ?? 'PT. DWIBROS MULTI ENERGI' }}</div>
                 <div style="font-size: 11px; width: 350px;">
-                    {{ $hdr->customer_address ?? 'MENARA CAKRAWALA LT 12, UNIT 1205A, JL. M. H. THAMRIN NO. 1 KOTA ADM. JAKARTA PUSAT' }}
+                    {{ $hdr->supplier_address ?? 'MENARA CAKRAWALA LT 12, UNIT 1205A, JL. M. H. THAMRIN NO. 1 KOTA ADM. JAKARTA PUSAT' }}
                 </div>
             </div>
 
@@ -245,7 +245,7 @@
                 <tr>
                     <td>Tanggal</td>
                     <td>:</td>
-                    <td>{{ $fmt($hdr->fsodate) ?? '21 Januari 2026' }}</td>
+                    <td>{{ $fmt($hdr->fpodate) ?? '21 Januari 2026' }}</td>
                 </tr>
                 <tr>
                     <td>Tempo</td>
@@ -304,23 +304,21 @@
         <div class="summary-box">
             <div class="summary-row">
                 <span>Total Harga :</span>
-                <span>{{ number_format($hdr->famountsonet ?? 111500000, 2, '.', ',') }}</span>
+                <span>{{ number_format($subtotal, 2, ',', '.') }}</span>
             </div>
             <div class="summary-row">
                 <span>Discount :</span>
                 <span>0.00</span>
             </div>
-            <div class="summary-row">
-                <span>Total Setelah Disc :</span>
-                <span>{{ number_format($hdr->famountsonet ?? 111500000, 2, '.', ',') }}</span>
-            </div>
-            <div class="summary-row">
-                <span>PPN :</span>
-                <span>{{ number_format($hdr->famountpajak ?? 12265000, 2, '.', ',') }}</span>
-            </div>
+            @if ($hdr->fincludeppn == '1')
+                <div class="summary-row">
+                    <span>PPN {{ $ppnPersen }}% :</span>
+                    <span>{{ number_format($ppnAmount, 2, ',', '.') }}</span>
+                </div>
+            @endif
             <div class="summary-row grand-total">
                 <span>Grand Total :</span>
-                <span>{{ number_format($hdr->famountso ?? 123765000, 2, '.', ',') }}</span>
+                <span>{{ number_format($grandTotal, 2, ',', '.') }}</span>
             </div>
         </div>
 

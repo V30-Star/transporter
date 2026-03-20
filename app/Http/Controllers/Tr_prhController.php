@@ -200,11 +200,10 @@ class Tr_prhController extends Controller
 
   public function print(string $fprno)
   {
-    // subquery aman mengikuti $table dari model Supplier
-    $supplierSub = (new Supplier)->getTable(); // e.g. ms_supplier
+    $supplierSub = (new Supplier)->getTable();
 
     $hdr = Tr_prh::query()
-      ->leftJoin("{$supplierSub} as s", 's.fsupplierid', '=', 'tr_prh.fsupplier') // integer ↔ integer
+      ->leftJoin("{$supplierSub} as s", 's.fsupplierid', '=', 'tr_prh.fsupplier')
       ->leftJoin('mscabang as c', 'c.fcabangkode', '=', 'tr_prh.fbranchcode')
       ->where('tr_prh.fprno', $fprno)
       ->first([
@@ -217,21 +216,23 @@ class Tr_prhController extends Controller
 
     $dt = Tr_prd::query()
       ->leftJoin('msprd as p', 'p.fprdid', '=', 'tr_prd.fprdcodeid')
-      ->where('tr_prd.fprhid', $hdr->fprhid)
-      ->orderBy('tr_prd.fprdcodeid')
+      ->where('tr_prd.fprhcode', $hdr->fprno)  // ✅ fprhcode bukan fprhid
+      ->orderBy('p.fprdname')
       ->get([
         'tr_prd.*',
         'p.fprdname as product_name',
-        'p.fminstock as stock',
+        'p.fprdcode as product_code',
       ]);
 
-    $fmt = fn($d) => $d ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y') : '-';
+    $fmt = fn($d) => $d
+      ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y')
+      : '-';
 
     return view('tr_prh.print', [
-      'hdr' => $hdr,
-      'dt'  => $dt,
-      'fmt' => $fmt,
-      'company_name' => config('app.company_name', 'PT.DEMO VERSION'),
+      'hdr'          => $hdr,
+      'dt'           => $dt,
+      'fmt'          => $fmt,
+      'company_name' => config('app.company_name', 'PT. DEMO VERSION'),
       'company_city' => config('app.company_city', 'Tangerang'),
     ]);
   }
@@ -464,8 +465,8 @@ class Tr_prhController extends Controller
           }
 
           $detailRows[] = [
-            'fprhid'     => $tr_prh->fprhid,
-            'fprdcodeid'    => $productId,
+            'fprhid'      => $tr_prh->fprhid,
+            'fprdcodeid'  => $productId,
             'fprdcode'    => $product->fprdcode ?? '', // nama produk dari msprd.fprdname
             'fqty'        => (int)$qty,
             'fqtyremain'  => $qtyKecil,
@@ -475,6 +476,7 @@ class Tr_prhController extends Controller
             'fsatuan'     => $sat,
             'fdesc'       => $desc,
             'fusercreate' => $userName,
+            'fprhcode'    => $tr_prh->fprno,
           ];
         }
       }
@@ -839,6 +841,7 @@ class Tr_prhController extends Controller
           'fsatuan'     => $sat,
           'fdesc'       => $desc,
           'fuserupdate' => (auth('sysuser')->user()->fname ?? Auth::user()->fname ?? 'system'),
+          'fprhcode'   => $header->fprno,
         ];
       }
     }

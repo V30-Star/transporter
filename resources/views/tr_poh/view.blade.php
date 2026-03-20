@@ -279,7 +279,7 @@
                         </script>
 
                         <div class="lg:col-span-5">
-                            <input disabled id="fincludeppn" type="checkbox" name="fincludeppn" value="1"
+                            <input disabled id="fincludeppn" type="checkbox" name="fincludeppn" value="1" disabled
                                 x-model="includePPN" class="h-4 w-4 text-blue-600 border-gray-300 text-gray-700 rounded"
                                 {{ old('fincludeppn', $tr_poh->fincludeppn ?? 0) ? 'checked' : '' }}>
                             <label for="fincludeppn" class="ml-2 text-sm font-medium text-gray-700">
@@ -508,7 +508,7 @@
                                         <div class="flex items-center justify-between gap-6">
                                             <!-- Checkbox -->
                                             <div class="flex items-center">
-                                                <input id="fapplyppn" type="checkbox" name="fapplyppn" value="1"
+                                                <input id="fapplyppn" type="checkbox" name="fapplyppn" value="1" disabled
                                                     x-model="includePPN"
                                                     class="h-4 w-4 text-blue-600 border-gray-300 rounded">
                                                 <label for="fapplyppn" class="ml-2 text-sm font-medium text-gray-700">
@@ -518,12 +518,12 @@
 
                                             <!-- Dropdown Include / Exclude (tengah) -->
                                             <div class="flex items-center gap-2">
-                                                <select id="includePPN" name="includePPN" x-model.number="fapplyppn"
-                                                    x-init="fapplyppn = 0" :disabled="!(includePPN || fapplyppn)"
+                                                <select disabled id="includePPN" name="includePPN" x-model.number="fapplyppn"
+                                                    x-init="fapplyppn = 0"
                                                     class="w-28 h-9 px-2 text-sm leading-tight border rounded transition-opacity appearance-none
                                                            disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
-                                                    <option value="0">Exclude</option>
-                                                    <option value="1">Include</option>
+                                                    <option disabled value="0">Exclude</option>
+                                                    <option disabled value="1">Include</option>
                                                 </select>
                                             </div>
 
