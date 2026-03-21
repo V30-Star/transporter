@@ -78,9 +78,13 @@
             margin: 0;
         }
 
-        /* Hilangkan panah di input number (Firefox) */
         input[type=number] {
             -moz-appearance: textfield;
+        }
+
+        /* Highlight row saat fokus aktif */
+        .item-row-active {
+            background-color: #f0fdf4;
         }
     </style>
 
@@ -88,9 +92,9 @@
         <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
             <form action="{{ route('tr_prh.store') }}" method="POST" class="mt-6" x-data="{ showNoItems: false }"
                 @submit.prevent="
-        const n = Number(document.getElementById('itemsCount')?.value || 0);
-        if (n < 1) { showNoItems = true } else { $el.submit() }
-      ">
+                    const n = Number(document.getElementById('itemsCount')?.value || 0);
+                    if (n < 1) { showNoItems = true } else { $el.submit() }
+                ">
                 @csrf
 
                 {{-- HEADER FORM --}}
@@ -185,7 +189,7 @@
                     </div>
                 </div>
 
-                {{-- DETAIL ITEM (tabel input) --}}
+                {{-- DETAIL ITEM (inline editable) --}}
                 <div x-data="itemsTable()" x-init="init()" class="mt-6 space-y-2">
                     <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
 
@@ -194,44 +198,106 @@
                             <thead class="bg-gray-100">
                                 <tr>
                                     <th class="p-2 text-left w-10">#</th>
-                                    <th class="p-2 text-left w-44">Kode Produk</th>
+                                    <th class="p-2 text-left w-52">Kode Produk</th>
                                     <th class="p-2 text-left">Nama Produk</th>
                                     <th class="p-2 text-left w-40">Satuan</th>
                                     <th class="p-2 text-right w-28">Qty</th>
                                     <th class="p-2 text-left w-56">Ket Item</th>
-                                    <th class="p-2 text-center w-28">Aksi</th>
+                                    <th class="p-2 text-center w-20">Aksi</th>
                                 </tr>
                             </thead>
 
                             <tbody>
+                                {{-- ============================================================
+                                     BARIS TERSIMPAN — setiap baris langsung bisa diedit (editable inline)
+                                     ============================================================ --}}
                                 <template x-for="(it, i) in savedItems" :key="it.uid">
-                                    <!-- ROW UTAMA -->
-                                    <tr class="border-t align-top">
-                                        <td class="p-2" x-text="i + 1"></td>
-                                        <td class="p-2 font-mono" x-text="it.fitemcode"></td>
-                                        <td class="p-2 text-gray-800">
-                                            <div x-text="it.fitemname"></div>
-                                            <div x-show="it.fdesc" class="mt-1 text-xs">
-                                                <span
-                                                    class="inline-block px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 mr-2">
-                                                    Deskripsi
-                                                </span>
-                                                <span class="align-middle text-gray-600" x-text="it.fdesc"></span>
-                                            </div>
-                                        </td>
-                                        <td class="p-2" x-text="it.fsatuan"></td>
-                                        <td class="p-2 text-right" x-text="it.fqty"></td>
-                                        <td class="p-2" x-text="it.fketdt || '-'"></td>
-                                        <td class="p-2 text-center">
-                                            <div class="flex items-center justify-center gap-2 flex-wrap">
-                                                <button type="button" @click="edit(i)"
-                                                    class="px-3 py-1 rounded text-xs bg-amber-100 text-amber-700 hover:bg-amber-200">Edit</button>
-                                                <button type="button" @click="removeSaved(i)"
-                                                    class="px-3 py-1 rounded text-xs bg-red-100 text-red-600 hover:bg-red-200">Hapus</button>
+                                    {{-- Alpine x-for hanya boleh punya SATU root element.
+                                         Kita pakai <tr> baris-utama sebagai root,
+                                         lalu baris-deskripsi disisipkan lewat x-effect + DOM manipulation.
+                                         Trik paling bersih: gunakan <template> ganda dengan x-for trick --}}
+                                    <tr class="border-t align-top transition-colors"
+                                        :class="activeRow === it.uid ? 'bg-amber-50' : 'hover:bg-gray-50'">
+
+                                        {{-- # --}}
+                                        <td class="p-2 text-gray-500" x-text="i + 1"></td>
+
+                                        {{-- Kode Produk --}}
+                                        <td class="p-2">
+                                            <div class="flex">
+                                                <input type="text"
+                                                    class="flex-1 border rounded-l px-2 py-1 font-mono text-sm min-w-0"
+                                                    x-model.trim="it.fitemcode" @focus="activeRow = it.uid"
+                                                    @blur="activeRow = null" @input="onCodeTypedSaved(it)"
+                                                    @keydown.enter.prevent="focusUnitOrQty(it, i)">
+                                                <button type="button" @click="openBrowseFor('saved', i)"
+                                                    class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
+                                                    title="Cari Produk">
+                                                    <x-heroicon-o-magnifying-glass class="w-4 h-4" />
+                                                </button>
+                                                <a href="{{ route('product.create') }}" target="_blank" rel="noopener"
+                                                    class="border border-l-0 rounded-r px-2 py-1 bg-white hover:bg-gray-50"
+                                                    title="Tambah Produk">
+                                                    <x-heroicon-o-plus class="w-4 h-4" />
+                                                </a>
                                             </div>
                                         </td>
 
-                                        <!-- hidden inputs -->
+                                        {{-- Nama Produk --}}
+                                        <td class="p-2">
+                                            <input type="text"
+                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
+                                                :value="it.fitemname" disabled>
+                                            {{-- Deskripsi ditampilkan di bawah nama --}}
+                                            <textarea x-model="it.fdesc" rows="2" class="w-full border rounded px-2 py-1 text-xs text-gray-600 mt-1"
+                                                placeholder="Deskripsi (opsional)" @focus="activeRow = it.uid" @blur="activeRow = null"></textarea>
+                                        </td>
+
+                                        {{-- Satuan --}}
+                                        <td class="p-2">
+                                            <template x-if="it.units.length > 1">
+                                                <select class="w-full border rounded px-2 py-1 text-sm"
+                                                    x-model="it.fsatuan" :id="'unit_saved_' + i"
+                                                    @focus="activeRow = it.uid" @blur="activeRow = null"
+                                                    @keydown.enter.prevent="focusSavedQty(i)">
+                                                    <template x-for="u in it.units" :key="u">
+                                                        <option :value="u" x-text="u"></option>
+                                                    </template>
+                                                </select>
+                                            </template>
+                                            <template x-if="it.units.length <= 1">
+                                                <input type="text"
+                                                    class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
+                                                    :value="it.fsatuan || '-'" disabled>
+                                            </template>
+                                        </td>
+
+                                        {{-- Qty --}}
+                                        <td class="p-2 text-right">
+                                            <input type="number" class="border rounded px-2 py-1 w-24 text-right text-sm"
+                                                min="1" :max="it.maxqty || null" step="1"
+                                                x-model.number="it.fqty" :id="'qty_saved_' + i"
+                                                @focus="activeRow = it.uid; $event.target.select()"
+                                                @blur="activeRow = null; enforceQtyRow(it)" @input="enforceQtyRow(it)"
+                                                @keydown.enter.prevent="focusSavedKet(i)">
+                                        </td>
+
+                                        {{-- Ket Item --}}
+                                        <td class="p-2">
+                                            <input type="text" class="border rounded px-2 py-1 w-full text-sm"
+                                                x-model="it.fketdt" :id="'ket_saved_' + i" @focus="activeRow = it.uid"
+                                                @blur="activeRow = null" @keydown.enter.prevent="focusDraftCode()">
+                                        </td>
+
+                                        {{-- Aksi --}}
+                                        <td class="p-2 text-center">
+                                            <button type="button" @click="removeSaved(i)"
+                                                class="px-3 py-1 rounded text-xs bg-red-100 text-red-600 hover:bg-red-200 whitespace-nowrap">
+                                                Hapus
+                                            </button>
+                                        </td>
+
+                                        {{-- Hidden inputs untuk submit --}}
                                         <td class="hidden">
                                             <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
                                             <input type="hidden" name="fitemname[]" :value="it.fitemname">
@@ -242,115 +308,18 @@
                                             <input type="hidden" name="fketdt[]" :value="it.fketdt">
                                         </td>
                                     </tr>
-
-                                    <!-- ROW DESC (di bawah Nama Produk) -->
-                                    <tr class="border-b">
-                                        <td class="p-0"></td> <!-- # -->
-                                        <td class="p-0"></td> <!-- Kode -->
-                                        <!-- Deskripsi HANYA di kolom Nama Produk -->
-                                        <td class="p-2">
-                                            <textarea x-model="it.fdesc" rows="2" class="w-full border rounded px-2 py-1"
-                                                placeholder="Deskripsi (opsional)"></textarea>
-                                        </td>
-                                        <!-- Kolom sisanya kosong supaya total 7 kolom -->
-                                        <td class="p-0"></td> <!-- Satuan -->
-                                        <td class="p-0"></td> <!-- Qty -->
-                                        <td class="p-0"></td> <!-- Ket Item -->
-                                        <td class="p-0"></td> <!-- Aksi -->
-                                    </tr>
                                 </template>
 
-                                <!-- ROW EDIT UTAMA -->
-                                <tr x-show="editingIndex !== null" class="border-t bg-amber-50 align-top" x-cloak>
-                                    <td class="p-2" x-text="(editingIndex ?? 0) + 1"></td>
-
-                                    <td class="p-2">
-                                        <div class="flex">
-                                            <input type="text" class="flex-1 border rounded-l px-2 py-1 font-mono"
-                                                x-ref="editCode" x-model.trim="editRow.fitemcode"
-                                                @input="onCodeTypedRow(editRow)"
-                                                @keydown.enter.prevent="handleEnterOnCode('edit')">
-                                            <button type="button" @click="openBrowseFor('edit')"
-                                                class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
-                                                title="Cari Produk">
-                                                <x-heroicon-o-magnifying-glass class="w-4 h-4" />
-                                            </button>
-                                            <a href="{{ route('product.create') }}" target="_blank" rel="noopener"
-                                                class="border border-l-0 rounded-r px-2 py-1 bg-white hover:bg-gray-50"
-                                                title="Tambah Produk">
-                                                <x-heroicon-o-plus class="w-4 h-4" />
-                                            </a>
-                                        </div>
-                                    </td>
-
-                                    <td class="p-2">
-                                        <input type="text"
-                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
-                                            :value="editRow.fitemname" disabled>
-                                    </td>
-
-                                    <td class="p-2">
-                                        <template x-if="editRow.units.length > 1">
-                                            <select class="w-full border rounded px-2 py-1" x-ref="editUnit"
-                                                x-model="editRow.fsatuan" @keydown.enter.prevent="$refs.editQty?.focus()">
-                                                <template x-for="u in editRow.units" :key="u">
-                                                    <option :value="u" x-text="u"></option>
-                                                </template>
-                                            </select>
-                                        </template>
-                                        <template x-if="editRow.units.length <= 1">
-                                            <input type="text"
-                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
-                                                :value="editRow.fsatuan || '-'" disabled>
-                                        </template>
-                                    </td>
-
-                                    <td class="p-2 text-right">
-                                        <input type="number" class="border rounded px-2 py-1 w-24 text-right"
-                                            min="1" :max="editRow.maxqty || null" step="1"
-                                            x-model.number="editRow.fqty" x-ref="editQty" @focus="$event.target.select()"
-                                            @input="enforceQtyRow(editRow)"
-                                            @keydown.enter.prevent="$refs.editKet?.focus()">
-                                    </td>
-
-                                    <td class="p-2">
-                                        <input type="text" class="border rounded px-2 py-1 w-full"
-                                            x-model="editRow.fketdt" x-ref="editKet"
-                                            @keydown.enter.prevent="applyEdit()">
-                                    </td>
-
-                                    <td class="p-2 text-center">
-                                        <div class="flex items-center justify-center gap-2 flex-wrap">
-                                            <button type="button" @click="applyEdit()"
-                                                class="px-3 py-1 rounded text-xs bg-emerald-600 text-white">Simpan</button>
-                                            <button type="button" @click="cancelEdit()"
-                                                class="px-3 py-1 rounded text-xs bg-gray-100">Batal</button>
-                                        </div>
-                                    </td>
-                                </tr>
-
-                                <!-- ROW EDIT DESC -->
-                                <tr x-show="editingIndex !== null" class="bg-amber-50 border-b" x-cloak>
-                                    <td class="p-0"></td>
-                                    <td class="p-0"></td>
-                                    <td class="p-2">
-                                        <textarea x-model="editRow.fdesc" rows="2" class="w-full border rounded px-2 py-1"
-                                            placeholder="Deskripsi (opsional)"></textarea>
-                                    </td>
-                                    <td class="p-0"></td>
-                                    <td class="p-0"></td>
-                                    <td class="p-0"></td>
-                                    <td class="p-0"></td>
-                                    <td class="p-0"></td>
-                                </tr>
-
-                                <!-- ROW DRAFT UTAMA -->
+                                {{-- ============================================================
+                                     BARIS DRAFT — baris kosong baru di bagian bawah
+                                     ============================================================ --}}
                                 <tr class="border-t bg-green-50 align-top">
-                                    <td class="p-2" x-text="savedItems.length + 1"></td>
+                                    <td class="p-2 text-gray-400" x-text="savedItems.length + 1"></td>
 
                                     <td class="p-2">
                                         <div class="flex">
-                                            <input type="text" class="flex-1 border rounded-l px-2 py-1 font-mono"
+                                            <input type="text"
+                                                class="flex-1 border rounded-l px-2 py-1 font-mono text-sm min-w-0"
                                                 x-ref="draftCode" x-model.trim="draft.fitemcode"
                                                 @input="onCodeTypedRow(draft)"
                                                 @keydown.enter.prevent="handleEnterOnCode('draft')">
@@ -369,13 +338,15 @@
 
                                     <td class="p-2">
                                         <input type="text"
-                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
+                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
                                             :value="draft.fitemname" disabled>
+                                        <textarea x-model="draft.fdesc" rows="2" class="w-full border rounded px-2 py-1 text-xs text-gray-600 mt-1"
+                                            placeholder="Deskripsi (opsional)"></textarea>
                                     </td>
 
                                     <td class="p-2">
                                         <template x-if="draft.units.length > 1">
-                                            <select class="w-full border rounded px-2 py-1" x-ref="draftUnit"
+                                            <select class="w-full border rounded px-2 py-1 text-sm" x-ref="draftUnit"
                                                 x-model="draft.fsatuan" @keydown.enter.prevent="$refs.draftQty?.focus()">
                                                 <template x-for="u in draft.units" :key="u">
                                                     <option :value="u" x-text="u"></option>
@@ -384,13 +355,13 @@
                                         </template>
                                         <template x-if="draft.units.length <= 1">
                                             <input type="text"
-                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
+                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
                                                 :value="draft.fsatuan || '-'" disabled>
                                         </template>
                                     </td>
 
                                     <td class="p-2 text-right">
-                                        <input type="number" class="border rounded px-2 py-1 w-24 text-right"
+                                        <input type="number" class="border rounded px-2 py-1 w-24 text-right text-sm"
                                             min="1" :max="draft.maxqty || null" step="1"
                                             x-model.number="draft.fqty" x-ref="draftQty" @focus="$event.target.select()"
                                             @input="enforceQtyRow(draft)"
@@ -398,65 +369,22 @@
                                     </td>
 
                                     <td class="p-2">
-                                        <input type="text" class="border rounded px-2 py-1 w-full"
+                                        <input type="text" class="border rounded px-2 py-1 w-full text-sm"
                                             x-model="draft.fketdt" x-ref="draftKet"
                                             @keydown.enter.prevent="addIfComplete()">
                                     </td>
 
                                     <td class="p-2 text-center">
-                                        <div class="flex items-center justify-center gap-2 flex-wrap">
-                                            <button type="button" @click="addIfComplete()"
-                                                class="px-3 py-1 rounded text-xs bg-emerald-600 text-white">Tambah</button>
-                                        </div>
+                                        <button type="button" @click="addIfComplete()"
+                                            class="px-3 py-1 rounded text-xs bg-emerald-600 text-white hover:bg-emerald-700 whitespace-nowrap">
+                                            Tambah
+                                        </button>
                                     </td>
                                 </tr>
 
-                                <!-- ROW DRAFT DESC -->
-                                <tr class="bg-green-50 border-b">
-                                    <td class="p-0"></td>
-                                    <td class="p-0"></td>
-                                    <td class="p-2">
-                                        <textarea x-model="draft.fdesc" rows="2" class="w-full border rounded px-2 py-1"
-                                            placeholder="Deskripsi (opsional)"></textarea>
-                                    </td>
-                                    <td class="p-0"></td>
-                                    <td class="p-0"></td>
-                                    <td class="p-0"></td>
-                                    <td class="p-0"></td>
-                                </tr>
+                                {{-- (deskripsi draft sudah ada di dalam <tr> di atas) --}}
                             </tbody>
                         </table>
-                    </div>
-
-                    <!-- MODAL DESC (di dalam itemsTable) -->
-                    <div x-show="showDescModal" x-cloak class="fixed inset-0 z-[95] flex items-center justify-center"
-                        x-transition.opacity>
-                        <div class="absolute inset-0 bg-black/50" @click="closeDesc()"></div>
-
-                        <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
-                            x-transition.scale>
-                            <div class="px-5 py-4 border-b flex items-center">
-                                <x-heroicon-o-document-text class="w-6 h-6 text-blue-600 mr-2" />
-                                <h3 class="text-lg font-semibold text-gray-800">Isi Deskripsi Item</h3>
-                            </div>
-
-                            <div class="px-5 py-4 space-y-2">
-                                <label class="block text-sm text-gray-700">Deskripsi</label>
-                                <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2"
-                                    placeholder="Tulis deskripsi item di sini..."></textarea>
-                            </div>
-
-                            <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
-                                <button type="button" @click="closeDesc()"
-                                    class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
-                                    Batal
-                                </button>
-                                <button type="button" @click="applyDesc()"
-                                    class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
-                                    Simpan
-                                </button>
-                            </div>
-                        </div>
                     </div>
 
                     <input type="hidden" id="itemsCount" :value="savedItems.length">
@@ -476,7 +404,7 @@
 
                         <div class="px-5 py-4">
                             <p class="text-sm text-gray-700">
-                                Anda belum menambahkan item apa pun pada tabel. Silakan isi baris “Detail Item” terlebih
+                                Anda belum menambahkan item apa pun pada tabel. Silakan isi baris "Detail Item" terlebih
                                 dahulu.
                             </p>
                         </div>
@@ -497,7 +425,6 @@
 
                     <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-6xl flex flex-col overflow-hidden"
                         style="height: 650px;">
-                        <!-- Header -->
                         <div
                             class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
                             <div>
@@ -510,12 +437,10 @@
                             </button>
                         </div>
 
-                        <!-- Search & Length Menu -->
                         <div class="px-6 pt-4 pb-2 flex-shrink-0 border-b border-gray-100">
                             <div id="supplierTableControls"></div>
                         </div>
 
-                        <!-- Table with fixed height and scroll -->
                         <div class="flex-1 overflow-y-auto px-6" style="min-height: 0;">
                             <div class="bg-white">
                                 <table id="supplierBrowseTable" class="min-w-full text-sm display nowrap stripe hover"
@@ -539,14 +464,11 @@
                                                 Aksi</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
-                                        <!-- Data will be populated by DataTables -->
-                                    </tbody>
+                                    <tbody></tbody>
                                 </table>
                             </div>
                         </div>
 
-                        <!-- Pagination & Info -->
                         <div class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">
                             <div id="supplierTablePagination"></div>
                         </div>
@@ -560,7 +482,6 @@
 
                     <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-6xl flex flex-col overflow-hidden"
                         style="height: 650px;">
-                        <!-- Header -->
                         <div
                             class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
                             <div>
@@ -573,12 +494,10 @@
                             </button>
                         </div>
 
-                        <!-- Search & Length Menu -->
                         <div class="px-6 pt-4 pb-2 flex-shrink-0 border-b border-gray-100">
                             <div id="productTableControls"></div>
                         </div>
 
-                        <!-- Table with fixed height and scroll -->
                         <div class="flex-1 overflow-y-auto px-6" style="min-height: 0;">
                             <div class="bg-white">
                                 <table id="productTable" class="min-w-full text-sm display nowrap stripe hover"
@@ -605,14 +524,11 @@
                                                 Aksi</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
-                                        <!-- Data will be populated by DataTables -->
-                                    </tbody>
+                                    <tbody></tbody>
                                 </table>
                             </div>
                         </div>
 
-                        <!-- Pagination & Info -->
                         <div class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">
                             <div id="productTablePagination"></div>
                         </div>
@@ -627,10 +543,7 @@
                 <div class="md:col-span-2 flex justify-center items-center space-x-2 mt-6">
                     @if ($canApproval)
                         <label class="block text-sm font-medium">Approval</label>
-
-                        {{-- fallback 0 saat checkbox tidak dicentang --}}
                         <input type="hidden" name="fapproval" value="0">
-
                         <label class="switch">
                             <input type="checkbox" name="fapproval" id="approvalToggle" value="1"
                                 {{ old('fapproval', session('fapproval') ? 1 : 0) ? 'checked' : '' }}>
@@ -653,9 +566,9 @@
         </div>
     </div>
 @endsection
+
 @push('styles')
     <style>
-        /* Targeting lebih spesifik untuk length select */
         div#productTable_length select,
         .dataTables_wrapper #productTable_length select,
         table#supplierBrowseTable+.dataTables_wrapper .dataTables_length select {
@@ -667,14 +580,12 @@
             border-radius: 0.375rem !important;
         }
 
-        /* Wrapper length */
         div#productTable_length,
         .dataTables_wrapper #productTable_length,
         .dataTables_wrapper .dataTables_length {
             min-width: 250px !important;
         }
 
-        /* Label wrapper */
         div#productTable_length label,
         .dataTables_wrapper #productTable_length label,
         .dataTables_wrapper .dataTables_length label {
@@ -684,7 +595,6 @@
             gap: 8px !important;
         }
 
-        /* Targeting lebih spesifik untuk length select */
         div#supplierTable_length select,
         .dataTables_wrapper #supplierTable_length select,
         table#supplierBrowseTable+.dataTables_wrapper .dataTables_length select {
@@ -696,14 +606,12 @@
             border-radius: 0.375rem !important;
         }
 
-        /* Wrapper length */
         div#supplierTable_length,
         .dataTables_wrapper #supplierTable_length,
         .dataTables_wrapper .dataTables_length {
             min-width: 250px !important;
         }
 
-        /* Label wrapper */
         div#supplierTable_length label,
         .dataTables_wrapper #supplierTable_length label,
         .dataTables_wrapper .dataTables_length label {
@@ -713,13 +621,11 @@
             gap: 8px !important;
         }
     </style>
-@endpush
-@push('styles')
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
 @endpush
+
 {{-- DATA & SCRIPTS --}}
 <script>
-    // Map produk untuk auto-fill tabel
     window.PRODUCT_MAP = {
         @foreach ($products as $p)
             "{{ $p->fprdcode }}": {
@@ -730,7 +636,6 @@
         @endforeach
     };
 
-    // id unik
     window.cryptoRandom = function() {
         try {
             if (window.crypto?.getRandomValues) {
@@ -742,15 +647,16 @@
         return 'r' + (Date.now().toString(16) + Math.random().toString(16).slice(2));
     };
 
+    // ============================================================
+    // supplierBrowser — tidak berubah
+    // ============================================================
     function supplierBrowser() {
         return {
             open: false,
             dataTable: null,
 
             initDataTable() {
-                if (this.dataTable) {
-                    this.dataTable.destroy();
-                }
+                if (this.dataTable) this.dataTable.destroy();
 
                 this.dataTable = $('#supplierBrowseTable').DataTable({
                     processing: true,
@@ -803,9 +709,8 @@
                             searchable: false,
                             className: 'text-center',
                             width: '15%',
-                            render: function(data, type, row) {
-                                return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>';
-                            }
+                            render: () =>
+                                '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>'
                         }
                     ],
                     pageLength: 10,
@@ -835,26 +740,15 @@
                     ],
                     autoWidth: false,
                     initComplete: function() {
-                        const api = this.api();
-                        const $container = $(api.table().container());
-
-                        // Move controls to designated areas
-                        const $filter = $container.find('.dataTables_filter');
-                        const $length = $container.find('.dataTables_length');
-                        const $info = $container.find('.dataTables_info');
-                        const $paginate = $container.find('.dataTables_paginate');
-
-                        // Style search input
-                        $container.find('.dt-search .dt-input, .dataTables_filter input').css({
+                        const $c = $(this.api().table().container());
+                        $c.find('.dt-search .dt-input, .dataTables_filter input').css({
                             width: '300px',
                             padding: '8px 12px',
                             border: '2px solid #e5e7eb',
                             borderRadius: '8px',
                             fontSize: '14px'
                         }).focus();
-
-                        // Style length select
-                        $container.find('.dt-length select, .dataTables_length select').css({
+                        $c.find('.dt-length select, .dataTables_length select').css({
                             padding: '6px 32px 6px 10px',
                             border: '2px solid #e5e7eb',
                             borderRadius: '8px',
@@ -863,7 +757,6 @@
                     }
                 });
 
-                // Handle button click
                 $('#supplierBrowseTable').on('click', '.btn-choose', (e) => {
                     const data = this.dataTable.row($(e.target).closest('tr')).data();
                     this.chooseSupplier(data);
@@ -872,22 +765,17 @@
 
             openBrowse() {
                 this.open = true;
-                this.$nextTick(() => {
-                    this.initDataTable();
-                });
+                this.$nextTick(() => this.initDataTable());
             },
 
             close() {
                 this.open = false;
-                if (this.dataTable) {
-                    this.dataTable.search('').draw();
-                }
+                if (this.dataTable) this.dataTable.search('').draw();
             },
 
             chooseSupplier(supplier) {
                 const sel = document.getElementById('modal_filter_supplier_id');
                 const hid = document.getElementById('supplierCodeHidden');
-
                 if (!sel) {
                     this.close();
                     return;
@@ -895,7 +783,6 @@
 
                 let opt = [...sel.options].find(o => o.value == String(supplier.fsupplierid));
                 const label = `${supplier.fsuppliername} (${supplier.fsuppliercode})`;
-
                 if (!opt) {
                     opt = new Option(label, supplier.fsupplierid, true, true);
                     sel.add(opt);
@@ -903,7 +790,6 @@
                     opt.text = label;
                     opt.selected = true;
                 }
-
                 sel.dispatchEvent(new Event('change'));
                 if (hid) hid.value = supplier.fsupplierid;
                 this.close();
@@ -917,24 +803,19 @@
         }
     }
 
-    document.addEventListener('alpine:init', () => {
-        Alpine.store('prh', {
-            // desc yang sedang dipreview
-            descPreview: {
-                uid: null,
-                index: null,
-                label: '',
-                text: ''
-            },
-            // optional: daftar semua desc
-            descList: []
-        });
-    });
-
-    // Tabel inline
+    // ============================================================
+    // itemsTable — VERSI BARU: inline editable, tanpa mode edit
+    // ============================================================
     function itemsTable() {
         return {
             savedItems: [],
+
+            // uid baris yang sedang aktif (untuk highlight)
+            activeRow: null,
+
+            // target browse: 'draft' | index angka (untuk saved)
+            browseTarget: 'draft',
+
             draft: {
                 fitemcode: '',
                 fitemname: '',
@@ -945,18 +826,8 @@
                 fketdt: '',
                 maxqty: 0
             },
-            editingIndex: null,
-            editRow: {
-                fitemcode: '',
-                fitemname: '',
-                units: [],
-                fsatuan: '',
-                fqty: 1,
-                fdesc: '',
-                fketdt: '',
-                maxqty: 0
-            },
 
+            // ---- helpers ----
             resetDraft() {
                 this.draft = {
                     fitemcode: '',
@@ -969,10 +840,11 @@
                     maxqty: 0
                 };
             },
+
             productMeta(code) {
-                const key = (code || '').trim();
-                return window.PRODUCT_MAP[key] || null;
+                return window.PRODUCT_MAP[(code || '').trim()] || null;
             },
+
             hydrateRowFromMeta(row, meta) {
                 if (!meta) {
                     row.fitemname = '';
@@ -988,9 +860,16 @@
                 const stock = Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0;
                 row.maxqty = stock;
             },
+
             onCodeTypedRow(row) {
                 this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
             },
+
+            // Sama seperti onCodeTypedRow tapi untuk item tersimpan
+            onCodeTypedSaved(item) {
+                this.hydrateRowFromMeta(item, this.productMeta(item.fitemcode));
+            },
+
             enforceQtyRow(row) {
                 const n = +row.fqty;
                 if (!Number.isFinite(n)) {
@@ -1000,14 +879,37 @@
                 if (n < 1) row.fqty = 1;
                 if (row.maxqty > 0 && n > row.maxqty) row.fqty = row.maxqty;
             },
+
             isComplete(row) {
                 return row.fitemcode && row.fitemname && row.fsatuan && Number(row.fqty) > 0;
             },
 
+            // ---- navigasi fokus di baris tersimpan ----
+            focusUnitOrQty(item, i) {
+                if (item.units.length > 1) {
+                    this.$nextTick(() => document.getElementById('unit_saved_' + i)?.focus());
+                } else {
+                    this.$nextTick(() => document.getElementById('qty_saved_' + i)?.focus());
+                }
+            },
+
+            focusSavedQty(i) {
+                this.$nextTick(() => document.getElementById('qty_saved_' + i)?.focus());
+            },
+
+            focusSavedKet(i) {
+                this.$nextTick(() => document.getElementById('ket_saved_' + i)?.focus());
+            },
+
+            // Setelah keterangan terakhir di baris tersimpan → pindah ke draft
+            focusDraftCode() {
+                this.$nextTick(() => this.$refs.draftCode?.focus());
+            },
+
+            // ---- tambah dari draft ----
             addIfComplete() {
                 const r = this.draft;
                 if (!this.isComplete(r)) {
-                    // arahkan fokus ke field yang belum lengkap
                     if (!r.fitemcode) return this.$refs.draftCode?.focus();
                     if (!r.fitemname) return this.$refs.draftCode?.focus();
                     if (!r.fsatuan) return (r.units.length > 1 ? this.$refs.draftUnit?.focus() : this.$refs.draftCode
@@ -1016,185 +918,42 @@
                     return;
                 }
 
-                const dupe = this.savedItems.find(it =>
-                    it.fitemcode === r.fitemcode && it.fsatuan === r.fsatuan &&
-                    (it.fdesc || '') === (r.fdesc || '') && (it.fketdt || '') === (r.fketdt || '')
-                );
-                if (dupe) {
-                    alert('Item sama sudah ada.');
-                    return;
-                }
-
                 this.savedItems.push({
                     uid: cryptoRandom(),
                     fitemcode: r.fitemcode,
                     fitemname: r.fitemname,
+                    units: [...r.units],
                     fsatuan: r.fsatuan,
                     fqty: +r.fqty,
                     fdesc: r.fdesc || '',
-                    fketdt: r.fketdt || ''
+                    fketdt: r.fketdt || '',
+                    maxqty: r.maxqty,
+                    fqtypo: 0,
                 });
 
                 this.resetDraft();
                 this.$nextTick(() => this.$refs.draftCode?.focus());
-                this.syncDescList(); // <= tambahkan ini
             },
 
-            // === Deskripsi via Modal ===
-            showDescModal: false,
-            descTarget: 'draft', // 'draft' | 'edit' | 'saved'
-            descSavedIndex: null, // index untuk 'saved'
-            descValue: '',
-            descPreview: '', // untuk ditampilkan di luar card
-
-            openDesc(where, idx = null, currentVal = '') {
-                this.descTarget = where;
-                this.descSavedIndex = (where === 'saved' ? idx : null);
-                this.descValue = currentVal || '';
-                this.showDescModal = true;
-
-                // set preview sementara (sebelum disimpan) biar user tahu baris mana
-                let meta = {
-                    uid: null,
-                    index: null,
-                    label: '',
-                    text: this.descValue
-                };
-                if (where === 'saved' && idx !== null) {
-                    const it = this.savedItems[idx];
-                    meta = {
-                        uid: it.uid,
-                        index: idx + 1,
-                        label: this.labelOf(it),
-                        text: this.descValue
-                    };
-                } else if (where === 'edit') {
-                    meta = {
-                        uid: 'editing',
-                        index: (this.editingIndex ?? 0) + 1,
-                        label: this.labelOf(this.editRow),
-                        text: this.descValue
-                    };
-                } else {
-                    meta = {
-                        uid: 'draft',
-                        index: this.savedItems.length + 1,
-                        label: this.labelOf(this.draft),
-                        text: this.descValue
-                    };
-                }
-                Alpine.store('prh').descPreview = meta;
-            },
-            closeDesc() {
-                this.showDescModal = false;
-            },
-            applyDesc() {
-                const val = (this.descValue || '').trim();
-
-                if (this.descTarget === 'draft') {
-                    this.draft.fdesc = val;
-                    Alpine.store('prh').descPreview = {
-                        uid: 'draft',
-                        index: this.savedItems.length + 1,
-                        label: this.labelOf(this.draft),
-                        text: val
-                    };
-                } else if (this.descTarget === 'edit') {
-                    this.editRow.fdesc = val;
-                    Alpine.store('prh').descPreview = {
-                        uid: 'editing',
-                        index: (this.editingIndex ?? 0) + 1,
-                        label: this.labelOf(this.editRow),
-                        text: val
-                    };
-                } else if (this.descTarget === 'saved' && this.descSavedIndex !== null) {
-                    const it = this.savedItems[this.descSavedIndex];
-                    it.fdesc = val;
-                    Alpine.store('prh').descPreview = {
-                        uid: it.uid,
-                        index: this.descSavedIndex + 1,
-                        label: this.labelOf(it),
-                        text: val
-                    };
-                }
-
-                this.showDescModal = false;
-                this.syncDescList(); // update daftar semua desc
+            removeSaved(i) {
+                this.savedItems.splice(i, 1);
             },
 
-            labelOf(row) {
-                // bebas: pakai kode - nama atau apa pun
-                return [row.fitemcode, row.fitemname].filter(Boolean).join(' — ');
-            },
-            syncDescList() {
-                Alpine.store('prh').descList = this.savedItems
-                    .map((it, i) => ({
-                        uid: it.uid,
-                        index: i + 1,
-                        label: this.labelOf(it),
-                        text: it.fdesc || ''
-                    }))
-                    .filter(x => x.text); // hanya yang ada deskripsi
-            },
-
+            // ---- navigasi kode → unit/qty di draft ----
             handleEnterOnCode(where) {
-                // Pindah fokus dari Kode -> (Unit jika >1) else -> Qty
-                if (where === 'edit') {
-                    if (this.editRow.units.length > 1) this.$refs.editUnit?.focus();
-                    else this.$refs.editQty?.focus();
-                } else {
+                if (where === 'draft') {
                     if (this.draft.units.length > 1) this.$refs.draftUnit?.focus();
                     else this.$refs.draftQty?.focus();
                 }
             },
 
-            edit(i) {
-                const it = this.savedItems[i];
-                this.editingIndex = i;
-                this.editRow = {
-                    fitemcode: it.fitemcode,
-                    fitemname: it.fitemname,
-                    units: [],
-                    fsatuan: it.fsatuan,
-                    fqty: it.fqty,
-                    fdesc: it.fdesc,
-                    fketdt: it.fketdt,
-                    maxqty: 0
-                };
-                this.hydrateRowFromMeta(this.editRow, this.productMeta(this.editRow.fitemcode));
-                this.enforceQtyRow(this.editRow);
-                this.$nextTick(() => this.$refs.editQty?.focus());
-            },
-            cancelEdit() {
-                this.editingIndex = null;
-            },
-            applyEdit() {
-                const r = this.editRow;
-                if (!this.isComplete(r)) {
-                    alert('Lengkapi data item.');
-                    return;
-                }
-                const it = this.savedItems[this.editingIndex];
-                it.fitemcode = r.fitemcode;
-                it.fitemname = r.fitemname;
-                it.fsatuan = r.fsatuan;
-                it.fqty = +r.fqty;
-                it.fdesc = r.fdesc || '';
-                it.fketdt = r.fketdt || '';
-                this.cancelEdit();
-                this.syncDescList(); // <= tambahkan ini
-            },
-            removeSaved(i) {
-                this.savedItems.splice(i, 1);
-                this.syncDescList(); // <= tambahkan ini
-            },
-
-            browseTarget: 'draft',
-            openBrowseFor(where) {
-                this.browseTarget = (where === 'edit' ? 'edit' : 'draft');
+            // ---- browse produk ----
+            openBrowseFor(where, idx = null) {
+                // where: 'draft' atau 'saved'
+                this.browseTarget = (where === 'saved' && idx !== null) ? idx : 'draft';
                 window.dispatchEvent(new CustomEvent('browse-open', {
                     detail: {
-                        forEdit: this.browseTarget === 'edit'
+                        forEdit: false
                     }
                 }));
             },
@@ -1205,17 +964,24 @@
                         product
                     } = e.detail || {};
                     if (!product) return;
+
                     const apply = (row) => {
                         row.fitemcode = (product.fprdcode || '').toString();
                         this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
                         row.fqty = row.maxqty > 0 ? Math.min(+row.fqty || 1, row.maxqty) : (+row.fqty || 1);
                     };
-                    if (this.browseTarget === 'edit') {
-                        apply(this.editRow);
-                        this.$nextTick(() => this.$refs.editQty?.focus());
-                    } else {
+
+                    if (this.browseTarget === 'draft') {
                         apply(this.draft);
                         this.$nextTick(() => this.$refs.draftQty?.focus());
+                    } else {
+                        // browseTarget adalah index number
+                        const item = this.savedItems[this.browseTarget];
+                        if (item) {
+                            apply(item);
+                            const i = this.browseTarget;
+                            this.$nextTick(() => document.getElementById('qty_saved_' + i)?.focus());
+                        }
                     }
                 }, {
                     passive: true
@@ -1230,17 +996,13 @@
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
 
     <script>
-        // Modal produk dengan DataTables
         function productBrowser() {
             return {
                 open: false,
-                forEdit: false,
                 table: null,
 
                 initDataTable() {
-                    if (this.table) {
-                        this.table.destroy();
-                    }
+                    if (this.table) this.table.destroy();
 
                     this.table = $('#productTable').DataTable({
                         processing: true,
@@ -1273,17 +1035,13 @@
                                 data: 'fsatuanbesar',
                                 name: 'fsatuanbesar',
                                 className: 'text-sm',
-                                render: function(data) {
-                                    return data || '-';
-                                }
+                                render: d => d || '-'
                             },
                             {
                                 data: 'fmerekname',
                                 name: 'fmerekname',
                                 className: 'text-center text-sm',
-                                render: function(data) {
-                                    return data || '-';
-                                }
+                                render: d => d || '-'
                             },
                             {
                                 data: 'fminstock',
@@ -1296,9 +1054,8 @@
                                 searchable: false,
                                 className: 'text-center',
                                 width: '100px',
-                                render: function(data, type, row) {
-                                    return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>';
-                                }
+                                render: () =>
+                                    '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>'
                             }
                         ],
                         pageLength: 10,
@@ -1328,26 +1085,15 @@
                         ],
                         autoWidth: false,
                         initComplete: function() {
-                            const api = this.api();
-                            const $container = $(api.table().container());
-
-                            // Move controls to designated areas
-                            const $filter = $container.find('.dataTables_filter');
-                            const $length = $container.find('.dataTables_length');
-                            const $info = $container.find('.dataTables_info');
-                            const $paginate = $container.find('.dataTables_paginate');
-
-                            // Style search input
-                            $container.find('.dt-search .dt-input, .dataTables_filter input').css({
+                            const $c = $(this.api().table().container());
+                            $c.find('.dt-search .dt-input, .dataTables_filter input').css({
                                 width: '300px',
                                 padding: '8px 12px',
                                 border: '2px solid #e5e7eb',
                                 borderRadius: '8px',
                                 fontSize: '14px'
                             }).focus();
-
-                            // Style length select
-                            $container.find('.dt-length select, .dataTables_length select').css({
+                            $c.find('.dt-length select, .dataTables_length select').css({
                                 padding: '6px 32px 6px 10px',
                                 border: '2px solid #e5e7eb',
                                 borderRadius: '8px',
@@ -1356,7 +1102,6 @@
                         }
                     });
 
-                    // Handle button click
                     $('#productTable').on('click', '.btn-choose', (e) => {
                         const data = this.table.row($(e.target).closest('tr')).data();
                         this.choose(data);
@@ -1365,47 +1110,27 @@
 
                 close() {
                     this.open = false;
-                    if (this.table) {
-                        this.table.search('').draw();
-                    }
+                    if (this.table) this.table.search('').draw();
                 },
 
                 choose(product) {
                     window.dispatchEvent(new CustomEvent('product-chosen', {
                         detail: {
-                            product: product,
-                            forEdit: this.forEdit
+                            product
                         }
                     }));
                     this.close();
                 },
 
                 init() {
-                    window.addEventListener('browse-open', (e) => {
+                    window.addEventListener('browse-open', () => {
                         this.open = true;
-                        this.forEdit = !!(e.detail && e.detail.forEdit);
-
-                        // Initialize DataTable setelah modal terbuka
-                        this.$nextTick(() => {
-                            this.initDataTable();
-                        });
+                        this.$nextTick(() => this.initDataTable());
                     }, {
                         passive: true
                     });
                 }
             }
         }
-
-        document.addEventListener('alpine:init', () => {
-            Alpine.store('prh', {
-                descPreview: {
-                    uid: null,
-                    index: null,
-                    label: '',
-                    text: ''
-                },
-                descList: []
-            });
-        });
     </script>
 @endpush
