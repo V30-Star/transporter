@@ -485,30 +485,26 @@
                                 </div>
 
                                 {{-- PPN row --}}
-                                <div class="space-y-1">
-                                    <div class="flex items-center gap-2">
-                                        <label class="flex items-center gap-1.5 cursor-pointer select-none">
-                                            <input type="checkbox" name="fapplyppn" value="1" x-model="includePPN"
-                                                class="h-4 w-4 text-blue-600 border-gray-300 rounded">
-                                            <span class="font-bold">PPN</span>
-                                        </label>
-                                        <select name="ppn_mode" x-model.number="ppnMode" :disabled="!includePPN"
-                                            class="flex-1 h-8 px-2 text-xs border rounded appearance-none
-                                                   disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
-                                            <option value="0">Exclude</option>
-                                            <option value="1">Include</option>
-                                        </select>
-                                        <input type="number" name="ppn_rate" min="0" max="100"
-                                            step="0.01" x-model.number="ppnRate" :disabled="!includePPN"
-                                            class="w-14 h-8 px-2 text-xs text-right border rounded
-                                                   [appearance:textfield]
-                                                   disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
-                                        <span class="text-xs text-gray-500">%</span>
-                                    </div>
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-gray-500 text-xs">Nominal PPN</span>
-                                        <span class="font-medium" x-text="rupiah(ppnNominal)"></span>
-                                    </div>
+                                <div class="flex items-center gap-2">
+                                    <label class="flex items-center gap-1.5 cursor-pointer select-none shrink-0">
+                                        <input type="checkbox" name="fapplyppn" value="1" x-model="includePPN"
+                                            class="h-4 w-4 text-blue-600 border-gray-300 rounded">
+                                        <span class="font-bold text-sm">PPN</span>
+                                    </label>
+                                    <select name="ppn_mode" x-model.number="ppnMode" :disabled="!includePPN"
+                                        class="w-20 h-7 px-1 text-xs border rounded appearance-none
+               disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
+                                        <option value="0">Exclude</option>
+                                        <option value="1">Include</option>
+                                    </select>
+                                    <input type="number" name="ppn_rate" min="0" max="100" step="0.01"
+                                        x-model.number="ppnRate" :disabled="!includePPN"
+                                        class="w-12 h-7 px-1 text-xs text-right border rounded
+               [appearance:textfield]
+               disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
+                                    <span class="text-xs text-gray-500 shrink-0">%</span>
+                                    <span class="flex-1"></span>{{-- jarak --}}
+                                    <span class="text-xs font-medium shrink-0" x-text="rupiah(ppnNominal)"></span>
                                 </div>
 
                                 <div class="border-t"></div>
