@@ -328,6 +328,13 @@ class Tr_pohController extends Controller
 
     $newtr_prh_code = $this->generatetr_poh_Code(now(), $fbranchcode);
 
+    $currencies = DB::table('mscurrency')
+      ->where(function ($q) {
+        $q->whereNull('fnonactive')->orWhere('fnonactive', '0')->orWhere('fnonactive', '');
+      })
+      ->orderBy('fcurrname')
+      ->get(['fcurrid', 'fcurrcode', 'fcurrname', 'frate']);
+
     $products = Product::select(
       'fprdid',
       'fprdcode',
@@ -345,6 +352,7 @@ class Tr_pohController extends Controller
       'fcabang' => $fcabang,
       'fbranchcode' => $fbranchcode,
       'products' => $products,
+      'currencies'       => $currencies,
       'filterSupplierId' => $request->query('filter_supplier_id'),
     ]);
   }
