@@ -475,7 +475,7 @@
                         </div>
 
                         {{-- Panel Totals --}}
-                        <div class="w-80 shrink-0">
+                        <div class="w-[480px] shrink-0">
                             <div class="rounded-lg border bg-gray-50 p-3 space-y-2 text-sm">
 
                                 {{-- Total Harga --}}
@@ -493,19 +493,19 @@
                                             <span class="font-bold">PPN</span>
                                         </label>
                                         <select name="ppn_mode" x-model.number="ppnMode" :disabled="!includePPN"
-                                            class="flex-1 h-8 px-2 text-xs border rounded appearance-none
-                                                   disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
+                                            class="w-28 h-10 px-2 text-sm border rounded appearance-none
+           disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
                                             <option value="0">Exclude</option>
                                             <option value="1">Include</option>
                                         </select>
                                         <input type="number" name="ppn_rate" min="0" max="100"
                                             step="0.01" x-model.number="ppnRate" :disabled="!includePPN"
-                                            class="w-14 h-8 px-2 text-xs text-right border rounded
-                                                   [appearance:textfield]
-                                                   disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
-                                        <span class="text-gray-500 shrink-0">%</span>
-                                        <span class="flex-1"></span>{{-- jarak --}}
-                                        <span class="font-medium shrink-0" x-text="rupiah(ppnNominal)"></span>
+                                            class="w-16 h-10 px-2 text-sm text-right border rounded
+           [appearance:textfield]
+           disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
+                                        <span class="text-gray-500">%</span>
+                                        <span class="flex-1"></span>
+                                        <span class="font-medium" x-text="fmtCurr(ppnNominal)"></span>
                                     </div>
                                 </div>
 
@@ -521,13 +521,11 @@
                                     <span class="font-bold text-blue-700" x-text="fmtCurr(grandTotal)"></span>
                                 </div>
 
-                                {{-- Grand Total (RP) — hanya tampil jika currency bukan IDR --}}
-                                <template x-if="selectedCurrCode && selectedCurrCode !== 'IDR'">
-                                    <div class="flex items-center justify-between bg-blue-50 rounded px-2 py-1">
-                                        <span class="font-semibold text-gray-800">Grand Total (RP)</span>
-                                        <span class="font-bold text-emerald-700" x-text="rupiah(grandTotalRp)"></span>
-                                    </div>
-                                </template>
+                                {{-- Grand Total (RP) — selalu tampil, dikali rate jika bukan IDR --}}
+                                <div class="flex items-center justify-between">
+                                    <span class="font-semibold text-gray-800">Grand Total (RP)</span>
+                                    <span class="font-bold text-emerald-700" x-text="rupiah(grandTotalRp)"></span>
+                                </div>
                             </div>
 
                             {{-- Hidden inputs untuk submit --}}
@@ -965,25 +963,14 @@
                 return +(this.grandTotal * rate).toFixed(2);
             },
 
-            // Format angka sesuai currency yang dipilih
+            // Format angka tanpa simbol currency (plain number)
             fmtCurr(n) {
                 const v = Number(n || 0);
                 if (!isFinite(v)) return '-';
-                const code = this.selectedCurrCode || 'IDR';
-                try {
-                    return v.toLocaleString('id-ID', {
-                        style: 'currency',
-                        currency: code,
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                    });
-                } catch (e) {
-                    // fallback jika currency code tidak dikenal browser
-                    return code + ' ' + v.toLocaleString('id-ID', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                    });
-                }
+                return v.toLocaleString('id-ID', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
             },
 
             // ---- currency ----
@@ -1161,8 +1148,8 @@
 
                     // Hydrate units dari PRODUCT_MAP berdasarkan fprdcode
                     const meta = this.productMeta(src.fitemcode ?? '');
-                    const units = meta ?
-                        [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))] :
+                    const units = meta ? [...new Set((meta.units || []).map(u => (u ?? '').toString().trim())
+                            .filter(Boolean))] :
                         (Array.isArray(src.units) && src.units.length ? src.units : [src.fsatuan].filter(
                             Boolean));
 
