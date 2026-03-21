@@ -475,7 +475,7 @@
                         </div>
 
                         {{-- Panel Totals --}}
-                        <div class="w-[450px] shrink-0">
+                        <div class="w-[480px] shrink-0">
                             <div class="rounded-lg border bg-gray-50 p-3 space-y-2 text-sm">
 
                                 {{-- Total Harga --}}
@@ -492,19 +492,19 @@
                                         <span class="font-bold text-sm">PPN</span>
                                     </label>
                                     <select name="ppn_mode" x-model.number="ppnMode" :disabled="!includePPN"
-                                        class="w-20 h-7 px-1 text-xs border rounded appearance-none
-               disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
+                                        class="w-28 h-10 px-2 text-sm border rounded appearance-none
+           disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
                                         <option value="0">Exclude</option>
                                         <option value="1">Include</option>
                                     </select>
                                     <input type="number" name="ppn_rate" min="0" max="100" step="0.01"
                                         x-model.number="ppnRate" :disabled="!includePPN"
-                                        class="w-12 h-7 px-1 text-xs text-right border rounded
-               [appearance:textfield]
-               disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
-                                    <span class="text-xs text-gray-500 shrink-0">%</span>
+                                        class="w-16 h-10 px-2 text-sm text-right border rounded
+           [appearance:textfield]
+           disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
+                                    <span class="text-gray-500">%</span>
                                     <span class="flex-1"></span>{{-- jarak --}}
-                                    <span class="text-xs font-medium shrink-0" x-text="rupiah(ppnNominal)"></span>
+                                    <span class="font-medium" x-text="rupiah(ppnNominal)"></span>
                                 </div>
 
                                 <div class="border-t"></div>
