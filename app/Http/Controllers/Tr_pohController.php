@@ -535,6 +535,7 @@ class Tr_pohController extends Controller
     }
 
     // TRANSACTION
+    $fpono = null;
     DB::transaction(function () use (
       $request,
       $fpodate,
@@ -546,7 +547,8 @@ class Tr_pohController extends Controller
       $fpohid,
       $totalHarga,
       $ppnAmount,
-      $grandTotal
+      $grandTotal,
+      &$fpono
     ) {
       // Generate human code if not provided
       if (empty($fpohid)) {
@@ -597,12 +599,13 @@ class Tr_pohController extends Controller
         'fsupplier'      => $request->input('fsupplier'),
         'fincludeppn'    => $fincludeppn,
         'fket'           => $request->input('fket'),
-        'fusercreate'        => $userid,
+        'fusercreate'    => $userid,
         'fdatetime'      => $now,
         'famountponet'   => round($totalHarga, 2),
         'famountpopajak' => $ppnAmount,
         'famountpo'      => $grandTotal,
         'fapproval'      => $isApproval,
+        'fppnpersen'      => $request->input('ppn_rate', 0),
         'fclose'      => '0',
       ], 'fpohid');
 
@@ -649,7 +652,7 @@ class Tr_pohController extends Controller
 
     return redirect()
       ->route('tr_poh.create')
-      ->with('success', "PO {$fpohid} tersimpan, detail masuk ke TR_POD.");
+      ->with('success', "Data sudah tersimpan. No {$fpono}");
   }
 
   public function edit(Request $request, $fpohid)

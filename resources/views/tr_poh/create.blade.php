@@ -505,7 +505,7 @@
            disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
                                         <span class="text-gray-500">%</span>
                                         <span class="flex-1"></span>
-                                        <span class="font-medium" x-text="fmtCurr(ppnNominal)"></span>
+                                        <span id="fppnpersen" name="fppnpersen" class="font-medium" x-text="fmtCurr(ppnNominal)"></span>
                                     </div>
                                 </div>
 
