@@ -475,7 +475,7 @@
                         </div>
 
                         {{-- Panel Totals --}}
-                        <div class="w-[480px] shrink-0">
+                        <div class="w-80 shrink-0">
                             <div class="rounded-lg border bg-gray-50 p-3 space-y-2 text-sm">
 
                                 {{-- Total Harga --}}
@@ -1158,11 +1158,24 @@
                         frefdtno: src.frefdtno ?? ''
                     });
                     if (existing.has(key)) return;
-                    this.savedItems.push({
+
+                    // Hydrate units dari PRODUCT_MAP berdasarkan fprdcode
+                    const meta = this.productMeta(src.fitemcode ?? '');
+                    const units = meta ?
+                        [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))] :
+                        (Array.isArray(src.units) && src.units.length ? src.units : [src.fsatuan].filter(
+                            Boolean));
+
+                    // Pastikan fsatuan yang datang dari PR ada di daftar units
+                    const fsatuan = (src.fsatuan ?? '').trim();
+                    if (fsatuan && !units.includes(fsatuan)) units.unshift(fsatuan);
+
+                    const row = {
                         uid: cryptoRandom(),
                         fitemcode: src.fitemcode ?? '',
-                        fitemname: src.fitemname ?? '',
-                        fsatuan: src.fsatuan ?? '',
+                        fitemname: meta ? (meta.name || src.fitemname || '') : (src.fitemname ?? ''),
+                        units: units,
+                        fsatuan: fsatuan || units[0] || '',
                         frefdtno: src.frefdtno ?? '',
                         fnouref: src.fnouref ?? '',
                         frefpr: String(header?.fprhid ?? src.fprhid ?? ''),
@@ -1171,17 +1184,26 @@
                         fqty: Number(src.fqty ?? 0),
                         fprice: Number(src.fprice ?? 0),
                         fdisc: Number(src.fdisc ?? 0),
-                        ftotal: Number(src.ftotal ?? src.fqty * src.fprice ?? 0),
+                        ftotal: Number(src.ftotal ?? 0),
                         fdesc: src.fdesc ?? '',
                         fketdt: src.fketdt ?? '',
-                        units: Array.isArray(src.units) && src.units.length ? src.units : [src.fsatuan]
-                            .filter(Boolean),
-                        maxqty: 0,
-                    });
+                        maxqty: meta ? (Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0) :
+                            0,
+                    };
+
+                    // Hitung ulang ftotal jika 0
+                    if (!row.ftotal && row.fqty && row.fprice) {
+                        row.ftotal = +(row.fqty * row.fprice * (1 - row.fdisc / 100)).toFixed(2);
+                    }
+
+                    this.savedItems.push(row);
                     existing.add(key);
+
+                    // Cek histori harga jika harga belum ada
+                    if (!row.fprice || row.fprice === 0) {
+                        this.$nextTick(() => this.applyLastPrice(row));
+                    }
                 });
-                // recalc semua ftotal yang 0 (dari PR biasanya belum ada harga)
-                // totalHarga reaktif otomatis
             },
 
             itemKey(it) {
