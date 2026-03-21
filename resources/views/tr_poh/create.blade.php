@@ -174,7 +174,7 @@
                         @foreach ($currencies as $cur)
                             <option value="{{ $cur->fcurrid }}" data-code="{{ $cur->fcurrcode }}"
                                 data-rate="{{ $cur->frate }}"
-                                {{ old('fcurrencyid') == $cur->fcurrid ? 'selected' : '' }}>
+                                {{ ($cur->fcurrcode === 'IDR' && !old('fcurrencyid')) || old('fcurrencyid') == $cur->fcurrid ? 'selected' : '' }}>
                                 {{ $cur->fcurrname }} ({{ $cur->fcurrcode }})
                             </option>
                         @endforeach
@@ -298,7 +298,7 @@
                                     <td class="p-2">
                                         <input type="text"
                                             class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
-                                            :value="it.fprhid || '-'" disabled>
+                                            :value="it.fprno || '-'" disabled>
                                     </td>
 
                                     {{-- Qty --}}
@@ -417,7 +417,7 @@
                                 <td class="p-2">
                                     <input type="text"
                                         class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
-                                        :value="draft.fprhid || ''" disabled placeholder="Ref PR">
+                                        :value="draft.fprno || ''" disabled placeholder="Ref PR">
                                 </td>
 
                                 {{-- Qty --}}
@@ -481,30 +481,32 @@
                                 {{-- Total Harga --}}
                                 <div class="flex items-center justify-between">
                                     <span class="text-gray-600">Total Harga</span>
-                                    <span class="font-medium" x-text="rupiah(totalHarga)"></span>
+                                    <span class="font-medium" x-text="fmtCurr(totalHarga)"></span>
                                 </div>
 
                                 {{-- PPN row --}}
-                                <div class="flex items-center gap-2">
-                                    <label class="flex items-center gap-1.5 cursor-pointer select-none shrink-0">
-                                        <input type="checkbox" name="fapplyppn" value="1" x-model="includePPN"
-                                            class="h-4 w-4 text-blue-600 border-gray-300 rounded">
-                                        <span class="font-bold text-sm">PPN</span>
-                                    </label>
-                                    <select name="ppn_mode" x-model.number="ppnMode" :disabled="!includePPN"
-                                        class="w-28 h-10 px-2 text-sm border rounded appearance-none
-           disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
-                                        <option value="0">Exclude</option>
-                                        <option value="1">Include</option>
-                                    </select>
-                                    <input type="number" name="ppn_rate" min="0" max="100" step="0.01"
-                                        x-model.number="ppnRate" :disabled="!includePPN"
-                                        class="w-16 h-10 px-2 text-sm text-right border rounded
-           [appearance:textfield]
-           disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
-                                    <span class="text-gray-500">%</span>
-                                    <span class="flex-1"></span>{{-- jarak --}}
-                                    <span class="font-medium" x-text="rupiah(ppnNominal)"></span>
+                                <div class="space-y-1">
+                                    <div class="flex items-center gap-2">
+                                        <label class="flex items-center gap-1.5 cursor-pointer select-none">
+                                            <input type="checkbox" name="fapplyppn" value="1" x-model="includePPN"
+                                                class="h-4 w-4 text-blue-600 border-gray-300 rounded">
+                                            <span class="font-bold">PPN</span>
+                                        </label>
+                                        <select name="ppn_mode" x-model.number="ppnMode" :disabled="!includePPN"
+                                            class="flex-1 h-8 px-2 text-xs border rounded appearance-none
+                                                   disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
+                                            <option value="0">Exclude</option>
+                                            <option value="1">Include</option>
+                                        </select>
+                                        <input type="number" name="ppn_rate" min="0" max="100"
+                                            step="0.01" x-model.number="ppnRate" :disabled="!includePPN"
+                                            class="w-14 h-8 px-2 text-xs text-right border rounded
+                                                   [appearance:textfield]
+                                                   disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
+                                        <span class="text-gray-500 shrink-0">%</span>
+                                        <span class="flex-1"></span>{{-- jarak --}}
+                                        <span class="font-medium shrink-0" x-text="rupiah(ppnNominal)"></span>
+                                    </div>
                                 </div>
 
                                 <div class="border-t"></div>
@@ -623,6 +625,34 @@
                     <div class="px-5 py-3 border-t flex justify-end">
                         <button type="button" @click="showNoItems=false"
                             class="h-9 px-4 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">OK</button>
+                    </div>
+                </div>
+            </div>
+
+            {{-- MODAL ERROR: supplier belum dipilih --}}
+            <div x-show="showNoSupplier" x-cloak class="fixed inset-0 z-[90] flex items-center justify-center"
+                x-transition.opacity>
+                <div class="absolute inset-0 bg-black/50" @click="showNoSupplier=false"></div>
+                <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden">
+                    <div class="px-5 py-4 border-b flex items-center">
+                        <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-amber-500 mr-2" />
+                        <h3 class="text-lg font-semibold text-gray-800">Supplier Belum Dipilih</h3>
+                    </div>
+                    <div class="px-5 py-4">
+                        <p class="text-sm text-gray-700">
+                            Silakan pilih <strong>Supplier</strong> terlebih dahulu sebelum menambahkan item.
+                        </p>
+                    </div>
+                    <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
+                        <button type="button" @click="showNoSupplier=false"
+                            class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
+                            Tutup
+                        </button>
+                        <button type="button"
+                            @click="showNoSupplier=false; window.dispatchEvent(new CustomEvent('supplier-browse-open'))"
+                            class="h-9 px-4 rounded-lg bg-amber-500 text-white text-sm font-medium hover:bg-amber-600">
+                            Pilih Supplier
+                        </button>
                     </div>
                 </div>
             </div>
@@ -829,6 +859,38 @@
         return 'r' + (Date.now().toString(16) + Math.random().toString(16).slice(2));
     };
 
+    // URL endpoint cek history harga
+    window.LAST_PRICE_URL = "{{ route('tr_poh.lastPrice') }}";
+
+    /**
+     * Ambil harga terakhir dari PO sebelumnya.
+     * @param {string} fprdcode  - kode produk
+     * @param {string} fsupplier - id/kode supplier (dari hidden input #supplierCodeHidden)
+     * @param {string} fsatuan   - satuan yang dipilih
+     * @returns {Promise<{found, fprice, fdisc, fpodate, fpono}|null>}
+     */
+    window.fetchLastPrice = async function(fprdcode, fsupplier, fsatuan) {
+        if (!fprdcode || !fsupplier || !fsatuan) return null;
+        try {
+            const params = new URLSearchParams({
+                fprdcode,
+                fsupplier,
+                fsatuan
+            });
+            const res = await fetch(`${window.LAST_PRICE_URL}?${params}`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+            if (!res.ok) return null;
+            const data = await res.json();
+            return data.found ? data : null;
+        } catch (e) {
+            console.warn('fetchLastPrice error:', e);
+            return null;
+        }
+    };
+
     // ============================================================
     // mainForm — root Alpine component (menggabungkan header + items)
     // ============================================================
@@ -859,8 +921,8 @@
             // ---- header ----
             autoCode: true,
             selectedCurrId: '',
-            selectedCurrCode: '',
-            rateValue: 0,
+            selectedCurrCode: 'IDR',
+            rateValue: 1,
 
             // ---- PPN / totals ----
             includePPN: false,
@@ -871,6 +933,7 @@
             activeRow: null,
             browseTarget: 'draft',
             showNoItems: false,
+            showNoSupplier: false,
 
             // ---- computed totals ----
             get totalHarga() {
@@ -978,9 +1041,34 @@
             },
             onCodeTypedRow(row) {
                 this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                this.$nextTick(() => this.applyLastPrice(row));
             },
             onCodeTypedSaved(item) {
                 this.hydrateRowFromMeta(item, this.productMeta(item.fitemcode));
+                this.$nextTick(() => this.applyLastPrice(item));
+            },
+
+            // Ambil supplier yang sedang dipilih (dari hidden input)
+            getSupplier() {
+                return (document.getElementById('supplierCodeHidden')?.value || '').trim();
+            },
+
+            // Cek history harga lalu apply ke row jika ditemukan
+            async applyLastPrice(row) {
+                const supplier = this.getSupplier();
+                const code = (row.fitemcode || '').trim();
+                const satuan = (row.fsatuan || '').trim();
+                if (!code || !supplier || !satuan) return;
+
+                const hist = await window.fetchLastPrice(code, supplier, satuan);
+                if (!hist || (!hist.fprice && hist.fprice !== 0)) return;
+
+                // Auto-fill hanya jika harga belum diisi user (masih 0)
+                if (!row.fprice || row.fprice === 0) {
+                    row.fprice = hist.fprice;
+                    row.fdisc = hist.fdisc ?? 0;
+                    this.recalc(row);
+                }
             },
 
             isComplete(row) {
@@ -1007,6 +1095,12 @@
 
             // ---- tambah dari draft ----
             addIfComplete() {
+                // Cek supplier dulu sebelum boleh tambah item
+                if (!this.getSupplier()) {
+                    this.showNoSupplier = true;
+                    return;
+                }
+
                 const r = this.draft;
                 if (!this.isComplete(r)) {
                     if (!r.fitemcode) return this.$refs.draftCode?.focus();
@@ -1041,6 +1135,11 @@
             },
 
             handleEnterOnCode() {
+                // Cek supplier dulu
+                if (!this.getSupplier()) {
+                    this.showNoSupplier = true;
+                    return;
+                }
                 if (this.draft.units.length > 1) this.$refs.draftUnit?.focus();
                 else this.$refs.draftQty?.focus();
             },
@@ -1066,9 +1165,9 @@
                         fsatuan: src.fsatuan ?? '',
                         frefdtno: src.frefdtno ?? '',
                         fnouref: src.fnouref ?? '',
-                        // Ref.PR# diisi dari fprhid header PR
-                        frefpr: String(header?.fprhid ?? header?.fprno ?? src.fprhid ?? ''),
+                        frefpr: String(header?.fprhid ?? src.fprhid ?? ''),
                         fprhid: String(src.fprhid ?? header?.fprhid ?? ''),
+                        fprno: String(header?.fprno ?? src.fprno ?? ''),
                         fqty: Number(src.fqty ?? 0),
                         fprice: Number(src.fprice ?? 0),
                         fdisc: Number(src.fdisc ?? 0),
@@ -1094,6 +1193,10 @@
 
             // ---- browse produk ----
             openBrowseFor(where, idx = null) {
+                if (!this.getSupplier()) {
+                    this.showNoSupplier = true;
+                    return;
+                }
                 this.browseTarget = (where === 'saved' && idx !== null) ? idx : 'draft';
                 window.dispatchEvent(new CustomEvent('browse-open', {
                     detail: {
@@ -1112,7 +1215,22 @@
             },
 
             init() {
+                // Set default currency ke IDR saat load
+                const idrEntry = Object.values(window.CURRENCY_MAP).find(c => c.code === 'IDR');
+                if (idrEntry && !this.selectedCurrId) {
+                    this.selectedCurrId = String(idrEntry.id);
+                    this.selectedCurrCode = idrEntry.code;
+                    this.rateValue = 1;
+                }
+
                 window.getCurrentItemKeys = () => this.getCurrentItemKeys();
+
+                // Terima sinyal dari komponen lain (misal prhFormModal) untuk tampilkan modal supplier
+                window.addEventListener('show-no-supplier', () => {
+                    this.showNoSupplier = true;
+                }, {
+                    passive: true
+                });
 
                 window.addEventListener('pr-picked', this.onPrPicked.bind(this), {
                     passive: true
@@ -1128,6 +1246,8 @@
                         this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
                         if (!row.fqty) row.fqty = 1;
                         this.recalc(row);
+                        // cek histori harga setelah satuan terisi
+                        this.$nextTick(() => this.applyLastPrice(row));
                     };
                     if (typeof this.browseTarget === 'number') {
                         const item = this.savedItems[this.browseTarget];
@@ -1146,6 +1266,29 @@
             }
         };
     }
+
+    // ============================================================
+    // fetchLastPrice — helper global, panggil endpoint lastPrice
+    // ============================================================
+    window.fetchLastPrice = async function(fprdcode, fsupplier, fsatuan) {
+        if (!fprdcode || !fsupplier || !fsatuan) return null;
+        try {
+            const url = new URL("{{ route('tr_poh.lastPrice') }}", window.location.origin);
+            url.searchParams.set('fprdcode', fprdcode);
+            url.searchParams.set('fsupplier', fsupplier);
+            url.searchParams.set('fsatuan', fsatuan);
+            const res = await fetch(url.toString(), {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+            if (!res.ok) return null;
+            return await res.json(); // { fprice, fdisc }
+        } catch (e) {
+            console.warn('fetchLastPrice error:', e);
+            return null;
+        }
+    };
 
     // ============================================================
     // supplierBrowser
@@ -1412,6 +1555,10 @@
             },
 
             openModal() {
+                if (!(document.getElementById('supplierCodeHidden')?.value || '').trim()) {
+                    window.dispatchEvent(new CustomEvent('show-no-supplier'));
+                    return;
+                }
                 this.show = true;
                 this.$nextTick(() => this.initDataTable());
             },

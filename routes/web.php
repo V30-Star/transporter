@@ -245,6 +245,7 @@ Route::middleware('auth')->group(function () {
             ->name('tr_poh.pickable');
         Route::get('/tr-poh/{id}/items', [Tr_pohController::class, 'items'])
             ->name('tr_poh.items');
+        Route::get('tr_poh/last-price', [Tr_pohController::class, 'lastPrice'])->name('tr_poh.lastPrice');
 
         Route::get('/penerimaanbarang',  [PenerimaanBarangController::class, 'index'])->name('penerimaanbarang.index');
         Route::post('/penerimaanbarang',        [PenerimaanBarangController::class, 'store'])->name('penerimaanbarang.store');

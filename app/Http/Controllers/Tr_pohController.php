@@ -306,6 +306,31 @@ class Tr_pohController extends Controller
     ]);
   }
 
+  public function lastPrice(Request $request)
+  {
+    $fprdcode  = trim($request->input('fprdcode', ''));
+    $fsupplier = trim($request->input('fsupplier', ''));
+    $fsatuan   = trim($request->input('fsatuan', ''));
+
+    if (!$fprdcode || !$fsupplier || !$fsatuan) {
+      return response()->json(['fprice' => 0, 'fdisc' => 0]);
+    }
+
+    $row = DB::table('tr_poh as m')
+      ->join('tr_pod as d', 'm.fpohid', '=', 'd.fpohid')
+      ->where(DB::raw('trim(d.fprdcode)'), $fprdcode)
+      ->where(DB::raw('trim(m.fsupplier)'), $fsupplier)
+      ->where(DB::raw('trim(d.fsatuan)'), $fsatuan)
+      ->orderBy('m.fpodate', 'desc')
+      ->select('d.fprice', 'd.fdisc')
+      ->first();
+
+    return response()->json([
+      'fprice' => $row ? (float)$row->fprice : 0,
+      'fdisc'  => $row ? (float)$row->fdisc  : 0,
+    ]);
+  }
+
   public function create(Request $request)
   {
     $suppliers = Supplier::orderBy('fsuppliername', 'asc')
