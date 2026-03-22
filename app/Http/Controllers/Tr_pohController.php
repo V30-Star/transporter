@@ -184,27 +184,19 @@ class Tr_pohController extends Controller
     $header = Tr_prh::where('fprhid', $id)->firstOrFail();
 
     $items = Tr_prd::where('tr_prd.fprhid', $header->fprhid)
-      ->leftJoin('msprd as m', 'm.fprdid', '=', 'tr_prd.fprdid')
+      ->leftJoin('msprd as m', 'm.fprdid', '=', 'tr_prd.fprdcodeid')  // ← PERBAIKAN: pakai fprdcodeid
       ->select([
-        // frefdtno = nomor baris detail PR (dipakai sebagai referensi, bukan key duplikat)
-        DB::raw('tr_prd.fprdid::text as frefdtno'),
-
-        // fitemcode = kode produk (fprdcode), ini yang dipakai sebagai key
-        'm.fprdcode as fitemcode',
-        'm.fprdname as fitemname',
-
+        DB::raw('tr_prd.fprdcodeid::text as frefdtno'),  // ID produk PR sebagai referensi
+        'm.fprdcode as fitemcode',                        // kode produk dari master
+        'm.fprdname as fitemname',                        // nama produk dari master
         'tr_prd.fqty',
         'tr_prd.fsatuan',
         'tr_prd.fprhid',
-
-        // Nama field harus cocok dengan yang dibaca JS: fprice dan fdisc
         DB::raw('COALESCE(tr_prd.fprice, 0) as fprice'),
         DB::raw('0::numeric as fdisc'),
-
-        // fnouref — nomor urut referensi
         DB::raw('tr_prd.fprhid::text as fnouref'),
       ])
-      ->orderBy('tr_prd.fprdid')
+      ->orderBy('tr_prd.fprdcodeid')
       ->get();
 
     return response()->json([
@@ -488,7 +480,7 @@ class Tr_pohController extends Controller
       $price  = (float)($prices[$i]  ?? 0);
       $discP  = (float)($discs[$i]   ?? 0);
       $desc   = (string)($descs[$i]  ?? '');
-      $fprhid_item = (int)($fprhids[$i] ?? 0); 
+      $fprhid_item = (int)($fprhids[$i] ?? 0);
 
       if ($code === '' || $qty <= 0) continue;
 

@@ -317,11 +317,8 @@
                                                 @keydown.enter.prevent="$refs.editKet?.focus()">
                                         </td>
 
-                                        <td class="p-2 text-right">
-                                            <input type="number" class="w-full border rounded px-2 py-1 text-gray-600"
-                                                min="0" step="1" x-model.number="editRow.fqtypo" disabled>
-                                        </td>
-
+                                        <td class="p-2 text-right" x-text="it.fqtypo > 0 ? it.fqtypo : '-'"></td>
+                                        
                                         <td class="p-2">
                                             <input type="text" class="border rounded px-2 py-1 w-full"
                                                 x-model="editRow.fketdt" x-ref="editKet"
@@ -933,10 +930,7 @@
                                                 @keydown.enter.prevent="$refs.draftKet?.focus()">
                                         </td>
 
-                                        <td class="p-2 text-right">
-                                            <input type="number" class="w-full border rounded px-2 py-1 text-gray-600"
-                                                min="0" step="1" x-model.number="draft.fqtypo" disabled>
-                                        </td>
+                                        <td class="p-2 text-right text-gray-400">-</td>
 
                                         <td class="p-2">
                                             <input type="text" class="border rounded px-2 py-1 w-full"
@@ -1361,7 +1355,7 @@
     // Map produk untuk auto-fill tabel
     window.PRODUCT_MAP = {
         @foreach ($products as $p)
-            "{{ $p->fprdcodeid }}": {
+            "{{ $p->fprdcode }}": {
                 id: @json($p->fprdid),
                 name: @json($p->fprdname),
                 units: @json(array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2]))),
@@ -1375,11 +1369,11 @@
         @foreach ($tr_prh->details as $d)
             {
                 uid: null, // akan diisi cryptoRandom()
-                fitemcode: @json($d->fprdcodeid),
+                fitemcode: @json($d->fprdcode),
                 fitemname: @json($d->fprdname),
                 fsatuan: @json($d->fsatuan),
                 fqty: {{ (int) $d->fqty }},
-                fqtypo: @json($d->fqtypo ?? ''),
+                fqtypo: {{ (float) $d['fqtypo'] }},
                 fdesc: @json($d->fdesc ?? ''),
                 fketdt: @json($d->fketdt ?? ''),
             },
@@ -1934,7 +1928,7 @@
                     if (!product) return;
 
                     const apply = (row) => {
-                        row.fitemcode = (product.fprdcodeid || '').toString();
+                        row.fitemcode = (product.fprdcode || '').toString();
                         row.fprdid = product.fprdid ?? (window.PRODUCT_INDEX_BY_CODE?.[row.fitemcode]?.id ??
                             null); // ⬅️ set ID
                         // kalau browse nggak kirim name/units, hydrasi lewat PRODUCT_MAP:
@@ -2003,8 +1997,8 @@
                             }
                         },
                         columns: [{
-                                data: 'fprdcodeid',
-                                name: 'fprdcodeid',
+                                data: 'fprdcode',
+                                name: 'fprdcode',
                                 className: 'font-mono text-sm'
                             },
                             {

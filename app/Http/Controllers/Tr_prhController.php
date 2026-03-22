@@ -549,24 +549,48 @@ class Tr_prhController extends Controller
         );
     }])->findOrFail($fprhid);
 
+    $fprhid = (int) $tr_prh->fprhid;
+
+    $details = DB::table('tr_prd as d')
+      ->leftJoin('msprd as p', 'p.fprdid', '=', 'd.fprdcodeid')
+      ->leftJoin(DB::raw('(
+        SELECT frefdtid, fprdid, SUM(fqtykecil) AS fqtypo
+        FROM tr_pod
+        WHERE frefdtid IS NOT NULL AND frefdtid > 0
+        GROUP BY frefdtid, fprdid
+    ) as o'), function ($join) use ($fprhid) {
+        $join->whereRaw('o.frefdtid = ?', [$fprhid])   // ← pakai whereRaw
+          ->on('o.fprdid', '=', 'p.fprdid');
+      })
+      ->where('d.fprhid', $fprhid)
+      ->select([
+        'd.*',
+        'p.fprdname',
+        'p.fprdcode as fprdcode_master',
+        DB::raw('COALESCE(
+            CASE
+                WHEN d.fsatuan = p.fsatuanbesar
+                THEN o.fqtypo / NULLIF(p.fqtykecil::numeric, 0)
+                ELSE o.fqtypo
+            END, 0
+        ) AS fqtypo'),
+      ])
+      ->get();
+
     // Map ke savedItems (agar cocok dengan table di Blade yang biasa kamu pakai)
-    $savedItems = $tr_prh->details->map(function ($d) {
+    $savedItems = $details->map(function ($d) {
       return [
-        'uid'        => $d->fprdid,                    // PK detail untuk :key
-        'fitemcode'  => (string)($d->product_code ?? ''),    // KODE PRODUK (string)
-        'fitemname'  => (string)($d->product_name ?? ''),    // NAMA PRODUK
-        'fsatuan'    => (string)($d->fsatuan ?? ''),
-        'frefdtno'   => (string)($d->frefdtno ?? ''),
-        'fnouref'    => (string)($d->fnouref ?? ''),
-        'fqty'       => (float)($d->fqty ?? 0),
-        'fterima'    => (float)($d->fterima ?? 0),
-        'fprice'     => (float)($d->fprice ?? 0),
-        'fdisc'      => (float)($d->fdisc ?? 0),
-        'ftotal'     => (float)($d->famount ?? 0),
-        'fdesc'      => (string)($d->fdesc ?? ''),
-        'fketdt'     => (string)($d->fketdt ?? ''),
-        // kalau perlu kirim ID produk buat update:
-        'fprdid'     => (int)($d->fprdcodeid ?? 0),       // ini ID produk di kolom detail
+        'uid'       => (string)\Illuminate\Support\Str::uuid(),
+        'fprdid'    => (int)($d->fprdcodeid ?? 0),
+        'fitemcode' => (string)($d->fprdcode_master ?? ''),  // dari fprdcode_master
+        'fitemname' => (string)($d->fprdname ?? ''),
+        'fsatuan'   => (string)($d->fsatuan ?? ''),
+        'fqty'      => (float)($d->fqty ?? 0),
+        'fqtypo'    => (float)($d->fqtypo ?? 0),   // ← sekarang dari $details
+        'fdesc'     => (string)($d->fdesc ?? ''),
+        'fketdt'    => (string)($d->fketdt ?? ''),
+        'fprice'    => (float)($d->fprice ?? 0),
+        'fdisc'     => (float)($d->fdisc ?? 0),
       ];
     })->values();
 
@@ -633,24 +657,48 @@ class Tr_prhController extends Controller
         );
     }])->findOrFail($fprhid);
 
+    $fprhid = (int) $tr_prh->fprhid;
+
+    $details = DB::table('tr_prd as d')
+      ->leftJoin('msprd as p', 'p.fprdid', '=', 'd.fprdcodeid')
+      ->leftJoin(DB::raw('(
+        SELECT frefdtid, fprdid, SUM(fqtykecil) AS fqtypo
+        FROM tr_pod
+        WHERE frefdtid IS NOT NULL AND frefdtid > 0
+        GROUP BY frefdtid, fprdid
+    ) as o'), function ($join) use ($fprhid) {
+        $join->whereRaw('o.frefdtid = ?', [$fprhid])   // ← pakai whereRaw
+          ->on('o.fprdid', '=', 'p.fprdid');
+      })
+      ->where('d.fprhid', $fprhid)
+      ->select([
+        'd.*',
+        'p.fprdname',
+        'p.fprdcode as fprdcode_master',
+        DB::raw('COALESCE(
+            CASE
+                WHEN d.fsatuan = p.fsatuanbesar
+                THEN o.fqtypo / NULLIF(p.fqtykecil::numeric, 0)
+                ELSE o.fqtypo
+            END, 0
+        ) AS fqtypo'),
+      ])
+      ->get();
+
     // Map ke savedItems (agar cocok dengan table di Blade yang biasa kamu pakai)
-    $savedItems = $tr_prh->details->map(function ($d) {
+    $savedItems = $details->map(function ($d) {
       return [
-        'uid'        => $d->fprdid,                    // PK detail untuk :key
-        'fitemcode'  => (string)($d->product_code ?? ''),    // KODE PRODUK (string)
-        'fitemname'  => (string)($d->product_name ?? ''),    // NAMA PRODUK
-        'fsatuan'    => (string)($d->fsatuan ?? ''),
-        'frefdtno'   => (string)($d->frefdtno ?? ''),
-        'fnouref'    => (string)($d->fnouref ?? ''),
-        'fqty'       => (float)($d->fqty ?? 0),
-        'fterima'    => (float)($d->fterima ?? 0),
-        'fprice'     => (float)($d->fprice ?? 0),
-        'fdisc'      => (float)($d->fdisc ?? 0),
-        'ftotal'     => (float)($d->famount ?? 0),
-        'fdesc'      => (string)($d->fdesc ?? ''),
-        'fketdt'     => (string)($d->fketdt ?? ''),
-        // kalau perlu kirim ID produk buat update:
-        'fprdid'     => (int)($d->fprdcodeid ?? 0),       // ini ID produk di kolom detail
+        'uid'       => (string)\Illuminate\Support\Str::uuid(),
+        'fprdid'    => (int)($d->fprdcodeid ?? 0),
+        'fitemcode' => (string)($d->fprdcode_master ?? ''),  // dari fprdcode_master
+        'fitemname' => (string)($d->fprdname ?? ''),
+        'fsatuan'   => (string)($d->fsatuan ?? ''),
+        'fqty'      => (float)($d->fqty ?? 0),
+        'fqtypo'    => (float)($d->fqtypo ?? 0),   // ← sekarang dari $details
+        'fdesc'     => (string)($d->fdesc ?? ''),
+        'fketdt'    => (string)($d->fketdt ?? ''),
+        'fprice'    => (float)($d->fprice ?? 0),
+        'fdisc'     => (float)($d->fdisc ?? 0),
       ];
     })->values();
 
@@ -943,27 +991,48 @@ class Tr_prhController extends Controller
         );
     }])->findOrFail($fprhid);
 
-    // Map ke savedItems (agar cocok dengan table di Blade yang biasa kamu pakai)
-    $savedItems = $tr_prh->details->map(function ($d) {
+    $fprhid = (int) $tr_prh->fprhid;
+
+    $details = DB::table('tr_prd as d')
+      ->leftJoin('msprd as p', 'p.fprdid', '=', 'd.fprdcodeid')
+      ->leftJoin(DB::raw('(
+        SELECT frefdtid, fprdid, SUM(fqtykecil) AS fqtypo
+        FROM tr_pod
+        WHERE frefdtid IS NOT NULL AND frefdtid > 0
+        GROUP BY frefdtid, fprdid
+    ) as o'), function ($join) use ($fprhid) {
+        $join->whereRaw('o.frefdtid = ?', [$fprhid])
+          ->on('o.fprdid', '=', 'p.fprdid');
+      })
+      ->where('d.fprhid', $fprhid)
+      ->select([
+        'd.*',
+        'p.fprdname',
+        'p.fprdcode as fprdcode_master',
+        DB::raw('COALESCE(
+            CASE
+                WHEN d.fsatuan = p.fsatuanbesar
+                THEN o.fqtypo / NULLIF(p.fqtykecil::numeric, 0)
+                ELSE o.fqtypo
+            END, 0
+        ) AS fqtypo'),
+      ])
+      ->get();
+
+    $savedItems = $details->map(function ($d) {
       return [
-        'uid'        => $d->fprdid,                    // PK detail untuk :key
-        'fitemcode'  => (string)($d->product_code ?? ''),    // KODE PRODUK (string)
-        'fitemname'  => (string)($d->product_name ?? ''),    // NAMA PRODUK
-        'fsatuan'    => (string)($d->fsatuan ?? ''),
-        'frefdtno'   => (string)($d->frefdtno ?? ''),
-        'fnouref'    => (string)($d->fnouref ?? ''),
-        'fqty'       => (float)($d->fqty ?? 0),
-        'fterima'    => (float)($d->fterima ?? 0),
-        'fprice'     => (float)($d->fprice ?? 0),
-        'fdisc'      => (float)($d->fdisc ?? 0),
-        'ftotal'     => (float)($d->famount ?? 0),
-        'fdesc'      => (string)($d->fdesc ?? ''),
-        'fketdt'     => (string)($d->fketdt ?? ''),
-        // kalau perlu kirim ID produk buat update:
-        'fprdid'     => (int)($d->fprdcodeid ?? 0),       // ini ID produk di kolom detail
+        'uid'       => (string)\Illuminate\Support\Str::uuid(),
+        'fprdid'    => (int)($d->fprdcodeid ?? 0),
+        'fitemcode' => (string)($d->fprdcode_master ?? ''),
+        'fitemname' => (string)($d->fprdname ?? ''),
+        'fsatuan'   => (string)($d->fsatuan ?? ''),
+        'fqty'      => (float)($d->fqty ?? 0),
+        'fqtypo'    => (float)($d->fqtypo ?? 0),   // ← sekarang terisi
+        'fdesc'     => (string)($d->fdesc ?? ''),
+        'fketdt'    => (string)($d->fketdt ?? ''),
       ];
     })->values();
-
+    
     // Fetch all products for product mapping
     $products = Product::select(
       'fprdid',
