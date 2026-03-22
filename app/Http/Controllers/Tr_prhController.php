@@ -476,7 +476,7 @@ class Tr_prhController extends Controller
             'fsatuan'     => $sat,
             'fdesc'       => $desc,
             'fusercreate' => $userName,
-            'fprhcode'    => $tr_prh->fprno,
+            'fprno'    => $tr_prh->fprno,
           ];
         }
       }
@@ -841,7 +841,7 @@ class Tr_prhController extends Controller
           'fsatuan'     => $sat,
           'fdesc'       => $desc,
           'fuserupdate' => (auth('sysuser')->user()->fname ?? Auth::user()->fname ?? 'system'),
-          'fprhcode'   => $header->fprno,
+          'fprno'   => $header->fprno,
         ];
       }
     }

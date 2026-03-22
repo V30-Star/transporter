@@ -935,7 +935,7 @@
 
                                         <td class="p-2 text-right">
                                             <input type="number" class="w-full border rounded px-2 py-1 text-gray-600"
-                                                x-model.number="draft.fqtypo" disabled>
+                                                min="0" step="1" x-model.number="draft.fqtypo" disabled>
                                         </td>
 
                                         <td class="p-2">
@@ -1365,8 +1365,7 @@
                 id: @json($p->fprdid),
                 name: @json($p->fprdname),
                 units: @json(array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2]))),
-                stock: @json($p->fminstock ?? 0),
-                qty_po: @json($p->fqtypo_total ?? 0)
+                stock: @json($p->fminstock ?? 0)
             },
         @endforeach
     };
@@ -1601,8 +1600,7 @@
                 fqtypo: 0,
                 fdesc: '',
                 fketdt: '',
-                maxqty: 0,
-                fqtypo: 0
+                maxqty: 0
             },
             editingIndex: null,
             editRow: {
@@ -1614,8 +1612,7 @@
                 fdesc: '',
                 fqtypo: 0,
                 fketdt: '',
-                maxqty: 0,
-                fqtypo: 0
+                maxqty: 0
             },
 
             resetDraft() {
@@ -1628,8 +1625,7 @@
                     fqtypo: 0,
                     fdesc: '',
                     fketdt: '',
-                    maxqty: 0,
-                    fqtypo: 0
+                    maxqty: 0
                 };
             },
             productMeta(code) {
@@ -1643,7 +1639,6 @@
                     row.units = [];
                     row.fsatuan = '';
                     row.maxqty = 0;
-                    row.fqtypo = 0;
                     return;
                 }
                 row.fprdid = meta.id || null; // ⬅️ ambil ID
@@ -1653,7 +1648,6 @@
                 if (!units.includes(row.fsatuan)) row.fsatuan = units[0] || '';
                 const stock = Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0;
                 row.maxqty = stock;
-                row.fqtypo = meta.qty_po || 0;
             },
             onCodeTypedRow(row) {
                 this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
@@ -1663,20 +1657,14 @@
                 return Number.isFinite(n) ? n : d;
             },
             enforceQtyRow(row) {
-                const n = +row.fqty;
-                if (n < 1) {
-                    row.fqty = 1;
+                const n = this.sanitizeNumber(row.fqty, 1);
+                if (!Number.isFinite(n)) {
+                    row.fqty = '';
                     return;
                 }
-
-                // VALIDASI: Qty PR tidak boleh > (Stok - Qty PO)
-                let sisaTersedia = row.maxqty - row.fqtypo;
-                if (sisaTersedia > 0 && n > sisaTersedia) {
-                    alert(
-                        `Qty PR melebihi sisa stok tersedia!\nStok: ${row.maxqty}\nSudah PO: ${row.fqtypo}\nMaksimal PR: ${sisaTersedia}`
-                        );
-                    row.fqty = sisaTersedia;
-                }
+                if (n < 1) row.fqty = 1;
+                if (row.maxqty > 0 && n > row.maxqty) row.fqty = row.maxqty;
+                row.fqtypo = Math.max(0, Math.min(this.sanitizeNumber(row.fqtypo, 0), row.fqty));
             },
             isComplete(row) {
                 return row.fitemcode && row.fitemname && row.fsatuan && Number(row.fqty) > 0;
@@ -1721,9 +1709,7 @@
                     fqtypo: r.fqtypo,
                     fqty: +r.fqty,
                     fdesc: r.fdesc || '',
-                    fketdt: r.fketdt || '',
-                    maxqty: r.maxqty,
-                    fqtypo: r.fqtypo,
+                    fketdt: r.fketdt || ''
                 });
 
                 this.resetDraft();
