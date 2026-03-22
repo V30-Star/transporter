@@ -304,10 +304,27 @@
                                     {{-- Qty --}}
                                     <td class="p-2 text-right">
                                         <input type="number" class="border rounded px-2 py-1 w-20 text-right text-sm"
-                                            min="0" step="1" x-model.number="it.fqty"
-                                            :id="'qty_saved_' + i" @focus="activeRow = it.uid; $event.target.select()"
-                                            @blur="activeRow = null" @input="recalc(it)" @change="recalc(it)"
+                                            min="1" step="1" :max="it.maxqty > 0 ? it.maxqty : null"
+                                            x-model.number="it.fqty" :id="'qty_saved_' + i"
+                                            @focus="activeRow = it.uid; $event.target.select()" @blur="activeRow = null"
+                                            @input="
+            recalc(it);
+            if (it.maxqty > 0 && it.fqty > it.maxqty) {
+                it.fqty = it.maxqty;
+                recalc(it);
+            }
+        "
+                                            @change="
+            recalc(it);
+            if (it.maxqty > 0 && it.fqty > it.maxqty) {
+                it.fqty = it.maxqty;
+                recalc(it);
+            }
+        "
                                             @keydown.enter.prevent="focusSavedPrice(i)">
+                                        <div x-show="it.maxqty > 0" class="text-xs text-gray-400 mt-0.5 text-right">
+                                            maks: <span x-text="it.maxqty"></span>
+                                        </div>
                                     </td>
 
                                     {{-- @ Harga --}}
@@ -505,7 +522,8 @@
            disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
                                         <span class="text-gray-500">%</span>
                                         <span class="flex-1"></span>
-                                        <span id="fppnpersen" name="fppnpersen" class="font-medium" x-text="fmtCurr(ppnNominal)"></span>
+                                        <span id="fppnpersen" name="fppnpersen" class="font-medium"
+                                            x-text="fmtCurr(ppnNominal)"></span>
                                     </div>
                                 </div>
 
@@ -1039,19 +1057,21 @@
             productMeta(code) {
                 return window.PRODUCT_MAP?.[(code || '').trim()] || null;
             },
-            hydrateRowFromMeta(row, meta) {
+            hydrateRowFromMeta(row, meta, keepMaxqty = false) {
                 if (!meta) {
                     row.fitemname = '';
                     row.units = [];
                     row.fsatuan = '';
-                    row.maxqty = 0;
+                    if (!keepMaxqty) row.maxqty = 0; // ← jangan reset kalau keepMaxqty
                     return;
                 }
                 row.fitemname = meta.name || '';
                 const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
                 row.units = units;
                 if (!units.includes(row.fsatuan)) row.fsatuan = units[0] || '';
-                row.maxqty = Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0;
+                if (!keepMaxqty) { // ← jangan timpa kalau keepMaxqty
+                    row.maxqty = Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0;
+                }
             },
             onCodeTypedRow(row) {
                 this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
@@ -1215,8 +1235,8 @@
                         return;
                     }
 
-                    const units = meta ?
-                        [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))] :
+                    const units = meta ? [...new Set((meta.units || []).map(u => (u ?? '').toString().trim())
+                            .filter(Boolean))] :
                         (Array.isArray(src.units) && src.units.length ? src.units : [fsatuan].filter(Boolean));
                     if (fsatuan && !units.includes(fsatuan)) units.unshift(fsatuan);
 
@@ -1232,13 +1252,13 @@
                         fprhid: String(src.fprhid ?? header?.fprhid ?? ''),
                         fprno: String(header?.fprno ?? src.fprno ?? ''),
                         fqty: Number(src.fqty ?? 0),
+                        fqtypr: Number(src.fqty ?? 0), // ← simpan qty PR sebagai referensi
+                        maxqty: Number(src.maxqty ?? src.fqty ?? 0), 
                         fprice: Number(src.fprice ?? 0),
                         fdisc: Number(src.fdisc ?? 0),
                         ftotal: Number(src.ftotal ?? 0),
                         fdesc: src.fdesc ?? '',
                         fketdt: src.fketdt ?? '',
-                        maxqty: meta ? (Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0) :
-                            0,
                     };
                     if (!row.ftotal && row.fqty && row.fprice)
                         row.ftotal = +(row.fqty * row.fprice * (1 - row.fdisc / 100)).toFixed(2);

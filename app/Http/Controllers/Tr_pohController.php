@@ -190,6 +190,7 @@ class Tr_pohController extends Controller
         'm.fprdcode as fitemcode',                        // kode produk dari master
         'm.fprdname as fitemname',                        // nama produk dari master
         'tr_prd.fqty',
+        'tr_prd.fqty as maxqty',
         'tr_prd.fsatuan',
         'tr_prd.fprhid',
         DB::raw('COALESCE(tr_prd.fprice, 0) as fprice'),
@@ -692,6 +693,18 @@ class Tr_pohController extends Controller
       );
     }])->findOrFail($fpohid);
 
+    $fpohidInt = (int) $tr_poh->fpohid;
+
+    $prQtyMap = DB::table('tr_prd as d')
+      ->join('tr_pod as pod', function ($join) use ($fpohidInt) {
+        $join->on('pod.frefdtid', '=', 'd.fprhid')
+          ->on('pod.fprdid', '=', 'd.fprdcodeid')
+          ->where('pod.fpohid', '=', $fpohidInt);
+      })
+      ->select('pod.fpodid', 'd.fqty as qty_pr')
+      ->get()
+      ->keyBy('fpodid');
+
     // Lookup currency berdasarkan fcurrency (integer ID) di tr_poh
     $currentCurrency = DB::table('mscurrency')
       ->where('fcurrid', $tr_poh->fcurrency)
@@ -722,7 +735,7 @@ class Tr_pohController extends Controller
       ];
     })->toArray();
 
-    $savedItems = $tr_poh->details->map(function ($d) use ($products) {
+    $savedItems = $tr_poh->details->map(function ($d) use ($products, $prQtyMap) {
       $prod  = $products->firstWhere('fprdcode', $d->fitemcode);
       $units = $prod
         ? array_values(array_filter([
@@ -737,6 +750,8 @@ class Tr_pohController extends Controller
         array_unshift($units, $d->fsatuan);
       }
 
+      $qtyPR = (float)($prQtyMap[$d->fpodid]->qty_pr ?? 0);
+
       return [
         'uid'       => (string)($d->fpodid   ?? \Illuminate\Support\Str::uuid()),
         'fitemcode' => (string)($d->fitemcode ?? ''),
@@ -744,7 +759,6 @@ class Tr_pohController extends Controller
         'fsatuan'   => (string)($d->fsatuan   ?? ''),
         'units'     => $units,
         'frefdtno'  => (string)($d->frefdtno  ?? ''),
-        'frefdtid'  => (string)($d->frefdtid  ?? ''),
         'fnouref'   => (string)($d->fnouref   ?? ''),
         'frefpr'    => (string)($d->frefdtno  ?? ''),
         'fprhid'    => (string)($d->fprhid    ?? ''),
@@ -756,7 +770,8 @@ class Tr_pohController extends Controller
         'ftotal'    => (float)($d->famount ?? 0),
         'fdesc'     => (string)($d->fdesc  ?? ''),
         'fketdt'    => (string)($d->fketdt ?? ''),
-        'maxqty'    => 0,
+        'frefdtid'  => (string)($d->frefdtid ?? ''), // PASTIKAN INI ADA
+        'maxqty'    => $qtyPR,
       ];
     })->values();
 
@@ -928,6 +943,7 @@ class Tr_pohController extends Controller
     $codes   = $request->input('fitemcode', []);
     $satuans = $request->input('fsatuan', []);
     $refdtns = $request->input('frefdtno', []);
+    $frefdtids = $request->input('frefdtid', []);
     $qtys    = $request->input('fqty', []);
     $prices  = $request->input('fprice', []);
     $discs   = $request->input('fdisc', []);
@@ -978,6 +994,7 @@ class Tr_pohController extends Controller
       $price = (float)($prices[$i] ?? 0);
       $discP = (float)($discs[$i]  ?? 0);
       $desc  = (string)($descs[$i] ?? '');
+      $frefdtid = (int)($frefdtids[$i] ?? 0);
 
       if ($code === '' || $qty <= 0) continue;
 
@@ -1019,10 +1036,11 @@ class Tr_pohController extends Controller
         'fuserupdate' => $userid,
         'fdatetime'   => $now,
         'fsatuan'     => $sat,
-        'frefdtno'    => $refdt,
         'fdesc'       => $desc,
         'fqtykecil'   => $qtyKecil,
         'fqtyremain'  => $qtyKecil,
+        'frefdtno'    => $refdt,
+        'frefdtid'    => $frefdtid ?: null,
       ];
     }
 
@@ -1079,8 +1097,6 @@ class Tr_pohController extends Controller
         foreach ($rowsPod as &$r) {
           $r['fpohid'] = $fponoId;
           $r['fnou']   = $nextNou++;
-          $r['frefdtno'] = $fpono;    // ✅ string → tr_poh.fpono  (misal: "PO.BG.26.03.0008")
-          $r['frefdtid'] = $fpohid;
         }
         unset($r);
 
