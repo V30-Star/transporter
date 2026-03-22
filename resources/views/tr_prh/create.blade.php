@@ -58,7 +58,6 @@
             display: none !important
         }
 
-        /* select supplier tanpa caret */
         #supplierSelect,
         #supplierSelect:disabled {
             -webkit-appearance: none !important;
@@ -82,7 +81,6 @@
             -moz-appearance: textfield;
         }
 
-        /* Highlight row saat fokus aktif */
         .item-row-active {
             background-color: #f0fdf4;
         }
@@ -189,7 +187,7 @@
                     </div>
                 </div>
 
-                {{-- DETAIL ITEM (inline editable) --}}
+                {{-- DETAIL ITEM --}}
                 <div x-data="itemsTable()" x-init="init()" class="mt-6 space-y-2">
                     <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
 
@@ -208,21 +206,13 @@
                             </thead>
 
                             <tbody>
-                                {{-- ============================================================
-                                     BARIS TERSIMPAN — setiap baris langsung bisa diedit (editable inline)
-                                     ============================================================ --}}
+                                {{-- BARIS TERSIMPAN --}}
                                 <template x-for="(it, i) in savedItems" :key="it.uid">
-                                    {{-- Alpine x-for hanya boleh punya SATU root element.
-                                         Kita pakai <tr> baris-utama sebagai root,
-                                         lalu baris-deskripsi disisipkan lewat x-effect + DOM manipulation.
-                                         Trik paling bersih: gunakan <template> ganda dengan x-for trick --}}
                                     <tr class="border-t align-top transition-colors"
                                         :class="activeRow === it.uid ? 'bg-amber-50' : 'hover:bg-gray-50'">
 
-                                        {{-- # --}}
                                         <td class="p-2 text-gray-500" x-text="i + 1"></td>
 
-                                        {{-- Kode Produk --}}
                                         <td class="p-2">
                                             <div class="flex">
                                                 <input type="text"
@@ -243,23 +233,26 @@
                                             </div>
                                         </td>
 
-                                        {{-- Nama Produk --}}
                                         <td class="p-2">
                                             <input type="text"
                                                 class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
                                                 :value="it.fitemname" disabled>
-                                            {{-- Deskripsi ditampilkan di bawah nama --}}
                                             <textarea x-model="it.fdesc" rows="2" class="w-full border rounded px-2 py-1 text-xs text-gray-600 mt-1"
                                                 placeholder="Deskripsi (opsional)" @focus="activeRow = it.uid" @blur="activeRow = null"></textarea>
                                         </td>
 
-                                        {{-- Satuan --}}
+                                        {{--
+                                            SATUAN SAVED:
+                                            Pakai x-effect untuk paksa set select.value setelah x-for render options.
+                                            Ini fix masalah x-for me-reset selectedIndex ke 0 saat render ulang.
+                                        --}}
                                         <td class="p-2">
                                             <template x-if="it.units.length > 1">
                                                 <select class="w-full border rounded px-2 py-1 text-sm"
-                                                    x-model="it.fsatuan" :id="'unit_saved_' + i"
-                                                    @focus="activeRow = it.uid" @blur="activeRow = null"
-                                                    @keydown.enter.prevent="focusSavedQty(i)">
+                                                    :id="'unit_saved_' + i"
+                                                    x-effect="$nextTick(() => { const el = document.getElementById('unit_saved_' + i); if (el) el.value = it.fsatuan; })"
+                                                    @change="it.fsatuan = $event.target.value" @focus="activeRow = it.uid"
+                                                    @blur="activeRow = null" @keydown.enter.prevent="focusSavedQty(i)">
                                                     <template x-for="u in it.units" :key="u">
                                                         <option :value="u" x-text="u"></option>
                                                     </template>
@@ -272,7 +265,6 @@
                                             </template>
                                         </td>
 
-                                        {{-- Qty --}}
                                         <td class="p-2 text-right">
                                             <input type="number" class="border rounded px-2 py-1 w-24 text-right text-sm"
                                                 min="1" :max="it.maxqty || null" step="1"
@@ -282,14 +274,12 @@
                                                 @keydown.enter.prevent="focusSavedKet(i)">
                                         </td>
 
-                                        {{-- Ket Item --}}
                                         <td class="p-2">
                                             <input type="text" class="border rounded px-2 py-1 w-full text-sm"
                                                 x-model="it.fketdt" :id="'ket_saved_' + i" @focus="activeRow = it.uid"
                                                 @blur="activeRow = null" @keydown.enter.prevent="focusDraftCode()">
                                         </td>
 
-                                        {{-- Aksi --}}
                                         <td class="p-2 text-center">
                                             <button type="button" @click="removeSaved(i)"
                                                 class="px-3 py-1 rounded text-xs bg-red-100 text-red-600 hover:bg-red-200 whitespace-nowrap">
@@ -297,7 +287,6 @@
                                             </button>
                                         </td>
 
-                                        {{-- Hidden inputs untuk submit --}}
                                         <td class="hidden">
                                             <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
                                             <input type="hidden" name="fitemname[]" :value="it.fitemname">
@@ -310,9 +299,7 @@
                                     </tr>
                                 </template>
 
-                                {{-- ============================================================
-                                     BARIS DRAFT — baris kosong baru di bagian bawah
-                                     ============================================================ --}}
+                                {{-- BARIS DRAFT --}}
                                 <tr class="border-t bg-green-50 align-top">
                                     <td class="p-2 text-gray-400" x-text="savedItems.length + 1"></td>
 
@@ -322,7 +309,7 @@
                                                 class="flex-1 border rounded-l px-2 py-1 font-mono text-sm min-w-0"
                                                 x-ref="draftCode" x-model.trim="draft.fitemcode"
                                                 @input="onCodeTypedRow(draft)"
-                                                @keydown.enter.prevent="handleEnterOnCode('draft')">
+                                                @keydown.enter.prevent="handleEnterOnCode()">
                                             <button type="button" @click="openBrowseFor('draft')"
                                                 class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
                                                 title="Cari Produk">
@@ -344,20 +331,19 @@
                                             placeholder="Deskripsi (opsional)"></textarea>
                                     </td>
 
+                                    {{--
+                                        SATUAN DRAFT: TIDAK pakai x-model / x-for.
+                                        Options diisi manual via JS (populateDraftUnitSelect).
+                                        Nilai dibaca dari DOM saat addIfComplete().
+                                    --}}
                                     <td class="p-2">
-                                        <template x-if="draft.units.length > 1">
-                                            <select class="w-full border rounded px-2 py-1 text-sm" x-ref="draftUnit"
-                                                x-model="draft.fsatuan" @keydown.enter.prevent="$refs.draftQty?.focus()">
-                                                <template x-for="u in draft.units" :key="u">
-                                                    <option :value="u" x-text="u"></option>
-                                                </template>
-                                            </select>
-                                        </template>
-                                        <template x-if="draft.units.length <= 1">
-                                            <input type="text"
-                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
-                                                :value="draft.fsatuan || '-'" disabled>
-                                        </template>
+                                        <select id="draftUnitSelect" class="w-full border rounded px-2 py-1 text-sm"
+                                            x-show="draft.units.length > 1"
+                                            @keydown.enter.prevent="$refs.draftQty?.focus()">
+                                        </select>
+                                        <input type="text"
+                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
+                                            x-show="draft.units.length <= 1" :value="draft.fsatuan || '-'" disabled>
                                     </td>
 
                                     <td class="p-2 text-right">
@@ -381,8 +367,6 @@
                                         </button>
                                     </td>
                                 </tr>
-
-                                {{-- (deskripsi draft sudah ada di dalam <tr> di atas) --}}
                             </tbody>
                         </table>
                     </div>
@@ -394,21 +378,18 @@
                 <div x-show="showNoItems" x-cloak class="fixed inset-0 z-[90] flex items-center justify-center"
                     x-transition.opacity>
                     <div class="absolute inset-0 bg-black/50" @click="showNoItems=false"></div>
-
                     <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden"
                         x-transition.scale>
                         <div class="px-5 py-4 border-b flex items-center">
                             <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-red-500 mr-2" />
                             <h3 class="text-lg font-semibold text-gray-800">Tidak Ada Item</h3>
                         </div>
-
                         <div class="px-5 py-4">
                             <p class="text-sm text-gray-700">
                                 Anda belum menambahkan item apa pun pada tabel. Silakan isi baris "Detail Item" terlebih
                                 dahulu.
                             </p>
                         </div>
-
                         <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
                             <button type="button" @click="showNoItems=false"
                                 class="h-9 px-4 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
@@ -422,7 +403,6 @@
                 <div x-data="supplierBrowser()" x-show="open" x-cloak x-transition.opacity
                     class="fixed inset-0 z-50 flex items-center justify-center p-4">
                     <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
-
                     <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-6xl flex flex-col overflow-hidden"
                         style="height: 650px;">
                         <div
@@ -436,11 +416,9 @@
                                 Tutup
                             </button>
                         </div>
-
                         <div class="px-6 pt-4 pb-2 flex-shrink-0 border-b border-gray-100">
                             <div id="supplierTableControls"></div>
                         </div>
-
                         <div class="flex-1 overflow-y-auto px-6" style="min-height: 0;">
                             <div class="bg-white">
                                 <table id="supplierBrowseTable" class="min-w-full text-sm display nowrap stripe hover"
@@ -468,7 +446,6 @@
                                 </table>
                             </div>
                         </div>
-
                         <div class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">
                             <div id="supplierTablePagination"></div>
                         </div>
@@ -479,7 +456,6 @@
                 <div x-data="productBrowser()" x-show="open" x-cloak x-transition.opacity
                     class="fixed inset-0 z-50 flex items-center justify-center p-4">
                     <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
-
                     <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-6xl flex flex-col overflow-hidden"
                         style="height: 650px;">
                         <div
@@ -493,11 +469,9 @@
                                 Tutup
                             </button>
                         </div>
-
                         <div class="px-6 pt-4 pb-2 flex-shrink-0 border-b border-gray-100">
                             <div id="productTableControls"></div>
                         </div>
-
                         <div class="flex-1 overflow-y-auto px-6" style="min-height: 0;">
                             <div class="bg-white">
                                 <table id="productTable" class="min-w-full text-sm display nowrap stripe hover"
@@ -528,7 +502,6 @@
                                 </table>
                             </div>
                         </div>
-
                         <div class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">
                             <div id="productTablePagination"></div>
                         </div>
@@ -647,9 +620,34 @@
         return 'r' + (Date.now().toString(16) + Math.random().toString(16).slice(2));
     };
 
-    // ============================================================
-    // supplierBrowser — tidak berubah
-    // ============================================================
+    // ── Pure DOM helpers untuk draft unit select ──────────────────────────────
+    function getDraftUnitSelect() {
+        return document.getElementById('draftUnitSelect');
+    }
+
+    function populateDraftUnitSelect(units) {
+        const sel = getDraftUnitSelect();
+        if (!sel) return;
+        sel.innerHTML = '';
+        units.forEach(u => {
+            const opt = document.createElement('option');
+            opt.value = u;
+            opt.textContent = u;
+            sel.appendChild(opt);
+        });
+    }
+
+    function getDraftUnitValue() {
+        const sel = getDraftUnitSelect();
+        return sel ? sel.value : '';
+    }
+
+    function clearDraftUnitSelect() {
+        const sel = getDraftUnitSelect();
+        if (sel) sel.innerHTML = '';
+    }
+
+    // ── supplierBrowser ───────────────────────────────────────────────────────
     function supplierBrowser() {
         return {
             open: false,
@@ -657,7 +655,6 @@
 
             initDataTable() {
                 if (this.dataTable) this.dataTable.destroy();
-
                 this.dataTable = $('#supplierBrowseTable').DataTable({
                     processing: true,
                     serverSide: true,
@@ -756,10 +753,8 @@
                         });
                     }
                 });
-
                 $('#supplierBrowseTable').on('click', '.btn-choose', (e) => {
-                    const data = this.dataTable.row($(e.target).closest('tr')).data();
-                    this.chooseSupplier(data);
+                    this.chooseSupplier(this.dataTable.row($(e.target).closest('tr')).data());
                 });
             },
 
@@ -767,7 +762,6 @@
                 this.open = true;
                 this.$nextTick(() => this.initDataTable());
             },
-
             close() {
                 this.open = false;
                 if (this.dataTable) this.dataTable.search('').draw();
@@ -780,7 +774,6 @@
                     this.close();
                     return;
                 }
-
                 let opt = [...sel.options].find(o => o.value == String(supplier.fsupplierid));
                 const label = `${supplier.fsuppliername} (${supplier.fsuppliercode})`;
                 if (!opt) {
@@ -803,17 +796,11 @@
         }
     }
 
-    // ============================================================
-    // itemsTable — VERSI BARU: inline editable, tanpa mode edit
-    // ============================================================
+    // ── itemsTable ────────────────────────────────────────────────────────────
     function itemsTable() {
         return {
             savedItems: [],
-
-            // uid baris yang sedang aktif (untuk highlight)
             activeRow: null,
-
-            // target browse: 'draft' | index angka (untuk saved)
             browseTarget: 'draft',
 
             draft: {
@@ -827,7 +814,6 @@
                 maxqty: 0
             },
 
-            // ---- helpers ----
             resetDraft() {
                 this.draft = {
                     fitemcode: '',
@@ -839,12 +825,14 @@
                     fketdt: '',
                     maxqty: 0
                 };
+                clearDraftUnitSelect();
             },
 
             productMeta(code) {
                 return window.PRODUCT_MAP[(code || '').trim()] || null;
             },
 
+            // Hydrate baris TERSIMPAN — Alpine reaktif
             hydrateRowFromMeta(row, meta) {
                 if (!meta) {
                     row.fitemname = '';
@@ -855,17 +843,39 @@
                 }
                 row.fitemname = meta.name || '';
                 const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
+                const prev = row.fsatuan;
                 row.units = units;
-                if (!units.includes(row.fsatuan)) row.fsatuan = units[0] || '';
-                const stock = Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0;
-                row.maxqty = stock;
+                row.fsatuan = units.includes(prev) ? prev : (units[0] || '');
+                row.maxqty = Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0;
+            },
+
+            // Hydrate baris DRAFT — pure DOM untuk select
+            hydrateDraftFromMeta(meta) {
+                const row = this.draft;
+                if (!meta) {
+                    row.fitemname = '';
+                    row.units = [];
+                    row.fsatuan = '';
+                    row.maxqty = 0;
+                    clearDraftUnitSelect();
+                    return;
+                }
+                row.fitemname = meta.name || '';
+                const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
+                row.units = units;
+                row.maxqty = Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0;
+                if (units.length > 1) {
+                    populateDraftUnitSelect(units);
+                    row.fsatuan = units[0]; // hanya fallback
+                } else {
+                    clearDraftUnitSelect();
+                    row.fsatuan = units[0] || '';
+                }
             },
 
             onCodeTypedRow(row) {
-                this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                this.hydrateDraftFromMeta(this.productMeta(row.fitemcode));
             },
-
-            // Sama seperti onCodeTypedRow tapi untuk item tersimpan
             onCodeTypedSaved(item) {
                 this.hydrateRowFromMeta(item, this.productMeta(item.fitemcode));
             },
@@ -880,39 +890,37 @@
                 if (row.maxqty > 0 && n > row.maxqty) row.fqty = row.maxqty;
             },
 
-            isComplete(row) {
-                return row.fitemcode && row.fitemname && row.fsatuan && Number(row.fqty) > 0;
-            },
-
-            // ---- navigasi fokus di baris tersimpan ----
             focusUnitOrQty(item, i) {
-                if (item.units.length > 1) {
-                    this.$nextTick(() => document.getElementById('unit_saved_' + i)?.focus());
-                } else {
-                    this.$nextTick(() => document.getElementById('qty_saved_' + i)?.focus());
-                }
+                if (item.units.length > 1) this.$nextTick(() => document.getElementById('unit_saved_' + i)?.focus());
+                else this.$nextTick(() => document.getElementById('qty_saved_' + i)?.focus());
             },
-
             focusSavedQty(i) {
                 this.$nextTick(() => document.getElementById('qty_saved_' + i)?.focus());
             },
-
             focusSavedKet(i) {
                 this.$nextTick(() => document.getElementById('ket_saved_' + i)?.focus());
             },
-
-            // Setelah keterangan terakhir di baris tersimpan → pindah ke draft
             focusDraftCode() {
                 this.$nextTick(() => this.$refs.draftCode?.focus());
             },
 
-            // ---- tambah dari draft ----
+            handleEnterOnCode() {
+                if (this.draft.units.length > 1) getDraftUnitSelect()?.focus();
+                else this.$refs.draftQty?.focus();
+            },
+
             addIfComplete() {
                 const r = this.draft;
-                if (!this.isComplete(r)) {
+
+                // Baca satuan langsung dari DOM — sumber kebenaran tunggal
+                const satuanFinal = r.units.length > 1 ?
+                    (getDraftUnitValue() || r.fsatuan) :
+                    r.fsatuan;
+
+                if (!r.fitemcode || !r.fitemname || !satuanFinal || !(Number(r.fqty) > 0)) {
                     if (!r.fitemcode) return this.$refs.draftCode?.focus();
                     if (!r.fitemname) return this.$refs.draftCode?.focus();
-                    if (!r.fsatuan) return (r.units.length > 1 ? this.$refs.draftUnit?.focus() : this.$refs.draftCode
+                    if (!satuanFinal) return (r.units.length > 1 ? getDraftUnitSelect()?.focus() : this.$refs.draftCode
                         ?.focus());
                     if (!(Number(r.fqty) > 0)) return this.$refs.draftQty?.focus();
                     return;
@@ -923,7 +931,7 @@
                     fitemcode: r.fitemcode,
                     fitemname: r.fitemname,
                     units: [...r.units],
-                    fsatuan: r.fsatuan,
+                    fsatuan: satuanFinal, // dari DOM, bukan Alpine proxy
                     fqty: +r.fqty,
                     fdesc: r.fdesc || '',
                     fketdt: r.fketdt || '',
@@ -939,17 +947,7 @@
                 this.savedItems.splice(i, 1);
             },
 
-            // ---- navigasi kode → unit/qty di draft ----
-            handleEnterOnCode(where) {
-                if (where === 'draft') {
-                    if (this.draft.units.length > 1) this.$refs.draftUnit?.focus();
-                    else this.$refs.draftQty?.focus();
-                }
-            },
-
-            // ---- browse produk ----
             openBrowseFor(where, idx = null) {
-                // where: 'draft' atau 'saved'
                 this.browseTarget = (where === 'saved' && idx !== null) ? idx : 'draft';
                 window.dispatchEvent(new CustomEvent('browse-open', {
                     detail: {
@@ -965,20 +963,24 @@
                     } = e.detail || {};
                     if (!product) return;
 
-                    const apply = (row) => {
-                        row.fitemcode = (product.fprdcode || '').toString();
-                        this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
-                        row.fqty = row.maxqty > 0 ? Math.min(+row.fqty || 1, row.maxqty) : (+row.fqty || 1);
-                    };
-
                     if (this.browseTarget === 'draft') {
-                        apply(this.draft);
-                        this.$nextTick(() => this.$refs.draftQty?.focus());
+                        this.draft.fitemcode = (product.fprdcode || '').toString();
+                        this.hydrateDraftFromMeta(this.productMeta(this.draft.fitemcode));
+                        this.draft.fqty = this.draft.maxqty > 0 ?
+                            Math.min(+this.draft.fqty || 1, this.draft.maxqty) :
+                            (+this.draft.fqty || 1);
+                        this.$nextTick(() => {
+                            if (this.draft.units.length > 1) getDraftUnitSelect()?.focus();
+                            else this.$refs.draftQty?.focus();
+                        });
                     } else {
-                        // browseTarget adalah index number
                         const item = this.savedItems[this.browseTarget];
                         if (item) {
-                            apply(item);
+                            item.fitemcode = (product.fprdcode || '').toString();
+                            this.hydrateRowFromMeta(item, this.productMeta(item.fitemcode));
+                            item.fqty = item.maxqty > 0 ?
+                                Math.min(+item.fqty || 1, item.maxqty) :
+                                (+item.fqty || 1);
                             const i = this.browseTarget;
                             this.$nextTick(() => document.getElementById('qty_saved_' + i)?.focus());
                         }
@@ -1003,7 +1005,6 @@
 
                 initDataTable() {
                     if (this.table) this.table.destroy();
-
                     this.table = $('#productTable').DataTable({
                         processing: true,
                         serverSide: true,
@@ -1101,10 +1102,8 @@
                             });
                         }
                     });
-
                     $('#productTable').on('click', '.btn-choose', (e) => {
-                        const data = this.table.row($(e.target).closest('tr')).data();
-                        this.choose(data);
+                        this.choose(this.table.row($(e.target).closest('tr')).data());
                     });
                 },
 
@@ -1112,7 +1111,6 @@
                     this.open = false;
                     if (this.table) this.table.search('').draw();
                 },
-
                 choose(product) {
                     window.dispatchEvent(new CustomEvent('product-chosen', {
                         detail: {
@@ -1121,7 +1119,6 @@
                     }));
                     this.close();
                 },
-
                 init() {
                     window.addEventListener('browse-open', () => {
                         this.open = true;
