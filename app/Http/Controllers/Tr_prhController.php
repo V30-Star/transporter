@@ -264,25 +264,14 @@ class Tr_prhController extends Controller
     $newtr_prh_code = $this->generatetr_prh_Code(now(), $fbranchcode);
 
     $products = Product::select(
+      'fprdid',
       'fprdcode',
       'fprdname',
       'fsatuankecil',
       'fsatuanbesar',
       'fsatuanbesar2',
-      'fminstock',
-      'fqtykecil' 
-    )
-      ->selectRaw("
-        (SELECT COALESCE(SUM(
-            CASE 
-                WHEN pod.fsatuan = msprd.fsatuanbesar THEN pod.fqtykecil::numeric / NULLIF(msprd.fqtykecil::numeric, 0)
-                ELSE pod.fqtykecil::numeric 
-            END
-        ), 0) 
-        FROM tr_pod pod 
-        WHERE pod.fprdcode = msprd.fprdcode) as fqtypo_total
-    ")
-      ->orderBy('fprdname')
+      'fminstock'
+    )->orderBy('fprdname')
       ->get();
 
     return view('tr_prh.create', [

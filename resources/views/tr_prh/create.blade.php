@@ -202,7 +202,6 @@
                                     <th class="p-2 text-left">Nama Produk</th>
                                     <th class="p-2 text-left w-40">Satuan</th>
                                     <th class="p-2 text-right w-28">Qty</th>
-                                    <th class="p-2 text-right w-28">Qty PO</th>
                                     <th class="p-2 text-left w-56">Ket Item</th>
                                     <th class="p-2 text-center w-20">Aksi</th>
                                 </tr>
@@ -281,12 +280,6 @@
                                                 @focus="activeRow = it.uid; $event.target.select()"
                                                 @blur="activeRow = null; enforceQtyRow(it)" @input="enforceQtyRow(it)"
                                                 @keydown.enter.prevent="focusSavedKet(i)">
-                                        </td>
-
-                                        <td class="p-2 text-right">
-                                            <input type="number"
-                                                class="border rounded px-2 py-1 w-24 text-right text-sm bg-blue-50 font-bold text-blue-600"
-                                                :value="it.fqtypo" disabled>
                                         </td>
 
                                         {{-- Ket Item --}}
@@ -373,12 +366,6 @@
                                             x-model.number="draft.fqty" x-ref="draftQty" @focus="$event.target.select()"
                                             @input="enforceQtyRow(draft)"
                                             @keydown.enter.prevent="$refs.draftKet?.focus()">
-                                    </td>
-
-                                    <td class="p-2 text-right">
-                                        <input type="number"
-                                            class="border rounded px-2 py-1 w-24 text-right text-sm bg-gray-100"
-                                            :value="draft.fqtypo" disabled>
                                     </td>
 
                                     <td class="p-2">
@@ -644,8 +631,7 @@
             "{{ $p->fprdcode }}": {
                 name: @json($p->fprdname),
                 units: @json(array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2]))),
-                stock: @json($p->fminstock ?? 0),
-                qty_po: @json($p->fqtypo_total ?? 0)
+                stock: @json($p->fminstock ?? 0)
             },
         @endforeach
     };
@@ -838,8 +824,7 @@
                 fqty: '',
                 fdesc: '',
                 fketdt: '',
-                maxqty: 0,
-                fqtypo: 0
+                maxqty: 0
             },
 
             // ---- helpers ----
@@ -852,8 +837,7 @@
                     fqty: '',
                     fdesc: '',
                     fketdt: '',
-                    maxqty: 0,
-                    fqtypo: 0
+                    maxqty: 0
                 };
             },
 
@@ -867,7 +851,6 @@
                     row.units = [];
                     row.fsatuan = '';
                     row.maxqty = 0;
-                    row.fqtypo = 0;
                     return;
                 }
                 row.fitemname = meta.name || '';
@@ -876,7 +859,6 @@
                 if (!units.includes(row.fsatuan)) row.fsatuan = units[0] || '';
                 const stock = Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0;
                 row.maxqty = stock;
-                row.fqtypo = meta.qty_po || 0;
             },
 
             onCodeTypedRow(row) {
@@ -890,18 +872,12 @@
 
             enforceQtyRow(row) {
                 const n = +row.fqty;
-                if (n < 1) {
-                    row.fqty = 1;
+                if (!Number.isFinite(n)) {
+                    row.fqty = '';
                     return;
                 }
-
-                // VALIDASI: Qty PR tidak boleh > (Stok - Qty PO)
-                let sisaTersedia = row.maxqty - row.fqtypo;
-                if (sisaTersedia > 0 && n > sisaTersedia) {
-                    alert(
-                        `Qty PR melebihi sisa stok tersedia!\nStok: ${row.maxqty}\nSudah PO: ${row.fqtypo}\nMaksimal PR: ${sisaTersedia}`);
-                    row.fqty = sisaTersedia;
-                }
+                if (n < 1) row.fqty = 1;
+                if (row.maxqty > 0 && n > row.maxqty) row.fqty = row.maxqty;
             },
 
             isComplete(row) {
@@ -952,7 +928,7 @@
                     fdesc: r.fdesc || '',
                     fketdt: r.fketdt || '',
                     maxqty: r.maxqty,
-                    fqtypo: r.fqtypo,
+                    fqtypo: 0,
                 });
 
                 this.resetDraft();
