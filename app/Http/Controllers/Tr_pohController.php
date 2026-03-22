@@ -432,6 +432,7 @@ class Tr_pohController extends Controller
     $fkirimdate  = $request->filled('fkirimdate') ? Carbon::parse($request->fkirimdate)->startOfDay() : null;
     $fpohid       = $request->input('fpohid'); // can be null; we will generate if empty
     $fincludeppn = $request->boolean('fincludeppn') ? 1 : 0;
+    $fapplyppn = $request->boolean('fapplyppn') ? 1 : 0;
     $userid      = auth('sysuser')->user()->fname ?? 'admin';
     $now         = now();
 
@@ -541,6 +542,7 @@ class Tr_pohController extends Controller
       $fpodate,
       $fkirimdate,
       $fincludeppn,
+      $fapplyppn,
       $userid,
       $now,
       $rowsPod,
@@ -598,6 +600,7 @@ class Tr_pohController extends Controller
         'frate'          => $frate,
         'fsupplier'      => $request->input('fsupplier'),
         'fincludeppn'    => $fincludeppn,
+        'fapplyppn'      => $fapplyppn,
         'fket'           => $request->input('fket'),
         'fusercreate'    => $userid,
         'fdatetime'      => $now,
@@ -662,6 +665,15 @@ class Tr_pohController extends Controller
 
     $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
+    $currencies = DB::table('mscurrency')
+      ->where(function ($q) {
+        $q->whereNull('fnonactive')
+          ->orWhere('fnonactive', '0')
+          ->orWhere('fnonactive', '');
+      })
+      ->orderBy('fcurrname')
+      ->get(['fcurrid', 'fcurrcode', 'fcurrname', 'frate']);
+
     $branch = DB::table('mscabang')
       ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
       ->when(!is_numeric($raw), fn($q) => $q
@@ -669,40 +681,24 @@ class Tr_pohController extends Controller
         ->orWhere('fcabangname', $raw))
       ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
 
-    $fcabang     = $branch->fcabangname ?? (string) $raw;   // tampilan
-    $fbranchcode = $branch->fcabangkode ?? (string) $raw;   // hidden post
+    $fcabang     = $branch->fcabangname ?? (string) $raw;
+    $fbranchcode = $branch->fcabangkode ?? (string) $raw;
 
     $tr_poh = Tr_poh::with(['details' => function ($q) {
       $q->leftJoin('msprd', function ($j) {
         $j->on('msprd.fprdid', '=', 'tr_pod.fprdid');
-      })
-        ->select(
-          'tr_pod.*',
-          'msprd.fprdcode as fitemcode',
-          'msprd.fprdname'
-        );
+      })->select(
+        'tr_pod.*',
+        'msprd.fprdcode as fitemcode',
+        'msprd.fprdname'
+      );
     }])->findOrFail($fpohid);
 
-    $savedItems = $tr_poh->details->map(function ($d) {
-      return [
-        'uid'        => $d->fpodid,
-        'fitemcode'  => (string)($d->fitemcode ?? ''),  // dari alias msprd.fprdid
-        'fitemname'  => (string)($d->fprdname ?? ''),   // dari msprd.fprdname
-        'fsatuan'    => (string)($d->fsatuan ?? ''),
-        'frefdtno'   => (string)($d->frefdtno ?? ''),
-        'fqty'       => (float)($d->fqty ?? 0),
-        'fterima'    => (float)($d->fterima ?? 0),
-        'fprice'     => (float)($d->fprice ?? 0),
-        'fdisc'      => (float)($d->fdisc ?? 0),
-        'ftotal'     => (float)($d->famount ?? 0),
-        'fdesc'      => (string)($d->fdesc ?? ''),
-        'fketdt'     => (string)($d->fketdt ?? ''),
-        'fprdid'     => (int)($d->fprdcodeid ?? 0),
-      ];
-    })->values();
-    $selectedSupplierCode = $tr_poh->fsupplier;
+    // Lookup currency berdasarkan fcurrency (integer ID) di tr_poh
+    $currentCurrency = DB::table('mscurrency')
+      ->where('fcurrid', $tr_poh->fcurrency)
+      ->first(['fcurrid', 'fcurrcode', 'fcurrname', 'frate']);
 
-    // Fetch all products for product mapping
     $products = Product::select(
       'fprdid',
       'fprdcode',
@@ -713,33 +709,75 @@ class Tr_pohController extends Controller
       'fminstock'
     )->orderBy('fprdname')->get();
 
-    // Prepare the product map for frontend
     $productMap = $products->mapWithKeys(function ($p) {
       return [
         $p->fprdid => [
           'id'    => $p->fprdid,
           'name'  => $p->fprdname,
-          'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
+          'units' => array_values(array_filter([
+            $p->fsatuankecil,
+            $p->fsatuanbesar,
+            $p->fsatuanbesar2,
+          ])),
           'stock' => $p->fminstock ?? 0,
         ],
       ];
     })->toArray();
 
-    // Pass the data to the view
+    $savedItems = $tr_poh->details->map(function ($d) use ($products) {
+      $prod  = $products->firstWhere('fprdcode', $d->fitemcode);
+      $units = $prod
+        ? array_values(array_filter([
+          $prod->fsatuankecil,
+          $prod->fsatuanbesar,
+          $prod->fsatuanbesar2,
+        ]))
+        : ($d->fsatuan ? [$d->fsatuan] : []);
+
+      // Pastikan fsatuan ada di units
+      if ($d->fsatuan && !in_array($d->fsatuan, $units)) {
+        array_unshift($units, $d->fsatuan);
+      }
+
+      return [
+        'uid'       => (string)($d->fpodid   ?? \Illuminate\Support\Str::uuid()),
+        'fitemcode' => (string)($d->fitemcode ?? ''),
+        'fitemname' => (string)($d->fprdname  ?? ''),
+        'fsatuan'   => (string)($d->fsatuan   ?? ''),
+        'units'     => $units,
+        'frefdtno'  => (string)($d->frefdtno  ?? ''),
+        'frefdtid'  => (string)($d->frefdtid  ?? ''),
+        'fnouref'   => (string)($d->fnouref   ?? ''),
+        'frefpr'    => (string)($d->frefdtno  ?? ''),
+        'fprhid'    => (string)($d->fprhid    ?? ''),
+        'fprno'     => (string)($d->frefdtno  ?? ''),
+        'fqty'      => (float)($d->fqty    ?? 0),
+        'fterima'   => (float)($d->fterima ?? 0),
+        'fprice'    => (float)($d->fprice  ?? 0),
+        'fdisc'     => (float)($d->fdisc   ?? 0),
+        'ftotal'    => (float)($d->famount ?? 0),
+        'fdesc'     => (string)($d->fdesc  ?? ''),
+        'fketdt'    => (string)($d->fketdt ?? ''),
+        'maxqty'    => 0,
+      ];
+    })->values();
+
     return view('tr_poh.edit', [
-      'suppliers'      => $suppliers,
-      'selectedSupplierCode' => $selectedSupplierCode, // Kirim kode supplier ke view
-      'fcabang'      => $fcabang,
-      'fbranchcode'  => $fbranchcode,
-      'products'     => $products,
-      'productMap'   => $productMap,
-      'tr_poh'       => $tr_poh,
-      'savedItems'   => $savedItems,
-      'ppnAmount'    => (float) ($tr_poh->famountpopajak ?? 0), // total PPN from DB
-      'famountponet'    => (float) ($tr_poh->famountponet ?? 0),  // nilai Grand Total dari DB
-      'famountpo'    => (float) ($tr_poh->famountpo ?? 0),  // nilai Grand Total dari DB
-      'filterSupplierId' => $request->query('filter_supplier_id'),
-      'action' => 'edit'
+      'suppliers'           => $suppliers,
+      'selectedSupplierCode' => $tr_poh->fsupplier,
+      'fcabang'             => $fcabang,
+      'fbranchcode'         => $fbranchcode,
+      'products'            => $products,
+      'productMap'          => $productMap,
+      'tr_poh'              => $tr_poh,
+      'savedItems'          => $savedItems,
+      'currencies'          => $currencies,
+      'currentCurrency'     => $currentCurrency,   // <-- currency aktif dari join
+      'ppnAmount'           => (float)($tr_poh->famountpopajak ?? 0),
+      'famountponet'        => (float)($tr_poh->famountponet   ?? 0),
+      'famountpo'           => (float)($tr_poh->famountpo      ?? 0),
+      'filterSupplierId'    => $request->query('filter_supplier_id'),
+      'action'              => 'edit',
     ]);
   }
 
@@ -757,43 +795,36 @@ class Tr_pohController extends Controller
         ->orWhere('fcabangname', $raw))
       ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
 
-    $fcabang     = $branch->fcabangname ?? (string) $raw;   // tampilan
-    $fbranchcode = $branch->fcabangkode ?? (string) $raw;   // hidden post
+    $fcabang     = $branch->fcabangname ?? (string) $raw;
+    $fbranchcode = $branch->fcabangkode ?? (string) $raw;
 
     $tr_poh = Tr_poh::with(['details' => function ($q) {
-      $q->orderBy('fpodid')
-        ->leftJoin('msprd', function ($j) {
-          $j->on('msprd.fprdid', '=', DB::raw('CAST(tr_pod.fprdid AS INTEGER)'));
-        })
-        ->select(
-          'tr_pod.*',
-          'msprd.fprdid as fitemcode',
-          'msprd.fprdname'
-        );
+      $q->leftJoin('msprd', function ($j) {
+        $j->on('msprd.fprdid', '=', 'tr_pod.fprdid');
+      })->select(
+        'tr_pod.*',
+        'msprd.fprdcode as fitemcode',
+        'msprd.fprdname'
+      );
     }])->findOrFail($fpohid);
 
-    $savedItems = $tr_poh->details->map(function ($d) {
-      return [
-        'uid'        => $d->fpodid,
-        'fitemcode'  => (string)($d->fitemcode ?? ''),  // dari alias msprd.fprdid
-        'fitemname'  => (string)($d->fprdname ?? ''),   // dari msprd.fprdname
-        'fsatuan'    => (string)($d->fsatuan ?? ''),
-        'frefdtno'   => (string)($d->frefdtno ?? ''),
-        'fqty'       => (float)($d->fqty ?? 0),
-        'fterima'    => (float)($d->fterima ?? 0),
-        'fprice'     => (float)($d->fprice ?? 0),
-        'fdisc'      => (float)($d->fdisc ?? 0),
-        'ftotal'     => (float)($d->famount ?? 0),
-        'fdesc'      => (string)($d->fdesc ?? ''),
-        'fketdt'     => (string)($d->fketdt ?? ''),
-      ];
-    })->values();
-    $selectedSupplierCode = $tr_poh->fsupplier;
+    $currencies = DB::table('mscurrency')
+      ->where(function ($q) {
+        $q->whereNull('fnonactive')
+          ->orWhere('fnonactive', '0')
+          ->orWhere('fnonactive', '');
+      })
+      ->orderBy('fcurrname')
+      ->get(['fcurrid', 'fcurrcode', 'fcurrname', 'frate']);
 
-    // Fetch all products for product mapping
+    // Lookup currency aktif dari mscurrency berdasarkan fcurrency (integer ID)
+    $currentCurrency = DB::table('mscurrency')
+      ->where('fcurrid', $tr_poh->fcurrency)
+      ->first(['fcurrid', 'fcurrcode', 'fcurrname', 'frate']);
+
     $products = Product::select(
       'fprdid',
-      'fprdid',
+      'fprdcode',
       'fprdname',
       'fsatuankecil',
       'fsatuanbesar',
@@ -801,31 +832,53 @@ class Tr_pohController extends Controller
       'fminstock'
     )->orderBy('fprdname')->get();
 
-    // Prepare the product map for frontend
     $productMap = $products->mapWithKeys(function ($p) {
       return [
         $p->fprdid => [
           'name'  => $p->fprdname,
-          'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
+          'units' => array_values(array_filter([
+            $p->fsatuankecil,
+            $p->fsatuanbesar,
+            $p->fsatuanbesar2,
+          ])),
           'stock' => $p->fminstock ?? 0,
         ],
       ];
     })->toArray();
 
-    // Pass the data to the view
+    $savedItems = $tr_poh->details->map(function ($d) {
+      return [
+        'uid'       => (string)($d->fpodid   ?? \Illuminate\Support\Str::uuid()),
+        'fitemcode' => (string)($d->fitemcode ?? ''),
+        'fitemname' => (string)($d->fprdname  ?? ''),
+        'fsatuan'   => (string)($d->fsatuan   ?? ''),
+        'frefdtno'  => (string)($d->frefdtno  ?? ''),
+        'fprno'     => (string)($d->frefdtno  ?? ''),
+        'fqty'      => (float)($d->fqty    ?? 0),
+        'fterima'   => (float)($d->fterima ?? 0),
+        'fprice'    => (float)($d->fprice  ?? 0),
+        'fdisc'     => (float)($d->fdisc   ?? 0),
+        'ftotal'    => (float)($d->famount ?? 0),
+        'fdesc'     => (string)($d->fdesc  ?? ''),
+        'fketdt'    => (string)($d->fketdt ?? ''),
+      ];
+    })->values();
+
     return view('tr_poh.view', [
-      'suppliers'      => $suppliers,
-      'selectedSupplierCode' => $selectedSupplierCode, // Kirim kode supplier ke view
-      'fcabang'      => $fcabang,
-      'fbranchcode'  => $fbranchcode,
-      'products'     => $products,
-      'productMap'   => $productMap,
-      'tr_poh'       => $tr_poh,
-      'savedItems'   => $savedItems,
-      'ppnAmount'    => (float) ($tr_poh->famountpopajak ?? 0), // total PPN from DB
-      'famountponet'    => (float) ($tr_poh->famountponet ?? 0),  // nilai Grand Total dari DB
-      'famountpo'    => (float) ($tr_poh->famountpo ?? 0),  // nilai Grand Total dari DB
-      'filterSupplierId' => $request->query('filter_supplier_id'),
+      'suppliers'           => $suppliers,
+      'selectedSupplierCode' => $tr_poh->fsupplier,
+      'fcabang'             => $fcabang,
+      'fbranchcode'         => $fbranchcode,
+      'products'            => $products,
+      'productMap'          => $productMap,
+      'tr_poh'              => $tr_poh,
+      'savedItems'          => $savedItems,
+      'currencies'          => $currencies,
+      'currentCurrency'     => $currentCurrency,
+      'ppnAmount'           => (float)($tr_poh->famountpopajak ?? 0),
+      'famountponet'        => (float)($tr_poh->famountponet   ?? 0),
+      'famountpo'           => (float)($tr_poh->famountpo      ?? 0),
+      'filterSupplierId'    => $request->query('filter_supplier_id'),
     ]);
   }
 
@@ -882,6 +935,7 @@ class Tr_pohController extends Controller
     $discs   = $request->input('fdisc', []);
     $refprs  = $request->input('frefpr', []);
     $descs   = $request->input('fdesc', []);
+    $fapplyppn = $request->boolean('fapplyppn') ? 1 : 0;
 
     $ppnRate = (float) $request->input('ppn_rate', 0);
     $ppnRate = max(0, min(100, $ppnRate));
@@ -990,6 +1044,7 @@ class Tr_pohController extends Controller
         $fpodate,
         $fkirimdate,
         $userid,
+        $fapplyppn,
         $now,
         $rowsPod,
         $fponoId,
@@ -1004,6 +1059,7 @@ class Tr_pohController extends Controller
             'fpodate'        => $fpodate,
             'fkirimdate'     => $fkirimdate,
             'fcurrency'      => $request->input('fcurrency', 'IDR'),
+            'ftempohr'       => $request->input('ftempohr', 0),
             'frate'          => $request->input('frate', 15500),
             'fsupplier'      => $request->input('fsupplier'),
             'fincludeppn'    => $fincludeppn,
@@ -1013,6 +1069,8 @@ class Tr_pohController extends Controller
             'famountponet'   => round($totalHarga, 2),
             'famountpopajak' => $ppnAmount,
             'famountpo'      => $grandTotal,
+            'fapplyppn'      => $fapplyppn,
+            'fppnpersen'      => $request->input('ppn_rate', 0),
             'fclose'         => '0',
           ]);
         $fpono = DB::table('tr_poh')->where('fpohid', $fpohid)->value('fpono');
@@ -1046,6 +1104,15 @@ class Tr_pohController extends Controller
 
     $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
+    $currencies = DB::table('mscurrency')
+      ->where(function ($q) {
+        $q->whereNull('fnonactive')
+          ->orWhere('fnonactive', '0')
+          ->orWhere('fnonactive', '');
+      })
+      ->orderBy('fcurrname')
+      ->get(['fcurrid', 'fcurrcode', 'fcurrname', 'frate']);
+
     $branch = DB::table('mscabang')
       ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
       ->when(!is_numeric($raw), fn($q) => $q
@@ -1068,28 +1135,14 @@ class Tr_pohController extends Controller
         );
     }])->findOrFail($fpohid);
 
-    $savedItems = $tr_poh->details->map(function ($d) {
-      return [
-        'uid'        => $d->fpodid,
-        'fitemcode'  => (string)($d->fitemcode ?? ''),  // dari alias msprd.fprdid
-        'fitemname'  => (string)($d->fprdname ?? ''),   // dari msprd.fprdname
-        'fsatuan'    => (string)($d->fsatuan ?? ''),
-        'frefdtno'   => (string)($d->frefdtno ?? ''),
-        'fqty'       => (float)($d->fqty ?? 0),
-        'fterima'    => (float)($d->fterima ?? 0),
-        'fprice'     => (float)($d->fprice ?? 0),
-        'fdisc'      => (float)($d->fdisc ?? 0),
-        'ftotal'     => (float)($d->famount ?? 0),
-        'fdesc'      => (string)($d->fdesc ?? ''),
-        'fketdt'     => (string)($d->fketdt ?? ''),
-      ];
-    })->values();
-    $selectedSupplierCode = $tr_poh->fsupplier;
+    // Lookup currency berdasarkan fcurrency (integer ID) di tr_poh
+    $currentCurrency = DB::table('mscurrency')
+      ->where('fcurrid', $tr_poh->fcurrency)
+      ->first(['fcurrid', 'fcurrcode', 'fcurrname', 'frate']);
 
-    // Fetch all products for product mapping
     $products = Product::select(
       'fprdid',
-      'fprdid',
+      'fprdcode',
       'fprdname',
       'fsatuankecil',
       'fsatuanbesar',
@@ -1108,20 +1161,60 @@ class Tr_pohController extends Controller
       ];
     })->toArray();
 
+    $savedItems = $tr_poh->details->map(function ($d) use ($products) {
+      $prod  = $products->firstWhere('fprdcode', $d->fitemcode);
+      $units = $prod
+        ? array_values(array_filter([
+          $prod->fsatuankecil,
+          $prod->fsatuanbesar,
+          $prod->fsatuanbesar2,
+        ]))
+        : ($d->fsatuan ? [$d->fsatuan] : []);
+
+      // Pastikan fsatuan ada di units
+      if ($d->fsatuan && !in_array($d->fsatuan, $units)) {
+        array_unshift($units, $d->fsatuan);
+      }
+
+      return [
+        'uid'       => (string)($d->fpodid   ?? \Illuminate\Support\Str::uuid()),
+        'fitemcode' => (string)($d->fitemcode ?? ''),
+        'fitemname' => (string)($d->fprdname  ?? ''),
+        'fsatuan'   => (string)($d->fsatuan   ?? ''),
+        'units'     => $units,
+        'frefdtno'  => (string)($d->frefdtno  ?? ''),
+        'frefdtid'  => (string)($d->frefdtid  ?? ''),
+        'fnouref'   => (string)($d->fnouref   ?? ''),
+        'frefpr'    => (string)($d->frefdtno  ?? ''),
+        'fprhid'    => (string)($d->fprhid    ?? ''),
+        'fprno'     => (string)($d->frefdtno  ?? ''),
+        'fqty'      => (float)($d->fqty    ?? 0),
+        'fterima'   => (float)($d->fterima ?? 0),
+        'fprice'    => (float)($d->fprice  ?? 0),
+        'fdisc'     => (float)($d->fdisc   ?? 0),
+        'ftotal'    => (float)($d->famount ?? 0),
+        'fdesc'     => (string)($d->fdesc  ?? ''),
+        'fketdt'    => (string)($d->fketdt ?? ''),
+        'maxqty'    => 0,
+      ];
+    })->values();
+
     // Pass the data to the view
     return view('tr_poh.edit', [
-      'suppliers'      => $suppliers,
-      'selectedSupplierCode' => $selectedSupplierCode, // Kirim kode supplier ke view
-      'fcabang'      => $fcabang,
-      'fbranchcode'  => $fbranchcode,
-      'products'     => $products,
-      'productMap'   => $productMap,
-      'tr_poh'       => $tr_poh,
-      'savedItems'   => $savedItems,
-      'ppnAmount'    => (float) ($tr_poh->famountpopajak ?? 0), // total PPN from DB
-      'famountponet'    => (float) ($tr_poh->famountponet ?? 0),  // nilai Grand Total dari DB
-      'famountpo'    => (float) ($tr_poh->famountpo ?? 0),  // nilai Grand Total dari DB
-      'filterSupplierId' => $request->query('filter_supplier_id'),
+      'suppliers'           => $suppliers,
+      'selectedSupplierCode' => $tr_poh->fsupplier,
+      'fcabang'             => $fcabang,
+      'fbranchcode'         => $fbranchcode,
+      'products'            => $products,
+      'productMap'          => $productMap,
+      'tr_poh'              => $tr_poh,
+      'savedItems'          => $savedItems,
+      'currencies'          => $currencies,
+      'currentCurrency'     => $currentCurrency,   // <-- currency aktif dari join
+      'ppnAmount'           => (float)($tr_poh->famountpopajak ?? 0),
+      'famountponet'        => (float)($tr_poh->famountponet   ?? 0),
+      'famountpo'           => (float)($tr_poh->famountpo      ?? 0),
+      'filterSupplierId'    => $request->query('filter_supplier_id'),
       'action' => 'delete'
     ]);
   }

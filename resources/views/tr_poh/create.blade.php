@@ -655,6 +655,35 @@
                 </div>
             </div>
 
+            {{-- MODAL: Produk duplikat --}}
+            <div x-show="showDupItemModal" x-cloak class="fixed inset-0 z-[90] flex items-center justify-center"
+                x-transition.opacity>
+                <div class="absolute inset-0 bg-black/50" @click="showDupItemModal=false"></div>
+                <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden">
+                    <div class="px-5 py-4 border-b flex items-center">
+                        <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-red-500 mr-2" />
+                        <h3 class="text-lg font-semibold text-gray-800">Produk Sudah Ada</h3>
+                    </div>
+                    <div class="px-5 py-4 space-y-1">
+                        <p class="text-sm text-gray-700">
+                            Produk <strong x-text="dupItemName"></strong>
+                            <template x-if="dupItemSatuan">
+                                <span> (<span x-text="dupItemSatuan"></span>)</span>
+                            </template>
+                            sudah ada di daftar item.
+                        </p>
+                        <p class="text-sm text-gray-500">Satu produk dengan satuan yang sama hanya boleh ditambahkan satu
+                            kali.</p>
+                    </div>
+                    <div class="px-5 py-3 border-t flex justify-end">
+                        <button type="button" @click="showDupItemModal=false"
+                            class="h-9 px-4 rounded-lg bg-red-600 text-white text-sm font-medium hover:bg-red-700">
+                            OK
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             {{-- MODAL SUPPLIER --}}
             <div x-data="supplierBrowser()" x-show="open" x-cloak x-transition.opacity
                 class="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -932,6 +961,9 @@
             browseTarget: 'draft',
             showNoItems: false,
             showNoSupplier: false,
+            showDupItemModal: false,
+            dupItemName: '',
+            dupItemSatuan: '',
 
             // ---- computed totals ----
             get totalHarga() {
@@ -1100,11 +1132,13 @@
                 this.recalc(r);
 
                 const dupe = this.savedItems.find(it =>
-                    it.fitemcode === r.fitemcode && it.fsatuan === r.fsatuan &&
-                    (it.frefpr || '') === (r.frefpr || '')
+                    it.fitemcode.trim() === r.fitemcode.trim() &&
+                    it.fsatuan.trim() === r.fsatuan.trim()
                 );
                 if (dupe) {
-                    alert('Item sama sudah ada.');
+                    this.showDupItemModal = true;
+                    this.dupItemName = r.fitemname || r.fitemcode;
+                    this.dupItemSatuan = r.fsatuan;
                     return;
                 }
 
@@ -1138,30 +1172,37 @@
                     items
                 } = e.detail || {};
                 if (!items || !Array.isArray(items)) return;
-                const existing = new Set(this.getCurrentItemKeys());
+
+                // Key pakai fitemcode::fsatuan agar konsisten dengan addIfComplete
+                const existingKey = (code, satuan) =>
+                    `${(code??'').toString().trim()}::${(satuan??'').toString().trim()}`;
+
+                const existingSet = new Set(
+                    this.savedItems.map(it => existingKey(it.fitemcode, it.fsatuan))
+                );
+
+                const skipped = [];
+                const toAdd = [];
+
                 items.forEach(src => {
-                    const key = this.itemKey({
-                        fitemcode: src.fitemcode ?? '',
-                        frefdtno: src.frefdtno ?? ''
-                    });
-                    if (existing.has(key)) return;
-
-                    // Hydrate units dari PRODUCT_MAP berdasarkan fprdcode
-                    const meta = this.productMeta(src.fitemcode ?? '');
-                    const units = meta ? [...new Set((meta.units || []).map(u => (u ?? '').toString().trim())
-                            .filter(Boolean))] :
-                        (Array.isArray(src.units) && src.units.length ? src.units : [src.fsatuan].filter(
-                            Boolean));
-
-                    // Pastikan fsatuan yang datang dari PR ada di daftar units
                     const fsatuan = (src.fsatuan ?? '').trim();
+                    const key = existingKey(src.fitemcode, fsatuan);
+                    if (existingSet.has(key)) {
+                        skipped.push(src);
+                        return;
+                    }
+
+                    const meta = this.productMeta(src.fitemcode ?? '');
+                    const units = meta ?
+                        [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))] :
+                        (Array.isArray(src.units) && src.units.length ? src.units : [fsatuan].filter(Boolean));
                     if (fsatuan && !units.includes(fsatuan)) units.unshift(fsatuan);
 
                     const row = {
                         uid: cryptoRandom(),
                         fitemcode: src.fitemcode ?? '',
                         fitemname: meta ? (meta.name || src.fitemname || '') : (src.fitemname ?? ''),
-                        units: units,
+                        units,
                         fsatuan: fsatuan || units[0] || '',
                         frefdtno: src.frefdtno ?? '',
                         fnouref: src.fnouref ?? '',
@@ -1177,24 +1218,32 @@
                         maxqty: meta ? (Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0) :
                             0,
                     };
-
-                    // Hitung ulang ftotal jika 0
-                    if (!row.ftotal && row.fqty && row.fprice) {
+                    if (!row.ftotal && row.fqty && row.fprice)
                         row.ftotal = +(row.fqty * row.fprice * (1 - row.fdisc / 100)).toFixed(2);
-                    }
 
-                    this.savedItems.push(row);
-                    existing.add(key);
-
-                    // Cek histori harga jika harga belum ada
-                    if (!row.fprice || row.fprice === 0) {
-                        this.$nextTick(() => this.applyLastPrice(row));
-                    }
+                    toAdd.push(row);
+                    existingSet.add(key);
                 });
+
+                toAdd.forEach(row => {
+                    this.savedItems.push(row);
+                    if (!row.fprice || row.fprice === 0)
+                        this.$nextTick(() => this.applyLastPrice(row));
+                });
+
+                // Tampilkan info jika ada yang dilewati karena duplikat
+                if (skipped.length > 0 && toAdd.length === 0) {
+                    this.showDupItemModal = true;
+                    this.dupItemName = skipped.map(s => (s.fitemname || s.fitemcode)).join(', ');
+                    this.dupItemSatuan = '';
+                } else if (skipped.length > 0) {
+                    // Sebagian duplikat — pakai modal duplikasi yang sudah ada (via prhFormModal)
+                    // tidak perlu action tambahan, item unik sudah masuk
+                }
             },
 
             itemKey(it) {
-                return `${(it.fitemcode??'').toString().trim()}::${(it.frefdtno??'').toString().trim()}`;
+                return `${(it.fitemcode??'').toString().trim()}::${(it.fsatuan??'').toString().trim()}`;
             },
             getCurrentItemKeys() {
                 return this.savedItems.map(it => this.itemKey(it));
