@@ -580,24 +580,19 @@
                             <h3 class="text-lg font-semibold mb-4">Peringatan Duplikasi</h3>
                             <p class="mb-4">
                                 Ditemukan <strong x-text="dupCount"></strong> item yang sudah ada dalam daftar.
-                                Hanya item unik yang akan ditambahkan.
                             </p>
                             <div class="mb-4 max-h-48 overflow-auto border rounded p-2 bg-gray-50"
                                 x-show="dupSample.length > 0">
                                 <p class="text-sm font-medium mb-2">Contoh item duplikat:</p>
                                 <template x-for="(item, idx) in dupSample" :key="idx">
                                     <div class="text-xs py-1">
-                                        • <span x-text="item.fitemcode"></span> – <span x-text="item.frefdtno"></span>
+                                        • <span x-text="item.fitemcode"></span>
                                     </div>
                                 </template>
                             </div>
                             <div class="flex justify-end gap-2">
                                 <button type="button" @click="closeDupModal()"
                                     class="rounded bg-gray-200 px-4 py-2 text-sm font-medium hover:bg-gray-300">Batal</button>
-                                <button type="button" @click="confirmAddUniques()"
-                                    class="rounded bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700">
-                                    Tambahkan Item Unik
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -1094,6 +1089,37 @@
                 return row.fitemcode && row.fitemname && row.fsatuan && Number(row.fqty) > 0;
             },
 
+            // Cek apakah item duplikat berdasarkan:
+            // 1. fitemcode + fsatuan sama
+            // 2. fprdid sama (produk fisik sama walau kode/satuan berbeda)
+            // 3. fprdname sama (nama identik, satuan boleh beda)
+            isDupeItem(candidate) {
+                const cCode = (candidate.fitemcode || '').trim().toLowerCase();
+                const cSatuan = (candidate.fsatuan || '').trim().toLowerCase();
+                const cName = (candidate.fitemname || '').trim().toLowerCase();
+                const cMeta = this.productMeta(candidate.fitemcode);
+                const cId = cMeta?.id ?? null;
+
+                return this.savedItems.some(it => {
+                    const itSatuan = (it.fsatuan || '').trim().toLowerCase();
+                    const itCode = (it.fitemcode || '').trim().toLowerCase();
+                    const itName = (it.fitemname || '').trim().toLowerCase();
+                    const itMeta = this.productMeta(it.fitemcode);
+                    const itId = itMeta?.id ?? null;
+
+                    // 1. kode produk + satuan sama
+                    if (itCode === cCode && itSatuan === cSatuan) return true;
+
+                    // 2. fprdid sama → produk fisik sama, tolak walau satuan berbeda
+                    if (cId && itId && cId === itId) return true;
+
+                    // 3. nama produk sama → tolak walau kode/satuan berbeda
+                    if (cName && itName && cName === itName) return true;
+
+                    return false;
+                });
+            },
+
             // ---- navigasi fokus baris tersimpan ----
             focusSavedUnit(item, i) {
                 if (item.units.length > 1) this.$nextTick(() => document.getElementById('unit_saved_' + i)?.focus());
@@ -1131,11 +1157,7 @@
                 }
                 this.recalc(r);
 
-                const dupe = this.savedItems.find(it =>
-                    it.fitemcode.trim() === r.fitemcode.trim() &&
-                    it.fsatuan.trim() === r.fsatuan.trim()
-                );
-                if (dupe) {
+                if (this.isDupeItem(r)) {
                     this.showDupItemModal = true;
                     this.dupItemName = r.fitemname || r.fitemcode;
                     this.dupItemSatuan = r.fsatuan;
@@ -1173,26 +1195,26 @@
                 } = e.detail || {};
                 if (!items || !Array.isArray(items)) return;
 
-                // Key pakai fitemcode::fsatuan agar konsisten dengan addIfComplete
-                const existingKey = (code, satuan) =>
-                    `${(code??'').toString().trim()}::${(satuan??'').toString().trim()}`;
-
-                const existingSet = new Set(
-                    this.savedItems.map(it => existingKey(it.fitemcode, it.fsatuan))
-                );
-
                 const skipped = [];
                 const toAdd = [];
 
                 items.forEach(src => {
                     const fsatuan = (src.fsatuan ?? '').trim();
-                    const key = existingKey(src.fitemcode, fsatuan);
-                    if (existingSet.has(key)) {
+                    const meta = this.productMeta(src.fitemcode ?? '');
+                    const fitemname = meta ? (meta.name || src.fitemname || '') : (src.fitemname ?? '');
+
+                    // Buat kandidat row sementara untuk cek duplikat
+                    const candidate = {
+                        fitemcode: (src.fitemcode ?? '').trim(),
+                        fitemname,
+                        fsatuan,
+                    };
+
+                    if (this.isDupeItem(candidate)) {
                         skipped.push(src);
                         return;
                     }
 
-                    const meta = this.productMeta(src.fitemcode ?? '');
                     const units = meta ?
                         [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))] :
                         (Array.isArray(src.units) && src.units.length ? src.units : [fsatuan].filter(Boolean));
@@ -1201,7 +1223,7 @@
                     const row = {
                         uid: cryptoRandom(),
                         fitemcode: src.fitemcode ?? '',
-                        fitemname: meta ? (meta.name || src.fitemname || '') : (src.fitemname ?? ''),
+                        fitemname,
                         units,
                         fsatuan: fsatuan || units[0] || '',
                         frefdtno: src.frefdtno ?? '',
@@ -1222,23 +1244,16 @@
                         row.ftotal = +(row.fqty * row.fprice * (1 - row.fdisc / 100)).toFixed(2);
 
                     toAdd.push(row);
-                    existingSet.add(key);
-                });
-
-                toAdd.forEach(row => {
+                    // Langsung push ke savedItems agar isDupeItem mendeteksi item berikutnya dalam batch yang sama
                     this.savedItems.push(row);
                     if (!row.fprice || row.fprice === 0)
                         this.$nextTick(() => this.applyLastPrice(row));
                 });
 
-                // Tampilkan info jika ada yang dilewati karena duplikat
                 if (skipped.length > 0 && toAdd.length === 0) {
                     this.showDupItemModal = true;
-                    this.dupItemName = skipped.map(s => (s.fitemname || s.fitemcode)).join(', ');
+                    this.dupItemName = skipped.map(s => s.fitemname || s.fitemcode).join(', ');
                     this.dupItemSatuan = '';
-                } else if (skipped.length > 0) {
-                    // Sebagian duplikat — pakai modal duplikasi yang sudah ada (via prhFormModal)
-                    // tidak perlu action tambahan, item unik sudah masuk
                 }
             },
 
@@ -1282,17 +1297,21 @@
                 }
 
                 window.getCurrentItemKeys = () => this.getCurrentItemKeys();
+                window.isDupeItem = (candidate) => this.isDupeItem(candidate);
 
-                // Terima sinyal dari komponen lain (misal prhFormModal) untuk tampilkan modal supplier
+                // AbortController: batalkan listener lama jika init() dipanggil ulang
+                if (this._ac) this._ac.abort();
+                this._ac = new AbortController();
+                const sig = {
+                    signal: this._ac.signal,
+                    passive: true
+                };
+
                 window.addEventListener('show-no-supplier', () => {
                     this.showNoSupplier = true;
-                }, {
-                    passive: true
-                });
+                }, sig);
 
-                window.addEventListener('pr-picked', this.onPrPicked.bind(this), {
-                    passive: true
-                });
+                window.addEventListener('pr-picked', (e) => this.onPrPicked(e), sig);
 
                 window.addEventListener('product-chosen', (e) => {
                     const {
@@ -1318,9 +1337,7 @@
                         apply(this.draft);
                         this.$nextTick(() => this.$refs.draftQty?.focus());
                     }
-                }, {
-                    passive: true
-                });
+                }, sig);
             }
         };
     }
@@ -1661,11 +1678,19 @@
                     });
                     const json = await res.json();
                     const items = json.items || [];
-                    const currentKeys = new Set((window.getCurrentItemKeys?.() || []).map(String));
-                    const keyOf = src =>
-                        `${(src.fitemcode??'').toString().trim()}::${(src.frefdtno??'').toString().trim()}`;
-                    const duplicates = items.filter(src => currentKeys.has(keyOf(src)));
-                    const uniques = items.filter(src => !currentKeys.has(keyOf(src)));
+
+                    // Pakai isDupeItem agar konsisten dengan validasi di mainForm
+                    const checkDupe = window.isDupeItem ?
+                        (src) => window.isDupeItem({
+                            fitemcode: src.fitemcode ?? '',
+                            fitemname: src.fitemname ?? '',
+                            fsatuan: src.fsatuan ?? ''
+                        }) :
+                        (src) => false;
+
+                    const duplicates = items.filter(src => checkDupe(src));
+                    const uniques = items.filter(src => !checkDupe(src));
+
                     if (duplicates.length > 0) {
                         this.openDupModal(row, duplicates, uniques);
                         return;

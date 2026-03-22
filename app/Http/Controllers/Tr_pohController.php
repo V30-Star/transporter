@@ -181,35 +181,40 @@ class Tr_pohController extends Controller
   }
   public function items($id)
   {
-    // Ambil data header PR berdasarkan fprhid
     $header = Tr_prh::where('fprhid', $id)->firstOrFail();
 
-    // PERBAIKAN: Gunakan fprhid (integer) bukan fprno (varchar)
-    $items = Tr_prd::where('tr_prd.fprhid', $header->fprhid) // <- Gunakan fprhid
+    $items = Tr_prd::where('tr_prd.fprhid', $header->fprhid)
       ->leftJoin('msprd as m', 'm.fprdid', '=', 'tr_prd.fprdid')
       ->select([
-        'tr_prd.fprdid as frefdtno',
-        'tr_prd.fprhid as fnouref',
-        // 'tr_prd.fprdid as fitemcode',
+        // frefdtno = nomor baris detail PR (dipakai sebagai referensi, bukan key duplikat)
+        DB::raw('tr_prd.fprdid::text as frefdtno'),
+
+        // fitemcode = kode produk (fprdcode), ini yang dipakai sebagai key
         'm.fprdcode as fitemcode',
         'm.fprdname as fitemname',
+
         'tr_prd.fqty',
-        'tr_prd.fsatuan as fsatuan',
+        'tr_prd.fsatuan',
         'tr_prd.fprhid',
-        'tr_prd.fprice as fharga',
-        DB::raw('0::numeric as fdiskon')
+
+        // Nama field harus cocok dengan yang dibaca JS: fprice dan fdisc
+        DB::raw('COALESCE(tr_prd.fprice, 0) as fprice'),
+        DB::raw('0::numeric as fdisc'),
+
+        // fnouref — nomor urut referensi
+        DB::raw('tr_prd.fprhid::text as fnouref'),
       ])
       ->orderBy('tr_prd.fprdid')
       ->get();
 
     return response()->json([
       'header' => [
-        'fprhid'     => $header->fprhid,
+        'fprhid'    => $header->fprhid,
         'fprno'     => $header->fprno,
         'fsupplier' => trim($header->fsupplier ?? ''),
         'fprdate'   => optional($header->fprdate)->format('Y-m-d H:i:s'),
       ],
-      'items'  => $items,
+      'items' => $items,
     ]);
   }
 
@@ -318,16 +323,17 @@ class Tr_pohController extends Controller
 
     $row = DB::table('tr_poh as m')
       ->join('tr_pod as d', 'm.fpohid', '=', 'd.fpohid')
-      ->where(DB::raw('trim(d.fprdcode)'), $fprdcode)
-      ->where(DB::raw('trim(m.fsupplier)'), $fsupplier)
-      ->where(DB::raw('trim(d.fsatuan)'), $fsatuan)
+      ->whereRaw("trim(d.fprdcode) = ?", [$fprdcode])
+      ->whereRaw("trim(m.fsupplier::text) = ?", [$fsupplier])
+      ->whereRaw("trim(d.fsatuan) = ?", [$fsatuan])
       ->orderBy('m.fpodate', 'desc')
       ->select('d.fprice', 'd.fdisc')
       ->first();
 
     return response()->json([
-      'fprice' => $row ? (float)$row->fprice : 0,
-      'fdisc'  => $row ? (float)$row->fdisc  : 0,
+      'found'  => (bool) $row,
+      'fprice' => $row ? (float) $row->fprice : 0,
+      'fdisc'  => $row ? (float) $row->fdisc  : 0,
     ]);
   }
 
