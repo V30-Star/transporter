@@ -446,6 +446,7 @@ class Tr_pohController extends Controller
     $codes   = $request->input('fitemcode', []);
     $satuans = $request->input('fsatuan', []);
     $refdtno = $request->input('frefdtno', []);
+    $fprhids = $request->input('fprhid', []);
     $qtys    = $request->input('fqty', []);
     $prices  = $request->input('fprice', []);
     $discs   = $request->input('fdisc', []);
@@ -487,6 +488,7 @@ class Tr_pohController extends Controller
       $price  = (float)($prices[$i]  ?? 0);
       $discP  = (float)($discs[$i]   ?? 0);
       $desc   = (string)($descs[$i]  ?? '');
+      $fprhid_item = (int)($fprhids[$i] ?? 0); 
 
       if ($code === '' || $qty <= 0) continue;
 
@@ -530,10 +532,10 @@ class Tr_pohController extends Controller
         'fdatetime'   => $now,
         'fsatuan'     => $sat,
         'frefdtno'    => $refdt,
-        'frefdtid'    => $refdt, // referensi ke header (integer FK)
         'fdesc'       => $desc,
         'fqtykecil'   => $qtyKecil,
         'fqtyremain'  => $qtyKecil,
+        'frefdtid'    => $fprhid_item ?: null,
       ];
     }
 
@@ -650,9 +652,7 @@ class Tr_pohController extends Controller
       foreach ($rowsPod as &$r) {
         $r['fpohid'] = $fpohid;  // FK → tr_poh.fpohid (integer)
         $r['fnou']  = $nextNou++;
-        // $r['fprdid'] already set above
         $r['frefdtno'] = $fpono;    // ✅ string → tr_poh.fpono  (misal: "PO.BG.26.03.0008")
-        $r['frefdtid'] = $fpohid;
       }
       unset($r);
 
