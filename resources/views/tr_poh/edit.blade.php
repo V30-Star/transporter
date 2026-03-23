@@ -1041,7 +1041,7 @@
                 const total = this.totalHarga,
                     rate = +this.ppnRate || 0;
                 return this.ppnMode === 1 ? Math.round(total * rate / (100 + rate)) : Math.round(total * rate /
-                100);
+                    100);
             },
             get grandTotal() {
                 if (!this.includePPN) return this.totalHarga;
@@ -1146,35 +1146,37 @@
 
             // Hitung maxqty dalam satuan yang dipilih di PO berdasarkan konversi dari PR
             calcMaxQty(row) {
-                const qtyPR = row.fqtypr || 0;
+                // 1. Ambil data dasar
+                const qtyPR = parseFloat(row.fqtypr) || 0;
                 const satuanPR = (row.fqtypr_satuan || '').trim();
                 const satuanPO = (row.fsatuan || '').trim();
+
                 const satKecil = (row.fsatuankecil || '').trim();
                 const satBesar = (row.fsatuanbesar || '').trim();
                 const satBesar2 = (row.fsatuanbesar2 || '').trim();
-                const rasio = Number(row.fqtykecil || 0);
-                const rasio2 = Number(row.fqtykecil2 || 0);
+                const rasio = parseFloat(row.fqtykecil) || 0;
+                const rasio2 = parseFloat(row.fqtykecil2) || 0;
 
-                // Tidak ada data konversi PR → tidak ada batasan
-                if (!satuanPR || !qtyPR) return 0;
+                // Jika tidak ada referensi PR, maka tidak ada batas (kembalikan 0 atau angka sangat besar)
+                if (!satuanPR || qtyPR <= 0) return 0;
 
-                // Step 1: konversi qty PR ke satuan kecil
-                let qtyKecil = qtyPR;
+                // Step 1: Konversi Qty PR ke Satuan Terkecil (Base Unit)
+                let qtyDalamKecil = qtyPR;
                 if (satuanPR === satBesar && rasio > 0) {
-                    qtyKecil = qtyPR * rasio;
+                    qtyDalamKecil = qtyPR * rasio;
                 } else if (satuanPR === satBesar2 && rasio2 > 0) {
-                    qtyKecil = qtyPR * rasio2;
+                    qtyDalamKecil = qtyPR * rasio2;
                 }
 
-                // Step 2: konversi ke satuan yang dipilih di PO
-                if (!satuanPO || satuanPO === satKecil) {
-                    return qtyKecil;
-                } else if (satuanPO === satBesar && rasio > 0) {
-                    return Math.floor(qtyKecil / rasio);
+                // Step 2: Konversi dari Satuan Terkecil ke Satuan yang sedang dipilih di baris PO
+                if (satuanPO === satBesar && rasio > 0) {
+                    return Math.floor(qtyDalamKecil / rasio);
                 } else if (satuanPO === satBesar2 && rasio2 > 0) {
-                    return Math.floor(qtyKecil / rasio2);
+                    return Math.floor(qtyDalamKecil / rasio2);
                 }
-                return qtyKecil;
+
+                // Default / Jika pilih satuan kecil
+                return qtyDalamKecil;
             },
 
             focusSavedUnit(item, i) {
@@ -1261,8 +1263,8 @@
                         return;
                     }
                     const meta = this.productMeta(src.fitemcode ?? '');
-                    const units = meta ?
-                        [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))] :
+                    const units = meta ? [...new Set((meta.units || []).map(u => (u ?? '').toString().trim())
+                            .filter(Boolean))] :
                         (Array.isArray(src.units) && src.units.length ? src.units : [fsatuan].filter(Boolean));
                     if (fsatuan && !units.includes(fsatuan)) units.unshift(fsatuan);
 
@@ -1353,6 +1355,8 @@
                 this.savedItems = this.savedItems.map(it => {
                     it.fsatuan = (it.fsatuan ?? '').trim();
 
+                    if (!it.uid) it.uid = cryptoRandom();
+
                     // Hydrate units
                     if (!it.units || !it.units.length) {
                         const meta = this.productMeta(it.fitemcode);
@@ -1377,18 +1381,15 @@
                     if (!it.fsatuankecil) {
                         const meta = this.productMeta(it.fitemcode);
                         if (meta) {
-                            it.fsatuankecil = meta.fsatuankecil || '';
-                            it.fsatuanbesar = meta.fsatuanbesar || '';
-                            it.fsatuanbesar2 = meta.fsatuanbesar2 || '';
-                            it.fqtykecil = Number(meta.fqtykecil || 0);
-                            it.fqtykecil2 = Number(meta.fqtykecil2 || 0);
+                            it.fsatuankecil = it.fsatuankecil || meta.fsatuankecil;
+                            it.fsatuanbesar = it.fsatuanbesar || meta.fsatuanbesar;
+                            it.fsatuanbesar2 = it.fsatuanbesar2 || meta.fsatuanbesar2;
+                            it.fqtykecil = it.fqtykecil || meta.fqtykecil;
+                            it.fqtykecil2 = it.fqtykecil2 || meta.fqtykecil2;
                         }
                     }
 
-                    // Recalc maxqty jika item berasal dari PR
-                    if (it.fqtypr && it.fqtypr_satuan) {
-                        it.maxqty = this.calcMaxQty(it);
-                    }
+                    it.maxqty = this.calcMaxQty(it);
 
                     if (!it.uid) it.uid = cryptoRandom();
                     if (!it.fprno) it.fprno = it.frefpr || '';

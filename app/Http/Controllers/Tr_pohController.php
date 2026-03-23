@@ -730,13 +730,19 @@ class Tr_pohController extends Controller
     $fbranchcode = $branch->fcabangkode ?? (string) $raw;
 
     $tr_poh = Tr_poh::with(['details' => function ($q) {
-      $q->leftJoin('msprd', function ($j) {
-        $j->on('msprd.fprdid', '=', 'tr_pod.fprdid');
-      })->select(
-        'tr_pod.*',
-        'msprd.fprdcode as fitemcode',
-        'msprd.fprdname'
-      );
+      $q->leftJoin('msprd as m', 'm.fprdid', '=', 'tr_pod.fprdid')
+        ->select(
+          'tr_pod.*',
+          'm.fprdcode as fitemcode',
+          'm.fprdname',
+          'm.fsatuankecil',
+          'm.fsatuanbesar',
+          'm.fsatuanbesar2',
+          'm.fqtykecil',
+          'm.fqtykecil2',
+          DB::raw("COALESCE((SELECT fqty FROM tr_prd WHERE fprhid::text = tr_pod.frefdtid::text LIMIT 1), 0) as fqtypr"),
+          DB::raw("COALESCE((SELECT fsatuan FROM tr_prd WHERE fprhid::text = tr_pod.frefdtid::text LIMIT 1), '') as fqtypr_satuan")
+        );
     }])->findOrFail($fpohid);
 
     $fpohidInt = (int) $tr_poh->fpohid;
@@ -782,18 +788,30 @@ class Tr_pohController extends Controller
     })->toArray();
 
     $savedItems = $tr_poh->details->map(function ($d) use ($products, $prQtyMap) {
+      $qtyPR    = (float) $d->fqtypr;
+      $satPR    = trim((string) $d->fqtypr_satuan);
+      $satKecil = trim((string) $d->fsatuankecil);
+      $satBesar = trim((string) $d->fsatuanbesar);
+      $satBesar2 = trim((string) $d->fsatuanbesar2);
+      $rasio    = (float) $d->fqtykecil;
+      $rasio2   = (float) $d->fqtykecil2;
+
       $prod  = $products->firstWhere('fprdcode', $d->fitemcode);
 
-      $fsatuan = trim((string)($d->fsatuan ?? ''));
+      if ($satPR === $satBesar && $rasio > 0) {
+        $maxqtyKecil = $qtyPR * $rasio;
+      } elseif ($satPR === $satBesar2 && $rasio2 > 0) {
+        $maxqtyKecil = $qtyPR * $rasio2;
+      } else {
+        $maxqtyKecil = $qtyPR;
+      }
 
-      $units = $prod
-        ? array_values(array_filter(array_map('trim', [
-          $prod->fsatuankecil,
-          $prod->fsatuanbesar,
-          $prod->fsatuanbesar2,
-        ])))
-        : [];
-
+      // Siapkan units untuk dropdown
+      $units = array_values(array_filter(array_map('trim', [$satKecil, $satBesar, $satBesar2])));
+      $fsatuan = trim((string)$d->fsatuan);
+      if ($fsatuan !== '' && !in_array($fsatuan, $units)) {
+        array_unshift($units, $fsatuan);
+      }
       // Pastikan fsatuan ada di units
       $matchedSatuan = $fsatuan;
       foreach ($units as $u) {
@@ -808,8 +826,6 @@ class Tr_pohController extends Controller
       if ($fsatuan !== '' && !in_array($fsatuan, $units)) {
         array_unshift($units, $fsatuan);  // ← tetap ada walau tidak di master
       }
-
-      $qtyPR = (float)($prQtyMap[$d->fpodid]->qty_pr ?? 0);
 
       return [
         'uid'       => (string)($d->fpodid   ?? \Illuminate\Support\Str::uuid()),
@@ -830,7 +846,18 @@ class Tr_pohController extends Controller
         'fdesc'     => (string)($d->fdesc  ?? ''),
         'fketdt'    => (string)($d->fketdt ?? ''),
         'frefdtid'  => (string)($d->frefdtid ?? ''), // PASTIKAN INI ADA
-        'maxqty'    => $qtyPR,
+        // Data konversi untuk JavaScript
+        'fqtypr'        => $qtyPR,
+        'fqtypr_satuan' => $satPR,
+        'fsatuankecil'  => $satKecil,
+        'fsatuanbesar'  => $satBesar,
+        'fsatuanbesar2' => $satBesar2,
+        'fqtykecil'     => $rasio,
+        'fqtykecil2'    => $rasio2,
+
+        // maxqty dikirim dalam satuan terkecil (Base)
+        'maxqty'        => $maxqtyKecil,
+        'maxqty_satuan' => $satKecil,
       ];
     })->values();
 
