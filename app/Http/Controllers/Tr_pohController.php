@@ -197,9 +197,54 @@ class Tr_pohController extends Controller
         DB::raw('0::numeric as fdisc'),
         DB::raw('tr_prd.fprhid::text as fnouref'),
         DB::raw('tr_prd.fprdid::text as frefdtid'),
+        'm.fsatuankecil',
+        'm.fsatuanbesar',
+        'm.fsatuanbesar2',
+        'm.fqtykecil',
+        'm.fqtykecil2',
       ])
       ->orderBy('tr_prd.fprdcodeid')
-      ->get();
+      ->get()
+      ->map(function ($item) {
+        $qty      = (float) $item->fqty;
+        $satuan   = trim((string) $item->fsatuan);
+        $satKecil = trim((string) ($item->fsatuankecil ?? ''));
+        $satBesar = trim((string) ($item->fsatuanbesar ?? ''));
+        $satBesar2 = trim((string) ($item->fsatuanbesar2 ?? ''));
+        $rasio    = (float) ($item->fqtykecil  ?? 0);
+        $rasio2   = (float) ($item->fqtykecil2 ?? 0);
+
+        // Konversi qty PR ke satuan kecil
+        if ($satuan === $satBesar && $rasio > 0) {
+          $maxqtyKecil = $qty * $rasio;
+        } elseif ($satuan === $satBesar2 && $rasio2 > 0) {
+          $maxqtyKecil = $qty * $rasio2;
+        } else {
+          // Sudah satuan kecil atau tidak ada rasio
+          $maxqtyKecil = $qty;
+        }
+
+        return [
+          'frefdtno'    => $item->frefdtno,
+          'fitemcode'   => $item->fitemcode,
+          'fitemname'   => $item->fitemname,
+          'fqty'        => $qty,
+          'maxqty'      => $maxqtyKecil,  // ← dalam satuan kecil
+          'maxqty_satuan' => $satKecil,   // ← info satuan kecilnya
+          'fsatuan'     => $satuan,
+          'fprhid'      => $item->fprhid,
+          'fprice'      => (float) $item->fprice,
+          'fdisc'       => 0,
+          'fnouref'     => $item->fnouref,
+          'frefdtid'    => $item->frefdtid,
+
+          'fsatuankecil'  => $satKecil,
+          'fsatuanbesar'  => $satBesar,
+          'fsatuanbesar2' => $satBesar2,
+          'fqtykecil'     => $rasio,
+          'fqtykecil2'    => $rasio2,
+        ];
+      });
 
     return response()->json([
       'header' => [
@@ -759,7 +804,7 @@ class Tr_pohController extends Controller
       }
 
       $fsatuan = $matchedSatuan;
-      
+
       if ($fsatuan !== '' && !in_array($fsatuan, $units)) {
         array_unshift($units, $fsatuan);  // ← tetap ada walau tidak di master
       }

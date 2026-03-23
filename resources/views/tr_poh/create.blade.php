@@ -74,9 +74,7 @@
             @submit.prevent="submitForm($el)">
             @csrf
 
-            {{-- ================================================================
-                 HEADER FORM
-                 ================================================================ --}}
+            {{-- HEADER FORM --}}
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
 
                 {{-- Cabang --}}
@@ -165,7 +163,7 @@
                     </div>
                 </div>
 
-                {{-- Currency (dari mscurrency) --}}
+                {{-- Currency --}}
                 <div class="lg:col-span-4">
                     <label class="block text-sm font-medium">Currency</label>
                     <select name="fcurrency" id="currencySelect" x-model="selectedCurrId" @change="onCurrencyChange()"
@@ -179,7 +177,6 @@
                             </option>
                         @endforeach
                     </select>
-                    {{-- hidden fields untuk backend --}}
                     <input type="hidden" name="fcurrencyid" :value="selectedCurrId">
                     <input type="hidden" name="fcurrcode" :value="selectedCurrCode">
                     @error('fcurrency')
@@ -187,7 +184,7 @@
                     @enderror
                 </div>
 
-                {{-- Rate (auto-fill dari currency, bisa di-override) --}}
+                {{-- Rate --}}
                 <div class="lg:col-span-4">
                     <label class="block text-sm font-medium">Rate</label>
                     <input type="number" step="0.01" min="0" name="frate" x-model.number="rateValue"
@@ -210,9 +207,7 @@
                 </div>
             </div>
 
-            {{-- ================================================================
-                 DETAIL ITEM
-                 ================================================================ --}}
+            {{-- DETAIL ITEM --}}
             <div class="mt-6 space-y-2">
                 <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
 
@@ -234,14 +229,11 @@
                         </thead>
 
                         <tbody>
-                            {{-- ============================================================
-                                 BARIS TERSIMPAN — satu <tr> per item, langsung editable
-                                 ============================================================ --}}
+                            {{-- BARIS TERSIMPAN --}}
                             <template x-for="(it, i) in savedItems" :key="it.uid">
                                 <tr class="border-t align-top transition-colors"
                                     :class="activeRow === it.uid ? 'bg-amber-50' : 'hover:bg-gray-50'">
 
-                                    {{-- # --}}
                                     <td class="p-2 text-gray-500" x-text="i + 1"></td>
 
                                     {{-- Kode Produk --}}
@@ -265,36 +257,41 @@
                                         </div>
                                     </td>
 
-                                    {{-- Nama Produk + Deskripsi (overflow memanjang visual ke arah Satuan) --}}
+                                    {{-- Nama Produk + Deskripsi --}}
                                     <td class="p-2 relative overflow-visible">
                                         <input type="text"
                                             class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
                                             :value="it.fitemname" disabled>
-                                        {{-- Deskripsi: lebar melebihi kolom, overlap secara visual ke kolom Satuan --}}
                                         <textarea x-model="it.fdesc" rows="2" class="border rounded px-2 py-1 text-xs text-gray-600 mt-1 relative z-10"
                                             style="width: calc(100% + 8rem);" placeholder="Deskripsi (opsional)" @focus="activeRow = it.uid"
                                             @blur="activeRow = null"></textarea>
                                     </td>
 
-                                    {{-- Satuan (kolom sendiri, di baris atas saja) --}}
+                                    {{-- Satuan --}}
                                     <td class="p-2 align-top">
-                                        <template x-if="it.units.length > 1">
-                                            <select class="w-full border rounded px-2 py-1 text-sm" x-model="it.fsatuan"
-                                                :id="'unit_saved_' + i" @focus="activeRow = it.uid"
-                                                @blur="activeRow = null" @keydown.enter.prevent="focusSavedQty(i)">
-                                                <template x-for="u in it.units" :key="u">
-                                                    <option :value="u" x-text="u"></option>
-                                                </template>
-                                            </select>
-                                        </template>
-                                        <template x-if="it.units.length <= 1">
-                                            <input type="text"
-                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
-                                                :value="it.fsatuan || '-'" disabled>
-                                        </template>
+                                        <select class="w-full border rounded px-2 py-1 text-sm"
+                                            x-show="it.units.length > 1" :id="'unit_saved_' + i"
+                                            @focus="activeRow = it.uid" @blur="activeRow = null"
+                                            @keydown.enter.prevent="focusSavedQty(i)"
+                                            @change="it.fsatuan = $event.target.value; it.maxqty = calcMaxQty(it);"
+                                            x-effect="
+                                                const sel = $el;
+                                                sel.innerHTML = '';
+                                                it.units.forEach(u => {
+                                                    const opt = document.createElement('option');
+                                                    opt.value = u;
+                                                    opt.textContent = u;
+                                                    if (u === it.fsatuan) opt.selected = true;
+                                                    sel.appendChild(opt);
+                                                });
+                                            ">
+                                        </select>
+                                        <input type="text" x-show="it.units.length <= 1"
+                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
+                                            :value="it.fsatuan || '-'" disabled>
                                     </td>
 
-                                    {{-- Ref.PR# (readonly, diisi dari Add PR) --}}
+                                    {{-- Ref.PR# --}}
                                     <td class="p-2">
                                         <input type="text"
                                             class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
@@ -308,19 +305,19 @@
                                             x-model.number="it.fqty" :id="'qty_saved_' + i"
                                             @focus="activeRow = it.uid; $event.target.select()" @blur="activeRow = null"
                                             @input="
-            recalc(it);
-            if (it.maxqty > 0 && it.fqty > it.maxqty) {
-                it.fqty = it.maxqty;
-                recalc(it);
-            }
-        "
+                                                recalc(it);
+                                                if (it.maxqty > 0 && it.fqty > it.maxqty) {
+                                                    it.fqty = it.maxqty;
+                                                    recalc(it);
+                                                }
+                                            "
                                             @change="
-            recalc(it);
-            if (it.maxqty > 0 && it.fqty > it.maxqty) {
-                it.fqty = it.maxqty;
-                recalc(it);
-            }
-        "
+                                                recalc(it);
+                                                if (it.maxqty > 0 && it.fqty > it.maxqty) {
+                                                    it.fqty = it.maxqty;
+                                                    recalc(it);
+                                                }
+                                            "
                                             @keydown.enter.prevent="focusSavedPrice(i)">
                                         <div x-show="it.maxqty > 0" class="text-xs text-gray-400 mt-0.5 text-right">
                                             maks: <span x-text="it.maxqty"></span>
@@ -345,7 +342,7 @@
                                             @keydown.enter.prevent="focusDraftCode()">
                                     </td>
 
-                                    {{-- Total Harga (readonly) --}}
+                                    {{-- Total Harga --}}
                                     <td class="p-2 text-right text-sm font-medium" x-text="rupiah(it.ftotal)"></td>
 
                                     {{-- Aksi --}}
@@ -356,7 +353,7 @@
                                         </button>
                                     </td>
 
-                                    {{-- Hidden inputs untuk submit --}}
+                                    {{-- Hidden inputs --}}
                                     <td class="hidden">
                                         <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
                                         <input type="hidden" name="fitemname[]" :value="it.fitemname">
@@ -376,14 +373,10 @@
                                 </tr>
                             </template>
 
-                            {{-- ============================================================
-                                 BARIS DRAFT — input baru
-                                 ============================================================ --}}
+                            {{-- BARIS DRAFT --}}
                             <tr class="border-t bg-green-50 align-top">
-                                {{-- # --}}
                                 <td class="p-2 text-gray-400" x-text="savedItems.length + 1"></td>
 
-                                {{-- Kode Produk --}}
                                 <td class="p-2">
                                     <div class="flex">
                                         <input type="text"
@@ -403,7 +396,6 @@
                                     </div>
                                 </td>
 
-                                {{-- Nama Produk + Deskripsi --}}
                                 <td class="p-2 relative overflow-visible">
                                     <input type="text"
                                         class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
@@ -413,45 +405,47 @@
                                         placeholder="Deskripsi (opsional)"></textarea>
                                 </td>
 
-                                {{-- Satuan --}}
+                                {{-- Satuan Draft --}}
                                 <td class="p-2 align-top">
-                                    <template x-if="draft.units.length > 1">
-                                        <select class="w-full border rounded px-2 py-1 text-sm" x-ref="draftUnit"
-                                            x-model="draft.fsatuan" @keydown.enter.prevent="$refs.draftQty?.focus()">
-                                            <template x-for="u in draft.units" :key="u">
-                                                <option :value="u" x-text="u"></option>
-                                            </template>
-                                        </select>
-                                    </template>
-                                    <template x-if="draft.units.length <= 1">
-                                        <input type="text"
-                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
-                                            :value="draft.fsatuan || '-'" disabled>
-                                    </template>
+                                    <select class="w-full border rounded px-2 py-1 text-sm"
+                                        x-show="draft.units.length > 1" x-ref="draftUnit"
+                                        @keydown.enter.prevent="$refs.draftQty?.focus()"
+                                        @change="draft.fsatuan = $event.target.value; draft.maxqty = calcMaxQty(draft);"
+                                        x-effect="
+                                            const sel = $el;
+                                            sel.innerHTML = '';
+                                            draft.units.forEach(u => {
+                                                const opt = document.createElement('option');
+                                                opt.value = u;
+                                                opt.textContent = u;
+                                                if (u === draft.fsatuan) opt.selected = true;
+                                                sel.appendChild(opt);
+                                            });
+                                        ">
+                                    </select>
+                                    <input type="text" x-show="draft.units.length <= 1"
+                                        class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
+                                        :value="draft.fsatuan || '-'" disabled>
                                 </td>
 
-                                {{-- Ref.PR# (readonly) --}}
                                 <td class="p-2">
                                     <input type="text"
                                         class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
                                         :value="draft.fprno || ''" disabled placeholder="Ref PR">
                                 </td>
 
-                                {{-- Qty --}}
                                 <td class="p-2 text-right">
                                     <input type="number" class="border rounded px-2 py-1 w-20 text-right text-sm"
                                         min="0" step="1" x-ref="draftQty" x-model.number="draft.fqty"
                                         @input="recalc(draft)" @keydown.enter.prevent="$refs.draftPrice?.focus()">
                                 </td>
 
-                                {{-- @ Harga --}}
                                 <td class="p-2 text-right">
                                     <input type="number" class="border rounded px-2 py-1 w-28 text-right text-sm"
                                         min="0" step="0.01" x-ref="draftPrice" x-model.number="draft.fprice"
                                         @input="recalc(draft)" @keydown.enter.prevent="$refs.draftDisc?.focus()">
                                 </td>
 
-                                {{-- Disc. % --}}
                                 <td class="p-2 text-right">
                                     <input type="number" class="border rounded px-2 py-1 w-20 text-right text-sm"
                                         min="0" max="100" step="0.01" x-ref="draftDisc"
@@ -459,10 +453,8 @@
                                         @keydown.enter.prevent="addIfComplete()">
                                 </td>
 
-                                {{-- Total Harga (readonly) --}}
                                 <td class="p-2 text-right text-sm font-medium" x-text="rupiah(draft.ftotal)"></td>
 
-                                {{-- Aksi --}}
                                 <td class="p-2 text-center">
                                     <button type="button" @click="addIfComplete()"
                                         class="px-3 py-1 rounded text-xs bg-emerald-600 text-white hover:bg-emerald-700 whitespace-nowrap">
@@ -470,7 +462,6 @@
                                     </button>
                                 </td>
                             </tr>
-
                         </tbody>
                     </table>
                 </div>
@@ -478,7 +469,6 @@
                 {{-- Add PR + Panel Totals --}}
                 <div x-data="prhFormModal()">
                     <div class="mt-3 flex justify-between items-start gap-4">
-                        {{-- Tombol Add PR --}}
                         <div class="flex justify-start">
                             <button type="button" @click="openModal()"
                                 class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500">
@@ -494,14 +484,10 @@
                         {{-- Panel Totals --}}
                         <div class="w-[480px] shrink-0">
                             <div class="rounded-lg border bg-gray-50 p-3 space-y-2 text-sm">
-
-                                {{-- Total Harga --}}
                                 <div class="flex items-center justify-between">
                                     <span class="text-gray-600">Total Harga</span>
                                     <span class="font-medium" x-text="fmtCurr(totalHarga)"></span>
                                 </div>
-
-                                {{-- PPN row --}}
                                 <div class="space-y-1">
                                     <div class="flex items-center gap-2">
                                         <label class="flex items-center gap-1.5 cursor-pointer select-none">
@@ -510,26 +496,19 @@
                                             <span class="font-bold">PPN</span>
                                         </label>
                                         <select name="ppn_mode" x-model.number="ppnMode" :disabled="!includePPN"
-                                            class="w-28 h-10 px-2 text-sm border rounded appearance-none
-           disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
+                                            class="w-28 h-10 px-2 text-sm border rounded appearance-none disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
                                             <option value="0">Exclude</option>
                                             <option value="1">Include</option>
                                         </select>
                                         <input type="number" name="ppn_rate" min="0" max="100"
                                             step="0.01" x-model.number="ppnRate" :disabled="!includePPN"
-                                            class="w-16 h-10 px-2 text-sm text-right border rounded
-           [appearance:textfield]
-           disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
+                                            class="w-16 h-10 px-2 text-sm text-right border rounded [appearance:textfield] disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
                                         <span class="text-gray-500">%</span>
                                         <span class="flex-1"></span>
-                                        <span id="fppnpersen" name="fppnpersen" class="font-medium"
-                                            x-text="fmtCurr(ppnNominal)"></span>
+                                        <span class="font-medium" x-text="fmtCurr(ppnNominal)"></span>
                                     </div>
                                 </div>
-
                                 <div class="border-t"></div>
-
-                                {{-- Grand Total (mata uang transaksi) --}}
                                 <div class="flex items-center justify-between">
                                     <span class="font-semibold text-gray-800">
                                         Grand Total
@@ -538,15 +517,11 @@
                                     </span>
                                     <span class="font-bold text-blue-700" x-text="fmtCurr(grandTotal)"></span>
                                 </div>
-
-                                {{-- Grand Total (RP) — selalu tampil, dikali rate jika bukan IDR --}}
                                 <div class="flex items-center justify-between">
                                     <span class="font-semibold text-gray-800">Grand Total (RP)</span>
                                     <span class="font-bold text-emerald-700" x-text="rupiah(grandTotalRp)"></span>
                                 </div>
                             </div>
-
-                            {{-- Hidden inputs untuk submit --}}
                             <input type="hidden" name="famountponet" :value="totalHarga">
                             <input type="hidden" name="famountpopajak" :value="ppnNominal">
                             <input type="hidden" name="famountpo" :value="grandTotal">
@@ -596,16 +571,13 @@
                         <div class="absolute inset-0 bg-black/40" @click="closeDupModal()"></div>
                         <div class="relative bg-white rounded-xl shadow-xl max-w-2xl w-full p-6">
                             <h3 class="text-lg font-semibold mb-4">Peringatan Duplikasi</h3>
-                            <p class="mb-4">
-                                Ditemukan <strong x-text="dupCount"></strong> item yang sudah ada dalam daftar.
-                            </p>
+                            <p class="mb-4">Ditemukan <strong x-text="dupCount"></strong> item yang sudah ada dalam
+                                daftar.</p>
                             <div class="mb-4 max-h-48 overflow-auto border rounded p-2 bg-gray-50"
                                 x-show="dupSample.length > 0">
                                 <p class="text-sm font-medium mb-2">Contoh item duplikat:</p>
                                 <template x-for="(item, idx) in dupSample" :key="idx">
-                                    <div class="text-xs py-1">
-                                        • <span x-text="item.fitemcode"></span>
-                                    </div>
+                                    <div class="text-xs py-1">• <span x-text="item.fitemcode"></span></div>
                                 </template>
                             </div>
                             <div class="flex justify-end gap-2">
@@ -619,7 +591,7 @@
                 <input type="hidden" id="itemsCount" :value="savedItems.length">
             </div>
 
-            {{-- MODAL ERROR: belum ada item --}}
+            {{-- MODAL: belum ada item --}}
             <div x-show="showNoItems" x-cloak class="fixed inset-0 z-[90] flex items-center justify-center"
                 x-transition.opacity>
                 <div class="absolute inset-0 bg-black/50" @click="showNoItems=false"></div>
@@ -629,9 +601,8 @@
                         <h3 class="text-lg font-semibold text-gray-800">Tidak Ada Item</h3>
                     </div>
                     <div class="px-5 py-4">
-                        <p class="text-sm text-gray-700">
-                            Anda belum menambahkan item. Silakan isi baris "Detail Item" terlebih dahulu.
-                        </p>
+                        <p class="text-sm text-gray-700">Anda belum menambahkan item. Silakan isi baris "Detail Item"
+                            terlebih dahulu.</p>
                     </div>
                     <div class="px-5 py-3 border-t flex justify-end">
                         <button type="button" @click="showNoItems=false"
@@ -640,7 +611,7 @@
                 </div>
             </div>
 
-            {{-- MODAL ERROR: supplier belum dipilih --}}
+            {{-- MODAL: supplier belum dipilih --}}
             <div x-show="showNoSupplier" x-cloak class="fixed inset-0 z-[90] flex items-center justify-center"
                 x-transition.opacity>
                 <div class="absolute inset-0 bg-black/50" @click="showNoSupplier=false"></div>
@@ -650,15 +621,12 @@
                         <h3 class="text-lg font-semibold text-gray-800">Supplier Belum Dipilih</h3>
                     </div>
                     <div class="px-5 py-4">
-                        <p class="text-sm text-gray-700">
-                            Silakan pilih <strong>Supplier</strong> terlebih dahulu sebelum menambahkan item.
-                        </p>
+                        <p class="text-sm text-gray-700">Silakan pilih <strong>Supplier</strong> terlebih dahulu sebelum
+                            menambahkan item.</p>
                     </div>
                     <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
                         <button type="button" @click="showNoSupplier=false"
-                            class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
-                            Tutup
-                        </button>
+                            class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">Tutup</button>
                         <button type="button"
                             @click="showNoSupplier=false; window.dispatchEvent(new CustomEvent('supplier-browse-open'))"
                             class="h-9 px-4 rounded-lg bg-amber-500 text-white text-sm font-medium hover:bg-amber-600">
@@ -690,9 +658,7 @@
                     </div>
                     <div class="px-5 py-3 border-t flex justify-end">
                         <button type="button" @click="showDupItemModal=false"
-                            class="h-9 px-4 rounded-lg bg-red-600 text-white text-sm font-medium hover:bg-red-700">
-                            OK
-                        </button>
+                            class="h-9 px-4 rounded-lg bg-red-600 text-white text-sm font-medium hover:bg-red-700">OK</button>
                     </div>
                 </div>
             </div>
@@ -711,9 +677,6 @@
                         </div>
                         <button type="button" @click="close()"
                             class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 font-medium text-gray-700 text-sm">Tutup</button>
-                    </div>
-                    <div class="px-6 pt-4 pb-2 flex-shrink-0 border-b border-gray-100">
-                        <div id="supplierTableControls"></div>
                     </div>
                     <div class="flex-1 overflow-y-auto px-6" style="min-height: 0;">
                         <table id="supplierBrowseTable" class="min-w-full text-sm display nowrap stripe hover"
@@ -735,9 +698,7 @@
                             <tbody></tbody>
                         </table>
                     </div>
-                    <div class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">
-                        <div id="supplierTablePagination"></div>
-                    </div>
+                    <div class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50"></div>
                 </div>
             </div>
 
@@ -755,9 +716,6 @@
                         </div>
                         <button type="button" @click="close()"
                             class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 font-medium text-gray-700 text-sm">Tutup</button>
-                    </div>
-                    <div class="px-6 pt-4 pb-2 flex-shrink-0 border-b border-gray-100">
-                        <div id="productTableControls"></div>
                     </div>
                     <div class="flex-1 overflow-y-auto px-6" style="min-height: 0;">
                         <table id="productTable" class="min-w-full text-sm display nowrap stripe hover"
@@ -781,9 +739,7 @@
                             <tbody></tbody>
                         </table>
                     </div>
-                    <div class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">
-                        <div id="productTablePagination"></div>
-                    </div>
+                    <div class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50"></div>
                 </div>
             </div>
 
@@ -791,7 +747,6 @@
                 $canApproval = in_array('approvalpr', explode(',', session('user_restricted_permissions', '')));
             @endphp
 
-            {{-- APPROVAL & ACTIONS --}}
             <div class="flex justify-center items-center space-x-2 mt-6">
                 @if ($canApproval)
                     <label class="block text-sm font-medium">Approval</label>
@@ -826,8 +781,8 @@
 <style>
     div#productTable_length select,
     .dataTables_wrapper #productTable_length select,
-    div#supplierTable_length select,
-    .dataTables_wrapper #supplierTable_length select,
+    div#supplierBrowseTable_length select,
+    .dataTables_wrapper #supplierBrowseTable_length select,
     div#prTable_length select,
     .dataTables_wrapper #prTable_length select {
         min-width: 140px !important;
@@ -840,8 +795,8 @@
 
     div#productTable_length,
     .dataTables_wrapper #productTable_length,
-    div#supplierTable_length,
-    .dataTables_wrapper #supplierTable_length,
+    div#supplierBrowseTable_length,
+    .dataTables_wrapper #supplierBrowseTable_length,
     div#prTable_length,
     .dataTables_wrapper #prTable_length {
         min-width: 250px !important;
@@ -849,8 +804,8 @@
 
     div#productTable_length label,
     .dataTables_wrapper #productTable_length label,
-    div#supplierTable_length label,
-    .dataTables_wrapper #supplierTable_length label,
+    div#supplierBrowseTable_length label,
+    .dataTables_wrapper #supplierBrowseTable_length label,
     div#prTable_length label,
     .dataTables_wrapper #prTable_length label {
         font-size: 14px !important;
@@ -860,23 +815,23 @@
     }
 </style>
 
-{{-- ================================================================
-     DATA & SCRIPTS
-     ================================================================ --}}
 <script>
-    // Map produk (key = fprdcode)
     window.PRODUCT_MAP = {
         @foreach ($products as $p)
             "{{ $p->fprdcode }}": {
                 id: @json($p->fprdid),
                 name: @json($p->fprdname),
                 units: @json(array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2]))),
-                stock: @json($p->fminstock ?? 0)
+                stock: @json($p->fminstock ?? 0),
+                fsatuankecil: @json($p->fsatuankecil ?? ''),
+                fsatuanbesar: @json($p->fsatuanbesar ?? ''),
+                fsatuanbesar2: @json($p->fsatuanbesar2 ?? ''),
+                fqtykecil: @json((float) ($p->fqtykecil ?? 0)),
+                fqtykecil2: @json((float) ($p->fqtykecil2 ?? 0)),
             },
         @endforeach
     };
 
-    // Map currency (key = fcurrid)
     window.CURRENCY_MAP = {
         @foreach ($currencies as $cur)
             {{ $cur->fcurrid }}: {
@@ -899,43 +854,26 @@
         return 'r' + (Date.now().toString(16) + Math.random().toString(16).slice(2));
     };
 
-    // URL endpoint cek history harga
-    window.LAST_PRICE_URL = "{{ route('tr_poh.lastPrice') }}";
-
-    /**
-     * Ambil harga terakhir dari PO sebelumnya.
-     * @param {string} fprdcode  - kode produk
-     * @param {string} fsupplier - id/kode supplier (dari hidden input #supplierCodeHidden)
-     * @param {string} fsatuan   - satuan yang dipilih
-     * @returns {Promise<{found, fprice, fdisc, fpodate, fpono}|null>}
-     */
     window.fetchLastPrice = async function(fprdcode, fsupplier, fsatuan) {
         if (!fprdcode || !fsupplier || !fsatuan) return null;
         try {
-            const params = new URLSearchParams({
-                fprdcode,
-                fsupplier,
-                fsatuan
-            });
-            const res = await fetch(`${window.LAST_PRICE_URL}?${params}`, {
+            const url = new URL("{{ route('tr_poh.lastPrice') }}", window.location.origin);
+            url.searchParams.set('fprdcode', fprdcode);
+            url.searchParams.set('fsupplier', fsupplier);
+            url.searchParams.set('fsatuan', fsatuan);
+            const res = await fetch(url.toString(), {
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest'
                 }
             });
             if (!res.ok) return null;
-            const data = await res.json();
-            return data.found ? data : null;
+            return await res.json();
         } catch (e) {
-            console.warn('fetchLastPrice error:', e);
             return null;
         }
     };
 
-    // ============================================================
-    // mainForm — root Alpine component (menggabungkan header + items)
-    // ============================================================
     function mainForm() {
-
         function newRow() {
             return {
                 uid: null,
@@ -947,26 +885,32 @@
                 fnouref: '',
                 frefpr: '',
                 fprhid: '',
+                fprno: '',
                 fqty: 0,
                 fprice: 0,
                 fdisc: 0,
                 ftotal: 0,
                 fdesc: '',
                 fketdt: '',
-                maxqty: 0
+                maxqty: 0,
+                fqtypr: 0,
+                fqtypr_satuan: '',
+                fsatuankecil: '',
+                fsatuanbesar: '',
+                fsatuanbesar2: '',
+                fqtykecil: 0,
+                fqtykecil2: 0,
+                maxqty_satuan: '',
             };
         }
 
         return {
-            // ---- header ----
             autoCode: true,
             selectedCurrId: '',
             selectedCurrCode: 'IDR',
             rateValue: 1,
-
-            // ---- PPN / totals ----
             includePPN: false,
-            ppnMode: 0, // 0 = Exclude, 1 = Include
+            ppnMode: 0,
             ppnRate: 11,
             savedItems: [],
             draft: newRow(),
@@ -978,37 +922,25 @@
             dupItemName: '',
             dupItemSatuan: '',
 
-            // ---- computed totals ----
             get totalHarga() {
                 return this.savedItems.reduce((s, it) => s + (it.ftotal || 0), 0);
             },
             get ppnNominal() {
                 if (!this.includePPN) return 0;
-                const total = this.totalHarga;
-                const rate = +this.ppnRate || 0;
-                if (this.ppnMode === 1) {
-                    // Include: PPN sudah di dalam total → back-calc
-                    return Math.round(total * rate / (100 + rate));
-                }
-                // Exclude: tambah di luar
-                return Math.round(total * rate / 100);
+                const total = this.totalHarga,
+                    rate = +this.ppnRate || 0;
+                return this.ppnMode === 1 ? Math.round(total * rate / (100 + rate)) : Math.round(total * rate /
+                100);
             },
             get grandTotal() {
                 if (!this.includePPN) return this.totalHarga;
-                if (this.ppnMode === 1) return this.totalHarga; // sudah include
-                return this.totalHarga + this.ppnNominal;
+                return this.ppnMode === 1 ? this.totalHarga : this.totalHarga + this.ppnNominal;
             },
-
-            // Grand Total dikonversi ke IDR (RP)
-            // Jika currency IDR → sama dengan grandTotal
-            // Jika currency lain (misal USD, CNY, MYR) → grandTotal × rateValue
             get grandTotalRp() {
                 if (!this.selectedCurrCode || this.selectedCurrCode === 'IDR') return this.grandTotal;
-                const rate = +this.rateValue || 1;
-                return +(this.grandTotal * rate).toFixed(2);
+                return +(this.grandTotal * (+this.rateValue || 1)).toFixed(2);
             },
 
-            // Format angka tanpa simbol currency (plain number)
             fmtCurr(n) {
                 const v = Number(n || 0);
                 if (!isFinite(v)) return '-';
@@ -1017,8 +949,15 @@
                     maximumFractionDigits: 2
                 });
             },
+            rupiah(n) {
+                const v = Number(n || 0);
+                if (!isFinite(v)) return 'Rp -';
+                return 'Rp ' + v.toLocaleString('id-ID', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            },
 
-            // ---- currency ----
             onCurrencyChange() {
                 const id = parseInt(this.selectedCurrId);
                 const cur = window.CURRENCY_MAP[id];
@@ -1031,17 +970,6 @@
                 }
             },
 
-            // ---- formatters ----
-            rupiah(n) {
-                const v = Number(n || 0);
-                if (!isFinite(v)) return 'Rp -';
-                return 'Rp ' + v.toLocaleString('id-ID', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                });
-            },
-
-            // ---- kalkulasi per baris ----
             recalc(row) {
                 const qty = Math.max(0, +row.fqty || 0);
                 const price = Math.max(0, +row.fprice || 0);
@@ -1050,29 +978,29 @@
                 row.fprice = price;
                 row.fdisc = disc;
                 row.ftotal = +(qty * price * (1 - disc / 100)).toFixed(2);
-                // totalHarga adalah computed getter, tidak perlu dipanggil
             },
 
-            // ---- produk meta ----
             productMeta(code) {
                 return window.PRODUCT_MAP?.[(code || '').trim()] || null;
             },
+
             hydrateRowFromMeta(row, meta, keepMaxqty = false) {
                 if (!meta) {
                     row.fitemname = '';
                     row.units = [];
                     row.fsatuan = '';
-                    if (!keepMaxqty) row.maxqty = 0; // ← jangan reset kalau keepMaxqty
+                    if (!keepMaxqty) row.maxqty = 0;
                     return;
                 }
                 row.fitemname = meta.name || '';
                 const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
+                const currentSatuan = (row.fsatuan || '').trim();
+                if (currentSatuan && !units.includes(currentSatuan)) units.unshift(currentSatuan);
                 row.units = units;
-                if (!units.includes(row.fsatuan)) row.fsatuan = units[0] || '';
-                if (!keepMaxqty) { // ← jangan timpa kalau keepMaxqty
-                    row.maxqty = Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0;
-                }
+                if (!currentSatuan) row.fsatuan = units[0] || '';
+                if (!keepMaxqty) row.maxqty = Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0;
             },
+
             onCodeTypedRow(row) {
                 this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
                 this.$nextTick(() => this.applyLastPrice(row));
@@ -1082,22 +1010,17 @@
                 this.$nextTick(() => this.applyLastPrice(item));
             },
 
-            // Ambil supplier yang sedang dipilih (dari hidden input)
             getSupplier() {
                 return (document.getElementById('supplierCodeHidden')?.value || '').trim();
             },
 
-            // Cek history harga lalu apply ke row jika ditemukan
             async applyLastPrice(row) {
                 const supplier = this.getSupplier();
                 const code = (row.fitemcode || '').trim();
                 const satuan = (row.fsatuan || '').trim();
                 if (!code || !supplier || !satuan) return;
-
                 const hist = await window.fetchLastPrice(code, supplier, satuan);
-                if (!hist || (!hist.fprice && hist.fprice !== 0)) return;
-
-                // Auto-fill hanya jika harga belum diisi user (masih 0)
+                if (!hist) return;
                 if (!row.fprice || row.fprice === 0) {
                     row.fprice = hist.fprice;
                     row.fdisc = hist.fdisc ?? 0;
@@ -1109,38 +1032,58 @@
                 return row.fitemcode && row.fitemname && row.fsatuan && Number(row.fqty) > 0;
             },
 
-            // Cek apakah item duplikat berdasarkan:
-            // 1. fitemcode + fsatuan sama
-            // 2. fprdid sama (produk fisik sama walau kode/satuan berbeda)
-            // 3. fprdname sama (nama identik, satuan boleh beda)
+            // Hitung maxqty dalam satuan yang dipilih di PO berdasarkan konversi dari PR
+            calcMaxQty(row) {
+                const qtyPR = row.fqtypr || 0;
+                const satuanPR = (row.fqtypr_satuan || '').trim();
+                const satuanPO = (row.fsatuan || '').trim();
+                const satKecil = (row.fsatuankecil || '').trim();
+                const satBesar = (row.fsatuanbesar || '').trim();
+                const satBesar2 = (row.fsatuanbesar2 || '').trim();
+                const rasio = Number(row.fqtykecil || 0);
+                const rasio2 = Number(row.fqtykecil2 || 0);
+
+                // Jika tidak ada data konversi PR, tidak ada batasan
+                if (!satuanPR || !qtyPR) return 0;
+
+                // Step 1: konversi qty PR ke satuan kecil
+                let qtyKecil = qtyPR;
+                if (satuanPR === satBesar && rasio > 0) {
+                    qtyKecil = qtyPR * rasio;
+                } else if (satuanPR === satBesar2 && rasio2 > 0) {
+                    qtyKecil = qtyPR * rasio2;
+                }
+
+                // Step 2: konversi ke satuan yang dipilih di PO
+                if (!satuanPO || satuanPO === satKecil) {
+                    return qtyKecil;
+                } else if (satuanPO === satBesar && rasio > 0) {
+                    return Math.floor(qtyKecil / rasio);
+                } else if (satuanPO === satBesar2 && rasio2 > 0) {
+                    return Math.floor(qtyKecil / rasio2);
+                }
+                return qtyKecil;
+            },
+
             isDupeItem(candidate) {
                 const cCode = (candidate.fitemcode || '').trim().toLowerCase();
                 const cSatuan = (candidate.fsatuan || '').trim().toLowerCase();
                 const cName = (candidate.fitemname || '').trim().toLowerCase();
                 const cMeta = this.productMeta(candidate.fitemcode);
                 const cId = cMeta?.id ?? null;
-
                 return this.savedItems.some(it => {
-                    const itSatuan = (it.fsatuan || '').trim().toLowerCase();
                     const itCode = (it.fitemcode || '').trim().toLowerCase();
+                    const itSatuan = (it.fsatuan || '').trim().toLowerCase();
                     const itName = (it.fitemname || '').trim().toLowerCase();
                     const itMeta = this.productMeta(it.fitemcode);
                     const itId = itMeta?.id ?? null;
-
-                    // 1. kode produk + satuan sama
                     if (itCode === cCode && itSatuan === cSatuan) return true;
-
-                    // 2. fprdid sama → produk fisik sama, tolak walau satuan berbeda
                     if (cId && itId && cId === itId) return true;
-
-                    // 3. nama produk sama → tolak walau kode/satuan berbeda
                     if (cName && itName && cName === itName) return true;
-
                     return false;
                 });
             },
 
-            // ---- navigasi fokus baris tersimpan ----
             focusSavedUnit(item, i) {
                 if (item.units.length > 1) this.$nextTick(() => document.getElementById('unit_saved_' + i)?.focus());
                 else this.focusSavedQty(i);
@@ -1158,14 +1101,11 @@
                 this.$nextTick(() => this.$refs.draftCode?.focus());
             },
 
-            // ---- tambah dari draft ----
             addIfComplete() {
-                // Cek supplier dulu sebelum boleh tambah item
                 if (!this.getSupplier()) {
                     this.showNoSupplier = true;
                     return;
                 }
-
                 const r = this.draft;
                 if (!this.isComplete(r)) {
                     if (!r.fitemcode) return this.$refs.draftCode?.focus();
@@ -1176,14 +1116,12 @@
                     return;
                 }
                 this.recalc(r);
-
                 if (this.isDupeItem(r)) {
                     this.showDupItemModal = true;
                     this.dupItemName = r.fitemname || r.fitemcode;
                     this.dupItemSatuan = r.fsatuan;
                     return;
                 }
-
                 this.savedItems.push({
                     ...r,
                     uid: cryptoRandom()
@@ -1198,7 +1136,6 @@
             },
 
             handleEnterOnCode() {
-                // Cek supplier dulu
                 if (!this.getSupplier()) {
                     this.showNoSupplier = true;
                     return;
@@ -1207,38 +1144,38 @@
                 else this.$refs.draftQty?.focus();
             },
 
-            // ---- Add from PR ----
             onPrPicked(e) {
                 const {
                     header,
                     items
                 } = e.detail || {};
                 if (!items || !Array.isArray(items)) return;
-
-                const skipped = [];
-                const toAdd = [];
-
+                const skipped = [],
+                    toAdd = [];
                 items.forEach(src => {
                     const fsatuan = (src.fsatuan ?? '').trim();
                     const meta = this.productMeta(src.fitemcode ?? '');
                     const fitemname = meta ? (meta.name || src.fitemname || '') : (src.fitemname ?? '');
-
-                    // Buat kandidat row sementara untuk cek duplikat
                     const candidate = {
                         fitemcode: (src.fitemcode ?? '').trim(),
                         fitemname,
-                        fsatuan,
+                        fsatuan
                     };
-
                     if (this.isDupeItem(candidate)) {
                         skipped.push(src);
                         return;
                     }
-
-                    const units = meta ? [...new Set((meta.units || []).map(u => (u ?? '').toString().trim())
-                            .filter(Boolean))] :
+                    const units = meta ?
+                        [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))] :
                         (Array.isArray(src.units) && src.units.length ? src.units : [fsatuan].filter(Boolean));
                     if (fsatuan && !units.includes(fsatuan)) units.unshift(fsatuan);
+
+                    // Ambil data konversi: prioritas dari src (data PR), fallback ke PRODUCT_MAP
+                    const fsatuankecil = src.fsatuankecil || meta?.fsatuankecil || '';
+                    const fsatuanbesar = src.fsatuanbesar || meta?.fsatuanbesar || '';
+                    const fsatuanbesar2 = src.fsatuanbesar2 || meta?.fsatuanbesar2 || '';
+                    const fqtykecil = Number(src.fqtykecil ?? meta?.fqtykecil ?? 0);
+                    const fqtykecil2 = Number(src.fqtykecil2 ?? meta?.fqtykecil2 ?? 0);
 
                     const row = {
                         uid: cryptoRandom(),
@@ -1252,24 +1189,32 @@
                         fprhid: String(src.fprhid ?? header?.fprhid ?? ''),
                         fprno: String(header?.fprno ?? src.fprno ?? ''),
                         fqty: Number(src.fqty ?? 0),
-                        fqtypr: Number(src.fqty ?? 0), // ← simpan qty PR sebagai referensi
-                        maxqty: Number(src.maxqty ?? src.fqty ?? 0), 
+                        frefdtid: src.frefdtid ?? '',
+                        fqtypr: Number(src.fqty ?? 0),
+                        fqtypr_satuan: (src.fsatuan ?? '').trim(),
+                        fsatuankecil,
+                        fsatuanbesar,
+                        fsatuanbesar2,
+                        fqtykecil,
+                        fqtykecil2,
+                        maxqty_satuan: src.maxqty_satuan ?? fsatuankecil,
                         fprice: Number(src.fprice ?? 0),
                         fdisc: Number(src.fdisc ?? 0),
                         ftotal: Number(src.ftotal ?? 0),
                         fdesc: src.fdesc ?? '',
                         fketdt: src.fketdt ?? '',
                     };
+
+                    // Hitung maxqty awal berdasarkan satuan PO saat ini
+                    row.maxqty = this.calcMaxQty(row);
+
                     if (!row.ftotal && row.fqty && row.fprice)
                         row.ftotal = +(row.fqty * row.fprice * (1 - row.fdisc / 100)).toFixed(2);
-
                     toAdd.push(row);
-                    // Langsung push ke savedItems agar isDupeItem mendeteksi item berikutnya dalam batch yang sama
                     this.savedItems.push(row);
                     if (!row.fprice || row.fprice === 0)
                         this.$nextTick(() => this.applyLastPrice(row));
                 });
-
                 if (skipped.length > 0 && toAdd.length === 0) {
                     this.showDupItemModal = true;
                     this.dupItemName = skipped.map(s => s.fitemname || s.fitemcode).join(', ');
@@ -1284,7 +1229,6 @@
                 return this.savedItems.map(it => this.itemKey(it));
             },
 
-            // ---- browse produk ----
             openBrowseFor(where, idx = null) {
                 if (!this.getSupplier()) {
                     this.showNoSupplier = true;
@@ -1298,7 +1242,6 @@
                 }));
             },
 
-            // ---- submit ----
             submitForm(form) {
                 if (this.savedItems.length < 1) {
                     this.showNoItems = true;
@@ -1308,31 +1251,24 @@
             },
 
             init() {
-                // Set default currency ke IDR saat load
                 const idrEntry = Object.values(window.CURRENCY_MAP).find(c => c.code === 'IDR');
                 if (idrEntry && !this.selectedCurrId) {
                     this.selectedCurrId = String(idrEntry.id);
                     this.selectedCurrCode = idrEntry.code;
                     this.rateValue = 1;
                 }
-
                 window.getCurrentItemKeys = () => this.getCurrentItemKeys();
                 window.isDupeItem = (candidate) => this.isDupeItem(candidate);
-
-                // AbortController: batalkan listener lama jika init() dipanggil ulang
                 if (this._ac) this._ac.abort();
                 this._ac = new AbortController();
                 const sig = {
                     signal: this._ac.signal,
                     passive: true
                 };
-
                 window.addEventListener('show-no-supplier', () => {
                     this.showNoSupplier = true;
                 }, sig);
-
                 window.addEventListener('pr-picked', (e) => this.onPrPicked(e), sig);
-
                 window.addEventListener('product-chosen', (e) => {
                     const {
                         product
@@ -1343,7 +1279,6 @@
                         this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
                         if (!row.fqty) row.fqty = 1;
                         this.recalc(row);
-                        // cek histori harga setelah satuan terisi
                         this.$nextTick(() => this.applyLastPrice(row));
                     };
                     if (typeof this.browseTarget === 'number') {
@@ -1362,32 +1297,6 @@
         };
     }
 
-    // ============================================================
-    // fetchLastPrice — helper global, panggil endpoint lastPrice
-    // ============================================================
-    window.fetchLastPrice = async function(fprdcode, fsupplier, fsatuan) {
-        if (!fprdcode || !fsupplier || !fsatuan) return null;
-        try {
-            const url = new URL("{{ route('tr_poh.lastPrice') }}", window.location.origin);
-            url.searchParams.set('fprdcode', fprdcode);
-            url.searchParams.set('fsupplier', fsupplier);
-            url.searchParams.set('fsatuan', fsatuan);
-            const res = await fetch(url.toString(), {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            });
-            if (!res.ok) return null;
-            return await res.json(); // { fprice, fdisc }
-        } catch (e) {
-            console.warn('fetchLastPrice error:', e);
-            return null;
-        }
-    };
-
-    // ============================================================
-    // supplierBrowser
-    // ============================================================
     function supplierBrowser() {
         return {
             open: false,
@@ -1527,7 +1436,7 @@
                     passive: true
                 });
             }
-        }
+        };
     }
 
     document.addEventListener('alpine:init', () => {
@@ -1544,9 +1453,6 @@
 </script>
 
 <script>
-    // ============================================================
-    // prhFormModal — modal pilih PR
-    // ============================================================
     window.prhFormModal = function() {
         return {
             show: false,
@@ -1556,7 +1462,6 @@
             dupSample: [],
             pendingHeader: null,
             pendingUniques: [],
-
             initDataTable() {
                 if (this.table) this.table.destroy();
                 this.table = $('#prTable').DataTable({
@@ -1648,7 +1553,6 @@
                     self.pick(self.table.row($(this).closest('tr')).data());
                 });
             },
-
             openModal() {
                 if (!(document.getElementById('supplierCodeHidden')?.value || '').trim()) {
                     window.dispatchEvent(new CustomEvent('show-no-supplier'));
@@ -1661,7 +1565,6 @@
                 this.show = false;
                 if (this.table) this.table.search('').draw();
             },
-
             openDupModal(header, duplicates, uniques) {
                 this.dupCount = duplicates.length;
                 this.dupSample = duplicates.slice(0, 6);
@@ -1686,11 +1589,10 @@
                 this.closeDupModal();
                 this.closeModal();
             },
-
             async pick(row) {
                 try {
-                    const url = `{{ route('tr_poh.items', ['id' => 'PR_ID_PLACEHOLDER']) }}`
-                        .replace('PR_ID_PLACEHOLDER', row.fprhid);
+                    const url = `{{ route('tr_poh.items', ['id' => 'PR_ID_PLACEHOLDER']) }}`.replace(
+                        'PR_ID_PLACEHOLDER', row.fprhid);
                     const res = await fetch(url, {
                         headers: {
                             'X-Requested-With': 'XMLHttpRequest'
@@ -1698,19 +1600,15 @@
                     });
                     const json = await res.json();
                     const items = json.items || [];
-
-                    // Pakai isDupeItem agar konsisten dengan validasi di mainForm
                     const checkDupe = window.isDupeItem ?
                         (src) => window.isDupeItem({
                             fitemcode: src.fitemcode ?? '',
                             fitemname: src.fitemname ?? '',
                             fsatuan: src.fsatuan ?? ''
                         }) :
-                        (src) => false;
-
+                        () => false;
                     const duplicates = items.filter(src => checkDupe(src));
                     const uniques = items.filter(src => !checkDupe(src));
-
                     if (duplicates.length > 0) {
                         this.openDupModal(row, duplicates, uniques);
                         return;
@@ -1741,7 +1639,6 @@
 @push('scripts')
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
-
     <script>
         function productBrowser() {
             return {
@@ -1868,9 +1765,8 @@
                         passive: true
                     });
                 }
-            }
+            };
         }
-
         document.addEventListener('alpine:init', () => {
             Alpine.store('prh', {
                 descPreview: {
