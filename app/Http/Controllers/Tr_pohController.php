@@ -196,6 +196,7 @@ class Tr_pohController extends Controller
         DB::raw('COALESCE(tr_prd.fprice, 0) as fprice'),
         DB::raw('0::numeric as fdisc'),
         DB::raw('tr_prd.fprhid::text as fnouref'),
+        DB::raw('tr_prd.fprdid::text as frefdtid'),
       ])
       ->orderBy('tr_prd.fprdcodeid')
       ->get();

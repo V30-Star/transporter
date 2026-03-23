@@ -1272,6 +1272,7 @@
                         fprhid: String(src.fprhid ?? header?.fprhid ?? ''),
                         fprno: String(header?.fprno ?? src.fprno ?? ''),
                         fqty: Number(src.fqty ?? 0),
+                        frefdtid: src.frefdtid ?? '',
                         fqtypr: Number(src.fqty ?? 0), // ← simpan qty PR sebagai referensi
                         maxqty: Number(src.maxqty ?? src.fqty ?? 0),
                         fprice: Number(src.fprice ?? 0),
