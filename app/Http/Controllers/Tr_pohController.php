@@ -738,17 +738,30 @@ class Tr_pohController extends Controller
 
     $savedItems = $tr_poh->details->map(function ($d) use ($products, $prQtyMap) {
       $prod  = $products->firstWhere('fprdcode', $d->fitemcode);
+
+      $fsatuan = trim((string)($d->fsatuan ?? ''));
+
       $units = $prod
-        ? array_values(array_filter([
+        ? array_values(array_filter(array_map('trim', [
           $prod->fsatuankecil,
           $prod->fsatuanbesar,
           $prod->fsatuanbesar2,
-        ]))
-        : ($d->fsatuan ? [$d->fsatuan] : []);
+        ])))
+        : [];
 
       // Pastikan fsatuan ada di units
-      if ($d->fsatuan && !in_array($d->fsatuan, $units)) {
-        array_unshift($units, $d->fsatuan);
+      $matchedSatuan = $fsatuan;
+      foreach ($units as $u) {
+        if (strtolower(trim($u)) === strtolower($fsatuan)) {
+          $matchedSatuan = trim($u); // ← pakai versi dari master (sudah di-trim, case benar)
+          break;
+        }
+      }
+
+      $fsatuan = $matchedSatuan;
+      
+      if ($fsatuan !== '' && !in_array($fsatuan, $units)) {
+        array_unshift($units, $fsatuan);  // ← tetap ada walau tidak di master
       }
 
       $qtyPR = (float)($prQtyMap[$d->fpodid]->qty_pr ?? 0);
@@ -757,8 +770,8 @@ class Tr_pohController extends Controller
         'uid'       => (string)($d->fpodid   ?? \Illuminate\Support\Str::uuid()),
         'fitemcode' => (string)($d->fitemcode ?? ''),
         'fitemname' => (string)($d->fprdname  ?? ''),
-        'fsatuan'   => (string)($d->fsatuan   ?? ''),
-        'units'     => $units,
+        'fsatuan'   => $fsatuan,   // ← pakai yang sudah di-trim
+        'units'     => $units,     // ← sudah include fsatuan
         'frefdtno'  => (string)($d->frefdtno  ?? ''),
         'fnouref'   => (string)($d->fnouref   ?? ''),
         'frefpr'    => (string)($d->frefdtno  ?? ''),
@@ -1145,7 +1158,7 @@ class Tr_pohController extends Controller
         })
         ->select(
           'tr_pod.*',
-          'msprd.fprdid as fitemcode',
+          'msprd.fprdcode as fitemcode',
           'msprd.fprdname'
         );
     }])->findOrFail($fpohid);

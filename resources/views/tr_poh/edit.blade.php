@@ -320,20 +320,18 @@
                                 {{-- Satuan --}}
                                 <td class="p-2 align-top">
                                     @if ($isEdit)
-                                        <template x-if="it.units.length > 1">
-                                            <select class="w-full border rounded px-2 py-1 text-sm" x-model="it.fsatuan"
-                                                :id="'unit_saved_' + i" @focus="activeRow = it.uid"
-                                                @blur="activeRow = null" @keydown.enter.prevent="focusSavedQty(i)">
-                                                <template x-for="u in it.units" :key="u">
-                                                    <option :value="u" x-text="u"></option>
-                                                </template>
-                                            </select>
-                                        </template>
-                                        <template x-if="it.units.length <= 1">
-                                            <input type="text"
-                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
-                                                :value="it.fsatuan || '-'" disabled>
-                                        </template>
+                                        <select class="w-full border rounded px-2 py-1 text-sm"
+                                            x-show="it.units.length > 1" x-model="it.fsatuan" :id="'unit_saved_' + i"
+                                            @focus="activeRow = it.uid" @blur="activeRow = null"
+                                            @keydown.enter.prevent="focusSavedQty(i)" x-init="$nextTick(() => { $el.value = it.fsatuan })">
+                                            {{-- ← TAMBAHKAN INI --}}
+                                            <template x-for="u in it.units" :key="u">
+                                                <option :value="u" x-text="u"></option>
+                                            </template>
+                                        </select>
+                                        <input type="text" x-show="it.units.length <= 1"
+                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
+                                            :value="it.fsatuan || '-'" disabled>
                                     @else
                                         <span class="text-sm" x-text="it.fsatuan || '-'"></span>
                                     @endif
@@ -387,7 +385,7 @@
                                         <span class="text-sm" x-text="fmtCurr(it.fprice)"></span>
                                     @endif
                                 </td>
-                                
+
                                 {{-- Disc. % --}}
                                 <td class="p-2 text-right">
                                     @if ($isEdit)
@@ -470,19 +468,16 @@
                                 </td>
 
                                 <td class="p-2 align-top">
-                                    <template x-if="draft.units.length > 1">
-                                        <select class="w-full border rounded px-2 py-1 text-sm" x-ref="draftUnit"
-                                            x-model="draft.fsatuan" @keydown.enter.prevent="$refs.draftQty?.focus()">
-                                            <template x-for="u in draft.units" :key="u">
-                                                <option :value="u" x-text="u"></option>
-                                            </template>
-                                        </select>
-                                    </template>
-                                    <template x-if="draft.units.length <= 1">
-                                        <input type="text"
-                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
-                                            :value="draft.fsatuan || '-'" disabled>
-                                    </template>
+                                    <select class="w-full border rounded px-2 py-1 text-sm"
+                                        x-show="draft.units.length > 1" x-ref="draftUnit" x-model="draft.fsatuan"
+                                        @keydown.enter.prevent="$refs.draftQty?.focus()">
+                                        <template x-for="u in draft.units" :key="u">
+                                            <option :value="u" x-text="u"></option>
+                                        </template>
+                                    </select>
+                                    <input type="text" x-show="draft.units.length <= 1"
+                                        class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
+                                        :value="draft.fsatuan || '-'" disabled>
                                 </td>
 
                                 <td class="p-2">
@@ -1126,8 +1121,16 @@
                 }
                 row.fitemname = meta.name || '';
                 const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
+
+                const currentSatuan = (row.fsatuan || '').trim();
+                if (currentSatuan && !units.includes(currentSatuan)) {
+                    units.unshift(currentSatuan); // ← tambahkan di depan agar tetap terpilih
+                }
+
                 row.units = units;
-                if (!units.includes(row.fsatuan)) row.fsatuan = units[0] || '';
+                if (!currentSatuan) {
+                    row.fsatuan = units[0] || '';
+                }
                 if (!keepMaxqty) { // ← jangan timpa kalau keepMaxqty
                     row.maxqty = Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0;
                 }
@@ -1331,19 +1334,43 @@
             },
 
             init() {
-                // Hydrate units untuk savedItems yang datang dari PHP (tidak punya units array)
+                this.savedItems.forEach((it, i) => {
+                    console.log(`Item ${i}: fsatuan="${it.fsatuan}" units=`, it.units,
+                        `match=${it.units.includes(it.fsatuan)}`);
+                });
                 this.savedItems = this.savedItems.map(it => {
+                    it.fsatuan = (it.fsatuan ?? '').trim();
+
                     if (!it.units || !it.units.length) {
                         const meta = this.productMeta(it.fitemcode);
                         if (meta) {
-                            const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim())
-                                .filter(Boolean))];
-                            if (it.fsatuan && !units.includes(it.fsatuan)) units.unshift(it.fsatuan);
+                            const units = [...new Set(
+                                (meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean)
+                            )];
+                            // Coba match case-insensitive
+                            const matched = units.find(u => u.toLowerCase() === it.fsatuan.toLowerCase());
+                            if (matched) {
+                                it.fsatuan = matched; // ← pakai versi dari master
+                            } else if (it.fsatuan) {
+                                units.unshift(it.fsatuan);
+                            }
                             it.units = units;
                         } else {
                             it.units = it.fsatuan ? [it.fsatuan] : [];
                         }
+                    } else {
+                        it.units = [...new Set(
+                            it.units.map(u => (u ?? '').toString().trim()).filter(Boolean)
+                        )];
+                        // Case-insensitive match
+                        const matched = it.units.find(u => u.toLowerCase() === it.fsatuan.toLowerCase());
+                        if (matched) {
+                            it.fsatuan = matched; // ← sync ke versi yang ada di units
+                        } else if (it.fsatuan && !it.units.includes(it.fsatuan)) {
+                            it.units.unshift(it.fsatuan);
+                        }
                     }
+
                     if (!it.uid) it.uid = cryptoRandom();
                     if (!it.fprno) it.fprno = it.frefpr || '';
                     return it;
