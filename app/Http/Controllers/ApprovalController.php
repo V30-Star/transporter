@@ -91,7 +91,7 @@ class ApprovalController extends Controller
     if (!$hdr) return redirect()->route('login')->with('error', 'Permintaan Pembelian tidak ditemukan.');
     $dt  = Tr_pod::from('tr_pod as d')
       ->leftJoin('msprd as p', 'p.fprdcode', '=', 'd.fprdcode')
-      ->where('d.fpono', $fpono)
+      ->where('d.frefdtno', $fpono)
       ->orderBy('d.fprdcode')
       ->get(['d.*', 'p.fprdname as product_name', 'p.fminstock as stock']);
 
