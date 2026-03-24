@@ -536,65 +536,79 @@ class Tr_prhController extends Controller
         ->orWhere('fcabangname', $raw))
       ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
 
-    $fcabang     = $branch->fcabangname ?? (string) $raw;   // tampilan
-    $fbranchcode = $branch->fcabangkode ?? (string) $raw;   // hidden post
+    $fcabang     = $branch->fcabangname ?? (string) $raw;
+    $fbranchcode = $branch->fcabangkode ?? (string) $raw;
 
     $tr_prh = Tr_prh::with(['details' => function ($q) {
-      $q->leftJoin('msprd as p', 'p.fprdid', '=', 'tr_prd.fprdcodeid') // tr_prd.fprdcodeid = ID produk
+      $q->leftJoin('msprd as p', 'p.fprdid', '=', 'tr_prd.fprdcodeid')
         ->orderBy('p.fprdname')
         ->select(
           'tr_prd.*',
-          'p.fprdcode as product_code',   // <- kode untuk tampilan
-          'p.fprdname  as product_name'   // <- nama untuk tampilan
+          'p.fprdcode as product_code',
+          'p.fprdname as product_name'
         );
     }])->findOrFail($fprhid);
 
     $fprhid = (int) $tr_prh->fprhid;
 
-    $details = DB::table('tr_prd as d')
-      ->leftJoin('msprd as p', 'p.fprdid', '=', 'd.fprdcodeid')
+    // ─── Query details (sama seperti view & delete) ───────────────────────
+    $details = DB::table('tr_prh as h')
+      ->leftJoin('tr_prd as d', 'h.fprhid', '=', 'd.fprhid')
       ->leftJoin(DB::raw('(
-        SELECT frefdtid, fprdid, SUM(fqtykecil) AS fqtypo
-        FROM tr_pod
-        WHERE frefdtid IS NOT NULL AND frefdtid > 0
-        GROUP BY frefdtid, fprdid
-    ) as o'), function ($join) use ($fprhid) {
-        $join->whereRaw('o.frefdtid = ?', [$fprhid])   // ← pakai whereRaw
-          ->on('o.fprdid', '=', 'p.fprdid');
+            SELECT
+                frefdtid,
+                fprdcode,
+                SUM(fqtykecil) AS fqtypo
+            FROM tr_pod
+            GROUP BY frefdtid, fprdcode
+        ) as o'), function ($join) {
+        $join->on('o.frefdtid', '=', 'h.fprhid')
+          ->on('o.fprdcode', '=', 'd.fprdcode');
       })
-      ->where('d.fprhid', $fprhid)
+      ->leftJoin('mssupplier as s', 'h.fsupplier', '=', 's.fsupplierid')
+      ->leftJoin('msprd as p', 'p.fprdcode', '=', 'd.fprdcode')
+      ->where('h.fprhid', $fprhid)
       ->select([
+        'h.fprno',
+        'h.fprdate',
+        'h.fneeddate',
+        'h.fduedate',
+        'h.fsupplier',
+        's.fsuppliername',
+        'h.fket',
+        'h.fusercreate',
         'd.*',
-        'p.fprdname',
         'p.fprdcode as fprdcode_master',
+        'p.fprdname',
         DB::raw('COALESCE(
-            CASE
-                WHEN d.fsatuan = p.fsatuanbesar
-                THEN o.fqtypo / NULLIF(p.fqtykecil::numeric, 0)
-                ELSE o.fqtypo
-            END, 0
-        ) AS fqtypo'),
+                CASE
+                    WHEN d.fsatuan = p.fsatuanbesar
+                    THEN o.fqtypo / NULLIF(p.fqtykecil::numeric, 0)
+                    ELSE o.fqtypo
+                END, 0
+            ) AS fqtypo'),
       ])
+      ->orderBy('h.fprdate')
+      ->orderBy('h.fprno')
       ->get();
+    // ───────────────────────────────────────────────────────────────────────
 
-    // Map ke savedItems (agar cocok dengan table di Blade yang biasa kamu pakai)
     $savedItems = $details->map(function ($d) {
       return [
         'uid'       => (string)\Illuminate\Support\Str::uuid(),
         'fprdid'    => (int)($d->fprdcodeid ?? 0),
-        'fitemcode' => (string)($d->fprdcode_master ?? ''),  // dari fprdcode_master
+        'fitemcode' => (string)($d->fprdcode_master ?? ''),
         'fitemname' => (string)($d->fprdname ?? ''),
         'fsatuan'   => (string)($d->fsatuan ?? ''),
         'fqty'      => (float)($d->fqty ?? 0),
-        'fqtypo'    => (float)($d->fqtypo ?? 0),   // ← sekarang dari $details
+        'fqtypo'    => (float)($d->fqtypo ?? 0),
         'fdesc'     => (string)($d->fdesc ?? ''),
         'fketdt'    => (string)($d->fketdt ?? ''),
-        'fprice'    => (float)($d->fprice ?? 0),
-        'fdisc'     => (float)($d->fdisc ?? 0),
+        'fprice'    => (float)($d->fprice ?? 0),   // ← ada di edit
+        'fdisc'     => (float)($d->fdisc ?? 0),    // ← ada di edit
       ];
     })->values();
 
-    // Fetch all products for product mapping
     $products = Product::select(
       'fprdid',
       'fprdcode',
@@ -605,11 +619,10 @@ class Tr_prhController extends Controller
       'fminstock'
     )->orderBy('fprdname')->get();
 
-    // Prepare the product map for frontend
     $productMap = $products->mapWithKeys(function ($p) {
       return [
         $p->fprdcodeid => [
-          'id'    => $p->fprdid,  // ⬅️ penting
+          'id'    => $p->fprdid,
           'name'  => $p->fprdname,
           'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
           'stock' => $p->fminstock ?? 0,
@@ -618,15 +631,15 @@ class Tr_prhController extends Controller
     })->toArray();
 
     return view('tr_prh.edit', [
-      'suppliers'      => $suppliers,
-      'fcabang'      => $fcabang,
-      'fbranchcode'  => $fbranchcode,
-      'products'     => $products,
-      'productMap'   => $productMap, // jika dipakai di Blade
-      'tr_prh'       => $tr_prh,     // <<— PENTING
-      'savedItems'  => $savedItems,   // <— tambahkan ini
+      'suppliers'        => $suppliers,
+      'fcabang'          => $fcabang,
+      'fbranchcode'      => $fbranchcode,
+      'products'         => $products,
+      'productMap'       => $productMap,
+      'tr_prh'           => $tr_prh,
+      'savedItems'       => $savedItems,
       'filterSupplierId' => $request->query('filter_supplier_id'),
-      'action' => 'edit'
+      'action'           => 'edit',
     ]);
   }
 
@@ -636,7 +649,6 @@ class Tr_prhController extends Controller
       ->get(['fsupplierid', 'fsuppliername']);
 
     $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
-
     $branch = DB::table('mscabang')
       ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
       ->when(!is_numeric($raw), fn($q) => $q
@@ -644,57 +656,71 @@ class Tr_prhController extends Controller
         ->orWhere('fcabangname', $raw))
       ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
 
-    $fcabang     = $branch->fcabangname ?? (string) $raw;   // tampilan
-    $fbranchcode = $branch->fcabangkode ?? (string) $raw;   // hidden post
+    $fcabang     = $branch->fcabangname ?? (string) $raw;
+    $fbranchcode = $branch->fcabangkode ?? (string) $raw;
 
     $tr_prh = Tr_prh::with(['details' => function ($q) {
-      $q->leftJoin('msprd as p', 'p.fprdid', '=', 'tr_prd.fprdcodeid') // tr_prd.fprdcodeid = ID produk
+      $q->leftJoin('msprd as p', 'p.fprdid', '=', 'tr_prd.fprdcodeid')
         ->orderBy('p.fprdname')
         ->select(
           'tr_prd.*',
-          'p.fprdcode as product_code',   // <- kode untuk tampilan
-          'p.fprdname  as product_name'   // <- nama untuk tampilan
+          'p.fprdcode as product_code',
+          'p.fprdname as product_name'
         );
     }])->findOrFail($fprhid);
 
     $fprhid = (int) $tr_prh->fprhid;
 
-    $details = DB::table('tr_prd as d')
-      ->leftJoin('msprd as p', 'p.fprdid', '=', 'd.fprdcodeid')
+    // ─── Query details mengikuti struktur SQL yang diberikan ───────────────
+    $details = DB::table('tr_prh as h')
+      ->leftJoin('tr_prd as d', 'h.fprhid', '=', 'd.fprhid')
       ->leftJoin(DB::raw('(
-        SELECT frefdtid, fprdid, SUM(fqtykecil) AS fqtypo
-        FROM tr_pod
-        WHERE frefdtid IS NOT NULL AND frefdtid > 0
-        GROUP BY frefdtid, fprdid
-    ) as o'), function ($join) use ($fprhid) {
-        $join->whereRaw('o.frefdtid = ?', [$fprhid])   // ← pakai whereRaw
-          ->on('o.fprdid', '=', 'p.fprdid');
+            SELECT
+                frefdtid,
+                fprdcode,
+                SUM(fqtykecil) AS fqtypo
+            FROM tr_pod
+            GROUP BY frefdtid, fprdcode
+        ) as o'), function ($join) {
+        $join->on('o.frefdtid', '=', 'h.fprhid')
+          ->on('o.fprdcode', '=', 'd.fprdcode');
       })
-      ->where('d.fprhid', $fprhid)
+      ->leftJoin('mssupplier as s', 'h.fsupplier', '=', 's.fsupplierid')
+      ->leftJoin('msprd as p', 'p.fprdcode', '=', 'd.fprdcode')
+      ->where('h.fprhid', $fprhid)
       ->select([
+        'h.fprno',
+        'h.fprdate',
+        'h.fneeddate',
+        'h.fduedate',
+        'h.fsupplier',
+        's.fsuppliername',
+        'h.fket',
+        'h.fusercreate',
         'd.*',
-        'p.fprdname',
         'p.fprdcode as fprdcode_master',
+        'p.fprdname',
         DB::raw('COALESCE(
-            CASE
-                WHEN d.fsatuan = p.fsatuanbesar
-                THEN o.fqtypo / NULLIF(p.fqtykecil::numeric, 0)
-                ELSE o.fqtypo
-            END, 0
-        ) AS fqtypo'),
+                CASE
+                    WHEN d.fsatuan = p.fsatuanbesar
+                    THEN o.fqtypo / NULLIF(p.fqtykecil::numeric, 0)
+                    ELSE o.fqtypo
+                END, 0
+            ) AS fqtypo'),
       ])
+      ->orderBy('h.fprdate')
+      ->orderBy('h.fprno')
       ->get();
 
-    // Map ke savedItems (agar cocok dengan table di Blade yang biasa kamu pakai)
     $savedItems = $details->map(function ($d) {
       return [
         'uid'       => (string)\Illuminate\Support\Str::uuid(),
         'fprdid'    => (int)($d->fprdcodeid ?? 0),
-        'fitemcode' => (string)($d->fprdcode_master ?? ''),  // dari fprdcode_master
+        'fitemcode' => (string)($d->fprdcode_master ?? ''),
         'fitemname' => (string)($d->fprdname ?? ''),
         'fsatuan'   => (string)($d->fsatuan ?? ''),
         'fqty'      => (float)($d->fqty ?? 0),
-        'fqtypo'    => (float)($d->fqtypo ?? 0),   // ← sekarang dari $details
+        'fqtypo'    => (float)($d->fqtypo ?? 0),
         'fdesc'     => (string)($d->fdesc ?? ''),
         'fketdt'    => (string)($d->fketdt ?? ''),
         'fprice'    => (float)($d->fprice ?? 0),
@@ -702,7 +728,6 @@ class Tr_prhController extends Controller
       ];
     })->values();
 
-    // Fetch all products for product mapping
     $products = Product::select(
       'fprdid',
       'fprdcode',
@@ -713,11 +738,10 @@ class Tr_prhController extends Controller
       'fminstock'
     )->orderBy('fprdname')->get();
 
-    // Prepare the product map for frontend
     $productMap = $products->mapWithKeys(function ($p) {
       return [
         $p->fprdcodeid => [
-          'id'    => $p->fprdid,  // ⬅️ penting
+          'id'    => $p->fprdid,
           'name'  => $p->fprdname,
           'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
           'stock' => $p->fminstock ?? 0,
@@ -726,13 +750,13 @@ class Tr_prhController extends Controller
     })->toArray();
 
     return view('tr_prh.view', [
-      'suppliers'      => $suppliers,
-      'fcabang'      => $fcabang,
-      'fbranchcode'  => $fbranchcode,
-      'products'     => $products,
-      'productMap'   => $productMap, // jika dipakai di Blade
-      'tr_prh'       => $tr_prh,     // <<— PENTING
-      'savedItems'  => $savedItems,   // <— tambahkan ini
+      'suppliers'        => $suppliers,
+      'fcabang'          => $fcabang,
+      'fbranchcode'      => $fbranchcode,
+      'products'         => $products,
+      'productMap'       => $productMap,
+      'tr_prh'           => $tr_prh,
+      'savedItems'       => $savedItems,
       'filterSupplierId' => $request->query('filter_supplier_id'),
     ]);
   }
@@ -978,46 +1002,62 @@ class Tr_prhController extends Controller
         ->orWhere('fcabangname', $raw))
       ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
 
-    $fcabang     = $branch->fcabangname ?? (string) $raw;   // tampilan
-    $fbranchcode = $branch->fcabangkode ?? (string) $raw;   // hidden post
+    $fcabang     = $branch->fcabangname ?? (string) $raw;
+    $fbranchcode = $branch->fcabangkode ?? (string) $raw;
 
     $tr_prh = Tr_prh::with(['details' => function ($q) {
-      $q->leftJoin('msprd as p', 'p.fprdid', '=', 'tr_prd.fprdcodeid') // tr_prd.fprdcodeid = ID produk
+      $q->leftJoin('msprd as p', 'p.fprdid', '=', 'tr_prd.fprdcodeid')
         ->orderBy('p.fprdname')
         ->select(
           'tr_prd.*',
-          'p.fprdcode as product_code',   // <- kode untuk tampilan
-          'p.fprdname  as product_name'   // <- nama untuk tampilan
+          'p.fprdcode as product_code',
+          'p.fprdname as product_name'
         );
     }])->findOrFail($fprhid);
 
     $fprhid = (int) $tr_prh->fprhid;
 
-    $details = DB::table('tr_prd as d')
-      ->leftJoin('msprd as p', 'p.fprdid', '=', 'd.fprdcodeid')
+    // ─── Query details (sama seperti view) ────────────────────────────────
+    $details = DB::table('tr_prh as h')
+      ->leftJoin('tr_prd as d', 'h.fprhid', '=', 'd.fprhid')
       ->leftJoin(DB::raw('(
-        SELECT frefdtid, fprdid, SUM(fqtykecil) AS fqtypo
-        FROM tr_pod
-        WHERE frefdtid IS NOT NULL AND frefdtid > 0
-        GROUP BY frefdtid, fprdid
-    ) as o'), function ($join) use ($fprhid) {
-        $join->whereRaw('o.frefdtid = ?', [$fprhid])
-          ->on('o.fprdid', '=', 'p.fprdid');
+            SELECT
+                frefdtid,
+                fprdcode,
+                SUM(fqtykecil) AS fqtypo
+            FROM tr_pod
+            GROUP BY frefdtid, fprdcode
+        ) as o'), function ($join) {
+        $join->on('o.frefdtid', '=', 'h.fprhid')
+          ->on('o.fprdcode', '=', 'd.fprdcode');
       })
-      ->where('d.fprhid', $fprhid)
+      ->leftJoin('mssupplier as s', 'h.fsupplier', '=', 's.fsupplierid')
+      ->leftJoin('msprd as p', 'p.fprdcode', '=', 'd.fprdcode')
+      ->where('h.fprhid', $fprhid)
       ->select([
+        'h.fprno',
+        'h.fprdate',
+        'h.fneeddate',
+        'h.fduedate',
+        'h.fsupplier',
+        's.fsuppliername',
+        'h.fket',
+        'h.fusercreate',
         'd.*',
-        'p.fprdname',
         'p.fprdcode as fprdcode_master',
+        'p.fprdname',
         DB::raw('COALESCE(
-            CASE
-                WHEN d.fsatuan = p.fsatuanbesar
-                THEN o.fqtypo / NULLIF(p.fqtykecil::numeric, 0)
-                ELSE o.fqtypo
-            END, 0
-        ) AS fqtypo'),
+                CASE
+                    WHEN d.fsatuan = p.fsatuanbesar
+                    THEN o.fqtypo / NULLIF(p.fqtykecil::numeric, 0)
+                    ELSE o.fqtypo
+                END, 0
+            ) AS fqtypo'),
       ])
+      ->orderBy('h.fprdate')
+      ->orderBy('h.fprno')
       ->get();
+    // ───────────────────────────────────────────────────────────────────────
 
     $savedItems = $details->map(function ($d) {
       return [
@@ -1027,13 +1067,12 @@ class Tr_prhController extends Controller
         'fitemname' => (string)($d->fprdname ?? ''),
         'fsatuan'   => (string)($d->fsatuan ?? ''),
         'fqty'      => (float)($d->fqty ?? 0),
-        'fqtypo'    => (float)($d->fqtypo ?? 0),   // ← sekarang terisi
+        'fqtypo'    => (float)($d->fqtypo ?? 0),
         'fdesc'     => (string)($d->fdesc ?? ''),
         'fketdt'    => (string)($d->fketdt ?? ''),
       ];
     })->values();
-    
-    // Fetch all products for product mapping
+
     $products = Product::select(
       'fprdid',
       'fprdcode',
@@ -1044,11 +1083,10 @@ class Tr_prhController extends Controller
       'fminstock'
     )->orderBy('fprdname')->get();
 
-    // Prepare the product map for frontend
     $productMap = $products->mapWithKeys(function ($p) {
       return [
         $p->fprdcodeid => [
-          'id'    => $p->fprdid,  // ⬅️ penting
+          'id'    => $p->fprdid,
           'name'  => $p->fprdname,
           'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
           'stock' => $p->fminstock ?? 0,
@@ -1057,15 +1095,15 @@ class Tr_prhController extends Controller
     })->toArray();
 
     return view('tr_prh.edit', [
-      'suppliers'      => $suppliers,
-      'fcabang'      => $fcabang,
-      'fbranchcode'  => $fbranchcode,
-      'products'     => $products,
-      'productMap'   => $productMap, // jika dipakai di Blade
-      'tr_prh'       => $tr_prh,     // <<— PENTING
-      'savedItems'  => $savedItems,   // <— tambahkan ini
+      'suppliers'        => $suppliers,
+      'fcabang'          => $fcabang,
+      'fbranchcode'      => $fbranchcode,
+      'products'         => $products,
+      'productMap'       => $productMap,
+      'tr_prh'           => $tr_prh,
+      'savedItems'       => $savedItems,
       'filterSupplierId' => $request->query('filter_supplier_id'),
-      'action' => 'delete'
+      'action'           => 'delete',
     ]);
   }
 
