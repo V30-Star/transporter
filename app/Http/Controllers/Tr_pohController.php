@@ -32,7 +32,7 @@ class Tr_pohController extends Controller
     $year = $request->query('year');
     $month = $request->query('month');
 
-    // Ambil tahun-tahun yang tersedia dari data
+    // Ambil tahun-tahun yang tersedia
     $availableYears = Tr_poh::selectRaw('DISTINCT EXTRACT(YEAR FROM fdatetime) as year')
       ->whereNotNull('fdatetime')
       ->orderByRaw('EXTRACT(YEAR FROM fdatetime) DESC')
@@ -41,40 +41,69 @@ class Tr_pohController extends Controller
     // --- Handle Request AJAX dari DataTables ---
     if ($request->ajax()) {
 
+      // Gunakan prefix tabel 'tr_poh.*' untuk menghindari kolom ganda (ambiguous)
       $query = Tr_poh::query()
-        ->leftJoin('mssupplier', 'tr_poh.fsupplier', '=', 'mssupplier.fsupplierid');
+        ->select([
+          'tr_poh.fpohid',
+          'tr_poh.fpono',
+          'tr_poh.fsupplier',
+          'tr_poh.fpodate',
+          'tr_poh.fclose',
+          'tr_poh.fusercreate',
+          'tr_poh.fapproval',
+          'tr_poh.fdatetime',
+          'mssupplier.fsuppliername',
+          'tr_prd.fprno'
+        ])
+        ->leftJoin('mssupplier', 'tr_poh.fsupplier', '=', 'mssupplier.fsupplierid')
+        ->leftJoin('tr_pod', 'tr_poh.fpohid', '=', 'tr_pod.fpohid')
+        ->leftJoin('tr_prd', 'tr_pod.frefdtid', '=', 'tr_prd.fprhid');
+
       $totalRecords = Tr_poh::count();
 
-      // Handle Search
+      // Handle Search - Beri prefix tabel agar tidak bingung
       if ($search = $request->input('search.value')) {
-        $query->where('fpono', 'like', "%{$search}%");
+        $query->where('tr_poh.fpono', 'ILIKE', "%{$search}%");
       }
 
       // Filter status
       $statusFilter = $request->query('status', 'active');
       if ($statusFilter === 'active') {
-        $query->where('fclose', '0');
+        $query->where('tr_poh.fclose', '0');
       } elseif ($statusFilter === 'nonactive') {
-        $query->where('fclose', '1');
+        $query->where('tr_poh.fclose', '1');
       }
 
-      // Filter tahun
+      // Filter tahun & bulan
       if ($year) {
-        $query->whereRaw('EXTRACT(YEAR FROM fdatetime) = ?', [$year]);
+        $query->whereRaw('EXTRACT(YEAR FROM tr_poh.fdatetime) = ?', [$year]);
       }
-
-      // Filter bulan
       if ($month) {
-        $query->whereRaw('EXTRACT(MONTH FROM fdatetime) = ?', [$month]);
+        $query->whereRaw('EXTRACT(MONTH FROM tr_poh.fdatetime) = ?', [$month]);
       }
 
-      $filteredRecords = (clone $query)->count();
+      // Karena join ke child (tr_pod), gunakan groupBy agar baris tidak double di index
+      $query->groupBy(
+        'tr_poh.fpohid',
+        'tr_poh.fpono',
+        'tr_poh.fsupplier',
+        'tr_poh.fpodate',
+        'tr_poh.fclose',
+        'tr_poh.fusercreate',
+        'tr_poh.fapproval',
+        'tr_poh.fdatetime', // Pastikan semua kolom tr_poh masuk atau gunakan agregat
+        'mssupplier.fsuppliername',
+        'tr_prd.fprno'
+      );
+
+      $filteredRecords = DB::table(DB::raw("({$query->toSql()}) as sub"))
+        ->mergeBindings($query->getQuery())
+        ->count();
 
       // Sorting
       $orderColIdx = $request->input('order.0.column', 0);
       $orderDir = $request->input('order.0.dir', 'asc');
-
-      $sortableColumns = ['fpono', 'fsupplier', 'fpodate', 'fclose', 'fusercreate', 'fapproval', 'mssupplier.fsuppliername'];
+      $sortableColumns = ['fpono', 'fsupplier', 'fpodate', 'fclose', 'fusercreate', 'fapproval', 'fsuppliername'];
 
       if (isset($sortableColumns[$orderColIdx])) {
         $query->orderBy($sortableColumns[$orderColIdx], $orderDir);
@@ -83,21 +112,20 @@ class Tr_pohController extends Controller
       // Paginasi
       $start = $request->input('start', 0);
       $length = $request->input('length', 10);
-      $records = $query->skip($start)
-        ->take($length)
-        ->get(['fpono', 'fpohid', 'fsupplier', 'fpodate', 'fclose', 'fusercreate', 'fapproval', 'mssupplier.fsuppliername']);
+      $records = $query->skip($start)->take($length)->get();
 
-      // Format Data - HANYA RETURN DATA MENTAH
+      // Format Data
       $data = $records->map(function ($row) {
         return [
-          'fpono'     => $row->fpono,
-          'fpohid'    => $row->fpohid,
-          'fsupplier' => $row->fsupplier,
-          'fpodate'   => $row->fpodate,
-          'fclose'    => $row->fclose == '1' ? 'Done' : 'Not Done',
-          'fusercreate'    => $row->fusercreate,
-          'fapproval'    => $row->fapproval,
-          'fsuppliername' => $row->fsuppliername
+          'fpono'         => $row->fpono,
+          'fpohid'        => $row->fpohid,
+          'fsupplier'     => $row->fsupplier,
+          'fpodate'       => $row->fpodate,
+          'fclose'        => $row->fclose == '1' ? 'Done' : 'Not Done',
+          'fusercreate'   => $row->fusercreate,
+          'fapproval'     => $row->fapproval,
+          'fsuppliername' => $row->fsuppliername,
+          'fprno'         => $row->fprno // Kolom dari tr_prd
         ];
       });
 
@@ -109,7 +137,6 @@ class Tr_pohController extends Controller
       ]);
     }
 
-    // --- Handle Request non-AJAX ---
     return view('tr_poh.index', compact(
       'canCreate',
       'canEdit',
@@ -1322,13 +1349,19 @@ class Tr_pohController extends Controller
   public function destroy($fpohid)
   {
     try {
-      $tr_poh = Tr_poh::findOrFail($fpohid);
+      $tr_poh = Tr_poh::with('details')->findOrFail($fpohid);
+
+      // Hapus anaknya dulu
+      $tr_poh->details()->delete();
+
+      // Baru hapus induknya
       $tr_poh->delete();
 
-      return redirect()->route('tr_poh.index')->with('success', 'Data Order Pembelian ' . $tr_poh->fpono . ' berhasil dihapus.');
+      return redirect()->route('tr_poh.index')
+        ->with('success', 'Data Order Pembelian ' . $tr_poh->fpono . ' dan detailnya berhasil dihapus.');
     } catch (\Exception $e) {
-      // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
-      return redirect()->route('tr_poh.delete', $fpohid)->with('error', 'Gakey: gal menghapus data: ' . $e->getMessage());
+      return redirect()->back()
+        ->with('error', 'Gagal menghapus data: ' . $e->getMessage());
     }
   }
 }

@@ -76,6 +76,7 @@
                     <th class="border px-2 py-1">Supplier ID</th> {{-- Sesuai data simpel (bukan nama) --}}
                     <th class="border px-2 py-1">Tanggal</th>
                     <th class="border px-2 py-1">User-id</th>
+                    <th class="border px-2 py-1">Ref.PR</th>
                     <th class="border px-2 py-1">Status</th>
                     <th class="border px-2 py-1">Approved</th>
                     <th class="border px-2 py-1 col-aksi">Aksi</th>
@@ -305,6 +306,10 @@
                 {
                     data: 'fusercreate',
                     name: 'fusercreate'
+                },
+                {
+                    data: 'fprno',
+                    name: 'fprno'
                 },
                 {
                     data: 'fclose',
