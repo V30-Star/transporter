@@ -524,6 +524,19 @@ class Tr_prhController extends Controller
 
   public function edit(Request $request, $fprhid)
   {
+    $existingPO = DB::table('tr_pod')
+      ->join('tr_poh', 'tr_poh.fpohid', '=', 'tr_pod.fpohid')
+      ->leftJoin('mssupplier as s', 's.fsupplierid', '=', 'tr_poh.fsupplier')
+      ->where('tr_pod.frefdtid', $fprhid)
+      ->select([
+        'tr_poh.fpohid',
+        'tr_poh.fpono',
+        DB::raw('tr_poh.fpodate::text as fpodate'),
+        's.fsuppliername',
+      ])
+      ->distinct()
+      ->get();
+
     $suppliers = Supplier::orderBy('fsuppliername', 'asc')
       ->get(['fsupplierid', 'fsuppliername']);
 
@@ -640,6 +653,8 @@ class Tr_prhController extends Controller
       'savedItems'       => $savedItems,
       'filterSupplierId' => $request->query('filter_supplier_id'),
       'action'           => 'edit',
+      'existingPO'       => $existingPO,
+      'blockedByPO'      => $existingPO->isNotEmpty(),
     ]);
   }
 
@@ -990,37 +1005,50 @@ class Tr_prhController extends Controller
 
   public function delete(Request $request, $fprhid)
   {
-    $suppliers = Supplier::orderBy('fsuppliername', 'asc')
-      ->get(['fsupplierid', 'fsuppliername']);
+    $existingPO = DB::table('tr_pod')
+      ->join('tr_poh', 'tr_poh.fpohid', '=', 'tr_pod.fpohid')
+      ->where('tr_pod.frefdtid', $fprhid)
+      ->select([
+        'tr_poh.fpohid',
+        'tr_poh.fpono',
+        DB::raw('tr_poh.fpodate::text as fpodate'),
+        'tr_poh.fsupplier',
+      ])
+      ->distinct()
+      ->get();
 
-    $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
+    if ($existingPO->isNotEmpty()) {
+      $suppliers = Supplier::orderBy('fsuppliername', 'asc')
+        ->get(['fsupplierid', 'fsuppliername']);
 
-    $branch = DB::table('mscabang')
-      ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
-      ->when(!is_numeric($raw), fn($q) => $q
-        ->where('fcabangkode', $raw)
-        ->orWhere('fcabangname', $raw))
-      ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
+      $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
-    $fcabang     = $branch->fcabangname ?? (string) $raw;
-    $fbranchcode = $branch->fcabangkode ?? (string) $raw;
+      $branch = DB::table('mscabang')
+        ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
+        ->when(!is_numeric($raw), fn($q) => $q
+          ->where('fcabangkode', $raw)
+          ->orWhere('fcabangname', $raw))
+        ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
 
-    $tr_prh = Tr_prh::with(['details' => function ($q) {
-      $q->leftJoin('msprd as p', 'p.fprdid', '=', 'tr_prd.fprdcodeid')
-        ->orderBy('p.fprdname')
-        ->select(
-          'tr_prd.*',
-          'p.fprdcode as product_code',
-          'p.fprdname as product_name'
-        );
-    }])->findOrFail($fprhid);
+      $fcabang     = $branch->fcabangname ?? (string) $raw;
+      $fbranchcode = $branch->fcabangkode ?? (string) $raw;
 
-    $fprhid = (int) $tr_prh->fprhid;
+      $tr_prh = Tr_prh::with(['details' => function ($q) {
+        $q->leftJoin('msprd as p', 'p.fprdid', '=', 'tr_prd.fprdcodeid')
+          ->orderBy('p.fprdname')
+          ->select(
+            'tr_prd.*',
+            'p.fprdcode as product_code',
+            'p.fprdname as product_name'
+          );
+      }])->findOrFail($fprhid);
 
-    // ─── Query details (sama seperti view) ────────────────────────────────
-    $details = DB::table('tr_prh as h')
-      ->leftJoin('tr_prd as d', 'h.fprhid', '=', 'd.fprhid')
-      ->leftJoin(DB::raw('(
+      $fprhid = (int) $tr_prh->fprhid;
+
+      // ─── Query details (sama seperti view) ────────────────────────────────
+      $details = DB::table('tr_prh as h')
+        ->leftJoin('tr_prd as d', 'h.fprhid', '=', 'd.fprhid')
+        ->leftJoin(DB::raw('(
             SELECT
                 frefdtid,
                 fprdcode,
@@ -1028,95 +1056,113 @@ class Tr_prhController extends Controller
             FROM tr_pod
             GROUP BY frefdtid, fprdcode
         ) as o'), function ($join) {
-        $join->on('o.frefdtid', '=', 'h.fprhid')
-          ->on('o.fprdcode', '=', 'd.fprdcode');
-      })
-      ->leftJoin('mssupplier as s', 'h.fsupplier', '=', 's.fsupplierid')
-      ->leftJoin('msprd as p', 'p.fprdcode', '=', 'd.fprdcode')
-      ->where('h.fprhid', $fprhid)
-      ->select([
-        'h.fprno',
-        'h.fprdate',
-        'h.fneeddate',
-        'h.fduedate',
-        'h.fsupplier',
-        's.fsuppliername',
-        'h.fket',
-        'h.fusercreate',
-        'd.*',
-        'p.fprdcode as fprdcode_master',
-        'p.fprdname',
-        DB::raw('COALESCE(
+          $join->on('o.frefdtid', '=', 'h.fprhid')
+            ->on('o.fprdcode', '=', 'd.fprdcode');
+        })
+        ->leftJoin('mssupplier as s', 'h.fsupplier', '=', 's.fsupplierid')
+        ->leftJoin('msprd as p', 'p.fprdcode', '=', 'd.fprdcode')
+        ->where('h.fprhid', $fprhid)
+        ->select([
+          'h.fprno',
+          'h.fprdate',
+          'h.fneeddate',
+          'h.fduedate',
+          'h.fsupplier',
+          's.fsuppliername',
+          'h.fket',
+          'h.fusercreate',
+          'd.*',
+          'p.fprdcode as fprdcode_master',
+          'p.fprdname',
+          DB::raw('COALESCE(
                 CASE
                     WHEN d.fsatuan = p.fsatuanbesar
                     THEN o.fqtypo / NULLIF(p.fqtykecil::numeric, 0)
                     ELSE o.fqtypo
                 END, 0
             ) AS fqtypo'),
-      ])
-      ->orderBy('h.fprdate')
-      ->orderBy('h.fprno')
-      ->get();
-    // ───────────────────────────────────────────────────────────────────────
+        ])
+        ->orderBy('h.fprdate')
+        ->orderBy('h.fprno')
+        ->get();
+      // ───────────────────────────────────────────────────────────────────────
 
-    $savedItems = $details->map(function ($d) {
-      return [
-        'uid'       => (string)\Illuminate\Support\Str::uuid(),
-        'fprdid'    => (int)($d->fprdcodeid ?? 0),
-        'fitemcode' => (string)($d->fprdcode_master ?? ''),
-        'fitemname' => (string)($d->fprdname ?? ''),
-        'fsatuan'   => (string)($d->fsatuan ?? ''),
-        'fqty'      => (float)($d->fqty ?? 0),
-        'fqtypo'    => (float)($d->fqtypo ?? 0),
-        'fdesc'     => (string)($d->fdesc ?? ''),
-        'fketdt'    => (string)($d->fketdt ?? ''),
-      ];
-    })->values();
+      $savedItems = $details->map(function ($d) {
+        return [
+          'uid'       => (string)\Illuminate\Support\Str::uuid(),
+          'fprdid'    => (int)($d->fprdcodeid ?? 0),
+          'fitemcode' => (string)($d->fprdcode_master ?? ''),
+          'fitemname' => (string)($d->fprdname ?? ''),
+          'fsatuan'   => (string)($d->fsatuan ?? ''),
+          'fqty'      => (float)($d->fqty ?? 0),
+          'fqtypo'    => (float)($d->fqtypo ?? 0),
+          'fdesc'     => (string)($d->fdesc ?? ''),
+          'fketdt'    => (string)($d->fketdt ?? ''),
+        ];
+      })->values();
 
-    $products = Product::select(
-      'fprdid',
-      'fprdcode',
-      'fprdname',
-      'fsatuankecil',
-      'fsatuanbesar',
-      'fsatuanbesar2',
-      'fminstock'
-    )->orderBy('fprdname')->get();
+      $products = Product::select(
+        'fprdid',
+        'fprdcode',
+        'fprdname',
+        'fsatuankecil',
+        'fsatuanbesar',
+        'fsatuanbesar2',
+        'fminstock'
+      )->orderBy('fprdname')->get();
 
-    $productMap = $products->mapWithKeys(function ($p) {
-      return [
-        $p->fprdcodeid => [
-          'id'    => $p->fprdid,
-          'name'  => $p->fprdname,
-          'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
-          'stock' => $p->fminstock ?? 0,
-        ],
-      ];
-    })->toArray();
+      $productMap = $products->mapWithKeys(function ($p) {
+        return [
+          $p->fprdcodeid => [
+            'id'    => $p->fprdid,
+            'name'  => $p->fprdname,
+            'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
+            'stock' => $p->fminstock ?? 0,
+          ],
+        ];
+      })->toArray();
 
-    return view('tr_prh.edit', [
-      'suppliers'        => $suppliers,
-      'fcabang'          => $fcabang,
-      'fbranchcode'      => $fbranchcode,
-      'products'         => $products,
-      'productMap'       => $productMap,
-      'tr_prh'           => $tr_prh,
-      'savedItems'       => $savedItems,
-      'filterSupplierId' => $request->query('filter_supplier_id'),
-      'action'           => 'delete',
-    ]);
+      return view('tr_prh.edit', [
+        'suppliers'        => $suppliers,
+        'existingPO'     => $existingPO,   // ← kirim data PO ke view
+        'fcabang'          => $fcabang,
+        'fbranchcode'      => $fbranchcode,
+        'products'         => $products,
+        'productMap'       => $productMap,
+        'tr_prh'           => $tr_prh,
+        'savedItems'       => $savedItems,
+        'filterSupplierId' => $request->query('filter_supplier_id'),
+        'action'           => 'delete',
+        'blockedByPO'    => true,          // ← flag untuk tampilkan modal
+      ]);
+    }
   }
 
   public function destroy($fprhid)
   {
     try {
+      // ─── Cek PO sebelum hapus ─────────────────────────────────────────
+      $existingPO = DB::table('tr_pod')
+        ->where('frefdtid', $fprhid)
+        ->exists();
+
+      if ($existingPO) {
+        return redirect()
+          ->route('tr_prh.delete', $fprhid)
+          ->with('error_blocked_po', true);
+      }
+      // ─────────────────────────────────────────────────────────────────
+
       $tr_prh = Tr_prh::findOrFail($fprhid);
       $tr_prh->delete();
 
-      return redirect()->route('tr_prh.index')->with('success', 'Data Permintaan Pembelian ' . $tr_prh->fprno . ' berhasil dihapus.');
+      return redirect()
+        ->route('tr_prh.index')
+        ->with('success', 'Data Permintaan Pembelian ' . $tr_prh->fprno . ' berhasil dihapus.');
     } catch (\Exception $e) {
-      // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
-      return redirect()->route('tr_prh.delete', $fprhid)->with('error', 'Gakey: gal menghapus data: ' . $e->getMessage());
+      return redirect()
+        ->route('tr_prh.delete', $fprhid)
+        ->with('error', 'Gagal menghapus data: ' . $e->getMessage());
     }
   }
 }
