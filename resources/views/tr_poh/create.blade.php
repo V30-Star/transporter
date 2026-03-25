@@ -319,8 +319,13 @@
                                                 }
                                             "
                                             @keydown.enter.prevent="focusSavedPrice(i)">
-                                        <div x-show="it.maxqty > 0" class="text-xs text-gray-400 mt-0.5 text-right">
-                                            maks: <span x-text="it.maxqty"></span>
+                                        <div class="text-xs mt-0.5 text-right">
+                                            <template x-if="it.maxqty > 0">
+                                                <span class="text-gray-400">maks: <span x-text="it.maxqty"></span></span>
+                                            </template>
+                                            <template x-if="it.maxqty === 0 && it.fqtypr > 0">
+                                                <span class="text-red-500 font-medium">Qty tidak cukup</span>
+                                            </template>
                                         </div>
                                     </td>
 
@@ -930,7 +935,7 @@
                 const total = this.totalHarga,
                     rate = +this.ppnRate || 0;
                 return this.ppnMode === 1 ? Math.round(total * rate / (100 + rate)) : Math.round(total * rate /
-                100);
+                    100);
             },
             get grandTotal() {
                 if (!this.includePPN) return this.totalHarga;
@@ -1035,6 +1040,7 @@
             // Hitung maxqty dalam satuan yang dipilih di PO berdasarkan konversi dari PR
             calcMaxQty(row) {
                 const qtyPR = row.fqtypr || 0;
+                const fqtypo = row.fqtypo || 0; // ← qty yg sudah di-PO lain
                 const satuanPR = (row.fqtypr_satuan || '').trim();
                 const satuanPO = (row.fsatuan || '').trim();
                 const satKecil = (row.fsatuankecil || '').trim();
@@ -1043,7 +1049,6 @@
                 const rasio = Number(row.fqtykecil || 0);
                 const rasio2 = Number(row.fqtykecil2 || 0);
 
-                // Jika tidak ada data konversi PR, tidak ada batasan
                 if (!satuanPR || !qtyPR) return 0;
 
                 // Step 1: konversi qty PR ke satuan kecil
@@ -1054,15 +1059,22 @@
                     qtyKecil = qtyPR * rasio2;
                 }
 
-                // Step 2: konversi ke satuan yang dipilih di PO
+                // Step 2: konversi fqtypo ke satuan kecil (fqtypo sudah dalam satuan kecil dari DB)
+                const qtyPoKecil = fqtypo; // SUM(fqtykecil) → sudah satuan kecil
+
+                // Step 3: sisa qty yang belum di-PO (dalam satuan kecil)
+                const sisaKecil = Math.max(0, qtyKecil - qtyPoKecil);
+
+                // Step 4: konversi sisa ke satuan yang dipilih di PO
                 if (!satuanPO || satuanPO === satKecil) {
-                    return qtyKecil;
+                    return sisaKecil;
                 } else if (satuanPO === satBesar && rasio > 0) {
-                    return Math.floor(qtyKecil / rasio);
+                    return Math.floor(sisaKecil / rasio);
                 } else if (satuanPO === satBesar2 && rasio2 > 0) {
-                    return Math.floor(qtyKecil / rasio2);
+                    return Math.floor(sisaKecil / rasio2);
                 }
-                return qtyKecil;
+
+                return sisaKecil;
             },
 
             isDupeItem(candidate) {
@@ -1165,8 +1177,8 @@
                         skipped.push(src);
                         return;
                     }
-                    const units = meta ?
-                        [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))] :
+                    const units = meta ? [...new Set((meta.units || []).map(u => (u ?? '').toString().trim())
+                            .filter(Boolean))] :
                         (Array.isArray(src.units) && src.units.length ? src.units : [fsatuan].filter(Boolean));
                     if (fsatuan && !units.includes(fsatuan)) units.unshift(fsatuan);
 
@@ -1189,23 +1201,23 @@
                         fprhid: String(src.fprhid ?? header?.fprhid ?? ''),
                         fprno: String(header?.fprno ?? src.fprno ?? ''),
                         fqty: Number(src.fqty ?? 0),
-                        frefdtid: src.frefdtid ?? '',
+                        fqtypo: Number(src.fqtypo ?? 0), // ← TAMBAH INI
                         fqtypr: Number(src.fqty ?? 0),
                         fqtypr_satuan: (src.fsatuan ?? '').trim(),
-                        fsatuankecil,
-                        fsatuanbesar,
-                        fsatuanbesar2,
-                        fqtykecil,
-                        fqtykecil2,
-                        maxqty_satuan: src.maxqty_satuan ?? fsatuankecil,
+                        frefdtid: src.frefdtid ?? '',
+                        fsatuankecil: src.fsatuankecil || meta?.fsatuankecil || '',
+                        fsatuanbesar: src.fsatuanbesar || meta?.fsatuanbesar || '',
+                        fsatuanbesar2: src.fsatuanbesar2 || meta?.fsatuanbesar2 || '',
+                        fqtykecil: Number(src.fqtykecil ?? meta?.fqtykecil ?? 0),
+                        fqtykecil2: Number(src.fqtykecil2 ?? meta?.fqtykecil2 ?? 0),
+                        maxqty_satuan: src.maxqty_satuan ?? '',
                         fprice: Number(src.fprice ?? 0),
                         fdisc: Number(src.fdisc ?? 0),
                         ftotal: Number(src.ftotal ?? 0),
-                        fdesc: src.fdesc ?? '',
+                        fdesc: src.fdesc ?? src.fketdt ?? '',
                         fketdt: src.fketdt ?? '',
                     };
 
-                    // Hitung maxqty awal berdasarkan satuan PO saat ini
                     row.maxqty = this.calcMaxQty(row);
 
                     if (!row.ftotal && row.fqty && row.fprice)

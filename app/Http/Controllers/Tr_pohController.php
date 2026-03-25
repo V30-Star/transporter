@@ -121,7 +121,7 @@ class Tr_pohController extends Controller
           'fpohid'        => $row->fpohid,
           'fsupplier'     => $row->fsupplier,
           'fpodate'       => $row->fpodate,
-          'fclose'        => $row->fclose == '1' ? 'Done' : 'Not Done',
+          'fclose'        => $row->fclose == '1' ? 'Close' : 'Open',
           'fusercreate'   => $row->fusercreate,
           'fapproval'     => $row->fapproval,
           'fsuppliername' => $row->fsuppliername,
@@ -157,7 +157,9 @@ class Tr_pohController extends Controller
         'tr_prh.*',
         'mssupplier.fsuppliername',
         'mssupplier.fsuppliercode'
-      );
+      )
+      ->whereIn('tr_prh.fclose', ['0', ''])
+      ->whereIn('tr_prh.fprdin', ['0', '']);
 
     // Total records tanpa filter
     $recordsTotal = Tr_prh::count();
@@ -209,37 +211,53 @@ class Tr_pohController extends Controller
   public function items($id)
   {
     $header = Tr_prh::where('fprhid', $id)->firstOrFail();
+    $fprhid = (int) $header->fprhid;
 
-    $items = Tr_prd::where('tr_prd.fprhid', $header->fprhid)
-      ->leftJoin('msprd as m', 'm.fprdid', '=', 'tr_prd.fprdcodeid')  // ← PERBAIKAN: pakai fprdcodeid
+    $items = DB::table('tr_prd as d')
+      ->leftJoin('msprd as m', 'm.fprdid', '=', 'd.fprdcodeid')
+      ->leftJoin(DB::raw('(
+            SELECT
+                frefdtid,
+                fprdcode,
+                SUM(fqtykecil) AS fqtypo
+            FROM tr_pod
+            GROUP BY frefdtid, fprdcode
+        ) as o'), function ($join) {
+        $join->on('o.frefdtid', '=', 'd.fprhid')
+          ->on('o.fprdcode', '=', 'm.fprdcode');
+      })
+      ->where('d.fprhid', $fprhid)
       ->select([
-        DB::raw('tr_prd.fprdcodeid::text as frefdtno'),  // ID produk PR sebagai referensi
-        'm.fprdcode as fitemcode',                        // kode produk dari master
-        'm.fprdname as fitemname',                        // nama produk dari master
-        'tr_prd.fqty',
-        'tr_prd.fqty as maxqty',
-        'tr_prd.fsatuan',
-        'tr_prd.fprhid',
-        DB::raw('COALESCE(tr_prd.fprice, 0) as fprice'),
+        DB::raw('d.fprdcodeid::text as frefdtno'),
+        'm.fprdcode as fitemcode',
+        'm.fprdname as fitemname',
+        'd.fqty',
+        'd.fsatuan',
+        'd.fdesc',
+        'd.fketdt',
+        'd.fprhid',
+        DB::raw('COALESCE(d.fprice, 0) as fprice'),
         DB::raw('0::numeric as fdisc'),
-        DB::raw('tr_prd.fprhid::text as fnouref'),
-        DB::raw('tr_prd.fprdid::text as frefdtid'),
+        DB::raw('d.fprhid::text as fnouref'),
+        DB::raw('d.fprdid::text as frefdtid'),
         'm.fsatuankecil',
         'm.fsatuanbesar',
         'm.fsatuanbesar2',
         'm.fqtykecil',
         'm.fqtykecil2',
+        DB::raw('COALESCE(o.fqtypo, 0) AS fqtypo'),  // ← qty yg sudah terpakai di PO lain
       ])
-      ->orderBy('tr_prd.fprdcodeid')
+      ->orderBy('d.fprdcodeid')
       ->get()
       ->map(function ($item) {
-        $qty      = (float) $item->fqty;
-        $satuan   = trim((string) $item->fsatuan);
-        $satKecil = trim((string) ($item->fsatuankecil ?? ''));
-        $satBesar = trim((string) ($item->fsatuanbesar ?? ''));
+        $qty       = (float) $item->fqty;
+        $fqtypo    = (float) ($item->fqtypo ?? 0);   // ← sudah dalam satuan kecil
+        $satuan    = trim((string) $item->fsatuan);
+        $satKecil  = trim((string) ($item->fsatuankecil  ?? ''));
+        $satBesar  = trim((string) ($item->fsatuanbesar  ?? ''));
         $satBesar2 = trim((string) ($item->fsatuanbesar2 ?? ''));
-        $rasio    = (float) ($item->fqtykecil  ?? 0);
-        $rasio2   = (float) ($item->fqtykecil2 ?? 0);
+        $rasio     = (float) ($item->fqtykecil  ?? 0);
+        $rasio2    = (float) ($item->fqtykecil2 ?? 0);
 
         // Konversi qty PR ke satuan kecil
         if ($satuan === $satBesar && $rasio > 0) {
@@ -247,24 +265,29 @@ class Tr_pohController extends Controller
         } elseif ($satuan === $satBesar2 && $rasio2 > 0) {
           $maxqtyKecil = $qty * $rasio2;
         } else {
-          // Sudah satuan kecil atau tidak ada rasio
           $maxqtyKecil = $qty;
         }
 
-        return [
-          'frefdtno'    => $item->frefdtno,
-          'fitemcode'   => $item->fitemcode,
-          'fitemname'   => $item->fitemname,
-          'fqty'        => $qty,
-          'maxqty'      => $maxqtyKecil,  // ← dalam satuan kecil
-          'maxqty_satuan' => $satKecil,   // ← info satuan kecilnya
-          'fsatuan'     => $satuan,
-          'fprhid'      => $item->fprhid,
-          'fprice'      => (float) $item->fprice,
-          'fdisc'       => 0,
-          'fnouref'     => $item->fnouref,
-          'frefdtid'    => $item->frefdtid,
+        // Sisa yang belum di-PO (dalam satuan kecil)
+        $sisaKecil = max(0, $maxqtyKecil - $fqtypo);
 
+        return [
+          'frefdtno'      => $item->frefdtno,
+          'fitemcode'     => $item->fitemcode,
+          'fitemname'     => $item->fitemname,
+          'fqty'          => $qty,
+          'maxqty'        => $sisaKecil,     // ← sisa setelah dikurangi PO lain
+          'maxqty_satuan' => $satKecil,
+          'fsatuan'       => $satuan,
+          'fdesc'         => $item->fdesc ?? '',      // ← tambah ini
+          'fketdt'        => $item->fketdt ?? '',     // ← tambah ini
+          'fprhid'        => $item->fprhid,
+          'fprice'        => (float) $item->fprice,
+          'fdisc'         => 0,
+          'fnouref'       => $item->fnouref,
+          'frefdtid'      => $item->frefdtid,
+          'fqtypo'        => $fqtypo,        // ← kirim ke JS untuk calcMaxQty
+          'fqtypr'        => $qty,           // ← qty asli PR untuk referensi
           'fsatuankecil'  => $satKecil,
           'fsatuanbesar'  => $satBesar,
           'fsatuanbesar2' => $satBesar2,
@@ -478,7 +501,7 @@ class Tr_pohController extends Controller
       'frefdtno.*'   => ['nullable'],
 
       'fqty'         => ['required', 'array'],
-      'fqty.*'       => ['numeric', 'min:0'],
+      'fqty.*'       => ['numeric', 'gt:0', 'min:0'],
 
       'fprice'       => ['nullable', 'array'],
       'fprice.*'     => ['numeric', 'min:0'],
@@ -497,6 +520,7 @@ class Tr_pohController extends Controller
       'fpodate.required'   => 'Tanggal PO wajib diisi.',
       'fsupplier.required' => 'Supplier wajib diisi.',
       'fitemcode.required' => 'Minimal 1 item.',
+      'fqty.*.gt' => 'Harap hapus data atau isi qty data pada detail item (Qty tidak boleh 0).',
     ]);
 
     // HEADER VALUES
@@ -816,6 +840,7 @@ class Tr_pohController extends Controller
 
     $savedItems = $tr_poh->details->map(function ($d) use ($products, $prQtyMap) {
       $qtyPR    = (float) $d->fqtypr;
+      $fqtypo    = (float) ($item->fqtypo ?? 0);   // ← sudah dalam satuan kecil
       $satPR    = trim((string) $d->fqtypr_satuan);
       $satKecil = trim((string) $d->fsatuankecil);
       $satBesar = trim((string) $d->fsatuanbesar);
@@ -832,6 +857,9 @@ class Tr_pohController extends Controller
       } else {
         $maxqtyKecil = $qtyPR;
       }
+
+      // Sisa yang belum di-PO (dalam satuan kecil)
+      $sisaKecil = max(0, $maxqtyKecil - $fqtypo);
 
       // Siapkan units untuk dropdown
       $units = array_values(array_filter(array_map('trim', [$satKecil, $satBesar, $satBesar2])));
@@ -874,6 +902,7 @@ class Tr_pohController extends Controller
         'fketdt'    => (string)($d->fketdt ?? ''),
         'frefdtid'  => (string)($d->frefdtid ?? ''), // PASTIKAN INI ADA
         // Data konversi untuk JavaScript
+        'fqtypo'    => (float)($d->fqtypo ?? 0),
         'fqtypr'        => $qtyPR,
         'fqtypr_satuan' => $satPR,
         'fsatuankecil'  => $satKecil,
@@ -883,7 +912,7 @@ class Tr_pohController extends Controller
         'fqtykecil2'    => $rasio2,
 
         // maxqty dikirim dalam satuan terkecil (Base)
-        'maxqty'        => $maxqtyKecil,
+        'maxqty'        => $sisaKecil,
         'maxqty_satuan' => $satKecil,
       ];
     })->values();
@@ -1024,7 +1053,7 @@ class Tr_pohController extends Controller
       'frefdtno'     => ['nullable'],
       'frefdtno.*'   => ['nullable'],
       'fqty'         => ['required', 'array'],
-      'fqty.*'       => ['numeric', 'min:0'],
+      'fqty.*'       => ['numeric', 'min:0', 'gt:0'],
       'fprice'       => ['nullable', 'array'],
       'fprice.*'     => ['numeric', 'min:0'],
       'fdisc'        => ['nullable', 'array'],
@@ -1038,6 +1067,7 @@ class Tr_pohController extends Controller
       'fpodate.required'   => 'Tanggal PO wajib diisi.',
       'fsupplier.required' => 'Supplier wajib diisi.',
       'fitemcode.required' => 'Minimal 1 item.',
+      'fqty.*.gt' => 'Harap hapus data atau isi qty data pada detail item (Qty tidak boleh 0).',
     ]);
 
     $header  = Tr_poh::where('fpohid', $fpohid)->firstOrFail();

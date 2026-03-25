@@ -1299,7 +1299,7 @@
                         fprice: Number(src.fprice ?? 0),
                         fdisc: Number(src.fdisc ?? 0),
                         ftotal: Number(src.ftotal ?? 0),
-                        fdesc: src.fdesc ?? '',
+                        fdesc: src.fdesc ?? src.fketdt ?? '',
                         fketdt: src.fketdt ?? '',
                     };
                     // Hitung maxqty berdasarkan satuan PO saat ini
