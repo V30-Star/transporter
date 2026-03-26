@@ -21,117 +21,113 @@ class Tr_prhController extends Controller
 {
   public function index(Request $request)
   {
-    // Ambil izin (permissions) di awal
     $canCreate = in_array('createTr_prh', explode(',', session('user_restricted_permissions', '')));
     $canEdit   = in_array('updateTr_prh', explode(',', session('user_restricted_permissions', '')));
     $canDelete = in_array('deleteTr_prh', explode(',', session('user_restricted_permissions', '')));
     $showActionsColumn = $canEdit || $canDelete;
 
     $status = $request->query('status');
-    $year = $request->query('year');
-    $month = $request->query('month');
+    $year   = $request->query('year');
+    $month  = $request->query('month');
 
-    // Ambil tahun-tahun yang tersedia dari data
-    $availableYears = Tr_prh::selectRaw('DISTINCT EXTRACT(YEAR FROM fcreatedat) as year')
-      ->whereNotNull('fcreatedat')
-      ->orderByRaw('EXTRACT(YEAR FROM fcreatedat) DESC')
+    // ─── Ambil tahun dari fprdate (bukan fcreatedat) ───────────────────────
+    $availableYears = Tr_prh::selectRaw('DISTINCT EXTRACT(YEAR FROM fprdate)::int as year')
+      ->whereNotNull('fprdate')
       ->pluck('year');
 
-    // --- Handle Request AJAX dari DataTables ---
     if ($request->ajax()) {
 
       $query = Tr_prh::query()
         ->leftJoin('mssupplier', 'tr_prh.fsupplier', '=', 'mssupplier.fsupplierid');
+
       $totalRecords = Tr_prh::count();
 
-      // Kolom yang bisa dicari
-      $searchableColumns = ['tr_prh.fprno', 'tr_prh.fprdin', 'mssupplier.fsuppliername'];
+      $searchableColumns = ['tr_prh.fprno', 'mssupplier.fsuppliername'];
 
-      // Handle Search
       if ($search = $request->input('search.value')) {
         $query->where(function ($q) use ($search, $searchableColumns) {
           foreach ($searchableColumns as $column) {
-            $q->orWhere($column, 'like', "%{$search}%");
+            $q->orWhere($column, 'ilike', "%{$search}%");
           }
         });
       }
 
-      // Filter status berdasarkan query parameter atau default ke active
       $statusFilter = $request->query('status', 'active');
       if ($statusFilter === 'active') {
         $query->where('fclose', '0');
       } elseif ($statusFilter === 'nonactive') {
         $query->where('fclose', '1');
       }
-      // Jika 'all', tidak ada filter
 
-      // Filter tahun (PostgreSQL syntax)
+      // ─── Filter tahun & bulan dari fprdate ────────────────────────────
       if ($year) {
-        $query->whereRaw('EXTRACT(YEAR FROM fcreatedat) = ?', [$year]);
+        $query->whereRaw('EXTRACT(YEAR FROM tr_prh.fprdate) = ?', [(int) $year]);
       }
-
-      // Filter bulan (PostgreSQL syntax)
       if ($month) {
-        $query->whereRaw('EXTRACT(MONTH FROM fcreatedat) = ?', [$month]);
+        $query->whereRaw('EXTRACT(MONTH FROM tr_prh.fprdate) = ?', [(int) $month]);
       }
+      // ──────────────────────────────────────────────────────────────────
 
       $filteredRecords = (clone $query)->count();
 
-      // Sorting
       $orderColumnIndex = $request->input('order.0.column', 0);
-      $orderDir = $request->input('order.0.dir', 'asc');
+      $orderDir         = $request->input('order.0.dir', 'desc');
 
-      // Sesuaikan dengan urutan columns di DataTables
       $columns = [
-        0 => 'fprno',
-        1 => 'mssupplier.fsuppliername', // Update kolom sorting ke nama supplier        2 => 'fusercreate',
-        2 => 'fprdate',
-        3 => 'fusercreate',
-        4 => 'fuserupdate',
-        5 => 'fclose',  // Ganti ke fclose
-        6 => '' // Kolom 'Actions'
+        0 => 'tr_prh.fprno',
+        1 => 'tr_prh.fprdate',
+        2 => 'mssupplier.fsuppliername',
+        3 => 'tr_prh.fusercreate',
+        4 => 'tr_prh.fclose',
+        5 => null, // Aksi
       ];
 
-      if (isset($columns[$orderColumnIndex]) && $columns[$orderColumnIndex] !== null) {
+      if (!empty($columns[$orderColumnIndex])) {
         $query->orderBy($columns[$orderColumnIndex], $orderDir);
       } else {
-        $query->orderBy('fprhid', 'desc');
+        $query->orderBy('tr_prh.fprhid', 'desc');
       }
 
-      // Pagination
-      $start = $request->input('start', 0);
+      $start  = $request->input('start', 0);
       $length = $request->input('length', 10);
       if ($length != -1) {
         $query->skip($start)->take($length);
       }
 
-      // Select kolom yang dibutuhkan - PASTIKAN fclose ADA
-      $records = $query->get(['fprhid', 'fprno', 'fprdate', 'fsupplier', 'fusercreate', 'fuserupdate', 'fclose', 'mssupplier.fsuppliername']);
+      $records = $query->get([
+        'tr_prh.fprhid',
+        'tr_prh.fprno',
+        'tr_prh.fprdate',
+        'tr_prh.fsupplier',
+        'tr_prh.fusercreate',
+        'tr_prh.fuserupdate',
+        'tr_prh.fclose',
+        'mssupplier.fsuppliername',
+      ]);
 
-      // Format data untuk DataTables
       $data = $records->map(function ($record) {
         return [
-          'fprno'    => $record->fprno,
-          'fprdate'   => $record->fprdate,
-          'fsuppliername' => $record->fsuppliername,
+          'fprno'         => $record->fprno,
+          // ─── Format fprdate agar konsisten ────────────────────────
+          'fprdate'       => $record->fprdate
+            ? \Carbon\Carbon::parse($record->fprdate)->format('d/m/Y')
+            : '-',
+          'fsuppliername' => $record->fsuppliername ?? '-',
           'display_user'  => $record->fuserupdate ?: $record->fusercreate,
-          'fuserupdate'  => $record->fuserupdate,
           'fclose'        => $record->fclose == '1' ? 'Done' : 'Not Done',
-          'fprhid'    => $record->fprhid,
-          'DT_RowId' => 'row_' . $record->fprhid
+          'fprhid'        => $record->fprhid,
+          'DT_RowId'      => 'row_' . $record->fprhid,
         ];
       });
 
-      // Kirim response JSON
       return response()->json([
         'draw'            => intval($request->input('draw')),
         'recordsTotal'    => $totalRecords,
         'recordsFiltered' => $filteredRecords,
-        'data'            => $data
+        'data'            => $data,
       ]);
     }
 
-    // --- Handle Request non-AJAX ---
     return view('tr_prh.index', compact(
       'canCreate',
       'canEdit',

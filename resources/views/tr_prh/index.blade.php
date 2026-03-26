@@ -24,17 +24,6 @@
             @endif
         </div>
 
-        <div id="statusFilterTemplate" class="hidden">
-            <div class="flex items-center gap-2" id="statusFilterWrap">
-                <span class="text-sm text-gray-700">Status</span>
-                <select data-role="status-filter" class="border rounded px-2 py-1">
-                    <option value="all">All</option>
-                    <option value="active" selected>Active</option>
-                    <option value="nonactive">Non Active</option>
-                </select>
-            </div>
-        </div>
-
         <div id="yearFilterTemplate" class="hidden">
             <div class="flex items-center gap-2" id="yearFilterWrap">
                 <span class="text-sm text-gray-700">Tahun</span>
@@ -389,11 +378,17 @@
                     url: '{{ route('tr_prh.index') }}',
                     type: 'GET',
                     data: function(d) {
-                        // Ambil parameter dari URL saat ini
-                        const urlParams = new URLSearchParams(window.location.search);
-                        d.year = urlParams.get('year') || '';
-                        d.month = urlParams.get('month') || '';
-                        d.status = urlParams.get('status') || 'active';
+                        // ─── Baca langsung dari elemen DOM, bukan URL ──────────────────
+                        const $yearSelect = $('[data-role="year-filter"]').not('#yearFilterTemplate *')
+                            .last();
+                        const $monthSelect = $('[data-role="month-filter"]').not(
+                            '#monthFilterTemplate *').last();
+                        const $statusSelect = $('[data-role="status-filter"]').not(
+                            '#statusFilterTemplate *').last();
+
+                        d.year = $yearSelect.val() || '';
+                        d.month = $monthSelect.val() || '';
+                        d.status = $statusSelect.val() || 'active';
                     }
                 },
                 columns: columns,
@@ -484,13 +479,13 @@
 
                     // Event handlers untuk Year dan Month - TANPA RELOAD
                     $yearSelect.on('change', function() {
-                        updateUrlParams();
-                        api.ajax.reload(); // Reload data DataTables
+                        updateUrlParams(); // update URL dulu
+                        api.ajax.reload(); // baru reload — data function akan baca DOM terbaru
                     });
 
                     $monthSelect.on('change', function() {
                         updateUrlParams();
-                        api.ajax.reload(); // Reload data DataTables
+                        api.ajax.reload();
                     });
 
                     // Fungsi untuk update URL params tanpa reload halaman
