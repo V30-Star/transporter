@@ -3,6 +3,11 @@
 @section('title', $action === 'delete' ? 'Hapus Permintaan Pembelian' : 'Edit Permintaan Pembelian')
 
 @section('content')
+    @php
+        // Safety defaults — mencegah white page jika variable tidak ter-pass controller
+        $blockedByPO = $blockedByPO ?? false;
+        $existingPO = $existingPO ?? collect();
+    @endphp
     <style>
         input:focus,
         select:focus,
