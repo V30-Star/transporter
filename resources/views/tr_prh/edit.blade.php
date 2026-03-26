@@ -153,7 +153,7 @@
                         Batalkan PO terkait terlebih dahulu sebelum {{ $action === 'delete' ? 'menghapus' : 'mengedit' }} PR
                         ini.
                     </p>
-                    <button type="button" onclick="window.location.href='{{ route('tr_prh.index') }}'"
+                    <button type="button" @click="open = false"
                         class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center gap-2">
                         <x-heroicon-o-arrow-left class="w-5 h-5" />
                         Kembali
@@ -505,7 +505,9 @@
                                         <th class="p-2 text-right w-28">Qty</th>
                                         <th class="p-2 text-right w-28">Qty PO</th>
                                         <th class="p-2 text-left w-56">Ket Item</th>
-                                        <th class="p-2 text-center w-28">Aksi</th>
+                                        @if (empty($blockedByPO) || !$blockedByPO)
+                                            <th class="p-2 text-center w-28">Aksi</th>
+                                        @endif
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -528,14 +530,16 @@
                                             <td class="p-2 text-right" x-text="it.fqty"></td>
                                             <td class="p-2 text-right" x-text="it.fqtypo"></td>
                                             <td class="p-2" x-text="it.fketdt || '-'"></td>
-                                            <td class="p-2 text-center">
-                                                <div class="flex items-center justify-center gap-2 flex-wrap">
-                                                    <button type="button" @click="edit(i)"
-                                                        class="px-3 py-1 rounded text-xs bg-amber-100 text-amber-700 hover:bg-amber-200">Edit</button>
-                                                    <button type="button" @click="removeSaved(i)"
-                                                        class="px-3 py-1 rounded text-xs bg-red-100 text-red-600 hover:bg-red-200">Hapus</button>
-                                                </div>
-                                            </td>
+                                            @if (empty($blockedByPO) || !$blockedByPO)
+                                                <td class="p-2 text-center">
+                                                    <div class="flex items-center justify-center gap-2 flex-wrap">
+                                                        <button type="button" @click="edit(i)"
+                                                            class="px-3 py-1 rounded text-xs bg-amber-100 text-amber-700 hover:bg-amber-200">Edit</button>
+                                                        <button type="button" @click="removeSaved(i)"
+                                                            class="px-3 py-1 rounded text-xs bg-red-100 text-red-600 hover:bg-red-200">Hapus</button>
+                                                    </div>
+                                                </td>
+                                            @endif
 
                                             <!-- hidden inputs -->
                                             <td class="hidden">
@@ -562,7 +566,9 @@
                                             <td class="p-0"></td>
                                             <td class="p-0"></td>
                                             <td class="p-0"></td>
-                                            <td class="p-0"></td>
+                                            @if (empty($blockedByPO) || !$blockedByPO)
+                                                <td class="p-0"></td>
+                                            @endif
                                         </tr>
                                     </template>
 
@@ -624,14 +630,16 @@
                                                 x-model="editRow.fketdt" x-ref="editKet"
                                                 @keydown.enter.prevent="applyEdit()">
                                         </td>
-                                        <td class="p-2 text-center">
-                                            <div class="flex items-center justify-center gap-2 flex-wrap">
-                                                <button type="button" @click="applyEdit()"
-                                                    class="px-3 py-1 rounded text-xs bg-emerald-600 text-white">Simpan</button>
-                                                <button type="button" @click="cancelEdit()"
-                                                    class="px-3 py-1 rounded text-xs bg-gray-100">Batal</button>
-                                            </div>
-                                        </td>
+                                        @if (empty($blockedByPO) || !$blockedByPO)
+                                            <td class="p-2 text-center">
+                                                <div class="flex items-center justify-center gap-2 flex-wrap">
+                                                    <button type="button" @click="applyEdit()"
+                                                        class="px-3 py-1 rounded text-xs bg-emerald-600 text-white">Simpan</button>
+                                                    <button type="button" @click="cancelEdit()"
+                                                        class="px-3 py-1 rounded text-xs bg-gray-100">Batal</button>
+                                                </div>
+                                            </td>
+                                        @endif
                                     </tr>
 
                                     <!-- ROW EDIT DESC -->
@@ -646,7 +654,9 @@
                                         <td class="p-0"></td>
                                         <td class="p-0"></td>
                                         <td class="p-0"></td>
-                                        <td class="p-0"></td>
+                                        @if (empty($blockedByPO) || !$blockedByPO)
+                                            <td class="p-0"></td>
+                                        @endif
                                     </tr>
 
                                     <!-- ROW DRAFT UTAMA -->
@@ -704,10 +714,12 @@
                                                 x-model="draft.fketdt" x-ref="draftKet"
                                                 @keydown.enter.prevent="addIfComplete()">
                                         </td>
-                                        <td class="p-2 text-center">
-                                            <button type="button" @click="addIfComplete()"
-                                                class="px-3 py-1 rounded text-xs bg-emerald-600 text-white">Tambah</button>
-                                        </td>
+                                        @if (empty($blockedByPO) || !$blockedByPO)
+                                            <td class="p-2 text-center">
+                                                <button type="button" @click="addIfComplete()"
+                                                    class="px-3 py-1 rounded text-xs bg-emerald-600 text-white">Tambah</button>
+                                            </td>
+                                        @endif
                                     </tr>
 
                                     <!-- ROW DRAFT DESC -->
@@ -722,7 +734,9 @@
                                         <td class="p-0"></td>
                                         <td class="p-0"></td>
                                         <td class="p-0"></td>
-                                        <td class="p-0"></td>
+                                        @if (empty($blockedByPO) || !$blockedByPO)
+                                            <td class="p-0"></td>
+                                        @endif
                                     </tr>
                                 </tbody>
                             </table>

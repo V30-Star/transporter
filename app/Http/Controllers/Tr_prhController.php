@@ -1007,12 +1007,14 @@ class Tr_prhController extends Controller
   {
     $existingPO = DB::table('tr_pod')
       ->join('tr_poh', 'tr_poh.fpohid', '=', 'tr_pod.fpohid')
+      ->leftJoin('mssupplier as s', 's.fsupplierid', '=', 'tr_poh.fsupplier')
       ->where('tr_pod.frefdtid', $fprhid)
       ->select([
         'tr_poh.fpohid',
         'tr_poh.fpono',
         DB::raw('tr_poh.fpodate::text as fpodate'),
         'tr_poh.fsupplier',
+        's.fsuppliername',
       ])
       ->distinct()
       ->get();
@@ -1124,7 +1126,6 @@ class Tr_prhController extends Controller
 
       return view('tr_prh.edit', [
         'suppliers'        => $suppliers,
-        'existingPO'     => $existingPO,   // ← kirim data PO ke view
         'fcabang'          => $fcabang,
         'fbranchcode'      => $fbranchcode,
         'products'         => $products,
@@ -1133,7 +1134,8 @@ class Tr_prhController extends Controller
         'savedItems'       => $savedItems,
         'filterSupplierId' => $request->query('filter_supplier_id'),
         'action'           => 'delete',
-        'blockedByPO'    => true,          // ← flag untuk tampilkan modal
+        'existingPO'     => $existingPO,   // ← kirim data PO ke view
+        'blockedByPO'    => $existingPO->isNotEmpty(),           // ← flag untuk tampilkan modal
       ]);
     }
   }
