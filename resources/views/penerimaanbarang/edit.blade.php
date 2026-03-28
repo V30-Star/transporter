@@ -520,6 +520,7 @@
                                                 <th class="p-2 text-left w-36">Ref.PO#</th>
                                                 <th class="p-2 text-right w-24">Sat</th>
                                                 <th class="p-2 text-right w-28">Qty</th>
+                                                <th class="p-2 text-right w-28">Qty Terima</th>
                                                 <th class="p-2 text-right w-32">@ Harga</th>
                                                 <th class="p-2 text-right w-36">Total Harga</th>
                                                 <th class="p-2 text-center w-36">Aksi</th>
@@ -543,6 +544,7 @@
                                                     <td class="p-2" x-text="it.frefdtno || '-'"></td>
                                                     <td class="p-2 text-right" x-text="it.fsatuan"></td>
                                                     <td class="p-2 text-right" x-text="fmt(it.fqty)"></td>
+                                                    <td class="p-2 text-right" x-text="fmt(it.fqtyterima)"></td>
                                                     <td class="p-2 text-right" x-text="fmt(it.fprice)"></td>
                                                     <td class="p-2 text-right" x-text="fmt(it.ftotal)"></td>
                                                     <td class="p-2 text-center">
@@ -558,11 +560,10 @@
                                                         <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
                                                         <input type="hidden" name="fitemname[]" :value="it.fitemname">
                                                         <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
-
                                                         <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
-
                                                         <input type="hidden" name="frefpr[]" :value="it.frefpr">
                                                         <input type="hidden" name="fqty[]" :value="it.fqty">
+                                                        <input type="hidden" name="fqtyterima[]" :value="it.fqtyterima">
                                                         <input type="hidden" name="fprice[]" :value="it.fprice">
                                                         <input type="hidden" name="ftotal[]" :value="it.ftotal">
                                                         <input type="hidden" name="fdesc[]" :value="it.fdesc">
@@ -634,6 +635,14 @@
                                                 </td>
 
                                                 <td class="p-2 text-right">
+                                                    <input type="number" class="border rounded px-2 py-1 w-24 text-right"
+                                                        min="0" step="1" x-ref="editQtyTerima"
+                                                        x-model.number="editRow.fqtyterima" @change="recalc(editRow)"
+                                                        @blur="recalc(editRow)"
+                                                        @keydown.enter.prevent="$refs.editPrice?.focus()">
+                                                </td>
+
+                                                <td class="p-2 text-right">
                                                     <input type="number" class="border rounded px-2 py-1 w-28 text-right"
                                                         min="0" step="0.01" x-ref="editPrice"
                                                         x-model.number="editRow.fprice" @change="recalc(editRow)"
@@ -663,6 +672,7 @@
                                                         placeholder="Deskripsi (opsional)"></textarea>
 
                                                 </td>
+                                                <td class="p-0"></td>
                                                 <td class="p-0"></td>
                                                 <td class="p-0"></td>
                                                 <td class="p-0"></td>
@@ -733,6 +743,14 @@
                                                 </td>
 
                                                 <td class="p-2 text-right">
+                                                    <input type="number" class="border rounded px-2 py-1 w-24 text-right"
+                                                        min="0" step="1" x-ref="draftQtyTerima"
+                                                        x-model.number="draft.fqtyterima" @change="recalc(draft)"
+                                                        @blur="recalc(draft)"
+                                                        @keydown.enter.prevent="$refs.draftPrice?.focus()">
+                                                </td>
+
+                                                <td class="p-2 text-right">
                                                     <input type="number" class="border rounded px-2 py-1 w-28 text-right"
                                                         min="0" step="0.01" x-ref="draftPrice"
                                                         x-model.number="draft.fprice" @change="recalc(draft)"
@@ -758,6 +776,7 @@
                                                     <textarea x-model="draft.fdesc" rows="2" class="w-full border rounded px-4 py-1"
                                                         placeholder="Deskripsi (opsional)"></textarea>
                                                 </td>
+                                                <td class="p-0"></td>
                                                 <td class="p-0"></td>
                                                 <td class="p-0"></td>
                                                 <td class="p-0"></td>

@@ -249,6 +249,7 @@
                             <th class="p-2 text-left w-28">Satuan</th>
                             <th class="p-2 text-left w-36">Ref.PR#</th>
                             <th class="p-2 text-right w-24 whitespace-nowrap">Qty</th>
+                            <th class="p-2 text-right w-24 whitespace-nowrap">Qty Terima</th>
                             <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
                             <th class="p-2 text-right w-24 whitespace-nowrap">Disc. %</th>
                             <th class="p-2 text-right w-36 whitespace-nowrap">Total Harga</th>
@@ -365,6 +366,12 @@
                                     @else
                                         <span class="text-sm" x-text="it.fqty"></span>
                                     @endif
+                                </td>
+
+                                <td class="p-2 text-right">
+                                    <input type="number"
+                                        class="w-20 border rounded px-2 py-1 bg-gray-100 text-right text-sm text-gray-500"
+                                        :value="it.fqtyterima" disabled>
                                 </td>
 
                                 {{-- @ Harga --}}
@@ -492,6 +499,12 @@
                                     <input type="number" class="border rounded px-2 py-1 w-20 text-right text-sm"
                                         min="0" step="1" x-ref="draftQty" x-model.number="draft.fqty"
                                         @input="recalc(draft)" @keydown.enter.prevent="$refs.draftPrice?.focus()">
+                                </td>
+
+                                <td class="p-2 text-right">
+                                    <input type="number"
+                                        class="w-20 border rounded px-2 py-1 bg-gray-100 text-right text-sm text-gray-500"
+                                        :value="draft.fqtyterima" disabled>
                                 </td>
 
                                 <td class="p-2 text-right">

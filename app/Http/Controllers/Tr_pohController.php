@@ -782,6 +782,21 @@ class Tr_pohController extends Controller
 
     $tr_poh = Tr_poh::with(['details' => function ($q) {
       $q->leftJoin('msprd as m', 'm.fprdid', '=', 'tr_pod.fprdid')
+        ->leftJoin(DB::raw('(
+        SELECT
+            fprdcode,
+            frefdtno,
+            SUM(fqty) AS total_terima
+        FROM trstockdt
+        WHERE
+            (fstockmtcode = \'TER\' OR (fcode = \'P\' AND fstockmtcode = \'BUY\'))
+        GROUP BY
+            fprdcode,
+            frefdtno
+    ) as r'), function ($join) {
+          $join->on('r.frefdtno', '=', 'tr_pod.frefdtno')   // ← join via frefdtno
+            ->on('r.fprdcode', '=', 'm.fprdcode');
+        })
         ->select(
           'tr_pod.*',
           'm.fprdcode as fitemcode',
@@ -792,7 +807,8 @@ class Tr_pohController extends Controller
           'm.fqtykecil',
           'm.fqtykecil2',
           DB::raw("COALESCE((SELECT fqty FROM tr_prd WHERE fprhid::text = tr_pod.frefdtid::text LIMIT 1), 0) as fqtypr"),
-          DB::raw("COALESCE((SELECT fsatuan FROM tr_prd WHERE fprhid::text = tr_pod.frefdtid::text LIMIT 1), '') as fqtypr_satuan")
+          DB::raw("COALESCE((SELECT fsatuan FROM tr_prd WHERE fprhid::text = tr_pod.frefdtid::text LIMIT 1), '') as fqtypr_satuan"),
+          DB::raw('COALESCE(r.total_terima, 0) AS fqtyterima'), 
         );
     }])->findOrFail($fpohid);
 
@@ -894,6 +910,7 @@ class Tr_pohController extends Controller
         'fprhid'    => (string)($d->fprhid    ?? ''),
         'fprno'     => (string)($d->frefdtno  ?? ''),
         'fqty'      => (float)($d->fqty    ?? 0),
+        'fqtyterima' => (float)($d->fqtyterima ?? 0),   // ← tambah ini
         'fterima'   => (float)($d->fterima ?? 0),
         'fprice'    => (float)($d->fprice  ?? 0),
         'fdisc'     => (float)($d->fdisc   ?? 0),
