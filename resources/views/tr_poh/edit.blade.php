@@ -69,6 +69,87 @@
         }
     </style>
 
+    {{-- ═══════════════════════════════════════════════════════════════════
+     MODAL BLOCKED BY PENERIMAAN BARANG (QTY TERIMA)
+════════════════════════════════════════════════════════════════════ --}}
+    @if ((!empty($blockedByTerima) && $blockedByTerima) || session('blocked_by_terima'))
+        <div x-data="{ open: true }" x-show="open" x-cloak class="fixed inset-0 z-[99] flex items-center justify-center"
+            x-transition.opacity>
+            <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+
+            <div class="relative bg-white w-[92vw] max-w-2xl rounded-2xl shadow-2xl overflow-hidden">
+
+                {{-- Header --}}
+                <div class="px-6 py-4 border-b border-orange-100 bg-orange-50 flex items-center gap-3">
+                    <div class="flex-shrink-0 w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
+                        <x-heroicon-o-truck class="w-5 h-5 text-orange-600" />
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-base font-bold text-orange-700">
+                            PO Tidak Dapat {{ $action === 'delete' ? 'Dihapus' : 'Diedit' }}
+                        </h3>
+                        <p class="text-sm text-orange-500 mt-0.5">
+                            PO <strong>{{ $tr_poh->fpono }}</strong> sudah memiliki transaksi Penerimaan Barang:
+                        </p>
+                    </div>
+                    {{-- Tombol X tutup modal --}}
+                    <button type="button" @click="open = false"
+                        class="flex-shrink-0 w-8 h-8 rounded-full bg-orange-100 hover:bg-orange-200 flex items-center justify-center transition-colors"
+                        title="Tutup">
+                        <x-heroicon-o-x-mark class="w-4 h-4 text-orange-600" />
+                    </button>
+                </div>
+
+                {{-- Body: tabel daftar penerimaan --}}
+                <div class="px-6 py-4 max-h-72 overflow-y-auto">
+                    @if (!empty($existingTerima) && $existingTerima->isNotEmpty())
+                        <table class="w-full text-sm border rounded overflow-hidden">
+                            <thead>
+                                <tr class="bg-gray-100 text-gray-700">
+                                    <th class="px-3 py-2 text-left font-semibold">#</th>
+                                    <th class="px-3 py-2 text-left font-semibold">No. Terima</th>
+                                    <th class="px-3 py-2 text-left font-semibold">Tanggal</th>
+                                    <th class="px-3 py-2 text-right font-semibold">Total Qty</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($existingTerima as $idx => $terima)
+                                    <tr class="border-t hover:bg-gray-50">
+                                        <td class="px-3 py-2 text-gray-400 text-xs">{{ $idx + 1 }}</td>
+                                        <td class="px-3 py-2 font-mono font-medium text-orange-700">
+                                            {{ $terima->fstockmtno ?? '-' }}
+                                        </td>
+                                        <td class="px-3 py-2 text-gray-600">
+                                            {{ $terima->fdatetime ? \Carbon\Carbon::parse($terima->fdatetime)->format('d/m/Y') : '-' }}
+                                        </td>
+                                        <td class="px-3 py-2 text-right text-gray-600">
+                                            {{ number_format($terima->total_qty, 2, ',', '.') }}
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    @else
+                        <p class="text-sm text-gray-600">PO ini sudah memiliki transaksi penerimaan barang terkait.</p>
+                    @endif
+                </div>
+
+                {{-- Footer --}}
+                <div class="px-6 py-4 border-t bg-gray-50 flex justify-between items-center gap-3">
+                    <p class="text-xs text-gray-500">
+                        Batalkan transaksi Penerimaan Barang terkait terlebih dahulu sebelum
+                        {{ $action === 'delete' ? 'menghapus' : 'mengedit' }} PO ini.
+                    </p>
+                    <button type="button" @click="open = false"
+                        class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center gap-2">
+                        <x-heroicon-o-arrow-left class="w-5 h-5" />
+                        Kembali
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
+
     @php
         $isDelete = $action === 'delete';
         $isEdit = $action === 'edit';
@@ -253,7 +334,7 @@
                             <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
                             <th class="p-2 text-right w-24 whitespace-nowrap">Disc. %</th>
                             <th class="p-2 text-right w-36 whitespace-nowrap">Total Harga</th>
-                            @if ($isEdit)
+                            @if ($isEdit && (empty($blockedByTerima) || !$blockedByTerima))
                                 <th class="p-2 text-center w-20">Aksi</th>
                             @endif
                         </tr>
@@ -403,7 +484,7 @@
                                 {{-- Total Harga --}}
                                 <td class="p-2 text-right text-sm font-medium" x-text="fmtCurr(it.ftotal)"></td>
 
-                                @if ($isEdit)
+                                @if ($isEdit && (empty($blockedByTerima) || !$blockedByTerima))
                                     <td class="p-2 text-center">
                                         <button type="button" @click="removeSaved(i)"
                                             class="px-3 py-1 rounded text-xs bg-red-100 text-red-600 hover:bg-red-200 whitespace-nowrap">
@@ -522,12 +603,14 @@
 
                                 <td class="p-2 text-right text-sm font-medium" x-text="fmtCurr(draft.ftotal)"></td>
 
+                                @if (empty($blockedByTerima) || !$blockedByTerima)
                                 <td class="p-2 text-center">
                                     <button type="button" @click="addIfComplete()"
                                         class="px-3 py-1 rounded text-xs bg-emerald-600 text-white hover:bg-emerald-700 whitespace-nowrap">
                                         Tambah
                                     </button>
                                 </td>
+                                @endif
                             </tr>
                         @endif
                     </tbody>
@@ -539,7 +622,7 @@
                 <div class="mt-3 flex justify-between items-start gap-4">
 
                     <div class="flex justify-start">
-                        @if ($isEdit)
+                        @if ($isEdit && empty($blockedByTerima) || !$blockedByTerima)
                             <button type="button" @click="openModal()"
                                 class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
@@ -838,15 +921,31 @@
 
         <div class="mt-8 flex justify-center gap-4">
             @if ($isEdit)
-                <button type="submit"
-                    class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
-                    <x-heroicon-o-check class="w-5 h-5 mr-2" /> Simpan
-                </button>
+                @if (!empty($blockedByTerima) && $blockedByTerima)
+                    {{-- Simpan di-disable karena ada penerimaan barang --}}
+                    <button type="button" disabled title="Tidak dapat disimpan karena sudah ada penerimaan barang"
+                        class="bg-blue-300 text-white px-6 py-2 rounded flex items-center cursor-not-allowed opacity-60">
+                        <x-heroicon-o-check class="w-5 h-5 mr-2" /> Simpan
+                    </button>
+                @else
+                    <button type="submit"
+                        class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
+                        <x-heroicon-o-check class="w-5 h-5 mr-2" /> Simpan
+                    </button>
+                @endif
             @else
-                <button type="button" onclick="showDeleteModal()"
-                    class="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700 flex items-center">
-                    <x-heroicon-o-trash class="w-5 h-5 mr-2" /> Hapus
-                </button>
+                @if (!empty($blockedByTerima) && $blockedByTerima)
+                    {{-- Hapus di-disable karena ada penerimaan barang --}}
+                    <button type="button" disabled title="Tidak dapat dihapus karena sudah ada penerimaan barang"
+                        class="bg-red-300 text-white px-6 py-2 rounded flex items-center cursor-not-allowed opacity-60">
+                        <x-heroicon-o-trash class="w-5 h-5 mr-2" /> Hapus
+                    </button>
+                @else
+                    <button type="button" onclick="showDeleteModal()"
+                        class="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700 flex items-center">
+                        <x-heroicon-o-trash class="w-5 h-5 mr-2" /> Hapus
+                    </button>
+                @endif
             @endif
             <button type="button" onclick="window.location.href='{{ route('tr_poh.index') }}'"
                 class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
@@ -1357,6 +1456,8 @@
 
             submitForm(form) {
                 if (!IS_EDIT) return;
+                // Guard: blok submit jika ada penerimaan barang
+                if ({{ !empty($blockedByTerima) && $blockedByTerima ? 'true' : 'false' }}) return;
                 if (this.savedItems.length < 1) {
                     this.showNoItems = true;
                     return;

@@ -808,9 +808,22 @@ class Tr_pohController extends Controller
           'm.fqtykecil2',
           DB::raw("COALESCE((SELECT fqty FROM tr_prd WHERE fprhid::text = tr_pod.frefdtid::text LIMIT 1), 0) as fqtypr"),
           DB::raw("COALESCE((SELECT fsatuan FROM tr_prd WHERE fprhid::text = tr_pod.frefdtid::text LIMIT 1), '') as fqtypr_satuan"),
-          DB::raw('COALESCE(r.total_terima, 0) AS fqtyterima'), 
+          DB::raw('COALESCE(r.total_terima, 0) AS fqtyterima'),
         );
     }])->findOrFail($fpohid);
+
+    $existingTerima = DB::table('trstockdt')
+      ->where('frefdtno', $tr_poh->fpono)
+      ->select(
+        'fstockmtno',
+        'fdatetime',
+        DB::raw('SUM(fqty) as total_qty')
+      )
+      ->groupBy('fstockmtno', 'fdatetime')
+      ->orderBy('fdatetime', 'desc')
+      ->get();
+
+    $blockedByTerima = $existingTerima->isNotEmpty();
 
     $fpohidInt = (int) $tr_poh->fpohid;
 
@@ -940,6 +953,8 @@ class Tr_pohController extends Controller
       'fcabang'             => $fcabang,
       'fbranchcode'         => $fbranchcode,
       'products'            => $products,
+      'existingTerima'  => $existingTerima,
+      'blockedByTerima' => $blockedByTerima,
       'productMap'          => $productMap,
       'tr_poh'              => $tr_poh,
       'savedItems'          => $savedItems,
@@ -1298,16 +1313,45 @@ class Tr_pohController extends Controller
     $fbranchcode = $branch->fcabangkode ?? (string) $raw;   // hidden post
 
     $tr_poh = Tr_poh::with(['details' => function ($q) {
-      $q->orderBy('fpodid')
-        ->leftJoin('msprd', function ($j) {
-          $j->on('msprd.fprdid', '=', DB::raw('CAST(tr_pod.fprdid AS INTEGER)'));
+      $q->leftJoin('msprd as m', 'm.fprdid', '=', 'tr_pod.fprdid')
+        ->leftJoin(DB::raw('(
+        SELECT
+            fprdcode,
+            frefdtno,
+            SUM(fqty) AS total_terima
+        FROM trstockdt
+        WHERE
+            (fstockmtcode = \'TER\' OR (fcode = \'P\' AND fstockmtcode = \'BUY\'))
+        GROUP BY
+            fprdcode,
+            frefdtno
+    ) as r'), function ($join) {
+          $join->on('r.frefdtno', '=', 'tr_pod.frefdtno')   // ← join via frefdtno
+            ->on('r.fprdcode', '=', 'm.fprdcode');
         })
         ->select(
           'tr_pod.*',
-          'msprd.fprdcode as fitemcode',
-          'msprd.fprdname'
+          'm.fprdcode as fitemcode',
+          'm.fprdname',
+          'm.fsatuankecil',
+          'm.fsatuanbesar',
+          'm.fsatuanbesar2',
+          'm.fqtykecil',
+          'm.fqtykecil2',
+          DB::raw("COALESCE((SELECT fqty FROM tr_prd WHERE fprhid::text = tr_pod.frefdtid::text LIMIT 1), 0) as fqtypr"),
+          DB::raw("COALESCE((SELECT fsatuan FROM tr_prd WHERE fprhid::text = tr_pod.frefdtid::text LIMIT 1), '') as fqtypr_satuan"),
+          DB::raw('COALESCE(r.total_terima, 0) AS fqtyterima'),
         );
     }])->findOrFail($fpohid);
+
+    // Cek apakah PO sudah ada penerimaan barang
+    $existingTerima = DB::table('trstockdt')
+      ->where('frefdtno', $tr_poh->fpono)
+      ->select('fstockmtno', 'fdatetime', DB::raw('SUM(fqty) as total_qty'))
+      ->groupBy('fstockmtno', 'fdatetime')
+      ->get();
+
+    $blockedByTerima = $existingTerima->isNotEmpty();
 
     // Lookup currency berdasarkan fcurrency (integer ID) di tr_poh
     $currentCurrency = DB::table('mscurrency')
@@ -1359,6 +1403,7 @@ class Tr_pohController extends Controller
         'frefdtno'  => (string)($d->frefdtno  ?? ''),
         'frefdtid'  => (string)($d->frefdtid  ?? ''),
         'fnouref'   => (string)($d->fnouref   ?? ''),
+        'fqtyterima' => (float)($d->fqtyterima ?? 0),
         'frefpr'    => (string)($d->frefdtno  ?? ''),
         'fprhid'    => (string)($d->fprhid    ?? ''),
         'fprno'     => (string)($d->frefdtno  ?? ''),
@@ -1379,6 +1424,8 @@ class Tr_pohController extends Controller
       'selectedSupplierCode' => $tr_poh->fsupplier,
       'fcabang'             => $fcabang,
       'fbranchcode'         => $fbranchcode,
+      'existingTerima'  => $existingTerima,
+      'blockedByTerima' => $blockedByTerima,
       'products'            => $products,
       'productMap'          => $productMap,
       'tr_poh'              => $tr_poh,
@@ -1396,19 +1443,35 @@ class Tr_pohController extends Controller
   public function destroy($fpohid)
   {
     try {
-      $tr_poh = Tr_poh::with('details')->findOrFail($fpohid);
+      $tr_poh = Tr_poh::findOrFail($fpohid);
 
-      // Hapus anaknya dulu
-      $tr_poh->details()->delete();
+      // 1. Cek apakah sudah ada penerimaan barang (Stock In) untuk PO ini
+      // Kita cek berdasarkan frefdtno (Nomor PO) di tabel detail stok
+      $existingTerima = DB::table('trstockdt')
+        ->where('frefdtno', $tr_poh->fpono)
+        ->select('fstockmtno')
+        ->distinct()
+        ->get();
 
-      // Baru hapus induknya
-      $tr_poh->delete();
+      if ($existingTerima->isNotEmpty()) {
+        $noTransaksi = $existingTerima->pluck('fstockmtno')->implode(', ');
+        return redirect()->back()->with(
+          'error',
+          "Order Pembelian {$tr_poh->fpono} tidak bisa dihapus karena sudah memiliki transaksi Penerimaan Barang: ({$noTransaksi})."
+        );
+      }
+
+      DB::transaction(function () use ($tr_poh) {
+        // Hapus detailnya dulu
+        $tr_poh->details()->delete();
+        // Baru hapus induknya
+        $tr_poh->delete();
+      });
 
       return redirect()->route('tr_poh.index')
-        ->with('success', 'Data Order Pembelian ' . $tr_poh->fpono . ' dan detailnya berhasil dihapus.');
+        ->with('success', "Data Order Pembelian {$tr_poh->fpono} berhasil dihapus.");
     } catch (\Exception $e) {
-      return redirect()->back()
-        ->with('error', 'Gagal menghapus data: ' . $e->getMessage());
+      return redirect()->back()->with('error', 'Gagal menghapus data: ' . $e->getMessage());
     }
   }
 }
