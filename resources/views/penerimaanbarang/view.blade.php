@@ -89,17 +89,13 @@
             <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
                 <div class="space-y-4">
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-                        <div class="lg:col-span-4" x-data="{ autoCode: true }">
+                        <div class="lg:col-span-4">
                             <label class="block text-sm font-medium mb-1">Transaksi#</label>
                             <div class="flex items-center gap-3">
-                                <input type="text" name="fstockmtno" class="w-full border rounded px-3 py-2"
-                                    :disabled="autoCode"
-                                    :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
-                                <label class="inline-flex items-center select-none">
-                                    <input type="checkbox" x-model="autoCode" checked>
-                                    <span class="ml-2 text-sm text-gray-700">Auto</span>
-                                </label>
+                                <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
+                                    value="{{ $penerimaanbarang->fstockmtno }}" disabled>
                             </div>
+                            <input type="hidden" name="fstockmtno" value="{{ $penerimaanbarang->fstockmtno }}">
                         </div>
 
                         <div class="lg:col-span-4">
@@ -219,7 +215,6 @@
                                         <th class="p-2 text-right w-28">Qty</th>
                                         <th class="p-2 text-right w-32">@ Harga</th>
                                         <th class="p-2 text-right w-36">Total Harga</th>
-                                        <th class="p-2 text-center w-36">Aksi</th>
                                     </tr>
                                 </thead>
 
