@@ -226,8 +226,24 @@ class ProductController extends Controller
                     'different:fsatuanbesar',  // Jika diisi, harus beda dengan fsatuanbesar
                 ],
                 'fsatuandefault' => 'in:1,2,3', // Validate Satuan Default field
-                'fqtykecil' => 'numeric', // Validate quantity for Satuan 1
-                'fqtykecil2' => 'numeric', // Validate quantity for Satuan 3
+                'fqtykecil' => [
+                    'nullable',
+                    'numeric',
+                    function ($attribute, $value, $fail) use ($request) {
+                        if ($request->filled('fsatuanbesar') && (float)$value <= 0) {
+                            $fail('Isi Satuan 2 tidak boleh kosong dan harus > 0.');
+                        }
+                    },
+                ],
+                'fqtykecil2' => [
+                    'nullable',
+                    'numeric',
+                    function ($attribute, $value, $fail) use ($request) {
+                        if ($request->filled('fsatuanbesar2') && (float)$value <= 0) {
+                            $fail('Isi Satuan 3 tidak boleh kosong dan harus > 0.');
+                        }
+                    },
+                ],
                 'fhargasatuankecillevel1' => '', // Validate if nonactive is checked
                 'fhargasatuankecillevel2' => '', // Validate if nonactive is checked
                 'fhargasatuankecillevel3' => '', // Validate if nonactive is checked
@@ -369,8 +385,24 @@ class ProductController extends Controller
                     'different:fsatuanbesar',  // Jika diisi, harus beda dengan fsatuanbesar
                 ],
                 'fsatuandefault' => 'in:1,2,3', // Validate Satuan Default field
-                'fqtykecil' => 'numeric', // Validate quantity for Satuan 1
-                'fqtykecil2' => 'numeric', // Validate quantity for Satuan 3
+                'fqtykecil' => [
+                    'nullable',
+                    'numeric',
+                    function ($attribute, $value, $fail) use ($request) {
+                        if ($request->filled('fsatuanbesar') && (float)$value <= 0) {
+                            $fail('Isi Satuan 2 tidak boleh kosong dan harus > 0.');
+                        }
+                    },
+                ],
+                'fqtykecil2' => [
+                    'nullable',
+                    'numeric',
+                    function ($attribute, $value, $fail) use ($request) {
+                        if ($request->filled('fsatuanbesar2') && (float)$value <= 0) {
+                            $fail('Isi Satuan 3 tidak boleh kosong dan harus > 0.');
+                        }
+                    },
+                ],
                 'fhargasatuankecillevel1' => '', // Validate if nonactive is checked
                 'fhargasatuankecillevel2' => '', // Validate if nonactive is checked
                 'fhargasatuankecillevel3' => '', // Validate if nonactive is checked

@@ -346,6 +346,9 @@
                                                 class="satuan-kecil-display text-gray-500 font-bold text-[10px] pr-3 flex-shrink-0 border-l border-yellow-200 ml-2 pl-2">
                                             </span>
                                         </div>
+                                        @error('fqtykecil')
+                                            <div class="text-red-600 text-sm mt-1">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                     <div class="w-1/6">
                                         <label class="block text-sm font-medium">HPP Satuan 2</label>
@@ -398,6 +401,9 @@
                                                 class="satuan-kecil-display text-purple-700 font-bold text-[10px] pr-3 flex-shrink-0 border-l border-purple-200 ml-2 pl-2 uppercase">
                                             </span>
                                         </div>
+                                        @error('fqtykecil2')
+                                            <div class="text-red-600 text-sm mt-1">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                     <div class="w-1/6">
                                         <label class="block text-sm font-medium">HPP Satuan 3</label>
@@ -900,6 +906,9 @@
                                                 class="satuan-kecil-display text-gray-500 font-bold text-[10px] pr-3 flex-shrink-0 border-l border-yellow-200 ml-2 pl-2">
                                             </span>
                                         </div>
+                                        @error('fqtykecil')
+                                            <div class="text-red-600 text-sm mt-1">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                     <div class="w-1/6">
                                         <label class="block text-sm font-medium">HPP Satuan 2</label>
@@ -952,6 +961,9 @@
                                                 class="satuan-kecil-display text-purple-700 font-bold text-[10px] pr-3 flex-shrink-0 border-l border-purple-200 ml-2 pl-2 uppercase">
                                             </span>
                                         </div>
+                                        @error('fqtykecil2')
+                                            <div class="text-red-600 text-sm mt-1">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                     <div class="w-1/6">
                                         <label class="block text-sm font-medium">HPP Satuan 3</label>
