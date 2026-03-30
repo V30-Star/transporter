@@ -409,60 +409,7 @@
                     <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <!-- Harga Satuan 3 Level 1 -->
                         <div>
-                            <label for="fhargasatuankecillevel1" class="block text-sm font-medium">HJ. Kecil Level
-                                1</label>
-                            <div class="d-flex">
-                                <input type="text" disabled
-                                    class="w-1/10 border rounded px-3 py-2 bg-blue-50 border-blue-300 focus:ring-blue-500 @error('fhargasatuankecillevel1') is-invalid @enderror"
-                                    name="fhargasatuankecillevel1" id="fhargasatuankecillevel1"
-                                    value="{{ old('fhargasatuankecillevel1', $product->fhargasatuankecillevel1) }}">
-                                @error('fhargasatuankecillevel1')
-                                    <div class="text-red-600 text-sm mt-1">
-                                        {{ $message }}
-                                    </div>
-                                @enderror
-                            </div>
-                        </div>
-
-                        <!-- Harga Satuan 3 Level 2 -->
-                        <div>
-                            <label for="fhargasatuankecillevel2" class="block text-sm font-medium">HJ. Kecil Level
-                                2</label>
-                            <div class="d-flex">
-                                <input type="text" disabled
-                                    class="w-1/10 border rounded px-3 py-2 bg-yellow-50 @error('fhargasatuankecillevel2') is-invalid @enderror"
-                                    name="fhargasatuankecillevel2" id="fhargasatuankecillevel2"
-                                    value="{{ old('fhargasatuankecillevel2', $product->fhargasatuankecillevel2) }}">
-                                @error('fhargasatuankecillevel2')
-                                    <div class="text-red-600 text-sm mt-1">
-                                        {{ $message }}
-                                    </div>
-                                @enderror
-                            </div>
-                        </div>
-
-                        <!-- Harga Satuan 3 Level 3 -->
-                        <div>
-                            <label for="fhargasatuankecillevel3" class="block text-sm font-medium">HJ. Kecil Level
-                                3</label>
-                            <div class="d-flex">
-                                <input type="text" disabled
-                                    class="w-1/10 border rounded px-3 py-2 bg-purple-50 @error('fhargasatuankecillevel3') is-invalid @enderror"
-                                    name="fhargasatuankecillevel3" id="fhargasatuankecillevel3"
-                                    value="{{ old('fhargasatuankecillevel3', $product->fhargasatuankecillevel3) }}">
-                                @error('fhargasatuankecillevel3')
-                                    <div class="text-red-600 text-sm mt-1">
-                                        {{ $message }}
-                                    </div>
-                                @enderror
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <!-- Harga Satuan 2 Level 1 -->
-                        <div>
-                            <label for="fhargajuallevel1" class="block text-sm font-medium">HJ. Besar Level
+                            <label for="fhargajuallevel1" class="block text-sm font-medium">HJ. Kecil Level
                                 1</label>
                             <div class="d-flex">
                                 <input type="text" disabled
@@ -477,9 +424,9 @@
                             </div>
                         </div>
 
-                        <!-- Harga Satuan 2 Level 2 -->
+                        <!-- Harga Satuan 3 Level 2 -->
                         <div>
-                            <label for="fhargajuallevel2" class="block text-sm font-medium">HJ. Besar Level
+                            <label for="fhargajuallevel2" class="block text-sm font-medium">HJ. Kecil Level
                                 2</label>
                             <div class="d-flex">
                                 <input type="text" disabled
@@ -494,9 +441,9 @@
                             </div>
                         </div>
 
-                        <!-- Harga Satuan 2 Level 3 -->
+                        <!-- Harga Satuan 3 Level 3 -->
                         <div>
-                            <label for="fhargajuallevel3" class="block text-sm font-medium">HJ. Besar Level
+                            <label for="fhargajuallevel3" class="block text-sm font-medium">HJ. Kecil Level
                                 3</label>
                             <div class="d-flex">
                                 <input type="text" disabled
@@ -508,6 +455,77 @@
                                         {{ $message }}
                                     </div>
                                 @enderror
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <!-- HJ. Besar Level 1 -->
+                        <div>
+                            <label class="block text-sm font-medium">HJ. Besar Level 1</label>
+                            <div class="d-flex">
+                                <input type="text" disabled
+                                    class="w-1/10 border rounded px-3 py-2 bg-blue-50 border-blue-300"
+                                    value="{{ $product->fhargajual2level1 ?? 0 }}">
+                            </div>
+                        </div>
+
+                        <!-- HJ. Besar Level 2 -->
+                        <div>
+                            <label class="block text-sm font-medium">HJ. Besar Level 2</label>
+                            <div class="d-flex">
+                                <input type="text" disabled
+                                    class="w-1/10 border rounded px-3 py-2 bg-yellow-50"
+                                    value="{{ $product->fhargajual2level2 ?? 0 }}">
+                            </div>
+                        </div>
+
+                        <!-- HJ. Besar Level 3 -->
+                        <div>
+                            <label class="block text-sm font-medium">HJ. Besar Level 3</label>
+                            <div class="d-flex">
+                                <input type="text" disabled
+                                    class="w-1/10 border rounded px-3 py-2 bg-purple-50"
+                                    value="{{ $product->fhargajual2level3 ?? 0 }}">
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- HJ Dynamic Columns --}}
+                    <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <!-- HJ <PCS> Level 1 -->
+                        <div>
+                            <label class="block text-sm font-medium">
+                                HJ <span class="uppercase">{{ $product->fsatuankecil ?? '-' }}</span> Level 1
+                            </label>
+                            <div class="d-flex">
+                                <input type="text" disabled
+                                    class="w-1/10 border rounded px-3 py-2 bg-gray-100"
+                                    value="{{ $product->fhargajual3level1 ?? 0 }}">
+                            </div>
+                        </div>
+
+                        <!-- HJ <CTN> Level 1 -->
+                        <div>
+                            <label class="block text-sm font-medium">
+                                HJ <span class="uppercase">{{ $product->fsatuanbesar ?? '-' }}</span> Level 1
+                            </label>
+                            <div class="d-flex">
+                                <input type="text" disabled
+                                    class="w-1/10 border rounded px-3 py-2 bg-gray-100"
+                                    value="{{ $product->fhargajual3level2 ?? 0 }}">
+                            </div>
+                        </div>
+
+                        <!-- HJ <DUS> Level 1 -->
+                        <div>
+                            <label class="block text-sm font-medium">
+                                HJ <span class="uppercase">{{ $product->fsatuanbesar2 ?? '-' }}</span> Level 1
+                            </label>
+                            <div class="d-flex">
+                                <input type="text" disabled
+                                    class="w-1/10 border rounded px-3 py-2 bg-gray-100"
+                                    value="{{ $product->fhargajual3level3 ?? 0 }}">
                             </div>
                         </div>
                     </div>

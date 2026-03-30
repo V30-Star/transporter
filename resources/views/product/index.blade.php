@@ -29,7 +29,7 @@
         </div>
 
         {{-- Template Filter Status (hidden, akan di-clone ke toolbar DataTables) --}}
-        <div id="statusFilterTemplate" class="hidden">
+        <div id="statusFilterTemplate" style="display: none;">
             <div class="flex items-center gap-2" id="statusFilterWrap">
                 <span class="text-sm text-gray-700">Status</span>
                 <select data-role="status-filter" class="border rounded px-2 py-1">
@@ -44,14 +44,99 @@
         <table id="productTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
-                    <th class="border px-2 py-2">Kode Product</th>
-                    <th class="border px-2 py-2">Nama Product</th>
-                    <th class="border px-2 py-2">Merek</th>
-                    <th class="border px-2 py-2 no-sort">Satuan</th>
-                    <th class="border px-2 py-2 no-sort">Stok</th>
-                    <th class="border px-2 py-2 no-sort">Status</th>
+                    <th class="border px-3 py-2">
+                        <div class="flex items-center justify-between">
+                            <span>Kode Product</span>
+                            <div class="flex items-center gap-1">
+                                <button type="button" class="col-search-btn p-1 hover:bg-gray-200 rounded" data-column="0" title="Filter Kolom">
+                                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                    </svg>
+                                </button>
+                                <span class="sort-icon cursor-pointer" data-column="0">
+                                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
+                                    </svg>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-search-input mt-2 hidden">
+                            <input type="text" class="dt-column-search w-full px-2 py-1.5 border border-gray-300 rounded text-sm uppercase focus:outline-none focus:ring-1 focus:ring-blue-500" data-column="0" placeholder="Cari...">
+                        </div>
+                    </th>
+                    <th class="border px-3 py-2">
+                        <div class="flex items-center justify-between">
+                            <span>Nama Product</span>
+                            <div class="flex items-center gap-1">
+                                <button type="button" class="col-search-btn p-1 hover:bg-gray-200 rounded" data-column="1" title="Filter Kolom">
+                                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                    </svg>
+                                </button>
+                                <span class="sort-icon cursor-pointer" data-column="1">
+                                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
+                                    </svg>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-search-input mt-2 hidden">
+                            <input type="text" class="dt-column-search w-full px-2 py-1.5 border border-gray-300 rounded text-sm uppercase focus:outline-none focus:ring-1 focus:ring-blue-500" data-column="1" placeholder="Cari...">
+                        </div>
+                    </th>
+                    <th class="border px-3 py-2">
+                        <div class="flex items-center justify-between">
+                            <span>Merek</span>
+                            <div class="flex items-center gap-1">
+                                <button type="button" class="col-search-btn p-1 hover:bg-gray-200 rounded" data-column="2" title="Filter Kolom">
+                                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                    </svg>
+                                </button>
+                                <span class="sort-icon cursor-pointer" data-column="2">
+                                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
+                                    </svg>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-search-input mt-2 hidden">
+                            <input type="text" class="dt-column-search w-full px-2 py-1.5 border border-gray-300 rounded text-sm uppercase focus:outline-none focus:ring-1 focus:ring-blue-500" data-column="2" placeholder="Cari...">
+                        </div>
+                    </th>
+                    <th class="border px-3 py-2 no-sort">
+                        <div class="flex items-center justify-between">
+                            <span>Satuan</span>
+                            <button type="button" class="col-search-btn p-1 hover:bg-gray-200 rounded" data-column="3" title="Filter Kolom">
+                                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="col-search-input mt-2 hidden">
+                            <input type="text" class="dt-column-search w-full px-2 py-1.5 border border-gray-300 rounded text-sm uppercase focus:outline-none focus:ring-1 focus:ring-blue-500" data-column="3" placeholder="Cari...">
+                        </div>
+                    </th>
+                    <th class="border px-3 py-2 no-sort">
+                        <div class="flex items-center justify-between">
+                            <span>Stok</span>
+                            <button type="button" class="col-search-btn p-1 hover:bg-gray-200 rounded" data-column="4" title="Filter Kolom">
+                                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="col-search-input mt-2 hidden">
+                            <input type="text" class="dt-column-search w-full px-2 py-1.5 border border-gray-300 rounded text-sm uppercase focus:outline-none focus:ring-1 focus:ring-blue-500" data-column="4" placeholder="Cari...">
+                        </div>
+                    </th>
+                    <th class="border px-3 py-2 no-sort">
+                        <div class="flex items-center justify-between">
+                            <span>Status</span>
+                        </div>
+                    </th>
                     @if ($showActionsColumn)
-                        <th class="border px-2 py-2 col-aksi no-sort">Aksi</th>
+                        <th class="border px-3 py-2 col-aksi no-sort">Aksi</th>
                     @endif
                 </tr>
             </thead>
@@ -100,20 +185,11 @@
 @push('styles')
     <link rel="stylesheet" href="https://cdn.datatables.net/2.1.6/css/dataTables.dataTables.min.css">
     <style>
-        /* Tata letak kontrol */
-        .dt-container .dt-length,
-        .dt-container .dt-search {
-            display: flex;
-            align-items: center;
-            gap: .5rem;
-        }
-
         .dt-container .dt-length .dt-input {
             width: 4.5rem;
             padding: .35rem .5rem;
         }
 
-        /* Stabilkan tabel */
         #productTable {
             width: 100% !important;
         }
@@ -134,15 +210,34 @@
             padding: .25rem .5rem;
         }
 
-        .dataTables_wrapper .dt-search {
+        .dt-container .dt-search {
             display: flex;
             align-items: center;
-            gap: .75rem;
-            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .dt-container .dt-search .dt-input {
+            width: 300px;
+            text-transform: uppercase;
         }
 
         #statusFilterWrap {
-            margin-right: .25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.35rem 0;
+        }
+
+        .col-search-btn {
+            transition: background-color 0.15s;
+        }
+
+        .col-search-btn:hover svg {
+            color: #2563eb;
+        }
+
+        .sort-icon {
+            transition: color 0.15s;
         }
     </style>
 @endpush
@@ -245,25 +340,33 @@
             // ------------------------------------------
             const columns = [{
                     data: 'fprdcode',
-                    name: 'fprdcode'
+                    name: 'fprdcode',
+                    searchable: true,
+                    orderable: false
                 },
                 {
                     data: 'fprdname',
-                    name: 'fprdname'
+                    name: 'fprdname',
+                    searchable: true,
+                    orderable: false
                 },
                 {
                     data: 'fmerek',
-                    name: 'fmerek'
+                    name: 'fmerek',
+                    searchable: true,
+                    orderable: false
                 },
                 {
                     data: 'fsatuankecil',
                     name: 'fsatuankecil',
-                    orderable: false
+                    orderable: false,
+                    searchable: true
                 },
                 {
                     data: 'fminstock',
                     name: 'fminstock',
-                    orderable: false
+                    orderable: false,
+                    searchable: true
                 },
                 {
                     data: 'status',
@@ -354,6 +457,13 @@
                     lengthMenu: "Show _MENU_ entries",
                     processing: 'Loading...',
                 },
+                drawCallback: function(settings) {
+                    if (!this.api().settings()[0]._sortApplied) {
+                        this.api().settings()[0]._sortApplied = true;
+                        this.api().order([0, 'asc']).draw();
+                        updateSortIcons(0, 'asc');
+                    }
+                }
             });
 
             // ------------------------------------------
@@ -365,29 +475,101 @@
             const $filter = $('#statusFilterTemplate #statusFilterWrap').clone(true, true);
             const $select = $filter.find('select[data-role="status-filter"]');
             $select.attr('id', 'statusFilterDT');
-            $toolbarSearch.append($filter); // sebelah kanan kotak search
+            $toolbarSearch.after($filter);
 
             // Event: saat dropdown berubah, reload AJAX dengan status baru
             $select.on('change', function() {
                 table.ajax.reload();
             });
 
-            // ------------------------------------------
-            // Paksa input Search jadi UPPERCASE
-            // ------------------------------------------
-            $toolbarSearch.find('.dt-input').css({
-                'width': '400px',
-                'maxWidth': '100%',
-                'text-transform': 'uppercase',
-            });
-
-            $container.on('input', '.dt-search .dt-input', function() {
+            // Force uppercase for global search input
+            $toolbarSearch.find('.dt-input').on('input', function() {
                 const start = this.selectionStart;
                 const end = this.selectionEnd;
                 this.value = this.value.toUpperCase();
                 this.setSelectionRange(start, end);
-                table.search(this.value).draw();
             });
+
+            // ------------------------------------------
+            // Per-Column Search Toggle
+            // ------------------------------------------
+            $container.on('click', '.col-search-btn', function(e) {
+                e.stopPropagation();
+                const columnIndex = $(this).data('column');
+                const $th = $(this).closest('th');
+                const $searchInput = $th.find('.col-search-input');
+                
+                // Close other open search inputs
+                $('.col-search-input').not($searchInput).addClass('hidden');
+                
+                // Toggle current search input
+                $searchInput.toggleClass('hidden');
+                
+                // Focus input if shown
+                if (!$searchInput.hasClass('hidden')) {
+                    $searchInput.find('input').focus();
+                }
+            });
+
+            // Close search inputs when clicking outside
+            $(document).on('click', function(e) {
+                if (!$(e.target).closest('.col-search-btn').length && !$(e.target).closest('.col-search-input').length) {
+                    $('.col-search-input').addClass('hidden');
+                }
+            });
+
+            // ------------------------------------------
+            // Column Search - search on input
+            // ------------------------------------------
+            $container.on('input', '.dt-column-search', function() {
+                const columnIndex = $(this).data('column');
+                const searchValue = $(this).val();
+                table.column(columnIndex).search(searchValue).draw();
+            });
+
+            // ------------------------------------------
+            // Custom Sort - click on sort icon
+            // ------------------------------------------
+            let sortState = { column: 0, direction: 'asc' };
+
+            $container.on('click', '.sort-icon', function(e) {
+                e.stopPropagation();
+                const columnIndex = $(this).data('column');
+                
+                // Toggle direction if same column, otherwise default to asc
+                if (sortState.column === columnIndex) {
+                    sortState.direction = sortState.direction === 'asc' ? 'desc' : 'asc';
+                } else {
+                    sortState.column = columnIndex;
+                    sortState.direction = 'asc';
+                }
+                
+                // Apply sort to DataTables
+                table.order([sortState.column, sortState.direction]);
+                table.draw();
+                
+                // Update sort icons
+                updateSortIcons(sortState.column, sortState.direction);
+            });
+
+            function updateSortIcons(activeColumn, direction) {
+                $('.sort-icon').each(function() {
+                    const $icon = $(this).find('svg');
+                    const colIndex = $(this).data('column');
+                    
+                    if (colIndex === activeColumn) {
+                        if (direction === 'asc') {
+                            $icon.attr('d', 'M5 15l7-7 7 7');
+                        } else {
+                            $icon.attr('d', 'M19 9l-7 7-7-7');
+                        }
+                        $icon.removeClass('text-gray-400').addClass('text-blue-600');
+                    } else {
+                        $icon.attr('d', 'M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4');
+                        $icon.removeClass('text-blue-600').addClass('text-gray-400');
+                    }
+                });
+            }
         });
 
         // Fungsi global untuk tombol Hapus yang di-render oleh DataTables JS

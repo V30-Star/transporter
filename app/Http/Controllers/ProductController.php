@@ -2,14 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Product;
-use App\Models\Groupproduct;  // Add this import to get the groups
-use App\Models\Merek;         // If you have a model for "Merek"
+use App\Models\Groupproduct;
+use App\Models\Merek;  // Add this import to get the groups
+use App\Models\Product;         // If you have a model for "Merek"
 use App\Models\Satuan;
 use Illuminate\Http\Request;
-use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class ProductController extends Controller
 {
@@ -30,7 +28,7 @@ class ProductController extends Controller
             // 'all' = tidak ada filter
 
             // Total records
-            $totalRecords          = Product::count();
+            $totalRecords = Product::count();
             $totalAfterStatusFilter = (clone $query)->count();
 
             // Pencarian global
@@ -43,12 +41,27 @@ class ProductController extends Controller
                 });
             }
 
+            // Pencarian per kolom
+            $columnFields = [
+                'msprd.fprdcode',
+                'msprd.fprdname',
+                'msmerek.fmerekname',
+                'msprd.fsatuankecil',
+                'msprd.fminstock',
+            ];
+            foreach ($columnFields as $index => $field) {
+                $colSearch = $request->input("columns.{$index}.search.value");
+                if ($colSearch !== null && $colSearch !== '') {
+                    $query->where($field, 'ilike', "%{$colSearch}%");
+                }
+            }
+
             $filteredRecords = (clone $query)->count();
 
             // Sorting
             $orderColumnIndex = $request->input('order.0.column', 0);
-            $orderDir         = $request->input('order.0.dir', 'asc');
-            $columns          = [
+            $orderDir = $request->input('order.0.dir', 'asc');
+            $columns = [
                 'msprd.fprdcode',
                 'msprd.fprdname',
                 'msmerek.fmerekname',
@@ -61,7 +74,7 @@ class ProductController extends Controller
             }
 
             // Pagination
-            $start  = $request->input('start', 0);
+            $start = $request->input('start', 0);
             $length = $request->input('length', 10);
 
             $products = $query->skip($start)->take($length)->get([
@@ -77,33 +90,33 @@ class ProductController extends Controller
 
             // Format data untuk DataTables
             $data = $products->map(function ($item) {
-                $isActive    = (string) $item->fnonactive === '0';
+                $isActive = (string) $item->fnonactive === '0';
                 $statusBadge = $isActive
                     ? '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-green-100 text-green-700">Active</span>'
                     : '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-red-200 text-red-700">Non Active</span>';
 
                 return [
-                    'fprdcode'    => $item->fprdcode,
-                    'fprdname'    => $item->fprdname,
-                    'fmerek'      => $item->merek_name,
+                    'fprdcode' => $item->fprdcode,
+                    'fprdname' => $item->fprdname,
+                    'fmerek' => $item->merek_name,
                     'fsatuankecil' => $item->fsatuankecil,
-                    'fminstock'   => $item->fminstock,
-                    'status'      => $statusBadge,
-                    'fprdid'      => $item->fprdid,
+                    'fminstock' => $item->fminstock,
+                    'status' => $statusBadge,
+                    'fprdid' => $item->fprdid,
                 ];
             });
 
             return response()->json([
-                'draw'            => intval($request->input('draw')),
-                'recordsTotal'    => $totalRecords,
+                'draw' => intval($request->input('draw')),
+                'recordsTotal' => $totalRecords,
                 'recordsFiltered' => $filteredRecords,
-                'data'            => $data,
+                'data' => $data,
             ]);
         }
 
         // Non-AJAX: render view
         $canCreate = in_array('createProduct', explode(',', session('user_restricted_permissions', '')));
-        $canEdit   = in_array('updateProduct', explode(',', session('user_restricted_permissions', '')));
+        $canEdit = in_array('updateProduct', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deleteProduct', explode(',', session('user_restricted_permissions', '')));
 
         return view('product.index', compact('canCreate', 'canEdit', 'canDelete'));
@@ -152,29 +165,29 @@ class ProductController extends Controller
         $paddedMerekId = str_pad($merekId, 3, '0', STR_PAD_LEFT);
 
         // 2. Buat prefix untuk pencarian (e.g., "001.002.")
-        $prefix = $paddedGroupId . '.' . $paddedMerekId . '.';
+        $prefix = $paddedGroupId.'.'.$paddedMerekId.'.';
         $prefixLength = strlen($prefix);
 
         // 3. Cari kode terakhir dengan prefix yang sama
-        $lastCode = Product::where('fprdcode', 'like', $prefix . '%')
+        $lastCode = Product::where('fprdcode', 'like', $prefix.'%')
             // Urutkan berdasarkan angka di belakang prefix
-            ->orderByRaw("CAST(SUBSTRING(fprdcode FROM " . ($prefixLength + 1) . ") AS INTEGER) DESC")
+            ->orderByRaw('CAST(SUBSTRING(fprdcode FROM '.($prefixLength + 1).') AS INTEGER) DESC')
             ->value('fprdcode');
 
         // 4. Jika tidak ditemukan, mulai dari 1
-        if (!$lastCode) {
+        if (! $lastCode) {
             $newNumber = 1;
         } else {
             // 5. Jika ditemukan, ambil nomornya dan tambahkan 1
             // e.g., $lastCode = "001.002.000005"
             // substr($lastCode, $prefixLength) akan mengambil "000005"
-            $number = (int)substr($lastCode, $prefixLength);
+            $number = (int) substr($lastCode, $prefixLength);
             $newNumber = $number + 1;
         }
 
         // 6. Kembalikan kode baru dengan padding 6 digit untuk sequence
         // e.g., "001.002.000006"
-        return $prefix . str_pad($newNumber, 6, '0', STR_PAD_LEFT);
+        return $prefix.str_pad($newNumber, 6, '0', STR_PAD_LEFT);
     }
 
     public function create()
@@ -200,17 +213,17 @@ class ProductController extends Controller
                 'fgroupcode' => 'required', // Validate that fgroupcode exists in groups table
                 'fmerek' => 'required', // Validate the Merek field
                 'fsatuankecil' => '', // Validate Satuan 1 field
-                'fsatuanbesar'  => [
+                'fsatuanbesar' => [
                     'nullable',               // Boleh kosong
                     'string',
-                    'different:fsatuankecil'  // Jika diisi, harus beda dengan fsatuankecil
+                    'different:fsatuankecil',  // Jika diisi, harus beda dengan fsatuankecil
                 ],
 
                 'fsatuanbesar2' => [
                     'nullable',               // Boleh kosong
                     'string',
                     'different:fsatuankecil', // Jika diisi, harus beda dengan fsatuankecil
-                    'different:fsatuanbesar'  // Jika diisi, harus beda dengan fsatuanbesar
+                    'different:fsatuanbesar',  // Jika diisi, harus beda dengan fsatuanbesar
                 ],
                 'fsatuandefault' => 'in:1,2,3', // Validate Satuan Default field
                 'fqtykecil' => 'numeric', // Validate quantity for Satuan 1
@@ -218,10 +231,16 @@ class ProductController extends Controller
                 'fhargasatuankecillevel1' => '', // Validate if nonactive is checked
                 'fhargasatuankecillevel2' => '', // Validate if nonactive is checked
                 'fhargasatuankecillevel3' => '', // Validate if nonactive is checked
-                'fhargajuallevel1' => '', // Validate if nonactive is checked
-                'fhargajuallevel2' => '', // Validate if nonactive is checked
-                'fhargajuallevel3' => '', // Validate if nonactive is checked
-                'fminstock' => 'numeric', // Validate if nonactive is checked
+                'fhargajuallevel1' => '', // HJ. Kecil Level 1
+                'fhargajuallevel2' => '', // HJ. Kecil Level 2
+                'fhargajuallevel3' => '', // HJ. Kecil Level 3
+                'fhargajual2level1' => '', // HJ. Besar Level 1
+                'fhargajual2level2' => '', // HJ. Besar Level 2
+                'fhargajual2level3' => '', // HJ. Besar Level 3
+                'fhargajual3level1' => '', // HJ <PCS> Level 1
+                'fhargajual3level2' => '', // HJ <CTN> Level 1
+                'fhargajual3level3' => '', // HJ <DUS> Level 1
+                'fminstock' => 'numeric',
                 'fhpp' => 'nullable',
                 'fhpp2' => 'nullable',
                 'fhpp3' => 'nullable',
@@ -243,11 +262,11 @@ class ProductController extends Controller
                 'fhargasatuankecillevel1.required' => 'Harga Satuan 1 harus diisi.',
                 'fhargasatuankecillevel2.required' => 'Harga Satuan 2 harus diisi.',
                 'fhargasatuankecillevel3.required' => 'Harga Satuan 3 harus diisi.',
-                'fhargajuallevel1.required' => 'Harga Satuan 1 harus diisi.',
-                'fhargajuallevel2.required' => 'Harga Satuan 2 harus diisi.',
-                'fhargajuallevel3.required' => 'Harga Satuan 3 harus diisi.',
-                'fminstock.required' => 'Harga Satuan 3 harus diisi.',
-                'fsatuanbesar.different'  => 'Satuan Besar tidak boleh sama dengan Satuan Kecil.',
+                'fhargajuallevel1.required' => 'Harga Jual Kecil Level 1 harus diisi.',
+                'fhargajuallevel2.required' => 'Harga Jual Kecil Level 2 harus diisi.',
+                'fhargajuallevel3.required' => 'Harga Jual Kecil Level 3 harus diisi.',
+                'fminstock.required' => 'Min Stok harus diisi.',
+                'fsatuanbesar.different' => 'Satuan Besar tidak boleh sama dengan Satuan Kecil.',
                 'fsatuanbesar2.different' => 'Satuan Besar 2 tidak boleh sama dengan Satuan Kecil atau Satuan Besar.',
             ]
         );
@@ -268,6 +287,16 @@ class ProductController extends Controller
         $validated['fhpp'] = preg_replace('/[^0-9.]/', '', $request->fhpp);
         $validated['fhpp2'] = preg_replace('/[^0-9.]/', '', $request->fhpp2);
         $validated['fhpp3'] = preg_replace('/[^0-9.]/', '', $request->fhpp3);
+
+        $validated['fhargajuallevel1'] = preg_replace('/[^0-9.]/', '', $request->fhargajuallevel1);
+        $validated['fhargajuallevel2'] = preg_replace('/[^0-9.]/', '', $request->fhargajuallevel2);
+        $validated['fhargajuallevel3'] = preg_replace('/[^0-9.]/', '', $request->fhargajuallevel3);
+        $validated['fhargajual2level1'] = preg_replace('/[^0-9.]/', '', $request->fhargajual2level1);
+        $validated['fhargajual2level2'] = preg_replace('/[^0-9.]/', '', $request->fhargajual2level2);
+        $validated['fhargajual2level3'] = preg_replace('/[^0-9.]/', '', $request->fhargajual2level3);
+        $validated['fhargajual3level1'] = preg_replace('/[^0-9.]/', '', $request->fhargajual3level1);
+        $validated['fhargajual3level2'] = preg_replace('/[^0-9.]/', '', $request->fhargajual3level2);
+        $validated['fhargajual3level3'] = preg_replace('/[^0-9.]/', '', $request->fhargajual3level3);
 
         $validated['fapproval'] = auth('sysuser')->user()->fname ?? null;
         $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null;
@@ -295,7 +324,7 @@ class ProductController extends Controller
             'groups' => $groups,
             'merks' => $merks,
             'satuan' => $satuan,
-            'action' => 'edit'
+            'action' => 'edit',
         ]);
     }
 
@@ -310,7 +339,7 @@ class ProductController extends Controller
             'product' => $product,
             'groups' => $groups,
             'merks' => $merks,
-            'satuan' => $satuan
+            'satuan' => $satuan,
         ]);
     }
 
@@ -327,17 +356,17 @@ class ProductController extends Controller
                 'fgroupcode' => 'required', // Validate that fgroupcode exists in groups table
                 'fmerek' => 'required', // Validate the Merek field
                 'fsatuankecil' => '', // Validate Satuan 1 field
-                'fsatuanbesar'  => [
+                'fsatuanbesar' => [
                     'nullable',               // Boleh kosong
                     'string',
-                    'different:fsatuankecil'  // Jika diisi, harus beda dengan fsatuankecil
+                    'different:fsatuankecil',  // Jika diisi, harus beda dengan fsatuankecil
                 ],
 
                 'fsatuanbesar2' => [
                     'nullable',               // Boleh kosong
                     'string',
                     'different:fsatuankecil', // Jika diisi, harus beda dengan fsatuankecil
-                    'different:fsatuanbesar'  // Jika diisi, harus beda dengan fsatuanbesar
+                    'different:fsatuanbesar',  // Jika diisi, harus beda dengan fsatuanbesar
                 ],
                 'fsatuandefault' => 'in:1,2,3', // Validate Satuan Default field
                 'fqtykecil' => 'numeric', // Validate quantity for Satuan 1
@@ -345,10 +374,16 @@ class ProductController extends Controller
                 'fhargasatuankecillevel1' => '', // Validate if nonactive is checked
                 'fhargasatuankecillevel2' => '', // Validate if nonactive is checked
                 'fhargasatuankecillevel3' => '', // Validate if nonactive is checked
-                'fhargajuallevel1' => '', // Validate if nonactive is checked
-                'fhargajuallevel2' => '', // Validate if nonactive is checked
-                'fhargajuallevel3' => '', // Validate if nonactive is checked
-                'fminstock' => 'numeric', // Validate if nonactive is checked
+                'fhargajuallevel1' => '', // HJ. Kecil Level 1
+                'fhargajuallevel2' => '', // HJ. Kecil Level 2
+                'fhargajuallevel3' => '', // HJ. Kecil Level 3
+                'fhargajual2level1' => '', // HJ. Besar Level 1
+                'fhargajual2level2' => '', // HJ. Besar Level 2
+                'fhargajual2level3' => '', // HJ. Besar Level 3
+                'fhargajual3level1' => '', // HJ <PCS> Level 1
+                'fhargajual3level2' => '', // HJ <CTN> Level 1
+                'fhargajual3level3' => '', // HJ <DUS> Level 1
+                'fminstock' => 'numeric',
                 'fhpp' => 'nullable',
                 'fhpp2' => 'nullable',
                 'fhpp3' => 'nullable',
@@ -360,19 +395,20 @@ class ProductController extends Controller
                 'fbarcode.required' => 'Barcode Produk harus diisi.',
                 'fgroupcode.required' => 'Group Produk harus dipilih.',
                 'fmerek.required' => 'Merek harus dipilih.',
-                'fsatuankecil.required' => 'Satuan Kecil harus dipilih.',
+                'fsatuankecil.required' => 'Satuan Kecil harus diisi.',
                 'fsatuanbesar.required' => 'Satuan Besar harus dipilih.',
                 'fsatuanbesar2.required' => 'Satuan Besar 2 harus dipilih.',
-                'fsatuandefault.required' => 'Satuan Default harus dipilih.',
+                'fsatuandefault.required' => 'Satuan Default harus diisi.',
                 'fqtykecil.required' => 'Qty Kecil harus diisi.',
                 'fqtykecil2.required' => 'Qty Kecil 2 harus diisi.',
                 'fhargasatuankecillevel1.required' => 'Harga Satuan 1 harus diisi.',
                 'fhargasatuankecillevel2.required' => 'Harga Satuan 2 harus diisi.',
                 'fhargasatuankecillevel3.required' => 'Harga Satuan 3 harus diisi.',
-                'fhargajuallevel1.required' => 'Harga Satuan 1 harus diisi.',
-                'fhargajuallevel2.required' => 'Harga Satuan 2 harus diisi.',
-                'fminstock.required' => 'Harga Satuan 3 harus diisi.',
-                'fsatuanbesar.different'  => 'Satuan Besar tidak boleh sama dengan Satuan Kecil.',
+                'fhargajuallevel1.required' => 'Harga Jual Kecil Level 1 harus diisi.',
+                'fhargajuallevel2.required' => 'Harga Jual Kecil Level 2 harus diisi.',
+                'fhargajuallevel3.required' => 'Harga Jual Kecil Level 3 harus diisi.',
+                'fminstock.required' => 'Min Stok harus diisi.',
+                'fsatuanbesar.different' => 'Satuan Besar tidak boleh sama dengan Satuan Kecil.',
                 'fsatuanbesar2.different' => 'Satuan Besar 2 tidak boleh sama dengan Satuan Kecil atau Satuan Besar.',
             ]
         );
@@ -389,6 +425,16 @@ class ProductController extends Controller
         $validated['fhpp'] = preg_replace('/[^0-9.]/', '', $request->fhpp);
         $validated['fhpp2'] = preg_replace('/[^0-9.]/', '', $request->fhpp2);
         $validated['fhpp3'] = preg_replace('/[^0-9.]/', '', $request->fhpp3);
+
+        $validated['fhargajuallevel1'] = preg_replace('/[^0-9.]/', '', $request->fhargajuallevel1);
+        $validated['fhargajuallevel2'] = preg_replace('/[^0-9.]/', '', $request->fhargajuallevel2);
+        $validated['fhargajuallevel3'] = preg_replace('/[^0-9.]/', '', $request->fhargajuallevel3);
+        $validated['fhargajual2level1'] = preg_replace('/[^0-9.]/', '', $request->fhargajual2level1);
+        $validated['fhargajual2level2'] = preg_replace('/[^0-9.]/', '', $request->fhargajual2level2);
+        $validated['fhargajual2level3'] = preg_replace('/[^0-9.]/', '', $request->fhargajual2level3);
+        $validated['fhargajual3level1'] = preg_replace('/[^0-9.]/', '', $request->fhargajual3level1);
+        $validated['fhargajual3level2'] = preg_replace('/[^0-9.]/', '', $request->fhargajual3level2);
+        $validated['fhargajual3level3'] = preg_replace('/[^0-9.]/', '', $request->fhargajual3level3);
 
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
         $validated['fupdatedat'] = now(); // Use the current time
@@ -414,7 +460,7 @@ class ProductController extends Controller
             'groups' => $groups,
             'merks' => $merks,
             'satuan' => $satuan,
-            'action' => 'delete'
+            'action' => 'delete',
         ]);
     }
 
@@ -436,9 +482,10 @@ class ProductController extends Controller
             }
 
             $product->delete();
-            return response()->json(['message' => 'Data produk ' . $product->fprdname . ' berhasil dihapus.']);
+
+            return response()->json(['message' => 'Data produk '.$product->fprdname.' berhasil dihapus.']);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Gagal menghapus: ' . $e->getMessage()], 500);
+            return response()->json(['message' => 'Gagal menghapus: '.$e->getMessage()], 500);
         }
     }
 }
