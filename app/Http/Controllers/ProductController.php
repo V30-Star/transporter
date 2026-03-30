@@ -520,4 +520,22 @@ class ProductController extends Controller
             return response()->json(['message' => 'Gagal menghapus: '.$e->getMessage()], 500);
         }
     }
+
+    public function laporan($fprdid)
+    {
+        $product = Product::findOrFail($fprdid);
+
+        // Fetching data manually based on user's query
+        $stokData = \Illuminate\Support\Facades\DB::select("
+            select v.ffrom as fwhcode, w.fwhname, (v.fsaldo/NULLIF(p.fqtykecil, 0)) as fsaldo, p.fsatuanbesar
+            from  prdwh v  
+            left outer join mswh w  on v.ffrom=w.fwhcode
+            left outer join  msprd p on p.fprdcode=v.fprdcode 
+            where v.fprdcode = :fprdcode
+        ", ['fprdcode' => $product->fprdcode]);
+
+        return response()->json([
+            'stok' => $stokData
+        ]);
+    }
 }

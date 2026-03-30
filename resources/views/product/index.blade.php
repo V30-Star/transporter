@@ -164,6 +164,78 @@
             </div>
         </div>
 
+        {{-- Modal Laporan --}}
+        <div x-show="$store.laporanStore.showModal" x-cloak
+            class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" x-transition>
+            <div @click.away="$store.laporanStore.closeModal()"
+                class="bg-white rounded-lg shadow-lg w-full max-w-4xl max-h-[90vh] flex flex-col">
+                <div class="px-6 py-4 border-b flex justify-between items-center">
+                    <h3 class="text-lg font-semibold">Laporan Product</h3>
+                    <button @click="$store.laporanStore.closeModal()" class="text-gray-500 hover:text-gray-700">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+                
+                <div class="px-6 py-2 border-b bg-gray-50">
+                    <nav class="-mb-px flex space-x-8">
+                        <button @click="$store.laporanStore.activeTab = 'customer'"
+                            :class="{'border-blue-500 text-blue-600': $store.laporanStore.activeTab === 'customer', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': $store.laporanStore.activeTab !== 'customer'}"
+                            class="whitespace-nowrap pb-2 px-1 border-b-2 font-medium text-sm">Customer</button>
+                        
+                        <button @click="$store.laporanStore.activeTab = 'stok'"
+                            :class="{'border-blue-500 text-blue-600': $store.laporanStore.activeTab === 'stok', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': $store.laporanStore.activeTab !== 'stok'}"
+                            class="whitespace-nowrap pb-2 px-1 border-b-2 font-medium text-sm">Stok</button>
+                            
+                        <button @click="$store.laporanStore.activeTab = 'supplier'"
+                            :class="{'border-blue-500 text-blue-600': $store.laporanStore.activeTab === 'supplier', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': $store.laporanStore.activeTab !== 'supplier'}"
+                            class="whitespace-nowrap pb-2 px-1 border-b-2 font-medium text-sm">Supplier</button>
+                    </nav>
+                </div>
+
+                <div class="p-6 overflow-y-auto flex-1">
+                    <div x-show="$store.laporanStore.isLoading" class="flex justify-center py-8">
+                        <svg class="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    </div>
+
+                    <div x-show="!$store.laporanStore.isLoading">
+                        <div x-show="$store.laporanStore.activeTab === 'customer'">
+                            <p class="text-gray-500 italic">Data Customer belum tersedia.</p>
+                        </div>
+                        
+                        <div x-show="$store.laporanStore.activeTab === 'stok'">
+                            <table class="min-w-full divide-y divide-gray-200 border">
+                                <thead class="bg-gray-100">
+                                    <tr>
+                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase">Gudang#</th>
+                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase">Nama Gudang</th>
+                                        <th class="px-3 py-2 text-right text-xs font-bold text-gray-800 uppercase">Stok</th>
+                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase">Satuan</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    <template x-for="item in $store.laporanStore.stokData" :key="item.fwhcode">
+                                        <tr>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900" x-text="item.fwhcode"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900" x-text="item.fwhname"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 text-right" x-text="(Number(item.fsaldo) || 0).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 })"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900" x-text="item.fsatuanbesar"></td>
+                                        </tr>
+                                    </template>
+                                    <tr x-show="$store.laporanStore.stokData.length === 0">
+                                        <td colspan="4" class="px-3 py-4 text-center text-sm text-gray-500">Tidak ada data stok.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div x-show="$store.laporanStore.activeTab === 'supplier'">
+                            <p class="text-gray-500 italic">Data Supplier belum tersedia.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         {{-- Toast Notifikasi --}}
         <div x-show="$store.productStore.showNotification" x-cloak x-transition:enter="transition ease-out duration-300"
             x-transition:enter-start="opacity-0 transform translate-y-2"
@@ -324,6 +396,38 @@
                     }, 3000);
                 }
             });
+
+            Alpine.store('laporanStore', {
+                showModal: false,
+                isLoading: false,
+                activeTab: 'stok',
+                stokData: [],
+                
+                openModal(fprdid) {
+                    this.showModal = true;
+                    this.activeTab = 'stok';
+                    this.loadData(fprdid);
+                },
+                
+                closeModal() {
+                    this.showModal = false;
+                    this.stokData = [];
+                },
+                
+                loadData(fprdid) {
+                    this.isLoading = true;
+                    fetch(`/master/product/${fprdid}/laporan`)
+                        .then(res => res.json())
+                        .then(data => {
+                            this.stokData = data.stok || [];
+                            this.isLoading = false;
+                        })
+                        .catch(err => {
+                            console.error('Error fetching laporan:', err);
+                            this.isLoading = false;
+                        });
+                }
+            });
         });
 
 
@@ -393,6 +497,15 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                             </svg> View
                         </a>`;
+
+                        html += `
+                            <button onclick="openLaporanModal('${fprdid}')" class="inline-flex items-center bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                                Laporan
+                            </button>
+                        `;
 
                         if (canEdit) {
                             html += `
@@ -577,6 +690,12 @@
         function openProductDelete(url, btnEl) {
             const row = btnEl.closest('tr');
             Alpine.store('productStore').openDelete(url, row);
+        }
+
+        function openLaporanModal(fprdid) {
+            if (Alpine.store('laporanStore')) {
+                Alpine.store('laporanStore').openModal(fprdid);
+            }
         }
     </script>
 @endpush
