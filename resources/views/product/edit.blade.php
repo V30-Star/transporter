@@ -537,8 +537,7 @@
                             <div>
                                 <label class="block text-sm font-medium">HJ. Besar Level 1</label>
                                 <div class="d-flex">
-                                    <input type="text" disabled
-                                        class="w-1/10 border rounded px-3 py-2 bg-gray-100"
+                                    <input type="text" disabled class="w-1/10 border rounded px-3 py-2 bg-gray-100"
                                         value="{{ $product->fhargajual2level1 ?? 0 }}">
                                 </div>
                             </div>
@@ -547,8 +546,7 @@
                             <div>
                                 <label class="block text-sm font-medium">HJ. Besar Level 2</label>
                                 <div class="d-flex">
-                                    <input type="text" disabled
-                                        class="w-1/10 border rounded px-3 py-2 bg-gray-100"
+                                    <input type="text" disabled class="w-1/10 border rounded px-3 py-2 bg-gray-100"
                                         value="{{ $product->fhargajual2level2 ?? 0 }}">
                                 </div>
                             </div>
@@ -557,8 +555,7 @@
                             <div>
                                 <label class="block text-sm font-medium">HJ. Besar Level 3</label>
                                 <div class="d-flex">
-                                    <input type="text" disabled
-                                        class="w-1/10 border rounded px-3 py-2 bg-gray-100"
+                                    <input type="text" disabled class="w-1/10 border rounded px-3 py-2 bg-gray-100"
                                         value="{{ $product->fhargajual2level3 ?? 0 }}">
                                 </div>
                             </div>
@@ -572,8 +569,7 @@
                                     HJ <span class="uppercase">{{ $product->fsatuankecil ?? '-' }}</span> Level 1
                                 </label>
                                 <div class="d-flex">
-                                    <input type="text" disabled
-                                        class="w-1/10 border rounded px-3 py-2 bg-gray-100"
+                                    <input type="text" disabled class="w-1/10 border rounded px-3 py-2 bg-gray-100"
                                         value="{{ $product->fhargajual3level1 ?? 0 }}">
                                 </div>
                             </div>
@@ -584,8 +580,7 @@
                                     HJ <span class="uppercase">{{ $product->fsatuanbesar ?? '-' }}</span> Level 1
                                 </label>
                                 <div class="d-flex">
-                                    <input type="text" disabled
-                                        class="w-1/10 border rounded px-3 py-2 bg-gray-100"
+                                    <input type="text" disabled class="w-1/10 border rounded px-3 py-2 bg-gray-100"
                                         value="{{ $product->fhargajual3level2 ?? 0 }}">
                                 </div>
                             </div>
@@ -596,8 +591,7 @@
                                     HJ <span class="uppercase">{{ $product->fsatuanbesar2 ?? '-' }}</span> Level 1
                                 </label>
                                 <div class="d-flex">
-                                    <input type="text" disabled
-                                        class="w-1/10 border rounded px-3 py-2 bg-gray-100"
+                                    <input type="text" disabled class="w-1/10 border rounded px-3 py-2 bg-gray-100"
                                         value="{{ $product->fhargajual3level3 ?? 0 }}">
                                 </div>
                             </div>
@@ -1026,7 +1020,8 @@
                                     {{ old('fsatuandefault', $product->fsatuandefault) == '1' ? 'selected' : '' }}>Satuan 1
                                 </option>
                                 <option value="2"
-                                    {{ old('fsatuandefault', $product->fsatuandefault) == '2' ? 'selected' : '' }}>Satuan 2
+                                    {{ old('fsatuandefault', $product->fsatuandefault) == '2' ? 'selected' : '' }}>Satuan
+                                    2
                                 </option>
                                 <option value="3"
                                     {{ old('fsatuandefault', $product->fsatuandefault) == '3' ? 'selected' : '' }}>Satuan
@@ -1043,7 +1038,8 @@
                         <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <!-- Harga Satuan 3 Level 1 -->
                             <div>
-                                <label for="fhargajuallevel1" class="block text-sm font-medium">HJ. Kecil Level
+                                <label for="fhargajuallevel1" class="block text-sm font-medium">HJ. Kecil <span
+                                        id="hj-satuan-kecil-level1-label" class="uppercase">-</span> Level
                                     1</label>
                                 <div class="d-flex">
                                     <input type="text"
@@ -1060,7 +1056,8 @@
 
                             <!-- Harga Satuan 3 Level 2 -->
                             <div>
-                                <label for="fhargajuallevel2" class="block text-sm font-medium">HJ. Kecil Level
+                                <label for="fhargajuallevel2" class="block text-sm font-medium">HJ. Kecil <span
+                                        id="hj-satuan-kecil-level2-label" class="uppercase">-</span> Level
                                     2</label>
                                 <div class="d-flex">
                                     <input type="text"
@@ -1077,7 +1074,8 @@
 
                             <!-- Harga Satuan 3 Level 3 -->
                             <div>
-                                <label for="fhargajuallevel3" class="block text-sm font-medium">HJ. Kecil Level
+                                <label for="fhargajuallevel3" class="block text-sm font-medium">HJ. Kecil <span
+                                        id="hj-satuan-kecil-level3-label" class="uppercase">-</span> Level
                                     3</label>
                                 <div class="d-flex">
                                     <input type="text"
@@ -1096,7 +1094,8 @@
                         <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <!-- HJ. Besar Level 1 -->
                             <div>
-                                <label for="fhargajual2level1" class="block text-sm font-medium">HJ. Besar Level 1</label>
+                                <label for="fhargajual2level1" class="block text-sm font-medium">HJ. Besar <span
+                                        id="hj-satuan-besar-level1-label" class="uppercase">-</span> Level 1</label>
                                 <div class="d-flex">
                                     <input type="text"
                                         class="w-1/10 border rounded px-3 py-2 bg-blue-50 border-blue-300 focus:ring-blue-500 @error('fhargajual2level1') is-invalid @enderror"
@@ -1112,7 +1111,8 @@
 
                             <!-- HJ. Besar Level 2 -->
                             <div>
-                                <label for="fhargajual2level2" class="block text-sm font-medium">HJ. Besar Level 2</label>
+                                <label for="fhargajual2level2" class="block text-sm font-medium">HJ. Besar <span
+                                        id="hj-satuan-besar-level2-label" class="uppercase">-</span> Level 2</label>
                                 <div class="d-flex">
                                     <input type="text"
                                         class="w-1/10 border rounded px-3 py-2 bg-yellow-50 @error('fhargajual2level2') is-invalid @enderror"
@@ -1128,7 +1128,8 @@
 
                             <!-- HJ. Besar Level 3 -->
                             <div>
-                                <label for="fhargajual2level3" class="block text-sm font-medium">HJ. Besar Level 3</label>
+                                <label for="fhargajual2level3" class="block text-sm font-medium">HJ. Besar <span
+                                        id="hj-satuan-besar-level3-label" class="uppercase">-</span> Level 3</label>
                                 <div class="d-flex">
                                     <input type="text"
                                         class="w-1/10 border rounded px-3 py-2 bg-purple-50 @error('fhargajual2level3') is-invalid @enderror"
@@ -1148,7 +1149,8 @@
                             <!-- HJ <PCS> Level 1 -->
                             <div>
                                 <label for="fhargajual3level1" class="block text-sm font-medium">
-                                    HJ <span id="hj-satuan-kecil-label" class="uppercase">{{ $product->fsatuankecil ?? '-' }}</span> Level 1
+                                    HJ <span id="hj-satuan-kecil-label"
+                                        class="uppercase">{{ $product->fsatuankecil ?? '-' }}</span> Level 1
                                 </label>
                                 <div class="d-flex">
                                     <input type="text" autocomplete="off"
@@ -1166,7 +1168,8 @@
                             <!-- HJ <CTN> Level 1 -->
                             <div>
                                 <label for="fhargajual3level2" class="block text-sm font-medium">
-                                    HJ <span id="hj-satuan-besar-label" class="uppercase">{{ $product->fsatuanbesar ?? '-' }}</span> Level 1
+                                    HJ <span id="hj-satuan-besar-label"
+                                        class="uppercase">{{ $product->fsatuanbesar ?? '-' }}</span> Level 1
                                 </label>
                                 <div class="d-flex">
                                     <input type="text" autocomplete="off"
@@ -1184,7 +1187,8 @@
                             <!-- HJ <DUS> Level 1 -->
                             <div>
                                 <label for="fhargajual3level3" class="block text-sm font-medium">
-                                    HJ <span id="hj-satuan-besar2-label" class="uppercase">{{ $product->fsatuanbesar2 ?? '-' }}</span> Level 1
+                                    HJ <span id="hj-satuan-besar2-label"
+                                        class="uppercase">{{ $product->fsatuanbesar2 ?? '-' }}</span> Level 1
                                 </label>
                                 <div class="d-flex">
                                     <input type="text" autocomplete="off"
@@ -2302,6 +2306,14 @@
         const hjSatuanBesarLabel = document.getElementById('hj-satuan-besar-label');
         const hjSatuanBesar2Label = document.getElementById('hj-satuan-besar2-label');
 
+        const hjSatuanKecilLevel1Label = document.getElementById('hj-satuan-kecil-level1-label');
+        const hjSatuanKecilLevel2Label = document.getElementById('hj-satuan-kecil-level2-label');
+        const hjSatuanKecilLevel3Label = document.getElementById('hj-satuan-kecil-level3-label');
+
+        const hjSatuanBesarLevel1Label = document.getElementById('hj-satuan-besar-level1-label');
+        const hjSatuanBesarLevel2Label = document.getElementById('hj-satuan-besar-level2-label');
+        const hjSatuanBesarLevel3Label = document.getElementById('hj-satuan-besar-level3-label');
+
         // HJ Input Fields
         const hjSatuanKecilInput = document.getElementById('fhargajual3level1');
         const hjSatuanBesarInput = document.getElementById('fhargajual3level2');
@@ -2353,6 +2365,26 @@
             hjSatuanBesar2Label.textContent = largeSatuan2Value || '-';
         }
 
+        if (hjSatuanKecilLevel1Label) {
+            hjSatuanKecilLevel1Label.textContent = smallSatuanValue || '-';
+        }
+        if (hjSatuanKecilLevel2Label) {
+            hjSatuanKecilLevel2Label.textContent = largeSatuan1Value || '-';
+        }
+        if (hjSatuanKecilLevel3Label) {
+            hjSatuanKecilLevel3Label.textContent = largeSatuan2Value || '-';
+        }
+
+        if (hjSatuanBesarLevel1Label) {
+            hjSatuanBesarLevel1Label.textContent = smallSatuanValue || '-';
+        }
+        if (hjSatuanBesarLevel2Label) {
+            hjSatuanBesarLevel2Label.textContent = largeSatuan1Value || '-';
+        }
+        if (hjSatuanBesarLevel3Label) {
+            hjSatuanBesarLevel3Label.textContent = largeSatuan2Value || '-';
+        }
+        
         // --- 4. Logika Satuan 3 ---
         // Satuan 3 muncul jika Satuan 2 sedang terlihat DAN Satuan 2 memiliki nilai yang dipilih
         const isSatuan2Visible = block2 ? block2.style.display !== 'none' : false;

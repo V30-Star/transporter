@@ -48,11 +48,11 @@
                         <div class="flex items-center justify-between">
                             <span>Kode Product</span>
                             <div class="flex items-center gap-1">
-                                <button type="button" class="col-search-btn p-1 hover:bg-gray-200 rounded" data-column="0" title="Filter Kolom">
+                                {{-- <button type="button" class="col-search-btn p-1 hover:bg-gray-200 rounded" data-column="0" title="Filter Kolom">
                                     <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                                     </svg>
-                                </button>
+                                </button> --}}
                                 <span class="sort-icon cursor-pointer" data-column="0">
                                     <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
@@ -68,11 +68,11 @@
                         <div class="flex items-center justify-between">
                             <span>Nama Product</span>
                             <div class="flex items-center gap-1">
-                                <button type="button" class="col-search-btn p-1 hover:bg-gray-200 rounded" data-column="1" title="Filter Kolom">
+                                {{-- <button type="button" class="col-search-btn p-1 hover:bg-gray-200 rounded" data-column="1" title="Filter Kolom">
                                     <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                                     </svg>
-                                </button>
+                                </button> --}}
                                 <span class="sort-icon cursor-pointer" data-column="1">
                                     <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
@@ -107,11 +107,11 @@
                     <th class="border px-3 py-2 no-sort">
                         <div class="flex items-center justify-between">
                             <span>Satuan</span>
-                            <button type="button" class="col-search-btn p-1 hover:bg-gray-200 rounded" data-column="3" title="Filter Kolom">
+                            {{-- <button type="button" class="col-search-btn p-1 hover:bg-gray-200 rounded" data-column="3" title="Filter Kolom">
                                 <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                                 </svg>
-                            </button>
+                            </button> --}}
                         </div>
                         <div class="col-search-input mt-2 hidden">
                             <input type="text" class="dt-column-search w-full px-2 py-1.5 border border-gray-300 rounded text-sm uppercase focus:outline-none focus:ring-1 focus:ring-blue-500" data-column="3" placeholder="Cari...">
@@ -120,11 +120,11 @@
                     <th class="border px-3 py-2 no-sort">
                         <div class="flex items-center justify-between">
                             <span>Stok</span>
-                            <button type="button" class="col-search-btn p-1 hover:bg-gray-200 rounded" data-column="4" title="Filter Kolom">
+                            {{-- <button type="button" class="col-search-btn p-1 hover:bg-gray-200 rounded" data-column="4" title="Filter Kolom">
                                 <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                                 </svg>
-                            </button>
+                            </button> --}}
                         </div>
                         <div class="col-search-input mt-2 hidden">
                             <input type="text" class="dt-column-search w-full px-2 py-1.5 border border-gray-300 rounded text-sm uppercase focus:outline-none focus:ring-1 focus:ring-blue-500" data-column="4" placeholder="Cari...">
