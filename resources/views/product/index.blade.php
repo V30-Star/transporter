@@ -180,7 +180,7 @@
                     <nav class="-mb-px flex space-x-8">
                         <button @click="$store.laporanStore.activeTab = 'customer'"
                             :class="{'border-blue-500 text-blue-600': $store.laporanStore.activeTab === 'customer', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': $store.laporanStore.activeTab !== 'customer'}"
-                            class="whitespace-nowrap pb-2 px-1 border-b-2 font-medium text-sm">Customer</button>
+                            class="whitespace-nowrap pb-2 px-1 border-b-2 font-medium text-sm">Penjualan</button>
                         
                         <button @click="$store.laporanStore.activeTab = 'stok'"
                             :class="{'border-blue-500 text-blue-600': $store.laporanStore.activeTab === 'stok', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': $store.laporanStore.activeTab !== 'stok'}"
@@ -188,7 +188,7 @@
                             
                         <button @click="$store.laporanStore.activeTab = 'supplier'"
                             :class="{'border-blue-500 text-blue-600': $store.laporanStore.activeTab === 'supplier', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': $store.laporanStore.activeTab !== 'supplier'}"
-                            class="whitespace-nowrap pb-2 px-1 border-b-2 font-medium text-sm">Supplier</button>
+                            class="whitespace-nowrap pb-2 px-1 border-b-2 font-medium text-sm">Pembelian</button>
                     </nav>
                 </div>
 
@@ -199,7 +199,37 @@
 
                     <div x-show="!$store.laporanStore.isLoading">
                         <div x-show="$store.laporanStore.activeTab === 'customer'">
-                            <p class="text-gray-500 italic">Data Customer belum tersedia.</p>
+                            <table class="min-w-full divide-y divide-gray-200 border">
+                                <thead class="bg-gray-100">
+                                    <tr>
+                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase">Faktur#</th>
+                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase">Customer</th>
+                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase">Tanggal Jual</th>
+                                        <th class="px-3 py-2 text-right text-xs font-bold text-gray-800 uppercase">Harga Jual</th>
+                                        <th class="px-3 py-2 text-right text-xs font-bold text-gray-800 uppercase">Qty.</th>
+                                        <th class="px-3 py-2 text-right text-xs font-bold text-gray-800 uppercase">Satuan</th>
+                                        <th class="px-3 py-2 text-right text-xs font-bold text-gray-800 uppercase">Ref.PO</th>
+                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase">Description</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    <template x-for="(item, i) in $store.laporanStore.customerData" :key="i">
+                                        <tr>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900" x-text="item.fsono"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900" x-text="item.fcustomername"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900" x-text="item.fsodate"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 text-right" x-text="Number(item.fprice).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 })"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 text-right" x-text="Number(item.fqty).toLocaleString('id-ID', { minimumFractionDigits: 0 })"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 text-right" x-text="item.fsatuan"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 text-right" x-text="item.fsono"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 truncate max-w-xs" :title="item.fdesc" x-text="item.fdesc || '-'"></td>
+                                        </tr>
+                                    </template>
+                                    <tr x-show="$store.laporanStore.customerData.length === 0">
+                                        <td colspan="8" class="px-3 py-4 text-center text-sm text-gray-500">Tidak ada riwayat Laporan SO dari Customer.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                         
                         <div x-show="$store.laporanStore.activeTab === 'stok'">
@@ -229,7 +259,35 @@
                         </div>
                         
                         <div x-show="$store.laporanStore.activeTab === 'supplier'">
-                            <p class="text-gray-500 italic">Data Supplier belum tersedia.</p>
+                            <table class="min-w-full divide-y divide-gray-200 border">
+                                <thead class="bg-gray-100">
+                                    <tr>
+                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase">Faktur#</th>
+                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase">Supplier</th>
+                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase">Tanggal</th>
+                                        <th class="px-3 py-2 text-right text-xs font-bold text-gray-800 uppercase">Harga</th>
+                                        <th class="px-3 py-2 text-right text-xs font-bold text-gray-800 uppercase">Qty.</th>
+                                        <th class="px-3 py-2 text-right text-xs font-bold text-gray-800 uppercase">Satuan</th>
+                                        <th class="px-3 py-2 text-center text-xs font-bold text-gray-800 uppercase">Ccy</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    <template x-for="(item, i) in $store.laporanStore.supplierData" :key="i">
+                                        <tr>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900" x-text="item.fstockmtno"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900" x-text="item.fsuppliername"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900" x-text="item.fstockmtdate"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 text-right" x-text="Number(item.fprice).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 })"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 text-right" x-text="Number(item.fqty).toLocaleString('id-ID', { minimumFractionDigits: 0 })"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 text-right" x-text="item.fsatuan"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 text-center" x-text="item.fcurrency"></td>
+                                        </tr>
+                                    </template>
+                                    <tr x-show="$store.laporanStore.supplierData.length === 0">
+                                        <td colspan="7" class="px-3 py-4 text-center text-sm text-gray-500">Tidak ada riwayat Laporan Pembelian/ADJ dari Supplier.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -400,18 +458,22 @@
             Alpine.store('laporanStore', {
                 showModal: false,
                 isLoading: false,
-                activeTab: 'stok',
+                activeTab: 'customer',
                 stokData: [],
+                customerData: [],
+                supplierData: [],
                 
                 openModal(fprdid) {
                     this.showModal = true;
-                    this.activeTab = 'stok';
+                    this.activeTab = 'customer';
                     this.loadData(fprdid);
                 },
                 
                 closeModal() {
                     this.showModal = false;
                     this.stokData = [];
+                    this.customerData = [];
+                    this.supplierData = [];
                 },
                 
                 loadData(fprdid) {
@@ -420,6 +482,8 @@
                         .then(res => res.json())
                         .then(data => {
                             this.stokData = data.stok || [];
+                            this.customerData = data.customer || [];
+                            this.supplierData = data.supplier || [];
                             this.isLoading = false;
                         })
                         .catch(err => {

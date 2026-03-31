@@ -526,16 +526,59 @@ class ProductController extends Controller
         $product = Product::findOrFail($fprdid);
 
         // Fetching data manually based on user's query
-        $stokData = \Illuminate\Support\Facades\DB::select("
-            select v.ffrom as fwhcode, w.fwhname, (v.fsaldo/NULLIF(p.fqtykecil, 0)) as fsaldo, p.fsatuanbesar
-            from  prdwh v  
-            left outer join mswh w  on v.ffrom=w.fwhcode
-            left outer join  msprd p on p.fprdcode=v.fprdcode 
-            where v.fprdcode = :fprdcode
+        $stokData = '';
+
+        $customerData = \Illuminate\Support\Facades\DB::select("
+            SELECT 
+                m.fsono,
+                m.frefno,
+                c.fcustomername,
+                d.fprdcode,
+                m.fsodate,
+                m.fcurrency,
+                d.fpricenet AS fprice,
+                d.fqty,
+                CAST(d.fdesc AS CHAR(100)) AS fdesc,
+                d.fsatuan
+            FROM tranmt m
+            JOIN trandt d ON m.fsono = d.fsono
+            JOIN mscustomer c ON m.fcustno = c.fcustomerid
+            WHERE d.fprdcode = :fprdcode
+            ORDER BY m.fsodate DESC 
+            LIMIT 30
+        ", ['fprdcode' => $product->fprdcode]);
+
+        $supplierData = \Illuminate\Support\Facades\DB::select("
+            SELECT 
+                d.fstockmtno,
+                CASE 
+                    WHEN m.fstockmtcode = 'BUY' THEN s.fsuppliername 
+                    ELSE CAST('ADJ' AS CHAR(3)) 
+                END AS fsuppliername,
+                m.fstockmtdate,
+                m.fcurrency,
+                COALESCE(d.fprice, 0) AS fprice,
+                d.fqty,
+                d.fsatuan
+            FROM trstockmt m 
+            LEFT OUTER JOIN trstockdt d ON m.fstockmtno = d.fstockmtno 
+            LEFT OUTER JOIN mssupplier s ON m.fsupplier = s.fsupplierid
+            WHERE 
+                d.fqty > 0 
+                AND (
+                    (m.fstockmtcode = 'BUY') 
+                    OR 
+                    (m.fstockmtcode = 'ADJ')
+                ) 
+                AND d.fprdcode = :fprdcode
+            ORDER BY m.fstockmtdate DESC 
+            LIMIT 15
         ", ['fprdcode' => $product->fprdcode]);
 
         return response()->json([
-            'stok' => $stokData
+            'stok' => $stokData,
+            'customer' => $customerData,
+            'supplier' => $supplierData
         ]);
     }
 }
