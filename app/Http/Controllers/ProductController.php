@@ -526,7 +526,17 @@ class ProductController extends Controller
         $product = Product::findOrFail($fprdid);
 
         // Fetching data manually based on user's query
-        $stokData = '';
+        $stokData = \Illuminate\Support\Facades\DB::select("
+            SELECT 
+                v.fwhcode AS fwhcode, 
+                w.fwhname,
+                (v.fsaldo / p.fqtykecil) AS fsaldo, 
+                p.fsatuanbesar
+            FROM prdwh v  
+            LEFT OUTER JOIN mswh w ON v.fwhcode = w.fwhcode
+            LEFT OUTER JOIN msprd p ON p.fprdcode = v.fprdcode 
+            WHERE v.fprdcode = :fprdcode
+        ", ['fprdcode' => $product->fprdcode]);
 
         $customerData = \Illuminate\Support\Facades\DB::select("
             SELECT 
