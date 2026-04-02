@@ -289,7 +289,8 @@
                                         <th class="p-2 text-left w-42">Kode Produk</th>
                                         <th class="p-2 text-left w-96">Nama Produk</th>
                                         <th class="p-2 text-left w-36">Satuan</th>
-                                        <th class="p-2 text-right w-36 whitespace-nowrap">Qty</th>
+                                        <th class="p-2 text-right w-28 whitespace-nowrap">Qty</th>
+                                        <th class="p-2 text-right w-28 whitespace-nowrap">Qty.Terima</th>
                                         <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
                                         <th class="p-2 text-right w-36 whitespace-nowrap">Disc. %</th>
                                         <th class="p-2 text-right w-36 whitespace-nowrap">Total Harga</th>
@@ -313,6 +314,7 @@
                                             </td>
                                             <td class="p-2" x-text="it.fsatuan"></td>
                                             <td class="p-2 text-right" x-text="fmt(it.fqty)"></td>
+                                            <td class="p-2 text-right font-medium" x-text="fmt(it.fqtyremain)"></td>
                                             <td class="p-2 text-right" x-text="fmt(it.fprice)"></td>
                                             <td class="p-2 text-right" x-text="it.fdisc"></td>
                                             <td class="p-2 text-right" x-text="fmt(it.ftotal)"></td>
