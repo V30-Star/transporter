@@ -271,10 +271,14 @@ Route::middleware('auth')->group(function () {
         Route::delete('/fakturpembelian/{fstockmtid}', [FakturpembelianController::class, 'destroy'])->name('fakturpembelian.destroy');
         Route::get('/fakturpembelian/{fstockmtno}/print', [FakturpembelianController::class, 'print'])
             ->name('fakturpembelian.print');
-        Route::get('/fakturpembelian/{id}/items', [FakturpembelianController::class, 'items'])
-            ->name('fakturpembelian.items');
-        Route::get('/fakturpembelian/pickable', [FakturpembelianController::class, 'pickable'])
-            ->name('fakturpembelian.pickable');
+        Route::get('/fakturpembelian/{id}/items-po', [FakturpembelianController::class, 'itemsPO'])
+            ->name('fakturpembelian.itemsPO');
+        Route::get('/fakturpembelian/pickable-po', [FakturpembelianController::class, 'pickablePO'])
+            ->name('fakturpembelian.pickablePO');
+        Route::get('/fakturpembelian/{id}/items-pb', [FakturpembelianController::class, 'itemsPB'])
+            ->name('fakturpembelian.itemsPB');
+        Route::get('/fakturpembelian/pickable-pb', [FakturpembelianController::class, 'pickablePB'])
+            ->name('fakturpembelian.pickablePB');
 
         Route::get('/adjstock',  [AdjstockController::class, 'index'])->name('adjstock.index');
         Route::post('/adjstock',        [AdjstockController::class, 'store'])->name('adjstock.store');

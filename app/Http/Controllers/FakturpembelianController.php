@@ -120,48 +120,41 @@ class FakturPembelianController extends Controller
     ));
   }
 
-  public function pickable(Request $request)
+  public function pickablePO(Request $request)
   {
     $search   = trim((string) $request->get('search', ''));
     $perPage  = (int) $request->get('per_page', 10);
 
-    // Ambil dari tr_prh dengan kondisi yang kamu minta
-    $query = Tr_prh::query()
+    $query = Tr_poh::query()
+      ->leftJoin('mssupplier', 'tr_poh.fsupplier', '=', 'mssupplier.fsupplierid')
       ->select([
-        'tr_prh.fprhid',
-        'tr_prh.fprno',
-        'tr_prh.fsupplier',
-        'tr_prh.fprdate',
-      ])
-      ->where('tr_prh.fapproval', 2)
-      ->where('tr_prh.fprdin', 0);
+        'tr_poh.fpohid',
+        'tr_poh.fpono',
+        'mssupplier.fsuppliername',
+        'tr_poh.fpodate',
+      ]);
 
-    // Optional search: fprno / fsupplier / tanggal
     if ($search !== '') {
-      // PostgreSQL -> ILIKE, MySQL -> LIKE (ganti sesuai DB)
       $likeOp = DB::getDriverName() === 'pgsql' ? 'ILIKE' : 'LIKE';
       $query->where(function ($q) use ($search, $likeOp) {
-        $q->where('tr_prh.fprno', $likeOp, "%{$search}%")
-          ->orWhere('tr_prh.fsupplier', $likeOp, "%{$search}%")
-          ->orWhereRaw("TO_CHAR(tr_prh.fprdate, 'YYYY-MM-DD HH24:MI:SS') {$likeOp} ?", ["%{$search}%"]);
+        $q->where('tr_poh.fpono', $likeOp, "%{$search}%")
+          ->orWhere('mssupplier.fsuppliername', $likeOp, "%{$search}%")
+          ->orWhereRaw("TO_CHAR(tr_poh.fpodate, 'YYYY-MM-DD HH24:MI:SS') {$likeOp} ?", ["%{$search}%"]);
       });
     }
 
-    // Urutan paling baru
-    $query->orderByDesc('tr_prh.fprdate')
-      ->orderByDesc('tr_prh.fprhid');
+    $query->orderByDesc('tr_poh.fpodate')
+      ->orderByDesc('tr_poh.fpohid');
 
     $paginated = $query->paginate($perPage)->withQueryString();
 
-    // Format JSON agar cocok dengan kode Alpine kamu
     $rows = collect($paginated->items())->map(function ($t) {
       return [
-        'fprhid'     => $t->fprhid,
-        'fprno'     => $t->fprno,
-        'fsupplier' => trim($t->fsupplier ?? ''),
-        'fprdate'   => $t->fprdate ? \Carbon\Carbon::parse($t->fprdate)->format('Y-m-d H:i:s') : 'No Date',
-        // siapkan URL jika dibutuhkan
-        'items_url' => route('tr_poh.items', $t->fprhid),
+        'fpohid'     => $t->fpohid,
+        'fpono'     => $t->fpono,
+        'fsupplier' => trim($t->fsuppliername ?? ''),
+        'fpodate'   => $t->fpodate ? \Carbon\Carbon::parse($t->fpodate)->format('Y-m-d H:i:s') : 'No Date',
+        'items_url' => route('fakturpembelian.itemsPO', $t->fpohid),
       ];
     });
 
@@ -174,41 +167,127 @@ class FakturPembelianController extends Controller
         'last_page'    => $paginated->lastPage(),
         'total'        => $paginated->total(),
       ],
-      // compat untuk key yang sudah kamu baca di frontend
       'current_page' => $paginated->currentPage(),
       'last_page'    => $paginated->lastPage(),
       'total'        => $paginated->total(),
     ]);
   }
 
-  public function items($id)
+  public function itemsPO($id)
   {
-    // Ambil data header PR berdasarkan fprhid
-    $header = Tr_prh::where('fprhid', $id)->firstOrFail();
+    $header = Tr_poh::where('fpohid', $id)->firstOrFail();
 
-    // PERBAIKAN: Gunakan fprhid (integer) bukan fprno (varchar)
-    $items = Tr_prd::where('tr_prd.fprhid', $header->fprhid) // <- Gunakan fprhid
-      ->leftJoin('msprd as m', 'm.fprdid', '=', 'tr_prd.fprdcode')
+    $items = Tr_pod::where('tr_pod.fpohid', $header->fpohid)
+      ->leftJoin('msprd as m', 'm.fprdid', '=', 'tr_pod.fprdid')
       ->select([
-        'tr_prd.fprdid as frefdtno',
-        'tr_prd.fprhid as fnouref',
-        'tr_prd.fprdcode as fitemcode',
+        'tr_pod.fpodid as frefdtno',
+        'tr_pod.fpohid as fnouref',
+        'tr_pod.fprdcode as fitemcode',
         'm.fprdname as fitemname',
-        'tr_prd.fqty',
-        'tr_prd.fsatuan as fsatuan',
-        'tr_prd.fprhid',
-        'tr_prd.ftotprice as fharga',
+        'tr_pod.fqty',
+        'tr_pod.fsatuan as fsatuan',
+        'tr_pod.fprice',
+        'tr_pod.fdisc',
+        'tr_pod.famount as fbiaya',
+        'tr_pod.fpricenet as fharga',
         DB::raw('0::numeric as fdiskon')
       ])
-      ->orderBy('tr_prd.fprdcode')
+      ->orderBy('tr_pod.fprdcode')
       ->get();
 
     return response()->json([
       'header' => [
-        'fprhid'     => $header->fprhid,
-        'fprno'     => $header->fprno,
+        'fpohid'     => $header->fpohid,
+        'fpono'     => $header->fpono,
         'fsupplier' => trim($header->fsupplier ?? ''),
-        'fprdate'   => optional($header->fprdate)->format('Y-m-d H:i:s'),
+        'fpodate'   => optional($header->fpodate)->format('Y-m-d H:i:s'),
+      ],
+      'items'  => $items,
+    ]);
+  }
+
+  public function pickablePB(Request $request)
+  {
+    $search   = trim((string) $request->get('search', ''));
+    $perPage  = (int) $request->get('per_page', 10);
+
+    $query = PenerimaanPembelianHeader::query()
+      ->leftJoin('mssupplier', 'trstockmt.fsupplier', '=', 'mssupplier.fsupplierid')
+      ->select([
+        'trstockmt.fstockmtid',
+        'trstockmt.fstockmtno',
+        'mssupplier.fsuppliername',
+        'trstockmt.fstockmtdate',
+      ])
+      ->where('trstockmt.fstockmtcode', 'TER');
+
+    if ($search !== '') {
+      $likeOp = DB::getDriverName() === 'pgsql' ? 'ILIKE' : 'LIKE';
+      $query->where(function ($q) use ($search, $likeOp) {
+        $q->where('trstockmt.fstockmtno', $likeOp, "%{$search}%")
+          ->orWhere('mssupplier.fsuppliername', $likeOp, "%{$search}%")
+          ->orWhereRaw("TO_CHAR(trstockmt.fstockmtdate, 'YYYY-MM-DD HH24:MI:SS') {$likeOp} ?", ["%{$search}%"]);
+      });
+    }
+
+    $query->orderByDesc('trstockmt.fstockmtdate')
+      ->orderByDesc('trstockmt.fstockmtid');
+
+    $paginated = $query->paginate($perPage)->withQueryString();
+
+    $rows = collect($paginated->items())->map(function ($t) {
+      return [
+        'fstockmtid'     => $t->fstockmtid,
+        'fstockmtno'     => $t->fstockmtno,
+        'fsupplier' => trim($t->fsuppliername ?? ''),
+        'fstockmtdate'   => $t->fstockmtdate ? \Carbon\Carbon::parse($t->fstockmtdate)->format('Y-m-d H:i:s') : 'No Date',
+        'items_url' => route('fakturpembelian.itemsPB', $t->fstockmtid),
+      ];
+    });
+
+    return response()->json([
+      'data'  => $rows,
+      'links' => [
+        'prev'         => $paginated->previousPageUrl(),
+        'next'         => $paginated->nextPageUrl(),
+        'current_page' => $paginated->currentPage(),
+        'last_page'    => $paginated->lastPage(),
+        'total'        => $paginated->total(),
+      ],
+      'current_page' => $paginated->currentPage(),
+      'last_page'    => $paginated->lastPage(),
+      'total'        => $paginated->total(),
+    ]);
+  }
+
+  public function itemsPB($id)
+  {
+    $header = PenerimaanPembelianHeader::where('fstockmtid', $id)->firstOrFail();
+
+    $items = PenerimaanPembelianDetail::where('trstockdt.fstockmtid', $header->fstockmtid)
+      ->leftJoin('msprd as m', 'm.fprdid', '=', 'trstockdt.fprdcodeid')
+      ->select([
+        'trstockdt.fstockdtid as frefdtno',
+        'trstockdt.fstockmtid as fnouref',
+        'trstockdt.fprdcode as fitemcode',
+        'm.fprdname as fitemname',
+        'trstockdt.fqty',
+        'trstockdt.fsatuan as fsatuan',
+        'trstockdt.fprice',
+        'trstockdt.fdiscpersen',
+        'trstockdt.fbiaya',
+        'trstockdt.ftotprice as fharga',
+        DB::raw('0::numeric as fdiskon')
+      ])
+      ->orderBy('trstockdt.fprdcode')
+      ->get();
+
+    return response()->json([
+      'header' => [
+        'fstockmtid'     => $header->fstockmtid,
+        'fstockmtno'     => $header->fstockmtno,
+        'fsupplier' => trim($header->fsupplier ?? ''),
+        'fstockmtdate'   => optional($header->fstockmtdate)->format('Y-m-d H:i:s'),
       ],
       'items'  => $items,
     ]);
@@ -274,7 +353,7 @@ class FakturPembelianController extends Controller
     }
 
     $dt = PenerimaanPembelianDetail::query()
-      ->leftJoin('msprd as p', 'p.fprdid', '=', 'trstockdt.fprdcode')
+      ->leftJoin('msprd as p', 'p.fprdid', '=', 'trstockdt.fprdcodeid')
       ->where('trstockdt.fstockmtno', $fstockmtno)
       ->orderBy('trstockdt.fprdcode')
       ->get([
@@ -499,8 +578,9 @@ class FakturPembelianController extends Controller
         $subtotal += $amount;
 
         $rowsDt[] = [
-          'fprdcode' => $prdId,
-          'frefdtno' => $rref !== '' ? $rref : null,
+          'fprdcode'    => $code,
+          'fprdcodeid'  => $prdId,
+          'frefdtno'    => $rref !== '' ? $rref : null,
           'fqty' => $qty,
           'fqtyremain' => $qtyKecil,
           'fprice' => $price,
@@ -669,7 +749,7 @@ class FakturPembelianController extends Controller
     $fakturpembelian = PenerimaanPembelianHeader::with([
       'details' => function ($query) {
         $query
-          ->join('msprd', 'msprd.fprdid', '=', 'trstockdt.fprdcode')
+          ->join('msprd', 'msprd.fprdid', '=', 'trstockdt.fprdcodeid')
           ->select(
             'trstockdt.*',
             'msprd.fprdname',
@@ -788,7 +868,7 @@ class FakturPembelianController extends Controller
     $fakturpembelian = PenerimaanPembelianHeader::with([
       'details' => function ($query) {
         $query
-          ->join('msprd', 'msprd.fprdid', '=', 'trstockdt.fprdcode')
+          ->join('msprd', 'msprd.fprdid', '=', 'trstockdt.fprdcodeid')
           ->select(
             'trstockdt.*',
             'msprd.fprdname',
@@ -1045,8 +1125,9 @@ class FakturPembelianController extends Controller
         $subtotal += $amount;
 
         $rowsDt[] = [
-          'fprdcode' => $prdId,
-          'frefdtno' => $rref !== '' ? $rref : null,
+          'fprdcode'    => $code,
+          'fprdcodeid'  => $prdId,
+          'frefdtno'    => $rref !== '' ? $rref : null,
           'fqty' => $qty,
           'fqtyremain' => $qtyKecil,
           'fprice' => $price,
@@ -1200,7 +1281,7 @@ class FakturPembelianController extends Controller
     $fakturpembelian = PenerimaanPembelianHeader::with([
       'details' => function ($query) {
         $query
-          ->join('msprd', 'msprd.fprdid', '=', 'trstockdt.fprdcode')
+          ->join('msprd', 'msprd.fprdid', '=', 'trstockdt.fprdcodeid')
           ->select(
             'trstockdt.*',
             'msprd.fprdname',

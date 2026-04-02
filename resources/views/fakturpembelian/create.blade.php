@@ -676,21 +676,115 @@
                             </table>
                         </div>
 
-                        <!-- ===== Trigger: Add tr_prh dari panel kanan ===== -->
-                        <div x-data="prhFormModal()">
-                            <!-- Trigger: Add Data dari panel kanan -->
+                        <!-- ===== Trigger: Add PO & PB dari panel kanan ===== -->
+                        <div>
                             <div class="mt-3 flex justify-between items-start gap-4">
-                                <div class="w-full flex justify-start mb-3">
-                                    <!-- Button ini sekarang bisa akses openModal() -->
-                                    <button type="button" @click="openModal()"
-                                        class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
-                                            viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                                d="M12 4.5v15m7.5-7.5h-15" />
-                                        </svg>
-                                        Add Data
-                                    </button>
+                                <div class="w-full flex justify-start mb-3 gap-2">
+                                    
+                                    <!-- Trigger: Add PO -->
+                                    <div x-data="poFormModal()">
+                                        <button type="button" @click="openModal()"
+                                            class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                                viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                                    d="M12 4.5v15m7.5-7.5h-15" />
+                                            </svg>
+                                            Add PO
+                                        </button>
+
+                                        <!-- PO Modal -->
+                                        <div x-show="show" x-transition.opacity class="fixed inset-0 z-40 bg-black/50" @keydown.escape.window="closeModal()"></div>
+                                        <div>
+                                            <div x-show="show" x-cloak x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8" aria-modal="true" role="dialog">
+                                                <div class="relative w-full max-w-5xl rounded-xl bg-white shadow-2xl flex flex-col" style="height: 600px;">
+                                                    <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-emerald-50 to-white">
+                                                        <h3 class="text-xl font-bold text-gray-800">Pilih Purchase Order (PO)</h3>
+                                                        <button type="button" @click="closeModal()" class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">Tutup</button>
+                                                    </div>
+                                                    <div class="flex-1 overflow-y-auto p-6" style="min-height: 0;">
+                                                        <table id="poTable" class="min-w-full text-sm display nowrap stripe hover" style="width:100%">
+                                                            <thead class="sticky top-0 z-10">
+                                                                <tr class="bg-gray-50 border-b-2 border-gray-200">
+                                                                    <th class="p-3 text-left font-semibold text-gray-700">PO No</th>
+                                                                    <th class="p-3 text-left font-semibold text-gray-700">Supplier</th>
+                                                                    <th class="p-3 text-left font-semibold text-gray-700">Tanggal</th>
+                                                                    <th class="p-3 text-center font-semibold text-gray-700">Aksi</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody></tbody>
+                                                        </table>
+                                                    </div>
+                                                    <div class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50"></div>
+                                                </div>
+                                            </div>
+                                            <!-- Duplicate modal -->
+                                            <div x-show="showDupModal" x-cloak x-transition.opacity class="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                                                <div class="absolute inset-0 bg-black/40" @click="closeDupModal()"></div>
+                                                <div class="relative bg-white rounded-xl shadow-xl max-w-2xl w-full p-6">
+                                                    <h3 class="text-lg font-semibold mb-4">Peringatan Duplikasi</h3>
+                                                    <p class="mb-4">Ditemukan <strong x-text="dupCount"></strong> item yang sudah ada dalam daftar. Hanya item unik yang akan ditambahkan.</p>
+                                                    <div class="flex justify-end gap-2">
+                                                        <button type="button" @click="closeDupModal()" class="rounded bg-gray-200 px-4 py-2 text-sm font-medium hover:bg-gray-300">Batal</button>
+                                                        <button type="button" @click="confirmAddUniques()" class="rounded bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700">Tambahkan Item Unik</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Trigger: Add PB -->
+                                    <div x-data="pbFormModal()">
+                                        <button type="button" @click="openModal()"
+                                            class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                                viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                                    d="M12 4.5v15m7.5-7.5h-15" />
+                                            </svg>
+                                            Add Penerimaan Barang
+                                        </button>
+
+                                        <!-- PB Modal -->
+                                        <div x-show="show" x-transition.opacity class="fixed inset-0 z-40 bg-black/50" @keydown.escape.window="closeModal()"></div>
+                                        <div>
+                                            <div x-show="show" x-cloak x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8" aria-modal="true" role="dialog">
+                                                <div class="relative w-full max-w-5xl rounded-xl bg-white shadow-2xl flex flex-col" style="height: 600px;">
+                                                    <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
+                                                        <h3 class="text-xl font-bold text-gray-800">Pilih Penerimaan Barang</h3>
+                                                        <button type="button" @click="closeModal()" class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">Tutup</button>
+                                                    </div>
+                                                    <div class="flex-1 overflow-y-auto p-6" style="min-height: 0;">
+                                                        <table id="pbTable" class="min-w-full text-sm display nowrap stripe hover" style="width:100%">
+                                                            <thead class="sticky top-0 z-10">
+                                                                <tr class="bg-gray-50 border-b-2 border-gray-200">
+                                                                    <th class="p-3 text-left font-semibold text-gray-700">No. Transaksi</th>
+                                                                    <th class="p-3 text-left font-semibold text-gray-700">Supplier</th>
+                                                                    <th class="p-3 text-left font-semibold text-gray-700">Tanggal</th>
+                                                                    <th class="p-3 text-center font-semibold text-gray-700">Aksi</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody></tbody>
+                                                        </table>
+                                                    </div>
+                                                    <div class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50"></div>
+                                                </div>
+                                            </div>
+                                            <!-- Duplicate modal -->
+                                            <div x-show="showDupModal" x-cloak x-transition.opacity class="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                                                <div class="absolute inset-0 bg-black/40" @click="closeDupModal()"></div>
+                                                <div class="relative bg-white rounded-xl shadow-xl max-w-2xl w-full p-6">
+                                                    <h3 class="text-lg font-semibold mb-4">Peringatan Duplikasi</h3>
+                                                    <p class="mb-4">Ditemukan <strong x-text="dupCount"></strong> item yang sudah ada dalam daftar. Hanya item unik yang akan ditambahkan.</p>
+                                                    <div class="flex justify-end gap-2">
+                                                        <button type="button" @click="closeDupModal()" class="rounded bg-gray-200 px-4 py-2 text-sm font-medium hover:bg-gray-300">Batal</button>
+                                                        <button type="button" @click="confirmAddUniques()" class="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">Tambahkan Item Unik</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                 </div>
                                 <!-- Kanan: Panel Totals -->
                                 <div class="w-1/2">
@@ -772,89 +866,7 @@
                                     <input type="hidden" name="famountpopajak" :value="ppnRate">
                                 </div>
                             </div>
-                            <!-- Modal backdrop - sekarang bisa akses 'show' -->
-                            <div x-show="show" x-transition.opacity class="fixed inset-0 z-40 bg-black/50"
-                                @keydown.escape.window="closeModal()"></div>
 
-                            {{-- MODAL PR dengan DataTables - HAPUS x-data di sini --}}
-                            <div>
-                                {{-- MODAL PR --}}
-                                <div x-show="show" x-cloak x-transition.opacity
-                                    class="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8"
-                                    aria-modal="true" role="dialog">
-
-                                    <div class="relative w-full max-w-5xl rounded-xl bg-white shadow-2xl flex flex-col"
-                                        style="height: 600px;">
-                                        <!-- Header -->
-                                        <div
-                                            class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
-                                            <h3 class="text-xl font-bold text-gray-800">Pilih Purchase Request (PR)</h3>
-                                            <button type="button" @click="closeModal()"
-                                                class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">
-                                                Tutup
-                                            </button>
-                                        </div>
-
-                                        <!-- Table Container -->
-                                        <div class="flex-1 overflow-y-auto p-6" style="min-height: 0;">
-                                            <table id="prTable" class="min-w-full text-sm display nowrap stripe hover"
-                                                style="width:100%">
-                                                <thead class="sticky top-0 z-10">
-                                                    <tr class="bg-gray-50 border-b-2 border-gray-200">
-                                                        <th class="p-3 text-left font-semibold text-gray-700">PR No</th>
-                                                        <th class="p-3 text-left font-semibold text-gray-700">Supplier</th>
-                                                        <th class="p-3 text-left font-semibold text-gray-700">Tanggal</th>
-                                                        <th class="p-3 text-center font-semibold text-gray-700">Aksi</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <!-- DataTables data here -->
-                                                </tbody>
-                                            </table>
-                                        </div>
-
-                                        <!-- Footer (Pagination rendered by DataTables, just provide space if needed) -->
-                                        <div class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">
-                                            <!-- DataTables pagination will be rendered automatically based on the 'dom' setting. -->
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {{-- Modal Duplikasi --}}
-                                <div x-show="showDupModal" x-cloak x-transition.opacity
-                                    class="fixed inset-0 z-[60] flex items-center justify-center p-4">
-                                    <div class="absolute inset-0 bg-black/40" @click="closeDupModal()"></div>
-                                    <div class="relative bg-white rounded-xl shadow-xl max-w-2xl w-full p-6">
-                                        <h3 class="text-lg font-semibold mb-4">Peringatan Duplikasi</h3>
-                                        <p class="mb-4">
-                                            Ditemukan <strong x-text="dupCount"></strong> item yang sudah ada dalam daftar.
-                                            Hanya item unik yang akan ditambahkan.
-                                        </p>
-
-                                        <div class="mb-4 max-h-48 overflow-auto border rounded p-2 bg-gray-50"
-                                            x-show="dupSample.length > 0">
-                                            <p class="text-sm font-medium mb-2">Contoh item duplikat:</p>
-                                            <template x-for="(item, idx) in dupSample" :key="idx">
-                                                <div class="text-xs py-1">
-                                                    • <span x-text="item.fitemcode"></span> - <span
-                                                        x-text="item.frefdtno"></span>
-                                                </div>
-                                            </template>
-                                        </div>
-
-                                        <div class="flex justify-end gap-2">
-                                            <button type="button" @click="closeDupModal()"
-                                                class="rounded bg-gray-200 px-4 py-2 text-sm font-medium hover:bg-gray-300">
-                                                Batal
-                                            </button>
-                                            <button type="button" @click="confirmAddUniques()"
-                                                class="rounded bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700">
-                                                Tambahkan Item Unik
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
 
                         <!-- MODAL DESC (di dalam itemsTable) -->
@@ -1526,7 +1538,7 @@
                 return row.fitemcode && row.fitemname && row.fsatuan && Number(row.fqty) > 0;
             },
 
-            onPrPicked(e) {
+            onPoPicked(e) {
                 const {
                     header,
                     items
@@ -1534,45 +1546,68 @@
                 if (!items || !Array.isArray(items)) return;
 
                 this.resetDraft();
-
-                this.addManyFromPR(header, items);
+                this.addManyFromSource(header, items, 'PO');
             },
+
+            onPbPicked(e) {
+                const {
+                    header,
+                    items
+                } = e.detail || {};
+                if (!items || !Array.isArray(items)) return;
+
+                this.resetDraft();
+                this.addManyFromSource(header, items, 'PB');
+            },
+
             resetDraft() {
                 this.draft = newRow();
                 this.$nextTick(() => this.$refs.draftCode?.focus());
             },
 
-            addManyFromPR(header, items) {
-                const existing = new Set(this.getCurrentItemKeys()); // gunakan helper
+            addManyFromSource(header, items, sourceType) {
+                const existing = new Set(this.getCurrentItemKeys());
 
                 let added = 0,
                     duplicates = [];
 
                 items.forEach(src => {
+                    let fnourefVal = src.fnouref ?? '';
+                    let frefdtnoVal = src.frefdtno ?? '';
+                    if (sourceType === 'PO') {
+                       fnourefVal  = header?.fpono ?? '';
+                       frefdtnoVal = header?.fpono ?? '';
+                    } else if (sourceType === 'PB') {
+                       fnourefVal  = header?.fstockmtno ?? '';
+                       frefdtnoVal = header?.fstockmtno ?? '';
+                    }
+
                     const row = {
                         uid: cryptoRandom(),
                         fitemcode: src.fitemcode ?? '',
                         fitemname: src.fitemname ?? '',
                         fsatuan: src.fsatuan ?? '',
-                        frefdtno: src.frefdtno ?? '',
-                        fnouref: src.fnouref ?? '',
-                        frefpr: src.frefpr ?? (header?.fpono ?? ''),
-                        fprhid: src.fprhid ?? header?.fprhid ?? '',
-                        fqty: Number(src.fqty ?? 0),
-                        maxqty: Number(src.fqty ?? 0),
-                        fterima: Number(src.fterima ?? 0),
-                        fprice: Number(src.fprice ?? 0),
-                        fdiscpersen: Number(src.fdiscpersen ?? 0),
-                        ftotprice: Number(src.ftotprice ?? 0),
-                        fdesc: src.fdesc ?? '',
-                        fketdt: src.fketdt ?? '',
-                        units: Array.isArray(src.units) && src.units.length ? src.units : [src.fsatuan]
-                            .filter(Boolean),
+                        frefdtno: frefdtnoVal,
+                        fnouref: fnourefVal,
+                        frefpr: src.fnouref ?? fnourefVal,
+
+                        // Data quantity
+                        fqty: Math.max(0, +src.fqty || 0),
+                        maxqty: Math.max(0, +src.fqty || 0),
+
+                        // Financial
+                        fprice: +(src.fprice || 0),
+                        fdiscpersen: +(src.fdiscpersen || 0),
+                        fbiaya: +(src.fbiaya || 0),
+                        ftotprice: +(src.fharga || 0),
+
+                        fdesc: src.fdesc || '',
+                        units: Array.isArray(src.units) && src.units.length ? src.units : [src.fsatuan].filter(Boolean)
                     };
-                    const key = this.itemKey({
-                        fitemcode: row.fitemcode,
-                        frefdtno: row.frefdtno
-                    });
+
+                    this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+
+                    const key = `${(row.fitemcode || '').toString().trim()}::${(row.frefdtno || '').toString().trim()}`;
 
                     if (existing.has(key)) {
                         duplicates.push({
@@ -1693,9 +1728,12 @@
                 this.$watch('fapplyppn', () => this.recalcTotals());
                 this.$watch('ppnRate', () => this.recalcTotals());
 
-                // Listen for PR picked from modal PR
+                // Listen for PO and PB picked
                 window.getCurrentItemKeys = () => this.getCurrentItemKeys();
-                window.addEventListener('pr-picked', this.onPrPicked.bind(this), {
+                window.addEventListener('po-picked', this.onPoPicked.bind(this), {
+                    passive: true
+                });
+                window.addEventListener('pb-picked', this.onPbPicked.bind(this), {
                     passive: true
                 });
 
@@ -1764,12 +1802,11 @@
 </script>
 
 <script>
-    window.prhFormModal = function() {
+    window.poFormModal = function() {
         return {
             show: false,
             table: null,
 
-            // Duplikasi modal state
             showDupModal: false,
             dupCount: 0,
             dupSample: [],
@@ -1781,11 +1818,11 @@
                     this.table.destroy();
                 }
 
-                this.table = $('#prTable').DataTable({
+                this.table = $('#poTable').DataTable({
                     processing: true,
                     serverSide: true,
                     ajax: {
-                        url: "{{ route('tr_poh.pickable') }}",
+                        url: "{{ route('fakturpembelian.pickablePO') }}",
                         type: 'GET',
                         data: function(d) {
                             return {
@@ -1793,35 +1830,28 @@
                                 start: d.start,
                                 length: d.length,
                                 search: d.search.value,
-                                // Menambahkan parameter order untuk server-side processing
                                 order_column: d.columns[d.order[0].column].data,
                                 order_dir: d.order[0].dir
                             };
-                        },
-                        // Karena kita sudah menggunakan parameter start/length standar DataTables,
-                        // properti dataSrc bisa dihilangkan jika backend langsung mengembalikan format DataTables.
-                        // Jika backend tetap menggunakan pagination Laravel, dataSrc perlu dipertahankan. 
-                        // Kita asumsikan backend sudah disesuaikan untuk server-side DataTables penuh.
-                        // Jika masih menggunakan format pagination Laravel, kita bisa menggunakan:
-                        // dataSrc: function(json) { return json.data; }
+                        }
                     },
                     columns: [{
-                            data: 'fprno',
-                            name: 'fprno',
-                            className: 'font-mono text-sm' // Styling konsisten
+                            data: 'fpono',
+                            name: 'fpono',
+                            className: 'font-mono text-sm'
                         },
                         {
-                            data: 'fsuppliername',
-                            name: 'fsuppliername',
-                            className: 'text-sm', // Styling konsisten
+                            data: 'fsupplier',
+                            name: 'fsupplier',
+                            className: 'text-sm',
                             render: function(data) {
                                 return data || '-';
                             }
                         },
                         {
-                            data: 'fprdate',
-                            name: 'fprdate',
-                            className: 'text-sm', // Styling konsisten
+                            data: 'fpodate',
+                            name: 'fpodate',
+                            className: 'text-sm',
                             render: function(data) {
                                 return formatDate(data);
                             }
@@ -1832,65 +1862,19 @@
                             searchable: false,
                             className: 'text-center',
                             render: function(data, type, row) {
-                                // Menggunakan styling yang lebih seragam
                                 return '<button type="button" class="btn-pick px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>';
                             }
                         }
                     ],
                     pageLength: 10,
-                    lengthMenu: [
-                        [10, 25, 50, 100], // Menambahkan 100
-                        [10, 25, 50, 100]
-                    ],
-                    // Menggunakan DOM custom yang sudah diseragamkan
+                    lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
                     dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
-
-                    language: {
-                        processing: "Memuat data...", // Diseragamkan
-                        search: "Cari:", // Diseragamkan
-                        lengthMenu: "Tampilkan _MENU_", // Diseragamkan
-                        info: "Menampilkan _START_ - _END_ dari _TOTAL_ data", // Diseragamkan
-                        infoEmpty: "Tidak ada data", // Diseragamkan
-                        infoFiltered: "(disaring dari _MAX_ total data)", // Diseragamkan
-                        zeroRecords: "Tidak ada data yang ditemukan", // Diseragamkan
-                        emptyTable: "Tidak ada data tersedia", // Diseragamkan
-                        paginate: {
-                            first: "Pertama",
-                            last: "Terakhir",
-                            next: "Selanjutnya",
-                            previous: "Sebelumnya"
-                        }
-                    },
-                    order: [
-                        [2, 'desc']
-                    ], // Sort by tanggal terbaru
-                    autoWidth: false,
-                    initComplete: function() {
-                        const api = this.api();
-                        const $container = $(api.table().container());
-
-                        // Style search input (disamakan dengan Supplier)
-                        $container.find('.dt-search .dt-input, .dataTables_filter input').css({
-                            width: '300px', // Menggunakan 300px agar konsisten dengan supplierBrowser
-                            padding: '8px 12px',
-                            border: '2px solid #e5e7eb',
-                            borderRadius: '8px',
-                            fontSize: '14px'
-                        }).focus();
-
-                        // Style length select (disamakan dengan Supplier)
-                        $container.find('.dt-length select, .dataTables_length select').css({
-                            padding: '6px 32px 6px 10px',
-                            border: '2px solid #e5e7eb',
-                            borderRadius: '8px',
-                            fontSize: '14px'
-                        });
-                    }
+                    order: [[2, 'desc']],
+                    autoWidth: false
                 });
 
-                // Handle button click (Menggunakan self for consistency)
                 const self = this;
-                $('#prTable').off('click', '.btn-pick').on('click', '.btn-pick', function() {
+                $('#poTable').off('click', '.btn-pick').on('click', '.btn-pick', function() {
                     const data = self.table.row($(this).closest('tr')).data();
                     self.pick(data);
                 });
@@ -1902,15 +1886,10 @@
                     this.initDataTable();
                 });
             },
-
             closeModal() {
                 this.show = false;
-                if (this.table) {
-                    this.table.search('').draw();
-                }
+                if (this.table) this.table.search('').draw();
             },
-
-            // --- Duplikasi Handlers (Tetap sama, logic sudah baik) ---
             openDupModal(header, duplicates, uniques) {
                 this.dupCount = duplicates.length;
                 this.dupSample = duplicates.slice(0, 6);
@@ -1918,7 +1897,6 @@
                 this.pendingUniques = uniques;
                 this.showDupModal = true;
             },
-
             closeDupModal() {
                 this.showDupModal = false;
                 this.dupCount = 0;
@@ -1926,9 +1904,8 @@
                 this.pendingHeader = null;
                 this.pendingUniques = [];
             },
-
             confirmAddUniques() {
-                window.dispatchEvent(new CustomEvent('pr-picked', {
+                window.dispatchEvent(new CustomEvent('po-picked', {
                     detail: {
                         header: this.pendingHeader,
                         items: this.pendingUniques
@@ -1937,27 +1914,15 @@
                 this.closeDupModal();
                 this.closeModal();
             },
-
             async pick(row) {
                 try {
-                    // Tampilkan loading indicator (opsional)
-
-                    const url = `{{ route('tr_poh.items', ['id' => 'PR_ID_PLACEHOLDER']) }}`
-                        .replace('PR_ID_PLACEHOLDER', row.fprhid);
-
-                    const res = await fetch(url, {
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest'
-                        }
-                    });
+                    const url = `{{ route('fakturpembelian.itemsPO', ['id' => 'PO_ID_PLACEHOLDER']) }}`.replace('PO_ID_PLACEHOLDER', row.fpohid);
+                    const res = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
                     const json = await res.json();
 
                     const items = json.items || [];
-                    // Pastikan window.getCurrentItemKeys() tersedia
                     const currentKeys = new Set((window.getCurrentItemKeys?.() || []).map(String));
-
-                    const keyOf = (src) =>
-                        `${(src.fitemcode ?? '').toString().trim()}::${(src.frefdtno ?? '').toString().trim()}`;
+                    const keyOf = (src) => `${(src.fitemcode ?? '').toString().trim()}::${(src.frefdtno ?? '').toString().trim()}`;
 
                     const duplicates = items.filter(src => currentKeys.has(keyOf(src)));
                     const uniques = items.filter(src => !currentKeys.has(keyOf(src)));
@@ -1967,20 +1932,155 @@
                         return;
                     }
 
-                    // Tidak ada duplikat
-                    window.dispatchEvent(new CustomEvent('pr-picked', {
-                        detail: {
-                            header: row,
-                            items
-                        }
+                    window.dispatchEvent(new CustomEvent('po-picked', {
+                        detail: { header: row, items }
                     }));
-
                     this.closeModal();
                 } catch (e) {
                     console.error(e);
-                    // Menggunakan custom alert/modal, bukan alert() bawaan browser
-                    // Idealnya: tampilkan notifikasi di UI
-                    console.log('Gagal mengambil detail PR. Lihat konsol untuk detail.');
+                    console.log('Gagal mengambil detail PO. Lihat konsol untuk detail.');
+                }
+            }
+        };
+    };
+
+    window.pbFormModal = function() {
+        return {
+            show: false,
+            table: null,
+
+            showDupModal: false,
+            dupCount: 0,
+            dupSample: [],
+            pendingHeader: null,
+            pendingUniques: [],
+
+            initDataTable() {
+                if (this.table) {
+                    this.table.destroy();
+                }
+
+                this.table = $('#pbTable').DataTable({
+                    processing: true,
+                    serverSide: true,
+                    ajax: {
+                        url: "{{ route('fakturpembelian.pickablePB') }}",
+                        type: 'GET',
+                        data: function(d) {
+                            return {
+                                draw: d.draw,
+                                start: d.start,
+                                length: d.length,
+                                search: d.search.value,
+                                order_column: d.columns[d.order[0].column].data,
+                                order_dir: d.order[0].dir
+                            };
+                        }
+                    },
+                    columns: [{
+                            data: 'fstockmtno',
+                            name: 'fstockmtno',
+                            className: 'font-mono text-sm'
+                        },
+                        {
+                            data: 'fsupplier',
+                            name: 'fsupplier',
+                            className: 'text-sm',
+                            render: function(data) {
+                                return data || '-';
+                            }
+                        },
+                        {
+                            data: 'fstockmtdate',
+                            name: 'fstockmtdate',
+                            className: 'text-sm',
+                            render: function(data) {
+                                return formatDate(data);
+                            }
+                        },
+                        {
+                            data: null,
+                            orderable: false,
+                            searchable: false,
+                            className: 'text-center',
+                            render: function(data, type, row) {
+                                return '<button type="button" class="btn-pick px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>';
+                            }
+                        }
+                    ],
+                    pageLength: 10,
+                    lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+                    dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
+                    order: [[2, 'desc']],
+                    autoWidth: false
+                });
+
+                const self = this;
+                $('#pbTable').off('click', '.btn-pick').on('click', '.btn-pick', function() {
+                    const data = self.table.row($(this).closest('tr')).data();
+                    self.pick(data);
+                });
+            },
+
+            openModal() {
+                this.show = true;
+                this.$nextTick(() => {
+                    this.initDataTable();
+                });
+            },
+            closeModal() {
+                this.show = false;
+                if (this.table) this.table.search('').draw();
+            },
+            openDupModal(header, duplicates, uniques) {
+                this.dupCount = duplicates.length;
+                this.dupSample = duplicates.slice(0, 6);
+                this.pendingHeader = header;
+                this.pendingUniques = uniques;
+                this.showDupModal = true;
+            },
+            closeDupModal() {
+                this.showDupModal = false;
+                this.dupCount = 0;
+                this.dupSample = [];
+                this.pendingHeader = null;
+                this.pendingUniques = [];
+            },
+            confirmAddUniques() {
+                window.dispatchEvent(new CustomEvent('pb-picked', {
+                    detail: {
+                        header: this.pendingHeader,
+                        items: this.pendingUniques
+                    }
+                }));
+                this.closeDupModal();
+                this.closeModal();
+            },
+            async pick(row) {
+                try {
+                    const url = `{{ route('fakturpembelian.itemsPB', ['id' => 'PB_ID_PLACEHOLDER']) }}`.replace('PB_ID_PLACEHOLDER', row.fstockmtid);
+                    const res = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                    const json = await res.json();
+
+                    const items = json.items || [];
+                    const currentKeys = new Set((window.getCurrentItemKeys?.() || []).map(String));
+                    const keyOf = (src) => `${(src.fitemcode ?? '').toString().trim()}::${(src.frefdtno ?? '').toString().trim()}`;
+
+                    const duplicates = items.filter(src => currentKeys.has(keyOf(src)));
+                    const uniques = items.filter(src => !currentKeys.has(keyOf(src)));
+
+                    if (duplicates.length > 0) {
+                        this.openDupModal(row, duplicates, uniques);
+                        return;
+                    }
+
+                    window.dispatchEvent(new CustomEvent('pb-picked', {
+                        detail: { header: row, items }
+                    }));
+                    this.closeModal();
+                } catch (e) {
+                    console.error(e);
+                    console.log('Gagal mengambil detail PB. Lihat konsol untuk detail.');
                 }
             }
         };
