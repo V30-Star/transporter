@@ -2149,4 +2149,15 @@
             });
         });
     </script>
+    @if ($errors->any())
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script>
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                html: '{!! implode('<br>', $errors->all()) !!}',
+                confirmButtonColor: '#d33'
+            });
+        </script>
+    @endif
 @endpush
