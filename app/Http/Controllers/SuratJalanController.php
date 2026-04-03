@@ -168,7 +168,7 @@ class SuratJalanController extends Controller
 
     $items = DB::table('trstockdt')
       ->where('trstockdt.fstockmtid', $id)
-      ->leftJoin('msprd', 'msprd.fprdid', '=', 'trstockdt.fprdcode')
+      ->leftJoin('msprd', 'msprd.fprdid', '=', 'trstockdt.fprdcodeid')
       ->select(
         'trstockdt.fstockdtid as frefdtno',
         // UBAH BAGIAN INI: Ambil kolom kode dari msprd (misal: fprdcode_string) 
@@ -740,7 +740,7 @@ class SuratJalanController extends Controller
       'details' => function ($query) {
         $query
           // 2. Join ke msprd berdasarkan ID
-          ->join('msprd', 'msprd.fprdid', '=', 'trstockdt.fprdcode')
+          ->join('msprd', 'msprd.fprdid', '=', 'trstockdt.fprdcodeid')
           // 3. Select kolom yang dibutuhkan
           ->select(
             'trstockdt.*', // Ambil semua kolom dari tabel detail
@@ -773,6 +773,7 @@ class SuratJalanController extends Controller
         'fdisc'     => (float)($d->fdiscpersen ?? 0),
         'ftotal'    => (float)($d->ftotprice ?? 0),
         'fdesc'     => is_array($d->fdesc) ? implode(', ', $d->fdesc) : ($d->fdesc ?? ''),
+        'frefno_display' => $d->frefpr ?? $d->fpono ?? '-',
         'fketdt'    => $d->fketdt ?? '',
         'units'     => [],
       ];
@@ -880,6 +881,7 @@ class SuratJalanController extends Controller
         'fdisc'     => (float)($d->fdiscpersen ?? 0),
         'ftotal'    => (float)($d->ftotprice ?? 0),
         'fdesc'     => is_array($d->fdesc) ? implode(', ', $d->fdesc) : ($d->fdesc ?? ''),
+        'frefno_display' => $d->frefpr ?? $d->fpono ?? '-',
         'fketdt'    => $d->fketdt ?? '',
         'units'     => [],
       ];

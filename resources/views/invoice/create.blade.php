@@ -294,188 +294,93 @@
 
                                 <tbody>
                                     <template x-for="(it, i) in savedItems" :key="it.uid">
-                                        <!-- ROW UTAMA -->
-                                        <tr class="border-t align-top">
-                                            <td class="p-2" x-text="i + 1"></td>
-                                            <td class="p-2 font-mono" x-text="it.fitemcode"></td>
-                                            <td class="p-2 text-gray-800">
-                                                <div x-text="it.fitemname"></div>
-                                                <div x-show="it.fdesc" class="mt-1 text-xs">
-                                                    <span
-                                                        class="inline-block px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 mr-2">Deskripsi</span>
-                                                    <span class="align-middle text-gray-600" x-text="it.fdesc"></span>
-                                                </div>
-                                            </td>
-                                            <td class="p-2" x-text="it.fsatuan"></td>
-                                            <td class="p-2 text-blue-600 font-semibold" x-text="it.frefcode || '-'"></td>
-                                            <td class="p-2 text-right" x-text="fmt(it.fqty)"></td>
-                                            <td class="p-2 text-right" x-text="fmt(it.fprice)"></td>
-                                            <td class="p-2 text-right" x-text="it.fdisc"></td>
-                                            <td class="p-2 text-right" x-text="fmt(it.ftotal)"></td>
-                                            <td class="p-2 text-center">
-                                                <div class="flex items-center justify-center gap-2 flex-wrap">
-                                                    <button type="button" @click="edit(i)"
-                                                        class="px-3 py-1 rounded text-xs bg-amber-100 text-amber-700 hover:bg-amber-200">Edit</button>
+                                        <!-- Removed inner tbody -->
+                                            <!-- ROW UTAMA - SAVED ITEM (EDITABLE) -->
+                                            <tr class="border-t align-top">
+                                                <td class="p-2" x-text="i + 1"></td>
+                                                <td class="p-2 font-mono text-xs" x-text="it.fitemcode"></td>
+                                                <td class="p-2 text-gray-800 text-sm" x-text="it.fitemname"></td>
+                                                <td class="p-2">
+                                                    <template x-if="it.units && it.units.length > 1">
+                                                        <select class="w-full border rounded px-1 py-0.5 text-xs"
+                                                            x-model="it.fsatuan">
+                                                            <template x-for="u in it.units" :key="u">
+                                                                <option :value="u" x-text="u"></option>
+                                                            </template>
+                                                        </select>
+                                                    </template>
+                                                    <template x-if="!(it.units && it.units.length > 1)">
+                                                        <span class="text-xs" x-text="it.fsatuan"></span>
+                                                    </template>
+                                                </td>
+                                                <td class="p-2 text-blue-600 font-semibold text-xs" x-text="it.frefno_display || it.frefdtno || '-'"></td>
+                                                
+                                                <!-- Qty Editable -->
+                                                <td class="p-2 text-right">
+                                                    <input type="number" class="border rounded px-1 py-0.5 w-24 text-right text-sm"
+                                                        x-model.number="it.fqty" @input="recalc(it)">
+                                                </td>
+
+                                                <!-- Price Editable -->
+                                                <td class="p-2 text-right">
+                                                    <input type="number" class="border rounded px-1 py-0.5 w-28 text-right text-sm"
+                                                        x-model.number="it.fprice" @input="recalc(it)">
+                                                </td>
+
+                                                <!-- Disc Editable -->
+                                                <td class="p-2 text-right">
+                                                    <input type="text" class="border rounded px-1 py-0.5 w-20 text-right text-sm"
+                                                        x-model="it.fdisc" @input="recalc(it)">
+                                                </td>
+
+                                                <td class="p-2 text-right text-sm font-medium" x-text="fmt(it.ftotal)"></td>
+                                                
+                                                <td class="p-2 text-center text-xs">
                                                     <button type="button" @click="removeSaved(i)"
-                                                        class="px-3 py-1 rounded text-xs bg-red-100 text-red-600 hover:bg-red-200">Hapus</button>
-                                                </div>
-                                            </td>
+                                                        class="px-2 py-1 rounded bg-red-100 text-red-600 hover:bg-red-200">Hapus</button>
+                                                </td>
 
-                                            <!-- hidden inputs -->
-                                            <td class="hidden">
-                                                <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
-                                                <input type="hidden" name="fitemname[]" :value="it.fitemname">
-                                                <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
-                                                <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
-                                                <input type="hidden" name="fnouref[]" :value="it.fnouref">
-                                                <input type="hidden" name="frefpr[]" :value="it.frefpr">
-                                                <input type="hidden" name="fqty[]" :value="it.fqty">
-                                                <input type="hidden" name="fterima[]" :value="it.fterima">
-                                                <input type="hidden" name="fprice[]" :value="it.fprice">
-                                                <input type="hidden" name="fdisc[]" :value="it.fdisc">
-                                                <input type="hidden" name="ftotal[]" :value="it.ftotal">
-                                                <input type="hidden" name="fdesc[]" :value="it.fdesc">
-                                                <input type="hidden" name="fketdt[]" :value="it.fketdt">
-                                            </td>
-                                        </tr>
+                                                <!-- hidden inputs -->
+                                                <td class="hidden">
+                                                    <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
+                                                    <input type="hidden" name="fitemname[]" :value="it.fitemname">
+                                                    <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
+                                                    <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
+                                                    <input type="hidden" name="fnouref[]" :value="it.fnouref">
+                                                    <input type="hidden" name="frefpr[]" :value="it.frefpr">
+                                                    <input type="hidden" name="fqty[]" :value="it.fqty">
+                                                    <input type="hidden" name="fterima[]" :value="it.fterima">
+                                                    <input type="hidden" name="fprice[]" :value="it.fprice">
+                                                    <input type="hidden" name="fdisc[]" :value="it.fdisc">
+                                                    <input type="hidden" name="ftotal[]" :value="it.ftotal">
+                                                    <input type="hidden" name="fdesc[]" :value="it.fdesc">
+                                                    <input type="hidden" name="fketdt[]" :value="it.fketdt">
+                                                </td>
+                                            </tr>
 
-                                        <!-- ROW DESC (di bawah Nama Produk) -->
-                                        <tr class="border-b">
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-2" colspan="3">
-                                                <textarea x-model="draft.fdesc" rows="2" class="w-full border rounded px-4 py-1"
-                                                    placeholder="Deskripsi (opsional)"></textarea>
-                                            </td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                        </tr>
+                                            <!-- ROW DESC (di bawah Nama Produk - RESTRICTED WIDTH) -->
+                                            <tr class="border-b">
+                                                <td class="p-0"></td>
+                                                <td class="p-0"></td>
+                                                <td class="p-2" colspan="3">
+                                                    <textarea x-model="it.fdesc" rows="3"
+                                                        class="w-full border rounded px-2 py-1 text-xs"
+                                                        placeholder="Deskripsi item (opsional)"></textarea>
+                                                </td>
+                                                <td class="p-0" colspan="5"></td>
+                                            </tr>
+                                        <!-- Removed inner tbody closing -->
                                     </template>
 
-                                    <!-- ROW EDIT UTAMA -->
-                                    <tr x-show="editingIndex !== null" class="border-t align-top" x-cloak>
-                                        <!-- # -->
-                                        <td class="p-2" x-text="(editingIndex ?? 0) + 1"></td>
-
-                                        <!-- Kode Produk -->
-                                        <td class="p-2">
-                                            <div class="flex">
-                                                <input type="text" class="flex-1 border rounded-l px-2 py-1 font-mono"
-                                                    x-ref="editCode" x-model.trim="editRow.fitemcode"
-                                                    @input="onCodeTypedRow(editRow)"
-                                                    @keydown.enter.prevent="handleEnterOnCode('edit')">
-                                                <button type="button" @click="openBrowseFor('edit')"
-                                                    class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
-                                                    title="Cari Produk">
-                                                    <x-heroicon-o-magnifying-glass class="w-4 h-4" />
-                                                </button>
-                                                <a href="{{ route('product.create') }}" target="_blank" rel="noopener"
-                                                    class="border border-l-0 rounded-r px-2 py-1 bg-white hover:bg-gray-50"
-                                                    title="Tambah Produk">
-                                                    <x-heroicon-o-plus class="w-4 h-4" />
-                                                </a>
-                                            </div>
-                                        </td>
-
-                                        <!-- Nama Produk (readonly) -->
-                                        <td class="p-2">
-                                            <input type="text"
-                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
-                                                :value="editRow.fitemname" disabled>
-                                        </td>
-
-                                        <!-- Satuan -->
-                                        <td class="p-2">
-                                            <template x-if="editRow.units.length > 1">
-                                                <select class="w-full border rounded px-2 py-1" x-ref="editUnit"
-                                                    x-model="editRow.fsatuan"
-                                                    @keydown.enter.prevent="$refs.editRefPr?.focus()">
-                                                    <template x-for="u in editRow.units" :key="u">
-                                                        <option :value="u" x-text="u"></option>
-                                                    </template>
-                                                </select>
-                                            </template>
-                                            <template x-if="editRow.units.length <= 1">
-                                                <input type="text"
-                                                    class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
-                                                    :value="editRow.fsatuan || '-'" disabled>
-                                            </template>
-                                        </td>
-
-                                        <!-- Ref.PR# -->
-                                        <td class="p-2">
-                                            <input type="text"
-                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
-                                                :value="editRow.frefcode" disabled placeholder="Ref PR">
-                                        </td>
-
-                                        <!-- Qty -->
-                                        <td class="p-2 text-right">
-                                            <input type="number" class="border rounded px-2 py-1 w-24 text-right"
-                                                min="0" step="1" x-ref="editQty"
-                                                x-model.number="editRow.fqty" @input="recalc(editRow)"
-                                                @keydown.enter.prevent="$refs.editTerima?.focus()">
-                                        </td>
-
-                                        <!-- @ Harga -->
-                                        <td class="p-2 text-right">
-                                            <input type="number" class="border rounded px-2 py-1 w-28 text-right"
-                                                min="0" step="0.01" x-ref="editPrice"
-                                                x-model.number="editRow.fprice" @input="recalc(editRow)"
-                                                @keydown.enter.prevent="$refs.editDisc?.focus()">
-                                        </td>
-
-                                        <!-- Disc.% -->
-                                        <td class="p-2 text-right">
-                                            <input type="text" class="border rounded px-2 py-1 w-24 text-right"
-                                                x-ref="editDisc" x-model="editRow.fdisc" @input="recalc(editRow)"
-                                                @keydown.enter.prevent="applyEdit()" placeholder="10+2">
-                                        </td>
-
-                                        <!-- Total Harga (readonly) -->
-                                        <td class="p-2 text-right" x-text="fmt(editRow.ftotal)"></td>
-
-                                        <!-- Aksi -->
-                                        <td class="p-2 text-center">
-                                            <div class="flex items-center justify-center gap-2 flex-wrap">
-                                                <button type="button" @click="applyEdit()"
-                                                    class="px-3 py-1 rounded text-xs bg-emerald-600 text-white">Simpan</button>
-                                                <button type="button" @click="cancelEdit()"
-                                                    class="px-3 py-1 rounded text-xs bg-gray-100">Batal</button>
-                                            </div>
-                                        </td>
-                                    </tr>
-
-                                    <!-- ROW EDIT DESC -->
-                                    <tr x-show="editingIndex !== null" class="border-b" x-cloak>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-2" colspan="3">
-                                            <textarea x-model="draft.fdesc" rows="2" class="w-full border rounded px-4 py-1"
-                                                placeholder="Deskripsi (opsional)"></textarea>
-                                        </td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                    </tr>
 
                                     <!-- ROW DRAFT UTAMA -->
-                                    <tr class="border-t align-top">
-                                        <!-- # -->
+                                    <tr class="border-t align-top bg-blue-50/30">
                                         <td class="p-2" x-text="savedItems.length + 1"></td>
 
                                         <!-- Kode Produk -->
                                         <td class="p-2">
                                             <div class="flex">
-                                                <input type="text" class="flex-1 border rounded-l px-2 py-1 font-mono"
+                                                <input type="text" class="flex-1 border rounded-l px-2 py-1 font-mono text-sm focus:ring-1 focus:ring-blue-500"
                                                     x-ref="draftCode" x-model.trim="draft.fitemcode"
                                                     @input="onCodeTypedRow(draft)"
                                                     @keydown.enter.prevent="handleEnterOnCode('draft')">
@@ -495,16 +400,16 @@
                                         <!-- Nama Produk (readonly) -->
                                         <td class="p-2">
                                             <input type="text"
-                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
+                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
                                                 :value="draft.fitemname" disabled>
                                         </td>
 
                                         <!-- Satuan -->
                                         <td class="p-2">
                                             <template x-if="draft.units.length > 1">
-                                                <select class="w-full border rounded px-2 py-1" x-ref="draftUnit"
+                                                <select class="w-full border rounded px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500" x-ref="draftUnit"
                                                     x-model="draft.fsatuan"
-                                                    @keydown.enter.prevent="$refs.draftRefPr?.focus()">
+                                                    @keydown.enter.prevent="$refs.draftQty?.focus()">
                                                     <template x-for="u in draft.units" :key="u">
                                                         <option :value="u" x-text="u"></option>
                                                     </template>
@@ -512,66 +417,61 @@
                                             </template>
                                             <template x-if="draft.units.length <= 1">
                                                 <input type="text"
-                                                    class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
+                                                    class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
                                                     :value="draft.fsatuan || '-'" disabled>
                                             </template>
                                         </td>
 
-                                        <!-- Ref.PR# -->
+                                        <!-- No.Ref (readonly) -->
                                         <td class="p-2">
                                             <input type="text"
-                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
-                                                :value="draft.frefcode" disabled placeholder="Ref PR">
+                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
+                                                :value="draft.frefno_display || draft.frefdtno || '-'" disabled placeholder="No Ref">
                                         </td>
 
                                         <!-- Qty -->
                                         <td class="p-2 text-right">
-                                            <input type="number" class="border rounded px-2 py-1 w-24 text-right"
+                                            <input type="number" class="border rounded px-2 py-1 w-24 text-right text-sm focus:ring-1 focus:ring-blue-500"
                                                 min="0" step="1" x-ref="draftQty"
                                                 x-model.number="draft.fqty" @input="recalc(draft)"
-                                                @keydown.enter.prevent="$refs.draftTerima?.focus()">
+                                                @keydown.enter.prevent="$refs.draftPrice?.focus()">
                                         </td>
 
-                                        <!-- @ Harga -->
+                                        <!-- Price -->
                                         <td class="p-2 text-right">
-                                            <input type="number" class="border rounded px-2 py-1 w-28 text-right"
+                                            <input type="number" class="border rounded px-2 py-1 w-28 text-right text-sm focus:ring-1 focus:ring-blue-500"
                                                 min="0" step="0.01" x-ref="draftPrice"
                                                 x-model.number="draft.fprice" @input="recalc(draft)"
                                                 @keydown.enter.prevent="$refs.draftDisc?.focus()">
                                         </td>
 
-                                        <!-- Disc.% -->
+                                        <!-- Disc -->
                                         <td class="p-2 text-right">
-                                            <input type="text" class="border rounded px-2 py-1 w-24 text-right"
+                                            <input type="text" class="border rounded px-2 py-1 w-20 text-right text-sm focus:ring-1 focus:ring-blue-500"
                                                 x-ref="draftDisc" x-model="draft.fdisc" @input="recalc(draft)"
-                                                @keydown.enter.prevent="addIfComplete()" placeholder="10+2">
+                                                @keydown.enter.prevent="$refs.draftDesc?.focus()">
                                         </td>
 
-                                        <!-- Total Harga (readonly) -->
-                                        <td class="p-2 text-right" x-text="fmt(draft.ftotal)"></td>
+                                        <td class="p-2 text-right text-sm font-medium" x-text="fmt(draft.ftotal)"></td>
 
                                         <!-- Aksi -->
-                                        <td class="p-2 text-center">
-                                            <div class="flex items-center justify-center gap-2 flex-wrap">
-                                                <button type="button" @click="addIfComplete()"
-                                                    class="px-3 py-1 rounded text-xs bg-emerald-600 text-white">Tambah</button>
-                                            </div>
+                                        <td class="p-2 text-center text-xs">
+                                            <button type="button" @click="addIfComplete()"
+                                                class="px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 transition-colors font-semibold">Tambah</button>
                                         </td>
                                     </tr>
 
-                                    <!-- ROW DRAFT DESC -->
-                                    <tr class="border-b">
+                                    <!-- ROW DRAFT DESC RESTRICTED -->
+                                    <tr class="border-b bg-blue-50/30">
                                         <td class="p-0"></td>
                                         <td class="p-0"></td>
                                         <td class="p-2" colspan="3">
-                                            <textarea x-model="draft.fdesc" rows="2" class="w-full border rounded px-4 py-1"
-                                                placeholder="Deskripsi (opsional)"></textarea>
+                                            <textarea x-model="draft.fdesc" x-ref="draftDesc" rows="3"
+                                                class="w-full border rounded px-2 py-1 text-xs focus:ring-1 focus:ring-blue-500"
+                                                placeholder="Deskripsi item (opsional)"
+                                                @keydown.enter.prevent="addIfComplete()"></textarea>
                                         </td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
+                                        <td class="p-0" colspan="5"></td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -2036,8 +1936,7 @@
 
             addManyFromPR(header, items) {
                 const existing = new Set(this.getCurrentItemKeys());
-                let added = 0,
-                    duplicates = [];
+                let added = 0;
 
                 items.forEach(src => {
                     const row = {
@@ -2046,18 +1945,18 @@
                         fitemname: src.fitemname ?? '',
                         fsatuan: src.fsatuan ?? '',
                         frefdtno: src.frefdtno ?? '',
+                        frefno_display: src.frefno_display ?? (header?.fstockmtno ?? header?.fprno ?? header?.fsono ?? ''), // Use friendly name
                         fnouref: src.fnouref ?? '',
-                        frefpr: src.frefpr ?? (header?.fsono ?? ''),
+                        frefpr: src.frefpr ?? (header?.fstockmtno ?? header?.fsono ?? ''),
                         fprhid: src.fprhid ?? header?.fprhid ?? '',
                         fqty: Number(src.fqty ?? 0),
                         fterima: Number(src.fterima ?? 0),
                         fprice: Number(src.fprice ?? 0),
-                        fdisc: src.fdisc ?? 0, // ✅ Simpan format asli (bisa string "10+2")
+                        fdisc: src.fdisc ?? 0,
                         ftotal: Number(src.ftotal ?? 0),
                         fdesc: src.fdesc ?? '',
                         fketdt: src.fketdt ?? '',
-                        units: Array.isArray(src.units) && src.units.length ? src.units : [src.fsatuan]
-                            .filter(Boolean),
+                        units: Array.isArray(src.units) && src.units.length ? src.units : [src.fsatuan].filter(Boolean),
                     };
 
                     const key = this.itemKey({
@@ -2065,14 +1964,7 @@
                         frefdtno: row.frefdtno
                     });
 
-                    if (existing.has(key)) {
-                        duplicates.push({
-                            key,
-                            code: row.fitemcode,
-                            ref: row.frefdtno
-                        });
-                        return;
-                    }
+                    if (existing.has(key)) return;
 
                     this.savedItems.push(row);
                     existing.add(key);
@@ -2299,16 +2191,17 @@
                 uid: null,
                 fitemcode: '',
                 fitemname: '',
-                frefcode: '', // Tambahkan ini
+                frefcode: '',
                 units: [],
                 fsatuan: '',
                 frefdtno: '',
+                frefno_display: '', // New field
                 fnouref: '',
                 frefpr: '',
                 fqty: 0,
                 fterima: 0,
                 fprice: 0,
-                fdisc: 0, // Bisa berupa string "10+2" atau angka 12
+                fdisc: 0,
                 ftotal: 0,
                 fdesc: '',
                 fketdt: '',

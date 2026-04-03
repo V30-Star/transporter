@@ -290,7 +290,7 @@
                                         <th class="p-2 text-left w-96">Nama Produk</th>
                                         <th class="p-2 text-left w-36">Satuan</th>
                                         <th class="p-2 text-right w-28 whitespace-nowrap">Qty</th>
-                                        <th class="p-2 text-right w-28 whitespace-nowrap">Qty.Terima</th>
+                                        <th class="p-2 text-right w-28 whitespace-nowrap">Qty.SRJ</th>
                                         <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
                                         <th class="p-2 text-right w-36 whitespace-nowrap">Disc. %</th>
                                         <th class="p-2 text-right w-36 whitespace-nowrap">Total Harga</th>

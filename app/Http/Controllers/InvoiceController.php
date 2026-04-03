@@ -631,16 +631,16 @@ class InvoiceController extends Controller
     $fbranchcode = $branch->fcabangkode ?? (string) $raw;   // hidden post
 
     $invoice = Tranmt::with(['customer', 'details' => function ($q) {
-      $q->leftJoin('msprd', function ($j) {
-        // Gunakan trandt.fprdid karena sudah integer (tidak perlu CAST lagi)
-        $j->on('msprd.fprdid', '=', 'trandt.fprdid');
-      })
+      $q->leftJoin('msprd', 'msprd.fprdid', '=', 'trandt.fprdid')
+        ->leftJoin('tranmt as so_hdr', 'so_hdr.ftranmtid', '=', DB::raw('CAST(NULLIF(trandt.frefso, \'\') AS INTEGER)'))
+        ->leftJoin('trstockmt as sj_hdr', 'sj_hdr.fstockmtid', '=', DB::raw('CAST(NULLIF(trandt.frefsrj, \'\') AS INTEGER)'))
         ->select(
           'trandt.*',
           'msprd.fprdcode as fitemcode',
-          'msprd.fprdname'
+          'msprd.fprdname',
+          'so_hdr.fsono as fsono_ref',
+          'sj_hdr.fstockmtno as fstockno_ref'
         )
-        // Ubah order ke ftrandtid (Primary Key detail) karena ftranmtid tidak ada
         ->orderBy('trandt.ftrandtid', 'asc');
     }])->findOrFail($ftranmtid);
 
@@ -662,6 +662,7 @@ class InvoiceController extends Controller
         'fdisc'      => (float)($d->fdisc ?? 0),
         'ftotal'     => (float)($d->famount ?? 0),
         'fdesc'      => (string)($d->fdesc ?? ''),
+        'frefno_display' => $d->fsono_ref ?? $d->fstockno_ref ?? '-',
         'fketdt'     => (string)($d->fketdt ?? ''),
       ];
     })->values();
@@ -730,16 +731,16 @@ class InvoiceController extends Controller
     $fbranchcode = $branch->fcabangkode ?? (string) $raw;   // hidden post
 
     $invoice = Tranmt::with(['customer', 'details' => function ($q) {
-      $q->leftJoin('msprd', function ($j) {
-        // Gunakan trandt.fprdid karena sudah integer (tidak perlu CAST lagi)
-        $j->on('msprd.fprdid', '=', 'trandt.fprdid');
-      })
+      $q->leftJoin('msprd', 'msprd.fprdid', '=', 'trandt.fprdid')
+        ->leftJoin('tranmt as so_hdr', 'so_hdr.ftranmtid', '=', DB::raw('CAST(NULLIF(trandt.frefso, \'\') AS INTEGER)'))
+        ->leftJoin('trstockmt as sj_hdr', 'sj_hdr.fstockmtid', '=', DB::raw('CAST(NULLIF(trandt.frefsrj, \'\') AS INTEGER)'))
         ->select(
           'trandt.*',
           'msprd.fprdcode as fitemcode',
-          'msprd.fprdname'
+          'msprd.fprdname',
+          'so_hdr.fsono as fsono_ref',
+          'sj_hdr.fstockmtno as fstockno_ref'
         )
-        // Ubah order ke ftrandtid (Primary Key detail) karena ftranmtid tidak ada
         ->orderBy('trandt.ftrandtid', 'asc');
     }])->findOrFail($ftranmtid);
 
@@ -761,6 +762,7 @@ class InvoiceController extends Controller
         'fdisc'      => (float)($d->fdisc ?? 0),
         'ftotal'     => (float)($d->famount ?? 0),
         'fdesc'      => (string)($d->fdesc ?? ''),
+        'frefno_display' => $d->fsono_ref ?? $d->fstockno_ref ?? '-',
         'fketdt'     => (string)($d->fketdt ?? ''),
       ];
     })->values();
