@@ -355,51 +355,81 @@ class SuratJalanController extends Controller
       'fcurrency'       => ['nullable', 'string', 'max:5'],
       'frate'           => ['nullable', 'numeric', 'min:0'],
       'famountpopajak'  => ['nullable', 'numeric', 'min:0'],
-    ], [
-      'fstockmtdate.required' => 'Tanggal transaksi wajib diisi.',
-      'fsupplier.required'    => 'Customer wajib diisi.',
-      'fitemcode.required'    => 'Minimal 1 item.',
-      'fsatuan.*.max'         => 'Satuan di salah satu baris tidak boleh lebih dari 5 karakter.'
+    ]);
+
+    Log::info('[STORE] ===== START =====');
+    Log::info('[STORE] Raw request input', [
+      'all' => $request->except(['_token']),
     ]);
 
     // =========================
     // 2) HEADER FIELDS
     // =========================
-    $fstockmtno   = trim((string)$request->input('fstockmtno'));
+    $fstockmtno   = trim((string) $request->input('fstockmtno'));
     $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
-    $fsupplier    = trim((string)$request->input('fsupplier'));
-    $ffrom        = $request->input('fwhid');
-    $fket         = trim((string)$request->input('fket', ''));
-    $fkirim       = trim((string)$request->input('fkirim', ''));
+    $fsupplier    = trim((string) $request->input('fsupplier'));
+    $ffrom        = $request->input('ffrom');
+    $fwhid        = $request->input('fwhid');
+    $fket         = trim((string) $request->input('fket', ''));
+    $fkirim       = trim((string) $request->input('fkirim', ''));
     $fbranchcode  = $request->input('fbranchcode');
     $fcurrency    = $request->input('fcurrency', 'IDR');
-    $frate        = (float)$request->input('frate', 1);
+    $frate        = (float) $request->input('frate', 1);
     if ($frate <= 0) $frate = 1;
-    $ppnAmount    = (float)$request->input('famountpopajak', 0);
+    $ppnAmount    = (float) $request->input('famountpopajak', 0);
     $userid       = auth('sysuser')->user()->fsysuserid ?? 'admin';
     $now          = now();
 
-    // =========================
-    // 3) & 4) DETAIL ARRAYS & RAKIT DETAIL + HITUNG SUBTOTAL
-    // =========================
-    $codes    = $request->input('fitemcode', []);
-    $satuans  = $request->input('fsatuan', []);
-    $refdtno  = $request->input('frefdtno', []);
-    $nourefs  = $request->input('fnouref', []);
-    $qtys     = $request->input('fqty', []);
-    $prices   = $request->input('fprice', []);
-    $descs    = $request->input('fdesc', []);
+    Log::info('[STORE] Header fields parsed', [
+      'fstockmtno'   => $fstockmtno,
+      'fstockmtdate' => $fstockmtdate->toDateString(),
+      'fsupplier'    => $fsupplier,
+      'ffrom'        => $ffrom,
+      'fbranchcode'  => $fbranchcode,
+      'fcurrency'    => $fcurrency,
+      'frate'        => $frate,
+      'ppnAmount'    => $ppnAmount,
+      'userid'       => $userid,
+    ]);
 
-    $rowsDt   = [];
-    $subtotal = 0.0;
-    $rowCount = count($codes);
+    // =========================
+    // 3) DETAIL ARRAYS
+    // =========================
+    $codes   = $request->input('fitemcode', []);
+    $satuans = $request->input('fsatuan', []);
+    $refdtno = $request->input('frefdtno', []);
+    $nourefs = $request->input('fnouref', []);
+    $qtys    = $request->input('fqty', []);
+    $prices  = $request->input('fprice', []);
+    $descs   = $request->input('fdesc', []);
 
-    // Ambil referensi master produk untuk fallback satuan
-    $uniqueCodes = array_values(array_unique(array_filter(array_map(fn($c) => trim((string)$c), $codes))));
+    $rowCount    = count($codes);
+    $uniqueCodes = array_values(array_unique(
+      array_filter(array_map(fn($c) => trim((string) $c), $codes))
+    ));
+
+    Log::info('[STORE] Detail arrays', [
+      'rowCount'    => $rowCount,
+      'uniqueCodes' => $uniqueCodes,
+      'codes'       => $codes,
+      'satuans'     => $satuans,
+      'qtys'        => $qtys,
+      'prices'      => $prices,
+    ]);
+
+    // =========================
+    // 4) PRELOAD MASTER PRODUK
+    // =========================
     $prodMeta = DB::table('msprd')
       ->whereIn('fprdcode', $uniqueCodes)
-      ->get(['fprdid', 'fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2'])
+      ->get(['fprdid', 'fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2', 'fqtykecil'])
       ->keyBy('fprdcode');
+
+    Log::info('[STORE] prodMeta loaded', [
+      'found_codes'   => $prodMeta->keys()->toArray(),
+      'missing_codes' => array_values(array_diff($uniqueCodes, $prodMeta->keys()->toArray())),
+      'detail'        => $prodMeta->toArray(),
+    ]);
 
     $pickDefaultSat = function ($meta) {
       if (!$meta) return '';
@@ -410,6 +440,97 @@ class SuratJalanController extends Controller
       return '';
     };
 
+    // =========================
+    // 5) VALIDASI STOK GUDANG
+    // =========================
+    try {
+      $stokMap = DB::table('prdwh as p')
+        ->leftJoin('trstockdt as t', function ($join) use ($fstockmtno) {
+          $join->on('p.fprdcode', '=', 't.fprdcode')
+            ->where('t.fstockmtno', '=', $fstockmtno ?: '__TIDAK_ADA__');
+        })
+        ->whereIn('p.fprdcode', $uniqueCodes)
+        ->where('p.fwhcode', '=', $ffrom)
+        ->select(
+          'p.fprdcode',
+          'p.fsaldo as stok_gudang_saat_ini',
+          DB::raw('COALESCE(t.fqtykecil, 0) as qty_transaksi_ini'),
+          DB::raw('(p.fsaldo + COALESCE(t.fqtykecil, 0)) as total_stok_maksimal')
+        )
+        ->get()
+        ->keyBy(function ($item) {
+          return trim($item->fprdcode);
+        });
+
+      Log::info('[STORE] stokMap loaded', [
+        'found_codes'   => $stokMap->keys()->toArray(),
+        'missing_codes' => array_values(array_diff($uniqueCodes, $stokMap->keys()->toArray())),
+        'detail'        => $stokMap->toArray(),
+      ]);
+    } catch (\Throwable $e) {
+      Log::error('[STORE] GAGAL query stokMap', [
+        'message' => $e->getMessage(),
+        'sql'     => $e instanceof \Illuminate\Database\QueryException ? $e->getSql() : null,
+        'trace'   => $e->getTraceAsString(),
+      ]);
+      return back()->withInput()->withErrors(['stok' => 'Gagal membaca data stok: ' . $e->getMessage()]);
+    }
+
+    $qtyInputPerKode = [];
+    for ($i = 0; $i < $rowCount; $i++) {
+      $code = trim((string)($codes[$i] ?? ''));
+      $sat  = trim((string)($satuans[$i] ?? ''));
+      $qty  = (float)($qtys[$i] ?? 0);
+      if ($code === '' || $qty <= 0) continue;
+
+      $meta     = $prodMeta[$code] ?? null;
+      $qtyKecil = $qty;
+      if ($meta && $sat !== '' && $sat === trim((string)($meta->fsatuanbesar ?? '')) && (float)$meta->fqtykecil > 0) {
+        $qtyKecil = $qty * (float) $meta->fqtykecil;
+      }
+      $qtyInputPerKode[$code] = ($qtyInputPerKode[$code] ?? 0) + $qtyKecil;
+    }
+
+    Log::info('[STORE] qtyInputPerKode (sudah konversi ke satuan kecil)', $qtyInputPerKode);
+
+    $stockErrors = [];
+    foreach ($qtyInputPerKode as $code => $totalQtyInput) {
+      $stok    = $stokMap[$code] ?? null;
+      $maksimal = $stok ? (float) $stok->total_stok_maksimal : 0;
+
+      Log::info("[STORE] Cek stok [{$code}]", [
+        'stok_record'      => $stok,
+        'total_qty_input'  => $totalQtyInput,
+        'stok_maksimal'    => $maksimal,
+        'lolos'            => $totalQtyInput <= $maksimal,
+      ]);
+
+      if (!$stok) {
+        $stockErrors[] = "Produk [{$code}] tidak ditemukan di gudang $ffrom.";
+      } elseif ($totalQtyInput > $maksimal) {
+        $stockErrors[] = sprintf(
+          'Produk [%s]: qty input (%.2f) melebihi stok maksimal (%.2f). Stok gudang: %.2f.',
+          $code,
+          $totalQtyInput,
+          $maksimal,
+          (float) $stok->stok_gudang_saat_ini
+        );
+      }
+    }
+
+    if (!empty($stockErrors)) {
+      Log::warning('[STORE] Validasi stok GAGAL', $stockErrors);
+      return back()->withInput()->withErrors(['stok' => $stockErrors]);
+    }
+
+    Log::info('[STORE] Validasi stok LOLOS');
+
+    // =========================
+    // 6) RAKIT DETAIL + HITUNG SUBTOTAL
+    // =========================
+    $rowsDt   = [];
+    $subtotal = 0.0;
+
     for ($i = 0; $i < $rowCount; $i++) {
       $code  = trim((string)($codes[$i]   ?? ''));
       $sat   = trim((string)($satuans[$i] ?? ''));
@@ -419,292 +540,343 @@ class SuratJalanController extends Controller
       $price = (float)($prices[$i] ?? 0);
       $desc  = (string)($descs[$i] ?? '');
 
-      if ($code === '' || $qty <= 0) continue;
+      Log::debug("[STORE] Row [{$i}] raw", compact('code', 'sat', 'qty', 'price', 'desc', 'rref', 'rnour'));
 
-      $produk = DB::table('msprd')
-        ->where('fprdcode', $code)
-        ->select('fprdid', 'fsatuanbesar', 'fqtykecil as rasio_konversi')
-        ->first();
-
-      $itemeId = $produk ? $produk->fprdid : $itemeId;
-
-      $qtyKecil = $qty;
-      if ($produk && $sat === $produk->fsatuanbesar) {
-        $qtyKecil = $qty * (float)$produk->rasio_konversi;
+      if ($code === '' || $qty <= 0) {
+        Log::debug("[STORE] Row [{$i}] SKIP — code kosong atau qty <= 0");
+        continue;
       }
 
       $meta = $prodMeta[$code] ?? null;
-      if (!$meta) continue;
+      if (!$meta) {
+        Log::warning("[STORE] Row [{$i}] SKIP — kode [{$code}] tidak ada di prodMeta");
+        continue;
+      }
 
-      $prdId = $meta->fprdid;
+      $qtyKecil = $qty;
+      if ($sat !== '' && $sat === trim((string)($meta->fsatuanbesar ?? '')) && (float)$meta->fqtykecil > 0) {
+        $qtyKecil = $qty * (float) $meta->fqtykecil;
+        Log::debug("[STORE] Row [{$i}] konversi satuan besar → kecil", [
+          'sat' => $sat,
+          'rasio' => $meta->fqtykecil,
+          'qty_asal' => $qty,
+          'qty_kecil' => $qtyKecil,
+        ]);
+      }
 
       if ($sat === '') {
         $sat = $pickDefaultSat($meta);
+        Log::debug("[STORE] Row [{$i}] sat kosong, fallback ke [{$sat}]");
       }
       $sat = mb_substr($sat, 0, 5);
-      if ($sat === '') continue;
-
-      // Convert frefdtno properly
-      $frefdtnoValue = null;
-      if ($rref !== null && $rref !== '') {
-        $frefdtnoValue = (int)$rref;
+      if ($sat === '') {
+        Log::warning("[STORE] Row [{$i}] SKIP — satuan tetap kosong setelah fallback");
+        continue;
       }
 
-      $amount = $qty * $price;
-      $subtotal += $amount;
+      $frefdtnoValue = ($rref !== null && $rref !== '') ? (int) $rref : null;
+      $amount        = $qty * $price;
+      $subtotal     += $amount;
 
-      $rowsDt[] = [
-        'fprdcode'       => $prdId,
-        'frefdtno'       => $frefdtnoValue,
-        'fqty'           => $qty,
-        'fprice'         => '0',
-        'fprice_rp'      => '0',
-        'ftotprice'      => '0',
-        'ftotprice_rp'   => '0',
-        'fusercreate'    => (Auth::user()->fname ?? 'system'),
-        'fdatetime'      => $now,
-        'fketdt'         => '',
-        'fcode'          => '0',
-        'fnouref'        => $rnour !== null ? (int)$rnour : null,
-        'frefso'         => null,
-        'fdesc'          => $desc,
-        'fsatuan'        => $sat,
-        'fclosedt'       => '0',
-        'fdiscpersen'    => 0,
-        'fbiaya'         => 0,
-        'fqtykecil'   => $qtyKecil,
-        'fqtyremain'  => $qtyKecil,
+      $row = [
+        'fprdcode'     => $code,
+        'frefdtno'     => $frefdtnoValue,
+        'fqty'         => $qty,
+        'fprice'       => $price,
+        'fprice_rp'    => $price * $frate,
+        'ftotprice'    => $amount,
+        'ftotprice_rp' => $amount * $frate,
+        'fusercreate'  => Auth::user()->fname ?? 'system',
+        'fdatetime'    => $now,
+        'fketdt'       => '',
+        'fcode'        => '0',
+        'fnouref'      => $rnour !== null ? (int) $rnour : null,
+        'frefso'       => null,
+        'fdesc'        => $desc,
+        'fsatuan'      => $sat,
+        'fclosedt'     => '0',
+        'fdiscpersen'  => 0,
+        'fbiaya'       => 0,
+        'fqtykecil'    => $qtyKecil,
+        'fqtyremain'   => $qtyKecil,
       ];
+
+      Log::debug("[STORE] Row [{$i}] akan disimpan", $row);
+      $rowsDt[] = $row;
     }
 
+    Log::info('[STORE] Total rowsDt valid', [
+      'count'    => count($rowsDt),
+      'subtotal' => $subtotal,
+    ]);
+
     if (empty($rowsDt)) {
+      Log::warning('[STORE] rowsDt kosong — semua baris di-skip');
       return back()->withInput()->withErrors([
-        'detail' => 'Minimal satu item valid (Kode, Satuan, Qty > 0).'
+        'detail' => 'Minimal satu item valid (Kode, Satuan, Qty > 0).',
       ]);
     }
 
     // =========================
-    // 5) TRANSAKSI DB
+    // 7) TRANSAKSI DB
     // =========================
-    DB::transaction(function () use (
-      $fstockmtdate,
-      $fsupplier,
-      $ffrom,
-      $fket,
-      $fkirim,
-      $fbranchcode,
-      $fcurrency,
-      $frate,
-      $userid,
-      $now,
-      &$fstockmtno,
-      &$rowsDt,
-      $subtotal,
-      $ppnAmount
-    ) {
-      // ---- 5.1. Generate fstockmtno dan kodeCabang ----
-      $kodeCabang = null;
-      if ($fbranchcode !== null) {
-        $needle = trim((string)$fbranchcode);
-        if ($needle !== '') {
-          if (is_numeric($needle)) {
-            $kodeCabang = DB::table('mscabang')->where('fcabangid', (int)$needle)->value('fcabangkode');
-          } else {
-            $kodeCabang = DB::table('mscabang')->whereRaw('LOWER(fcabangkode)=LOWER(?)', [$needle])->value('fcabangkode')
-              ?: DB::table('mscabang')->whereRaw('LOWER(fcabangname)=LOWER(?)', [$needle])->value('fcabangkode');
+    try {
+      DB::transaction(function () use (
+        $fstockmtdate,
+        $fsupplier,
+        $ffrom,
+        $fwhid,
+        $fket,
+        $fkirim,
+        $fbranchcode,
+        $fcurrency,
+        $frate,
+        $userid,
+        $now,
+        &$fstockmtno,
+        &$rowsDt,
+        $subtotal,
+        $ppnAmount
+      ) {
+        // ---- 7.1. kodeCabang ----
+        $kodeCabang = null;
+        if ($fbranchcode !== null) {
+          $needle = trim((string) $fbranchcode);
+          if ($needle !== '') {
+            if (is_numeric($needle)) {
+              $kodeCabang = DB::table('mscabang')->where('fcabangid', (int) $needle)->value('fcabangkode');
+            } else {
+              $kodeCabang = DB::table('mscabang')->whereRaw('LOWER(fcabangkode)=LOWER(?)', [$needle])->value('fcabangkode')
+                ?: DB::table('mscabang')->whereRaw('LOWER(fcabangname)=LOWER(?)', [$needle])->value('fcabangkode');
+            }
           }
         }
-      }
-      if (!$kodeCabang) $kodeCabang = 'NA';
+        if (!$kodeCabang) $kodeCabang = 'NA';
 
-      $yy = $fstockmtdate->format('y');
-      $mm = $fstockmtdate->format('m');
-      $fstockmtcode = 'SRJ';
+        Log::info('[STORE][TRX] kodeCabang resolved', ['kodeCabang' => $kodeCabang]);
 
-      if (empty($fstockmtno)) {
-        $prefix = sprintf('%s.%s.%s.%s.', $fstockmtcode, $kodeCabang, $yy, $mm);
+        $yy           = $fstockmtdate->format('y');
+        $mm           = $fstockmtdate->format('m');
+        $fstockmtcode = 'SRJ';
 
-        $lockKey = crc32('STOCKMT|' . $fstockmtcode . '|' . $kodeCabang . '|' . $fstockmtdate->format('Y-m'));
-        DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
+        // ---- 7.2. Generate nomor transaksi ----
+        if (empty($fstockmtno)) {
+          $prefix  = sprintf('%s.%s.%s.%s.', $fstockmtcode, $kodeCabang, $yy, $mm);
+          $lockKey = crc32('STOCKMT|' . $fstockmtcode . '|' . $kodeCabang . '|' . $fstockmtdate->format('Y-m'));
+          DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
-        $last = DB::table('trstockmt')
-          ->where('fstockmtno', 'like', $prefix . '%')
-          ->selectRaw("MAX(CAST(split_part(fstockmtno, '.', 5) AS int)) AS lastno")
+          $last       = DB::table('trstockmt')
+            ->where('fstockmtno', 'like', $prefix . '%')
+            ->selectRaw("MAX(CAST(split_part(fstockmtno, '.', 5) AS int)) AS lastno")
+            ->value('lastno');
+          $next       = (int) $last + 1;
+          $fstockmtno = $prefix . str_pad((string) $next, 4, '0', STR_PAD_LEFT);
+
+          Log::info('[STORE][TRX] Nomor baru di-generate', [
+            'prefix'     => $prefix,
+            'last_no'    => $last,
+            'fstockmtno' => $fstockmtno,
+          ]);
+        } else {
+          Log::info('[STORE][TRX] Menggunakan nomor existing', ['fstockmtno' => $fstockmtno]);
+        }
+
+        // ---- 7.3. INSERT HEADER ----
+        $subtotalRp = $subtotal * $frate;
+        $masterData = [
+          'fstockmtno'       => $fstockmtno,
+          'fstockmtcode'     => $fstockmtcode,
+          'fstockmtdate'     => $fstockmtdate,
+          'fprdout'          => '0',
+          'fsupplier'        => $fsupplier,
+          'fcurrency'        => $fcurrency,
+          'frate'            => $frate,
+          'famount'          => $subtotal,
+          'famount_rp'       => $subtotalRp,
+          'famountpajak'     => $ppnAmount,
+          'famountpajak_rp'  => $ppnAmount * $frate,
+          'famountmt'        => $subtotal + $ppnAmount,
+          'famountmt_rp'     => ($subtotal + $ppnAmount) * $frate,
+          'famountremain'    => $subtotal + $ppnAmount,
+          'famountremain_rp' => ($subtotal + $ppnAmount) * $frate,
+          'frefno'           => null,
+          'frefpo'           => null,
+          'ftrancode'        => null,
+          'ffrom'            => $fwhid,
+          'fto'              => null,
+          'fkirim'           => $fkirim,
+          'fprdjadi'         => null,
+          'fqtyjadi'         => null,
+          'fket'             => $fket,
+          'fusercreate'      => Auth::user()->fname ?? 'system',
+          'fdatetime'        => $now,
+          'fsalesman'        => null,
+          'fjatuhtempo'      => null,
+          'fprint'           => 0,
+          'fsudahtagih'      => '0',
+          'fbranchcode'      => $kodeCabang,
+          'fdiscount'        => 0,
+        ];
+
+        Log::info('[STORE][TRX] masterData akan di-insert', $masterData);
+
+        $newStockMasterId = DB::table('trstockmt')->insertGetId($masterData, 'fstockmtid');
+
+        Log::info('[STORE][TRX] trstockmt inserted', ['newStockMasterId' => $newStockMasterId]);
+
+        if (!$newStockMasterId) {
+          throw new \Exception("Gagal menyimpan data master (header).");
+        }
+
+        // ---- 7.4. INSERT DETAIL ----
+        $lastNouRef = (int) DB::table('trstockdt')
+          ->where('fstockmtid', $newStockMasterId)
+          ->max('fnouref');
+        $nextNouRef = $lastNouRef + 1;
+
+        foreach ($rowsDt as &$r) {
+          $r['fstockmtid']   = $newStockMasterId;
+          $r['fstockmtcode'] = $fstockmtcode;
+          $r['fstockmtno']   = $fstockmtno;
+          if (!isset($r['fnouref']) || $r['fnouref'] === null) {
+            $r['fnouref'] = $nextNouRef++;
+          }
+        }
+        unset($r);
+
+        Log::info('[STORE][TRX] rowsDt final akan di-insert ke trstockdt', $rowsDt);
+
+        DB::table('trstockdt')->insert($rowsDt);
+
+        Log::info('[STORE][TRX] trstockdt inserted', ['count' => count($rowsDt)]);
+
+        // ---- 7.5. JURNAL ----
+        $INVENTORY_ACCOUNT_CODE = '11400';
+        $PPN_IN_ACCOUNT_CODE    = '11500';
+        $PAYABLE_ACCOUNT_CODE   = '21100';
+
+        $fjurnaltype  = 'JV';
+        $jurnalPrefix = sprintf('%s.%s.%s.%s.', $fjurnaltype, $kodeCabang, $yy, $mm);
+
+        $jurnalLockKey = crc32('JURNAL|' . $fjurnaltype . '|' . $kodeCabang . '|' . $fstockmtdate->format('Y-m'));
+        DB::statement('SELECT pg_advisory_xact_lock(?)', [$jurnalLockKey]);
+
+        $lastJurnalNo = DB::table('jurnalmt')
+          ->where('fjurnalno', 'like', $jurnalPrefix . '%')
+          ->selectRaw("MAX(CAST(split_part(fjurnalno, '.', 5) AS int)) AS lastno")
           ->value('lastno');
 
-        $next = (int)$last + 1;
-        $fstockmtno = $prefix . str_pad((string)$next, 4, '0', STR_PAD_LEFT);
-      }
+        $nextJurnalNo = (int) $lastJurnalNo + 1;
+        $fjurnalno    = $jurnalPrefix . str_pad((string) $nextJurnalNo, 4, '0', STR_PAD_LEFT);
 
-      // ---- 5.2. INSERT HEADER & DETAIL INVENTORY (trstockmt & trstockdt) ----
-      $masterData = [
-        'fstockmtno'       => $fstockmtno,
-        'fstockmtcode'     => $fstockmtcode,
-        'fstockmtdate'     => $fstockmtdate,
-        'fprdout'          => '0',
-        'fsupplier'        => $fsupplier,
-        'fcurrency'        => $fcurrency,
-        'frate'            => $frate,
-        'famount'          => '0',
-        'famount_rp'       => '0',
-        'famountpajak'     => '0',
-        'famountpajak_rp'  => '0',
-        'famountmt'        => '0',
-        'famountmt_rp'     => '0',
-        'famountremain'    => '0',
-        'famountremain_rp' => '0',
-        'frefno'           => null,
-        'frefpo'           => null,
-        'ftrancode'        => null,
-        'ffrom'            => $ffrom,
-        'fto'              => null,
-        'fkirim'           => $fkirim,
-        'fprdjadi'         => null,
-        'fqtyjadi'         => null,
-        'fket'             => $fket,
-        'fusercreate'      => (Auth::user()->fname ?? 'system'),
-        'fdatetime'        => $now,
-        'fsalesman'        => null,
-        'fjatuhtempo'      => null,
-        'fprint'           => 0,
-        'fsudahtagih'      => '0',
-        'fbranchcode'      => $kodeCabang,
-        'fdiscount'        => 0,
-      ];
+        Log::info('[STORE][TRX] Nomor jurnal', ['fjurnalno' => $fjurnalno]);
 
-      $newStockMasterId = DB::table('trstockmt')->insertGetId($masterData, 'fstockmtid');
+        $jurnalHeader = [
+          'fbranchcode' => $kodeCabang,
+          'fjurnalno'   => $fjurnalno,
+          'fjurnaltype' => $fjurnaltype,
+          'fjurnaldate' => $fstockmtdate,
+          'fjurnalnote' => 'Jurnal Penerimaan Barang ' . $fstockmtno . ' dari Customer: ' . $fsupplier,
+          'fbalance'    => $subtotal + $ppnAmount,
+          'fbalance_rp' => ($subtotal + $ppnAmount) * $frate,
+          'fdatetime'   => $now,
+          'fuserid' => $userid,
+        ];
 
-      if (!$newStockMasterId) {
-        throw new Exception("Gagal menyimpan data master (header).");
-      }
+        Log::info('[STORE][TRX] jurnalHeader akan di-insert', $jurnalHeader);
 
-      // INSERT DETAIL (trstockdt)
-      $lastNouRef = (int) DB::table('trstockdt')
-        ->where('fstockmtid', $newStockMasterId)
-        ->max('fnouref');
-      $nextNouRef = $lastNouRef + 1;
+        $newJurnalMasterId = DB::table('jurnalmt')->insertGetId($jurnalHeader, 'fjurnalmtid');
 
-      foreach ($rowsDt as &$r) {
-        $r['fstockmtid']   = $newStockMasterId;
-        $r['fstockmtcode'] = $fstockmtcode;
-        $r['fstockmtno']   = $fstockmtno;
+        Log::info('[STORE][TRX] jurnalmt inserted', ['newJurnalMasterId' => $newJurnalMasterId]);
 
-        if (!isset($r['fnouref']) || $r['fnouref'] === null) {
-          $r['fnouref'] = $nextNouRef++;
+        if (!$newJurnalMasterId) {
+          throw new \Exception("Gagal menyimpan data jurnal header.");
         }
-      }
-      unset($r);
 
-      DB::table('trstockdt')->insert($rowsDt);
+        $jurnalDetails = [];
+        $flineno = 1;
 
-      // =================================================================
-      // ---- 5.3. AKUNTANSI JURNAL (jurnalmt & jurnaldt) ----
-      // =================================================================
-
-      // 1. Definisikan Kode Akun
-      $INVENTORY_ACCOUNT_CODE = '11400';
-      $PPN_IN_ACCOUNT_CODE    = '11500';
-      $PAYABLE_ACCOUNT_CODE   = '21100';
-
-      // 2. Generate Nomor Jurnal
-      $fjurnaltype = 'JV';
-      $jurnalPrefix = sprintf('%s.%s.%s.%s.', $fjurnaltype, $kodeCabang, $yy, $mm);
-
-      $jurnalLockKey = crc32('JURNAL|' . $fjurnaltype . '|' . $kodeCabang . '|' . $fstockmtdate->format('Y-m'));
-      DB::statement('SELECT pg_advisory_xact_lock(?)', [$jurnalLockKey]);
-
-      $lastJurnalNo = DB::table('jurnalmt')
-        ->where('fjurnalno', 'like', $jurnalPrefix . '%')
-        ->selectRaw("MAX(CAST(split_part(fjurnalno, '.', 5) AS int)) AS lastno")
-        ->value('lastno');
-
-      $nextJurnalNo = (int)$lastJurnalNo + 1;
-      $fjurnalno = $jurnalPrefix . str_pad((string)$nextJurnalNo, 4, '0', STR_PAD_LEFT);
-
-      // 3. INSERT JURNAL HEADER
-      $jurnalHeader = [
-        'fbranchcode' => $kodeCabang,
-        'fjurnalno'   => $fjurnalno,
-        'fjurnaltype' => $fjurnaltype,
-        'fjurnaldate' => $fstockmtdate,
-        'fjurnalnote' => 'Jurnal Penerimaan Barang ' . $fstockmtno . ' dari Customer: ' . $fsupplier,
-        'fbalance'    => '0',
-        'fbalance_rp' => '0',
-        'fdatetime'   => $now,
-        'fusercreate' => $userid,
-      ];
-
-      $newJurnalMasterId = DB::table('jurnalmt')->insertGetId($jurnalHeader, 'fjurnalmtid');
-
-      if (!$newJurnalMasterId) {
-        throw new Exception("Gagal menyimpan data jurnal header.");
-      }
-
-      // 4. INSERT JURNAL DETAIL
-      $jurnalDetails = [];
-      $flineno = 1;
-
-      // DEBIT: Persediaan
-      $jurnalDetails[] = [
-        'fjurnalmtid'  => $newJurnalMasterId,
-        'fbranchcode'  => $kodeCabang,
-        'fjurnaltype'  => $fjurnaltype,
-        'fjurnalno'    => $fjurnalno,
-        'flineno'      => $flineno++,
-        'faccount'     => $INVENTORY_ACCOUNT_CODE,
-        'fdk'          => 'D',
-        'fsubaccount'  => $fsupplier,
-        'frefno'       => $fstockmtno,
-        'frate'        => $frate,
-        'famount'      => '0',
-        'famount_rp'   => '0',
-        'faccountnote' => 'Persediaan Barang Dagang ' . $fstockmtno,
-        'fusercreate'  => $userid,
-        'fdatetime'    => $now,
-      ];
-
-      // DEBIT: PPN Masukan
-      if ($ppnAmount > 0) {
         $jurnalDetails[] = [
           'fjurnalmtid'  => $newJurnalMasterId,
           'fbranchcode'  => $kodeCabang,
           'fjurnaltype'  => $fjurnaltype,
           'fjurnalno'    => $fjurnalno,
           'flineno'      => $flineno++,
-          'faccount'     => $PPN_IN_ACCOUNT_CODE,
+          'faccount'     => $INVENTORY_ACCOUNT_CODE,
           'fdk'          => 'D',
-          'fsubaccount'  => null,
+          'fsubaccount'  => $fsupplier,
           'frefno'       => $fstockmtno,
           'frate'        => $frate,
-          'famount'      => '0',
-          'famount_rp'   => '0',
-          'faccountnote' => 'PPN Masukan ' . $fstockmtno,
+          'famount'      => $subtotal,
+          'famount_rp'   => $subtotalRp,
+          'faccountnote' => 'Persediaan Barang Dagang ' . $fstockmtno,
           'fusercreate'  => $userid,
           'fdatetime'    => $now,
         ];
-      }
 
-      // KREDIT: Hutang Dagang
-      $jurnalDetails[] = [
-        'fjurnalmtid'  => $newJurnalMasterId,
-        'fbranchcode'  => $kodeCabang,
-        'fjurnaltype'  => $fjurnaltype,
-        'fjurnalno'    => $fjurnalno,
-        'flineno'      => $flineno++,
-        'faccount'     => $PAYABLE_ACCOUNT_CODE,
-        'fdk'          => 'K',
-        'fsubaccount'  => $fsupplier,
-        'frefno'       => $fstockmtno,
-        'frate'        => $frate,
-        'famount'      => '0',
-        'famount_rp'   => '0',
-        'faccountnote' => 'Hutang Dagang Customer ' . $fsupplier . ' (Total Pembelian)',
-        'fusercreate'  => $userid,
-        'fdatetime'    => $now,
-      ];
+        if ($ppnAmount > 0) {
+          $jurnalDetails[] = [
+            'fjurnalmtid'  => $newJurnalMasterId,
+            'fbranchcode'  => $kodeCabang,
+            'fjurnaltype'  => $fjurnaltype,
+            'fjurnalno'    => $fjurnalno,
+            'flineno'      => $flineno++,
+            'faccount'     => $PPN_IN_ACCOUNT_CODE,
+            'fdk'          => 'D',
+            'fsubaccount'  => null,
+            'frefno'       => $fstockmtno,
+            'frate'        => $frate,
+            'famount'      => $ppnAmount,
+            'famount_rp'   => $ppnAmount * $frate,
+            'faccountnote' => 'PPN Masukan ' . $fstockmtno,
+            'fusercreate'  => $userid,
+            'fdatetime'    => $now,
+          ];
+        }
 
-      DB::table('jurnaldt')->insert($jurnalDetails);
-    });
+        $totalHutang     = $subtotal + $ppnAmount;
+        $jurnalDetails[] = [
+          'fjurnalmtid'  => $newJurnalMasterId,
+          'fbranchcode'  => $kodeCabang,
+          'fjurnaltype'  => $fjurnaltype,
+          'fjurnalno'    => $fjurnalno,
+          'flineno'      => $flineno++,
+          'faccount'     => $PAYABLE_ACCOUNT_CODE,
+          'fdk'          => 'K',
+          'fsubaccount'  => $fsupplier,
+          'frefno'       => $fstockmtno,
+          'frate'        => $frate,
+          'famount'      => $totalHutang,
+          'famount_rp'   => $totalHutang * $frate,
+          'faccountnote' => 'Hutang Dagang Customer ' . $fsupplier . ' (Total Pembelian)',
+          'fusercreate'  => $userid,
+          'fdatetime'    => $now,
+        ];
+
+        Log::info('[STORE][TRX] jurnalDetails akan di-insert', $jurnalDetails);
+
+        DB::table('jurnaldt')->insert($jurnalDetails);
+
+        Log::info('[STORE][TRX] jurnaldt inserted', ['count' => count($jurnalDetails)]);
+        Log::info('[STORE][TRX] ===== TRANSACTION COMMIT =====');
+      });
+    } catch (\Throwable $e) {
+      Log::error('[STORE] TRANSAKSI GAGAL / ROLLBACK', [
+        'message'   => $e->getMessage(),
+        'exception' => get_class($e),
+        'sql'       => $e instanceof \Illuminate\Database\QueryException ? $e->getSql() : null,
+        'bindings'  => $e instanceof \Illuminate\Database\QueryException ? $e->getBindings() : null,
+        'file'      => $e->getFile(),
+        'line'      => $e->getLine(),
+        'trace'     => $e->getTraceAsString(),
+      ]);
+
+      return back()->withInput()->withErrors([
+        'detail' => 'Transaksi gagal disimpan: ' . $e->getMessage(),
+      ]);
+    }
+
+    Log::info('[STORE] ===== SUCCESS =====', ['fstockmtno' => $fstockmtno]);
 
     return redirect()
       ->route('suratjalan.create')

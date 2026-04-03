@@ -813,6 +813,10 @@ class ReturPenjualanController extends Controller
       'fqty.*'     => ['numeric', 'min:0.01'],
       'fprice'     => ['required', 'array'],
       'fprice.*'   => ['numeric', 'min:0'],
+      'fdisc'      => ['nullable', 'array'],
+      'frefcode' => ['nullable', 'string', 'in:SO,SRJ,UM'],
+      'frefso'   => ['nullable'],
+      'frefsrj'  => ['nullable'],
     ]);
 
     // 2. LOAD HEADER
@@ -892,6 +896,9 @@ class ReturPenjualanController extends Controller
         'fsatuan'      => mb_substr($satuans[$i] ?? '', 0, 5),
         'fuserid'      => $userid,
         'fdatetime'    => $now,
+        'frefcode'     => $request->input('frefcode'),
+        'frefso'       => $request->input('frefso'),
+        'frefsrj'      => $request->input('frefsrj'),
       ];
     }
 
@@ -945,6 +952,9 @@ class ReturPenjualanController extends Controller
           'ftypesales'      => $ftypesales,
           'fppnpersen'      => $ppnPersen,
           'ftaxno'          => $request->ftaxno ?? '0',
+          'frefcode'        => $request->input('frefcode'),
+          'frefso'          => $request->input('frefso'),
+          'frefsrj'         => $request->input('frefsrj'),
         ]);
 
         // Hapus detail lama berdasarkan fsono (karena trandt tidak punya ftranmtid)

@@ -257,11 +257,13 @@
                                                 <div x-text="it.fitemname" class="font-semibold"></div>
                                             </td>
                                             <td class="p-2">
-                                                <div x-text="it.frefno_display || it.frefdtno || '-'" class="text-xs text-gray-500 italic"></div>
+                                                <div x-text="it.frefno_display || it.frefdtno || '-'"
+                                                    class="text-xs text-gray-500 italic"></div>
                                             </td>
                                             <td class="p-2 text-right">
                                                 <template x-if="it.units && it.units.length > 1">
-                                                    <select class="border rounded px-1 py-0.5 text-xs w-20" x-model="it.fsatuan">
+                                                    <select class="border rounded px-1 py-0.5 text-xs w-20"
+                                                        x-model="it.fsatuan">
                                                         <template x-for="u in it.units" :key="u">
                                                             <option :value="u" x-text="u"></option>
                                                         </template>
@@ -301,8 +303,7 @@
                                             <td class="p-0"></td>
                                             <td class="p-0"></td>
                                             <td class="p-2" colspan="3">
-                                                <textarea x-model="it.fdesc" :x-ref="`desc-${i}`" rows="3"
-                                                    class="w-full border rounded px-2 py-1 text-xs"
+                                                <textarea x-model="it.fdesc" :x-ref="`desc-${i}`" rows="3" class="w-full border rounded px-2 py-1 text-xs"
                                                     placeholder="Deskripsi item (opsional)"></textarea>
                                             </td>
                                             <td class="p-0" colspan="2"></td>
@@ -319,7 +320,8 @@
                                         <!-- Kode Produk -->
                                         <td class="p-2">
                                             <div class="flex">
-                                                <input type="text" class="flex-1 border rounded-l px-2 py-1 font-mono text-sm"
+                                                <input type="text"
+                                                    class="flex-1 border rounded-l px-2 py-1 font-mono text-sm"
                                                     x-ref="draftCode" x-model.trim="draft.fitemcode"
                                                     @input="onCodeTypedRow(draft)"
                                                     @keydown.enter.prevent="handleEnterOnCode('draft')">
@@ -347,7 +349,8 @@
                                         <td class="p-2">
                                             <input type="text"
                                                 class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
-                                                :value="draft.frefno_display || draft.frefdtno" disabled placeholder="Ref SO">
+                                                :value="draft.frefno_display || draft.frefdtno" disabled
+                                                placeholder="Ref SO">
                                         </td>
 
                                         <!-- Satuan -->
@@ -388,10 +391,8 @@
                                         <td class="p-0"></td>
                                         <td class="p-0"></td>
                                         <td class="p-2" colspan="3">
-                                            <textarea x-model="draft.fdesc" x-ref="draftDesc" rows="3"
-                                                class="w-full border rounded px-2 py-1 text-xs"
-                                                placeholder="Deskripsi item (opsional)"
-                                                @keydown.enter.prevent="addIfComplete()"></textarea>
+                                            <textarea x-model="draft.fdesc" x-ref="draftDesc" rows="3" class="w-full border rounded px-2 py-1 text-xs"
+                                                placeholder="Deskripsi item (opsional)" @keydown.enter.prevent="addIfComplete()"></textarea>
                                         </td>
                                         <td class="p-0" colspan="2"></td>
                                     </tr>
@@ -1739,19 +1740,29 @@
                 fwhcode,
                 fwhid
             } = ev.detail || {};
+
             const sel = document.getElementById('warehouseSelect');
             const hid = document.getElementById('warehouseIdHidden');
+            // TAMBAHKAN INI:
+            const codeHid = document.getElementById('warehouseCodeHidden');
+
             if (sel) {
                 sel.value = fwhcode || '';
                 sel.dispatchEvent(new Event('change', {
                     bubbles: true
                 }));
             }
+
             if (hid) hid.value = fwhid || '';
+
+            // TAMBAHKAN LOGIKA INI:
+            if (codeHid) {
+                codeHid.value = fwhcode || ''; // Ini yang akan mengisi 'ffrom'
+            }
         });
     });
 
-      // Modal customer
+    // Modal customer
     function customerBrowser() {
         return {
             open: false,
