@@ -532,6 +532,40 @@ class ReturPenjualanController extends Controller
       ];
     }
 
+    // --- 4. VALIDASI QTY (HANYA 'STORE') ---
+    if ($request->routeIs('returpenjualan.store')) {
+        $qtyErrors = [];
+        foreach ($detailRows as $row) {
+            $refSrj = $row['frefsrj'];
+            $code   = $row['fprdcode'];
+            $qty    = $row['fqtykecil'];
+
+            if ($refSrj) {
+                $srjItem = DB::table('trstockdt')
+                    ->where('fstockmtid', (int)$refSrj)
+                    ->where('fprdcode', $code)
+                    ->first();
+                
+                if ($srjItem) {
+                    $usage = DB::table('trstockdt')
+                        ->where('frefdtno', (int)$refSrj)
+                        ->where('fstockmtcode', 'REB')
+                        ->where('fprdcode', $code)
+                        ->sum('fqtykecil');
+                    
+                    $remaining = (float)($srjItem->fqtykecil ?? 0) - (float)$usage;
+                    if ($qty > $remaining) {
+                        $qtyErrors[] = "Produk [{$code}] melebihi sisa yang bisa diretur. Sisa: {$remaining}, Input: {$qty}.";
+                    }
+                }
+            }
+        }
+
+        if (!empty($qtyErrors)) {
+            return back()->withInput()->withErrors(['fitemcode' => $qtyErrors]);
+        }
+    }
+
     Log::info('[STORE] Selesai loop', [
       'jumlah_detailRows' => count($detailRows),
       'jumlah_stockDetailRows' => count($stockDetailRows ?? []),

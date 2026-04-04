@@ -498,6 +498,40 @@ class InvoiceController extends Controller
       ];
     }
 
+    // --- 5. VALIDASI QTY (HANYA 'STORE') ---
+    if ($request->isMethod('post') && $request->routeIs('invoice.store')) {
+        $qtyErrors = [];
+        foreach ($detailRows as $row) {
+            $refSrj = $row['frefsrj'];
+            $code   = $row['fprdcode'];
+            $qty    = $row['fqtykecil'];
+
+            if ($refSrj) {
+                // Cari sisa di trstockdt (SRJ)
+                $srjItem = DB::table('trstockdt')
+                    ->where('fstockmtid', (int)$refSrj)
+                    ->where('fprdcode', $code)
+                    ->first();
+                
+                if ($srjItem) {
+                    $usage = DB::table('trandt')
+                        ->where('frefsrj', (string)$refSrj) // frefsrj di trandt biasanya string ID
+                        ->where('fprdcode', $code)
+                        ->sum('fqtykecil');
+                    
+                    $remaining = (float)($srjItem->fqtykecil ?? 0) - (float)$usage;
+                    if ($qty > $remaining) {
+                        $qtyErrors[] = "Produk [{$code}] melebihi sisa Surat Jalan. Sisa: {$remaining}, Input: {$qty}.";
+                    }
+                }
+            }
+        }
+
+        if (!empty($qtyErrors)) {
+            return back()->withInput()->withErrors(['fitemcode' => $qtyErrors]);
+        }
+    }
+
     // 4. KALKULASI TOTAL HEADER
     $amountNet = $totalGross - $totalDisc;
     $ppnPersen = (float)$request->input('fppnpersen', 11);

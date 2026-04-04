@@ -409,14 +409,26 @@ class SuratJalanController extends Controller
     };
 
     // =========================
-    // 5) VALIDASI STOK GUDANG
+    // 5) VALIDASI STOK GUDANG & SO (HANYA 'STORE')
     // =========================
 
+    // Preload stok gudang
+    $stokMap = DB::table('trstockdt')
+      ->where('fwhid', $ffrom)
+      ->whereIn('fprdcode', $uniqueCodes)
+      ->select('fprdcode', DB::raw("SUM(fqtykecil) as total_stok"))
+      ->groupBy('fprdcode')
+      ->get()
+      ->keyBy('fprdcode');
+
     $qtyInputPerKode = [];
+    $soErrors = [];
     for ($i = 0; $i < $rowCount; $i++) {
       $code = trim((string)($codes[$i] ?? ''));
       $sat  = trim((string)($satuans[$i] ?? ''));
       $qty  = (float)($qtys[$i] ?? 0);
+      $ref  = $refdtno[$i] ?? null;
+
       if ($code === '' || $qty <= 0) continue;
 
       $meta     = $prodMeta[$code] ?? null;
@@ -425,25 +437,38 @@ class SuratJalanController extends Controller
         $qtyKecil = $qty * (float) $meta->fqtykecil;
       }
       $qtyInputPerKode[$code] = ($qtyInputPerKode[$code] ?? 0) + $qtyKecil;
+
+      // VALIDASI SO (Jika ada referensi)
+      if ($ref) {
+        $soItem = DB::table('trsodt')->where('ftrsodtid', (int)$ref)->first();
+        if ($soItem) {
+          $usage = DB::table('trstockdt')
+            ->where('frefdtno', (int)$ref)
+            ->where('fstockmtcode', 'SRJ')
+            ->sum('fqtykecil');
+          $remaining = (float)($soItem->fqtykecil ?? 0) - (float)$usage;
+          if ($qtyKecil > $remaining) {
+            $soErrors[] = "Produk [{$code}] melebihi sisa SO. Sisa: {$remaining}, Input: {$qtyKecil}.";
+          }
+        }
+      }
     }
 
     $stockErrors = [];
     foreach ($qtyInputPerKode as $code => $totalQtyInput) {
       $stok    = $stokMap[$code] ?? null;
-      $maksimal = $stok ? (float) $stok->total_stok_maksimal : 0;
+      $tersedia = $stok ? (float) $stok->total_stok : 0;
 
-      if (!$stok) {
-        $stockErrors[] = "Produk [{$code}] tidak ditemukan di gudang $ffrom.";
-      } elseif ($totalQtyInput > $maksimal) {
-        $stockErrors[] = sprintf(
-          'Produk [%s]: qty input (%.2f) melebihi stok maksimal (%.2f). Stok gudang: %.2f.',
-          $code,
-          $totalQtyInput,
-          $maksimal,
-          (float) $stok->stok_gudang_saat_ini
-        );
+      if ($totalQtyInput > $tersedia) {
+        $stockErrors[] = "Produk [{$code}] melebihi stok gudang. Stok: {$tersedia}, Input: {$totalQtyInput}.";
       }
     }
+
+    $allErrors = array_merge($soErrors, $stockErrors);
+    if (!empty($allErrors)) {
+      return back()->withInput()->withErrors(['fitemcode' => $allErrors]);
+    }
+
 
     // =========================
     // 6) RAKIT DETAIL + HITUNG SUBTOTAL
