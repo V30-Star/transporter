@@ -77,7 +77,7 @@
             <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
                 <form action="{{ route('salesorder.store') }}" method="POST" class="mt-6" x-data="{ showNoItems: false }"
                     @submit.prevent="
-                        const count = Number(document.getElementById('itemsCount')?.value || 0);
+                        const count = Number($el.querySelector('input[name=itemsCount]')?.value || 0);
                         if (count < 1) {
                             Swal.fire({
                                 icon: 'warning',
@@ -558,8 +558,7 @@
                                 <input type="hidden" name="famountpopajak" :value="ppnRate">
                             </div>
                         </div>
-                            </div>
-                        </div>
+
 
                         <!-- MODAL DESC (di dalam itemsTable) -->
                         <div x-show="showDescModal" x-cloak class="fixed inset-0 z-[95] flex items-center justify-center"
@@ -592,7 +591,7 @@
                             </div>
                         </div>
 
-                        <input type="hidden" id="itemsCount" :value="savedItems.length" name="itemsCount">
+                        <input type="hidden" name="itemsCount" :value="savedItems.length">
                     </div>
 
                     {{-- MODAL CUSTOMER --}}
@@ -1905,3 +1904,4 @@
         });
     </script>
 @endpush
+    

@@ -596,37 +596,7 @@
                                     </div>
                                 </div>
 
-                                <input type="hidden" id="itemsCount" :value="savedItems.length">
-                            </div>
-
-                            {{-- MODAL ERROR: belum ada item --}}
-                            <div x-show="showNoItems && savedItems.length === 0" x-cloak
-                                class="fixed inset-0 z-[90] flex items-center justify-center" x-transition.opacity>
-                                <div class="absolute inset-0 bg-black/50" @click="showNoItems=false"></div>
-
-                                <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden"
-                                    x-transition.scale>
-                                    <div class="px-5 py-4 border-b flex items-center">
-                                        <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-red-500 mr-2" />
-                                        <h3 class="text-lg font-semibold text-gray-800">Tidak Ada Item</h3>
-                                    </div>
-
-                                    <div class="px-5 py-4">
-                                        <p class="text-sm text-gray-700">
-                                            Anda belum menambahkan item apa pun pada tabel. Silakan isi baris “Detail
-                                            Item”
-                                            terlebih
-                                            dahulu.
-                                        </p>
-                                    </div>
-
-                                    <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
-                                        <button type="button" @click="showNoItems=false"
-                                            class="h-9 px-4 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
-                                            OK
-                                        </button>
-                                    </div>
-                                </div>
+                                <input type="hidden" name="itemsCount" :value="savedItems.length">
                             </div>
 
                             @php
@@ -672,7 +642,7 @@
                             <form action="{{ route('salesorder.update', $salesorder->ftrsomtid) }}" method="POST"
                                 class="mt-6"
                                 @submit.prevent="
-        const n = Number(document.getElementById('itemsCount')?.value || 0);
+        const n = Number($el.querySelector('input[name=itemsCount]')?.value || 0);
         if (n < 1) { 
             Swal.fire({
                 icon: 'warning',
@@ -1257,7 +1227,7 @@
                                         </div>
                                     </div>
 
-                                    <input type="hidden" id="itemsCount" :value="savedItems.length" name="itemsCount">
+                                    <input type="hidden" name="itemsCount" :value="savedItems.length">
                                 </div>
 
                                 {{-- MODAL CUSTOMER --}}
