@@ -652,7 +652,7 @@ class InvoiceController extends Controller
 
     $savedItems = $invoice->details->map(function ($d) {
       return [
-        'uid'        => $d->fpodid,
+        'uid'        => $d->ftrandtid,
         'fitemcode'  => (string)($d->fitemcode ?? ''),  // dari alias msprd.fprdid
         'fitemname'  => (string)($d->fprdname ?? ''),   // dari msprd.fprdname
         'fsatuan'    => (string)($d->fsatuan ?? ''),
@@ -684,7 +684,7 @@ class InvoiceController extends Controller
     // Prepare the product map for frontend
     $productMap = $products->mapWithKeys(function ($p) {
       return [
-        $p->fitemid => [
+        $p->fprdcode => [
           'name'  => $p->fprdname,
           'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
           'stock' => $p->fminstock ?? 0,
@@ -752,7 +752,7 @@ class InvoiceController extends Controller
 
     $savedItems = $invoice->details->map(function ($d) {
       return [
-        'uid'        => $d->fpodid,
+        'uid'        => $d->ftrandtid,
         'fitemcode'  => (string)($d->fitemcode ?? ''),  // dari alias msprd.fprdid
         'fitemname'  => (string)($d->fprdname ?? ''),   // dari msprd.fprdname
         'fsatuan'    => (string)($d->fsatuan ?? ''),
@@ -784,7 +784,7 @@ class InvoiceController extends Controller
     // Prepare the product map for frontend
     $productMap = $products->mapWithKeys(function ($p) {
       return [
-        $p->fitemid => [
+        $p->fprdcode => [
           'name'  => $p->fprdname,
           'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
           'stock' => $p->fminstock ?? 0,
@@ -1032,7 +1032,7 @@ class InvoiceController extends Controller
 
     $savedItems = $invoice->details->map(function ($d) {
       return [
-        'uid'        => $d->fpodid,
+        'uid'        => $d->ftrandtid,
         'fitemcode'  => (string)($d->fitemcode ?? ''),  // dari alias msprd.fprdid
         'fitemname'  => (string)($d->fprdname ?? ''),   // dari msprd.fprdname
         'fsatuan'    => (string)($d->fsatuan ?? ''),
@@ -1063,7 +1063,7 @@ class InvoiceController extends Controller
     // Prepare the product map for frontend
     $productMap = $products->mapWithKeys(function ($p) {
       return [
-        $p->fitemid => [
+        $p->fprdcode => [
           'name'  => $p->fprdname,
           'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
           'stock' => $p->fminstock ?? 0,

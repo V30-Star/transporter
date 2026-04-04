@@ -1307,7 +1307,7 @@
                                                     <!-- Dropdown Include / Exclude (tengah) -->
                                                     <div class="flex items-center gap-2">
                                                         <select id="includePPN" name="includePPN"
-                                                            x-model.number="fapplyppn" x-init="fapplyppn = 0"
+                                                            x-model.number="fapplyppn"
                                                             :disabled="!(includePPN || fapplyppn)"
                                                             class="w-28 h-9 px-2 text-sm leading-tight border rounded transition-opacity appearance-none
                                                            disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
@@ -2284,15 +2284,18 @@
             showNoItems: false,
             savedItems: @json($savedItems ?? []),
             draft: newRow(),
+            showDescModal: false,
+            descValue: '',
+            descTarget: null,
 
             totalHarga: 0,
-            ppnRate: 11,
+            ppnRate: @json($invoice->fppnpersen ?? 11),
 
             initialGrandTotal: @json($famountso ?? 0),
             initialPpnAmount: @json($famountpopajak ?? 0),
 
-            includePPN: false,
-            fapplyppn: false,
+            includePPN: @json($invoice->fincludeppn == '1'),
+            fapplyppn: @json($invoice->fincludeppn == '1' ? 1 : 0),
 
             get ppnIncluded() {
                 const total = +this.totalHarga || 0;
@@ -2533,6 +2536,7 @@
             },
 
             init() {
+                this.recalcTotals();
                 this.$watch('includePPN', () => this.recalcTotals());
                 this.$watch('fapplyppn', () => this.recalcTotals());
                 this.$watch('ppnRate', () => this.recalcTotals());
@@ -2551,6 +2555,23 @@
             browseTarget: 'draft',
             openBrowseFor(where) {
                 window.dispatchEvent(new CustomEvent('browse-open', { detail: { forEdit: false } }));
+            },
+
+            openDesc(row) {
+                this.descTarget = row;
+                this.descValue = row.fdesc || '';
+                this.showDescModal = true;
+            },
+            closeDesc() {
+                this.showDescModal = false;
+                this.descTarget = null;
+                this.descValue = '';
+            },
+            applyDesc() {
+                if (this.descTarget) {
+                    this.descTarget.fdesc = this.descValue;
+                }
+                this.closeDesc();
             },
         };
 
