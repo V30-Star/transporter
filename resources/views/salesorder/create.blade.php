@@ -83,7 +83,10 @@
                                 icon: 'warning',
                                 title: 'Tidak Ada Item',
                                 text: 'Silakan tambahkan minimal 1 item terlebih dahulu.',
-                                confirmButtonText: 'OK'
+                                confirmButtonText: 'OK',
+                                customClass: {
+                                    confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700'
+                                }
                             });
                             return;
                         }
@@ -589,7 +592,7 @@
                             </div>
                         </div>
 
-                        <input type="hidden" id="itemsCount" :value="savedItems.length">
+                        <input type="hidden" id="itemsCount" :value="savedItems.length" name="itemsCount">
                     </div>
 
                     {{-- MODAL CUSTOMER --}}

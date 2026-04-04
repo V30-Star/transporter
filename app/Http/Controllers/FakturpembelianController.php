@@ -603,52 +603,6 @@ class FakturPembelianController extends Controller
         ];
       }
 
-      // --- 4. VALIDASI QTY (HANYA 'STORE') ---
-      if ($request->isMethod('post') && $request->routeIs('fakturpembelian.store')) {
-          $qtyErrors = [];
-          foreach ($rowsDt as $row) {
-              $refDtNo = $row['frefdtno'];
-              $code    = $row['fprdcode'];
-              $qty     = $row['fqtykecil'];
-
-              if ($refDtNo) {
-                  // Coba cari di Purchase Order (PO)
-                  $poItem = DB::table('tr_pod')->where('fpodid', (int)$refDtNo)->first();
-                  if ($poItem) {
-                      $usage = DB::table('trstockdt')
-                          ->where('frefdtno', (string)$refDtNo)
-                          ->where('fstockmtcode', 'BUY')
-                          ->where('fprdcode', $code)
-                          ->sum('fqtykecil');
-                      
-                      $remaining = (float)($poItem->fqtykecil ?? 0) - (float)$usage;
-                      if ($qty > $remaining) {
-                          $qtyErrors[] = "Produk [{$code}] melebihi sisa PO. Sisa: {$remaining}, Input: {$qty}.";
-                      }
-                  } else {
-                      // Coba cari di Penerimaan Barang (TER)
-                      $terItem = DB::table('trstockdt')->where('fstockdtid', (int)$refDtNo)->first();
-                      if ($terItem) {
-                          $usage = DB::table('trstockdt')
-                              ->where('frefdtno', (string)$refDtNo)
-                              ->where('fstockmtcode', 'BUY')
-                              ->where('fprdcode', $code)
-                              ->sum('fqtykecil');
-                          
-                          $remaining = (float)($terItem->fqtykecil ?? 0) - (float)$usage;
-                          if ($qty > $remaining) {
-                              $qtyErrors[] = "Produk [{$code}] melebihi sisa Penerimaan. Sisa: {$remaining}, Input: {$qty}.";
-                          }
-                      }
-                  }
-              }
-          }
-
-          if (!empty($qtyErrors)) {
-              return back()->withInput()->withErrors(['fitemcode' => $qtyErrors]);
-          }
-      }
-
       if (empty($rowsDt)) {
         return back()->withInput()->withErrors([
           'detail' => 'Minimal satu item valid (Kode, Satuan, Qty > 0).'

@@ -496,25 +496,6 @@ class SalesOrderController extends Controller
             ];
         }
 
-        // --- 5. VALIDASI STOK (HANYA UNTUK 'STORE', BUKAN 'UPDATE') ---
-        $stockErrors = [];
-        $qtyInputPerKode = [];
-        foreach($rowsSodt as $r) {
-            $code = $r['fitemno'];
-            $qtyInputPerKode[$code] = ($qtyInputPerKode[$code] ?? 0) + $r['fqtykecil'];
-        }
-
-        foreach ($qtyInputPerKode as $code => $totalQtyInput) {
-            $currentStock = DB::table('msprd')->where('fprdcode', $code)->value('fstock') ?? 0;
-            if ($totalQtyInput > $currentStock) {
-                $stockErrors[] = "Produk [{$code}] melebihi stok tersedia. Input: {$totalQtyInput}, Stok: {$currentStock}.";
-            }
-        }
-
-        if (!empty($stockErrors)) {
-            return back()->withInput()->withErrors(['fitemcode' => $stockErrors]);
-        }
-
         // Calculate totals
         $amountNet = $totalGross - $totalDisc;
         $ppnRate = $fincludeppn === '1' ? (float) $request->input('ppn_rate', 11) : 0;
