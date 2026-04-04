@@ -145,7 +145,7 @@
                                         @foreach ($customers as $customer)
                                             <option value="{{ $customer->fcustomerid }}"
                                                 {{ $filterSupplierId == $customer->fcustomerid ? 'selected' : '' }}>
-                                                {{ $customer->fcustomername }} ({{ $customer->fcustomerid }})
+                                                {{ $customer->fcustomername }} ({{ $customer->fcustomercode }})
                                             </option>
                                         @endforeach
                                     </select>
@@ -182,7 +182,7 @@
                                         @foreach ($salesmans as $salesman)
                                             <option value="{{ $salesman->fsalesmanid }}"
                                                 {{ $filterSalesmanId == $salesman->fsalesmanid ? 'selected' : '' }}>
-                                                {{ $salesman->fsalesmanname }} ({{ $salesman->fsalesmanid }})
+                                                {{ $salesman->fsalesmanname }} ({{ $salesman->fsalesmancode }})
                                             </option>
                                         @endforeach
                                     </select>
@@ -241,10 +241,9 @@
                                     </tr>
                                 </thead>
 
-                                <tbody>
-                                    <template x-for="(it, i) in savedItems" :key="it.uid || `item-${i}`">
-                                        <template x-if="true">
-                                            <tr class="border-t align-top">
+                                    <tbody>
+                                        <template x-for="(it, i) in savedItems" :key="it.uid || `item-${i}`">
+                                            <tr class="border-t align-top transition-colors hover:bg-gray-50">
                                                 <td class="p-2" x-text="i + 1"></td>
                                                 <td class="p-2 font-mono" x-text="it.fitemcode"></td>
                                                 <td class="p-2 text-gray-800" x-text="it.fitemname"></td>
@@ -262,7 +261,8 @@
                                                         <span x-text="it.fsatuan"></span>
                                                     </template>
                                                 </td>
-                                                <td class="p-2 text-blue-600 font-semibold" x-text="it.frefcode || '-'"></td>
+                                                <td class="p-2 text-blue-600 font-semibold" x-text="it.frefcode || '-'">
+                                                </td>
                                                 <td class="p-2 text-right">
                                                     <input type="number"
                                                         class="w-full border rounded px-2 py-1 text-right"
@@ -282,25 +282,8 @@
                                                 <td class="p-2 text-center">
                                                     <button type="button" @click="removeSaved(i)"
                                                         class="px-3 py-1 rounded text-xs bg-red-100 text-red-600 hover:bg-red-200">Hapus</button>
-                                                </td>
-                                            </tr>
-                                        </template>
 
-                                        <template x-if="true">
-                                            <tr class="border-b">
-                                                <td class="p-0"></td>
-                                                <td class="p-0"></td>
-                                                <td class="p-2" colspan="7">
-                                                    <textarea x-model="it.fdesc" rows="1" class="w-full border rounded px-2 py-1 text-xs"
-                                                        placeholder="Deskripsi item (opsional)"></textarea>
-                                                </td>
-                                                <td class="p-0"></td>
-                                            </tr>
-                                        </template>
-
-                                        <template x-if="true">
-                                            <tr class="hidden">
-                                                <td colspan="10">
+                                                    <!-- Hidden inputs moved here to ensure they are submitted -->
                                                     <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
                                                     <input type="hidden" name="fitemname[]" :value="it.fitemname">
                                                     <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
@@ -316,8 +299,17 @@
                                                     <input type="hidden" name="fketdt[]" :value="it.fketdt">
                                                 </td>
                                             </tr>
+
+                                            <tr class="border-b transition-colors hover:bg-gray-50">
+                                                <td class="p-0"></td>
+                                                <td class="p-0"></td>
+                                                <td class="p-2" colspan="2">
+                                                    <textarea x-model="it.fdesc" rows="3" class="w-full border rounded px-2 py-1 text-xs"
+                                                        placeholder="Deskripsi item (opsional)"></textarea>
+                                                </td>
+                                                <td class="p-1" colspan="6"></td>
+                                            </tr>
                                         </template>
-                                    </template>
 
 
 
@@ -417,11 +409,11 @@
                                     <tr class="border-b">
                                         <td class="p-0"></td>
                                         <td class="p-0"></td>
-                                        <td class="p-2" colspan="7">
-                                            <textarea x-model="draft.fdesc" rows="1" class="w-full border rounded px-2 py-1 text-xs"
+                                        <td class="p-2" colspan="2">
+                                            <textarea x-model="draft.fdesc" rows="3" class="w-full border rounded px-2 py-1 text-xs"
                                                 placeholder="Deskripsi item (opsional)"></textarea>
                                         </td>
-                                        <td class="p-0"></td>
+                                        <td class="p-0" colspan="6"></td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -1476,11 +1468,12 @@
                 }
 
                 let opt = [...sel.options].find(o => o.value == String(customer.fcustomerid));
+                const label = `${customer.fcustomername} (${customer.fcustomercode})`;
                 if (!opt) {
-                    opt = new Option(`${customer.fcustomername} (${customer.fcustomercode})`, customer.fcustomerid,
-                        true, true);
+                    opt = new Option(label, customer.fcustomerid, true, true);
                     sel.add(opt);
                 } else {
+                    opt.text = label;
                     opt.selected = true;
                 }
                 if (hid) hid.value = customer.fcustomerid;

@@ -429,24 +429,26 @@ class InvoiceController extends Controller
       return back()->withInput()->with('error', 'Transaksi Uang Muka wajib menggunakan produk dengan kode UM.');
     }
 
+    $products = DB::table('msprd')
+      ->whereIn('fprdcode', array_filter($itemCodes))
+      ->get(['fprdid', 'fprdcode', 'fprdname', 'fdiscontinue', 'fsatuanbesar', 'fqtykecil as rasio_konversi'])
+      ->keyBy('fprdcode');
+
     foreach ($itemCodes as $i => $code) {
       $qty   = (float)($qtys[$i] ?? 0);
       $price = (float)($prices[$i] ?? 0);
 
       if (empty($code) || $qty <= 0) continue;
 
-      $products = DB::table('msprd')
-        ->whereIn('fprdcode', array_filter($itemCodes))
-        ->get(['fprdid', 'fprdcode', 'fprdname', 'fdiscontinue'])
-        ->keyBy('fprdcode');
-
+      // ✅ Ambil product tunggal dari collection
       $product = $products->get($code);
 
-      $itemeId = $products ? $products->fprdid : $itemeId;
+      // ✅ Gunakan $product (bukan $products) untuk akses property
+      $fprdid   = $product ? $product->fprdid : null;
 
       $qtyKecil = $qty;
-      if ($products && $satuans[$i] === $products->fsatuanbesar) {
-        $qtyKecil = $qty * (float)$products->rasio_konversi;
+      if ($product && $satuans[$i] === $product->fsatuanbesar) {
+        $qtyKecil = $qty * (float)$product->rasio_konversi;
       }
 
       if ($product && $product->fdiscontinue == '1') {
@@ -862,24 +864,26 @@ class InvoiceController extends Controller
       return back()->withInput()->with('error', 'Transaksi Uang Muka wajib menggunakan produk dengan kode UM.');
     }
 
+    $products = DB::table('msprd')
+      ->whereIn('fprdcode', array_filter($itemCodes))
+      ->get(['fprdid', 'fprdcode', 'fprdname', 'fdiscontinue', 'fsatuanbesar', 'fqtykecil as rasio_konversi'])
+      ->keyBy('fprdcode');
+
     foreach ($itemCodes as $i => $code) {
       $qty   = (float)($qtys[$i] ?? 0);
       $price = (float)($prices[$i] ?? 0);
 
       if (empty($code) || $qty <= 0) continue;
 
-      $products = DB::table('msprd')
-        ->whereIn('fprdcode', array_filter($itemCodes))
-        ->get(['fprdid', 'fprdcode', 'fprdname', 'fdiscontinue'])
-        ->keyBy('fprdcode');
-
+      // ✅ Ambil product tunggal dari collection
       $product = $products->get($code);
 
-      $itemeId = $products ? $products->fprdid : $itemeId;
+      // ✅ Gunakan $product (bukan $products) untuk akses property
+      $fprdid   = $product ? $product->fprdid : null;
 
       $qtyKecil = $qty;
-      if ($products && $satuans[$i] === $products->fsatuanbesar) {
-        $qtyKecil = $qty * (float)$products->rasio_konversi;
+      if ($product && $satuans[$i] === $product->fsatuanbesar) {
+        $qtyKecil = $qty * (float)$product->rasio_konversi;
       }
 
       if ($product && $product->fdiscontinue == '1') {
