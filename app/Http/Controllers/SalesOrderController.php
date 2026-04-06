@@ -764,10 +764,10 @@ class SalesOrderController extends Controller
         // Prepare the product map for frontend
         $productMap = $products->mapWithKeys(function ($p) {
             return [
-                $p->fitemid => [
+                (string) $p->fprdcode => [
                     'name' => $p->fprdname,
                     'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
-                    'stock' => $p->fminstock ?? 0,
+                    'stock' => (float) ($p->fminstock ?? 0),
                 ],
             ];
         })->toArray();
@@ -892,10 +892,10 @@ class SalesOrderController extends Controller
 
         $productMap = $products->mapWithKeys(function ($p) {
             return [
-                $p->fitemid => [
+                (string) $p->fprdcode => [
                     'name'  => $p->fprdname,
                     'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
-                    'stock' => $p->fminstock ?? 0,
+                    'stock' => (float) ($p->fminstock ?? 0),
                 ],
             ];
         })->toArray();

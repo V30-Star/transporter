@@ -2260,6 +2260,59 @@
                 this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
             },
 
+            isComplete(row) {
+                return row.fitemcode && row.fitemname && row.fsatuan && Number(row.fqty) > 0;
+            },
+
+            onPrPicked(e) {
+                const {
+                    header,
+                    items
+                } = e.detail || {};
+                if (!items || !Array.isArray(items)) return;
+                this.resetDraft();
+                this.addManyFromPR(header, items);
+            },
+
+            addManyFromPR(header, items) {
+                const existing = new Set(this.getCurrentItemKeys());
+                let added = 0;
+
+                items.forEach(src => {
+                    const row = {
+                        uid: cryptoRandom(),
+                        fitemcode: src.fitemcode ?? '',
+                        fitemname: src.fitemname ?? '',
+                        fsatuan: src.fsatuan ?? '',
+                        frefdtno: src.frefdtno ?? '',
+                        fnouref: src.fnouref ?? '',
+                        frefpr: src.frefpr ?? (header?.fsono ?? ''),
+                        fprhid: src.fprhid ?? header?.fprhid ?? '',
+                        fqty: Number(src.fqty ?? 0),
+                        fterima: Number(src.fterima ?? 0),
+                        fprice: Number(src.fprice ?? 0),
+                        fdisc: src.fdisc ?? 0,
+                        ftotal: Number(src.ftotal ?? 0),
+                        fdesc: src.fdesc ?? '',
+                        fketdt: src.fketdt ?? '',
+                        units: Array.isArray(src.units) && src.units.length ? src.units : [src.fsatuan].filter(Boolean),
+                    };
+
+                    const key = this.itemKey({
+                        fitemcode: row.fitemcode,
+                        frefdtno: row.frefdtno
+                    });
+
+                    if (existing.has(key)) return;
+
+                    this.savedItems.push(row);
+                    existing.add(key);
+                    added++;
+                });
+
+                this.recalcTotals();
+            },
+
             resetDraft() {
                 this.draft = newRow();
                 this.$nextTick(() => this.$refs.draftCode?.focus());
@@ -2338,6 +2391,23 @@
                 return this.savedItems.map(it => this.itemKey(it));
             },
 
+            labelOf(row) {
+                return [row.fitemcode, row.fitemname].filter(Boolean).join(' — ');
+            },
+
+            syncDescList() {
+                if (window.Alpine && Alpine.store('trsomt')) {
+                    Alpine.store('trsomt').descList = this.savedItems
+                        .map((it, i) => ({
+                            uid: it.uid,
+                            index: i + 1,
+                            label: this.labelOf(it),
+                            text: it.fdesc || ''
+                        }))
+                        .filter(x => x.text);
+                }
+            },
+
             // Tambahkan di Alpine data
             showToast(message, type = 'info') {
                 // Buat element toast
@@ -2385,7 +2455,23 @@
                     if (!product) return;
                     const apply = (row) => {
                         row.fitemcode = (product.fprdcode || '').toString();
-                        this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+
+                        // Gunakan data dari modal sebaga primary, fallback ke PRODUCT_MAP
+                        const meta = {
+                            name: product.fprdname,
+                            units: [product.fsatuankecil, product.fsatuanbesar, product.fsatuanbesar2].filter(Boolean),
+                            stock: product.fqty || product.fminstock || 0
+                        };
+
+                        // Jika PRODUCT_MAP punya data lebih lengkap, timpa
+                        const localMeta = this.productMeta(row.fitemcode);
+                        if (localMeta) {
+                            if (localMeta.name) meta.name = localMeta.name;
+                            if (localMeta.units && localMeta.units.length) meta.units = localMeta.units;
+                            if (localMeta.stock) meta.stock = localMeta.stock;
+                        }
+
+                        this.hydrateRowFromMeta(row, meta);
                         if (!row.fqty) row.fqty = 1;
                         this.recalc(row);
                     };
@@ -2682,6 +2768,8 @@
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
 
     <script>
+        window.PRODUCT_MAP = @json($productMap ?? []);
+
         // Modal produk dengan DataTables
         function productBrowser() {
             return {
