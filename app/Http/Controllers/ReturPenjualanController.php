@@ -587,6 +587,8 @@ class ReturPenjualanController extends Controller
         }
         unset($row);
 
+        DB::table('trandt')->insert($detailRows);
+
         // ==== STOCK RECORDS ====
         $fstockmtno = str_replace('INV.', 'REB.', $fsono);
         $masterStockData = [
