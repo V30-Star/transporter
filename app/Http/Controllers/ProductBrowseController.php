@@ -12,7 +12,8 @@ class ProductBrowseController extends Controller
     $draw        = (int) $request->input('draw', 1);
     $start       = (int) $request->input('start', 0);
     $length      = (int) $request->input('length', 10);
-    $searchValue = trim($request->input('search', ''));
+    $searchParam = $request->input('search');
+    $searchValue = trim(is_array($searchParam) ? ($searchParam['value'] ?? '') : (string) $searchParam);
     $orderColumn = $request->input('order_column', 'fprdname');
     $orderDir    = $request->input('order_dir', 'asc') === 'desc' ? 'desc' : 'asc';
 

@@ -1437,6 +1437,8 @@
                             <!-- ===== Trigger: Add PO dan PB dari panel kanan ===== -->
                             <div class="mt-3 flex justify-between items-start gap-4">
                                 <div class="w-full flex justify-start mb-3 gap-2">
+
+                                    <!-- Trigger: Add PO -->
                                     <div x-data="poFormModal()">
                                         <button type="button" @click="openModal()"
                                             class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500">
@@ -1448,62 +1450,69 @@
                                             Add PO
                                         </button>
 
-                                        <!-- Modal PO -->
-                                        <div x-show="show" x-cloak x-transition.opacity
-                                            class="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8"
-                                            aria-modal="true" role="dialog">
-                                            <div class="relative w-full max-w-5xl rounded-xl bg-white shadow-2xl flex flex-col"
-                                                style="height: 600px;">
-                                                <div
-                                                    class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
-                                                    <h3 class="text-xl font-bold text-gray-800">Pilih Purchase Order (PO)
-                                                    </h3>
-                                                    <button type="button" @click="closeModal()"
-                                                        class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">
-                                                        Tutup
-                                                    </button>
-                                                </div>
-                                                <div class="flex-1 overflow-y-auto p-6" style="min-height: 0;">
-                                                    <table id="poTable"
-                                                        class="min-w-full text-sm display nowrap stripe hover"
-                                                        style="width:100%">
-                                                        <thead class="sticky top-0 z-10">
-                                                            <tr class="bg-gray-50 border-b-2 border-gray-200">
-                                                                <th class="p-3 text-left font-semibold text-gray-700">PO No
-                                                                </th>
-                                                                <th class="p-3 text-left font-semibold text-gray-700">
-                                                                    Supplier</th>
-                                                                <th class="p-3 text-left font-semibold text-gray-700">
-                                                                    Tanggal</th>
-                                                                <th class="p-3 text-center font-semibold text-gray-700">
-                                                                    Aksi</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody></tbody>
-                                                    </table>
+                                        <!-- PO Modal -->
+                                        <div x-show="show" x-transition.opacity class="fixed inset-0 z-40 bg-black/50"
+                                            @keydown.escape.window="closeModal()"></div>
+                                        <div>
+                                            <div x-show="show" x-cloak x-transition.opacity
+                                                class="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8"
+                                                aria-modal="true" role="dialog">
+                                                <div class="relative w-full max-w-5xl rounded-xl bg-white shadow-2xl flex flex-col"
+                                                    style="height: 600px;">
+                                                    <div
+                                                        class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-emerald-50 to-white">
+                                                        <h3 class="text-xl font-bold text-gray-800">Pilih Purchase Order
+                                                            (PO)</h3>
+                                                        <button type="button" @click="closeModal()"
+                                                            class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">Tutup</button>
+                                                    </div>
+                                                    <div class="flex-1 overflow-y-auto p-6" style="min-height: 0;">
+                                                        <table id="poTable"
+                                                            class="min-w-full text-sm display nowrap stripe hover"
+                                                            style="width:100%">
+                                                            <thead class="sticky top-0 z-10">
+                                                                <tr class="bg-gray-50 border-b-2 border-gray-200">
+                                                                    <th class="p-3 text-left font-semibold text-gray-700">
+                                                                        PO No</th>
+                                                                    <th class="p-3 text-left font-semibold text-gray-700">
+                                                                        Supplier</th>
+                                                                    <th class="p-3 text-left font-semibold text-gray-700">
+                                                                        Tanggal</th>
+                                                                    <th
+                                                                        class="p-3 text-center font-semibold text-gray-700">
+                                                                        Aksi</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody></tbody>
+                                                        </table>
+                                                    </div>
+                                                    <div
+                                                        class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-
-                                        <!-- Modal Dup PO -->
-                                        <div x-show="showDupModal" x-cloak x-transition.opacity
-                                            class="fixed inset-0 z-[60] flex items-center justify-center p-4">
-                                            <div class="absolute inset-0 bg-black/40" @click="closeDupModal()"></div>
-                                            <div class="relative bg-white rounded-xl shadow-xl max-w-2xl w-full p-6">
-                                                <h3 class="text-lg font-semibold mb-4">Peringatan Duplikasi</h3>
-                                                <p class="mb-4">Ditemukan <strong x-text="dupCount"></strong> item yang
-                                                    sudah ada dalam daftar. Hanya item unik yang akan ditambahkan.</p>
-                                                <div class="flex justify-end gap-2">
-                                                    <button type="button" @click="closeDupModal()"
-                                                        class="rounded bg-gray-200 px-4 py-2 text-sm font-medium hover:bg-gray-300">Batal</button>
-                                                    <button type="button" @click="confirmAddUniques()"
-                                                        class="rounded bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700">Tambahkan
-                                                        Item Unik</button>
+                                            <!-- Duplicate modal -->
+                                            <div x-show="showDupModal" x-cloak x-transition.opacity
+                                                class="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                                                <div class="absolute inset-0 bg-black/40" @click="closeDupModal()"></div>
+                                                <div class="relative bg-white rounded-xl shadow-xl max-w-2xl w-full p-6">
+                                                    <h3 class="text-lg font-semibold mb-4">Peringatan Duplikasi</h3>
+                                                    <p class="mb-4">Ditemukan <strong x-text="dupCount"></strong> item
+                                                        yang sudah ada dalam daftar. Hanya item unik yang akan ditambahkan.
+                                                    </p>
+                                                    <div class="flex justify-end gap-2">
+                                                        <button type="button" @click="closeDupModal()"
+                                                            class="rounded bg-gray-200 px-4 py-2 text-sm font-medium hover:bg-gray-300">Batal</button>
+                                                        <button type="button" @click="confirmAddUniques()"
+                                                            class="rounded bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700">Tambahkan
+                                                            Item Unik</button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
 
+                                    <!-- Trigger: Add PB -->
                                     <div x-data="pbFormModal()">
                                         <button type="button" @click="openModal()"
                                             class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -1515,61 +1524,69 @@
                                             Add Penerimaan Barang
                                         </button>
 
-                                        <!-- Modal PB -->
-                                        <div x-show="show" x-cloak x-transition.opacity
-                                            class="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8"
-                                            aria-modal="true" role="dialog">
-                                            <div class="relative w-full max-w-5xl rounded-xl bg-white shadow-2xl flex flex-col"
-                                                style="height: 600px;">
-                                                <div
-                                                    class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
-                                                    <h3 class="text-xl font-bold text-gray-800">Pilih Penerimaan Barang
-                                                    </h3>
-                                                    <button type="button" @click="closeModal()"
-                                                        class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">
-                                                        Tutup
-                                                    </button>
-                                                </div>
-                                                <div class="flex-1 overflow-y-auto p-6" style="min-height: 0;">
-                                                    <table id="pbTable"
-                                                        class="min-w-full text-sm display nowrap stripe hover"
-                                                        style="width:100%">
-                                                        <thead class="sticky top-0 z-10">
-                                                            <tr class="bg-gray-50 border-b-2 border-gray-200">
-                                                                <th class="p-3 text-left font-semibold text-gray-700">No
-                                                                    PB</th>
-                                                                <th class="p-3 text-left font-semibold text-gray-700">
-                                                                    Supplier</th>
-                                                                <th class="p-3 text-left font-semibold text-gray-700">
-                                                                    Tanggal</th>
-                                                                <th class="p-3 text-center font-semibold text-gray-700">
-                                                                    Aksi</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody></tbody>
-                                                    </table>
+                                        <!-- PB Modal -->
+                                        <div x-show="show" x-transition.opacity class="fixed inset-0 z-40 bg-black/50"
+                                            @keydown.escape.window="closeModal()"></div>
+                                        <div>
+                                            <div x-show="show" x-cloak x-transition.opacity
+                                                class="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8"
+                                                aria-modal="true" role="dialog">
+                                                <div class="relative w-full max-w-5xl rounded-xl bg-white shadow-2xl flex flex-col"
+                                                    style="height: 600px;">
+                                                    <div
+                                                        class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
+                                                        <h3 class="text-xl font-bold text-gray-800">Pilih Penerimaan
+                                                            Barang</h3>
+                                                        <button type="button" @click="closeModal()"
+                                                            class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">Tutup</button>
+                                                    </div>
+                                                    <div class="flex-1 overflow-y-auto p-6" style="min-height: 0;">
+                                                        <table id="pbTable"
+                                                            class="min-w-full text-sm display nowrap stripe hover"
+                                                            style="width:100%">
+                                                            <thead class="sticky top-0 z-10">
+                                                                <tr class="bg-gray-50 border-b-2 border-gray-200">
+                                                                    <th class="p-3 text-left font-semibold text-gray-700">
+                                                                        No. Transaksi</th>
+                                                                    <th class="p-3 text-left font-semibold text-gray-700">
+                                                                        Supplier</th>
+                                                                    <th class="p-3 text-left font-semibold text-gray-700">
+                                                                        Tanggal</th>
+                                                                    <th
+                                                                        class="p-3 text-center font-semibold text-gray-700">
+                                                                        Aksi</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody></tbody>
+                                                        </table>
+                                                    </div>
+                                                    <div
+                                                        class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-
-                                        <!-- Modal Dup PB -->
-                                        <div x-show="showDupModal" x-cloak x-transition.opacity
-                                            class="fixed inset-0 z-[60] flex items-center justify-center p-4">
-                                            <div class="absolute inset-0 bg-black/40" @click="closeDupModal()"></div>
-                                            <div class="relative bg-white rounded-xl shadow-xl max-w-2xl w-full p-6">
-                                                <h3 class="text-lg font-semibold mb-4">Peringatan Duplikasi</h3>
-                                                <p class="mb-4">Ditemukan <strong x-text="dupCount"></strong> item
-                                                    yang sudah ada dalam daftar. Hanya item unik yang akan ditambahkan.</p>
-                                                <div class="flex justify-end gap-2">
-                                                    <button type="button" @click="closeDupModal()"
-                                                        class="rounded bg-gray-200 px-4 py-2 text-sm font-medium hover:bg-gray-300">Batal</button>
-                                                    <button type="button" @click="confirmAddUniques()"
-                                                        class="rounded bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700">Tambahkan
-                                                        Item Unik</button>
+                                            <!-- Duplicate modal -->
+                                            <div x-show="showDupModal" x-cloak x-transition.opacity
+                                                class="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                                                <div class="absolute inset-0 bg-black/40" @click="closeDupModal()">
+                                                </div>
+                                                <div class="relative bg-white rounded-xl shadow-xl max-w-2xl w-full p-6">
+                                                    <h3 class="text-lg font-semibold mb-4">Peringatan Duplikasi</h3>
+                                                    <p class="mb-4">Ditemukan <strong x-text="dupCount"></strong> item
+                                                        yang sudah ada dalam daftar. Hanya item unik yang akan ditambahkan.
+                                                    </p>
+                                                    <div class="flex justify-end gap-2">
+                                                        <button type="button" @click="closeDupModal()"
+                                                            class="rounded bg-gray-200 px-4 py-2 text-sm font-medium hover:bg-gray-300">Batal</button>
+                                                        <button type="button" @click="confirmAddUniques()"
+                                                            class="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">Tambahkan
+                                                            Item Unik</button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
+
                                 </div>
                                 <!-- Kanan: Panel Totals -->
                                 <div class="w-1/2">
