@@ -313,6 +313,10 @@
                                                     <input type="hidden" name="frefcode[]" :value="it.frefcode">
                                                     <input type="hidden" name="fnouref[]" :value="it.fnouref">
                                                     <input type="hidden" name="frefpr[]" :value="it.frefpr">
+                                                    <input type="hidden" name="frefso[]" :value="it.frefso">
+                                                    <input type="hidden" name="frefsoid[]" :value="it.frefsoid">
+                                                    <input type="hidden" name="frefsrj[]" :value="it.frefsrj">
+                                                    <input type="hidden" name="frefsrjid[]" :value="it.frefsrjid">
                                                     <input type="hidden" name="fqty[]" :value="it.fqty">
                                                     <input type="hidden" name="fterima[]" :value="it.fterima">
                                                     <input type="hidden" name="fprice[]" :value="it.fprice">
@@ -808,9 +812,13 @@
                                                         <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
                                                         <input type="hidden" name="fitemname[]" :value="it.fitemname">
                                                         <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
-                                                        <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
+                                                        <input type="hidden" name="frefcode[]" :value="it.frefcode">
                                                         <input type="hidden" name="fnouref[]" :value="it.fnouref">
                                                         <input type="hidden" name="frefpr[]" :value="it.frefpr">
+                                                        <input type="hidden" name="frefso[]" :value="it.frefso">
+                                                        <input type="hidden" name="frefsoid[]" :value="it.frefsoid">
+                                                        <input type="hidden" name="frefsrj[]" :value="it.frefsrj">
+                                                        <input type="hidden" name="frefsrjid[]" :value="it.frefsrjid">
                                                         <input type="hidden" name="fqty[]" :value="it.fqty">
                                                         <input type="hidden" name="fterima[]" :value="it.fterima">
                                                         <input type="hidden" name="fprice[]" :value="it.fprice">
@@ -2532,10 +2540,17 @@
                         fitemname: itemname,
                         fsatuan: satuan,
                         frefdtno: src.frefdtno ?? '',
+                        fnouref: (src.frefdtno ?? src.fnouref ?? null),
                         frefcode: source === 'SRJ' ? (header?.fstockmtno ?? '') : (header?.fsono ?? frefcode),
                         frefpr: (src.frefpr ?? (source === 'SRJ' ? (header?.fstockmtno ?? '') : (header?.fsono ?? ''))).toString().trim(),
-                        fqty: Math.max(1, Number(src.fqty ?? 0)), // ← Minimal qty = 1
-                        fprice: Number(src.fprice ?? src.fharga ?? 0), // ← Boleh 0
+                        
+                        frefso: source === 'SO' ? (header?.fsono ?? '') : (header?.fsono ?? ''),
+                        frefsoid: source === 'SO' ? (header?.ftrsomtid ?? null) : (header?.ftrsomtid ?? null),
+                        frefsrj: source === 'SRJ' ? (header?.fstockmtno ?? '') : (header?.fstockmtno ?? ''),
+                        frefsrjid: source === 'SRJ' ? (header?.fstockmtid ?? null) : (header?.fstockmtid ?? null),
+
+                        fqty: Math.max(1, Number(src.fqty ?? 0)),
+                        fprice: Number(src.fprice ?? src.fharga ?? 0),
                         fterima: Number(src.fterima ?? 0),
                         ftotal: 0,
                         fdesc: src.fdesc ? src.fdesc.toString().trim() : '',
@@ -2756,10 +2771,14 @@
                 frefcode: '',
                 fnouref: '',
                 frefpr: '',
+                frefso: '',
+                frefsoid: null,
+                frefsrj: '',
+                frefsrjid: null,
                 fqty: 0,
                 fterima: 0,
                 fprice: 0,
-                fdisc: 0, // Bisa berupa string "10+2" atau angka 12
+                fdisc: 0,
                 ftotal: 0,
                 fdesc: '',
                 fketdt: '',

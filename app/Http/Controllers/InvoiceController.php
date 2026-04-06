@@ -407,6 +407,14 @@ class InvoiceController extends Controller
     $prices    = $request->input('fprice', []);
     $discs     = $request->input('fdisc', []);
 
+    $frefcodes = $request->input('frefcode', []);
+    $frefso_codes = $request->input('frefso', []);
+    $frefso_ids   = $request->input('frefsoid', []);
+    $frefsrj_codes = $request->input('frefsrj', []);
+    $frefsrjid_ids = $request->input('frefsrjid', []);
+    $fnourefs     = $request->input('fnouref', []);
+    $frefpr_codes = $request->input('frefpr', []);
+
     if ($typeSales === 1) {
       $frefcode = 'UM';
       $frefso   = null;
@@ -418,6 +426,10 @@ class InvoiceController extends Controller
     $totalDisc   = 0;
 
     $hasUM = in_array('UM', $itemCodes);
+
+    if (!is_array($frefcodes)) {
+      $frefcodes = []; // reset, jangan pakai string
+    }
 
     if ($hasUM && $typeSales === 0) {
       // Jika ada "UM" tapi Type adalah Penjualan (0) -> ERROR
@@ -437,6 +449,15 @@ class InvoiceController extends Controller
     foreach ($itemCodes as $i => $code) {
       $qty   = (float)($qtys[$i] ?? 0);
       $price = (float)($prices[$i] ?? 0);
+      $refCode = '';
+      if (!empty($frefso_ids[$i])) {
+        $refCode = 'S';
+      } elseif (!empty($frefsrjid_ids[$i])) {
+        $refCode = 'R';
+      } elseif (is_array($frefcodes) && !empty($frefcodes[$i])) {
+        $refCode = $frefcodes[$i]; // fallback dari form jika ada
+      }
+      $refPr = $frefpr_codes[$i] ?? '';
 
       if (empty($code) || $qty <= 0) continue;
 
@@ -447,8 +468,8 @@ class InvoiceController extends Controller
       $fprdid   = $product ? $product->fprdid : null;
 
       $qtyKecil = $qty;
-      if ($product && $satuans[$i] === $product->fsatuanbesar) {
-        $qtyKecil = $qty * (float)$product->rasio_konversi;
+      if ($product && ($satuans[$i] ?? '') === $product->fsatuanbesar) {
+        $qtyKecil = $qty * (float)($product->rasio_konversi ?? 1);
       }
 
       if ($product && $product->fdiscontinue == '1') {
@@ -456,8 +477,6 @@ class InvoiceController extends Controller
           ->withInput()
           ->with('error', "Produk [{$code}] {$product->fprdname} Sudah Discontinue. Silakan hapus atau ganti dengan produk lain.");
       }
-
-      $fprdid = $product ? $product->fprdid : null;
 
       // Hitung Diskon per Baris (Support format 10+2 atau angka)
       $discPersen = $this->parseDiscount($discs[$i] ?? 0);
@@ -469,11 +488,9 @@ class InvoiceController extends Controller
       $totalGross += $subtotal;
       $totalDisc  += $discAmount;
 
-      $frefcode  = $request->input('frefcode');
-      $frefso    = $request->input('frefso');
-      $frefsrj   = $request->input('frefsrj');
-
       $detailRows[] = [
+        'fsono'        => $fsono ?? '',
+        'fsonoid'      => $ftranmtid ?? 0,
         'fnou'         => $i + 1,
         'fprdid'       => $fprdid,
         'fprdcode'     => mb_substr($code, 0, 30),
@@ -492,9 +509,12 @@ class InvoiceController extends Controller
         'fsatuan'      => mb_substr($satuans[$i] ?? '', 0, 5),
         'fuserid'      => $userid,
         'fdatetime'    => $now,
-        'frefcode'        => $frefcode,  // Berisi: 'SO', 'SRJ', atau 'UM'
-        'frefso'          => $frefso,    // ID SO asli
-        'frefsrj'         => $frefsrj,   // ID SRJ asli
+        'frefcode'  => $refCode,
+        'fnouref'   => (!empty($fnourefs[$i]) || (isset($fnourefs[$i]) && $fnourefs[$i] === '0')) ? (int)$fnourefs[$i] : null,
+        'frefso'    => !empty($frefso_ids[$i])    ? $refPr : '',
+        'frefsoid'  => !empty($frefso_ids[$i])    ? (int)$frefso_ids[$i]    : null,
+        'frefsrj'   => !empty($frefsrjid_ids[$i]) ? $refPr : '',
+        'frefsrjid' => !empty($frefsrjid_ids[$i]) ? (int)$frefsrjid_ids[$i] : null,
       ];
     }
 
@@ -534,7 +554,7 @@ class InvoiceController extends Controller
         $ftypesales = $request->input('ftypesales', 0);
 
         // Insert Header (tranmt)
-        DB::table('tranmt')->insert([
+        $ftranmtid = DB::table('tranmt')->insertGetId([
           'fsono'           => $fsono,
           'fsodate'         => $fsodate,
           'fcustno'         => mb_substr($request->fcustno, 0, 10),
@@ -561,11 +581,12 @@ class InvoiceController extends Controller
           'ftypesales'      => $ftypesales,
           'ftrcode'         => 'I',
           'fprdout'         => '0',
-        ]);
+        ], 'ftranmtid');
 
         // Insert Detail (trandt)
         foreach ($detailRows as &$row) {
           $row['fsono'] = $fsono;
+          $row['fsonoid'] = $ftranmtid; // Link to header ID
         }
         DB::table('trandt')->insert($detailRows);
       });
@@ -634,8 +655,8 @@ class InvoiceController extends Controller
 
     $invoice = Tranmt::with(['customer', 'details' => function ($q) {
       $q->leftJoin('msprd', 'msprd.fprdid', '=', 'trandt.fprdid')
-        ->leftJoin('tranmt as so_hdr', 'so_hdr.ftranmtid', '=', DB::raw('CAST(NULLIF(trandt.frefso, \'\') AS INTEGER)'))
-        ->leftJoin('trstockmt as sj_hdr', 'sj_hdr.fstockmtid', '=', DB::raw('CAST(NULLIF(trandt.frefsrj, \'\') AS INTEGER)'))
+        ->leftJoin('tranmt as so_hdr', DB::raw('so_hdr.ftranmtid'), '=', DB::raw('trandt.frefsoid::integer'))
+        ->leftJoin('trstockmt as sj_hdr', DB::raw('sj_hdr.fstockmtid'), '=', DB::raw('trandt.frefsrjid::integer'))
         ->select(
           'trandt.*',
           'msprd.fprdcode as fitemcode',
@@ -643,6 +664,8 @@ class InvoiceController extends Controller
           'so_hdr.fsono as fsono_ref',
           'sj_hdr.fstockmtno as fstockno_ref'
         )
+        ->whereNotNull('trandt.frefsoid')
+        ->orWhereNotNull('trandt.frefsrjid')
         ->orderBy('trandt.ftrandtid', 'asc');
     }])->findOrFail($ftranmtid);
 
@@ -651,20 +674,42 @@ class InvoiceController extends Controller
     }
 
     $savedItems = $invoice->details->map(function ($d) {
+      // Tentukan ref display berdasarkan frefcode atau nilai yang ada
+      $refCode = trim($d->frefcode ?? '');
+
+      // Auto-detect jika frefcode kosong
+      if (empty($refCode)) {
+        if (!empty(trim($d->frefso ?? '')))  $refCode = 'S';
+        if (!empty(trim($d->frefsrj ?? ''))) $refCode = 'R';
+      }
+
       return [
         'uid'        => $d->ftrandtid,
-        'fitemcode'  => (string)($d->fitemcode ?? ''),  // dari alias msprd.fprdid
-        'fitemname'  => (string)($d->fprdname ?? ''),   // dari msprd.fprdname
-        'fsatuan'    => (string)($d->fsatuan ?? ''),
+        'fitemcode'  => trim($d->fitemcode ?? ''),
+        'fitemname'  => trim($d->fprdname ?? ''),
+        'fsatuan'    => trim($d->fsatuan ?? ''),
         'frefdtno'   => (string)($d->frefdtno ?? ''),
         'fnouref'    => (string)($d->fnouref ?? ''),
+        'frefcode'   => $refCode,
+        'frefso'     => trim($d->frefso ?? ''),
+        'frefsoid'   => (string)($d->frefsoid ?? ''),
+        'frefsrj'    => trim($d->frefsrj ?? ''),
+        'frefsrjid'  => (string)($d->frefsrjid ?? ''),
         'fqty'       => (float)($d->fqty ?? 0),
         'fterima'    => (float)($d->fterima ?? 0),
         'fprice'     => (float)($d->fprice ?? 0),
         'fdisc'      => (float)($d->fdisc ?? 0),
         'ftotal'     => (float)($d->famount ?? 0),
         'fdesc'      => (string)($d->fdesc ?? ''),
-        'frefno_display' => $d->fsono_ref ?? $d->fstockno_ref ?? '-',
+
+        // ← Ini yang penting untuk tampilan No.Ref di edit
+        'frefpr'          => $refCode === 'S'  ? trim($d->frefso ?? '')
+          : ($refCode === 'R' ? trim($d->frefsrj ?? '') : ''),
+        'frefno_display'  => $refCode === 'S'  ? trim($d->frefso ?? '')
+          : ($refCode === 'R' ? trim($d->frefsrj ?? '') : '-'),
+        'fsono_ref'       => trim($d->fsono_ref ?? ''),
+        'fstockno_ref'    => trim($d->fstockno_ref ?? ''),
+
         'fketdt'     => (string)($d->fketdt ?? ''),
       ];
     })->values();
@@ -734,8 +779,8 @@ class InvoiceController extends Controller
 
     $invoice = Tranmt::with(['customer', 'details' => function ($q) {
       $q->leftJoin('msprd', 'msprd.fprdid', '=', 'trandt.fprdid')
-        ->leftJoin('tranmt as so_hdr', 'so_hdr.ftranmtid', '=', DB::raw('CAST(NULLIF(trandt.frefso, \'\') AS INTEGER)'))
-        ->leftJoin('trstockmt as sj_hdr', 'sj_hdr.fstockmtid', '=', DB::raw('CAST(NULLIF(trandt.frefsrj, \'\') AS INTEGER)'))
+        ->leftJoin('tranmt as so_hdr', 'so_hdr.ftranmtid', '=', DB::raw('CAST(NULLIF(trandt.frefsoid, \'\') AS INTEGER)'))
+        ->leftJoin('trstockmt as sj_hdr', 'sj_hdr.fstockmtid', '=', DB::raw('CAST(NULLIF(trandt.frefsrjid, \'\') AS INTEGER)'))
         ->select(
           'trandt.*',
           'msprd.fprdcode as fitemcode',
@@ -846,6 +891,22 @@ class InvoiceController extends Controller
     $qtys      = $request->input('fqty', []);
     $prices    = $request->input('fprice', []);
     $discs     = $request->input('fdisc', []);
+    $frefcodes = $request->input('frefcode', []);
+    $frefso_codes = $request->input('frefso', []);
+    $frefso_ids   = $request->input('frefsoid', []);
+    $frefsrj_codes = $request->input('frefsrj', []);
+    $frefsrj_ids   = $request->input('frefsrjid', []);
+    $frefsrjid_ids = $request->input('frefsrjid', []);
+    $fnourefs     = $request->input('fnouref', []);
+    $frefpr_codes  = $request->input('frefpr', []); // ← tambahkan ini
+
+    Log::info('[UPDATE] REF arrays', [
+      'frefcodes'     => $frefcodes,
+      'frefpr_codes'  => $frefpr_codes,
+      'frefso_ids'    => $frefso_ids,
+      'frefsrjid_ids' => $frefsrjid_ids,
+      'fnourefs'      => $fnourefs,
+    ]);
 
     // 4. BUILD DETAIL ROWS
     $detailRows = [];
@@ -872,6 +933,16 @@ class InvoiceController extends Controller
     foreach ($itemCodes as $i => $code) {
       $qty   = (float)($qtys[$i] ?? 0);
       $price = (float)($prices[$i] ?? 0);
+      $refCode = '';
+      if (!empty($frefso_ids[$i])) {
+        $refCode = 'SO';
+      } elseif (!empty($frefsrj_ids[$i])) {
+        $refCode = 'SRJ';
+      } elseif (is_array($frefcodes) && !empty($frefcodes[$i])) {
+        $refCode = $frefcodes[$i];
+      }
+
+      $refPr = $frefpr_codes[$i] ?? '';
 
       if (empty($code) || $qty <= 0) continue;
 
@@ -923,6 +994,12 @@ class InvoiceController extends Controller
         'fsatuan'      => mb_substr($satuans[$i] ?? '', 0, 5),
         'fuserid'      => $userid,
         'fdatetime'    => $now,
+        'frefcode'  => $refCode,
+        'fnouref'   => (!empty($fnourefs[$i]) || (isset($fnourefs[$i]) && $fnourefs[$i] === '0')) ? (int)$fnourefs[$i] : null,
+        'frefso'    => !empty($frefso_ids[$i])    ? $refPr : '',
+        'frefsoid'  => !empty($frefso_ids[$i])    ? (int)$frefso_ids[$i]    : null,
+        'frefsrj'   => !empty($frefsrjid_ids[$i]) ? $refPr : '',
+        'frefsrjid' => !empty($frefsrjid_ids[$i]) ? (int)$frefsrjid_ids[$i] : null,
       ];
     }
 

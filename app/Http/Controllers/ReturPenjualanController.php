@@ -346,10 +346,6 @@ class ReturPenjualanController extends Controller
 
   public function store(Request $request)
   {
-    Log::info('[STORE] ===== MULAI =====');
-    Log::info('[STORE] Input', ['data' => $request->except('_token')]);
-
-    // 1. VALIDASI
     try {
       $request->validate([
         'fsodate'     => ['required', 'date'],
@@ -366,9 +362,7 @@ class ReturPenjualanController extends Controller
         'frefso'      => ['nullable'],
         'frefsrj'     => ['nullable'],
       ]);
-      Log::info('[STORE] ✅ Validasi LOLOS');
     } catch (\Illuminate\Validation\ValidationException $e) {
-      Log::error('[STORE] ❌ Validasi GAGAL', ['errors' => $e->errors()]);
       throw $e; // tetap lempar agar Laravel handle redirect
     }
 
@@ -381,8 +375,6 @@ class ReturPenjualanController extends Controller
     $frate       = (float) $request->input('frate', 1);
     $typeSales   = (int) $request->input('ftypesales');
 
-    Log::info('[STORE] Header', compact('fsodate', 'fincludeppn', 'userid', 'fcurrency', 'frate', 'typeSales'));
-
     // 3. ARRAY INPUT
     $itemCodes = $request->input('fitemcode', []);
     $itemDescs = $request->input('fitemname', []);
@@ -391,14 +383,15 @@ class ReturPenjualanController extends Controller
     $prices    = $request->input('fprice', []);
     $discs     = $request->input('fdisc', []);
 
-    Log::info('[STORE] Raw arrays', [
-      'itemCodes' => $itemCodes,
-      'qtys'      => $qtys,
-      'prices'    => $prices,
-      'discs'     => $discs,
-    ]);
+    // FREFCODE & REFERENCES
+    $frefcodes = $request->input('frefcode', []);
+    $frefso_codes = $request->input('frefso', []);
+    $frefso_ids   = $request->input('frefsoid', []);
+    $frefsrj_codes = $request->input('frefsrj', []);
+    $frefsrjid_ids = $request->input('frefsrjid', []);
+    $fnourefs     = $request->input('fnouref', []);
+    $frefpr_codes = $request->input('frefpr', []);
 
-    // FREFCODE
     if ($typeSales === 1) {
       $frefcode = 'UM';
       $frefso   = null;
@@ -409,34 +402,23 @@ class ReturPenjualanController extends Controller
       $frefsrj  = $request->input('frefsrj');
     }
 
-    Log::info('[STORE] frefcode', compact('typeSales', 'frefcode', 'frefso', 'frefsrj'));
-
     // CEK UM
     $hasUM = in_array('UM', $itemCodes);
-    Log::info('[STORE] hasUM', ['hasUM' => $hasUM, 'typeSales' => $typeSales]);
 
     if ($hasUM && $typeSales === 0) {
-      Log::warning('[STORE] ❌ STOP: UM di item tapi typeSales=0');
       return back()->withInput()->with('error', 'Produk UM hanya untuk tipe Uang Muka.');
     }
     if (!$hasUM && $typeSales === 1) {
-      Log::warning('[STORE] ❌ STOP: typeSales=1 tapi tidak ada item UM');
       return back()->withInput()->with('error', 'Transaksi Uang Muka wajib menggunakan produk UM.');
     }
 
     // QUERY PRODUK
     $filteredCodes = array_values(array_filter($itemCodes));
-    Log::info('[STORE] Query produk untuk', ['codes' => $filteredCodes]);
 
     $products = DB::table('msprd')
       ->whereIn('fprdcode', $filteredCodes)
       ->get(['fprdid', 'fprdcode', 'fprdname', 'fdiscontinue', 'fsatuanbesar', 'fqtykecil as rasio_konversi'])
       ->keyBy('fprdcode');
-
-    Log::info('[STORE] Produk ditemukan', [
-      'ditemukan' => $products->keys()->toArray(),
-      'tidak_ada' => array_diff($filteredCodes, $products->keys()->toArray()),
-    ]);
 
     // LOOP ITEM
     $detailRows = [];
@@ -448,22 +430,13 @@ class ReturPenjualanController extends Controller
       $qty   = (float) ($qtys[$i] ?? 0);
       $price = (float) ($prices[$i] ?? 0);
 
-      Log::info("[STORE] Loop index={$i}", compact('code', 'qty', 'price'));
-
       if (empty($code) || $qty <= 0) {
-        Log::warning("[STORE] ⏭ Skip index={$i}", ['alasan' => empty($code) ? 'code kosong' : 'qty=0']);
         continue;
       }
 
       $product = $products->get($code);
-      Log::info("[STORE] Product lookup [{$code}]", [
-        'found'       => $product ? 'YA' : 'TIDAK',
-        'fprdid'      => $product?->fprdid,
-        'discontinue' => $product?->fdiscontinue,
-      ]);
 
       if ($product && $product->fdiscontinue == '1') {
-        Log::warning("[STORE] ❌ STOP: Produk discontinue [{$code}]");
         return back()->withInput()->with('error', "Produk [{$code}] {$product->fprdname} Sudah Discontinue.");
       }
 
@@ -481,15 +454,6 @@ class ReturPenjualanController extends Controller
 
       $totalGross += $subtotal;
       $totalDisc  += $discAmount;
-
-      Log::info("[STORE] Kalkulasi index={$i}", compact(
-        'discPersen',
-        'subtotal',
-        'discAmount',
-        'netPrice',
-        'amountRow',
-        'qtyKecil'
-      ));
 
       $detailRows[] = [
         'fnou'         => $nouCounter,
@@ -509,9 +473,12 @@ class ReturPenjualanController extends Controller
         'fsatuan'      => mb_substr($satuans[$i] ?? '', 0, 5),
         'fuserid'      => $userid,
         'fdatetime'    => $now,
-        'frefcode'     => $frefcode,
-        'frefso'       => $frefso,
-        'frefsrj'      => $frefsrj,
+        'frefcode'     => $frefcodes[$i] ?? '',
+        'fnouref'      => $fnourefs[$i] ?? '',
+        'frefso'    => $frefso_ids[$i]   ? ($frefpr_codes[$i] ?? '') : '',
+        'frefsoid'  => $frefso_ids[$i]   ?? null,
+        'frefsrj'   => $frefsrjid_ids[$i] ? ($frefpr_codes[$i] ?? '') : '',
+        'frefsrjid' => $frefsrjid_ids[$i] ?? null,
       ];
 
       $stockDetailRows[] = [
@@ -532,16 +499,8 @@ class ReturPenjualanController extends Controller
       ];
     }
 
-    Log::info('[STORE] Selesai loop', [
-      'jumlah_detailRows' => count($detailRows),
-      'jumlah_stockDetailRows' => count($stockDetailRows ?? []),
-      'totalGross'        => $totalGross,
-      'totalDisc'         => $totalDisc,
-    ]);
-
     // GUARD: detailRows kosong
     if (empty($detailRows)) {
-      Log::error('[STORE] ❌ STOP: detailRows kosong');
       return back()->withInput()->with('error', 'Tidak ada item valid. Periksa kode produk dan qty.');
     }
 
@@ -550,8 +509,6 @@ class ReturPenjualanController extends Controller
     $ppnPersen  = (float) $request->input('fppnpersen', 11);
     $ppnAmount  = ($fincludeppn === '1') ? ($amountNet * ($ppnPersen / 100)) : 0;
     $grandTotal = $amountNet + $ppnAmount;
-
-    Log::info('[STORE] Total', compact('amountNet', 'ppnPersen', 'ppnAmount', 'grandTotal'));
 
     // DATABASE TRANSACTION
     try {
@@ -573,14 +530,11 @@ class ReturPenjualanController extends Controller
         $ppnPersen,
         $typeSales
       ) {
-        Log::info('[STORE] ▶ Masuk transaction');
 
         $fsono = $request->input('fsono');
-        Log::info('[STORE] fsono dari input', ['fsono' => $fsono]);
 
         if (empty($fsono)) {
           $prefix = 'INV.' . $fsodate->format('ym') . '.';
-          Log::info('[STORE] Generate fsono, prefix', ['prefix' => $prefix]);
 
           $lastRecord = DB::table('tranmt')
             ->where('fsono', 'like', $prefix . '%')
@@ -593,7 +547,6 @@ class ReturPenjualanController extends Controller
             : 1;
 
           $fsono = $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
-          Log::info('[STORE] fsono generated', ['fsono' => $fsono, 'lastRecord' => $lastRecord?->fsono]);
         }
 
         $headerData = [
@@ -626,18 +579,13 @@ class ReturPenjualanController extends Controller
           'ftaxno'           => $request->ftaxno ?? '0',
         ];
 
-        Log::info('[STORE] Insert tranmt', $headerData);
-        DB::table('tranmt')->insert($headerData);
-        Log::info('[STORE] ✅ tranmt berhasil');
+        $ftranmtid = DB::table('tranmt')->insertGetId($headerData, 'ftranmtid');
 
         foreach ($detailRows as &$row) {
           $row['fsono'] = $fsono;
+          $row['fsonoid'] = $ftranmtid;
         }
         unset($row);
-
-        Log::info('[STORE] Insert trandt', ['rows' => count($detailRows)]);
-        DB::table('trandt')->insert($detailRows);
-        Log::info('[STORE] ✅ trandt berhasil');
 
         // ==== STOCK RECORDS ====
         $fstockmtno = str_replace('INV.', 'REB.', $fsono);
@@ -661,7 +609,6 @@ class ReturPenjualanController extends Controller
           'fbranchcode'      => $request->fbranchcode ?? 'BG', // Use request branch
         ];
 
-        Log::info('[STORE] Insert trstockmt', ['fstockmtno' => $fstockmtno]);
         $newStockId = DB::table('trstockmt')->insertGetId($masterStockData, 'fstockmtid');
 
         foreach ($stockDetailRows as &$srow) {
@@ -671,20 +618,12 @@ class ReturPenjualanController extends Controller
         }
         unset($srow);
 
-        Log::info('[STORE] Insert trstockdt', ['rows' => count($stockDetailRows)]);
         DB::table('trstockdt')->insert($stockDetailRows);
-        Log::info('[STORE] ✅ trstockdt berhasil');
       });
 
-      Log::info('[STORE] ✅ Transaction COMMIT');
       return redirect()->route('returpenjualan.index')->with('success', 'Retur Penjualan berhasil disimpan.');
     } catch (\Exception $e) {
-      Log::error('[STORE] ❌ Exception', [
-        'message' => $e->getMessage(),
-        'file'    => $e->getFile(),
-        'line'    => $e->getLine(),
-        'trace'   => $e->getTraceAsString(),
-      ]);
+
       return back()->withInput()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
     }
   }
@@ -766,18 +705,22 @@ class ReturPenjualanController extends Controller
     $savedItems = $returpenjualan->details->map(function ($d) {
       return [
         'uid'        => $d->ftrandtid,
-        'fitemcode'  => (string)($d->fitemcode ?? ''),  // dari alias msprd.fprdid
-        'fitemname'  => (string)($d->fprdname ?? ''),   // dari msprd.fprdname
+        'fitemcode'  => (string)($d->fitemcode ?? ''),
+        'fitemname'  => (string)($d->fprdname ?? ''),
         'fsatuan'    => (string)($d->fsatuan ?? ''),
         'frefdtno'   => (string)($d->frefdtno ?? ''),
         'fnouref'    => (string)($d->fnouref ?? ''),
+        'frefcode'   => (string)($d->frefcode ?? ''),
+        'frefso'     => (string)($d->frefso ?? ''),
+        'frefsoid'   => (string)($d->frefsoid ?? ''),
+        'frefsrj'    => (string)($d->frefsrj ?? ''),
+        'frefsrjid'  => (string)($d->frefsrjid ?? ''),
         'fqty'       => (float)($d->fqty ?? 0),
         'fterima'    => (float)($d->fterima ?? 0),
         'fprice'     => (float)($d->fprice ?? 0),
-        'fdisc'      => (float)($d->fdisc ?? 0),
+        'fdisc'      => (string)($d->fdisc ?? '0'),
         'ftotal'     => (float)($d->famount ?? 0),
         'fdesc'      => (string)($d->fdesc ?? ''),
-        'fketdt'     => (string)($d->fketdt ?? ''),
       ];
     })->values();
     $selectedSupplierCode = $returpenjualan->fsupplier;
@@ -962,6 +905,12 @@ class ReturPenjualanController extends Controller
     $prices    = $request->input('fprice', []);
     $discs     = $request->input('fdisc', []);
 
+    $frefcodes     = $request->input('frefcode', []);   // per baris, jika array
+    $frefpr_codes  = $request->input('frefpr', []);
+    $frefso_ids    = $request->input('frefsoid', []);
+    $frefsrjid_ids = $request->input('frefsrjid', []);
+    $fnourefs      = $request->input('fnouref', []);
+
     // Ambil mapping produk untuk mendapatkan fprdid dan rasio
     $products = DB::table('msprd')
       ->whereIn('fprdcode', array_filter($itemCodes))
@@ -1010,7 +959,8 @@ class ReturPenjualanController extends Controller
       $totalDisc  += $discAmount;
 
       $detailRows[] = [
-        'fsono'        => $header->fsono, // Tetap gunakan fsono lama
+        'fsono'        => $header->fsono,
+        'fsonoid'      => $ftranmtid,
         'fnou'         => $i + 1,
         'fprdid'       => $fprdid,
         'fprdcode'     => mb_substr($code, 0, 30),
@@ -1028,9 +978,12 @@ class ReturPenjualanController extends Controller
         'fsatuan'      => mb_substr($satuans[$i] ?? '', 0, 5),
         'fuserid'      => $userid,
         'fdatetime'    => $now,
-        'frefcode'     => $request->input('frefcode'),
-        'frefso'       => $request->input('frefso'),
-        'frefsrj'      => $request->input('frefsrj'),
+        'frefcode'  => $frefcodes[$i] ?? '',
+        'fnouref'   => $fnourefs[$i] ?? '',
+        'frefso'    => $frefso_ids[$i]    ? ($frefpr_codes[$i] ?? '') : '',
+        'frefsoid'  => $frefso_ids[$i]    ?? null,
+        'frefsrj'   => $frefsrjid_ids[$i] ? ($frefpr_codes[$i] ?? '') : '',
+        'frefsrjid' => $frefsrjid_ids[$i] ?? null,
       ];
 
       $stockDetailRows[] = [
@@ -1078,7 +1031,12 @@ class ReturPenjualanController extends Controller
         $ppnAmount,
         $grandTotal,
         $frate,
-        $ppnPersen
+        $ppnPersen,
+        $frefcodes,
+        $frefpr_codes,
+        $frefso_ids,
+        $frefsrjid_ids,
+        $fnourefs
       ) {
         // Update Header (tranmt)
         DB::table('tranmt')->where('ftranmtid', $ftranmtid)->update([

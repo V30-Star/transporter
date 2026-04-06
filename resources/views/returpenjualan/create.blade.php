@@ -287,9 +287,14 @@
                                                     <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
                                                     <input type="hidden" name="fitemname[]" :value="it.fitemname">
                                                     <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
+                                                    <input type="hidden" name="frefcode[]" :value="it.frefcode">
                                                     <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
                                                     <input type="hidden" name="fnouref[]" :value="it.fnouref">
                                                     <input type="hidden" name="frefpr[]" :value="it.frefpr">
+                                                    <input type="hidden" name="frefso[]" :value="it.frefso">
+                                                    <input type="hidden" name="frefsoid[]" :value="it.frefsoid">
+                                                    <input type="hidden" name="frefsrj[]" :value="it.frefsrj">
+                                                    <input type="hidden" name="frefsrjid[]" :value="it.frefsrjid">
                                                     <input type="hidden" name="fqty[]" :value="it.fqty">
                                                     <input type="hidden" name="fterima[]" :value="it.fterima">
                                                     <input type="hidden" name="fprice[]" :value="it.fprice">
@@ -1888,19 +1893,24 @@
                         fitemname: src.fitemname ?? '',
                         fsatuan: src.fsatuan ?? '',
                         frefdtno: src.frefdtno ?? '',
-                        fnouref: src.fnouref ?? '',
+                        fnouref: (src.frefdtno ?? src.fnouref ?? null),
                         frefpr: src.frefpr ?? (source === 'SRJ' ? (header?.fstockmtno ?? '') : (header?.fsono ?? '')),
                         frefcode: source === 'SRJ' ? (header?.fstockmtno ?? '') : (header?.fsono ?? ''),
+                        
+                        frefso: source === 'SO' ? (header?.fsono ?? '') : (header?.fsono ?? ''),
+                        frefsoid: source === 'SO' ? (header?.ftrsomtid ?? null) : (header?.ftrsomtid ?? null),
+                        frefsrj: source === 'SRJ' ? (header?.fstockmtno ?? '') : (header?.fstockmtno ?? ''),
+                        frefsrjid: source === 'SRJ' ? (header?.fstockmtid ?? null) : (header?.fstockmtid ?? null),
+
                         fprhid: src.fprhid ?? header?.fprhid ?? '',
                         fqty: Number(src.fqty ?? 0),
                         fterima: Number(src.fterima ?? 0),
                         fprice: Number(src.fprice ?? 0),
-                        fdisc: src.fdisc ?? 0, // ✅ Simpan format asli (bisa string "10+2")
+                        fdisc: src.fdisc ?? 0,
                         ftotal: Number(src.ftotal ?? 0),
                         fdesc: src.fdesc ?? '',
                         fketdt: src.fketdt ?? '',
-                        units: Array.isArray(src.units) && src.units.length ? src.units : [src.fsatuan]
-                            .filter(Boolean),
+                        units: Array.isArray(src.units) && src.units.length ? src.units : [src.fsatuan].filter(Boolean),
                     };
 
                     const key = this.itemKey({
@@ -2103,16 +2113,20 @@
                 uid: null,
                 fitemcode: '',
                 fitemname: '',
-                frefcode: '', // Tambahkan ini
+                frefcode: '',
                 units: [],
                 fsatuan: '',
                 frefdtno: '',
                 fnouref: '',
                 frefpr: '',
+                frefso: '',
+                frefsoid: null,
+                frefsrj: '',
+                frefsrjid: null,
                 fqty: 0,
                 fterima: 0,
                 fprice: 0,
-                fdisc: 0, // Bisa berupa string "10+2" atau angka 12
+                fdisc: 0,
                 ftotal: 0,
                 fdesc: '',
                 fketdt: '',

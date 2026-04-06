@@ -295,80 +295,89 @@
                                 <tbody>
                                     <template x-for="(it, i) in savedItems" :key="it.uid">
                                         <!-- Removed inner tbody -->
-                                            <!-- ROW UTAMA - SAVED ITEM (EDITABLE) -->
-                                            <tr class="border-t align-top">
-                                                <td class="p-2" x-text="i + 1"></td>
-                                                <td class="p-2 font-mono text-xs" x-text="it.fitemcode"></td>
-                                                <td class="p-2 text-gray-800 text-sm" x-text="it.fitemname"></td>
-                                                <td class="p-2">
-                                                    <template x-if="it.units && it.units.length > 1">
-                                                        <select class="w-full border rounded px-1 py-0.5 text-xs"
-                                                            x-model="it.fsatuan">
-                                                            <template x-for="u in it.units" :key="u">
-                                                                <option :value="u" x-text="u"></option>
-                                                            </template>
-                                                        </select>
-                                                    </template>
-                                                    <template x-if="!(it.units && it.units.length > 1)">
-                                                        <span class="text-xs" x-text="it.fsatuan"></span>
-                                                    </template>
-                                                </td>
-                                                <td class="p-2 text-blue-600 font-semibold text-xs" x-text="it.frefno_display || it.frefdtno || '-'"></td>
-                                                
-                                                <!-- Qty Editable -->
-                                                <td class="p-2 text-right">
-                                                    <input type="number" class="border rounded px-1 py-0.5 w-24 text-right text-sm"
-                                                        x-model.number="it.fqty" @input="recalc(it)">
-                                                </td>
+                                        <!-- ROW UTAMA - SAVED ITEM (EDITABLE) -->
+                                        <tr class="border-t align-top">
+                                            <td class="p-2" x-text="i + 1"></td>
+                                            <td class="p-2 font-mono text-xs" x-text="it.fitemcode"></td>
+                                            <td class="p-2 text-gray-800 text-sm" x-text="it.fitemname"></td>
+                                            <td class="p-2">
+                                                <template x-if="it.units && it.units.length > 1">
+                                                    <select class="w-full border rounded px-1 py-0.5 text-xs"
+                                                        x-model="it.fsatuan">
+                                                        <template x-for="u in it.units" :key="u">
+                                                            <option :value="u" x-text="u"></option>
+                                                        </template>
+                                                    </select>
+                                                </template>
+                                                <template x-if="!(it.units && it.units.length > 1)">
+                                                    <span class="text-xs" x-text="it.fsatuan"></span>
+                                                </template>
+                                            </td>
+                                            <td class="p-2 text-blue-600 font-semibold text-xs"
+                                                x-text="it.frefno_display || it.frefdtno || '-'"></td>
 
-                                                <!-- Price Editable -->
-                                                <td class="p-2 text-right">
-                                                    <input type="number" class="border rounded px-1 py-0.5 w-28 text-right text-sm"
-                                                        x-model.number="it.fprice" @input="recalc(it)">
-                                                </td>
+                                            <!-- Qty Editable -->
+                                            <td class="p-2 text-right">
+                                                <input type="number"
+                                                    class="border rounded px-1 py-0.5 w-24 text-right text-sm"
+                                                    x-model.number="it.fqty" @input="recalc(it)">
+                                            </td>
 
-                                                <!-- Disc Editable -->
-                                                <td class="p-2 text-right">
-                                                    <input type="text" class="border rounded px-1 py-0.5 w-20 text-right text-sm"
-                                                        x-model="it.fdisc" @input="recalc(it)">
-                                                </td>
+                                            <!-- Price Editable -->
+                                            <td class="p-2 text-right">
+                                                <input type="number"
+                                                    class="border rounded px-1 py-0.5 w-28 text-right text-sm"
+                                                    x-model.number="it.fprice" @input="recalc(it)">
+                                            </td>
 
-                                                <td class="p-2 text-right text-sm font-medium" x-text="fmt(it.ftotal)"></td>
-                                                
-                                                <td class="p-2 text-center text-xs">
-                                                    <button type="button" @click="removeSaved(i)"
-                                                        class="px-2 py-1 rounded bg-red-100 text-red-600 hover:bg-red-200">Hapus</button>
-                                                </td>
+                                            <!-- Disc Editable -->
+                                            <td class="p-2 text-right">
+                                                <input type="text"
+                                                    class="border rounded px-1 py-0.5 w-20 text-right text-sm"
+                                                    x-model="it.fdisc" @input="recalc(it)">
+                                            </td>
 
-                                                <!-- hidden inputs -->
-                                                <td class="hidden">
-                                                    <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
-                                                    <input type="hidden" name="fitemname[]" :value="it.fitemname">
-                                                    <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
-                                                    <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
-                                                    <input type="hidden" name="fnouref[]" :value="it.fnouref">
-                                                    <input type="hidden" name="frefpr[]" :value="it.frefpr">
-                                                    <input type="hidden" name="fqty[]" :value="it.fqty">
-                                                    <input type="hidden" name="fterima[]" :value="it.fterima">
-                                                    <input type="hidden" name="fprice[]" :value="it.fprice">
-                                                    <input type="hidden" name="fdisc[]" :value="it.fdisc">
-                                                    <input type="hidden" name="ftotal[]" :value="it.ftotal">
-                                                    <input type="hidden" name="fdesc[]" :value="it.fdesc">
-                                                    <input type="hidden" name="fketdt[]" :value="it.fketdt">
-                                                </td>
-                                            </tr>
+                                            <td class="p-2 text-right text-sm font-medium" x-text="fmt(it.ftotal)"></td>
 
-                                            <!-- ROW DESC (di bawah Nama Produk - RESTRICTED WIDTH) -->
-                                            <tr class="border-b">
-                                                <td class="p-0"></td>
-                                                <td class="p-0"></td>
-                                                <td class="p-2" colspan="3">
-                                                    <textarea x-model="it.fdesc" rows="3"
-                                                        class="w-full border rounded px-2 py-1 text-xs"
-                                                        placeholder="Deskripsi item (opsional)"></textarea>
-                                                </td>
-                                                <td class="p-0" colspan="5"></td>
-                                            </tr>
+                                            <td class="p-2 text-center text-xs">
+                                                <button type="button" @click="removeSaved(i)"
+                                                    class="px-2 py-1 rounded bg-red-100 text-red-600 hover:bg-red-200">Hapus</button>
+                                            </td>
+
+                                            <!-- hidden inputs -->
+                                            <td class="hidden">
+                                                <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
+                                                <input type="hidden" name="fitemname[]" :value="it.fitemname">
+                                                <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
+                                                <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
+                                                <input type="hidden" name="fnouref[]" :value="it.fnouref">
+                                                <input type="hidden" name="frefso[]" :value="it.frefso">
+                                                <input type="hidden" name="frefsoid[]" :value="it.frefsoid">
+                                                <input type="hidden" name="frefsrj[]" :value="it.frefsrj">
+                                                <input type="hidden" name="frefsrjid[]" :value="it.frefsrjid">
+                                                <input type="hidden" name="fprhid[]" :value="it.fprhid">
+                                                <input type="hidden" name="frefsrj[]" :value="it.frefsrj">
+                                                <input type="hidden" name="frefpr[]" :value="it.frefpr">
+                                                <input type="hidden" name="fqty[]" :value="it.fqty">
+                                                <input type="hidden" name="fterima[]" :value="it.fterima">
+                                                <input type="hidden" name="fprice[]" :value="it.fprice">
+                                                <input type="hidden" name="fdisc[]" :value="it.fdisc">
+                                                <input type="hidden" name="ftotal[]" :value="it.ftotal">
+                                                <input type="hidden" name="fdesc[]" :value="it.fdesc">
+                                                <input type="hidden" name="fketdt[]" :value="it.fketdt">
+                                            </td>
+                                        </tr>
+
+                                        <!-- ROW DESC (di bawah Nama Produk - RESTRICTED WIDTH) -->
+                                        <tr class="border-b">
+                                            <td class="p-0"></td>
+                                            <td class="p-0"></td>
+                                            <td class="p-2" colspan="3">
+                                                <textarea x-model="it.fdesc" rows="3" class="w-full border rounded px-2 py-1 text-xs"
+                                                    placeholder="Deskripsi item (opsional)"></textarea>
+                                            </td>
+                                            <td class="p-0" colspan="5"></td>
+                                        </tr>
                                         <!-- Removed inner tbody closing -->
                                     </template>
 
@@ -380,7 +389,8 @@
                                         <!-- Kode Produk -->
                                         <td class="p-2">
                                             <div class="flex">
-                                                <input type="text" class="flex-1 border rounded-l px-2 py-1 font-mono text-sm focus:ring-1 focus:ring-blue-500"
+                                                <input type="text"
+                                                    class="flex-1 border rounded-l px-2 py-1 font-mono text-sm focus:ring-1 focus:ring-blue-500"
                                                     x-ref="draftCode" x-model.trim="draft.fitemcode"
                                                     @input="onCodeTypedRow(draft)"
                                                     @keydown.enter.prevent="handleEnterOnCode('draft')">
@@ -407,8 +417,9 @@
                                         <!-- Satuan -->
                                         <td class="p-2">
                                             <template x-if="draft.units.length > 1">
-                                                <select class="w-full border rounded px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500" x-ref="draftUnit"
-                                                    x-model="draft.fsatuan"
+                                                <select
+                                                    class="w-full border rounded px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500"
+                                                    x-ref="draftUnit" x-model="draft.fsatuan"
                                                     @keydown.enter.prevent="$refs.draftQty?.focus()">
                                                     <template x-for="u in draft.units" :key="u">
                                                         <option :value="u" x-text="u"></option>
@@ -426,12 +437,14 @@
                                         <td class="p-2">
                                             <input type="text"
                                                 class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
-                                                :value="draft.frefno_display || draft.frefdtno || '-'" disabled placeholder="No Ref">
+                                                :value="draft.frefno_display || draft.frefdtno || '-'" disabled
+                                                placeholder="No Ref">
                                         </td>
 
                                         <!-- Qty -->
                                         <td class="p-2 text-right">
-                                            <input type="number" class="border rounded px-2 py-1 w-24 text-right text-sm focus:ring-1 focus:ring-blue-500"
+                                            <input type="number"
+                                                class="border rounded px-2 py-1 w-24 text-right text-sm focus:ring-1 focus:ring-blue-500"
                                                 min="0" step="1" x-ref="draftQty"
                                                 x-model.number="draft.fqty" @input="recalc(draft)"
                                                 @keydown.enter.prevent="$refs.draftPrice?.focus()">
@@ -439,7 +452,8 @@
 
                                         <!-- Price -->
                                         <td class="p-2 text-right">
-                                            <input type="number" class="border rounded px-2 py-1 w-28 text-right text-sm focus:ring-1 focus:ring-blue-500"
+                                            <input type="number"
+                                                class="border rounded px-2 py-1 w-28 text-right text-sm focus:ring-1 focus:ring-blue-500"
                                                 min="0" step="0.01" x-ref="draftPrice"
                                                 x-model.number="draft.fprice" @input="recalc(draft)"
                                                 @keydown.enter.prevent="$refs.draftDisc?.focus()">
@@ -447,7 +461,8 @@
 
                                         <!-- Disc -->
                                         <td class="p-2 text-right">
-                                            <input type="text" class="border rounded px-2 py-1 w-20 text-right text-sm focus:ring-1 focus:ring-blue-500"
+                                            <input type="text"
+                                                class="border rounded px-2 py-1 w-20 text-right text-sm focus:ring-1 focus:ring-blue-500"
                                                 x-ref="draftDisc" x-model="draft.fdisc" @input="recalc(draft)"
                                                 @keydown.enter.prevent="$refs.draftDesc?.focus()">
                                         </td>
@@ -468,8 +483,7 @@
                                         <td class="p-2" colspan="3">
                                             <textarea x-model="draft.fdesc" x-ref="draftDesc" rows="3"
                                                 class="w-full border rounded px-2 py-1 text-xs focus:ring-1 focus:ring-blue-500"
-                                                placeholder="Deskripsi item (opsional)"
-                                                @keydown.enter.prevent="addIfComplete()"></textarea>
+                                                placeholder="Deskripsi item (opsional)" @keydown.enter.prevent="addIfComplete()"></textarea>
                                         </td>
                                         <td class="p-0" colspan="5"></td>
                                     </tr>
@@ -1945,10 +1959,20 @@
                         fitemname: src.fitemname ?? '',
                         fsatuan: src.fsatuan ?? '',
                         frefdtno: src.frefdtno ?? '',
-                        frefno_display: src.frefno_display ?? (header?.fstockmtno ?? header?.fprno ?? header?.fsono ?? ''), // Use friendly name
+                        frefno_display: src.frefno_display ?? (header?.fstockmtno ?? header?.fprno ?? header
+                            ?.fsono ?? ''),
                         fnouref: src.fnouref ?? '',
                         frefpr: src.frefpr ?? (header?.fstockmtno ?? header?.fsono ?? ''),
+                        fnouref: (src.frefdtno ?? src.fnouref ?? null),
+                        frefno_display: src.frefno_display ?? header?.fstockmtno ?? header?.fsono ?? '',
+                        frefso: header?.fsono ?? '',
+                        frefsoid: header?.ftrsomtid ?? null,
+                        frefsrj: header?.fstockmtno ?? '',
+                        frefsrjid: header?.fstockmtid ?? null,
+                        frefpr: (src.frefpr ?? header?.fsono ?? header?.fpono ?? header?.fstockmtno ?? '')
+                            .toString().trim(),
                         fprhid: src.fprhid ?? header?.fprhid ?? '',
+
                         fqty: Number(src.fqty ?? 0),
                         fterima: Number(src.fterima ?? 0),
                         fprice: Number(src.fprice ?? 0),
@@ -1956,7 +1980,8 @@
                         ftotal: Number(src.ftotal ?? 0),
                         fdesc: src.fdesc ?? '',
                         fketdt: src.fketdt ?? '',
-                        units: Array.isArray(src.units) && src.units.length ? src.units : [src.fsatuan].filter(Boolean),
+                        units: Array.isArray(src.units) && src.units.length ? src.units : [src.fsatuan]
+                            .filter(Boolean),
                     };
 
                     const key = this.itemKey({
@@ -2195,9 +2220,13 @@
                 units: [],
                 fsatuan: '',
                 frefdtno: '',
-                frefno_display: '', // New field
+                frefno_display: '',
                 fnouref: '',
                 frefpr: '',
+                frefso: '',
+                frefsoid: '',
+                frefsrj: '',
+                frefsrjid: '',
                 fqty: 0,
                 fterima: 0,
                 fprice: 0,
