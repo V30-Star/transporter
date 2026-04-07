@@ -470,7 +470,7 @@ class ReturPenjualanController extends Controller
         'fuserid'      => $userid,
         'fdatetime'    => $now,
         'frefcode' => $frefcode ?? '',
-        'fnouref'      => $fnourefs[$i] ?? '',
+        'fnouref'   => (isset($fnourefs[$i]) && $fnourefs[$i] !== '') ? (int)$fnourefs[$i] : null,
         'frefso'    => $frefso_ids[$i]   ? ($frefpr_codes[$i] ?? '') : '',
         'frefsoid'  => $frefso_ids[$i]   ?? null,
         'frefsrj'   => $frefsrjid_ids[$i] ? ($frefpr_codes[$i] ?? '') : '',
