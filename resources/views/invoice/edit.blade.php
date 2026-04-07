@@ -2447,10 +2447,10 @@
                 return row.fitemcode && row.fitemname && row.fsatuan && Number(row.fqty) > 0;
             },
 
-            onPrPicked(e) {
+            onPrPicked(e, source = 'SO') {
                 const { header, items } = e.detail || {};
                 if (!items || !Array.isArray(items)) return;
-                this.addManyFromPR(header, items);
+                this.addManyFromPR(header, items, source);
             },
 
             resetDraft() {
@@ -2458,26 +2458,32 @@
                 this.$nextTick(() => this.$refs.draftCode?.focus());
             },
 
-            addManyFromPR(header, items) {
+            addManyFromPR(header, items, source = 'SO') {
                 const existing = new Set(this.getCurrentItemKeys());
                 let added = 0;
 
+                const refNo = source === 'SRJ' 
+                    ? (header?.fstockmtno ?? '') 
+                    : (header?.fsono ?? '');
+
                 items.forEach(src => {
                     const itemcode = (src.fitemcode ?? '').toString().trim();
-                    const key = this.itemKey({ fitemcode: itemcode, frefdtno: src.frefdtno || src.frefcode });
+                    const frefdtno = (src.frefdtno ?? src.frefcode ?? '').toString().trim();
+                    const key = `${itemcode}::${frefdtno}`;
 
                     if (existing.has(key)) return;
+                    existing.add(key);
 
                     const row = {
                         uid: cryptoRandom(),
                         fitemcode: itemcode,
                         fitemname: (src.fitemname ?? '').toString().trim(),
                         fsatuan: (src.fsatuan ?? '').toString().trim(),
-                        frefdtno: src.frefdtno || src.frefcode || '',
+                        frefdtno: frefdtno,
                         fnouref: (src.frefdtno ?? src.fnouref ?? null),
-                        frefno_display: src.frefno_display || src.frefno || header?.fstockmtno || src.frefcode || '',
+                        frefno_display: refNo || src.frefcode || '',
                         frefcode: src.frefcode || '',
-                        frefpr: (src.frefpr ?? header?.fsono ?? header?.fpono ?? header?.fstockmtno ?? '').toString().trim(),
+                        frefpr: refNo,
                         frefso: header?.fsono ?? '',
                         frefsoid: header?.ftrsomtid ?? null,
                         frefsrj: header?.fstockmtno ?? '',
@@ -2486,16 +2492,15 @@
                         fprice: Number(src.fprice ?? src.fharga ?? 0),
                         ftotal: 0,
                         fdesc: src.fdesc ? src.fdesc.toString().trim() : '',
-                        units: meta ? [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))] : [(src.fsatuan ?? '').toString().trim()].filter(Boolean),
+                        units: [(src.fsatuan ?? '').toString().trim()].filter(Boolean),
                     };
 
                     this.recalc(row);
                     this.savedItems.push(row);
-                    existing.add(key);
                     added++;
                 });
 
-                if (added > 0) window.toast?.success(`✓ Berhasil menambahkan ${added} item`);
+                if (added > 0) window.toast?.success(`Berhasil menambahkan ${added} item`);
                 this.recalcTotals();
             },
 
@@ -2536,7 +2541,7 @@
             },
 
             itemKey(it) {
-                return `${(it.fitemcode ?? '').toString().trim()}::${(it.frefdtno || it.frefcode || '').toString().trim()}`;
+                return `${(it.fitemcode ?? '').toString().trim()}::${(it.frefdtno ?? '').toString().trim()}`;
             },
 
             getCurrentItemKeys() {
@@ -2549,8 +2554,8 @@
                 this.$watch('fapplyppn', () => this.recalcTotals());
                 this.$watch('ppnRate', () => this.recalcTotals());
                 window.getCurrentItemKeys = () => this.getCurrentItemKeys();
-                window.addEventListener('pr-picked', this.onPrPicked.bind(this), { passive: true });
-                window.addEventListener('srj-picked', this.onPrPicked.bind(this), { passive: true });
+                window.addEventListener('pr-picked', (e) => this.onPrPicked(e, 'SO'), { passive: true });
+                window.addEventListener('srj-picked', (e) => this.onPrPicked(e, 'SRJ'), { passive: true });
                 window.addEventListener('product-chosen', (e) => {
                     const { product } = e.detail || {};
                     if (!product) return;
@@ -3003,12 +3008,19 @@
                 },
 
                 confirmAddUniques() {
-                    window.dispatchEvent(new CustomEvent('pr-picked', {
-                        detail: {
-                            header: this.pendingHeader,
-                            items: this.pendingUniques
-                        }
-                    }));
+                    const currentKeys = new Set((window.getCurrentItemKeys?.() || []).map(String));
+                    const keyOf = (src) => `${(src.fitemcode ?? '').toString().trim()}::${(src.frefcode ?? '').toString().trim()}`;
+                    
+                    const safeUniques = this.pendingUniques.filter(src => !currentKeys.has(keyOf(src)));
+                    
+                    if (safeUniques.length > 0) {
+                        window.dispatchEvent(new CustomEvent('pr-picked', {
+                            detail: {
+                                header: this.pendingHeader,
+                                items: safeUniques
+                            }
+                        }));
+                    }
                     this.closeDupModal();
                     this.closeModal();
                 },
@@ -3213,12 +3225,19 @@
                 },
 
                 confirmAddUniques() {
-                    window.dispatchEvent(new CustomEvent('srj-picked', {
-                        detail: {
-                            header: this.pendingHeader,
-                            items: this.pendingUniques
-                        }
-                    }));
+                    const currentKeys = new Set((window.getCurrentItemKeys?.() || []).map(String));
+                    const keyOf = (src) => `${(src.fitemcode ?? '').toString().trim()}::${(src.frefcode ?? '').toString().trim()}`;
+                    
+                    const safeUniques = this.pendingUniques.filter(src => !currentKeys.has(keyOf(src)));
+                    
+                    if (safeUniques.length > 0) {
+                        window.dispatchEvent(new CustomEvent('srj-picked', {
+                            detail: {
+                                header: this.pendingHeader,
+                                items: safeUniques
+                            }
+                        }));
+                    }
                     this.closeDupModal();
                     this.closeSrjModal();
                 },
