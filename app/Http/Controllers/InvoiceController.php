@@ -679,8 +679,8 @@ class InvoiceController extends Controller
 
       // Auto-detect jika frefcode kosong
       if (empty($refCode)) {
-        if (!empty(trim($d->frefso ?? '')))  $refCode = 'S';
-        if (!empty(trim($d->frefsrj ?? ''))) $refCode = 'R';
+        if (!empty(trim($d->frefso ?? '')))  $refCode = 'SO';
+        if (!empty(trim($d->frefsrj ?? ''))) $refCode = 'SRJ';
       }
 
       return [
@@ -702,11 +702,10 @@ class InvoiceController extends Controller
         'ftotal'     => (float)($d->famount ?? 0),
         'fdesc'      => (string)($d->fdesc ?? ''),
 
-        // ← Ini yang penting untuk tampilan No.Ref di edit
-        'frefpr'          => $refCode === 'S'  ? trim($d->frefso ?? '')
-          : ($refCode === 'R' ? trim($d->frefsrj ?? '') : ''),
-        'frefno_display'  => $refCode === 'S'  ? trim($d->frefso ?? '')
-          : ($refCode === 'R' ? trim($d->frefsrj ?? '') : '-'),
+        'frefpr'          => $refCode === 'SO'  ? trim($d->frefso ?? '')
+          : ($refCode === 'SRJ' ? trim($d->frefsrj ?? '') : ''),
+        'frefno_display'  => $refCode === 'SO'  ? trim($d->frefso ?? '')
+          : ($refCode === 'SRJ' ? trim($d->frefsrj ?? '') : '-'),
         'fsono_ref'       => trim($d->fsono_ref ?? ''),
         'fstockno_ref'    => trim($d->fstockno_ref ?? ''),
 

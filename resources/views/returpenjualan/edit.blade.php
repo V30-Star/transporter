@@ -338,72 +338,76 @@
                                             </tr>
                                         </template>
 
-                                    <!-- ROW DRAFT UTAMA -->
-                                    <tr class="border-t align-top">
-                                        <td class="p-2" x-text="savedItems.length + 1"></td>
-                                        <td class="p-2">
-                                            <div class="flex">
-                                                <input type="text" class="flex-1 border rounded-l px-2 py-1 font-mono"
-                                                    x-ref="draftCode" x-model.trim="draft.fitemcode"
-                                                    @input="onCodeTypedRow(draft)"
-                                                    @keydown.enter.prevent="handleEnterOnCode('draft')">
-                                                <button type="button" @click="openBrowseFor('draft')"
-                                                    class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50">
-                                                    <x-heroicon-o-magnifying-glass class="w-4 h-4" />
-                                                </button>
-                                            </div>
-                                        </td>
-                                        <td class="p-2">
-                                            <input type="text" class="w-full border rounded px-2 py-1 bg-gray-100"
-                                                :value="draft.fitemname" disabled>
-                                        </td>
-                                        <td class="p-2">
-                                            <template x-if="draft.units.length > 1">
-                                                <select class="w-full border rounded px-2 py-1" x-model="draft.fsatuan">
-                                                    <template x-for="u in draft.units" :key="u">
-                                                        <option :value="u" x-text="u"></option>
-                                                    </template>
-                                                </select>
-                                            </template>
-                                            <template x-if="draft.units.length <= 1">
+                                        <!-- ROW DRAFT UTAMA -->
+                                        <tr class="border-t align-top">
+                                            <td class="p-2" x-text="savedItems.length + 1"></td>
+                                            <td class="p-2">
+                                                <div class="flex">
+                                                    <input type="text"
+                                                        class="flex-1 border rounded-l px-2 py-1 font-mono"
+                                                        x-ref="draftCode" x-model.trim="draft.fitemcode"
+                                                        @input="onCodeTypedRow(draft)"
+                                                        @keydown.enter.prevent="handleEnterOnCode('draft')">
+                                                    <button type="button" @click="openBrowseFor('draft')"
+                                                        class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50">
+                                                        <x-heroicon-o-magnifying-glass class="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                            <td class="p-2">
                                                 <input type="text" class="w-full border rounded px-2 py-1 bg-gray-100"
-                                                    :value="draft.fsatuan || '-'" disabled>
-                                            </template>
-                                        </td>
-                                        <td class="p-2">
-                                            <input type="text" class="w-full border rounded px-2 py-1 bg-gray-100"
-                                                :value="draft.frefcode" disabled placeholder="Ref SO">
-                                        </td>
-                                        <td class="p-2 text-right">
-                                            <input type="number" class="border rounded px-2 py-1 w-24 text-right"
-                                                x-model.number="draft.fqty" @input="recalc(draft)" x-ref="draftQty">
-                                        </td>
-                                        <td class="p-2 text-right">
-                                            <input type="number" class="border rounded px-2 py-1 w-28 text-right"
-                                                x-model.number="draft.fprice" @input="recalc(draft)" x-ref="draftPrice">
-                                        </td>
-                                        <td class="p-2 text-right">
-                                            <input type="text" class="border rounded px-2 py-1 w-24 text-right"
-                                                x-model="draft.fdisc" @input="recalc(draft)" x-ref="draftDisc">
-                                        </td>
-                                        <td class="p-2 text-right font-semibold" x-text="fmt(draft.ftotal)"></td>
-                                        <td class="p-2 text-center">
-                                            <button type="button" @click="addIfComplete()"
-                                                class="px-3 py-1 rounded text-xs bg-emerald-600 text-white">Tambah</button>
-                                        </td>
-                                    </tr>
+                                                    :value="draft.fitemname" disabled>
+                                            </td>
+                                            <td class="p-2">
+                                                <template x-if="draft.units.length > 1">
+                                                    <select class="w-full border rounded px-2 py-1"
+                                                        x-model="draft.fsatuan">
+                                                        <template x-for="u in draft.units" :key="u">
+                                                            <option :value="u" x-text="u"></option>
+                                                        </template>
+                                                    </select>
+                                                </template>
+                                                <template x-if="draft.units.length <= 1">
+                                                    <input type="text"
+                                                        class="w-full border rounded px-2 py-1 bg-gray-100"
+                                                        :value="draft.fsatuan || '-'" disabled>
+                                                </template>
+                                            </td>
+                                            <td class="p-2">
+                                                <input type="text" class="w-full border rounded px-2 py-1 bg-gray-100"
+                                                    :value="draft.frefcode" disabled placeholder="Ref SO">
+                                            </td>
+                                            <td class="p-2 text-right">
+                                                <input type="number" class="border rounded px-2 py-1 w-24 text-right"
+                                                    x-model.number="draft.fqty" @input="recalc(draft)" x-ref="draftQty">
+                                            </td>
+                                            <td class="p-2 text-right">
+                                                <input type="number" class="border rounded px-2 py-1 w-28 text-right"
+                                                    x-model.number="draft.fprice" @input="recalc(draft)"
+                                                    x-ref="draftPrice">
+                                            </td>
+                                            <td class="p-2 text-right">
+                                                <input type="text" class="border rounded px-2 py-1 w-24 text-right"
+                                                    x-model="draft.fdisc" @input="recalc(draft)" x-ref="draftDisc">
+                                            </td>
+                                            <td class="p-2 text-right font-semibold" x-text="fmt(draft.ftotal)"></td>
+                                            <td class="p-2 text-center">
+                                                <button type="button" @click="addIfComplete()"
+                                                    class="px-3 py-1 rounded text-xs bg-emerald-600 text-white">Tambah</button>
+                                            </td>
+                                        </tr>
 
-                                    <!-- ROW DRAFT DESC -->
-                                    <tr class="border-b">
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-2" colspan="7">
-                                            <textarea x-model="draft.fdesc" rows="1" class="w-full border rounded px-2 py-1 text-xs"
-                                                placeholder="Deskripsi draft (opsional)"></textarea>
-                                        </td>
-                                        <td class="p-0"></td>
-                                    </tr>
-                                </tbody>
+                                        <!-- ROW DRAFT DESC -->
+                                        <tr class="border-b">
+                                            <td class="p-0"></td>
+                                            <td class="p-0"></td>
+                                            <td class="p-2" colspan="7">
+                                                <textarea x-model="draft.fdesc" rows="1" class="w-full border rounded px-2 py-1 text-xs"
+                                                    placeholder="Deskripsi draft (opsional)"></textarea>
+                                            </td>
+                                            <td class="p-0"></td>
+                                        </tr>
+                                    </tbody>
                                 </table>
                             </div>
 
@@ -786,7 +790,7 @@
                                                             <span x-text="it.fsatuan"></span>
                                                         </template>
                                                     </td>
-                                                    <td class="p-2 text-blue-600 font-semibold" x-text="it.frefcode || '-'">
+                                                    <td class="p-2 text-blue-600 font-semibold" x-text="it.frefpr || '-'">
                                                     </td>
                                                     <td class="p-2 text-right">
                                                         <input type="number"
@@ -887,7 +891,7 @@
                                                 <td class="p-2">
                                                     <input type="text"
                                                         class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
-                                                        :value="draft.frefcode" disabled placeholder="Ref PR">
+                                                        :value="draft.frefpr || '-'" disabled placeholder="Ref No">
                                                 </td>
                                                 <td class="p-2 text-right">
                                                     <input type="number" class="border rounded px-2 py-1 w-24 text-right"
@@ -930,9 +934,12 @@
                                 </div>
 
                                 <input type="hidden" id="itemsCount" :value="savedItems.length">
-                                <input type="hidden" name="frefcode" id="frefcode" value="{{ old('frefcode', $returpenjualan->frefcode) }}">
-                                <input type="hidden" name="frefso" id="frefso" value="{{ old('frefso', $returpenjualan->frefso) }}">
-                                <input type="hidden" name="frefsrj" id="frefsrj" value="{{ old('frefsrj', $returpenjualan->frefsrj) }}">
+                                <input type="hidden" name="frefcode_global" id="frefcode_global"
+                                    value="{{ old('frefcode_global', $returpenjualan->frefcode) }}">
+                                <input type="hidden" name="frefso" id="frefso"
+                                    value="{{ old('frefso', $returpenjualan->frefso) }}">
+                                <input type="hidden" name="frefsrj" id="frefsrj"
+                                    value="{{ old('frefsrj', $returpenjualan->frefsrj) }}">
 
                                 <script>
                                     document.addEventListener('DOMContentLoaded', () => {
@@ -1378,8 +1385,7 @@
                                                     <div class="mb-4 max-h-48 overflow-auto border rounded p-2 bg-gray-50"
                                                         x-show="dupSample.length > 0">
                                                         <p class="text-sm font-medium mb-2">Contoh item duplikat:</p>
-                                                        <template x-for="(item, idx) in dupSample"
-                                                            :key="idx">
+                                                        <template x-for="(item, idx) in dupSample" :key="idx">
                                                             <div class="text-xs py-1">
                                                                 • <span x-text="item.fitemcode"></span> - <span
                                                                     x-text="item.frefdtno"></span>
@@ -2514,22 +2520,38 @@
 
                 const existing = new Set(this.getCurrentItemKeys());
                 let added = 0,
-                    duplicates = [],
+                    duplicates = 0,
                     skipped = [];
 
                 items.forEach((src, index) => {
                     const itemcode = (src.fitemcode ?? '').toString().trim();
                     const itemname = (src.fitemname ?? '').toString().trim();
                     const satuan = (src.fsatuan ?? '').toString().trim();
-                    const frefcode = src.frefcode ?? '';
 
-                    // VALIDASI MINIMAL: harus ada kode, nama, dan satuan
                     if (!itemcode || !itemname || !satuan) {
                         skipped.push({
                             code: itemcode || 'NO_CODE',
                             reason: 'Data tidak lengkap'
                         });
                         return;
+                    }
+
+                    const key = this.itemKey({
+                        fitemcode: itemcode,
+                        frefdtno: src.frefdtno ?? ''
+                    });
+
+                    if (existing.has(key)) {
+                        duplicates++;
+                        return;
+                    }
+                    existing.add(key);
+
+                    let docNo = '';
+                    if (source === 'SO') {
+                        docNo = (header?.fsono || '').trim();
+                    } else if (source === 'SRJ') {
+                        docNo = (header?.fstockmtno || '').trim();
                     }
 
                     const meta = this.productMeta(itemcode);
@@ -2541,13 +2563,10 @@
                         fsatuan: satuan,
                         frefdtno: src.frefdtno ?? '',
                         fnouref: (src.frefdtno ?? src.fnouref ?? null),
-                        frefcode: source === 'SRJ' ? (header?.fstockmtno ?? '') : (header?.fsono ?? frefcode),
-                        frefpr: (src.frefpr ?? (source === 'SRJ' ? (header?.fstockmtno ?? '') : (header?.fsono ?? ''))).toString().trim(),
-                        
-                        frefso: source === 'SO' ? (header?.fsono ?? '') : (header?.fsono ?? ''),
-                        frefsoid: source === 'SO' ? (header?.ftrsomtid ?? null) : (header?.ftrsomtid ?? null),
-                        frefsrj: source === 'SRJ' ? (header?.fstockmtno ?? '') : (header?.fstockmtno ?? ''),
-                        frefsrjid: source === 'SRJ' ? (header?.fstockmtid ?? null) : (header?.fstockmtid ?? null),
+                        frefcode: source,
+                        frefpr: docNo,
+                        frefso: source === 'SO' ? docNo : (src.frefso || '').trim(),
+                        frefsrj: source === 'SRJ' ? docNo : (src.frefsrj || '').trim(),
 
                         fqty: Math.max(1, Number(src.fqty ?? 0)),
                         fprice: Number(src.fprice ?? src.fharga ?? 0),
@@ -2562,42 +2581,22 @@
 
                     row.ftotal = Number((row.fqty * row.fprice).toFixed(2));
 
-                    const key = this.itemKey({
-                        fitemcode: row.fitemcode,
-                        frefdtno: row.frefdtno
-                    });
-
-                    if (existing.has(key)) {
-                        duplicates.push({
-                            key,
-                            code: row.fitemcode,
-                            ref: row.frefdtno
-                        });
-                        return;
-                    }
-
                     this.savedItems.push(row);
-                    existing.add(key);
                     added++;
                 });
 
                 this.recalcTotals();
 
-                // Tampilkan notifikasi
                 if (added > 0) {
-                    window.toast?.success(`✓ Berhasil menambahkan ${added} item ke detail`);
+                    window.toast?.success(`Berhasil menambahkan ${added} item ke detail`);
                 }
 
-                if (duplicates.length > 0) {
-                    window.toast?.info(`${duplicates.length} item diabaikan (sudah ada)`);
+                if (duplicates > 0) {
+                    window.toast?.info(`${duplicates} item diabaikan (sudah ada)`);
                 }
 
                 if (skipped.length > 0) {
                     window.toast?.error(`${skipped.length} item diabaikan (data tidak lengkap)`);
-                }
-
-                if (added === 0 && duplicates.length === 0 && skipped.length === 0) {
-                    window.toast?.error('Tidak ada item yang valid untuk ditambahkan');
                 }
             },
 
@@ -2606,6 +2605,18 @@
 
                 if (r.fitemcode === 'UM' && this.ftypesales === 0) {
                     this.showToast('Produk UM hanya untuk tipe Uang Muka!', 'error');
+                    return;
+                }
+
+                if (Number(r.fqty) <= 0) {
+                    this.showToast('Quantity harus lebih besar dari 0!', 'warning');
+                    this.$refs.draftQty?.focus();
+                    return;
+                }
+
+                if (Number(r.fprice) < 0) {
+                    this.showToast('Harga tidak boleh minus!', 'warning');
+                    this.$refs.draftPrice?.focus();
                     return;
                 }
 
@@ -2620,11 +2631,14 @@
 
                 this.recalc(r);
 
-                const dupe = this.savedItems.find(it =>
-                    it.fitemcode === r.fitemcode &&
-                    it.fsatuan === r.fsatuan &&
-                    (it.frefpr || '') === (r.frefpr || '')
-                );
+                const key = this.itemKey({
+                    fitemcode: r.fitemcode,
+                    frefdtno: r.frefdtno || ''
+                });
+                const dupe = this.savedItems.find(it => this.itemKey({
+                    fitemcode: it.fitemcode,
+                    frefdtno: it.frefdtno || ''
+                }) === key);
 
                 if (dupe) {
                     this.showToast('Item sama sudah ada di daftar', 'warning');
@@ -2795,6 +2809,465 @@
 </script>
 
 <script>
+    window.soFormModal = function() {
+        return {
+            show: false,
+            table: null,
+
+            // Duplikasi modal
+            showDupModal: false,
+            dupCount: 0,
+            dupSample: [],
+            pendingHeader: null,
+            pendingUniques: [],
+
+            initDataTable() {
+                if (this.table) {
+                    this.table.destroy();
+                }
+
+                this.table = $('#poTable').DataTable({
+                    processing: true,
+                    serverSide: true,
+                    ajax: {
+                        url: "{{ route('salesorder.pickable') }}",
+                        type: 'GET',
+                        data: function(d) {
+                            return {
+                                draw: d.draw,
+                                start: d.start,
+                                length: d.length,
+                                search: d.search.value,
+                                order_column: d.columns[d.order[0].column].data,
+                                order_dir: d.order[0].dir
+                            };
+                        }
+                    },
+                    columns: [{
+                            data: 'fsono', // Nomor SO
+                            name: 'trsomt.fsono',
+                            className: 'font-mono text-sm'
+                        },
+                        {
+                            data: 'frefno', // Nomor SO
+                            name: 'frefno',
+                            className: 'font-mono text-sm'
+                        },
+                        {
+                            data: 'fsodate', // Tanggal SO
+                            name: 'trsomt.fsodate',
+                            className: 'text-sm',
+                            render: function(data) {
+                                return formatDate(data);
+                            }
+                        },
+                        {
+                            data: null,
+                            orderable: false,
+                            searchable: false,
+                            className: 'text-center',
+                            width: '100px',
+                            render: function(data, type, row) {
+                                return '<button type="button" class="btn-pick px-4 py-1.5 rounded-md text-sm font-bold bg-teal-600 hover:bg-teal-700 text-white transition-colors duration-150">Pilih</button>';
+                            }
+                        }
+                    ],
+                    pageLength: 10,
+                    lengthMenu: [
+                        [10, 25, 50, 100],
+                        [10, 25, 50, 100]
+                    ],
+                    dom: '<"#poTableControls"fl>rt<"#poTablePagination"ip>',
+                    language: {
+                        processing: "Memuat data...",
+                        search: "Cari:",
+                        lengthMenu: "Tampilkan _MENU_",
+                        info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
+                        infoEmpty: "Tidak ada data",
+                        infoFiltered: "(disaring dari _MAX_ total data)",
+                        zeroRecords: "Tidak ada data yang ditemukan",
+                        emptyTable: "Tidak ada data tersedia",
+                        paginate: {
+                            first: "Pertama",
+                            last: "Terakhir",
+                            next: "Selanjutnya",
+                            previous: "Sebelumnya"
+                        }
+                    },
+                    order: [
+                        [3, 'desc']
+                    ],
+                    autoWidth: false,
+                    initComplete: function() {
+                        const api = this.api();
+                        const $container = $(api.table().container());
+
+                        // Move controls to designated areas
+                        const $filter = $container.find('.dataTables_filter');
+                        const $length = $container.find('.dataTables_length');
+                        const $info = $container.find('.dataTables_info');
+                        const $paginate = $container.find('.dataTables_paginate');
+
+                        // Style search input
+                        $container.find('.dt-search .dt-input, .dataTables_filter input').css({
+                            width: '300px',
+                            padding: '8px 12px',
+                            border: '2px solid #e5e7eb',
+                            borderRadius: '8px',
+                            fontSize: '14px'
+                        }).focus();
+
+                        // Style length select
+                        $container.find('.dt-length select, .dataTables_length select').css({
+                            padding: '6px 32px 6px 10px',
+                            border: '2px solid #e5e7eb',
+                            borderRadius: '8px',
+                            fontSize: '14px'
+                        });
+                    }
+                });
+
+                // Handle button click
+                const self = this;
+                $('#poTable').off('click', '.btn-pick').on('click', '.btn-pick', function() {
+                    const data = self.table.row($(this).closest('tr')).data();
+                    self.pick(data);
+                });
+            },
+
+            openModal() {
+                this.show = true;
+                this.$nextTick(() => {
+                    this.initDataTable();
+                });
+            },
+
+            closeModal() {
+                this.show = false;
+                if (this.table) {
+                    this.table.search('').draw();
+                }
+            },
+
+            // Duplikasi handlers
+            openDupModal(header, duplicates, uniques) {
+                this.dupCount = duplicates.length;
+                this.dupSample = duplicates.slice(0, 6);
+                this.pendingHeader = header;
+                this.pendingUniques = uniques;
+                this.showDupModal = true;
+            },
+
+            closeDupModal() {
+                this.showDupModal = false;
+                this.dupCount = 0;
+                this.dupSample = [];
+                this.pendingHeader = null;
+                this.pendingUniques = [];
+            },
+
+            confirmAddUniques() {
+                const currentKeys = new Set((window.getCurrentItemKeys?.() || []).map(String));
+                const keyOf = (src) => `${(src.fitemcode ?? '').toString().trim()}::${(src.frefdtno ?? '').toString().trim()}`;
+                
+                const safeUniques = this.pendingUniques.filter(src => !currentKeys.has(keyOf(src)));
+                
+                if (safeUniques.length > 0) {
+                    window.dispatchEvent(new CustomEvent('pr-picked', {
+                        detail: {
+                            header: this.pendingHeader,
+                            items: safeUniques
+                        }
+                    }));
+                }
+                this.closeDupModal();
+                this.closeModal();
+            },
+
+            async pick(row) {
+                try {
+                    if (row.fdiscontinue == '1') {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Produk Discontinue',
+                            html: `Produk <b>${row.fprdname}</b> sudah tidak diproduksi lagi.<br><br>Penyimpanan Batal.`,
+                            confirmButtonColor: '#f59e0b', // Warna orange amber
+                            confirmButtonText: 'Kembali'
+                        });
+                        return; // Hentikan proses, jangan tambahkan ke tabel
+                    }
+
+                    const url = `{{ route('salesorder.items', ['id' => 'SO_ID_PLACEHOLDER']) }}`
+                        .replace('SO_ID_PLACEHOLDER', row.ftrsomtid);
+
+                    const res = await fetch(url, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+
+                    if (!res.ok) {
+                        throw new Error(`Server error: ${res.status}`);
+                    }
+
+                    const json = await res.json();
+
+                    const items = json.items || [];
+                    const currentKeys = new Set((window.getCurrentItemKeys?.() || []).map(String));
+
+                    const keyOf = (src) =>
+                        `${(src.fitemcode ?? '').toString().trim()}::${(src.frefdtno ?? '').toString().trim()}`;
+
+                    const duplicates = items.filter(src => currentKeys.has(keyOf(src)));
+                    const uniques = items.filter(src => !currentKeys.has(keyOf(src)));
+
+                    if (duplicates.length > 0) {
+                        this.openDupModal(json.header, duplicates, uniques);
+                        return;
+                    }
+
+                    window.dispatchEvent(new CustomEvent('pr-picked', {
+                        detail: {
+                            header: json.header,
+                            items: items
+                        }
+                    }));
+
+                    this.closeModal();
+                } catch (e) {
+                    console.error('Error:', e);
+                    window.toast?.error(`Gagal mengambil detail Sales Order: ${e.message}`);
+                }
+            }
+        };
+    };
+
+    window.srjFormModal = function() {
+        return {
+            showSrjModal: false,
+            table: null,
+
+            // Fitur Duplikasi (mirip logic SO)
+            showDupModal: false,
+            dupCount: 0,
+            dupSample: [],
+            pendingHeader: null,
+            pendingUniques: [],
+
+            initDataTable() {
+                if (this.table) {
+                    this.table.destroy();
+                }
+
+                this.table = $('#srjTable').DataTable({
+                    processing: true,
+                    serverSide: true,
+                    ajax: {
+                        url: "{{ route('suratjalan.pickable') }}", // Pastikan route ini ada di web.php
+                        type: 'GET',
+                        data: function(d) {
+                            return {
+                                draw: d.draw,
+                                start: d.start,
+                                length: d.length,
+                                search: d.search.value,
+                                order_column: d.columns[d.order[0].column].data,
+                                order_dir: d.order[0].dir
+                            };
+                        }
+                    },
+                    columns: [{
+                            data: 'fstockmtno',
+                            className: 'font-mono text-sm'
+                        },
+                        {
+                            data: 'frefpo',
+                            defaultContent: '-',
+                            className: 'font-mono text-sm'
+                        },
+                        {
+                            data: 'fstockmtdate',
+                            className: 'text-sm',
+                            render: function(data) {
+                                return formatDate(
+                                    data); // Menggunakan helper formatDate yang sudah Anda miliki
+                            }
+                        },
+                        {
+                            data: 'fsuppliername',
+                            name: 'fsuppliername',
+                        },
+                        {
+                            data: null,
+                            orderable: false,
+                            searchable: false,
+                            className: 'text-center',
+                            width: '100px',
+                            render: function() {
+                                return '<button type="button" class="btn-pick-srj px-4 py-1.5 rounded-md text-sm font-bold bg-indigo-600 hover:bg-indigo-700 text-white transition-colors duration-150">Pilih</button>';
+                            }
+                        }
+                    ],
+                    pageLength: 10,
+                    dom: '<"#srjHeader"fl>rt<"#srjFooter"ip>',
+                    language: {
+                        processing: "Memuat data...",
+                        search: "Cari:",
+                        lengthMenu: "Tampilkan _MENU_",
+                        paginate: {
+                            next: "Selanjutnya",
+                            previous: "Sebelumnya"
+                        }
+                    },
+                    order: [
+                        [2, 'desc']
+                    ], // Urutkan berdasarkan tanggal
+                    autoWidth: false,
+                    initComplete: function() {
+                        const api = this.api();
+                        const $container = $(api.table().container());
+
+                        // 1. Bungkus Header (Search & Length) supaya sejajar (Flex)
+                        const $header = $container.find('#srjHeader');
+                        $header.addClass('flex items-center justify-between mb-4 gap-4');
+
+                        // 2. Styling Input Search
+                        $header.find('.dataTables_filter input').css({
+                            'width': '300px',
+                            'padding': '8px 12px',
+                            'border': '2px solid #e5e7eb',
+                            'border-radius': '8px',
+                            'outline': 'none'
+                        }).addClass('focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500');
+
+                        // 3. Styling Dropdown "Tampilkan 10" (Length Menu)
+                        $header.find('.dataTables_length select').css({
+                            'padding': '6px 30px 6px 12px', // Beri padding kanan lebih untuk icon panah
+                            'border': '2px solid #e5e7eb',
+                            'border-radius': '8px',
+                            'background-position': 'right 8px center',
+                            'appearance': 'none', // Hilangkan style default browser
+                            'min-width': '80px'
+                        }).addClass('focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500');
+
+                        // 4. Bungkus Footer (Info & Pagination)
+                        const $footer = $container.find('#srjFooter');
+                        $footer.addClass('flex items-center justify-between mt-4');
+                    }
+                });
+
+                // Handle button click (pola delegasi jQuery)
+                const self = this;
+                $('#srjTable').off('click', '.btn-pick-srj').on('click', '.btn-pick-srj', function() {
+                    const data = self.table.row($(this).closest('tr')).data();
+                    self.pick(data);
+                });
+            },
+
+            // Handler Modal SRJ
+            openSrjModal() {
+                this.showSrjModal = true;
+                this.$nextTick(() => {
+                    this.initDataTable();
+                });
+            },
+
+            closeSrjModal() {
+                this.showSrjModal = false;
+                if (this.table) {
+                    this.table.search('').draw();
+                }
+            },
+
+            // Fitur Duplikasi SRJ
+            openDupModal(header, duplicates, uniques) {
+                this.dupCount = duplicates.length;
+                this.dupSample = duplicates.slice(0, 6);
+                this.pendingHeader = header;
+                this.pendingUniques = uniques;
+                this.showDupModal = true;
+            },
+
+            closeDupModal() {
+                this.showDupModal = false;
+            },
+
+            confirmAddUniques() {
+                const currentKeys = new Set((window.getCurrentItemKeys?.() || []).map(String));
+                const keyOf = (src) => `${(src.fitemcode ?? '').toString().trim()}::${(src.frefdtno ?? '').toString().trim()}`;
+                
+                const safeUniques = this.pendingUniques.filter(src => !currentKeys.has(keyOf(src)));
+                
+                if (safeUniques.length > 0) {
+                    window.dispatchEvent(new CustomEvent('srj-picked', {
+                        detail: {
+                            header: this.pendingHeader,
+                            items: safeUniques
+                        }
+                    }));
+                }
+                this.closeDupModal();
+                this.closeSrjModal();
+            },
+
+            async pick(row) {
+                try {
+                    if (row.fdiscontinue == '1') {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Produk Discontinue',
+                            html: `Produk <b>${row.fprdname}</b> sudah tidak diproduksi lagi.<br><br>Penyimpanan Batal.`,
+                            confirmButtonColor: '#f59e0b', // Warna orange amber
+                            confirmButtonText: 'Kembali'
+                        });
+                        return; // Hentikan proses, jangan tambahkan ke tabel
+                    }
+                    // Pastikan route srj.items sudah didefinisikan di Laravel
+                    const url = `{{ route('suratjalan.items', ['id' => 'PLACEHOLDER']) }}`
+                        .replace('PLACEHOLDER', row.fstockmtid);
+
+                    const res = await fetch(url, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+
+                    if (!res.ok) throw new Error(`Server error: ${res.status}`);
+
+                    const json = await res.json();
+                    const items = json.items || [];
+
+                    // Ambil key item yang sudah ada di table input (untuk cek duplikat)
+                    const currentKeys = new Set((window.getCurrentItemKeys?.() || []).map(String));
+
+                    // Logic key unik (Item Code + Ref Detail No)
+                    const keyOf = (src) =>
+                        `${(src.fitemcode ?? '').toString().trim()}::${(src.frefdtno ?? '').toString().trim()}`;
+
+                    const duplicates = items.filter(src => currentKeys.has(keyOf(src)));
+                    const uniques = items.filter(src => !currentKeys.has(keyOf(src)));
+
+                    if (duplicates.length > 0) {
+                        this.openDupModal(json.header, duplicates, uniques);
+                        return;
+                    }
+
+                    window.dispatchEvent(new CustomEvent('srj-picked', {
+                        detail: {
+                            header: json.header,
+                            items: items
+                        }
+                    }));
+
+                    this.closeSrjModal();
+                } catch (e) {
+                    console.error('Error SRJ:', e);
+                    window.toast?.error(`Gagal mengambil detail SRJ: ${e.message}`);
+                }
+            }
+        };
+    };
+
     window.prhFormModal = function() {
         return {
             show: false,

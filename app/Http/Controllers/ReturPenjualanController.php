@@ -701,6 +701,22 @@ class ReturPenjualanController extends Controller
     }
 
     $savedItems = $returpenjualan->details->map(function ($d) {
+      $refCode = strtoupper(trim($d->frefcode ?? ''));
+      $valSo   = trim($d->frefso ?? '');
+      $valSrj  = trim($d->frefsrj ?? '');
+      // 2. Logika Prioritas Tampilan
+      $displayRef = '-';
+
+      // Jika ada SRJ, tampilkan SRJ (biasanya SRJ lebih spesifik untuk retur)
+      if ($valSrj !== '') {
+        $displayRef = $valSrj;
+        $refCode = 'SRJ'; // Paksa refcode jadi SRJ jika ada nilainya
+      }
+      // Jika tidak ada SRJ tapi ada SO
+      elseif ($valSo !== '') {
+        $displayRef = $valSo;
+        $refCode = 'SO';
+      }
       return [
         'uid'        => $d->ftrandtid,
         'fitemcode'  => (string)($d->fitemcode ?? ''),
@@ -708,10 +724,7 @@ class ReturPenjualanController extends Controller
         'fsatuan'    => (string)($d->fsatuan ?? ''),
         'frefdtno'   => (string)($d->frefdtno ?? ''),
         'fnouref'    => (string)($d->fnouref ?? ''),
-        'frefcode'   => (string)($d->frefcode ?? ''),
-        'frefso'     => (string)($d->frefso ?? ''),
         'frefsoid'   => (string)($d->frefsoid ?? ''),
-        'frefsrj'    => (string)($d->frefsrj ?? ''),
         'frefsrjid'  => (string)($d->frefsrjid ?? ''),
         'fqty'       => (float)($d->fqty ?? 0),
         'fterima'    => (float)($d->fterima ?? 0),
@@ -719,6 +732,10 @@ class ReturPenjualanController extends Controller
         'fdisc'      => (string)($d->fdisc ?? '0'),
         'ftotal'     => (float)($d->famount ?? 0),
         'fdesc'      => (string)($d->fdesc ?? ''),
+        'frefcode'       => $refCode,
+        'frefpr'         => $displayRef, // Kolom ini yang akan ditampilkan di Blade
+        'frefso'         => $valSo,
+        'frefsrj'        => $valSrj,
       ];
     })->values();
     $selectedSupplierCode = $returpenjualan->fsupplier;
@@ -877,7 +894,6 @@ class ReturPenjualanController extends Controller
       'fprice'     => ['required', 'array'],
       'fprice.*'   => ['numeric', 'min:0'],
       'fdisc'      => ['nullable', 'array'],
-      'frefcode' => ['nullable', 'string', 'in:SO,SRJ,UM'],
       'frefso'   => ['nullable'],
       'frefsrj'  => ['nullable'],
     ]);
@@ -912,7 +928,8 @@ class ReturPenjualanController extends Controller
     if ($typeSales === 1) {
       $frefcode = 'UM';
     } else {
-      $frefcode = $request->input('frefcode');
+      $frefcode = $request->input('frefcode_global')
+        ?: ($header->frefcode ?? '');  // fallback dari DB jika kosong
     }
 
     // Ambil mapping produk untuk mendapatkan fprdid dan rasio
@@ -961,14 +978,6 @@ class ReturPenjualanController extends Controller
 
       $totalGross += $subtotal;
       $totalDisc  += $discAmount;
-      \Log::debug('[UPDATE RP] detail row', [
-        'i'        => $i,
-        'code'     => $code,
-        'frefcode' => $frefcode ?? '',
-        'fnouref'  => $fnourefs[$i] ?? '',
-        'frefsoid' => $frefso_ids[$i] ?? null,
-        'frefsrjid' => $frefsrjid_ids[$i] ?? null,
-      ]);
 
       $detailRows[] = [
         'fsono'        => $header->fsono,
@@ -991,11 +1000,11 @@ class ReturPenjualanController extends Controller
         'fuserid'      => $userid,
         'fdatetime'    => $now,
         'frefcode' => $frefcode ?? '',
-        'fnouref'   => $fnourefs[$i] ?? '',
+        'frefsoid'  => (!empty($request->frefsoid[$i])) ? (int)$request->frefsoid[$i] : null,
+        'frefsrjid' => (!empty($request->frefsrjid[$i])) ? (int)$request->frefsrjid[$i] : null,
+        'fnouref'   => (!empty($request->fnouref[$i])) ? (int)$request->fnouref[$i] : null,
         'frefso'    => $frefso_ids[$i]    ? ($frefpr_codes[$i] ?? '') : '',
-        'frefsoid'  => $frefso_ids[$i]    ?? null,
         'frefsrj'   => $frefsrjid_ids[$i] ? ($frefpr_codes[$i] ?? '') : '',
-        'frefsrjid' => $frefsrjid_ids[$i] ?? null,
       ];
 
       $stockDetailRows[] = [
@@ -1023,16 +1032,7 @@ class ReturPenjualanController extends Controller
     $grandTotal = $amountNet + $ppnAmount;
 
     $ftypesales = $request->input('ftypesales', 0);
-    \Log::debug('[UPDATE RP] pre-transaction summary', [
-      'ftranmtid'   => $ftranmtid,
-      'fsono'       => $header->fsono,
-      'total_items' => count($detailRows),
-      'totalGross'  => $totalGross,
-      'totalDisc'   => $totalDisc,
-      'amountNet'   => $amountNet,
-      'grandTotal'  => $grandTotal,
-      'frefcode'    => $frefcode ?? '',
-    ]);
+
     // 6. TRANSACTION
     try {
       DB::transaction(function () use (
@@ -1127,19 +1127,8 @@ class ReturPenjualanController extends Controller
         }
       });
 
-      \Log::info('[UPDATE RP] berhasil', [
-        'ftranmtid' => $ftranmtid,
-        'fsono'     => $header->fsono,
-      ]);
-
-
       return redirect()->route('returpenjualan.index')->with('success', "Retur Penjualan {$header->fsono} berhasil diperbarui.");
     } catch (\Exception $e) {
-      \Log::error('[UPDATE RP] gagal', [
-        'ftranmtid' => $ftranmtid,
-        'error'     => $e->getMessage(),
-        'trace'     => $e->getTraceAsString(),
-      ]);
       return back()->withInput()->with('error', 'Gagal update: ' . $e->getMessage());
     }
   }
