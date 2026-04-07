@@ -2422,7 +2422,7 @@
                 },
 
                 recalc(row) {
-                    row.fqty = Math.max(0, +row.fqty || 0);
+                    row.fqty = Math.max(1, +row.fqty || 1);
                     row.fprice = Math.max(0, +row.fprice || 0);
                     row.fbiaya = Math.max(0, +row.fbiaya || 0);
                     row.fdiscpersen = Math.min(100, Math.max(0, +row.fdiscpersen || 0));

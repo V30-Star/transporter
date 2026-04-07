@@ -1896,11 +1896,11 @@
 
             // ✅ UPDATE FUNGSI recalc untuk menggunakan parseDiscount
             recalc(row) {
-                row.fqty = Math.max(0, +row.fqty || 0);
+                row.fqty = Math.max(1, +row.fqty || 1);
                 row.fterima = Math.max(0, +row.fterima || 0);
                 row.fprice = Math.max(0, +row.fprice || 0);
 
-                if (row.fqty < 0) row.fqty = 0;
+                if (row.fqty < 1) row.fqty = 1;
                 if (row.fprice < 0) row.fprice = 0;
 
                 // Parse discount menggunakan fungsi baru
@@ -1990,7 +1990,7 @@
                             .toString().trim(),
                         fprhid: src.fprhid ?? header?.fprhid ?? '',
 
-                        fqty: Math.max(1, Number(src.fqty ?? 1)),
+                        fqty: Math.max(1, Number(src.fqty || 1)),
                         fterima: Number(src.fterima ?? 0),
                         fprice: Number(src.fprice ?? 0),
                         fdisc: src.fdisc ?? 0,

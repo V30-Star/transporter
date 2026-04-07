@@ -1242,7 +1242,7 @@
                             frefpr: String(header?.fprhid ?? src.fprhid ?? ''),
                             fprhid: String(src.fprhid ?? header?.fprhid ?? ''),
                             fprno: String(header?.fpono ?? src.fpono ?? ''),
-                            fqty: Number(src.fqty ?? 0),
+                            fqty: Math.max(1, Number(src.fqty || 1)),
                             fqtypo: Number(src.fqtypo ?? 0),
                             fqtypr: Number(src.fqty ?? 0),
                             fqtypr_satuan: (src.fsatuan ?? '').trim(),

@@ -1487,7 +1487,7 @@
 
             // ✅ UPDATE FUNGSI recalc untuk menggunakan parseDiscount
             recalc(row) {
-                row.fqty = Math.max(0, +row.fqty || 0);
+                row.fqty = Math.max(1, +row.fqty || 1);
                 row.fterima = Math.max(0, +row.fterima || 0);
                 row.fprice = Math.max(0, +row.fprice || 0);
 

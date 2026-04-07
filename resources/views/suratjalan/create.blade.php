@@ -1009,7 +1009,7 @@
 
             recalc(row) {
                 this.$nextTick(() => {
-                    row.fqty = Math.max(0, Number(row.fqty) || 0);
+                    row.fqty = Math.max(1, Number(row.fqty) || 1);
                     row.fterima = Math.max(0, Number(row.fterima) || 0);
                     row.fprice = Math.max(0, Number(row.fprice) || 0);
 
@@ -1115,7 +1115,7 @@
                         frefdtno: frefdtno,
                         frefno_display: (src.frefpr ?? header?.fsono ?? '').toString().trim(),
                         frefpr: (src.frefpr ?? header?.fpono ?? header?.fsono ?? '').toString().trim(),
-                        fqty: Math.max(1, Number(src.fqty ?? 1)),
+                        fqty: Math.max(1, Number(src.fqty || 1)),
                         fprice: Number(src.fprice ?? src.fharga ?? 0), // ← Boleh 0
                         fterima: Number(src.fterima ?? 0),
                         ftotal: 0,

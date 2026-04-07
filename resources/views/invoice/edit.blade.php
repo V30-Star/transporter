@@ -2438,7 +2438,7 @@
             },
 
             recalc(row) {
-                row.fqty = Math.max(0, +row.fqty || 0);
+                row.fqty = Math.max(1, +row.fqty || 1);
                 row.fprice = Math.max(0, +row.fprice || 0);
                 const discPercent = this.parseDiscount(row.fdisc);
                 const subtotal = row.fqty * row.fprice;
@@ -2518,7 +2518,7 @@
                         frefsoid: source === 'SO' ? (header?.ftrsomtid ?? null) : null,
                         frefsrj: source === 'SRJ' ? (header?.fstockmtno ?? '') : '',
                         frefsrjid: source === 'SRJ' ? (header?.fstockmtid ?? null) : null,
-                        fqty: Math.max(1, Number(src.fqty ?? 1)),
+                        fqty: Math.max(1, Number(src.fqty || 1)),
                         fprice: Number(src.fprice ?? src.fharga ?? 0),
                         ftotal: 0,
                         fdesc: src.fdesc ? src.fdesc.toString().trim() : '',
