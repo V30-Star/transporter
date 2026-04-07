@@ -925,6 +925,10 @@
                                                         <input type="hidden" name="frefcode[]" :value="it.frefcode">
                                                         <input type="hidden" name="fnouref[]" :value="it.fnouref">
                                                         <input type="hidden" name="frefpr[]" :value="it.frefpr">
+                                                        <input type="hidden" name="frefso[]" :value="it.frefso">
+                                                        <input type="hidden" name="frefsoid[]" :value="it.frefsoid">
+                                                        <input type="hidden" name="frefsrj[]" :value="it.frefsrj">
+                                                        <input type="hidden" name="frefsrjid[]" :value="it.frefsrjid">
                                                         <input type="hidden" name="fqty[]" :value="it.fqty">
                                                         <input type="hidden" name="fterima[]" :value="it.fterima">
                                                         <input type="hidden" name="fprice[]" :value="it.fprice">
@@ -2484,10 +2488,10 @@
                         frefno_display: refNo || src.frefcode || '',
                         frefcode: src.frefcode || '',
                         frefpr: refNo,
-                        frefso: header?.fsono ?? '',
-                        frefsoid: header?.ftrsomtid ?? null,
-                        frefsrj: header?.fstockmtno ?? '',
-                        frefsrjid: header?.fstockmtid ?? null,
+                        frefso: source === 'SO' ? (header?.fsono ?? '') : '',
+                        frefsoid: source === 'SO' ? (header?.ftrsomtid ?? null) : null,
+                        frefsrj: source === 'SRJ' ? (header?.fstockmtno ?? '') : '',
+                        frefsrjid: source === 'SRJ' ? (header?.fstockmtid ?? null) : null,
                         fqty: Math.max(1, Number(src.fqty ?? 0)),
                         fprice: Number(src.fprice ?? src.fharga ?? 0),
                         ftotal: 0,
