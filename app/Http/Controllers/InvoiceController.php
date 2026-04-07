@@ -654,18 +654,16 @@ class InvoiceController extends Controller
     $fbranchcode = $branch->fcabangkode ?? (string) $raw;   // hidden post
 
     $invoice = Tranmt::with(['customer', 'details' => function ($q) {
-      $q->leftJoin('msprd', 'msprd.fprdid', '=', 'trandt.fprdid')
-        ->leftJoin('tranmt as so_hdr', DB::raw('so_hdr.ftranmtid'), '=', DB::raw('trandt.frefsoid::integer'))
-        ->leftJoin('trstockmt as sj_hdr', DB::raw('sj_hdr.fstockmtid'), '=', DB::raw('trandt.frefsrjid::integer'))
+      $q->leftJoin('msprd', function ($j) {
+        // Gunakan trandt.fprdid karena sudah integer (tidak perlu CAST lagi)
+        $j->on('msprd.fprdid', '=', 'trandt.fprdid');
+      })
         ->select(
           'trandt.*',
           'msprd.fprdcode as fitemcode',
-          'msprd.fprdname',
-          'so_hdr.fsono as fsono_ref',
-          'sj_hdr.fstockmtno as fstockno_ref'
+          'msprd.fprdname'
         )
-        ->whereNotNull('trandt.frefsoid')
-        ->orWhereNotNull('trandt.frefsrjid')
+        // Ubah order ke ftrandtid (Primary Key detail) karena ftranmtid tidak ada
         ->orderBy('trandt.ftrandtid', 'asc');
     }])->findOrFail($ftranmtid);
 
@@ -859,20 +857,27 @@ class InvoiceController extends Controller
   {
     // 1. VALIDASI
     $request->validate([
-      'fsodate'    => ['required', 'date'],
-      'fcustno'    => ['required', 'string', 'max:10'],
-      'ftypesales' => ['required', 'in:0,1'], // Pastikan ftypesales divalidasi
-      'fitemcode'  => ['required', 'array', 'min:1'],
-      'fitemcode.*' => ['required', 'string', 'max:30'],
-      'fqty'       => ['required', 'array'],
-      'fqty.*'     => ['numeric', 'min:0.01'],
-      'fprice'     => ['required', 'array'],
-      'fprice.*'   => ['numeric', 'min:0'],
+      'fsodate'      => ['required', 'date'],
+      'fcustno'      => ['required', 'string', 'max:10'],
+      'ftypesales'   => ['required', 'in:0,1'],
+      'fitemcode'    => ['required', 'array', 'min:1'],
+      'fitemcode.*'  => ['required', 'string', 'max:30'],
+      'fqty'         => ['required', 'array'],
+      'fqty.*'       => ['numeric', 'min:0.01'],
+      'fprice'       => ['required', 'array'],
+      'fprice.*'     => ['numeric', 'min:0'],
+    ]);
+
+    // DEBUG: Awal Request
+    Log::info("[UPDATE INVOICE] Memulai proses update ID: {$ftranmtid}", [
+      'user' => auth('sysuser')->user()->fname ?? 'admin',
+      'all_payload' => $request->all()
     ]);
 
     // 2. LOAD HEADER
     $header = DB::table('tranmt')->where('ftranmtid', $ftranmtid)->first();
     if (!$header) {
+      Log::error("[UPDATE INVOICE] Header tidak ditemukan untuk ID: {$ftranmtid}");
       return abort(404, 'Faktur Penjualan tidak ditemukan.');
     }
 
@@ -883,29 +888,18 @@ class InvoiceController extends Controller
     $now         = now();
     $frate       = (float)$request->input('frate', $header->frate ?? 1);
 
-    $itemCodes = $request->input('fitemcode', []);
-    $typeSales = (int) $request->input('ftypesales'); // 0: Penjualan, 1: Uang Muka
-    $itemDescs = $request->input('fitemname', []);
-    $satuans   = $request->input('fsatuan', []);
-    $qtys      = $request->input('fqty', []);
-    $prices    = $request->input('fprice', []);
-    $discs     = $request->input('fdisc', []);
-    $frefcodes = $request->input('frefcode', []);
-    $frefso_codes = $request->input('frefso', []);
-    $frefso_ids   = $request->input('frefsoid', []);
-    $frefsrj_codes = $request->input('frefsrj', []);
-    $frefsrj_ids   = $request->input('frefsrjid', []);
+    $itemCodes     = $request->input('fitemcode', []);
+    $typeSales     = (int) $request->input('ftypesales');
+    $itemDescs     = $request->input('fitemname', []);
+    $satuans       = $request->input('fsatuan', []);
+    $qtys          = $request->input('fqty', []);
+    $prices        = $request->input('fprice', []);
+    $discs         = $request->input('fdisc', []);
+    $frefcodes     = $request->input('frefcode', []);
+    $frefso_ids    = $request->input('frefsoid', []);
     $frefsrjid_ids = $request->input('frefsrjid', []);
-    $fnourefs     = $request->input('fnouref', []);
-    $frefpr_codes  = $request->input('frefpr', []); // ← tambahkan ini
-
-    Log::info('[UPDATE] REF arrays', [
-      'frefcodes'     => $frefcodes,
-      'frefpr_codes'  => $frefpr_codes,
-      'frefso_ids'    => $frefso_ids,
-      'frefsrjid_ids' => $frefsrjid_ids,
-      'fnourefs'      => $fnourefs,
-    ]);
+    $fnourefs      = $request->input('fnouref', []);
+    $frefpr_codes  = $request->input('frefpr', []);
 
     // 4. BUILD DETAIL ROWS
     $detailRows = [];
@@ -913,57 +907,56 @@ class InvoiceController extends Controller
     $totalDisc  = 0;
 
     $hasUM = in_array('UM', $itemCodes);
-
     if ($hasUM && $typeSales === 0) {
-      // Jika ada "UM" tapi Type adalah Penjualan (0) -> ERROR
+      Log::warning("[UPDATE INVOICE] Validasi Gagal: Item UM ditemukan pada tipe Penjualan biasa.");
       return back()->withInput()->with('error', 'Produk Uang Muka (UM) hanya diperbolehkan untuk tipe transaksi Uang Muka.');
     }
 
-    if (!$hasUM && $typeSales === 1) {
-      // Tambahan: Jika tipe Uang Muka (1) tapi tidak ada item "UM" -> ERROR (Opsional)
-      return back()->withInput()->with('error', 'Transaksi Uang Muka wajib menggunakan produk dengan kode UM.');
-    }
-
+    // Ambil data produk masal
     $products = DB::table('msprd')
       ->whereIn('fprdcode', array_filter($itemCodes))
       ->get(['fprdid', 'fprdcode', 'fprdname', 'fdiscontinue', 'fsatuanbesar', 'fqtykecil as rasio_konversi'])
       ->keyBy('fprdcode');
 
+    Log::info("[UPDATE INVOICE] Jumlah item unik dari request: " . count($itemCodes));
+
     foreach ($itemCodes as $i => $code) {
       $qty   = (float)($qtys[$i] ?? 0);
       $price = (float)($prices[$i] ?? 0);
+
+      if (empty($code) || $qty <= 0) {
+        Log::debug("[UPDATE INVOICE] Baris index {$i} dilewati (Qty <= 0 atau Kode Kosong)");
+        continue;
+      }
+
       $refCode = '';
       if (!empty($frefso_ids[$i])) {
         $refCode = 'SO';
-      } elseif (!empty($frefsrj_ids[$i])) {
+      } elseif (!empty($frefsrjid_ids[$i])) {
         $refCode = 'SRJ';
       } elseif (is_array($frefcodes) && !empty($frefcodes[$i])) {
         $refCode = $frefcodes[$i];
       }
 
       $refPr = $frefpr_codes[$i] ?? '';
-
-      if (empty($code) || $qty <= 0) continue;
-
-      // ✅ Ambil product tunggal dari collection
       $product = $products->get($code);
 
-      // ✅ Gunakan $product (bukan $products) untuk akses property
-      $fprdid   = $product ? $product->fprdid : null;
+      if (!$product) {
+        Log::error("[UPDATE INVOICE] Produk tidak ditemukan di DB: {$code}");
+        return back()->withInput()->with('error', "Data produk [{$code}] tidak ditemukan.");
+      }
 
+      if ($product->fdiscontinue == '1') {
+        return back()->withInput()->with('error', "Produk [{$code}] {$product->fprdname} Sudah Discontinue.");
+      }
+
+      // Konversi Satuan
       $qtyKecil = $qty;
-      if ($product && $satuans[$i] === $product->fsatuanbesar) {
+      if ($satuans[$i] === $product->fsatuanbesar) {
         $qtyKecil = $qty * (float)$product->rasio_konversi;
       }
 
-      if ($product && $product->fdiscontinue == '1') {
-        return back()
-          ->withInput()
-          ->with('error', "Produk [{$code}] {$product->fprdname} Sudah Discontinue. Silakan hapus atau ganti dengan produk lain.");
-      }
-
-      $fprdid = $product ? $product->fprdid : null;
-
+      // Kalkulasi Baris
       $discPersen = $this->parseDiscount($discs[$i] ?? 0);
       $subtotal   = $qty * $price;
       $discAmount = $subtotal * ($discPersen / 100);
@@ -973,16 +966,17 @@ class InvoiceController extends Controller
       $totalGross += $subtotal;
       $totalDisc  += $discAmount;
 
-      $detailRows[] = [
-        'fsono'        => $header->fsono, // Tetap gunakan fsono lama
+      $rowData = [
+        'fsono'        => $header->fsono,
+        'fsonoid'      => $header->ftranmtid,
         'fnou'         => $i + 1,
-        'fprdid'       => $fprdid,
+        'fprdid'       => $product->fprdid,
         'fprdcode'     => mb_substr($code, 0, 30),
         'fdesc'        => $itemDescs[$i] ?? '',
         'fqty'         => $qty,
         'fqtydeliver'  => 0,
-        'fqtykecil'   => $qtyKecil,
-        'fqtyremain'  => $qtyKecil,
+        'fqtykecil'    => $qtyKecil,
+        'fqtyremain'   => $qtyKecil,
         'fprice'       => $price,
         'fprice_rp'    => $price * $frate,
         'fdisc'        => mb_substr((string)($discs[$i] ?? '0'), 0, 10),
@@ -993,22 +987,32 @@ class InvoiceController extends Controller
         'fsatuan'      => mb_substr($satuans[$i] ?? '', 0, 5),
         'fuserid'      => $userid,
         'fdatetime'    => $now,
-        'frefcode'  => $refCode,
-        'fnouref'   => (!empty($fnourefs[$i]) || (isset($fnourefs[$i]) && $fnourefs[$i] === '0')) ? (int)$fnourefs[$i] : null,
-        'frefso'    => !empty($frefso_ids[$i])    ? $refPr : '',
-        'frefsoid'  => !empty($frefso_ids[$i])    ? (int)$frefso_ids[$i]    : null,
-        'frefsrj'   => !empty($frefsrjid_ids[$i]) ? $refPr : '',
-        'frefsrjid' => !empty($frefsrjid_ids[$i]) ? (int)$frefsrjid_ids[$i] : null,
+        'frefcode'     => $refCode,
+        'fnouref'      => (!empty($fnourefs[$i]) || (isset($fnourefs[$i]) && $fnourefs[$i] === '0')) ? (int)$fnourefs[$i] : null,
+        'frefso'       => !empty($frefso_ids[$i])    ? $refPr : '',
+        'frefsoid'     => !empty($frefso_ids[$i])    ? (int)$frefso_ids[$i]    : null,
+        'frefsrj'      => !empty($frefsrjid_ids[$i]) ? $refPr : '',
+        'frefsrjid'    => !empty($frefsrjid_ids[$i]) ? (int)$frefsrjid_ids[$i] : null,
       ];
+
+      $detailRows[] = $rowData;
+
+      Log::debug("[UPDATE INVOICE] Menyiapkan Baris Detail {$i}", ['data' => $rowData]);
     }
 
-    // 5. KALKULASI TOTAL
+    // 5. KALKULASI TOTAL AKHIR
     $amountNet  = $totalGross - $totalDisc;
     $ppnPersen  = (float)$request->input('fppnpersen', 11);
     $ppnAmount  = ($fincludeppn === '1') ? ($amountNet * ($ppnPersen / 100)) : 0;
     $grandTotal = $amountNet + $ppnAmount;
 
-    $ftypesales = $request->input('ftypesales', 0);
+    Log::info("[UPDATE INVOICE] Hasil Kalkulasi", [
+      'Gross' => $totalGross,
+      'Disc' => $totalDisc,
+      'Net' => $amountNet,
+      'PPN' => $ppnAmount,
+      'GrandTotal' => $grandTotal
+    ]);
 
     // 6. TRANSACTION
     try {
@@ -1020,7 +1024,6 @@ class InvoiceController extends Controller
         $fincludeppn,
         $userid,
         $now,
-        $ftypesales,
         $detailRows,
         $totalGross,
         $totalDisc,
@@ -1030,7 +1033,7 @@ class InvoiceController extends Controller
         $frate,
         $ppnPersen
       ) {
-        // Update Header (tranmt)
+        // Update Header
         DB::table('tranmt')->where('ftranmtid', $ftranmtid)->update([
           'fsodate'         => $fsodate,
           'fcustno'         => mb_substr($request->fcustno, 0, 10),
@@ -1049,21 +1052,28 @@ class InvoiceController extends Controller
           'fuserid'         => $userid,
           'fdatetime'       => $now,
           'fincludeppn'     => $fincludeppn,
-          'ftypesales'      => $ftypesales,
+          'ftypesales'      => (int)$request->input('ftypesales', 0),
           'fppnpersen'      => $ppnPersen,
         ]);
 
-        // Hapus detail lama berdasarkan fsono (karena trandt tidak punya ftranmtid)
+        // Hapus detail lama
+        Log::info("[UPDATE INVOICE] Menghapus detail lama untuk fsono: {$header->fsono}");
         DB::table('trandt')->where('fsono', $header->fsono)->delete();
 
         // Insert detail baru
         if (!empty($detailRows)) {
+          Log::info("[UPDATE INVOICE] Memasukkan " . count($detailRows) . " detail baru.");
           DB::table('trandt')->insert($detailRows);
         }
       });
 
+      Log::info("[UPDATE INVOICE] Update Berhasil untuk ID: {$ftranmtid}");
       return redirect()->route('invoice.index')->with('success', "Faktur Penjualan {$header->fsono} berhasil diperbarui.");
     } catch (\Exception $e) {
+      Log::error("[UPDATE INVOICE] Transaksi Gagal. Pesan: " . $e->getMessage(), [
+        'file' => $e->getFile(),
+        'line' => $e->getLine()
+      ]);
       return back()->withInput()->with('error', 'Gagal update: ' . $e->getMessage());
     }
   }
