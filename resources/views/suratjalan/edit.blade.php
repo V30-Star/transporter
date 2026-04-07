@@ -304,10 +304,19 @@
 
                                             <td class="p-2 text-right">
                                                 <input type="number" class="border rounded px-2 py-1 w-24 text-right"
-                                                    min="0" step="1" x-ref="editQty"
-                                                    x-model.number="editRow.fqty" @change="recalc(editRow)"
-                                                    @blur="recalc(editRow)"
+                                                    min="1" step="1" :max="editRow.maxqty > 0 ? editRow.maxqty : null"
+                                                    x-ref="editQty"
+                                                    x-model.number="editRow.fqty" @input="
+                                                        recalc(editRow);
+                                                        if (editRow.maxqty > 0 && editRow.fqty > editRow.maxqty) {
+                                                            editRow.fqty = editRow.maxqty;
+                                                            recalc(editRow);
+                                                        }
+                                                    "
                                                     @keydown.enter.prevent="$refs.editPrice?.focus()">
+                                                <div class="text-xs text-gray-400 mt-0.5 text-right">
+                                                    <span x-show="editRow.maxqty > 0">maks: <span x-text="editRow.maxqty"></span></span>
+                                                </div>
                                             </td>
                                         </tr>
 
@@ -541,8 +550,15 @@
                                                     </td>
                                                     <td class="p-2 text-right">
                                                         <input type="number" class="border rounded px-2 py-1 w-24 text-right"
-                                                            x-model.number="it.fqty" @input="recalc(it)"
+                                                            min="1" step="1" :max="it.maxqty > 0 ? it.maxqty : null"
+                                                            x-model.number="it.fqty" @input="
+                                                                recalc(it);
+                                                                if (it.maxqty > 0 && it.fqty > it.maxqty) { it.fqty = it.maxqty; recalc(it); }
+                                                            "
                                                             @keydown.enter.prevent="$refs[`desc-${i}`]?.focus()">
+                                                        <div class="text-xs text-gray-400 mt-0.5 text-right">
+                                                            <span x-show="it.maxqty > 0">maks: <span x-text="it.maxqty"></span></span>
+                                                        </div>
                                                     </td>
                                                     <td class="p-2 text-center text-xs">
                                                         <button type="button" @click="removeSaved(i)"
@@ -635,9 +651,19 @@
 
                                                 <td class="p-2 text-right">
                                                     <input type="number" class="border rounded px-2 py-1 w-24 text-right text-sm"
-                                                        min="0" step="1" x-ref="draftQty"
-                                                        x-model.number="draft.fqty" @input="recalc(draft)"
+                                                        min="1" step="1" :max="draft.maxqty > 0 ? draft.maxqty : null"
+                                                        x-ref="draftQty"
+                                                        x-model.number="draft.fqty" @input="
+                                                            recalc(draft);
+                                                            if (draft.maxqty > 0 && draft.fqty > draft.maxqty) {
+                                                                draft.fqty = draft.maxqty;
+                                                                recalc(draft);
+                                                            }
+                                                        "
                                                         @keydown.enter.prevent="addIfComplete()">
+                                                    <div class="text-xs text-gray-400 mt-0.5 text-right">
+                                                        <span x-show="draft.maxqty > 0">maks: <span x-text="draft.maxqty"></span></span>
+                                                    </div>
                                                 </td>
 
                                                 <td class="p-2 text-center text-xs">

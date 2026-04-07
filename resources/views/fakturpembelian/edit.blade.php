@@ -580,9 +580,21 @@
                                         <!-- Qty -->
                                         <td class="p-2 text-right">
                                             <input type="number" class="border rounded px-2 py-1 w-24 text-right"
-                                                min="0" step="1" x-ref="editQty"
-                                                x-model.number="editRow.fqty" @input="recalc(editRow)"
+                                                min="1" step="1" :max="editRow.maxqty > 0 ? editRow.maxqty : null"
+                                                x-ref="editQty"
+                                                x-model.number="editRow.fqty" @input="
+                                                    recalc(editRow);
+                                                    if (editRow.maxqty > 0 && editRow.fqty > editRow.maxqty) {
+                                                        editRow.fqty = editRow.maxqty;
+                                                        recalc(editRow);
+                                                    }
+                                                "
                                                 @keydown.enter.prevent="$refs.editTerima?.focus()">
+                                            <div class="text-xs mt-0.5 text-right">
+                                                <template x-if="editRow.maxqty > 0">
+                                                    <span class="text-gray-400">maks: <span x-text="editRow.maxqty"></span></span>
+                                                </template>
+                                            </div>
                                         </td>
 
                                         <!-- @ Harga -->
@@ -1251,9 +1263,21 @@
                                             <!-- Qty -->
                                             <td class="p-2 text-right">
                                                 <input type="number" class="border rounded px-2 py-1 w-24 text-right"
-                                                    min="0" step="1" x-ref="editQty"
-                                                    x-model.number="editRow.fqty" @input="recalc(editRow)"
+                                                    min="1" step="1" :max="editRow.maxqty > 0 ? editRow.maxqty : null"
+                                                    x-ref="editQty"
+                                                    x-model.number="editRow.fqty" @input="
+                                                        recalc(editRow);
+                                                        if (editRow.maxqty > 0 && editRow.fqty > editRow.maxqty) {
+                                                            editRow.fqty = editRow.maxqty;
+                                                            recalc(editRow);
+                                                        }
+                                                    "
                                                     @keydown.enter.prevent="$refs.editTerima?.focus()">
+                                                <div class="text-xs mt-0.5 text-right">
+                                                    <template x-if="editRow.maxqty > 0">
+                                                        <span class="text-gray-400">maks: <span x-text="editRow.maxqty"></span></span>
+                                                    </template>
+                                                </div>
                                             </td>
 
                                             <!-- @ Harga -->
@@ -1373,9 +1397,21 @@
                                             <!-- Qty -->
                                             <td class="p-2 text-right">
                                                 <input type="number" class="border rounded px-2 py-1 w-24 text-right"
-                                                    min="0" step="1" x-ref="draftQty"
-                                                    x-model.number="draft.fqty" @input="recalc(draft)"
+                                                    min="1" step="1" :max="draft.maxqty > 0 ? draft.maxqty : null"
+                                                    x-ref="draftQty"
+                                                    x-model.number="draft.fqty" @input="
+                                                        recalc(draft);
+                                                        if (draft.maxqty > 0 && draft.fqty > draft.maxqty) {
+                                                            draft.fqty = draft.maxqty;
+                                                            recalc(draft);
+                                                        }
+                                                    "
                                                     @keydown.enter.prevent="$refs.draftTerima?.focus()">
+                                                <div class="text-xs mt-0.5 text-right">
+                                                    <template x-if="draft.maxqty > 0">
+                                                        <span class="text-gray-400">maks: <span x-text="draft.maxqty"></span></span>
+                                                    </template>
+                                                </div>
                                             </td>
 
                                             <!-- @ Harga -->
