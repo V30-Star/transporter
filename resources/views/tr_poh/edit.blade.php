@@ -429,21 +429,11 @@
                                 <td class="p-2 text-right">
                                     @if ($isEdit)
                                         <input type="number" class="border rounded px-2 py-1 w-20 text-right text-sm"
-                                            min="1" step="1" :max="it.maxqty > 0 ? it.maxqty : null"
                                             x-model.number="it.fqty" :id="'qty_saved_' + i"
                                             @focus="activeRow = it.uid; $event.target.select()" @blur="activeRow = null"
-                                            @input="
-                                                recalc(it);
-                                                if (it.maxqty > 0 && it.fqty > it.maxqty) { it.fqty = it.maxqty; recalc(it); }
-                                            "
-                                            @change="
-                                                recalc(it);
-                                                if (it.maxqty > 0 && it.fqty > it.maxqty) { it.fqty = it.maxqty; recalc(it); }
-                                            "
+                                            @input="recalc(it)"
+                                            @change="recalc(it)"
                                             @keydown.enter.prevent="focusSavedPrice(i)">
-                                        <div x-show="it.maxqty > 0" class="text-xs text-gray-400 mt-0.5 text-right">
-                                            maks: <span x-text="it.maxqty"></span>
-                                        </div>
                                     @else
                                         <span class="text-sm" x-text="it.fqty"></span>
                                     @endif

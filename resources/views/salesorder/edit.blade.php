@@ -340,10 +340,10 @@
                                                 <td class="p-2 text-right">
                                                     <input type="number"
                                                         class="w-full border rounded px-2 py-1 text-right"
-                                                        min="1" step="1" :max="it.maxqty > 0 ? it.maxqty : null"
+                                                        type="number"
                                                         x-model.number="it.fqty" @input="
                                                             recalc(it);
-                                                            if (it.maxqty > 0 && it.fqty > it.maxqty) { it.fqty = it.maxqty; recalc(it); }
+                                                            
                                                         ">
                                                     <div class="text-xs text-gray-400 mt-0.5 text-right">
                                                         <span x-show="it.maxqty > 0">maks: <span x-text="it.maxqty"></span></span>
@@ -444,7 +444,7 @@
                                         <!-- Qty -->
                                         <td class="p-2 text-right">
                                             <input type="number" class="border rounded px-2 py-1 w-24 text-right"
-                                                min="1" step="1" :max="editRow.maxqty > 0 ? editRow.maxqty : null"
+                                                type="number"
                                                 x-ref="editQty"
                                                 x-model.number="editRow.fqty" @input="
                                                     recalc(editRow);
@@ -975,10 +975,10 @@
                                                         <td class="p-2 text-right">
                                                             <input type="number"
                                                                 class="w-full border rounded px-2 py-1 text-right"
-                                                                min="1" step="1" :max="it.maxqty > 0 ? it.maxqty : null"
+                                                                type="number"
                                                                 x-model.number="it.fqty" @input="
                                                                     recalc(it);
-                                                                    if (it.maxqty > 0 && it.fqty > it.maxqty) { it.fqty = it.maxqty; recalc(it); }
+                                                                    
                                                                 ">
                                                             <div class="text-xs text-gray-400 mt-0.5 text-right">
                                                                 <span x-show="it.maxqty > 0">maks: <span x-text="it.maxqty"></span></span>
@@ -1095,7 +1095,7 @@
                                                     <td class="p-2 text-right">
                                                         <input type="number"
                                                             class="border rounded px-2 py-1 w-24 text-right"
-                                                            min="1" step="1" :max="draft.maxqty > 0 ? draft.maxqty : null"
+                                                            type="number"
                                                             x-ref="draftQty"
                                                             x-model.number="draft.fqty" @input="
                                                                 recalc(draft);

@@ -312,20 +312,20 @@
                                         <input type="number"
                                             class="border rounded px-2 py-1 w-20 text-right text-sm
                                                 {{ $action === 'delete' ? 'bg-gray-100 cursor-not-allowed' : '' }}"
-                                            min="1" step="1" :max="it.maxqty > 0 ? it.maxqty : null"
+                                            type="number"
                                             x-model.number="it.fqty" :id="'qty_saved_' + i"
                                             @focus="activeRow = it.uid; $event.target.select()" @blur="activeRow = null"
                                             @if ($action !== 'delete')
                                         @input="
                                                     recalc(it);
-                                                    if (it.maxqty > 0 && it.fqty > it.maxqty) {
+                                                    
                                                         it.fqty = it.maxqty;
                                                         recalc(it);
                                                     }
                                                 "
                                         @change="
                                                     recalc(it);
-                                                    if (it.maxqty > 0 && it.fqty > it.maxqty) {
+                                                    
                                                         it.fqty = it.maxqty;
                                                         recalc(it);
                                                     }

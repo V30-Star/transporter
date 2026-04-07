@@ -301,32 +301,11 @@
                                     {{-- Qty --}}
                                     <td class="p-2 text-right">
                                         <input type="number" class="border rounded px-2 py-1 w-20 text-right text-sm"
-                                            min="1" step="1" :max="it.maxqty > 0 ? it.maxqty : null"
                                             x-model.number="it.fqty" :id="'qty_saved_' + i"
                                             @focus="activeRow = it.uid; $event.target.select()" @blur="activeRow = null"
-                                            @input="
-                                                recalc(it);
-                                                if (it.maxqty > 0 && it.fqty > it.maxqty) {
-                                                    it.fqty = it.maxqty;
-                                                    recalc(it);
-                                                }
-                                            "
-                                            @change="
-                                                recalc(it);
-                                                if (it.maxqty > 0 && it.fqty > it.maxqty) {
-                                                    it.fqty = it.maxqty;
-                                                    recalc(it);
-                                                }
-                                            "
+                                            @input="recalc(it)"
+                                            @change="recalc(it)"
                                             @keydown.enter.prevent="focusSavedPrice(i)">
-                                        <div class="text-xs mt-0.5 text-right">
-                                            <template x-if="it.maxqty > 0">
-                                                <span class="text-gray-400">maks: <span x-text="it.maxqty"></span></span>
-                                            </template>
-                                            <template x-if="it.maxqty === 0 && it.fqtypr > 0">
-                                                <span class="text-red-500 font-medium">Qty tidak cukup</span>
-                                            </template>
-                                        </div>
                                     </td>
 
                                     {{-- @ Harga --}}

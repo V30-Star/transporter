@@ -375,19 +375,9 @@
                                         <!-- Qty -->
                                         <td class="p-2 text-right">
                                             <input type="number" class="border rounded px-2 py-1 w-24 text-right"
-                                                min="1" step="1" :max="editRow.maxqty > 0 ? editRow.maxqty : null"
                                                 x-ref="editQty"
-                                                x-model.number="editRow.fqty" @input="
-                                                    recalc(editRow);
-                                                    if (editRow.maxqty > 0 && editRow.fqty > editRow.maxqty) {
-                                                        editRow.fqty = editRow.maxqty;
-                                                        recalc(editRow);
-                                                    }
-                                                "
+                                                x-model.number="editRow.fqty" @input="recalc(editRow)"
                                                 @keydown.enter.prevent="$refs.editTerima?.focus()">
-                                            <div class="text-xs text-gray-400 mt-0.5 text-right">
-                                                <span x-show="editRow.maxqty > 0">maks: <span x-text="editRow.maxqty"></span></span>
-                                            </div>
                                         </td>
 
                                         <!-- @ Harga -->
@@ -889,14 +879,7 @@
                                                     <!-- Qty -->
                                                     <td class="p-2 text-right">
                                                         <input type="number" class="border rounded px-2 py-1 w-24 text-right text-sm focus:ring-1 focus:ring-blue-500"
-                                                            min="1" step="1" :max="it.maxqty > 0 ? it.maxqty : null"
-                                                            x-model.number="it.fqty" @input="
-                                                                recalc(it);
-                                                                if (it.maxqty > 0 && it.fqty > it.maxqty) { it.fqty = it.maxqty; recalc(it); }
-                                                            ">
-                                                        <div class="text-xs text-gray-400 mt-0.5 text-right">
-                                                            <span x-show="it.maxqty > 0">maks: <span x-text="it.maxqty"></span></span>
-                                                        </div>
+                                                            x-model.number="it.fqty" @input="recalc(it)">
                                                     </td>
 
                                                     <!-- Price -->
@@ -1017,19 +1000,9 @@
                                                 <!-- Qty -->
                                                 <td class="p-2 text-right">
                                                     <input type="number" class="border rounded px-2 py-1 w-24 text-right text-sm focus:ring-1 focus:ring-blue-500"
-                                                        min="1" step="1" :max="draft.maxqty > 0 ? draft.maxqty : null"
                                                         x-ref="draftQty"
-                                                        x-model.number="draft.fqty" @input="
-                                                            recalc(draft);
-                                                            if (draft.maxqty > 0 && draft.fqty > draft.maxqty) {
-                                                                draft.fqty = draft.maxqty;
-                                                                recalc(draft);
-                                                            }
-                                                        "
+                                                        x-model.number="draft.fqty" @input="recalc(draft)"
                                                         @keydown.enter.prevent="$refs.draftPrice?.focus()">
-                                                    <div class="text-xs text-gray-400 mt-0.5 text-right">
-                                                        <span x-show="draft.maxqty > 0">maks: <span x-text="draft.maxqty"></span></span>
-                                                    </div>
                                                 </td>
 
                                                 <!-- Price -->

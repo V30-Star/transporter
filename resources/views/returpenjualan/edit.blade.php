@@ -289,8 +289,8 @@
                                                 <td class="p-2 text-right">
                                                     <input type="number"
                                                         class="w-full border rounded px-2 py-1 text-right"
-                                                        min="1" step="1" :max="it.maxqty > 0 ? it.maxqty : null"
-                                                        x-model.number="it.fqty" @input="recalc(it); if (it.maxqty > 0 && it.fqty > it.maxqty) { it.fqty = it.maxqty; recalc(it); }">
+                                                        type="number"
+                                                        x-model.number="it.fqty" @input="recalc(it)">
                                                     <div x-show="it.maxqty > 0" class="text-xs text-gray-400 mt-0.5 text-right">
                                                         maks: <span x-text="it.maxqty"></span>
                                                     </div>
@@ -799,8 +799,8 @@
                                                     <td class="p-2 text-right">
                                                         <input type="number"
                                                             class="w-full border rounded px-2 py-1 text-right"
-                                                            min="1" step="1" :max="it.maxqty > 0 ? it.maxqty : null"
-                                                            x-model.number="it.fqty" @input="recalc(it); if (it.maxqty > 0 && it.fqty > it.maxqty) { it.fqty = it.maxqty; recalc(it); }">
+                                                            type="number"
+                                                            x-model.number="it.fqty" @input="recalc(it)">
                                                         <div x-show="it.maxqty > 0" class="text-xs text-gray-400 mt-0.5 text-right">
                                                             maks: <span x-text="it.maxqty"></span>
                                                         </div>
