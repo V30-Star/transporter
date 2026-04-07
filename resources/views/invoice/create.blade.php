@@ -1990,7 +1990,7 @@
                             .toString().trim(),
                         fprhid: src.fprhid ?? header?.fprhid ?? '',
 
-                        fqty: Number(src.fqty ?? 0),
+                        fqty: Math.max(1, Number(src.fqty ?? 1)),
                         fterima: Number(src.fterima ?? 0),
                         fprice: Number(src.fprice ?? 0),
                         fdisc: src.fdisc ?? 0,

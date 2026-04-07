@@ -1732,7 +1732,7 @@
                         frefdtno: frefdtno,
                         frefno_display: (src.frefpr ?? header?.fsono ?? '').toString().trim(),
                         frefpr: (src.frefpr ?? header?.fpono ?? header?.fsono ?? '').toString().trim(),
-                        fqty: Math.max(1, Number(src.fqty ?? 0)), // ← Minimal qty = 1
+                        fqty: Math.max(1, Number(src.fqty ?? 1)),
                         fprice: Number(src.fprice ?? src.fharga ?? 0), // ← Boleh 0
                         fterima: Number(src.fterima ?? 0),
                         ftotal: 0,

@@ -2578,7 +2578,7 @@
                         frefsrj: source === 'SRJ' ? docNo : (src.frefsrj || '').trim(),
                         frefsrjid: source === 'SRJ' ? (header?.fstockmtid ?? null) : null,
 
-                        fqty: Math.max(1, Number(src.fqty ?? 0)),
+                        fqty: Math.max(1, Number(src.fqty ?? 1)),
                         fprice: Number(src.fprice ?? src.fharga ?? 0),
                         fterima: Number(src.fterima ?? 0),
                         ftotal: 0,

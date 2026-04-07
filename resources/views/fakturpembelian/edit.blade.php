@@ -2533,8 +2533,8 @@
                             frefpr: src.fnouref ?? fnourefVal,
 
                             // Data quantity
-                            fqty: Math.max(0, +src.fqty || 0),
-                            maxqty: Math.max(0, +src.fqty || 0),
+                            fqty: Math.max(1, +src.fqty || 1),
+                            maxqty: Math.max(1, +src.fqty || 1),
 
                             // Financial
                             fprice: +(src.fprice || 0),
