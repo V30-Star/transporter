@@ -1115,7 +1115,7 @@
                         frefdtno: frefdtno,
                         frefno_display: (src.frefpr ?? header?.fsono ?? '').toString().trim(),
                         frefpr: (src.frefpr ?? header?.fpono ?? header?.fsono ?? '').toString().trim(),
-                        fqty: Number(src.fqty) || 1,
+                        fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ? Number(src.fqty) : 1,
                         fprice: Number(src.fprice ?? src.fharga ?? 0), // ← Boleh 0
                         fterima: Number(src.fterima ?? 0),
                         ftotal: 0,

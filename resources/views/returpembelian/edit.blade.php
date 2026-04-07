@@ -2041,7 +2041,7 @@
                         fnouref: src.fnouref ?? '',
                         frefpr: src.frefpr ?? (header?.fpono ?? ''),
                         fprhid: src.fprhid ?? header?.fprhid ?? '',
-                        fqty: Number(src.fqty) || 1,
+                        fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ? Number(src.fqty) : 1,
                         fterima: Number(src.fterima ?? 0),
                         fprice: Number(src.fprice ?? 0),
                         fdiscpersen: Number(src.fdiscpersen ?? 0),

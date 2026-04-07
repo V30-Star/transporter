@@ -1027,7 +1027,7 @@
                         fitemname: src.fitemname ?? '',
                         fsatuan: src.fsatuan ?? '',
                         frefpr: src.frefpr ?? (header?.fpono ?? ''),
-                        fqty: Number(src.fqty) || 1,
+                        fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ? Number(src.fqty) : 1,
                         fdesc: src.fdesc ?? '',
                         fketdt: src.fketdt ?? '',
                         units: Array.isArray(src.units) && src.units.length ? src.units : [src.fsatuan]

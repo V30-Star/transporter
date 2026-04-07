@@ -1604,7 +1604,7 @@
                         frefpr: src.fnouref ?? fnourefVal,
 
                         // Data quantity
-                        fqty: Number(src.fqty) || 1,
+                        fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ? Number(src.fqty) : 1,
                         maxqty: Math.max(1, +src.fqty || 1),
 
                         // Financial

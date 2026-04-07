@@ -1242,7 +1242,7 @@
                             frefpr: String(header?.fprhid ?? src.fprhid ?? ''),
                             fprhid: String(src.fprhid ?? header?.fprhid ?? ''),
                             fprno: String(header?.fpono ?? src.fpono ?? ''),
-                            fqty: Number(src.fqty) || 1,
+                            fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ? Number(src.fqty) : 1,
                             fqtypo: Number(src.fqtypo ?? 0),
                             fqtypr: Number(src.fqty ?? 0),
                             fqtypr_satuan: (src.fsatuan ?? '').trim(),
