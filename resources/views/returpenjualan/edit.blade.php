@@ -2566,7 +2566,9 @@
                         frefcode: source,
                         frefpr: docNo,
                         frefso: source === 'SO' ? docNo : (src.frefso || '').trim(),
+                        frefsoid: source === 'SO' ? (header?.ftrsomtid ?? null) : null,
                         frefsrj: source === 'SRJ' ? docNo : (src.frefsrj || '').trim(),
+                        frefsrjid: source === 'SRJ' ? (header?.fstockmtid ?? null) : null,
 
                         fqty: Math.max(1, Number(src.fqty ?? 0)),
                         fprice: Number(src.fprice ?? src.fharga ?? 0),
