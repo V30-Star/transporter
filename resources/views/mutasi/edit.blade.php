@@ -1673,7 +1673,7 @@
                         fitemname: src.fitemname ?? '',
                         fsatuan: src.fsatuan ?? '',
                         frefpr: src.frefpr ?? (header?.fpono ?? ''),
-                        fqty: Math.max(1, Number(src.fqty || 1)),
+                        fqty: Number(src.fqty) || 1,
                         fdesc: src.fdesc ?? '',
                         fketdt: src.fketdt ?? '',
                         units: Array.isArray(src.units) && src.units.length ? src.units : [src.fsatuan]

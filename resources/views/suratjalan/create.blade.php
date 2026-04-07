@@ -1115,13 +1115,13 @@
                         frefdtno: frefdtno,
                         frefno_display: (src.frefpr ?? header?.fsono ?? '').toString().trim(),
                         frefpr: (src.frefpr ?? header?.fpono ?? header?.fsono ?? '').toString().trim(),
-                        fqty: Math.max(1, Number(src.fqty || 1)),
+                        fqty: Number(src.fqty) || 1,
                         fprice: Number(src.fprice ?? src.fharga ?? 0), // ← Boleh 0
                         fterima: Number(src.fterima ?? 0),
                         ftotal: 0,
                         fdesc: src.fdesc ? src.fdesc.toString().trim() : '',
                         fketdt: src.fketdt ? src.fketdt.toString().trim() : '',
-                        units: meta ? [...new Set((meta.units || []).map(u => (u ?? '').toString().trim())
+                        units: meta ? [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()
                             .filter(Boolean))] : [satuan].filter(Boolean),
                         maxqty: meta ? (Number(meta.stock) || 0) : 0,
                     };
@@ -1145,6 +1145,7 @@
                     this.savedItems.push(row);
                     existing.add(key);
                     added++;
+                    this.recalc(row);
                 });
 
                 this.recalcTotals();

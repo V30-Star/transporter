@@ -1276,7 +1276,7 @@
                         fnouref: src.fnouref ?? '',
                         frefpr: src.frefpr ?? (header?.fpono ?? ''),
                         fprhid: src.fprhid ?? header?.fprhid ?? '',
-                        fqty: Math.max(1, Number(src.fqty || 1)),
+                        fqty: Number(src.fqty) || 1,
                         fterima: Number(src.fterima ?? 0),
                         fprice: Number(src.fprice ?? 0),
                         fdiscpersen: Number(src.fdiscpersen ?? 0),

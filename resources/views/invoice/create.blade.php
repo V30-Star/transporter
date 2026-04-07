@@ -1990,7 +1990,7 @@
                             .toString().trim(),
                         fprhid: src.fprhid ?? header?.fprhid ?? '',
 
-                        fqty: Math.max(1, Number(src.fqty || 1)),
+                        fqty: Number(src.fqty) || 1,
                         fterima: Number(src.fterima ?? 0),
                         fprice: Number(src.fprice ?? 0),
                         fdisc: src.fdisc ?? 0,
@@ -2008,9 +2008,10 @@
 
                     if (existing.has(key)) return;
 
-                    this.savedItems.push(row);
-                    existing.add(key);
-                    added++;
+                        this.savedItems.push(row);
+                        existing.add(key);
+                        added++;
+                        this.recalc(row);
                 });
 
                 this.recalcTotals();

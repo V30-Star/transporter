@@ -723,7 +723,7 @@
                                             </div>
                                         </div>
                                         <input type="hidden" name="fsalesman" id="salesmanCodeHidden"
-                                            value="{{ old('fsalesman', $returpenjualan->fsalesman) }}">
+                                            value="{{ old('fsalesman', $returpenjualan->fsalesman ?? '0') }}">
                                         <button type="button"
                                             @click="window.dispatchEvent(new CustomEvent('salesman-browse-open'))"
                                             class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
@@ -2578,7 +2578,7 @@
                         frefsrj: source === 'SRJ' ? docNo : (src.frefsrj || '').trim(),
                         frefsrjid: source === 'SRJ' ? (header?.fstockmtid ?? null) : null,
 
-                        fqty: Math.max(1, Number(src.fqty || 1)),
+                        fqty: Number(src.fqty) || 1,
                         fprice: Number(src.fprice ?? src.fharga ?? 0),
                         fterima: Number(src.fterima ?? 0),
                         ftotal: 0,
@@ -2591,6 +2591,7 @@
 
                     row.ftotal = Number((row.fqty * row.fprice).toFixed(2));
 
+                    this.recalc(row);
                     this.savedItems.push(row);
                     added++;
                 });

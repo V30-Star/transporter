@@ -2533,7 +2533,7 @@
                             frefpr: src.fnouref ?? fnourefVal,
 
                             // Data quantity
-                            fqty: Math.max(1, +src.fqty || 1),
+                            fqty: Number(src.fqty) || 1,
                             maxqty: Math.max(1, +src.fqty || 1),
 
                             // Financial
@@ -2564,6 +2564,7 @@
                         this.savedItems.push(row);
                         existing.add(key);
                         added++;
+                        this.recalc(row);
                     });
 
                     this.recalcTotals();

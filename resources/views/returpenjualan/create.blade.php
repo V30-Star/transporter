@@ -190,7 +190,7 @@
                                         @click="window.dispatchEvent(new CustomEvent('salesman-browse-open'))"></div>
                                 </div>
                                 <input type="hidden" name="fsalesman" id="salesmanCodeHidden"
-                                    value="{{ old('fsalesman') }}">
+                                    value="{{ old('fsalesman', '0') }}">
                                 <button type="button"
                                     @click="window.dispatchEvent(new CustomEvent('salesman-browse-open'))"
                                     class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
@@ -1903,7 +1903,7 @@
                         frefsrjid: source === 'SRJ' ? (header?.fstockmtid ?? null) : (header?.fstockmtid ?? null),
 
                         fprhid: src.fprhid ?? header?.fprhid ?? '',
-                        fqty: Math.max(1, Number(src.fqty || 1)),
+                        fqty: Number(src.fqty) || 1,
                         fterima: Number(src.fterima ?? 0),
                         fprice: Number(src.fprice ?? 0),
                         fdisc: src.fdisc ?? 0,
@@ -1927,9 +1927,10 @@
                         return;
                     }
 
-                    this.savedItems.push(row);
-                    existing.add(key);
-                    added++;
+                        this.savedItems.push(row);
+                        existing.add(key);
+                        added++;
+                        this.recalc(row);
                 });
 
                 this.recalcTotals();
