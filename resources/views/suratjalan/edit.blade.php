@@ -553,7 +553,7 @@
                                                             type="number"
                                                             x-model.number="it.fqty" @input="
                                                                 recalc(it);
-                                                                
+                                                                if (it.maxqty > 0 && it.fqty > it.maxqty) { it.fqty = it.maxqty; recalc(it); }
                                                             "
                                                             @keydown.enter.prevent="$refs[`desc-${i}`]?.focus()">
                                                         <div class="text-xs text-gray-400 mt-0.5 text-right">

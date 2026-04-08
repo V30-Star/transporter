@@ -318,17 +318,11 @@
                                             @if ($action !== 'delete')
                                         @input="
                                                     recalc(it);
-                                                    
-                                                        it.fqty = it.maxqty;
-                                                        recalc(it);
-                                                    }
+                                                    if (it.maxqty > 0 && it.fqty > it.maxqty) { it.fqty = it.maxqty; recalc(it); }
                                                 "
                                         @change="
                                                     recalc(it);
-                                                    
-                                                        it.fqty = it.maxqty;
-                                                        recalc(it);
-                                                    }
+                                                    if (it.maxqty > 0 && it.fqty > it.maxqty) { it.fqty = it.maxqty; recalc(it); }
                                                 "
                                         @keydown.enter.prevent="focusSavedPrice(i)"
                                         @endif

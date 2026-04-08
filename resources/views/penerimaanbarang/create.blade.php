@@ -280,17 +280,11 @@
                                             @focus="activeRow = it.uid; $event.target.select()" @blur="activeRow = null"
                                             @input="
                                                 recalc(it);
-                                                
-                                                    it.fqty = it.maxqty;
-                                                    recalc(it);
-                                                }
+                                                if (it.maxqty > 0 && it.fqty > it.maxqty) { it.fqty = it.maxqty; recalc(it); }
                                             "
                                             @change="
                                                 recalc(it);
-                                                
-                                                    it.fqty = it.maxqty;
-                                                    recalc(it);
-                                                }
+                                                if (it.maxqty > 0 && it.fqty > it.maxqty) { it.fqty = it.maxqty; recalc(it); }
                                             "
                                             @keydown.enter.prevent="focusSavedPrice(i)">
                                         <div class="text-xs mt-0.5 text-right">
