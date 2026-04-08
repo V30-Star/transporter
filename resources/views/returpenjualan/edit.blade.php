@@ -383,7 +383,13 @@
                                             </td>
                                             <td class="p-2 text-right">
                                                 <input type="number" class="border rounded px-2 py-1 w-24 text-right"
-                                                    x-model.number="draft.fqty" @input="recalc(draft)" x-ref="draftQty">
+                                                    x-model.number="draft.fqty" @input="
+                                                        recalc(draft);
+                                                        if (draft.maxqty > 0 && draft.fqty > draft.maxqty) { draft.fqty = draft.maxqty; recalc(draft); }
+                                                    " x-ref="draftQty">
+                                                <div class="text-xs text-gray-400 mt-0.5 text-right">
+                                                    <span x-show="draft.maxqty > 0">maks: <span x-text="draft.maxqty"></span></span>
+                                                </div>
                                             </td>
                                             <td class="p-2 text-right">
                                                 <input type="number" class="border rounded px-2 py-1 w-28 text-right"
@@ -800,7 +806,10 @@
                                                         <input type="number"
                                                             class="w-full border rounded px-2 py-1 text-right"
                                                             type="number"
-                                                            x-model.number="it.fqty" @input="recalc(it)">
+                                                            x-model.number="it.fqty" @input="
+                                                                recalc(it);
+                                                                if (it.maxqty > 0 && it.fqty > it.maxqty) { it.fqty = it.maxqty; recalc(it); }
+                                                            ">
                                                         <div x-show="it.maxqty > 0" class="text-xs text-gray-400 mt-0.5 text-right">
                                                             maks: <span x-text="it.maxqty"></span>
                                                         </div>
@@ -904,8 +913,14 @@
                                                 <td class="p-2 text-right">
                                                     <input type="number" class="border rounded px-2 py-1 w-24 text-right"
                                                         min="0" step="1" x-ref="draftQty"
-                                                        x-model.number="draft.fqty" @input="recalc(draft)"
+                                                        x-model.number="draft.fqty" @input="
+                                                            recalc(draft);
+                                                            if (draft.maxqty > 0 && draft.fqty > draft.maxqty) { draft.fqty = draft.maxqty; recalc(draft); }
+                                                        "
                                                         @keydown.enter.prevent="$refs.draftTerima?.focus()">
+                                                    <div class="text-xs text-gray-400 mt-0.5 text-right">
+                                                        <span x-show="draft.maxqty > 0">maks: <span x-text="draft.maxqty"></span></span>
+                                                    </div>
                                                 </td>
                                                 <td class="p-2 text-right">
                                                     <input type="number" class="border rounded px-2 py-1 w-28 text-right"
@@ -2742,6 +2757,15 @@
                 this.$watch('includePPN', () => this.recalcTotals());
                 this.$watch('fapplyppn', () => this.recalcTotals());
                 this.$watch('ppnRate', () => this.recalcTotals());
+
+                this.savedItems.forEach((item) => {
+                    const meta = this.productMeta(item.fitemcode);
+                    if (meta) {
+                        item.maxqty = Number(meta.stock) || 0;
+                    } else {
+                        item.maxqty = 0;
+                    }
+                });
 
                 window.getCurrentItemKeys = () => this.getCurrentItemKeys();
                 window.addEventListener('pr-picked', (e) => this.onPrPicked(e, 'SO'), {

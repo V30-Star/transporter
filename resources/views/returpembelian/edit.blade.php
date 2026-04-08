@@ -2207,6 +2207,15 @@
                 this.$watch('fapplyppn', () => this.recalcTotals());
                 this.$watch('ppnRate', () => this.recalcTotals());
 
+                this.savedItems.forEach((item) => {
+                    const meta = this.productMeta(item.fitemcode);
+                    if (meta) {
+                        item.maxqty = Number(meta.stock) || 0;
+                    } else {
+                        item.maxqty = 0;
+                    }
+                });
+
                 window.getCurrentItemKeys = () => this.getCurrentItemKeys();
                 window.addEventListener('pr-picked', this.onPrPicked.bind(this), {
                     passive: true

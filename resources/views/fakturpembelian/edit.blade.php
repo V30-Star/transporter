@@ -2685,13 +2685,16 @@
 
                 init() {
                     this.savedItems.forEach(item => {
-                        // Jika data dari DB tidak punya ftotprice, jalankan rumus ini
+                        const meta = this.productMeta(item.fitemcode);
+                        if (meta) {
+                            item.maxqty = Number(meta.stock) || 0;
+                        } else {
+                            item.maxqty = 0;
+                        }
                         const qty = +item.fqty || 0;
                         const price = +item.fprice || 0;
                         const disc = +item.fdiscpersen || 0;
                         const biaya = +item.fbiaya || 0;
-
-                        // Pastikan ftotprice dihitung di awal
                         item.ftotprice = (price + biaya) * qty - (qty * price * (disc / 100));
                     });
                     this.recalcTotals();

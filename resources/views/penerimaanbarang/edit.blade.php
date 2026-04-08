@@ -1297,15 +1297,16 @@
                 },
 
                 init() {
-                    // ── Pastikan setiap savedItem punya uid + units yang benar ──
-                    this.savedItems = this.savedItems.map(it => ({
-                        ...it,
-                        uid: it.uid || cryptoRandom(),
-                        units: (it.units && it.units.length) ? it.units : (() => {
-                            const meta = this.productMeta(it.fitemcode);
-                            return meta ? [...new Set((meta.units || []).filter(Boolean))] : [];
-                        })(),
-                    }));
+                    // ── Pastikan setiap savedItem punya uid + units + maxqty yang benar ──
+                    this.savedItems = this.savedItems.map(it => {
+                        const meta = this.productMeta(it.fitemcode);
+                        return {
+                            ...it,
+                            uid: it.uid || cryptoRandom(),
+                            units: (it.units && it.units.length) ? it.units : (meta ? [...new Set((meta.units || []).filter(Boolean))] : []),
+                            maxqty: meta ? (Number(meta.stock) || 0) : 0,
+                        };
+                    });
 
                     // ── Guard CURRENCY_MAP ──────────────────────────────────────
                     if (window.CURRENCY_MAP && typeof window.CURRENCY_MAP === 'object') {

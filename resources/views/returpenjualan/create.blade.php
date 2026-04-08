@@ -383,8 +383,14 @@
                                         <td class="p-2 text-right">
                                             <input type="number" class="border rounded px-2 py-1 w-24 text-right"
                                                 min="0" step="1" x-ref="draftQty"
-                                                x-model.number="draft.fqty" @input="recalc(draft)"
+                                                x-model.number="draft.fqty" @input="
+                                                    recalc(draft);
+                                                    if (draft.maxqty > 0 && draft.fqty > draft.maxqty) { draft.fqty = draft.maxqty; recalc(draft); }
+                                                "
                                                 @keydown.enter.prevent="$refs.draftTerima?.focus()">
+                                            <div class="text-xs text-gray-400 mt-0.5 text-right">
+                                                <span x-show="draft.maxqty > 0">maks: <span x-text="draft.maxqty"></span></span>
+                                            </div>
                                         </td>
 
                                         <!-- @ Harga -->

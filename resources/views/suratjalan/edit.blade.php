@@ -1926,6 +1926,15 @@
             init() {
                 window.getCurrentItemKeys = () => this.getCurrentItemKeys();
 
+                this.savedItems.forEach((item) => {
+                    const meta = this.productMeta(item.fitemcode);
+                    if (meta) {
+                        item.maxqty = Number(meta.stock) || 0;
+                    } else {
+                        item.maxqty = 0;
+                    }
+                });
+
                 window.addEventListener('pr-picked', this.onPrPicked.bind(this), {
                     passive: true
                 });
