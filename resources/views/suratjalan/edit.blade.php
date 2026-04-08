@@ -937,7 +937,7 @@
                             </div>
 
                             {{-- MODAL Customer --}}
-                            <div x-data="customerBrowser()" x-show="open" x-cloak x-transition.opacity
+                            <div x-data="customerBrowser()" x-init="init()" x-show="open" x-cloak x-transition.opacity
                                 class="fixed inset-0 z-50 flex items-center justify-center p-4">
                                 <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
 
@@ -1008,7 +1008,7 @@
             </div>
 
             {{-- MODAL GUDANG --}}
-            <div x-data="warehouseBrowser()" x-show="open" x-cloak x-transition.opacity
+            <div x-data="warehouseBrowser()" x-init="init()" x-show="open" x-cloak x-transition.opacity
                 class="fixed inset-0 z-50 flex items-center justify-center p-4">
                 <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
 
@@ -1062,7 +1062,7 @@
             </div>
 
             {{-- MODAL PRODUK --}}
-            <div x-data="productBrowser()" x-show="open" x-cloak x-transition.opacity
+            <div x-data="productBrowser()" x-init="init()" x-show="open" x-cloak x-transition.opacity
                 class="fixed inset-0 z-50 flex items-center justify-center p-4">
                 <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
 
@@ -1738,8 +1738,7 @@
                         ftotal: 0,
                         fdesc: src.fdesc ? src.fdesc.toString().trim() : '',
                         fketdt: src.fketdt ? src.fketdt.toString().trim() : '',
-                        units: meta ? [...new Set((meta.units || []).map(u => (u ?? '').toString().trim())
-                            .filter(Boolean))] : [satuan].filter(Boolean),
+                        units: meta ? [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))] : [satuan].filter(Boolean),
                         maxqty: meta ? (Number(meta.stock) || 0) : 0,
                     };
 
@@ -2392,177 +2391,173 @@
     });
 </script>
 
+<script>
+    // Product Browser Component (defined before Alpine initializes)
+    function productBrowser() {
+        return {
+            open: false,
+            forEdit: false,
+            table: null,
+
+            initDataTable() {
+                if (typeof $ === 'undefined' || typeof $.fn.DataTable === 'undefined') {
+                    setTimeout(() => this.initDataTable(), 100);
+                    return;
+                }
+                if (this.table) {
+                    this.table.destroy();
+                }
+
+                this.table = $('#productTable').DataTable({
+                    processing: true,
+                    serverSide: true,
+                    ajax: {
+                        url: "{{ route('products.browse') }}",
+                        type: 'GET',
+                        data: function(d) {
+                            return {
+                                draw: d.draw,
+                                start: d.start,
+                                length: d.length,
+                                search: d.search.value,
+                                order_column: d.columns[d.order[0].column].data,
+                                order_dir: d.order[0].dir
+                            };
+                        }
+                    },
+                    columns: [{
+                            data: 'fprdcode',
+                            name: 'fprdcode',
+                            className: 'font-mono text-sm'
+                        },
+                        {
+                            data: 'fprdname',
+                            name: 'fprdname',
+                            className: 'text-sm'
+                        },
+                        {
+                            data: 'fsatuanbesar',
+                            name: 'fsatuanbesar',
+                            className: 'text-sm',
+                            render: function(data) {
+                                return data || '-';
+                            }
+                        },
+                        {
+                            data: 'fmerekname',
+                            name: 'fmerekname',
+                            className: 'text-center text-sm',
+                            render: function(data) {
+                                return data || '-';
+                            }
+                        },
+                        {
+                            data: 'fminstock',
+                            name: 'fminstock',
+                            className: 'text-center text-sm'
+                        },
+                        {
+                            data: null,
+                            orderable: false,
+                            searchable: false,
+                            className: 'text-center',
+                            width: '100px',
+                            render: function(data, type, row) {
+                                return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>';
+                            }
+                        }
+                    ],
+                    pageLength: 10,
+                    lengthMenu: [
+                        [10, 25, 50, 100],
+                        [10, 25, 50, 100]
+                    ],
+                    dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
+                    language: {
+                        processing: "Memuat data...",
+                        search: "Cari:",
+                        lengthMenu: "Tampilkan _MENU_",
+                        info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
+                        infoEmpty: "Tidak ada data",
+                        infoFiltered: "(disaring dari _MAX_ total data)",
+                        zeroRecords: "Tidak ada data yang ditemukan",
+                        emptyTable: "Tidak ada data tersedia",
+                        paginate: {
+                            first: "Pertama",
+                            last: "Terakhir",
+                            next: "Selanjutnya",
+                            previous: "Sebelumnya"
+                        }
+                    },
+                    order: [
+                        [1, 'asc']
+                    ],
+                    autoWidth: false,
+                    initComplete: function() {
+                        const api = this.api();
+                        const $container = $(api.table().container());
+
+                        $container.find('.dt-search .dt-input, .dataTables_filter input').css({
+                            width: '300px',
+                            padding: '8px 12px',
+                            border: '2px solid #e5e7eb',
+                            borderRadius: '8px',
+                            fontSize: '14px'
+                        }).focus();
+
+                        $container.find('.dt-length select, .dataTables_length select').css({
+                            padding: '6px 32px 6px 10px',
+                            border: '2px solid #e5e7eb',
+                            borderRadius: '8px',
+                            fontSize: '14px'
+                        });
+                    }
+                });
+
+                const self = this;
+                $('#productTable').on('click', '.btn-choose', function(e) {
+                    const data = self.table.row($(this).closest('tr')).data();
+                    self.choose(data);
+                });
+            },
+
+            close() {
+                this.open = false;
+                if (this.table) {
+                    this.table.search('').draw();
+                }
+            },
+
+            choose(product) {
+                window.dispatchEvent(new CustomEvent('product-chosen', {
+                    detail: {
+                        product: product,
+                        forEdit: this.forEdit
+                    }
+                }));
+                this.close();
+            },
+
+            init() {
+                window.addEventListener('browse-open', (e) => {
+                    this.open = true;
+                    this.forEdit = !!(e.detail && e.detail.forEdit);
+                    this.$nextTick(() => {
+                        setTimeout(() => this.initDataTable(), 50);
+                    });
+                }, {
+                    passive: true
+                });
+            }
+        }
+    }
+</script>
+
 @push('scripts')
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
 
     <script>
-        // Modal produk dengan DataTables
-        function productBrowser() {
-            return {
-                open: false,
-                forEdit: false,
-                table: null,
-
-                initDataTable() {
-                    if (this.table) {
-                        this.table.destroy();
-                    }
-
-                    this.table = $('#productTable').DataTable({
-                        processing: true,
-                        serverSide: true,
-                        ajax: {
-                            url: "{{ route('products.browse') }}",
-                            type: 'GET',
-                            data: function(d) {
-                                return {
-                                    draw: d.draw,
-                                    start: d.start,
-                                    length: d.length,
-                                    search: d.search.value,
-                                    order_column: d.columns[d.order[0].column].data,
-                                    order_dir: d.order[0].dir
-                                };
-                            }
-                        },
-                        columns: [{
-                                data: 'fprdcode',
-                                name: 'fprdcode',
-                                className: 'font-mono text-sm'
-                            },
-                            {
-                                data: 'fprdname',
-                                name: 'fprdname',
-                                className: 'text-sm'
-                            },
-                            {
-                                data: 'fsatuanbesar',
-                                name: 'fsatuanbesar',
-                                className: 'text-sm',
-                                render: function(data) {
-                                    return data || '-';
-                                }
-                            },
-                            {
-                                data: 'fmerekname',
-                                name: 'fmerekname',
-                                className: 'text-center text-sm',
-                                render: function(data) {
-                                    return data || '-';
-                                }
-                            },
-                            {
-                                data: 'fminstock',
-                                name: 'fminstock',
-                                className: 'text-center text-sm'
-                            },
-                            {
-                                data: null,
-                                orderable: false,
-                                searchable: false,
-                                className: 'text-center',
-                                width: '100px',
-                                render: function(data, type, row) {
-                                    return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>';
-                                }
-                            }
-                        ],
-                        pageLength: 10,
-                        lengthMenu: [
-                            [10, 25, 50, 100],
-                            [10, 25, 50, 100]
-                        ],
-                        dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
-                        language: {
-                            processing: "Memuat data...",
-                            search: "Cari:",
-                            lengthMenu: "Tampilkan _MENU_",
-                            info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
-                            infoEmpty: "Tidak ada data",
-                            infoFiltered: "(disaring dari _MAX_ total data)",
-                            zeroRecords: "Tidak ada data yang ditemukan",
-                            emptyTable: "Tidak ada data tersedia",
-                            paginate: {
-                                first: "Pertama",
-                                last: "Terakhir",
-                                next: "Selanjutnya",
-                                previous: "Sebelumnya"
-                            }
-                        },
-                        order: [
-                            [1, 'asc']
-                        ],
-                        autoWidth: false,
-                        initComplete: function() {
-                            const api = this.api();
-                            const $container = $(api.table().container());
-
-                            // Move controls to designated areas
-                            const $filter = $container.find('.dataTables_filter');
-                            const $length = $container.find('.dataTables_length');
-                            const $info = $container.find('.dataTables_info');
-                            const $paginate = $container.find('.dataTables_paginate');
-
-                            // Style search input
-                            $container.find('.dt-search .dt-input, .dataTables_filter input').css({
-                                width: '300px',
-                                padding: '8px 12px',
-                                border: '2px solid #e5e7eb',
-                                borderRadius: '8px',
-                                fontSize: '14px'
-                            }).focus();
-
-                            // Style length select
-                            $container.find('.dt-length select, .dataTables_length select').css({
-                                padding: '6px 32px 6px 10px',
-                                border: '2px solid #e5e7eb',
-                                borderRadius: '8px',
-                                fontSize: '14px'
-                            });
-                        }
-                    });
-
-                    // Handle button click
-                    $('#productTable').on('click', '.btn-choose', (e) => {
-                        const data = this.table.row($(e.target).closest('tr')).data();
-                        this.choose(data);
-                    });
-                },
-
-                close() {
-                    this.open = false;
-                    if (this.table) {
-                        this.table.search('').draw();
-                    }
-                },
-
-                choose(product) {
-                    window.dispatchEvent(new CustomEvent('product-chosen', {
-                        detail: {
-                            product: product,
-                            forEdit: this.forEdit
-                        }
-                    }));
-                    this.close();
-                },
-
-                init() {
-                    window.addEventListener('browse-open', (e) => {
-                        this.open = true;
-                        this.forEdit = !!(e.detail && e.detail.forEdit);
-
-                        // Initialize DataTable setelah modal terbuka
-                        this.$nextTick(() => {
-                            this.initDataTable();
-                        });
-                    }, {
-                        passive: true
-                    });
-                }
-            }
-        }
-
         document.addEventListener('alpine:init', () => {
             Alpine.store('prh', {
                 descPreview: {
