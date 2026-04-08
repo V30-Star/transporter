@@ -107,7 +107,7 @@
                             {{-- Tanggal --}}
                             <div class="lg:col-span-2">
                                 <label class="block text-sm font-medium">Tanggal</label>
-                                <input disabled type="date" name="fsodate" value="{{ old('fsodate') ?? date('Y-m-d') }}"
+                                <input disabled type="date" name="fsodate" value="{{ old('fsodate') ?? date('Y-m-d', strtotime($salesorder->fsodate)) }}"
                                     class="w-full border rounded px-3 py-2 bg-gray-200 @error('fsodate') border-red-500 @enderror">
                                 @error('fsodate')
                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -310,9 +310,11 @@
                                             <th class="p-2 text-left w-96">Nama Produk</th>
                                             <th class="p-2 text-left w-36">Satuan</th>
                                             <th class="p-2 text-right w-36 whitespace-nowrap">Qty</th>
+                                            <th class="p-2 text-right w-36 whitespace-nowrap">Qty.SRJ</th>
                                             <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
                                             <th class="p-2 text-right w-36 whitespace-nowrap">Disc. %</th>
                                             <th class="p-2 text-right w-36 whitespace-nowrap">Total Harga</th>
+                                            <th class="p-2 text-center w-28">Aksi</th>
                                         </tr>
                                     </thead>
 
@@ -337,13 +339,16 @@
                                                         <span x-text="it.fsatuan"></span>
                                                     </template>
                                                 </td>
+                                                <td class="p-2 text-right font-medium"
+                                                    x-text="fmt(it.fqtyremain)"></td>
                                                 <td class="p-2 text-right">
                                                     <input type="number"
                                                         class="w-full border rounded px-2 py-1 text-right"
                                                         x-model.number="it.fqty" :max="it.maxqty > 0 ? it.maxqty : null"
                                                         @input="recalc(it); if (it.maxqty > 0 && it.fqty > it.maxqty) { it.fqty = it.maxqty; recalc(it); }">
                                                     <div class="text-xs text-gray-400 mt-0.5 text-right">
-                                                        <span x-show="it.maxqty > 0">maks: <span x-text="it.maxqty"></span></span>
+                                                        <span x-show="it.maxqty > 0">maks: <span
+                                                                x-text="it.maxqty"></span></span>
                                                     </div>
                                                 </td>
                                                 <td class="p-2 text-right">
@@ -367,11 +372,11 @@
                                             <tr class="border-b">
                                                 <td class="p-0"></td>
                                                 <td class="p-0"></td>
-                                                <td class="p-2" colspan="6">
+                                                <td class="p-2" colspan="2">
                                                     <textarea x-model="it.fdesc" rows="1" class="w-full border rounded px-2 py-1 text-xs"
                                                         placeholder="Deskripsi item (opsional)"></textarea>
                                                 </td>
-                                                <td class="p-0"></td>
+                                                <td class="p-0" colspan="6"></td>
                                             </tr>
 
                                             <!-- Hidden inputs row -->
@@ -441,9 +446,8 @@
                                         <!-- Qty -->
                                         <td class="p-2 text-right">
                                             <input type="number" class="border rounded px-2 py-1 w-24 text-right"
-                                                type="number"
-                                                x-ref="editQty"
-                                                x-model.number="editRow.fqty" @input="
+                                                type="number" x-ref="editQty" x-model.number="editRow.fqty"
+                                                @input="
                                                     recalc(editRow);
                                                     if (editRow.maxqty > 0 && editRow.fqty > editRow.maxqty) {
                                                         editRow.fqty = editRow.maxqty;
@@ -452,7 +456,8 @@
                                                 "
                                                 @keydown.enter.prevent="$refs.editTerima?.focus()">
                                             <div class="text-xs text-gray-400 mt-0.5 text-right">
-                                                <span x-show="editRow.maxqty > 0">maks: <span x-text="editRow.maxqty"></span></span>
+                                                <span x-show="editRow.maxqty > 0">maks: <span
+                                                        x-text="editRow.maxqty"></span></span>
                                             </div>
                                         </td>
 
@@ -708,7 +713,7 @@
                                     <div class="lg:col-span-2">
                                         <label class="block text-sm font-medium">Tanggal</label>
                                         <input type="date" name="fsodate"
-                                            value="{{ old('fsodate') ?? date('Y-m-d') }}"
+                                            value="{{ old('fsodate') ?? date('Y-m-d', strtotime($salesorder->fsodate)) }}"
                                             class="w-full border rounded px-3 py-2 @error('fsodate') border-red-500 @enderror">
                                         @error('fsodate')
                                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -972,13 +977,14 @@
                                                         <td class="p-2 text-right">
                                                             <input type="number"
                                                                 class="w-full border rounded px-2 py-1 text-right"
-                                                                type="number"
-                                                                x-model.number="it.fqty" @input="
+                                                                type="number" x-model.number="it.fqty"
+                                                                @input="
                                                                     recalc(it);
                                                                     
                                                                 ">
                                                             <div class="text-xs text-gray-400 mt-0.5 text-right">
-                                                                <span x-show="it.maxqty > 0">maks: <span x-text="it.maxqty"></span></span>
+                                                                <span x-show="it.maxqty > 0">maks: <span
+                                                                        x-text="it.maxqty"></span></span>
                                                             </div>
                                                         </td>
                                                         <td class="p-2 text-right font-medium"
@@ -1021,11 +1027,12 @@
                                                     <tr class="border-b">
                                                         <td class="p-0"></td>
                                                         <td class="p-0"></td>
+                                                        <td class="p-0"></td>
                                                         <td class="p-2" colspan="2">
                                                             <textarea x-model="it.fdesc" rows="1" class="w-full border rounded px-2 py-1 text-xs"
                                                                 placeholder="Deskripsi item (opsional)"></textarea>
                                                         </td>
-                                                        <td class="p-0" colspan="6"></td>
+                                                        <td class="p-0" colspan="5"></td>
                                                     </tr>
 
                                                     <!-- TIDAK ADA TEXTAREA DI SINI! -->
@@ -1092,9 +1099,8 @@
                                                     <td class="p-2 text-right">
                                                         <input type="number"
                                                             class="border rounded px-2 py-1 w-24 text-right"
-                                                            type="number"
-                                                            x-ref="draftQty"
-                                                            x-model.number="draft.fqty" @input="
+                                                            type="number" x-ref="draftQty" x-model.number="draft.fqty"
+                                                            @input="
                                                                 recalc(draft);
                                                                 if (draft.maxqty > 0 && draft.fqty > draft.maxqty) {
                                                                     draft.fqty = draft.maxqty;
@@ -1103,10 +1109,11 @@
                                                             "
                                                             @keydown.enter.prevent="$refs.draftPrice?.focus()">
                                                         <div class="text-xs text-gray-400 mt-0.5 text-right">
-                                                            <span x-show="draft.maxqty > 0">maks: <span x-text="draft.maxqty"></span></span>
+                                                            <span x-show="draft.maxqty > 0">maks: <span
+                                                                    x-text="draft.maxqty"></span></span>
                                                         </div>
                                                     </td>
-
+                                                    <td class="p-2 text-right font-medium" x-text="fmt(0)"></td>
                                                     <!-- @ Harga -->
                                                     <td class="p-2 text-right">
                                                         <input type="number"
@@ -1140,6 +1147,7 @@
 
                                                 <!-- ROW DRAFT DESC RESTRICTED -->
                                                 <tr class="border-b">
+                                                    <td class="p-0"></td>
                                                     <td class="p-0"></td>
                                                     <td class="p-0"></td>
                                                     <td class="p-2" colspan="2">
@@ -2319,14 +2327,16 @@
                         fnouref: src.fnouref ?? '',
                         frefpr: src.frefpr ?? (header?.fsono ?? ''),
                         fprhid: src.fprhid ?? header?.fprhid ?? '',
-                        fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ? Number(src.fqty) : 1,
+                        fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ?
+                            Number(src.fqty) : 1,
                         fterima: Number(src.fterima ?? 0),
                         fprice: Number(src.fprice ?? 0),
                         fdisc: src.fdisc ?? 0,
                         ftotal: Number(src.ftotal ?? 0),
                         fdesc: src.fdesc ?? '',
                         fketdt: src.fketdt ?? '',
-                        units: Array.isArray(src.units) && src.units.length ? src.units : [src.fsatuan].filter(Boolean),
+                        units: Array.isArray(src.units) && src.units.length ? src.units : [src.fsatuan]
+                            .filter(Boolean),
                     };
 
                     const key = this.itemKey({
@@ -2500,7 +2510,8 @@
                         // Gunakan data dari modal sebaga primary, fallback ke PRODUCT_MAP
                         const meta = {
                             name: product.fprdname,
-                            units: [product.fsatuankecil, product.fsatuanbesar, product.fsatuanbesar2].filter(Boolean),
+                            units: [product.fsatuankecil, product.fsatuanbesar, product.fsatuanbesar2]
+                                .filter(Boolean),
                             stock: product.fqty || product.fminstock || 0
                         };
 

@@ -664,6 +664,7 @@
                                     <input type="date" id="fsodate" name="fsodate"
                                         value="{{ old('fsodate', \Carbon\Carbon::parse($returpenjualan->fsodate)->format('Y-m-d')) }}"
                                         class="w-full border rounded px-3 py-2 @error('fsodate') border-red-500 @enderror">
+                                    <input type="hidden" id="ftempohr" value="0">
                                     @error('fsodate')
                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                     @enderror
@@ -1946,6 +1947,24 @@
 </style>
 {{-- DATA & SCRIPTS --}}
 <script>
+    // Fallback toast system if not defined
+    if (!window.toast) {
+        window.toast = {
+            success: (msg) => {
+                if (typeof Swal !== 'undefined') Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: msg, showConfirmButton: false, timer: 3000 });
+                else console.log('Success:', msg);
+            },
+            error: (msg) => {
+                if (typeof Swal !== 'undefined') Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: msg, showConfirmButton: false, timer: 3000 });
+                else console.error('Error:', msg);
+            },
+            info: (msg) => {
+                if (typeof Swal !== 'undefined') Swal.fire({ toast: true, position: 'top-end', icon: 'info', title: msg, showConfirmButton: false, timer: 3000 });
+                else console.info('Info:', msg);
+            }
+        };
+    }
+
     // Map produk untuk auto-fill tabel
     window.PRODUCT_MAP = {
         @foreach ($products as $p)
@@ -2488,6 +2507,25 @@
 
             recalcTotals() {
                 this.totalHarga = this.savedItems.reduce((sum, item) => sum + item.ftotal, 0);
+            },
+
+            showToast(message, type = 'success') {
+                if (window.toast) {
+                    if (type === 'error' || type === 'danger') window.toast.error(message);
+                    else if (type === 'warning') window.toast.info(message);
+                    else window.toast.success(message);
+                } else if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: type === 'danger' ? 'error' : type,
+                        title: message,
+                        showConfirmButton: false,
+                        timer: 3000
+                    });
+                } else {
+                    console.info('Toast:', message);
+                }
             },
 
             productMeta(code) {

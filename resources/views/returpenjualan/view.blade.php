@@ -202,26 +202,6 @@
                             @enderror
                         </div>
 
-                        <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium">TOP (Hari)</label>
-                            <input type="number" id="ftempohr" name="ftempohr" value="{{ old('ftempohr', '0') }}"
-                                readonly class="w-full border rounded px-3 py-2 @error('ftempohr') border-red-500 @enderror"
-                                placeholder="Masukkan jumlah hari">
-                            @error('ftempohr')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium">Tgl. Jatuh Tempo</label>
-                            <input type="date" id="fjatuhtempo" name="fjatuhtempo" readonly
-                                value="{{ old('fjatuhtempo') ?? date('Y-m-d') }}" readonly
-                                class="w-full border rounded px-3 py-2 bg-gray-100 @error('fjatuhtempo') border-red-500 @enderror">
-                            @error('fjatuhtempo')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-
                         <script>
                             document.addEventListener('DOMContentLoaded', function() {
                                 function calculateDueDate() {

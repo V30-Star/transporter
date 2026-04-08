@@ -117,7 +117,7 @@
                         {{-- Tanggal --}}
                         <div class="lg:col-span-2">
                             <label class="block text-sm font-medium">Tanggal</label>
-                            <input disabled type="date" name="fsodate" value="{{ old('fsodate') ?? date('Y-m-d') }}"
+                            <input disabled type="date" name="fsodate" value="{{ old('fsodate') ?? date('Y-m-d', strtotime($salesorder->fsodate)) }}"
                                 class="w-full border rounded px-3 py-2 bg-gray-200 @error('fsodate') border-red-500 @enderror">
                             @error('fsodate')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>

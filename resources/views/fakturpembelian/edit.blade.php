@@ -141,7 +141,7 @@
                         <div class="lg:col-span-4" x-data="{ autoCode: true }">
                             <label class="block text-sm font-medium mb-1">Transaksi#</label>
                             <div class="flex items-center gap-3">
-                                <input type="text" name="fpono" class="w-full border rounded px-3 py-2"
+                                <input type="text" name="fpono" class="w-full border rounded px-3 py-2" value="{{ old('fstockmtno', $fakturpembelian->fstockmtno) }}"
                                     :disabled="autoCode"
                                     :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
                                 <label class="inline-flex items-center select-none">
@@ -176,7 +176,7 @@
                         <div class="lg:col-span-4">
                             <label class="block text-sm font-medium">Tanggal</label>
                             <input disabled type="date" id="fstockmtdate" name="fstockmtdate"
-                                value="{{ old('fstockmtdate') ?? date('Y-m-d') }}"
+                                value="{{ old('fstockmtdate') ?? date('Y-m-d', strtotime($fakturpembelian->fstockmtdate)) }}"
                                 class="w-full border rounded px-3 py-2 text-gray-700 @error('fstockmtdate') border-red-500 @enderror">
                             @error('fstockmtdate')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -580,8 +580,7 @@
                                         <!-- Qty -->
                                         <td class="p-2 text-right">
                                             <input type="number" class="border rounded px-2 py-1 w-24 text-right"
-                                                x-ref="editQty"
-                                                x-model.number="editRow.fqty" @input="recalc(editRow)"
+                                                x-ref="editQty" x-model.number="editRow.fqty" @input="recalc(editRow)"
                                                 @keydown.enter.prevent="$refs.editTerima?.focus()">
                                         </td>
 
@@ -798,7 +797,7 @@
                             <div class="lg:col-span-4" x-data="{ autoCode: true }">
                                 <label class="block text-sm font-medium mb-1">Transaksi#</label>
                                 <div class="flex items-center gap-3">
-                                    <input type="text" name="fpono" class="w-full border rounded px-3 py-2"
+                                    <input type="text" name="fpono" class="w-full border rounded px-3 py-2" value="{{ old('fstockmtno', $fakturpembelian->fstockmtno) }}"
                                         :disabled="autoCode"
                                         :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
                                     <label class="inline-flex items-center select-none">
@@ -833,7 +832,7 @@
                             <div class="lg:col-span-4">
                                 <label class="block text-sm font-medium">Tanggal</label>
                                 <input type="date" id="fstockmtdate" name="fstockmtdate"
-                                    value="{{ old('fstockmtdate') ?? date('Y-m-d') }}"
+                                    value="{{ old('fstockmtdate') ?? date('Y-m-d', strtotime($fakturpembelian->fstockmtdate)) }}"
                                     class="w-full border rounded px-3 py-2 @error('fstockmtdate') border-red-500 @enderror">
                                 @error('fstockmtdate')
                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -1251,9 +1250,8 @@
                                             <!-- Qty -->
                                             <td class="p-2 text-right">
                                                 <input type="number" class="border rounded px-2 py-1 w-24 text-right"
-                                                    type="number"
-                                                    x-ref="editQty"
-                                                    x-model.number="editRow.fqty" @input="
+                                                    type="number" x-ref="editQty" x-model.number="editRow.fqty"
+                                                    @input="
                                                         recalc(editRow);
                                                         if (editRow.maxqty > 0 && editRow.fqty > editRow.maxqty) {
                                                             editRow.fqty = editRow.maxqty;
@@ -1263,7 +1261,8 @@
                                                     @keydown.enter.prevent="$refs.editTerima?.focus()">
                                                 <div class="text-xs mt-0.5 text-right">
                                                     <template x-if="editRow.maxqty > 0">
-                                                        <span class="text-gray-400">maks: <span x-text="editRow.maxqty"></span></span>
+                                                        <span class="text-gray-400">maks: <span
+                                                                x-text="editRow.maxqty"></span></span>
                                                     </template>
                                                 </div>
                                             </td>
@@ -1385,9 +1384,8 @@
                                             <!-- Qty -->
                                             <td class="p-2 text-right">
                                                 <input type="number" class="border rounded px-2 py-1 w-24 text-right"
-                                                    type="number"
-                                                    x-ref="draftQty"
-                                                    x-model.number="draft.fqty" @input="
+                                                    type="number" x-ref="draftQty" x-model.number="draft.fqty"
+                                                    @input="
                                                         recalc(draft);
                                                         if (draft.maxqty > 0 && draft.fqty > draft.maxqty) {
                                                             draft.fqty = draft.maxqty;
@@ -1397,7 +1395,8 @@
                                                     @keydown.enter.prevent="$refs.draftTerima?.focus()">
                                                 <div class="text-xs mt-0.5 text-right">
                                                     <template x-if="draft.maxqty > 0">
-                                                        <span class="text-gray-400">maks: <span x-text="draft.maxqty"></span></span>
+                                                        <span class="text-gray-400">maks: <span
+                                                                x-text="draft.maxqty"></span></span>
                                                     </template>
                                                 </div>
                                             </td>
@@ -1542,8 +1541,8 @@
                                             class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
                                                 viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                                    d="M12 4.5v15m7.5-7.5h-15" />
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                    stroke-width="1.5" d="M12 4.5v15m7.5-7.5h-15" />
                                             </svg>
                                             Add Penerimaan Barang
                                         </button>
@@ -2521,7 +2520,8 @@
                             frefpr: src.fnouref ?? fnourefVal,
 
                             // Data quantity
-                            fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ? Number(src.fqty) : 1,
+                            fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ?
+                                Number(src.fqty) : 1,
                             maxqty: Math.max(1, +src.fqty || 1),
 
                             // Financial
