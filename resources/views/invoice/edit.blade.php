@@ -130,7 +130,7 @@
                             {{-- Tanggal --}}
                             <div class="lg:col-span-4">
                                 <label class="block text-sm font-medium">Tanggal</label>
-                                <input disabled type="date" name="fsodate" value="{{ old('fsodate') ?? date('Y-m-d') }}"
+                                <input disabled type="date" name="fsodate" value="{{ old('fsodate') ?? date('Y-m-d', strtotime($invoice->fsodate)) }}"
                                     class="w-full border rounded px-3 py-2 bg-gray-200 @error('fsodate') border-red-500 @enderror">
                                 @error('fsodate')
                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -207,7 +207,7 @@
                             <div class="lg:col-span-4">
                                 <label class="block text-sm font-medium">Tgl. Jatuh Tempo</label>
                                 <input type="date" id="fjatuhtempo" name="fjatuhtempo" readonly
-                                    value="{{ old('fjatuhtempo') ?? date('Y-m-d') }}" readonly
+                                    value="{{ old('fjatuhtempo') ?? date('Y-m-d', strtotime($invoice->fjatuhtempo)) }}" readonly
                                     class="w-full border rounded px-3 py-2 bg-gray-100 @error('fjatuhtempo') border-red-500 @enderror">
                                 @error('fjatuhtempo')
                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -677,7 +677,7 @@
                                 {{-- Tanggal --}}
                                 <div class="lg:col-span-4">
                                     <label class="block text-sm font-medium">Tanggal</label>
-                                    <input type="date" name="fsodate" value="{{ old('fsodate') ?? date('Y-m-d') }}"
+                                    <input type="date" name="fsodate" value="{{ old('fsodate') ?? date('Y-m-d', strtotime($invoice->fsodate)) }}"
                                         class="w-full border rounded px-3 py-2 @error('fsodate') border-red-500 @enderror">
                                     @error('fsodate')
                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -776,7 +776,7 @@
                                 <div class="lg:col-span-4">
                                     <label class="block text-sm font-medium">Tgl. Jatuh Tempo</label>
                                     <input type="date" id="fjatuhtempo" name="fjatuhtempo"
-                                        value="{{ old('fjatuhtempo') ?? date('Y-m-d') }}" readonly
+                                        value="{{ old('fjatuhtempo') ?? date('Y-m-d', strtotime($invoice->fjatuhtempo)) }}" readonly
                                         class="w-full border rounded px-3 py-2 bg-gray-100 @error('fjatuhtempo') border-red-500 @enderror">
                                     @error('fjatuhtempo')
                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
