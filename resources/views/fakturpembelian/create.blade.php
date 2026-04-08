@@ -480,9 +480,18 @@
                                                 <input type="number" class="border rounded px-2 py-1 w-20 text-right text-sm"
                                                     x-model.number="it.fqty" :id="'qty_saved_' + i"
                                                     @focus="activeRow = it.uid; $event.target.select()" @blur="activeRow = null"
-                                                    @input="recalc(it)"
-                                                    @change="recalc(it)"
+                                                    @input="
+                                                        recalc(it);
+                                                        if (it.maxqty > 0 && it.fqty > it.maxqty) { it.fqty = it.maxqty; recalc(it); }
+                                                    "
+                                                    @change="
+                                                        recalc(it);
+                                                        if (it.maxqty > 0 && it.fqty > it.maxqty) { it.fqty = it.maxqty; recalc(it); }
+                                                    "
                                                     @keydown.enter.prevent="$refs['price_saved_' + i]?.focus()">
+                                                <div class="text-xs text-gray-400 mt-0.5 text-right">
+                                                    <span x-show="it.maxqty > 0">maks: <span x-text="it.maxqty"></span></span>
+                                                </div>
                                             </td>
 
                                             <!-- @ Harga -->
@@ -535,6 +544,8 @@
                                                 <input type="hidden" name="fdesc[]" :value="it.fdesc">
                                                 <input type="hidden" name="fketdt[]" :value="it.fketdt">
                                                 <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
+                                                <input type="hidden" name="fnouref[]" :value="it.fnouref">
+                                                <input type="hidden" name="frefpr[]" :value="it.frefpr">
                                             </td>
                                         </tr>
                                     </template>
