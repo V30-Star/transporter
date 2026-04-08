@@ -39,7 +39,7 @@ class ListingPenerimaanBarangController extends Controller
         // 2. Query Utama
         $query = DB::table('trstockmt as m')
             ->leftJoin('trstockdt as d', 'm.fstockmtid', '=', 'd.fstockmtid')
-            ->leftJoin('msprd as p', 'd.fprdcode', '=', 'p.fprdid')
+            ->leftJoin('msprd as p', 'd.fprdcodeid', '=', 'p.fprdid')
             ->leftJoin('mssupplier as s', 'm.fsupplier', '=', 's.fsupplierid')
             ->leftJoin('mswh as w', 'm.ffrom', '=', 'w.fwhid')
             ->leftJoinSub($subBuy, 'buy', function ($join) {

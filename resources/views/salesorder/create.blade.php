@@ -557,12 +557,6 @@
                                         <span class="min-w-[140px] text-right text-lg font-semibold"
                                             x-text="rupiah(grandTotal)"></span>
                                     </div>
-
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-sm font-semibold text-gray-800">Grand Total (RP)</span>
-                                        <span class="min-w-[140px] text-right text-lg font-semibold"
-                                            x-text="rupiah(grandTotal)"></span>
-                                    </div>
                                 </div>
 
                                 <!-- Hidden inputs for submit -->

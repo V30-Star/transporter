@@ -143,8 +143,8 @@ class ReportingPemakaianBarangController extends Controller
       // 1. Ambil detail dengan Join ke tabel Account
       $fakturpembelian->details = DB::table('trstockdt')
         ->select('trstockdt.*', 'account.faccname', 'mssubaccount.fsubaccountname')
-        ->leftJoin('account', 'trstockdt.frefdtno', '=', 'account.faccid')
-        ->leftJoin('mssubaccount', 'trstockdt.frefso', '=', 'mssubaccount.fsubaccountid')
+        ->leftJoin('account', 'trstockdt.fnouref', '=', 'account.faccid')
+        ->leftJoin('mssubaccount', 'trstockdt.fnouref', '=', 'mssubaccount.fsubaccountid')
         ->where('fstockmtno', $fakturpembelian->fstockmtno)
         ->get();
 

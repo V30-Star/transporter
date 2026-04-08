@@ -102,7 +102,7 @@
                             <div class="flex items-center gap-3">
                                 <input type="text" name="fsono" value="{{ old('fsono', $salesorder->fsono) }}"
                                     class="w-full border rounded px-3 py-2 bg-gray-200" :disabled="autoCode" readonly
-                                    :class="autoCode ? 'cursor-not-allowed text-gray-500'">
+                                    :class="autoCode ? 'cursor-not-allowed text-gray-500' : ''">
 
                                 <label class="inline-flex items-center select-none">
                                     <input class="bg-gray-200" type="checkbox" x-model="autoCode" disabled>
@@ -117,7 +117,8 @@
                         {{-- Tanggal --}}
                         <div class="lg:col-span-2">
                             <label class="block text-sm font-medium">Tanggal</label>
-                            <input disabled type="date" name="fsodate" value="{{ old('fsodate') ?? date('Y-m-d', strtotime($salesorder->fsodate)) }}"
+                            <input disabled type="date" name="fsodate"
+                                value="{{ old('fsodate') ?? date('Y-m-d', strtotime($salesorder->fsodate)) }}"
                                 class="w-full border rounded px-3 py-2 bg-gray-200 @error('fsodate') border-red-500 @enderror">
                             @error('fsodate')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -434,6 +435,78 @@
                                     </tr>
                                 </tbody>
                             </table>
+                        </div>
+
+                        <!-- Kanan: Panel Totals -->
+                        <div class="mt-3 flex justify-end">
+                            <div class="w-full md:w-1/2">
+                                <div class="rounded-lg border bg-gray-50 p-3 space-y-2">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm text-gray-700">Total Harga</span>
+                                        <span class="min-w-[140px] text-right font-medium"
+                                            x-text="rupiah(totalHarga)"></span>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-6">
+                                        <!-- Checkbox -->
+                                        <div class="flex items-center">
+                                            <input id="fapplyppn" type="checkbox" name="fapplyppn" x-model="includePPN"
+                                                x-init="includePPN = {{ old('fapplyppn') ? 'true' : 'false' }}" value="1"
+                                                class="h-4 w-4 text-blue-600 border-gray-300 rounded">
+                                            <label for="fapplyppn" class="ml-2 text-sm font-medium text-gray-700">
+                                                <span class="font-bold">PPN</span>
+                                            </label>
+                                        </div>
+
+                                        <!-- Dropdown Include / Exclude (tengah) -->
+                                        <div class="flex items-center gap-2">
+                                            <select id="includePPN" name="includePPN" x-model.number="fapplyppn"
+                                                x-init="fapplyppn = {{ old('includePPN', $salesorder->fincludeppn) }}" :disabled="!(includePPN || fapplyppn)"
+                                                class="w-28 h-9 px-2 text-sm leading-tight border rounded transition-opacity appearance-none
+                                                           disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
+                                                <option value="0">Exclude</option>
+                                                <option value="1">Include</option>
+                                            </select>
+                                        </div>
+
+                                        <!-- Input Rate + Nominal (kanan) -->
+                                        <div class="flex items-center gap-2">
+                                            <input type="number" min="0" max="100" step="0.01"
+                                                x-model.number="ppnRate" x-init="ppnRate = {{ old('ppnRate', $salesorder->fincludeppn) }}"
+                                                :disabled="!(includePPN || fapplyppn)"
+                                                class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
+                                                            [appearance:textfield]
+                                                            [&::-webkit-outer-spin-button]:appearance-none
+                                                            [&::-webkit-inner-spin-button]:appearance-none
+                                                            disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
+                                            <span class="text-sm">%</span>
+                                            <span class="min-w-[140px] text-right font-medium"
+                                                x-text="rupiah(ppnAmount)"></span>
+                                        </div>
+
+                                    </div>
+
+                                    <div class="border-t my-1"></div>
+
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm font-semibold text-gray-800">Grand Total</span>
+                                        <span class="min-w-[140px] text-right text-lg font-semibold"
+                                            x-text="rupiah(grandTotal)"></span>
+                                    </div>
+
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm font-semibold text-gray-800">Grand Total
+                                            (RP)</span>
+                                        <span class="min-w-[140px] text-right text-lg font-semibold"
+                                            x-text="rupiah(grandTotal)"></span>
+                                    </div>
+                                </div>
+
+                                <!-- Hidden inputs for submit -->
+                                <input type="hidden" name="famountgross" :value="totalHarga">
+                                <input type="hidden" name="" :value="ppnAmount">
+                                <input type="hidden" name="famountso" :value="grandTotal">
+                                <input type="hidden" name="famountpopajak" :value="ppnRate">
+                            </div>
                         </div>
 
                         {{-- MODAL ERROR: belum ada item --}}

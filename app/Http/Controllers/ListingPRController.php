@@ -143,16 +143,16 @@ class ListingPRController extends Controller
     private function getRawData(Request $request)
     {
         $subPO = DB::table('tr_pod')
-            ->select('frefdtno', 'fprdcode', 'fnouref', DB::raw('sum(fqtykecil) as fqtypo'))
-            ->groupBy('frefdtno', 'fprdcode', 'fnouref');
+            ->select('fprdid', 'frefdtno', 'fprdcode', 'frefdtid',DB::raw('sum(fqtykecil) as fqtypo'))
+            ->groupBy('fprdid','frefdtno', 'fprdcode', 'frefdtid');
 
         $query = DB::table('tr_prh as h')
             ->leftJoin('tr_prd as d', 'h.fprhid', '=', 'd.fprhid')
             ->leftJoin('mssupplier as s', 'h.fsupplier', '=', 's.fsupplierid')
-            ->leftJoin('msprd as p', 'd.fprdcode', '=', 'p.fprdid')
+            ->leftJoin('msprd as p', 'd.fprdid', '=', 'p.fprdid')
             ->leftJoinSub($subPO, 'o', function ($join) {
-                $join->on('o.frefdtno', '=', 'h.fprno')
-                    ->on('o.fprdcode', '=', 'p.fprdid');
+                $join->on('o.frefdtid', '=', 'h.fprhid')
+                    ->on('o.fprdid', '=', 'p.fprdid');
             })
             ->select(
                 'h.fprhid',

@@ -107,7 +107,8 @@
                             {{-- Tanggal --}}
                             <div class="lg:col-span-2">
                                 <label class="block text-sm font-medium">Tanggal</label>
-                                <input disabled type="date" name="fsodate" value="{{ old('fsodate') ?? date('Y-m-d', strtotime($salesorder->fsodate)) }}"
+                                <input disabled type="date" name="fsodate"
+                                    value="{{ old('fsodate') ?? date('Y-m-d', strtotime($salesorder->fsodate)) }}"
                                     class="w-full border rounded px-3 py-2 bg-gray-200 @error('fsodate') border-red-500 @enderror">
                                 @error('fsodate')
                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -339,8 +340,7 @@
                                                         <span x-text="it.fsatuan"></span>
                                                     </template>
                                                 </td>
-                                                <td class="p-2 text-right font-medium"
-                                                    x-text="fmt(it.fqtyremain)"></td>
+                                                <td class="p-2 text-right font-medium" x-text="fmt(it.fqtyremain)"></td>
                                                 <td class="p-2 text-right">
                                                     <input type="number"
                                                         class="w-full border rounded px-2 py-1 text-right"
@@ -1173,7 +1173,7 @@
                                                     <!-- Checkbox -->
                                                     <div class="flex items-center">
                                                         <input id="fapplyppn" type="checkbox" name="fapplyppn"
-                                                            value="1" x-model="includePPN"
+                                                            x-model="includePPN" x-init="includePPN = {{ old('fapplyppn') ? 'true' : 'false' }}" value="1"
                                                             class="h-4 w-4 text-blue-600 border-gray-300 rounded">
                                                         <label for="fapplyppn"
                                                             class="ml-2 text-sm font-medium text-gray-700">
@@ -1184,7 +1184,7 @@
                                                     <!-- Dropdown Include / Exclude (tengah) -->
                                                     <div class="flex items-center gap-2">
                                                         <select id="includePPN" name="includePPN"
-                                                            x-model.number="fapplyppn" x-init="fapplyppn = 0"
+                                                            x-model.number="fapplyppn" x-init="fapplyppn = {{ old('includePPN', $salesorder->fincludeppn) }}"
                                                             :disabled="!(includePPN || fapplyppn)"
                                                             class="w-28 h-9 px-2 text-sm leading-tight border rounded transition-opacity appearance-none
                                                            disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
@@ -1197,6 +1197,7 @@
                                                     <div class="flex items-center gap-2">
                                                         <input type="number" min="0" max="100"
                                                             step="0.01" x-model.number="ppnRate"
+                                                            x-init="ppnRate = {{ old('ppnRate', $salesorder->fincludeppn) }}"
                                                             :disabled="!(includePPN || fapplyppn)"
                                                             class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
                                                             [appearance:textfield]

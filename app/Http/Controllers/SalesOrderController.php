@@ -573,7 +573,7 @@ class SalesOrderController extends Controller
                 'fsodate' => $fsodate,
                 'fbranchcode' => mb_substr($request->input('fbranchcode', ''), 0, 2),
                 'fcustno' => mb_substr($request->input('fcustno', ''), 0, 10),
-                'fsalesman' => mb_substr($request->input('fsalesman', ''), 0, 15),
+                'fsalesman' => $request->input('fsalesman') ?: null,
                 'ftempohr' => mb_substr($ftempohr, 0, 3),
                 'fincludeppn' => $fincludeppn,
                 'fket' => mb_substr($request->input('fket', ''), 0, 300),
