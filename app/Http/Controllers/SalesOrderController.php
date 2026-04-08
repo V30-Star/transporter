@@ -36,14 +36,19 @@ class SalesOrderController extends Controller
         // --- Handle Request AJAX dari DataTables ---
         if ($request->ajax()) {
 
-            $query = SalesOrderHeader::query();
+            $query = SalesOrderHeader::query()
+                ->leftJoin('mscustomer', 'trsomt.fcustno', '=', 'mscustomer.fcustomerid')
+                ->select('trsomt.*', 'mscustomer.fcustomername');
 
             // DEBUG: Cek total data di tabel
             $totalRecords = SalesOrderHeader::count();
 
             // Handle Search
             if ($search = $request->input('search.value')) {
-                $query->where('fsono', 'like', "%{$search}%");
+                $query->where(function ($q) use ($search) {
+                    $q->where('trsomt.fsono', 'like', "%{$search}%")
+                        ->orWhere('mscustomer.fcustomername', 'like', "%{$search}%");
+                });
             }
 
             // Filter status - DEFAULT ke 'active' jika tidak ada
@@ -104,6 +109,7 @@ class SalesOrderController extends Controller
                     'famountpajak' => $row->famountpajak,
                     'famountso' => $row->famountso,
                     'fket' => $row->fket,
+                    'fcustomername' => $row->fcustomername, 
                     'falamatkirim' => $row->falamatkirim,
                     'fprdout' => $row->fprdout,
                     'fusercreate' => $row->fusercreate,

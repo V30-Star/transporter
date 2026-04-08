@@ -325,8 +325,8 @@
                     name: 'frefno'
                 },
                 {
-                    data: 'fcustno',
-                    name: 'fcustno'
+                    data: 'fcustomername',
+                    name: 'fcustomername'
                 },
                 {
                     data: 'famountso',
