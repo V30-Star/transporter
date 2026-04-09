@@ -118,14 +118,13 @@
                         <div class="flex">
                             <div class="relative flex-1" for="modal_filter_supplier_id">
                                 <select disabled id="modal_filter_supplier_id" name="filter_supplier_id"
-                                    class="w-full border rounded-l px-3 py-2 bg-gray-200 text-gray-700 cursor-not-allowed"
+                                    class="w-full border rounded-l px-3 py-2 bg-gray-200 text-gray-700"
                                     disabled>
                                     <option value=""></option>
                                     @foreach ($suppliers as $supplier)
                                         <option value="{{ $supplier->fsupplierid }}"
                                             {{ old('fsupplier', $tr_prh->fsupplier) == $supplier->fsupplierid ? 'selected' : '' }}>
                                             {{ $supplier->fsuppliername }}
-                                            ({{ $supplier->fsupplierid }})
                                         </option>
                                     @endforeach
                                 </select>
@@ -133,16 +132,6 @@
                             {{-- kirim ID supplier ke server --}}
                             <input type="hidden" name="fsupplier" id="supplierCodeHidden"
                                 value="{{ old('fsupplier', $tr_prh->fsupplier) }}">
-                            <button disabled type="button"
-                                @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"
-                                class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
-                                title="Browse Supplier">
-                                <x-heroicon-o-magnifying-glass class="w-5 h-5" />
-                            </button>
-                            <button href="{{ route('supplier.create') }}" target="_blank" rel="noopener" disabled
-                                class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50" title="Tambah Supplier">
-                                <x-heroicon-o-plus class="w-5 h-5" />
-                            </button>
                         </div>
                         @error('fsupplier')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>

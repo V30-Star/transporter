@@ -115,7 +115,7 @@ class Tr_prhController extends Controller
                     'fuserupdate' => $record->fuserupdate,
                     'fclose' => $record->fclose == '1' ? 'Done' : 'Not Done',
                     'fprhid' => $record->fprhid,
-                    'DT_RowId' => 'row_'.$record->fprhid,
+                    'DT_RowId' => 'row_' . $record->fprhid,
                 ];
             });
 
@@ -146,9 +146,9 @@ class Tr_prhController extends Controller
         $date = $onDate ?: now();
 
         $branch = $branch
-          ?? Auth::guard('sysuser')->user()?->fcabang
-          ?? Auth::user()?->fcabang
-          ?? null;
+            ?? Auth::guard('sysuser')->user()?->fcabang
+            ?? Auth::user()?->fcabang
+            ?? null;
 
         $kodeCabang = null;
 
@@ -180,7 +180,7 @@ class Tr_prhController extends Controller
         $prefix = sprintf('PR.%s.%s.%s.', trim($kodeCabang), $date->format('y'), $date->format('m'));
 
         return DB::transaction(function () use ($prefix) {
-            $last = \App\Models\Tr_prh::where('fprno', 'like', $prefix.'%')
+            $last = \App\Models\Tr_prh::where('fprno', 'like', $prefix . '%')
                 ->lockForUpdate()
                 ->orderByDesc('fprno')
                 ->first();
@@ -192,7 +192,7 @@ class Tr_prhController extends Controller
 
             $next = str_pad((string) ($lastNum + 1), 4, '0', STR_PAD_LEFT);
 
-            return $prefix.$next; // PR.JK.25.08.0001
+            return $prefix . $next; // PR.JK.25.08.0001
         });
     }
 
@@ -222,9 +222,9 @@ class Tr_prhController extends Controller
                 'p.fprdcode as product_code',
             ]);
 
-        $fmt = fn ($d) => $d
-          ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y')
-          : '-';
+        $fmt = fn($d) => $d
+            ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y')
+            : '-';
 
         return view('tr_prh.print', [
             'hdr' => $hdr,
@@ -245,10 +245,10 @@ class Tr_prhController extends Controller
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
         $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
+            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
             ->when(
                 ! is_numeric($raw),
-                fn ($q) => $q
+                fn($q) => $q
                     ->where('fcabangkode', $raw)
                     ->orWhere('fcabangname', $raw)
             )
@@ -318,13 +318,13 @@ class Tr_prhController extends Controller
 
         // ===== HEADER DATE + CODE =====
         $fprdate = $request->filled('fprdate')
-          ? Carbon::parse($request->fprdate)->startOfDay()
-          : now()->startOfDay();
+            ? Carbon::parse($request->fprdate)->startOfDay()
+            : now()->startOfDay();
 
         $branchFromForm = $request->input('fbranchcode');
         $fprno = $request->filled('fprno')
-          ? $request->fprno
-          : $this->generatetr_prh_Code($fprdate, $branchFromForm);
+            ? $request->fprno
+            : $this->generatetr_prh_Code($fprdate, $branchFromForm);
 
         $fneeddate = $request->filled('fneeddate') ? Carbon::parse($request->fneeddate)->startOfDay() : null;
         $fduedate = $request->filled('fduedate') ? Carbon::parse($request->fduedate)->startOfDay() : null;
@@ -532,8 +532,8 @@ class Tr_prhController extends Controller
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
         $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn ($q) => $q
+            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
+            ->when(! is_numeric($raw), fn($q) => $q
                 ->where('fcabangkode', $raw)
                 ->orWhere('fcabangname', $raw))
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
@@ -542,14 +542,18 @@ class Tr_prhController extends Controller
         $fbranchcode = $branch->fcabangkode ?? (string) $raw;   // hidden post
 
         $tr_prh = Tr_prh::with(['details' => function ($q) {
-            $q->leftJoin('msprd as p', 'p.fprdid', '=', 'tr_prd.fprdcodeid') // tr_prd.fprdcodeid = ID produk
+            $q->leftJoin('msprd as p', 'p.fprdid', '=', 'tr_prd.fprdcodeid')
                 ->orderBy('p.fprdname')
                 ->select(
                     'tr_prd.*',
-                    'p.fprdcode as product_code',   // <- kode untuk tampilan
-                    'p.fprdname  as product_name'   // <- nama untuk tampilan
+                    'p.fprdcode as product_code',
+                    'p.fprdname as product_name'
                 );
-        }])->findOrFail($fprhid);
+        }])
+            // PINDAHKAN KE SINI (Query Header)
+            ->leftJoin('mssupplier as s', 's.fsupplierid', '=', 'tr_prh.fsupplier')
+            ->select('tr_prh.*', 's.fsuppliername')
+            ->findOrFail($fprhid);
 
         $fprhid = (int) $tr_prh->fprhid;
 
@@ -560,15 +564,18 @@ class Tr_prhController extends Controller
 
         $details = DB::table('tr_prd as d')
             ->leftJoin('msprd as p', 'p.fprdid', '=', 'd.fprdcodeid')
-            ->leftJoin(DB::raw('(
-        SELECT frefdtid, fprdid, SUM(fqtykecil) AS fqtypo
-        FROM tr_pod
-        WHERE frefdtid IS NOT NULL AND frefdtid > 0
-        GROUP BY frefdtid, fprdid
-    ) as o'), function ($join) use ($fprhid) {
-                $join->whereRaw('o.frefdtid = ?', [$fprhid])   // ← pakai whereRaw
-                    ->on('o.fprdid', '=', 'p.fprdid');
-            })
+            ->leftJoin(
+                DB::raw('(
+                                    SELECT frefdtid, fprdid, SUM(fqtykecil) AS fqtypo
+                                    FROM tr_pod
+                                    WHERE frefdtid IS NOT NULL AND frefdtid > 0
+                                    GROUP BY frefdtid, fprdid
+                                ) as o'),
+                function ($join) use ($fprhid) {
+                    $join->whereRaw('o.frefdtid = ?', [$fprhid])   // ← pakai whereRaw
+                        ->on('o.fprdid', '=', 'p.fprdid');
+                }
+            )
             ->where('d.fprhid', $fprhid)
             ->select([
                 'd.*',
@@ -646,8 +653,8 @@ class Tr_prhController extends Controller
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
         $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn ($q) => $q
+            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
+            ->when(! is_numeric($raw), fn($q) => $q
                 ->where('fcabangkode', $raw)
                 ->orWhere('fcabangname', $raw))
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
@@ -656,14 +663,18 @@ class Tr_prhController extends Controller
         $fbranchcode = $branch->fcabangkode ?? (string) $raw;   // hidden post
 
         $tr_prh = Tr_prh::with(['details' => function ($q) {
-            $q->leftJoin('msprd as p', 'p.fprdid', '=', 'tr_prd.fprdcodeid') // tr_prd.fprdcodeid = ID produk
+            $q->leftJoin('msprd as p', 'p.fprdid', '=', 'tr_prd.fprdcodeid')
                 ->orderBy('p.fprdname')
                 ->select(
                     'tr_prd.*',
-                    'p.fprdcode as product_code',   // <- kode untuk tampilan
-                    'p.fprdname  as product_name'   // <- nama untuk tampilan
+                    'p.fprdcode as product_code',
+                    'p.fprdname as product_name'
                 );
-        }])->findOrFail($fprhid);
+        }])
+            // PINDAHKAN KE SINI (Query Header)
+            ->leftJoin('mssupplier as s', 's.fsupplierid', '=', 'tr_prh.fsupplier')
+            ->select('tr_prh.*', 's.fsuppliername')
+            ->findOrFail($fprhid);
 
         $fprhid = (int) $tr_prh->fprhid;
 
@@ -784,16 +795,16 @@ class Tr_prhController extends Controller
 
         // ===== 3) PARSE TANGGAL =====
         $fprdate = $request->filled('fprdate')
-          ? \Carbon\Carbon::parse($request->fprdate)->startOfDay()
-          : $header->fprdate;
+            ? \Carbon\Carbon::parse($request->fprdate)->startOfDay()
+            : $header->fprdate;
 
         $fneeddate = $request->filled('fneeddate')
-          ? \Carbon\Carbon::parse($request->fneeddate)->startOfDay()
-          : $header->fneeddate;
+            ? \Carbon\Carbon::parse($request->fneeddate)->startOfDay()
+            : $header->fneeddate;
 
         $fduedate = $request->filled('fduedate')
-          ? \Carbon\Carbon::parse($request->fduedate)->startOfDay()
-          : $header->fduedate;
+            ? \Carbon\Carbon::parse($request->fduedate)->startOfDay()
+            : $header->fduedate;
 
         // ===== 4) KUMPULKAN ARRAY DETAIL DARI FORM =====
         $codes = $request->input('fitemcode', []);
@@ -980,8 +991,8 @@ class Tr_prhController extends Controller
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
         $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn ($q) => $q
+            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
+            ->when(! is_numeric($raw), fn($q) => $q
                 ->where('fcabangkode', $raw)
                 ->orWhere('fcabangname', $raw))
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
@@ -990,14 +1001,18 @@ class Tr_prhController extends Controller
         $fbranchcode = $branch->fcabangkode ?? (string) $raw;   // hidden post
 
         $tr_prh = Tr_prh::with(['details' => function ($q) {
-            $q->leftJoin('msprd as p', 'p.fprdid', '=', 'tr_prd.fprdcodeid') // tr_prd.fprdcodeid = ID produk
+            $q->leftJoin('msprd as p', 'p.fprdid', '=', 'tr_prd.fprdcodeid')
                 ->orderBy('p.fprdname')
                 ->select(
                     'tr_prd.*',
-                    'p.fprdcode as product_code',   // <- kode untuk tampilan
-                    'p.fprdname  as product_name'   // <- nama untuk tampilan
+                    'p.fprdcode as product_code',
+                    'p.fprdname as product_name'
                 );
-        }])->findOrFail($fprhid);
+        }])
+            // PINDAHKAN KE SINI (Query Header)
+            ->leftJoin('mssupplier as s', 's.fsupplierid', '=', 'tr_prh.fsupplier')
+            ->select('tr_prh.*', 's.fsuppliername')
+            ->findOrFail($fprhid);
 
         $fprhid = (int) $tr_prh->fprhid;
 
@@ -1083,10 +1098,10 @@ class Tr_prhController extends Controller
             $tr_prh = Tr_prh::findOrFail($fprhid);
             $tr_prh->delete();
 
-            return redirect()->route('tr_prh.index')->with('success', 'Data Permintaan Pembelian '.$tr_prh->fprno.' berhasil dihapus.');
+            return redirect()->route('tr_prh.index')->with('success', 'Data Permintaan Pembelian ' . $tr_prh->fprno . ' berhasil dihapus.');
         } catch (\Exception $e) {
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
-            return redirect()->route('tr_prh.delete', $fprhid)->with('error', 'Gakey: gal menghapus data: '.$e->getMessage());
+            return redirect()->route('tr_prh.delete', $fprhid)->with('error', 'Gakey: gal menghapus data: ' . $e->getMessage());
         }
     }
 }

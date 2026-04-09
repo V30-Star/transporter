@@ -189,7 +189,7 @@
                         <div class="lg:col-span-4">
                             <label class="block text-sm font-medium mb-1">Supplier</label>
                             <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
-                                value="{{ $tr_prh->fsuppliername }} ({{ $tr_prh->fsupplier }})" disabled>
+                                value="{{ $tr_prh->fsuppliername }}" disabled>
                         </div>
 
                         <div class="lg:col-span-4">
@@ -332,7 +332,7 @@
 
                         <div class="lg:col-span-4" x-data="{
                             supplierId: '{{ old('fsupplier', $tr_prh->fsupplier) }}',
-                            supplierDisplay: '{{ $tr_prh->fsuppliername }} ({{ $tr_prh->fsupplier }})'
+                            supplierDisplay: '{{ $tr_prh->fsuppliername }}'
                         }" @supplier-chosen.window="supplierId = $event.detail.fsupplierid; supplierDisplay = $event.detail.fsuppliername + ' (' + $event.detail.fsupplierid + ')'">
                             <label class="block text-sm font-medium mb-1">Supplier</label>
                             <div class="flex">
