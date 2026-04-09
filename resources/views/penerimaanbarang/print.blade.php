@@ -262,12 +262,13 @@
             <tbody>
                 @foreach ($dt as $i => $r)
                 <tr>
+                    
                     <td class="text-center">{{ $i + 1 }}</td>
-                    <td>{{ $r->product_name ?? 'CANGKANG SAWIT' }}</td>
+                    <td>{{ $r->product_name ?? '-' }}</td>
                     <td class="text-right">{{ number_format($r->fqty ?? 100000, 0, ',', '.') }} {{ $r->funit ?? 'KG' }}</td>
                     <td class="text-right">{{ number_format($r->fprice ?? 1115, 2, '.', ',') }}</td>
                     <td class="text-center">{{ $r->fdiscpersen ?? 0 }}</td>
-                    <td class="text-right">{{ number_format($r->famount ?? 111500000, 2, '.', ',') }}</td>
+                    <td class="text-right">{{ number_format($r->ftotprice ?? 0, 2, '.', ',') }}</td>
                 </tr>
                 @endforeach
             </tbody>
@@ -277,13 +278,13 @@
         
         <div class="terbilang-box">
             Terbilang : <br>
-            # {{ strtoupper(terbilang($hdr->famountso ?? 123765000)) }} RUPIAH #
+            # {{ strtoupper(terbilang($hdr->famountmt ?? 0)) }} RUPIAH #
         </div>
 
         <div class="summary-box">
             <div class="summary-row">
                 <span>Total Harga :</span>
-                <span>{{ number_format($hdr->famountsonet ?? 111500000, 2, '.', ',') }}</span>
+                <span>{{ number_format($hdr->famount ?? 0, 2, '.', ',') }}</span>
             </div>
             <div class="summary-row">
                 <span>Discount :</span>
@@ -291,15 +292,15 @@
             </div>
             <div class="summary-row">
                 <span>Total Setelah Disc :</span>
-                <span>{{ number_format($hdr->famountsonet ?? 111500000, 2, '.', ',') }}</span>
+                <span>{{ number_format($hdr->famount ?? 0, 2, '.', ',') }}</span>
             </div>
             <div class="summary-row">
                 <span>PPN :</span>
-                <span>{{ number_format($hdr->famountpajak ?? 12265000, 2, '.', ',') }}</span>
+                <span>{{ number_format($hdr->famountpajak ?? 0, 2, '.', ',') }}</span>
             </div>
             <div class="summary-row grand-total">
                 <span>Grand Total :</span>
-                <span>{{ number_format($hdr->famountso ?? 123765000, 2, '.', ',') }}</span>
+                <span>{{ number_format($hdr->famountmt ?? 0, 2, '.', ',') }}</span>
             </div>
         </div>
 

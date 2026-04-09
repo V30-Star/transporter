@@ -105,7 +105,7 @@
                                 @foreach ($suppliers as $supplier)
                                     <option value="{{ $supplier->fsupplierid }}"
                                         {{ old('fsupplier', $penerimaanbarang->fsupplier) == $supplier->fsupplierid ? 'selected' : '' }}>
-                                        {{ $supplier->fsuppliername }} ({{ $supplier->fsupplierid }})
+                                        {{ $supplier->fsuppliername }} 
                                     </option>
                                 @endforeach
                             </select>
@@ -146,7 +146,7 @@
                                     <option value="{{ $wh->fwhcode }}" data-id="{{ $wh->fwhid }}"
                                         data-branch="{{ $wh->fbranchcode }}"
                                         {{ old('ffrom', $penerimaanbarang->ffrom) == $wh->fwhid ? 'selected' : '' }}>
-                                        {{ $wh->fwhcode }} - {{ $wh->fwhname }}
+                                        {{ $wh->fwhname }}
                                     </option>
                                 @endforeach
                             </select>

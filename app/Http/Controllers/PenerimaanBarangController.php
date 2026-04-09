@@ -567,8 +567,16 @@ class PenerimaanBarangController extends Controller
 
     $penerimaanbarang = PenerimaanPembelianHeader::with([
       'details' => function ($q) {
-        $q->leftJoin('msprd', 'msprd.fprdcode', '=', 'trstockdt.fprdcode') // join by varchar
-          ->select('trstockdt.*', 'msprd.fprdname', 'msprd.fprdcode as fitemcode_text')
+        $q->leftJoin('msprd', 'msprd.fprdcode', '=', 'trstockdt.fprdcode')
+          // Join dulu ke header agar kolom ffrom bisa diakses
+          ->leftJoin('trstockmt', 'trstockmt.fstockmtid', '=', 'trstockdt.fstockmtid')
+          ->leftJoin('mswh', 'mswh.fwhid', '=', 'trstockmt.ffrom')
+          ->select(
+            'trstockdt.*',
+            'msprd.fprdname',
+            'msprd.fprdcode as fitemcode_text',
+            'mswh.fwhname as fwhname'
+          )
           ->orderBy('trstockdt.fstockdtid');
       }
     ])->findOrFail($fstockmtid);
@@ -586,6 +594,7 @@ class PenerimaanBarangController extends Controller
         'fqty'       => (float) ($d->fqty ?? 0),
         'fterima'    => (float) ($d->fterima ?? 0),
         'fprice'     => (float) ($d->fprice ?? 0),
+        'famount'     => (float) ($d->famount ?? 0),
         'fdisc'      => (float) ($d->fdiscpersen ?? 0),
         'ftotal'     => (float) ($d->ftotprice ?? 0),
         'fdesc'      => is_array($d->fdesc) ? implode(', ', $d->fdesc) : ($d->fdesc ?? ''),
