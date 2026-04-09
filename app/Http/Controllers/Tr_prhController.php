@@ -196,14 +196,14 @@ class Tr_prhController extends Controller
         });
     }
 
-    public function print(string $fprno)
+    public function print(string $fprhid)
     {
         $supplierSub = (new Supplier)->getTable();
 
         $hdr = Tr_prh::query()
             ->leftJoin("{$supplierSub} as s", 's.fsupplierid', '=', 'tr_prh.fsupplier')
             ->leftJoin('mscabang as c', 'c.fcabangkode', '=', 'tr_prh.fbranchcode')
-            ->where('tr_prh.fprno', $fprno)
+            ->where('tr_prh.fprhid', $fprhid)
             ->first([
                 'tr_prh.*',
                 's.fsuppliername as supplier_name',
@@ -214,7 +214,7 @@ class Tr_prhController extends Controller
 
         $dt = Tr_prd::query()
             ->leftJoin('msprd as p', 'p.fprdid', '=', 'tr_prd.fprdcodeid')
-            ->where('tr_prd.fprhcode', $hdr->fprno)  // ✅ fprhcode bukan fprhid
+            ->where('tr_prd.fprhid', $hdr->fprhid) 
             ->orderBy('p.fprdname')
             ->get([
                 'tr_prd.*',

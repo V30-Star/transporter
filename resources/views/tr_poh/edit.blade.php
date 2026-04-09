@@ -200,7 +200,7 @@
                             @foreach ($suppliers as $supplier)
                                 <option value="{{ $supplier->fsupplierid }}"
                                     {{ old('fsupplier', $tr_poh->fsupplier) == $supplier->fsupplierid ? 'selected' : '' }}>
-                                    {{ $supplier->fsuppliername }} ({{ $supplier->fsupplierid }})
+                                    {{ $supplier->fsuppliername }}
                                 </option>
                             @endforeach
                         </select>
@@ -603,12 +603,12 @@
                                 <td class="p-2 text-right text-sm font-medium" x-text="fmtCurr(draft.ftotal)"></td>
 
                                 @if (empty($blockedByTerima) || !$blockedByTerima)
-                                <td class="p-2 text-center">
-                                    <button type="button" @click="addIfComplete()"
-                                        class="px-3 py-1 rounded text-xs bg-emerald-600 text-white hover:bg-emerald-700 whitespace-nowrap">
-                                        Tambah
-                                    </button>
-                                </td>
+                                    <td class="p-2 text-center">
+                                        <button type="button" @click="addIfComplete()"
+                                            class="px-3 py-1 rounded text-xs bg-emerald-600 text-white hover:bg-emerald-700 whitespace-nowrap">
+                                            Tambah
+                                        </button>
+                                    </td>
                                 @endif
                             </tr>
                         @endif
@@ -621,7 +621,7 @@
                 <div class="mt-3 flex justify-between items-start gap-4">
 
                     <div class="flex justify-start">
-                        @if ($isEdit && empty($blockedByTerima) || !$blockedByTerima)
+                        @if ($isEdit && (empty($blockedByTerima) || !$blockedByTerima))
                             <button type="button" @click="openModal()"
                                 class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
@@ -649,7 +649,7 @@
                                         class="h-4 w-4 text-blue-600 border-gray-300 rounded {{ $isDelete ? 'cursor-not-allowed' : '' }}">
                                     <span class="font-bold">PPN</span>
                                 </label>
-                                <select name="ppn_mode" x-model.number="ppnMode"
+                                <select name="fincludeppn" x-model.number="ppnMode"
                                     :disabled="{{ $isDelete ? 'true' : '!includePPN' }}"
                                     class="w-28 h-8 px-2 text-xs border rounded appearance-none disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
                                     <option value="0">Exclude</option>
@@ -1397,7 +1397,8 @@
                         frefpr: String(header?.fprhid ?? src.fprhid ?? ''),
                         fprhid: String(src.fprhid ?? header?.fprhid ?? ''),
                         fprno: String(header?.fprno ?? src.fprno ?? ''),
-                        fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ? Number(src.fqty) : 1,
+                        fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ?
+                            Number(src.fqty) : 1,
                         frefdtid: src.frefdtid ?? '',
                         fqtypr: Number(src.fqty ?? 0),
                         fqtypr_satuan: (src.fsatuan ?? '').trim(),

@@ -488,7 +488,7 @@
                                                 class="h-4 w-4 text-blue-600 border-gray-300 rounded">
                                             <span class="font-bold">PPN</span>
                                         </label>
-                                        <select name="ppn_mode" x-model.number="ppnMode" :disabled="!includePPN"
+                                        <select name="fincludeppn" x-model.number="ppnMode" :disabled="!includePPN"
                                             class="w-28 h-10 px-2 text-sm border rounded appearance-none disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
                                             <option value="0">Exclude</option>
                                             <option value="1">Include</option>

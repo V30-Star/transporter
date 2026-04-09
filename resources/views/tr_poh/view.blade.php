@@ -49,7 +49,7 @@
                     @foreach ($suppliers as $supplier)
                         <option value="{{ $supplier->fsupplierid }}"
                             {{ $tr_poh->fsupplier == $supplier->fsupplierid ? 'selected' : '' }}>
-                            {{ $supplier->fsuppliername }} ({{ $supplier->fsupplierid }})
+                            {{ $supplier->fsuppliername }} 
                         </option>
                     @endforeach
                 </select>
