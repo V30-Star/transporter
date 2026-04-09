@@ -73,7 +73,7 @@
     </style>
 
     <div x-data="{ open: true }">
-        <div x-data="{ includePPN: false, ppnRate: 0, ppnAmount: 0, selected: 'alamatsurat', totalHarga: 100000 }" class="lg:col-span-5">
+        <div x-data="{ includePPN: false, ppnRate: 11, ppnAmount: 0, selected: 'alamatsurat', totalHarga: 0 }" class="lg:col-span-5">
             <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
                 <form action="{{ route('salesorder.store') }}" method="POST" class="mt-6" x-data="{ showNoItems: false }"
                     @submit.prevent="
@@ -335,9 +335,11 @@
                                             <td class="p-2 text-gray-800" x-text="it.fitemname"></td>
                                             <td class="p-2">
                                                 <template x-if="it.units && it.units.length > 1">
-                                                    <select class="w-full border rounded px-2 py-1 text-xs" x-model="it.fsatuan" @change="recalc(it)">
+                                                    <select class="w-full border rounded px-2 py-1 text-xs"
+                                                        x-model="it.fsatuan" @change="recalc(it)">
                                                         <template x-for="u in it.units" :key="u">
-                                                            <option :value="u" x-text="u" :selected="u === it.fsatuan"></option>
+                                                            <option :value="u" x-text="u"
+                                                                :selected="u === it.fsatuan"></option>
                                                         </template>
                                                     </select>
                                                 </template>
@@ -346,19 +348,20 @@
                                                 </template>
                                             </td>
                                             <td class="p-2 text-right">
-                                                <input type="number" class="w-full border rounded px-2 py-1 text-right" 
+                                                <input type="number" class="w-full border rounded px-2 py-1 text-right"
                                                     x-model.number="it.fqty" :max="it.maxqty > 0 ? it.maxqty : null"
                                                     @input="recalc(it); if (it.maxqty > 0 && it.fqty > it.maxqty) { it.fqty = it.maxqty; recalc(it); }">
                                                 <div class="text-xs text-gray-400 mt-0.5 text-right">
-                                                    <span x-show="it.maxqty > 0">maks: <span x-text="it.maxqty"></span></span>
+                                                    <span x-show="it.maxqty > 0">maks: <span
+                                                            x-text="it.maxqty"></span></span>
                                                 </div>
                                             </td>
                                             <td class="p-2 text-right">
-                                                <input type="number" class="w-full border rounded px-2 py-1 text-right" 
+                                                <input type="number" class="w-full border rounded px-2 py-1 text-right"
                                                     x-model.number="it.fprice" @input="recalc(it)">
                                             </td>
                                             <td class="p-2 text-right">
-                                                <input type="text" class="w-full border rounded px-2 py-1 text-right" 
+                                                <input type="text" class="w-full border rounded px-2 py-1 text-right"
                                                     x-model="it.fdisc" @input="recalc(it)">
                                             </td>
                                             <td class="p-2 text-right font-semibold" x-text="fmt(it.ftotal)"></td>
@@ -429,8 +432,7 @@
                                         <td class="p-2">
                                             <template x-if="draft.units.length > 1">
                                                 <select class="w-full border rounded px-2 py-1 text-xs" x-ref="draftUnit"
-                                                    x-model="draft.fsatuan"
-                                                    @change="recalc(draft)"
+                                                    x-model="draft.fsatuan" @change="recalc(draft)"
                                                     @keydown.enter.prevent="$refs.draftQty?.focus()">
                                                     <template x-for="u in draft.units" :key="u">
                                                         <option :value="u" x-text="u"></option>
@@ -447,9 +449,8 @@
                                         <!-- Qty -->
                                         <td class="p-2 text-right">
                                             <input type="number" class="border rounded px-2 py-1 w-24 text-right"
-                                                type="number"
-                                                x-ref="draftQty"
-                                                x-model.number="draft.fqty" @input="
+                                                type="number" x-ref="draftQty" x-model.number="draft.fqty"
+                                                @input="
                                                     recalc(draft);
                                                     if (draft.maxqty > 0 && draft.fqty > draft.maxqty) {
                                                         draft.fqty = draft.maxqty;
@@ -458,7 +459,8 @@
                                                 "
                                                 @keydown.enter.prevent="$refs.draftPrice?.focus()">
                                             <div class="text-xs text-gray-400 mt-0.5 text-right">
-                                                <span x-show="draft.maxqty > 0">maks: <span x-text="draft.maxqty"></span></span>
+                                                <span x-show="draft.maxqty > 0">maks: <span
+                                                        x-text="draft.maxqty"></span></span>
                                             </div>
                                         </td>
 
@@ -515,7 +517,7 @@
                                     <div class="flex items-center justify-between gap-6">
                                         <!-- Checkbox -->
                                         <div class="flex items-center">
-                                            <input id="fapplyppn" type="checkbox" name="fapplyppn" value="1"
+                                            <input id="fapplyppn" name="fppn" type="checkbox" value="1"
                                                 x-model="includePPN"
                                                 class="h-4 w-4 text-blue-600 border-gray-300 rounded">
                                             <label for="fapplyppn" class="ml-2 text-sm font-medium text-gray-700">
@@ -536,8 +538,9 @@
 
                                         <!-- Input Rate + Nominal (kanan) -->
                                         <div class="flex items-center gap-2">
-                                            <input type="number" min="0" max="100" step="0.01"
-                                                x-model.number="ppnRate" :disabled="!(includePPN || fapplyppn)"
+                                            <input type="number" name="fppnpersen" min="0" max="100"
+                                                step="0.01" x-model.number="ppnRate" :disabled="!includePPN"
+                                                value="11"
                                                 class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
                                                         [appearance:textfield]
                                                         [&::-webkit-outer-spin-button]:appearance-none
@@ -1912,4 +1915,3 @@
         });
     </script>
 @endpush
-    

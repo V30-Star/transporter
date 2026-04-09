@@ -524,7 +524,7 @@
                                                 <!-- Checkbox -->
                                                 <div class="flex items-center">
                                                     <input id="fapplyppn" type="checkbox" name="fapplyppn"
-                                                        value="1" x-model="includePPN" disabled
+                                                        value="1" x-model="includePPN" disabled x-init="includePPN = {{ $salesorder->fppn == '1' ? 'true' : 'false' }}"
                                                         class="h-4 w-4 text-blue-600 border-gray-300 rounded">
                                                     <label for="fapplyppn" class="ml-2 text-sm font-medium text-gray-700">
                                                         <span class="font-bold">PPN</span>
@@ -534,7 +534,7 @@
                                                 <!-- Dropdown Include / Exclude (tengah) -->
                                                 <div class="flex items-center gap-2">
                                                     <select disabled id="includePPN" name="includePPN"
-                                                        x-model.number="fapplyppn" x-init="fapplyppn = 0"
+                                                        x-model.number="fapplyppn" x-init="fapplyppn = {{ old('includePPN', $salesorder->fincludeppn) }}"
                                                         :disabled="!(includePPN || fapplyppn)"
                                                         class="w-28 h-9 px-2 text-sm leading-tight border rounded transition-opacity appearance-none
                                                            disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
@@ -547,6 +547,7 @@
                                                 <div class="flex items-center gap-2">
                                                     <input disabled type="number" min="0" max="100"
                                                         step="0.01" x-model.number="ppnRate"
+                                                        x-init="ppnRate = {{ old('fppnpersen', $fppnpersen) }}"
                                                         :disabled="!(includePPN || fapplyppn)"
                                                         class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
                                                             [appearance:textfield]
@@ -564,13 +565,6 @@
 
                                             <div class="flex items-center justify-between">
                                                 <span class="text-sm font-semibold text-gray-800">Grand Total</span>
-                                                <span class="min-w-[140px] text-right text-lg font-semibold"
-                                                    x-text="rupiah(grandTotal)"></span>
-                                            </div>
-
-                                            <div class="flex items-center justify-between">
-                                                <span class="text-sm font-semibold text-gray-800">Grand Total
-                                                    (RP)</span>
                                                 <span class="min-w-[140px] text-right text-lg font-semibold"
                                                     x-text="rupiah(grandTotal)"></span>
                                             </div>
@@ -1172,8 +1166,8 @@
                                                 <div class="flex items-center justify-between gap-6">
                                                     <!-- Checkbox -->
                                                     <div class="flex items-center">
-                                                        <input id="fapplyppn" type="checkbox" name="fapplyppn"
-                                                            x-model="includePPN" x-init="includePPN = {{ old('fapplyppn') ? 'true' : 'false' }}" value="1"
+                                                        <input id="fapplyppn" type="checkbox" value="1" name="fppn"
+                                                            x-model="includePPN" x-init="includePPN = {{ $salesorder->fppn == '1' ? 'true' : 'false' }}"
                                                             class="h-4 w-4 text-blue-600 border-gray-300 rounded">
                                                         <label for="fapplyppn"
                                                             class="ml-2 text-sm font-medium text-gray-700">
@@ -1195,10 +1189,10 @@
 
                                                     <!-- Input Rate + Nominal (kanan) -->
                                                     <div class="flex items-center gap-2">
-                                                        <input type="number" min="0" max="100"
+                                                        <input type="number" name="fppnpersen" min="0" max="100"
                                                             step="0.01" x-model.number="ppnRate"
-                                                            x-init="ppnRate = {{ old('ppnRate', $salesorder->fincludeppn) }}"
-                                                            :disabled="!(includePPN || fapplyppn)"
+                                                            x-init="ppnRate = {{ old('fppnpersen', $fppnpersen) }}"
+                                                            :disabled="!includePPN"
                                                             class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
                                                             [appearance:textfield]
                                                             [&::-webkit-outer-spin-button]:appearance-none
@@ -1215,13 +1209,6 @@
 
                                                 <div class="flex items-center justify-between">
                                                     <span class="text-sm font-semibold text-gray-800">Grand Total</span>
-                                                    <span class="min-w-[140px] text-right text-lg font-semibold"
-                                                        x-text="rupiah(grandTotal)"></span>
-                                                </div>
-
-                                                <div class="flex items-center justify-between">
-                                                    <span class="text-sm font-semibold text-gray-800">Grand Total
-                                                        (RP)</span>
                                                     <span class="min-w-[140px] text-right text-lg font-semibold"
                                                         x-text="rupiah(grandTotal)"></span>
                                                 </div>

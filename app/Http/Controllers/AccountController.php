@@ -13,8 +13,15 @@ class AccountController extends Controller
     {
         $accounts = Account::orderBy('faccount', 'asc')
             ->get([
-                'faccount', 'faccname', 'faccid', 'fnormal',
-                'fend', 'finitjurnal', 'ftypesubaccount', 'fnonactive', 'fcreatedat',
+                'faccount',
+                'faccname',
+                'faccid',
+                'fnormal',
+                'fend',
+                'finitjurnal',
+                'ftypesubaccount',
+                'fnonactive',
+                'fcreatedat',
             ]);
 
         // Ambil tahun-tahun yang tersedia untuk dropdown filter Year
@@ -170,7 +177,8 @@ class AccountController extends Controller
                     $isSetAccount ? 'required' : 'nullable',
                     'string',
                     'max:2',
-                    'unique:account,finitjurnal'
+                    // Ditambahkan pengecualian ID seperti pada faccount
+                    "unique:account,finitjurnal,{$faccid},faccid"
                 ],
                 'fend'         => 'required|in:1,0',
                 'fuserlevel'   => 'required|in:1,2,3',
@@ -274,7 +282,6 @@ class AccountController extends Controller
                 'success' => true,
                 'message' => 'Data account ' . $account->faccname . ' berhasil dihapus.'
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,

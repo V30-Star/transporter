@@ -109,7 +109,7 @@ class SalesOrderController extends Controller
                     'famountpajak' => $row->famountpajak,
                     'famountso' => $row->famountso,
                     'fket' => $row->fket,
-                    'fcustomername' => $row->fcustomername, 
+                    'fcustomername' => $row->fcustomername,
                     'falamatkirim' => $row->falamatkirim,
                     'fprdout' => $row->fprdout,
                     'fusercreate' => $row->fusercreate,
@@ -402,7 +402,8 @@ class SalesOrderController extends Controller
 
             'fqty' => ['required', 'array'],
             'fqty.*' => ['numeric', 'min:0'],
-
+            'fppn' => ['nullable'],
+            'fppnpersen' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'fprice' => ['nullable', 'array'],
             'fprice.*' => ['numeric', 'min:0'],
 
@@ -504,8 +505,11 @@ class SalesOrderController extends Controller
 
         // Calculate totals
         $amountNet = $totalGross - $totalDisc;
-        $ppnRate = $fincludeppn === '1' ? (float) $request->input('ppn_rate', 11) : 0;
-        $ppnAmount = $amountNet * ($ppnRate / 100);
+        $fppn = $request->boolean('fppn') ? '1' : '0';
+        $fppnpersen = $fppn === '1' ? (float) $request->input('fppnpersen', 11) : 0;
+        $ppnAmount = $amountNet * ($fppnpersen / 100);
+        $grandTotal = $amountNet + $ppnAmount;
+        $ppnAmount = $amountNet * ($fppnpersen / 100);
         $grandTotal = $amountNet + $ppnAmount;
 
         // TRANSACTION
@@ -520,8 +524,9 @@ class SalesOrderController extends Controller
             $totalGross,
             $totalDisc,
             $amountNet,
-            $ppnAmount
-
+            $ppnAmount,
+            $fppn,
+            $fppnpersen
         ) {
             // Generate fsono if not provided
             if (empty($fsono)) {
@@ -590,6 +595,8 @@ class SalesOrderController extends Controller
                 'famountgross' => round($totalGross, 2),
                 'fdiscount' => round($totalDisc, 2),
                 'fdiscpersen' => ($totalGross > 0) ? round(($totalDisc / $totalGross) * 100, 2) : 0,
+                'fppn'      => $fppn,
+                'fppnpersen' => $fppnpersen,
                 'famountsonet' => round($amountNet, 2),
                 'famountpajak' => round($ppnAmount, 2),
                 'famountso' => 0,
@@ -785,6 +792,7 @@ class SalesOrderController extends Controller
             'selectedSupplierCode' => $selectedSupplierCode, // Kirim kode supplier ke view
             'fcabang' => $fcabang,
             'fbranchcode' => $fbranchcode,
+            'fppnpersen' => (float) ($salesorder->fppnpersen ?? 11),
             'products' => $products,
             'productMap' => $productMap,
             'salesorder' => $salesorder,
@@ -914,6 +922,7 @@ class SalesOrderController extends Controller
             'fbranchcode'          => $fbranchcode,
             'products'             => $products,
             'productMap'           => $productMap,
+            'fppnpersen' => (float) ($salesorder->fppnpersen ?? 11),
             'salesorder'           => $salesorder,
             'savedItems'           => $savedItems,
             'ppnAmount'            => (float) ($salesorder->famountpopajak ?? 0),
@@ -950,6 +959,8 @@ class SalesOrderController extends Controller
 
             'fqty' => ['required', 'array'],
             'fqty.*' => ['numeric', 'min:0'],
+            'fppn' => ['nullable'],
+            'fppnpersen' => ['nullable', 'numeric', 'min:0', 'max:100'],
 
             'fprice' => ['nullable', 'array'],
             'fprice.*' => ['numeric', 'min:0'],
@@ -1061,8 +1072,11 @@ class SalesOrderController extends Controller
 
         // 6. CALCULATE TOTALS
         $amountNet = $totalGross - $totalDisc;
-        $ppnRate = $fincludeppn === '1' ? (float) $request->input('ppn_rate', 11) : 0;
-        $ppnAmount = $amountNet * ($ppnRate / 100);
+        $fppn = $request->boolean('fppn') ? '1' : '0';
+        $fppnpersen = $fppn === '1' ? (float) $request->input('fppnpersen', 11) : 0;
+        $ppnAmount = $amountNet * ($fppnpersen / 100);
+        $grandTotal = $amountNet + $ppnAmount;
+        $ppnAmount = $amountNet * ($fppnpersen / 100);
         $grandTotal = $amountNet + $ppnAmount;
 
         // 7. TRANSACTION
@@ -1078,15 +1092,17 @@ class SalesOrderController extends Controller
             $totalGross,
             $totalDisc,
             $amountNet,
+            $grandTotal,
             $ppnAmount,
-            $grandTotal
+            $fppn,
+            $fppnpersen
         ) {
             // Update Header
             DB::table('trsomt')->where('ftrsomtid', $ftrsomtid)->update([
                 'fsodate' => $fsodate,
                 'fbranchcode' => mb_substr($request->input('fbranchcode', ''), 0, 2),
                 'fcustno' => mb_substr($request->input('fcustno', ''), 0, 10),
-                'fsalesman' => mb_substr($request->input('fsalesman', ''), 0, 15),
+                'fsalesman' => $request->input('fsalesman') ?: null,
                 'ftempohr' => mb_substr($request->input('ftempohr', '0'), 0, 3),
                 'fincludeppn' => $fincludeppn,
                 'fclose' => $fclose,
@@ -1095,6 +1111,8 @@ class SalesOrderController extends Controller
                 'falamatkirim' => mb_substr($request->input('falamatkirim', ''), 0, 300),
                 'fuserupdate' => mb_substr($userid, 0, 10),
                 'fdatetime' => $now,
+                'fppn'      => $fppn,
+                'fppnpersen' => $fppnpersen,
                 'famountgross' => round($totalGross, 2),
                 'fdiscount' => round($totalDisc, 2),
                 'fdiscpersen' => ($totalGross > 0) ? round(($totalDisc / $totalGross) * 100, 2) : 0,
@@ -1204,6 +1222,7 @@ class SalesOrderController extends Controller
             'productMap' => $productMap,
             'salesorder' => $salesorder,
             'savedItems' => $savedItems,
+            'fppnpersen' => (float) ($salesorder->fppnpersen ?? 11),
             'ppnAmount' => (float) ($salesorder->famountpopajak ?? 0), // total PPN from DB
             'famountgross' => (float) ($salesorder->famountgross ?? 0),  // nilai Grand Total dari DB
             'famountso' => (float) ($salesorder->famountso ?? 0),  // nilai Grand Total dari DB
