@@ -101,14 +101,18 @@
         $currentAccountId = old('faccid', $fakturpembelian->faccid);
         $currentPpnAmount = old('famountpajak', $fakturpembelian->famountpajak ?? 0);
         $currentSubtotal = old('famount', $fakturpembelian->famount ?? 0);
+        $includePPN = old('fapplyppn', $fakturpembelian->fapplyppn ?? 0);
+        $ppnMode = old('fincludeppn', $fakturpembelian->fincludeppn ?? 0);
+        $ppnRate = old('ppn_rate', $fakturpembelian->fppnpersen ?? 11);
     @endphp
 
     <div x-data="{
         open: true,
     
         {{-- Inisialisasi PPN & Total (PERBAIKAN!) --}}
-        includePPN: {{ $currentPpnAmount > 0 ? 'true' : 'false' }},
-        ppnRate: {{ $currentPpnAmount > 0 ? 11 : 0 }},
+        includePPN: {{ $includePPN ? 'true' : 'false' }},
+        ppnRate: {{ $ppnRate }},
+        ppnMode: {{ $ppnMode }},
         {{-- Asumsi 11% --}}
         ppnAmount: {{ $currentPpnAmount }},
         totalHarga: {{ $currentSubtotal }},
@@ -136,8 +140,9 @@
                     <div class="lg:col-span-4" x-data="{ autoCode: true }">
                         <label class="block text-sm font-medium mb-1">Transaksi#</label>
                         <div class="flex items-center gap-3">
-                            <input type="text" name="fpono" class="w-full border rounded px-3 py-2" value="{{ old('fstockmtno', $fakturpembelian->fstockmtno) }}"
-                                :disabled="autoCode" :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
+                            <input type="text" name="fpono" class="w-full border rounded px-3 py-2"
+                                value="{{ old('fstockmtno', $fakturpembelian->fstockmtno) }}" :disabled="autoCode"
+                                :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
                             <label class="inline-flex items-center select-none">
                                 <input type="checkbox" x-model="autoCode" checked>
                                 <span class="ml-2 text-sm text-gray-700">Auto</span>
@@ -662,7 +667,7 @@
                                         </div>
 
                                         <!-- Dropdown Include / Exclude (tengah) -->
-                                        {{-- <div class="flex items-center gap-2">
+                                        <div class="flex items-center gap-2">
                                             <select disabled id="includePPN" name="includePPN" x-model.number="fapplyppn"
                                                 x-init="fapplyppn = 0" :disabled="!(includePPN || fapplyppn)"
                                                 class="w-28 h-9 px-2 text-sm leading-tight border rounded transition-opacity appearance-none
@@ -670,7 +675,7 @@
                                                 <option value="0">Exclude</option>
                                                 <option value="1">Include</option>
                                             </select>
-                                        </div> --}}
+                                        </div>
 
                                         <!-- Input Rate + Nominal (kanan) -->
                                         <div class="flex items-center gap-2">
@@ -1009,51 +1014,26 @@
                     initialGrandTotal: @json($famountmt ?? 0),
                     initialPpnAmount: @json($famountpajak ?? 0),
 
-                    includePPN: false, // tambah PPN normal di luar total
-                    fapplyppn: false, // harga sudah termasuk PPN (back-calc)
-                    // PPN yang SUDAH termasuk (back-calc dari GROSS)
-                    get ppnIncluded() {
-                        const total = +this.totalHarga || 0;
-                        const rate = +this.ppnRate || 0;
-                        if (!this.fapplyppn) return 0;
-                        // back-calc from GROSS
-                        return Math.round((100 / (100 + rate)) * total * (rate / 100));
-                    },
-
-                    // NET dari GROSS jika fapplyppn aktif
-                    get netFromGross() {
-                        const total = +this.totalHarga || 0;
-                        return total - this.ppnIncluded;
-                    },
-
-                    // PPN tambahan (di luar total). Jika sudah include PPN, base = NET (tidak pajak atas pajak)
-                    get ppnAdded() {
-                        const rate = +this.ppnRate || 0;
-                        if (!this.includePPN) return 0;
-
-                        const total = +this.totalHarga || 0;
-
-                        // When both are ON, compute extra PPN on GROSS (not NET)
-                        const base = this.fapplyppn ? total : total; // <— effectively: always use total (GROSS)
-
-                        return Math.round(base * (rate / 100));
-                    },
-
+                    includePPN: @json($includePPN == 1),
+                    ppnMode: @json((int) $ppnMode),
+                    ppnRate: @json((float) $ppnRate),
                     get ppnAmount() {
-                        // Jika dua checkbox aktif → tampilkan PPN tambahan saja (hindari double count)
-                        if (this.includePPN && this.fapplyppn) {
-                            return this.ppnAdded;
+                        if (!this.includePPN) return 0;
+                        const total = +this.totalHarga || 0;
+                        const rate = +this.ppnRate || 0;
+                        if (this.ppnMode === 1) {
+                            // Include: Back-calc from GROSS
+                            return Math.round((rate / (100 + rate)) * total);
+                        } else {
+                            // Exclude: Add on top of base
+                            return Math.round(total * (rate / 100));
                         }
-                        // Kasus lain: gabungan PPN yang sudah termasuk + PPN tambahan
-                        return (this.ppnIncluded ?? 0) + (this.ppnAdded ?? 0);
                     },
 
                     get grandTotal() {
                         const total = +this.totalHarga || 0;
-                        if (this.includePPN) return total + this.ppnAdded; // GROSS + extra PPN on GROSS
-                        if (this.includePPN) return total + this.ppnAdded; // NET + PPN
-                        if (this.fapplyppn) return total; // GROSS stays GROSS
-                        return total;
+                        if (!this.includePPN || this.ppnMode === 1) return total;
+                        return total + this.ppnAmount;
                     },
 
                     fmt(n) {

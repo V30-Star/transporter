@@ -332,11 +332,11 @@ class AccountController extends Controller
         // Base query
         $query = Account::query();
 
-        // Filter awal: hanya tampilkan akun yang tidak berakhir (fend = 0)
-        $query->where('fend', 0);
+        // Filter awal: hanya tampilkan akun yang akhir (fend = 1)
+        $query->where('fend', 1);
 
-        // Total records tanpa filter (sesuai filter base 'fend = 0')
-        $recordsTotal = Account::where('fend', 0)->count();
+        // Total records tanpa filter (sesuai filter base 'fend = 1')
+        $recordsTotal = Account::where('fend', 1)->count();
 
         // Search
         if ($request->filled('search') && $request->search != '') {

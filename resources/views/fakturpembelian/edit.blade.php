@@ -101,14 +101,18 @@
         $currentAccountId = old('faccid', $fakturpembelian->faccid);
         $currentPpnAmount = old('famountpajak', $fakturpembelian->famountpajak ?? 0);
         $currentSubtotal = old('famount', $fakturpembelian->famount ?? 0);
+        $includePPN = old('fapplyppn', $fakturpembelian->fapplyppn ?? 0);
+        $ppnMode    = old('fincludeppn', $fakturpembelian->fincludeppn ?? 0);
+        $ppnRate    = old('ppn_rate', $fakturpembelian->fppnpersen ?? 11);
     @endphp
 
     <div x-data="{
         open: true,
     
         {{-- Inisialisasi PPN & Total (PERBAIKAN!) --}}
-        includePPN: {{ $currentPpnAmount > 0 ? 'true' : 'false' }},
-        ppnRate: {{ $currentPpnAmount > 0 ? 11 : 0 }},
+        includePPN: {{ $includePPN ? 'true' : 'false' }},
+        ppnRate: {{ $ppnRate }},
+        ppnMode: {{ $ppnMode }},
         {{-- Asumsi 11% --}}
         ppnAmount: {{ $currentPpnAmount }},
         totalHarga: {{ $currentSubtotal }},
@@ -141,8 +145,8 @@
                         <div class="lg:col-span-4" x-data="{ autoCode: true }">
                             <label class="block text-sm font-medium mb-1">Transaksi#</label>
                             <div class="flex items-center gap-3">
-                                <input type="text" name="fpono" class="w-full border rounded px-3 py-2" value="{{ old('fstockmtno', $fakturpembelian->fstockmtno) }}"
-                                    :disabled="autoCode"
+                                <input type="text" name="fstockmtno" class="w-full border rounded px-3 py-2"
+                                    value="{{ old('fstockmtno', $fakturpembelian->fstockmtno) }}" :disabled="autoCode"
                                     :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
                                 <label class="inline-flex items-center select-none">
                                     <input type="checkbox" x-model="autoCode" checked>
@@ -678,7 +682,7 @@
                                         </div>
 
                                         <!-- Dropdown Include / Exclude (tengah) -->
-                                        {{-- <div class="flex items-center gap-2">
+                                        <div class="flex items-center gap-2">
                                                 <select disabled id="includePPN" name="includePPN"
                                                     x-model.number="fapplyppn" x-init="fapplyppn = 0"
                                                     :disabled="!(includePPN || fapplyppn)"
@@ -687,7 +691,7 @@
                                                     <option value="0">Exclude</option>
                                                     <option value="1">Include</option>
                                                 </select>
-                                            </div> --}}
+                                            </div>
 
                                         <!-- Input Rate + Nominal (kanan) -->
                                         <div class="flex items-center gap-2">
@@ -727,9 +731,9 @@
                                 </div>
 
                                 <!-- Hidden inputs for submit -->
-                                <input type="hidden" name="famountponet" :value="totalHarga">
-                                <input type="hidden" name="" :value="ppnAmount">
-                                <input type="hidden" name="famountpo" :value="grandTotal">
+                                <input type="hidden" name="famount" :value="totalHarga">
+                                <input type="hidden" name="famountpajak" :value="ppnAmount">
+                                <input type="hidden" name="famountmt" :value="grandTotal">
                                 <input type="hidden" name="famountpopajak" :value="ppnRate">
                             </div>
                         </div>
@@ -797,7 +801,8 @@
                             <div class="lg:col-span-4" x-data="{ autoCode: true }">
                                 <label class="block text-sm font-medium mb-1">Transaksi#</label>
                                 <div class="flex items-center gap-3">
-                                    <input type="text" name="fpono" class="w-full border rounded px-3 py-2" value="{{ old('fstockmtno', $fakturpembelian->fstockmtno) }}"
+                                    <input type="text" name="fstockmtno" class="w-full border rounded px-3 py-2"
+                                        value="{{ old('fstockmtno', $fakturpembelian->fstockmtno) }}"
                                         :disabled="autoCode"
                                         :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
                                     <label class="inline-flex items-center select-none">
@@ -1638,20 +1643,20 @@
                                             </div>
 
                                             <!-- Dropdown Include / Exclude (tengah) -->
-                                            {{-- <div class="flex items-center gap-2">
-                                                    <select id="includePPN" name="includePPN" x-model.number="fapplyppn"
-                                                        x-init="fapplyppn = 0" :disabled="!(includePPN || fapplyppn)"
-                                                        class="w-28 h-9 px-2 text-sm leading-tight border rounded transition-opacity appearance-none
+                                            <div class="flex items-center gap-2">
+                                                <select id="ppnMode" name="fincludeppn" x-model.number="ppnMode"
+                                                    :disabled="!includePPN"
+                                                    class="w-28 h-9 px-2 text-sm leading-tight border rounded transition-opacity appearance-none
                                                            disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
-                                                        <option value="0">Exclude</option>
-                                                        <option value="1">Include</option>
-                                                    </select>
-                                                </div> --}}
+                                                    <option value="0">Exclude</option>
+                                                    <option value="1">Include</option>
+                                                </select>
+                                            </div>
 
                                             <!-- Input Rate + Nominal (kanan) -->
                                             <div class="flex items-center gap-2">
-                                                <input type="number" min="0" max="100" step="0.01"
-                                                    x-model.number="ppnRate" :disabled="!(includePPN || fapplyppn)"
+                                                <input type="number" min="0" max="100" step="0.01" name="ppn_rate"
+                                                    x-model.number="ppnRate" :disabled="!includePPN"
                                                     class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
                                                             [appearance:textfield]
                                                             [&::-webkit-outer-spin-button]:appearance-none
@@ -1686,9 +1691,9 @@
                                     </div>
 
                                     <!-- Hidden inputs for submit -->
-                                    <input type="hidden" name="famountponet" :value="totalHarga">
-                                    <input type="hidden" name="" :value="ppnAmount">
-                                    <input type="hidden" name="famountpo" :value="grandTotal">
+                                    <input type="hidden" name="famount" :value="totalHarga">
+                                    <input type="hidden" name="famountpajak" :value="ppnAmount">
+                                    <input type="hidden" name="famountmt" :value="grandTotal">
                                     <input type="hidden" name="famountpopajak" :value="ppnRate">
                                 </div>
                             </div>
@@ -1998,6 +2003,7 @@
                         </div>
 
                         <div class="px-6 pt-4 pb-2 flex-shrink-0 border-b border-gray-100">
+                            <div id="accountTableControls"></div>
                         </div>
 
                         <div class="flex-1 overflow-y-auto px-6" style="min-height: 0;">
@@ -2024,6 +2030,7 @@
                         </div>
 
                         <div class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">
+                            <div id="accountTablePagination"></div>
                         </div>
                     </div>
                 </div>
@@ -2041,8 +2048,8 @@
                 class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                 <div class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
                     <h3 class="text-lg font-semibold mb-4">Konfirmasi Hapus fakturpembelian ini?</h3>
-                    <form id="deleteForm" action="{{ route('fakturpembelian.destroy', $fakturpembelian->fstockmtid) }}"
-                        method="POST">
+                    <form id="deleteForm"
+                        action="{{ route('fakturpembelian.destroy', $fakturpembelian->fstockmtid) }}" method="POST">
                         @csrf
                         @method('DELETE')
                         <div class="flex justify-end space-x-2">
@@ -2332,51 +2339,26 @@
                 initialGrandTotal: @json($famountmt ?? 0),
                 initialPpnAmount: @json($famountpajak ?? 0),
 
-                includePPN: false, // tambah PPN normal di luar total
-                fapplyppn: false, // harga sudah termasuk PPN (back-calc)
-                // PPN yang SUDAH termasuk (back-calc dari GROSS)
-                get ppnIncluded() {
-                    const total = +this.totalHarga || 0;
-                    const rate = +this.ppnRate || 0;
-                    if (!this.fapplyppn) return 0;
-                    // back-calc from GROSS
-                    return Math.round((100 / (100 + rate)) * total * (rate / 100));
-                },
-
-                // NET dari GROSS jika fapplyppn aktif
-                get netFromGross() {
-                    const total = +this.totalHarga || 0;
-                    return total - this.ppnIncluded;
-                },
-
-                // PPN tambahan (di luar total). Jika sudah include PPN, base = NET (tidak pajak atas pajak)
-                get ppnAdded() {
-                    const rate = +this.ppnRate || 0;
-                    if (!this.includePPN) return 0;
-
-                    const total = +this.totalHarga || 0;
-
-                    // When both are ON, compute extra PPN on GROSS (not NET)
-                    const base = this.fapplyppn ? total : total; // <— effectively: always use total (GROSS)
-
-                    return Math.round(base * (rate / 100));
-                },
-
+                includePPN: @json($includePPN == 1),
+                ppnMode: @json((int)$ppnMode),
+                ppnRate: @json((float)$ppnRate),
                 get ppnAmount() {
-                    // Jika dua checkbox aktif → tampilkan PPN tambahan saja (hindari double count)
-                    if (this.includePPN && this.fapplyppn) {
-                        return this.ppnAdded;
+                    if (!this.includePPN) return 0;
+                    const total = +this.totalHarga || 0;
+                    const rate = +this.ppnRate || 0;
+                    if (this.ppnMode === 1) {
+                        // Include: Back-calc from GROSS
+                        return Math.round((rate / (100 + rate)) * total);
+                    } else {
+                        // Exclude: Add on top of base
+                        return Math.round(total * (rate / 100));
                     }
-                    // Kasus lain: gabungan PPN yang sudah termasuk + PPN tambahan
-                    return (this.ppnIncluded ?? 0) + (this.ppnAdded ?? 0);
                 },
 
                 get grandTotal() {
                     const total = +this.totalHarga || 0;
-                    if (this.includePPN) return total + this.ppnAdded; // GROSS + extra PPN on GROSS
-                    if (this.includePPN) return total + this.ppnAdded; // NET + PPN
-                    if (this.fapplyppn) return total; // GROSS stays GROSS
-                    return total;
+                    if (!this.includePPN || this.ppnMode === 1) return total;
+                    return total + this.ppnAmount;
                 },
 
                 fmt(n) {
@@ -3820,5 +3802,177 @@
                     }
                 }
             }
+
+            // Modal Account
+            function accountBrowser() {
+                return {
+                    open: false,
+                    table: null,
+
+                    initDataTable() {
+                        if (this.table) {
+                            this.table.destroy();
+                        }
+
+                        this.table = $('#accountTable').DataTable({
+                            processing: true,
+                            serverSide: true,
+                            ajax: {
+                                url: "{{ route('accounts.browse') }}",
+                                type: 'GET',
+                                data: function(d) {
+                                    return {
+                                        draw: d.draw,
+                                        start: d.start,
+                                        length: d.length,
+                                        search: d.search.value,
+                                        order_column: d.columns[d.order[0].column].data,
+                                        order_dir: d.order[0].dir
+                                    };
+                                }
+                            },
+                            columns: [{
+                                    data: 'faccount',
+                                    name: 'faccount',
+                                    className: 'font-mono text-sm'
+                                },
+                                {
+                                    data: 'faccname',
+                                    name: 'faccname',
+                                    className: 'text-sm'
+                                },
+                                {
+                                    data: null,
+                                    orderable: false,
+                                    searchable: false,
+                                    className: 'text-center',
+                                    width: '100px',
+                                    render: function(data, type, row) {
+                                        return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>';
+                                    }
+                                }
+                            ],
+                            pageLength: 10,
+                            lengthMenu: [
+                                [10, 25, 50, 100],
+                                [10, 25, 50, 100]
+                            ],
+                            dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
+                            language: {
+                                processing: "Memuat data...",
+                                search: "Cari:",
+                                lengthMenu: "Tampilkan _MENU_",
+                                info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
+                                infoEmpty: "Tidak ada data",
+                                infoFiltered: "(disaring dari _MAX_ total data)",
+                                zeroRecords: "Tidak ada data yang ditemukan",
+                                emptyTable: "Tidak ada data tersedia",
+                                paginate: {
+                                    first: "Pertama",
+                                    last: "Terakhir",
+                                    next: "Selanjutnya",
+                                    previous: "Sebelumnya"
+                                }
+                            },
+                            order: [
+                                [0, 'asc']
+                            ],
+                            autoWidth: false,
+                            initComplete: function() {
+                                const api = this.api();
+                                const $container = $(api.table().container());
+
+                                // Style search input
+                                $container.find('.dt-search .dt-input, .dataTables_filter input').css({
+                                    width: '300px',
+                                    padding: '8px 12px',
+                                    border: '2px solid #e5e7eb',
+                                    borderRadius: '8px',
+                                    fontSize: '14px'
+                                }).focus();
+
+                                // Style length select
+                                $container.find('.dt-length select, .dataTables_length select').css({
+                                    padding: '6px 32px 6px 10px',
+                                    border: '2px solid #e5e7eb',
+                                    borderRadius: '8px',
+                                    fontSize: '14px'
+                                });
+                            }
+                        });
+
+                        // Handle button click
+                        $('#accountTable').on('click', '.btn-choose', (e) => {
+                            const data = this.table.row($(e.target).closest('tr')).data();
+                            this.choose(data);
+                        });
+                    },
+
+                    openModal() {
+                        this.open = true;
+                        this.$nextTick(() => {
+                            this.initDataTable();
+                        });
+                    },
+
+                    close() {
+                        this.open = false;
+                        if (this.table) {
+                            this.table.search('').draw();
+                        }
+                    },
+
+                    choose(acc) {
+                        window.dispatchEvent(new CustomEvent('account-picked', {
+                            detail: {
+                                faccid: acc.faccid,
+                                faccount: acc.faccount,
+                                faccname: acc.faccname
+                            }
+                        }));
+                        this.close();
+                    },
+
+                    init() {
+                        window.addEventListener('account-browse-open', () => this.openModal(), {
+                            passive: true
+                        });
+                    }
+                }
+            }
+
+            // Helper untuk update field saat account-picked
+            document.addEventListener('DOMContentLoaded', () => {
+                window.addEventListener('account-picked', (ev) => {
+                    const {
+                        faccid,
+                        faccount,
+                        faccname
+                    } = ev.detail || {};
+                    const sel = document.getElementById('accountSelect');
+                    const hidId = document.getElementById('accountIdHidden');
+                    const hidCode = document.getElementById('accountCodeHidden');
+
+                    if (sel) {
+                        // Cek apakah option sudah ada
+                        let opt = [...sel.options].find(o => o.value == faccount);
+                        const label = `${faccount} - ${faccname}`;
+
+                        if (!opt) {
+                            opt = new Option(label, faccount, true, true);
+                            sel.add(opt);
+                        } else {
+                            opt.text = label;
+                            opt.selected = true;
+                        }
+                        sel.dispatchEvent(new Event('change', {
+                            bubbles: true
+                        }));
+                    }
+
+                    if (hidId) hidId.value = faccid || '';
+                    if (hidCode) hidCode.value = faccount || '';
+                });
+            });
         </script>
     @endpush

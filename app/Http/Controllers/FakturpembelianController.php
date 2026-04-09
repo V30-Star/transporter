@@ -181,7 +181,6 @@ class FakturPembelianController extends Controller
       ->leftJoin('msprd as m', 'm.fprdid', '=', 'tr_pod.fprdid')
       ->select([
         'tr_pod.fpodid as frefdtno',
-        'tr_pod.fpohid as fnouref',
         'tr_pod.fprdcode as fitemcode',
         'm.fprdname as fitemname',
         'tr_pod.fqty',
@@ -268,7 +267,6 @@ class FakturPembelianController extends Controller
       ->leftJoin('msprd as m', 'm.fprdid', '=', 'trstockdt.fprdcodeid')
       ->select([
         'trstockdt.fstockdtid as frefdtno',
-        'trstockdt.fstockmtid as fnouref',
         'trstockdt.fprdcode as fitemcode',
         'm.fprdname as fitemname',
         'trstockdt.fqty',
@@ -436,309 +434,203 @@ class FakturPembelianController extends Controller
 
   public function store(Request $request)
   {
+    Log::info("FakturPembelian@store: Memulai proses simpan.", ['payload' => $request->all()]);
+
     try {
-      // VALIDATION
+      // 1) VALIDASI
       $request->validate([
-        'fstockmtno' => ['nullable', 'string', 'max:100'],
         'fstockmtdate' => ['required', 'date'],
-        'fsupplier' => ['required', 'string', 'max:30'],
-        'ffrom' => ['nullable', 'string', 'max:10'],
-        'fket' => ['nullable', 'string', 'max:50'],
-        'fbranchcode' => ['nullable', 'string', 'max:20'],
-        'faccid' => ['nullable', 'integer'],
-        'fitemcode' => ['required', 'array', 'min:1'],
-        'fitemcode.*' => ['required', 'string', 'max:50'],
-        'fsatuan' => ['nullable', 'array'],
-        'fsatuan.*' => ['nullable', 'string', 'max:20'],
-        'frefdtno' => ['nullable', 'array'],
-        'frefdtno.*' => ['nullable', 'string', 'max:20'],
-        'fnouref' => ['nullable', 'array'],
-        'fnouref.*' => ['nullable', 'integer'],
-        'fqty' => ['required', 'array'],
-        'fqty.*' => ['numeric', 'min:0'],
-        'fprice' => ['required', 'array'],
-        'fprice.*' => ['numeric', 'min:0'],
-        'fdiscpersen' => ['nullable', 'array'],
-        'fdiscpersen.*' => ['numeric', 'min:0'],
-        'fbiaya' => ['required', 'array'],
-        'fbiaya.*' => ['numeric', 'min:0'],
-        'fdesc' => ['nullable', 'array'],
-        'fdesc.*' => ['nullable', 'string', 'max:500'],
-        'ftempohr' => ['nullable', 'integer'],
-        'ftypebuy' => ['nullable', 'integer'],
-        'frefno' => ['nullable', 'integer'],
-        'frefpo' => ['nullable', 'string'],
-        'fcurrency' => ['nullable', 'string', 'max:5'],
-        'frate' => ['nullable', 'numeric', 'min:0'],
-        'famountpopajak' => ['nullable', 'numeric', 'min:0'],
-      ], [
-        'fstockmtdate.required' => 'Tanggal transaksi wajib diisi.',
-        'fsupplier.required' => 'Supplier wajib diisi.',
-        'fitemcode.required' => 'Minimal 1 item.',
-        'fsatuan.*.max' => 'Satuan di salah satu baris tidak boleh lebih dari 5 karakter.',
+        'fsupplier'    => ['required', 'string', 'max:30'],
+        'fitemcode'    => ['required', 'array', 'min:1'],
+        'fitemcode.*'  => ['required', 'string', 'max:50'],
+        'fqty'         => ['required', 'array'],
+        'fqty.*'       => ['numeric', 'min:0.001'],
+        'fprice'       => ['required', 'array'],
+        'fprice.*'     => ['numeric', 'min:0'],
       ]);
 
-      // HEADER FIELDS
-      $fstockmtno = trim((string)$request->input('fstockmtno'));
+      // 2) HEADER FIELDS
+      $fstockmtno   = trim((string)$request->input('fstockmtno'));
       $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
-      $fsupplier = trim((string)$request->input('fsupplier'));
-      $ffrom = $request->input('fwhid');
-      $fket = trim((string)$request->input('fket', ''));
-      $fbranchcode = $request->input('fbranchcode');
-      $faccid = $request->input('faccid');
-      $ftempohr = $request->input('ftempohr');
-      $ftypebuy = $request->input('ftypebuy');
-      $frefno = $request->input('frefno');
-      $frefpo = $request->input('frefpo');
+      $fsupplier    = trim((string)$request->input('fsupplier'));
+      $ffrom        = $request->input('fwhid');
+      $fket         = trim((string)$request->input('fket', ''));
+      $fbranchcode  = $request->input('fbranchcode');
+      $faccid       = $request->input('faccid');
+      $ftempohr     = $request->input('ftempohr');
+      $ftypebuy     = $request->input('ftypebuy');
+      $frefno       = $request->input('frefno');
+      $frefpo       = $request->input('frefpo');
+      $frate        = max(1, (float)$request->input('frate', 1));
+      $userid       = auth('sysuser')->user()->fsysuserid ?? 'admin';
+      $now          = now();
+      $fincludeppn = $request->boolean('fincludeppn') ? 1 : 0;
+      $fapplyppn = $request->boolean('fapplyppn') ? 1 : 0;
 
-      $fcurrency = $request->input('fcurrency', 'IDR');
-      $frate = (float)$request->input('frate', 1);
-      if ($frate <= 0) $frate = 1;
-
-      $userid = auth('sysuser')->user()->fsysuserid ?? 'admin';
-      $now = now();
-
-      // DETAIL ARRAYS
-      $codes = $request->input('fitemcode', []);
+      // 3) DETAIL ARRAYS
+      $codes   = $request->input('fitemcode', []);
       $satuans = $request->input('fsatuan', []);
-      $refdtno = $request->input('frefdtno', []);
-      $nourefs = $request->input('fnouref', []);
-      $qtys = $request->input('fqty', []);
-      $prices = $request->input('fprice', []);
-      $biayas = $request->input('fbiaya', []);
-      $discs = $request->input('fdiscpersen', []);
-      $descs = $request->input('fdesc', []);
+      $refdtnos = $request->input('frefdtno', []);
+      $refdtids = $request->input('frefdtid', []);
+      $qtys    = $request->input('fqty', []);
+      $prices  = $request->input('fprice', []);
+      $biayas  = $request->input('fbiaya', []);
+      $discs   = $request->input('fdiscpersen', []);
+      $descs   = $request->input('fdesc', []);
 
-      $subtotal = (float) $request->input('famount', 0);
-      $ppnAmount = (float) $request->input('famountpajak', 0);
-      $grandTotal = (float) $request->input('famountmt', 0);
-
-      // LOAD PRODUCT METADATA
+      // 4) BUILD ROWS
       $uniqueCodes = array_values(array_unique(array_filter(array_map(fn($c) => trim((string)$c), $codes))));
+      $prodMeta    = DB::table('msprd')->whereIn('fprdcode', $uniqueCodes)->get()->keyBy('fprdcode');
 
-      $prodMeta = DB::table('msprd')
-        ->whereIn('fprdcode', $uniqueCodes)
-        ->get(['fprdid', 'fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2'])
-        ->keyBy('fprdcode');
-
-      $pickDefaultSat = function (?object $meta): string {
-        if (!$meta) return '';
-        foreach (['fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2'] as $k) {
-          $v = trim((string)($meta->$k ?? ''));
-          if ($v !== '') return mb_substr($v, 0, 5);
-        }
-        return '';
-      };
-
-      // BUILD DETAIL ROWS
-      $rowsDt = [];
+      $rowsDt   = [];
       $subtotal = 0.0;
+
+      $lineCounter = 1;
 
       for ($i = 0; $i < count($codes); $i++) {
         $code = trim((string)($codes[$i] ?? ''));
-        $sat = trim((string)($satuans[$i] ?? ''));
-        $rref = trim((string)($refdtno[$i] ?? ''));
-        $rnour = $nourefs[$i] ?? null;
-        $qty = (float)($qtys[$i] ?? 0);
-        $price = (float)($prices[$i] ?? 0);
-        $biaya = (float)($biayas[$i] ?? 0);
-        $discP = (float)($discs[$i] ?? 0);
-        $desc = trim((string)($descs[$i] ?? ''));
-
+        $qty  = (float)($qtys[$i] ?? 0);
         if ($code === '' || $qty <= 0) continue;
 
         $meta = $prodMeta[$code] ?? null;
         if (!$meta) continue;
 
-        $prdId = $meta->fprdid;
-        $fPriceNet = $price + $biaya;
+        $sat = mb_substr(trim((string)($satuans[$i] ?? $meta->fsatuankecil ?? '')), 0, 5);
+        $qtyKecil = ($sat === $meta->fsatuanbesar && ($meta->fqtykecil ?? 0) > 0) ? $qty * (float)$meta->fqtykecil : $qty;
 
-        if ($sat === '') {
-          $sat = $pickDefaultSat($meta);
-        }
-        $sat = mb_substr($sat, 0, 5);
+        $price = (float)($prices[$i] ?? 0);
+        $biaya = (float)($biayas[$i] ?? 0);
+        $discP = (float)($discs[$i] ?? 0);
 
-        if ($sat === '') continue;
-
-        $produk = DB::table('msprd')
-          ->where('fprdcode', $code)
-          ->select('fprdid', 'fsatuanbesar', 'fqtykecil as rasio_konversi')
-          ->first();
-
-        $itemeId = $produk ? $produk->fprdid : $itemeId;
-
-        $qtyKecil = $qty;
-        if ($produk && $sat === $produk->fsatuanbesar) {
-          $qtyKecil = $qty * (float)$produk->rasio_konversi;
-        }
-
-        $priceGross = $price;
-        $priceNet = $priceGross * (1 - ($discP / 100));
-        $amount = $qty * $priceNet;
+        $priceNet = ($price + $biaya) * (1 - ($discP / 100));
+        $amount   = $qty * $priceNet;
         $subtotal += $amount;
 
         $rowsDt[] = [
-          'fprdcode'    => $code,
-          'fprdcodeid'  => $prdId,
-          'frefdtno'    => $rref !== '' ? $rref : null,
-          'fqty' => $qty,
-          'fqtyremain' => $qtyKecil,
-          'fprice' => $price,
-          'fbiaya' => $biaya,
-          'fpricenet' => $fPriceNet,
-          'fprice_rp' => $price * $frate,
-          'ftotprice' => $amount,
+          'fprdcode'     => $code,
+          'fprdcodeid'   => $meta->fprdid,
+          'frefdtno'     => trim((string)($refdtnos[$i] ?? '')) ?: null,
+          'frefdtid'     => isset($refdtids[$i]) ? (int)$refdtids[$i] : null,
+          'fqty'         => $qty,
+          'fqtykecil'    => $qtyKecil,
+          'fqtyremain'   => $qtyKecil,
+          'fprice'       => $price,
+          'fbiaya'       => $biaya,
+          'fpricenet'    => $priceNet,
+          'fprice_rp'    => $price * $frate,
+          'ftotprice'    => $amount,
           'ftotprice_rp' => $amount * $frate,
-          'fusercreate' => (Auth::user()->fname ?? 'system'),
-          'fdatetime' => $now,
-          'fketdt' => $desc !== '' ? $desc : null,
-          'fcode' => '0',
-          'fnouref' => $rnour !== null ? (int)$rnour : null,
-          'frefso' => null,
-          'fdesc' => $desc !== '' ? $desc : null,
-          'fdiscpersen' => (string)$discP,
-          'fsatuan' => $sat,
-          'fqtykecil' => $qtyKecil,
-          'fclosedt' => '0',
+          'fusercreate'  => $userid,
+          'fdatetime'    => $now,
+          'fcode'        => '0',
+          'fdesc'        => trim((string)($descs[$i] ?? '')) ?: null,
+          'fdiscpersen'  => (string)$discP,
+          'fsatuan'      => $sat,
+          'fclosedt'     => '0',
         ];
       }
 
-      if (empty($rowsDt)) {
-        return back()->withInput()->withErrors([
-          'detail' => 'Minimal satu item valid (Kode, Satuan, Qty > 0).'
-        ]);
-      }
-
+      $ppnAmount  = (float) $request->input('famountpopajak', 0);
       $grandTotal = $subtotal + $ppnAmount;
 
-      // DATABASE TRANSACTION
+      // 5) TRANSACTION
       DB::transaction(function () use (
+        $request,
         $fstockmtdate,
         $fsupplier,
         $ffrom,
         $fket,
         $fbranchcode,
-        $fcurrency,
         $frate,
         $userid,
         $now,
         $ftempohr,
+        $fincludeppn,
+        $fapplyppn,
         $ftypebuy,
         $frefno,
         $frefpo,
+        $faccid,
         &$fstockmtno,
         &$rowsDt,
         $subtotal,
         $ppnAmount,
-        $grandTotal,
-        $faccid
+        $grandTotal
       ) {
-        // BRANCH CODE RESOLUTION
-        $kodeCabang = null;
-        if ($fbranchcode !== null) {
-          $needle = trim((string)$fbranchcode);
-          if ($needle !== '') {
-            if (is_numeric($needle)) {
-              $kodeCabang = DB::table('mscabang')->where('fcabangid', (int)$needle)->value('fcabangkode');
-            } else {
-              $kodeCabang = DB::table('mscabang')->whereRaw('LOWER(fcabangkode)=LOWER(?)', [$needle])->value('fcabangkode')
-                ?: DB::table('mscabang')->whereRaw('LOWER(fcabangname)=LOWER(?)', [$needle])->value('fcabangkode');
-            }
-          }
-        }
+        // A. Resolve Cabang
+        $rawBranch = trim((string)$fbranchcode);
+        $kodeCabang = DB::table('mscabang')
+          ->where('fcabangid', is_numeric($rawBranch) ? (int)$rawBranch : -1)
+          ->orWhere('fcabangkode', $rawBranch)
+          ->value('fcabangkode') ?? 'NA';
 
-        if (!$kodeCabang) $kodeCabang = 'NA';
-
-        // GENERATE DOCUMENT NUMBER
         $yy = $fstockmtdate->format('y');
         $mm = $fstockmtdate->format('m');
         $fstockmtcode = 'BUY';
 
+        // B. Penomoran
         if (empty($fstockmtno)) {
-          $prefix = sprintf('%s.%s.%s.%s.', $fstockmtcode, $kodeCabang, $yy, $mm);
-
-          $lockKey = crc32('STOCKMT|' . $fstockmtcode . '|' . $kodeCabang . '|' . $fstockmtdate->format('Y-m'));
+          $prefix = "$fstockmtcode.$kodeCabang.$yy.$mm.";
+          $lockKey = crc32("STOCKMT|$fstockmtcode|$kodeCabang|" . $fstockmtdate->format('Y-m'));
           DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
           $last = DB::table('trstockmt')
-            ->where('fstockmtno', 'like', $prefix . '%')
+            ->where('fstockmtno', 'like', "$prefix%")
             ->selectRaw("MAX(CAST(split_part(fstockmtno, '.', 5) AS int)) AS lastno")
             ->value('lastno');
 
-          $next = (int)$last + 1;
-          $fstockmtno = $prefix . str_pad((string)$next, 4, '0', STR_PAD_LEFT);
+          $fstockmtno = $prefix . str_pad((string)((int)$last + 1), 4, '0', STR_PAD_LEFT);
         }
 
-        // INSERT HEADER
-        $masterData = [
-          'fstockmtno' => $fstockmtno,
-          'fstockmtcode' => $fstockmtcode,
-          'fstockmtdate' => $fstockmtdate,
-          'fprdout' => '0',
-          'fsupplier' => $fsupplier,
-          'fcurrency' => $fcurrency,
-          'frate' => $frate,
-          'famount' => round($subtotal, 2),
-          'famount_rp' => round($subtotal * $frate, 2),
-          'famountpajak' => round($ppnAmount, 2),
+        // C. Insert Header
+        $masterId = DB::table('trstockmt')->insertGetId([
+          'fstockmtno'      => $fstockmtno,
+          'fstockmtcode'    => $fstockmtcode,
+          'fstockmtdate'    => $fstockmtdate,
+          'fsupplier'       => $fsupplier,
+          'frate'           => $frate,
+          'famount'         => round($subtotal, 2),
+          'famount_rp'      => round($subtotal * $frate, 2),
+          'famountpajak'    => round($ppnAmount, 2),
           'famountpajak_rp' => round($ppnAmount * $frate, 2),
-          'famountmt' => round($grandTotal, 2),
-          'famountmt_rp' => round($grandTotal * $frate, 2),
-          'famountremain' => round($grandTotal, 2),
+          'famountmt'       => round($grandTotal, 2),
+          'famountmt_rp'    => round($grandTotal * $frate, 2),
+          'famountremain'   => round($grandTotal, 2),
           'famountremain_rp' => round($grandTotal * $frate, 2),
-          'frefno' => $frefno,
-          'frefpo' => $frefpo,
-          'ftrancode' => null,
-          'ffrom' => $ffrom,
-          'fto' => null,
-          'fkirim' => null,
-          'fprdjadi' => $faccid,
-          'fqtyjadi' => null,
-          'fket' => $fket,
-          'fusercreate' => (Auth::user()->fname ?? 'system'),
-          'fdatetime' => $now,
-          'fsalesman' => null,
-          'fjatuhtempo' => null,
-          'fprint' => 0,
-          'fsudahtagih' => '0',
-          'fbranchcode' => $kodeCabang,
-          'fdiscount' => 0,
-          'ftempohr' => $ftempohr,
-          'ftypebuy' => $ftypebuy,
-        ];
+          'frefno'          => $frefno,
+          'frefpo'          => $frefpo,
+          'ffrom'           => $ffrom,
+          'fprdjadi'        => $faccid,
+          'fket'            => $fket,
+          'fusercreate'     => $userid,
+          'fdatetime'       => $now,
+          'fbranchcode'     => $kodeCabang,
+          'fincludeppn'    => $fincludeppn,
+          'fapplyppn'      => $fapplyppn,
+          'fppnpersen'      => $request->input('ppn_rate', 0),
+          'ftempohr'        => $ftempohr,
+          'ftypebuy'        => $ftypebuy,
+          'fprdout'         => '0',
+          'fsudahtagih'     => '0',
+          'fprint'          => 0,
+        ], 'fstockmtid');
 
-        $newStockMasterId = DB::table('trstockmt')->insertGetId($masterData, 'fstockmtid');
-
-        // INSERT DETAILS
-        $lastNouRef = (int) DB::table('trstockdt')
-          ->where('fstockmtid', $newStockMasterId)
-          ->max('fnouref');
-        $nextNouRef = $lastNouRef + 1;
-
+        // D. Insert Details
         foreach ($rowsDt as &$r) {
-          $r['fstockmtid'] = $newStockMasterId;
+          $r['fstockmtid']   = $masterId;
+          $r['fstockmtno']   = $fstockmtno;
           $r['fstockmtcode'] = $fstockmtcode;
-          $r['fstockmtno'] = $fstockmtno;
-
-          if (!isset($r['fnouref']) || $r['fnouref'] === null) {
-            $r['fnouref'] = $nextNouRef++;
-          }
         }
-        unset($r);
-
         DB::table('trstockdt')->insert($rowsDt);
       });
 
-      return redirect()
-        ->route('fakturpembelian.create')
-        ->with('success', "Faktur Pembelian {$fstockmtno} berhasil disimpan.");
+      return redirect()->route('fakturpembelian.create')
+        ->with('success', "Faktur Pembelian $fstockmtno berhasil disimpan.");
     } catch (\Exception $e) {
-      return back()
-        ->withInput()
-        ->withErrors(['error' => 'Terjadi kesalahan: ' . $e->getMessage()]);
+      Log::error("FakturPembelian@store ERROR: " . $e->getMessage());
+      return back()->withInput()->withErrors(['error' => 'Gagal simpan: ' . $e->getMessage()]);
     }
   }
-
   public function edit(Request $request, $fstockmtid)
   {
     $suppliers = Supplier::orderBy('fsuppliername', 'asc')
@@ -804,7 +696,6 @@ class FakturPembelianController extends Controller
         'famountponet' => $d->famountponet ?? null,
         'famountpo' => $d->famountpo ?? null,
         'frefdtno' => $d->frefdtno ?? null,
-        'fnouref' => $d->fnouref ?? null,
         'fqty' => (float)($d->fqty ?? 0),
         'fterima' => (float)($d->fterima ?? 0),
         'fprice' => (float)($d->fprice ?? 0),
@@ -923,7 +814,6 @@ class FakturPembelianController extends Controller
         'famountponet' => $d->famountponet ?? null,
         'famountpo' => $d->famountpo ?? null,
         'frefdtno' => $d->frefdtno ?? null,
-        'fnouref' => $d->fnouref ?? null,
         'fqty' => (float)($d->fqty ?? 0),
         'fterima' => (float)($d->fterima ?? 0),
         'fprice' => (float)($d->fprice ?? 0),
@@ -997,8 +887,6 @@ class FakturPembelianController extends Controller
         'fsatuan.*' => ['nullable', 'string', 'max:20'],
         'frefdtno' => ['nullable', 'array'],
         'frefdtno.*' => ['nullable', 'string', 'max:20'],
-        'fnouref' => ['nullable', 'array'],
-        'fnouref.*' => ['nullable'],
         'fqty' => ['required', 'array'],
         'fqty.*' => ['numeric', 'min:0'],
         'fprice' => ['required', 'array'],
@@ -1012,6 +900,12 @@ class FakturPembelianController extends Controller
         'fcurrency' => ['nullable', 'string', 'max:5'],
         'frate' => ['nullable', 'numeric', 'min:0'],
         'famountpopajak' => ['nullable', 'numeric', 'min:0'],
+        'famount' => ['nullable', 'numeric', 'min:0'],
+        'famountpajak' => ['nullable', 'numeric', 'min:0'],
+        'famountmt' => ['nullable', 'numeric', 'min:0'],
+        'fincludeppn' => ['nullable', 'boolean'],
+        'fapplyppn' => ['nullable', 'boolean'],
+        'ppn_rate' => ['nullable', 'numeric', 'min:0'],
         'fjatuhtempo' => ['nullable', 'date'],
         'ftempohr' => ['nullable', 'integer'],
         'ftypebuy' => ['nullable', 'integer'],
@@ -1040,6 +934,9 @@ class FakturPembelianController extends Controller
       $fcurrency = $request->input('fcurrency', 'IDR');
       $frate = (float)$request->input('frate', 1);
       if ($frate <= 0) $frate = 1;
+      $fincludeppn = $request->boolean('fincludeppn') ? 1 : 0;
+      $fapplyppn = $request->boolean('fapplyppn') ? 1 : 0;
+      $fppnpersen = (float)$request->input('ppn_rate', 0);
 
       $ppnAmount = (float)$request->input('famountpajak', 0);
       $now = now();
@@ -1048,7 +945,6 @@ class FakturPembelianController extends Controller
       $codes = $request->input('fitemcode', []);
       $satuans = $request->input('fsatuan', []);
       $refdtno = $request->input('frefdtno', []);
-      $nourefs = $request->input('fnouref', []);
       $qtys = $request->input('fqty', []);
       $prices = $request->input('fprice', []);
       $biayas = $request->input('fbiaya', []);
@@ -1113,7 +1009,6 @@ class FakturPembelianController extends Controller
           'fdatetime'   => $now,
           'fketdt'      => $desc ?: null,
           'fcode'       => '0',
-          'fnouref'     => $finalNour,
           'fdiscpersen' => (string)$discP,
           'fsatuan'     => $sat,
           'fqtykecil'   => $qtyKecil,
@@ -1135,9 +1030,11 @@ class FakturPembelianController extends Controller
         $fsupplier,
         $ffrom,
         $fket,
-        $fbranchcode,
         $fcurrency,
         $frate,
+        $fincludeppn,
+        $fapplyppn,
+        $fppnpersen,
         $now,
         $ftempohr,
         $ftypebuy,
@@ -1189,6 +1086,9 @@ class FakturPembelianController extends Controller
           'fdatetime' => $now,
           'fbranchcode' => $kodeCabang, // Menggunakan hasil pencarian aman tadi
           'ftempohr' => $ftempohr,
+          'fincludeppn'    => $fincludeppn,
+          'fapplyppn'      => $fapplyppn,
+          'fppnpersen'      => $fppnpersen,
           'ftypebuy' => $ftypebuy,
           'fjatuhtempo' => $request->input('fjatuhtempo') ? \Carbon\Carbon::parse($request->input('fjatuhtempo'))->startOfDay() : null,
         ]);
@@ -1201,9 +1101,6 @@ class FakturPembelianController extends Controller
           $r['fstockmtid'] = $header->fstockmtid;
           $r['fstockmtcode'] = 'BUY';
           $r['fstockmtno'] = $fstockmtno;
-          if ($r['fnouref'] === null) {
-            $r['fnouref'] = $nextNouRef++;
-          }
         }
 
         DB::table('trstockdt')->insert($rowsDt);
@@ -1285,7 +1182,6 @@ class FakturPembelianController extends Controller
         'famountponet' => $d->famountponet ?? null,
         'famountpo' => $d->famountpo ?? null,
         'frefdtno' => $d->frefdtno ?? null,
-        'fnouref' => $d->fnouref ?? null,
         'fqty' => (float)($d->fqty ?? 0),
         'fterima' => (float)($d->fterima ?? 0),
         'fprice' => (float)($d->fprice ?? 0),
