@@ -604,7 +604,7 @@ class InvoiceController extends Controller
 
     $invoice = Tranmt::with(['customer', 'details' => function ($q) {
       $q->leftJoin('msprd', 'msprd.fprdid', '=', 'trandt.fprdcodeid')
-        ->leftJoin('tranmt as so_hdr', 'so_hdr.ftranmtid', '=', 'trandt.frefsoid')
+        ->leftJoin('trsomt as so_hdr', 'so_hdr.ftrsomtid', '=', 'trandt.frefsoid')
         ->leftJoin('trstockmt as sj_hdr', 'sj_hdr.fstockmtid', '=', 'trandt.frefsrjid')
         ->select(
           'trandt.*',
@@ -719,9 +719,9 @@ class InvoiceController extends Controller
     $fbranchcode = $branch->fcabangkode ?? (string) $raw;   // hidden post
 
     $invoice = Tranmt::with(['customer', 'details' => function ($q) {
-      $q->leftJoin('msprd', 'msprd.fprdcodeid', '=', 'trandt.fprdcodeid')
-        ->leftJoin('tranmt as so_hdr', 'so_hdr.ftranmtid', '=', DB::raw('CAST(NULLIF(trandt.frefsoid, \'\') AS INTEGER)'))
-        ->leftJoin('trstockmt as sj_hdr', 'sj_hdr.fstockmtid', '=', DB::raw('CAST(NULLIF(trandt.frefsrjid, \'\') AS INTEGER)'))
+      $q->leftJoin('msprd', 'msprd.fprdid', '=', 'trandt.fprdcodeid')
+        ->leftJoin('trsomt as so_hdr', 'so_hdr.ftrsomtid', '=', 'trandt.frefsoid')
+        ->leftJoin('trstockmt as sj_hdr', 'sj_hdr.fstockmtid', '=', 'trandt.frefsrjid')
         ->select(
           'trandt.*',
           'msprd.fprdcode as fitemcode',
@@ -737,10 +737,11 @@ class InvoiceController extends Controller
     }
 
     $savedItems = $invoice->details->map(function ($d) {
+      $refNoDisplay = $d->fsono_ref ?? ($d->fstockno_ref ?? (trim($d->frefso ?? $d->frefsrj ?? '') ?: ($d->frefcode ?? '-')));
       return [
         'uid'        => $d->ftrandtid,
-        'fitemcode'  => (string)($d->fitemcode ?? ''),  // dari alias msprd.fprdcodeid
-        'fitemname'  => (string)($d->fprdname ?? ''),   // dari msprd.fprdname
+        'fitemcode'  => (string)($d->fitemcode ?? ''),
+        'fitemname'  => (string)($d->fprdname ?? ''),
         'fsatuan'    => (string)($d->fsatuan ?? ''),
         'frefdtno'   => (string)($d->frefdtno ?? ''),
         'fqty'       => (float)($d->fqty ?? 0),
@@ -749,7 +750,8 @@ class InvoiceController extends Controller
         'fdisc'      => (float)($d->fdisc ?? 0),
         'ftotal'     => (float)($d->famount ?? 0),
         'fdesc'      => (string)($d->fdesc ?? ''),
-        'frefno_display' => $d->fsono_ref ?? $d->fstockno_ref ?? '-',
+        'frefcode'   => (string)($d->frefcode ?? ''),
+        'frefno_display' => $refNoDisplay,
         'fketdt'     => (string)($d->fketdt ?? ''),
       ];
     })->values();
@@ -757,7 +759,7 @@ class InvoiceController extends Controller
 
     // Fetch all products for product mapping
     $products = Product::select(
-      'fprdcodeid',
+      'fprdid',
       'fprdcode',
       'fprdname',
       'fsatuankecil',
@@ -1040,16 +1042,16 @@ class InvoiceController extends Controller
     $fbranchcode = $branch->fcabangkode ?? (string) $raw;   // hidden post
 
     $invoice = Tranmt::with(['customer', 'details' => function ($q) {
-      $q->leftJoin('msprd', function ($j) {
-        // Gunakan trandt.fprdcodeid karena sudah integer (tidak perlu CAST lagi)
-        $j->on('msprd.fprdcodeid', '=', 'trandt.fprdcodeid');
-      })
+      $q->leftJoin('msprd', 'msprd.fprdid', '=', 'trandt.fprdcodeid')
+        ->leftJoin('trsomt as so_hdr', 'so_hdr.ftrsomtid', '=', 'trandt.frefsoid')
+        ->leftJoin('trstockmt as sj_hdr', 'sj_hdr.fstockmtid', '=', 'trandt.frefsrjid')
         ->select(
           'trandt.*',
           'msprd.fprdcode as fitemcode',
-          'msprd.fprdname'
+          'msprd.fprdname',
+          'so_hdr.fsono as fsono_ref',
+          'sj_hdr.fstockmtno as fstockno_ref'
         )
-        // Ubah order ke ftrandtid (Primary Key detail) karena ftranmtid tidak ada
         ->orderBy('trandt.ftrandtid', 'asc');
     }])->findOrFail($ftranmtid);
 
@@ -1058,10 +1060,11 @@ class InvoiceController extends Controller
     }
 
     $savedItems = $invoice->details->map(function ($d) {
+      $refNoDisplay = $d->fsono_ref ?? ($d->fstockno_ref ?? (trim($d->frefso ?? $d->frefsrj ?? '') ?: ($d->frefcode ?? '-')));
       return [
         'uid'        => $d->ftrandtid,
-        'fitemcode'  => (string)($d->fitemcode ?? ''),  // dari alias msprd.fprdcodeid
-        'fitemname'  => (string)($d->fprdname ?? ''),   // dari msprd.fprdname
+        'fitemcode'  => (string)($d->fitemcode ?? ''),
+        'fitemname'  => (string)($d->fprdname ?? ''),
         'fsatuan'    => (string)($d->fsatuan ?? ''),
         'frefdtno'   => (string)($d->frefdtno ?? ''),
         'fqty'       => (float)($d->fqty ?? 0),
@@ -1070,6 +1073,8 @@ class InvoiceController extends Controller
         'fdisc'      => (float)($d->fdisc ?? 0),
         'ftotal'     => (float)($d->famount ?? 0),
         'fdesc'      => (string)($d->fdesc ?? ''),
+        'frefcode'   => (string)($d->frefcode ?? ''),
+        'frefno_display' => $refNoDisplay,
         'fketdt'     => (string)($d->fketdt ?? ''),
       ];
     })->values();
@@ -1077,7 +1082,7 @@ class InvoiceController extends Controller
 
     // Fetch all products for product mapping
     $products = Product::select(
-      'fprdcodeid',
+      'fprdid',
       'fprdcode',
       'fprdname',
       'fsatuankecil',
