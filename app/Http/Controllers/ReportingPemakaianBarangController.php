@@ -112,7 +112,7 @@ class ReportingPemakaianBarangController extends Controller
 
     $query = DB::table('trstockmt')
       ->select('trstockmt.*', 'account.faccname', 'mswh.fwhname')
-      ->leftJoin('account', 'trstockmt.frefno', '=', 'account.faccid')
+      ->leftJoin('account', 'trstockmt.fto', '=', 'account.faccid')
       ->leftJoin('mswh', 'trstockmt.ffrom', '=', 'mswh.fwhid')
       ->where('fstockmtcode', 'PBR');
 

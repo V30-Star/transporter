@@ -331,7 +331,7 @@
                                         <!-- ROW UTAMA -->
                                         <tr class="border-t align-top">
                                             <td class="p-2" x-text="i + 1"></td>
-                                            <td class="p-2 font-mono" x-text="it.fitemcode"></td>
+                                            <td class="p-2 font-mono" x-text="it.fprdcode"></td>
                                             <td class="p-2 text-gray-800" x-text="it.fitemname"></td>
                                             <td class="p-2">
                                                 <template x-if="it.units && it.units.length > 1">
@@ -372,7 +372,7 @@
 
                                             <!-- hidden inputs -->
                                             <td class="hidden">
-                                                <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
+                                                <input type="hidden" name="fprdcode[]" :value="it.fprdcode">
                                                 <input type="hidden" name="fitemname[]" :value="it.fitemname">
                                                 <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
                                                 <input type="hidden" name="fqty[]" :value="it.fqty">
@@ -406,7 +406,7 @@
                                         <td class="p-2">
                                             <div class="flex">
                                                 <input type="text" class="flex-1 border rounded-l px-2 py-1 font-mono"
-                                                    x-ref="draftCode" x-model.trim="draft.fitemcode"
+                                                    x-ref="draftCode" x-model.trim="draft.fprdcode"
                                                     @input="onCodeTypedRow(draft)"
                                                     @keydown.enter.prevent="handleEnterOnCode('draft')">
                                                 <button type="button" @click="openBrowseFor('draft')"
@@ -514,10 +514,17 @@
                                         <span class="min-w-[140px] text-right font-medium"
                                             x-text="rupiah(totalHarga)"></span>
                                     </div>
+
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm text-gray-700">Total DPP</span>
+                                        <span class="min-w-[140px] text-right font-medium"
+                                            x-text="rupiah(totalDPP)"></span>
+                                    </div>
+
                                     <div class="flex items-center justify-between gap-6">
                                         <!-- Checkbox -->
                                         <div class="flex items-center">
-                                            <input id="fapplyppn" name="fppn" type="checkbox" value="1"
+                                            <input id="fapplyppn" name="fapplyppn" type="checkbox" value="1"
                                                 x-model="includePPN"
                                                 class="h-4 w-4 text-blue-600 border-gray-300 rounded">
                                             <label for="fapplyppn" class="ml-2 text-sm font-medium text-gray-700">
@@ -527,8 +534,8 @@
 
                                         <!-- Dropdown Include / Exclude (tengah) -->
                                         <div class="flex items-center gap-2">
-                                            <select id="includePPN" name="includePPN" x-model.number="fapplyppn"
-                                                x-init="fapplyppn = 0" :disabled="!(includePPN || fapplyppn)"
+                                            <select id="ppnMode" name="fincludeppn" x-model.number="ppnMode"
+                                                :disabled="!includePPN"
                                                 class="w-28 h-9 px-2 text-sm leading-tight border rounded transition-opacity appearance-none
                                                        disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
                                                 <option value="0">Exclude</option>
@@ -538,9 +545,8 @@
 
                                         <!-- Input Rate + Nominal (kanan) -->
                                         <div class="flex items-center gap-2">
-                                            <input type="number" name="fppnpersen" min="0" max="100"
+                                            <input type="number" min="0" max="100" name="ppn_rate"
                                                 step="0.01" x-model.number="ppnRate" :disabled="!includePPN"
-                                                value="11"
                                                 class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
                                                         [appearance:textfield]
                                                         [&::-webkit-outer-spin-button]:appearance-none
@@ -564,9 +570,9 @@
 
                                 <!-- Hidden inputs for submit -->
                                 <input type="hidden" name="famountgross" :value="totalHarga">
-                                <input type="hidden" name="" :value="ppnAmount">
+                                <input type="hidden" name="famountpajak" :value="ppnAmount">
                                 <input type="hidden" name="famountso" :value="grandTotal">
-                                <input type="hidden" name="famountpopajak" :value="ppnRate">
+                                <input type="hidden" name="famountsonet" :value="totalDPP">
                             </div>
                         </div>
 
@@ -1371,46 +1377,31 @@
             initialPpnAmount: @json($famountpopajak ?? 0),
 
             includePPN: false,
-            fapplyppn: false,
+            ppnMode: 0, // 0: Exclude, 1: Include
+            ppnRate: 11,
 
-            get ppnIncluded() {
+            get totalDPP() {
+                if (!this.includePPN) return 0;
                 const total = +this.totalHarga || 0;
                 const rate = +this.ppnRate || 0;
-                if (!this.fapplyppn) return 0;
-                return Math.round((100 / (100 + rate)) * total * (rate / 100));
-            },
-
-            get netFromGross() {
-                const total = +this.totalHarga || 0;
-                return total - this.ppnIncluded;
-            },
-
-            get ppnAdded() {
-                const rate = +this.ppnRate || 0;
-                if (!this.includePPN || this.fapplyppn) return 0;
-                const total = +this.totalHarga || 0;
-                return Math.round(total * (rate / 100));
+                if (this.ppnMode === 1) { // Include
+                    return (100 / (100 + rate)) * total;
+                }
+                return total; // Exclude
             },
 
             get ppnAmount() {
-                if (this.fapplyppn) {
-                    return this.ppnIncluded;
-                }
-                if (this.includePPN) {
-                    return this.ppnAdded;
-                }
-                return 0;
+                if (!this.includePPN) return 0;
+                const dpp = this.totalDPP;
+                const rate = +this.ppnRate || 0;
+                return Math.round(dpp * (rate / 100));
             },
 
             get grandTotal() {
                 const total = +this.totalHarga || 0;
-                if (this.fapplyppn) {
-                    return total;
-                }
-                if (this.includePPN) {
-                    return total + this.ppnAdded;
-                }
-                return total;
+                if (!this.includePPN) return total;
+                if (this.ppnMode === 1) return total; // Include: total already has PPN
+                return total + this.ppnAmount; // Exclude: total + PPN
             },
 
             fmt(n) {
@@ -1523,11 +1514,11 @@
             },
 
             onCodeTypedRow(row) {
-                this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                this.hydrateRowFromMeta(row, this.productMeta(row.fprdcode));
             },
 
             isComplete(row) {
-                return row.fitemcode && row.fitemname && row.fsatuan && Number(row.fqty) > 0;
+                return row.fprdcode && row.fitemname && row.fsatuan && Number(row.fqty) > 0;
             },
 
             onPrPicked(e) {
@@ -1551,7 +1542,7 @@
                 const r = this.draft;
 
                 if (!this.isComplete(r)) {
-                    if (!r.fitemcode) return this.$refs.draftCode?.focus();
+                    if (!r.fprdcode) return this.$refs.draftCode?.focus();
                     if (!r.fitemname) return this.$refs.draftCode?.focus();
                     if (!r.fsatuan) return (r.units.length > 1 ? this.$refs.draftUnit?.focus() : this.$refs.draftCode
                         ?.focus());
@@ -1562,7 +1553,7 @@
                 this.recalc(r);
 
                 const dupe = this.savedItems.find(it =>
-                    it.fitemcode === r.fitemcode &&
+                    it.fprdcode === r.fprdcode &&
                     it.fsatuan === r.fsatuan
                 );
 
@@ -1610,7 +1601,7 @@
             applyDesc() {},
 
             itemKey(it) {
-                return `${(it.fitemcode ?? '').toString().trim()}::${(it.frefdtno ?? '').toString().trim()}`;
+                return `${(it.fprdcode ?? '').toString().trim()}::${(it.frefdtno ?? '').toString().trim()}`;
             },
 
             getCurrentItemKeys() {
@@ -1649,7 +1640,7 @@
 
             init() {
                 this.$watch('includePPN', () => this.recalcTotals());
-                this.$watch('fapplyppn', () => this.recalcTotals());
+                this.$watch('ppnMode', () => this.recalcTotals());
                 this.$watch('ppnRate', () => this.recalcTotals());
 
                 window.getCurrentItemKeys = () => this.getCurrentItemKeys();
@@ -1660,8 +1651,8 @@
                     } = e.detail || {};
                     if (!product) return;
                     const apply = (row) => {
-                        row.fitemcode = (product.fprdcode || '').toString();
-                        this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                        row.fprdcode = (product.fprdcode || '').toString();
+                        this.hydrateRowFromMeta(row, this.productMeta(row.fprdcode));
                         if (!row.fqty) row.fqty = 1;
                         this.recalc(row);
                     };
@@ -1685,7 +1676,7 @@
         function newRow() {
             return {
                 uid: null,
-                fitemcode: '',
+                fprdcode: '',
                 fitemname: '',
                 units: [],
                 fsatuan: '',

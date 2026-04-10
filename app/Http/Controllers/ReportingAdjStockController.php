@@ -112,7 +112,7 @@ class ReportingAdjStockController extends Controller
 
     $query = DB::table('trstockmt')
       ->select('trstockmt.*', 'account.faccname')
-      ->leftJoin('account', 'trstockmt.frefno', '=', 'account.faccid')
+      ->leftJoin('account', 'trstockmt.fto', '=', 'account.faccid')
       ->where('fstockmtcode', 'ADJ');
 
     // Filter berdasarkan tanggal jika ada

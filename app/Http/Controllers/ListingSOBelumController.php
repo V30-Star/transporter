@@ -36,7 +36,7 @@ class ListingSOBelumController extends Controller
     {
         $query = DB::table('trsomt as m')
             ->join('trsodt as d', 'm.fsono', '=', 'd.fsono')
-            ->join('msprd as p', 'd.fitemid', '=', 'p.fprdid')
+            ->join('msprd as p', 'd.fprdcodeid', '=', 'p.fprdid')
             ->join('mscustomer as c', 'm.fcustno', '=', 'c.fcustomerid')
             ->select(
                 'm.fsono',
@@ -320,7 +320,7 @@ class ListingSOBelumController extends Controller
     {
         $query = DB::table('trsomt as m')
             ->join('trsodt as d', 'm.fsono', '=', 'd.fsono')
-            ->join('msprd as p', 'd.fitemid', '=', 'p.fprdid')
+            ->join('msprd as p', 'd.fprdcodeid', '=', 'p.fprdid')
             ->join('mscustomer as c', 'm.fcustno', '=', 'c.fcustomerid')
             ->select(
                 'm.fsono',

@@ -12,6 +12,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB; // sekalian biar aman untuk tanggal
+use Illuminate\Support\Facades\Log; // sekalian biar aman untuk tanggal
 
 class SalesOrderController extends Controller
 {
@@ -214,14 +215,13 @@ class SalesOrderController extends Controller
         // 2. Ambil data detail dari trsodt menggunakan relasi ID header
         // Asumsi: trsodt memiliki kolom ftrsomtid sebagai foreign key
         $items = SalesOrderDetail::where('trsodt.ftrsomtid', $header->ftrsomtid)
-            ->leftJoin('msprd as m', 'm.fprdcode', '=', 'trsodt.fitemno') // Join ke Master Produk
+            ->leftJoin('msprd as m', 'm.fprdcode', '=', 'trsodt.fprdcode') // Join ke Master Produk
             ->select([
                 'trsodt.ftrsodtid as frefdtno',  // ID Detail sebagai referensi unik
                 'trsodt.ftrsomtid as fnouref',   // ID Header
-                'trsodt.fitemno as fitemcode',   // Kode Produk
+                'trsodt.fprdcode as fprdcode',   // Kode Produk
                 'm.fprdname as fitemname',       // Nama Produk dari master
                 'trsodt.fqty',                   // Qty dari SO
-                'trsodt.funit as fsatuan',       // Satuan (sesuaikan nama kolomnya unit/satuan)
                 'trsodt.fprice as fharga',       // Harga jual
             ])
             ->orderBy('trsodt.ftrsodtid')
@@ -303,7 +303,7 @@ class SalesOrderController extends Controller
         // Detail: join dengan product
         $dt = DB::table('trsodt')
             ->leftJoin('msprd as p', function ($j) {
-                $j->on('p.fprdid', '=', 'trsodt.fitemid');
+                $j->on('p.fprdid', '=', 'trsodt.fprdcodeid');
             })
             ->where('trsodt.ftrsomtid', $ftrsomtid)
             ->orderBy('trsodt.ftrsodtid')
@@ -390,29 +390,19 @@ class SalesOrderController extends Controller
             'falamatkirim' => ['nullable', 'string', 'max:300'],
             'fbranchcode' => ['nullable', 'string', 'max:2'],
             'ftempohr' => ['nullable', 'string', 'max:3'],
-
-            'fitemcode' => ['required', 'array', 'min:1'],
-            'fitemcode.*' => ['required', 'string', 'max:20'],
-
+            'fprdcode' => ['required', 'array', 'min:1'],
+            'fprdcode.*' => ['required', 'string', 'max:20'],
             'fsatuan' => ['nullable', 'array'],
             'fsatuan.*' => ['nullable', 'string', 'max:10'],
-
-            'fitemname' => ['nullable', 'array'],
-            'fitemname.*' => ['nullable', 'string', 'max:200'],
-
             'fqty' => ['required', 'array'],
             'fqty.*' => ['numeric', 'min:0'],
-            'fppn' => ['nullable'],
-            'fppnpersen' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'fprice' => ['nullable', 'array'],
             'fprice.*' => ['numeric', 'min:0'],
-
             'fdisc' => ['nullable', 'array'],
-            'fdisc.*' => ['nullable'], // ✅ UBAH: hapus validasi numeric, karena bisa string "10+2"
         ], [
             'fsodate.required' => 'Tanggal SO wajib diisi.',
             'fcustno.required' => 'Customer wajib diisi.',
-            'fitemcode.required' => 'Minimal 1 item.',
+            'fprdcode.required' => 'Minimal 1 item.',
         ]);
 
         // HEADER VALUES
@@ -421,11 +411,12 @@ class SalesOrderController extends Controller
         $fincludeppn = $request->boolean('fincludeppn') ? '1' : '0';
         $userid = auth('sysuser')->user()->fname ?? 'admin';
         $now = now();
+        $fincludeppn = $request->boolean('fincludeppn') ? 1 : 0;
+        $fapplyppn = $request->boolean('fapplyppn') ? 1 : 0;
 
         // DETAIL ARRAYS
-        $itemId = $request->input('fitemid', []);
-        $itemCodes = $request->input('fitemcode', []);
-        $itemNames = $request->input('fitemname', []);
+        $itemId = $request->input('fprdcodeid', []);
+        $itemCodes = $request->input('fprdcode', []);
         $satuans = $request->input('fsatuan', []);
         $qtys = $request->input('fqty', []);
         $prices = $request->input('fprice', []);
@@ -436,25 +427,14 @@ class SalesOrderController extends Controller
         $rowsSodt = [];
         $totalGross = 0.0;
         $totalDisc = 0.0;
-        $rowCount = max(
-            count($itemCodes),
-            count($satuans),
-            count($qtys),
-            count($prices),
-            count($discs),
-            count($descs),
-            count($itemNames)
-        );
+
+        $rowCount = count($itemCodes);
 
         for ($i = 0; $i < $rowCount; $i++) {
-            $itemeId = trim($itemId[$i] ?? '');
             $itemCode = trim($itemCodes[$i] ?? '');
-            $itemName = trim((string) ($itemNames[$i] ?? ''));
-            $satuan = trim((string) ($satuans[$i] ?? ''));
             $qty = (float) ($qtys[$i] ?? 0);
             $price = (float) ($prices[$i] ?? 0);
-            $discInput = $discs[$i] ?? 0; // ✅ Simpan input asli dulu
-            $desc = (string) ($descs[$i] ?? '');
+            $discInput = $discs[$i] ?? 0;
 
             if (empty($itemCode) || $qty <= 0) {
                 continue;
@@ -465,13 +445,16 @@ class SalesOrderController extends Controller
                 ->select('fprdid', 'fsatuanbesar', 'fqtykecil as rasio_konversi')
                 ->first();
 
-            $itemeId = $produk ? $produk->fprdid : $itemeId;
+            $itemeId = $produk ? $produk->fprdid : ($itemId[$i] ?? null);
+            $satuan = trim((string) ($satuans[$i] ?? ''));
 
+            // Konversi Qty Kecil
             $qtyKecil = $qty;
             if ($produk && $satuan === $produk->fsatuanbesar) {
                 $qtyKecil = $qty * (float) $produk->rasio_konversi;
             }
 
+            // Hitung Diskon
             $discPersen = $this->parseDiscount($discInput);
             $subtotal = $qty * $price;
             $discount = $subtotal * ($discPersen / 100);
@@ -480,19 +463,11 @@ class SalesOrderController extends Controller
             $totalGross += $subtotal;
             $totalDisc += $discount;
 
-            if (empty($itemeId) && ! empty($itemCode)) {
-                $itemeId = DB::table('msprd')
-                    ->where('fprdcode', '=', $itemCode) // ✅ Gunakan binding parameter
-                    ->value('fprdid');
-            }
-
             $rowsSodt[] = [
-                'fitemid' => mb_substr($itemeId ?: $itemCode, 0, 20), // Fallback ke itemCode
-                'fitemno' => mb_substr($itemCode, 0, 20),
-                'fitemdesc' => mb_substr($itemName, 0, 200),
-                'funit' => mb_substr($satuan, 0, 10),
+                'fprdcodeid' => $itemeId,
+                'fprdcode' => mb_substr($itemCode, 0, 20),
                 'fsatuan' => mb_substr($satuan, 0, 20),
-                'fdesc' => $desc,
+                'fdesc' => $descs[$i] ?? '',
                 'fqty' => $qty,
                 'fprice' => $price,
                 'fdiscpersen' => $discPersen,
@@ -503,134 +478,107 @@ class SalesOrderController extends Controller
             ];
         }
 
-        // Calculate totals
         $amountNet = $totalGross - $totalDisc;
         $fppn = $request->boolean('fppn') ? '1' : '0';
         $fppnpersen = $fppn === '1' ? (float) $request->input('fppnpersen', 11) : 0;
         $ppnAmount = $amountNet * ($fppnpersen / 100);
         $grandTotal = $amountNet + $ppnAmount;
-        $ppnAmount = $amountNet * ($fppnpersen / 100);
-        $grandTotal = $amountNet + $ppnAmount;
 
         // TRANSACTION
-        DB::transaction(function () use (
-            $request,
-            $fsodate,
-            $fincludeppn,
-            $userid,
-            $now,
-            $rowsSodt,
-            $fsono,
-            $totalGross,
-            $totalDisc,
-            $amountNet,
-            $ppnAmount,
-            $fppn,
-            $fppnpersen
-        ) {
-            // Generate fsono if not provided
-            if (empty($fsono)) {
-                $rawBranch = $request->input('fbranchcode');
-                $kodeCabang = null;
-
-                if ($rawBranch !== null) {
-                    $needle = trim((string) $rawBranch);
-                    if (strlen($needle) <= 2) {
-                        $kodeCabang = $needle;
-                    } else {
-                        $kodeCabang = DB::table('mscabang')
-                            ->whereRaw('LOWER(fcabangcode)=LOWER(?)', [$needle])
-                            ->value('fcabangcode')
-                            ?: DB::table('mscabang')
-                            ->whereRaw('LOWER(fcabangname)=LOWER(?)', [$needle])
-                            ->value('fcabangcode');
-                    }
-                }
-
-                if (! $kodeCabang) {
+        try {
+            DB::transaction(function () use (
+                $request,
+                $fsodate,
+                $fincludeppn,
+                $fapplyppn,
+                $userid,
+                $now,
+                $rowsSodt,
+                &$fsono,
+                $totalGross,
+                $totalDisc,
+                $amountNet,
+                $ppnAmount,
+                $fppn,
+                $fppnpersen
+            ) {
+                // A. Generate fsono (Auto Numbering)
+                if (empty($fsono)) {
+                    $rawBranch = $request->input('fbranchcode');
                     $kodeCabang = 'NA';
+
+                    if ($rawBranch !== null) {
+                        $needle = trim((string) $rawBranch);
+                        $kodeCabang = (strlen($needle) <= 2) ? $needle : (DB::table('mscabang')
+                            ->whereRaw('LOWER(fcabangcode)=LOWER(?)', [$needle])
+                            ->value('fcabangcode') ?: 'NA');
+                    }
+
+                    $yy = $fsodate->format('y');
+                    $mm = $fsodate->format('m');
+                    $prefix = sprintf('SO.%s.%s.%s.', $kodeCabang, $yy, $mm);
+
+                    $lockKey = crc32('SO|' . $kodeCabang . '|' . $fsodate->format('Y-m'));
+                    DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
+
+                    $last = DB::table('trsomt')
+                        ->where('fsono', 'like', $prefix . '%')
+                        ->selectRaw("MAX(CAST(split_part(fsono, '.', 5) AS int)) AS lastno")
+                        ->value('lastno');
+
+                    $fsono = $prefix . str_pad((string) ((int)$last + 1), 4, '0', STR_PAD_LEFT);
                 }
 
-                $yy = $fsodate->format('y');
-                $mm = $fsodate->format('m');
-                $prefix = sprintf('SO.%s.%s.%s.', $kodeCabang, $yy, $mm);
+                $lastRefNo = DB::table('trsomt')
+                    ->selectRaw("MAX(NULLIF(frefno, '')::int) as max_no")
+                    ->value('max_no') ?? 0;
+                $nextRefNo = $lastRefNo + 1;
 
-                // Advisory lock per (branch, y-m)
-                $lockKey = crc32('SO|' . $kodeCabang . '|' . $fsodate->format('Y-m'));
-                DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
+                // C. Insert Header
+                $ftrsomtid = DB::table('trsomt')->insertGetId([
+                    'fsono' => $fsono,
+                    'frefno' => (string) $nextRefNo,
+                    'fsodate' => $fsodate,
+                    'fbranchcode' => mb_substr($request->input('fbranchcode', ''), 0, 2),
+                    'fcustno' => mb_substr($request->input('fcustno', ''), 0, 10),
+                    'fsalesman' => $request->input('fsalesman') ?: null,
+                    'ftempohr' => mb_substr($request->input('ftempohr', '0'), 0, 3),
+                    'fket' => mb_substr($request->input('fket', ''), 0, 300),
+                    'falamatkirim' => mb_substr($request->input('falamatkirim', ''), 0, 300),
+                    'fusercreate' => mb_substr($userid, 0, 10),
+                    'fdatetime' => $now,
+                    'famountgross' => round($totalGross, 2),
+                    'fdiscount' => round($totalDisc, 2),
+                    'fincludeppn'    => $fincludeppn,
+                    'fapplyppn'      => $fapplyppn,
+                    'fppnpersen'      => $request->input('ppn_rate', 0),
+                    'famountsonet' => round($amountNet, 2),
+                    'famountpajak' => round($ppnAmount, 2),
+                    'famountso' => 0,
+                    'fprdout' => '0',
+                    'fclose' => '0',
+                    'fprint' => 0,
+                    'fketinternal' => mb_substr($request->input('fketinternal', ''), 0, 300),
+                ], 'ftrsomtid');
 
-                // Get last sequence under this prefix
-                $last = DB::table('trsomt')
-                    ->where('fsono', 'like', $prefix . '%')
-                    ->selectRaw("MAX(CAST(split_part(fsono, '.', 5) AS int)) AS lastno")
-                    ->value('lastno');
+                // D. Insert Details
+                foreach ($rowsSodt as &$r) {
+                    $r['fsono'] = $fsono;
+                    $r['ftrsomtid'] = $ftrsomtid;
+                }
+                DB::table('trsodt')->insert($rowsSodt);
 
-                $next = (int) $last + 1;
-                $fsono = $prefix . str_pad((string) $next, 4, '0', STR_PAD_LEFT);
-            }
-
-            $ftempohr = $request->input('ftempohr', '0');
-
-            DB::statement('LOCK TABLE trsomt IN EXCLUSIVE MODE');
-            $lastRefNo = DB::table('trsomt')
-                ->selectRaw("MAX(NULLIF(frefno, '')::int) as max_no")
-                ->value('max_no') ?? 0;
-
-            $nextRefNo = $lastRefNo + 1;
-            // INSERT HEADER and GET ftrsomtid
-            $ftrsomtid = DB::table('trsomt')->insertGetId([
-                'fsono' => $fsono,
-                'frefno' => (string) $nextRefNo,
-                'fsodate' => $fsodate,
-                'fbranchcode' => mb_substr($request->input('fbranchcode', ''), 0, 2),
-                'fcustno' => mb_substr($request->input('fcustno', ''), 0, 10),
-                'fsalesman' => $request->input('fsalesman') ?: null,
-                'ftempohr' => mb_substr($ftempohr, 0, 3),
-                'fincludeppn' => $fincludeppn,
-                'fket' => mb_substr($request->input('fket', ''), 0, 300),
-                'fketinternal' => mb_substr($request->input('fketinternal', ''), 0, 300),
-                'falamatkirim' => mb_substr($request->input('falamatkirim', ''), 0, 300),
-                'fusercreate' => mb_substr($userid, 0, 10),
-                'fdatetime' => $now,
-                'famountgross' => round($totalGross, 2),
-                'fdiscount' => round($totalDisc, 2),
-                'fdiscpersen' => ($totalGross > 0) ? round(($totalDisc / $totalGross) * 100, 2) : 0,
-                'fppn'      => $fppn,
-                'fppnpersen' => $fppnpersen,
-                'famountsonet' => round($amountNet, 2),
-                'famountpajak' => round($ppnAmount, 2),
-                'famountso' => 0,
-                'fprdout' => '0',
-                'fclose' => '0',
-                'fneedacc' => '0',
-                'fuseracc' => '0',
-                'fprint' => 0,
-            ], 'ftrsomtid');
-
-            // INSERT DETAILS with ftrsomtid FK
-            foreach ($rowsSodt as &$r) {
-                $r['fsono'] = $fsono;
-                $r['ftrsomtid'] = $ftrsomtid;
-            }
-            unset($r);
-
-            DB::table('trsodt')->insert($rowsSodt);
-            // ✅ Hitung famountso dari SUM(famount) di trsodt
-            $totalAmountSo = DB::table('trsodt')
-                ->where('ftrsomtid', $ftrsomtid)
-                ->sum('famount');
-
-            // ✅ Update header dengan nilai yang benar
-            DB::table('trsomt')
-                ->where('ftrsomtid', $ftrsomtid)
-                ->update([
+                // E. Final Total Update
+                $totalAmountSo = DB::table('trsodt')->where('ftrsomtid', $ftrsomtid)->sum('famount');
+                DB::table('trsomt')->where('ftrsomtid', $ftrsomtid)->update([
                     'famountso' => round($totalAmountSo, 2),
                 ]);
-        });
+            });
 
-        return redirect()
-            ->route('salesorder.index')
-            ->with('success', "Sales Order {$fsono} berhasil disimpan.");
+            return redirect()->route('salesorder.create')->with('success', "Sales Order {$fsono} berhasil disimpan.");
+        } catch (\Exception $e) {
+            return back()->withInput()->withErrors(['error' => 'Gagal simpan: ' . $e->getMessage()]);
+        }
     }
 
     // ✅ TAMBAHKAN METHOD HELPER UNTUK PARSE DISCOUNT
@@ -697,11 +645,11 @@ class SalesOrderController extends Controller
         $salesorder = SalesOrderHeader::with(['customer', 'details' => function ($q) {
             $q->orderBy('ftrsomtid')
                 ->leftJoin('msprd', function ($j) {
-                    $j->on('msprd.fprdid', '=', DB::raw('CAST(trsodt.fitemid AS INTEGER)'));
+                    $j->on('msprd.fprdid', '=', DB::raw('CAST(trsodt.fprdcodeid AS INTEGER)'));
                 })
                 ->select(
                     'trsodt.*',
-                    'msprd.fprdcode as fitemcode',
+                    'msprd.fprdcode as fprdcode',
                     'msprd.fprdname',
                     'msprd.fsatuanbesar',
                     'msprd.fqtykecil  as fprd_qtykonversi'
@@ -713,26 +661,25 @@ class SalesOrderController extends Controller
         }
 
         $shippedQtyRaw = DB::table('trstockdt')
-            ->join('trsodt', 'trstockdt.fnouref', '=', 'trsodt.ftrsodtid')
+            ->join('trsodt', 'trstockdt.frefsoid', '=', 'trsodt.ftrsodtid')
             ->where('trsodt.ftrsomtid', $ftrsomtid)
             ->where('trstockdt.fcode', 'S')
             ->where('trstockdt.fstockmtcode', 'SRJ')
-            ->groupBy('trstockdt.frefdtno', 'trstockdt.fprdcodeid', 'trstockdt.fnouref')
+            ->groupBy('trstockdt.frefdtno', 'trstockdt.fprdcodeid')
             ->select(
-                'trstockdt.fnouref',
                 'trstockdt.fprdcodeid',
                 DB::raw('SUM(trstockdt.fqtykecil) as total_kirim')
             )
             ->get();
 
         $shippedQty = $shippedQtyRaw->mapWithKeys(function ($row) {
-            $key = $row->fnouref . '|' . $row->fprdcodeid;
+            $key = $row->fprdcodeid;
             return [$key => (float) $row->total_kirim];
         });
 
         $savedItems = $salesorder->details->map(function ($d) use ($shippedQty) {
             $fnourefKey = $d->fnouref ?? $d->ftrsodtid;
-            $compositeKey   = $d->ftrsodtid . '|' . $d->fitemid;
+            $compositeKey   = $d->ftrsodtid . '|' . $d->fprdcodeid;
             $qtyKirim       = $shippedQty->get($compositeKey, 0);
             $prdQtyKonversi = (float) ($d->fprd_qtykonversi ?? 1);
             $fqty           = (float) ($d->fqty ?? 0);
@@ -746,7 +693,7 @@ class SalesOrderController extends Controller
 
             return [
                 'uid' => $d->ftrsodtid,
-                'fitemcode' => (string) ($d->fitemcode ?? ''),
+                'fprdcode' => (string) ($d->fprdcode ?? ''),
                 'fitemname' => (string) ($d->fprdname ?? ''),
                 'fsatuan' => (string) ($d->fsatuan ?? ''),
                 'frefdtno' => (string) ($d->ftrsodtid ?? ''),
@@ -828,11 +775,11 @@ class SalesOrderController extends Controller
         $salesorder = SalesOrderHeader::with(['customer', 'details' => function ($q) {
             $q->orderBy('ftrsomtid')
                 ->leftJoin('msprd', function ($j) {
-                    $j->on('msprd.fprdid', '=', DB::raw('CAST(trsodt.fitemid AS INTEGER)'));
+                    $j->on('msprd.fprdid', '=', DB::raw('CAST(trsodt.fprdcodeid AS INTEGER)'));
                 })
                 ->select(
                     'trsodt.*',
-                    'msprd.fprdcode      as fitemcode',
+                    'msprd.fprdcode      as fprdcode',
                     'msprd.fprdname',
                     'msprd.fsatuanbesar',
                     'msprd.fqtykecil     as fprd_qtykonversi'  // alias jelas, tidak konflik
@@ -844,25 +791,24 @@ class SalesOrderController extends Controller
         }
 
         $shippedQtyRaw = DB::table('trstockdt')
-            ->join('trsodt', 'trstockdt.fnouref', '=', 'trsodt.ftrsodtid')
+            ->join('trsodt', 'trstockdt.frefsoid', '=', 'trsodt.ftrsodtid')
             ->where('trsodt.ftrsomtid', $ftrsomtid)
             ->where('trstockdt.fcode', 'S')
             ->where('trstockdt.fstockmtcode', 'SRJ')
-            ->groupBy('trstockdt.frefdtno', 'trstockdt.fprdcodeid', 'trstockdt.fnouref')
+            ->groupBy('trstockdt.frefdtno', 'trstockdt.fprdcodeid')
             ->select(
-                'trstockdt.fnouref',
                 'trstockdt.fprdcodeid',
                 DB::raw('SUM(trstockdt.fqtykecil) as total_kirim')
             )
             ->get();
 
         $shippedQty = $shippedQtyRaw->mapWithKeys(function ($row) {
-            $key = $row->fnouref . '|' . $row->fprdcodeid;
+            $key = $row->fprdcodeid;
             return [$key => (float) $row->total_kirim];
         });
 
         $savedItems = $salesorder->details->map(function ($d) use ($shippedQty) {
-            $compositeKey   = $d->ftrsodtid . '|' . $d->fitemid;
+            $compositeKey   = $d->ftrsodtid . '|' . $d->fprdcodeid;
             $qtyKirim       = $shippedQty->get($compositeKey, 0);
             $prdQtyKonversi = (float) ($d->fprd_qtykonversi ?? 1);
             $fqty           = (float) ($d->fqty ?? 0);
@@ -876,11 +822,10 @@ class SalesOrderController extends Controller
 
             return [
                 'uid'        => $d->ftrsodtid,
-                'fitemcode'  => (string) ($d->fitemcode ?? ''),
+                'fprdcode'  => (string) ($d->fprdcode ?? ''),
                 'fitemname'  => (string) ($d->fprdname ?? ''),
                 'fsatuan'    => (string) ($d->fsatuan ?? ''),
                 'frefdtno'   => (string) ($d->ftrsodtid ?? ''),
-                'fnouref'    => (string) ($d->ftrsodtid ?? ''),
                 'fqty'       => $fqty,
                 'fqtyremain' => round($qtyRemain, 2),
                 'fterima'    => (float) ($d->fterima ?? 0),
@@ -948,8 +893,8 @@ class SalesOrderController extends Controller
             'fbranchcode' => ['nullable', 'string', 'max:2'],
             'ftempohr' => ['nullable', 'string', 'max:3'],
 
-            'fitemcode' => ['required', 'array', 'min:1'],
-            'fitemcode.*' => ['required', 'string', 'max:50'],
+            'fprdcode' => ['required', 'array', 'min:1'],
+            'fprdcode.*' => ['required', 'string', 'max:50'],
 
             'fsatuan' => ['nullable', 'array'],
             'fsatuan.*' => ['nullable', 'string', 'max:20'],
@@ -959,7 +904,7 @@ class SalesOrderController extends Controller
 
             'fqty' => ['required', 'array'],
             'fqty.*' => ['numeric', 'min:0'],
-            'fppn' => ['nullable'],
+            'fapplyppn' => ['nullable'],
             'fppnpersen' => ['nullable', 'numeric', 'min:0', 'max:100'],
 
             'fprice' => ['nullable', 'array'],
@@ -970,7 +915,7 @@ class SalesOrderController extends Controller
         ], [
             'fsodate.required' => 'Tanggal SO wajib diisi.',
             'fcustno.required' => 'Customer wajib diisi.',
-            'fitemcode.required' => 'Minimal 1 item.',
+            'fprdcode.required' => 'Minimal 1 item.',
         ]);
 
         // 2. LOAD HEADER
@@ -981,14 +926,16 @@ class SalesOrderController extends Controller
 
         // 3. HEADER VALUES
         $fsodate = Carbon::parse($request->fsodate)->startOfDay();
-        $fincludeppn = $request->boolean('fincludeppn') ? '1' : '0';
+        $fincludeppn = $request->input('fincludeppn', '0'); // 0: Exclude, 1: Include
+        $fapplyppn = $request->input('fapplyppn') == '1' ? '1' : '0';
+        $fppnpersen = (float) $request->input('fppnpersen', 11);
         $fclose = $request->input('fclose') ? '1' : '0';
         $userid = auth('sysuser')->user()->fname ?? 'admin';
         $now = now();
 
         // 4. DETAIL ARRAYS
-        $itemId = $request->input('fitemid', []);
-        $itemCodes = $request->input('fitemcode', []);
+        $itemId = $request->input('fprdcodeid', []);
+        $itemCodes = $request->input('fprdcode', []);
         $itemNames = $request->input('fitemname', []);
         $satuans = $request->input('fsatuan', []);
         $qtys = $request->input('fqty', []);
@@ -1053,10 +1000,7 @@ class SalesOrderController extends Controller
             $rowsSodt[] = [
                 'ftrsomtid' => $ftrsomtid, // Foreign Key
                 'fsono' => $header->fsono, // Gunakan fsono yang sudah ada
-                'fitemid' => ! empty($itemeId) && is_numeric($itemeId) ? (int) $itemeId : null,
-                'fitemno' => mb_substr($itemCode, 0, 50), // Kode produk (string)
-                'fitemdesc' => mb_substr($itemName, 0, 200),
-                'funit' => mb_substr($satuan, 0, 10),
+                'fprdcodeid' => ! empty($itemeId) && is_numeric($itemeId) ? (int) $itemeId : null,
                 'fsatuan' => mb_substr($satuan, 0, 20),
                 'fdesc' => $desc,
                 'fqty' => $qty,
@@ -1072,12 +1016,23 @@ class SalesOrderController extends Controller
 
         // 6. CALCULATE TOTALS
         $amountNet = $totalGross - $totalDisc;
-        $fppn = $request->boolean('fppn') ? '1' : '0';
-        $fppnpersen = $fppn === '1' ? (float) $request->input('fppnpersen', 11) : 0;
-        $ppnAmount = $amountNet * ($fppnpersen / 100);
-        $grandTotal = $amountNet + $ppnAmount;
-        $ppnAmount = $amountNet * ($fppnpersen / 100);
-        $grandTotal = $amountNet + $ppnAmount;
+
+        if ($fapplyppn === '1') {
+            if ($fincludeppn === '1') {
+                // Include: amountNet sudah termasuk pajak
+                $grandTotal = $amountNet;
+                $ppnAmount = $grandTotal * ($fppnpersen / (100 + $fppnpersen));
+                $amountNet = $grandTotal - $ppnAmount; // DPP dihitung mundur
+            } else {
+                // Exclude: amountNet + pajak
+                $ppnAmount = $amountNet * ($fppnpersen / 100);
+                $grandTotal = $amountNet + $ppnAmount;
+            }
+        } else {
+            $ppnAmount = 0;
+            $fppnpersen = 0;
+            $grandTotal = $amountNet;
+        }
 
         // 7. TRANSACTION
         DB::transaction(function () use (
@@ -1094,7 +1049,7 @@ class SalesOrderController extends Controller
             $amountNet,
             $grandTotal,
             $ppnAmount,
-            $fppn,
+            $fapplyppn,
             $fppnpersen
         ) {
             // Update Header
@@ -1111,7 +1066,7 @@ class SalesOrderController extends Controller
                 'falamatkirim' => mb_substr($request->input('falamatkirim', ''), 0, 300),
                 'fuserupdate' => mb_substr($userid, 0, 10),
                 'fdatetime' => $now,
-                'fppn'      => $fppn,
+                'fapplyppn'      => $fapplyppn,
                 'fppnpersen' => $fppnpersen,
                 'famountgross' => round($totalGross, 2),
                 'fdiscount' => round($totalDisc, 2),
@@ -1157,11 +1112,11 @@ class SalesOrderController extends Controller
         $salesorder = SalesOrderHeader::with(['customer', 'details' => function ($q) { // TAMBAHKAN 'customer' di sini
             $q->orderBy('ftrsomtid')
                 ->leftJoin('msprd', function ($j) {
-                    $j->on('msprd.fprdid', '=', DB::raw('CAST(trsodt.fitemid AS INTEGER)'));
+                    $j->on('msprd.fprdid', '=', DB::raw('CAST(trsodt.fprdcodeid AS INTEGER)'));
                 })
                 ->select(
                     'trsodt.*',
-                    'msprd.fprdcode as fitemcode',
+                    'msprd.fprdcode as fprdcode',
                     'msprd.fprdname'
                 );
         }])->findOrFail($ftrsomtid);
@@ -1173,7 +1128,7 @@ class SalesOrderController extends Controller
         $savedItems = $salesorder->details->map(function ($d) {
             return [
                 'uid' => $d->fpodid,
-                'fitemcode' => (string) ($d->fitemcode ?? ''),  // dari alias msprd.fprdid
+                'fprdcode' => (string) ($d->fprdcode ?? ''),  // dari alias msprd.fprdid
                 'fitemname' => (string) ($d->fprdname ?? ''),   // dari msprd.fprdname
                 'fsatuan' => (string) ($d->fsatuan ?? ''),
                 'frefdtno' => (string) ($d->frefdtno ?? ''),
@@ -1203,7 +1158,7 @@ class SalesOrderController extends Controller
         // Prepare the product map for frontend
         $productMap = $products->mapWithKeys(function ($p) {
             return [
-                $p->fitemid => [
+                $p->fprdcodeid => [
                     'name' => $p->fprdname,
                     'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
                     'stock' => $p->fminstock ?? 0,

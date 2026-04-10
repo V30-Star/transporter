@@ -56,14 +56,12 @@ class ListingPenjualanController extends Controller
                 'd.fnou',
                 'd.fpricenet',
                 'd.frefsrj as frefso',
-                'd.fqtydeliver',
                 'p.fprdname',
                 's.fsalesmanname',
                 DB::raw('ROUND(m.ftotalsalesnet) as famountgross'),
                 DB::raw('d.fsalesnet * d.fqty as famount')
-            )
-            ->whereRaw('coalesce(m.fdppersen, 0) = 0');
-
+            );
+            
         if ($request->date_from)   $query->where('m.fsodate', '>=', $request->date_from);
         if ($request->date_to)     $query->where('m.fsodate', '<=', $request->date_to);
         if ($request->prd_from)    $query->where('d.fprdcode', '>=', $request->prd_from);
@@ -187,7 +185,6 @@ class ListingPenjualanController extends Controller
                         $d->fprdcode,
                         $d->fprdname,
                         $d->frefso ?? '-',
-                        (float) $d->fqtydeliver,
                         (float) $d->fqty,
                         (float) $d->fprice,
                         $d->fdisc,

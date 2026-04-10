@@ -30,11 +30,10 @@ class ListingPenerimaanBarangController extends Controller
             ->select(
                 DB::raw('frefdtno::text as frefdtno_text'),
                 DB::raw('fprdcode::text as fprdcode_text'),
-                DB::raw('fnouref::text as fnouref_text'),
                 DB::raw('sum(fqtykecil) as fqtybuy')
             )
             ->where('fstockmtcode', 'BUY')
-            ->groupBy('frefdtno', 'fprdcode', 'fnouref');
+            ->groupBy('frefdtno', 'fprdcode');
 
         // 2. Query Utama
         $query = DB::table('trstockmt as m')
@@ -45,7 +44,7 @@ class ListingPenerimaanBarangController extends Controller
             ->leftJoinSub($subBuy, 'buy', function ($join) {
                 $join->on(DB::raw('m.fstockmtno::text'), '=', DB::raw('buy.frefdtno_text'))
                     ->on(DB::raw('p.fprdcode::text'), '=', DB::raw('buy.fprdcode_text'))
-                    ->on(DB::raw('d.frefdtno::text'), '=', DB::raw('buy.fnouref_text'));
+                    ->on(DB::raw('d.frefdtno::text'), '=', DB::raw('buy.frefdtno_text'));
             })
             ->select(
                 'm.fstockmtno',
