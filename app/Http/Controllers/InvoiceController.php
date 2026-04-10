@@ -368,7 +368,7 @@ class InvoiceController extends Controller
 
   public function store(Request $request)
   {
-    // 1. VALIDASI
+    // 1. VALIDASI (Tetap sama)
     $request->validate([
       'fsodate'    => ['required', 'date'],
       'fcustno'    => ['required', 'string', 'max:10'],
@@ -389,7 +389,7 @@ class InvoiceController extends Controller
       'fitemcode.required' => 'Minimal harus ada 1 item barang.',
     ]);
 
-    // 2. INISIALISASI DATA HEADER
+    // 2. INISIALISASI DATA HEADER (Tetap sama)
     $fsodate     = Carbon::parse($request->fsodate);
     $fincludeppn = $request->boolean('fincludeppn') ? '1' : '0';
     $userid      = mb_substr(auth('sysuser')->user()->fname ?? 'admin', 0, 10);
@@ -406,7 +406,6 @@ class InvoiceController extends Controller
     $prices    = $request->input('fprice', []);
     $discs     = $request->input('fdisc', []);
 
-    $frefcodes = $request->input('frefcode', []);
     $frefso_ids   = $request->input('frefsoid', []);
     $frefsrjid_ids = $request->input('frefsrjid', []);
     $frefpr_codes = $request->input('frefpr', []);
@@ -415,15 +414,10 @@ class InvoiceController extends Controller
     $totalGross  = 0;
     $totalDisc   = 0;
 
+    // Logika UM (Tetap sama)
     $hasUM = in_array('UM', $itemCodes);
-
-    if ($hasUM && $typeSales === 0) {
-      return back()->withInput()->with('error', 'Produk Uang Muka (UM) hanya diperbolehkan untuk tipe transaksi Uang Muka.');
-    }
-
-    if (!$hasUM && $typeSales === 1) {
-      return back()->withInput()->with('error', 'Transaksi Uang Muka wajib menggunakan produk dengan kode UM.');
-    }
+    if ($hasUM && $typeSales === 0) return back()->withInput()->with('error', 'Produk Uang Muka (UM) hanya diperbolehkan untuk tipe transaksi Uang Muka.');
+    if (!$hasUM && $typeSales === 1) return back()->withInput()->with('error', 'Transaksi Uang Muka wajib menggunakan produk dengan kode UM.');
 
     $products = DB::table('msprd')
       ->whereIn('fprdcode', array_filter($itemCodes))
@@ -433,7 +427,6 @@ class InvoiceController extends Controller
     foreach ($itemCodes as $i => $code) {
       $qty   = (float)($qtys[$i] ?? 0);
       $price = (float)($prices[$i] ?? 0);
-
       if (empty($code) || $qty <= 0) continue;
 
       $refCode = '';
@@ -451,10 +444,6 @@ class InvoiceController extends Controller
         $qtyKecil = $qty * (float)($product->rasio_konversi ?? 1);
       }
 
-      if ($product && $product->fdiscontinue == '1') {
-        return back()->withInput()->with('error', "Produk [{$code}] {$product->fprdname} Sudah Discontinue.");
-      }
-
       $discPersen = $this->parseDiscount($discs[$i] ?? 0);
       $subtotal   = $qty * $price;
       $discAmount = $subtotal * ($discPersen / 100);
@@ -465,7 +454,8 @@ class InvoiceController extends Controller
       $totalDisc  += $discAmount;
 
       $detailRows[] = [
-        'fsono'        => '',
+        'fsono'        => '', // Akan diisi di dalam transaksi
+        'ftranmtid'    => null, // Akan diisi di dalam transaksi menggunakan insertGetId header
         'fnou'         => $i + 1,
         'fprdcodeid'   => $fprdcodeid,
         'fprdcode'     => mb_substr($code, 0, 30),
@@ -496,28 +486,20 @@ class InvoiceController extends Controller
     $ppnAmount = ($fincludeppn === '1') ? ($amountNet * ($ppnPersen / 100)) : 0;
     $grandTotal = $amountNet + $ppnAmount;
 
+    // 5. DATABASE TRANSACTION
     try {
       DB::transaction(function () use ($request, $fsodate, $fincludeppn, $userid, $now, $detailRows, $totalGross, $totalDisc, $amountNet, $ppnAmount, $grandTotal, $fcurrency, $frate, $ppnPersen) {
 
+        // Penomoran Otomatis (Tetap sama)
         $fsono = $request->input('fsono');
         if (empty($fsono)) {
           $prefix = 'INV.' . $fsodate->format('ym') . '.';
-          $lastRecord = DB::table('tranmt')
-            ->where('fsono', 'like', $prefix . '%')
-            ->orderBy('fsono', 'desc')
-            ->lockForUpdate()
-            ->first();
-
-          if ($lastRecord) {
-            $lastFullCode = trim($lastRecord->fsono);
-            $lastNumber = (int) substr($lastFullCode, -4);
-            $nextNumber = $lastNumber + 1;
-          } else {
-            $nextNumber = 1;
-          }
+          $lastRecord = DB::table('tranmt')->where('fsono', 'like', $prefix . '%')->orderBy('fsono', 'desc')->lockForUpdate()->first();
+          $nextNumber = $lastRecord ? ((int) substr(trim($lastRecord->fsono), -4) + 1) : 1;
           $fsono = $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
         }
 
+        // --- INSERT HEADER DAN AMBIL ID ---
         $ftranmtid = DB::table('tranmt')->insertGetId([
           'fsono'           => $fsono,
           'fsodate'         => $fsodate,
@@ -547,9 +529,13 @@ class InvoiceController extends Controller
           'fprdout'         => '0',
         ], 'ftranmtid');
 
+        // --- UPDATE DETAIL ROWS DENGAN ID HEADER DAN NOMOR SONO ---
         foreach ($detailRows as &$row) {
           $row['fsono'] = $fsono;
+          $row['ftranmtid'] = $ftranmtid; // Mengisi foreign key dari ID header baru
         }
+
+        // INSERT DETAIL
         DB::table('trandt')->insert($detailRows);
       });
 
@@ -616,16 +602,17 @@ class InvoiceController extends Controller
     $fbranchcode = $branch->fcabangkode ?? (string) $raw;   // hidden post
 
     $invoice = Tranmt::with(['customer', 'details' => function ($q) {
-      $q->leftJoin('msprd', function ($j) {
-        // Gunakan trandt.fprdcodeid karena sudah integer (tidak perlu CAST lagi)
-        $j->on('msprd.fprdid', '=', 'trandt.fprdcodeid');
-      })
+      $q->leftJoin('msprd', 'msprd.fprdid', '=', 'trandt.fprdcodeid')
+        // GANTI BAGIAN INI: Hapus CAST(NULLIF...) karena kolom sudah INTEGER
+        ->leftJoin('tranmt as so_hdr', 'so_hdr.ftranmtid', '=', 'trandt.ftranmtid')
+        ->leftJoin('trstockmt as sj_hdr', 'sj_hdr.fstockmtid', '=', 'trandt.frefsrjid')
         ->select(
           'trandt.*',
           'msprd.fprdcode as fitemcode',
-          'msprd.fprdname'
+          'msprd.fprdname',
+          'so_hdr.fsono as fsono_ref',
+          'sj_hdr.fstockmtno as fstockno_ref'
         )
-        // Ubah order ke ftrandtid (Primary Key detail) karena ftranmtid tidak ada
         ->orderBy('trandt.ftrandtid', 'asc');
     }])->findOrFail($ftranmtid);
 
@@ -638,10 +625,14 @@ class InvoiceController extends Controller
       $refCode = trim($d->frefcode ?? '');
 
       // Auto-detect jika frefcode kosong
+      // Auto-detect jika frefcode kosong
       if (empty($refCode)) {
         if (!empty(trim($d->frefso ?? '')))  $refCode = 'SO';
         if (!empty(trim($d->frefsrj ?? ''))) $refCode = 'SRJ';
       }
+
+      $refNoDisplay = trim($d->frefso ?? $d->frefsrj ?? '');
+      $refNoDisplay = !empty($refNoDisplay) ? $refNoDisplay : $refCode;
 
       return [
         'uid'        => $d->ftrandtid,
@@ -654,6 +645,7 @@ class InvoiceController extends Controller
         'frefsoid'   => (string)($d->frefsoid ?? ''),
         'frefsrj'    => trim($d->frefsrj ?? ''),
         'frefsrjid'  => (string)($d->frefsrjid ?? ''),
+        'frefno_display' => $d->fsono_ref ?? ($d->fstockno_ref ?? $refNoDisplay),
         'fqty'       => (float)($d->fqty ?? 0),
         'fterima'    => (float)($d->fterima ?? 0),
         'fprice'     => (float)($d->fprice ?? 0),
@@ -820,6 +812,7 @@ class InvoiceController extends Controller
       'fsodate'      => ['required', 'date'],
       'fcustno'      => ['required', 'string', 'max:10'],
       'ftypesales'   => ['required', 'in:0,1'],
+      'ftaxno'       => ['nullable', 'string', 'max:50'],
       'fitemcode'    => ['required', 'array', 'min:1'],
       'fitemcode.*'  => ['required', 'string', 'max:30'],
       'fqty'         => ['required', 'array'],
@@ -991,6 +984,7 @@ class InvoiceController extends Controller
       ) {
         // Update Header
         DB::table('tranmt')->where('ftranmtid', $ftranmtid)->update([
+          'ftaxno'          => mb_substr($request->ftaxno ?? '', 0, 50),
           'fsodate'         => $fsodate,
           'fcustno'         => mb_substr($request->fcustno, 0, 10) ?? 0,
           'fsalesman' => (int) $request->input('fsalesman', 0),

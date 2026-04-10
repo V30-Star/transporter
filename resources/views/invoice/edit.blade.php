@@ -292,7 +292,7 @@
                                                     </div>
                                                 </td>
                                                 <td class="p-2" x-text="it.fsatuan"></td>
-                                                <td class="p-2" x-text="it.frefcode || '-'"></td>
+                                                <td class="p-2" x-text="it.frefno_display || it.frefcode || '-'"></td>
                                                 <td class="p-2 text-right" x-text="fmt(it.fqty)"></td>
                                                 <td class="p-2 text-right" x-text="fmt(it.fprice)"></td>
                                                 <td class="p-2 text-right" x-text="it.fdisc"></td>
