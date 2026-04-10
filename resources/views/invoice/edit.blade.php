@@ -765,7 +765,7 @@
                                 <div class="lg:col-span-4">
                                     <label class="block text-sm font-medium">TOP (Hari)</label>
                                     <input type="number" id="ftempohr" name="ftempohr"
-                                        value="{{ old('ftempohr', '0') }}"
+                                        value="{{ old('ftempohr', $invoice->ftempohr) }}"
                                         class="w-full border rounded px-3 py-2 @error('ftempohr') border-red-500 @enderror"
                                         placeholder="Masukkan jumlah hari">
                                     @error('ftempohr')

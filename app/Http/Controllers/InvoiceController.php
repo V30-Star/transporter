@@ -501,6 +501,7 @@ class InvoiceController extends Controller
 
         // --- INSERT HEADER DAN AMBIL ID ---
         $ftranmtid = DB::table('tranmt')->insertGetId([
+          'ftaxno'          => mb_substr($request->ftaxno ?? '', 0, 50),
           'fsono'           => $fsono,
           'fsodate'         => $fsodate,
           'fcustno'         => mb_substr($request->fcustno, 0, 10),
@@ -603,8 +604,7 @@ class InvoiceController extends Controller
 
     $invoice = Tranmt::with(['customer', 'details' => function ($q) {
       $q->leftJoin('msprd', 'msprd.fprdid', '=', 'trandt.fprdcodeid')
-        // GANTI BAGIAN INI: Hapus CAST(NULLIF...) karena kolom sudah INTEGER
-        ->leftJoin('tranmt as so_hdr', 'so_hdr.ftranmtid', '=', 'trandt.ftranmtid')
+        ->leftJoin('tranmt as so_hdr', 'so_hdr.ftranmtid', '=', 'trandt.frefsoid')
         ->leftJoin('trstockmt as sj_hdr', 'sj_hdr.fstockmtid', '=', 'trandt.frefsrjid')
         ->select(
           'trandt.*',
@@ -621,18 +621,14 @@ class InvoiceController extends Controller
     }
 
     $savedItems = $invoice->details->map(function ($d) {
-      // Tentukan ref display berdasarkan frefcode atau nilai yang ada
       $refCode = trim($d->frefcode ?? '');
-
-      // Auto-detect jika frefcode kosong
-      // Auto-detect jika frefcode kosong
       if (empty($refCode)) {
         if (!empty(trim($d->frefso ?? '')))  $refCode = 'SO';
         if (!empty(trim($d->frefsrj ?? ''))) $refCode = 'SRJ';
       }
 
-      $refNoDisplay = trim($d->frefso ?? $d->frefsrj ?? '');
-      $refNoDisplay = !empty($refNoDisplay) ? $refNoDisplay : $refCode;
+      // Priority: Joined Header Number -> Stored Detail String -> Type Prefix
+      $refNoDisplay = $d->fsono_ref ?? ($d->fstockno_ref ?? (trim($d->frefso ?? $d->frefsrj ?? '') ?: $refCode));
 
       return [
         'uid'        => $d->ftrandtid,
@@ -645,21 +641,16 @@ class InvoiceController extends Controller
         'frefsoid'   => (string)($d->frefsoid ?? ''),
         'frefsrj'    => trim($d->frefsrj ?? ''),
         'frefsrjid'  => (string)($d->frefsrjid ?? ''),
-        'frefno_display' => $d->fsono_ref ?? ($d->fstockno_ref ?? $refNoDisplay),
+        'frefno_display' => $refNoDisplay,
         'fqty'       => (float)($d->fqty ?? 0),
         'fterima'    => (float)($d->fterima ?? 0),
         'fprice'     => (float)($d->fprice ?? 0),
         'fdisc'      => (float)($d->fdisc ?? 0),
         'ftotal'     => (float)($d->famount ?? 0),
         'fdesc'      => (string)($d->fdesc ?? ''),
-
-        'frefpr'          => $refCode === 'SO'  ? trim($d->frefso ?? '')
-          : ($refCode === 'SRJ' ? trim($d->frefsrj ?? '') : ''),
-        'frefno_display'  => $refCode === 'SO'  ? trim($d->frefso ?? '')
-          : ($refCode === 'SRJ' ? trim($d->frefsrj ?? '') : '-'),
-        'fsono_ref'       => trim($d->fsono_ref ?? ''),
-        'fstockno_ref'    => trim($d->fstockno_ref ?? ''),
-
+        'frefpr'     => $refNoDisplay,
+        'fsono_ref'    => trim($d->fsono_ref ?? ''),
+        'fstockno_ref' => trim($d->fstockno_ref ?? ''),
         'fketdt'     => (string)($d->fketdt ?? ''),
       ];
     })->values();
@@ -867,7 +858,7 @@ class InvoiceController extends Controller
     // Ambil data produk masal
     $products = DB::table('msprd')
       ->whereIn('fprdcode', array_filter($itemCodes))
-      ->get(['fprdcodeid', 'fprdcode', 'fprdname', 'fdiscontinue', 'fsatuanbesar', 'fqtykecil as rasio_konversi'])
+      ->get(['fprdid', 'fprdcode', 'fprdname', 'fdiscontinue', 'fsatuanbesar', 'fqtykecil as rasio_konversi'])
       ->keyBy('fprdcode');
 
     Log::info("[UPDATE INVOICE] Jumlah item unik dari request: " . count($itemCodes));
@@ -921,7 +912,7 @@ class InvoiceController extends Controller
       $rowData = [
         'fsono'        => $header->fsono,
         'fnou'         => $i + 1,
-        'fprdcodeid'       => $product->fprdcodeid,
+        'fprdcodeid'       => $product->fprdid,
         'fprdcode'     => mb_substr($code, 0, 30),
         'fdesc'        => $itemDescs[$i] ?? '',
         'fqty'         => $qty,
