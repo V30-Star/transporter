@@ -213,16 +213,17 @@ class SalesOrderController extends Controller
         $header = SalesOrderHeader::where('ftrsomtid', $id)->firstOrFail();
 
         // 2. Ambil data detail dari trsodt menggunakan relasi ID header
-        // Asumsi: trsodt memiliki kolom ftrsomtid sebagai foreign key
         $items = SalesOrderDetail::where('trsodt.ftrsomtid', $header->ftrsomtid)
             ->leftJoin('msprd as m', 'm.fprdcode', '=', 'trsodt.fprdcode') // Join ke Master Produk
             ->select([
                 'trsodt.ftrsodtid as frefdtno',  // ID Detail sebagai referensi unik
                 'trsodt.ftrsomtid as fnouref',   // ID Header
-                'trsodt.fprdcode as fprdcode',   // Kode Produk
+                'trsodt.fprdcode as fitemcode',  // Kode Produk (pake alias fitemcode buat frontend)
                 'm.fprdname as fitemname',       // Nama Produk dari master
+                'trsodt.fsatuan',                // Satuan
                 'trsodt.fqty',                   // Qty dari SO
-                'trsodt.fprice as fharga',       // Harga jual
+                'trsodt.fprice as fprice',       // Harga jual (alias fprice)
+                'trsodt.fprice as fharga',       // Legacy alias fharga
             ])
             ->orderBy('trsodt.ftrsodtid')
             ->get();
@@ -237,6 +238,7 @@ class SalesOrderController extends Controller
             'items' => $items,
         ]);
     }
+
 
     private function generatetr_poh_Code(?Carbon $onDate = null, $branch = null): string
     {

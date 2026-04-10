@@ -344,8 +344,6 @@ class SuratJalanController extends Controller
       'fsatuan.*'       => ['nullable', 'string', 'max:20'],
       'frefdtno'        => ['nullable', 'array'],
       'frefdtno.*'      => ['nullable', 'integer'],
-      'fnouref'         => ['nullable', 'array'],
-      'fnouref.*'       => ['nullable', 'integer'],
       'fqty'            => ['required', 'array'],
       'fqty.*'          => ['numeric', 'min:0'],
       'fprice'          => ['required', 'array'],
@@ -381,7 +379,6 @@ class SuratJalanController extends Controller
     $codes   = $request->input('fitemcode', []);
     $satuans = $request->input('fsatuan', []);
     $refdtno = $request->input('frefdtno', []);
-    $nourefs = $request->input('fnouref', []);
     $qtys    = $request->input('fqty', []);
     $prices  = $request->input('fprice', []);
     $descs   = $request->input('fdesc', []);
@@ -492,7 +489,6 @@ class SuratJalanController extends Controller
         'fdatetime'    => $now,
         'fketdt'       => '',
         'fcode'        => '0',
-        'fnouref'      => $rnour !== null ? (int) $rnour : null,
         'frefso'       => null,
         'fdesc'        => $desc,
         'fsatuan'      => $sat,
@@ -609,19 +605,10 @@ class SuratJalanController extends Controller
           throw new \Exception("Gagal menyimpan data master (header).");
         }
 
-        // ---- 7.4. INSERT DETAIL ----
-        $lastNouRef = (int) DB::table('trstockdt')
-          ->where('fstockmtid', $newStockMasterId)
-          ->max('fnouref');
-        $nextNouRef = $lastNouRef + 1;
-
         foreach ($rowsDt as &$r) {
           $r['fstockmtid']   = $newStockMasterId;
           $r['fstockmtcode'] = $fstockmtcode;
           $r['fstockmtno']   = $fstockmtno;
-          if (!isset($r['fnouref']) || $r['fnouref'] === null) {
-            $r['fnouref'] = $nextNouRef++;
-          }
         }
         unset($r);
 
@@ -793,7 +780,6 @@ class SuratJalanController extends Controller
         'famountponet' => $d->famountponet ?? null,
         'famountpo' => $d->famountpo ?? null,
         'frefdtno'  => $d->frefdtno ?? null,
-        'fnouref'   => $d->fnouref ?? null,
         'fqty'      => (float)($d->fqty ?? 0),
         'fterima'   => (float)($d->fterima ?? 0),
         'fprice'    => (float)($d->fprice ?? 0),
@@ -901,7 +887,6 @@ class SuratJalanController extends Controller
         'famountponet' => $d->famountponet ?? null,
         'famountpo' => $d->famountpo ?? null,
         'frefdtno'  => $d->frefdtno ?? null,
-        'fnouref'   => $d->fnouref ?? null,
         'fqty'      => (float)($d->fqty ?? 0),
         'fterima'   => (float)($d->fterima ?? 0),
         'fprice'    => (float)($d->fprice ?? 0),
@@ -973,8 +958,6 @@ class SuratJalanController extends Controller
       'fsatuan.*'       => ['nullable', 'string', 'max:20'],
       'frefdtno'        => ['nullable', 'array'],
       'frefdtno.*'      => ['nullable', 'integer'],
-      'fnouref'         => ['nullable', 'array'],
-      'fnouref.*'       => ['nullable', 'integer'],
       'fqty'            => ['required', 'array'],
       'fqty.*'          => ['numeric', 'min:0'],
       'fprice'          => ['required', 'array'],
@@ -1012,7 +995,6 @@ class SuratJalanController extends Controller
     $codes   = $request->input('fitemcode', []);
     $satuans = $request->input('fsatuan', []);
     $refdtno = $request->input('frefdtno', []);
-    $nourefs = $request->input('fnouref', []);
     $qtys    = $request->input('fqty', []);
     $prices  = $request->input('fprice', []);
     $descs   = $request->input('fdesc', []);
@@ -1087,7 +1069,6 @@ class SuratJalanController extends Controller
         'fdatetime'    => $now,
         'fketdt'       => '',
         'fcode'        => '0',
-        'fnouref'      => $rnour !== null ? (int) $rnour : null,
         'frefso'       => null,
         'fdesc'        => $desc,
         'fsatuan'      => $sat,
@@ -1181,9 +1162,6 @@ class SuratJalanController extends Controller
           $r['fstockmtid']   = $header->fstockmtid;
           $r['fstockmtcode'] = $fstockmtcode;
           $r['fstockmtno']   = $fstockmtno;
-          if (!isset($r['fnouref']) || $r['fnouref'] === null) {
-            $r['fnouref'] = $nextNouRef++;
-          }
         }
         unset($r);
 
@@ -1378,7 +1356,6 @@ class SuratJalanController extends Controller
         'famountponet' => $d->famountponet ?? null,
         'famountpo' => $d->famountpo ?? null,
         'frefdtno'  => $d->frefdtno ?? null,
-        'fnouref'   => $d->fnouref ?? null,
         'fqty'      => (float)($d->fqty ?? 0),
         'fterima'   => (float)($d->fterima ?? 0),
         'fprice'    => (float)($d->fprice ?? 0),
