@@ -251,7 +251,7 @@ class SuratJalanController extends Controller
 
     // Bagian detail (sudah benar, tidak ada duplikasi alias)
     $dt = PenerimaanPembelianDetail::query()
-      ->leftJoin('msprd as p', 'p.fprdid', '=', 'trstockdt.fprdcode')
+      ->leftJoin('msprd as p', 'p.fprdid', '=', 'trstockdt.fprdcodeid')
       ->where('trstockdt.fstockmtno', $fstockmtno)
       ->orderBy('trstockdt.fprdcode')
       ->get([
@@ -353,6 +353,10 @@ class SuratJalanController extends Controller
       'fcurrency'       => ['nullable', 'string', 'max:5'],
       'frate'           => ['nullable', 'numeric', 'min:0'],
       'famountpopajak'  => ['nullable', 'numeric', 'min:0'],
+      'frefso'          => ['nullable', 'array'],
+      'frefso.*'        => ['nullable', 'string', 'max:100'],
+      'frefsoid'        => ['nullable', 'array'],
+      'frefsoid.*'      => ['nullable', 'integer'],
     ]);
 
     // =========================
@@ -382,6 +386,8 @@ class SuratJalanController extends Controller
     $qtys    = $request->input('fqty', []);
     $prices  = $request->input('fprice', []);
     $descs   = $request->input('fdesc', []);
+    $frefso  = $request->input('frefso', []);
+    $frefsoid = $request->input('frefsoid', []);
 
     $rowCount    = count($codes);
     $uniqueCodes = array_values(array_unique(
@@ -489,7 +495,8 @@ class SuratJalanController extends Controller
         'fdatetime'    => $now,
         'fketdt'       => '',
         'fcode'        => '0',
-        'frefso'       => null,
+        'frefso'       => $frefso[$i] ?? null,
+        'frefsoid'     => isset($frefsoid[$i]) ? (int) $frefsoid[$i] : null,
         'fdesc'        => $desc,
         'fsatuan'      => $sat,
         'fclosedt'     => '0',
@@ -764,6 +771,8 @@ class SuratJalanController extends Controller
           ->orderBy('trstockdt.fstockdtid', 'asc');
       }
     ])
+      ->leftJoin('mswh', 'mswh.fwhid', '=', 'trstockmt.ffrom')
+      ->select('trstockmt.*', 'mswh.fwhcode as ffrom_code')
       ->findOrFail($fstockmtid); // Temukan header berdasarkan $fstockmtid dari URL
 
 
@@ -786,7 +795,9 @@ class SuratJalanController extends Controller
         'fdisc'     => (float)($d->fdiscpersen ?? 0),
         'ftotal'    => (float)($d->ftotprice ?? 0),
         'fdesc'     => is_array($d->fdesc) ? implode(', ', $d->fdesc) : ($d->fdesc ?? ''),
-        'frefno_display' => $d->frefpr ?? $d->fpono ?? '-',
+        'frefno_display' => $d->frefso ?? $d->frefpr ?? $d->fpono ?? '-',
+        'frefso'    => $d->frefso ?? null,
+        'frefsoid'  => $d->frefsoid ?? null,
         'fketdt'    => $d->fketdt ?? '',
         'units'     => [],
       ];
@@ -893,7 +904,9 @@ class SuratJalanController extends Controller
         'fdisc'     => (float)($d->fdiscpersen ?? 0),
         'ftotal'    => (float)($d->ftotprice ?? 0),
         'fdesc'     => is_array($d->fdesc) ? implode(', ', $d->fdesc) : ($d->fdesc ?? ''),
-        'frefno_display' => $d->frefpr ?? $d->fpono ?? '-',
+        'frefno_display' => $d->frefso ?? $d->frefpr ?? $d->fpono ?? '-',
+        'frefso'    => $d->frefso ?? null,
+        'frefsoid'  => $d->frefsoid ?? null,
         'fketdt'    => $d->fketdt ?? '',
         'units'     => [],
       ];
@@ -967,6 +980,10 @@ class SuratJalanController extends Controller
       'fcurrency'       => ['nullable', 'string', 'max:5'],
       'frate'           => ['nullable', 'numeric', 'min:0'],
       'famountpopajak'  => ['nullable', 'numeric', 'min:0'],
+      'frefso'          => ['nullable', 'array'],
+      'frefso.*'        => ['nullable', 'string', 'max:100'],
+      'frefsoid'        => ['nullable', 'array'],
+      'frefsoid.*'      => ['nullable', 'integer'],
     ]);
 
     // =========================
@@ -998,6 +1015,8 @@ class SuratJalanController extends Controller
     $qtys    = $request->input('fqty', []);
     $prices  = $request->input('fprice', []);
     $descs   = $request->input('fdesc', []);
+    $frefso  = $request->input('frefso', []);
+    $frefsoid = $request->input('frefsoid', []);
 
     $rowCount    = count($codes);
     $uniqueCodes = array_values(array_unique(
@@ -1069,7 +1088,8 @@ class SuratJalanController extends Controller
         'fdatetime'    => $now,
         'fketdt'       => '',
         'fcode'        => '0',
-        'frefso'       => null,
+        'frefso'       => $frefso[$i] ?? null,
+        'frefsoid'     => isset($frefsoid[$i]) ? (int) $frefsoid[$i] : null,
         'fdesc'        => $desc,
         'fsatuan'      => $sat,
         'fclosedt'     => '0',

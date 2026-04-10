@@ -466,8 +466,10 @@
                                                 @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))">
                                             </div>
                                         </div>
-                                        <input type="hidden" name="ffrom" id="warehouseIdHidden"
-                                            value="{{ old('ffrom', $suratjalan->ffrom) }}">
+                                        <input type="hidden" name="ffrom" id="warehouseCodeHidden"
+                                            value="{{ old('ffrom', $suratjalan->ffrom_code ?? '') }}">
+                                        <input type="hidden" name="fwhid" id="warehouseIdHidden"
+                                            value="{{ old('fwhid', $suratjalan->ffrom) }}">
 
                                         {{-- Tombol-tombol Anda --}}
                                         <button type="button"
@@ -572,6 +574,8 @@
                                                         <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
                                                         <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
                                                         <input type="hidden" name="frefpr[]" :value="it.frefpr">
+                                                        <input type="hidden" name="frefso[]" :value="it.frefso">
+                                                        <input type="hidden" name="frefsoid[]" :value="it.frefsoid">
                                                         <input type="hidden" name="fqty[]" :value="it.fqty">
                                                         <input type="hidden" name="fprice[]" :value="it.fprice">
                                                         <input type="hidden" name="ftotal[]" :value="it.ftotal">
@@ -1732,6 +1736,8 @@
                         frefdtno: frefdtno,
                         frefno_display: (src.frefpr ?? header?.fsono ?? '').toString().trim(),
                         frefpr: (src.frefpr ?? header?.fpono ?? header?.fsono ?? '').toString().trim(),
+                        frefso: header?.fsono ?? null,
+                        frefsoid: src.frefdtno ?? null,
                         fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ? Number(src.fqty) : 1,
                         fprice: Number(src.fprice ?? src.fharga ?? 0), // ← Boleh 0
                         fterima: Number(src.fterima ?? 0),
@@ -1988,6 +1994,8 @@
                 frefdtno: '',
                 frefno_display: '',
                 frefpr: '',
+                frefso: null,
+                frefsoid: null,
                 fqty: 0,
                 fprice: 0,
                 ftotal: 0,
@@ -2388,14 +2396,17 @@
                 fwhid
             } = ev.detail || {};
             const sel = document.getElementById('warehouseSelect');
-            const hid = document.getElementById('warehouseIdHidden');
+            const hidId = document.getElementById('warehouseIdHidden');
+            const hidCode = document.getElementById('warehouseCodeHidden');
+            
             if (sel) {
-                sel.value = fwhcode || '';
+                sel.value = fwhid || '';
                 sel.dispatchEvent(new Event('change', {
                     bubbles: true
                 }));
             }
-            if (hid) hid.value = fwhid || '';
+            if (hidId) hidId.value = fwhid || '';
+            if (hidCode) hidCode.value = fwhcode || '';
         });
     });
 </script>
