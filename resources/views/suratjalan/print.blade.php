@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Surat Jalan - {{ $hdr->fsono ?? '-' }}</title>
+    <title>Surat Jalan - {{ $hdr->fstockmtno ?? '-' }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         :root {
@@ -122,44 +122,6 @@
             text-align: center;
         }
 
-        /* Footer Section */
-        .footer-line {
-            border-top: 1.5px solid #000;
-            margin-top: 150px;
-            /* Adjust based on content */
-        }
-
-        .terbilang-box {
-            float: left;
-            width: 60%;
-            font-style: italic;
-            font-weight: bold;
-            text-decoration: underline;
-            font-size: 11px;
-            margin-top: 5px;
-        }
-
-        .summary-box {
-            float: right;
-            width: 35%;
-            margin-top: 5px;
-        }
-
-        .summary-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 1px 0;
-        }
-
-        .grand-total {
-            border-top: 1px solid #000;
-            border-bottom: 3px double #000;
-            margin-top: 5px;
-            padding: 4px 0;
-            font-weight: bold;
-            color: var(--blue);
-            font-size: 14px;
-        }
 
         /* Signature */
         .sign-container {
@@ -228,7 +190,7 @@
             </div>
             <div>
                 <div class="title-so">Surat Jalan</div>
-                <div class="so-no">No. {{ $hdr->fsono ?? 'SO2601.0001' }}</div>
+                <div class="so-no">No. {{ $hdr->fstockmtno ?? '-' }}</div>
             </div>
         </div>
 
@@ -245,7 +207,7 @@
                 <tr>
                     <td>Tanggal</td>
                     <td>:</td>
-                    <td>{{ $fmt($hdr->fsodate) ?? '21 Januari 2026' }}</td>
+                    <td>{{ $fmt($hdr->fstockmtdate) ?? '-' }}</td>
                 </tr>
                 <tr>
                     <td>Tempo</td>
@@ -272,57 +234,23 @@
             <thead>
                 <tr>
                     <th style="width: 5%;">No.</th>
+                    <th style="width: 25%;">Kode Produk</th>
                     <th style="width: 45%;">Nama Produk</th>
-                    <th style="width: 15%; text-align: right;">Quantity</th>
-                    <th style="width: 15%; text-align: right;">@ Harga</th>
-                    <th style="width: 5%; text-align: center;">Disc.%</th>
-                    <th style="width: 15%; text-align: right;">Total Harga</th>
+                    <th style="width: 25%;">No. Ref</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach ($dt as $i => $r)
                     <tr>
                         <td class="text-center">{{ $i + 1 }}</td>
-                        <td>{{ $r->product_name ?? 'CANGKANG SAWIT' }}</td>
-                        <td class="text-right">{{ number_format($r->fqty ?? 100000, 0, ',', '.') }}
-                            {{ $r->funit ?? 'KG' }}</td>
-                        <td class="text-right">{{ number_format($r->fprice ?? 1115, 2, '.', ',') }}</td>
-                        <td class="text-center">{{ $r->fdiscpersen ?? 0 }}</td>
-                        <td class="text-right">{{ number_format($r->famount ?? 111500000, 2, '.', ',') }}</td>
+                        <td class="text-center">{{ $r->product_code ?? '-' }}</td>
+                        <td>{{ $r->product_name ?? '-' }}</td>
+                        <td class="text-center">{{ $r->frefso ?? '-' }}</td>
                     </tr>
                 @endforeach
             </tbody>
         </table>
 
-        <div class="footer-line"></div>
-
-        <div class="terbilang-box">
-            Terbilang : <br>
-            # {{ strtoupper(terbilang($hdr->famountso ?? 123765000)) }} RUPIAH #
-        </div>
-
-        <div class="summary-box">
-            <div class="summary-row">
-                <span>Total Harga :</span>
-                <span>{{ number_format($hdr->famountsonet ?? 111500000, 2, '.', ',') }}</span>
-            </div>
-            <div class="summary-row">
-                <span>Discount :</span>
-                <span>0.00</span>
-            </div>
-            <div class="summary-row">
-                <span>Total Setelah Disc :</span>
-                <span>{{ number_format($hdr->famountsonet ?? 111500000, 2, '.', ',') }}</span>
-            </div>
-            <div class="summary-row">
-                <span>PPN :</span>
-                <span>{{ number_format($hdr->famountpajak ?? 12265000, 2, '.', ',') }}</span>
-            </div>
-            <div class="summary-row grand-total">
-                <span>Grand Total :</span>
-                <span>{{ number_format($hdr->famountso ?? 123765000, 2, '.', ',') }}</span>
-            </div>
-        </div>
 
         <div class="sign-container">
             <table class="sign-table">

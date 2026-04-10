@@ -1928,7 +1928,7 @@
                     return;
                 }
                 row.fitemname = meta.name || '';
-                row.frefcode = meta.id || meta.fprdid || '';
+                row.frefcode = meta.id || meta.fprdcodeid || '';
                 const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
                 row.units = units;
                 if (!units.includes(row.fsatuan)) row.fsatuan = units[0] || '';
@@ -2196,7 +2196,7 @@
                     if (!product) return;
                     const apply = (row) => {
                         row.fitemcode = (product.fprdcode || '').toString();
-                        row.frefcode = product.fprdid || product.id || '';
+                        row.frefcode = product.fprdcodeid || product.id || '';
                         this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
                         if (!row.fqty) row.fqty = 1;
                         this.recalc(row);

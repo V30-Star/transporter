@@ -251,15 +251,13 @@ class SuratJalanController extends Controller
 
     // Bagian detail (sudah benar, tidak ada duplikasi alias)
     $dt = PenerimaanPembelianDetail::query()
-      ->leftJoin('msprd as p', 'p.fprdid', '=', 'trstockdt.fprdcodeid')
+      ->leftJoin('msprd as p', 'p.fprdcode', '=', 'trstockdt.fprdcode')
       ->where('trstockdt.fstockmtno', $fstockmtno)
       ->orderBy('trstockdt.fprdcode')
       ->get([
         'trstockdt.*',
         'p.fprdname as product_name',
         'p.fprdcode as product_code',
-        'p.fminstock as stock',
-        'trstockdt.fqtyremain',
       ]);
 
     $fmt = fn($d) => $d
