@@ -84,8 +84,8 @@
         }
     </style>
 
-    <div x-data="{ open: true }">
-        <div x-data="{ includePPN: {{ old('fincludeppn', $tr_poh->fincludeppn ?? 0) ? 'true' : 'false' }}, ppnRate: 0, ppnAmount: 0, totalHarga: 100000 }" class="lg:col-span-5">
+    <div>
+        <div class="lg:col-span-12">
             <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
                 <div class="space-y-4">
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
@@ -280,7 +280,11 @@
                                                 </div>
                                             </td>
                                             <td class="p-2" x-text="it.fsatuan"></td>
-                                            <td class="p-2" x-text="it.frefcode || '-'"></td>
+                                            <td class="p-2">
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800"
+                                                    x-text="it.frefpr || it.frefcode || '-'">
+                                                </span>
+                                            </td>
                                             <td class="p-2 text-right" x-text="fmt(it.fqty)"></td>
                                             <td class="p-2 text-right" x-text="fmt(it.fprice)"></td>
                                             <td class="p-2 text-right" x-text="it.fdisc"></td>
@@ -409,35 +413,33 @@
                         </div>
 
                         <!-- ===== Trigger: Add tr_prh dari panel kanan ===== -->
-                        <div x-data="prhFormModal()">
+                        <div>
                             <!-- Trigger: Add PR dari panel kanan -->
                             <div class="mt-3 flex justify-between items-start gap-4">
                                 <div class="w-full flex justify-start mb-3">
                                 </div>
                                 <!-- Kanan: Panel Totals -->
-                                <div class="w-1/2">
                                     <div class="rounded-lg border bg-gray-50 p-3 space-y-2">
                                         <div class="flex items-center justify-between">
-                                            <span class="text-sm text-gray-700">Total Harga</span>
+                                            <span class="text-sm text-gray-700">Total Harga (Net)</span>
                                             <span class="min-w-[140px] text-right font-medium"
-                                                x-text="rupiah(totalHarga)"></span>
+                                                x-text="rupiah(netTotal)"></span>
                                         </div>
                                         <div class="flex items-center justify-between gap-6">
                                             <!-- Checkbox -->
                                             <div class="flex items-center">
-                                                <input id="fapplyppn" type="checkbox" name="fapplyppn" value="1"
-                                                    x-model="includePPN" disabled
+                                                <input id="fincludeppn_input" type="checkbox" name="fincludeppn"
+                                                    value="1" x-model="includePPN" disabled
                                                     class="h-4 w-4 text-blue-600 border-gray-300 rounded">
-                                                <label for="fapplyppn" class="ml-2 text-sm font-medium text-gray-700">
+                                                <label for="fincludeppn_input" class="ml-2 text-sm font-medium text-gray-700">
                                                     <span class="font-bold">PPN</span>
                                                 </label>
                                             </div>
 
                                             <!-- Dropdown Include / Exclude (tengah) -->
                                             <div class="flex items-center gap-2">
-                                                <select disabled id="includePPN" name="includePPN"
-                                                    x-model.number="fapplyppn" x-init="fapplyppn = 0"
-                                                    :disabled="!(includePPN || fapplyppn)"
+                                                <select id="fapplyppn_input" name="fapplyppn" x-model.number="fapplyppn"
+                                                    disabled
                                                     class="w-28 h-9 px-2 text-sm leading-tight border rounded transition-opacity appearance-none
                                                            disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
                                                     <option value="0">Exclude</option>
@@ -469,20 +471,15 @@
                                             <span class="min-w-[140px] text-right text-lg font-semibold"
                                                 x-text="rupiah(grandTotal)"></span>
                                         </div>
-
-                                        <div class="flex items-center justify-between">
-                                            <span class="text-sm font-semibold text-gray-800">Grand Total
-                                                (RP)</span>
-                                            <span class="min-w-[140px] text-right text-lg font-semibold"
-                                                x-text="rupiah(grandTotal)"></span>
-                                        </div>
                                     </div>
 
                                     <!-- Hidden inputs for submit -->
                                     <input type="hidden" name="famountgross" :value="totalHarga">
-                                    <input type="hidden" name="" :value="ppnAmount">
+                                    <input type="hidden" name="famountsonet" :value="netTotal">
+                                    <input type="hidden" name="famountpajak" :value="ppnAmount">
                                     <input type="hidden" name="famountso" :value="grandTotal">
-                                    <input type="hidden" name="famountpopajak" :value="ppnRate">
+                                    <input type="hidden" name="famountpopajak" :value="ppnAmount">
+                                    <input type="hidden" name="fppnpersen" :value="ppnRate">
                                 </div>
                             </div>
 
@@ -1072,18 +1069,18 @@
                     editRow: newRow(),
 
                     totalHarga: 0,
-                    ppnRate: 11,
+                    ppnRate: @json($returpenjualan->fppnpersen ?? 11),
 
                     initialGrandTotal: @json($famountso ?? 0),
                     initialPpnAmount: @json($famountpopajak ?? 0),
 
-                    includePPN: false,
-                    fapplyppn: false,
+                    includePPN: @json($returpenjualan->fincludeppn == '1'),
+                    fapplyppn: @json((int)($returpenjualan->fapplyppn ?? 0)),
 
                     get ppnIncluded() {
                         const total = +this.totalHarga || 0;
                         const rate = +this.ppnRate || 0;
-                        if (!this.fapplyppn) return 0;
+                        if (!this.fapplyppn || !this.includePPN) return 0;
                         return Math.round((100 / (100 + rate)) * total * (rate / 100));
                     },
 
@@ -1100,24 +1097,28 @@
                     },
 
                     get ppnAmount() {
+                        if (!this.includePPN) return 0;
                         if (this.fapplyppn) {
                             return this.ppnIncluded;
                         }
-                        if (this.includePPN) {
-                            return this.ppnAdded;
+                        return this.ppnAdded;
+                    },
+
+                    get netTotal() {
+                        const total = +this.totalHarga || 0;
+                        if (!this.includePPN) return total;
+                        if (this.fapplyppn) {
+                            return this.netFromGross;
                         }
-                        return 0;
+                        return total;
                     },
 
                     get grandTotal() {
                         const total = +this.totalHarga || 0;
-                        if (this.fapplyppn) {
+                        if (!this.includePPN || this.fapplyppn) {
                             return total;
                         }
-                        if (this.includePPN) {
-                            return total + this.ppnAdded;
-                        }
-                        return total;
+                        return total + this.ppnAdded;
                     },
 
                     fmt(n) {
@@ -1506,6 +1507,8 @@
                         }, {
                             passive: true
                         });
+
+                        this.recalcTotals();
                     },
 
                     browseTarget: 'draft',
@@ -1544,7 +1547,7 @@
                     return (window.crypto?.getRandomValues ? [...window.crypto.getRandomValues(new Uint32Array(2))].map(n => n
                             .toString(16)).join('') :
                         Math.random().toString(36).slice(2)) + Date.now();
-                }
+                };
             }
         </script>
 

@@ -210,10 +210,9 @@ class ReturPenjualanController extends Controller
 
     // PERBAIKAN: Gunakan fprhid (integer) bukan fprno (varchar)
     $items = Tr_prd::where('tr_prd.fprhid', $header->fprhid)
-      ->leftJoin('msprd as m', 'm.fprdid', '=', 'tr_prd.fitemid')
+      ->leftJoin('msprd as m', 'm.fprdcodeid', '=', 'tr_prd.fitemid')
       ->select([
-        'tr_prd.fprdid as frefdtno',
-        'tr_prd.fprhid as fnouref',
+        'tr_prd.fprdcodeid as frefdtno',
         'm.fprdcode as fitemcode',
         'm.fprdname as fitemname',
         'tr_prd.fqty',
@@ -272,7 +271,7 @@ class ReturPenjualanController extends Controller
 
     // Detail: join dengan product
     $dt = DB::table('trandt')
-      ->leftJoin('msprd as p', 'p.fprdid', '=', 'trandt.fprdid')
+      ->leftJoin('msprd as p', 'p.fprdid', '=', 'trandt.fprdcodeid')
       ->where('trandt.fsono', $fsono) // Gunakan variabel $fsono dari parameter fungsi
       ->orderBy('trandt.fnou', 'asc') // Urutkan berdasarkan nomor urut baris
       ->get([
@@ -389,7 +388,6 @@ class ReturPenjualanController extends Controller
     $frefso_ids   = $request->input('frefsoid', []);
     $frefsrj_codes = $request->input('frefsrj', []);
     $frefsrjid_ids = $request->input('frefsrjid', []);
-    $fnourefs     = $request->input('fnouref', []);
     $frefpr_codes = $request->input('frefpr', []);
 
     if ($typeSales === 1) {
@@ -436,7 +434,7 @@ class ReturPenjualanController extends Controller
         return back()->withInput()->with('error', "Produk [{$code}] {$product->fprdname} Sudah Discontinue.");
       }
 
-      $fprdid   = $product?->fprdid;
+      $fprdcodeid   = $product?->fprdid;
       $qtyKecil = $qty;
       if ($product && isset($satuans[$i]) && $satuans[$i] === $product->fsatuanbesar) {
         $qtyKecil = $qty * (float) $product->rasio_konversi;
@@ -453,11 +451,10 @@ class ReturPenjualanController extends Controller
 
       $detailRows[] = [
         'fnou'         => $nouCounter,
-        'fprdid'       => $fprdid,
+        'fprdcodeid'       => $fprdcodeid,
         'fprdcode'     => mb_substr($code, 0, 30),
         'fdesc'        => $itemDescs[$i] ?? '',
         'fqty'         => $qty,
-        'fqtydeliver'  => 0,
         'fqtyremain'   => $qty,
         'fprice'       => $price,
         'fprice_rp'    => $price * $frate,
@@ -470,7 +467,6 @@ class ReturPenjualanController extends Controller
         'fuserid'      => $userid,
         'fdatetime'    => $now,
         'frefcode' => $frefcode ?? '',
-        'fnouref'   => (isset($fnourefs[$i]) && $fnourefs[$i] !== '') ? (int)$fnourefs[$i] : null,
         'frefso'    => $frefso_ids[$i]   ? ($frefpr_codes[$i] ?? '') : '',
         'frefsoid'  => $frefso_ids[$i]   ?? null,
         'frefsrj'   => $frefsrjid_ids[$i] ? ($frefpr_codes[$i] ?? '') : '',
@@ -478,8 +474,7 @@ class ReturPenjualanController extends Controller
       ];
 
       $stockDetailRows[] = [
-        'fnouref'      => $nouCounter++,
-        'fprdcodeid'   => $fprdid,
+        'fprdcodeid'   => $fprdcodeid,
         'fprdcode'     => mb_substr($code, 0, 30),
         'fdesc'        => $itemDescs[$i] ?? '',
         'fqty'         => $qty,
@@ -501,10 +496,25 @@ class ReturPenjualanController extends Controller
     }
 
     // KALKULASI TOTAL
+    $fapplyppn = $request->input('fapplyppn', '0'); // 0: Exclude, 1: Include
     $amountNet  = $totalGross - $totalDisc;
     $ppnPersen  = (float) $request->input('fppnpersen', 11);
-    $ppnAmount  = ($fincludeppn === '1') ? ($amountNet * ($ppnPersen / 100)) : 0;
-    $grandTotal = $amountNet + $ppnAmount;
+
+    if ($fincludeppn === '1') {
+      if ($fapplyppn === '1') {
+        // INCLUDE: amountNet is current base, we extract
+        $ppnAmount  = $amountNet * ($ppnPersen / (100 + $ppnPersen));
+        $amountNet  = $amountNet - $ppnAmount;
+        $grandTotal = $amountNet + $ppnAmount;
+      } else {
+        // EXCLUDE: amountNet is base, we add
+        $ppnAmount  = $amountNet * ($ppnPersen / 100);
+        $grandTotal = $amountNet + $ppnAmount;
+      }
+    } else {
+      $ppnAmount  = 0;
+      $grandTotal = $amountNet;
+    }
 
     // DATABASE TRANSACTION
     try {
@@ -524,7 +534,8 @@ class ReturPenjualanController extends Controller
         $fcurrency,
         $frate,
         $ppnPersen,
-        $typeSales
+        $typeSales,
+        $fapplyppn
       ) {
 
         $fsono = $request->input('fsono');
@@ -568,6 +579,7 @@ class ReturPenjualanController extends Controller
           'fuserid'          => $userid,
           'fdatetime'        => $now,
           'fincludeppn'      => $fincludeppn,
+          'fapplyppn'        => $fapplyppn,
           'fppnpersen'       => $ppnPersen,
           'ftypesales'       => $typeSales,
           'ftrcode'          => 'I',
@@ -579,7 +591,7 @@ class ReturPenjualanController extends Controller
 
         foreach ($detailRows as &$row) {
           $row['fsono'] = $fsono;
-          $row['fsonoid'] = $ftranmtid;
+          $row['ftranmtid'] = $ftranmtid;
         }
         unset($row);
 
@@ -684,8 +696,8 @@ class ReturPenjualanController extends Controller
 
     $returpenjualan = Tranmt::with(['customer', 'details' => function ($q) {
       $q->leftJoin('msprd', function ($j) {
-        // Gunakan trandt.fprdid karena sudah integer (tidak perlu CAST lagi)
-        $j->on('msprd.fprdid', '=', 'trandt.fprdid');
+        // Gunakan trandt.fprdcodeid karena sudah integer (tidak perlu CAST lagi)
+        $j->on('msprd.fprdid', '=', 'trandt.fprdcodeid');
       })
         ->select(
           'trandt.*',
@@ -723,7 +735,6 @@ class ReturPenjualanController extends Controller
         'fitemname'  => (string)($d->fprdname ?? ''),
         'fsatuan'    => (string)($d->fsatuan ?? ''),
         'frefdtno'   => (string)($d->frefdtno ?? ''),
-        'fnouref'    => (string)($d->fnouref ?? ''),
         'frefsoid'   => (string)($d->frefsoid ?? ''),
         'frefsrjid'  => (string)($d->frefsrjid ?? ''),
         'fqty'       => (float)($d->fqty ?? 0),
@@ -754,7 +765,7 @@ class ReturPenjualanController extends Controller
     // Prepare the product map for frontend
     $productMap = $products->mapWithKeys(function ($p) {
       return [
-        $p->fprdid => [
+        $p->fprdcodeid => [
           'name'  => $p->fprdname,
           'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
           'stock' => $p->fminstock ?? 0,
@@ -804,8 +815,8 @@ class ReturPenjualanController extends Controller
 
     $returpenjualan = Tranmt::with(['customer', 'details' => function ($q) {
       $q->leftJoin('msprd', function ($j) {
-        // Gunakan trandt.fprdid karena sudah integer (tidak perlu CAST lagi)
-        $j->on('msprd.fprdid', '=', 'trandt.fprdid');
+        // Gunakan trandt.fprdcodeid karena sudah integer (tidak perlu CAST lagi)
+        $j->on('msprd.fprdid', '=', 'trandt.fprdcodeid');
       })
         ->select(
           'trandt.*',
@@ -821,13 +832,29 @@ class ReturPenjualanController extends Controller
     }
 
     $savedItems = $returpenjualan->details->map(function ($d) {
+      $refCode = strtoupper(trim($d->frefcode ?? ''));
+      $valSo   = trim($d->frefso ?? '');
+      $valSrj  = trim($d->frefsrj ?? '');
+      // 2. Logika Prioritas Tampilan
+      $displayRef = '-';
+
+      // Jika ada SRJ, tampilkan SRJ (biasanya SRJ lebih spesifik untuk retur)
+      if ($valSrj !== '') {
+        $displayRef = $valSrj;
+        $refCode = 'SRJ'; // Paksa refcode jadi SRJ jika ada nilainya
+      }
+      // Jika tidak ada SRJ tapi ada SO
+      elseif ($valSo !== '') {
+        $displayRef = $valSo;
+        $refCode = 'SO';
+      }
+
       return [
-        'uid'        => $d->fpodid,
-        'fitemcode'  => (string)($d->fitemcode ?? ''),  // dari alias msprd.fprdid
+        'uid'        => $d->ftrandtid,
+        'fitemcode'  => (string)($d->fitemcode ?? ''),  // dari alias msprd.fprdcodeid
         'fitemname'  => (string)($d->fprdname ?? ''),   // dari msprd.fprdname
         'fsatuan'    => (string)($d->fsatuan ?? ''),
         'frefdtno'   => (string)($d->frefdtno ?? ''),
-        'fnouref'    => (string)($d->fnouref ?? ''),
         'fqty'       => (float)($d->fqty ?? 0),
         'fterima'    => (float)($d->fterima ?? 0),
         'fprice'     => (float)($d->fprice ?? 0),
@@ -835,6 +862,8 @@ class ReturPenjualanController extends Controller
         'ftotal'     => (float)($d->famount ?? 0),
         'fdesc'      => (string)($d->fdesc ?? ''),
         'fketdt'     => (string)($d->fketdt ?? ''),
+        'frefcode'   => $refCode,
+        'frefpr'     => $displayRef,
       ];
     })->values();
     $selectedSupplierCode = $returpenjualan->fsupplier;
@@ -923,7 +952,6 @@ class ReturPenjualanController extends Controller
     $frefpr_codes  = $request->input('frefpr', []);
     $frefso_ids    = $request->input('frefsoid', []);
     $frefsrjid_ids = $request->input('frefsrjid', []);
-    $fnourefs      = $request->input('fnouref', []);
 
     if ($typeSales === 1) {
       $frefcode = 'UM';
@@ -932,7 +960,7 @@ class ReturPenjualanController extends Controller
         ?: ($header->frefcode ?? '');  // fallback dari DB jika kosong
     }
 
-    // Ambil mapping produk untuk mendapatkan fprdid dan rasio
+    // Ambil mapping produk untuk mendapatkan fprdcodeid dan rasio
     $products = DB::table('msprd')
       ->whereIn('fprdcode', array_filter($itemCodes))
       ->get(['fprdid', 'fprdcode', 'fsatuanbesar', 'fqtykecil as rasio_konversi'])
@@ -963,7 +991,7 @@ class ReturPenjualanController extends Controller
       if (empty($code) || $qty <= 0) continue;
 
       $product = $products->get($code);
-      $fprdid  = $product?->fprdid;
+      $fprdcodeid  = $product?->fprdid;
 
       $qtyKecil = $qty;
       if ($product && isset($satuans[$i]) && $satuans[$i] === $product->fsatuanbesar) {
@@ -981,13 +1009,12 @@ class ReturPenjualanController extends Controller
 
       $detailRows[] = [
         'fsono'        => $header->fsono,
-        'fsonoid'      => $ftranmtid,
+        'ftranmtid'    => $ftranmtid,
         'fnou'         => $i + 1,
-        'fprdid'       => $fprdid,
+        'fprdcodeid'       => $fprdcodeid,
         'fprdcode'     => mb_substr($code, 0, 30),
         'fdesc'        => $itemDescs[$i] ?? '',
         'fqty'         => $qty,
-        'fqtydeliver'  => 0,
         'fqtyremain'   => $qty,
         'fprice'       => $price,
         'fprice_rp'    => $price * $frate,
@@ -1002,14 +1029,12 @@ class ReturPenjualanController extends Controller
         'frefcode' => $frefcode ?? '',
         'frefsoid'  => (!empty($request->frefsoid[$i])) ? (int)$request->frefsoid[$i] : null,
         'frefsrjid' => (!empty($request->frefsrjid[$i])) ? (int)$request->frefsrjid[$i] : null,
-        'fnouref'   => (!empty($request->fnouref[$i])) ? (int)$request->fnouref[$i] : null,
         'frefso'    => $frefso_ids[$i]    ? ($frefpr_codes[$i] ?? '') : '',
         'frefsrj'   => $frefsrjid_ids[$i] ? ($frefpr_codes[$i] ?? '') : '',
       ];
 
       $stockDetailRows[] = [
-        'fnouref'      => $i + 1,
-        'fprdcodeid'   => $fprdid,
+        'fprdcodeid'   => $fprdcodeid,
         'fprdcode'     => mb_substr($code, 0, 30),
         'fdesc'        => $itemDescs[$i] ?? '',
         'fqty'         => $qty,
@@ -1026,10 +1051,25 @@ class ReturPenjualanController extends Controller
     }
 
     // 5. KALKULASI TOTAL
+    $fapplyppn = $request->input('fapplyppn', '0');
     $amountNet  = $totalGross - $totalDisc;
-    $ppnPersen  = (float)$request->input('fppnpersen', 11);
-    $ppnAmount  = ($fincludeppn === '1') ? ($amountNet * ($ppnPersen / 100)) : 0;
-    $grandTotal = $amountNet + $ppnAmount;
+    $ppnPersen  = (float) $request->input('fppnpersen', 11);
+
+    if ($fincludeppn === '1') {
+      if ($fapplyppn === '1') {
+        // INCLUDE
+        $ppnAmount  = $amountNet * ($ppnPersen / (100 + $ppnPersen));
+        $amountNet  = $amountNet - $ppnAmount;
+        $grandTotal = $amountNet + $ppnAmount;
+      } else {
+        // EXCLUDE
+        $ppnAmount  = $amountNet * ($ppnPersen / 100);
+        $grandTotal = $amountNet + $ppnAmount;
+      }
+    } else {
+      $ppnAmount  = 0;
+      $grandTotal = $amountNet;
+    }
 
     $ftypesales = $request->input('ftypesales', 0);
 
@@ -1057,7 +1097,7 @@ class ReturPenjualanController extends Controller
         $frefpr_codes,
         $frefso_ids,
         $frefsrjid_ids,
-        $fnourefs
+        $fapplyppn
       ) {
         // Update Header (tranmt)
         DB::table('tranmt')->where('ftranmtid', $ftranmtid)->update([
@@ -1078,6 +1118,7 @@ class ReturPenjualanController extends Controller
           'fuserid'         => $userid,
           'fdatetime'       => $now,
           'fincludeppn'     => $fincludeppn,
+          'fapplyppn'       => $fapplyppn,
           'ftypesales'      => $ftypesales,
           'fppnpersen'      => $ppnPersen,
           'ftaxno'          => $request->ftaxno ?? '0',
@@ -1155,8 +1196,8 @@ class ReturPenjualanController extends Controller
 
     $returpenjualan = Tranmt::with(['customer', 'details' => function ($q) {
       $q->leftJoin('msprd', function ($j) {
-        // Gunakan trandt.fprdid karena sudah integer (tidak perlu CAST lagi)
-        $j->on('msprd.fprdid', '=', 'trandt.fprdid');
+        // Gunakan trandt.fprdcodeid karena sudah integer (tidak perlu CAST lagi)
+        $j->on('msprd.fprdid', '=', 'trandt.fprdcodeid');
       })
         ->select(
           'trandt.*',
@@ -1172,13 +1213,29 @@ class ReturPenjualanController extends Controller
     }
 
     $savedItems = $returpenjualan->details->map(function ($d) {
+      $refCode = strtoupper(trim($d->frefcode ?? ''));
+      $valSo   = trim($d->frefso ?? '');
+      $valSrj  = trim($d->frefsrj ?? '');
+      // 2. Logika Prioritas Tampilan
+      $displayRef = '-';
+
+      // Jika ada SRJ, tampilkan SRJ (biasanya SRJ lebih spesifik untuk retur)
+      if ($valSrj !== '') {
+        $displayRef = $valSrj;
+        $refCode = 'SRJ'; // Paksa refcode jadi SRJ jika ada nilainya
+      }
+      // Jika tidak ada SRJ tapi ada SO
+      elseif ($valSo !== '') {
+        $displayRef = $valSo;
+        $refCode = 'SO';
+      }
+
       return [
-        'uid'        => $d->fpodid,
-        'fitemcode'  => (string)($d->fitemcode ?? ''),  // dari alias msprd.fprdid
+        'uid'        => $d->ftrandtid,
+        'fitemcode'  => (string)($d->fitemcode ?? ''),  // dari alias msprd.fprdcodeid
         'fitemname'  => (string)($d->fprdname ?? ''),   // dari msprd.fprdname
         'fsatuan'    => (string)($d->fsatuan ?? ''),
         'frefdtno'   => (string)($d->frefdtno ?? ''),
-        'fnouref'    => (string)($d->fnouref ?? ''),
         'fqty'       => (float)($d->fqty ?? 0),
         'fterima'    => (float)($d->fterima ?? 0),
         'fprice'     => (float)($d->fprice ?? 0),
@@ -1186,6 +1243,8 @@ class ReturPenjualanController extends Controller
         'ftotal'     => (float)($d->famount ?? 0),
         'fdesc'      => (string)($d->fdesc ?? ''),
         'fketdt'     => (string)($d->fketdt ?? ''),
+        'frefcode'   => $refCode,
+        'frefpr'     => $displayRef,
       ];
     })->values();
     $selectedSupplierCode = $returpenjualan->fsupplier;

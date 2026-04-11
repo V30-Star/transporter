@@ -428,7 +428,7 @@
                         </div>
 
                         <!-- ===== Trigger: Add tr_prh dari panel kanan ===== -->
-                        <div x-data="prhFormModal()">
+                        <div>
                             <!-- Trigger: Add PR dari panel kanan -->
                             <div class="mt-3 flex justify-between items-start gap-4">
                                 <div class="w-full flex justify-start mb-3">
@@ -444,18 +444,18 @@
                                         <div class="flex items-center justify-between gap-6">
                                             <!-- Checkbox -->
                                             <div class="flex items-center">
-                                                <input id="fapplyppn" type="checkbox" name="fapplyppn" value="1"
+                                                <input id="fincludeppn_input" type="checkbox" name="fincludeppn" value="1"
                                                     x-model="includePPN" disabled
                                                     class="h-4 w-4 text-blue-600 border-gray-300 rounded">
-                                                <label for="fapplyppn" class="ml-2 text-sm font-medium text-gray-700">
+                                                <label for="fincludeppn_input" class="ml-2 text-sm font-medium text-gray-700">
                                                     <span class="font-bold">PPN</span>
                                                 </label>
                                             </div>
 
                                             <!-- Dropdown Include / Exclude (tengah) -->
                                             <div class="flex items-center gap-2">
-                                                <select disabled id="includePPN" name="includePPN"
-                                                    x-model.number="fapplyppn" x-init="fapplyppn = 0"
+                                                <select disabled id="fapplyppn_input" name="fapplyppn"
+                                                    x-model.number="fapplyppn" 
                                                     :disabled="!(includePPN || fapplyppn)" 
                                                     class="w-28 h-9 px-2 text-sm leading-tight border rounded transition-opacity appearance-none
                                                            disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
@@ -1096,7 +1096,8 @@
                     initialPpnAmount: @json($invoice->famountpopajak ?? 0),
 
                     includePPN: @json($invoice->fincludeppn == '1'),
-                    fapplyppn: @json($invoice->fincludeppn == '1' ? 1 : 0),
+                    fapplyppn: @json((int) ($invoice->fapplyppn ?? 0)),
+                    action: 'view',
 
                     get ppnIncluded() {
                         const total = +this.totalHarga || 0;

@@ -1303,7 +1303,7 @@
                                 </div>
 
                                 <!-- ===== Trigger: Add tr_prh dari panel kanan ===== -->
-                                <div x-data="prhFormModal()">
+                                <div>
                                     <!-- Trigger: Add PR dari panel kanan -->
                                     <div class="mt-3 flex justify-between items-start gap-4">
                                         <div class="w-full flex justify-start mb-3">
@@ -1321,6 +1321,7 @@
                                                     <div class="flex items-center">
                                                         <input id="fincludeppn_input" type="checkbox" name="fincludeppn"
                                                             value="1" x-model="includePPN"
+                                                            :disabled="action === 'delete' || action === 'view'"
                                                             class="h-4 w-4 text-blue-600 border-gray-300 rounded">
                                                         <label for="fincludeppn_input"
                                                             class="ml-2 text-sm font-medium text-gray-700">
@@ -1332,7 +1333,7 @@
                                                     <div class="flex items-center gap-2">
                                                         <select id="fapplyppn_input" name="fapplyppn"
                                                             x-model.number="fapplyppn"
-                                                            :disabled="!(includePPN || fapplyppn)"
+                                                            :disabled="!(includePPN || fapplyppn) || action === 'delete' || action === 'view'"
                                                             class="w-28 h-9 px-2 text-sm leading-tight border rounded transition-opacity appearance-none
                                                            disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
                                                             <option value="0">Exclude</option>
@@ -1344,7 +1345,7 @@
                                                     <div class="flex items-center gap-2">
                                                         <input type="number" min="0" max="100"
                                                             step="0.01" x-model.number="ppnRate"
-                                                            :disabled="!(includePPN || fapplyppn)"
+                                                            :disabled="!(includePPN || fapplyppn) || action === 'delete' || action === 'view'"
                                                             class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
                                                             [appearance:textfield]
                                                             [&::-webkit-outer-spin-button]:appearance-none
@@ -2338,7 +2339,8 @@
             initialPpnAmount: @json($invoice->famountpajak ?? 0),
 
             includePPN: @json($invoice->fincludeppn == '1'),
-            fapplyppn: @json($invoice->fincludeppn == '1' ? 1 : 0),
+            fapplyppn: @json((int) ($invoice->fapplyppn ?? 0)),
+            action: @js($action ?? 'edit'),
 
             get ppnIncluded() {
                 const total = +this.totalHarga || 0;

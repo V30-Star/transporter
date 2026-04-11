@@ -70,8 +70,8 @@
         }
     </style>
 
-    <div x-data="{ open: true }">
-        <div x-data="{ fclose: {{ old('fclose', $returpenjualan->fclose) == '1' ? 'true' : 'false' }}, includePPN: false, ppnRate: 0, ppnAmount: 0, selected: 'alamatsurat', totalHarga: 100000 }" class="lg:col-span-5">
+    <div>
+        <div class="lg:col-span-12">
             <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
                 @if ($action === 'delete')
                     <div class="space-y-4">
@@ -284,7 +284,10 @@
                                                         <span x-text="it.fsatuan"></span>
                                                     </template>
                                                 </td>
-                                                <td class="p-2 text-blue-600 font-semibold" x-text="it.frefcode || '-'">
+                                                <td class="p-2">
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800"
+                                                        x-text="it.frefpr || it.frefcode || '-'">
+                                                    </span>
                                                 </td>
                                                 <td class="p-2 text-right">
                                                     <input type="number"
@@ -422,7 +425,7 @@
                             </div>
 
                             <!-- ===== Trigger: Add tr_prh dari panel kanan ===== -->
-                            <div x-data="prhFormModal()">
+                            <div>
                                 <!-- Trigger: Add PR dari panel kanan -->
                                 <div class="mt-3 flex justify-between items-start gap-4">
                                     <div class="w-full flex justify-start mb-3">
@@ -448,9 +451,9 @@
 
                                                 <!-- Dropdown Include / Exclude (tengah) -->
                                                 <div class="flex items-center gap-2">
-                                                    <select disabled id="includePPN" name="includePPN"
-                                                        x-model.number="fapplyppn" x-init="fapplyppn = 0"
-                                                        :disabled="!(includePPN || fapplyppn)"
+                                                    <select id="fapplyppn_input" name="fapplyppn"
+                                                        x-model.number="fapplyppn"
+                                                        :disabled="!(includePPN || fapplyppn) || action === 'view' || action === 'delete'"
                                                         class="w-28 h-9 px-2 text-sm leading-tight border rounded transition-opacity appearance-none
                                                            disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
                                                         <option value="0">Exclude</option>
@@ -460,9 +463,9 @@
 
                                                 <!-- Input Rate + Nominal (kanan) -->
                                                 <div class="flex items-center gap-2">
-                                                    <input disabled type="number" min="0" max="100"
+                                                    <input type="number" min="0" max="100" id="fppnpersen" name="fppnpersen"
                                                         step="0.01" x-model.number="ppnRate"
-                                                        :disabled="!(includePPN || fapplyppn)"
+                                                        :disabled="!(includePPN || fapplyppn) || action === 'view' || action === 'delete'"
                                                         class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
                                                             [appearance:textfield]
                                                             [&::-webkit-outer-spin-button]:appearance-none
@@ -1266,29 +1269,29 @@
                                     </div>
 
                                     <!-- ===== Panel Totals (DESAIN ASLI dipertahankan, hanya wrapper yang diperbaiki) ===== -->
-                                    <div x-data="prhFormModal()"
-                                        class="w-full md:w-auto md:min-w-[550px] lg:min-w-[650px]">
+                                    <div class="w-full md:w-auto md:min-w-[550px] lg:min-w-[650px]">
                                         <div class="rounded-lg border bg-gray-50 p-3 space-y-2">
                                             <div class="flex items-center justify-between">
-                                                <span class="text-sm text-gray-700">Total Harga</span>
+                                                <span class="text-sm text-gray-700">Total Harga (Net)</span>
                                                 <span class="min-w-[140px] text-right font-medium"
-                                                    x-text="rupiah(totalHarga)"></span>
+                                                    x-text="rupiah(netTotal)"></span>
                                             </div>
                                             <div class="flex items-center justify-between gap-6">
                                                 <!-- Checkbox -->
                                                 <div class="flex items-center">
-                                                    <input id="fapplyppn" type="checkbox" name="fapplyppn"
+                                                    <input id="fincludeppn_input" type="checkbox" name="fincludeppn"
                                                         value="1" x-model="includePPN"
+                                                        :disabled="action === 'delete' || action === 'view'"
                                                         class="h-4 w-4 text-blue-600 border-gray-300 rounded">
-                                                    <label for="fapplyppn" class="ml-2 text-sm font-medium text-gray-700">
+                                                    <label for="fincludeppn_input" class="ml-2 text-sm font-medium text-gray-700">
                                                         <span class="font-bold">PPN</span>
                                                     </label>
                                                 </div>
 
                                                 <!-- Dropdown Include / Exclude (tengah) -->
                                                 <div class="flex items-center gap-2">
-                                                    <select id="includePPN" name="includePPN" x-model.number="fapplyppn"
-                                                        x-init="fapplyppn = 0" :disabled="!(includePPN || fapplyppn)"
+                                                    <select id="fapplyppn_input" name="fapplyppn" x-model.number="fapplyppn"
+                                                        :disabled="!(includePPN || fapplyppn) || action === 'delete' || action === 'view'"
                                                         class="w-28 h-9 px-2 text-sm leading-tight border rounded transition-opacity appearance-none
                                disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
                                                         <option value="0">Exclude</option>
@@ -1299,7 +1302,7 @@
                                                 <!-- Input Rate + Nominal (kanan) -->
                                                 <div class="flex items-center gap-2">
                                                     <input type="number" min="0" max="100" step="0.01"
-                                                        x-model.number="ppnRate" :disabled="!(includePPN || fapplyppn)"
+                                                        x-model.number="ppnRate" :disabled="!(includePPN || fapplyppn) || action === 'delete' || action === 'view'"
                                                         class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
                             [appearance:textfield]
                             [&::-webkit-outer-spin-button]:appearance-none
@@ -1319,25 +1322,20 @@
                                                 <span class="min-w-[140px] text-right text-lg font-semibold"
                                                     x-text="rupiah(grandTotal)"></span>
                                             </div>
-
-                                            <div class="flex items-center justify-between">
-                                                <span class="text-sm font-semibold text-gray-800">Grand Total (RP)</span>
-                                                <span class="min-w-[140px] text-right text-lg font-semibold"
-                                                    x-text="rupiah(grandTotal)"></span>
-                                            </div>
                                         </div>
 
                                         <!-- Hidden inputs for submit -->
                                         <input type="hidden" name="famountgross" :value="totalHarga">
-                                        <input type="hidden" name="" :value="ppnAmount">
+                                        <input type="hidden" name="famountsonet" :value="netTotal">
+                                        <input type="hidden" name="famountpajak" :value="ppnAmount">
                                         <input type="hidden" name="famountso" :value="grandTotal">
-                                        <input type="hidden" name="famountpopajak" :value="ppnRate">
+                                        <input type="hidden" name="famountpopajak" :value="ppnAmount">
+                                        <input type="hidden" name="fppnpersen" :value="ppnRate">
 
-                                        <!-- Modal backdrop - sekarang bisa akses 'show' -->
+                                        <!-- Modal backdrop -->
                                         <div x-show="show" x-transition.opacity class="fixed inset-0 z-40 bg-black/50"
                                             @keydown.escape.window="closeModal()"></div>
 
-                                        {{-- MODAL PR dengan DataTables - HAPUS x-data di sini --}}
                                         <div>
                                             {{-- MODAL PR --}}
                                             <div x-show="show" x-cloak x-transition.opacity
@@ -1386,10 +1384,9 @@
                                                         </table>
                                                     </div>
 
-                                                    <!-- Footer (Pagination rendered by DataTables, just provide space if needed) -->
+                                                    <!-- Footer -->
                                                     <div
                                                         class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">
-                                                        <!-- DataTables pagination will be rendered automatically based on the 'dom' setting. -->
                                                     </div>
                                                 </div>
                                             </div>
@@ -1433,7 +1430,7 @@
                                     </div>
                                 </div>
 
-                                <!-- MODAL DESC (di dalam itemsTable) -->
+                                <!-- MODAL DESC -->
                                 <div x-show="showDescModal" x-cloak
                                     class="fixed inset-0 z-[95] flex items-center justify-center" x-transition.opacity>
                                     <div class="absolute inset-0 bg-black/50" @click="closeDesc()"></div>
@@ -1467,7 +1464,7 @@
                                 <input type="hidden" id="itemsCount" :value="savedItems.length">
                             </div>
 
-                            {{-- MODAL ERROR: belum ada item --}}
+                            {{-- MODAL ERROR --}}
                             <div x-show="showNoItems && savedItems.length === 0" x-cloak
                                 class="fixed inset-0 z-[90] flex items-center justify-center" x-transition.opacity>
                                 <div class="absolute inset-0 bg-black/50" @click="showNoItems=false"></div>
@@ -1713,7 +1710,7 @@
                                     class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
                                     <x-heroicon-o-check class="w-5 h-5 mr-2" /> Simpan
                                 </button>
-                                <button type="button" @click="window.location.href='{{ route('tr_poh.index') }}'"
+                                <button type="button" @click="window.location.href='{{ route('returpenjualan.index') }}'"
                                     class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
                                     <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" /> Keluar
                                 </button>
@@ -1739,7 +1736,6 @@
                         <button onclick="closeDeleteModal()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
                             id="btnTidak">
                             Tidak
-                        </button>
                         </button>
                         <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
                             Ya, Hapus
@@ -2372,20 +2368,18 @@
             showNoItems: false,
             savedItems: @json($savedItems ?? []),
             draft: newRow(),
+            action: @js($action ?? 'edit'),
 
             totalHarga: 0,
-            ppnRate: 11,
+            ppnRate: @json($returpenjualan->fppnpersen ?? 11),
 
-            initialGrandTotal: @json($famountso ?? 0),
-            initialPpnAmount: @json($famountpopajak ?? 0),
-
-            includePPN: false,
-            fapplyppn: false,
+            includePPN: @json($returpenjualan->fincludeppn == '1'),
+            fapplyppn: @json((int)($returpenjualan->fapplyppn ?? 0)),
 
             get ppnIncluded() {
                 const total = +this.totalHarga || 0;
                 const rate = +this.ppnRate || 0;
-                if (!this.fapplyppn) return 0;
+                if (!this.fapplyppn || !this.includePPN) return 0;
                 return Math.round((100 / (100 + rate)) * total * (rate / 100));
             },
 
@@ -2402,24 +2396,28 @@
             },
 
             get ppnAmount() {
+                if (!this.includePPN) return 0;
                 if (this.fapplyppn) {
                     return this.ppnIncluded;
                 }
-                if (this.includePPN) {
-                    return this.ppnAdded;
+                return this.ppnAdded;
+            },
+
+            get netTotal() {
+                const total = +this.totalHarga || 0;
+                if (!this.includePPN) return total;
+                if (this.fapplyppn) {
+                    return this.netFromGross;
                 }
-                return 0;
+                return total;
             },
 
             get grandTotal() {
                 const total = +this.totalHarga || 0;
-                if (this.fapplyppn) {
+                if (!this.includePPN || this.fapplyppn) {
                     return total;
                 }
-                if (this.includePPN) {
-                    return total + this.ppnAdded;
-                }
-                return total;
+                return total + this.ppnAdded;
             },
 
             fmt(n) {
@@ -2507,6 +2505,10 @@
 
             recalcTotals() {
                 this.totalHarga = this.savedItems.reduce((sum, item) => sum + item.ftotal, 0);
+            },
+
+            init() {
+                this.recalcTotals();
             },
 
             showToast(message, type = 'success') {
@@ -2835,6 +2837,8 @@
                 }, {
                     passive: true
                 });
+
+                this.recalcTotals();
             },
 
             browseTarget: 'draft',
