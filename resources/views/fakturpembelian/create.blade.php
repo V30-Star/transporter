@@ -98,9 +98,17 @@
         $includePPN = old('fapplyppn', 0);
         $ppnMode    = old('fincludeppn', 0);
         $ppnRate    = old('ppn_rate', 11);
+        $currentType = old('ftypebuy', '0');
+        $currentAccount = old('fprdjadi', '');
+        $currentAccountId = old('faccid', '');
     @endphp
 
-    <div x-data="{ open: true }">
+    <div x-data="{ 
+        open: true,
+        selectedType: '{{ $currentType }}',
+        selectedAccountCode: '{{ $currentAccount }}',
+        selectedAccountId: '{{ $currentAccountId }}'
+    }">
         <div class="lg:col-span-5">
             <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
                 <form action="{{ route('fakturpembelian.store') }}" method="POST" class="mt-6" x-data="{ showNoItems: false }"

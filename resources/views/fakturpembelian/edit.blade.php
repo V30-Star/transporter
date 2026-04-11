@@ -98,12 +98,12 @@
         // Definisikan semua variabel Anda di sini
         $currentType = old('ftypebuy', $fakturpembelian->ftypebuy);
         $currentAccount = trim((string) old('fprdjadi', $fakturpembelian->fprdjadi));
-        $currentAccountId = old('faccid', $fakturpembelian->faccid);
+        $currentAccountId = old('faccid', $fakturpembelian->fprdjadiid);
         $currentPpnAmount = old('famountpajak', $fakturpembelian->famountpajak ?? 0);
         $currentSubtotal = old('famount', $fakturpembelian->famount ?? 0);
         $includePPN = old('fapplyppn', $fakturpembelian->fapplyppn ?? 0);
-        $ppnMode    = old('fincludeppn', $fakturpembelian->fincludeppn ?? 0);
-        $ppnRate    = old('ppn_rate', $fakturpembelian->fppnpersen ?? 11);
+        $ppnMode = old('fincludeppn', $fakturpembelian->fincludeppn ?? 0);
+        $ppnRate = old('ppn_rate', $fakturpembelian->fppnpersen ?? 11);
     @endphp
 
     <div x-data="{
@@ -269,21 +269,21 @@
                             <label class="block text-sm font-medium mb-1">Account</label>
                             <div class="flex">
                                 <div class="relative flex-1">
-                                    <select disabled id="accountSelect" class="w-full border rounded-l px-3 py-2"
-                                        {{-- 1. HAPUS 'x-model' dari sini --}}
-                                        :class="{
-                                            'bg-gray-100 text-gray-700 cursor-not-allowed': selectedType != '1',
-                                            'bg-white cursor-pointer': selectedType == '1'
-                                        }"
-                                        {{-- 2. Ganti 'disabled' menjadi ':disabled' --}} :disabled="selectedType != '1'">
-
+                                    <select disabled id="accountSelect" class="w-full border rounded-l px-3 py-2" ...>
                                         <option value=""></option>
+
+                                        {{-- Tambahkan ini: jika account tersimpan tidak ada di list aktif --}}
+                                        @if ($currentAccount && !$accounts->contains('faccount', $currentAccount))
+                                            <option value="{{ $currentAccount }}" selected>
+                                                {{ $currentAccount }} - {{ $currentAccountName }}
+                                            </option>
+                                        @endif
+
                                         @foreach ($accounts as $account)
-                                            <option value="{{ $account->faccount }}"
+                                            <option value="{{ trim($account->faccount) }}"
                                                 data-faccid="{{ $account->faccid }}"
-                                                data-branch="{{ $account->faccount }}" {{-- 3. PERBAIKI logika 'selected' ini --}}
-                                                {{ $currentAccount == $account->faccid ? 'selected' : '' }}>
-                                                {{ $account->faccount }} - {{ $account->faccname }}
+                                                {{ $currentAccount == trim($account->faccount) ? 'selected' : '' }}>
+                                                {{ trim($account->faccount) }} - {{ trim($account->faccname) }}
                                             </option>
                                         @endforeach
                                     </select>
@@ -310,7 +310,8 @@
                                 </button>
                                 <a href="{{ route('account.create') }}" target="_blank" rel="noopener"
                                     class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
-                                    title="Tambah Account">
+                                    :class="{ 'opacity-50 cursor-not-allowed pointer-events-none': selectedType != '1' }"
+                                    @click="selectedType != '1' && $event.preventDefault()" title="Tambah Account">
                                     <x-heroicon-o-plus class="w-5 h-5" />
                                 </a>
                             </div>
@@ -683,15 +684,14 @@
 
                                         <!-- Dropdown Include / Exclude (tengah) -->
                                         <div class="flex items-center gap-2">
-                                                <select disabled id="includePPN" name="includePPN"
-                                                    x-model.number="fapplyppn" x-init="fapplyppn = 0"
-                                                    :disabled="!(includePPN || fapplyppn)"
-                                                    class="w-28 h-9 px-2 text-sm leading-tight border rounded transition-opacity appearance-none
+                                            <select disabled id="includePPN" name="includePPN" x-model.number="fapplyppn"
+                                                x-init="fapplyppn = 0" :disabled="!(includePPN || fapplyppn)"
+                                                class="w-28 h-9 px-2 text-sm leading-tight border rounded transition-opacity appearance-none
                                                            disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
-                                                    <option value="0">Exclude</option>
-                                                    <option value="1">Include</option>
-                                                </select>
-                                            </div>
+                                                <option value="0">Exclude</option>
+                                                <option value="1">Include</option>
+                                            </select>
+                                        </div>
 
                                         <!-- Input Rate + Nominal (kanan) -->
                                         <div class="flex items-center gap-2">
@@ -926,21 +926,21 @@
                                 <label class="block text-sm font-medium mb-1">Account</label>
                                 <div class="flex">
                                     <div class="relative flex-1">
-                                        <select id="accountSelect" class="w-full border rounded-l px-3 py-2"
-                                            {{-- 1. HAPUS 'x-model' dari sini --}}
-                                            :class="{
-                                                'bg-gray-100 text-gray-700 cursor-not-allowed': selectedType != '1',
-                                                'bg-white cursor-pointer': selectedType == '1'
-                                            }"
-                                            {{-- 2. Ganti 'disabled' menjadi ':disabled' --}} :disabled="selectedType != '1'">
-
+                                        <select disabled id="accountSelect" class="w-full border rounded-l px-3 py-2" ...>
                                             <option value=""></option>
+
+                                            {{-- Tambahkan ini: jika account tersimpan tidak ada di list aktif --}}
+                                            @if ($currentAccount && !$accounts->contains('faccount', $currentAccount))
+                                                <option value="{{ $currentAccount }}" selected>
+                                                    {{ $currentAccount }} - {{ $currentAccountName }}
+                                                </option>
+                                            @endif
+
                                             @foreach ($accounts as $account)
-                                                <option value="{{ $account->faccount }}"
+                                                <option value="{{ trim($account->faccount) }}"
                                                     data-faccid="{{ $account->faccid }}"
-                                                    data-branch="{{ $account->faccount }}" {{-- 3. PERBAIKI logika 'selected' ini --}}
-                                                    {{ $currentAccount == $account->faccid ? 'selected' : '' }}>
-                                                    {{ $account->faccount }} - {{ $account->faccname }}
+                                                    {{ $currentAccount == trim($account->faccount) ? 'selected' : '' }}>
+                                                    {{ trim($account->faccount) }} - {{ trim($account->faccname) }}
                                                 </option>
                                             @endforeach
                                         </select>
@@ -967,7 +967,8 @@
                                     </button>
                                     <a href="{{ route('account.create') }}" target="_blank" rel="noopener"
                                         class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
-                                        title="Tambah Account">
+                                        :class="{ 'opacity-50 cursor-not-allowed pointer-events-none': selectedType != '1' }"
+                                        @click="selectedType != '1' && $event.preventDefault()" title="Tambah Account">
                                         <x-heroicon-o-plus class="w-5 h-5" />
                                     </a>
                                 </div>
@@ -1655,8 +1656,8 @@
 
                                             <!-- Input Rate + Nominal (kanan) -->
                                             <div class="flex items-center gap-2">
-                                                <input type="number" min="0" max="100" step="0.01" name="ppn_rate"
-                                                    x-model.number="ppnRate" :disabled="!includePPN"
+                                                <input type="number" min="0" max="100" step="0.01"
+                                                    name="ppn_rate" x-model.number="ppnRate" :disabled="!includePPN"
                                                     class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
                                                             [appearance:textfield]
                                                             [&::-webkit-outer-spin-button]:appearance-none
@@ -2340,8 +2341,8 @@
                 initialPpnAmount: @json($famountpajak ?? 0),
 
                 includePPN: @json($includePPN == 1),
-                ppnMode: @json((int)$ppnMode),
-                ppnRate: @json((float)$ppnRate),
+                ppnMode: @json((int) $ppnMode),
+                ppnRate: @json((float) $ppnRate),
                 get ppnAmount() {
                     if (!this.includePPN) return 0;
                     const total = +this.totalHarga || 0;
@@ -3084,197 +3085,6 @@
     </script>
 
     <script>
-        window.accountBrowser = function() {
-            return {
-                open: false,
-                table: null,
-
-                initDataTable() {
-                    if (this.table) {
-                        this.table.destroy();
-                    }
-
-                    this.table = $('#accountTable').DataTable({
-                        processing: true,
-                        serverSide: true,
-                        ajax: {
-                            url: "{{ route('account.browse') }}",
-                            type: 'GET',
-                            data: function(d) {
-                                // Mengirim parameter standar DataTables untuk server-side processing
-                                return {
-                                    draw: d.draw,
-                                    start: d.start,
-                                    length: d.length,
-                                    search: d.search.value,
-                                    // Menambahkan parameter order untuk sorting (diperlukan serverSide)
-                                    order_column: d.columns[d.order[0].column].data,
-                                    order_dir: d.order[0].dir
-                                };
-                            },
-                            dataSrc: function(json) {
-                                // Asumsi backend mengembalikan data di properti 'data' (seperti Laravel DataTables)
-                                return json.data;
-                            }
-                        },
-                        columns: [{
-                                data: 'faccount',
-                                name: 'faccount',
-                                className: 'font-mono text-sm',
-                                width: '30%'
-                            },
-                            {
-                                data: 'faccname',
-                                name: 'faccname',
-                                className: 'text-sm',
-                                width: '55%'
-                            },
-                            {
-                                data: null,
-                                orderable: false,
-                                searchable: false,
-                                className: 'text-center',
-                                width: '15%',
-                                render: function(data, type, row) {
-                                    // Menggunakan styling yang mirip dengan button 'Pilih' di Supplier
-                                    return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>';
-                                }
-                            }
-                        ],
-                        pageLength: 10,
-                        lengthMenu: [
-                            [10, 25, 50, 100],
-                            [10, 25, 50, 100]
-                        ],
-                        // Menggunakan DOM custom untuk kontrol DataTables (sama seperti Supplier)
-                        dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
-                        language: {
-                            processing: "Memuat data...",
-                            search: "Cari:",
-                            lengthMenu: "Tampilkan _MENU_",
-                            info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
-                            infoEmpty: "Tidak ada data",
-                            infoFiltered: "(disaring dari _MAX_ total data)",
-                            zeroRecords: "Tidak ada data yang ditemukan",
-                            emptyTable: "Tidak ada data tersedia",
-                            paginate: {
-                                first: "Pertama",
-                                last: "Terakhir",
-                                next: "Selanjutnya",
-                                previous: "Sebelumnya"
-                            }
-                        },
-                        order: [
-                            [1, 'asc'] // Default order by Account Name
-                        ],
-                        autoWidth: false,
-                        initComplete: function() {
-                            const api = this.api();
-                            const $container = $(api.table().container());
-
-                            // Style search input (disamakan dengan Supplier)
-                            $container.find('.dt-search .dt-input, .dataTables_filter input').css({
-                                width: '300px',
-                                padding: '8px 12px',
-                                border: '2px solid #e5e7eb',
-                                borderRadius: '8px',
-                                fontSize: '14px'
-                            }).focus();
-
-                            // Style length select (disamakan dengan Supplier)
-                            $container.find('.dt-length select, .dataTables_length select').css({
-                                padding: '6px 32px 6px 10px',
-                                border: '2px solid #e5e7eb',
-                                borderRadius: '8px',
-                                fontSize: '14px'
-                            });
-                        }
-                    });
-
-                    // Handle button click
-                    $('#accountTable').on('click', '.btn-choose', (e) => {
-                        const data = this.table.row($(e.target).closest('tr')).data();
-                        this.choose(data);
-                    });
-                },
-
-                openModal() {
-                    this.open = true;
-                    this.$nextTick(() => {
-                        this.initDataTable();
-                    });
-                },
-
-                close() {
-                    this.open = false;
-                    if (this.table) {
-                        // Bersihkan pencarian saat ditutup (sama seperti Supplier)
-                        this.table.search('').draw();
-                    }
-                },
-
-                choose(w) {
-                    // Dispatches event (tetap)
-                    window.dispatchEvent(new CustomEvent('account-picked', {
-                        detail: {
-                            faccid: w.faccid,
-                            faccount: w.faccount,
-                            faccname: w.faccname,
-                        }
-                    }));
-                    this.close();
-                },
-
-                init() {
-                    window.addEventListener('account-browse-open', () => this.openModal(), {
-                        passive: true
-                    });
-                }
-            }
-        };
-
-        // Helper: update field saat account-picked
-        document.addEventListener('DOMContentLoaded', () => {
-            window.addEventListener('account-picked', (ev) => {
-                let {
-                    faccount,
-                    faccid
-                } = ev.detail || {};
-
-                // Fallback untuk mencari faccid dari option jika tidak ada
-                if (!faccid && faccount) {
-                    const sel = document.getElementById('accountSelect');
-                    if (sel) {
-                        const option = sel.querySelector(`option[value="${faccount}"]`);
-                        if (option) {
-                            faccid = option.getAttribute('data-faccid');
-                        }
-                    }
-                }
-
-                const sel = document.getElementById('accountSelect');
-                const hidId = document.getElementById('accountIdHidden');
-                const hidCode = document.getElementById('accountCodeHidden');
-
-                if (sel) {
-                    sel.value = faccount || '';
-                    sel.dispatchEvent(new Event('change', {
-                        bubbles: true
-                    }));
-                }
-
-                if (hidId) {
-                    hidId.value = faccid || '';
-                }
-
-                if (hidCode) {
-                    hidCode.value = faccount || '';
-                }
-            });
-        });
-    </script>
-
-    <script>
         // Warehouse Browser dengan DataTables
         window.warehouseBrowser = function() {
             return {
@@ -3936,6 +3746,28 @@
                     init() {
                         window.addEventListener('account-browse-open', () => this.openModal(), {
                             passive: true
+                        });
+
+                        this.$nextTick(() => {
+                            const currentCode = '{{ $currentAccount }}';
+                            const currentId = '{{ $currentAccountId }}';
+                            const currentName = '{{ addslashes(trim($currentAccountName)) }}';
+                            if (currentCode) {
+                                const sel = document.getElementById('accountSelect');
+                                if (sel) {
+                                    sel.value = currentCode;
+                                    if (sel.value !== currentCode) {
+                                        const label = currentCode + ' - ' + currentName;
+                                        const opt = new Option(label, currentCode, true, true);
+                                        sel.add(opt);
+                                        sel.value = currentCode;
+                                    }
+                                }
+                                const hidCode = document.getElementById('accountCodeHidden');
+                                const hidId = document.getElementById('accountIdHidden');
+                                if (hidCode) hidCode.value = currentCode;
+                                if (hidId) hidId.value = currentId;
+                            }
                         });
                     }
                 }

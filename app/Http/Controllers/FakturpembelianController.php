@@ -441,12 +441,16 @@ class FakturPembelianController extends Controller
       $request->validate([
         'fstockmtdate' => ['required', 'date'],
         'fsupplier'    => ['required', 'string', 'max:30'],
+        'ftypebuy'     => ['nullable', 'integer'],
+        'fprdjadi'     => ['required_if:ftypebuy,1'],
         'fitemcode'    => ['required', 'array', 'min:1'],
         'fitemcode.*'  => ['required', 'string', 'max:50'],
         'fqty'         => ['required', 'array'],
         'fqty.*'       => ['numeric', 'min:0.001'],
         'fprice'       => ['required', 'array'],
         'fprice.*'     => ['numeric', 'min:0'],
+      ], [
+        'fprdjadi.required_if' => 'Account wajib diisi ketika tipe pembelian adalah Non Stok.',
       ]);
 
       // 2) HEADER FIELDS
@@ -457,6 +461,7 @@ class FakturPembelianController extends Controller
       $fket         = trim((string)$request->input('fket', ''));
       $fbranchcode  = $request->input('fbranchcode');
       $faccid       = $request->input('faccid');
+      $fprdjadi     = $request->input('fprdjadi');
       $ftempohr     = $request->input('ftempohr');
       $ftypebuy     = $request->input('ftypebuy');
       $frefno       = $request->input('frefno');
@@ -551,6 +556,7 @@ class FakturPembelianController extends Controller
         $frefno,
         $frefpo,
         $faccid,
+        $fprdjadi,
         &$fstockmtno,
         &$rowsDt,
         $subtotal,
@@ -600,7 +606,8 @@ class FakturPembelianController extends Controller
           'frefno'          => $frefno,
           'frefpo'          => $frefpo,
           'ffrom'           => $ffrom,
-          'fprdjadi'        => $faccid,
+          'fprdjadi'        => $fprdjadi,
+          'fprdjadiid'      => $faccid,
           'fket'            => $fket,
           'fusercreate'     => $userid,
           'fdatetime'       => $now,
@@ -658,7 +665,6 @@ class FakturPembelianController extends Controller
     // 3. UBAH QUERY INI: Gunakan $savedAccountCode
     $accounts = DB::table('account')
       ->select('faccid', 'faccount', 'faccname', 'fnonactive')
-      ->where('fnonactive', '0') // Ambil semua yang aktif
       ->orderBy('faccount') // <-- Perbaikan nama kolom
       ->get();
 
@@ -682,6 +688,10 @@ class FakturPembelianController extends Controller
     $fbranchcode = $branch->fcabangkode ?? (string) $raw;
 
     // (Query $fakturpembelian sudah dipindah ke atas)
+    $currentAccount = trim($fakturpembelian->fprdjadi ?? '');
+    $currentAccountRecord = $accounts->firstWhere('faccount', trim($fakturpembelian->fprdjadi ?? ''));
+    $currentAccountId = $currentAccountRecord?->faccid ?? '';
+    $currentAccountName = $currentAccountRecord?->faccname ?? ''; // ← TAMBAH INI
 
     // 4. Map the data for savedItems
     $savedItems = $fakturpembelian->details->map(function ($d) {
@@ -740,6 +750,9 @@ class FakturPembelianController extends Controller
       'products' => $products,
       'accounts' => $accounts,
       'productMap' => $productMap,
+      'currentAccount'   => $currentAccount,
+      'currentAccountId' => $currentAccountId,
+      'currentAccountName' => $currentAccountName,
       'fakturpembelian' => $fakturpembelian,
       'savedItems' => $savedItems,
       'ppnAmount' => (float) ($fakturpembelian->famountpopajak ?? 0),
@@ -776,7 +789,6 @@ class FakturPembelianController extends Controller
     // 3. UBAH QUERY INI: Gunakan $savedAccountCode
     $accounts = DB::table('account')
       ->select('faccid', 'faccount', 'faccname', 'fnonactive')
-      ->where('fnonactive', '0') // Ambil semua yang aktif
       ->orderBy('faccount') // <-- Perbaikan nama kolom
       ->get();
 
@@ -798,6 +810,11 @@ class FakturPembelianController extends Controller
 
     $fcabang = $branch->fcabangname ?? (string) $raw;
     $fbranchcode = $branch->fcabangkode ?? (string) $raw;
+    // (Query $fakturpembelian sudah dipindah ke atas)
+    $currentAccount = trim($fakturpembelian->fprdjadi ?? '');
+    $currentAccountRecord = $accounts->firstWhere('faccount', trim($fakturpembelian->fprdjadi ?? ''));
+    $currentAccountId = $currentAccountRecord?->faccid ?? '';
+    $currentAccountName = $currentAccountRecord?->faccname ?? ''; // ← TAMBAH INI
 
     // (Query $fakturpembelian sudah dipindah ke atas)
 
@@ -858,6 +875,9 @@ class FakturPembelianController extends Controller
       'products' => $products,
       'accounts' => $accounts,
       'productMap' => $productMap,
+      'currentAccount'   => $currentAccount,
+      'currentAccountId' => $currentAccountId,
+      'currentAccountName' => $currentAccountName,
       'fakturpembelian' => $fakturpembelian,
       'savedItems' => $savedItems,
       'ppnAmount' => (float) ($fakturpembelian->famountpopajak ?? 0),
@@ -911,11 +931,13 @@ class FakturPembelianController extends Controller
         'ftypebuy' => ['nullable', 'integer'],
         'frefno' => ['nullable', 'string'],
         'frefpo' => ['nullable', 'string'],
+        'fprdjadi' => ['required_if:ftypebuy,1'],
       ], [
         'fstockmtdate.required' => 'Tanggal transaksi wajib diisi.',
         'fsupplier.required' => 'Supplier wajib diisi.',
         'fitemcode.required' => 'Minimal 1 item.',
         'fsatuan.*.max' => 'Satuan di salah satu baris tidak boleh lebih dari 5 karakter.',
+        'fprdjadi.required_if' => 'Account wajib diisi ketika tipe pembelian adalah Non Stok.',
       ]);
 
       // 2. Muat header yang ada
@@ -929,6 +951,7 @@ class FakturPembelianController extends Controller
       $fket = trim((string)$request->input('fket', ''));
       $fbranchcode = $request->input('fbranchcode');
       $faccid = $request->input('faccid');
+      $fprdjadi = $request->input('fprdjadi');
       $ftempohr = $request->input('ftempohr');
       $ftypebuy = $request->input('ftypebuy');
       $fcurrency = $request->input('fcurrency', 'IDR');
@@ -1043,7 +1066,8 @@ class FakturPembelianController extends Controller
         $subtotal,
         $ppnAmount,
         $grandTotal,
-        $faccid
+        $faccid,
+        $fprdjadi
       ) {
 
         // Logika Branch yang diperbaiki untuk PostgreSQL
@@ -1080,7 +1104,8 @@ class FakturPembelianController extends Controller
           'frefno' => $request->input('frefno'),
           'frefpo' => $request->input('frefpo'),
           'ffrom' => $ffrom,
-          'fprdjadi' => $faccid,
+          'fprdjadi' => $fprdjadi,
+          'fprdjadiid' => $faccid,
           'fket' => $fket,
           'fuserupdate' => (Auth::user()->fname ?? 'system'),
           'fdatetime' => $now,
@@ -1144,7 +1169,6 @@ class FakturPembelianController extends Controller
     // 3. UBAH QUERY INI: Gunakan $savedAccountCode
     $accounts = DB::table('account')
       ->select('faccid', 'faccount', 'faccname', 'fnonactive')
-      ->where('fnonactive', '0') // Ambil semua yang aktif
       ->orderBy('faccount') // <-- Perbaikan nama kolom
       ->get();
 
@@ -1166,7 +1190,10 @@ class FakturPembelianController extends Controller
 
     $fcabang = $branch->fcabangname ?? (string) $raw;
     $fbranchcode = $branch->fcabangkode ?? (string) $raw;
-
+    $currentAccount = trim($fakturpembelian->fprdjadi ?? '');
+    $currentAccountRecord = $accounts->firstWhere('faccount', trim($fakturpembelian->fprdjadi ?? ''));
+    $currentAccountId = $currentAccountRecord?->faccid ?? '';
+    $currentAccountName = $currentAccountRecord?->faccname ?? ''; // ← TAMBAH INI
     // (Query $fakturpembelian sudah dipindah ke atas)
 
     // 4. Map the data for savedItems
@@ -1226,6 +1253,9 @@ class FakturPembelianController extends Controller
       'products' => $products,
       'accounts' => $accounts,
       'productMap' => $productMap,
+      'currentAccount'   => $currentAccount,
+      'currentAccountId' => $currentAccountId,
+      'currentAccountName' => $currentAccountName,
       'fakturpembelian' => $fakturpembelian,
       'savedItems' => $savedItems,
       'ppnAmount' => (float) ($fakturpembelian->famountpopajak ?? 0),

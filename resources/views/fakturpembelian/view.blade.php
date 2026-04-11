@@ -98,7 +98,7 @@
         // Definisikan semua variabel Anda di sini
         $currentType = old('ftypebuy', $fakturpembelian->ftypebuy);
         $currentAccount = trim((string) old('fprdjadi', $fakturpembelian->fprdjadi));
-        $currentAccountId = old('faccid', $fakturpembelian->faccid);
+        $currentAccountId = old('faccid', $fakturpembelian->fprdjadiid);
         $currentPpnAmount = old('famountpajak', $fakturpembelian->famountpajak ?? 0);
         $currentSubtotal = old('famount', $fakturpembelian->famount ?? 0);
         $includePPN = old('fapplyppn', $fakturpembelian->fapplyppn ?? 0);
@@ -262,41 +262,30 @@
                         <label class="block text-sm font-medium mb-1">Account</label>
                         <div class="flex">
                             <div class="relative flex-1">
-                                <select disabled id="accountSelect" class="w-full border rounded-l px-3 py-2"
-                                    {{-- 1. HAPUS 'x-model' dari sini --}}
-                                    :class="{
-                                        'bg-gray-100 text-gray-700 cursor-not-allowed': selectedType != '1',
-                                        'bg-white cursor-pointer': selectedType == '1'
-                                    }"
-                                    {{-- 2. Ganti 'disabled' menjadi ':disabled' --}} :disabled="selectedType != '1'">
-
+                                <select disabled readonly class="w-full border rounded-l px-3 py-2" ...>
                                     <option value=""></option>
+
+                                    {{-- Tambahkan ini: jika account tersimpan tidak ada di list aktif --}}
+                                    @if ($currentAccount && !$accounts->contains('faccount', $currentAccount))
+                                        <option value="{{ $currentAccount }}" selected>
+                                            {{ $currentAccount }} - {{ $currentAccountName }}
+                                        </option>
+                                    @endif
+
                                     @foreach ($accounts as $account)
-                                        <option value="{{ $account->faccount }}" data-faccid="{{ $account->faccid }}"
-                                            data-branch="{{ $account->faccount }}" {{-- 3. PERBAIKI logika 'selected' ini --}}
-                                            {{ $currentAccount == $account->faccid ? 'selected' : '' }}>
-                                            {{ $account->faccount }} - {{ $account->faccname }}
+                                        <option value="{{ trim($account->faccount) }}"
+                                            data-faccid="{{ $account->faccid }}"
+                                            {{ $currentAccount == trim($account->faccount) ? 'selected' : '' }}>
+                                            {{ trim($account->faccount) }} - {{ trim($account->faccname) }}
                                         </option>
                                     @endforeach
                                 </select>
-
-                                <div class="absolute inset-0" role="button" aria-label="Browse account"
-                                    @click="window.dispatchEvent(new CustomEvent('account-browse-open'))"
-                                    x-show="selectedType == '1'"></div>
                             </div>
 
                             {{-- 4. Isi 'value' dari hidden input dengan data PHP --}}
                             <input type="hidden" name="fprdjadi" id="accountCodeHidden" value="{{ $currentAccount }}">
                             <input type="hidden" name="faccid" id="accountIdHidden" value="{{ $currentAccountId }}">
 
-                            {{-- Tombol-tombol ini sudah benar --}}
-                            <button disabled type="button"
-                                @click="window.dispatchEvent(new CustomEvent('account-browse-open'))"
-                                class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
-                                :disabled="selectedType != '1'"
-                                :class="{ 'opacity-50 cursor-not-allowed': selectedType != '1' }" title="Browse Account">
-                                <x-heroicon-o-magnifying-glass class="w-5 h-5" />
-                            </button>
                         </div>
 
                         @error('fprdjadi')
