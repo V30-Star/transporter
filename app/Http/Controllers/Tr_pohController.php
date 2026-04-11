@@ -1021,7 +1021,8 @@ class Tr_pohController extends Controller
 
     $productMap = $products->mapWithKeys(function ($p) {
       return [
-        $p->fprdid => [
+        (string)$p->fprdcode => [
+          'id'    => $p->fprdid,
           'name'  => $p->fprdname,
           'units' => array_values(array_filter([
             $p->fsatuankecil,

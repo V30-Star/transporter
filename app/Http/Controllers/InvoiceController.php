@@ -353,6 +353,16 @@ class InvoiceController extends Controller
       'fminstock'
     )->orderBy('fprdname')->get();
 
+    $productMap = $products->mapWithKeys(function ($p) {
+      return [
+        $p->fprdcode => [
+          'name'  => $p->fprdname,
+          'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
+          'stock' => $p->fminstock ?? 0,
+        ],
+      ];
+    })->toArray();
+
     return view('invoice.create', [
       'newtr_prh_code' => $newtr_prh_code,
       'perms' => ['can_approval' => $canApproval],
@@ -361,6 +371,7 @@ class InvoiceController extends Controller
       'fcabang' => $fcabang,
       'fbranchcode' => $fbranchcode,
       'products' => $products,
+      'productMap' => $productMap,
       'filterSupplierId' => $request->query('filter_supplier_id'),
       'filterSalesmanId' => $request->query('filter_salesman_id'),
     ]);

@@ -285,7 +285,15 @@
                                                     x-text="it.frefpr || it.frefcode || '-'">
                                                 </span>
                                             </td>
-                                            <td class="p-2 text-right" x-text="fmt(it.fqty)"></td>
+                                            <td class="p-2 text-right">
+                                                <div x-text="fmt(it.fqty)"></div>
+                                                <div class="text-xs text-gray-400 mt-0.5 flex justify-between items-center" x-show="it.fitemcode">
+                                                    <div>(<span x-text="productMeta(it.fitemcode).stock"></span>) in stock</div>
+                                                    <div class="font-medium text-orange-600" x-show="it.maxqty > 0">
+                                                        maks: <span x-text="it.maxqty"></span>
+                                                    </div>
+                                                </div>
+                                            </td>
                                             <td class="p-2 text-right" x-text="fmt(it.fprice)"></td>
                                             <td class="p-2 text-right" x-text="it.fdisc"></td>
                                             <td class="p-2 text-right" x-text="fmt(it.ftotal)"></td>
@@ -663,18 +671,6 @@
                 gap: 8px !important;
             }
         </style>
-        {{-- DATA & SCRIPTS --}}
-        <script>
-            // Map produk untuk auto-fill tabel
-            window.PRODUCT_MAP = {
-                @foreach ($products as $p)
-                    "{{ $p->fprdcode }}": {
-                        name: @json($p->fprdname),
-                        units: @json(array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2]))),
-                        stock: @json($p->fminstock ?? 0)
-                    },
-                @endforeach
-            };
 
             // id unik
             window.cryptoRandom = function() {
@@ -1046,6 +1042,9 @@
                 }
             }
 
+        <script>
+            window.PRODUCT_MAP = @json($productMap ?? []);
+
             document.addEventListener('alpine:init', () => {
                 Alpine.store('trsomt', {
                     // desc yang sedang dipreview
@@ -1210,7 +1209,11 @@
 
                     productMeta(code) {
                         const key = (code || '').trim();
-                        return window.PRODUCT_MAP?.[key] || null;
+                        return window.PRODUCT_MAP?.[key] || {
+                            name: '',
+                            units: [],
+                            stock: 0
+                        };
                     },
 
                     hydrateRowFromMeta(row, meta) {

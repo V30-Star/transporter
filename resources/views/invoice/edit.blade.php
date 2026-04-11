@@ -381,7 +381,7 @@
                                                     "
                                                     @keydown.enter.prevent="$refs.editTerima?.focus()">
                                                 <div class="text-xs text-gray-400 mt-0.5 text-right">
-                                                    <span x-show="editRow.maxqty > 0">maks: <span x-text="editRow.maxqty"></span></span>
+                                                    <span x-show="editRow.maxqty > 0" x-text="editRow.maxqty + ' in stock'"></span>
                                                 </div>
                                             </td>
 
@@ -889,7 +889,7 @@
                                                                 if (it.maxqty > 0 && it.fqty > it.maxqty) { it.fqty = it.maxqty; recalc(it); }
                                                             ">
                                                         <div class="text-xs text-gray-400 mt-0.5 text-right">
-                                                            <span x-show="it.maxqty > 0">maks: <span x-text="it.maxqty"></span></span>
+                                                            <span x-show="it.maxqty > 0" x-text="it.maxqty + ' in stock'"></span>
                                                         </div>
                                                     </td>
 
@@ -1018,7 +1018,7 @@
                                                         "
                                                         @keydown.enter.prevent="$refs.draftPrice?.focus()">
                                                     <div class="text-xs text-gray-400 mt-0.5 text-right">
-                                                        <span x-show="draft.maxqty > 0">maks: <span x-text="draft.maxqty"></span></span>
+                                                        <span x-show="draft.maxqty > 0" x-text="draft.maxqty + ' in stock'"></span>
                                                     </div>
                                                 </td>
 

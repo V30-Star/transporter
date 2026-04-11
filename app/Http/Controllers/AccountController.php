@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Account;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class AccountController extends Controller
 {
@@ -31,7 +31,7 @@ class AccountController extends Controller
             ->pluck('year');
 
         $canCreate = in_array('createAccount', explode(',', session('user_restricted_permissions', '')));
-        $canEdit   = in_array('updateAccount', explode(',', session('user_restricted_permissions', '')));
+        $canEdit = in_array('updateAccount', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deleteAccount', explode(',', session('user_restricted_permissions', '')));
 
         return view('account.index', compact('accounts', 'canCreate', 'canEdit', 'canDelete', 'availableYears'));
@@ -43,6 +43,7 @@ class AccountController extends Controller
             ->orderBy('faccount')
             ->limit(50)
             ->get();
+
         return view('account.create', compact('accounts'));
     }
 
@@ -58,28 +59,28 @@ class AccountController extends Controller
         ]);
         $validated = $request->validate(
             [
-                'faccount'     => 'required|string|unique:account,faccount|max:10',
-                'faccname'     => 'required|string',
-                'faccupline'   => 'nullable|string',
-                'finitjurnal'  => [
+                'faccount' => 'required|string|unique:account,faccount|max:10',
+                'faccname' => 'required|string',
+                'faccupline' => 'nullable|string',
+                'finitjurnal' => [
                     $isSetAccount ? 'required' : 'nullable',
                     'string',
                     'max:2',
-                    'unique:account,finitjurnal'
+                    'unique:account,finitjurnal',
                 ],
-                'fnormal'      => 'required|in:D',
-                'fend'         => 'required|in:1,0',
-                'fuserlevel'   => 'required|in:1,2,3',
-                'fhavesubaccount'  => 'sometimes|boolean',
-                'ftypesubaccount'  => 'nullable|in:Sub Account,Customer,Supplier',
+                'fnormal' => 'required|in:D',
+                'fend' => 'required|in:1,0',
+                'fuserlevel' => 'required|in:1,2,3',
+                'fhavesubaccount' => 'sometimes|boolean',
+                'ftypesubaccount' => 'nullable|in:Sub Account,Customer,Supplier',
             ],
             [
                 'faccount.required' => 'Kode account harus diisi.',
                 'faccname.required' => 'Nama account harus diisi.',
-                'faccount.unique'   => 'Kode account sudah ada.',
-                'faccount.max'      => 'Kode account maksimal 10 karakter.',
-                'faccname.max'      => 'Nama account maksimal 50 karakter.',
-                'finitjurnal.max'   => 'Inisial jurnal maksimal 2 karakter.',
+                'faccount.unique' => 'Kode account sudah ada.',
+                'faccount.max' => 'Kode account maksimal 10 karakter.',
+                'faccname.max' => 'Nama account maksimal 50 karakter.',
+                'finitjurnal.max' => 'Inisial jurnal maksimal 2 karakter.',
                 'finitjurnal.unique' => 'Initial Jurnal sudah digunakan oleh account lain.',
                 'finitjurnal.required' => 'Initial Jurnal wajib diisi.',
                 'faccupline.exists' => 'Account header tidak valid.',
@@ -103,11 +104,11 @@ class AccountController extends Controller
             : '0';
 
         // Map select lain
-        $validated['fnormal']    = $request->input('fnormal');
-        $validated['fend']       = $request->input('fend');
+        $validated['fnormal'] = $request->input('fnormal');
+        $validated['fend'] = $request->input('fend');
         // faccupline sudah dari hidden (id header)
         // currency tetap IDR
-        $validated['fcurrency']  = 'IDR';
+        $validated['fcurrency'] = 'IDR';
 
         Account::create($validated);
 
@@ -126,14 +127,14 @@ class AccountController extends Controller
 
         // header yang sedang terset di record ini (jika ada)
         $selectedHeader = null;
-        if (!empty($account->faccupline)) {
+        if (! empty($account->faccupline)) {
             $selectedHeader = Account::find($account->faccupline);
         }
 
         return view('account.view', [
             'account' => $account,
             'headers' => $headers,
-            'selectedHeader' => $selectedHeader
+            'selectedHeader' => $selectedHeader,
         ]);
     }
 
@@ -149,7 +150,7 @@ class AccountController extends Controller
 
         // header yang sedang terset di record ini (jika ada)
         $selectedHeader = null;
-        if (!empty($account->faccupline)) {
+        if (! empty($account->faccupline)) {
             $selectedHeader = Account::find($account->faccupline);
         }
 
@@ -157,7 +158,7 @@ class AccountController extends Controller
             'account' => $account,
             'headers' => $headers,
             'selectedHeader' => $selectedHeader,
-            'action' => 'edit' // Tambahkan ini
+            'action' => 'edit', // Tambahkan ini
         ]);
     }
 
@@ -167,22 +168,21 @@ class AccountController extends Controller
             ->where('faccount_id', $request->faccid) // faccid dari input hidden 'faccid'
             ->exists();
 
-
         $validated = $request->validate(
             [
-                'faccount'     => "required|string|unique:account,faccount,{$faccid},faccid|max:10",
-                'faccname'     => 'required|string|max:50',
-                'fnormal'      => 'required|in:D',
-                'finitjurnal'  => [
+                'faccount' => "required|string|unique:account,faccount,{$faccid},faccid|max:10",
+                'faccname' => 'required|string|max:50',
+                'fnormal' => 'required|in:D',
+                'finitjurnal' => [
                     $isSetAccount ? 'required' : 'nullable',
                     'string',
                     'max:2',
                     // Ditambahkan pengecualian ID seperti pada faccount
-                    "unique:account,finitjurnal,{$faccid},faccid"
+                    "unique:account,finitjurnal,{$faccid},faccid",
                 ],
-                'fend'         => 'required|in:1,0',
-                'fuserlevel'   => 'required|in:1,2,3',
-                'faccupline'   => [
+                'fend' => 'required|in:1,0',
+                'fuserlevel' => 'required|in:1,2,3',
+                'faccupline' => [
                     'nullable',
                     'string',
                     // Rule::exists('account', 'faccid')->where(fn($q) => $q->where('fend', 0)),
@@ -191,13 +191,13 @@ class AccountController extends Controller
             ],
             [
                 'faccount.required' => 'Kode account harus diisi.',
-                'faccount.unique'   => 'Kode account sudah ada.',
-                'faccount.max'      => 'Kode account maksimal 10 karakter.',
+                'faccount.unique' => 'Kode account sudah ada.',
+                'faccount.max' => 'Kode account maksimal 10 karakter.',
                 'faccname.required' => 'Nama account harus diisi.',
-                'faccname.max'      => 'Nama account maksimal 50 karakter.',
+                'faccname.max' => 'Nama account maksimal 50 karakter.',
                 'finitjurnal.required' => 'Inisial jurnal harus diisi untuk KASBANKHEADER.',
                 'finitjurnal.unique' => 'Initial Jurnal sudah digunakan oleh account lain.',
-                'finitjurnal.max'   => 'Inisial jurnal maksimal 2 karakter.',
+                'finitjurnal.max' => 'Inisial jurnal maksimal 2 karakter.',
                 'faccupline.exists' => 'Account header tidak valid.',
             ]
         );
@@ -206,9 +206,9 @@ class AccountController extends Controller
         $validated['faccname'] = strtoupper($validated['faccname']);
 
         // Checkbox & metadata
-        $validated['fnonactive']  = $request->has('fnonactive') ? '1' : '0';
-        $validated['fupdatedby']  = auth('sysuser')->user()->fname ?? null;
-        $validated['fupdatedat']  = now();
+        $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
+        $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
+        $validated['fupdatedat'] = now();
 
         // Sub account
         $validated['fhavesubaccount'] = $request->has('fhavesubaccount') ? 1 : 0;
@@ -218,8 +218,8 @@ class AccountController extends Controller
             : '0';
 
         // Map select lain
-        $validated['fnormal']   = $request->input('fnormal');
-        $validated['fend']      = $request->input('fend');
+        $validated['fnormal'] = $request->input('fnormal');
+        $validated['fend'] = $request->input('fend');
         $validated['fuserlevel'] = $request->input('fuserlevel');
         $validated['fcurrency'] = 'IDR';
 
@@ -238,23 +238,14 @@ class AccountController extends Controller
     {
         $account = Account::findOrFail($faccid);
 
-        // preload 50 header untuk dropdown view
-        $headers = Account::where('fend', 0)
-            ->orderBy('faccount')
-            ->limit(50)
-            ->get();
-
-        // header yang sedang terset di record ini (jika ada)
-        $selectedHeader = null;
-        if (!empty($account->faccupline)) {
-            $selectedHeader = Account::find($account->faccupline);
+        $accountHeader = null;
+        if (! empty($account->faccupline)) {
+            $accountHeader = Account::find($account->faccupline);
         }
 
-        return view('account.edit', [
+        return view('account.delete', [
             'account' => $account,
-            'headers' => $headers,
-            'selectedHeader' => $selectedHeader,
-            'action' => 'delete' // Tambahkan ini
+            'accountHeader' => $accountHeader,
         ]);
     }
 
@@ -280,12 +271,12 @@ class AccountController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Data account ' . $account->faccname . ' berhasil dihapus.'
+                'message' => 'Data account ' . $account->faccname . ' berhasil dihapus.',
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
             ], 500);
         }
     }
@@ -320,7 +311,7 @@ class AccountController extends Controller
                         ? "{$item->faccount} - {$item->faccname}"
                         : "{$item->faccname} ({$item->faccount})",
                     'code' => $item->faccount,
-                    'name' => $item->faccname
+                    'name' => $item->faccname,
                 ];
             });
 
@@ -377,7 +368,7 @@ class AccountController extends Controller
             'draw' => (int) $request->input('draw', 1),
             'recordsTotal' => (int) $recordsTotal,
             'recordsFiltered' => (int) $recordsFiltered,
-            'data' => $data
+            'data' => $data,
         ]);
     }
 }

@@ -312,8 +312,9 @@
                                                 if (it.maxqty > 0 && it.fqty > it.maxqty) { it.fqty = it.maxqty; recalc(it); }
                                             "
                                             @keydown.enter.prevent="focusSavedPrice(i)">
-                                        <div class="text-xs text-gray-400 mt-0.5 text-right">
-                                            <span x-show="it.maxqty > 0">maks: <span x-text="it.maxqty"></span></span>
+                                        <div class="text-xs text-gray-400 mt-0.5 text-right space-y-0.5">
+                                            <div x-show="it.maxqty > 0">maks: <span x-text="it.maxqty"></span></div>
+                                            <div x-show="it.fitemcode" x-text="(productMeta(it.fitemcode)?.stock || 0) + ' in stock'"></div>
                                         </div>
                                     </td>
 
@@ -426,11 +427,12 @@
                                         class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
                                         :value="draft.fprno || ''" disabled placeholder="Ref PR">
                                 </td>
-
                                 <td class="p-2 text-right">
                                     <input type="number" class="border rounded px-2 py-1 w-20 text-right text-sm"
                                         min="0" step="1" x-ref="draftQty" x-model.number="draft.fqty"
                                         @input="recalc(draft)" @keydown.enter.prevent="$refs.draftPrice?.focus()">
+                                    <div class="text-xs text-gray-400 mt-0.5 text-right" x-show="draft.fitemcode"
+                                        x-text="(productMeta(draft.fitemcode)?.stock || 0) + ' in stock'"></div>
                                 </td>
 
                                 <td class="p-2 text-right">

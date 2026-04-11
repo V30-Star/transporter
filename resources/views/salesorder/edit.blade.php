@@ -347,8 +347,7 @@
                                                         x-model.number="it.fqty" :max="it.maxqty > 0 ? it.maxqty : null"
                                                         @input="recalc(it); if (it.maxqty > 0 && it.fqty > it.maxqty) { it.fqty = it.maxqty; recalc(it); }">
                                                     <div class="text-xs text-gray-400 mt-0.5 text-right">
-                                                        <span x-show="it.maxqty > 0">maks: <span
-                                                                x-text="it.maxqty"></span></span>
+                                                        <span x-show="it.maxqty > 0" x-text="it.maxqty + ' in stock'"></span>
                                                     </div>
                                                 </td>
                                                 <td class="p-2 text-right">
@@ -456,8 +455,7 @@
                                                 "
                                                 @keydown.enter.prevent="$refs.editTerima?.focus()">
                                             <div class="text-xs text-gray-400 mt-0.5 text-right">
-                                                <span x-show="editRow.maxqty > 0">maks: <span
-                                                        x-text="editRow.maxqty"></span></span>
+                                                <span x-show="editRow.maxqty > 0" x-text="editRow.maxqty + ' in stock'"></span>
                                             </div>
                                         </td>
 

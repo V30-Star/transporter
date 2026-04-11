@@ -1147,7 +1147,7 @@
                                                 <td class="p-2 text-right">
                                                     <div x-text="fmt(it.fqty)"></div>
                                                     <div class="text-xs text-gray-400 mt-0.5" x-show="it.fitemcode"
-                                                         x-text="'Stok: ' + (productMeta(it.fitemcode)?.stock || 0)"></div>
+                                                         x-text="(productMeta(it.fitemcode)?.stock || 0) + ' in stock'"></div>
                                                 </td>
                                                 <td class="p-2 text-right" x-text="fmt(it.fprice)"></td>
                                                 <td class="p-2 text-right" x-text="fmt(it.fbiaya)"></td>
@@ -1273,7 +1273,7 @@
                                                     <template x-if="editRow.maxqty > 0">
                                                         <div class="text-gray-400">maks: <span x-text="editRow.maxqty"></span></div>
                                                     </template>
-                                                    <div class="text-gray-400" x-show="editRow.fitemcode" x-text="'Stok: ' + (productMeta(editRow.fitemcode)?.stock || 0)"></div>
+                                                    <div class="text-gray-400" x-show="editRow.fitemcode" x-text="(productMeta(editRow.fitemcode)?.stock || 0) + ' in stock'"></div>
                                                 </div>
                                             </td>
 
@@ -1407,7 +1407,7 @@
                                                     <template x-if="draft.maxqty > 0">
                                                         <div class="text-gray-400">maks: <span x-text="draft.maxqty"></span></div>
                                                     </template>
-                                                    <div class="text-gray-400" x-show="draft.fitemcode" x-text="'Stok: ' + (productMeta(draft.fitemcode)?.stock || 0)"></div>
+                                                    <div class="text-gray-400" x-show="draft.fitemcode" x-text="(productMeta(draft.fitemcode)?.stock || 0) + ' in stock'"></div>
                                                 </div>
                                             </td>
 

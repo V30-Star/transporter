@@ -315,7 +315,7 @@
                                                     "
                                                     @keydown.enter.prevent="$refs.editPrice?.focus()">
                                                 <div class="text-xs text-gray-400 mt-0.5 text-right">
-                                                    <span x-show="editRow.maxqty > 0">maks: <span x-text="editRow.maxqty"></span></span>
+                                                    <span x-show="editRow.maxqty > 0" x-text="editRow.maxqty + ' in stock'"></span>
                                                 </div>
                                             </td>
                                         </tr>
@@ -559,7 +559,7 @@
                                                             "
                                                             @keydown.enter.prevent="$refs[`desc-${i}`]?.focus()">
                                                         <div class="text-xs text-gray-400 mt-0.5 text-right">
-                                                            <span x-show="it.maxqty > 0">maks: <span x-text="it.maxqty"></span></span>
+                                                            <span x-show="it.maxqty > 0" x-text="it.maxqty + ' in stock'"></span>
                                                         </div>
                                                     </td>
                                                     <td class="p-2 text-center text-xs">
@@ -2576,6 +2576,10 @@
 @push('scripts')
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+
+    <script>
+        window.PRODUCT_MAP = @json($productMap ?? []);
+    </script>
 
     <script>
         document.addEventListener('alpine:init', () => {

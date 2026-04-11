@@ -279,7 +279,7 @@
                                                     @input="recalc(it); if (it.maxqty > 0 && it.fqty > it.maxqty) { it.fqty = it.maxqty; recalc(it); }"
                                                     @keydown.enter.prevent="$refs[`desc-${i}`]?.focus()">
                                                 <div class="text-xs text-gray-400 mt-0.5 text-right">
-                                                    <span x-show="it.maxqty > 0">maks: <span x-text="it.maxqty"></span></span>
+                                                    <span x-show="it.maxqty > 0" x-text="it.maxqty + ' in stock'"></span>
                                                 </div>
                                             </td>
                                             <td class="p-2 text-center text-xs">
@@ -391,7 +391,7 @@
                                                 "
                                                 @keydown.enter.prevent="addIfComplete()">
                                             <div class="text-xs text-gray-400 mt-0.5 text-right">
-                                                <span x-show="draft.maxqty > 0">maks: <span x-text="draft.maxqty"></span></span>
+                                                <span x-show="draft.maxqty > 0" x-text="draft.maxqty + ' in stock'"></span>
                                             </div>
                                         </td>
 
@@ -1602,6 +1602,10 @@
         const pad = n => n.toString().padStart(2, '0');
         return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
     }
+</script>
+
+<script>
+    window.PRODUCT_MAP = @json($productMap ?? []);
 </script>
 
 <script>

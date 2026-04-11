@@ -505,7 +505,7 @@
                                                     @keydown.enter.prevent="$refs['price_saved_' + i]?.focus()">
                                                 <div class="text-xs text-gray-400 mt-0.5 text-right space-y-0.5">
                                                     <div x-show="it.maxqty > 0">maks: <span x-text="it.maxqty"></span></div>
-                                                    <div x-show="it.fitemcode" x-text="'Stok: ' + (productMeta(it.fitemcode)?.stock || 0)"></div>
+                                                    <div x-show="it.fitemcode" x-text="(productMeta(it.fitemcode)?.stock || 0) + ' in stock'"></div>
                                                 </div>
                                             </td>
 
@@ -639,7 +639,7 @@
                                                 <template x-if="draft.maxqty > 0">
                                                     <div class="text-gray-400">maks: <span x-text="draft.maxqty"></span></div>
                                                 </template>
-                                                <div class="text-gray-400" x-show="draft.fitemcode" x-text="'Stok: ' + (productMeta(draft.fitemcode)?.stock || 0)"></div>
+                                                <div class="text-gray-400" x-show="draft.fitemcode" x-text="(productMeta(draft.fitemcode)?.stock || 0) + ' in stock'"></div>
                                             </div>
                                         </td>
 

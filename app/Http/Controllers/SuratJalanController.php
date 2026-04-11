@@ -311,6 +311,16 @@ class SuratJalanController extends Controller
       'fminstock'
     )->orderBy('fprdname')->get();
 
+    $productMap = $products->mapWithKeys(function ($p) {
+      return [
+        $p->fprdcode => [
+          'name'  => $p->fprdname,
+          'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
+          'stock' => $p->fminstock ?? 0,
+        ],
+      ];
+    })->toArray();
+
     return view('suratjalan.create', [
       'newtr_prh_code' => $newtr_prh_code,
       'warehouses' => $warehouses,
@@ -319,6 +329,7 @@ class SuratJalanController extends Controller
       'fcabang' => $fcabang,
       'fbranchcode' => $fbranchcode,
       'products' => $products,
+      'productMap' => $productMap,
       'filterSupplierId' => $request->query('filter_supplier_id'),
     ]);
   }

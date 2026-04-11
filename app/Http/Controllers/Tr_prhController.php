@@ -272,6 +272,16 @@ class Tr_prhController extends Controller
         )->orderBy('fprdname')
             ->get();
 
+        $productMap = $products->mapWithKeys(function ($p) {
+            return [
+                trim($p->fprdcode) => [
+                    'name' => $p->fprdname,
+                    'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
+                    'stock' => $p->fminstock ?? 0,
+                ],
+            ];
+        })->toArray();
+
         return view('tr_prh.create', [
             'newtr_prh_code' => $newtr_prh_code,
             'perms' => ['can_approval' => $canApproval],
@@ -279,6 +289,7 @@ class Tr_prhController extends Controller
             'fcabang' => $fcabang,
             'fbranchcode' => $fbranchcode,
             'products' => $products,
+            'productMap' => $productMap,
             'filterSupplierId' => $request->query('filter_supplier_id'),
         ]);
     }
@@ -622,7 +633,7 @@ class Tr_prhController extends Controller
         // Prepare the product map for frontend
         $productMap = $products->mapWithKeys(function ($p) {
             return [
-                $p->fprdcodeid => [
+                trim($p->fprdcode) => [
                     'id' => $p->fprdid,  // ⬅️ penting
                     'name' => $p->fprdname,
                     'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
@@ -735,7 +746,7 @@ class Tr_prhController extends Controller
         // Prepare the product map for frontend
         $productMap = $products->mapWithKeys(function ($p) {
             return [
-                $p->fprdcodeid => [
+                trim($p->fprdcode) => [
                     'id' => $p->fprdid,  // ⬅️ penting
                     'name' => $p->fprdname,
                     'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
@@ -1070,7 +1081,7 @@ class Tr_prhController extends Controller
         // Prepare the product map for frontend
         $productMap = $products->mapWithKeys(function ($p) {
             return [
-                $p->fprdcodeid => [
+                trim($p->fprdcode) => [
                     'id' => $p->fprdid,  // ⬅️ penting
                     'name' => $p->fprdname,
                     'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),

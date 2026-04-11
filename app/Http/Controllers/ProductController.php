@@ -230,7 +230,7 @@ class ProductController extends Controller
                     'nullable',
                     'numeric',
                     function ($attribute, $value, $fail) use ($request) {
-                        if ($request->filled('fsatuanbesar') && (float)$value <= 0) {
+                        if ($request->filled('fsatuanbesar') && (float) $value <= 0) {
                             $fail('Isi Satuan 2 tidak boleh kosong dan harus > 0.');
                         }
                     },
@@ -239,7 +239,7 @@ class ProductController extends Controller
                     'nullable',
                     'numeric',
                     function ($attribute, $value, $fail) use ($request) {
-                        if ($request->filled('fsatuanbesar2') && (float)$value <= 0) {
+                        if ($request->filled('fsatuanbesar2') && (float) $value <= 0) {
                             $fail('Isi Satuan 3 tidak boleh kosong dan harus > 0.');
                         }
                     },
@@ -389,7 +389,7 @@ class ProductController extends Controller
                     'nullable',
                     'numeric',
                     function ($attribute, $value, $fail) use ($request) {
-                        if ($request->filled('fsatuanbesar') && (float)$value <= 0) {
+                        if ($request->filled('fsatuanbesar') && (float) $value <= 0) {
                             $fail('Isi Satuan 2 tidak boleh kosong dan harus > 0.');
                         }
                     },
@@ -398,7 +398,7 @@ class ProductController extends Controller
                     'nullable',
                     'numeric',
                     function ($attribute, $value, $fail) use ($request) {
-                        if ($request->filled('fsatuanbesar2') && (float)$value <= 0) {
+                        if ($request->filled('fsatuanbesar2') && (float) $value <= 0) {
                             $fail('Isi Satuan 3 tidak boleh kosong dan harus > 0.');
                         }
                     },
@@ -482,17 +482,10 @@ class ProductController extends Controller
 
     public function delete($fprdid)
     {
-        $product = Product::findOrFail($fprdid);
-        $groups = Groupproduct::where('fnonactive', 0)->get();
-        $merks = Merek::where('fnonactive', 0)->get();
-        $satuan = Satuan::where('fnonactive', 0)->get();
+        $product = Product::with('merek')->findOrFail($fprdid);
 
-        return view('product.edit', [
+        return view('product.delete', [
             'product' => $product,
-            'groups' => $groups,
-            'merks' => $merks,
-            'satuan' => $satuan,
-            'action' => 'delete',
         ]);
     }
 
@@ -526,7 +519,7 @@ class ProductController extends Controller
         $product = Product::findOrFail($fprdid);
 
         // Fetching data manually based on user's query
-        $stokData = \Illuminate\Support\Facades\DB::select("
+        $stokData = \Illuminate\Support\Facades\DB::select('
             SELECT 
                 v.fwhcode AS fwhcode, 
                 w.fwhname,
@@ -536,9 +529,9 @@ class ProductController extends Controller
             LEFT OUTER JOIN mswh w ON v.fwhcode = w.fwhcode
             LEFT OUTER JOIN msprd p ON p.fprdcode = v.fprdcode 
             WHERE v.fprdcode = :fprdcode
-        ", ['fprdcode' => $product->fprdcode]);
+        ', ['fprdcode' => $product->fprdcode]);
 
-        $customerData = \Illuminate\Support\Facades\DB::select("
+        $customerData = \Illuminate\Support\Facades\DB::select('
             SELECT 
                 m.fsono,
                 m.frefno,
@@ -556,7 +549,7 @@ class ProductController extends Controller
             WHERE d.fprdcode = :fprdcode
             ORDER BY m.fsodate DESC 
             LIMIT 30
-        ", ['fprdcode' => $product->fprdcode]);
+        ', ['fprdcode' => $product->fprdcode]);
 
         $supplierData = \Illuminate\Support\Facades\DB::select("
             SELECT 
@@ -588,7 +581,7 @@ class ProductController extends Controller
         return response()->json([
             'stok' => $stokData,
             'customer' => $customerData,
-            'supplier' => $supplierData
+            'supplier' => $supplierData,
         ]);
     }
 }

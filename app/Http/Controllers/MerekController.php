@@ -12,10 +12,10 @@ class MerekController extends Controller
         $mereks = Merek::orderBy('fmerekcode', 'asc')
             ->get(['fmerekid', 'fmerekcode', 'fmerekname', 'fnonactive']);
 
-        $permsStr  = (string) session('user_restricted_permissions', '');
-        $permsArr  = explode(',', $permsStr);
+        $permsStr = (string) session('user_restricted_permissions', '');
+        $permsArr = explode(',', $permsStr);
         $canCreate = in_array('createMerek', $permsArr, true);
-        $canEdit   = in_array('updateMerek', $permsArr, true);
+        $canEdit = in_array('updateMerek', $permsArr, true);
         $canDelete = in_array('deleteMerek', $permsArr, true);
 
         return view('merek.index', compact('mereks', 'canCreate', 'canEdit', 'canDelete'));
@@ -58,9 +58,9 @@ class MerekController extends Controller
 
         if ($request->ajax()) {
             return response()->json([
-                'id'   => $merek->fmerekid, // Pastikan ini nama Primary Key di tabel ms_merek
-                'code'   => $merek->fmerekcode, // Pastikan ini nama Primary Key di tabel ms_merek
-                'name' => $merek->fmerekname
+                'id' => $merek->fmerekid, // Pastikan ini nama Primary Key di tabel ms_merek
+                'code' => $merek->fmerekcode, // Pastikan ini nama Primary Key di tabel ms_merek
+                'name' => $merek->fmerekname,
             ]);
         }
 
@@ -76,7 +76,7 @@ class MerekController extends Controller
 
         return view('merek.edit', [
             'merek' => $merek,
-            'action' => 'edit'
+            'action' => 'edit',
         ]);
     }
 
@@ -119,9 +119,9 @@ class MerekController extends Controller
     public function delete($fmerekid)
     {
         $merek = Merek::findOrFail($fmerekid);
-        return view('merek.edit', [
+
+        return view('merek.delete', [
             'merek' => $merek,
-            'action' => 'delete'
         ]);
     }
 
@@ -129,14 +129,29 @@ class MerekController extends Controller
     {
         try {
             $merek = Merek::findOrFail($fmerekid);
+
+            if (\Illuminate\Support\Facades\DB::table('msprd')->where('fmerek', $merek->fmerekid)->exists()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Merek sudah digunakan dalam data Product.',
+                ], 422);
+            }
+
             $merek->delete();
 
-            return response()->json(['message' => 'Data merek ' . $merek->fmerekname . ' berhasil dihapus.']);
+            return response()->json([
+                'success' => true,
+                'message' => 'Data merek '.$merek->fmerekname.' berhasil dihapus.',
+                'redirect' => route('merek.index'),
+            ]);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Gagal menghapus data: ' . $e->getMessage()], 500);
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus data: '.$e->getMessage(),
+            ], 500);
         }
     }
-    
+
     public function browse(Request $request)
     {
         // Base query
@@ -185,7 +200,7 @@ class MerekController extends Controller
             'draw' => (int) $request->input('draw', 1),
             'recordsTotal' => (int) $recordsTotal,
             'recordsFiltered' => (int) $recordsFiltered,
-            'data' => $data
+            'data' => $data,
         ]);
     }
 }

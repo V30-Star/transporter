@@ -54,14 +54,18 @@
                                     </svg>
                                 </button> --}}
                                 <span class="sort-icon cursor-pointer" data-column="0">
-                                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
+                                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
                                     </svg>
                                 </span>
                             </div>
                         </div>
                         <div class="col-search-input mt-2 hidden">
-                            <input type="text" class="dt-column-search w-full px-2 py-1.5 border border-gray-300 rounded text-sm uppercase focus:outline-none focus:ring-1 focus:ring-blue-500" data-column="0" placeholder="Cari...">
+                            <input type="text"
+                                class="dt-column-search w-full px-2 py-1.5 border border-gray-300 rounded text-sm uppercase focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                data-column="0" placeholder="Cari...">
                         </div>
                     </th>
                     <th class="border px-3 py-2">
@@ -74,34 +78,45 @@
                                     </svg>
                                 </button> --}}
                                 <span class="sort-icon cursor-pointer" data-column="1">
-                                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
+                                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
                                     </svg>
                                 </span>
                             </div>
                         </div>
                         <div class="col-search-input mt-2 hidden">
-                            <input type="text" class="dt-column-search w-full px-2 py-1.5 border border-gray-300 rounded text-sm uppercase focus:outline-none focus:ring-1 focus:ring-blue-500" data-column="1" placeholder="Cari...">
+                            <input type="text"
+                                class="dt-column-search w-full px-2 py-1.5 border border-gray-300 rounded text-sm uppercase focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                data-column="1" placeholder="Cari...">
                         </div>
                     </th>
                     <th class="border px-3 py-2">
                         <div class="flex items-center justify-between">
                             <span>Merek</span>
                             <div class="flex items-center gap-1">
-                                <button type="button" class="col-search-btn p-1 hover:bg-gray-200 rounded" data-column="2" title="Filter Kolom">
-                                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                <button type="button" class="col-search-btn p-1 hover:bg-gray-200 rounded" data-column="2"
+                                    title="Filter Kolom">
+                                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                                     </svg>
                                 </button>
                                 <span class="sort-icon cursor-pointer" data-column="2">
-                                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
+                                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
                                     </svg>
                                 </span>
                             </div>
                         </div>
                         <div class="col-search-input mt-2 hidden">
-                            <input type="text" class="dt-column-search w-full px-2 py-1.5 border border-gray-300 rounded text-sm uppercase focus:outline-none focus:ring-1 focus:ring-blue-500" data-column="2" placeholder="Cari...">
+                            <input type="text"
+                                class="dt-column-search w-full px-2 py-1.5 border border-gray-300 rounded text-sm uppercase focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                data-column="2" placeholder="Cari...">
                         </div>
                     </th>
                     <th class="border px-3 py-2 no-sort">
@@ -114,7 +129,9 @@
                             </button> --}}
                         </div>
                         <div class="col-search-input mt-2 hidden">
-                            <input type="text" class="dt-column-search w-full px-2 py-1.5 border border-gray-300 rounded text-sm uppercase focus:outline-none focus:ring-1 focus:ring-blue-500" data-column="3" placeholder="Cari...">
+                            <input type="text"
+                                class="dt-column-search w-full px-2 py-1.5 border border-gray-300 rounded text-sm uppercase focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                data-column="3" placeholder="Cari...">
                         </div>
                     </th>
                     <th class="border px-3 py-2 no-sort">
@@ -127,7 +144,9 @@
                             </button> --}}
                         </div>
                         <div class="col-search-input mt-2 hidden">
-                            <input type="text" class="dt-column-search w-full px-2 py-1.5 border border-gray-300 rounded text-sm uppercase focus:outline-none focus:ring-1 focus:ring-blue-500" data-column="4" placeholder="Cari...">
+                            <input type="text"
+                                class="dt-column-search w-full px-2 py-1.5 border border-gray-300 rounded text-sm uppercase focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                data-column="4" placeholder="Cari...">
                         </div>
                     </th>
                     <th class="border px-3 py-2 no-sort">
@@ -143,27 +162,6 @@
             <tbody></tbody>
         </table>
 
-        {{-- Modal Konfirmasi Hapus --}}
-        <div x-show="$store.productStore.showDeleteModal" x-cloak
-            class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" x-transition>
-            <div @click.away="!$store.productStore.isDeleting && $store.productStore.closeDelete()"
-                class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
-                <h3 class="text-lg font-semibold mb-4">Konfirmasi Hapus</h3>
-                <p class="mb-6">Apakah Anda yakin ingin menghapus data ini?</p>
-                <div class="flex justify-end space-x-2">
-                    <button @click="$store.productStore.closeDelete()"
-                        class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-                        :disabled="$store.productStore.isDeleting">Batal</button>
-                    <button @click="$store.productStore.confirmDelete()"
-                        class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                        :disabled="$store.productStore.isDeleting">
-                        <span x-show="!$store.productStore.isDeleting">Hapus</span>
-                        <span x-show="$store.productStore.isDeleting">Menghapus...</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-
         {{-- Modal Laporan --}}
         <div x-show="$store.laporanStore.showModal" x-cloak
             class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" x-transition>
@@ -172,29 +170,54 @@
                 <div class="px-6 py-4 border-b flex justify-between items-center">
                     <h3 class="text-lg font-semibold">Laporan Product</h3>
                     <button @click="$store.laporanStore.closeModal()" class="text-gray-500 hover:text-gray-700">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
                     </button>
                 </div>
-                
+
                 <div class="px-6 py-2 border-b bg-gray-50">
                     <nav class="-mb-px flex space-x-8">
                         <button @click="$store.laporanStore.activeTab = 'customer'"
-                            :class="{'border-blue-500 text-blue-600': $store.laporanStore.activeTab === 'customer', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': $store.laporanStore.activeTab !== 'customer'}"
+                            :class="{
+                                'border-blue-500 text-blue-600': $store.laporanStore
+                                    .activeTab === 'customer',
+                                'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': $store
+                                    .laporanStore.activeTab !== 'customer'
+                            }"
                             class="whitespace-nowrap pb-2 px-1 border-b-2 font-medium text-sm">Penjualan</button>
-                        
+
                         <button @click="$store.laporanStore.activeTab = 'stok'"
-                            :class="{'border-blue-500 text-blue-600': $store.laporanStore.activeTab === 'stok', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': $store.laporanStore.activeTab !== 'stok'}"
+                            :class="{
+                                'border-blue-500 text-blue-600': $store.laporanStore
+                                    .activeTab === 'stok',
+                                'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': $store
+                                    .laporanStore.activeTab !== 'stok'
+                            }"
                             class="whitespace-nowrap pb-2 px-1 border-b-2 font-medium text-sm">Stok</button>
-                            
+
                         <button @click="$store.laporanStore.activeTab = 'supplier'"
-                            :class="{'border-blue-500 text-blue-600': $store.laporanStore.activeTab === 'supplier', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': $store.laporanStore.activeTab !== 'supplier'}"
+                            :class="{
+                                'border-blue-500 text-blue-600': $store.laporanStore
+                                    .activeTab === 'supplier',
+                                'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': $store
+                                    .laporanStore.activeTab !== 'supplier'
+                            }"
                             class="whitespace-nowrap pb-2 px-1 border-b-2 font-medium text-sm">Pembelian</button>
                     </nav>
                 </div>
 
                 <div class="p-6 overflow-y-auto flex-1">
                     <div x-show="$store.laporanStore.isLoading" class="flex justify-center py-8">
-                        <svg class="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        <svg class="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none"
+                            viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                            </path>
+                        </svg>
                     </div>
 
                     <div x-show="!$store.laporanStore.isLoading">
@@ -202,109 +225,141 @@
                             <table class="min-w-full divide-y divide-gray-200 border">
                                 <thead class="bg-gray-100">
                                     <tr>
-                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase">Faktur#</th>
-                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase">Customer</th>
-                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase">Tanggal Jual</th>
-                                        <th class="px-3 py-2 text-right text-xs font-bold text-gray-800 uppercase">Harga Jual</th>
-                                        <th class="px-3 py-2 text-right text-xs font-bold text-gray-800 uppercase">Qty.</th>
-                                        <th class="px-3 py-2 text-right text-xs font-bold text-gray-800 uppercase">Satuan</th>
-                                        <th class="px-3 py-2 text-right text-xs font-bold text-gray-800 uppercase">Ref.PO</th>
-                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase">Description</th>
+                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase">Faktur#
+                                        </th>
+                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase">Customer
+                                        </th>
+                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase">Tanggal
+                                            Jual</th>
+                                        <th class="px-3 py-2 text-right text-xs font-bold text-gray-800 uppercase">Harga
+                                            Jual</th>
+                                        <th class="px-3 py-2 text-right text-xs font-bold text-gray-800 uppercase">Qty.
+                                        </th>
+                                        <th class="px-3 py-2 text-right text-xs font-bold text-gray-800 uppercase">Satuan
+                                        </th>
+                                        <th class="px-3 py-2 text-right text-xs font-bold text-gray-800 uppercase">Ref.PO
+                                        </th>
+                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase">
+                                            Description</th>
                                     </tr>
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">
                                     <template x-for="(item, i) in $store.laporanStore.customerData" :key="i">
                                         <tr>
-                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900" x-text="item.fsono"></td>
-                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900" x-text="item.fcustomername"></td>
-                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900" x-text="item.fsodate"></td>
-                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 text-right" x-text="Number(item.fprice).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 })"></td>
-                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 text-right" x-text="Number(item.fqty).toLocaleString('id-ID', { minimumFractionDigits: 0 })"></td>
-                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 text-right" x-text="item.fsatuan"></td>
-                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 text-right" x-text="item.fsono"></td>
-                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 truncate max-w-xs" :title="item.fdesc" x-text="item.fdesc || '-'"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900"
+                                                x-text="item.fsono"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900"
+                                                x-text="item.fcustomername"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900"
+                                                x-text="item.fsodate"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 text-right"
+                                                x-text="Number(item.fprice).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 })">
+                                            </td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 text-right"
+                                                x-text="Number(item.fqty).toLocaleString('id-ID', { minimumFractionDigits: 0 })">
+                                            </td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 text-right"
+                                                x-text="item.fsatuan"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 text-right"
+                                                x-text="item.fsono"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 truncate max-w-xs"
+                                                :title="item.fdesc" x-text="item.fdesc || '-'"></td>
                                         </tr>
                                     </template>
                                     <tr x-show="$store.laporanStore.customerData.length === 0">
-                                        <td colspan="8" class="px-3 py-4 text-center text-sm text-gray-500">Tidak ada riwayat Laporan SO dari Customer.</td>
+                                        <td colspan="8" class="px-3 py-4 text-center text-sm text-gray-500">Tidak ada
+                                            riwayat Laporan SO dari Customer.</td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
-                        
+
                         <div x-show="$store.laporanStore.activeTab === 'stok'">
                             <table class="min-w-full divide-y divide-gray-200 border">
                                 <thead class="bg-gray-100">
                                     <tr>
-                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase">Gudang#</th>
-                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase">Nama Gudang</th>
-                                        <th class="px-3 py-2 text-right text-xs font-bold text-gray-800 uppercase">Stok</th>
-                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase">Satuan</th>
+                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase">Gudang#
+                                        </th>
+                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase">Nama
+                                            Gudang</th>
+                                        <th class="px-3 py-2 text-right text-xs font-bold text-gray-800 uppercase">Stok
+                                        </th>
+                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase">Satuan
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">
                                     <template x-for="item in $store.laporanStore.stokData" :key="item.fwhcode">
                                         <tr>
-                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900" x-text="item.fwhcode"></td>
-                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900" x-text="item.fwhname"></td>
-                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 text-right" x-text="(Number(item.fsaldo) || 0).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 })"></td>
-                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900" x-text="item.fsatuanbesar"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900"
+                                                x-text="item.fwhcode"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900"
+                                                x-text="item.fwhname"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 text-right"
+                                                x-text="(Number(item.fsaldo) || 0).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 })">
+                                            </td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900"
+                                                x-text="item.fsatuanbesar"></td>
                                         </tr>
                                     </template>
                                     <tr x-show="$store.laporanStore.stokData.length === 0">
-                                        <td colspan="4" class="px-3 py-4 text-center text-sm text-gray-500">Tidak ada data stok.</td>
+                                        <td colspan="4" class="px-3 py-4 text-center text-sm text-gray-500">Tidak ada
+                                            data stok.</td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
-                        
+
                         <div x-show="$store.laporanStore.activeTab === 'supplier'">
                             <table class="min-w-full divide-y divide-gray-200 border">
                                 <thead class="bg-gray-100">
                                     <tr>
-                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase">Faktur#</th>
-                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase">Supplier</th>
-                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase">Tanggal</th>
-                                        <th class="px-3 py-2 text-right text-xs font-bold text-gray-800 uppercase">Harga</th>
-                                        <th class="px-3 py-2 text-right text-xs font-bold text-gray-800 uppercase">Qty.</th>
-                                        <th class="px-3 py-2 text-right text-xs font-bold text-gray-800 uppercase">Satuan</th>
-                                        <th class="px-3 py-2 text-center text-xs font-bold text-gray-800 uppercase">Ccy</th>
+                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase">Faktur#
+                                        </th>
+                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase">Supplier
+                                        </th>
+                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase">Tanggal
+                                        </th>
+                                        <th class="px-3 py-2 text-right text-xs font-bold text-gray-800 uppercase">Harga
+                                        </th>
+                                        <th class="px-3 py-2 text-right text-xs font-bold text-gray-800 uppercase">Qty.
+                                        </th>
+                                        <th class="px-3 py-2 text-right text-xs font-bold text-gray-800 uppercase">Satuan
+                                        </th>
+                                        <th class="px-3 py-2 text-center text-xs font-bold text-gray-800 uppercase">Ccy
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">
                                     <template x-for="(item, i) in $store.laporanStore.supplierData" :key="i">
                                         <tr>
-                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900" x-text="item.fstockmtno"></td>
-                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900" x-text="item.fsuppliername"></td>
-                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900" x-text="item.fstockmtdate"></td>
-                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 text-right" x-text="Number(item.fprice).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 })"></td>
-                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 text-right" x-text="Number(item.fqty).toLocaleString('id-ID', { minimumFractionDigits: 0 })"></td>
-                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 text-right" x-text="item.fsatuan"></td>
-                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 text-center" x-text="item.fcurrency"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900"
+                                                x-text="item.fstockmtno"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900"
+                                                x-text="item.fsuppliername"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900"
+                                                x-text="item.fstockmtdate"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 text-right"
+                                                x-text="Number(item.fprice).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 })">
+                                            </td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 text-right"
+                                                x-text="Number(item.fqty).toLocaleString('id-ID', { minimumFractionDigits: 0 })">
+                                            </td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 text-right"
+                                                x-text="item.fsatuan"></td>
+                                            <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 text-center"
+                                                x-text="item.fcurrency"></td>
                                         </tr>
                                     </template>
                                     <tr x-show="$store.laporanStore.supplierData.length === 0">
-                                        <td colspan="7" class="px-3 py-4 text-center text-sm text-gray-500">Tidak ada riwayat Laporan Pembelian/ADJ dari Supplier.</td>
+                                        <td colspan="7" class="px-3 py-4 text-center text-sm text-gray-500">Tidak ada
+                                            riwayat Laporan Pembelian/ADJ dari Supplier.</td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        {{-- Toast Notifikasi --}}
-        <div x-show="$store.productStore.showNotification" x-cloak x-transition:enter="transition ease-out duration-300"
-            x-transition:enter-start="opacity-0 transform translate-y-2"
-            x-transition:enter-end="opacity-100 transform translate-y-0"
-            x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100"
-            x-transition:leave-end="opacity-0" class="fixed top-4 right-4 z-50 max-w-sm">
-            <div :class="$store.productStore.notificationType === 'success' ? 'bg-green-500' : 'bg-red-500'"
-                class="text-white px-6 py-4 rounded-lg shadow-lg flex items-center space-x-3">
-                <span x-text="$store.productStore.notificationMessage"></span>
-                <button @click="$store.productStore.showNotification = false"
-                    class="ml-4 text-white hover:text-gray-200">×</button>
             </div>
         </div>
 
@@ -376,85 +431,14 @@
 @push('scripts')
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.datatables.net/2.1.6/js/dataTables.min.js"></script>
-
+    <script>
+        const LAPORAN_URL = "{{ url('/master/product') }}";
+    </script>
     <script>
         // =============================================
-        // Alpine.js — Store Delete (pakai $store karena
-        // tombol Hapus di-render oleh DataTables JS,
-        // bukan oleh Blade, sehingga x-data biasa tidak bisa)
+        // Alpine.js — Laporan Store
         // =============================================
         document.addEventListener('alpine:init', () => {
-            Alpine.store('productStore', {
-                showDeleteModal: false,
-                deleteUrl: '',
-                isDeleting: false,
-                currentRow: null,
-                showNotification: false,
-                notificationMessage: '',
-                notificationType: 'success',
-
-                openDelete(url, rowEl) {
-                    this.deleteUrl = url;
-                    this.currentRow = rowEl;
-                    this.showDeleteModal = true;
-                    this.isDeleting = false;
-                },
-
-                closeDelete() {
-                    if (!this.isDeleting) {
-                        this.showDeleteModal = false;
-                        this.deleteUrl = '';
-                        this.currentRow = null;
-                    }
-                },
-
-                confirmDelete() {
-                    this.isDeleting = true;
-                    const rowToDelete = this.currentRow;
-
-                    fetch(this.deleteUrl, {
-                            method: 'DELETE',
-                            headers: {
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
-                                    .content,
-                                'Accept': 'application/json',
-                                'Content-Type': 'application/json',
-                            }
-                        })
-                        .then(response => response.json().then(data => ({
-                            ok: response.ok,
-                            data
-                        })))
-                        .then(result => {
-                            this.showDeleteModal = false;
-                            this.isDeleting = false;
-                            this.currentRow = null;
-
-                            if (result.ok) {
-                                // Server-side: cukup reload DataTables
-                                $('#productTable').DataTable().ajax.reload(null, false);
-                                this.notify('success', result.data.message || 'Data berhasil dihapus');
-                            } else {
-                                this.notify('error', result.data.message || 'Gagal menghapus data');
-                            }
-                        })
-                        .catch(() => {
-                            this.showDeleteModal = false;
-                            this.isDeleting = false;
-                            this.notify('error', 'Terjadi kesalahan. Silakan coba lagi.');
-                        });
-                },
-
-                notify(type, message) {
-                    this.notificationType = type;
-                    this.notificationMessage = message;
-                    this.showNotification = true;
-                    setTimeout(() => {
-                        this.showNotification = false;
-                    }, 3000);
-                }
-            });
-
             Alpine.store('laporanStore', {
                 showModal: false,
                 isLoading: false,
@@ -462,24 +446,29 @@
                 stokData: [],
                 customerData: [],
                 supplierData: [],
-                
+
                 openModal(fprdid) {
                     this.showModal = true;
                     this.activeTab = 'customer';
                     this.loadData(fprdid);
                 },
-                
+
                 closeModal() {
                     this.showModal = false;
                     this.stokData = [];
                     this.customerData = [];
                     this.supplierData = [];
                 },
-                
+
                 loadData(fprdid) {
                     this.isLoading = true;
-                    fetch(`/master/product/${fprdid}/laporan`)
-                        .then(res => res.json())
+
+                    // Gunakan LAPORAN_URL yang sudah di-inject dari Blade
+                    fetch(`${LAPORAN_URL}/${fprdid}/laporan`)
+                        .then(res => {
+                            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                            return res.json();
+                        })
                         .then(data => {
                             this.stokData = data.stok || [];
                             this.customerData = data.customer || [];
@@ -585,16 +574,17 @@
                         }
 
                         if (canDelete) {
-                            const deleteUrl = '/master/product/' + fprdid;
+                            const deleteUrl = '{{ config('app.url') }}/master/product/' + fprdid +
+                                '/delete';
                             html += `
-                                <button onclick="openProductDelete('${deleteUrl}', this)"
+                                <a href="${deleteUrl}"
                                     class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
                                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                     </svg>
                                     Hapus
-                                </button>`;
+                                </a>`;
                         }
 
                         html += '</div>';
@@ -675,13 +665,13 @@
                 const columnIndex = $(this).data('column');
                 const $th = $(this).closest('th');
                 const $searchInput = $th.find('.col-search-input');
-                
+
                 // Close other open search inputs
                 $('.col-search-input').not($searchInput).addClass('hidden');
-                
+
                 // Toggle current search input
                 $searchInput.toggleClass('hidden');
-                
+
                 // Focus input if shown
                 if (!$searchInput.hasClass('hidden')) {
                     $searchInput.find('input').focus();
@@ -690,7 +680,8 @@
 
             // Close search inputs when clicking outside
             $(document).on('click', function(e) {
-                if (!$(e.target).closest('.col-search-btn').length && !$(e.target).closest('.col-search-input').length) {
+                if (!$(e.target).closest('.col-search-btn').length && !$(e.target).closest(
+                        '.col-search-input').length) {
                     $('.col-search-input').addClass('hidden');
                 }
             });
@@ -707,12 +698,15 @@
             // ------------------------------------------
             // Custom Sort - click on sort icon
             // ------------------------------------------
-            let sortState = { column: 0, direction: 'asc' };
+            let sortState = {
+                column: 0,
+                direction: 'asc'
+            };
 
             $container.on('click', '.sort-icon', function(e) {
                 e.stopPropagation();
                 const columnIndex = $(this).data('column');
-                
+
                 // Toggle direction if same column, otherwise default to asc
                 if (sortState.column === columnIndex) {
                     sortState.direction = sortState.direction === 'asc' ? 'desc' : 'asc';
@@ -720,11 +714,11 @@
                     sortState.column = columnIndex;
                     sortState.direction = 'asc';
                 }
-                
+
                 // Apply sort to DataTables
                 table.order([sortState.column, sortState.direction]);
                 table.draw();
-                
+
                 // Update sort icons
                 updateSortIcons(sortState.column, sortState.direction);
             });
@@ -733,7 +727,7 @@
                 $('.sort-icon').each(function() {
                     const $icon = $(this).find('svg');
                     const colIndex = $(this).data('column');
-                    
+
                     if (colIndex === activeColumn) {
                         if (direction === 'asc') {
                             $icon.attr('d', 'M5 15l7-7 7 7');
@@ -749,13 +743,7 @@
             }
         });
 
-        // Fungsi global untuk tombol Hapus yang di-render oleh DataTables JS
-        // (tidak bisa pakai Alpine @click karena elemen dibuat dinamis)
-        function openProductDelete(url, btnEl) {
-            const row = btnEl.closest('tr');
-            Alpine.store('productStore').openDelete(url, row);
-        }
-
+        // Fungsi global untuk modal Laporan
         function openLaporanModal(fprdid) {
             if (Alpine.store('laporanStore')) {
                 Alpine.store('laporanStore').openModal(fprdid);

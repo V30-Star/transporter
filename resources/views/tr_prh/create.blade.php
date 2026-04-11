@@ -272,8 +272,12 @@
                                                 @focus="activeRow = it.uid; $event.target.select()"
                                                 @blur="activeRow = null; enforceQtyRow(it)" @input="enforceQtyRow(it)"
                                                 @keydown.enter.prevent="focusSavedKet(i)">
-                                            <div class="text-xs text-gray-400 mt-0.5" x-show="it.fitemcode"
-                                                x-text="(productMeta(it.fitemcode)?.stock || 0) + ' in stock'"></div>
+                                            <div class="text-xs text-gray-400 mt-0.5 flex justify-between items-center" x-show="it.fitemcode">
+                                                <div>(<span x-text="productMeta(it.fitemcode).stock"></span>) in stock</div>
+                                                <div class="font-medium text-orange-600" x-show="productMeta(it.fitemcode).stock > 0">
+                                                    maks: <span x-text="productMeta(it.fitemcode).stock"></span>
+                                                </div>
+                                            </div>
                                         </td>
 
                                         <td class="p-2">
@@ -354,8 +358,12 @@
                                             x-model.number="draft.fqty" x-ref="draftQty" @focus="$event.target.select()"
                                             @input="enforceQtyRow(draft)"
                                             @keydown.enter.prevent="$refs.draftKet?.focus()">
-                                        <div class="text-xs text-gray-400 mt-0.5" x-show="draft.fitemcode"
-                                            x-text="(productMeta(draft.fitemcode)?.stock || 0) + ' in stock'"></div>
+                                        <div class="text-xs text-gray-400 mt-0.5 flex justify-between items-center" x-show="draft.fitemcode">
+                                            <div>(<span x-text="productMeta(draft.fitemcode).stock"></span>) in stock</div>
+                                            <div class="font-medium text-orange-600" x-show="productMeta(draft.fitemcode).stock > 0">
+                                                maks: <span x-text="productMeta(draft.fitemcode).stock"></span>
+                                            </div>
+                                        </div>
                                     </td>
 
                                     <td class="p-2">
@@ -603,15 +611,7 @@
 
 {{-- DATA & SCRIPTS --}}
 <script>
-    window.PRODUCT_MAP = {
-        @foreach ($products as $p)
-            "{{ $p->fprdcode }}": {
-                name: @json($p->fprdname),
-                units: @json(array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2]))),
-                stock: @json($p->fminstock ?? 0)
-            },
-        @endforeach
-    };
+    window.PRODUCT_MAP = @json($productMap ?? []);
 
     window.cryptoRandom = function() {
         try {
@@ -833,7 +833,12 @@
             },
 
             productMeta(code) {
-                return window.PRODUCT_MAP[(code || '').trim()] || null;
+                const key = (code || '').trim();
+                return window.PRODUCT_MAP?.[key] || {
+                    name: '',
+                    units: [],
+                    stock: 0
+                };
             },
 
             // Hydrate baris TERSIMPAN — Alpine reaktif

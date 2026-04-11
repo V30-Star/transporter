@@ -330,6 +330,16 @@ class ReturPenjualanController extends Controller
       'fminstock'
     )->orderBy('fprdname')->get();
 
+    $productMap = $products->mapWithKeys(function ($p) {
+      return [
+        trim($p->fprdcode) => [
+          'name'  => $p->fprdname,
+          'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
+          'stock' => $p->fminstock ?? 0,
+        ],
+      ];
+    })->toArray();
+
     return view('returpenjualan.create', [
       'newtr_prh_code' => $newtr_prh_code,
       'perms' => ['can_approval' => $canApproval],
@@ -338,6 +348,7 @@ class ReturPenjualanController extends Controller
       'fcabang' => $fcabang,
       'fbranchcode' => $fbranchcode,
       'products' => $products,
+      'productMap' => $productMap,
       'filterSupplierId' => $request->query('filter_supplier_id'),
       'filterSalesmanId' => $request->query('filter_salesman_id'),
     ]);
@@ -765,7 +776,7 @@ class ReturPenjualanController extends Controller
     // Prepare the product map for frontend
     $productMap = $products->mapWithKeys(function ($p) {
       return [
-        $p->fprdcodeid => [
+        trim($p->fprdcode) => [
           'name'  => $p->fprdname,
           'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
           'stock' => $p->fminstock ?? 0,
@@ -882,7 +893,7 @@ class ReturPenjualanController extends Controller
     // Prepare the product map for frontend
     $productMap = $products->mapWithKeys(function ($p) {
       return [
-        $p->fitemid => [
+        trim($p->fprdcode) => [
           'name'  => $p->fprdname,
           'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
           'stock' => $p->fminstock ?? 0,
@@ -1263,7 +1274,7 @@ class ReturPenjualanController extends Controller
     // Prepare the product map for frontend
     $productMap = $products->mapWithKeys(function ($p) {
       return [
-        $p->fitemid => [
+        trim($p->fprdcode) => [
           'name'  => $p->fprdname,
           'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
           'stock' => $p->fminstock ?? 0,

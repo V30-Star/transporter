@@ -352,8 +352,7 @@
                                                     x-model.number="it.fqty" :max="it.maxqty > 0 ? it.maxqty : null"
                                                     @input="recalc(it); if (it.maxqty > 0 && it.fqty > it.maxqty) { it.fqty = it.maxqty; recalc(it); }">
                                                 <div class="text-xs text-gray-400 mt-0.5 text-right">
-                                                    <span x-show="it.maxqty > 0">maks: <span
-                                                            x-text="it.maxqty"></span></span>
+                                                    <span x-show="it.maxqty > 0" x-text="it.maxqty + ' in stock'"></span>
                                                 </div>
                                             </td>
                                             <td class="p-2 text-right">
@@ -459,8 +458,7 @@
                                                 "
                                                 @keydown.enter.prevent="$refs.draftPrice?.focus()">
                                             <div class="text-xs text-gray-400 mt-0.5 text-right">
-                                                <span x-show="draft.maxqty > 0">maks: <span
-                                                        x-text="draft.maxqty"></span></span>
+                                                <span x-show="draft.maxqty > 0" x-text="draft.maxqty + ' in stock'"></span>
                                             </div>
                                         </td>
 
@@ -1725,6 +1723,10 @@
 @push('scripts')
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+
+    <script>
+        window.PRODUCT_MAP = @json($productMap ?? []);
+    </script>
 
     <script>
         // Modal produk dengan DataTables

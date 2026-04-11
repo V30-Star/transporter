@@ -294,6 +294,15 @@ class PenerimaanBarangController extends Controller
       'fminstock'
     )->orderBy('fprdname')->get();
 
+    $productMap = $products->mapWithKeys(fn($p) => [
+      trim($p->fprdcode) => [
+        'id'    => $p->fprdid,
+        'name'  => $p->fprdname,
+        'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
+        'stock' => $p->fminstock ?? 0,
+      ],
+    ])->toArray();
+
     return view('penerimaanbarang.create', [
       'warehouses'       => $warehouses,
       'perms'            => ['can_approval' => $canApproval],
@@ -301,6 +310,7 @@ class PenerimaanBarangController extends Controller
       'fcabang'          => $fcabang,
       'fbranchcode'      => $fbranchcode,
       'products'         => $products,
+      'productMap'       => $productMap,
       'filterSupplierId' => $request->query('filter_supplier_id'),
     ]);
   }

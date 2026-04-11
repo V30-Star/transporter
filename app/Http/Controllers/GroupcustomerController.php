@@ -13,7 +13,7 @@ class GroupcustomerController extends Controller
             ->get(['fgroupcode', 'fgroupname', 'fgroupid', 'fnonactive']);
 
         $canCreate = in_array('createGroupCustomer', explode(',', session('user_restricted_permissions', '')));
-        $canEdit   = in_array('updateGroupCustomer', explode(',', session('user_restricted_permissions', '')));
+        $canEdit = in_array('updateGroupCustomer', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deleteGroupCustomer', explode(',', session('user_restricted_permissions', '')));
 
         return view('master.groupcustomer.index', compact('groupcustomers', 'canCreate', 'canEdit', 'canDelete'));
@@ -64,7 +64,7 @@ class GroupcustomerController extends Controller
         // Menampilkan form untuk mengedit grup customer
         return view('master.groupcustomer.edit', [
             'groupcustomer' => $groupcustomer,
-            'action' => 'edit'
+            'action' => 'edit',
         ]);
     }
 
@@ -75,7 +75,7 @@ class GroupcustomerController extends Controller
 
         // Menampilkan form untuk mengedit grup customer
         return view('master.groupcustomer.view', [
-            'groupcustomer' => $groupcustomer
+            'groupcustomer' => $groupcustomer,
         ]);
     }
 
@@ -113,9 +113,9 @@ class GroupcustomerController extends Controller
     public function delete($fgroupid)
     {
         $groupcustomer = Groupcustomer::findOrFail($fgroupid);
-        return view('master.groupcustomer.edit', [
+
+        return view('master.groupcustomer.delete', [
             'groupcustomer' => $groupcustomer,
-            'action' => 'delete'
         ]);
     }
 
@@ -123,11 +123,26 @@ class GroupcustomerController extends Controller
     {
         try {
             $groupcustomer = Groupcustomer::findOrFail($fgroupid);
+
+            if (\Illuminate\Support\Facades\DB::table('mscustomer')->where('fgroupcustid', $groupcustomer->fgroupid)->exists()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Group Customer sudah digunakan dalam data Customer.',
+                ], 422);
+            }
+
             $groupcustomer->delete();
 
-            return response()->json(['message' => 'Data groupcustomer ' . $groupcustomer->fgroupname . ' berhasil dihapus.']);
+            return response()->json([
+                'success' => true,
+                'message' => 'Data groupcustomer '.$groupcustomer->fgroupname.' berhasil dihapus.',
+                'redirect' => route('groupcustomer.index'),
+            ]);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Gagal menghapus data: ' . $e->getMessage()], 500);
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus data: '.$e->getMessage(),
+            ], 500);
         }
     }
 }

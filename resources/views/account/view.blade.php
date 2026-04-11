@@ -54,9 +54,58 @@
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700" style="font-weight: bold;">Account Type</label>
+                <label class="block text-sm font-medium text-gray-700" style="font-weight: bold;">Type Account</label>
                 <input type="text" value="{{ $account->fend == '1' ? 'Detil' : 'Header' }}"
                     class="w-full border rounded px-3 py-2 bg-gray-100" readonly>
+            </div>
+
+            <div class="mt-4" x-data="{ subAccount: {{ old('fhavesubaccount', $account->fhavesubaccount) ? 'true' : 'false' }} }">
+                <label for="fhavesubaccount" class="flex items-center space-x-2">
+                    <input type="checkbox" name="fhavesubaccount" id="fhavesubaccount" value="1" x-model="subAccount" disabled>
+                    <span class="text-sm" style="font-weight: bold;">Ada Sub Account?</span>
+                </label>
+
+                <div class="mt-3" x-show="subAccount" x-transition>
+                    <label for="ftypesubaccount" class="block text-sm font-medium" style="font-weight: bold;">Type
+                        Sub Account</label>
+                    <select name="ftypesubaccount" id="ftypesubaccount" class="w-full border rounded px-3 py-2" disabled
+                        :disabled="!subAccount" :class="!subAccount ? 'bg-gray-200' : ''">
+                        <option value="Sub Account"
+                            {{ old('ftypesubaccount', ($account->ftypesubaccount ?? '') === 'S' ? 'Sub Account' : '') == 'Sub Account' ? 'selected' : '' }}>
+                            Sub Account</option>
+                        <option value="Customer"
+                            {{ old('ftypesubaccount', ($account->ftypesubaccount ?? '') === 'C' ? 'Customer' : '') == 'Customer' ? 'selected' : '' }}>
+                            Customer</option>
+                        <option value="Supplier"
+                            {{ old('ftypesubaccount', ($account->ftypesubaccount ?? '') === 'P' ? 'Supplier' : '') == 'Supplier' ? 'selected' : '' }}>
+                            Supplier</option>
+                    </select>
+                </div>
+            </div>
+
+            {{-- Initial Jurnal --}}
+            <div class="mt-4">
+                <label class="block text-sm font-medium" style="font-weight: bold;">Initial Jurnal#</label>
+                <input disabled type="text" name="finitjurnal" value="{{ old('finitjurnal', $account->finitjurnal) }}"
+                    class="w-full border rounded px-3 py-2 @error('finitjurnal') border-red-500 @enderror" maxlength="2">
+                @error('finitjurnal')
+                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                @enderror
+                <p class="text-red-600 text-sm mt-1">** Khusus Jurnal Kas/Bank</p>
+            </div>
+
+            {{-- User Level --}}
+            <div class="mt-4">
+                <label for="fuserlevel" class="block text-sm font-medium" style="font-weight: bold;">User
+                    Level</label>
+                <select disabled name="fuserlevel" id="fuserlevel" class="w-full border rounded px-3 py-2">
+                    <option value="1" {{ old('fuserlevel', $account->fuserlevel) == '1' ? 'selected' : '' }}>User
+                    </option>
+                    <option value="2" {{ old('fuserlevel', $account->fuserlevel) == '2' ? 'selected' : '' }}>
+                        Supervisor</option>
+                    <option value="3" {{ old('fuserlevel', $account->fuserlevel) == '3' ? 'selected' : '' }}>
+                        Admin</option>
+                </select>
             </div>
 
             <div class="flex justify-center mt-4">

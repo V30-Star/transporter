@@ -268,8 +268,11 @@
                                                         class="w-full border rounded px-2 py-1 text-right"
                                                         x-model.number="it.fqty" :max="it.maxqty > 0 ? it.maxqty : null"
                                                         @input="recalc(it); if (it.maxqty > 0 && it.fqty > it.maxqty) { it.fqty = it.maxqty; recalc(it); }">
-                                                    <div x-show="it.maxqty > 0" class="text-xs text-gray-400 mt-0.5 text-right">
-                                                        maks: <span x-text="it.maxqty"></span>
+                                                    <div class="text-xs text-gray-400 mt-0.5 flex justify-between items-center" x-show="it.fitemcode">
+                                                        <div>(<span x-text="productMeta(it.fitemcode).stock"></span>) in stock</div>
+                                                        <div class="font-medium text-orange-600" x-show="it.maxqty > 0">
+                                                            maks: <span x-text="it.maxqty"></span>
+                                                        </div>
                                                     </div>
                                                 </td>
                                                 <td class="p-2 text-right">
@@ -388,8 +391,11 @@
                                                     if (draft.maxqty > 0 && draft.fqty > draft.maxqty) { draft.fqty = draft.maxqty; recalc(draft); }
                                                 "
                                                 @keydown.enter.prevent="$refs.draftTerima?.focus()">
-                                            <div class="text-xs text-gray-400 mt-0.5 text-right">
-                                                <span x-show="draft.maxqty > 0">maks: <span x-text="draft.maxqty"></span></span>
+                                            <div class="text-xs text-gray-400 mt-0.5 flex justify-between items-center" x-show="draft.fitemcode">
+                                                <div>(<span x-text="productMeta(draft.fitemcode).stock"></span>) in stock</div>
+                                                <div class="font-medium text-orange-600" x-show="draft.maxqty > 0">
+                                                    maks: <span x-text="draft.maxqty"></span>
+                                                </div>
                                             </div>
                                         </td>
 
@@ -1293,15 +1299,8 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     // Map produk untuk auto-fill tabel
-    window.PRODUCT_MAP = {
-        @foreach ($products as $p)
-            "{{ $p->fprdcode }}": {
-                name: @json($p->fprdname),
-                units: @json(array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2]))),
-                stock: @json($p->fminstock ?? 0)
-            },
-        @endforeach
-    };
+    // Standardized Product Map initialization
+    window.PRODUCT_MAP = @json($productMap ?? []);
 
     // id unik
     window.cryptoRandom = function() {
@@ -1843,8 +1842,12 @@
             },
 
             productMeta(code) {
-                const key = (code || '').trim();
-                return window.PRODUCT_MAP?.[key] || null;
+                const key = (code || '').toString().trim();
+                return window.PRODUCT_MAP?.[key] || {
+                    name: '',
+                    units: [],
+                    stock: 0
+                };
             },
 
             hydrateRowFromMeta(row, meta) {

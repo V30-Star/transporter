@@ -10,7 +10,7 @@ class SubaccountController extends Controller
     public function index(Request $request)
     {
         $allowedSorts = ['fsubaccountcode', 'fsubaccountname', 'fsubaccountid', 'fnonactive'];
-        $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fsubaccountid';
+        $sortBy = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fsubaccountid';
         $sortDir = $request->sort_dir === 'asc' ? 'asc' : 'desc';
 
         $status = $request->query('status');
@@ -28,7 +28,7 @@ class SubaccountController extends Controller
             ->get(['fsubaccountcode', 'fsubaccountname', 'fsubaccountid', 'fnonactive']);
 
         $canCreate = in_array('createSubAccount', explode(',', session('user_restricted_permissions', '')));
-        $canEdit   = in_array('updateSubAccount', explode(',', session('user_restricted_permissions', '')));
+        $canEdit = in_array('updateSubAccount', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deleteSubAccount', explode(',', session('user_restricted_permissions', '')));
 
         return view('subaccount.index', compact('subaccounts', 'canCreate', 'canEdit', 'canDelete', 'status'));
@@ -81,7 +81,7 @@ class SubaccountController extends Controller
 
         return view('subaccount.edit', [
             'subaccount' => $subaccount,
-            'action' => 'edit'
+            'action' => 'edit',
         ]);
     }
 
@@ -91,7 +91,7 @@ class SubaccountController extends Controller
         $subaccount = Subaccount::findOrFail($fsubaccountid);
 
         return view('subaccount.view', [
-            'subaccount' => $subaccount
+            'subaccount' => $subaccount,
         ]);
     }
 
@@ -135,9 +135,9 @@ class SubaccountController extends Controller
     public function delete($fsubaccountid)
     {
         $subaccount = Subaccount::findOrFail($fsubaccountid);
-        return view('subaccount.edit', [
+
+        return view('subaccount.delete', [
             'subaccount' => $subaccount,
-            'action' => 'delete'
         ]);
     }
 
@@ -145,12 +145,26 @@ class SubaccountController extends Controller
     {
         try {
             $subaccount = Subaccount::findOrFail($fsubaccountid);
+
+            if (\Illuminate\Support\Facades\DB::table('jurnaldt')->where('fsubaccount', $subaccount->fsubaccount)->exists()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Subaccount sudah digunakan dalam transaksi jurnal.',
+                ], 422);
+            }
+
             $subaccount->delete();
 
-            return redirect()->route('subaccount.index')->with('success', 'Data subaccount ' . $subaccount->fsubaccountname . ' berhasil dihapus.');
+            return response()->json([
+                'success' => true,
+                'message' => 'Data subaccount '.$subaccount->fsubaccountname.' berhasil dihapus.',
+                'redirect' => route('subaccount.index'),
+            ]);
         } catch (\Exception $e) {
-            // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
-            return redirect()->route('subaccount.delete', $fsubaccountid)->with('error', 'Gagal menghapus data: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus data: '.$e->getMessage(),
+            ], 500);
         }
     }
 }

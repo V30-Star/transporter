@@ -13,7 +13,7 @@ class RekeningController extends Controller
             ->get(['frekeningcode', 'frekeningname', 'frekeningid', 'fnonactive']);
 
         $canCreate = in_array('createRekening', explode(',', session('user_restricted_permissions', '')));
-        $canEdit   = in_array('updateRekening', explode(',', session('user_restricted_permissions', '')));
+        $canEdit = in_array('updateRekening', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deleteRekening', explode(',', session('user_restricted_permissions', '')));
 
         return view('rekening.index', compact('rekenings', 'canCreate', 'canEdit', 'canDelete'));
@@ -64,7 +64,7 @@ class RekeningController extends Controller
 
         return view('rekening.edit', [
             'rekening' => $rekening,
-            'action' => 'edit'
+            'action' => 'edit',
         ]);
     }
 
@@ -74,7 +74,7 @@ class RekeningController extends Controller
         $rekening = Rekening::findOrFail($frekeningid);
 
         return view('rekening.view', [
-            'rekening' => $rekening
+            'rekening' => $rekening,
         ]);
     }
 
@@ -113,9 +113,9 @@ class RekeningController extends Controller
     public function delete($frekeningid)
     {
         $rekening = Rekening::findOrFail($frekeningid);
-        return view('rekening.edit', [
+
+        return view('rekening.delete', [
             'rekening' => $rekening,
-            'action' => 'delete'
         ]);
     }
 
@@ -123,12 +123,26 @@ class RekeningController extends Controller
     {
         try {
             $rekening = Rekening::findOrFail($frekeningid);
+
+            if (\Illuminate\Support\Facades\DB::table('jurnaldt')->where('frekeningcode', $rekening->frekeningname)->exists()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Rekening sudah digunakan dalam transaksi jurnal.',
+                ], 422);
+            }
+
             $rekening->delete();
 
-            return redirect()->route('rekening.index')->with('success', 'Data rekening ' . $rekening->frekeningcode . ' berhasil dihapus.');
+            return response()->json([
+                'success' => true,
+                'message' => 'Data rekening '.$rekening->frekeningname.' berhasil dihapus.',
+                'redirect' => route('rekening.index'),
+            ]);
         } catch (\Exception $e) {
-            // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
-            return redirect()->route('rekening.delete', $frekeningid)->with('error', 'Gagal menghapus data: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus data: '.$e->getMessage(),
+            ], 500);
         }
     }
 }

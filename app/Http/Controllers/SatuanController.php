@@ -12,10 +12,10 @@ class SatuanController extends Controller
         $satuans = Satuan::orderBy('fsatuancode', 'asc')
             ->get(['fsatuanid', 'fsatuancode', 'fsatuanname', 'fnonactive']);
 
-        $permsStr  = (string) session('user_restricted_permissions', '');
-        $permsArr  = explode(',', $permsStr);
+        $permsStr = (string) session('user_restricted_permissions', '');
+        $permsArr = explode(',', $permsStr);
         $canCreate = in_array('createSatuan', $permsArr, true);
-        $canEdit   = in_array('updateSatuan', $permsArr, true);
+        $canEdit = in_array('updateSatuan', $permsArr, true);
         $canDelete = in_array('deleteSatuan', $permsArr, true);
 
         return view('satuan.index', compact('satuans', 'canCreate', 'canEdit', 'canDelete'));
@@ -70,7 +70,7 @@ class SatuanController extends Controller
 
         return view('satuan.edit', [
             'satuan' => $satuan,
-            'action' => 'edit'
+            'action' => 'edit',
         ]);
     }
 
@@ -117,9 +117,9 @@ class SatuanController extends Controller
     public function delete($fsatuanid)
     {
         $satuan = Satuan::findOrFail($fsatuanid);
-        return view('satuan.edit', [
+
+        return view('satuan.delete', [
             'satuan' => $satuan,
-            'action' => 'delete'
         ]);
     }
 
@@ -127,11 +127,29 @@ class SatuanController extends Controller
     {
         try {
             $satuan = Satuan::findOrFail($fsatuanid);
+
+            if (\Illuminate\Support\Facades\DB::table('msprd')
+                ->where('fsatuankecil', $satuan->fsatuancode)
+                ->orWhere('fsatuanbesar', $satuan->fsatuancode)
+                ->exists()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Satuan sudah digunakan dalam data Product.',
+                ], 422);
+            }
+
             $satuan->delete();
 
-            return response()->json(['message' => 'Data satuan ' . $satuan->fsatuanname . ' berhasil dihapus.']);
+            return response()->json([
+                'success' => true,
+                'message' => 'Data satuan '.$satuan->fsatuanname.' berhasil dihapus.',
+                'redirect' => route('satuan.index'),
+            ]);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Gagal menghapus data: ' . $e->getMessage()], 500);
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus data: '.$e->getMessage(),
+            ], 500);
         }
     }
 }

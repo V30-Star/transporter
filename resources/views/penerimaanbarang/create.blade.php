@@ -287,13 +287,14 @@
                                                 if (it.maxqty > 0 && it.fqty > it.maxqty) { it.fqty = it.maxqty; recalc(it); }
                                             "
                                             @keydown.enter.prevent="focusSavedPrice(i)">
-                                        <div class="text-xs mt-0.5 text-right">
+                                        <div class="text-xs text-gray-400 mt-0.5 text-right space-y-0.5">
                                             <template x-if="it.maxqty > 0">
-                                                <span class="text-gray-400">maks: <span x-text="it.maxqty"></span></span>
+                                                <div>maks: <span x-text="it.maxqty"></span></div>
                                             </template>
                                             <template x-if="it.maxqty === 0 && it.fqtypr > 0">
-                                                <span class="text-red-500 font-medium">Qty tidak cukup</span>
+                                                <div class="text-red-500 font-medium">Qty tidak cukup</div>
                                             </template>
+                                            <div x-show="it.fitemcode" x-text="(productMeta(it.fitemcode)?.stock || 0) + ' in stock'"></div>
                                         </div>
                                     </td>
 
@@ -404,6 +405,8 @@
                                     <input type="number" class="border rounded px-2 py-1 w-20 text-right text-sm"
                                         min="0" step="1" x-ref="draftQty" x-model.number="draft.fqty"
                                         @input="recalc(draft)" @keydown.enter.prevent="$refs.draftPrice?.focus()">
+                                    <div class="text-xs text-gray-400 mt-0.5 text-right" x-show="draft.fitemcode"
+                                        x-text="(productMeta(draft.fitemcode)?.stock || 0) + ' in stock'"></div>
                                 </td>
 
                                 <td class="p-2 text-right">

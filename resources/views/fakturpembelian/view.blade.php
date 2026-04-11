@@ -460,7 +460,7 @@
                                         <td class="p-2 text-right">
                                             <div x-text="fmt(it.fqty)"></div>
                                             <div class="text-xs text-gray-400 mt-0.5" x-show="it.fitemcode"
-                                                 x-text="'Stok: ' + (productMeta(it.fitemcode)?.stock || 0)"></div>
+                                                 x-text="(productMeta(it.fitemcode)?.stock || 0) + ' in stock'"></div>
                                         </td>
                                         <td class="p-2 text-right" x-text="fmt(it.fprice)"></td>
                                         <td class="p-2 text-right" x-text="fmt(it.fbiaya)"></td>
@@ -561,7 +561,7 @@
                                             min="0" step="1" x-ref="editQty" x-model.number="editRow.fqty"
                                             @input="recalc(editRow)" @keydown.enter.prevent="$refs.editTerima?.focus()">
                                         <div class="text-xs text-gray-400 mt-0.5 text-right space-y-0.5" x-show="editRow.fitemcode">
-                                            <div x-text="'Stok: ' + (productMeta(editRow.fitemcode)?.stock || 0)"></div>
+                                            <div x-text="(productMeta(editRow.fitemcode)?.stock || 0) + ' in stock'"></div>
                                         </div>
                                     </td>
 

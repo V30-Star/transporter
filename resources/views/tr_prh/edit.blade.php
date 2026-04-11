@@ -419,8 +419,12 @@
                                             </td>
                                             <td class="p-2">
                                                 <input type="number" class="w-full border rounded px-2 py-1 text-right" x-model.number="it.fqty" min="1" :disabled="blockedByPO" @focus="activeRow = it.uid; $event.target.select()" @blur="activeRow = null">
-                                                <div class="text-xs text-gray-400 mt-0.5 text-right" x-show="it.fitemcode"
-                                                    x-text="(productMeta(it.fitemcode)?.stock || 0) + ' in stock'"></div>
+                                                <div class="text-xs text-gray-400 mt-0.5 flex justify-between items-center" x-show="it.fitemcode">
+                                                    <div>(<span x-text="productMeta(it.fitemcode).stock"></span>) in stock</div>
+                                                    <div class="font-medium text-orange-600" x-show="productMeta(it.fitemcode).stock > 0">
+                                                        maks: <span x-text="productMeta(it.fitemcode).stock"></span>
+                                                    </div>
+                                                </div>
                                             </td>
                                             <td class="p-2 text-right">
                                                 <input type="number" class="w-full border rounded px-2 py-1 text-right bg-gray-100 text-gray-500" :value="it.fqtypo" disabled>
@@ -477,8 +481,12 @@
                                         </td>
                                         <td class="p-2">
                                             <input type="number" class="w-full border rounded px-2 py-1 text-right" x-model.number="draft.fqty" min="1" x-ref="draftQty" @keydown.enter.prevent="addIfComplete()">
-                                            <div class="text-xs text-gray-400 mt-0.5 text-right" x-show="draft.fitemcode"
-                                                x-text="(productMeta(draft.fitemcode)?.stock || 0) + ' in stock'"></div>
+                                            <div class="text-xs text-gray-400 mt-0.5 flex justify-between items-center" x-show="draft.fitemcode">
+                                                <div>(<span x-text="productMeta(draft.fitemcode).stock"></span>) in stock</div>
+                                                <div class="font-medium text-orange-600" x-show="productMeta(draft.fitemcode).stock > 0">
+                                                    maks: <span x-text="productMeta(draft.fitemcode).stock"></span>
+                                                </div>
+                                            </div>
                                         </td>
                                         <td class="p-2 text-right">-</td>
                                         <td class="p-2">
@@ -668,16 +676,7 @@
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
 <script>
-    window.PRODUCT_MAP = {
-        @foreach ($products as $p)
-            "{{ $p->fprdcode }}": {
-                id: @json($p->fprdid),
-                name: @json($p->fprdname),
-                units: @json(array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2]))),
-                stock: @json($p->fminstock ?? 0)
-            },
-        @endforeach
-    };
+    window.PRODUCT_MAP = @json($productMap ?? []);
 
     window.cryptoRandom = () => 'r' + Math.random().toString(16).slice(2, 10);
 
@@ -1000,7 +999,12 @@
                 window.dispatchEvent(new CustomEvent('browse-product', { detail: { target, index } }));
             },
             productMeta(code) {
-                return window.PRODUCT_MAP?.[code] || null;
+                const key = (code || '').trim();
+                return window.PRODUCT_MAP?.[key] || {
+                    name: '',
+                    units: [],
+                    stock: 0
+                };
             }
         }
     }

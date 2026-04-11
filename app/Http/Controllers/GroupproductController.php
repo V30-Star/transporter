@@ -13,7 +13,7 @@ class GroupproductController extends Controller
             ->get(['fgroupcode', 'fgroupname', 'fgroupid', 'fnonactive']);
 
         $canCreate = in_array('createGroupProduct', explode(',', session('user_restricted_permissions', '')));
-        $canEdit   = in_array('updateGroupProduct', explode(',', session('user_restricted_permissions', '')));
+        $canEdit = in_array('updateGroupProduct', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deleteGroupProduct', explode(',', session('user_restricted_permissions', '')));
 
         return view('groupproduct.index', compact('groupproducts', 'canCreate', 'canEdit', 'canDelete'));
@@ -53,12 +53,12 @@ class GroupproductController extends Controller
 
         // Create the new Groupproduct
         $group = Groupproduct::create($validated);
-        
+
         if ($request->ajax()) {
             return response()->json([
-                'id'   => $group->fgroupid,   // Pastikan ini nama Primary Key di tabel Anda
+                'id' => $group->fgroupid,   // Pastikan ini nama Primary Key di tabel Anda
                 'name' => $group->fgroupname,
-                'code' => $group->fgroupcode
+                'code' => $group->fgroupcode,
             ]);
         }
 
@@ -74,7 +74,7 @@ class GroupproductController extends Controller
 
         return view('groupproduct.edit', [
             'groupproduct' => $groupproduct,
-            'action' => 'edit'
+            'action' => 'edit',
         ]);
     }
 
@@ -115,9 +115,9 @@ class GroupproductController extends Controller
     public function delete($fgroupid)
     {
         $groupproduct = Groupproduct::findOrFail($fgroupid);
-        return view('groupproduct.edit', [
+
+        return view('groupproduct.delete', [
             'groupproduct' => $groupproduct,
-            'action' => 'delete'
         ]);
     }
 
@@ -125,12 +125,26 @@ class GroupproductController extends Controller
     {
         try {
             $groupproduct = Groupproduct::findOrFail($fgroupid);
+
+            if (\Illuminate\Support\Facades\DB::table('msprd')->where('fgroupprd', $groupproduct->fgroupid)->exists()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Group Product sudah digunakan dalam data Product.',
+                ], 422);
+            }
+
             $groupproduct->delete();
 
-            return redirect()->route('groupproduct.index')->with('success', 'Data groupproduct ' . $groupproduct->fgroupname . ' berhasil dihapus.');
+            return response()->json([
+                'success' => true,
+                'message' => 'Data groupproduct '.$groupproduct->fgroupname.' berhasil dihapus.',
+                'redirect' => route('groupproduct.index'),
+            ]);
         } catch (\Exception $e) {
-            // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
-            return redirect()->route('groupproduct.delete', $fgroupid)->with('error', 'Gagal menghapus data: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus data: '.$e->getMessage(),
+            ], 500);
         }
     }
 
@@ -164,7 +178,7 @@ class GroupproductController extends Controller
             'draw' => $request->input('draw', 1),
             'recordsTotal' => $recordsTotal,
             'recordsFiltered' => $recordsFiltered,
-            'data' => $data
+            'data' => $data,
         ]);
     }
 }
