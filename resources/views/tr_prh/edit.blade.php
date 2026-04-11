@@ -419,6 +419,8 @@
                                             </td>
                                             <td class="p-2">
                                                 <input type="number" class="w-full border rounded px-2 py-1 text-right" x-model.number="it.fqty" min="1" :disabled="blockedByPO" @focus="activeRow = it.uid; $event.target.select()" @blur="activeRow = null">
+                                                <div class="text-xs text-gray-400 mt-0.5 text-right" x-show="it.fitemcode"
+                                                    x-text="(productMeta(it.fitemcode)?.stock || 0) + ' in stock'"></div>
                                             </td>
                                             <td class="p-2 text-right">
                                                 <input type="number" class="w-full border rounded px-2 py-1 text-right bg-gray-100 text-gray-500" :value="it.fqtypo" disabled>
@@ -475,6 +477,8 @@
                                         </td>
                                         <td class="p-2">
                                             <input type="number" class="w-full border rounded px-2 py-1 text-right" x-model.number="draft.fqty" min="1" x-ref="draftQty" @keydown.enter.prevent="addIfComplete()">
+                                            <div class="text-xs text-gray-400 mt-0.5 text-right" x-show="draft.fitemcode"
+                                                x-text="(productMeta(draft.fitemcode)?.stock || 0) + ' in stock'"></div>
                                         </td>
                                         <td class="p-2 text-right">-</td>
                                         <td class="p-2">
@@ -670,7 +674,7 @@
                 id: @json($p->fprdid),
                 name: @json($p->fprdname),
                 units: @json(array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2]))),
-                stock: @json($p->fqty ?? 0)
+                stock: @json($p->fminstock ?? 0)
             },
         @endforeach
     };
@@ -994,6 +998,9 @@
             removeSaved(i) { this.savedItems.splice(i, 1); },
             openBrowseFor(target, index = null) {
                 window.dispatchEvent(new CustomEvent('browse-product', { detail: { target, index } }));
+            },
+            productMeta(code) {
+                return window.PRODUCT_MAP?.[code] || null;
             }
         }
     }

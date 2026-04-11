@@ -212,7 +212,11 @@
                                             </div>
                                         </td>
                                         <td class="p-2" x-text="it.fsatuan"></td>
-                                        <td class="p-2 text-right" x-text="it.fqty"></td>
+                                        <td class="p-2 text-right">
+                                            <div x-text="it.fqty"></div>
+                                            <div class="text-xs text-gray-400 mt-0.5" x-show="it.fitemcode"
+                                                x-text="(productMeta(it.fitemcode)?.stock || 0) + ' in stock'"></div>
+                                        </td>
                                         <td class="p-2 text-right" x-text="it.fqtypo"></td>
                                         <td class="p-2" x-text="it.fketdt || '-'"></td>
 
@@ -297,6 +301,8 @@
                                             x-model.number="editRow.fqty" x-ref="editQty" @focus="$event.target.select()"
                                             @input="enforceQtyRow(editRow)"
                                             @keydown.enter.prevent="$refs.editKet?.focus()">
+                                        <div class="text-xs text-gray-400 mt-0.5" x-show="editRow.fitemcode"
+                                            x-text="(productMeta(editRow.fitemcode)?.stock || 0) + ' in stock'"></div>
                                     </td>
 
                                     <td class="p-2 text-right" x-text="it.fqtypo > 0 ? it.fqtypo : '-'"></td>

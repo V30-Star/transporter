@@ -272,6 +272,8 @@
                                                 @focus="activeRow = it.uid; $event.target.select()"
                                                 @blur="activeRow = null; enforceQtyRow(it)" @input="enforceQtyRow(it)"
                                                 @keydown.enter.prevent="focusSavedKet(i)">
+                                            <div class="text-xs text-gray-400 mt-0.5" x-show="it.fitemcode"
+                                                x-text="(productMeta(it.fitemcode)?.stock || 0) + ' in stock'"></div>
                                         </td>
 
                                         <td class="p-2">
@@ -352,6 +354,8 @@
                                             x-model.number="draft.fqty" x-ref="draftQty" @focus="$event.target.select()"
                                             @input="enforceQtyRow(draft)"
                                             @keydown.enter.prevent="$refs.draftKet?.focus()">
+                                        <div class="text-xs text-gray-400 mt-0.5" x-show="draft.fitemcode"
+                                            x-text="(productMeta(draft.fitemcode)?.stock || 0) + ' in stock'"></div>
                                     </td>
 
                                     <td class="p-2">

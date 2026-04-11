@@ -503,8 +503,9 @@
                                                         if (it.maxqty > 0 && it.fqty > it.maxqty) { it.fqty = it.maxqty; recalc(it); }
                                                     "
                                                     @keydown.enter.prevent="$refs['price_saved_' + i]?.focus()">
-                                                <div class="text-xs text-gray-400 mt-0.5 text-right">
-                                                    <span x-show="it.maxqty > 0">maks: <span x-text="it.maxqty"></span></span>
+                                                <div class="text-xs text-gray-400 mt-0.5 text-right space-y-0.5">
+                                                    <div x-show="it.maxqty > 0">maks: <span x-text="it.maxqty"></span></div>
+                                                    <div x-show="it.fitemcode" x-text="'Stok: ' + (productMeta(it.fitemcode)?.stock || 0)"></div>
                                                 </div>
                                             </td>
 
@@ -634,10 +635,11 @@
                                                     }
                                                 "
                                                 @keydown.enter.prevent="$refs.draftTerima?.focus()">
-                                            <div class="text-xs mt-0.5 text-right">
+                                            <div class="text-xs mt-0.5 text-right space-y-0.5">
                                                 <template x-if="draft.maxqty > 0">
-                                                    <span class="text-gray-400">maks: <span x-text="draft.maxqty"></span></span>
+                                                    <div class="text-gray-400">maks: <span x-text="draft.maxqty"></span></div>
                                                 </template>
+                                                <div class="text-gray-400" x-show="draft.fitemcode" x-text="'Stok: ' + (productMeta(draft.fitemcode)?.stock || 0)"></div>
                                             </div>
                                         </td>
 

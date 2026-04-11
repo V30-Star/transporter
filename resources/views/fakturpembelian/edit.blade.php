@@ -1144,7 +1144,11 @@
                                                 </td>
                                                 <td class="p-2 text-left" x-text="it.frefdtno"></td>
                                                 <td class="p-2 text-left" x-text="it.fsatuan"></td>
-                                                <td class="p-2 text-right" x-text="fmt(it.fqty)"></td>
+                                                <td class="p-2 text-right">
+                                                    <div x-text="fmt(it.fqty)"></div>
+                                                    <div class="text-xs text-gray-400 mt-0.5" x-show="it.fitemcode"
+                                                         x-text="'Stok: ' + (productMeta(it.fitemcode)?.stock || 0)"></div>
+                                                </td>
                                                 <td class="p-2 text-right" x-text="fmt(it.fprice)"></td>
                                                 <td class="p-2 text-right" x-text="fmt(it.fbiaya)"></td>
                                                 <td class="p-2 text-right" x-text="fmt(it.fdiscpersen)"></td>
@@ -1265,11 +1269,11 @@
                                                         }
                                                     "
                                                     @keydown.enter.prevent="$refs.editTerima?.focus()">
-                                                <div class="text-xs mt-0.5 text-right">
+                                                <div class="text-xs mt-0.5 text-right space-y-0.5">
                                                     <template x-if="editRow.maxqty > 0">
-                                                        <span class="text-gray-400">maks: <span
-                                                                x-text="editRow.maxqty"></span></span>
+                                                        <div class="text-gray-400">maks: <span x-text="editRow.maxqty"></span></div>
                                                     </template>
+                                                    <div class="text-gray-400" x-show="editRow.fitemcode" x-text="'Stok: ' + (productMeta(editRow.fitemcode)?.stock || 0)"></div>
                                                 </div>
                                             </td>
 
@@ -1399,11 +1403,11 @@
                                                         }
                                                     "
                                                     @keydown.enter.prevent="$refs.draftTerima?.focus()">
-                                                <div class="text-xs mt-0.5 text-right">
+                                                <div class="text-xs mt-0.5 text-right space-y-0.5">
                                                     <template x-if="draft.maxqty > 0">
-                                                        <span class="text-gray-400">maks: <span
-                                                                x-text="draft.maxqty"></span></span>
+                                                        <div class="text-gray-400">maks: <span x-text="draft.maxqty"></span></div>
                                                     </template>
+                                                    <div class="text-gray-400" x-show="draft.fitemcode" x-text="'Stok: ' + (productMeta(draft.fitemcode)?.stock || 0)"></div>
                                                 </div>
                                             </td>
 
