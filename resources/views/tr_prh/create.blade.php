@@ -1111,8 +1111,9 @@
                             });
                         }
                     });
-                    $('#productTable').on('click', '.btn-choose', (e) => {
-                        this.choose(this.table.row($(e.target).closest('tr')).data());
+                    $('#productTable').off('click', '.btn-choose').on('click', '.btn-choose', (e) => {
+                        const product = this.table.row($(e.target).closest('tr')).data();
+                        if (product) this.choose(product);
                     });
                 },
 

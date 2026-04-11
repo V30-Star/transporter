@@ -807,9 +807,9 @@
                         });
 
                         // Handle button click
-                        $('#customerBrowseTable').on('click', '.btn-choose', (e) => {
+                        $('#customerBrowseTable').off('click', '.btn-choose').on('click', '.btn-choose', (e) => {
                             const data = this.dataTable.row($(e.target).closest('tr')).data();
-                            this.chooseCustomer(data);
+                            if (data) this.chooseCustomer(data);
                         });
                     },
 
@@ -989,9 +989,9 @@
                         });
 
                         // Handle button click
-                        $('#salesmanBrowseTable').on('click', '.btn-choose', (e) => {
+                        $('#salesmanBrowseTable').off('click', '.btn-choose').on('click', '.btn-choose', (e) => {
                             const data = this.dataTable.row($(e.target).closest('tr')).data();
-                            this.chooseSalesman(data);
+                            if (data) this.chooseSalesman(data);
                         });
                     },
 
@@ -1922,9 +1922,9 @@
                             });
 
                             // Handle button click
-                            $('#productTable').on('click', '.btn-choose', (e) => {
+                            $('#productTable').off('click', '.btn-choose').on('click', '.btn-choose', (e) => {
                                 const data = this.table.row($(e.target).closest('tr')).data();
-                                this.choose(data);
+                                if (data) this.choose(data);
                             });
                         },
 

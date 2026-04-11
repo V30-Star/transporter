@@ -796,8 +796,9 @@
                         });
                     }
                 });
-                $('#supplierBrowseTable').on('click', '.btn-choose', (e) => {
+                $('#supplierBrowseTable').off('click', '.btn-choose').on('click', '.btn-choose', (e) => {
                     const data = this.dataTable.row($(e.target).closest('tr')).data();
+                    if (!data) return;
                     window.dispatchEvent(new CustomEvent('supplier-chosen', { detail: data }));
                     this.close();
                 });
@@ -923,9 +924,16 @@
                         });
                     }
                 });
-                $('#productTable').on('click', '.btn-choose', (e) => {
+                $('#productTable').off('click', '.btn-choose').on('click', '.btn-choose', (e) => {
                     const productData = this.dataTable.row($(e.target).closest('tr')).data();
-                    window.dispatchEvent(new CustomEvent('product-chosen', { detail: { code: productData.fprdcode, target: this.target, index: this.targetIdx } }));
+                    if (!productData) return;
+                    window.dispatchEvent(new CustomEvent('product-chosen', {
+                        detail: {
+                            code: productData.fprdcode,
+                            target: this.target,
+                            index: this.targetIdx
+                        }
+                    }));
                     this.close();
                 });
             }
