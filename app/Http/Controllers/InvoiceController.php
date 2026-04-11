@@ -294,7 +294,7 @@ class InvoiceController extends Controller
 
     // Detail: join dengan product
     $dt = DB::table('trandt')
-      ->leftJoin('msprd as p', 'p.fprdcodeid', '=', 'trandt.fprdcodeid')
+      ->leftJoin('msprd as p', 'p.fprdid', '=', 'trandt.fprdcodeid')
       ->where('trandt.fsono', $fsono) // Gunakan variabel $fsono dari parameter fungsi
       ->orderBy('trandt.fnou', 'asc') // Urutkan berdasarkan nomor urut baris
       ->get([
@@ -392,6 +392,7 @@ class InvoiceController extends Controller
     // 2. INISIALISASI DATA HEADER (Tetap sama)
     $fsodate     = Carbon::parse($request->fsodate);
     $fincludeppn = $request->boolean('fincludeppn') ? '1' : '0';
+    $fapplyppn = $request->boolean('fapplyppn') ? '1' : '0';
     $userid      = mb_substr(auth('sysuser')->user()->fname ?? 'admin', 0, 10);
     $now         = now();
     $fcurrency   = $request->input('fcurrency', 'IDR');
@@ -488,7 +489,7 @@ class InvoiceController extends Controller
 
     // 5. DATABASE TRANSACTION
     try {
-      DB::transaction(function () use ($request, $fsodate, $fincludeppn, $userid, $now, $detailRows, $totalGross, $totalDisc, $amountNet, $ppnAmount, $grandTotal, $fcurrency, $frate, $ppnPersen) {
+      DB::transaction(function () use ($fapplyppn, $request, $fsodate, $fincludeppn, $userid, $now, $detailRows, $totalGross, $totalDisc, $amountNet, $ppnAmount, $grandTotal, $fcurrency, $frate, $ppnPersen) {
 
         // Penomoran Otomatis (Tetap sama)
         $fsono = $request->input('fsono');
@@ -524,6 +525,7 @@ class InvoiceController extends Controller
           'fuserid'         => $userid,
           'fdatetime'       => $now,
           'fincludeppn'     => $fincludeppn,
+          'fapplyppn'     => $fapplyppn,
           'fppnpersen'      => $ppnPersen,
           'ftypesales'      => $request->input('ftypesales', 0),
           'ftrcode'         => 'I',
@@ -830,6 +832,7 @@ class InvoiceController extends Controller
     // 3. INISIALISASI DATA
     $fsodate     = Carbon::parse($request->fsodate);
     $fincludeppn = $request->boolean('fincludeppn') ? '1' : '0';
+    $fapplyppn = $request->boolean('fapplyppn') ? '1' : '0';
     $userid      = mb_substr(auth('sysuser')->user()->fname ?? 'admin', 0, 10);
     $now         = now();
     $frate       = (float)$request->input('frate', $header->frate ?? 1);
@@ -964,6 +967,7 @@ class InvoiceController extends Controller
         $header,
         $fsodate,
         $fincludeppn,
+        $fapplyppn,
         $userid,
         $now,
         $detailRows,
@@ -995,8 +999,9 @@ class InvoiceController extends Controller
           'fuserid'         => $userid,
           'fdatetime'       => $now,
           'fincludeppn'     => $fincludeppn,
-          'ftypesales'      => (int)$request->input('ftypesales', 0),
+          'fapplyppn'       => $fapplyppn,
           'fppnpersen'      => $ppnPersen,
+          'ftypesales'      => (int)$request->input('ftypesales', 0),
         ]);
 
         // Hapus detail lama

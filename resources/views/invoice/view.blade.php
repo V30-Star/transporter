@@ -85,7 +85,6 @@
     </style>
 
     <div x-data="{ open: true }">
-        <div x-data="{ includePPN: {{ old('fincludeppn', $tr_poh->fincludeppn ?? 0) ? 'true' : 'false' }}, ppnRate: 0, ppnAmount: 0, totalHarga: 100000 }" class="lg:col-span-5">
             <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
                 <div class="space-y-4">
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
@@ -438,9 +437,9 @@
                                 <div class="w-1/2">
                                     <div class="rounded-lg border bg-gray-50 p-3 space-y-2">
                                         <div class="flex items-center justify-between">
-                                            <span class="text-sm text-gray-700">Total Harga</span>
+                                            <span class="text-sm text-gray-700">Total Harga (Net)</span>
                                             <span class="min-w-[140px] text-right font-medium"
-                                                x-text="rupiah(totalHarga)"></span>
+                                                x-text="rupiah(netTotal)"></span>
                                         </div>
                                         <div class="flex items-center justify-between gap-6">
                                             <!-- Checkbox -->
@@ -457,17 +456,17 @@
                                             <div class="flex items-center gap-2">
                                                 <select disabled id="includePPN" name="includePPN"
                                                     x-model.number="fapplyppn" x-init="fapplyppn = 0"
-                                                    :disabled="!(includePPN || fapplyppn)"
+                                                    :disabled="!(includePPN || fapplyppn)" 
                                                     class="w-28 h-9 px-2 text-sm leading-tight border rounded transition-opacity appearance-none
                                                            disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
-                                                    <option value="0">Exclude</option>
-                                                    <option value="1">Include</option>
+                                                    <option disabled value="0">Exclude</option>
+                                                    <option disabled value="1">Include</option>
                                                 </select>
                                             </div>
 
                                             <!-- Input Rate + Nominal (kanan) -->
                                             <div class="flex items-center gap-2">
-                                                <input disabled type="number" min="0" max="100"
+                                                <input disabled type="number" min="0" max="100" readonly
                                                     step="0.01" x-model.number="ppnRate"
                                                     :disabled="!(includePPN || fapplyppn)"
                                                     class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
@@ -592,7 +591,6 @@
                             Kembali
                         </button>
                     </div>
-                </div>
             </div>
         @endsection
         @push('styles')
@@ -1092,18 +1090,18 @@
                     editRow: newRow(),
 
                     totalHarga: 0,
-                    ppnRate: 11,
+                    ppnRate: @json($invoice->fppnpersen ?? 11),
 
-                    initialGrandTotal: @json($famountso ?? 0),
-                    initialPpnAmount: @json($famountpopajak ?? 0),
+                    initialGrandTotal: @json($invoice->famountso ?? 0),
+                    initialPpnAmount: @json($invoice->famountpopajak ?? 0),
 
-                    includePPN: false,
-                    fapplyppn: false,
+                    includePPN: @json($invoice->fincludeppn == '1'),
+                    fapplyppn: @json($invoice->fincludeppn == '1' ? 1 : 0),
 
                     get ppnIncluded() {
                         const total = +this.totalHarga || 0;
                         const rate = +this.ppnRate || 0;
-                        if (!this.fapplyppn) return 0;
+                        if (!this.fapplyppn || !this.includePPN) return 0;
                         return Math.round((100 / (100 + rate)) * total * (rate / 100));
                     },
 
@@ -1120,24 +1118,28 @@
                     },
 
                     get ppnAmount() {
+                        if (!this.includePPN) return 0;
                         if (this.fapplyppn) {
                             return this.ppnIncluded;
                         }
-                        if (this.includePPN) {
-                            return this.ppnAdded;
+                        return this.ppnAdded;
+                    },
+
+                    get netTotal() {
+                        const total = +this.totalHarga || 0;
+                        if (!this.includePPN) return total;
+                        if (this.fapplyppn) {
+                            return this.netFromGross;
                         }
-                        return 0;
+                        return total;
                     },
 
                     get grandTotal() {
                         const total = +this.totalHarga || 0;
-                        if (this.fapplyppn) {
+                        if (!this.includePPN || this.fapplyppn) {
                             return total;
                         }
-                        if (this.includePPN) {
-                            return total + this.ppnAdded;
-                        }
-                        return total;
+                        return total + this.ppnAdded;
                     },
 
                     fmt(n) {
@@ -1495,6 +1497,7 @@
                     },
 
                     init() {
+                        this.recalcTotals();
                         this.$watch('includePPN', () => this.recalcTotals());
                         this.$watch('fapplyppn', () => this.recalcTotals());
                         this.$watch('ppnRate', () => this.recalcTotals());

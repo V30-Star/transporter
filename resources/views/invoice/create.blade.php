@@ -71,7 +71,6 @@
     </style>
 
     <div x-data="{ open: true }">
-        <div x-data="{ includePPN: false, ppnRate: 0, ppnAmount: 0, selected: 'alamatsurat', totalHarga: 100000 }" class="lg:col-span-5">
             <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
                 <form action="{{ route('invoice.store') }}" method="POST" class="mt-6" x-data="{ showNoItems: false }"
                     @submit.prevent="
@@ -799,24 +798,24 @@
                             <div x-data="prhFormModal()" class="w-full md:w-auto md:min-w-[550px] lg:min-w-[650px]">
                                 <div class="rounded-lg border bg-gray-50 p-3 space-y-2">
                                     <div class="flex items-center justify-between">
-                                        <span class="text-sm text-gray-700">Total Harga</span>
+                                        <span class="text-sm text-gray-700">Total Harga (Net)</span>
                                         <span class="min-w-[140px] text-right font-medium"
-                                            x-text="rupiah(totalHarga)"></span>
+                                            x-text="rupiah(netTotal)"></span>
                                     </div>
                                     <div class="flex items-center justify-between gap-6">
                                         <!-- Checkbox -->
                                         <div class="flex items-center">
-                                            <input id="fapplyppn" type="checkbox" name="fapplyppn" value="1"
+                                            <input id="fincludeppn_input" type="checkbox" name="fincludeppn" value="1"
                                                 x-model="includePPN"
                                                 class="h-4 w-4 text-blue-600 border-gray-300 rounded">
-                                            <label for="fapplyppn" class="ml-2 text-sm font-medium text-gray-700">
+                                            <label for="fincludeppn_input" class="ml-2 text-sm font-medium text-gray-700">
                                                 <span class="font-bold">PPN</span>
                                             </label>
                                         </div>
 
                                         <!-- Dropdown Include / Exclude (tengah) -->
                                         <div class="flex items-center gap-2">
-                                            <select id="includePPN" name="includePPN" x-model.number="fapplyppn"
+                                            <select id="fapplyppn_input" name="fapplyppn" x-model.number="fapplyppn"
                                                 x-init="fapplyppn = 0" :disabled="!(includePPN || fapplyppn)"
                                                 class="w-28 h-9 px-2 text-sm leading-tight border rounded transition-opacity appearance-none
                                disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
@@ -858,9 +857,11 @@
 
                                 <!-- Hidden inputs for submit -->
                                 <input type="hidden" name="famountgross" :value="totalHarga">
-                                <input type="hidden" name="" :value="ppnAmount">
+                                <input type="hidden" name="famountpajak" :value="ppnAmount">
+                                <input type="hidden" name="famountsonet" :value="netTotal">
                                 <input type="hidden" name="famountso" :value="grandTotal">
-                                <input type="hidden" name="famountpopajak" :value="ppnRate">
+                                <input type="hidden" name="famountpopajak" :value="ppnAmount">
+                                <input type="hidden" name="fppnpersen" :value="ppnRate">
 
                                 <!-- Modal backdrop - sekarang bisa akses 'show' -->
                                 <div x-show="show" x-transition.opacity class="fixed inset-0 z-40 bg-black/50"
@@ -1235,7 +1236,6 @@
                     </div>
                 </form>
             </div>
-        </div>
     </div>
 
 @endsection
@@ -1786,7 +1786,7 @@
             get ppnIncluded() {
                 const total = +this.totalHarga || 0;
                 const rate = +this.ppnRate || 0;
-                if (!this.fapplyppn) return 0;
+                if (!this.fapplyppn || !this.includePPN) return 0;
                 return Math.round((100 / (100 + rate)) * total * (rate / 100));
             },
 
@@ -1803,24 +1803,28 @@
             },
 
             get ppnAmount() {
+                if (!this.includePPN) return 0;
                 if (this.fapplyppn) {
                     return this.ppnIncluded;
                 }
-                if (this.includePPN) {
-                    return this.ppnAdded;
+                return this.ppnAdded;
+            },
+
+            get netTotal() {
+                const total = +this.totalHarga || 0;
+                if (!this.includePPN) return total;
+                if (this.fapplyppn) {
+                    return this.netFromGross;
                 }
-                return 0;
+                return total;
             },
 
             get grandTotal() {
                 const total = +this.totalHarga || 0;
-                if (this.fapplyppn) {
+                if (!this.includePPN || this.fapplyppn) {
                     return total;
                 }
-                if (this.includePPN) {
-                    return total + this.ppnAdded;
-                }
-                return total;
+                return total + this.ppnAdded;
             },
 
             fmt(n) {

@@ -73,7 +73,6 @@
     </style>
 
     <div x-data="{ open: true }">
-        <div x-data="{ fclose: {{ old('fclose', $invoice->fclose) == '1' ? 'true' : 'false' }}, includePPN: false, ppnRate: 0, ppnAmount: 0, selected: 'alamatsurat', totalHarga: 100000 }" class="lg:col-span-5">
             <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
                 @if ($action === 'delete')
                     <div class="space-y-4">
@@ -463,15 +462,15 @@
                                                         :disabled="!(includePPN || fapplyppn)"
                                                         class="w-28 h-9 px-2 text-sm leading-tight border rounded transition-opacity appearance-none
                                                            disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
-                                                        <option value="0">Exclude</option>
-                                                        <option value="1">Include</option>
+                                                        <option disabled value="0">Exclude</option>
+                                                        <option disabled value="1">Include</option>
                                                     </select>
                                                 </div>
 
                                                 <!-- Input Rate + Nominal (kanan) -->
                                                 <div class="flex items-center gap-2">
                                                     <input disabled type="number" min="0" max="100"
-                                                        step="0.01" x-model.number="ppnRate"
+                                                        step="0.01" x-model.number="ppnRate" readonly
                                                         :disabled="!(includePPN || fapplyppn)"
                                                         class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
                                                             [appearance:textfield]
@@ -1313,17 +1312,17 @@
                                         <div class="w-1/2">
                                             <div class="rounded-lg border bg-gray-50 p-3 space-y-2">
                                                 <div class="flex items-center justify-between">
-                                                    <span class="text-sm text-gray-700">Total Harga</span>
+                                                    <span class="text-sm text-gray-700">Total Harga (Net)</span>
                                                     <span class="min-w-[140px] text-right font-medium"
-                                                        x-text="rupiah(totalHarga)"></span>
+                                                        x-text="rupiah(netTotal)"></span>
                                                 </div>
                                                 <div class="flex items-center justify-between gap-6">
                                                     <!-- Checkbox -->
                                                     <div class="flex items-center">
-                                                        <input id="fapplyppn" type="checkbox" name="fapplyppn"
+                                                        <input id="fincludeppn_input" type="checkbox" name="fincludeppn"
                                                             value="1" x-model="includePPN"
                                                             class="h-4 w-4 text-blue-600 border-gray-300 rounded">
-                                                        <label for="fapplyppn"
+                                                        <label for="fincludeppn_input"
                                                             class="ml-2 text-sm font-medium text-gray-700">
                                                             <span class="font-bold">PPN</span>
                                                         </label>
@@ -1331,7 +1330,7 @@
 
                                                     <!-- Dropdown Include / Exclude (tengah) -->
                                                     <div class="flex items-center gap-2">
-                                                        <select id="includePPN" name="includePPN"
+                                                        <select id="fapplyppn_input" name="fapplyppn"
                                                             x-model.number="fapplyppn"
                                                             :disabled="!(includePPN || fapplyppn)"
                                                             class="w-28 h-9 px-2 text-sm leading-tight border rounded transition-opacity appearance-none
@@ -1377,9 +1376,11 @@
 
                                             <!-- Hidden inputs for submit -->
                                             <input type="hidden" name="famountgross" :value="totalHarga">
-                                            <input type="hidden" name="" :value="ppnAmount">
+                                            <input type="hidden" name="famountpajak" :value="ppnAmount">
+                                            <input type="hidden" name="famountsonet" :value="netTotal">
                                             <input type="hidden" name="famountso" :value="grandTotal">
-                                            <input type="hidden" name="famountpopajak" :value="ppnRate">
+                                            <input type="hidden" name="famountpopajak" :value="ppnAmount">
+                                            <input type="hidden" name="fppnpersen" :value="ppnRate">
                                         </div>
                                     </div>
 
@@ -1677,7 +1678,6 @@
                         </form>
                 @endif
             </div>
-        </div>
     </div>
     {{-- ============================================ --}}
     {{-- MODAL & TOAST (HANYA UNTUK MODE DELETE)     --}}
@@ -2334,8 +2334,8 @@
             totalHarga: 0,
             ppnRate: @json($invoice->fppnpersen ?? 11),
 
-            initialGrandTotal: @json($famountso ?? 0),
-            initialPpnAmount: @json($famountpopajak ?? 0),
+            initialGrandTotal: @json($invoice->famountso ?? 0),
+            initialPpnAmount: @json($invoice->famountpajak ?? 0),
 
             includePPN: @json($invoice->fincludeppn == '1'),
             fapplyppn: @json($invoice->fincludeppn == '1' ? 1 : 0),
@@ -2343,7 +2343,7 @@
             get ppnIncluded() {
                 const total = +this.totalHarga || 0;
                 const rate = +this.ppnRate || 0;
-                if (!this.fapplyppn) return 0;
+                if (!this.fapplyppn || !this.includePPN) return 0;
                 return Math.round((100 / (100 + rate)) * total * (rate / 100));
             },
 
@@ -2360,24 +2360,28 @@
             },
 
             get ppnAmount() {
+                if (!this.includePPN) return 0;
                 if (this.fapplyppn) {
                     return this.ppnIncluded;
                 }
-                if (this.includePPN) {
-                    return this.ppnAdded;
+                return this.ppnAdded;
+            },
+
+            get netTotal() {
+                const total = +this.totalHarga || 0;
+                if (!this.includePPN) return total;
+                if (this.fapplyppn) {
+                    return this.netFromGross;
                 }
-                return 0;
+                return total;
             },
 
             get grandTotal() {
                 const total = +this.totalHarga || 0;
-                if (this.fapplyppn) {
+                if (!this.includePPN || this.fapplyppn) {
                     return total;
                 }
-                if (this.includePPN) {
-                    return total + this.ppnAdded;
-                }
-                return total;
+                return total + this.ppnAdded;
             },
 
             fmt(n) {
