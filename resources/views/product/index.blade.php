@@ -166,9 +166,23 @@
         <div x-show="$store.laporanStore.showModal" x-cloak
             class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" x-transition>
             <div @click.away="$store.laporanStore.closeModal()"
-                class="bg-white rounded-lg shadow-lg w-full max-w-4xl max-h-[90vh] flex flex-col">
-                <div class="px-6 py-4 border-b flex justify-between items-center">
-                    <h3 class="text-lg font-semibold">Laporan Product</h3>
+                class="bg-white rounded-lg shadow-lg w-full max-w-[95vw] max-h-[90vh] flex flex-col">
+                <div class="px-6 py-4 border-b flex justify-between items-center flex-shrink-0">
+                    <div class="flex items-center gap-3">
+                        <h3 class="text-lg font-semibold">Laporan Product</h3>
+                        <template x-if="!$store.laporanStore.isLoading && $store.laporanStore.productCode">
+                            <div class="flex items-center gap-2 text-sm text-gray-600">
+                                <span class="bg-gray-100 text-gray-700 px-2 py-0.5 rounded font-mono font-medium"
+                                    x-text="$store.laporanStore.productCode">
+                                </span>
+                                <span class="text-gray-400">|</span>
+                                <span class="font-medium text-gray-800" x-text="$store.laporanStore.productName"></span>
+                            </div>
+                        </template>
+                        <template x-if="$store.laporanStore.isLoading">
+                            <span class="text-sm text-gray-400 italic animate-pulse">Memuat...</span>
+                        </template>
+                    </div>
                     <button @click="$store.laporanStore.closeModal()" class="text-gray-500 hover:text-gray-700">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -222,25 +236,25 @@
 
                     <div x-show="!$store.laporanStore.isLoading">
                         <div x-show="$store.laporanStore.activeTab === 'customer'">
-                            <table class="min-w-full divide-y divide-gray-200 border">
+                            <table class="min-w-full divide-y divide-gray-200 border" style="table-layout: fixed;">
                                 <thead class="bg-gray-100">
                                     <tr>
-                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase">Faktur#
-                                        </th>
-                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase">Customer
-                                        </th>
-                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase">Tanggal
-                                            Jual</th>
-                                        <th class="px-3 py-2 text-right text-xs font-bold text-gray-800 uppercase">Harga
-                                            Jual</th>
-                                        <th class="px-3 py-2 text-right text-xs font-bold text-gray-800 uppercase">Qty.
-                                        </th>
-                                        <th class="px-3 py-2 text-right text-xs font-bold text-gray-800 uppercase">Satuan
-                                        </th>
-                                        <th class="px-3 py-2 text-right text-xs font-bold text-gray-800 uppercase">Ref.PO
-                                        </th>
-                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase">
-                                            Description</th>
+                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase"
+                                            style="width: 15%;">Faktur#</th>
+                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase"
+                                            style="width: 20%;">Customer</th>
+                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase"
+                                            style="width: 6%;">Tanggal Jual</th>
+                                        <th class="px-3 py-2 text-right text-xs font-bold text-gray-800 uppercase"
+                                            style="width: 12%;">Harga Jual</th>
+                                        <th class="px-3 py-2 text-right text-xs font-bold text-gray-800 uppercase"
+                                            style="width: 6%;">Qty.</th>
+                                        <th class="px-3 py-2 text-right text-xs font-bold text-gray-800 uppercase"
+                                            style="width: 7%;">Satuan</th>
+                                        <th class="px-3 py-2 text-right text-xs font-bold text-gray-800 uppercase"
+                                            style="width: 12%;">Ref.PO</th>
+                                        <th class="px-3 py-2 text-left text-xs font-bold text-gray-800 uppercase"
+                                            style="width: 22%;">Description</th>
                                     </tr>
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">
@@ -446,6 +460,8 @@
                 stokData: [],
                 customerData: [],
                 supplierData: [],
+                productCode: '', // tambah ini
+                productName: '', // tambah ini
 
                 openModal(fprdid) {
                     this.showModal = true;
@@ -458,6 +474,8 @@
                     this.stokData = [];
                     this.customerData = [];
                     this.supplierData = [];
+                    this.productCode = ''; // reset
+                    this.productName = ''; // reset
                 },
 
                 loadData(fprdid) {
@@ -470,6 +488,8 @@
                             return res.json();
                         })
                         .then(data => {
+                            this.productCode = data.product?.fprdcode || ''; // simpan
+                            this.productName = data.product?.fprdname || ''; // simpan
                             this.stokData = data.stok || [];
                             this.customerData = data.customer || [];
                             this.supplierData = data.supplier || [];

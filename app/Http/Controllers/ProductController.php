@@ -165,13 +165,13 @@ class ProductController extends Controller
         $paddedMerekId = str_pad($merekId, 3, '0', STR_PAD_LEFT);
 
         // 2. Buat prefix untuk pencarian (e.g., "001.002.")
-        $prefix = $paddedGroupId.'.'.$paddedMerekId.'.';
+        $prefix = $paddedGroupId . '.' . $paddedMerekId . '.';
         $prefixLength = strlen($prefix);
 
         // 3. Cari kode terakhir dengan prefix yang sama
-        $lastCode = Product::where('fprdcode', 'like', $prefix.'%')
+        $lastCode = Product::where('fprdcode', 'like', $prefix . '%')
             // Urutkan berdasarkan angka di belakang prefix
-            ->orderByRaw('CAST(SUBSTRING(fprdcode FROM '.($prefixLength + 1).') AS INTEGER) DESC')
+            ->orderByRaw('CAST(SUBSTRING(fprdcode FROM ' . ($prefixLength + 1) . ') AS INTEGER) DESC')
             ->value('fprdcode');
 
         // 4. Jika tidak ditemukan, mulai dari 1
@@ -187,7 +187,7 @@ class ProductController extends Controller
 
         // 6. Kembalikan kode baru dengan padding 6 digit untuk sequence
         // e.g., "001.002.000006"
-        return $prefix.str_pad($newNumber, 6, '0', STR_PAD_LEFT);
+        return $prefix . str_pad($newNumber, 6, '0', STR_PAD_LEFT);
     }
 
     public function create()
@@ -508,9 +508,9 @@ class ProductController extends Controller
 
             $product->delete();
 
-            return response()->json(['message' => 'Data produk '.$product->fprdname.' berhasil dihapus.']);
+            return response()->json(['message' => 'Data produk ' . $product->fprdname . ' berhasil dihapus.']);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Gagal menghapus: '.$e->getMessage()], 500);
+            return response()->json(['message' => 'Gagal menghapus: ' . $e->getMessage()], 500);
         }
     }
 
@@ -579,6 +579,10 @@ class ProductController extends Controller
         ", ['fprdcode' => $product->fprdcode]);
 
         return response()->json([
+            'product' => [
+                'fprdcode' => $product->fprdcode,
+                'fprdname' => $product->fprdname, // sesuaikan dengan nama kolom di tabel
+            ],
             'stok' => $stokData,
             'customer' => $customerData,
             'supplier' => $supplierData,
