@@ -165,7 +165,7 @@
                                 @foreach ($groups as $group)
                                     <option value="{{ $group->fgroupid }}"
                                         {{ old('fgroupid') == $group->fgroupid ? 'selected' : '' }}>
-                                        {{ $group->fgroupname }}
+                                        {{ $group->fgroupname }} ({{ $group->fgroupcode }})
                                     </option>
                                 @endforeach
                             </select>
@@ -201,7 +201,7 @@
                                 @foreach ($merks as $merk)
                                     <option value="{{ $merk->fmerekid }}"
                                         {{ old('fmerek') == $merk->fmerekid ? 'selected' : '' }}>
-                                        {{ $merk->fmerekname }}
+                                        {{ $merk->fmerekname }} ({{ $merk->fmerekcode }})
                                     </option>
                                 @endforeach
                             </select>
@@ -369,7 +369,7 @@
                             <div class="w-1/6">
                                 <label class="block text-sm font-medium">HPP Satuan 2</label>
                                 <input type="text" name="fhpp2" id="fhpp2"
-                                    class="autonumeric w-full border border-yellow-300 rounded px-3 py-2 bg-yellow-100 font-semibold"
+                                    class="autonumeric w-full border border-yellow-300 rounded px-3 py-2 bg-yellow-50"
                                     readonly>
                             </div>
                         </div>
@@ -417,7 +417,7 @@
                             <div class="w-1/6">
                                 <label class="block text-sm font-medium">HPP Satuan 3</label>
                                 <input type="text" name="fhpp3" id="fhpp3"
-                                    class="autonumeric w-full border border-purple-300 rounded px-3 py-2 bg-purple-100 font-semibold"
+                                    class="autonumeric w-full border border-purple-300 rounded px-3 py-2 bg-purple-50"
                                     readonly>
                             </div>
                         </div>
@@ -488,13 +488,13 @@
                 <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <!-- Harga Satuan 3 Level 1 -->
                     <div>
-                        <label for="fhargajuallevel1" class="block text-sm font-medium">HJ. Kecil <span id="hj-satuan-kecil-level1-label" class="uppercase">-</span> Level
+                        <label for="fhargajuallevel1" class="block text-sm font-medium">Harga Jual Satuan 1 <span
+                                id="hj-satuan-kecil-level1-label" class="uppercase">-</span> Level
                             1</label>
                         <div class="d-flex">
                             <input type="text"
-                                class="w-1/10 border rounded px-3 py-2 @error('fhargajuallevel1') is-invalid @enderror"
-                                name="fhargajuallevel1" id="fhargajuallevel1"
-                                value="{{ old('fhargajuallevel1', 0) }}">
+                                class="w-1/10 border rounded px-3 py-2 bg-blue-50 border-blue-300 focus:ring-blue-500 @error('fhargajuallevel1') is-invalid @enderror"
+                                name="fhargajuallevel1" id="fhargajuallevel1" value="{{ old('fhargajuallevel1', 0) }}">
                             @error('fhargajuallevel1')
                                 <div class="invalid-feedback">
                                     {{ $message }}
@@ -505,13 +505,13 @@
 
                     <!-- Harga Satuan 3 Level 2 -->
                     <div>
-                        <label for="fhargajuallevel2" class="block text-sm font-medium">HJ. Kecil <span id="hj-satuan-kecil-level2-label" class="uppercase">-</span> Level
+                        <label for="fhargajuallevel2" class="block text-sm font-medium">Harga Jual Satuan 1 <span
+                                id="hj-satuan-kecil-level2-label" class="uppercase">-</span> Level
                             2</label>
                         <div class="d-flex">
                             <input type="text"
-                                class="w-1/10 border rounded px-3 py-2 @error('fhargajuallevel2') is-invalid @enderror"
-                                name="fhargajuallevel2" id="fhargajuallevel2"
-                                value="{{ old('fhargajuallevel2', 0) }}">
+                                class="w-1/10 border rounded px-3 py-2 bg-blue-50 border-blue-300 focus:ring-blue-500 @error('fhargajuallevel2') is-invalid @enderror"
+                                name="fhargajuallevel2" id="fhargajuallevel2" value="{{ old('fhargajuallevel2', 0) }}">
                             @error('fhargajuallevel2')
                                 <div class="invalid-feedback">
                                     {{ $message }}
@@ -522,13 +522,13 @@
 
                     <!-- Harga Satuan 3 Level 3 -->
                     <div>
-                        <label for="fhargajuallevel3" class="block text-sm font-medium">HJ. Kecil <span id="hj-satuan-kecil-level3-label" class="uppercase">-</span> Level
+                        <label for="fhargajuallevel3" class="block text-sm font-medium">Harga Jual Satuan 1 <span
+                                id="hj-satuan-kecil-level3-label" class="uppercase">-</span> Level
                             3</label>
                         <div class="d-flex">
                             <input type="text"
-                                class="w-1/10 border rounded px-3 py-2 @error('fhargajuallevel3') is-invalid @enderror"
-                                name="fhargajuallevel3" id="fhargajuallevel3"
-                                value="{{ old('fhargajuallevel3', 0) }}">
+                                class="w-1/10 border rounded px-3 py-2 bg-blue-50 border-blue-300 focus:ring-blue-500 @error('fhargajuallevel3') is-invalid @enderror"
+                                name="fhargajuallevel3" id="fhargajuallevel3" value="{{ old('fhargajuallevel3', 0) }}">
                             @error('fhargajuallevel3')
                                 <div class="invalid-feedback">
                                     {{ $message }}
@@ -538,106 +538,116 @@
                     </div>
                 </div>
 
-                <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <!-- HJ. Besar Level 1 -->
-                    <div>
-                        <label for="fhargajual2level1" class="block text-sm font-medium">HJ. Besar <span id="hj-satuan-besar-level1-label" class="uppercase">-</span> Level 1</label>
-                        <div class="d-flex">
-                            <input type="text"
-                                class="w-1/10 border rounded px-3 py-2 @error('fhargajual2level1') is-invalid @enderror"
-                                name="fhargajual2level1" id="fhargajual2level1" value="{{ old('fhargajual2level1', 0) }}">
-                            @error('fhargajual2level1')
-                                <div class="invalid-feedback">
-                                    {{ $message }}
-                                </div>
-                            @enderror
+                <div id="hj-level1-block" style="display: none;">
+                    <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <!-- HJ. Besar Level 1 -->
+                        <div>
+                            <label for="fhargajual2level1" class="block text-sm font-medium">Harga Jual Satuan 2 <span
+                                    id="hj-satuan-besar-level1-label" class="uppercase">-</span> Level 1</label>
+                            <div class="d-flex">
+                                <input type="text"
+                                    class="w-1/10 border rounded px-3 py-2 bg-yellow-50 @error('fhargajual2level1') is-invalid @enderror"
+                                    name="fhargajual2level1" id="fhargajual2level1"
+                                    value="{{ old('fhargajual2level1', 0) }}">
+                                @error('fhargajual2level1')
+                                    <div class="invalid-feedback">
+                                        {{ $message }}
+                                    </div>
+                                @enderror
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- HJ. Besar Level 2 -->
-                    <div>
-                        <label for="fhargajual2level2" class="block text-sm font-medium">HJ. Besar <span id="hj-satuan-besar-level2-label" class="uppercase">-</span> Level 2</label>
-                        <div class="d-flex">
-                            <input type="text"
-                                class="w-1/10 border rounded px-3 py-2 @error('fhargajual2level2') is-invalid @enderror"
-                                name="fhargajual2level2" id="fhargajual2level2" value="{{ old('fhargajual2level2', 0) }}">
-                            @error('fhargajual2level2')
-                                <div class="invalid-feedback">
-                                    {{ $message }}
-                                </div>
-                            @enderror
+                        <!-- HJ. Besar Level 2 -->
+                        <div>
+                            <label for="fhargajual2level2" class="block text-sm font-medium">Harga Jual Satuan 2 <span
+                                    id="hj-satuan-besar-level2-label" class="uppercase">-</span> Level 2</label>
+                            <div class="d-flex">
+                                <input type="text"
+                                    class="w-1/10 border rounded px-3 py-2 bg-yellow-50 @error('fhargajual2level2') is-invalid @enderror"
+                                    name="fhargajual2level2" id="fhargajual2level2"
+                                    value="{{ old('fhargajual2level2', 0) }}">
+                                @error('fhargajual2level2')
+                                    <div class="invalid-feedback">
+                                        {{ $message }}
+                                    </div>
+                                @enderror
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- HJ. Besar Level 3 -->
-                    <div>
-                        <label for="fhargajual2level3" class="block text-sm font-medium">HJ. Besar <span id="hj-satuan-besar-level3-label" class="uppercase">-</span> Level 3</label>
-                        <div class="d-flex">
-                            <input type="text"
-                                class="w-1/10 border rounded px-3 py-2 @error('fhargajual2level3') is-invalid @enderror"
-                                name="fhargajual2level3" id="fhargajual2level3" value="{{ old('fhargajual2level3', 0) }}">
-                            @error('fhargajual2level3')
-                                <div class="invalid-feedback">
-                                    {{ $message }}
-                                </div>
-                            @enderror
+                        <!-- HJ. Besar Level 3 -->
+                        <div>
+                            <label for="fhargajual2level3" class="block text-sm font-medium">Harga Jual Satuan 2 <span
+                                    id="hj-satuan-besar-level3-label" class="uppercase">-</span> Level 3</label>
+                            <div class="d-flex">
+                                <input type="text"
+                                    class="w-1/10 border rounded px-3 py-2 bg-yellow-50 @error('fhargajual2level3') is-invalid @enderror"
+                                    name="fhargajual2level3" id="fhargajual2level3"
+                                    value="{{ old('fhargajual2level3', 0) }}">
+                                @error('fhargajual2level3')
+                                    <div class="invalid-feedback">
+                                        {{ $message }}
+                                    </div>
+                                @enderror
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 {{-- HJ Dynamic Columns (depends on selected satuan) --}}
-                <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-4" id="hj-satuan-section">
-                    <!-- HJ <PCS> Level 1 -->
-                    <div>
-                        <label for="fhargajual3level1" class="block text-sm font-medium">
-                            HJ <span id="hj-satuan-kecil-label" class="uppercase">-</span> Level 1
-                        </label>
-                        <div class="d-flex">
-                            <input type="text"
-                                class="w-1/10 border rounded px-3 py-2 @error('fhargajual3level1') is-invalid @enderror"
-                                name="fhargajual3level1" id="fhargajual3level1"
-                                value="{{ old('fhargajual3level1', 0) }}">
-                            @error('fhargajual3level1')
-                                <div class="invalid-feedback">
-                                    {{ $message }}
-                                </div>
-                            @enderror
+                <div id="hj-level2-block" style="display: none;">
+                    <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-4" id="hj-satuan-section">
+                        <!-- HJ <PCS> Level 1 -->
+                        <div>
+                            <label for="fhargajual3level1" class="block text-sm font-medium">
+                                Harga Jual Satuan 3 <span id="hj-satuan-kecil-label" class="uppercase">-</span> Level 1
+                            </label>
+                            <div class="d-flex">
+                                <input type="text"
+                                    class="w-1/10 border rounded px-3 py-2 bg-purple-50 @error('fhargajual3level1') is-invalid @enderror"
+                                    name="fhargajual3level1" id="fhargajual3level1"
+                                    value="{{ old('fhargajual3level1', 0) }}">
+                                @error('fhargajual3level1')
+                                    <div class="invalid-feedback">
+                                        {{ $message }}
+                                    </div>
+                                @enderror
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- HJ <CTN> Level 1 -->
-                    <div>
-                        <label for="fhargajual3level2" class="block text-sm font-medium">
-                            HJ <span id="hj-satuan-besar-label" class="uppercase">-</span> Level 2
-                        </label>
-                        <div class="d-flex">
-                            <input type="text"
-                                class="w-1/10 border rounded px-3 py-2 @error('fhargajual3level2') is-invalid @enderror"
-                                name="fhargajual3level2" id="fhargajual3level2"
-                                value="{{ old('fhargajual3level2', 0) }}">
-                            @error('fhargajual3level2')
-                                <div class="invalid-feedback">
-                                    {{ $message }}
-                                </div>
-                            @enderror
+                        <!-- HJ <CTN> Level 1 -->
+                        <div>
+                            <label for="fhargajual3level2" class="block text-sm font-medium">
+                                Harga Jual Satuan 3 <span id="hj-satuan-besar-label" class="uppercase">-</span> Level 2
+                            </label>
+                            <div class="d-flex">
+                                <input type="text"
+                                    class="w-1/10 border rounded px-3 py-2 bg-purple-50 @error('fhargajual3level2') is-invalid @enderror"
+                                    name="fhargajual3level2" id="fhargajual3level2"
+                                    value="{{ old('fhargajual3level2', 0) }}">
+                                @error('fhargajual3level2')
+                                    <div class="invalid-feedback">
+                                        {{ $message }}
+                                    </div>
+                                @enderror
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- HJ <DUS> Level 1 -->
-                    <div>
-                        <label for="fhargajual3level3" class="block text-sm font-medium">
-                            HJ <span id="hj-satuan-besar2-label" class="uppercase">-</span> Level 3
-                        </label>
-                        <div class="d-flex">
-                            <input type="text"
-                                class="w-1/10 border rounded px-3 py-2 @error('fhargajual3level3') is-invalid @enderror"
-                                name="fhargajual3level3" id="fhargajual3level3"
-                                value="{{ old('fhargajual3level3', 0) }}">
-                            @error('fhargajual3level3')
-                                <div class="invalid-feedback">
-                                    {{ $message }}
-                                </div>
-                            @enderror
+                        <!-- HJ <DUS> Level 1 -->
+                        <div>
+                            <label for="fhargajual3level3" class="block text-sm font-medium">
+                                Harga Jual Satuan 3 <span id="hj-satuan-besar2-label" class="uppercase">-</span> Level 3
+                            </label>
+                            <div class="d-flex">
+                                <input type="text"
+                                    class="w-1/10 border rounded px-3 py-2 bg-purple-50 @error('fhargajual3level3') is-invalid @enderror"
+                                    name="fhargajual3level3" id="fhargajual3level3"
+                                    value="{{ old('fhargajual3level3', 0) }}">
+                                @error('fhargajual3level3')
+                                    <div class="invalid-feedback">
+                                        {{ $message }}
+                                    </div>
+                                @enderror
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1089,12 +1099,12 @@
 
         // Initialize AutoNumeric
         let fhpp = new AutoNumeric('#fhpp', 'commaDecimalCharDotSeparator');
-        let fhargasatuankecillevel1 = new AutoNumeric('#fhargasatuankecillevel1',
-            'commaDecimalCharDotSeparator');
-        let hargasatuankecillevel2 = new AutoNumeric('#fhargasatuankecillevel2',
-            'commaDecimalCharDotSeparator');
-        let hargasatuankecillevel3 = new AutoNumeric('#fhargasatuankecillevel3',
-            'commaDecimalCharDotSeparator');
+        // let fhargasatuankecillevel1 = new AutoNumeric('#fhargasatuankecillevel1',
+        //     'commaDecimalCharDotSeparator');
+        // let hargasatuankecillevel2 = new AutoNumeric('#fhargasatuankecillevel2',
+        //     'commaDecimalCharDotSeparator');
+        // let hargasatuankecillevel3 = new AutoNumeric('#fhargasatuankecillevel3',
+        //     'commaDecimalCharDotSeparator');
         let hargajuallevel1 = new AutoNumeric('#fhargajuallevel1', 'commaDecimalCharDotSeparator');
         let hargajuallevel2 = new AutoNumeric('#fhargajuallevel2', 'commaDecimalCharDotSeparator');
         let hargajuallevel3 = new AutoNumeric('#fhargajuallevel3', 'commaDecimalCharDotSeparator');
@@ -1558,6 +1568,12 @@
 
     // Helper: update field saat group-picked
     document.addEventListener('DOMContentLoaded', () => {
+        updateSatuanLogic();
+
+        // Pastikan select2 (jika pakai) memicu fungsi ini
+        $('#fsatuankecil, #fsatuanbesar, #fsatuanbesar2').on('change', function() {
+            updateSatuanLogic();
+        });
         window.addEventListener('group-picked', (ev) => {
             const {
                 fgroupid
@@ -1588,7 +1604,12 @@
      * Fungsi utama untuk mengelola visibilitas field satuan dan pembaruan label.
      * Dipanggil saat ada perubahan pada Satuan Kecil atau Satuan 2.
      */
+    let isUpdating = false;
+
     function updateSatuanLogic() {
+        if (isUpdating) return;
+
+        isUpdating = true; // Set flag sedang update
         // --- 1. Ambil Elemen Utama ---
         const smallSatuan = document.getElementById('fsatuankecil');
         const largeSatuan1 = document.getElementById('fsatuanbesar');
@@ -1600,6 +1621,10 @@
         const block2 = document.getElementById('satuan2-block');
         const br2 = document.getElementById('br-satuan2');
         const block3 = document.getElementById('satuan3-block');
+
+        const satuanKecil = $('#fsatuankecil').val();
+        const satuan2 = $('#fsatuanbesar').val();
+        const satuan3 = $('#fsatuanbesar2').val();
 
         // Target span untuk menampilkan kode Satuan Kecil
         const targets = document.querySelectorAll('.satuan-kecil-display');
@@ -1667,34 +1692,35 @@
         });
 
         // --- 3. Update HJ Labels ---
-        if (hjSatuanKecilLabel) {
-            hjSatuanKecilLabel.textContent = smallSatuanValue || '-';
-        }
-        if (hjSatuanBesarLabel) {
-            hjSatuanBesarLabel.textContent = largeSatuan1Value || '-';
-        }
-        if (hjSatuanBesar2Label) {
-            hjSatuanBesar2Label.textContent = largeSatuan2Value || '-';
-        }
 
         if (hjSatuanKecilLevel1Label) {
             hjSatuanKecilLevel1Label.textContent = smallSatuanValue || '-';
         }
         if (hjSatuanKecilLevel2Label) {
-            hjSatuanKecilLevel2Label.textContent = largeSatuan1Value || '-';
+            hjSatuanKecilLevel2Label.textContent = smallSatuanValue || '-';
         }
         if (hjSatuanKecilLevel3Label) {
-            hjSatuanKecilLevel3Label.textContent = largeSatuan2Value || '-';
+            hjSatuanKecilLevel3Label.textContent = smallSatuanValue || '-';
         }
 
         if (hjSatuanBesarLevel1Label) {
-            hjSatuanBesarLevel1Label.textContent = smallSatuanValue || '-';
+            hjSatuanBesarLevel1Label.textContent = largeSatuan1Value || '-';
         }
         if (hjSatuanBesarLevel2Label) {
             hjSatuanBesarLevel2Label.textContent = largeSatuan1Value || '-';
         }
         if (hjSatuanBesarLevel3Label) {
-            hjSatuanBesarLevel3Label.textContent = largeSatuan2Value || '-';
+            hjSatuanBesarLevel3Label.textContent = largeSatuan1Value || '-';
+        }
+
+        if (hjSatuanKecilLabel) {
+            hjSatuanKecilLabel.textContent = largeSatuan2Value || '-';
+        }
+        if (hjSatuanBesarLabel) {
+            hjSatuanBesarLabel.textContent = largeSatuan2Value || '-';
+        }
+        if (hjSatuanBesar2Label) {
+            hjSatuanBesar2Label.textContent = largeSatuan2Value || '-';
         }
 
         // --- 4. Logika Satuan 3 ---
@@ -1745,6 +1771,52 @@
                 hjSatuanBesar2Input.value = 0;
             }
         }
+
+        if (satuanKecil !== "" && satuanKecil !== null) {
+            $('#satuan2-block').show();
+            $('#hj-level1-block').show();
+            $('#fsatuanbesar').prop('disabled', false);
+
+            $('.satuan-kecil-display').text(satuanKecil);
+            $('#hj-satuan-kecil-level1-label, #hj-satuan-kecil-level2-label, #hj-satuan-kecil-level3-label').text(
+                satuanKecil);
+        } else {
+            $('#satuan2-block').hide();
+            $('#hj-level1-block').hide();
+            // Reset tanpa memicu loop yang parah
+            if ($('#fsatuanbesar').val() !== "") {
+                $('#fsatuanbesar').val('').trigger('change.select2'); // Gunakan namespace select2 agar lebih spesifik
+            }
+            $('#fsatuanbesar').prop('disabled', true);
+        }
+
+        // --- LOGIKA SATUAN 2 ---
+        if (satuan2 !== "" && satuan2 !== null && satuanKecil !== "") {
+            $('#satuan3-block').show();
+            $('#hj-level2-block').show();
+            $('#fsatuanbesar2').prop('disabled', false);
+            $('#fqtykecil').prop('disabled', false);
+
+            $('#hj-satuan-besar-level1-label, #hj-satuan-besar-level2-label, #hj-satuan-besar-level3-label').text(
+                satuan2);
+        } else {
+            $('#satuan3-block').hide();
+            $('#hj-level2-block').hide();
+            if ($('#fsatuanbesar2').val() !== "") {
+                $('#fsatuanbesar2').val('').trigger('change.select2');
+            }
+            $('#fsatuanbesar2').prop('disabled', true);
+            $('#fqtykecil').prop('disabled', true);
+        }
+
+        // --- LOGIKA SATUAN 3 ---
+        if (satuan3 !== "" && satuan3 !== null) {
+            $('#fqtykecil2').prop('disabled', false);
+        } else {
+            $('#fqtykecil2').prop('disabled', true);
+        }
+
+        isUpdating = false;
     }
 
     // --- Pemasangan Event Listener ---

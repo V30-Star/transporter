@@ -118,7 +118,7 @@
     </style>
 
     <div x-data="{ showModal: false, open: true, selected: 'alamatsurat', frekening: '' }">
-        <div class="bg-white rounded shadow p-6 md:p-8 max-w-5xl mx-auto">
+        <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1500px] w-full mx-auto">
             @php
                 $isApproved = !empty($product->fapproval);
             @endphp
@@ -279,7 +279,7 @@
                                     <label class="block text-sm font-medium">HPP Satuan 2</label>
                                     <input type="text" name="fhpp2" id="fhpp2"
                                         value="{{ old('fhpp2', $product->fhpp2) }}"
-                                        class="autonumeric w-full border border-yellow-300 rounded px-3 py-2 bg-yellow-100 font-semibold"
+                                        class="autonumeric w-full border border-yellow-300 rounded px-3 py-2 bg-yellow-50"
                                         readonly>
                                 </div>
                             </div>
@@ -330,7 +330,7 @@
                                     <label class="block text-sm font-medium">HPP Satuan 3</label>
                                     <input type="text" name="fhpp3" id="fhpp3"
                                         value="{{ old('fhpp3', $product->fhpp3) }}"
-                                        class="autonumeric w-full border border-purple-300 rounded px-3 py-2 bg-purple-100 font-semibold"
+                                        class="autonumeric w-full border border-purple-300 rounded px-3 py-2 bg-purple-50"
                                         readonly>
                                 </div>
                             </div>
@@ -409,7 +409,8 @@
                     <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <!-- Harga Satuan 3 Level 1 -->
                         <div>
-                            <label for="fhargajuallevel1" class="block text-sm font-medium">HJ. Kecil Level
+                            <label for="fhargajuallevel1" class="block text-sm font-medium">Harga Jual Satuan 1
+                                <span id="hj-satuan-kecil-level1-label" class="uppercase">-</span> Level
                                 1</label>
                             <div class="d-flex">
                                 <input type="text" disabled
@@ -426,11 +427,12 @@
 
                         <!-- Harga Satuan 3 Level 2 -->
                         <div>
-                            <label for="fhargajuallevel2" class="block text-sm font-medium">HJ. Kecil Level
+                            <label for="fhargajuallevel2" class="block text-sm font-medium">Harga Jual Satuan
+                                1<span id="hj-satuan-kecil-level2-label" class="uppercase">-</span> Level
                                 2</label>
                             <div class="d-flex">
                                 <input type="text" disabled
-                                    class="w-1/10 border rounded px-3 py-2 bg-yellow-50 @error('fhargajuallevel2') is-invalid @enderror"
+                                    class="w-1/10 border rounded px-3 py-2 bg-blue-50 border-blue-300 focus:ring-blue-500 @error('fhargajuallevel2') is-invalid @enderror"
                                     name="fhargajuallevel2" id="fhargajuallevel2"
                                     value="{{ old('fhargajuallevel2', $product->fhargajuallevel2) }}">
                                 @error('fhargajuallevel2')
@@ -443,11 +445,12 @@
 
                         <!-- Harga Satuan 3 Level 3 -->
                         <div>
-                            <label for="fhargajuallevel3" class="block text-sm font-medium">HJ. Kecil Level
+                            <label for="fhargajuallevel3" class="block text-sm font-medium">Harga Jual Satuan 1
+                                <span id="hj-satuan-kecil-level3-label" class="uppercase">-</span> Level
                                 3</label>
                             <div class="d-flex">
                                 <input type="text" disabled
-                                    class="w-1/10 border rounded px-3 py-2 bg-purple-50 @error('fhargajuallevel3') is-invalid @enderror"
+                                    class="w-1/10 border rounded px-3 py-2 bg-blue-50 border-blue-300 focus:ring-blue-500 @error('fhargajuallevel3') is-invalid @enderror"
                                     name="fhargajuallevel3" id="fhargajuallevel3"
                                     value="{{ old('fhargajuallevel3', $product->fhargajuallevel3) }}">
                                 @error('fhargajuallevel3')
@@ -459,73 +462,77 @@
                         </div>
                     </div>
 
-                    <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <!-- HJ. Besar Level 1 -->
-                        <div>
-                            <label class="block text-sm font-medium">HJ. Besar Level 1</label>
-                            <div class="d-flex">
-                                <input type="text" disabled
-                                    class="w-1/10 border rounded px-3 py-2 bg-blue-50 border-blue-300"
-                                    value="{{ $product->fhargajual2level1 ?? 0 }}">
+                    <div id="hj-level1-block" style="display: none;">
+                        <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <!-- HJ. Besar Level 1 -->
+                            <div>
+                                <label for="fhargajual2level1" class="block text-sm font-medium">Harga Jual Satuan 2
+                                    <span id="hj-satuan-besar-level1-label" class="uppercase">-</span> Level 1</label>
+                                <div class="d-flex">
+                                    <input type="text" disabled class="w-1/10 border rounded px-3 py-2 bg-yellow-50"
+                                        value="{{ $product->fhargajual2level1 ?? 0 }}">
+                                </div>
                             </div>
-                        </div>
 
-                        <!-- HJ. Besar Level 2 -->
-                        <div>
-                            <label class="block text-sm font-medium">HJ. Besar Level 2</label>
-                            <div class="d-flex">
-                                <input type="text" disabled
-                                    class="w-1/10 border rounded px-3 py-2 bg-yellow-50"
-                                    value="{{ $product->fhargajual2level2 ?? 0 }}">
+                            <!-- HJ. Besar Level 2 -->
+                            <div>
+                                <label for="fhargajual2level2" class="block text-sm font-medium">Harga Jual Satuan 2
+                                    <span id="hj-satuan-besar-level2-label" class="uppercase">-</span> Level 2</label>
+                                <div class="d-flex">
+                                    <input type="text" disabled class="w-1/10 border rounded px-3 py-2 bg-yellow-50"
+                                        value="{{ $product->fhargajual2level2 ?? 0 }}">
+                                </div>
                             </div>
-                        </div>
 
-                        <!-- HJ. Besar Level 3 -->
-                        <div>
-                            <label class="block text-sm font-medium">HJ. Besar Level 3</label>
-                            <div class="d-flex">
-                                <input type="text" disabled
-                                    class="w-1/10 border rounded px-3 py-2 bg-purple-50"
-                                    value="{{ $product->fhargajual2level3 ?? 0 }}">
+                            <!-- HJ. Besar Level 3 -->
+                            <div>
+                                <label for="fhargajual2level3" class="block text-sm font-medium">Harga Jual Satuan 2
+                                    <span id="hj-satuan-besar-level3-label" class="uppercase">-</span> Level 3</label>
+                                <div class="d-flex">
+                                    <input type="text" disabled class="w-1/10 border rounded px-3 py-2 bg-yellow-50"
+                                        value="{{ $product->fhargajual2level3 ?? 0 }}">
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     {{-- HJ Dynamic Columns --}}
-                    <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <!-- HJ <PCS> Level 1 -->
-                        <div>
-                            <label class="block text-sm font-medium">
-                                HJ <span class="uppercase">{{ $product->fsatuankecil ?? '-' }}</span> Level 1
-                            </label>
-                            <div class="d-flex">
-                                <input type="text" disabled
-                                    class="w-1/10 border rounded px-3 py-2 bg-gray-100"
-                                    value="{{ $product->fhargajual3level1 ?? 0 }}">
+                    <div id="hj-level2-block" style="display: none;">
+                        <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <!-- HJ <PCS> Level 1 -->
+                            <div>
+                                <label for="fhargajual3level1" class="block text-sm font-medium">
+                                    Harga Jual Satuan 3 <span id="hj-satuan-kecil-label"
+                                        class="uppercase">{{ $product->fsatuankecil ?? '-' }}</span> Level 1
+                                </label>
+                                <div class="d-flex">
+                                    <input type="text" disabled class="w-1/10 border rounded px-3 py-2 bg-purple-50"
+                                        value="{{ $product->fhargajual3level1 ?? 0 }}">
+                                </div>
                             </div>
-                        </div>
 
-                        <!-- HJ <CTN> Level 1 -->
-                        <div>
-                            <label class="block text-sm font-medium">
-                                HJ <span class="uppercase">{{ $product->fsatuanbesar ?? '-' }}</span> Level 1
-                            </label>
-                            <div class="d-flex">
-                                <input type="text" disabled
-                                    class="w-1/10 border rounded px-3 py-2 bg-gray-100"
-                                    value="{{ $product->fhargajual3level2 ?? 0 }}">
+                            <!-- HJ <CTN> Level 1 -->
+                            <div>
+                                <label for="fhargajual3level2" class="block text-sm font-medium">
+                                    Harga Jual Satuan 3 <span id="hj-satuan-besar2-label"
+                                        class="uppercase">{{ $product->fsatuanbesar ?? '-' }}</span> Level 2
+                                </label>
+                                <div class="d-flex">
+                                    <input type="text" disabled class="w-1/10 border rounded px-3 py-2 bg-purple-50"
+                                        value="{{ $product->fhargajual3level2 ?? 0 }}">
+                                </div>
                             </div>
-                        </div>
 
-                        <!-- HJ <DUS> Level 1 -->
-                        <div>
-                            <label class="block text-sm font-medium">
-                                HJ <span class="uppercase">{{ $product->fsatuanbesar2 ?? '-' }}</span> Level 1
-                            </label>
-                            <div class="d-flex">
-                                <input type="text" disabled
-                                    class="w-1/10 border rounded px-3 py-2 bg-gray-100"
-                                    value="{{ $product->fhargajual3level3 ?? 0 }}">
+                            <!-- HJ <DUS> Level 1 -->
+                            <div>
+                                <label for="fhargajual3level3" class="block text-sm font-medium">
+                                    Harga Jual Satuan 3 <span id="hjSatuanBesar2Label"
+                                        class="uppercase">{{ $product->fsatuanbesar2 ?? '-' }}</span> Level 3
+                                </label>
+                                <div class="d-flex">
+                                    <input type="text" disabled class="w-1/10 border rounded px-3 py-2 bg-purple-50"
+                                        value="{{ $product->fhargajual3level3 ?? 0 }}">
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -637,4 +644,233 @@
             dropdownAutoWidth: true
         });
     });
+</script>
+
+<script>
+    /**
+     * Fungsi utama untuk mengelola visibilitas field satuan dan pembaruan label.
+     * Dipanggil saat ada perubahan pada Satuan Kecil atau Satuan 2.
+     */
+    let isUpdating = false;
+
+    function updateSatuanLogic() {
+        if (isUpdating) return;
+
+        isUpdating = true; // Set flag sedang update
+        // --- 1. Ambil Elemen Utama ---
+        const smallSatuan = document.getElementById('fsatuankecil');
+        const largeSatuan1 = document.getElementById('fsatuanbesar');
+        const largeSatuan2 = document.getElementById('fsatuanbesar2');
+
+        const qty1 = document.getElementById('fqtykecil');
+        const qty2 = document.getElementById('fqtykecil2');
+
+        const block2 = document.getElementById('satuan2-block');
+        const br2 = document.getElementById('br-satuan2');
+        const block3 = document.getElementById('satuan3-block');
+
+        const satuanKecil = $('#fsatuankecil').val();
+        const satuan2 = $('#fsatuanbesar').val();
+        const satuan3 = $('#fsatuanbesar2').val();
+
+        // Target span untuk menampilkan kode Satuan Kecil
+        const targets = document.querySelectorAll('.satuan-kecil-display');
+
+        // HJ Labels
+        const hjSatuanKecilLabel = document.getElementById('hj-satuan-kecil-label');
+        const hjSatuanBesarLabel = document.getElementById('hj-satuan-besar-label');
+        const hjSatuanBesar2Label = document.getElementById('hj-satuan-besar2-label');
+
+        const hjSatuanKecilLevel1Label = document.getElementById('hj-satuan-kecil-level1-label');
+        const hjSatuanKecilLevel2Label = document.getElementById('hj-satuan-kecil-level2-label');
+        const hjSatuanKecilLevel3Label = document.getElementById('hj-satuan-kecil-level3-label');
+
+        const hjSatuanBesarLevel1Label = document.getElementById('hj-satuan-besar-level1-label');
+        const hjSatuanBesarLevel2Label = document.getElementById('hj-satuan-besar-level2-label');
+        const hjSatuanBesarLevel3Label = document.getElementById('hj-satuan-besar-level3-label');
+
+        // HJ Input Fields
+        const hjSatuanKecilInput = document.getElementById('fhargajual3level1');
+        const hjSatuanBesarInput = document.getElementById('fhargajual3level2');
+        const hjSatuanBesar2Input = document.getElementById('fhargajual3level3');
+
+        // Ambil nilai yang dipilih
+        const smallSatuanValue = smallSatuan ? smallSatuan.value : '';
+        const largeSatuan1Value = largeSatuan1 ? largeSatuan1.value : '';
+        const largeSatuan2Value = largeSatuan2 ? largeSatuan2.value : '';
+
+        // --- 2. Logika Satuan 2 & Satuan Kecil Display ---
+        if (smallSatuanValue) {
+            // Tampilkan block Satuan 2 dan elemen <br>
+            if (block2) block2.style.display = 'block';
+            if (br2) br2.style.display = 'block';
+
+            // Aktifkan field Satuan 2 (Select dan Input Isi)
+            if (largeSatuan1) largeSatuan1.disabled = false;
+            if (qty1) qty1.disabled = false;
+
+            // Aktifkan HJ Satuan Kecil input
+            if (hjSatuanKecilInput) hjSatuanKecilInput.disabled = false;
+
+        } else {
+            // Sembunyikan block Satuan 2, nonaktifkan, dan reset nilai
+            if (block2) block2.style.display = 'none';
+            if (br2) br2.style.display = 'none';
+
+            if (largeSatuan1) {
+                largeSatuan1.disabled = true;
+                largeSatuan1.value = "";
+            }
+            if (qty1) {
+                qty1.disabled = true;
+                qty1.value = 0;
+            }
+
+            // Nonaktifkan dan reset HJ Satuan Kecil input
+            if (hjSatuanKecilInput) {
+                hjSatuanKecilInput.disabled = true;
+                hjSatuanKecilInput.value = 0;
+            }
+        }
+
+        // Tampilkan kode Satuan Kecil di samping field Isi untuk semua target
+        targets.forEach(function(target) {
+            target.textContent = smallSatuanValue;
+        });
+
+        // --- 3. Update HJ Labels ---
+
+        if (hjSatuanKecilLevel1Label) {
+            hjSatuanKecilLevel1Label.textContent = smallSatuanValue || '-';
+        }
+        if (hjSatuanKecilLevel2Label) {
+            hjSatuanKecilLevel2Label.textContent = smallSatuanValue || '-';
+        }
+        if (hjSatuanKecilLevel3Label) {
+            hjSatuanKecilLevel3Label.textContent = smallSatuanValue || '-';
+        }
+
+        if (hjSatuanBesarLevel1Label) {
+            hjSatuanBesarLevel1Label.textContent = largeSatuan1Value || '-';
+        }
+        if (hjSatuanBesarLevel2Label) {
+            hjSatuanBesarLevel2Label.textContent = largeSatuan1Value || '-';
+        }
+        if (hjSatuanBesarLevel3Label) {
+            hjSatuanBesarLevel3Label.textContent = largeSatuan1Value || '-';
+        }
+
+        if (hjSatuanKecilLabel) {
+            hjSatuanKecilLabel.textContent = largeSatuan2Value || '-';
+        }
+        if (hjSatuanBesarLabel) {
+            hjSatuanBesarLabel.textContent = largeSatuan2Value || '-';
+        }
+        if (hjSatuanBesar2Label) {
+            hjSatuanBesar2Label.textContent = largeSatuan2Value || '-';
+        }
+
+        // --- 4. Logika Satuan 3 ---
+        // Satuan 3 muncul jika Satuan 2 sedang terlihat DAN Satuan 2 memiliki nilai yang dipilih
+        const isSatuan2Visible = block2 ? block2.style.display !== 'none' : false;
+
+        if (isSatuan2Visible && largeSatuan1Value) {
+            // Tampilkan block Satuan 3
+            if (block3) block3.style.display = 'block';
+
+            // Aktifkan field Satuan 3
+            if (largeSatuan2) largeSatuan2.disabled = false;
+            if (qty2) qty2.disabled = false;
+
+            // Aktifkan HJ Satuan Besar input
+            if (hjSatuanBesarInput) hjSatuanBesarInput.disabled = false;
+
+        } else {
+            // Sembunyikan block Satuan 3, nonaktifkan, dan reset nilai
+            if (block3) block3.style.display = 'none';
+
+            if (largeSatuan2) {
+                largeSatuan2.disabled = true;
+                largeSatuan2.value = "";
+            }
+            if (qty2) {
+                qty2.disabled = true;
+                qty2.value = 0;
+            }
+
+            // Nonaktifkan dan reset HJ Satuan Besar input
+            if (hjSatuanBesarInput) {
+                hjSatuanBesarInput.disabled = true;
+                hjSatuanBesarInput.value = 0;
+            }
+        }
+
+        // --- 5. HJ Satuan 3 ---
+        const isSatuan3Visible = block3 ? block3.style.display !== 'none' : false;
+
+        if (isSatuan3Visible && largeSatuan2Value) {
+            // Aktifkan HJ Satuan Besar 2 input
+            if (hjSatuanBesar2Input) hjSatuanBesar2Input.disabled = false;
+        } else {
+            // Nonaktifkan dan reset HJ Satuan Besar 2 input
+            if (hjSatuanBesar2Input) {
+                hjSatuanBesar2Input.disabled = true;
+                hjSatuanBesar2Input.value = 0;
+            }
+        }
+
+        if (satuanKecil !== "" && satuanKecil !== null) {
+            $('#satuan2-block').show();
+            $('#hj-level1-block').show();
+            $('#fsatuanbesar').prop('disabled', false);
+
+            $('.satuan-kecil-display').text(satuanKecil);
+            $('#hj-satuan-kecil-level1-label, #hj-satuan-kecil-level2-label, #hj-satuan-kecil-level3-label').text(
+                satuanKecil);
+        } else {
+            $('#satuan2-block').hide();
+            $('#hj-level1-block').hide();
+            // Reset tanpa memicu loop yang parah
+            if ($('#fsatuanbesar').val() !== "") {
+                $('#fsatuanbesar').val('').trigger('change.select2'); // Gunakan namespace select2 agar lebih spesifik
+            }
+            $('#fsatuanbesar').prop('disabled', true);
+        }
+
+        // --- LOGIKA SATUAN 2 ---
+        if (satuan2 !== "" && satuan2 !== null && satuanKecil !== "") {
+            $('#satuan3-block').show();
+            $('#hj-level2-block').show();
+            $('#fsatuanbesar2').prop('disabled', false);
+            $('#fqtykecil').prop('disabled', false);
+
+            $('#hj-satuan-besar-level1-label, #hj-satuan-besar-level2-label, #hj-satuan-besar-level3-label').text(
+                satuan2);
+        } else {
+            $('#satuan3-block').hide();
+            $('#hj-level2-block').hide();
+            if ($('#fsatuanbesar2').val() !== "") {
+                $('#fsatuanbesar2').val('').trigger('change.select2');
+            }
+            $('#fsatuanbesar2').prop('disabled', true);
+            $('#fqtykecil').prop('disabled', true);
+        }
+
+        // --- LOGIKA SATUAN 3 ---
+        if (satuan3 !== "" && satuan3 !== null) {
+            $('#fqtykecil2').prop('disabled', false);
+        } else {
+            $('#fqtykecil2').prop('disabled', true);
+        }
+
+        isUpdating = false;
+    }
+
+    // --- Pemasangan Event Listener ---
+
+    // Panggil fungsi ini saat dokumen dimuat untuk inisialisasi awal (kasus halaman Create)
+    document.addEventListener('DOMContentLoaded', updateSatuanLogic);
+
+    // Event listener untuk Satuan Kecil (Sudah dipasang melalui onchange="updateSatuanLogic()" di HTML)
+    // Event listener untuk Satuan 2 (Sudah dipasang melalui onchange="updateSatuanLogic()" di HTML)
 </script>
