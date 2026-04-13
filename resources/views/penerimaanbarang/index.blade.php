@@ -75,6 +75,11 @@
                 <tr>
                     <th class="border px-2 py-1">No. Penerimaan</th>
                     <th class="border px-2 py-1">Tanggal</th>
+                    <th class="border px-2 py-1">Gudang</th>
+                    <th class="border px-2 py-1">Nama Supplier</th>
+                    <th class="border px-2 py-1">Keterangan</th>
+                    <th class="border px-2 py-1">Ref.PO#</th>
+                    <th class="border px-2 py-1">Total Harga</th>
 
                     {{-- @if ($showActionsColumn) --}}
                     <th class="border px-2 py-1 col-aksi">Aksi</th>
@@ -297,6 +302,26 @@
             const columns = [{
                     data: 'fstockmtno',
                     name: 'fstockmtno'
+                },
+                {
+                    data: 'fstockmtdate',
+                    name: 'fstockmtdate'
+                },
+                {
+                    data: 'fstockmtdate',
+                    name: 'fstockmtdate'
+                },
+                {
+                    data: 'fstockmtdate',
+                    name: 'fstockmtdate'
+                },
+                {
+                    data: 'fstockmtdate',
+                    name: 'fstockmtdate'
+                },
+                {
+                    data: 'fstockmtdate',
+                    name: 'fstockmtdate'
                 },
                 {
                     data: 'fstockmtdate',

@@ -53,7 +53,8 @@ class Tr_pohController extends Controller
           'tr_poh.fapproval',
           'tr_poh.fdatetime',
           'mssupplier.fsuppliername',
-          'tr_prd.fprno'
+          'tr_prd.fprno',
+          DB::raw('STRING_AGG(DISTINCT tr_pod.frefdtno, \', \') as frefdtno'),
         ])
         ->leftJoin('mssupplier', 'tr_poh.fsupplier', '=', 'mssupplier.fsupplierid')
         ->leftJoin('tr_pod', 'tr_poh.fpohid', '=', 'tr_pod.fpohid')
@@ -63,7 +64,12 @@ class Tr_pohController extends Controller
 
       // Handle Search - Beri prefix tabel agar tidak bingung
       if ($search = $request->input('search.value')) {
-        $query->where('tr_poh.fpono', 'ILIKE', "%{$search}%");
+        $query->where(function ($q) use ($search) {
+          $q->where('tr_poh.fpono',       'ILIKE', "%{$search}%")
+            ->orWhere('tr_poh.fsupplier', 'ILIKE', "%{$search}%")
+            ->orWhere('mssupplier.fsuppliername', 'ILIKE', "%{$search}%")
+            ->orWhere('tr_pod.frefdtno',  'ILIKE', "%{$search}%");
+        });
       }
 
       // Filter status
@@ -125,7 +131,8 @@ class Tr_pohController extends Controller
           'fusercreate'   => $row->fusercreate,
           'fapproval'     => $row->fapproval,
           'fsuppliername' => $row->fsuppliername,
-          'fprno'         => $row->fprno // Kolom dari tr_prd
+          'fprno'         => $row->fprno, // Kolom dari tr_prd
+          'frefdtno'      => $row->frefdtno, // tambah ini
         ];
       });
 
