@@ -225,11 +225,6 @@
                                                     title="Cari Produk">
                                                     <x-heroicon-o-magnifying-glass class="w-4 h-4" />
                                                 </button>
-                                                <a href="{{ route('product.create') }}" target="_blank" rel="noopener"
-                                                    class="border border-l-0 rounded-r px-2 py-1 bg-white hover:bg-gray-50"
-                                                    title="Tambah Produk">
-                                                    <x-heroicon-o-plus class="w-4 h-4" />
-                                                </a>
                                             </div>
                                         </td>
 
@@ -266,17 +261,11 @@
                                         </td>
 
                                         <td class="p-2 text-right">
-                                            <input type="number" class="border rounded px-2 py-1 w-24 text-right text-sm"
-                                                min="1" :max="it.maxqty || null" step="1"
-                                                x-model.number="it.fqty" :id="'qty_saved_' + i"
-                                                @focus="activeRow = it.uid; $event.target.select()"
-                                                @blur="activeRow = null; enforceQtyRow(it)" @input="enforceQtyRow(it)"
-                                                @keydown.enter.prevent="focusSavedKet(i)">
-                                            <div class="text-xs text-gray-400 mt-0.5 flex justify-between items-center" x-show="it.fitemcode">
-                                                <div>(<span x-text="productMeta(it.fitemcode).stock"></span>) in stock</div>
-                                                <div class="font-medium text-orange-600" x-show="productMeta(it.fitemcode).stock > 0">
-                                                    maks: <span x-text="productMeta(it.fitemcode).stock"></span>
-                                                </div>
+                                            <input type="number" class="w-full border rounded px-2 py-1 text-right" 
+                                                x-model.number="it.fqty" min="1" 
+                                                @focus="activeRow = it.uid; $event.target.select()" 
+                                                @blur="activeRow = null; enforceQtyRow(it)">
+                                            <div class="text-[10px] text-orange-600 font-medium text-right mt-0.5" x-show="it.fitemcode && productMeta(it.fitemcode).stock > 0" x-html="formatStockLimit(it.fitemcode, it.fqty, it.fsatuan)">
                                             </div>
                                         </td>
 
@@ -321,11 +310,6 @@
                                                 title="Cari Produk">
                                                 <x-heroicon-o-magnifying-glass class="w-4 h-4" />
                                             </button>
-                                            <a href="{{ route('product.create') }}" target="_blank" rel="noopener"
-                                                class="border border-l-0 rounded-r px-2 py-1 bg-white hover:bg-gray-50"
-                                                title="Tambah Produk">
-                                                <x-heroicon-o-plus class="w-4 h-4" />
-                                            </a>
                                         </div>
                                     </td>
 
@@ -352,17 +336,12 @@
                                             x-show="draft.units.length <= 1" :value="draft.fsatuan || '-'" disabled>
                                     </td>
 
-                                    <td class="p-2 text-right">
-                                        <input type="number" class="border rounded px-2 py-1 w-24 text-right text-sm"
-                                            min="1" :max="draft.maxqty || null" step="1"
-                                            x-model.number="draft.fqty" x-ref="draftQty" @focus="$event.target.select()"
-                                            @input="enforceQtyRow(draft)"
-                                            @keydown.enter.prevent="$refs.draftKet?.focus()">
-                                        <div class="text-xs text-gray-400 mt-0.5 flex justify-between items-center" x-show="draft.fitemcode">
-                                            <div>(<span x-text="productMeta(draft.fitemcode).stock"></span>) in stock</div>
-                                            <div class="font-medium text-orange-600" x-show="productMeta(draft.fitemcode).stock > 0">
-                                                maks: <span x-text="productMeta(draft.fitemcode).stock"></span>
-                                            </div>
+                                    <td class="p-2">
+                                        <input type="number" class="w-full border rounded px-2 py-1 text-right" 
+                                            x-model.number="draft.fqty" min="1" x-ref="draftQty" 
+                                            @keydown.enter.prevent="addIfComplete()"
+                                            @blur="enforceQtyRow(draft)">
+                                        <div class="text-[10px] text-orange-600 font-medium text-right mt-0.5" x-show="draft.fitemcode && productMeta(draft.fitemcode).stock > 0" x-html="formatStockLimit(draft.fitemcode, draft.fqty, draft.fsatuan)">
                                         </div>
                                     </td>
 
@@ -837,8 +816,41 @@
                 return window.PRODUCT_MAP?.[key] || {
                     name: '',
                     units: [],
-                    stock: 0
+                    stock: 0,
+                    unit_ratios: {
+                        satuankecil: 1,
+                        satuanbesar: 1,
+                        satuanbesar2: 1
+                    }
                 };
+            },
+
+            formatStockLimit(code, qty, satuan) {
+                const meta = this.productMeta(code);
+                if (!code || !meta.stock) return '';
+                
+                const entered = Number(qty) || 0;
+                const remaining = Math.max(0, meta.stock - entered);
+                const units = meta.units || [];
+                const ratios = meta.unit_ratios || { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 };
+                
+                if (!units.length || !satuan) return '';
+                
+                const satKecil = units[0] || 'pcs';
+                const satBesar = units[1] || '';
+                const satBesar2 = units[2] || '';
+                
+                let ratio = 1;
+                if (satuan === satBesar2 && ratios.satuanbesar2 > 0) {
+                    ratio = ratios.satuanbesar2;
+                } else if (satuan === satBesar && ratios.satuanbesar > 0) {
+                    ratio = ratios.satuanbesar;
+                } else if (satuan === satKecil) {
+                    ratio = 1;
+                }
+                
+                const limitValue = Math.floor(remaining / ratio);
+                return '<span class="font-medium">limit:</span> ' + limitValue + ' ' + satuan;
             },
 
             // Hydrate baris TERSIMPAN — Alpine reaktif
@@ -891,12 +903,17 @@
 
             enforceQtyRow(row) {
                 const n = +row.fqty;
+                const meta = this.productMeta(row.fitemcode);
+                const max = meta ? meta.stock : 999999;
+                
                 if (!Number.isFinite(n)) {
-                    row.fqty = '';
+                    row.fqty = 1;
                     return;
                 }
                 if (n < 1) row.fqty = 1;
-                if (row.maxqty > 0 && n > row.maxqty) row.fqty = row.maxqty;
+                if (max > 0 && n > max) {
+                    row.fqty = max;
+                }
             },
 
             focusUnitOrQty(item, i) {
@@ -996,6 +1013,12 @@
                     }
                 }, {
                     passive: true
+                });
+
+                document.addEventListener('change', (e) => {
+                    if (e.target && e.target.id === 'draftUnitSelect') {
+                        this.draft.fsatuan = e.target.value;
+                    }
                 });
             }
         }

@@ -308,14 +308,12 @@
                                                     x-ref="editQty"
                                                     x-model.number="editRow.fqty" @input="
                                                         recalc(editRow);
-                                                        if (editRow.maxqty > 0 && editRow.fqty > editRow.maxqty) {
-                                                            editRow.fqty = editRow.maxqty;
-                                                            recalc(editRow);
-                                                        }
+                                                        enforceQtyRow(editRow);
+                                                        recalc(editRow);
                                                     "
                                                     @keydown.enter.prevent="$refs.editPrice?.focus()">
                                                 <div class="text-xs text-gray-400 mt-0.5 text-right">
-                                                    <span x-show="editRow.maxqty > 0" x-text="editRow.maxqty + ' in stock'"></span>
+                                                    <span x-show="editRow.fitemcode" x-html="formatStockLimit(editRow.fitemcode, editRow.fqty, editRow.fsatuan)"></span>
                                                 </div>
                                             </td>
                                         </tr>
@@ -555,11 +553,12 @@
                                                             type="number"
                                                             x-model.number="it.fqty" @input="
                                                                 recalc(it);
-                                                                if (it.maxqty > 0 && it.fqty > it.maxqty) { it.fqty = it.maxqty; recalc(it); }
+                                                                enforceQtyRow(it);
+                                                                recalc(it);
                                                             "
                                                             @keydown.enter.prevent="$refs[`desc-${i}`]?.focus()">
                                                         <div class="text-xs text-gray-400 mt-0.5 text-right">
-                                                            <span x-show="it.maxqty > 0" x-text="it.maxqty + ' in stock'"></span>
+                                                            <span x-show="it.fitemcode" x-html="formatStockLimit(it.fitemcode, it.fqty, it.fsatuan)"></span>
                                                         </div>
                                                     </td>
                                                     <td class="p-2 text-center text-xs">
@@ -638,7 +637,7 @@
 
                                                 <td class="p-2">
                                                     <template x-if="draft.units.length > 1">
-                                                        <select class="w-full border rounded px-2 py-1 text-sm" x-ref="draftUnit"
+                                                        <select id="draftUnitSelect" class="w-full border rounded px-2 py-1 text-sm"
                                                             x-model="draft.fsatuan"
                                                             @keydown.enter.prevent="$refs.draftQty?.focus()">
                                                             <template x-for="u in draft.units" :key="u">
@@ -659,14 +658,12 @@
                                                         x-ref="draftQty"
                                                         x-model.number="draft.fqty" @input="
                                                             recalc(draft);
-                                                            if (draft.maxqty > 0 && draft.fqty > draft.maxqty) {
-                                                                draft.fqty = draft.maxqty;
-                                                                recalc(draft);
-                                                            }
+                                                            enforceQtyRow(draft);
+                                                            recalc(draft);
                                                         "
                                                         @keydown.enter.prevent="addIfComplete()">
                                                     <div class="text-xs text-gray-400 mt-0.5 text-right">
-                                                        <span x-show="draft.maxqty > 0">maks: <span x-text="draft.maxqty"></span></span>
+                                                        <span x-show="draft.fitemcode" x-html="formatStockLimit(draft.fitemcode, draft.fqty, draft.fsatuan)"></span>
                                                     </div>
                                                 </td>
 
@@ -1368,7 +1365,12 @@
             "{{ $p->fprdcode }}": {
                 name: @json($p->fprdname),
                 units: @json(array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2]))),
-                stock: @json($p->fminstock ?? 0)
+                stock: @json($p->fminstock ?? 0),
+                unit_ratios: {
+                    satuankecil: 1,
+                    satuanbesar: @json((float) ($p->fqtykecil ?? 1)),
+                    satuanbesar2: @json((float) ($p->fqtykecil2 ?? 1)),
+                },
             },
         @endforeach
     };
@@ -1655,7 +1657,74 @@
 
             productMeta(code) {
                 const key = (code || '').trim();
-                return window.PRODUCT_MAP?.[key] || null;
+                const meta = window.PRODUCT_MAP?.[key];
+                if (!meta) {
+                    return {
+                        name: '',
+                        units: [],
+                        stock: 0,
+                        unit_ratios: { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 }
+                    };
+                }
+                return meta;
+            },
+
+            formatStockLimit(code, qty, satuan) {
+                const meta = this.productMeta(code);
+                if (!code || !meta.stock) return '';
+                
+                const entered = Number(qty) || 0;
+                const remaining = Math.max(0, meta.stock - entered);
+                const units = meta.units || [];
+                const ratios = meta.unit_ratios || { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 };
+                
+                if (!units.length || !satuan) return '';
+                
+                const satKecil = units[0] || 'pcs';
+                const satBesar = units[1] || '';
+                const satBesar2 = units[2] || '';
+                
+                let ratio = 1;
+                if (satuan === satBesar2 && ratios.satuanbesar2 > 0) {
+                    ratio = ratios.satuanbesar2;
+                } else if (satuan === satBesar && ratios.satuanbesar > 0) {
+                    ratio = ratios.satuanbesar;
+                } else if (satuan === satKecil) {
+                    ratio = 1;
+                }
+                
+                const limitValue = Math.floor(remaining / ratio);
+                return '<span class="font-medium">limit:</span> ' + limitValue + ' ' + satuan;
+            },
+
+            enforceQtyRow(row) {
+                const n = +row.fqty;
+                const meta = this.productMeta(row.fitemcode);
+                const units = meta?.units || [];
+                const ratios = meta?.unit_ratios || { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 };
+                const satKecil = units[0] || 'pcs';
+                const satBesar = units[1] || '';
+                const satBesar2 = units[2] || '';
+                const satuan = row.fsatuan || '';
+                
+                let ratio = 1;
+                if (satuan === satBesar2 && ratios.satuanbesar2 > 0) {
+                    ratio = ratios.satuanbesar2;
+                } else if (satuan === satBesar && ratios.satuanbesar > 0) {
+                    ratio = ratios.satuanbesar;
+                }
+                
+                const maxStock = meta?.stock || 999999;
+                const maxInUnit = Math.floor(maxStock / ratio);
+                
+                if (!Number.isFinite(n)) {
+                    row.fqty = 1;
+                    return;
+                }
+                if (n < 1) row.fqty = 1;
+                if (maxInUnit > 0 && n > maxInUnit) {
+                    row.fqty = maxInUnit;
+                }
             },
 
             hydrateRowFromMeta(row, meta) {
@@ -1665,15 +1734,27 @@
                     row.fsatuan = '';
                     row.maxqty = 0;
                     row.frefdtno = 0;
+                    if (row === this.draft) {
+                        clearDraftUnitSelect();
+                    }
                     return;
                 }
                 row.fitemname = meta.name || '';
                 const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
                 row.units = units;
                 if (!units.includes(row.fsatuan)) row.fsatuan = units[0] || '';
+                if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
                 const stock = Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0;
                 row.maxqty = stock;
                 row.frefdtno = meta.fprdid || 0;
+                
+                if (row === this.draft) {
+                    if (units.length > 1) {
+                        populateDraftUnitSelect(units);
+                    } else {
+                        clearDraftUnitSelect();
+                    }
+                }
             },
 
             onCodeTypedRow(row) {
@@ -1968,6 +2049,14 @@
                 }, {
                     passive: true
                 });
+                
+                const self = this;
+                document.addEventListener('change', function(e) {
+                    if (e.target && e.target.id === 'draftUnitSelect') {
+                        self.draft.fsatuan = e.target.value;
+                    }
+                });
+                
                 this.$nextTick(() => {
                     this.recalcTotals();
                 });
@@ -2009,6 +2098,27 @@
             return (window.crypto?.getRandomValues ? [...window.crypto.getRandomValues(new Uint32Array(2))].map(n => n
                     .toString(16)).join('') :
                 Math.random().toString(36).slice(2)) + Date.now();
+        }
+
+        function getDraftUnitSelect() {
+            return document.getElementById('draftUnitSelect');
+        }
+
+        function populateDraftUnitSelect(units) {
+            const sel = getDraftUnitSelect();
+            if (!sel) return;
+            sel.innerHTML = '';
+            units.forEach(u => {
+                const opt = document.createElement('option');
+                opt.value = u;
+                opt.textContent = u;
+                sel.appendChild(opt);
+            });
+        }
+
+        function clearDraftUnitSelect() {
+            const sel = getDraftUnitSelect();
+            if (sel) sel.innerHTML = '';
         }
     }
 </script>

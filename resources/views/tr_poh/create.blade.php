@@ -273,7 +273,7 @@
                                             x-show="it.units.length > 1" :id="'unit_saved_' + i"
                                             @focus="activeRow = it.uid" @blur="activeRow = null"
                                             @keydown.enter.prevent="focusSavedQty(i)"
-                                            @change="it.fsatuan = $event.target.value; it.maxqty = calcMaxQty(it);"
+                                            @change="it.fsatuan = $event.target.value; it.maxqty = calcMaxQty(it); updateLimitText(i, it);"
                                             x-effect="
                                                 const sel = $el;
                                                 sel.innerHTML = '';
@@ -284,6 +284,7 @@
                                                     if (u === it.fsatuan) opt.selected = true;
                                                     sel.appendChild(opt);
                                                 });
+                                                updateLimitText(i, it);
                                             ">
                                         </select>
                                         <input type="text" x-show="it.units.length <= 1"
@@ -302,7 +303,7 @@
                                     <td class="p-2 text-right">
                                         <input type="number" class="border rounded px-2 py-1 w-20 text-right text-sm"
                                             x-model.number="it.fqty" :id="'qty_saved_' + i"
-                                            @focus="activeRow = it.uid; $event.target.select()" @blur="activeRow = null"
+                                            @focus="activeRow = it.uid; $event.target.select()" @blur="activeRow = null; enforceQtyRow(it);"
                                             @input="
                                                 recalc(it);
                                                 if (it.maxqty > 0 && it.fqty > it.maxqty) { it.fqty = it.maxqty; recalc(it); }
@@ -312,9 +313,7 @@
                                                 if (it.maxqty > 0 && it.fqty > it.maxqty) { it.fqty = it.maxqty; recalc(it); }
                                             "
                                             @keydown.enter.prevent="focusSavedPrice(i)">
-                                        <div class="text-xs text-gray-400 mt-0.5 text-right space-y-0.5">
-                                            <div x-show="it.maxqty > 0">maks: <span x-text="it.maxqty"></span></div>
-                                            <div x-show="it.fitemcode" x-text="(productMeta(it.fitemcode)?.stock || 0) + ' in stock'"></div>
+                                        <div class="text-[10px] text-orange-600 font-medium text-right mt-0.5" x-show="it.fitemcode && productMeta(it.fitemcode).stock > 0" x-html="formatStockLimit(it.fitemcode, it.fqty, it.fsatuan)">
                                         </div>
                                     </td>
 
@@ -401,21 +400,9 @@
 
                                 {{-- Satuan Draft --}}
                                 <td class="p-2 align-top">
-                                    <select class="w-full border rounded px-2 py-1 text-sm"
-                                        x-show="draft.units.length > 1" x-ref="draftUnit"
-                                        @keydown.enter.prevent="$refs.draftQty?.focus()"
-                                        @change="draft.fsatuan = $event.target.value; draft.maxqty = calcMaxQty(draft);"
-                                        x-effect="
-                                            const sel = $el;
-                                            sel.innerHTML = '';
-                                            draft.units.forEach(u => {
-                                                const opt = document.createElement('option');
-                                                opt.value = u;
-                                                opt.textContent = u;
-                                                if (u === draft.fsatuan) opt.selected = true;
-                                                sel.appendChild(opt);
-                                            });
-                                        ">
+                                    <select id="draftUnitSelect" class="w-full border rounded px-2 py-1 text-sm"
+                                        x-show="draft.units.length > 1"
+                                        @keydown.enter.prevent="$refs.draftQty?.focus()">
                                     </select>
                                     <input type="text" x-show="draft.units.length <= 1"
                                         class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
@@ -430,9 +417,9 @@
                                 <td class="p-2 text-right">
                                     <input type="number" class="border rounded px-2 py-1 w-20 text-right text-sm"
                                         min="0" step="1" x-ref="draftQty" x-model.number="draft.fqty"
-                                        @input="recalc(draft)" @keydown.enter.prevent="$refs.draftPrice?.focus()">
-                                    <div class="text-xs text-gray-400 mt-0.5 text-right" x-show="draft.fitemcode"
-                                        x-text="(productMeta(draft.fitemcode)?.stock || 0) + ' in stock'"></div>
+                                        @input="recalc(draft);" @blur="enforceQtyRow(draft);" @keydown.enter.prevent="$refs.draftPrice?.focus()">
+                                    <div class="text-[10px] text-orange-600 font-medium text-right mt-0.5" x-show="draft.fitemcode && productMeta(draft.fitemcode).stock > 0" x-html="formatStockLimit(draft.fitemcode, draft.fqty, draft.fsatuan)">
+                                    </div>
                                 </td>
 
                                 <td class="p-2 text-right">
@@ -818,11 +805,11 @@
                 name: @json($p->fprdname),
                 units: @json(array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2]))),
                 stock: @json($p->fminstock ?? 0),
-                fsatuankecil: @json($p->fsatuankecil ?? ''),
-                fsatuanbesar: @json($p->fsatuanbesar ?? ''),
-                fsatuanbesar2: @json($p->fsatuanbesar2 ?? ''),
-                fqtykecil: @json((float) ($p->fqtykecil ?? 0)),
-                fqtykecil2: @json((float) ($p->fqtykecil2 ?? 0)),
+                unit_ratios: {
+                    satuankecil: 1,
+                    satuanbesar: @json((float) ($p->fqtykecil ?? 1)),
+                    satuanbesar2: @json((float) ($p->fqtykecil2 ?? 1)),
+                },
             },
         @endforeach
     };
@@ -895,6 +882,7 @@
                 fsatuanbesar2: '',
                 fqtykecil: 0,
                 fqtykecil2: 0,
+                unit_ratios: { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 },
                 maxqty_satuan: '',
             };
         }
@@ -976,7 +964,84 @@
             },
 
             productMeta(code) {
-                return window.PRODUCT_MAP?.[(code || '').trim()] || null;
+                const key = (code || '').trim();
+                const meta = window.PRODUCT_MAP?.[key];
+                if (!meta) {
+                    return {
+                        name: '',
+                        units: [],
+                        stock: 0,
+                        unit_ratios: {
+                            satuankecil: 1,
+                            satuanbesar: 1,
+                            satuanbesar2: 1
+                        }
+                    };
+                }
+                return meta;
+            },
+
+            formatStockLimit(code, qty, satuan) {
+                const meta = this.productMeta(code);
+                console.log('formatStockLimit:', code, qty, satuan, 'meta:', meta);
+                if (!code || !meta.stock) return '';
+                
+                const entered = Number(qty) || 0;
+                const remaining = Math.max(0, meta.stock - entered);
+                const units = meta.units || [];
+                const ratios = meta.unit_ratios || { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 };
+                
+                console.log('units:', units, 'ratios:', ratios);
+                
+                if (!units.length || !satuan) return '';
+                
+                const satKecil = units[0] || 'pcs';
+                const satBesar = units[1] || '';
+                const satBesar2 = units[2] || '';
+                
+                let ratio = 1;
+                if (satuan === satBesar2 && ratios.satuanbesar2 > 0) {
+                    ratio = ratios.satuanbesar2;
+                } else if (satuan === satBesar && ratios.satuanbesar > 0) {
+                    ratio = ratios.satuanbesar;
+                } else if (satuan === satKecil) {
+                    ratio = 1;
+                }
+                
+                console.log('satuan:', satuan, 'satKecil:', satKecil, 'satBesar:', satBesar, 'satBesar2:', satBesar2, 'ratio:', ratio);
+                
+                const limitValue = Math.floor(remaining / ratio);
+                return '<span class="font-medium">limit:</span> ' + limitValue + ' ' + satuan;
+            },
+
+            enforceQtyRow(row) {
+                const n = +row.fqty;
+                const meta = this.productMeta(row.fitemcode);
+                const units = meta?.units || [];
+                const ratios = meta?.unit_ratios || { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 };
+                const satKecil = units[0] || 'pcs';
+                const satBesar = units[1] || '';
+                const satBesar2 = units[2] || '';
+                const satuan = row.fsatuan || '';
+                
+                let ratio = 1;
+                if (satuan === satBesar2 && ratios.satuanbesar2 > 0) {
+                    ratio = ratios.satuanbesar2;
+                } else if (satuan === satBesar && ratios.satuanbesar > 0) {
+                    ratio = ratios.satuanbesar;
+                }
+                
+                const maxStock = meta?.stock || 999999;
+                const maxInUnit = Math.floor(maxStock / ratio);
+                
+                if (!Number.isFinite(n)) {
+                    row.fqty = 1;
+                    return;
+                }
+                if (n < 1) row.fqty = 1;
+                if (maxInUnit > 0 && n > maxInUnit) {
+                    row.fqty = maxInUnit;
+                }
             },
 
             hydrateRowFromMeta(row, meta, keepMaxqty = false) {
@@ -985,6 +1050,9 @@
                     row.units = [];
                     row.fsatuan = '';
                     if (!keepMaxqty) row.maxqty = 0;
+                    if (row === this.draft) {
+                        clearDraftUnitSelect();
+                    }
                     return;
                 }
                 row.fitemname = meta.name || '';
@@ -993,7 +1061,16 @@
                 if (currentSatuan && !units.includes(currentSatuan)) units.unshift(currentSatuan);
                 row.units = units;
                 if (!currentSatuan) row.fsatuan = units[0] || '';
+                if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
                 if (!keepMaxqty) row.maxqty = Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0;
+                
+                if (row === this.draft) {
+                    if (units.length > 1) {
+                        populateDraftUnitSelect(units);
+                    } else {
+                        clearDraftUnitSelect();
+                    }
+                }
             },
 
             onCodeTypedRow(row) {
@@ -1295,8 +1372,36 @@
                         this.$nextTick(() => this.$refs.draftQty?.focus());
                     }
                 }, sig);
+                
+                const self = this;
+                document.addEventListener('change', function(e) {
+                    if (e.target && e.target.id === 'draftUnitSelect') {
+                        self.draft.fsatuan = e.target.value;
+                    }
+                });
             }
         };
+    }
+
+    function getDraftUnitSelect() {
+        return document.getElementById('draftUnitSelect');
+    }
+
+    function populateDraftUnitSelect(units) {
+        const sel = getDraftUnitSelect();
+        if (!sel) return;
+        sel.innerHTML = '';
+        units.forEach(u => {
+            const opt = document.createElement('option');
+            opt.value = u;
+            opt.textContent = u;
+            sel.appendChild(opt);
+        });
+    }
+
+    function clearDraftUnitSelect() {
+        const sel = getDraftUnitSelect();
+        if (sel) sel.innerHTML = '';
     }
 
     function supplierBrowser() {

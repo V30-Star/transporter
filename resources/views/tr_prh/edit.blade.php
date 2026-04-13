@@ -406,24 +406,27 @@
                                                 <textarea x-model="it.fdesc" rows="1" class="w-full border rounded px-2 py-1 text-xs" placeholder="Deskripsi deskripsi..." :disabled="blockedByPO" @focus="activeRow = it.uid" @blur="activeRow = null"></textarea>
                                             </td>
                                             <td class="p-2">
-                                                <template x-if="it.units.length > 1">
-                                                    <select class="w-full border rounded px-2 py-1" x-model="it.fsatuan" :disabled="blockedByPO">
+                                                <template x-if="(it.units?.length || 0) > 1">
+                                                    <select class="w-full border rounded px-2 py-1 text-sm"
+                                                        :id="'unit_saved_' + i"
+                                                        x-effect="$nextTick(() => { const el = document.getElementById('unit_saved_' + i); if (el) el.value = it.fsatuan; })"
+                                                        @change="it.fsatuan = $event.target.value" :disabled="blockedByPO"
+                                                        @focus="activeRow = it.uid" @blur="activeRow = null">
                                                         <template x-for="u in it.units" :key="u">
                                                             <option :value="u" x-text="u"></option>
                                                         </template>
                                                     </select>
                                                 </template>
-                                                <template x-if="it.units.length <= 1">
-                                                    <input type="text" class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600" :value="it.fsatuan || '-'" disabled>
+                                                <template x-if="(it.units?.length || 0) <= 1">
+                                                    <input type="text" class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm" :value="it.fsatuan || '-'" disabled>
                                                 </template>
                                             </td>
-                                            <td class="p-2">
-                                                <input type="number" class="w-full border rounded px-2 py-1 text-right" x-model.number="it.fqty" min="1" :disabled="blockedByPO" @focus="activeRow = it.uid; $event.target.select()" @blur="activeRow = null">
-                                                <div class="text-xs text-gray-400 mt-0.5 flex justify-between items-center" x-show="it.fitemcode">
-                                                    <div>(<span x-text="productMeta(it.fitemcode).stock"></span>) in stock</div>
-                                                    <div class="font-medium text-orange-600" x-show="productMeta(it.fitemcode).stock > 0">
-                                                        maks: <span x-text="productMeta(it.fitemcode).stock"></span>
-                                                    </div>
+                                            <td class="p-2 text-right">
+                                                <input type="number" class="w-full border rounded px-2 py-1 text-right" 
+                                                    x-model.number="it.fqty" min="1" :disabled="blockedByPO"
+                                                    @focus="activeRow = it.uid; $event.target.select()" 
+                                                    @blur="activeRow = null; enforceQtyRow(it)">
+                                                <div class="text-[10px] text-orange-600 font-medium text-right mt-0.5" x-show="it.fitemcode && productMeta(it.fitemcode).stock > 0" x-html="formatStockLimit(it.fitemcode, it.fqty, it.fsatuan)">
                                                 </div>
                                             </td>
                                             <td class="p-2 text-right">
@@ -480,12 +483,11 @@
                                             </template>
                                         </td>
                                         <td class="p-2">
-                                            <input type="number" class="w-full border rounded px-2 py-1 text-right" x-model.number="draft.fqty" min="1" x-ref="draftQty" @keydown.enter.prevent="addIfComplete()">
-                                            <div class="text-xs text-gray-400 mt-0.5 flex justify-between items-center" x-show="draft.fitemcode">
-                                                <div>(<span x-text="productMeta(draft.fitemcode).stock"></span>) in stock</div>
-                                                <div class="font-medium text-orange-600" x-show="productMeta(draft.fitemcode).stock > 0">
-                                                    maks: <span x-text="productMeta(draft.fitemcode).stock"></span>
-                                                </div>
+                                            <input type="number" class="w-full border rounded px-2 py-1 text-right" 
+                                                x-model.number="draft.fqty" min="1" x-ref="draftQty" 
+                                                @keydown.enter.prevent="addIfComplete()"
+                                                @blur="enforceQtyRow(draft)">
+                                            <div class="text-[10px] text-orange-600 font-medium text-right mt-0.5" x-show="draft.fitemcode && productMeta(draft.fitemcode).stock > 0" x-html="formatStockLimit(draft.fitemcode, draft.fqty, draft.fsatuan)">
                                             </div>
                                         </td>
                                         <td class="p-2 text-right">-</td>
@@ -941,21 +943,42 @@
     }
 
     function itemsTable() {
+        // Hydrate savedItems BEFORE passing to Alpine
+        const rawItems = @json($savedItems ?? []);
+        
+        const hydratedItems = rawItems.map(it => {
+            const code = (it.fitemcode || '').trim();
+            let meta = window.PRODUCT_MAP[code];
+            
+            if (!meta) {
+                const keys = Object.keys(window.PRODUCT_MAP || {});
+                meta = keys.reduce((found, key) => {
+                    if (found) return found;
+                    if (key.includes(code) || code.includes(key)) return window.PRODUCT_MAP[key];
+                    return null;
+                }, null);
+            }
+            
+            let units = [];
+            if (meta && meta.units && meta.units.length > 0) {
+                units = meta.units;
+            } else if (it.fsatuan) {
+                units = [it.fsatuan];
+            }
+            
+            return {
+                ...it,
+                uid: it.uid || cryptoRandom(),
+                units: units,
+                fsatuan: it.fsatuan || (units[0] || '')
+            };
+        });
+        
         return {
-            savedItems: @json($savedItems ?? []),
+            savedItems: hydratedItems,
             activeRow: null,
             draft: { fitemcode: '', fitemname: '', units: [], fsatuan: '', fqty: 1, fdesc: '', fketdt: '' },
             init() {
-                // Initial hydration
-                this.savedItems = this.savedItems.map(it => {
-                    const meta = window.PRODUCT_MAP[it.fitemcode];
-                    return {
-                        ...it,
-                        uid: it.uid || cryptoRandom(),
-                        units: meta ? meta.units : [it.fsatuan]
-                    };
-                });
-
                 window.addEventListener('product-chosen', (e) => {
                     const { code, target, index } = e.detail;
                     if (target === 'saved') {
@@ -1008,11 +1031,77 @@
             },
             productMeta(code) {
                 const key = (code || '').trim();
-                return window.PRODUCT_MAP?.[key] || {
-                    name: '',
-                    units: [],
-                    stock: 0
-                };
+                const meta = window.PRODUCT_MAP?.[key];
+                if (!meta) {
+                    return {
+                        name: '',
+                        units: [],
+                        stock: 0,
+                        unit_ratios: {
+                            satuankecil: 1,
+                            satuanbesar: 1,
+                            satuanbesar2: 1
+                        }
+                    };
+                }
+                return meta;
+            },
+
+            formatStockLimit(code, qty, satuan) {
+                const meta = this.productMeta(code);
+                if (!code || !meta.stock) return '';
+                
+                const entered = Number(qty) || 0;
+                const remaining = Math.max(0, meta.stock - entered);
+                const units = meta.units || [];
+                const ratios = meta.unit_ratios || { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 };
+                
+                if (!units.length || !satuan) return '';
+                
+                const satKecil = units[0] || 'pcs';
+                const satBesar = units[1] || '';
+                const satBesar2 = units[2] || '';
+                
+                let ratio = 1;
+                if (satuan === satBesar2 && ratios.satuanbesar2 > 0) {
+                    ratio = ratios.satuanbesar2;
+                } else if (satuan === satBesar && ratios.satuanbesar > 0) {
+                    ratio = ratios.satuanbesar;
+                } else if (satuan === satKecil) {
+                    ratio = 1;
+                }
+                
+                const limitValue = Math.floor(remaining / ratio);
+                return '<span class="font-medium">limit:</span> ' + limitValue + ' ' + satuan;
+            },
+
+            enforceQtyRow(row) {
+                const n = +row.fqty;
+                const meta = this.productMeta(row.fitemcode);
+                const max = meta ? meta.stock : 999999;
+                
+                if (!Number.isFinite(n)) {
+                    row.fqty = 1;
+                    return;
+                }
+                if (n < 1) row.fqty = 1;
+                if (max > 0 && n > max) {
+                    row.fqty = max;
+                }
+            },
+
+            init() {
+                window.addEventListener('product-chosen', (e) => {
+                    const { code, target, index } = e.detail;
+                    if (target === 'saved') {
+                        const it = this.savedItems[index];
+                        it.fitemcode = code;
+                        this.onCodeTypedSaved(it);
+                    } else {
+                        this.draft.fitemcode = code;
+                        this.onCodeTypedDraft();
+                    }
+                });
             }
         }
     }
