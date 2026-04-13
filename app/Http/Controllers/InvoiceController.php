@@ -2,1152 +2,1217 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Tr_prh;
-use App\Models\Tr_prd;
-use App\Models\Tranmt;
-use App\Models\SalesOrderDetail;
-use App\Models\Supplier;
 use App\Models\Customer;
-use App\Models\Salesman;
 use App\Models\Product;
-use Illuminate\Support\Facades\Auth;
+use App\Models\Salesman;
+use App\Models\Supplier;
+use App\Models\Tr_prd;
+use App\Models\Tr_prh;
+use App\Models\Tranmt;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use App\Mail\ApprovalEmailPo;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Str;
-use Carbon\Carbon; // sekalian biar aman untuk tanggal
+use Illuminate\Support\Facades\Log; // sekalian biar aman untuk tanggal
 
 class InvoiceController extends Controller
 {
-  public function index(Request $request)
-  {
-    // Ambil izin (permissions)
-    $canCreate = in_array('createInvoice', explode(',', session('user_restricted_permissions', '')));
-    $canEdit   = in_array('updateInvoice', explode(',', session('user_restricted_permissions', '')));
-    $canDelete = in_array('deleteInvoice', explode(',', session('user_restricted_permissions', '')));
-    $showActionsColumn = $canEdit || $canDelete;
-
-    // $status = $request->query('status');
-    $year = $request->query('year');
-    $month = $request->query('month');
-
-    // Ambil tahun-tahun yang tersedia dari data
-    $availableYears = Tranmt::selectRaw('DISTINCT EXTRACT(YEAR FROM fdatetime) as year')
-      ->whereNotNull('fdatetime')
-      ->orderByRaw('EXTRACT(YEAR FROM fdatetime) DESC')
-      ->pluck('year');
-
-    // --- Handle Request AJAX dari DataTables ---
-    if ($request->ajax()) {
-
-      $query = Tranmt::query();
-
-      // DEBUG: Cek total data di tabel
-      $totalRecords = Tranmt::count();
-
-      // Handle Search
-      if ($search = $request->input('search.value')) {
-        $query->where('fsono', 'like', "%{$search}%");
-      }
-
-      // Filter status - DEFAULT ke 'active' jika tidak ada
-      // $statusFilter = $request->query('status', 'active');
-
-      // if ($statusFilter === 'active') {
-      //   $query->where('fclose', '0');
-      // } elseif ($statusFilter === 'nonactive') {
-      //   $query->where('fclose', '1');
-      // }
-
-      // Filter tahun
-      if ($year) {
-        $query->whereRaw('EXTRACT(YEAR FROM fdatetime) = ?', [$year]);
-      }
-
-      // Filter bulan
-      if ($month) {
-        $query->whereRaw('EXTRACT(MONTH FROM fdatetime) = ?', [$month]);
-      }
-
-      $filteredRecords = (clone $query)->count();
-
-      // Sorting
-      $orderColIdx = $request->input('order.0.column', 0);
-      $orderDir = $request->input('order.0.dir', 'asc');
-
-      $sortableColumns = ['fsono', 'fsodate'];
-
-      if (isset($sortableColumns[$orderColIdx])) {
-        $query->orderBy($sortableColumns[$orderColIdx], $orderDir);
-      }
-
-      // Paginasi
-      $start = $request->input('start', 0);
-      $length = $request->input('length', 10);
-      $records = $query->skip($start)
-        ->take($length)
-        ->get();
-
-      // Format Data
-      $data = $records->map(function ($row) {
-        return [
-          'ftranmtid'     => $row->ftranmtid,
-          'fbranchcode'   => $row->fbranchcode,
-          'fsono'         => $row->fsono,
-          'fsodate'       => $row->fsodate instanceof \Carbon\Carbon
-            ? $row->fsodate->format('Y-m-d')
-            : $row->fsodate,
-          'frefno'        => $row->frefno ?? '',
-          'fcustno'       => $row->fcustno ?? '',
-          'fsalesman'     => $row->fsalesman,
-          'fdiscpersen'   => $row->fdiscpersen,
-          'fdiscount'     => $row->fdiscount,
-          'famountgross'  => $row->famountgross,
-          'famountsonet'  => $row->famountsonet,
-          'famountpajak'  => $row->famountpajak,
-          'famountso'     => $row->famountso,
-          'fket'          => $row->fket,
-          'falamatkirim'  => $row->falamatkirim,
-          'fprdout'       => $row->fprdout,
-          'fusercreate'   => $row->fusercreate,
-          'fuserupdate'   => $row->fuserupdate,
-          'fdatetime'     => $row->fdatetime,
-          'fclose'        => $row->fclose,
-          'fincludeppn'   => $row->fincludeppn,
-          'fuseracc'      => $row->fuseracc,
-          'fneedacc'      => $row->fneedacc,
-          'ftempohr'      => $row->ftempohr,
-          'fprint'        => $row->fprint,
-        ];
-      });
-
-      return response()->json([
-        'draw'            => intval($request->input('draw')),
-        'recordsTotal'    => $totalRecords,
-        'recordsFiltered' => $filteredRecords,
-        'data'            => $data
-      ]);
-    }
-
-    // --- Handle Request non-AJAX ---
-    return view('invoice.index', compact(
-      'canCreate',
-      'canEdit',
-      'canDelete',
-      'showActionsColumn',
-      // 'status',
-      'availableYears',
-      'year',
-      'month'
-    ));
-  }
-
-  public function pickable(Request $request)
-  {
-    // Base query dengan JOIN
-    $query = Tr_prh::leftJoin('mssupplier', 'tr_prh.fsupplier', '=', 'mssupplier.fsupplierid')
-      ->select(
-        'tr_prh.*',
-        'mssupplier.fsuppliername',
-        'mssupplier.fsuppliercode'
-      );
-
-    // Total records tanpa filter
-    $recordsTotal = Tr_prh::count();
-
-    // Search
-    if ($request->filled('search') && $request->search != '') {
-      $search = $request->search;
-      $query->where(function ($q) use ($search) {
-        $q->where('tr_prh.fprno', 'ilike', "%{$search}%")
-          ->orWhere('mssupplier.fsuppliername', 'ilike', "%{$search}%")
-          ->orWhere('mssupplier.fsuppliercode', 'ilike', "%{$search}%");
-      });
-    }
-
-    // Total records setelah filter
-    $recordsFiltered = $query->count();
-
-    // Sorting
-    $orderColumn = $request->input('order_column', 'fprdate');
-    $orderDir = $request->input('order_dir', 'desc');
-
-    $allowedColumns = ['fprno', 'fprdate'];
-    if (in_array($orderColumn, $allowedColumns)) {
-      if (in_array($orderColumn, ['fprno', 'fprdate'])) {
-        $query->orderBy('tr_prh.' . $orderColumn, $orderDir);
-      } else {
-        $query->orderBy('mssupplier.fsuppliername', $orderDir);
-      }
-    } else {
-      $query->orderBy('tr_prh.fprdate', 'desc');
-    }
-
-    // Pagination
-    $start = (int) $request->input('start', 0);
-    $length = (int) $request->input('length', 10);
-
-    $data = $query->skip($start)
-      ->take($length)
-      ->get();
-
-    // Response format untuk DataTables
-    return response()->json([
-      'draw' => (int) $request->input('draw', 1),
-      'recordsTotal' => (int) $recordsTotal,
-      'recordsFiltered' => (int) $recordsFiltered,
-      'data' => $data
-    ]);
-  }
-
-  public function items($id)
-  {
-    // Ambil data header PR berdasarkan fprhid
-    $header = Tr_prh::where('fprhid', $id)->firstOrFail();
-
-    // PERBAIKAN: Gunakan fprhid (integer) bukan fprno (varchar)
-    $items = Tr_prd::where('tr_prd.fprhid', $header->fprhid) // <- Gunakan fprhid
-      ->leftJoin('msprd as m', 'm.fprdcodeid', '=', 'tr_prd.fitemid')
-      ->select([
-        'tr_prd.fprdcodeid as frefdtno',
-        'tr_prd.fitemid as fitemcode',
-        'm.fprdname as fitemname',
-        'tr_prd.fqty',
-        'tr_prd.fsatuan as fsatuan',
-        'tr_prd.fprhid',
-        'tr_prd.fprice as fharga',
-        DB::raw('0::numeric as fdiskon')
-      ])
-      ->orderBy('tr_prd.fitemid')
-      ->get();
-
-    return response()->json([
-      'header' => [
-        'fprhid'     => $header->fprhid,
-        'fprno'     => $header->fprno,
-        'fsupplier' => trim($header->fsupplier ?? ''),
-        'fprdate'   => optional($header->fprdate)->format('Y-m-d H:i:s'),
-      ],
-      'items'  => $items,
-    ]);
-  }
-
-  private function generatetr_poh_Code(?Carbon $onDate = null, $branch = null): string
-  {
-    $date = $onDate ?: now();
-
-    $branch = $branch
-      ?? Auth::guard('sysuser')->user()?->fcabang
-      ?? Auth::user()?->fcabang
-      ?? null;
-
-    // resolve kode cabang
-    $kodeCabang = null;
-    if ($branch !== null) {
-      $needle = trim((string)$branch);
-      if (is_numeric($needle)) {
-        $kodeCabang = DB::table('mscabang')->where('fcabangid', (int)$needle)->value('fcabangkode');
-      } else {
-        $kodeCabang = DB::table('mscabang')->whereRaw('LOWER(fcabangkode)=LOWER(?)', [$needle])->value('fcabangkode')
-          ?: DB::table('mscabang')->whereRaw('LOWER(fcabangname)=LOWER(?)', [$needle])->value('fcabangkode');
-      }
-    }
-    if (!$kodeCabang) $kodeCabang = 'NA';
-
-    $prefix = sprintf('PO.%s.%s.%s.', $kodeCabang, $date->format('y'), $date->format('m'));
-
-    // kunci per (branch, tahun-bulan) — TANPA bikin tabel baru
-    $lockKey = crc32('PO|' . $kodeCabang . '|' . $date->format('Y-m'));
-    DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
-
-    $last = DB::table('tranmt')
-      ->where('fsono', 'like', $prefix . '%')
-      ->selectRaw("MAX(CAST(split_part(fsono, '.', 5) AS int)) AS lastno")
-      ->value('lastno');
-
-    $next = (int)$last + 1;
-    return $prefix . str_pad((string)$next, 4, '0', STR_PAD_LEFT);
-  }
-
-  public function print(string $fsono)
-  {
-    // Header: find by SO code (string)
-    $hdr = DB::table('tranmt')
-      ->leftJoin('mscustomer as c', 'c.fcustomerid', '=', DB::raw('CAST(tranmt.fcustno AS INTEGER)'))
-      ->leftJoin('mssalesman as s', 's.fsalesmanid', '=', DB::raw('CAST(tranmt.fsalesman AS INTEGER)'))
-      ->where('tranmt.fsono', $fsono)
-      ->first([
-        'tranmt.*',
-        'c.fcustomername as customer_name',
-        's.fsalesmanname as salesman_name',
-      ]);
-
-    if (!$hdr) {
-      return redirect()->back()->with('error', 'Sales Order tidak ditemukan.');
-    }
-
-    // Use header ID (integer) for detail FK
-    $ftranmtid = (int) $hdr->ftranmtid;
-
-    // Detail: join dengan product
-    $dt = DB::table('trandt')
-      ->leftJoin('msprd as p', 'p.fprdid', '=', 'trandt.fprdcodeid')
-      ->where('trandt.fsono', $fsono) // Gunakan variabel $fsono dari parameter fungsi
-      ->orderBy('trandt.fnou', 'asc') // Urutkan berdasarkan nomor urut baris
-      ->get([
-        'trandt.*',
-        'p.fprdcode as product_code',
-        'p.fprdname as product_name',
-        'p.fminstock as stock',
-      ]);
-
-    // Format date helper
-    $fmt = fn($d) => $d
-      ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y')
-      : '-';
-
-    return view('invoice.print', [
-      'hdr'          => $hdr,
-      'dt'           => $dt,
-      'fmt'          => $fmt,
-      'company_name' => config('app.company_name', 'PT. DEMO VERSION'),
-      'company_city' => config('app.company_city', 'Tangerang'),
-    ]);
-  }
-
-  public function create(Request $request)
-  {
-    $customers = Customer::orderBy('fcustomername', 'asc')
-      ->get(['fcustomerid', 'fcustomername']);
-
-    $salesmans = Salesman::orderBy('fsalesmanname', 'asc')
-      ->get(['fsalesmanid', 'fsalesmanname']);
-
-    $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
-
-    $branch = DB::table('mscabang')
-      ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int)$raw))
-      ->when(
-        !is_numeric($raw),
-        fn($q) => $q->where('fcabangkode', $raw)->orWhere('fcabangname', $raw)
-      )
-      ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
-
-    $canApproval = in_array('approvalpr', explode(',', session('user_restricted_permissions', '')));
-
-    $fcabang = $branch->fcabangname ?? (string)$raw;
-    $fbranchcode = $branch->fcabangkode ?? (string)$raw;
-
-    $newtr_prh_code = $this->generatetr_poh_Code(now(), $fbranchcode);
-
-    $products = Product::select(
-      'fprdid',
-      'fprdcode',
-      'fprdname',
-      'fsatuankecil',
-      'fsatuanbesar',
-      'fsatuanbesar2',
-      'fminstock'
-    )->orderBy('fprdname')->get();
-
-    $productMap = $products->mapWithKeys(function ($p) {
-      return [
-        $p->fprdcode => [
-          'name'  => $p->fprdname,
-          'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
-          'stock' => $p->fminstock ?? 0,
-        ],
-      ];
-    })->toArray();
-
-    return view('invoice.create', [
-      'newtr_prh_code' => $newtr_prh_code,
-      'perms' => ['can_approval' => $canApproval],
-      'customers' => $customers,
-      'salesmans' => $salesmans,
-      'fcabang' => $fcabang,
-      'fbranchcode' => $fbranchcode,
-      'products' => $products,
-      'productMap' => $productMap,
-      'filterSupplierId' => $request->query('filter_supplier_id'),
-      'filterSalesmanId' => $request->query('filter_salesman_id'),
-    ]);
-  }
-
-  public function store(Request $request)
-  {
-    // 1. VALIDASI (Tetap sama)
-    $request->validate([
-      'fsodate'    => ['required', 'date'],
-      'fcustno'    => ['required', 'string', 'max:10'],
-      'ftypesales' => ['required', 'in:0,1'],
-      'fitemcode'  => ['required', 'array', 'min:1'],
-      'fitemcode.*' => ['required', 'string', 'max:30'],
-      'fqty'       => ['required', 'array'],
-      'fqty.*'     => ['numeric', 'min:0.01'],
-      'fprice'     => ['required', 'array'],
-      'fprice.*'   => ['numeric', 'min:0'],
-      'fdisc'      => ['nullable', 'array'],
-      'frefcode'   => ['nullable', 'string', 'in:SO,SRJ,UM'],
-      'frefso'     => ['nullable'],
-      'frefsrj'    => ['nullable'],
-    ], [
-      'fsodate.required'   => 'Tanggal Faktur Penjualan wajib diisi.',
-      'fcustno.required'   => 'Customer wajib diisi.',
-      'fitemcode.required' => 'Minimal harus ada 1 item barang.',
-    ]);
-
-    // 2. INISIALISASI DATA HEADER (Tetap sama)
-    $fsodate     = Carbon::parse($request->fsodate);
-    $fincludeppn = $request->boolean('fincludeppn') ? '1' : '0';
-    $fapplyppn = $request->boolean('fapplyppn') ? '1' : '0';
-    $userid      = mb_substr(auth('sysuser')->user()->fname ?? 'admin', 0, 10);
-    $now         = now();
-    $fcurrency   = $request->input('fcurrency', 'IDR');
-    $frate       = (float)$request->input('frate', 1);
-
-    // 3. PROSES DETAIL (ARRAY)
-    $itemCodes = $request->input('fitemcode', []);
-    $typeSales = (int) $request->input('ftypesales');
-    $itemDescs = $request->input('fitemname', []);
-    $satuans   = $request->input('fsatuan', []);
-    $qtys      = $request->input('fqty', []);
-    $prices    = $request->input('fprice', []);
-    $discs     = $request->input('fdisc', []);
-
-    $frefso_ids   = $request->input('frefsoid', []);
-    $frefsrjid_ids = $request->input('frefsrjid', []);
-    $frefpr_codes = $request->input('frefpr', []);
-
-    $detailRows  = [];
-    $totalGross  = 0;
-    $totalDisc   = 0;
-
-    // Logika UM (Tetap sama)
-    $hasUM = in_array('UM', $itemCodes);
-    if ($hasUM && $typeSales === 0) return back()->withInput()->with('error', 'Produk Uang Muka (UM) hanya diperbolehkan untuk tipe transaksi Uang Muka.');
-    if (!$hasUM && $typeSales === 1) return back()->withInput()->with('error', 'Transaksi Uang Muka wajib menggunakan produk dengan kode UM.');
-
-    $products = DB::table('msprd')
-      ->whereIn('fprdcode', array_filter($itemCodes))
-      ->get(['fprdid', 'fprdcode', 'fprdname', 'fdiscontinue', 'fsatuanbesar', 'fqtykecil as rasio_konversi'])
-      ->keyBy('fprdcode');
-
-    foreach ($itemCodes as $i => $code) {
-      $qty   = (float)($qtys[$i] ?? 0);
-      $price = (float)($prices[$i] ?? 0);
-      if (empty($code) || $qty <= 0) continue;
-
-      $refCode = '';
-      if (!empty($frefso_ids[$i])) {
-        $refCode = 'S';
-      } elseif (!empty($frefsrjid_ids[$i])) {
-        $refCode = 'R';
-      }
-
-      $product = $products->get($code);
-      $fprdcodeid = $product ? $product->fprdid : null;
-
-      $qtyKecil = $qty;
-      if ($product && ($satuans[$i] ?? '') === $product->fsatuanbesar) {
-        $qtyKecil = $qty * (float)($product->rasio_konversi ?? 1);
-      }
-
-      $discPersen = $this->parseDiscount($discs[$i] ?? 0);
-      $subtotal   = $qty * $price;
-      $discAmount = $subtotal * ($discPersen / 100);
-      $netPrice   = $price - ($price * ($discPersen / 100));
-      $amountRow  = $subtotal - $discAmount;
-
-      $totalGross += $subtotal;
-      $totalDisc  += $discAmount;
-
-      $detailRows[] = [
-        'fsono'        => '', // Akan diisi di dalam transaksi
-        'ftranmtid'    => null, // Akan diisi di dalam transaksi menggunakan insertGetId header
-        'fnou'         => $i + 1,
-        'fprdcodeid'   => $fprdcodeid,
-        'fprdcode'     => mb_substr($code, 0, 30),
-        'fdesc'        => $itemDescs[$i] ?? '',
-        'fqty'         => $qty,
-        'fqtykecil'    => $qtyKecil,
-        'fqtyremain'   => $qtyKecil,
-        'fprice'       => $price,
-        'fprice_rp'    => $price * $frate,
-        'fdisc'        => mb_substr((string)($discs[$i] ?? '0'), 0, 10),
-        'fpricenet'    => $netPrice,
-        'fpricenet_rp' => $netPrice * $frate,
-        'famount'      => $amountRow,
-        'famount_rp'   => $amountRow * $frate,
-        'fsatuan'      => mb_substr($satuans[$i] ?? '', 0, 5),
-        'fuserid'      => $userid,
-        'fdatetime'    => $now,
-        'frefcode'     => $refCode,
-        'frefso'       => !empty($frefso_ids[$i]) ? ($frefpr_codes[$i] ?? '') : '',
-        'frefsoid'     => !empty($frefso_ids[$i]) ? (int)$frefso_ids[$i] : null,
-        'frefsrj'      => !empty($frefsrjid_ids[$i]) ? ($frefpr_codes[$i] ?? '') : '',
-        'frefsrjid'    => !empty($frefsrjid_ids[$i]) ? (int)$frefsrjid_ids[$i] : null,
-      ];
-    }
-
-    $amountNet = $totalGross - $totalDisc;
-    $ppnPersen = (float)$request->input('fppnpersen', 11);
-    $ppnAmount = ($fincludeppn === '1') ? ($amountNet * ($ppnPersen / 100)) : 0;
-    $grandTotal = $amountNet + $ppnAmount;
-
-    // 5. DATABASE TRANSACTION
-    try {
-      DB::transaction(function () use ($fapplyppn, $request, $fsodate, $fincludeppn, $userid, $now, $detailRows, $totalGross, $totalDisc, $amountNet, $ppnAmount, $grandTotal, $fcurrency, $frate, $ppnPersen) {
-
-        // Penomoran Otomatis (Tetap sama)
-        $fsono = $request->input('fsono');
-        if (empty($fsono)) {
-          $prefix = 'INV.' . $fsodate->format('ym') . '.';
-          $lastRecord = DB::table('tranmt')->where('fsono', 'like', $prefix . '%')->orderBy('fsono', 'desc')->lockForUpdate()->first();
-          $nextNumber = $lastRecord ? ((int) substr(trim($lastRecord->fsono), -4) + 1) : 1;
-          $fsono = $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+    public function index(Request $request)
+    {
+        // Ambil izin (permissions)
+        $canCreate = in_array('createInvoice', explode(',', session('user_restricted_permissions', '')));
+        $canEdit = in_array('updateInvoice', explode(',', session('user_restricted_permissions', '')));
+        $canDelete = in_array('deleteInvoice', explode(',', session('user_restricted_permissions', '')));
+        $showActionsColumn = $canEdit || $canDelete;
+
+        // $status = $request->query('status');
+        $year = $request->query('year');
+        $month = $request->query('month');
+
+        // Ambil tahun-tahun yang tersedia dari data
+        $availableYears = Tranmt::selectRaw('DISTINCT EXTRACT(YEAR FROM fdatetime) as year')
+            ->whereNotNull('fdatetime')
+            ->orderByRaw('EXTRACT(YEAR FROM fdatetime) DESC')
+            ->pluck('year');
+
+        // --- Handle Request AJAX dari DataTables ---
+        if ($request->ajax()) {
+
+            $query = Tranmt::query();
+
+            // DEBUG: Cek total data di tabel
+            $totalRecords = Tranmt::count();
+
+            // Handle Search
+            if ($search = $request->input('search.value')) {
+                $query->where('fsono', 'like', "%{$search}%");
+            }
+
+            // Filter status - DEFAULT ke 'active' jika tidak ada
+            // $statusFilter = $request->query('status', 'active');
+
+            // if ($statusFilter === 'active') {
+            //   $query->where('fclose', '0');
+            // } elseif ($statusFilter === 'nonactive') {
+            //   $query->where('fclose', '1');
+            // }
+
+            // Filter tahun
+            if ($year) {
+                $query->whereRaw('EXTRACT(YEAR FROM fdatetime) = ?', [$year]);
+            }
+
+            // Filter bulan
+            if ($month) {
+                $query->whereRaw('EXTRACT(MONTH FROM fdatetime) = ?', [$month]);
+            }
+
+            $filteredRecords = (clone $query)->count();
+
+            // Sorting
+            $orderColIdx = $request->input('order.0.column', 0);
+            $orderDir = $request->input('order.0.dir', 'asc');
+
+            $sortableColumns = ['fsono', 'fsodate'];
+
+            if (isset($sortableColumns[$orderColIdx])) {
+                $query->orderBy($sortableColumns[$orderColIdx], $orderDir);
+            }
+
+            // Paginasi
+            $start = $request->input('start', 0);
+            $length = $request->input('length', 10);
+            $records = $query->skip($start)
+                ->take($length)
+                ->get();
+
+            // Format Data
+            $data = $records->map(function ($row) {
+                return [
+                    'ftranmtid' => $row->ftranmtid,
+                    'fbranchcode' => $row->fbranchcode,
+                    'fsono' => $row->fsono,
+                    'fsodate' => $row->fsodate instanceof \Carbon\Carbon
+                      ? $row->fsodate->format('Y-m-d')
+                      : $row->fsodate,
+                    'frefno' => $row->frefno ?? '',
+                    'fcustno' => $row->fcustno ?? '',
+                    'fsalesman' => $row->fsalesman,
+                    'fdiscpersen' => $row->fdiscpersen,
+                    'fdiscount' => $row->fdiscount,
+                    'famountgross' => $row->famountgross,
+                    'famountsonet' => $row->famountsonet,
+                    'famountpajak' => $row->famountpajak,
+                    'famountso' => $row->famountso,
+                    'fket' => $row->fket,
+                    'falamatkirim' => $row->falamatkirim,
+                    'fprdout' => $row->fprdout,
+                    'fusercreate' => $row->fusercreate,
+                    'fuserupdate' => $row->fuserupdate,
+                    'fdatetime' => $row->fdatetime,
+                    'fclose' => $row->fclose,
+                    'fincludeppn' => $row->fincludeppn,
+                    'fuseracc' => $row->fuseracc,
+                    'fneedacc' => $row->fneedacc,
+                    'ftempohr' => $row->ftempohr,
+                    'fprint' => $row->fprint,
+                ];
+            });
+
+            return response()->json([
+                'draw' => intval($request->input('draw')),
+                'recordsTotal' => $totalRecords,
+                'recordsFiltered' => $filteredRecords,
+                'data' => $data,
+            ]);
         }
 
-        // --- INSERT HEADER DAN AMBIL ID ---
-        $ftranmtid = DB::table('tranmt')->insertGetId([
-          'ftaxno'          => mb_substr($request->ftaxno ?? '', 0, 50),
-          'fsono'           => $fsono,
-          'fsodate'         => $fsodate,
-          'fcustno'         => mb_substr($request->fcustno, 0, 10),
-          'fsalesman'       => (int) $request->input('fsalesman', 0),
-          'fcurrency'       => $fcurrency,
-          'frate'           => $frate,
-          'fdiscount'       => $totalDisc,
-          'fdiscount_rp'    => $totalDisc * $frate,
-          'famountgross'    => $totalGross,
-          'famountgross_rp' => $totalGross * $frate,
-          'famountsonet'    => $amountNet,
-          'famountsonet_rp' => $amountNet * $frate,
-          'famountpajak'    => $ppnAmount,
-          'famountpajak_rp' => $ppnAmount * $frate,
-          'famountso'       => $grandTotal,
-          'famountso_rp'    => $grandTotal * $frate,
-          'famountremain'   => $grandTotal,
-          'famountremain_rp' => $grandTotal * $frate,
-          'fket'            => $request->fket ?? '',
-          'fuserid'         => $userid,
-          'fdatetime'       => $now,
-          'fincludeppn'     => $fincludeppn,
-          'fapplyppn'     => $fapplyppn,
-          'fppnpersen'      => $ppnPersen,
-          'ftypesales'      => $request->input('ftypesales', 0),
-          'ftrcode'         => 'I',
-          'fprdout'         => '0',
-        ], 'ftranmtid');
+        // --- Handle Request non-AJAX ---
+        return view('invoice.index', compact(
+            'canCreate',
+            'canEdit',
+            'canDelete',
+            'showActionsColumn',
+            // 'status',
+            'availableYears',
+            'year',
+            'month'
+        ));
+    }
 
-        // --- UPDATE DETAIL ROWS DENGAN ID HEADER DAN NOMOR SONO ---
-        foreach ($detailRows as &$row) {
-          $row['fsono'] = $fsono;
-          $row['ftranmtid'] = $ftranmtid; // Mengisi foreign key dari ID header baru
+    public function pickable(Request $request)
+    {
+        // Base query dengan JOIN
+        $query = Tr_prh::leftJoin('mssupplier', 'tr_prh.fsupplier', '=', 'mssupplier.fsupplierid')
+            ->select(
+                'tr_prh.*',
+                'mssupplier.fsuppliername',
+                'mssupplier.fsuppliercode'
+            );
+
+        // Total records tanpa filter
+        $recordsTotal = Tr_prh::count();
+
+        // Search
+        if ($request->filled('search') && $request->search != '') {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('tr_prh.fprno', 'ilike', "%{$search}%")
+                    ->orWhere('mssupplier.fsuppliername', 'ilike', "%{$search}%")
+                    ->orWhere('mssupplier.fsuppliercode', 'ilike', "%{$search}%");
+            });
         }
 
-        // INSERT DETAIL
-        DB::table('trandt')->insert($detailRows);
-      });
+        // Total records setelah filter
+        $recordsFiltered = $query->count();
 
-      return redirect()->route('invoice.index')->with('success', "Faktur Penjualan berhasil disimpan.");
-    } catch (\Exception $e) {
-      return back()->withInput()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
-    }
-  }
+        // Sorting
+        $orderColumn = $request->input('order_column', 'fprdate');
+        $orderDir = $request->input('order_dir', 'desc');
 
-  // ✅ TAMBAHKAN METHOD HELPER UNTUK PARSE DISCOUNT
-  private function parseDiscount($discInput)
-  {
-    if ($discInput === null || $discInput === '') return 0;
+        $allowedColumns = ['fprno', 'fprdate'];
+        if (in_array($orderColumn, $allowedColumns)) {
+            if (in_array($orderColumn, ['fprno', 'fprdate'])) {
+                $query->orderBy('tr_prh.'.$orderColumn, $orderDir);
+            } else {
+                $query->orderBy('mssupplier.fsuppliername', $orderDir);
+            }
+        } else {
+            $query->orderBy('tr_prh.fprdate', 'desc');
+        }
 
-    // Jika sudah berupa angka
-    if (is_numeric($discInput)) {
-      return (float)$discInput;
-    }
+        // Pagination
+        $start = (int) $request->input('start', 0);
+        $length = (int) $request->input('length', 10);
 
-    // Jika string, parse ekspresi matematika
-    $str = trim((string)$discInput);
+        $data = $query->skip($start)
+            ->take($length)
+            ->get();
 
-    if ($str === '') return 0;
-
-    // Jika angka biasa
-    if (is_numeric($str)) {
-      return (float)$str;
-    }
-
-    // Parse ekspresi seperti "10+2"
-    try {
-      // Hapus spasi
-      $cleaned = preg_replace('/\s+/', '', $str);
-
-      // Evaluasi ekspresi
-      $result = eval("return {$cleaned};");
-
-      // Batasi 0-100%
-      $final = max(0, min(100, (float)$result));
-
-      return $final;
-    } catch (\Throwable $e) {
-      return 0;
-    }
-  }
-  public function edit(Request $request, $ftranmtid)
-  {
-    $customers = Customer::orderBy('fcustomername', 'asc')
-      ->get(['fcustomerid', 'fcustomername']);
-
-    $salesmans = Salesman::orderBy('fsalesmanname', 'asc')
-      ->get(['fsalesmanid', 'fsalesmanname']);
-
-    $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
-
-    $branch = DB::table('mscabang')
-      ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
-      ->when(!is_numeric($raw), fn($q) => $q
-        ->where('fcabangkode', $raw)
-        ->orWhere('fcabangname', $raw))
-      ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
-
-    $fcabang     = $branch->fcabangname ?? (string) $raw;   // tampilan
-    $fbranchcode = $branch->fcabangkode ?? (string) $raw;   // hidden post
-
-    $invoice = Tranmt::with(['customer', 'details' => function ($q) {
-      $q->leftJoin('msprd', 'msprd.fprdid', '=', 'trandt.fprdcodeid')
-        ->leftJoin('trsomt as so_hdr', 'so_hdr.ftrsomtid', '=', 'trandt.frefsoid')
-        ->leftJoin('trstockmt as sj_hdr', 'sj_hdr.fstockmtid', '=', 'trandt.frefsrjid')
-        ->select(
-          'trandt.*',
-          'msprd.fprdcode as fitemcode',
-          'msprd.fprdname',
-          'so_hdr.fsono as fsono_ref',
-          'sj_hdr.fstockmtno as fstockno_ref'
-        )
-        ->orderBy('trandt.ftrandtid', 'asc');
-    }])->findOrFail($ftranmtid);
-
-    if (!$invoice->customer) {
-      $invoice->setRelation('customer', Customer::find(trim($invoice->fcustno)));
+        // Response format untuk DataTables
+        return response()->json([
+            'draw' => (int) $request->input('draw', 1),
+            'recordsTotal' => (int) $recordsTotal,
+            'recordsFiltered' => (int) $recordsFiltered,
+            'data' => $data,
+        ]);
     }
 
-    $savedItems = $invoice->details->map(function ($d) {
-      $refCode = trim($d->frefcode ?? '');
-      if (empty($refCode)) {
-        if (!empty(trim($d->frefso ?? '')))  $refCode = 'SO';
-        if (!empty(trim($d->frefsrj ?? ''))) $refCode = 'SRJ';
-      }
+    public function items($id)
+    {
+        // Ambil data header PR berdasarkan fprhid
+        $header = Tr_prh::where('fprhid', $id)->firstOrFail();
 
-      // Priority: Joined Header Number -> Stored Detail String -> Type Prefix
-      $refNoDisplay = $d->fsono_ref ?? ($d->fstockno_ref ?? (trim($d->frefso ?? $d->frefsrj ?? '') ?: $refCode));
+        // PERBAIKAN: Gunakan fprhid (integer) bukan fprno (varchar)
+        $items = Tr_prd::where('tr_prd.fprhid', $header->fprhid) // <- Gunakan fprhid
+            ->leftJoin('msprd as m', 'm.fprdcodeid', '=', 'tr_prd.fitemid')
+            ->select([
+                'tr_prd.fprdcodeid as frefdtno',
+                'tr_prd.fitemid as fitemcode',
+                'm.fprdname as fitemname',
+                'tr_prd.fqty',
+                'tr_prd.fsatuan as fsatuan',
+                'tr_prd.fprhid',
+                'tr_prd.fprice as fharga',
+                DB::raw('0::numeric as fdiskon'),
+            ])
+            ->orderBy('tr_prd.fitemid')
+            ->get();
 
-      return [
-        'uid'        => $d->ftrandtid,
-        'fitemcode'  => trim($d->fitemcode ?? ''),
-        'fitemname'  => trim($d->fprdname ?? ''),
-        'fsatuan'    => trim($d->fsatuan ?? ''),
-        'frefdtno'   => (string)($d->frefdtno ?? ''),
-        'frefcode'   => $refCode,
-        'frefso'     => trim($d->frefso ?? ''),
-        'frefsoid'   => (string)($d->frefsoid ?? ''),
-        'frefsrj'    => trim($d->frefsrj ?? ''),
-        'frefsrjid'  => (string)($d->frefsrjid ?? ''),
-        'frefno_display' => $refNoDisplay,
-        'fqty'       => (float)($d->fqty ?? 0),
-        'fterima'    => (float)($d->fterima ?? 0),
-        'fprice'     => (float)($d->fprice ?? 0),
-        'fdisc'      => (float)($d->fdisc ?? 0),
-        'ftotal'     => (float)($d->famount ?? 0),
-        'fdesc'      => (string)($d->fdesc ?? ''),
-        'frefpr'     => $refNoDisplay,
-        'fsono_ref'    => trim($d->fsono_ref ?? ''),
-        'fstockno_ref' => trim($d->fstockno_ref ?? ''),
-        'fketdt'     => (string)($d->fketdt ?? ''),
-      ];
-    })->values();
-    $selectedSupplierCode = $invoice->fsupplier;
-
-    // Fetch all products for product mapping
-    $products = Product::select(
-      'fprdid',
-      'fprdcode',
-      'fprdname',
-      'fsatuankecil',
-      'fsatuanbesar',
-      'fsatuanbesar2',
-      'fminstock'
-    )->orderBy('fprdname')->get();
-
-    // Prepare the product map for frontend
-    $productMap = $products->mapWithKeys(function ($p) {
-      return [
-        $p->fprdcode => [
-          'name'  => $p->fprdname,
-          'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
-          'stock' => $p->fminstock ?? 0,
-        ],
-      ];
-    })->toArray();
-
-    // Pass the data to the view
-    return view('invoice.edit', [
-      'customers' => $customers,
-      'salesmans' => $salesmans,
-      'selectedSupplierCode' => $selectedSupplierCode, // Kirim kode supplier ke view
-      'fcabang'      => $fcabang,
-      'fbranchcode'  => $fbranchcode,
-      'products'     => $products,
-      'productMap'   => $productMap,
-      'invoice'       => $invoice,
-      'savedItems'   => $savedItems,
-      'ppnAmount'    => (float) ($invoice->famountpopajak ?? 0), // total PPN from DB
-      'famountgross'    => (float) ($invoice->famountgross ?? 0),  // nilai Grand Total dari DB
-      'famountso'    => (float) ($invoice->famountso ?? 0),  // nilai Grand Total dari DB
-      'filterSupplierId' => $request->query('filter_supplier_id'),
-      'filterSalesmanId' => $request->query('filter_salesman_id'),
-      'action' => 'edit'
-    ]);
-  }
-
-  public function view(Request $request, $ftranmtid)
-  {
-    $customers = Customer::orderBy('fcustomername', 'asc')
-      ->get(['fcustomerid', 'fcustomername']);
-
-    $salesmans = Salesman::orderBy('fsalesmanname', 'asc')
-      ->get(['fsalesmanid', 'fsalesmanname']);
-
-    $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
-
-    $branch = DB::table('mscabang')
-      ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
-      ->when(!is_numeric($raw), fn($q) => $q
-        ->where('fcabangkode', $raw)
-        ->orWhere('fcabangname', $raw))
-      ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
-
-    $fcabang     = $branch->fcabangname ?? (string) $raw;   // tampilan
-    $fbranchcode = $branch->fcabangkode ?? (string) $raw;   // hidden post
-
-    $invoice = Tranmt::with(['customer', 'details' => function ($q) {
-      $q->leftJoin('msprd', 'msprd.fprdid', '=', 'trandt.fprdcodeid')
-        ->leftJoin('trsomt as so_hdr', 'so_hdr.ftrsomtid', '=', 'trandt.frefsoid')
-        ->leftJoin('trstockmt as sj_hdr', 'sj_hdr.fstockmtid', '=', 'trandt.frefsrjid')
-        ->select(
-          'trandt.*',
-          'msprd.fprdcode as fitemcode',
-          'msprd.fprdname',
-          'so_hdr.fsono as fsono_ref',
-          'sj_hdr.fstockmtno as fstockno_ref'
-        )
-        ->orderBy('trandt.ftrandtid', 'asc');
-    }])->findOrFail($ftranmtid);
-
-    if (!$invoice->customer) {
-      $invoice->setRelation('customer', Customer::find(trim($invoice->fcustno)));
+        return response()->json([
+            'header' => [
+                'fprhid' => $header->fprhid,
+                'fprno' => $header->fprno,
+                'fsupplier' => trim($header->fsupplier ?? ''),
+                'fprdate' => optional($header->fprdate)->format('Y-m-d H:i:s'),
+            ],
+            'items' => $items,
+        ]);
     }
 
-    $savedItems = $invoice->details->map(function ($d) {
-      $refNoDisplay = $d->fsono_ref ?? ($d->fstockno_ref ?? (trim($d->frefso ?? $d->frefsrj ?? '') ?: ($d->frefcode ?? '-')));
-      return [
-        'uid'        => $d->ftrandtid,
-        'fitemcode'  => (string)($d->fitemcode ?? ''),
-        'fitemname'  => (string)($d->fprdname ?? ''),
-        'fsatuan'    => (string)($d->fsatuan ?? ''),
-        'frefdtno'   => (string)($d->frefdtno ?? ''),
-        'fqty'       => (float)($d->fqty ?? 0),
-        'fterima'    => (float)($d->fterima ?? 0),
-        'fprice'     => (float)($d->fprice ?? 0),
-        'fdisc'      => (float)($d->fdisc ?? 0),
-        'ftotal'     => (float)($d->famount ?? 0),
-        'fdesc'      => (string)($d->fdesc ?? ''),
-        'frefcode'   => (string)($d->frefcode ?? ''),
-        'frefno_display' => $refNoDisplay,
-        'fketdt'     => (string)($d->fketdt ?? ''),
-      ];
-    })->values();
-    $selectedSupplierCode = $invoice->fsupplier;
+    private function generatetr_poh_Code(?Carbon $onDate = null, $branch = null): string
+    {
+        $date = $onDate ?: now();
 
-    // Fetch all products for product mapping
-    $products = Product::select(
-      'fprdid',
-      'fprdcode',
-      'fprdname',
-      'fsatuankecil',
-      'fsatuanbesar',
-      'fsatuanbesar2',
-      'fminstock'
-    )->orderBy('fprdname')->get();
+        $branch = $branch
+          ?? Auth::guard('sysuser')->user()?->fcabang
+          ?? Auth::user()?->fcabang
+          ?? null;
 
-    // Prepare the product map for frontend
-    $productMap = $products->mapWithKeys(function ($p) {
-      return [
-        $p->fprdcode => [
-          'name'  => $p->fprdname,
-          'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
-          'stock' => $p->fminstock ?? 0,
-        ],
-      ];
-    })->toArray();
+        // resolve kode cabang
+        $kodeCabang = null;
+        if ($branch !== null) {
+            $needle = trim((string) $branch);
+            if (is_numeric($needle)) {
+                $kodeCabang = DB::table('mscabang')->where('fcabangid', (int) $needle)->value('fcabangkode');
+            } else {
+                $kodeCabang = DB::table('mscabang')->whereRaw('LOWER(fcabangkode)=LOWER(?)', [$needle])->value('fcabangkode')
+                  ?: DB::table('mscabang')->whereRaw('LOWER(fcabangname)=LOWER(?)', [$needle])->value('fcabangkode');
+            }
+        }
+        if (! $kodeCabang) {
+            $kodeCabang = 'NA';
+        }
 
-    // Pass the data to the view
-    return view('invoice.view', [
-      'customers' => $customers,
-      'salesmans' => $salesmans,
-      'selectedSupplierCode' => $selectedSupplierCode, // Kirim kode supplier ke view
-      'fcabang'      => $fcabang,
-      'fbranchcode'  => $fbranchcode,
-      'products'     => $products,
-      'productMap'   => $productMap,
-      'invoice'       => $invoice,
-      'savedItems'   => $savedItems,
-      'ppnAmount'    => (float) ($invoice->famountpopajak ?? 0), // total PPN from DB
-      'famountgross'    => (float) ($invoice->famountgross ?? 0),  // nilai Grand Total dari DB
-      'famountso'    => (float) ($invoice->famountso ?? 0),  // nilai Grand Total dari DB
-      'filterSupplierId' => $request->query('filter_supplier_id'),
-      'filterSalesmanId' => $request->query('filter_salesman_id'),
-    ]);
-  }
+        $prefix = sprintf('PO.%s.%s.%s.', $kodeCabang, $date->format('y'), $date->format('m'));
 
-  public function update(Request $request, $ftranmtid)
-  {
-    // 1. VALIDASI
-    $request->validate([
-      'fsodate'      => ['required', 'date'],
-      'fcustno'      => ['required', 'string', 'max:10'],
-      'ftypesales'   => ['required', 'in:0,1'],
-      'ftaxno'       => ['nullable', 'string', 'max:50'],
-      'fitemcode'    => ['required', 'array', 'min:1'],
-      'fitemcode.*'  => ['required', 'string', 'max:30'],
-      'fqty'         => ['required', 'array'],
-      'fqty.*'       => ['numeric', 'min:0.01'],
-      'fprice'       => ['required', 'array'],
-      'fprice.*'     => ['numeric', 'min:0'],
-    ]);
+        // kunci per (branch, tahun-bulan) — TANPA bikin tabel baru
+        $lockKey = crc32('PO|'.$kodeCabang.'|'.$date->format('Y-m'));
+        DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
-    // DEBUG: Awal Request
-    Log::info("[UPDATE INVOICE] Memulai proses update ID: {$ftranmtid}", [
-      'user' => auth('sysuser')->user()->fname ?? 'admin',
-      'all_payload' => $request->all()
-    ]);
+        $last = DB::table('tranmt')
+            ->where('fsono', 'like', $prefix.'%')
+            ->selectRaw("MAX(CAST(split_part(fsono, '.', 5) AS int)) AS lastno")
+            ->value('lastno');
 
-    // 2. LOAD HEADER
-    $header = DB::table('tranmt')->where('ftranmtid', $ftranmtid)->first();
-    if (!$header) {
-      Log::error("[UPDATE INVOICE] Header tidak ditemukan untuk ID: {$ftranmtid}");
-      return abort(404, 'Faktur Penjualan tidak ditemukan.');
+        $next = (int) $last + 1;
+
+        return $prefix.str_pad((string) $next, 4, '0', STR_PAD_LEFT);
     }
 
-    // 3. INISIALISASI DATA
-    $fsodate     = Carbon::parse($request->fsodate);
-    $fincludeppn = $request->boolean('fincludeppn') ? '1' : '0';
-    $fapplyppn = $request->boolean('fapplyppn') ? '1' : '0';
-    $userid      = mb_substr(auth('sysuser')->user()->fname ?? 'admin', 0, 10);
-    $now         = now();
-    $frate       = (float)$request->input('frate', $header->frate ?? 1);
+    public function print(string $fsono)
+    {
+        // Header: find by SO code (string)
+        $hdr = DB::table('tranmt')
+            ->leftJoin('mscustomer as c', 'c.fcustomerid', '=', DB::raw('CAST(tranmt.fcustno AS INTEGER)'))
+            ->leftJoin('mssalesman as s', 's.fsalesmanid', '=', DB::raw('CAST(tranmt.fsalesman AS INTEGER)'))
+            ->where('tranmt.fsono', $fsono)
+            ->first([
+                'tranmt.*',
+                'c.fcustomername as customer_name',
+                's.fsalesmanname as salesman_name',
+            ]);
 
-    $itemCodes     = $request->input('fitemcode', []);
-    $typeSales     = (int) $request->input('ftypesales');
-    $itemDescs     = $request->input('fitemname', []);
-    $satuans       = $request->input('fsatuan', []);
-    $qtys          = $request->input('fqty', []);
-    $prices        = $request->input('fprice', []);
-    $discs         = $request->input('fdisc', []);
-    $frefcodes     = $request->input('frefcode', []);
-    $frefso_ids    = $request->input('frefsoid', []);
-    $frefsrjid_ids = $request->input('frefsrjid', []);
-    $frefpr_codes  = $request->input('frefpr', []);
+        if (! $hdr) {
+            return redirect()->back()->with('error', 'Sales Order tidak ditemukan.');
+        }
 
-    // 4. BUILD DETAIL ROWS
-    $detailRows = [];
-    $totalGross = 0;
-    $totalDisc  = 0;
+        // Use header ID (integer) for detail FK
+        $ftranmtid = (int) $hdr->ftranmtid;
 
-    $hasUM = in_array('UM', $itemCodes);
-    if ($hasUM && $typeSales === 0) {
-      Log::warning("[UPDATE INVOICE] Validasi Gagal: Item UM ditemukan pada tipe Penjualan biasa.");
-      return back()->withInput()->with('error', 'Produk Uang Muka (UM) hanya diperbolehkan untuk tipe transaksi Uang Muka.');
+        // Detail: join dengan product
+        $dt = DB::table('trandt')
+            ->leftJoin('msprd as p', 'p.fprdid', '=', 'trandt.fprdcodeid')
+            ->where('trandt.fsono', $fsono) // Gunakan variabel $fsono dari parameter fungsi
+            ->orderBy('trandt.fnou', 'asc') // Urutkan berdasarkan nomor urut baris
+            ->get([
+                'trandt.*',
+                'p.fprdcode as product_code',
+                'p.fprdname as product_name',
+                'p.fminstock as stock',
+            ]);
+
+        // Format date helper
+        $fmt = fn ($d) => $d
+          ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y')
+          : '-';
+
+        return view('invoice.print', [
+            'hdr' => $hdr,
+            'dt' => $dt,
+            'fmt' => $fmt,
+            'company_name' => config('app.company_name', 'PT. DEMO VERSION'),
+            'company_city' => config('app.company_city', 'Tangerang'),
+        ]);
     }
 
-    // Ambil data produk masal
-    $products = DB::table('msprd')
-      ->whereIn('fprdcode', array_filter($itemCodes))
-      ->get(['fprdid', 'fprdcode', 'fprdname', 'fdiscontinue', 'fsatuanbesar', 'fqtykecil as rasio_konversi'])
-      ->keyBy('fprdcode');
+    public function create(Request $request)
+    {
+        $customers = Customer::orderBy('fcustomername', 'asc')
+            ->get(['fcustomerid', 'fcustomername']);
 
-    Log::info("[UPDATE INVOICE] Jumlah item unik dari request: " . count($itemCodes));
+        $salesmans = Salesman::orderBy('fsalesmanname', 'asc')
+            ->get(['fsalesmanid', 'fsalesmanname']);
 
-    foreach ($itemCodes as $i => $code) {
-      $qty   = (float)($qtys[$i] ?? 0);
-      $price = (float)($prices[$i] ?? 0);
+        $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
-      if (empty($code) || $qty <= 0) {
-        Log::debug("[UPDATE INVOICE] Baris index {$i} dilewati (Qty <= 0 atau Kode Kosong)");
-        continue;
-      }
+        $branch = DB::table('mscabang')
+            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
+            ->when(
+                ! is_numeric($raw),
+                fn ($q) => $q->where('fcabangkode', $raw)->orWhere('fcabangname', $raw)
+            )
+            ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
 
-      $refCode = '';
-      if (!empty($frefso_ids[$i])) {
-        $refCode = 'SO';
-      } elseif (!empty($frefsrjid_ids[$i])) {
-        $refCode = 'SRJ';
-      } elseif (is_array($frefcodes) && !empty($frefcodes[$i])) {
-        $refCode = $frefcodes[$i];
-      }
+        $canApproval = in_array('approvalpr', explode(',', session('user_restricted_permissions', '')));
 
-      $refPr = $frefpr_codes[$i] ?? '';
-      $product = $products->get($code);
+        $fcabang = $branch->fcabangname ?? (string) $raw;
+        $fbranchcode = $branch->fcabangkode ?? (string) $raw;
 
-      if (!$product) {
-        Log::error("[UPDATE INVOICE] Produk tidak ditemukan di DB: {$code}");
-        return back()->withInput()->with('error', "Data produk [{$code}] tidak ditemukan.");
-      }
+        $newtr_prh_code = $this->generatetr_poh_Code(now(), $fbranchcode);
 
-      if ($product->fdiscontinue == '1') {
-        return back()->withInput()->with('error', "Produk [{$code}] {$product->fprdname} Sudah Discontinue.");
-      }
+        $products = Product::select(
+            'fprdid',
+            'fprdcode',
+            'fprdname',
+            'fsatuankecil',
+            'fsatuanbesar',
+            'fsatuanbesar2',
+            'fminstock'
+        )->orderBy('fprdname')->get();
 
-      // Konversi Satuan
-      $qtyKecil = $qty;
-      if ($satuans[$i] === $product->fsatuanbesar) {
-        $qtyKecil = $qty * (float)$product->rasio_konversi;
-      }
+        $productMap = $products->mapWithKeys(function ($p) {
+            return [
+                $p->fprdcode => [
+                    'name' => $p->fprdname,
+                    'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
+                    'stock' => $p->fminstock ?? 0,
+                ],
+            ];
+        })->toArray();
 
-      // Kalkulasi Baris
-      $discPersen = $this->parseDiscount($discs[$i] ?? 0);
-      $subtotal   = $qty * $price;
-      $discAmount = $subtotal * ($discPersen / 100);
-      $netPrice   = $price - ($price * ($discPersen / 100));
-      $amountRow  = $subtotal - $discAmount;
-
-      $totalGross += $subtotal;
-      $totalDisc  += $discAmount;
-
-      $rowData = [
-        'fsono'        => $header->fsono,
-        'fnou'         => $i + 1,
-        'fprdcodeid'       => $product->fprdid,
-        'fprdcode'     => mb_substr($code, 0, 30),
-        'fdesc'        => $itemDescs[$i] ?? '',
-        'fqty'         => $qty,
-        'fqtykecil'    => $qtyKecil,
-        'fqtyremain'   => $qtyKecil,
-        'fprice'       => $price,
-        'fprice_rp'    => $price * $frate,
-        'fdisc'        => mb_substr((string)($discs[$i] ?? '0'), 0, 10),
-        'fpricenet'    => $netPrice,
-        'fpricenet_rp' => $netPrice * $frate,
-        'famount'      => $amountRow,
-        'famount_rp'   => $amountRow * $frate,
-        'fsatuan'      => mb_substr($satuans[$i] ?? '', 0, 5),
-        'fuserid'      => $userid,
-        'fdatetime'    => $now,
-        'frefcode'     => $refCode,
-        'frefso'       => !empty($frefso_ids[$i])    ? $refPr : '',
-        'frefsoid'     => !empty($frefso_ids[$i])    ? (int)$frefso_ids[$i]    : null,
-        'frefsrj'      => !empty($frefsrjid_ids[$i]) ? $refPr : '',
-        'frefsrjid'    => !empty($frefsrjid_ids[$i]) ? (int)$frefsrjid_ids[$i] : null,
-      ];
-
-      $detailRows[] = $rowData;
-
-      Log::debug("[UPDATE INVOICE] Menyiapkan Baris Detail {$i}", ['data' => $rowData]);
+        return view('invoice.create', [
+            'newtr_prh_code' => $newtr_prh_code,
+            'perms' => ['can_approval' => $canApproval],
+            'customers' => $customers,
+            'salesmans' => $salesmans,
+            'fcabang' => $fcabang,
+            'fbranchcode' => $fbranchcode,
+            'products' => $products,
+            'productMap' => $productMap,
+            'filterSupplierId' => $request->query('filter_supplier_id'),
+            'filterSalesmanId' => $request->query('filter_salesman_id'),
+        ]);
     }
 
-    // 5. KALKULASI TOTAL AKHIR
-    $amountNet  = $totalGross - $totalDisc;
-    $ppnPersen  = (float)$request->input('fppnpersen', 11);
-    $ppnAmount  = ($fincludeppn === '1') ? ($amountNet * ($ppnPersen / 100)) : 0;
-    $grandTotal = $amountNet + $ppnAmount;
-
-    Log::info("[UPDATE INVOICE] Hasil Kalkulasi", [
-      'Gross' => $totalGross,
-      'Disc' => $totalDisc,
-      'Net' => $amountNet,
-      'PPN' => $ppnAmount,
-      'GrandTotal' => $grandTotal
-    ]);
-
-    // 6. TRANSACTION
-    try {
-      DB::transaction(function () use (
-        $request,
-        $ftranmtid,
-        $header,
-        $fsodate,
-        $fincludeppn,
-        $fapplyppn,
-        $userid,
-        $now,
-        $detailRows,
-        $totalGross,
-        $totalDisc,
-        $amountNet,
-        $ppnAmount,
-        $grandTotal,
-        $frate,
-        $ppnPersen
-      ) {
-        // Update Header
-        DB::table('tranmt')->where('ftranmtid', $ftranmtid)->update([
-          'ftaxno'          => mb_substr($request->ftaxno ?? '', 0, 50),
-          'fsodate'         => $fsodate,
-          'fcustno'         => mb_substr($request->fcustno, 0, 10) ?? 0,
-          'fsalesman' => (int) $request->input('fsalesman', 0),
-          'fdiscount'       => $totalDisc,
-          'fdiscount_rp'    => $totalDisc * $frate,
-          'famountgross'    => $totalGross,
-          'famountgross_rp' => $totalGross * $frate,
-          'famountsonet'    => $amountNet,
-          'famountsonet_rp' => $amountNet * $frate,
-          'famountpajak'    => $ppnAmount,
-          'famountpajak_rp' => $ppnAmount * $frate,
-          'famountso'       => $grandTotal,
-          'famountso_rp'    => $grandTotal * $frate,
-          'fket'            => $request->fket ?? '',
-          'fuserid'         => $userid,
-          'fdatetime'       => $now,
-          'fincludeppn'     => $fincludeppn,
-          'fapplyppn'       => $fapplyppn,
-          'fppnpersen'      => $ppnPersen,
-          'ftypesales'      => (int)$request->input('ftypesales', 0),
+    public function store(Request $request)
+    {
+        // 1. VALIDASI (Tetap sama)
+        $request->validate([
+            'fsodate' => ['required', 'date'],
+            'fcustno' => ['required', 'string', 'max:10'],
+            'ftypesales' => ['required', 'in:0,1'],
+            'fitemcode' => ['required', 'array', 'min:1'],
+            'fitemcode.*' => ['required', 'string', 'max:30'],
+            'fqty' => ['required', 'array'],
+            'fqty.*' => ['numeric', 'min:0.01'],
+            'fprice' => ['required', 'array'],
+            'fprice.*' => ['numeric', 'min:0'],
+            'fdisc' => ['nullable', 'array'],
+            'frefcode' => ['nullable', 'string', 'in:SO,SRJ,UM'],
+            'frefso' => ['nullable'],
+            'frefsrj' => ['nullable'],
+        ], [
+            'fsodate.required' => 'Tanggal Faktur Penjualan wajib diisi.',
+            'fcustno.required' => 'Customer wajib diisi.',
+            'fitemcode.required' => 'Minimal harus ada 1 item barang.',
         ]);
 
-        // Hapus detail lama
-        Log::info("[UPDATE INVOICE] Menghapus detail lama untuk fsono: {$header->fsono}");
-        DB::table('trandt')->where('fsono', $header->fsono)->delete();
+        // 2. INISIALISASI DATA HEADER (Tetap sama)
+        $fsodate = Carbon::parse($request->fsodate);
+        $fincludeppn = $request->boolean('fincludeppn') ? '1' : '0';
+        $fapplyppn = $request->boolean('fapplyppn') ? '1' : '0';
+        $userid = mb_substr(auth('sysuser')->user()->fname ?? 'admin', 0, 10);
+        $now = now();
+        $fcurrency = $request->input('fcurrency', 'IDR');
+        $frate = (float) $request->input('frate', 1);
 
-        // Insert detail baru
-        if (!empty($detailRows)) {
-          Log::info("[UPDATE INVOICE] Memasukkan " . count($detailRows) . " detail baru.");
-          DB::table('trandt')->insert($detailRows);
+        // 3. PROSES DETAIL (ARRAY)
+        $itemCodes = $request->input('fitemcode', []);
+        $typeSales = (int) $request->input('ftypesales');
+        $itemDescs = $request->input('fitemname', []);
+        $satuans = $request->input('fsatuan', []);
+        $qtys = $request->input('fqty', []);
+        $prices = $request->input('fprice', []);
+        $discs = $request->input('fdisc', []);
+
+        $frefso_ids = $request->input('frefsoid', []);
+        $frefsrjid_ids = $request->input('frefsrjid', []);
+        $frefpr_codes = $request->input('frefpr', []);
+
+        $detailRows = [];
+        $totalGross = 0;
+        $totalDisc = 0;
+
+        // Logika UM (Tetap sama)
+        $hasUM = in_array('UM', $itemCodes);
+        if ($hasUM && $typeSales === 0) {
+            return back()->withInput()->with('error', 'Produk Uang Muka (UM) hanya diperbolehkan untuk tipe transaksi Uang Muka.');
         }
-      });
+        if (! $hasUM && $typeSales === 1) {
+            return back()->withInput()->with('error', 'Transaksi Uang Muka wajib menggunakan produk dengan kode UM.');
+        }
 
-      Log::info("[UPDATE INVOICE] Update Berhasil untuk ID: {$ftranmtid}");
-      return redirect()->route('invoice.index')->with('success', "Faktur Penjualan {$header->fsono} berhasil diperbarui.");
-    } catch (\Exception $e) {
-      Log::error("[UPDATE INVOICE] Transaksi Gagal. Pesan: " . $e->getMessage(), [
-        'file' => $e->getFile(),
-        'line' => $e->getLine()
-      ]);
-      return back()->withInput()->with('error', 'Gagal update: ' . $e->getMessage());
+        $uniqueCodes = array_values(array_unique(array_filter(array_map(fn ($c) => trim((string) $c), $itemCodes))));
+        $prodMeta = DB::table('msprd')
+            ->whereIn('fprdcode', $uniqueCodes)
+            ->get(['fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2', 'fqtykecil', 'fqtykecil2', 'fminstock'])
+            ->keyBy('fprdcode');
+
+        $stockErrors = [];
+        foreach ($itemCodes as $i => $code) {
+            $code = trim((string) ($code ?? ''));
+            $qty = (float) ($qtys[$i] ?? 0);
+            $satuan = trim((string) ($satuans[$i] ?? ''));
+
+            if ($code === '' || $qty <= 0) {
+                continue;
+            }
+
+            $meta = $prodMeta[$code] ?? null;
+            if (! $meta) {
+                continue;
+            }
+
+            $stokTersedia = (float) ($meta->fminstock ?? 0);
+            if ($stokTersedia <= 0) {
+                $stockErrors[] = "Produk [{$code}] stok tidak tersedia (0).";
+
+                continue;
+            }
+
+            $qtyKecil = $qty;
+            if ($satuan !== '' && $satuan === trim((string) ($meta->fsatuanbesar ?? '')) && (float) ($meta->fqtykecil ?? 0) > 0) {
+                $qtyKecil = $qty * (float) $meta->fqtykecil;
+            } elseif ($satuan !== '' && $satuan === trim((string) ($meta->fsatuanbesar2 ?? '')) && (float) ($meta->fqtykecil2 ?? 0) > 0) {
+                $qtyKecil = $qty * (float) $meta->fqtykecil2;
+            }
+
+            if ($qtyKecil > $stokTersedia) {
+                $stockErrors[] = "Produk [{$code}]: Qty ({$qtyKecil} pcs) melebihi stok tersedia ({$stokTersedia} pcs).";
+            }
+        }
+
+        if (! empty($stockErrors)) {
+            return back()->withInput()->withErrors(['stock' => implode(' ', $stockErrors)]);
+        }
+
+        $products = DB::table('msprd')
+            ->whereIn('fprdcode', array_filter($itemCodes))
+            ->get(['fprdid', 'fprdcode', 'fprdname', 'fdiscontinue', 'fsatuanbesar', 'fqtykecil as rasio_konversi'])
+            ->keyBy('fprdcode');
+
+        foreach ($itemCodes as $i => $code) {
+            $qty = (float) ($qtys[$i] ?? 0);
+            $price = (float) ($prices[$i] ?? 0);
+            if (empty($code) || $qty <= 0) {
+                continue;
+            }
+
+            $refCode = '';
+            if (! empty($frefso_ids[$i])) {
+                $refCode = 'S';
+            } elseif (! empty($frefsrjid_ids[$i])) {
+                $refCode = 'R';
+            }
+
+            $product = $products->get($code);
+            $fprdcodeid = $product ? $product->fprdid : null;
+
+            $qtyKecil = $qty;
+            if ($product && ($satuans[$i] ?? '') === $product->fsatuanbesar) {
+                $qtyKecil = $qty * (float) ($product->rasio_konversi ?? 1);
+            }
+
+            $discPersen = $this->parseDiscount($discs[$i] ?? 0);
+            $subtotal = $qty * $price;
+            $discAmount = $subtotal * ($discPersen / 100);
+            $netPrice = $price - ($price * ($discPersen / 100));
+            $amountRow = $subtotal - $discAmount;
+
+            $totalGross += $subtotal;
+            $totalDisc += $discAmount;
+
+            $detailRows[] = [
+                'fsono' => '', // Akan diisi di dalam transaksi
+                'ftranmtid' => null, // Akan diisi di dalam transaksi menggunakan insertGetId header
+                'fnou' => $i + 1,
+                'fprdcodeid' => $fprdcodeid,
+                'fprdcode' => mb_substr($code, 0, 30),
+                'fdesc' => $itemDescs[$i] ?? '',
+                'fqty' => $qty,
+                'fqtykecil' => $qtyKecil,
+                'fqtyremain' => $qtyKecil,
+                'fprice' => $price,
+                'fprice_rp' => $price * $frate,
+                'fdisc' => mb_substr((string) ($discs[$i] ?? '0'), 0, 10),
+                'fpricenet' => $netPrice,
+                'fpricenet_rp' => $netPrice * $frate,
+                'famount' => $amountRow,
+                'famount_rp' => $amountRow * $frate,
+                'fsatuan' => mb_substr($satuans[$i] ?? '', 0, 5),
+                'fuserid' => $userid,
+                'fdatetime' => $now,
+                'frefcode' => $refCode,
+                'frefso' => ! empty($frefso_ids[$i]) ? ($frefpr_codes[$i] ?? '') : '',
+                'frefsoid' => ! empty($frefso_ids[$i]) ? (int) $frefso_ids[$i] : null,
+                'frefsrj' => ! empty($frefsrjid_ids[$i]) ? ($frefpr_codes[$i] ?? '') : '',
+                'frefsrjid' => ! empty($frefsrjid_ids[$i]) ? (int) $frefsrjid_ids[$i] : null,
+            ];
+        }
+
+        $amountNet = $totalGross - $totalDisc;
+        $ppnPersen = (float) $request->input('fppnpersen', 11);
+        $ppnAmount = ($fincludeppn === '1') ? ($amountNet * ($ppnPersen / 100)) : 0;
+        $grandTotal = $amountNet + $ppnAmount;
+
+        // 5. DATABASE TRANSACTION
+        try {
+            DB::transaction(function () use ($fapplyppn, $request, $fsodate, $fincludeppn, $userid, $now, $detailRows, $totalGross, $totalDisc, $amountNet, $ppnAmount, $grandTotal, $fcurrency, $frate, $ppnPersen) {
+
+                // Penomoran Otomatis (Tetap sama)
+                $fsono = $request->input('fsono');
+                if (empty($fsono)) {
+                    $prefix = 'INV.'.$fsodate->format('ym').'.';
+                    $lastRecord = DB::table('tranmt')->where('fsono', 'like', $prefix.'%')->orderBy('fsono', 'desc')->lockForUpdate()->first();
+                    $nextNumber = $lastRecord ? ((int) substr(trim($lastRecord->fsono), -4) + 1) : 1;
+                    $fsono = $prefix.str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+                }
+
+                // --- INSERT HEADER DAN AMBIL ID ---
+                $ftranmtid = DB::table('tranmt')->insertGetId([
+                    'ftaxno' => mb_substr($request->ftaxno ?? '', 0, 50),
+                    'fsono' => $fsono,
+                    'fsodate' => $fsodate,
+                    'fcustno' => mb_substr($request->fcustno, 0, 10),
+                    'fsalesman' => (int) $request->input('fsalesman', 0),
+                    'fcurrency' => $fcurrency,
+                    'frate' => $frate,
+                    'fdiscount' => $totalDisc,
+                    'fdiscount_rp' => $totalDisc * $frate,
+                    'famountgross' => $totalGross,
+                    'famountgross_rp' => $totalGross * $frate,
+                    'famountsonet' => $amountNet,
+                    'famountsonet_rp' => $amountNet * $frate,
+                    'famountpajak' => $ppnAmount,
+                    'famountpajak_rp' => $ppnAmount * $frate,
+                    'famountso' => $grandTotal,
+                    'famountso_rp' => $grandTotal * $frate,
+                    'famountremain' => $grandTotal,
+                    'famountremain_rp' => $grandTotal * $frate,
+                    'fket' => $request->fket ?? '',
+                    'fuserid' => $userid,
+                    'fdatetime' => $now,
+                    'fincludeppn' => $fincludeppn,
+                    'fapplyppn' => $fapplyppn,
+                    'fppnpersen' => $ppnPersen,
+                    'ftypesales' => $request->input('ftypesales', 0),
+                    'ftrcode' => 'I',
+                    'fprdout' => '0',
+                ], 'ftranmtid');
+
+                // --- UPDATE DETAIL ROWS DENGAN ID HEADER DAN NOMOR SONO ---
+                foreach ($detailRows as &$row) {
+                    $row['fsono'] = $fsono;
+                    $row['ftranmtid'] = $ftranmtid; // Mengisi foreign key dari ID header baru
+                }
+
+                // INSERT DETAIL
+                DB::table('trandt')->insert($detailRows);
+            });
+
+            return redirect()->route('invoice.index')->with('success', 'Faktur Penjualan berhasil disimpan.');
+        } catch (\Exception $e) {
+            return back()->withInput()->with('error', 'Terjadi kesalahan: '.$e->getMessage());
+        }
     }
-  }
 
-  public function delete(Request $request, $ftranmtid)
-  {
-    $customers = Customer::orderBy('fcustomername', 'asc')
-      ->get(['fcustomerid', 'fcustomername']);
+    // ✅ TAMBAHKAN METHOD HELPER UNTUK PARSE DISCOUNT
+    private function parseDiscount($discInput)
+    {
+        if ($discInput === null || $discInput === '') {
+            return 0;
+        }
 
-    $salesmans = Salesman::orderBy('fsalesmanname', 'asc')
-      ->get(['fsalesmanid', 'fsalesmanname']);
+        // Jika sudah berupa angka
+        if (is_numeric($discInput)) {
+            return (float) $discInput;
+        }
 
-    $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
+        // Jika string, parse ekspresi matematika
+        $str = trim((string) $discInput);
 
-    $branch = DB::table('mscabang')
-      ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
-      ->when(!is_numeric($raw), fn($q) => $q
-        ->where('fcabangkode', $raw)
-        ->orWhere('fcabangname', $raw))
-      ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
+        if ($str === '') {
+            return 0;
+        }
 
-    $fcabang     = $branch->fcabangname ?? (string) $raw;   // tampilan
-    $fbranchcode = $branch->fcabangkode ?? (string) $raw;   // hidden post
+        // Jika angka biasa
+        if (is_numeric($str)) {
+            return (float) $str;
+        }
 
-    $invoice = Tranmt::with(['customer', 'details' => function ($q) {
-      $q->leftJoin('msprd', 'msprd.fprdid', '=', 'trandt.fprdcodeid')
-        ->leftJoin('trsomt as so_hdr', 'so_hdr.ftrsomtid', '=', 'trandt.frefsoid')
-        ->leftJoin('trstockmt as sj_hdr', 'sj_hdr.fstockmtid', '=', 'trandt.frefsrjid')
-        ->select(
-          'trandt.*',
-          'msprd.fprdcode as fitemcode',
-          'msprd.fprdname',
-          'so_hdr.fsono as fsono_ref',
-          'sj_hdr.fstockmtno as fstockno_ref'
-        )
-        ->orderBy('trandt.ftrandtid', 'asc');
-    }])->findOrFail($ftranmtid);
+        // Parse ekspresi seperti "10+2"
+        try {
+            // Hapus spasi
+            $cleaned = preg_replace('/\s+/', '', $str);
 
-    if (!$invoice->customer) {
-      $invoice->setRelation('customer', Customer::find(trim($invoice->fcustno)));
+            // Evaluasi ekspresi
+            $result = eval("return {$cleaned};");
+
+            // Batasi 0-100%
+            $final = max(0, min(100, (float) $result));
+
+            return $final;
+        } catch (\Throwable $e) {
+            return 0;
+        }
     }
 
-    $savedItems = $invoice->details->map(function ($d) {
-      $refNoDisplay = $d->fsono_ref ?? ($d->fstockno_ref ?? (trim($d->frefso ?? $d->frefsrj ?? '') ?: ($d->frefcode ?? '-')));
-      return [
-        'uid'        => $d->ftrandtid,
-        'fitemcode'  => (string)($d->fitemcode ?? ''),
-        'fitemname'  => (string)($d->fprdname ?? ''),
-        'fsatuan'    => (string)($d->fsatuan ?? ''),
-        'frefdtno'   => (string)($d->frefdtno ?? ''),
-        'fqty'       => (float)($d->fqty ?? 0),
-        'fterima'    => (float)($d->fterima ?? 0),
-        'fprice'     => (float)($d->fprice ?? 0),
-        'fdisc'      => (float)($d->fdisc ?? 0),
-        'ftotal'     => (float)($d->famount ?? 0),
-        'fdesc'      => (string)($d->fdesc ?? ''),
-        'frefcode'   => (string)($d->frefcode ?? ''),
-        'frefno_display' => $refNoDisplay,
-        'fketdt'     => (string)($d->fketdt ?? ''),
-      ];
-    })->values();
-    $selectedSupplierCode = $invoice->fsupplier;
+    public function edit(Request $request, $ftranmtid)
+    {
+        $customers = Customer::orderBy('fcustomername', 'asc')
+            ->get(['fcustomerid', 'fcustomername']);
 
-    // Fetch all products for product mapping
-    $products = Product::select(
-      'fprdid',
-      'fprdcode',
-      'fprdname',
-      'fsatuankecil',
-      'fsatuanbesar',
-      'fsatuanbesar2',
-      'fminstock'
-    )->orderBy('fprdname')->get();
+        $salesmans = Salesman::orderBy('fsalesmanname', 'asc')
+            ->get(['fsalesmanid', 'fsalesmanname']);
 
-    // Prepare the product map for frontend
-    $productMap = $products->mapWithKeys(function ($p) {
-      return [
-        $p->fprdcode => [
-          'name'  => $p->fprdname,
-          'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
-          'stock' => $p->fminstock ?? 0,
-        ],
-      ];
-    })->toArray();
+        $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
-    // Pass the data to the view
-    return view('invoice.edit', [
-      'customers' => $customers,
-      'salesmans' => $salesmans,
-      'selectedSupplierCode' => $selectedSupplierCode, // Kirim kode supplier ke view
-      'fcabang'      => $fcabang,
-      'fbranchcode'  => $fbranchcode,
-      'products'     => $products,
-      'productMap'   => $productMap,
-      'invoice'       => $invoice,
-      'savedItems'   => $savedItems,
-      'ppnAmount'    => (float) ($invoice->famountpopajak ?? 0), // total PPN from DB
-      'famountgross'    => (float) ($invoice->famountgross ?? 0),  // nilai Grand Total dari DB
-      'famountso'    => (float) ($invoice->famountso ?? 0),  // nilai Grand Total dari DB
-      'filterSupplierId' => $request->query('filter_supplier_id'),
-      'filterSalesmanId' => $request->query('filter_salesman_id'),
-      'action' => 'delete'
-    ]);
-  }
+        $branch = DB::table('mscabang')
+            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
+            ->when(! is_numeric($raw), fn ($q) => $q
+                ->where('fcabangkode', $raw)
+                ->orWhere('fcabangname', $raw))
+            ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
 
-  public function destroy($ftranmtid)
-  {
-    try {
-      $invoice = Tranmt::findOrFail($ftranmtid);
-      $invoice->delete();
+        $fcabang = $branch->fcabangname ?? (string) $raw;   // tampilan
+        $fbranchcode = $branch->fcabangkode ?? (string) $raw;   // hidden post
 
-      return redirect()->route('invoice.index')->with('success', 'Data Faktur Penjualan ' . $invoice->fsono . ' berhasil dihapus.');
-    } catch (\Exception $e) {
-      // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
-      return redirect()->route('invoice.delete', $ftranmtid)->with('error', 'Gakey: gal menghapus data: ' . $e->getMessage());
+        $invoice = Tranmt::with(['customer', 'details' => function ($q) {
+            $q->leftJoin('msprd', 'msprd.fprdid', '=', 'trandt.fprdcodeid')
+                ->leftJoin('trsomt as so_hdr', 'so_hdr.ftrsomtid', '=', 'trandt.frefsoid')
+                ->leftJoin('trstockmt as sj_hdr', 'sj_hdr.fstockmtid', '=', 'trandt.frefsrjid')
+                ->select(
+                    'trandt.*',
+                    'msprd.fprdcode as fitemcode',
+                    'msprd.fprdname',
+                    'so_hdr.fsono as fsono_ref',
+                    'sj_hdr.fstockmtno as fstockno_ref'
+                )
+                ->orderBy('trandt.ftrandtid', 'asc');
+        }])->findOrFail($ftranmtid);
+
+        if (! $invoice->customer) {
+            $invoice->setRelation('customer', Customer::find(trim($invoice->fcustno)));
+        }
+
+        $savedItems = $invoice->details->map(function ($d) {
+            $refCode = trim($d->frefcode ?? '');
+            if (empty($refCode)) {
+                if (! empty(trim($d->frefso ?? ''))) {
+                    $refCode = 'SO';
+                }
+                if (! empty(trim($d->frefsrj ?? ''))) {
+                    $refCode = 'SRJ';
+                }
+            }
+
+            // Priority: Joined Header Number -> Stored Detail String -> Type Prefix
+            $refNoDisplay = $d->fsono_ref ?? ($d->fstockno_ref ?? (trim($d->frefso ?? $d->frefsrj ?? '') ?: $refCode));
+
+            return [
+                'uid' => $d->ftrandtid,
+                'fitemcode' => trim($d->fitemcode ?? ''),
+                'fitemname' => trim($d->fprdname ?? ''),
+                'fsatuan' => trim($d->fsatuan ?? ''),
+                'frefdtno' => (string) ($d->frefdtno ?? ''),
+                'frefcode' => $refCode,
+                'frefso' => trim($d->frefso ?? ''),
+                'frefsoid' => (string) ($d->frefsoid ?? ''),
+                'frefsrj' => trim($d->frefsrj ?? ''),
+                'frefsrjid' => (string) ($d->frefsrjid ?? ''),
+                'frefno_display' => $refNoDisplay,
+                'fqty' => (float) ($d->fqty ?? 0),
+                'fterima' => (float) ($d->fterima ?? 0),
+                'fprice' => (float) ($d->fprice ?? 0),
+                'fdisc' => (float) ($d->fdisc ?? 0),
+                'ftotal' => (float) ($d->famount ?? 0),
+                'fdesc' => (string) ($d->fdesc ?? ''),
+                'frefpr' => $refNoDisplay,
+                'fsono_ref' => trim($d->fsono_ref ?? ''),
+                'fstockno_ref' => trim($d->fstockno_ref ?? ''),
+                'fketdt' => (string) ($d->fketdt ?? ''),
+            ];
+        })->values();
+        $selectedSupplierCode = $invoice->fsupplier;
+
+        // Fetch all products for product mapping
+        $products = Product::select(
+            'fprdid',
+            'fprdcode',
+            'fprdname',
+            'fsatuankecil',
+            'fsatuanbesar',
+            'fsatuanbesar2',
+            'fminstock'
+        )->orderBy('fprdname')->get();
+
+        // Prepare the product map for frontend
+        $productMap = $products->mapWithKeys(function ($p) {
+            return [
+                $p->fprdcode => [
+                    'name' => $p->fprdname,
+                    'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
+                    'stock' => $p->fminstock ?? 0,
+                ],
+            ];
+        })->toArray();
+
+        // Pass the data to the view
+        return view('invoice.edit', [
+            'customers' => $customers,
+            'salesmans' => $salesmans,
+            'selectedSupplierCode' => $selectedSupplierCode, // Kirim kode supplier ke view
+            'fcabang' => $fcabang,
+            'fbranchcode' => $fbranchcode,
+            'products' => $products,
+            'productMap' => $productMap,
+            'invoice' => $invoice,
+            'savedItems' => $savedItems,
+            'ppnAmount' => (float) ($invoice->famountpopajak ?? 0), // total PPN from DB
+            'famountgross' => (float) ($invoice->famountgross ?? 0),  // nilai Grand Total dari DB
+            'famountso' => (float) ($invoice->famountso ?? 0),  // nilai Grand Total dari DB
+            'filterSupplierId' => $request->query('filter_supplier_id'),
+            'filterSalesmanId' => $request->query('filter_salesman_id'),
+            'action' => 'edit',
+        ]);
     }
-  }
+
+    public function view(Request $request, $ftranmtid)
+    {
+        $customers = Customer::orderBy('fcustomername', 'asc')
+            ->get(['fcustomerid', 'fcustomername']);
+
+        $salesmans = Salesman::orderBy('fsalesmanname', 'asc')
+            ->get(['fsalesmanid', 'fsalesmanname']);
+
+        $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
+
+        $branch = DB::table('mscabang')
+            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
+            ->when(! is_numeric($raw), fn ($q) => $q
+                ->where('fcabangkode', $raw)
+                ->orWhere('fcabangname', $raw))
+            ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
+
+        $fcabang = $branch->fcabangname ?? (string) $raw;   // tampilan
+        $fbranchcode = $branch->fcabangkode ?? (string) $raw;   // hidden post
+
+        $invoice = Tranmt::with(['customer', 'details' => function ($q) {
+            $q->leftJoin('msprd', 'msprd.fprdid', '=', 'trandt.fprdcodeid')
+                ->leftJoin('trsomt as so_hdr', 'so_hdr.ftrsomtid', '=', 'trandt.frefsoid')
+                ->leftJoin('trstockmt as sj_hdr', 'sj_hdr.fstockmtid', '=', 'trandt.frefsrjid')
+                ->select(
+                    'trandt.*',
+                    'msprd.fprdcode as fitemcode',
+                    'msprd.fprdname',
+                    'so_hdr.fsono as fsono_ref',
+                    'sj_hdr.fstockmtno as fstockno_ref'
+                )
+                ->orderBy('trandt.ftrandtid', 'asc');
+        }])->findOrFail($ftranmtid);
+
+        if (! $invoice->customer) {
+            $invoice->setRelation('customer', Customer::find(trim($invoice->fcustno)));
+        }
+
+        $savedItems = $invoice->details->map(function ($d) {
+            $refNoDisplay = $d->fsono_ref ?? ($d->fstockno_ref ?? (trim($d->frefso ?? $d->frefsrj ?? '') ?: ($d->frefcode ?? '-')));
+
+            return [
+                'uid' => $d->ftrandtid,
+                'fitemcode' => (string) ($d->fitemcode ?? ''),
+                'fitemname' => (string) ($d->fprdname ?? ''),
+                'fsatuan' => (string) ($d->fsatuan ?? ''),
+                'frefdtno' => (string) ($d->frefdtno ?? ''),
+                'fqty' => (float) ($d->fqty ?? 0),
+                'fterima' => (float) ($d->fterima ?? 0),
+                'fprice' => (float) ($d->fprice ?? 0),
+                'fdisc' => (float) ($d->fdisc ?? 0),
+                'ftotal' => (float) ($d->famount ?? 0),
+                'fdesc' => (string) ($d->fdesc ?? ''),
+                'frefcode' => (string) ($d->frefcode ?? ''),
+                'frefno_display' => $refNoDisplay,
+                'fketdt' => (string) ($d->fketdt ?? ''),
+            ];
+        })->values();
+        $selectedSupplierCode = $invoice->fsupplier;
+
+        // Fetch all products for product mapping
+        $products = Product::select(
+            'fprdid',
+            'fprdcode',
+            'fprdname',
+            'fsatuankecil',
+            'fsatuanbesar',
+            'fsatuanbesar2',
+            'fminstock'
+        )->orderBy('fprdname')->get();
+
+        // Prepare the product map for frontend
+        $productMap = $products->mapWithKeys(function ($p) {
+            return [
+                $p->fprdcode => [
+                    'name' => $p->fprdname,
+                    'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
+                    'stock' => $p->fminstock ?? 0,
+                ],
+            ];
+        })->toArray();
+
+        // Pass the data to the view
+        return view('invoice.view', [
+            'customers' => $customers,
+            'salesmans' => $salesmans,
+            'selectedSupplierCode' => $selectedSupplierCode, // Kirim kode supplier ke view
+            'fcabang' => $fcabang,
+            'fbranchcode' => $fbranchcode,
+            'products' => $products,
+            'productMap' => $productMap,
+            'invoice' => $invoice,
+            'savedItems' => $savedItems,
+            'ppnAmount' => (float) ($invoice->famountpopajak ?? 0), // total PPN from DB
+            'famountgross' => (float) ($invoice->famountgross ?? 0),  // nilai Grand Total dari DB
+            'famountso' => (float) ($invoice->famountso ?? 0),  // nilai Grand Total dari DB
+            'filterSupplierId' => $request->query('filter_supplier_id'),
+            'filterSalesmanId' => $request->query('filter_salesman_id'),
+        ]);
+    }
+
+    public function update(Request $request, $ftranmtid)
+    {
+        // 1. VALIDASI
+        $request->validate([
+            'fsodate' => ['required', 'date'],
+            'fcustno' => ['required', 'string', 'max:10'],
+            'ftypesales' => ['required', 'in:0,1'],
+            'ftaxno' => ['nullable', 'string', 'max:50'],
+            'fitemcode' => ['required', 'array', 'min:1'],
+            'fitemcode.*' => ['required', 'string', 'max:30'],
+            'fqty' => ['required', 'array'],
+            'fqty.*' => ['numeric', 'min:0.01'],
+            'fprice' => ['required', 'array'],
+            'fprice.*' => ['numeric', 'min:0'],
+        ]);
+
+        // DEBUG: Awal Request
+        Log::info("[UPDATE INVOICE] Memulai proses update ID: {$ftranmtid}", [
+            'user' => auth('sysuser')->user()->fname ?? 'admin',
+            'all_payload' => $request->all(),
+        ]);
+
+        // 2. LOAD HEADER
+        $header = DB::table('tranmt')->where('ftranmtid', $ftranmtid)->first();
+        if (! $header) {
+            Log::error("[UPDATE INVOICE] Header tidak ditemukan untuk ID: {$ftranmtid}");
+
+            return abort(404, 'Faktur Penjualan tidak ditemukan.');
+        }
+
+        // 3. INISIALISASI DATA
+        $fsodate = Carbon::parse($request->fsodate);
+        $fincludeppn = $request->boolean('fincludeppn') ? '1' : '0';
+        $fapplyppn = $request->boolean('fapplyppn') ? '1' : '0';
+        $userid = mb_substr(auth('sysuser')->user()->fname ?? 'admin', 0, 10);
+        $now = now();
+        $frate = (float) $request->input('frate', $header->frate ?? 1);
+
+        $itemCodes = $request->input('fitemcode', []);
+        $typeSales = (int) $request->input('ftypesales');
+        $itemDescs = $request->input('fitemname', []);
+        $satuans = $request->input('fsatuan', []);
+        $qtys = $request->input('fqty', []);
+        $prices = $request->input('fprice', []);
+        $discs = $request->input('fdisc', []);
+        $frefcodes = $request->input('frefcode', []);
+        $frefso_ids = $request->input('frefsoid', []);
+        $frefsrjid_ids = $request->input('frefsrjid', []);
+        $frefpr_codes = $request->input('frefpr', []);
+
+        // 4. BUILD DETAIL ROWS
+        $detailRows = [];
+        $totalGross = 0;
+        $totalDisc = 0;
+
+        $hasUM = in_array('UM', $itemCodes);
+        if ($hasUM && $typeSales === 0) {
+            Log::warning('[UPDATE INVOICE] Validasi Gagal: Item UM ditemukan pada tipe Penjualan biasa.');
+
+            return back()->withInput()->with('error', 'Produk Uang Muka (UM) hanya diperbolehkan untuk tipe transaksi Uang Muka.');
+        }
+
+        // Ambil data produk masal
+        $products = DB::table('msprd')
+            ->whereIn('fprdcode', array_filter($itemCodes))
+            ->get(['fprdid', 'fprdcode', 'fprdname', 'fdiscontinue', 'fsatuanbesar', 'fqtykecil as rasio_konversi'])
+            ->keyBy('fprdcode');
+
+        Log::info('[UPDATE INVOICE] Jumlah item unik dari request: '.count($itemCodes));
+
+        foreach ($itemCodes as $i => $code) {
+            $qty = (float) ($qtys[$i] ?? 0);
+            $price = (float) ($prices[$i] ?? 0);
+
+            if (empty($code) || $qty <= 0) {
+                Log::debug("[UPDATE INVOICE] Baris index {$i} dilewati (Qty <= 0 atau Kode Kosong)");
+
+                continue;
+            }
+
+            $refCode = '';
+            if (! empty($frefso_ids[$i])) {
+                $refCode = 'SO';
+            } elseif (! empty($frefsrjid_ids[$i])) {
+                $refCode = 'SRJ';
+            } elseif (is_array($frefcodes) && ! empty($frefcodes[$i])) {
+                $refCode = $frefcodes[$i];
+            }
+
+            $refPr = $frefpr_codes[$i] ?? '';
+            $product = $products->get($code);
+
+            if (! $product) {
+                Log::error("[UPDATE INVOICE] Produk tidak ditemukan di DB: {$code}");
+
+                return back()->withInput()->with('error', "Data produk [{$code}] tidak ditemukan.");
+            }
+
+            if ($product->fdiscontinue == '1') {
+                return back()->withInput()->with('error', "Produk [{$code}] {$product->fprdname} Sudah Discontinue.");
+            }
+
+            // Konversi Satuan
+            $qtyKecil = $qty;
+            if ($satuans[$i] === $product->fsatuanbesar) {
+                $qtyKecil = $qty * (float) $product->rasio_konversi;
+            }
+
+            // Kalkulasi Baris
+            $discPersen = $this->parseDiscount($discs[$i] ?? 0);
+            $subtotal = $qty * $price;
+            $discAmount = $subtotal * ($discPersen / 100);
+            $netPrice = $price - ($price * ($discPersen / 100));
+            $amountRow = $subtotal - $discAmount;
+
+            $totalGross += $subtotal;
+            $totalDisc += $discAmount;
+
+            $rowData = [
+                'fsono' => $header->fsono,
+                'fnou' => $i + 1,
+                'fprdcodeid' => $product->fprdid,
+                'fprdcode' => mb_substr($code, 0, 30),
+                'fdesc' => $itemDescs[$i] ?? '',
+                'fqty' => $qty,
+                'fqtykecil' => $qtyKecil,
+                'fqtyremain' => $qtyKecil,
+                'fprice' => $price,
+                'fprice_rp' => $price * $frate,
+                'fdisc' => mb_substr((string) ($discs[$i] ?? '0'), 0, 10),
+                'fpricenet' => $netPrice,
+                'fpricenet_rp' => $netPrice * $frate,
+                'famount' => $amountRow,
+                'famount_rp' => $amountRow * $frate,
+                'fsatuan' => mb_substr($satuans[$i] ?? '', 0, 5),
+                'fuserid' => $userid,
+                'fdatetime' => $now,
+                'frefcode' => $refCode,
+                'frefso' => ! empty($frefso_ids[$i]) ? $refPr : '',
+                'frefsoid' => ! empty($frefso_ids[$i]) ? (int) $frefso_ids[$i] : null,
+                'frefsrj' => ! empty($frefsrjid_ids[$i]) ? $refPr : '',
+                'frefsrjid' => ! empty($frefsrjid_ids[$i]) ? (int) $frefsrjid_ids[$i] : null,
+            ];
+
+            $detailRows[] = $rowData;
+
+            Log::debug("[UPDATE INVOICE] Menyiapkan Baris Detail {$i}", ['data' => $rowData]);
+        }
+
+        // 5. KALKULASI TOTAL AKHIR
+        $amountNet = $totalGross - $totalDisc;
+        $ppnPersen = (float) $request->input('fppnpersen', 11);
+        $ppnAmount = ($fincludeppn === '1') ? ($amountNet * ($ppnPersen / 100)) : 0;
+        $grandTotal = $amountNet + $ppnAmount;
+
+        Log::info('[UPDATE INVOICE] Hasil Kalkulasi', [
+            'Gross' => $totalGross,
+            'Disc' => $totalDisc,
+            'Net' => $amountNet,
+            'PPN' => $ppnAmount,
+            'GrandTotal' => $grandTotal,
+        ]);
+
+        // 6. TRANSACTION
+        try {
+            DB::transaction(function () use (
+                $request,
+                $ftranmtid,
+                $header,
+                $fsodate,
+                $fincludeppn,
+                $fapplyppn,
+                $userid,
+                $now,
+                $detailRows,
+                $totalGross,
+                $totalDisc,
+                $amountNet,
+                $ppnAmount,
+                $grandTotal,
+                $frate,
+                $ppnPersen
+            ) {
+                // Update Header
+                DB::table('tranmt')->where('ftranmtid', $ftranmtid)->update([
+                    'ftaxno' => mb_substr($request->ftaxno ?? '', 0, 50),
+                    'fsodate' => $fsodate,
+                    'fcustno' => mb_substr($request->fcustno, 0, 10) ?? 0,
+                    'fsalesman' => (int) $request->input('fsalesman', 0),
+                    'fdiscount' => $totalDisc,
+                    'fdiscount_rp' => $totalDisc * $frate,
+                    'famountgross' => $totalGross,
+                    'famountgross_rp' => $totalGross * $frate,
+                    'famountsonet' => $amountNet,
+                    'famountsonet_rp' => $amountNet * $frate,
+                    'famountpajak' => $ppnAmount,
+                    'famountpajak_rp' => $ppnAmount * $frate,
+                    'famountso' => $grandTotal,
+                    'famountso_rp' => $grandTotal * $frate,
+                    'fket' => $request->fket ?? '',
+                    'fuserid' => $userid,
+                    'fdatetime' => $now,
+                    'fincludeppn' => $fincludeppn,
+                    'fapplyppn' => $fapplyppn,
+                    'fppnpersen' => $ppnPersen,
+                    'ftypesales' => (int) $request->input('ftypesales', 0),
+                ]);
+
+                // Hapus detail lama
+                Log::info("[UPDATE INVOICE] Menghapus detail lama untuk fsono: {$header->fsono}");
+                DB::table('trandt')->where('fsono', $header->fsono)->delete();
+
+                // Insert detail baru
+                if (! empty($detailRows)) {
+                    Log::info('[UPDATE INVOICE] Memasukkan '.count($detailRows).' detail baru.');
+                    DB::table('trandt')->insert($detailRows);
+                }
+            });
+
+            Log::info("[UPDATE INVOICE] Update Berhasil untuk ID: {$ftranmtid}");
+
+            return redirect()->route('invoice.index')->with('success', "Faktur Penjualan {$header->fsono} berhasil diperbarui.");
+        } catch (\Exception $e) {
+            Log::error('[UPDATE INVOICE] Transaksi Gagal. Pesan: '.$e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+
+            return back()->withInput()->with('error', 'Gagal update: '.$e->getMessage());
+        }
+    }
+
+    public function delete(Request $request, $ftranmtid)
+    {
+        $customers = Customer::orderBy('fcustomername', 'asc')
+            ->get(['fcustomerid', 'fcustomername']);
+
+        $salesmans = Salesman::orderBy('fsalesmanname', 'asc')
+            ->get(['fsalesmanid', 'fsalesmanname']);
+
+        $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
+
+        $branch = DB::table('mscabang')
+            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
+            ->when(! is_numeric($raw), fn ($q) => $q
+                ->where('fcabangkode', $raw)
+                ->orWhere('fcabangname', $raw))
+            ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
+
+        $fcabang = $branch->fcabangname ?? (string) $raw;   // tampilan
+        $fbranchcode = $branch->fcabangkode ?? (string) $raw;   // hidden post
+
+        $invoice = Tranmt::with(['customer', 'details' => function ($q) {
+            $q->leftJoin('msprd', 'msprd.fprdid', '=', 'trandt.fprdcodeid')
+                ->leftJoin('trsomt as so_hdr', 'so_hdr.ftrsomtid', '=', 'trandt.frefsoid')
+                ->leftJoin('trstockmt as sj_hdr', 'sj_hdr.fstockmtid', '=', 'trandt.frefsrjid')
+                ->select(
+                    'trandt.*',
+                    'msprd.fprdcode as fitemcode',
+                    'msprd.fprdname',
+                    'so_hdr.fsono as fsono_ref',
+                    'sj_hdr.fstockmtno as fstockno_ref'
+                )
+                ->orderBy('trandt.ftrandtid', 'asc');
+        }])->findOrFail($ftranmtid);
+
+        if (! $invoice->customer) {
+            $invoice->setRelation('customer', Customer::find(trim($invoice->fcustno)));
+        }
+
+        $savedItems = $invoice->details->map(function ($d) {
+            $refNoDisplay = $d->fsono_ref ?? ($d->fstockno_ref ?? (trim($d->frefso ?? $d->frefsrj ?? '') ?: ($d->frefcode ?? '-')));
+
+            return [
+                'uid' => $d->ftrandtid,
+                'fitemcode' => (string) ($d->fitemcode ?? ''),
+                'fitemname' => (string) ($d->fprdname ?? ''),
+                'fsatuan' => (string) ($d->fsatuan ?? ''),
+                'frefdtno' => (string) ($d->frefdtno ?? ''),
+                'fqty' => (float) ($d->fqty ?? 0),
+                'fterima' => (float) ($d->fterima ?? 0),
+                'fprice' => (float) ($d->fprice ?? 0),
+                'fdisc' => (float) ($d->fdisc ?? 0),
+                'ftotal' => (float) ($d->famount ?? 0),
+                'fdesc' => (string) ($d->fdesc ?? ''),
+                'frefcode' => (string) ($d->frefcode ?? ''),
+                'frefno_display' => $refNoDisplay,
+                'fketdt' => (string) ($d->fketdt ?? ''),
+            ];
+        })->values();
+        $selectedSupplierCode = $invoice->fsupplier;
+
+        // Fetch all products for product mapping
+        $products = Product::select(
+            'fprdid',
+            'fprdcode',
+            'fprdname',
+            'fsatuankecil',
+            'fsatuanbesar',
+            'fsatuanbesar2',
+            'fminstock'
+        )->orderBy('fprdname')->get();
+
+        // Prepare the product map for frontend
+        $productMap = $products->mapWithKeys(function ($p) {
+            return [
+                $p->fprdcode => [
+                    'name' => $p->fprdname,
+                    'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
+                    'stock' => $p->fminstock ?? 0,
+                ],
+            ];
+        })->toArray();
+
+        // Pass the data to the view
+        return view('invoice.edit', [
+            'customers' => $customers,
+            'salesmans' => $salesmans,
+            'selectedSupplierCode' => $selectedSupplierCode, // Kirim kode supplier ke view
+            'fcabang' => $fcabang,
+            'fbranchcode' => $fbranchcode,
+            'products' => $products,
+            'productMap' => $productMap,
+            'invoice' => $invoice,
+            'savedItems' => $savedItems,
+            'ppnAmount' => (float) ($invoice->famountpopajak ?? 0), // total PPN from DB
+            'famountgross' => (float) ($invoice->famountgross ?? 0),  // nilai Grand Total dari DB
+            'famountso' => (float) ($invoice->famountso ?? 0),  // nilai Grand Total dari DB
+            'filterSupplierId' => $request->query('filter_supplier_id'),
+            'filterSalesmanId' => $request->query('filter_salesman_id'),
+            'action' => 'delete',
+        ]);
+    }
+
+    public function destroy($ftranmtid)
+    {
+        try {
+            $invoice = Tranmt::findOrFail($ftranmtid);
+            $invoice->delete();
+
+            return redirect()->route('invoice.index')->with('success', 'Data Faktur Penjualan '.$invoice->fsono.' berhasil dihapus.');
+        } catch (\Exception $e) {
+            // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
+            return redirect()->route('invoice.delete', $ftranmtid)->with('error', 'Gakey: gal menghapus data: '.$e->getMessage());
+        }
+    }
 }

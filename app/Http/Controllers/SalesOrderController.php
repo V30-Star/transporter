@@ -436,6 +436,48 @@ class SalesOrderController extends Controller
         $discs = $request->input('fdisc', []);
         $descs = $request->input('fdesc', []);
 
+        // LOAD PRODUCT METADATA FOR STOCK VALIDATION
+        $uniqueCodes = array_values(array_unique(array_filter(array_map(fn($c) => trim((string)$c), $itemCodes)));
+        $prodMeta = DB::table('msprd')
+            ->whereIn('fprdcode', $uniqueCodes)
+            ->get(['fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2', 'fqtykecil', 'fqtykecil2', 'fminstock'])
+            ->keyBy('fprdcode');
+
+        // STOCK VALIDATION
+        $stockErrors = [];
+        foreach ($itemCodes as $i => $itemCode) {
+            $itemCode = trim((string)($itemCode ?? ''));
+            $qty = (float)($qtys[$i] ?? 0);
+            $satuan = trim((string)($satuans[$i] ?? ''));
+
+            if ($itemCode === '' || $qty <= 0) continue;
+
+            $meta = $prodMeta[$itemCode] ?? null;
+            if (!$meta) continue;
+
+            $stokTersedia = (float)($meta->fminstock ?? 0);
+            if ($stokTersedia <= 0) {
+                $stockErrors[] = "Produk [{$itemCode}] stok tidak tersedia (0).";
+                continue;
+            }
+
+            // Convert qty to smallest unit
+            $qtyKecil = $qty;
+            if ($satuan !== '' && $satuan === trim((string)($meta->fsatuanbesar ?? '')) && (float)($meta->fqtykecil ?? 0) > 0) {
+                $qtyKecil = $qty * (float)$meta->fqtykecil;
+            } elseif ($satuan !== '' && $satuan === trim((string)($meta->fsatuanbesar2 ?? '')) && (float)($meta->fqtykecil2 ?? 0) > 0) {
+                $qtyKecil = $qty * (float)$meta->fqtykecil2;
+            }
+
+            if ($qtyKecil > $stokTersedia) {
+                $stockErrors[] = "Produk [{$itemCode}]: Qty ({$qtyKecil} pcs) melebihi stok tersedia ({$stokTersedia} pcs).";
+            }
+        }
+
+        if (!empty($stockErrors)) {
+            return back()->withInput()->withErrors(['stock' => implode(' ', $stockErrors)]);
+        }
+
         // BUILD DETAIL ROWS
         $rowsSodt = [];
         $totalGross = 0.0;
