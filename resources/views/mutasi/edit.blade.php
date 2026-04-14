@@ -835,12 +835,7 @@
                                                         title="Cari Produk">
                                                         <x-heroicon-o-magnifying-glass class="w-4 h-4" />
                                                     </button>
-                                                    <a href="{{ route('product.create') }}" target="_blank"
-                                                        rel="noopener"
-                                                        class="border border-l-0 rounded-r px-2 py-1 bg-white hover:bg-gray-50"
-                                                        title="Tambah Produk">
-                                                        <x-heroicon-o-plus class="w-4 h-4" />
-                                                    </a>
+                                                  
                                                 </div>
                                             </td>
 
@@ -907,12 +902,7 @@
                                                         title="Cari Produk">
                                                         <x-heroicon-o-magnifying-glass class="w-4 h-4" />
                                                     </button>
-                                                    <a href="{{ route('product.create') }}" target="_blank"
-                                                        rel="noopener"
-                                                        class="border border-l-0 rounded-r px-2 py-1 bg-white hover:bg-gray-50"
-                                                        title="Tambah Produk">
-                                                        <x-heroicon-o-plus class="w-4 h-4" />
-                                                    </a>
+                                                  
                                                 </div>
                                             </td>
 
