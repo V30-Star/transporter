@@ -291,6 +291,8 @@ class PenerimaanBarangController extends Controller
       'fsatuankecil',
       'fsatuanbesar',
       'fsatuanbesar2',
+      'fqtykecil', 
+      'fqtykecil2',
       'fminstock'
     )->orderBy('fprdname')->get();
 
@@ -622,6 +624,8 @@ class PenerimaanBarangController extends Controller
       'fsatuankecil',
       'fsatuanbesar',
       'fsatuanbesar2',
+      'fqtykecil', 
+      'fqtykecil2',
       'fminstock'
     )->orderBy('fprdname')->get();
 

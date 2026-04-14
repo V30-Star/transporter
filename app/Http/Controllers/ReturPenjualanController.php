@@ -322,6 +322,8 @@ class ReturPenjualanController extends Controller
             'fsatuankecil',
             'fsatuanbesar',
             'fsatuanbesar2',
+            'fqtykecil', 
+            'fqtykecil2',
             'fminstock'
         )->orderBy('fprdname')->get();
 
@@ -814,6 +816,8 @@ class ReturPenjualanController extends Controller
             'fsatuankecil',
             'fsatuanbesar',
             'fsatuanbesar2',
+            'fqtykecil', 
+            'fqtykecil2',
             'fminstock'
         )->orderBy('fprdname')->get();
 

@@ -286,8 +286,8 @@ class Tr_pohController extends Controller
           'maxqty'        => $sisaKecil,     // ← sisa setelah dikurangi PO lain
           'maxqty_satuan' => $satKecil,
           'fsatuan'       => $satuan,
-          'fdesc'         => $item->fdesc ?? '',      // ← tambah ini
-          'fketdt'        => $item->fketdt ?? '',     // ← tambah ini
+          'fdesc'         => $item->fdesc ?? '',    
+          'fketdt'        => $item->fketdt ?? '',   
           'fprhid'        => $item->fprhid,
           'fprice'        => (float) $item->fprice,
           'fdisc'         => 0,
@@ -469,6 +469,8 @@ class Tr_pohController extends Controller
       'fsatuankecil',
       'fsatuanbesar',
       'fsatuanbesar2',
+      'fqtykecil', 
+      'fqtykecil2',
       'fminstock'
     )->orderBy('fprdname')->get();
 
@@ -856,6 +858,8 @@ class Tr_pohController extends Controller
       'fsatuankecil',
       'fsatuanbesar',
       'fsatuanbesar2',
+      'fqtykecil', 
+      'fqtykecil2',
       'fminstock'
     )->orderBy('fprdname')->get();
 
@@ -930,7 +934,7 @@ class Tr_pohController extends Controller
         'fprhid'    => (string)($d->fprhid    ?? ''),
         'fprno'     => (string)($d->frefdtno  ?? ''),
         'fqty'      => (float)($d->fqty    ?? 0),
-        'fqtyterima' => (float)($d->fqtyterima ?? 0),   // ← tambah ini
+        'fqtyterima' => (float)($d->fqtyterima ?? 0), 
         'fterima'   => (float)($d->fterima ?? 0),
         'fprice'    => (float)($d->fprice  ?? 0),
         'fdisc'     => (float)($d->fdisc   ?? 0),
