@@ -214,12 +214,6 @@
                                         <td class="p-2" x-text="it.fsatuan"></td>
                                         <td class="p-2 text-right">
                                             <div x-text="it.fqty"></div>
-                                            <div class="text-xs text-gray-400 mt-0.5 flex justify-between items-center" x-show="it.fitemcode">
-                                                <div>(<span x-text="productMeta(it.fitemcode).stock"></span>) in stock</div>
-                                                <div class="font-medium text-orange-600" x-show="productMeta(it.fitemcode).stock > 0">
-                                                    maks: <span x-text="productMeta(it.fitemcode).stock"></span>
-                                                </div>
-                                            </div>
                                         </td>
                                         <td class="p-2 text-right" x-text="it.fqtypo"></td>
                                         <td class="p-2" x-text="it.fketdt || '-'"></td>
@@ -303,9 +297,6 @@
                                             @keydown.enter.prevent="$refs.editKet?.focus()">
                                                 <div class="text-xs text-gray-400 mt-0.5 flex justify-between items-center" x-show="editRow.fitemcode">
                                                     <div>(<span x-text="productMeta(editRow.fitemcode).stock"></span>) in stock</div>
-                                                    <div class="font-medium text-orange-600" x-show="productMeta(editRow.fitemcode).stock > 0">
-                                                        maks: <span x-text="productMeta(editRow.fitemcode).stock"></span>
-                                                    </div>
                                                 </div>
                                     </td>
 

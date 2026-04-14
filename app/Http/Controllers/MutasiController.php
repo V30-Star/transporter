@@ -212,7 +212,6 @@ class MutasiController extends Controller
             ->leftJoin('msprd as m', 'm.fprdid', '=', 'tr_pod.fprdcode')
             ->select([
                 DB::raw("COALESCE(NULLIF(tr_pod.frefdtno, ''), tr_pod.fpodid::text) as frefdtno"),
-                'tr_pod.fnouref as fnouref',
                 'm.fprdcode as fitemcode', // <-- Ambil kode string dari master produk
                 'm.fprdname as fitemname', // <-- Mengambil fprdname dari tabel msprd
                 'tr_pod.fqty',
@@ -392,8 +391,6 @@ class MutasiController extends Controller
                 'fsatuan.*'      => ['nullable', 'string', 'max:5'],
                 'frefno.*'       => ['nullable', 'string', 'max:20'],
                 'fsupplier'      => ['nullable', 'integer'],
-                'fnouref'        => ['nullable', 'array'],
-                'fnouref.*'      => ['nullable', 'integer'],
                 'fqty'           => ['required', 'array'],
                 'fqty.*'         => ['required', 'numeric', 'min:0.01'],
                 'fprice.*'       => ['numeric', 'min:0'],
@@ -443,7 +440,6 @@ class MutasiController extends Controller
             $codes   = $request->input('fitemcode', []);
             $satuans = $request->input('fsatuan', []);
             $refdtno = $request->input('frefdtno', []);
-            $nourefs = $request->input('fnouref', []);
             $qtys    = $request->input('fqty', []);
             $prices  = $request->input('fprice', []);
             $descs   = $request->input('fdesc', []);
@@ -505,7 +501,6 @@ class MutasiController extends Controller
                     'fdatetime'      => $now,
                     'fketdt'         => '',
                     'fcode'          => '0',
-                    'fnouref'        => $rnour !== null ? (int)$rnour : null,
                     'frefso'         => null,
                     'fdesc'          => $desc,
                     'fsatuan'        => $sat,
@@ -611,19 +606,11 @@ class MutasiController extends Controller
                     'fstockmtid'
                 );
 
-                $lastNouRef = (int) DB::table('trstockdt')
-                    ->where('fstockmtid', $newStockMasterId)
-                    ->max('fnouref');
-                $nextNouRef = $lastNouRef + 1;
-
                 foreach ($rowsDt as $idx => &$r) {
                     $r['fstockmtid']   = $newStockMasterId;
                     $r['fstockmtcode'] = $headerData['fstockmtcode'];
                     $r['fstockmtno']   = $fstockmtno;
 
-                    if (!isset($r['fnouref']) || $r['fnouref'] === null) {
-                        $r['fnouref'] = $nextNouRef++;
-                    }
                 }
                 unset($r);
 
@@ -704,7 +691,6 @@ class MutasiController extends Controller
                 'famountponet' => $d->famountponet ?? null,
                 'famountpo' => $d->famountpo ?? null,
                 'frefdtno'  => $d->frefdtno ?? null,
-                'fnouref'   => $d->fnouref ?? null,
                 'fqty'      => (float)($d->fqty ?? 0),
                 'fterima'   => (float)($d->fterima ?? 0),
                 'fprice'    => (float)($d->fprice ?? 0),
@@ -817,7 +803,6 @@ class MutasiController extends Controller
                 'famountponet' => $d->famountponet ?? null,
                 'famountpo' => $d->famountpo ?? null,
                 'frefdtno'  => $d->frefdtno ?? null,
-                'fnouref'   => $d->fnouref ?? null,
                 'fqty'      => (float)($d->fqty ?? 0),
                 'fterima'   => (float)($d->fterima ?? 0),
                 'fprice'    => (float)($d->fprice ?? 0),
@@ -886,8 +871,6 @@ class MutasiController extends Controller
             'fsatuan'        => ['nullable', 'array'],
             'fsatuan.*'      => ['nullable', 'string', 'max:5'],
             'frefno' => ['nullable', 'string'],
-            'fnouref'        => ['nullable', 'array'],
-            'fnouref.*'      => ['nullable', 'integer'],
             'fqty'           => ['required', 'array'],
             'fqty.*'         => ['required', 'numeric', 'min:0.01'], // Minimal 0.01
             'fprice'         => ['required', 'array'],
@@ -922,7 +905,7 @@ class MutasiController extends Controller
         $codes   = $request->input('fitemcode', []);
         $satuans = $request->input('fsatuan', []);
         $refdtno = $request->input('frefdtno', []);
-        $nourefs = $request->input('fnouref', []);
+
         $qtys    = $request->input('fqty', []);
         $prices  = $request->input('fprice', []);
         $descs   = $request->input('fdesc', []);
@@ -998,7 +981,6 @@ class MutasiController extends Controller
                 'fdatetime'      => $now, // Tetap gunakan fdatetime
                 'fketdt'         => '',
                 'fcode'          => '0',
-                'fnouref'        => $rnour !== null ? (int)$rnour : null,
                 'frefso'         => null,
                 'fdesc'          => $desc,
                 'fsatuan'        => $sat,
@@ -1094,9 +1076,6 @@ class MutasiController extends Controller
                 $r['fstockmtcode'] = $fstockmtcode;
                 $r['fstockmtno']   = $fstockmtno;
 
-                if (!isset($r['fnouref']) || $r['fnouref'] === null) {
-                    $r['fnouref'] = $nextNouRef++;
-                }
             }
             unset($r);
 
@@ -1168,7 +1147,6 @@ class MutasiController extends Controller
                 'famountponet' => $d->famountponet ?? null,
                 'famountpo' => $d->famountpo ?? null,
                 'frefdtno'  => $d->frefdtno ?? null,
-                'fnouref'   => $d->fnouref ?? null,
                 'fqty'      => (float)($d->fqty ?? 0),
                 'fterima'   => (float)($d->fterima ?? 0),
                 'fprice'    => (float)($d->fprice ?? 0),

@@ -138,8 +138,6 @@
                                 <td class="p-2 text-sm text-gray-600" x-text="it.fprno || it.frefdtno || '-'"></td>
                                 <td class="p-2 text-right text-sm">
                                     <div x-text="it.fqty"></div>
-                                    <div class="text-xs text-gray-400 mt-0.5" x-show="it.fitemcode"
-                                        x-text="(productMeta(it.fitemcode)?.stock || 0) + ' in stock'"></div>
                                 </td>
                                 <td class="p-2 text-right text-sm" x-text="fmtCurr(it.fprice)"></td>
                                 <td class="p-2 text-right text-sm" x-text="it.fdisc"></td>
