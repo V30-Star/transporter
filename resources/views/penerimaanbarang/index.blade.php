@@ -308,24 +308,29 @@
                     name: 'fstockmtdate'
                 },
                 {
-                    data: 'fstockmtdate',
-                    name: 'fstockmtdate'
+                    data: 'fwhname',
+                    name: 'fwhname',
+                    orderable: false
                 },
                 {
-                    data: 'fstockmtdate',
-                    name: 'fstockmtdate'
+                    data: 'fsuppliername',
+                    name: 'fsuppliername',
+                    orderable: false
                 },
                 {
-                    data: 'fstockmtdate',
-                    name: 'fstockmtdate'
+                    data: 'fket',
+                    name: 'fket',
+                    orderable: false
                 },
                 {
-                    data: 'fstockmtdate',
-                    name: 'fstockmtdate'
+                    data: 'frefpo',
+                    name: 'frefpo',
+                    orderable: false
                 },
                 {
-                    data: 'fstockmtdate',
-                    name: 'fstockmtdate'
+                    data: 'famountmt',
+                    name: 'famountmt',
+                    orderable: false
                 }
             ];
 

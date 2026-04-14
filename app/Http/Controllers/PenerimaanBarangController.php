@@ -41,8 +41,11 @@ class PenerimaanBarangController extends Controller
 
     if ($request->ajax()) {
       $query = PenerimaanPembelianHeader::where('fstockmtcode', 'TER');
+
       $totalRecords = PenerimaanPembelianHeader::where('fstockmtcode', 'TER')->count();
 
+      // For searching, handle it on the header level (like fstockmtno) or if you want supplier name, 
+      // you could do a subquery but for now keep it simple to fix the 500 error.
       if ($search = $request->input('search.value')) {
         $query->where('fstockmtno', 'like', "%{$search}%");
       }
@@ -53,7 +56,17 @@ class PenerimaanBarangController extends Controller
 
       $orderColIdx    = $request->input('order.0.column', 0);
       $orderDir       = $request->input('order.0.dir', 'desc');
-      $sortableColumns = ['fstockmtno', 'fstockmtdate'];
+      
+      // Match exactly with the blade columns array
+      $sortableColumns = [
+        'fstockmtno',
+        'fstockmtdate',
+        'fstockmtdate', // dummy for fwhname
+        'fstockmtdate', // dummy for fsuppliername
+        'fket',
+        'fstockmtdate', // dummy for frefpo
+        'famountmt'
+      ];
 
       if (isset($sortableColumns[$orderColIdx])) {
         $query->orderBy($sortableColumns[$orderColIdx], $orderDir);
@@ -63,12 +76,32 @@ class PenerimaanBarangController extends Controller
 
       $start   = $request->input('start', 0);
       $length  = $request->input('length', 10);
-      $records = $query->skip($start)->take($length)->get(['fstockmtid', 'fstockmtno', 'fstockmtdate']);
+      $records = $query->skip($start)->take($length)->get(['fstockmtid', 'fstockmtno', 'fstockmtdate', 'ffrom', 'fsupplier', 'fket', 'famountmt']);
+
+      // Collect related data efficiently without breaking Postgres Types
+      $whIds = $records->pluck('ffrom')->filter()->unique();
+      $warehouses = DB::table('mswh')->whereIn('fwhid', $whIds)->pluck('fwhname', 'fwhid');
+
+      $suppIds = $records->pluck('fsupplier')->filter()->unique();
+      $suppliers = DB::table('mssupplier')->whereIn('fsupplierid', $suppIds)->pluck('fsuppliername', 'fsupplierid');
+
+      $stockMtIds = $records->pluck('fstockmtid');
+      $trstockdts = DB::table('trstockdt')
+                      ->whereIn('fstockmtid', $stockMtIds)
+                      ->select('fstockmtid', DB::raw("MAX(frefdtno) as frefpo"))
+                      ->groupBy('fstockmtid')
+                      ->get()
+                      ->pluck('frefpo', 'fstockmtid');
 
       $data = $records->map(fn($row) => [
         'fstockmtid'   => $row->fstockmtid,
         'fstockmtno'   => $row->fstockmtno,
         'fstockmtdate' => Carbon::parse($row->fstockmtdate)->format('d/m/Y'),
+        'fwhname'      => $warehouses[$row->ffrom] ?? '-',
+        'fsuppliername'=> $suppliers[$row->fsupplier] ?? '-',
+        'fket'         => $row->fket ?? '-',
+        'frefpo'       => $trstockdts[$row->fstockmtid] ?? '-',
+        'famountmt'    => 'Rp ' . number_format((float)$row->famountmt, 0, ',', '.'),
       ]);
 
       return response()->json([
