@@ -2507,7 +2507,6 @@
                 if (!code || !meta.stock) return '';
                 
                 const entered = Number(qty) || 0;
-                const remaining = Math.max(0, meta.stock - entered);
                 const units = meta.units || [];
                 const ratios = meta.unit_ratios || { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 };
                 
@@ -2525,6 +2524,9 @@
                 } else if (satuan === satKecil) {
                     ratio = 1;
                 }
+                
+                const enteredInBase = entered * ratio;
+                const remaining = Math.max(0, meta.stock - enteredInBase);
                 
                 const limitValue = Math.floor(remaining / ratio);
                 return '<span class="font-medium">limit:</span> ' + limitValue + ' ' + satuan;
@@ -2705,11 +2707,34 @@
                 window.getCurrentItemKeys = () => this.getCurrentItemKeys();
 
                 this.savedItems.forEach((item) => {
+                    item.units = item.units || [];
+                    if (typeof item.units === 'string') {
+                        try {
+                            const parsed = JSON.parse(item.units);
+                            item.units = Array.isArray(parsed) ? parsed : [];
+                        } catch (e) {
+                            item.units = item.units.split(',').map(u => u.trim());
+                        }
+                    } else if (!Array.isArray(item.units)) {
+                        item.units = [];
+                    }
+
                     const meta = this.productMeta(item.fitemcode);
                     if (meta) {
                         item.maxqty = Number(meta.stock) || 0;
+                        if (meta.units && meta.units.length) {
+                            item.units = [...new Set([...item.units, ...meta.units])];
+                        } else if (item.fsatuan && !item.units.includes(item.fsatuan)) {
+                            item.units.unshift(item.fsatuan);
+                        }
+                        if (meta.unit_ratios) {
+                            item.unit_ratios = item.unit_ratios || meta.unit_ratios;
+                        }
                     } else {
                         item.maxqty = 0;
+                        if (item.fsatuan && !item.units.includes(item.fsatuan)) {
+                            item.units.unshift(item.fsatuan);
+                        }
                     }
                 });
                 window.addEventListener('pr-picked', (e) => this.onPrPicked(e, 'SO'), { passive: true });

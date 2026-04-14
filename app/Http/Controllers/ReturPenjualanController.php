@@ -47,15 +47,6 @@ class ReturPenjualanController extends Controller
                 $query->where('fsono', 'like', "%{$search}%");
             }
 
-            // Filter status - DEFAULT ke 'active' jika tidak ada
-            // $statusFilter = $request->query('status', 'active');
-
-            // if ($statusFilter === 'active') {
-            //   $query->where('fclose', '0');
-            // } elseif ($statusFilter === 'nonactive') {
-            //   $query->where('fclose', '1');
-            // }
-
             // Filter tahun
             if ($year) {
                 $query->whereRaw('EXTRACT(YEAR FROM fdatetime) = ?', [$year]);
@@ -232,7 +223,7 @@ class ReturPenjualanController extends Controller
     private function generateInvoiceCode(?Carbon $onDate = null): string
     {
         $date = $onDate ?: now();
-        $prefix = 'INV.'.$date->format('ym').'.';
+        $prefix = 'REJ.'.$date->format('ym').'.';
 
         $last = DB::table('tranmt')
             ->where('fsono', 'like', $prefix.'%')
@@ -601,7 +592,7 @@ class ReturPenjualanController extends Controller
                 $fsono = $request->input('fsono');
 
                 if (empty($fsono)) {
-                    $prefix = 'INV.'.$fsodate->format('ym').'.';
+                    $prefix = 'REJ.'.$fsodate->format('ym').'.';
 
                     $lastRecord = DB::table('tranmt')
                         ->where('fsono', 'like', $prefix.'%')
@@ -658,7 +649,7 @@ class ReturPenjualanController extends Controller
                 DB::table('trandt')->insert($detailRows);
 
                 // ==== STOCK RECORDS ====
-                $fstockmtno = str_replace('INV.', 'REB.', $fsono);
+                $fstockmtno = str_replace('REJ.', 'REB.', $fsono);
                 $masterStockData = [
                     'fstockmtno' => $fstockmtno,
                     'fstockmtcode' => 'REB',
@@ -1208,7 +1199,7 @@ class ReturPenjualanController extends Controller
                 }
 
                 // ==== SYNC STOCK RECORDS ====
-                $fstockmtno = str_replace('INV.', 'REB.', $header->fsono);
+                $fstockmtno = str_replace('REJ.', 'REB.', $header->fsono);
                 $stockHeader = DB::table('trstockmt')->where('fstockmtno', $fstockmtno)->first();
 
                 if ($stockHeader) {
@@ -1377,7 +1368,7 @@ class ReturPenjualanController extends Controller
                 DB::table('trandt')->where('fsono', $fsono)->delete();
 
                 // 2. Delete stock records (trstockmt & trstockdt)
-                $fstockmtno = str_replace('INV.', 'REB.', $fsono);
+                $fstockmtno = str_replace('REJ.', 'REB.', $fsono);
                 $stockHeader = DB::table('trstockmt')->where('fstockmtno', $fstockmtno)->first();
 
                 if ($stockHeader) {
