@@ -22,7 +22,7 @@ class WilayahController extends Controller
             ->get(['fwilayahcode', 'fwilayahname', 'fwilayahid', 'fnonactive']);
 
         $canCreate = in_array('createWilayah', explode(',', session('user_restricted_permissions', '')));
-        $canEdit   = in_array('updateWilayah', explode(',', session('user_restricted_permissions', '')));
+        $canEdit = in_array('updateWilayah', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deleteWilayah', explode(',', session('user_restricted_permissions', '')));
 
         return view('master.wilayah.index', compact('wilayahs', 'canCreate', 'canEdit', 'canDelete'));
@@ -70,7 +70,7 @@ class WilayahController extends Controller
 
         return view('master.wilayah.edit', [
             'wilayah' => $wilayah,
-            'action' => 'edit'
+            'action' => 'edit',
         ]);
     }
 
@@ -79,7 +79,7 @@ class WilayahController extends Controller
         $wilayah = Wilayah::findOrFail($fwilayahid);
 
         return view('master.wilayah.view', [
-            'wilayah' => $wilayah
+            'wilayah' => $wilayah,
         ]);
     }
 
@@ -117,9 +117,9 @@ class WilayahController extends Controller
     public function delete($fwilayahid)
     {
         $wilayah = Wilayah::findOrFail($fwilayahid);
-        return view('master.wilayah.edit', [
+
+        return view('master.wilayah.delete', [
             'wilayah' => $wilayah,
-            'action' => 'delete'
         ]);
     }
 
@@ -127,12 +127,26 @@ class WilayahController extends Controller
     {
         try {
             $wilayah = Wilayah::findOrFail($fwilayahid);
+
+            if (\Illuminate\Support\Facades\DB::table('mscustomer')->where('fwilayahid', $wilayah->fwilayahid)->exists()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Wilayah sudah digunakan dalam data Customer.',
+                ], 422);
+            }
+
             $wilayah->delete();
 
-             return response()->json(['message' => 'Data wilayah ' . $wilayah->fwilayahname . ' berhasil dihapus.']);
+            return response()->json([
+                'success' => true,
+                'message' => 'Data wilayah '.$wilayah->fwilayahname.' berhasil dihapus.',
+                'redirect' => route('wilayah.index'),
+            ]);
         } catch (\Exception $e) {
-            // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
-            return response()->json(['message' => 'Gagal menghapus data: ' . $e->getMessage()], 500);
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus data: '.$e->getMessage(),
+            ], 500);
         }
     }
 }

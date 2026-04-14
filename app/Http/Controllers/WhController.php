@@ -2,10 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Wh;
 use App\Models\Cabang;
+use App\Models\Wh;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class WhController extends Controller
 {
@@ -24,9 +23,9 @@ class WhController extends Controller
                 'mscabang.fcabangname',
             ]);
 
-        $permsArr  = explode(',', (string) session('user_restricted_permissions', ''));
+        $permsArr = explode(',', (string) session('user_restricted_permissions', ''));
         $canCreate = in_array('createGudang', $permsArr, true);
-        $canEdit   = in_array('updateGudang', $permsArr, true);
+        $canEdit = in_array('updateGudang', $permsArr, true);
         $canDelete = in_array('deleteGudang', $permsArr, true);
 
         return view('gudang.index', compact('gudangs', 'canCreate', 'canEdit', 'canDelete'));
@@ -96,7 +95,7 @@ class WhController extends Controller
         return view('gudang.edit', [
             'gudang' => $gudang,
             'cabangOptions' => $cabangOptions,
-            'action' => 'edit'
+            'action' => 'edit',
         ]);
     }
 
@@ -113,7 +112,7 @@ class WhController extends Controller
 
         return view('gudang.view', [
             'gudang' => $gudang,
-            'cabangOptions' => $cabangOptions
+            'cabangOptions' => $cabangOptions,
         ]);
     }
 
@@ -163,17 +162,8 @@ class WhController extends Controller
     {
         $gudang = Wh::findOrFail($fwhid);
 
-        $cabangOptions = Cabang::query()
-            ->selectRaw('TRIM(BOTH FROM fcabangkode) AS fbranchcode, fcabangname')
-            ->where('fnonactive', '0')
-            ->whereNotNull('fcabangkode')
-            ->orderBy('fcabangname')
-            ->get();
-
-        return view('gudang.edit', [
+        return view('gudang.delete', [
             'gudang' => $gudang,
-            'cabangOptions' => $cabangOptions,
-            'action' => 'delete'
         ]);
     }
 
@@ -181,12 +171,26 @@ class WhController extends Controller
     {
         try {
             $gudang = Wh::findOrFail($fwhid);
+
+            if (\Illuminate\Support\Facades\DB::table('trstockhdr')->where('fwhid', $gudang->fwhid)->exists()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gudang sudah digunakan dalam Transaksi Stok.',
+                ], 422);
+            }
+
             $gudang->delete();
 
-            return response()->json(['message' => 'Data gudang ' . $gudang->fwhname . ' berhasil dihapus.']);
+            return response()->json([
+                'success' => true,
+                'message' => 'Data gudang '.$gudang->fwhname.' berhasil dihapus.',
+                'redirect' => route('gudang.index'),
+            ]);
         } catch (\Exception $e) {
-            // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
-            return response()->json(['message' => 'Gagal menghapus data: ' . $e->getMessage()], 500);
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus data: '.$e->getMessage(),
+            ], 500);
         }
     }
 
@@ -206,7 +210,7 @@ class WhController extends Controller
 
         // 3. TAMBAHKAN VALIDASI CABANG DISINI
         // Wh hanya boleh melihat data yang fbranchcode-nya sama dengan session user
-        if (!$canAccessAllBranches) {
+        if (! $canAccessAllBranches) {
             if ($userBranch) {
                 $query->where('fbranchcode', $userBranch);
             } else {
@@ -255,7 +259,7 @@ class WhController extends Controller
             'draw' => (int) $request->input('draw', 1),
             'recordsTotal' => (int) $recordsTotal,
             'recordsFiltered' => (int) $recordsFiltered,
-            'data' => $data
+            'data' => $data,
         ]);
     }
 }

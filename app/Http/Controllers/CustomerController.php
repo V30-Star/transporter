@@ -4,13 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Customer;  // Assuming you have a Customer model
 use App\Models\Groupcustomer;
-use App\Models\Groupproduct;  // Add this import to get the groups
+// Add this import to get the groups
+use App\Models\Rekening;  // Add this import to get the groups
 use App\Models\Salesman;  // Add this import to get the groups
 use App\Models\Wilayah;  // Add this import to get the groups
-use App\Models\Rekening;  // Add this import to get the groups
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Pest\ArchPresets\Custom;
 
 class CustomerController extends Controller
 {
@@ -19,7 +18,7 @@ class CustomerController extends Controller
     {
         // Ambil permissions dulu
         $canCreate = in_array('createCustomer', explode(',', session('user_restricted_permissions', '')));
-        $canEdit   = in_array('updateCustomer', explode(',', session('user_restricted_permissions', '')));
+        $canEdit = in_array('updateCustomer', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deleteCustomer', explode(',', session('user_restricted_permissions', '')));
         $showActionsColumn = $canEdit || $canDelete;
 
@@ -44,7 +43,7 @@ class CustomerController extends Controller
                 'mscustomer.fcustomercode',
                 'mscustomer.fcustomername',
                 'mscustomer.faddress',
-                'w.fwilayahname'
+                'w.fwilayahname',
             ];
 
             // Handle Search
@@ -68,7 +67,7 @@ class CustomerController extends Controller
                 3 => 'mscustomer.faddress',
                 4 => 'mscustomer.ftempo',
                 5 => 'mscustomer.fnonactive',
-                6 => null // Kolom 'Actions'
+                6 => null, // Kolom 'Actions'
             ];
 
             if (isset($columns[$orderColumnIndex]) && $columns[$orderColumnIndex] !== null) {
@@ -98,7 +97,7 @@ class CustomerController extends Controller
             // --- PERUBAHAN UTAMA DI SINI ---
             // Format data untuk DataTables (Pola JS Render)
             $data = $customers->map(function ($customer) {
-                $isActive = (string)$customer->fnonactive === '0';
+                $isActive = (string) $customer->fnonactive === '0';
                 $statusBadge = $isActive
                     ? '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-green-100 text-green-700">Active</span>'
                     : '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs bg-red-200 text-red-700">Non Active</span>';
@@ -108,12 +107,12 @@ class CustomerController extends Controller
                 return [
                     'fcustomercode' => $customer->fcustomercode,
                     'fcustomername' => $customer->fcustomername,
-                    'wilayah_name'  => $customer->wilayah_name,
-                    'faddress'      => $customer->faddress,
-                    'ftempo'        => $customer->ftempo,
-                    'status'        => $statusBadge,
-                    'fcustomerid'   => $customer->fcustomerid, // KIRIM ID INI
-                    'DT_RowId'      => 'row_' . $customer->fcustomerid
+                    'wilayah_name' => $customer->wilayah_name,
+                    'faddress' => $customer->faddress,
+                    'ftempo' => $customer->ftempo,
+                    'status' => $statusBadge,
+                    'fcustomerid' => $customer->fcustomerid, // KIRIM ID INI
+                    'DT_RowId' => 'row_'.$customer->fcustomerid,
                 ];
             });
             // --- AKHIR PERUBAHAN ---
@@ -123,7 +122,7 @@ class CustomerController extends Controller
                 'draw' => intval($request->input('draw')),
                 'recordsTotal' => $totalRecords,
                 'recordsFiltered' => $filteredRecords,
-                'data' => $data
+                'data' => $data,
             ]);
         }
 
@@ -142,17 +141,17 @@ class CustomerController extends Controller
     private function generateCustomerCode(): string
     {
         $lastCode = Customer::where('fcustomercode', 'like', 'C-%')
-            ->orderByRaw("CAST(SUBSTRING(fcustomercode FROM 3) AS INTEGER) DESC")
+            ->orderByRaw('CAST(SUBSTRING(fcustomercode FROM 3) AS INTEGER) DESC')
             ->value('fcustomercode');
 
-        if (!$lastCode) {
+        if (! $lastCode) {
             return 'C-01';
         }
 
-        $number = (int)substr($lastCode, 2);
+        $number = (int) substr($lastCode, 2);
         $newNumber = $number + 1;
 
-        return 'C-' . str_pad($newNumber, 2, '0', STR_PAD_LEFT);
+        return 'C-'.str_pad($newNumber, 2, '0', STR_PAD_LEFT);
     }
 
     // Create method to return the customer creation form
@@ -200,7 +199,7 @@ class CustomerController extends Controller
             'frekening' => '',
             'fmemo' => '',
             'fnpwp' => 'required_without:fnik|nullable|string|prohibits:fnik',
-            'fnik'  => 'required_without:fnpwp|nullable|string|prohibits:fnpwp',
+            'fnik' => 'required_without:fnpwp|nullable|string|prohibits:fnpwp',
         ], [
             'fcustomercode.max' => 'Kode Customer tidak boleh lebih dari 10 karakter.',
             'fcustomername.required' => 'Nama Customer harus diisi.',
@@ -227,9 +226,9 @@ class CustomerController extends Controller
             'frekening.required' => 'Rekening harus dipilih.',
             'fcustomercode.unique' => 'Kode Customer ini sudah ada',
             'fnpwp.required_without' => 'Anda harus mengisi salah satu antara NPWP atau NIK.',
-            'fnik.required_without'  => 'Anda harus mengisi salah satu antara NPWP atau NIK.',
-            'fnpwp.prohibits'        => 'Hanya boleh mengisi satu: NPWP atau NIK saja.',
-            'fnik.prohibits'         => 'Hanya boleh mengisi satu: NPWP atau NIK saja.',
+            'fnik.required_without' => 'Anda harus mengisi salah satu antara NPWP atau NIK.',
+            'fnpwp.prohibits' => 'Hanya boleh mengisi satu: NPWP atau NIK saja.',
+            'fnik.prohibits' => 'Hanya boleh mengisi satu: NPWP atau NIK saja.',
         ]);
 
         if (empty($request->fcustomercode)) {
@@ -272,9 +271,10 @@ class CustomerController extends Controller
             'wilayah' => $wilayah,
             'rekening' => $rekening,
             'newCustomerCode' => $newCustomerCode,
-            'action' => 'edit'
+            'action' => 'edit',
         ]);
     }
+
     public function view($fcustomerid)
     {
         // Find Customer by primary key
@@ -291,7 +291,7 @@ class CustomerController extends Controller
             'salesman' => $salesman,
             'wilayah' => $wilayah,
             'rekening' => $rekening,
-            'newCustomerCode' => $newCustomerCode
+            'newCustomerCode' => $newCustomerCode,
         ]);
     }
 
@@ -319,7 +319,7 @@ class CustomerController extends Controller
         }
 
         $validated = $request->validate([
-            'fcustomercode' => 'required|string|max:10|unique:mscustomer,fcustomercode,' . $fcustomerid . ',fcustomerid',
+            'fcustomercode' => 'required|string|max:10|unique:mscustomer,fcustomercode,'.$fcustomerid.',fcustomerid',
             'fcustomername' => 'required|string|max:50', // Validate customer name (max 50 chars)
             'fgroup' => '', // Validate the Group Produk field
             'fsalesman' => '', // Validate the Group Produk field
@@ -344,7 +344,7 @@ class CustomerController extends Controller
             'frekening' => '',
             'fmemo' => '',
             'fnpwp' => 'required_without:fnik|nullable|string|prohibits:fnik',
-            'fnik'  => 'required_without:fnpwp|nullable|string|prohibits:fnpwp',
+            'fnik' => 'required_without:fnpwp|nullable|string|prohibits:fnpwp',
         ], [
             'fcustomername.required' => 'Nama Customer harus diisi.',
             'fgroup.required' => 'Group Produk harus dipilih.',
@@ -371,8 +371,8 @@ class CustomerController extends Controller
             'fjabatan.required' => 'Jabatan harus diisi.',
             'frekening.required' => 'Rekening harus dipilih.',
             'fcustomercode.unique' => 'Kode Customer ini sudah ada',
-            'fnpwp.prohibits'        => 'Hanya boleh mengisi satu: NPWP atau NIK saja.',
-            'fnik.prohibits'         => 'Hanya boleh mengisi satu: NPWP atau NIK saja.',
+            'fnpwp.prohibits' => 'Hanya boleh mengisi satu: NPWP atau NIK saja.',
+            'fnik.prohibits' => 'Hanya boleh mengisi satu: NPWP atau NIK saja.',
         ]);
         $customer = Customer::findOrFail($fcustomerid);
 
@@ -398,20 +398,9 @@ class CustomerController extends Controller
     public function delete($fcustomerid)
     {
         $customer = Customer::findOrFail($fcustomerid);
-        $groups = Groupcustomer::where('fnonactive', 0)->get();
-        $salesman = Salesman::where('fnonactive', 0)->get();
-        $wilayah = Wilayah::where('fnonactive', 0)->get();
-        $rekening = Rekening::where('fnonactive', 0)->get();
-        $newCustomerCode = $this->generateCustomerCode();
 
-        return view('master.customer.edit', [
+        return view('master.customer.delete', [
             'customer' => $customer,
-            'groups' => $groups,
-            'salesman' => $salesman,
-            'wilayah' => $wilayah,
-            'rekening' => $rekening,
-            'newCustomerCode' => $newCustomerCode,
-            'action' => 'delete'
         ]);
     }
 
@@ -419,12 +408,26 @@ class CustomerController extends Controller
     {
         try {
             $customer = Customer::findOrFail($fcustomerid);
+
+            if (\Illuminate\Support\Facades\DB::table('trsoh')->where('fcustomerid', $customer->fcustomerid)->exists()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Customer sudah digunakan dalam transaksi Sales Order.',
+                ], 422);
+            }
+
             $customer->delete();
 
-            return redirect()->route('customer.index')->with('success', 'Data customer ' . $customer->fcustomername . ' berhasil dihapus.');
+            return response()->json([
+                'success' => true,
+                'message' => 'Data customer '.$customer->fcustomername.' berhasil dihapus.',
+                'redirect' => route('customer.index'),
+            ]);
         } catch (\Exception $e) {
-            // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
-            return redirect()->route('customer.delete', $fcustomerid)->with('error', 'Gagal menghapus data: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus data: '.$e->getMessage(),
+            ], 500);
         }
     }
 
@@ -491,7 +494,7 @@ class CustomerController extends Controller
             'draw' => (int) $request->input('draw', 1),
             'recordsTotal' => (int) $recordsTotal,
             'recordsFiltered' => (int) $recordsFiltered,
-            'data' => $data
+            'data' => $data,
         ]);
     }
 }

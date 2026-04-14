@@ -10,7 +10,7 @@ class SupplierController extends Controller
     public function index(Request $request)
     {
         $allowedSorts = ['fsuppliercode', 'fsuppliername', 'fsupplierid', 'fkontakperson', 'faddress', 'fnonactive'];
-        $sortBy  = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fsupplierid';
+        $sortBy = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fsupplierid';
         $sortDir = $request->sort_dir === 'asc' ? 'asc' : 'desc';
 
         $status = $request->query('status');
@@ -26,7 +26,7 @@ class SupplierController extends Controller
         $suppliers = Supplier::orderBy($sortBy, $sortDir)->get(['fsuppliercode', 'fsuppliername', 'fsupplierid',  'fkontakperson', 'faddress', 'fnonactive']);
 
         $canCreate = in_array('createSupplier', explode(',', session('user_restricted_permissions', '')));
-        $canEdit   = in_array('updateSupplier', explode(',', session('user_restricted_permissions', '')));
+        $canEdit = in_array('updateSupplier', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deleteSupplier', explode(',', session('user_restricted_permissions', '')));
 
         return view('supplier.index', compact('suppliers', 'canCreate', 'canEdit', 'canDelete', 'status'));
@@ -95,10 +95,10 @@ class SupplierController extends Controller
         // Pass the supplier data to the edit view
         return view('supplier.edit', [
             'supplier' => $supplier,
-            'action' => 'edit'
+            'action' => 'edit',
         ]);
     }
-    
+
     public function view($fsupplierid)
     {
         // Fetch the Supplier data by its primary key
@@ -106,7 +106,7 @@ class SupplierController extends Controller
 
         // Pass the supplier data to the view view
         return view('supplier.view', [
-            'supplier' => $supplier
+            'supplier' => $supplier,
         ]);
     }
 
@@ -143,7 +143,6 @@ class SupplierController extends Controller
             ]
         );
 
-
         $validated['fsuppliercode'] = strtoupper($validated['fsuppliercode']);
         $validated['fsuppliername'] = strtoupper($validated['fsuppliername']);
 
@@ -164,9 +163,9 @@ class SupplierController extends Controller
     public function delete($fsupplierid)
     {
         $supplier = Supplier::findOrFail($fsupplierid);
-        return view('supplier.edit', [
+
+        return view('supplier.delete', [
             'supplier' => $supplier,
-            'action' => 'delete'
         ]);
     }
 
@@ -174,12 +173,26 @@ class SupplierController extends Controller
     {
         try {
             $supplier = Supplier::findOrFail($fsupplierid);
+
+            if (\Illuminate\Support\Facades\DB::table('trpod')->where('fsupplierid', $supplier->fsupplierid)->exists()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Supplier sudah digunakan dalam data PO (Purchase Order).',
+                ], 422);
+            }
+
             $supplier->delete();
 
-            return redirect()->route('supplier.index')->with('success', 'Data supplier ' . $supplier->fsuppliername . ' berhasil dihapus.');
+            return response()->json([
+                'success' => true,
+                'message' => 'Data supplier '.$supplier->fsuppliername.' berhasil dihapus.',
+                'redirect' => route('supplier.index'),
+            ]);
         } catch (\Exception $e) {
-            // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
-            return redirect()->route('supplier.delete', $fsupplierid)->with('error', 'Gakey: gal menghapus data: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus data: '.$e->getMessage(),
+            ], 500);
         }
     }
 
@@ -229,7 +242,7 @@ class SupplierController extends Controller
             'draw' => (int) $request->input('draw', 1),
             'recordsTotal' => (int) $recordsTotal,
             'recordsFiltered' => (int) $recordsFiltered,
-            'data' => $data
+            'data' => $data,
         ]);
     }
 }

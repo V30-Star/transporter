@@ -2,56 +2,56 @@
 
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AdjstockController;
-use App\Http\Controllers\Tr_pohController;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ApprovalController;
+use App\Http\Controllers\AssemblingController;
+use App\Http\Controllers\CurrencyController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\FakturpembelianController;
 use App\Http\Controllers\GroupcustomerController;
 use App\Http\Controllers\GroupproductController;
-use App\Http\Controllers\MerekController;
-use App\Http\Controllers\ProductController;
-use App\Http\Controllers\RekeningController;
-use App\Http\Controllers\CurrencyController;
+use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\JurnalTransaksiController;
+use App\Http\Controllers\ListingFakturPembelianController;
+use App\Http\Controllers\ListingPenerimaanBarangController;
+use App\Http\Controllers\ListingPenjualanController;
+use App\Http\Controllers\ListingPOController;
+use App\Http\Controllers\ListingPRController;
+use App\Http\Controllers\ListingSOBelumController;
+use App\Http\Controllers\ListingSOController;
+use App\Http\Controllers\MerekController;
+use App\Http\Controllers\MutasiController;
+use App\Http\Controllers\PemakaianbarangController;
+use App\Http\Controllers\PenerimaanBarangController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RekeningController;
+use App\Http\Controllers\ReportingAccountController;
+use App\Http\Controllers\ReportingAdjStockController;
+use App\Http\Controllers\ReportingAssemblingController;
+use App\Http\Controllers\ReportingController;
+use App\Http\Controllers\ReportingCustomerController;
+use App\Http\Controllers\ReportingFakturPembelianController;
+use App\Http\Controllers\ReportingPemakaianBarangController;
+use App\Http\Controllers\ReportingPenerimaanBarangController;
+use App\Http\Controllers\ReportingPrController;
+use App\Http\Controllers\ReportingProductController;
+use App\Http\Controllers\ReportingSubaccountController;
+use App\Http\Controllers\ReportingSupplierController;
+use App\Http\Controllers\ReturPembelianController;
+use App\Http\Controllers\ReturPenjualanController;
 use App\Http\Controllers\RoleAccessController;
-use App\Http\Controllers\WilayahController;
 use App\Http\Controllers\SalesmanController;
+use App\Http\Controllers\SalesOrderController;
 use App\Http\Controllers\SatuanController;
 use App\Http\Controllers\SubaccountController;
 use App\Http\Controllers\SupplierController;
-use App\Http\Controllers\SysUserController;
-use App\Http\Controllers\Tr_prhController;
-use App\Http\Controllers\ApprovalController;
-use App\Http\Controllers\AssemblingController;
-use App\Http\Controllers\WhController;
-use App\Http\Controllers\PenerimaanBarangController;
-use App\Http\Controllers\FakturpembelianController;
-use App\Http\Controllers\InvoiceController;
-use App\Http\Controllers\ReturPenjualanController;
-use App\Http\Controllers\MutasiController;
-use App\Http\Controllers\PemakaianbarangController;
-use App\Http\Controllers\ReportingAccountController;
-use App\Http\Controllers\ReportingController;
-use App\Http\Controllers\ReportingFakturPembelianController;
-use App\Http\Controllers\ReportingPrController;
-use App\Http\Controllers\ReportingPenerimaanBarangController;
-use App\Http\Controllers\ReturPembelianController;
-use App\Http\Controllers\ReportingAdjStockController;
-use App\Http\Controllers\ReportingAssemblingController;
-use App\Http\Controllers\ReportingPemakaianBarangController;
-use App\Http\Controllers\ReportingSubaccountController;
-use App\Http\Controllers\ReportingSupplierController;
-use App\Http\Controllers\ReportingCustomerController;
-use App\Http\Controllers\ReportingProductController;
-use App\Http\Controllers\ListingSOController;
-use App\Http\Controllers\ListingSOBelumController;
-use App\Http\Controllers\ListingPRController;
-use App\Http\Controllers\ListingPOController;
-use App\Http\Controllers\ListingPenerimaanBarangController;
-use App\Http\Controllers\ListingFakturPembelianController;
-use App\Http\Controllers\ListingPenjualanController;
-use App\Http\Controllers\SalesOrderController;
 use App\Http\Controllers\SuratJalanController;
+use App\Http\Controllers\SysUserController;
+use App\Http\Controllers\Tr_pohController;
+use App\Http\Controllers\Tr_prhController;
+use App\Http\Controllers\WhController;
+use App\Http\Controllers\WilayahController;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
@@ -79,7 +79,7 @@ Route::middleware('auth')->group(function () {
     Route::prefix('master')->group(function () {
 
         Route::get('/customer', [CustomerController::class, 'index'])->name('customer.index');
-        Route::post('/customer',        [CustomerController::class, 'store'])->name('customer.store');
+        Route::post('/customer', [CustomerController::class, 'store'])->name('customer.store');
         Route::get('/customer/create', [CustomerController::class, 'create'])->name('customer.create');
         Route::get('/customer/{fcustomerid}/edit', [CustomerController::class, 'edit'])->name('customer.edit');
         Route::get('/customer/{fcustomerid}/view', [CustomerController::class, 'view'])->name('customer.view');
@@ -88,7 +88,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/customer/{fcustomerid}', [CustomerController::class, 'destroy'])->name('customer.destroy');
 
         Route::get('/groupcustomer', [GroupcustomerController::class, 'index'])->name('groupcustomer.index');
-        Route::post('/groupcustomer',        [GroupcustomerController::class, 'store'])->name('groupcustomer.store');
+        Route::post('/groupcustomer', [GroupcustomerController::class, 'store'])->name('groupcustomer.store');
         Route::get('/groupcustomer/create', [GroupcustomerController::class, 'create'])->name('groupcustomer.create');
         Route::get('/groupcustomer/{fgroupid}/edit', [GroupcustomerController::class, 'edit'])->name('groupcustomer.edit');
         Route::get('/groupcustomer/{fgroupid}/view', [GroupcustomerController::class, 'view'])->name('groupcustomer.view');
@@ -98,14 +98,15 @@ Route::middleware('auth')->group(function () {
 
         // SysUser Routes
         Route::get('/sysuser', [SysUserController::class, 'index'])->name('sysuser.index');
-        Route::post('/sysuser',        [SysUserController::class, 'store'])->name('sysuser.store');
+        Route::post('/sysuser', [SysUserController::class, 'store'])->name('sysuser.store');
         Route::get('/sysuser/create', [SysUserController::class, 'create'])->name('sysuser.create');
         Route::get('/sysuser/{fuid}/edit', [SysUserController::class, 'edit'])->name('sysuser.edit');
+        Route::get('/sysuser/{fuid}/delete', [SysUserController::class, 'delete'])->name('sysuser.delete');
         Route::patch('/sysuser/{fuid}', [SysUserController::class, 'update'])->name('sysuser.update');
         Route::delete('/sysuser/{fuid}', [SysUserController::class, 'destroy'])->name('sysuser.destroy');
 
         Route::get('/wilayah', [WilayahController::class, 'index'])->name('wilayah.index');
-        Route::post('/wilayah',        [WilayahController::class, 'store'])->name('wilayah.store');
+        Route::post('/wilayah', [WilayahController::class, 'store'])->name('wilayah.store');
         Route::get('/wilayah/create', [WilayahController::class, 'create'])->name('wilayah.create');
         Route::get('/wilayah/{fwilayahid}/edit', [WilayahController::class, 'edit'])->name('wilayah.edit');
         Route::get('/wilayah/{fwilayahid}/view', [WilayahController::class, 'view'])->name('wilayah.view');
@@ -114,7 +115,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/wilayah/{fwilayahid}', [WilayahController::class, 'destroy'])->name('wilayah.destroy');
 
         Route::get('/salesman', [SalesmanController::class, 'index'])->name('salesman.index');
-        Route::post('/salesman',        [SalesmanController::class, 'store'])->name('salesman.store');
+        Route::post('/salesman', [SalesmanController::class, 'store'])->name('salesman.store');
         Route::get('/salesman/create', [SalesmanController::class, 'create'])->name('salesman.create');
         Route::get('/salesman/{fsalesmanid}/edit', [SalesmanController::class, 'edit'])->name('salesman.edit');
         Route::get('/salesman/{fsalesmanid}/view', [SalesmanController::class, 'view'])->name('salesman.view');
@@ -123,7 +124,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/salesman/{fsalesmanid}', [SalesmanController::class, 'destroy'])->name('salesman.destroy');
 
         Route::get('/satuan', [SatuanController::class, 'index'])->name('satuan.index');
-        Route::post('/satuan',        [SatuanController::class, 'store'])->name('satuan.store');
+        Route::post('/satuan', [SatuanController::class, 'store'])->name('satuan.store');
         Route::get('/satuan/create', [SatuanController::class, 'create'])->name('satuan.create');
         Route::get('/satuan/{fsatuanid}/edit', [SatuanController::class, 'edit'])->name('satuan.edit');
         Route::get('/satuan/{fsatuanid}/view', [SatuanController::class, 'view'])->name('satuan.view');
@@ -132,7 +133,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/satuan/{fsatuanid}', [SatuanController::class, 'destroy'])->name('satuan.destroy');
 
         Route::get('/merek', [MerekController::class, 'index'])->name('merek.index');
-        Route::post('/merek',        [MerekController::class, 'store'])->name('merek.store');
+        Route::post('/merek', [MerekController::class, 'store'])->name('merek.store');
         Route::get('/merek/create', [MerekController::class, 'create'])->name('merek.create');
         Route::get('/merek/{fmerekid}/edit', [MerekController::class, 'edit'])->name('merek.edit');
         Route::get('/merek/{fmerekid}/delete', [MerekController::class, 'delete'])->name('merek.delete');
@@ -140,7 +141,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/merek/{fmerekid}', [MerekController::class, 'destroy'])->name('merek.destroy');
 
         Route::get('/gudang', [WhController::class, 'index'])->name('gudang.index');
-        Route::post('/gudang',        [WhController::class, 'store'])->name('gudang.store');
+        Route::post('/gudang', [WhController::class, 'store'])->name('gudang.store');
         Route::get('/gudang/create', [WhController::class, 'create'])->name('gudang.create');
         Route::get('/gudang/{fwhid}/edit', [WhController::class, 'edit'])->name('gudang.edit');
         Route::get('/gudang/{fwhid}/view', [WhController::class, 'view'])->name('gudang.view');
@@ -149,7 +150,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/gudang/{fwhid}', [WhController::class, 'destroy'])->name('gudang.destroy');
 
         Route::get('/groupproduct', [GroupproductController::class, 'index'])->name('groupproduct.index');
-        Route::post('/groupproduct',        [GroupproductController::class, 'store'])->name('groupproduct.store');
+        Route::post('/groupproduct', [GroupproductController::class, 'store'])->name('groupproduct.store');
         Route::get('/groupproduct/create', [GroupproductController::class, 'create'])->name('groupproduct.create');
         Route::get('/groupproduct/{fgroupid}/edit', [GroupproductController::class, 'edit'])->name('groupproduct.edit');
         Route::get('/groupproduct/{fgroupid}/delete', [GroupproductController::class, 'delete'])->name('groupproduct.delete');
@@ -157,7 +158,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/groupproduct/{fgroupid}', [GroupproductController::class, 'destroy'])->name('groupproduct.destroy');
 
         Route::get('/product', [ProductController::class, 'index'])->name('product.index');
-        Route::post('/product',        [ProductController::class, 'store'])->name('product.store');
+        Route::post('/product', [ProductController::class, 'store'])->name('product.store');
         Route::get('/product/create', [ProductController::class, 'create'])->name('product.create');
         Route::get('/product/{fprdid}/edit', [ProductController::class, 'edit'])->name('product.edit');
         Route::get('/product/{fprdid}/view', [ProductController::class, 'view'])->name('product.view');
@@ -167,7 +168,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/product/{fprdid}/laporan', [ProductController::class, 'laporan'])->name('product.laporan');
 
         Route::get('/supplier', [SupplierController::class, 'index'])->name('supplier.index');
-        Route::post('/supplier',        [SupplierController::class, 'store'])->name('supplier.store');
+        Route::post('/supplier', [SupplierController::class, 'store'])->name('supplier.store');
         Route::get('/supplier/create', [SupplierController::class, 'create'])->name('supplier.create');
         Route::get('/supplier/{fsupplierid}/edit', [SupplierController::class, 'edit'])->name('supplier.edit');
         Route::get('/supplier/{fsupplierid}/view', [SupplierController::class, 'view'])->name('supplier.view');
@@ -176,7 +177,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/supplier/{fsupplierid}', [SupplierController::class, 'destroy'])->name('supplier.destroy');
 
         Route::get('/subaccount', [SubaccountController::class, 'index'])->name('subaccount.index');
-        Route::post('/subaccount',        [SubaccountController::class, 'store'])->name('subaccount.store');
+        Route::post('/subaccount', [SubaccountController::class, 'store'])->name('subaccount.store');
         Route::get('/subaccount/create', [SubaccountController::class, 'create'])->name('subaccount.create');
         Route::get('/subaccount/{fsubaccountid}/view', [SubaccountController::class, 'view'])->name('subaccount.view');
         Route::get('/subaccount/{fsubaccountid}/edit', [SubaccountController::class, 'edit'])->name('subaccount.edit');
@@ -185,7 +186,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/subaccount/{fsubaccountid}', [SubaccountController::class, 'destroy'])->name('subaccount.destroy');
 
         Route::get('/rekening', [RekeningController::class, 'index'])->name('rekening.index');
-        Route::post('/rekening',        [RekeningController::class, 'store'])->name('rekening.store');
+        Route::post('/rekening', [RekeningController::class, 'store'])->name('rekening.store');
         Route::get('/rekening/create', [RekeningController::class, 'create'])->name('rekening.create');
         Route::get('/rekening/{frekeningid}/edit', [RekeningController::class, 'edit'])->name('rekening.edit');
         Route::get('/rekening/{frekeningid}/view', [RekeningController::class, 'view'])->name('rekening.view');
@@ -194,7 +195,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/rekening/{frekeningid}', [RekeningController::class, 'destroy'])->name('rekening.destroy');
 
         Route::get('/currency', [CurrencyController::class, 'index'])->name('currency.index');
-        Route::post('/currency',        [CurrencyController::class, 'store'])->name('currency.store');
+        Route::post('/currency', [CurrencyController::class, 'store'])->name('currency.store');
         Route::get('/currency/create', [CurrencyController::class, 'create'])->name('currency.create');
         Route::get('/currency/{fcurrid}/view', [CurrencyController::class, 'view'])->name('currency.view');
         Route::get('/currency/{fcurrid}/edit', [CurrencyController::class, 'edit'])->name('currency.edit');
@@ -203,7 +204,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/currency/{fcurrid}', [CurrencyController::class, 'destroy'])->name('currency.destroy');
 
         Route::get('/jurnaltransaksi', [JurnalTransaksiController::class, 'index'])->name('jurnaltransaksi.index');
-        Route::post('/jurnaltransaksi',        [JurnalTransaksiController::class, 'store'])->name('jurnaltransaksi.store');
+        Route::post('/jurnaltransaksi', [JurnalTransaksiController::class, 'store'])->name('jurnaltransaksi.store');
         Route::get('/jurnaltransaksi/create', [JurnalTransaksiController::class, 'create'])->name('jurnaltransaksi.create');
         Route::get('/jurnaltransaksi/{fcurrid}/view', [JurnalTransaksiController::class, 'view'])->name('jurnaltransaksi.view');
         Route::get('/jurnaltransaksi/{fcurrid}/edit', [JurnalTransaksiController::class, 'edit'])->name('jurnaltransaksi.edit');
@@ -212,7 +213,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/jurnaltransaksi/{fcurrid}', [JurnalTransaksiController::class, 'destroy'])->name('jurnaltransaksi.destroy');
 
         Route::get('/account', [AccountController::class, 'index'])->name('account.index');
-        Route::post('/account',        [AccountController::class, 'store'])->name('account.store');
+        Route::post('/account', [AccountController::class, 'store'])->name('account.store');
         Route::get('/account/create', [AccountController::class, 'create'])->name('account.create');
         Route::get('/account/{faccid}/view', [AccountController::class, 'view'])->name('account.view');
         Route::get('/account/{faccid}/edit', [AccountController::class, 'edit'])->name('account.edit');
@@ -221,7 +222,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/account/{faccid}', [AccountController::class, 'destroy'])->name('account.destroy');
 
         Route::get('/tr_prh', [Tr_prhController::class, 'index'])->name('tr_prh.index');
-        Route::post('/tr_prh',        [Tr_prhController::class, 'store'])->name('tr_prh.store');
+        Route::post('/tr_prh', [Tr_prhController::class, 'store'])->name('tr_prh.store');
         Route::get('/tr_prh/create', [Tr_prhController::class, 'create'])->name('tr_prh.create');
         Route::get('/tr_prh/{fprhid}/view', [Tr_prhController::class, 'view'])->name('tr_prh.view');
         Route::get('/tr_prh/{fprhid}/edit', [Tr_prhController::class, 'edit'])->name('tr_prh.edit');
@@ -231,8 +232,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/tr_prh/{fprno}/print', [Tr_prhController::class, 'print'])
             ->name('tr_prh.print');
 
-        Route::get('/tr_poh',  [Tr_pohController::class, 'index'])->name('tr_poh.index');
-        Route::post('/tr_poh',        [Tr_pohController::class, 'store'])->name('tr_poh.store');
+        Route::get('/tr_poh', [Tr_pohController::class, 'index'])->name('tr_poh.index');
+        Route::post('/tr_poh', [Tr_pohController::class, 'store'])->name('tr_poh.store');
         Route::get('/tr_poh/create', [Tr_pohController::class, 'create'])->name('tr_poh.create');
         Route::get('/tr_poh/{fpohid}/view', [Tr_pohController::class, 'view'])->name('tr_poh.view');
         Route::get('/tr_poh/{fpohid}/edit', [Tr_pohController::class, 'edit'])->name('tr_poh.edit');
@@ -248,8 +249,8 @@ Route::middleware('auth')->group(function () {
             ->name('tr_poh.items');
         Route::get('tr_poh/last-price', [Tr_pohController::class, 'lastPrice'])->name('tr_poh.lastPrice');
 
-        Route::get('/penerimaanbarang',  [PenerimaanBarangController::class, 'index'])->name('penerimaanbarang.index');
-        Route::post('/penerimaanbarang',        [PenerimaanBarangController::class, 'store'])->name('penerimaanbarang.store');
+        Route::get('/penerimaanbarang', [PenerimaanBarangController::class, 'index'])->name('penerimaanbarang.index');
+        Route::post('/penerimaanbarang', [PenerimaanBarangController::class, 'store'])->name('penerimaanbarang.store');
         Route::get('/penerimaanbarang/create', [PenerimaanBarangController::class, 'create'])->name('penerimaanbarang.create');
         Route::get('/penerimaanbarang/{fstockmtid}/view', [PenerimaanBarangController::class, 'view'])->name('penerimaanbarang.view');
         Route::get('/penerimaanbarang/{fstockmtid}/edit', [PenerimaanBarangController::class, 'edit'])->name('penerimaanbarang.edit');
@@ -261,8 +262,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/penerimaan-barang/pickable', [PenerimaanBarangController::class, 'pickable'])->name('penerimaanbarang.pickable');
         Route::get('/penerimaan-barang/{id}/items', [PenerimaanBarangController::class, 'items'])->name('penerimaanbarang.items');
 
-        Route::get('/fakturpembelian',  [FakturpembelianController::class, 'index'])->name('fakturpembelian.index');
-        Route::post('/fakturpembelian',        [FakturpembelianController::class, 'store'])->name('fakturpembelian.store');
+        Route::get('/fakturpembelian', [FakturpembelianController::class, 'index'])->name('fakturpembelian.index');
+        Route::post('/fakturpembelian', [FakturpembelianController::class, 'store'])->name('fakturpembelian.store');
         Route::get('/fakturpembelian/create', [FakturpembelianController::class, 'create'])->name('fakturpembelian.create');
         Route::get('/fakturpembelian/{fstockmtid}/view', [FakturpembelianController::class, 'view'])->name('fakturpembelian.view');
         Route::get('/fakturpembelian/{fstockmtid}/edit', [FakturpembelianController::class, 'edit'])->name('fakturpembelian.edit');
@@ -280,8 +281,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/fakturpembelian/pickable-pb', [FakturpembelianController::class, 'pickablePB'])
             ->name('fakturpembelian.pickablePB');
 
-        Route::get('/adjstock',  [AdjstockController::class, 'index'])->name('adjstock.index');
-        Route::post('/adjstock',        [AdjstockController::class, 'store'])->name('adjstock.store');
+        Route::get('/adjstock', [AdjstockController::class, 'index'])->name('adjstock.index');
+        Route::post('/adjstock', [AdjstockController::class, 'store'])->name('adjstock.store');
         Route::get('/adjstock/create', [AdjstockController::class, 'create'])->name('adjstock.create');
         Route::get('/adjstock/{fstockmtid}/view', [AdjstockController::class, 'view'])->name('adjstock.view');
         Route::get('/adjstock/{fstockmtid}/edit', [AdjstockController::class, 'edit'])->name('adjstock.edit');
@@ -295,8 +296,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/adjstock/pickable', [AdjstockController::class, 'pickable'])
             ->name('adjstock.pickable');
 
-        Route::get('/mutasi',  [MutasiController::class, 'index'])->name('mutasi.index');
-        Route::post('/mutasi',        [MutasiController::class, 'store'])->name('mutasi.store');
+        Route::get('/mutasi', [MutasiController::class, 'index'])->name('mutasi.index');
+        Route::post('/mutasi', [MutasiController::class, 'store'])->name('mutasi.store');
         Route::get('/mutasi/create', [MutasiController::class, 'create'])->name('mutasi.create');
         Route::get('/mutasi/{fstockmtid}/view', [MutasiController::class, 'view'])->name('mutasi.view');
         Route::get('/mutasi/{fstockmtid}/edit', [MutasiController::class, 'edit'])->name('mutasi.edit');
@@ -310,8 +311,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/mutasi/pickable', [MutasiController::class, 'pickable'])
             ->name('mutasi.pickable');
 
-        Route::get('/pemakaianbarang',  [PemakaianbarangController::class, 'index'])->name('pemakaianbarang.index');
-        Route::post('/pemakaianbarang',        [PemakaianbarangController::class, 'store'])->name('pemakaianbarang.store');
+        Route::get('/pemakaianbarang', [PemakaianbarangController::class, 'index'])->name('pemakaianbarang.index');
+        Route::post('/pemakaianbarang', [PemakaianbarangController::class, 'store'])->name('pemakaianbarang.store');
         Route::get('/pemakaianbarang/create', [PemakaianbarangController::class, 'create'])->name('pemakaianbarang.create');
         Route::get('/pemakaianbarang/{fstockmtid}/view', [PemakaianbarangController::class, 'view'])->name('pemakaianbarang.view');
         Route::get('/pemakaianbarang/{fstockmtid}/edit', [PemakaianbarangController::class, 'edit'])->name('pemakaianbarang.edit');
@@ -325,8 +326,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/pemakaianbarang/pickable', [PemakaianbarangController::class, 'pickable'])
             ->name('pemakaianbarang.pickable');
 
-        Route::get('/returpembelian',  [ReturPembelianController::class, 'index'])->name('returpembelian.index');
-        Route::post('/returpembelian',        [ReturPembelianController::class, 'store'])->name('returpembelian.store');
+        Route::get('/returpembelian', [ReturPembelianController::class, 'index'])->name('returpembelian.index');
+        Route::post('/returpembelian', [ReturPembelianController::class, 'store'])->name('returpembelian.store');
         Route::get('/returpembelian/create', [ReturPembelianController::class, 'create'])->name('returpembelian.create');
         Route::get('/returpembelian/{fstockmtid}/view', [ReturPembelianController::class, 'view'])->name('returpembelian.view');
         Route::get('/returpembelian/{fstockmtid}/edit', [ReturPembelianController::class, 'edit'])->name('returpembelian.edit');
@@ -340,8 +341,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/returpembelian/pickable', [ReturPembelianController::class, 'pickable'])
             ->name('returpembelian.pickable');
 
-        Route::get('/assembling',  [AssemblingController::class, 'index'])->name('assembling.index');
-        Route::post('/assembling',        [AssemblingController::class, 'store'])->name('assembling.store');
+        Route::get('/assembling', [AssemblingController::class, 'index'])->name('assembling.index');
+        Route::post('/assembling', [AssemblingController::class, 'store'])->name('assembling.store');
         Route::get('/assembling/create', [AssemblingController::class, 'create'])->name('assembling.create');
         Route::get('/assembling/{fstockmtid}/view', [AssemblingController::class, 'view'])->name('assembling.view');
         Route::get('/assembling/{fstockmtid}/edit', [AssemblingController::class, 'edit'])->name('assembling.edit');
@@ -355,8 +356,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/assembling/pickable', [AssemblingController::class, 'pickable'])
             ->name('assembling.pickable');
 
-        Route::get('/salesorder',  [SalesOrderController::class, 'index'])->name('salesorder.index');
-        Route::post('/salesorder',        [SalesOrderController::class, 'store'])->name('salesorder.store');
+        Route::get('/salesorder', [SalesOrderController::class, 'index'])->name('salesorder.index');
+        Route::post('/salesorder', [SalesOrderController::class, 'store'])->name('salesorder.store');
         Route::get('/salesorder/create', [SalesOrderController::class, 'create'])->name('salesorder.create');
         Route::get('/salesorder/{ftrsomtid}/view', [SalesOrderController::class, 'view'])->name('salesorder.view');
         Route::get('/salesorder/{ftrsomtid}/edit', [SalesOrderController::class, 'edit'])->name('salesorder.edit');
@@ -370,8 +371,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/salesorder/pickable', [SalesOrderController::class, 'pickable'])
             ->name('salesorder.pickable');
 
-        Route::get('/suratjalan',  [SuratJalanController::class, 'index'])->name('suratjalan.index');
-        Route::post('/suratjalan',        [SuratJalanController::class, 'store'])->name('suratjalan.store');
+        Route::get('/suratjalan', [SuratJalanController::class, 'index'])->name('suratjalan.index');
+        Route::post('/suratjalan', [SuratJalanController::class, 'store'])->name('suratjalan.store');
         Route::get('/suratjalan/create', [SuratJalanController::class, 'create'])->name('suratjalan.create');
         Route::get('/suratjalan/{ftrsomtid}/view', [SuratJalanController::class, 'view'])->name('suratjalan.view');
         Route::get('/suratjalan/{ftrsomtid}/edit', [SuratJalanController::class, 'edit'])->name('suratjalan.edit');
@@ -385,8 +386,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/suratjalan/pickable', [SuratJalanController::class, 'pickable'])
             ->name('suratjalan.pickable');
 
-        Route::get('/invoice',  [InvoiceController::class, 'index'])->name('invoice.index');
-        Route::post('/invoice',        [InvoiceController::class, 'store'])->name('invoice.store');
+        Route::get('/invoice', [InvoiceController::class, 'index'])->name('invoice.index');
+        Route::post('/invoice', [InvoiceController::class, 'store'])->name('invoice.store');
         Route::get('/invoice/create', [InvoiceController::class, 'create'])->name('invoice.create');
         Route::get('/invoice/{ftranmtid}/view', [InvoiceController::class, 'view'])->name('invoice.view');
         Route::get('/invoice/{ftranmtid}/edit', [InvoiceController::class, 'edit'])->name('invoice.edit');
@@ -400,8 +401,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/invoice/pickable', [InvoiceController::class, 'pickable'])
             ->name('invoice.pickable');
 
-        Route::get('/returpenjualan',  [ReturPenjualanController::class, 'index'])->name('returpenjualan.index');
-        Route::post('/returpenjualan',        [ReturPenjualanController::class, 'store'])->name('returpenjualan.store');
+        Route::get('/returpenjualan', [ReturPenjualanController::class, 'index'])->name('returpenjualan.index');
+        Route::post('/returpenjualan', [ReturPenjualanController::class, 'store'])->name('returpenjualan.store');
         Route::get('/returpenjualan/create', [ReturPenjualanController::class, 'create'])->name('returpenjualan.create');
         Route::get('/returpenjualan/{ftranmtid}/view', [ReturPenjualanController::class, 'view'])->name('returpenjualan.view');
         Route::get('/returpenjualan/{ftranmtid}/edit', [ReturPenjualanController::class, 'edit'])->name('returpenjualan.edit');
@@ -418,35 +419,35 @@ Route::middleware('auth')->group(function () {
         Route::get('/products/browse', [\App\Http\Controllers\ProductBrowseController::class, 'index'])
             ->name('products.browse');
 
-        Route::get('/reporting',  [ReportingController::class, 'index'])->name('reporting.index');
+        Route::get('/reporting', [ReportingController::class, 'index'])->name('reporting.index');
         Route::get('/reporting/exportExcel', [ReportingController::class, 'exportExcel'])->name('reporting.exportExcel');
         Route::get('/reporting/print', [ReportingController::class, 'printPoh'])->name('reporting.printPoh');
 
-        Route::get('/reportingpr',  [ReportingPrController::class, 'index'])->name('reportingpr.index');
+        Route::get('/reportingpr', [ReportingPrController::class, 'index'])->name('reportingpr.index');
         Route::get('/reportingpr/exportExcel', [ReportingPrController::class, 'exportExcel'])->name('reportingpr.exportExcel');
         Route::get('/reportingpr/print', [ReportingPrController::class, 'printPrh'])->name('reportingpr.printPrh');
 
-        Route::get('/reportingpenerimaanbarang',  [ReportingPenerimaanBarangController::class, 'index'])->name('reportingpenerimaanbarang.index');
+        Route::get('/reportingpenerimaanbarang', [ReportingPenerimaanBarangController::class, 'index'])->name('reportingpenerimaanbarang.index');
         Route::get('/reportingpenerimaanbarang/exportExcel', [ReportingPenerimaanBarangController::class, 'exportExcel'])->name('reportingpenerimaanbarang.exportExcel');
         Route::get('/reportingpenerimaanbarang/print', [ReportingPenerimaanBarangController::class, 'printPenerimaanBarang'])->name('reportingpenerimaanbarang.printPenerimaanBarang');
 
-        Route::get('/reportingfakturpembelian',  [ReportingFakturPembelianController::class, 'index'])->name('reportingfakturpembelian.index');
+        Route::get('/reportingfakturpembelian', [ReportingFakturPembelianController::class, 'index'])->name('reportingfakturpembelian.index');
         Route::get('/reportingfakturpembelian/exportExcel', [ReportingFakturPembelianController::class, 'exportExcel'])->name('reportingfakturpembelian.exportExcel');
         Route::get('/reportingfakturpembelian/print', [ReportingFakturPembelianController::class, 'printFakturPembelian'])->name('reportingfakturpembelian.printFakturPembelian');
 
-        Route::get('/reportingadjstock',  [ReportingAdjStockController::class, 'index'])->name('reportingadjstock.index');
+        Route::get('/reportingadjstock', [ReportingAdjStockController::class, 'index'])->name('reportingadjstock.index');
         Route::get('/reportingadjstock/exportExcel', [ReportingAdjStockController::class, 'exportExcel'])->name('reportingadjstock.exportExcel');
         Route::get('/reportingadjstock/print', [ReportingAdjStockController::class, 'printAdjStock'])->name('reportingadjstock.printAdjStock');
 
-        Route::get('/reportingpemakaianbarang',  [ReportingPemakaianBarangController::class, 'index'])->name('reportingpemakaianbarang.index');
+        Route::get('/reportingpemakaianbarang', [ReportingPemakaianBarangController::class, 'index'])->name('reportingpemakaianbarang.index');
         Route::get('/reportingpemakaianbarang/exportExcel', [ReportingPemakaianBarangController::class, 'exportExcel'])->name('reportingpemakaianbarang.exportExcel');
         Route::get('/reportingpemakaianbarang/print', [ReportingPemakaianBarangController::class, 'printPemakaianBarang'])->name('reportingpemakaianbarang.printPemakaianBarang');
 
-        Route::get('/reportingassembling',  [ReportingAssemblingController::class, 'index'])->name('reportingassembling.index');
+        Route::get('/reportingassembling', [ReportingAssemblingController::class, 'index'])->name('reportingassembling.index');
         Route::get('/reportingassembling/exportExcel', [ReportingAssemblingController::class, 'exportExcel'])->name('reportingassembling.exportExcel');
         Route::get('/reportingassembling/print', [ReportingAssemblingController::class, 'printAssembling'])->name('reportingassembling.printAssembling');
 
-        Route::get('/reportingaccount',  [ReportingAccountController::class, 'index'])->name('reportingaccount.index');
+        Route::get('/reportingaccount', [ReportingAccountController::class, 'index'])->name('reportingaccount.index');
         Route::get('/reportingaccount/exportExcel', [ReportingAccountController::class, 'exportExcel'])->name('reportingaccount.exportExcel');
         Route::get('/reportingaccount/print', [ReportingAccountController::class, 'printAccount'])->name('reportingaccount.printAccount');
         Route::get('/reportingaccount/rebuildAndPrint', [ReportingAccountController::class, 'rebuildAndPrint'])->name('reportingaccount.rebuildAndPrint');
@@ -476,7 +477,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/listingsobelum/printCustomer', [ListingSOBelumController::class, 'printCustomer'])->name('listingsobelum.printCustomer');
         Route::get('/listingsobelum/printProduct', [ListingSOBelumController::class, 'printProduct'])->name('listingsobelum.printProduct');
         Route::get('/listingsobelum/excelCustomer', [ListingSOBelumController::class, 'excelCustomer'])->name('listingsobelum.excelCustomer');
-        Route::get('/listingsobelum/excelProduct',  [ListingSOBelumController::class, 'excelProduct'])->name('listingsobelum.excelProduct');
+        Route::get('/listingsobelum/excelProduct', [ListingSOBelumController::class, 'excelProduct'])->name('listingsobelum.excelProduct');
 
         Route::get('/listingpr', [ListingPRController::class, 'index'])->name('listingpr.index');
         Route::get('/listingpr/print', [ListingPRController::class, 'print'])->name('listingpr.print');
@@ -564,4 +565,4 @@ Route::post('/reject-po/{fpono}', [ApprovalController::class, 'rejectRequestPO']
 Route::get('/approval-po/info/{fpono}', [ApprovalController::class, 'infoApprovalPagePO'])
     ->name('approval.po.info');
 
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';

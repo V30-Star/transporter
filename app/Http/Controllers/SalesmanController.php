@@ -12,10 +12,10 @@ class SalesmanController extends Controller
         $salesmans = Salesman::orderBy('fsalesmancode', 'asc')
             ->get(['fsalesmancode', 'fsalesmanname', 'fsalesmanid', 'fnonactive']);
 
-        $permsStr  = (string) session('user_restricted_permissions', '');
-        $permsArr  = explode(',', $permsStr);
+        $permsStr = (string) session('user_restricted_permissions', '');
+        $permsArr = explode(',', $permsStr);
         $canCreate = in_array('createSalesman', $permsArr, true);
-        $canEdit   = in_array('updateSalesman', $permsArr, true);
+        $canEdit = in_array('updateSalesman', $permsArr, true);
         $canDelete = in_array('deleteSalesman', $permsArr, true);
 
         return view('salesman.index', compact('salesmans', 'canCreate', 'canEdit', 'canDelete'));
@@ -68,7 +68,7 @@ class SalesmanController extends Controller
 
         return view('salesman.edit', [
             'salesman' => $salesman,
-            'action' => 'edit'
+            'action' => 'edit',
         ]);
     }
 
@@ -78,7 +78,7 @@ class SalesmanController extends Controller
         $salesman = Salesman::findOrFail($fsalesmanid);
 
         return view('salesman.view', [
-            'salesman' => $salesman
+            'salesman' => $salesman,
         ]);
     }
 
@@ -122,9 +122,9 @@ class SalesmanController extends Controller
     public function delete($fsalesmanid)
     {
         $salesman = Salesman::findOrFail($fsalesmanid);
-        return view('salesman.edit', [
+
+        return view('salesman.delete', [
             'salesman' => $salesman,
-            'action' => 'delete'
         ]);
     }
 
@@ -132,12 +132,26 @@ class SalesmanController extends Controller
     {
         try {
             $salesman = Salesman::findOrFail($fsalesmanid);
+
+            if (\Illuminate\Support\Facades\DB::table('mscustomer')->where('fsalesmanid', $salesman->fsalesmanid)->exists()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Salesman sudah digunakan dalam data Customer.',
+                ], 422);
+            }
+
             $salesman->delete();
 
-            return response()->json(['message' => 'Data salesman ' . $salesman->fsalesmanname . ' berhasil dihapus.']);
+            return response()->json([
+                'success' => true,
+                'message' => 'Data salesman '.$salesman->fsalesmanname.' berhasil dihapus.',
+                'redirect' => route('salesman.index'),
+            ]);
         } catch (\Exception $e) {
-            // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
-            return response()->json(['message' => 'Gagal menghapus data: ' . $e->getMessage()], 500);
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus data: '.$e->getMessage(),
+            ], 500);
         }
     }
 
@@ -185,7 +199,7 @@ class SalesmanController extends Controller
             'draw' => (int) $request->input('draw', 1),
             'recordsTotal' => (int) $recordsTotal,
             'recordsFiltered' => (int) $recordsFiltered,
-            'data' => $data
+            'data' => $data,
         ]);
     }
 }

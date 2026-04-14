@@ -2,13 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use App\Models\Cabang;
 use App\Models\Salesman;
+use App\Models\Sysuser;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use App\Models\Sysuser;
 use Illuminate\Support\Facades\Hash;
 
 class SysUserController extends Controller
@@ -16,8 +13,8 @@ class SysUserController extends Controller
     public function index(Request $request)
     {
         $allowedSorts = ['fuid', 'fsysuserid', 'fname', 'created_at', 'fusercreate', 'fcabang', 'sysuser.fsalesman', 'salesman_name'];
-        $sortBy     = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fsysuserid';
-        $sortDir    = $request->sort_dir === 'asc' ? 'asc' : 'desc';
+        $sortBy = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fsysuserid';
+        $sortDir = $request->sort_dir === 'asc' ? 'asc' : 'desc';
 
         // Mendefinisikan kolom yang akan dipilih
         $selectColumns = [
@@ -46,13 +43,13 @@ class SysUserController extends Controller
             // Mengambil hasilnya
             ->get();
 
-        $perms         = explode(',', (string) session('user_restricted_permissions', ''));
-        $canCreate     = in_array('createSysuser', $perms, true);
-        $canEdit       = in_array('updateSysuser', $perms, true);
-        $canDelete     = in_array('deleteSysuser', $perms, true);
+        $perms = explode(',', (string) session('user_restricted_permissions', ''));
+        $canCreate = in_array('createSysuser', $perms, true);
+        $canEdit = in_array('updateSysuser', $perms, true);
+        $canDelete = in_array('deleteSysuser', $perms, true);
         $canRoleAccess = in_array('roleaccess', $perms, true);
 
-        return view('sysuser.index', compact('sysusers', 'canCreate', 'canEdit', 'canDelete'));
+        return view('sysuser.index', compact('sysusers', 'canCreate', 'canEdit', 'canDelete', 'canRoleAccess'));
     }
 
     public function create()
@@ -114,13 +111,15 @@ class SysUserController extends Controller
 
         try {
             Sysuser::create($validated);
+
             return redirect()
                 ->route('sysuser.create')
                 ->with('success', 'User berhasil ditambahkan.');
         } catch (\Exception $e) {
-            return back()->withInput()->with('error', 'Gagal menyimpan user: ' . $e->getMessage());
+            return back()->withInput()->with('error', 'Gagal menyimpan user: '.$e->getMessage());
         }
     }
+
     public function edit($fuid)
     {
         // Find the sysuser by fuid (primary key)
@@ -143,7 +142,7 @@ class SysUserController extends Controller
         ]);
 
         $validated = $request->validate([
-            'fsysuserid' => 'required|string|unique:sysuser,fsysuserid,' . $fuid . ',fuid',
+            'fsysuserid' => 'required|string|unique:sysuser,fsysuserid,'.$fuid.',fuid',
             'fname' => 'required|string',
             'password' => 'nullable|string|confirmed',
             'fsalesman' => 'nullable',
@@ -197,20 +196,47 @@ class SysUserController extends Controller
             ->with('success', 'Sysuser berhasil diperbarui.');
     }
 
+    public function delete($fuid)
+    {
+        $sysuser = Sysuser::with('salesman')->findOrFail($fuid);
+
+        $relatedMessages = [];
+
+        if (DB::table('roleaccess')->where('fuserid', $sysuser->fuid)->exists()) {
+            $relatedMessages[] = 'Role Access';
+        }
+
+        return view('sysuser.delete', compact('sysuser', 'relatedMessages'));
+    }
+
     public function destroy($fuid)
     {
         $sysuser = Sysuser::findOrFail($fuid);
+
+        if (DB::table('roleaccess')->where('fuserid', $sysuser->fuid)->exists()) {
+            if (request()->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User tidak dapat dihapus karena sudah digunakan di Role Access.',
+                ], 422);
+            }
+
+            return redirect()
+                ->route('sysuser.delete', $fuid)
+                ->with('error', 'User tidak dapat dihapus karena sudah digunakan di Role Access.');
+        }
+
         $sysuser->delete();
 
         if (request()->wantsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Wewenang User berhasil dihapus.'
+                'message' => 'User berhasil dihapus.',
             ]);
         }
 
         return redirect()
             ->route('sysuser.index')
-            ->with('success', 'Sysuser berhasil dihapus.');
+            ->with('success', 'User berhasil dihapus.');
     }
 }
