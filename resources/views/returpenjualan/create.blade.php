@@ -69,7 +69,33 @@
             -moz-appearance: textfield;
         }
     </style>
+    @if ($errors->any())
+        <div class="alert alert-danger alert-dismissible fade show border-0 shadow p-0 overflow-hidden" role="alert">
+            {{-- Header Strip --}}
+            <div class="d-flex align-items-center px-4 py-3" style="background-color: #c0392b;">
+                <i class="bi bi-exclamation-triangle-fill text-white me-2 fs-5"></i>
+                <strong class="text-white fs-6">Gagal Menyimpan Data!</strong>
+                <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="alert"
+                    aria-label="Close"></button>
+            </div>
 
+            {{-- Body --}}
+            <div class="px-4 py-3" style="background-color: #fdeded; border-left: 5px solid #c0392b;">
+                <p class="mb-2 text-danger fw-semibold">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Periksa kembali data berikut sebelum menyimpan:
+                </p>
+                <ul class="mb-0 ps-3">
+                    @foreach ($errors->all() as $error)
+                        <li class="text-danger mb-1">
+                            <i class="bi bi-dot fs-5 align-middle"></i>
+                            {{ $error }}
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+        </div>
+    @endif
     <div>
         <div class="lg:col-span-5">
             <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
@@ -241,84 +267,83 @@
                                     </tr>
                                 </thead>
 
-                                    <tbody>
-                                        <template x-for="(it, i) in savedItems" :key="it.uid || `item-${i}`">
-                                            <tr class="border-t align-top transition-colors hover:bg-gray-50">
-                                                <td class="p-2" x-text="i + 1"></td>
-                                                <td class="p-2 font-mono" x-text="it.fitemcode"></td>
-                                                <td class="p-2 text-gray-800" x-text="it.fitemname"></td>
-                                                <td class="p-2">
-                                                    <template x-if="it.units && it.units.length > 1">
-                                                        <select class="w-full border rounded px-2 py-1 text-xs"
-                                                            x-model="it.fsatuan">
-                                                            <template x-for="u in it.units" :key="u">
-                                                                <option :value="u" x-text="u"
-                                                                    :selected="u === it.fsatuan"></option>
-                                                            </template>
-                                                        </select>
-                                                    </template>
-                                                    <template x-if="!it.units || it.units.length <= 1">
-                                                        <span x-text="it.fsatuan"></span>
-                                                    </template>
-                                                </td>
-                                                <td class="p-2 text-blue-600 font-semibold" x-text="it.frefcode || '-'">
-                                                </td>
-                                                <td class="p-2 text-right">
-                                                    <input type="number"
-                                                        class="w-full border rounded px-2 py-1 text-right"
-                                                        x-model.number="it.fqty" :max="it.maxqty > 0 ? it.maxqty : null"
-                                                        @input="recalc(it); enforceQtyRow(it); recalc(it);">
-                                                    <div class="text-xs text-gray-400 mt-0.5 flex justify-end items-center" x-show="it.fitemcode">
-                                                        <div x-html="formatStockLimit(it.fitemcode, it.fqty, it.fsatuan)"></div>
+                                <tbody>
+                                    <template x-for="(it, i) in savedItems" :key="it.uid || `item-${i}`">
+                                        <tr class="border-t align-top transition-colors hover:bg-gray-50">
+                                            <td class="p-2" x-text="i + 1"></td>
+                                            <td class="p-2 font-mono" x-text="it.fitemcode"></td>
+                                            <td class="p-2 text-gray-800" x-text="it.fitemname"></td>
+                                            <td class="p-2">
+                                                <template x-if="it.units && it.units.length > 1">
+                                                    <select class="w-full border rounded px-2 py-1 text-xs"
+                                                        x-model="it.fsatuan">
+                                                        <template x-for="u in it.units" :key="u">
+                                                            <option :value="u" x-text="u"
+                                                                :selected="u === it.fsatuan"></option>
+                                                        </template>
+                                                    </select>
+                                                </template>
+                                                <template x-if="!it.units || it.units.length <= 1">
+                                                    <span x-text="it.fsatuan"></span>
+                                                </template>
+                                            </td>
+                                            <td class="p-2 text-blue-600 font-semibold" x-text="it.frefcode || '-'">
+                                            </td>
+                                            <td class="p-2 text-right">
+                                                <input type="number" class="w-full border rounded px-2 py-1 text-right"
+                                                    x-model.number="it.fqty" :max="it.maxqty > 0 ? it.maxqty : null"
+                                                    @input="recalc(it); enforceQtyRow(it); recalc(it);">
+                                                <div class="text-xs text-gray-400 mt-0.5 flex justify-end items-center"
+                                                    x-show="it.fitemcode">
+                                                    <div x-html="formatStockLimit(it.fitemcode, it.fqty, it.fsatuan)">
                                                     </div>
-                                                </td>
-                                                <td class="p-2 text-right">
-                                                    <input type="number"
-                                                        class="w-full border rounded px-2 py-1 text-right"
-                                                        x-model.number="it.fprice" @input="recalc(it)">
-                                                </td>
-                                                <td class="p-2 text-right">
-                                                    <input type="text"
-                                                        class="w-full border rounded px-2 py-1 text-right"
-                                                        x-model="it.fdisc" @input="recalc(it)">
-                                                </td>
-                                                <td class="p-2 text-right font-semibold" x-text="fmt(it.ftotal)"></td>
-                                                <td class="p-2 text-center">
-                                                    <button type="button" @click="removeSaved(i)"
-                                                        class="px-3 py-1 rounded text-xs bg-red-100 text-red-600 hover:bg-red-200">Hapus</button>
+                                                </div>
+                                            </td>
+                                            <td class="p-2 text-right">
+                                                <input type="number" class="w-full border rounded px-2 py-1 text-right"
+                                                    x-model.number="it.fprice" @input="recalc(it)">
+                                            </td>
+                                            <td class="p-2 text-right">
+                                                <input type="text" class="w-full border rounded px-2 py-1 text-right"
+                                                    x-model="it.fdisc" @input="recalc(it)">
+                                            </td>
+                                            <td class="p-2 text-right font-semibold" x-text="fmt(it.ftotal)"></td>
+                                            <td class="p-2 text-center">
+                                                <button type="button" @click="removeSaved(i)"
+                                                    class="px-3 py-1 rounded text-xs bg-red-100 text-red-600 hover:bg-red-200">Hapus</button>
 
-                                                    <!-- Hidden inputs moved here to ensure they are submitted -->
-                                                    <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
-                                                    <input type="hidden" name="fitemname[]" :value="it.fitemname">
-                                                    <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
-                                                    <input type="hidden" name="frefcode[]" :value="it.frefcode">
-                                                    <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
-                                                    <input type="hidden" name="fnouref[]" :value="it.fnouref">
-                                                    <input type="hidden" name="frefpr[]" :value="it.frefpr">
-                                                    <input type="hidden" name="frefso[]" :value="it.frefso">
-                                                    <input type="hidden" name="frefsoid[]" :value="it.frefsoid">
-                                                    <input type="hidden" name="frefsrj[]" :value="it.frefsrj">
-                                                    <input type="hidden" name="frefsrjid[]" :value="it.frefsrjid">
-                                                    <input type="hidden" name="fqty[]" :value="it.fqty">
-                                                    <input type="hidden" name="fterima[]" :value="it.fterima">
-                                                    <input type="hidden" name="fprice[]" :value="it.fprice">
-                                                    <input type="hidden" name="fdisc[]" :value="it.fdisc">
-                                                    <input type="hidden" name="ftotal[]" :value="it.ftotal">
-                                                    <input type="hidden" name="fdesc[]" :value="it.fdesc">
-                                                    <input type="hidden" name="fketdt[]" :value="it.fketdt">
-                                                </td>
-                                            </tr>
+                                                <!-- Hidden inputs moved here to ensure they are submitted -->
+                                                <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
+                                                <input type="hidden" name="fitemname[]" :value="it.fitemname">
+                                                <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
+                                                <input type="hidden" name="frefcode[]" :value="it.frefcode">
+                                                <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
+                                                <input type="hidden" name="fnouref[]" :value="it.fnouref">
+                                                <input type="hidden" name="frefpr[]" :value="it.frefpr">
+                                                <input type="hidden" name="frefso[]" :value="it.frefso">
+                                                <input type="hidden" name="frefsoid[]" :value="it.frefsoid">
+                                                <input type="hidden" name="frefsrj[]" :value="it.frefsrj">
+                                                <input type="hidden" name="frefsrjid[]" :value="it.frefsrjid">
+                                                <input type="hidden" name="fqty[]" :value="it.fqty">
+                                                <input type="hidden" name="fterima[]" :value="it.fterima">
+                                                <input type="hidden" name="fprice[]" :value="it.fprice">
+                                                <input type="hidden" name="fdisc[]" :value="it.fdisc">
+                                                <input type="hidden" name="ftotal[]" :value="it.ftotal">
+                                                <input type="hidden" name="fdesc[]" :value="it.fdesc">
+                                                <input type="hidden" name="fketdt[]" :value="it.fketdt">
+                                            </td>
+                                        </tr>
 
-                                            <tr class="border-b transition-colors hover:bg-gray-50">
-                                                <td class="p-0"></td>
-                                                <td class="p-0"></td>
-                                                <td class="p-2" colspan="2">
-                                                    <textarea x-model="it.fdesc" rows="3" class="w-full border rounded px-2 py-1 text-xs"
-                                                        placeholder="Deskripsi item (opsional)"></textarea>
-                                                </td>
-                                                <td class="p-1" colspan="6"></td>
-                                            </tr>
-                                        </template>
+                                        <tr class="border-b transition-colors hover:bg-gray-50">
+                                            <td class="p-0"></td>
+                                            <td class="p-0"></td>
+                                            <td class="p-2" colspan="2">
+                                                <textarea x-model="it.fdesc" rows="3" class="w-full border rounded px-2 py-1 text-xs"
+                                                    placeholder="Deskripsi item (opsional)"></textarea>
+                                            </td>
+                                            <td class="p-1" colspan="6"></td>
+                                        </tr>
+                                    </template>
 
 
 
@@ -378,14 +403,17 @@
                                         <td class="p-2 text-right">
                                             <input type="number" class="border rounded px-2 py-1 w-24 text-right"
                                                 min="0" step="1" x-ref="draftQty"
-                                                x-model.number="draft.fqty" @input="
+                                                x-model.number="draft.fqty"
+                                                @input="
                                                     recalc(draft);
                                                     enforceQtyRow(draft);
                                                     recalc(draft);
                                                 "
                                                 @keydown.enter.prevent="$refs.draftTerima?.focus()">
-                                            <div class="text-xs text-gray-400 mt-0.5 flex justify-end items-center" x-show="draft.fitemcode">
-                                                <div x-html="formatStockLimit(draft.fitemcode, draft.fqty, draft.fsatuan)"></div>
+                                            <div class="text-xs text-gray-400 mt-0.5 flex justify-end items-center"
+                                                x-show="draft.fitemcode">
+                                                <div x-html="formatStockLimit(draft.fitemcode, draft.fqty, draft.fsatuan)">
+                                                </div>
                                             </div>
                                         </td>
 
@@ -734,8 +762,8 @@
                                     <div class="flex items-center justify-between gap-6">
                                         <!-- Checkbox -->
                                         <div class="flex items-center">
-                                            <input id="fincludeppn_input" type="checkbox" name="fincludeppn" value="1"
-                                                x-model="includePPN"
+                                            <input id="fincludeppn_input" type="checkbox" name="fincludeppn"
+                                                value="1" x-model="includePPN"
                                                 class="h-4 w-4 text-blue-600 border-gray-300 rounded">
                                             <label for="fincludeppn_input" class="ml-2 text-sm font-medium text-gray-700">
                                                 <span class="font-bold">PPN</span>
@@ -1840,11 +1868,19 @@
                         name: '',
                         units: [],
                         stock: 0,
-                        unit_ratios: { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 }
+                        unit_ratios: {
+                            satuankecil: 1,
+                            satuanbesar: 1,
+                            satuanbesar2: 1
+                        }
                     };
                 }
                 if (!meta.unit_ratios) {
-                    meta.unit_ratios = { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 };
+                    meta.unit_ratios = {
+                        satuankecil: 1,
+                        satuanbesar: 1,
+                        satuanbesar2: 1
+                    };
                 }
                 return meta;
             },
@@ -1852,18 +1888,22 @@
             formatStockLimit(code, qty, satuan) {
                 const meta = this.productMeta(code);
                 if (!code || !meta.stock) return '';
-                
+
                 const entered = Number(qty) || 0;
                 const remaining = Math.max(0, meta.stock - entered);
                 const units = meta.units || [];
-                const ratios = meta.unit_ratios || { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 };
-                
+                const ratios = meta.unit_ratios || {
+                    satuankecil: 1,
+                    satuanbesar: 1,
+                    satuanbesar2: 1
+                };
+
                 if (!units.length || !satuan) return '';
-                
+
                 const satKecil = units[0] || 'pcs';
                 const satBesar = units[1] || '';
                 const satBesar2 = units[2] || '';
-                
+
                 let ratio = 1;
                 if (satuan === satBesar2 && ratios.satuanbesar2 > 0) {
                     ratio = ratios.satuanbesar2;
@@ -1872,7 +1912,7 @@
                 } else if (satuan === satKecil) {
                     ratio = 1;
                 }
-                
+
                 const limitValue = Math.floor(remaining / ratio);
                 return '<span class="font-medium">limit:</span> ' + limitValue + ' ' + satuan;
             },
@@ -1881,22 +1921,26 @@
                 const n = +row.fqty;
                 const meta = this.productMeta(row.fitemcode);
                 const units = meta?.units || [];
-                const ratios = meta?.unit_ratios || { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 };
+                const ratios = meta?.unit_ratios || {
+                    satuankecil: 1,
+                    satuanbesar: 1,
+                    satuanbesar2: 1
+                };
                 const satKecil = units[0] || 'pcs';
                 const satBesar = units[1] || '';
                 const satBesar2 = units[2] || '';
                 const satuan = row.fsatuan || '';
-                
+
                 let ratio = 1;
                 if (satuan === satBesar2 && ratios.satuanbesar2 > 0) {
                     ratio = ratios.satuanbesar2;
                 } else if (satuan === satBesar && ratios.satuanbesar > 0) {
                     ratio = ratios.satuanbesar;
                 }
-                
+
                 const maxStock = meta?.stock || 999999;
                 const maxInUnit = Math.floor(maxStock / ratio);
-                
+
                 if (!Number.isFinite(n)) {
                     row.fqty = 1;
                     return;
@@ -1928,7 +1972,7 @@
                 if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
                 const stock = Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0;
                 row.maxqty = stock;
-                
+
                 if (row === this.draft) {
                     if (units.length > 1) {
                         populateDraftUnitSelect(units);
@@ -1974,23 +2018,28 @@
                         fsatuan: src.fsatuan ?? '',
                         frefdtno: src.frefdtno ?? '',
                         fnouref: (src.frefdtno ?? src.fnouref ?? null),
-                        frefpr: src.frefpr ?? (source === 'SRJ' ? (header?.fstockmtno ?? '') : (header?.fsono ?? '')),
+                        frefpr: src.frefpr ?? (source === 'SRJ' ? (header?.fstockmtno ?? '') : (header
+                            ?.fsono ?? '')),
                         frefcode: source === 'SRJ' ? (header?.fstockmtno ?? '') : (header?.fsono ?? ''),
-                        
+
                         frefso: source === 'SO' ? (header?.fsono ?? '') : (header?.fsono ?? ''),
-                        frefsoid: source === 'SO' ? (header?.ftrsomtid ?? null) : (header?.ftrsomtid ?? null),
+                        frefsoid: source === 'SO' ? (header?.ftrsomtid ?? null) : (header?.ftrsomtid ??
+                            null),
                         frefsrj: source === 'SRJ' ? (header?.fstockmtno ?? '') : (header?.fstockmtno ?? ''),
-                        frefsrjid: source === 'SRJ' ? (header?.fstockmtid ?? null) : (header?.fstockmtid ?? null),
+                        frefsrjid: source === 'SRJ' ? (header?.fstockmtid ?? null) : (header?.fstockmtid ??
+                            null),
 
                         fprhid: src.fprhid ?? header?.fprhid ?? '',
-                        fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ? Number(src.fqty) : 1,
+                        fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ?
+                            Number(src.fqty) : 1,
                         fterima: Number(src.fterima ?? 0),
                         fprice: Number(src.fprice ?? 0),
                         fdisc: src.fdisc ?? 0,
                         ftotal: Number(src.ftotal ?? 0),
                         fdesc: src.fdesc ?? '',
                         fketdt: src.fketdt ?? '',
-                        units: Array.isArray(src.units) && src.units.length ? src.units : [src.fsatuan].filter(Boolean),
+                        units: Array.isArray(src.units) && src.units.length ? src.units : [src.fsatuan]
+                            .filter(Boolean),
                     };
 
                     const key = this.itemKey({
@@ -2007,10 +2056,10 @@
                         return;
                     }
 
-                        this.savedItems.push(row);
-                        existing.add(key);
-                        added++;
-                        this.recalc(row);
+                    this.savedItems.push(row);
+                    existing.add(key);
+                    added++;
+                    this.recalc(row);
                 });
 
                 this.recalcTotals();
@@ -2176,7 +2225,7 @@
                 }, {
                     passive: true
                 });
-                
+
                 const self = this;
                 document.addEventListener('change', function(e) {
                     if (e.target && e.target.id === 'draftUnitSelect') {

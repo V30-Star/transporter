@@ -362,7 +362,7 @@ class SalesOrderController extends Controller
             'fsatuankecil',
             'fsatuanbesar',
             'fsatuanbesar2',
-            'fqtykecil', 
+            'fqtykecil',
             'fqtykecil2',
             'fminstock'
         )->orderBy('fprdname')->get();
@@ -448,10 +448,55 @@ class SalesOrderController extends Controller
         $descs = $request->input('fdesc', []);
 
         // LOAD PRODUCT METADATA FOR STOCK VALIDATION
-        $uniqueCodes = array_values(array_unique(array_filter(array_map(fn($c) => trim((string)$c), $itemCodes))));        $prodMeta = DB::table('msprd')
+        $uniqueCodes = array_values(array_unique(array_filter(array_map(fn($c) => trim((string)$c), $itemCodes))));
+        $prodMeta = DB::table('msprd')
             ->whereIn('fprdcode', $uniqueCodes)
             ->get(['fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2', 'fqtykecil', 'fqtykecil2', 'fminstock'])
             ->keyBy('fprdcode');
+
+        // ===== STOCK VALIDATION =====
+        $errors = new \Illuminate\Support\MessageBag();
+        foreach ($itemCodes as $i => $codeRaw) {
+            $code = trim($codeRaw ?? '');
+            $sat  = trim($satuans[$i] ?? '');
+            if ($code === '') continue;
+
+            $qty = is_numeric($qtys[$i] ?? null) ? (int) $qtys[$i] : 0;
+            if ($qty < 1) {
+                $errors->add("fqty.$i", 'Qty minimal 1.');  // ← ganti
+                continue;
+            }
+
+            $product      = $productMap[$code] ?? null;
+            $stokTersedia = $product ? (float) ($product->fminstock ?? 0) : 0;
+
+            $qtyKecil = $qty;
+            if ($product) {
+                if ($sat === $product->fsatuanbesar) {
+                    $rasio    = is_numeric($product->fqtykecil) ? (float) $product->fqtykecil : 1;
+                    $qtyKecil = $qty * $rasio;
+                } elseif (!empty($product->fsatuanbesar2) && $sat === $product->fsatuanbesar2) {
+                    $rasio2   = is_numeric($product->fqtykecil2) ? (float) $product->fqtykecil2 : 1;
+                    $qtyKecil = $qty * $rasio2;
+                }
+            }
+
+            if ($stokTersedia <= 0) {
+                $errors->add(
+                    "fqty.$i",
+                    "Produk \"$code\" tidak dapat dipesan karena stok habis atau minus. (Stok saat ini: $stokTersedia)"
+                );
+            } elseif ($qtyKecil > $stokTersedia) {
+                $errors->add(
+                    "fqty.$i",
+                    "Qty produk \"$code\" melebihi stok tersedia. (Diminta: $qtyKecil, Stok: $stokTersedia)"
+                );
+            }
+        }
+
+        if ($errors->isNotEmpty()) {
+            return back()->withErrors($errors)->withInput();
+        }
 
         // STOCK VALIDATION
         $stockErrors = [];
@@ -633,6 +678,15 @@ class SalesOrderController extends Controller
                 }
                 DB::table('trsodt')->insert($rowsSodt);
 
+                // UPDATE STOK - gunakan qtyKecil hasil konversi, bukan qty mentah
+                foreach ($rowsSodt as $row) {
+                    DB::table('msprd')
+                        ->where('fprdcode', $row['fprdcode'])
+                        ->update([
+                            'fminstock'  => DB::raw("CAST(fminstock AS NUMERIC) - " . $row['fqtyremain']),
+                            'fupdatedat' => now(),
+                        ]);
+                }
                 // E. Final Total Update
                 $totalAmountSo = DB::table('trsodt')->where('ftrsomtid', $ftrsomtid)->sum('famount');
                 DB::table('trsomt')->where('ftrsomtid', $ftrsomtid)->update([
@@ -783,7 +837,7 @@ class SalesOrderController extends Controller
             'fsatuankecil',
             'fsatuanbesar',
             'fsatuanbesar2',
-            'fqtykecil', 
+            'fqtykecil',
             'fqtykecil2',
             'fminstock'
         )->orderBy('fprdname')->get();
@@ -1033,6 +1087,50 @@ class SalesOrderController extends Controller
             count($itemNames)
         );
 
+        // ===== STOCK VALIDATION =====
+        $errors = new \Illuminate\Support\MessageBag();
+        foreach ($itemCodes as $i => $codeRaw) {
+            $code = trim($codeRaw ?? '');
+            $sat  = trim($satuans[$i] ?? '');
+            if ($code === '') continue;
+
+            $qty = is_numeric($qtys[$i] ?? null) ? (int) $qtys[$i] : 0;
+            if ($qty < 1) {
+                $errors->add("fqty.$i", 'Qty minimal 1.');  // ← ganti
+                continue;
+            }
+
+            $product      = $productMap[$code] ?? null;
+            $stokTersedia = $product ? (float) ($product->fminstock ?? 0) : 0;
+
+            $qtyKecil = $qty;
+            if ($product) {
+                if ($sat === $product->fsatuanbesar) {
+                    $rasio    = is_numeric($product->fqtykecil) ? (float) $product->fqtykecil : 1;
+                    $qtyKecil = $qty * $rasio;
+                } elseif (!empty($product->fsatuanbesar2) && $sat === $product->fsatuanbesar2) {
+                    $rasio2   = is_numeric($product->fqtykecil2) ? (float) $product->fqtykecil2 : 1;
+                    $qtyKecil = $qty * $rasio2;
+                }
+            }
+
+            if ($stokTersedia <= 0) {
+                $errors->add(
+                    "fqty.$i",
+                    "Produk \"$code\" tidak dapat dipesan karena stok habis atau minus. (Stok saat ini: $stokTersedia)"
+                );
+            } elseif ($qtyKecil > $stokTersedia) {
+                $errors->add(
+                    "fqty.$i",
+                    "Qty produk \"$code\" melebihi stok tersedia. (Diminta: $qtyKecil, Stok: $stokTersedia)"
+                );
+            }
+        }
+
+        if ($errors->isNotEmpty()) {
+            return back()->withErrors($errors)->withInput();
+        }
+
         for ($i = 0; $i < $rowCount; $i++) {
             $itemeId = trim($itemId[$i] ?? '');
             $itemCode = trim($itemCodes[$i] ?? '');
@@ -1154,7 +1252,15 @@ class SalesOrderController extends Controller
 
             // Delete old details and insert new ones
             DB::table('trsodt')->where('ftrsomtid', $ftrsomtid)->delete();
-
+            // UPDATE STOK - gunakan qtyKecil hasil konversi, bukan qty mentah
+            foreach ($rowsSodt as $row) {
+                DB::table('msprd')
+                    ->where('fprdcode', $row['fprdcode'])
+                    ->update([
+                        'fminstock'  => DB::raw("CAST(fminstock AS NUMERIC) - " . $row['fqtyremain']),
+                        'fupdatedat' => now(),
+                    ]);
+            }
             if (! empty($rowsSodt)) {
                 DB::table('trsodt')->insert($rowsSodt);
             }

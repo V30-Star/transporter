@@ -83,7 +83,33 @@
             -moz-appearance: textfield;
         }
     </style>
+    @if ($errors->any())
+        <div class="alert alert-danger alert-dismissible fade show border-0 shadow p-0 overflow-hidden" role="alert">
+            {{-- Header Strip --}}
+            <div class="d-flex align-items-center px-4 py-3" style="background-color: #c0392b;">
+                <i class="bi bi-exclamation-triangle-fill text-white me-2 fs-5"></i>
+                <strong class="text-white fs-6">Gagal Menyimpan Data!</strong>
+                <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="alert"
+                    aria-label="Close"></button>
+            </div>
 
+            {{-- Body --}}
+            <div class="px-4 py-3" style="background-color: #fdeded; border-left: 5px solid #c0392b;">
+                <p class="mb-2 text-danger fw-semibold">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Periksa kembali data berikut sebelum menyimpan:
+                </p>
+                <ul class="mb-0 ps-3">
+                    @foreach ($errors->all() as $error)
+                        <li class="text-danger mb-1">
+                            <i class="bi bi-dot fs-5 align-middle"></i>
+                            {{ $error }}
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+        </div>
+    @endif
     <div x-data="{ open: true }">
         <div x-data="{ includePPN: false, ppnRate: 0, ppnAmount: 0, totalHarga: 100000 }" class="lg:col-span-5">
             <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
@@ -103,8 +129,8 @@
                             <div class="lg:col-span-4" x-data="{ autoCode: true }">
                                 <label class="block text-sm font-bold mb-1">Transaksi#</label>
                                 <div class="flex items-center gap-3">
-                                    <input type="text" name="fstockmtno" class="w-full border rounded px-3 py-2" value="{{ old('fstockmtno', $suratjalan->fstockmtno) }}"
-                                        :disabled="autoCode"
+                                    <input type="text" name="fstockmtno" class="w-full border rounded px-3 py-2"
+                                        value="{{ old('fstockmtno', $suratjalan->fstockmtno) }}" :disabled="autoCode"
                                         :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
                                     <label class="inline-flex items-center select-none">
                                         <input type="checkbox" x-model="autoCode" checked disabled>
@@ -115,7 +141,8 @@
 
                             <div class="lg:col-span-4">
                                 <label class="block text-sm font-bold">Tanggal</label>
-                                <input type="date" name="fstockmtdate" value="{{ old('fstockmtdate') ?? date('Y-m-d') }}" disabled
+                                <input type="date" name="fstockmtdate" value="{{ old('fstockmtdate') ?? date('Y-m-d') }}"
+                                    disabled
                                     class="w-full border rounded px-3 py-2 @error('fstockmtdate') border-red-500 @enderror">
                                 @error('fstockmtdate')
                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -298,16 +325,16 @@
 
                                             <td class="p-2 text-right">
                                                 <input type="number" class="border rounded px-2 py-1 w-24 text-right"
-                                                    type="number"
-                                                    x-ref="editQty"
-                                                    x-model.number="editRow.fqty" @input="
+                                                    type="number" x-ref="editQty" x-model.number="editRow.fqty"
+                                                    @input="
                                                         recalc(editRow);
                                                         enforceQtyRow(editRow);
                                                         recalc(editRow);
                                                     "
                                                     @keydown.enter.prevent="$refs.editPrice?.focus()">
                                                 <div class="text-xs text-gray-400 mt-0.5 text-right">
-                                                    <span x-show="editRow.fitemcode" x-html="formatStockLimit(editRow.fitemcode, editRow.fqty, editRow.fsatuan)"></span>
+                                                    <span x-show="editRow.fitemcode"
+                                                        x-html="formatStockLimit(editRow.fitemcode, editRow.fqty, editRow.fsatuan)"></span>
                                                 </div>
                                             </td>
                                         </tr>
@@ -376,7 +403,8 @@
                                 <div class="lg:col-span-4" x-data="{ autoCode: true }">
                                     <label class="block text-sm font-bold mb-1">Transaksi#</label>
                                     <div class="flex items-center gap-3">
-                                        <input type="text" name="fstockmtno" class="w-full border rounded px-3 py-2" value="{{ old('fstockmtno', $suratjalan->fstockmtno) }}"
+                                        <input type="text" name="fstockmtno" class="w-full border rounded px-3 py-2"
+                                            value="{{ old('fstockmtno', $suratjalan->fstockmtno) }}"
                                             :disabled="autoCode"
                                             :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
                                         <label class="inline-flex items-center select-none">
@@ -528,13 +556,16 @@
                                                         <div x-text="it.fitemname" class="font-semibold"></div>
                                                     </td>
                                                     <td class="p-2">
-                                                        <div x-text="it.frefno_display || it.frefdtno || '-'" class="text-xs text-gray-500 italic"></div>
+                                                        <div x-text="it.frefno_display || it.frefdtno || '-'"
+                                                            class="text-xs text-gray-500 italic"></div>
                                                     </td>
                                                     <td class="p-2 text-right">
                                                         <template x-if="it.units && it.units.length > 1">
-                                                            <select class="border rounded px-1 py-0.5 text-xs w-20" x-model="it.fsatuan">
+                                                            <select class="border rounded px-1 py-0.5 text-xs w-20"
+                                                                x-model="it.fsatuan">
                                                                 <template x-for="u in it.units" :key="u">
-                                                                    <option :value="u" x-text="u"></option>
+                                                                    <option :value="u" x-text="u">
+                                                                    </option>
                                                                 </template>
                                                             </select>
                                                         </template>
@@ -543,16 +574,18 @@
                                                         </template>
                                                     </td>
                                                     <td class="p-2 text-right">
-                                                        <input type="number" class="border rounded px-2 py-1 w-24 text-right"
-                                                            type="number"
-                                                            x-model.number="it.fqty" @input="
+                                                        <input type="number"
+                                                            class="border rounded px-2 py-1 w-24 text-right"
+                                                            type="number" x-model.number="it.fqty"
+                                                            @input="
                                                                 recalc(it);
                                                                 enforceQtyRow(it);
                                                                 recalc(it);
                                                             "
                                                             @keydown.enter.prevent="$refs[`desc-${i}`]?.focus()">
                                                         <div class="text-xs text-gray-400 mt-0.5 text-right">
-                                                            <span x-show="it.fitemcode" x-html="formatStockLimit(it.fitemcode, it.fqty, it.fsatuan)"></span>
+                                                            <span x-show="it.fitemcode"
+                                                                x-html="formatStockLimit(it.fitemcode, it.fqty, it.fsatuan)"></span>
                                                         </div>
                                                     </td>
                                                     <td class="p-2 text-center text-xs">
@@ -582,8 +615,7 @@
                                                     <td class="p-0"></td>
                                                     <td class="p-0"></td>
                                                     <td class="p-2" colspan="3">
-                                                        <textarea x-model="it.fdesc" :x-ref="`desc-${i}`" rows="3"
-                                                            class="w-full border rounded px-2 py-1 text-xs"
+                                                        <textarea x-model="it.fdesc" :x-ref="`desc-${i}`" rows="3" class="w-full border rounded px-2 py-1 text-xs"
                                                             placeholder="Deskripsi item (opsional)"></textarea>
                                                     </td>
                                                     <td class="p-0" colspan="2"></td>
@@ -620,12 +652,14 @@
                                                 <td class="p-2">
                                                     <input type="text"
                                                         class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
-                                                        :value="draft.frefno_display || draft.frefdtno" disabled placeholder="Ref SO">
+                                                        :value="draft.frefno_display || draft.frefdtno" disabled
+                                                        placeholder="Ref SO">
                                                 </td>
 
                                                 <td class="p-2">
                                                     <template x-if="draft.units.length > 1">
-                                                        <select id="draftUnitSelect" class="w-full border rounded px-2 py-1 text-sm"
+                                                        <select id="draftUnitSelect"
+                                                            class="w-full border rounded px-2 py-1 text-sm"
                                                             x-model="draft.fsatuan"
                                                             @keydown.enter.prevent="$refs.draftQty?.focus()">
                                                             <template x-for="u in draft.units" :key="u">
@@ -641,17 +675,18 @@
                                                 </td>
 
                                                 <td class="p-2 text-right">
-                                                    <input type="number" class="border rounded px-2 py-1 w-24 text-right text-sm"
-                                                        type="number"
-                                                        x-ref="draftQty"
-                                                        x-model.number="draft.fqty" @input="
+                                                    <input type="number"
+                                                        class="border rounded px-2 py-1 w-24 text-right text-sm"
+                                                        type="number" x-ref="draftQty" x-model.number="draft.fqty"
+                                                        @input="
                                                             recalc(draft);
                                                             enforceQtyRow(draft);
                                                             recalc(draft);
                                                         "
                                                         @keydown.enter.prevent="addIfComplete()">
                                                     <div class="text-xs text-gray-400 mt-0.5 text-right">
-                                                        <span x-show="draft.fitemcode" x-html="formatStockLimit(draft.fitemcode, draft.fqty, draft.fsatuan)"></span>
+                                                        <span x-show="draft.fitemcode"
+                                                            x-html="formatStockLimit(draft.fitemcode, draft.fqty, draft.fsatuan)"></span>
                                                     </div>
                                                 </td>
 
@@ -666,10 +701,8 @@
                                                 <td class="p-0"></td>
                                                 <td class="p-0"></td>
                                                 <td class="p-2" colspan="3">
-                                                    <textarea x-model="draft.fdesc" x-ref="draftDesc" rows="3"
-                                                        class="w-full border rounded px-2 py-1 text-xs"
-                                                        placeholder="Deskripsi item (opsional)"
-                                                        @keydown.enter.prevent="addIfComplete()"></textarea>
+                                                    <textarea x-model="draft.fdesc" x-ref="draftDesc" rows="3" class="w-full border rounded px-2 py-1 text-xs"
+                                                        placeholder="Deskripsi item (opsional)" @keydown.enter.prevent="addIfComplete()"></textarea>
                                                 </td>
                                                 <td class="p-0" colspan="2"></td>
                                             </tr>
@@ -926,8 +959,8 @@
                             </div>
 
                             {{-- MODAL Customer --}}
-                            <div x-data="customerBrowser()" x-init="init()" x-show="open" x-cloak x-transition.opacity
-                                class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                            <div x-data="customerBrowser()" x-init="init()" x-show="open" x-cloak
+                                x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center p-4">
                                 <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
 
                                 <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-6xl flex flex-col overflow-hidden"
@@ -1651,7 +1684,11 @@
                         name: '',
                         units: [],
                         stock: 0,
-                        unit_ratios: { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 }
+                        unit_ratios: {
+                            satuankecil: 1,
+                            satuanbesar: 1,
+                            satuanbesar2: 1
+                        }
                     };
                 }
                 return meta;
@@ -1660,18 +1697,22 @@
             formatStockLimit(code, qty, satuan) {
                 const meta = this.productMeta(code);
                 if (!code || !meta.stock) return '';
-                
+
                 const entered = Number(qty) || 0;
                 const remaining = Math.max(0, meta.stock - entered);
                 const units = meta.units || [];
-                const ratios = meta.unit_ratios || { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 };
-                
+                const ratios = meta.unit_ratios || {
+                    satuankecil: 1,
+                    satuanbesar: 1,
+                    satuanbesar2: 1
+                };
+
                 if (!units.length || !satuan) return '';
-                
+
                 const satKecil = units[0] || 'pcs';
                 const satBesar = units[1] || '';
                 const satBesar2 = units[2] || '';
-                
+
                 let ratio = 1;
                 if (satuan === satBesar2 && ratios.satuanbesar2 > 0) {
                     ratio = ratios.satuanbesar2;
@@ -1680,7 +1721,7 @@
                 } else if (satuan === satKecil) {
                     ratio = 1;
                 }
-                
+
                 const limitValue = Math.floor(remaining / ratio);
                 return '<span class="font-medium">limit:</span> ' + limitValue + ' ' + satuan;
             },
@@ -1689,22 +1730,26 @@
                 const n = +row.fqty;
                 const meta = this.productMeta(row.fitemcode);
                 const units = meta?.units || [];
-                const ratios = meta?.unit_ratios || { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 };
+                const ratios = meta?.unit_ratios || {
+                    satuankecil: 1,
+                    satuanbesar: 1,
+                    satuanbesar2: 1
+                };
                 const satKecil = units[0] || 'pcs';
                 const satBesar = units[1] || '';
                 const satBesar2 = units[2] || '';
                 const satuan = row.fsatuan || '';
-                
+
                 let ratio = 1;
                 if (satuan === satBesar2 && ratios.satuanbesar2 > 0) {
                     ratio = ratios.satuanbesar2;
                 } else if (satuan === satBesar && ratios.satuanbesar > 0) {
                     ratio = ratios.satuanbesar;
                 }
-                
+
                 const maxStock = meta?.stock || 999999;
                 const maxInUnit = Math.floor(maxStock / ratio);
-                
+
                 if (!Number.isFinite(n)) {
                     row.fqty = 1;
                     return;
@@ -1735,7 +1780,7 @@
                 const stock = Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0;
                 row.maxqty = stock;
                 row.frefdtno = meta.fprdid || 0;
-                
+
                 if (row === this.draft) {
                     if (units.length > 1) {
                         populateDraftUnitSelect(units);
@@ -1807,13 +1852,15 @@
                         frefpr: (src.frefpr ?? header?.fpono ?? header?.fsono ?? '').toString().trim(),
                         frefso: header?.fsono ?? null,
                         frefsoid: src.frefdtno ?? null,
-                        fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ? Number(src.fqty) : 1,
+                        fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ?
+                            Number(src.fqty) : 1,
                         fprice: Number(src.fprice ?? src.fharga ?? 0), // ← Boleh 0
                         fterima: Number(src.fterima ?? 0),
                         ftotal: 0,
                         fdesc: src.fdesc ? src.fdesc.toString().trim() : '',
                         fketdt: src.fketdt ? src.fketdt.toString().trim() : '',
-                        units: meta ? [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))] : [satuan].filter(Boolean),
+                        units: meta ? [...new Set((meta.units || []).map(u => (u ?? '').toString().trim())
+                            .filter(Boolean))] : [satuan].filter(Boolean),
                         maxqty: meta ? (Number(meta.stock) || 0) : 0,
                     };
 
@@ -2037,14 +2084,14 @@
                 }, {
                     passive: true
                 });
-                
+
                 const self = this;
                 document.addEventListener('change', function(e) {
                     if (e.target && e.target.id === 'draftUnitSelect') {
                         self.draft.fsatuan = e.target.value;
                     }
                 });
-                
+
                 this.$nextTick(() => {
                     this.recalcTotals();
                 });
@@ -2496,7 +2543,7 @@
             const sel = document.getElementById('warehouseSelect');
             const hidId = document.getElementById('warehouseIdHidden');
             const hidCode = document.getElementById('warehouseCodeHidden');
-            
+
             if (sel) {
                 sel.value = fwhid || '';
                 sel.dispatchEvent(new Event('change', {

@@ -68,7 +68,33 @@
             -moz-appearance: textfield;
         }
     </style>
+    @if ($errors->any())
+        <div class="alert alert-danger alert-dismissible fade show border-0 shadow p-0 overflow-hidden" role="alert">
+            {{-- Header Strip --}}
+            <div class="d-flex align-items-center px-4 py-3" style="background-color: #c0392b;">
+                <i class="bi bi-exclamation-triangle-fill text-white me-2 fs-5"></i>
+                <strong class="text-white fs-6">Gagal Menyimpan Data!</strong>
+                <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="alert"
+                    aria-label="Close"></button>
+            </div>
 
+            {{-- Body --}}
+            <div class="px-4 py-3" style="background-color: #fdeded; border-left: 5px solid #c0392b;">
+                <p class="mb-2 text-danger fw-semibold">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Periksa kembali data berikut sebelum menyimpan:
+                </p>
+                <ul class="mb-0 ps-3">
+                    @foreach ($errors->all() as $error)
+                        <li class="text-danger mb-1">
+                            <i class="bi bi-dot fs-5 align-middle"></i>
+                            {{ $error }}
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+        </div>
+    @endif
     <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
         <form action="{{ route('penerimaanbarang.store') }}" method="POST" class="mt-6" x-data="mainForm()"
             x-init="init()" @submit.prevent="submitForm($el)">
@@ -174,7 +200,8 @@
 
                 <div class="lg:col-span-12">
                     <label class="block text-sm font-medium">Keterangan</label>
-                    <textarea name="fket" rows="3" class="w-full border rounded px-3 py-2 @error('fket') border-red-500 @enderror"
+                    <textarea name="fket" rows="3"
+                        class="w-full border rounded px-3 py-2 @error('fket') border-red-500 @enderror"
                         placeholder="Tulis keterangan tambahan di sini...">{{ old('fket') }}</textarea>
                     @error('fket')
                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -239,10 +266,8 @@
                                     {{-- Satuan --}}
                                     <td class="p-2 align-top">
                                         <template x-if="it.units.length > 1">
-                                            <select class="w-full border rounded px-2 py-1 text-sm"
-                                                :id="'unit_saved_' + i"
-                                                x-model="it.fsatuan"
-                                                @focus="activeRow = it.uid" @blur="activeRow = null"
+                                            <select class="w-full border rounded px-2 py-1 text-sm" :id="'unit_saved_' + i"
+                                                x-model="it.fsatuan" @focus="activeRow = it.uid" @blur="activeRow = null"
                                                 @keydown.enter.prevent="focusSavedQty(i)"
                                                 @change="it.maxqty = calcMaxQty(it);">
                                                 <template x-for="u in it.units" :key="u">
@@ -266,7 +291,8 @@
                                     <td class="p-2 text-right">
                                         <input type="number" class="border rounded px-2 py-1 w-20 text-right text-sm"
                                             x-model.number="it.fqty" :id="'qty_saved_' + i"
-                                            @focus="activeRow = it.uid; $event.target.select()" @blur="activeRow = null; enforceQtyRow(it);"
+                                            @focus="activeRow = it.uid; $event.target.select()"
+                                            @blur="activeRow = null; enforceQtyRow(it);"
                                             @input="
                                                 recalc(it);
                                                 if (it.maxqty > 0 && it.fqty > it.maxqty) { it.fqty = it.maxqty; recalc(it); }
@@ -276,7 +302,9 @@
                                                 if (it.maxqty > 0 && it.fqty > it.maxqty) { it.fqty = it.maxqty; recalc(it); }
                                             "
                                             @keydown.enter.prevent="focusSavedPrice(i)">
-                                        <div class="text-[10px] text-orange-600 font-medium text-right mt-0.5" x-show="it.fitemcode && productMeta(it.fitemcode).stock > 0" x-html="formatStockLimit(it.fitemcode, it.fqty, it.fsatuan)">
+                                        <div class="text-[10px] text-orange-600 font-medium text-right mt-0.5"
+                                            x-show="it.fitemcode && productMeta(it.fitemcode).stock > 0"
+                                            x-html="formatStockLimit(it.fitemcode, it.fqty, it.fsatuan)">
                                         </div>
                                     </td>
 
@@ -351,8 +379,7 @@
                                 {{-- Satuan Draft --}}
                                 <td class="p-2 align-top">
                                     <select id="draftUnitSelect" class="w-full border rounded px-2 py-1 text-sm"
-                                        x-show="draft.units.length > 1"
-                                        @keydown.enter.prevent="$refs.draftQty?.focus()">
+                                        x-show="draft.units.length > 1" @keydown.enter.prevent="$refs.draftQty?.focus()">
                                     </select>
                                     <input type="text" x-show="draft.units.length <= 1"
                                         class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
@@ -363,14 +390,17 @@
                                     <input type="text"
                                         class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
                                         :value="draft.fpono || ''" disabled placeholder="Ref PO">
-                                        <input type="hidden" name="fpono[]" :value="draft.fpono">
+                                    <input type="hidden" name="fpono[]" :value="draft.fpono">
                                 </td>
 
                                 <td class="p-2 text-right">
                                     <input type="number" class="border rounded px-2 py-1 w-20 text-right text-sm"
                                         min="0" step="1" x-ref="draftQty" x-model.number="draft.fqty"
-                                        @input="recalc(draft)" @blur="enforceQtyRow(draft);" @keydown.enter.prevent="$refs.draftPrice?.focus()">
-                                    <div class="text-[10px] text-orange-600 font-medium text-right mt-0.5" x-show="draft.fitemcode && productMeta(draft.fitemcode).stock > 0" x-html="formatStockLimit(draft.fitemcode, draft.fqty, draft.fsatuan)">
+                                        @input="recalc(draft)" @blur="enforceQtyRow(draft);"
+                                        @keydown.enter.prevent="$refs.draftPrice?.focus()">
+                                    <div class="text-[10px] text-orange-600 font-medium text-right mt-0.5"
+                                        x-show="draft.fitemcode && productMeta(draft.fitemcode).stock > 0"
+                                        x-html="formatStockLimit(draft.fitemcode, draft.fqty, draft.fsatuan)">
                                     </div>
                                 </td>
 
@@ -837,7 +867,11 @@
                     maxqty: 0,
                     fqtypr: 0,
                     fqtypr_satuan: '',
-                    unit_ratios: { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 },
+                    unit_ratios: {
+                        satuankecil: 1,
+                        satuanbesar: 1,
+                        satuanbesar2: 1
+                    },
                     maxqty_satuan: '',
                 };
             }
@@ -900,7 +934,11 @@
                             name: '',
                             units: [],
                             stock: 0,
-                            unit_ratios: { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 }
+                            unit_ratios: {
+                                satuankecil: 1,
+                                satuanbesar: 1,
+                                satuanbesar2: 1
+                            }
                         };
                     }
                     return meta;
@@ -909,18 +947,22 @@
                 formatStockLimit(code, qty, satuan) {
                     const meta = this.productMeta(code);
                     if (!code || !meta.stock) return '';
-                    
+
                     const entered = Number(qty) || 0;
                     const remaining = Math.max(0, meta.stock - entered);
                     const units = meta.units || [];
-                    const ratios = meta.unit_ratios || { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 };
-                    
+                    const ratios = meta.unit_ratios || {
+                        satuankecil: 1,
+                        satuanbesar: 1,
+                        satuanbesar2: 1
+                    };
+
                     if (!units.length || !satuan) return '';
-                    
+
                     const satKecil = units[0] || 'pcs';
                     const satBesar = units[1] || '';
                     const satBesar2 = units[2] || '';
-                    
+
                     let ratio = 1;
                     if (satuan === satBesar2 && ratios.satuanbesar2 > 0) {
                         ratio = ratios.satuanbesar2;
@@ -929,7 +971,7 @@
                     } else if (satuan === satKecil) {
                         ratio = 1;
                     }
-                    
+
                     const limitValue = Math.floor(remaining / ratio);
                     return '<span class="font-medium">limit:</span> ' + limitValue + ' ' + satuan;
                 },
@@ -938,22 +980,26 @@
                     const n = +row.fqty;
                     const meta = this.productMeta(row.fitemcode);
                     const units = meta?.units || [];
-                    const ratios = meta?.unit_ratios || { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 };
+                    const ratios = meta?.unit_ratios || {
+                        satuankecil: 1,
+                        satuanbesar: 1,
+                        satuanbesar2: 1
+                    };
                     const satKecil = units[0] || 'pcs';
                     const satBesar = units[1] || '';
                     const satBesar2 = units[2] || '';
                     const satuan = row.fsatuan || '';
-                    
+
                     let ratio = 1;
                     if (satuan === satBesar2 && ratios.satuanbesar2 > 0) {
                         ratio = ratios.satuanbesar2;
                     } else if (satuan === satBesar && ratios.satuanbesar > 0) {
                         ratio = ratios.satuanbesar;
                     }
-                    
+
                     const maxStock = meta?.stock || 999999;
                     const maxInUnit = Math.floor(maxStock / ratio);
-                    
+
                     if (!Number.isFinite(n)) {
                         row.fqty = 1;
                         return;
@@ -983,7 +1029,7 @@
                     if (!currentSatuan) row.fsatuan = units[0] || '';
                     if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
                     if (!keepMaxqty) row.maxqty = Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0;
-                    
+
                     if (row === this.draft) {
                         if (units.length > 1) {
                             populateDraftUnitSelect(units);
@@ -1184,7 +1230,8 @@
                             frefpr: String(header?.fprhid ?? src.fprhid ?? ''),
                             fprhid: String(src.fprhid ?? header?.fprhid ?? ''),
                             fpono: String(header?.fpono ?? src.fpono ?? ''),
-                            fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ? Number(src.fqty) : 1,
+                            fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ?
+                                Number(src.fqty) : 1,
                             fqtypo: Number(src.fqtypo ?? 0),
                             fqtypr: Number(src.fqty ?? 0),
                             fqtypr_satuan: (src.fsatuan ?? '').trim(),
@@ -1294,7 +1341,7 @@
                             this.$nextTick(() => this.$refs.draftQty?.focus());
                         }
                     }, sig);
-                    
+
                     const self = this;
                     document.addEventListener('change', function(e) {
                         if (e.target && e.target.id === 'draftUnitSelect') {

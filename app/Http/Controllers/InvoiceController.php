@@ -93,8 +93,8 @@ class InvoiceController extends Controller
                     'fbranchcode' => $row->fbranchcode,
                     'fsono' => $row->fsono,
                     'fsodate' => $row->fsodate instanceof \Carbon\Carbon
-                      ? $row->fsodate->format('Y-m-d')
-                      : $row->fsodate,
+                        ? $row->fsodate->format('Y-m-d')
+                        : $row->fsodate,
                     'frefno' => $row->frefno ?? '',
                     'fcustno' => $row->fcustno ?? '',
                     'fsalesman' => $row->fsalesman,
@@ -173,7 +173,7 @@ class InvoiceController extends Controller
         $allowedColumns = ['fprno', 'fprdate'];
         if (in_array($orderColumn, $allowedColumns)) {
             if (in_array($orderColumn, ['fprno', 'fprdate'])) {
-                $query->orderBy('tr_prh.'.$orderColumn, $orderDir);
+                $query->orderBy('tr_prh.' . $orderColumn, $orderDir);
             } else {
                 $query->orderBy('mssupplier.fsuppliername', $orderDir);
             }
@@ -235,9 +235,9 @@ class InvoiceController extends Controller
         $date = $onDate ?: now();
 
         $branch = $branch
-          ?? Auth::guard('sysuser')->user()?->fcabang
-          ?? Auth::user()?->fcabang
-          ?? null;
+            ?? Auth::guard('sysuser')->user()?->fcabang
+            ?? Auth::user()?->fcabang
+            ?? null;
 
         // resolve kode cabang
         $kodeCabang = null;
@@ -247,7 +247,7 @@ class InvoiceController extends Controller
                 $kodeCabang = DB::table('mscabang')->where('fcabangid', (int) $needle)->value('fcabangkode');
             } else {
                 $kodeCabang = DB::table('mscabang')->whereRaw('LOWER(fcabangkode)=LOWER(?)', [$needle])->value('fcabangkode')
-                  ?: DB::table('mscabang')->whereRaw('LOWER(fcabangname)=LOWER(?)', [$needle])->value('fcabangkode');
+                    ?: DB::table('mscabang')->whereRaw('LOWER(fcabangname)=LOWER(?)', [$needle])->value('fcabangkode');
             }
         }
         if (! $kodeCabang) {
@@ -257,17 +257,17 @@ class InvoiceController extends Controller
         $prefix = sprintf('PO.%s.%s.%s.', $kodeCabang, $date->format('y'), $date->format('m'));
 
         // kunci per (branch, tahun-bulan) — TANPA bikin tabel baru
-        $lockKey = crc32('PO|'.$kodeCabang.'|'.$date->format('Y-m'));
+        $lockKey = crc32('PO|' . $kodeCabang . '|' . $date->format('Y-m'));
         DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
         $last = DB::table('tranmt')
-            ->where('fsono', 'like', $prefix.'%')
+            ->where('fsono', 'like', $prefix . '%')
             ->selectRaw("MAX(CAST(split_part(fsono, '.', 5) AS int)) AS lastno")
             ->value('lastno');
 
         $next = (int) $last + 1;
 
-        return $prefix.str_pad((string) $next, 4, '0', STR_PAD_LEFT);
+        return $prefix . str_pad((string) $next, 4, '0', STR_PAD_LEFT);
     }
 
     public function print(string $fsono)
@@ -303,9 +303,9 @@ class InvoiceController extends Controller
             ]);
 
         // Format date helper
-        $fmt = fn ($d) => $d
-          ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y')
-          : '-';
+        $fmt = fn($d) => $d
+            ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y')
+            : '-';
 
         return view('invoice.print', [
             'hdr' => $hdr,
@@ -327,10 +327,10 @@ class InvoiceController extends Controller
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
         $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
+            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
             ->when(
                 ! is_numeric($raw),
-                fn ($q) => $q->where('fcabangkode', $raw)->orWhere('fcabangname', $raw)
+                fn($q) => $q->where('fcabangkode', $raw)->orWhere('fcabangname', $raw)
             )
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
 
@@ -348,7 +348,7 @@ class InvoiceController extends Controller
             'fsatuankecil',
             'fsatuanbesar',
             'fsatuanbesar2',
-            'fqtykecil', 
+            'fqtykecil',
             'fqtykecil2',
             'fminstock'
         )->orderBy('fprdname')->get();
@@ -435,6 +435,50 @@ class InvoiceController extends Controller
         $totalGross = 0;
         $totalDisc = 0;
 
+        // ===== STOCK VALIDATION =====
+        $errors = new \Illuminate\Support\MessageBag();
+        foreach ($itemCodes as $i => $codeRaw) {
+            $code = trim($codeRaw ?? '');
+            $sat  = trim($sats[$i] ?? '');
+            if ($code === '') continue;
+
+            $qty = is_numeric($qtys[$i] ?? null) ? (int) $qtys[$i] : 0;
+            if ($qty < 1) {
+                $errors->add("fqty.$i", 'Qty minimal 1.');  // ← ganti
+                continue;
+            }
+
+            $product      = $productMap[$code] ?? null;
+            $stokTersedia = $product ? (float) ($product->fminstock ?? 0) : 0;
+
+            $qtyKecil = $qty;
+            if ($product) {
+                if ($sat === $product->fsatuanbesar) {
+                    $rasio    = is_numeric($product->fqtykecil) ? (float) $product->fqtykecil : 1;
+                    $qtyKecil = $qty * $rasio;
+                } elseif (!empty($product->fsatuanbesar2) && $sat === $product->fsatuanbesar2) {
+                    $rasio2   = is_numeric($product->fqtykecil2) ? (float) $product->fqtykecil2 : 1;
+                    $qtyKecil = $qty * $rasio2;
+                }
+            }
+
+            if ($stokTersedia <= 0) {
+                $errors->add(
+                    "fqty.$i",
+                    "Produk \"$code\" tidak dapat dipesan karena stok habis atau minus. (Stok saat ini: $stokTersedia)"
+                );
+            } elseif ($qtyKecil > $stokTersedia) {
+                $errors->add(
+                    "fqty.$i",
+                    "Qty produk \"$code\" melebihi stok tersedia. (Diminta: $qtyKecil, Stok: $stokTersedia)"
+                );
+            }
+        }
+
+        if ($errors->isNotEmpty()) {
+            return back()->withErrors($errors)->withInput();
+        }
+
         // Logika UM (Tetap sama)
         $hasUM = in_array('UM', $itemCodes);
         if ($hasUM && $typeSales === 0) {
@@ -444,7 +488,7 @@ class InvoiceController extends Controller
             return back()->withInput()->with('error', 'Transaksi Uang Muka wajib menggunakan produk dengan kode UM.');
         }
 
-        $uniqueCodes = array_values(array_unique(array_filter(array_map(fn ($c) => trim((string) $c), $itemCodes))));
+        $uniqueCodes = array_values(array_unique(array_filter(array_map(fn($c) => trim((string) $c), $itemCodes))));
         $prodMeta = DB::table('msprd')
             ->whereIn('fprdcode', $uniqueCodes)
             ->get(['fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2', 'fqtykecil', 'fqtykecil2', 'fminstock'])
@@ -564,10 +608,10 @@ class InvoiceController extends Controller
                 // Penomoran Otomatis (Tetap sama)
                 $fsono = $request->input('fsono');
                 if (empty($fsono)) {
-                    $prefix = 'INV.'.$fsodate->format('ym').'.';
-                    $lastRecord = DB::table('tranmt')->where('fsono', 'like', $prefix.'%')->orderBy('fsono', 'desc')->lockForUpdate()->first();
+                    $prefix = 'INV.' . $fsodate->format('ym') . '.';
+                    $lastRecord = DB::table('tranmt')->where('fsono', 'like', $prefix . '%')->orderBy('fsono', 'desc')->lockForUpdate()->first();
                     $nextNumber = $lastRecord ? ((int) substr(trim($lastRecord->fsono), -4) + 1) : 1;
-                    $fsono = $prefix.str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+                    $fsono = $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
                 }
 
                 // --- INSERT HEADER DAN AMBIL ID ---
@@ -612,9 +656,19 @@ class InvoiceController extends Controller
                 DB::table('trandt')->insert($detailRows);
             });
 
+            // UPDATE STOK - gunakan qtyKecil hasil konversi, bukan qty mentah
+            foreach ($detailRows as $row) {
+                DB::table('msprd')
+                    ->where('fprdcode', $row['fprdcode'])
+                    ->update([
+                        'fminstock'  => DB::raw("CAST(fminstock AS NUMERIC) - " . $row['fqtyremain']),
+                        'fupdatedat' => now(),
+                    ]);
+            }
+
             return redirect()->route('invoice.index')->with('success', 'Faktur Penjualan berhasil disimpan.');
         } catch (\Exception $e) {
-            return back()->withInput()->with('error', 'Terjadi kesalahan: '.$e->getMessage());
+            return back()->withInput()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }
 
@@ -670,8 +724,8 @@ class InvoiceController extends Controller
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
         $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn ($q) => $q
+            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
+            ->when(! is_numeric($raw), fn($q) => $q
                 ->where('fcabangkode', $raw)
                 ->orWhere('fcabangname', $raw))
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
@@ -745,13 +799,13 @@ class InvoiceController extends Controller
             'fsatuankecil',
             'fsatuanbesar',
             'fsatuanbesar2',
-            'fqtykecil', 
+            'fqtykecil',
             'fqtykecil2',
             'fminstock'
         )->orderBy('fprdname')->get();
 
         // Prepare the product map for frontend
-       $productMap = $products->mapWithKeys(function ($p) {
+        $productMap = $products->mapWithKeys(function ($p) {
             return [
                 $p->fprdcode => [
                     'name'  => $p->fprdname,
@@ -801,8 +855,8 @@ class InvoiceController extends Controller
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
         $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn ($q) => $q
+            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
+            ->when(! is_numeric($raw), fn($q) => $q
                 ->where('fcabangkode', $raw)
                 ->orWhere('fcabangname', $raw))
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
@@ -907,16 +961,9 @@ class InvoiceController extends Controller
             'fprice.*' => ['numeric', 'min:0'],
         ]);
 
-        // DEBUG: Awal Request
-        Log::info("[UPDATE INVOICE] Memulai proses update ID: {$ftranmtid}", [
-            'user' => auth('sysuser')->user()->fname ?? 'admin',
-            'all_payload' => $request->all(),
-        ]);
-
         // 2. LOAD HEADER
         $header = DB::table('tranmt')->where('ftranmtid', $ftranmtid)->first();
         if (! $header) {
-            Log::error("[UPDATE INVOICE] Header tidak ditemukan untuk ID: {$ftranmtid}");
 
             return abort(404, 'Faktur Penjualan tidak ditemukan.');
         }
@@ -948,7 +995,6 @@ class InvoiceController extends Controller
 
         $hasUM = in_array('UM', $itemCodes);
         if ($hasUM && $typeSales === 0) {
-            Log::warning('[UPDATE INVOICE] Validasi Gagal: Item UM ditemukan pada tipe Penjualan biasa.');
 
             return back()->withInput()->with('error', 'Produk Uang Muka (UM) hanya diperbolehkan untuk tipe transaksi Uang Muka.');
         }
@@ -959,14 +1005,55 @@ class InvoiceController extends Controller
             ->get(['fprdid', 'fprdcode', 'fprdname', 'fdiscontinue', 'fsatuanbesar', 'fqtykecil as rasio_konversi'])
             ->keyBy('fprdcode');
 
-        Log::info('[UPDATE INVOICE] Jumlah item unik dari request: '.count($itemCodes));
+        // ===== STOCK VALIDATION =====
+        $errors = new \Illuminate\Support\MessageBag();
+        foreach ($itemCodes as $i => $codeRaw) {
+            $code = trim($codeRaw ?? '');
+            $sat  = trim($sats[$i] ?? '');
+            if ($code === '') continue;
+
+            $qty = is_numeric($qtys[$i] ?? null) ? (int) $qtys[$i] : 0;
+            if ($qty < 1) {
+                $errors->add("fqty.$i", 'Qty minimal 1.');  // ← ganti
+                continue;
+            }
+
+            $product      = $productMap[$code] ?? null;
+            $stokTersedia = $product ? (float) ($product->fminstock ?? 0) : 0;
+
+            $qtyKecil = $qty;
+            if ($product) {
+                if ($sat === $product->fsatuanbesar) {
+                    $rasio    = is_numeric($product->fqtykecil) ? (float) $product->fqtykecil : 1;
+                    $qtyKecil = $qty * $rasio;
+                } elseif (!empty($product->fsatuanbesar2) && $sat === $product->fsatuanbesar2) {
+                    $rasio2   = is_numeric($product->fqtykecil2) ? (float) $product->fqtykecil2 : 1;
+                    $qtyKecil = $qty * $rasio2;
+                }
+            }
+
+            if ($stokTersedia <= 0) {
+                $errors->add(
+                    "fqty.$i",
+                    "Produk \"$code\" tidak dapat dipesan karena stok habis atau minus. (Stok saat ini: $stokTersedia)"
+                );
+            } elseif ($qtyKecil > $stokTersedia) {
+                $errors->add(
+                    "fqty.$i",
+                    "Qty produk \"$code\" melebihi stok tersedia. (Diminta: $qtyKecil, Stok: $stokTersedia)"
+                );
+            }
+        }
+
+        if ($errors->isNotEmpty()) {
+            return back()->withErrors($errors)->withInput();
+        }
 
         foreach ($itemCodes as $i => $code) {
             $qty = (float) ($qtys[$i] ?? 0);
             $price = (float) ($prices[$i] ?? 0);
 
             if (empty($code) || $qty <= 0) {
-                Log::debug("[UPDATE INVOICE] Baris index {$i} dilewati (Qty <= 0 atau Kode Kosong)");
 
                 continue;
             }
@@ -984,7 +1071,6 @@ class InvoiceController extends Controller
             $product = $products->get($code);
 
             if (! $product) {
-                Log::error("[UPDATE INVOICE] Produk tidak ditemukan di DB: {$code}");
 
                 return back()->withInput()->with('error', "Data produk [{$code}] tidak ditemukan.");
             }
@@ -1036,8 +1122,6 @@ class InvoiceController extends Controller
             ];
 
             $detailRows[] = $rowData;
-
-            Log::debug("[UPDATE INVOICE] Menyiapkan Baris Detail {$i}", ['data' => $rowData]);
         }
 
         // 5. KALKULASI TOTAL AKHIR
@@ -1045,14 +1129,6 @@ class InvoiceController extends Controller
         $ppnPersen = (float) $request->input('fppnpersen', 11);
         $ppnAmount = ($fincludeppn === '1') ? ($amountNet * ($ppnPersen / 100)) : 0;
         $grandTotal = $amountNet + $ppnAmount;
-
-        Log::info('[UPDATE INVOICE] Hasil Kalkulasi', [
-            'Gross' => $totalGross,
-            'Disc' => $totalDisc,
-            'Net' => $amountNet,
-            'PPN' => $ppnAmount,
-            'GrandTotal' => $grandTotal,
-        ]);
 
         // 6. TRANSACTION
         try {
@@ -1100,26 +1176,28 @@ class InvoiceController extends Controller
                 ]);
 
                 // Hapus detail lama
-                Log::info("[UPDATE INVOICE] Menghapus detail lama untuk fsono: {$header->fsono}");
                 DB::table('trandt')->where('fsono', $header->fsono)->delete();
+
+                // UPDATE STOK - gunakan qtyKecil hasil konversi, bukan qty mentah
+                foreach ($detailRows as $row) {
+                    DB::table('msprd')
+                        ->where('fprdcode', $row['fprdcode'])
+                        ->update([
+                            'fminstock'  => DB::raw("CAST(fminstock AS NUMERIC) - " . $row['fqtyremain']),
+                            'fupdatedat' => now(),
+                        ]);
+                }
 
                 // Insert detail baru
                 if (! empty($detailRows)) {
-                    Log::info('[UPDATE INVOICE] Memasukkan '.count($detailRows).' detail baru.');
                     DB::table('trandt')->insert($detailRows);
                 }
             });
 
-            Log::info("[UPDATE INVOICE] Update Berhasil untuk ID: {$ftranmtid}");
-
             return redirect()->route('invoice.index')->with('success', "Faktur Penjualan {$header->fsono} berhasil diperbarui.");
         } catch (\Exception $e) {
-            Log::error('[UPDATE INVOICE] Transaksi Gagal. Pesan: '.$e->getMessage(), [
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]);
 
-            return back()->withInput()->with('error', 'Gagal update: '.$e->getMessage());
+            return back()->withInput()->with('error', 'Gagal update: ' . $e->getMessage());
         }
     }
 
@@ -1134,8 +1212,8 @@ class InvoiceController extends Controller
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
         $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn ($q) => $q
+            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
+            ->when(! is_numeric($raw), fn($q) => $q
                 ->where('fcabangkode', $raw)
                 ->orWhere('fcabangname', $raw))
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
@@ -1231,10 +1309,10 @@ class InvoiceController extends Controller
             $invoice = Tranmt::findOrFail($ftranmtid);
             $invoice->delete();
 
-            return redirect()->route('invoice.index')->with('success', 'Data Faktur Penjualan '.$invoice->fsono.' berhasil dihapus.');
+            return redirect()->route('invoice.index')->with('success', 'Data Faktur Penjualan ' . $invoice->fsono . ' berhasil dihapus.');
         } catch (\Exception $e) {
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
-            return redirect()->route('invoice.delete', $ftranmtid)->with('error', 'Gakey: gal menghapus data: '.$e->getMessage());
+            return redirect()->route('invoice.delete', $ftranmtid)->with('error', 'Gakey: gal menghapus data: ' . $e->getMessage());
         }
     }
 }

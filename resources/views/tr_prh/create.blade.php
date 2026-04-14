@@ -85,7 +85,33 @@
             background-color: #f0fdf4;
         }
     </style>
+    @if ($errors->any())
+        <div class="alert alert-danger alert-dismissible fade show border-0 shadow p-0 overflow-hidden" role="alert">
+            {{-- Header Strip --}}
+            <div class="d-flex align-items-center px-4 py-3" style="background-color: #c0392b;">
+                <i class="bi bi-exclamation-triangle-fill text-white me-2 fs-5"></i>
+                <strong class="text-white fs-6">Gagal Menyimpan Data!</strong>
+                <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="alert"
+                    aria-label="Close"></button>
+            </div>
 
+            {{-- Body --}}
+            <div class="px-4 py-3" style="background-color: #fdeded; border-left: 5px solid #c0392b;">
+                <p class="mb-2 text-danger fw-semibold">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Periksa kembali data berikut sebelum menyimpan:
+                </p>
+                <ul class="mb-0 ps-3">
+                    @foreach ($errors->all() as $error)
+                        <li class="text-danger mb-1">
+                            <i class="bi bi-dot fs-5 align-middle"></i>
+                            {{ $error }}
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+        </div>
+    @endif
     <div x-data="{ open: true }">
         <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
             <form action="{{ route('tr_prh.store') }}" method="POST" class="mt-6" x-data="{ showNoItems: false }"
@@ -94,7 +120,6 @@
                     if (n < 1) { showNoItems = true } else { $el.submit() }
                 ">
                 @csrf
-
                 {{-- HEADER FORM --}}
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
                     <div class="lg:col-span-4">
@@ -261,11 +286,13 @@
                                         </td>
 
                                         <td class="p-2 text-right">
-                                            <input type="number" class="w-full border rounded px-2 py-1 text-right" 
-                                                x-model.number="it.fqty" min="1" 
-                                                @focus="activeRow = it.uid; $event.target.select()" 
+                                            <input type="number" class="w-full border rounded px-2 py-1 text-right"
+                                                x-model.number="it.fqty" min="1"
+                                                @focus="activeRow = it.uid; $event.target.select()"
                                                 @blur="activeRow = null; enforceQtyRow(it)">
-                                            <div class="text-[10px] text-orange-600 font-medium text-right mt-0.5" x-show="it.fitemcode && productMeta(it.fitemcode).stock > 0" x-html="formatStockLimit(it.fitemcode, it.fqty, it.fsatuan)">
+                                            <div class="text-[10px] text-orange-600 font-medium text-right mt-0.5"
+                                                x-show="it.fitemcode && productMeta(it.fitemcode).stock > 0"
+                                                x-html="formatStockLimit(it.fitemcode, it.fqty, it.fsatuan)">
                                             </div>
                                         </td>
 
@@ -337,11 +364,12 @@
                                     </td>
 
                                     <td class="p-2">
-                                        <input type="number" class="w-full border rounded px-2 py-1 text-right" 
-                                            x-model.number="draft.fqty" min="1" x-ref="draftQty" 
-                                            @keydown.enter.prevent="addIfComplete()"
-                                            @blur="enforceQtyRow(draft)">
-                                        <div class="text-[10px] text-orange-600 font-medium text-right mt-0.5" x-show="draft.fitemcode && productMeta(draft.fitemcode).stock > 0" x-html="formatStockLimit(draft.fitemcode, draft.fqty, draft.fsatuan)">
+                                        <input type="number" class="w-full border rounded px-2 py-1 text-right"
+                                            x-model.number="draft.fqty" min="1" x-ref="draftQty"
+                                            @keydown.enter.prevent="addIfComplete()" @blur="enforceQtyRow(draft)">
+                                        <div class="text-[10px] text-orange-600 font-medium text-right mt-0.5"
+                                            x-show="draft.fitemcode && productMeta(draft.fitemcode).stock > 0"
+                                            x-html="formatStockLimit(draft.fitemcode, draft.fqty, draft.fsatuan)">
                                         </div>
                                     </td>
 
@@ -828,18 +856,22 @@
             formatStockLimit(code, qty, satuan) {
                 const meta = this.productMeta(code);
                 if (!code || !meta.stock) return '';
-                
+
                 const entered = Number(qty) || 0;
                 const remaining = Math.max(0, meta.stock - entered);
                 const units = meta.units || [];
-                const ratios = meta.unit_ratios || { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 };
-                
+                const ratios = meta.unit_ratios || {
+                    satuankecil: 1,
+                    satuanbesar: 1,
+                    satuanbesar2: 1
+                };
+
                 if (!units.length || !satuan) return '';
-                
+
                 const satKecil = units[0] || 'pcs';
                 const satBesar = units[1] || '';
                 const satBesar2 = units[2] || '';
-                
+
                 let ratio = 1;
                 if (satuan === satBesar2 && ratios.satuanbesar2 > 0) {
                     ratio = ratios.satuanbesar2;
@@ -848,7 +880,7 @@
                 } else if (satuan === satKecil) {
                     ratio = 1;
                 }
-                
+
                 const limitValue = Math.floor(remaining / ratio);
                 return '<span class="font-medium">limit:</span> ' + limitValue + ' ' + satuan;
             },
@@ -905,7 +937,7 @@
                 const n = +row.fqty;
                 const meta = this.productMeta(row.fitemcode);
                 const max = meta ? meta.stock : 999999;
-                
+
                 if (!Number.isFinite(n)) {
                     row.fqty = 1;
                     return;

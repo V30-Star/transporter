@@ -286,8 +286,8 @@ class Tr_pohController extends Controller
           'maxqty'        => $sisaKecil,     // ← sisa setelah dikurangi PO lain
           'maxqty_satuan' => $satKecil,
           'fsatuan'       => $satuan,
-          'fdesc'         => $item->fdesc ?? '',    
-          'fketdt'        => $item->fketdt ?? '',   
+          'fdesc'         => $item->fdesc ?? '',
+          'fketdt'        => $item->fketdt ?? '',
           'fprhid'        => $item->fprhid,
           'fprice'        => (float) $item->fprice,
           'fdisc'         => 0,
@@ -469,7 +469,7 @@ class Tr_pohController extends Controller
       'fsatuankecil',
       'fsatuanbesar',
       'fsatuanbesar2',
-      'fqtykecil', 
+      'fqtykecil',
       'fqtykecil2',
       'fminstock'
     )->orderBy('fprdname')->get();
@@ -600,14 +600,14 @@ class Tr_pohController extends Controller
 
       $product = DB::table('msprd')
         ->where('fprdcode', $code)
-        ->select('fprdid', 'fprdcode', 'fsatuanbesar', 'fqtykecil as rasio_konversi')
+        ->select('fprdid', 'fprdcode', 'fsatuanbesar', 'fqtykecil', 'fminstock', 'fsatuankecil', 'fsatuanbesar2', 'fqtykecil2')
         ->first();
 
       $itemeId = $product ? $product->fprdid : $itemeId;
 
       $qtyKecil = $qty;
       if ($product && $sat === $product->fsatuanbesar) {
-        $qtyKecil = $qty * (float)$product->rasio_konversi;
+        $qtyKecil = $qty * (float)$product->fqtykecil;
       }
 
       $priceGross = $price;
@@ -640,6 +640,50 @@ class Tr_pohController extends Controller
 
     if (empty($rowsPod)) {
       return back()->withInput()->withErrors(['detail' => 'Minimal satu item valid (Kode, Satuan, Qty > 0).']);
+    }
+
+    // ===== STOCK VALIDATION =====
+    $errors = new \Illuminate\Support\MessageBag();
+    foreach ($codes as $i => $codeRaw) {
+      $code = trim($codeRaw ?? '');
+      $sat  = trim($sats[$i] ?? '');
+      if ($code === '') continue;
+
+      $qty = is_numeric($qtys[$i] ?? null) ? (int) $qtys[$i] : 0;
+      if ($qty < 1) {
+        $errors->add("fqty.$i", 'Qty minimal 1.'); 
+        continue;
+      }
+
+      $product      = $productMap[$code] ?? null;
+      $stokTersedia = $product ? (float) ($product->fminstock ?? 0) : 0;
+
+      $qtyKecil = $qty;
+      if ($product) {
+        if ($sat === $product->fsatuanbesar) {
+          $rasio    = is_numeric($product->fqtykecil) ? (float) $product->fqtykecil : 1;
+          $qtyKecil = $qty * $rasio;
+        } elseif (!empty($product->fsatuanbesar2) && $sat === $product->fsatuanbesar2) {
+          $rasio2   = is_numeric($product->fqtykecil2) ? (float) $product->fqtykecil2 : 1;
+          $qtyKecil = $qty * $rasio2;
+        }
+      }
+
+      if ($stokTersedia <= 0) {
+        $errors->add(
+          "fqty.$i",
+          "Produk \"$code\" tidak dapat dipesan karena stok habis atau minus. (Stok saat ini: $stokTersedia)"
+        );
+      } elseif ($qtyKecil > $stokTersedia) {
+        $errors->add(
+          "fqty.$i",
+          "Qty produk \"$code\" melebihi stok tersedia. (Diminta: $qtyKecil, Stok: $stokTersedia)"
+        );
+      }
+    }
+
+    if ($errors->isNotEmpty()) {
+      return back()->withErrors($errors)->withInput();
     }
 
     // TRANSACTION
@@ -720,6 +764,16 @@ class Tr_pohController extends Controller
       ], 'fpohid');
 
       $fpono = DB::table('tr_poh')->where('fpohid', $fpohid)->value('fpono');
+
+      // UPDATE STOK - gunakan qtyKecil hasil konversi, bukan qty mentah
+      foreach ($rowsPod as $row) {
+        DB::table('msprd')
+          ->where('fprdcode', $row['fprdcode'])
+          ->update([
+            'fminstock'  => DB::raw("CAST(fminstock AS NUMERIC) - " . $row['fqtyremain']),
+            'fupdatedat' => now(),
+          ]);
+      }
 
       // EMAIL after commit — use fpohid and fprdid
       if ($isApproval === 1) {
@@ -858,7 +912,7 @@ class Tr_pohController extends Controller
       'fsatuankecil',
       'fsatuanbesar',
       'fsatuanbesar2',
-      'fqtykecil', 
+      'fqtykecil',
       'fqtykecil2',
       'fminstock'
     )->orderBy('fprdname')->get();
@@ -934,7 +988,7 @@ class Tr_pohController extends Controller
         'fprhid'    => (string)($d->fprhid    ?? ''),
         'fprno'     => (string)($d->frefdtno  ?? ''),
         'fqty'      => (float)($d->fqty    ?? 0),
-        'fqtyterima' => (float)($d->fqtyterima ?? 0), 
+        'fqtyterima' => (float)($d->fqtyterima ?? 0),
         'fterima'   => (float)($d->fterima ?? 0),
         'fprice'    => (float)($d->fprice  ?? 0),
         'fdisc'     => (float)($d->fdisc   ?? 0),
@@ -1150,6 +1204,50 @@ class Tr_pohController extends Controller
       ->get(['fprdid', 'fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2'])
       ->keyBy('fprdcode');
 
+    // ===== STOCK VALIDATION =====
+    $errors = new \Illuminate\Support\MessageBag();
+    foreach ($codes as $i => $codeRaw) {
+      $code = trim($codeRaw ?? '');
+      $sat  = trim($sats[$i] ?? '');
+      if ($code === '') continue;
+
+      $qty = is_numeric($qtys[$i] ?? null) ? (int) $qtys[$i] : 0;
+      if ($qty < 1) {
+        $errors->add("fqty.$i", 'Qty minimal 1.');  // ← ganti
+        continue;
+      }
+
+      $product      = $productMap[$code] ?? null;
+      $stokTersedia = $product ? (float) ($product->fminstock ?? 0) : 0;
+
+      $qtyKecil = $qty;
+      if ($product) {
+        if ($sat === $product->fsatuanbesar) {
+          $rasio    = is_numeric($product->fqtykecil) ? (float) $product->fqtykecil : 1;
+          $qtyKecil = $qty * $rasio;
+        } elseif (!empty($product->fsatuanbesar2) && $sat === $product->fsatuanbesar2) {
+          $rasio2   = is_numeric($product->fqtykecil2) ? (float) $product->fqtykecil2 : 1;
+          $qtyKecil = $qty * $rasio2;
+        }
+      }
+
+      if ($stokTersedia <= 0) {
+        $errors->add(
+          "fqty.$i",
+          "Produk \"$code\" tidak dapat dipesan karena stok habis atau minus. (Stok saat ini: $stokTersedia)"
+        );
+      } elseif ($qtyKecil > $stokTersedia) {
+        $errors->add(
+          "fqty.$i",
+          "Qty produk \"$code\" melebihi stok tersedia. (Diminta: $qtyKecil, Stok: $stokTersedia)"
+        );
+      }
+    }
+
+    if ($errors->isNotEmpty()) {
+      return back()->withErrors($errors)->withInput();
+    }
+
     $pickDefaultSat = function ($code) use ($prodMeta) {
       $m = $prodMeta[$code] ?? null;
       if (!$m) return '';
@@ -1187,7 +1285,7 @@ class Tr_pohController extends Controller
 
       $product = DB::table('msprd')
         ->where('fprdcode', $code)
-        ->select('fprdid', 'fprdcode', 'fsatuanbesar', 'fqtykecil as rasio_konversi')
+        ->select('fprdid', 'fprdcode', 'fsatuanbesar', 'fqtykecil', 'fminstock', 'fsatuankecil', 'fsatuanbesar2', 'fqtykecil2')
         ->first();
 
       if (!$product) continue;
@@ -1196,8 +1294,8 @@ class Tr_pohController extends Controller
       if ($productId === 0) continue;
 
       $qtyKecil = $qty;
-      if ($sat === $product->fsatuanbesar && (float)$product->rasio_konversi > 0) {
-        $qtyKecil = $qty * (float)$product->rasio_konversi;
+      if ($sat === $product->fsatuanbesar && (float)$product->fqtykecil > 0) {
+        $qtyKecil = $qty * (float)$product->fqtykecil;
       }
 
       if ($sat === '') $sat = $pickDefaultSat($code);
@@ -1279,6 +1377,15 @@ class Tr_pohController extends Controller
         $fpono = DB::table('tr_poh')->where('fpohid', $fpohid)->value('fpono');
 
         DB::table('tr_pod')->where('fpohid', $fponoId)->delete();
+        // UPDATE STOK - gunakan qtyKecil hasil konversi, bukan qty mentah
+        foreach ($rowsPod as $row) {
+          DB::table('msprd')
+            ->where('fprdcode', $row['fprdcode'])
+            ->update([
+              'fminstock'  => DB::raw("CAST(fminstock AS NUMERIC) - " . $row['fqtyremain']),
+              'fupdatedat' => now(),
+            ]);
+        }
 
         $nextNou = 1;
         foreach ($rowsPod as &$r) {

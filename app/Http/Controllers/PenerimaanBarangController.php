@@ -56,7 +56,7 @@ class PenerimaanBarangController extends Controller
 
       $orderColIdx    = $request->input('order.0.column', 0);
       $orderDir       = $request->input('order.0.dir', 'desc');
-      
+
       // Match exactly with the blade columns array
       $sortableColumns = [
         'fstockmtno',
@@ -87,18 +87,18 @@ class PenerimaanBarangController extends Controller
 
       $stockMtIds = $records->pluck('fstockmtid');
       $trstockdts = DB::table('trstockdt')
-                      ->whereIn('fstockmtid', $stockMtIds)
-                      ->select('fstockmtid', DB::raw("MAX(frefdtno) as frefpo"))
-                      ->groupBy('fstockmtid')
-                      ->get()
-                      ->pluck('frefpo', 'fstockmtid');
+        ->whereIn('fstockmtid', $stockMtIds)
+        ->select('fstockmtid', DB::raw("MAX(frefdtno) as frefpo"))
+        ->groupBy('fstockmtid')
+        ->get()
+        ->pluck('frefpo', 'fstockmtid');
 
       $data = $records->map(fn($row) => [
         'fstockmtid'   => $row->fstockmtid,
         'fstockmtno'   => $row->fstockmtno,
         'fstockmtdate' => Carbon::parse($row->fstockmtdate)->format('d/m/Y'),
         'fwhname'      => $warehouses[$row->ffrom] ?? '-',
-        'fsuppliername'=> $suppliers[$row->fsupplier] ?? '-',
+        'fsuppliername' => $suppliers[$row->fsupplier] ?? '-',
         'fket'         => $row->fket ?? '-',
         'frefpo'       => $trstockdts[$row->fstockmtid] ?? '-',
         'famountmt'    => 'Rp ' . number_format((float)$row->famountmt, 0, ',', '.'),
@@ -324,7 +324,7 @@ class PenerimaanBarangController extends Controller
       'fsatuankecil',
       'fsatuanbesar',
       'fsatuanbesar2',
-      'fqtykecil', 
+      'fqtykecil',
       'fqtykecil2',
       'fminstock'
     )->orderBy('fprdname')->get();
@@ -400,6 +400,50 @@ class PenerimaanBarangController extends Controller
     $subtotal = 0.0;
     $errors   = [];
 
+    // ===== STOCK VALIDATION =====
+    $errors = new \Illuminate\Support\MessageBag();
+    foreach ($codes as $i => $codeRaw) {
+      $code = trim($codeRaw ?? '');
+      $sat  = trim($sats[$i] ?? '');
+      if ($code === '') continue;
+
+      $qty = is_numeric($qtys[$i] ?? null) ? (int) $qtys[$i] : 0;
+      if ($qty < 1) {
+        $errors->add("fqty.$i", 'Qty minimal 1.');  // ← ganti
+        continue;
+      }
+
+      $product      = $productMap[$code] ?? null;
+      $stokTersedia = $product ? (float) ($product->fminstock ?? 0) : 0;
+
+      $qtyKecil = $qty;
+      if ($product) {
+        if ($sat === $product->fsatuanbesar) {
+          $rasio    = is_numeric($product->fqtykecil) ? (float) $product->fqtykecil : 1;
+          $qtyKecil = $qty * $rasio;
+        } elseif (!empty($product->fsatuanbesar2) && $sat === $product->fsatuanbesar2) {
+          $rasio2   = is_numeric($product->fqtykecil2) ? (float) $product->fqtykecil2 : 1;
+          $qtyKecil = $qty * $rasio2;
+        }
+      }
+
+      if ($stokTersedia <= 0) {
+        $errors->add(
+          "fqty.$i",
+          "Produk \"$code\" tidak dapat dipesan karena stok habis atau minus. (Stok saat ini: $stokTersedia)"
+        );
+      } elseif ($qtyKecil > $stokTersedia) {
+        $errors->add(
+          "fqty.$i",
+          "Qty produk \"$code\" melebihi stok tersedia. (Diminta: $qtyKecil, Stok: $stokTersedia)"
+        );
+      }
+    }
+
+    if ($errors->isNotEmpty()) {
+      return back()->withErrors($errors)->withInput();
+    }
+
     for ($i = 0, $cnt = count($codes); $i < $cnt; $i++) {
       $code   = trim((string) ($codes[$i]   ?? ''));
       $qty    = (float) ($qtys[$i]   ?? 0);
@@ -448,10 +492,6 @@ class PenerimaanBarangController extends Controller
         'fsatuan'      => mb_substr($sat, 0, 5),
         'fclosedt'     => 0,
       ];
-    }
-
-    if (!empty($errors)) {
-      return back()->withInput()->withErrors(['detail' => implode(" ", $errors)]);
     }
 
     if (empty($rowsDt)) {
@@ -536,6 +576,16 @@ class PenerimaanBarangController extends Controller
           $r['fstockmtno']   = $fstockmtno;
         }
         DB::table('trstockdt')->insert($rowsDt);
+
+        // UPDATE STOK - gunakan qtyKecil hasil konversi, bukan qty mentah
+        foreach ($rowsDt as $row) {
+          DB::table('msprd')
+            ->where('fprdcode', $row['fprdcode'])
+            ->update([
+              'fminstock'  => DB::raw("CAST(fminstock AS NUMERIC) - " . $row['fqtyremain']),
+              'fupdatedat' => now(),
+            ]);
+        }
 
         // E. Jurnal
         $fjurnaltype  = 'JTB';
@@ -657,7 +707,7 @@ class PenerimaanBarangController extends Controller
       'fsatuankecil',
       'fsatuanbesar',
       'fsatuanbesar2',
-      'fqtykecil', 
+      'fqtykecil',
       'fqtykecil2',
       'fminstock'
     )->orderBy('fprdname')->get();
@@ -760,6 +810,49 @@ class PenerimaanBarangController extends Controller
     $rowsDt   = [];
     $subtotal = 0.0;
     $errors   = [];
+    // ===== STOCK VALIDATION =====
+    $errors = new \Illuminate\Support\MessageBag();
+    foreach ($codes as $i => $codeRaw) {
+      $code = trim($codeRaw ?? '');
+      $sat  = trim($sats[$i] ?? '');
+      if ($code === '') continue;
+
+      $qty = is_numeric($qtys[$i] ?? null) ? (int) $qtys[$i] : 0;
+      if ($qty < 1) {
+        $errors->add("fqty.$i", 'Qty minimal 1.');  // ← ganti
+        continue;
+      }
+
+      $product      = $productMap[$code] ?? null;
+      $stokTersedia = $product ? (float) ($product->fminstock ?? 0) : 0;
+
+      $qtyKecil = $qty;
+      if ($product) {
+        if ($sat === $product->fsatuanbesar) {
+          $rasio    = is_numeric($product->fqtykecil) ? (float) $product->fqtykecil : 1;
+          $qtyKecil = $qty * $rasio;
+        } elseif (!empty($product->fsatuanbesar2) && $sat === $product->fsatuanbesar2) {
+          $rasio2   = is_numeric($product->fqtykecil2) ? (float) $product->fqtykecil2 : 1;
+          $qtyKecil = $qty * $rasio2;
+        }
+      }
+
+      if ($stokTersedia <= 0) {
+        $errors->add(
+          "fqty.$i",
+          "Produk \"$code\" tidak dapat dipesan karena stok habis atau minus. (Stok saat ini: $stokTersedia)"
+        );
+      } elseif ($qtyKecil > $stokTersedia) {
+        $errors->add(
+          "fqty.$i",
+          "Qty produk \"$code\" melebihi stok tersedia. (Diminta: $qtyKecil, Stok: $stokTersedia)"
+        );
+      }
+    }
+
+    if ($errors->isNotEmpty()) {
+      return back()->withErrors($errors)->withInput();
+    }
 
     for ($i = 0, $cnt = count($codes); $i < $cnt; $i++) {
       $code   = trim((string) ($codes[$i]  ?? ''));
@@ -827,10 +920,6 @@ class PenerimaanBarangController extends Controller
       ];
     }
 
-    if (!empty($errors)) {
-      return back()->withInput()->withErrors(['detail' => implode("\n", $errors)]);
-    }
-
     if (empty($rowsDt)) {
       return back()->withInput()->withErrors(['detail' => 'Minimal satu item valid (Kode, Satuan, Qty > 0).']);
     }
@@ -878,6 +967,15 @@ class PenerimaanBarangController extends Controller
       ]);
 
       DB::table('trstockdt')->where('fstockmtid', $fstockmtid)->delete();
+      // UPDATE STOK - gunakan qtyKecil hasil konversi, bukan qty mentah
+      foreach ($rowsDt as $row) {
+        DB::table('msprd')
+          ->where('fprdcode', $row['fprdcode'])
+          ->update([
+            'fminstock'  => DB::raw("CAST(fminstock AS NUMERIC) - " . $row['fqtyremain']),
+            'fupdatedat' => now(),
+          ]);
+      }
 
       $nextNouRef = 1;
       foreach ($rowsDt as &$r) {

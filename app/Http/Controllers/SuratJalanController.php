@@ -186,9 +186,9 @@ class SuratJalanController extends Controller
         $date = $onDate ?: now();
 
         $branch = $branch
-          ?? Auth::guard('sysuser')->user()?->fcabang
-          ?? Auth::user()?->fcabang
-          ?? null;
+            ?? Auth::guard('sysuser')->user()?->fcabang
+            ?? Auth::user()?->fcabang
+            ?? null;
 
         // resolve kode cabang
         $kodeCabang = null;
@@ -198,7 +198,7 @@ class SuratJalanController extends Controller
                 $kodeCabang = DB::table('mscabang')->where('fcabangid', (int) $needle)->value('fcabangkode');
             } else {
                 $kodeCabang = DB::table('mscabang')->whereRaw('LOWER(fcabangkode)=LOWER(?)', [$needle])->value('fcabangkode')
-                  ?: DB::table('mscabang')->whereRaw('LOWER(fcabangname)=LOWER(?)', [$needle])->value('fcabangkode');
+                    ?: DB::table('mscabang')->whereRaw('LOWER(fcabangname)=LOWER(?)', [$needle])->value('fcabangkode');
             }
         }
         if (! $kodeCabang) {
@@ -208,17 +208,17 @@ class SuratJalanController extends Controller
         $prefix = sprintf('PO.%s.%s.%s.', $kodeCabang, $date->format('y'), $date->format('m'));
 
         // kunci per (branch, tahun-bulan) — TANPA bikin tabel baru
-        $lockKey = crc32('PO|'.$kodeCabang.'|'.$date->format('Y-m'));
+        $lockKey = crc32('PO|' . $kodeCabang . '|' . $date->format('Y-m'));
         DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
         $last = DB::table('trstockmt')
-            ->where('fstockmtno', 'like', $prefix.'%')
+            ->where('fstockmtno', 'like', $prefix . '%')
             ->selectRaw("MAX(CAST(split_part(fstockmtno, '.', 5) AS int)) AS lastno")
             ->value('lastno');
 
         $next = (int) $last + 1;
 
-        return $prefix.str_pad((string) $next, 4, '0', STR_PAD_LEFT);
+        return $prefix . str_pad((string) $next, 4, '0', STR_PAD_LEFT);
     }
 
     public function print(string $fstockmtno)
@@ -227,11 +227,11 @@ class SuratJalanController extends Controller
         $customerSub = Customer::select('fcustomerid', 'fcustomercode', 'fcustomername');
 
         $hdr = PenerimaanPembelianHeader::query()
-          // Gunakan alias 'cust' untuk customer
+            // Gunakan alias 'cust' untuk customer
             ->leftJoinSub($customerSub, 'cust', function ($join) {
                 $join->on('cust.fcustomerid', '=', 'trstockmt.fsupplier');
             })
-          // Gunakan alias 'cb' untuk cabang
+            // Gunakan alias 'cb' untuk cabang
             ->leftJoin('mscabang as cb', 'cb.fcabangkode', '=', 'trstockmt.fbranchcode')
             ->leftJoin('mswh as w', 'w.fwhid', '=', 'trstockmt.ffrom')
             ->where('trstockmt.fstockmtno', $fstockmtno)
@@ -257,9 +257,9 @@ class SuratJalanController extends Controller
                 'p.fprdcode as product_code',
             ]);
 
-        $fmt = fn ($d) => $d
-          ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y')
-          : '-';
+        $fmt = fn($d) => $d
+            ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y')
+            : '-';
 
         return view('suratjalan.print', [
             'hdr' => $hdr,
@@ -284,10 +284,10 @@ class SuratJalanController extends Controller
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
         $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
+            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
             ->when(
                 ! is_numeric($raw),
-                fn ($q) => $q->where('fcabangkode', $raw)->orWhere('fcabangname', $raw)
+                fn($q) => $q->where('fcabangkode', $raw)->orWhere('fcabangname', $raw)
             )
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
 
@@ -305,12 +305,12 @@ class SuratJalanController extends Controller
             'fsatuankecil',
             'fsatuanbesar',
             'fsatuanbesar2',
-            'fqtykecil', 
+            'fqtykecil',
             'fqtykecil2',
             'fminstock'
         )->orderBy('fprdname')->get();
 
-       $productMap = $products->mapWithKeys(function ($p) {
+        $productMap = $products->mapWithKeys(function ($p) {
             return [
                 $p->fprdcode => [
                     'name'  => $p->fprdname,
@@ -410,8 +410,52 @@ class SuratJalanController extends Controller
 
         $rowCount = count($codes);
         $uniqueCodes = array_values(array_unique(
-            array_filter(array_map(fn ($c) => trim((string) $c), $codes))
+            array_filter(array_map(fn($c) => trim((string) $c), $codes))
         ));
+
+        // ===== STOCK VALIDATION =====
+        $errors = new \Illuminate\Support\MessageBag();
+        foreach ($codes as $i => $codeRaw) {
+            $code = trim($codeRaw ?? '');
+            $sat  = trim($sats[$i] ?? '');
+            if ($code === '') continue;
+
+            $qty = is_numeric($qtys[$i] ?? null) ? (int) $qtys[$i] : 0;
+            if ($qty < 1) {
+                $errors->add("fqty.$i", 'Qty minimal 1.');  // ← ganti
+                continue;
+            }
+
+            $product      = $productMap[$code] ?? null;
+            $stokTersedia = $product ? (float) ($product->fminstock ?? 0) : 0;
+
+            $qtyKecil = $qty;
+            if ($product) {
+                if ($sat === $product->fsatuanbesar) {
+                    $rasio    = is_numeric($product->fqtykecil) ? (float) $product->fqtykecil : 1;
+                    $qtyKecil = $qty * $rasio;
+                } elseif (!empty($product->fsatuanbesar2) && $sat === $product->fsatuanbesar2) {
+                    $rasio2   = is_numeric($product->fqtykecil2) ? (float) $product->fqtykecil2 : 1;
+                    $qtyKecil = $qty * $rasio2;
+                }
+            }
+
+            if ($stokTersedia <= 0) {
+                $errors->add(
+                    "fqty.$i",
+                    "Produk \"$code\" tidak dapat dipesan karena stok habis atau minus. (Stok saat ini: $stokTersedia)"
+                );
+            } elseif ($qtyKecil > $stokTersedia) {
+                $errors->add(
+                    "fqty.$i",
+                    "Qty produk \"$code\" melebihi stok tersedia. (Diminta: $qtyKecil, Stok: $stokTersedia)"
+                );
+            }
+        }
+
+        if ($errors->isNotEmpty()) {
+            return back()->withErrors($errors)->withInput();
+        }
 
         // =========================
         // 4) PRELOAD MASTER PRODUK
@@ -569,7 +613,7 @@ class SuratJalanController extends Controller
                             $kodeCabang = DB::table('mscabang')->where('fcabangid', (int) $needle)->value('fcabangkode');
                         } else {
                             $kodeCabang = DB::table('mscabang')->whereRaw('LOWER(fcabangkode)=LOWER(?)', [$needle])->value('fcabangkode')
-                              ?: DB::table('mscabang')->whereRaw('LOWER(fcabangname)=LOWER(?)', [$needle])->value('fcabangkode');
+                                ?: DB::table('mscabang')->whereRaw('LOWER(fcabangname)=LOWER(?)', [$needle])->value('fcabangkode');
                         }
                     }
                 }
@@ -584,15 +628,15 @@ class SuratJalanController extends Controller
                 // ---- 7.2. Generate nomor transaksi ----
                 if (empty($fstockmtno)) {
                     $prefix = sprintf('%s.%s.%s.%s.', $fstockmtcode, $kodeCabang, $yy, $mm);
-                    $lockKey = crc32('STOCKMT|'.$fstockmtcode.'|'.$kodeCabang.'|'.$fstockmtdate->format('Y-m'));
+                    $lockKey = crc32('STOCKMT|' . $fstockmtcode . '|' . $kodeCabang . '|' . $fstockmtdate->format('Y-m'));
                     DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
                     $last = DB::table('trstockmt')
-                        ->where('fstockmtno', 'like', $prefix.'%')
+                        ->where('fstockmtno', 'like', $prefix . '%')
                         ->selectRaw("MAX(CAST(split_part(fstockmtno, '.', 5) AS int)) AS lastno")
                         ->value('lastno');
                     $next = (int) $last + 1;
-                    $fstockmtno = $prefix.str_pad((string) $next, 4, '0', STR_PAD_LEFT);
+                    $fstockmtno = $prefix . str_pad((string) $next, 4, '0', STR_PAD_LEFT);
                 }
 
                 // ---- 7.3. INSERT HEADER ----
@@ -647,6 +691,16 @@ class SuratJalanController extends Controller
 
                 DB::table('trstockdt')->insert($rowsDt);
 
+                // UPDATE STOK - gunakan qtyKecil hasil konversi, bukan qty mentah
+                foreach ($rowsDt as $row) {
+                    DB::table('msprd')
+                        ->where('fprdcode', $row['fprdcode'])
+                        ->update([
+                            'fminstock'  => DB::raw("CAST(fminstock AS NUMERIC) - " . $row['fqtyremain']),
+                            'fupdatedat' => now(),
+                        ]);
+                }
+
                 // ---- 7.5. JURNAL ----
                 $INVENTORY_ACCOUNT_CODE = '11400';
                 $PPN_IN_ACCOUNT_CODE = '11500';
@@ -655,23 +709,23 @@ class SuratJalanController extends Controller
                 $fjurnaltype = 'JV';
                 $jurnalPrefix = sprintf('%s.%s.%s.%s.', $fjurnaltype, $kodeCabang, $yy, $mm);
 
-                $jurnalLockKey = crc32('JURNAL|'.$fjurnaltype.'|'.$kodeCabang.'|'.$fstockmtdate->format('Y-m'));
+                $jurnalLockKey = crc32('JURNAL|' . $fjurnaltype . '|' . $kodeCabang . '|' . $fstockmtdate->format('Y-m'));
                 DB::statement('SELECT pg_advisory_xact_lock(?)', [$jurnalLockKey]);
 
                 $lastJurnalNo = DB::table('jurnalmt')
-                    ->where('fjurnalno', 'like', $jurnalPrefix.'%')
+                    ->where('fjurnalno', 'like', $jurnalPrefix . '%')
                     ->selectRaw("MAX(CAST(split_part(fjurnalno, '.', 5) AS int)) AS lastno")
                     ->value('lastno');
 
                 $nextJurnalNo = (int) $lastJurnalNo + 1;
-                $fjurnalno = $jurnalPrefix.str_pad((string) $nextJurnalNo, 4, '0', STR_PAD_LEFT);
+                $fjurnalno = $jurnalPrefix . str_pad((string) $nextJurnalNo, 4, '0', STR_PAD_LEFT);
 
                 $jurnalHeader = [
                     'fbranchcode' => $kodeCabang,
                     'fjurnalno' => $fjurnalno,
                     'fjurnaltype' => $fjurnaltype,
                     'fjurnaldate' => $fstockmtdate,
-                    'fjurnalnote' => 'Jurnal Penerimaan Barang '.$fstockmtno.' dari Customer: '.$fsupplier,
+                    'fjurnalnote' => 'Jurnal Penerimaan Barang ' . $fstockmtno . ' dari Customer: ' . $fsupplier,
                     'fbalance' => $subtotal + $ppnAmount,
                     'fbalance_rp' => ($subtotal + $ppnAmount) * $frate,
                     'fdatetime' => $now,
@@ -700,7 +754,7 @@ class SuratJalanController extends Controller
                     'frate' => $frate,
                     'famount' => $subtotal,
                     'famount_rp' => $subtotalRp,
-                    'faccountnote' => 'Persediaan Barang Dagang '.$fstockmtno,
+                    'faccountnote' => 'Persediaan Barang Dagang ' . $fstockmtno,
                     'fusercreate' => $userid,
                     'fdatetime' => $now,
                 ];
@@ -719,7 +773,7 @@ class SuratJalanController extends Controller
                         'frate' => $frate,
                         'famount' => $ppnAmount,
                         'famount_rp' => $ppnAmount * $frate,
-                        'faccountnote' => 'PPN Masukan '.$fstockmtno,
+                        'faccountnote' => 'PPN Masukan ' . $fstockmtno,
                         'fusercreate' => $userid,
                         'fdatetime' => $now,
                     ];
@@ -739,7 +793,7 @@ class SuratJalanController extends Controller
                     'frate' => $frate,
                     'famount' => $totalHutang,
                     'famount_rp' => $totalHutang * $frate,
-                    'faccountnote' => 'Hutang Dagang Customer '.$fsupplier.' (Total Pembelian)',
+                    'faccountnote' => 'Hutang Dagang Customer ' . $fsupplier . ' (Total Pembelian)',
                     'fusercreate' => $userid,
                     'fdatetime' => $now,
                 ];
@@ -749,7 +803,7 @@ class SuratJalanController extends Controller
         } catch (\Throwable $e) {
 
             return back()->withInput()->withErrors([
-                'detail' => 'Transaksi gagal disimpan: '.$e->getMessage(),
+                'detail' => 'Transaksi gagal disimpan: ' . $e->getMessage(),
             ]);
         }
 
@@ -766,8 +820,8 @@ class SuratJalanController extends Controller
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
         $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn ($q) => $q
+            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
+            ->when(! is_numeric($raw), fn($q) => $q
                 ->where('fcabangkode', $raw)
                 ->orWhere('fcabangname', $raw))
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
@@ -786,9 +840,9 @@ class SuratJalanController extends Controller
         $suratjalan = PenerimaanPembelianHeader::with([
             'details' => function ($query) {
                 $query
-                  // 2. Join ke msprd berdasarkan ID
+                    // 2. Join ke msprd berdasarkan ID
                     ->join('msprd', 'msprd.fprdid', '=', 'trstockdt.fprdcodeid')
-                  // 3. Select kolom yang dibutuhkan
+                    // 3. Select kolom yang dibutuhkan
                     ->select(
                         'trstockdt.*', // Ambil semua kolom dari tabel detail
                         'msprd.fprdname', // Ambil nama produk
@@ -838,7 +892,7 @@ class SuratJalanController extends Controller
             'fsatuankecil',
             'fsatuanbesar',
             'fsatuanbesar2',
-            'fqtykecil', 
+            'fqtykecil',
             'fqtykecil2',
             'fminstock'
         )->orderBy('fprdname')->get();
@@ -888,8 +942,8 @@ class SuratJalanController extends Controller
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
         $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn ($q) => $q
+            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
+            ->when(! is_numeric($raw), fn($q) => $q
                 ->where('fcabangkode', $raw)
                 ->orWhere('fcabangname', $raw))
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
@@ -908,9 +962,9 @@ class SuratJalanController extends Controller
         $suratjalan = PenerimaanPembelianHeader::with([
             'details' => function ($query) {
                 $query
-                  // 2. Join ke msprd berdasarkan ID
+                    // 2. Join ke msprd berdasarkan ID
                     ->join('msprd', 'msprd.fprdid', '=', 'trstockdt.fprdcodeid')
-                  // 3. Select kolom yang dibutuhkan
+                    // 3. Select kolom yang dibutuhkan
                     ->select(
                         'trstockdt.*', // Ambil semua kolom dari tabel detail
                         'msprd.fprdname', // Ambil nama produk
@@ -1058,8 +1112,52 @@ class SuratJalanController extends Controller
 
         $rowCount = count($codes);
         $uniqueCodes = array_values(array_unique(
-            array_filter(array_map(fn ($c) => trim((string) $c), $codes))
+            array_filter(array_map(fn($c) => trim((string) $c), $codes))
         ));
+
+        // ===== STOCK VALIDATION =====
+        $errors = new \Illuminate\Support\MessageBag();
+        foreach ($codes as $i => $codeRaw) {
+            $code = trim($codeRaw ?? '');
+            $sat  = trim($sats[$i] ?? '');
+            if ($code === '') continue;
+
+            $qty = is_numeric($qtys[$i] ?? null) ? (int) $qtys[$i] : 0;
+            if ($qty < 1) {
+                $errors->add("fqty.$i", 'Qty minimal 1.');  // ← ganti
+                continue;
+            }
+
+            $product      = $productMap[$code] ?? null;
+            $stokTersedia = $product ? (float) ($product->fminstock ?? 0) : 0;
+
+            $qtyKecil = $qty;
+            if ($product) {
+                if ($sat === $product->fsatuanbesar) {
+                    $rasio    = is_numeric($product->fqtykecil) ? (float) $product->fqtykecil : 1;
+                    $qtyKecil = $qty * $rasio;
+                } elseif (!empty($product->fsatuanbesar2) && $sat === $product->fsatuanbesar2) {
+                    $rasio2   = is_numeric($product->fqtykecil2) ? (float) $product->fqtykecil2 : 1;
+                    $qtyKecil = $qty * $rasio2;
+                }
+            }
+
+            if ($stokTersedia <= 0) {
+                $errors->add(
+                    "fqty.$i",
+                    "Produk \"$code\" tidak dapat dipesan karena stok habis atau minus. (Stok saat ini: $stokTersedia)"
+                );
+            } elseif ($qtyKecil > $stokTersedia) {
+                $errors->add(
+                    "fqty.$i",
+                    "Qty produk \"$code\" melebihi stok tersedia. (Diminta: $qtyKecil, Stok: $stokTersedia)"
+                );
+            }
+        }
+
+        if ($errors->isNotEmpty()) {
+            return back()->withErrors($errors)->withInput();
+        }
 
         // =========================
         // 4) PRELOAD MASTER PRODUK
@@ -1181,7 +1279,7 @@ class SuratJalanController extends Controller
                             $kodeCabang = DB::table('mscabang')->where('fcabangid', (int) $needle)->value('fcabangkode');
                         } else {
                             $kodeCabang = DB::table('mscabang')->whereRaw('LOWER(fcabangkode)=LOWER(?)', [$needle])->value('fcabangkode')
-                              ?: DB::table('mscabang')->whereRaw('LOWER(fcabangname)=LOWER(?)', [$needle])->value('fcabangkode');
+                                ?: DB::table('mscabang')->whereRaw('LOWER(fcabangname)=LOWER(?)', [$needle])->value('fcabangkode');
                         }
                     }
                 }
@@ -1231,6 +1329,16 @@ class SuratJalanController extends Controller
 
                 DB::table('trstockdt')->insert($rowsDt);
 
+                // UPDATE STOK - gunakan qtyKecil hasil konversi, bukan qty mentah
+                foreach ($rowsDt as $row) {
+                    DB::table('msprd')
+                        ->where('fprdcode', $row['fprdcode'])
+                        ->update([
+                            'fminstock'  => DB::raw("CAST(fminstock AS NUMERIC) - " . $row['fqtyremain']),
+                            'fupdatedat' => now(),
+                        ]);
+                }
+
                 // ---- 6.4. JURNAL ----
                 $INVENTORY_ACCOUNT_CODE = '11400';
                 $PPN_IN_ACCOUNT_CODE = '11500';
@@ -1248,7 +1356,7 @@ class SuratJalanController extends Controller
                     // Update jurnalmt
                     DB::table('jurnalmt')->where('fjurnalmtid', $jurnalmtId)->update([
                         'fjurnaldate' => $fstockmtdate,
-                        'fjurnalnote' => 'Jurnal Penerimaan Barang '.$fstockmtno.' dari Customer: '.$fsupplier,
+                        'fjurnalnote' => 'Jurnal Penerimaan Barang ' . $fstockmtno . ' dari Customer: ' . $fsupplier,
                         'fbalance' => $subtotal + $ppnAmount,
                         'fbalance_rp' => ($subtotal + $ppnAmount) * $frate,
                         'fdatetime' => $now,
@@ -1263,23 +1371,23 @@ class SuratJalanController extends Controller
                 } else {
                     // Buat Jurnal Baru jika belum ada (fallback)
                     $jurnalPrefix = sprintf('%s.%s.%s.%s.', $fjurnaltype, $kodeCabang, $yy, $mm);
-                    $jurnalLockKey = crc32('JURNAL|'.$fjurnaltype.'|'.$kodeCabang.'|'.$fstockmtdate->format('Y-m'));
+                    $jurnalLockKey = crc32('JURNAL|' . $fjurnaltype . '|' . $kodeCabang . '|' . $fstockmtdate->format('Y-m'));
                     DB::statement('SELECT pg_advisory_xact_lock(?)', [$jurnalLockKey]);
 
                     $lastJurnalNo = DB::table('jurnalmt')
-                        ->where('fjurnalno', 'like', $jurnalPrefix.'%')
+                        ->where('fjurnalno', 'like', $jurnalPrefix . '%')
                         ->selectRaw("MAX(CAST(split_part(fjurnalno, '.', 5) AS int)) AS lastno")
                         ->value('lastno');
 
                     $nextJurnalNo = (int) $lastJurnalNo + 1;
-                    $fjurnalno = $jurnalPrefix.str_pad((string) $nextJurnalNo, 4, '0', STR_PAD_LEFT);
+                    $fjurnalno = $jurnalPrefix . str_pad((string) $nextJurnalNo, 4, '0', STR_PAD_LEFT);
 
                     $jurnalHeader = [
                         'fbranchcode' => $kodeCabang,
                         'fjurnalno' => $fjurnalno,
                         'fjurnaltype' => $fjurnaltype,
                         'fjurnaldate' => $fstockmtdate,
-                        'fjurnalnote' => 'Jurnal Penerimaan Barang '.$fstockmtno.' dari Customer: '.$fsupplier,
+                        'fjurnalnote' => 'Jurnal Penerimaan Barang ' . $fstockmtno . ' dari Customer: ' . $fsupplier,
                         'fbalance' => $subtotal + $ppnAmount,
                         'fbalance_rp' => ($subtotal + $ppnAmount) * $frate,
                         'fdatetime' => $now,
@@ -1306,7 +1414,7 @@ class SuratJalanController extends Controller
                         'frate' => $frate,
                         'famount' => $subtotal,
                         'famount_rp' => $subtotalRp,
-                        'faccountnote' => 'Persediaan Barang Dagang '.$fstockmtno,
+                        'faccountnote' => 'Persediaan Barang Dagang ' . $fstockmtno,
                         'fusercreate' => $userid,
                         'fdatetime' => $now,
                     ];
@@ -1325,7 +1433,7 @@ class SuratJalanController extends Controller
                             'frate' => $frate,
                             'famount' => $ppnAmount,
                             'famount_rp' => $ppnAmount * $frate,
-                            'faccountnote' => 'PPN Masukan '.$fstockmtno,
+                            'faccountnote' => 'PPN Masukan ' . $fstockmtno,
                             'fusercreate' => $userid,
                             'fdatetime' => $now,
                         ];
@@ -1345,7 +1453,7 @@ class SuratJalanController extends Controller
                         'frate' => $frate,
                         'famount' => $totalHutang,
                         'famount_rp' => $totalHutang * $frate,
-                        'faccountnote' => 'Hutang Dagang Customer '.$fsupplier.' (Total Pembelian)',
+                        'faccountnote' => 'Hutang Dagang Customer ' . $fsupplier . ' (Total Pembelian)',
                         'fusercreate' => $userid,
                         'fdatetime' => $now,
                     ];
@@ -1355,7 +1463,7 @@ class SuratJalanController extends Controller
             });
         } catch (\Throwable $e) {
             return back()->withInput()->withErrors([
-                'detail' => 'Transaksi gagal diperbarui: '.$e->getMessage(),
+                'detail' => 'Transaksi gagal diperbarui: ' . $e->getMessage(),
             ]);
         }
 
@@ -1372,8 +1480,8 @@ class SuratJalanController extends Controller
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
         $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn ($q) => $q
+            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
+            ->when(! is_numeric($raw), fn($q) => $q
                 ->where('fcabangkode', $raw)
                 ->orWhere('fcabangname', $raw))
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
@@ -1392,9 +1500,9 @@ class SuratJalanController extends Controller
         $suratjalan = PenerimaanPembelianHeader::with([
             'details' => function ($query) {
                 $query
-                  // 2. Join ke msprd berdasarkan ID
+                    // 2. Join ke msprd berdasarkan ID
                     ->join('msprd', 'msprd.fprdid', '=', 'trstockdt.fprdcodeid')
-                  // 3. Select kolom yang dibutuhkan
+                    // 3. Select kolom yang dibutuhkan
                     ->select(
                         'trstockdt.*', // Ambil semua kolom dari tabel detail
                         'msprd.fprdname', // Ambil nama produk
@@ -1479,10 +1587,10 @@ class SuratJalanController extends Controller
             // 2. Baru hapus header
             $suratjalan->delete();
 
-            return redirect()->route('suratjalan.index')->with('success', 'Data Surat Jalan '.$suratjalan->fpono.' berhasil dihapus.');
+            return redirect()->route('suratjalan.index')->with('success', 'Data Surat Jalan ' . $suratjalan->fpono . ' berhasil dihapus.');
         } catch (\Exception $e) {
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
-            return redirect()->route('suratjalan.delete', $fstockmtid)->with('error', 'Gagal menghapus data: '.$e->getMessage());
+            return redirect()->route('suratjalan.delete', $fstockmtid)->with('error', 'Gagal menghapus data: ' . $e->getMessage());
         }
     }
 }

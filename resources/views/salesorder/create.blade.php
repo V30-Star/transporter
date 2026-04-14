@@ -71,7 +71,33 @@
             -moz-appearance: textfield;
         }
     </style>
+    @if ($errors->any())
+        <div class="alert alert-danger alert-dismissible fade show border-0 shadow p-0 overflow-hidden" role="alert">
+            {{-- Header Strip --}}
+            <div class="d-flex align-items-center px-4 py-3" style="background-color: #c0392b;">
+                <i class="bi bi-exclamation-triangle-fill text-white me-2 fs-5"></i>
+                <strong class="text-white fs-6">Gagal Menyimpan Data!</strong>
+                <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="alert"
+                    aria-label="Close"></button>
+            </div>
 
+            {{-- Body --}}
+            <div class="px-4 py-3" style="background-color: #fdeded; border-left: 5px solid #c0392b;">
+                <p class="mb-2 text-danger fw-semibold">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Periksa kembali data berikut sebelum menyimpan:
+                </p>
+                <ul class="mb-0 ps-3">
+                    @foreach ($errors->all() as $error)
+                        <li class="text-danger mb-1">
+                            <i class="bi bi-dot fs-5 align-middle"></i>
+                            {{ $error }}
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+        </div>
+    @endif
     <div x-data="{ open: true }">
         <div x-data="{ includePPN: false, ppnRate: 11, ppnAmount: 0, selected: 'alamatsurat', totalHarga: 0 }" class="lg:col-span-5">
             <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
@@ -352,7 +378,8 @@
                                                     x-model.number="it.fqty" :max="it.maxqty > 0 ? it.maxqty : null"
                                                     @input="recalc(it); enforceQtyRow(it); recalc(it);">
                                                 <div class="text-xs text-gray-400 mt-0.5 text-right">
-                                                    <span x-show="it.fprdcode" x-html="formatStockLimit(it.fprdcode, it.fqty, it.fsatuan)"></span>
+                                                    <span x-show="it.fprdcode"
+                                                        x-html="formatStockLimit(it.fprdcode, it.fqty, it.fsatuan)"></span>
                                                 </div>
                                             </td>
                                             <td class="p-2 text-right">
@@ -423,7 +450,8 @@
 
                                         <td class="p-2">
                                             <template x-if="draft.units.length > 1">
-                                                <select id="draftUnitSelect" class="w-full border rounded px-2 py-1 text-xs"
+                                                <select id="draftUnitSelect"
+                                                    class="w-full border rounded px-2 py-1 text-xs"
                                                     x-model="draft.fsatuan" @change="recalc(draft)"
                                                     @keydown.enter.prevent="$refs.draftQty?.focus()">
                                                     <template x-for="u in draft.units" :key="u">
@@ -449,7 +477,8 @@
                                                 "
                                                 @keydown.enter.prevent="$refs.draftPrice?.focus()">
                                             <div class="text-xs text-gray-400 mt-0.5 text-right">
-                                                <span x-show="draft.fprdcode" x-html="formatStockLimit(draft.fprdcode, draft.fqty, draft.fsatuan)"></span>
+                                                <span x-show="draft.fprdcode"
+                                                    x-html="formatStockLimit(draft.fprdcode, draft.fqty, draft.fsatuan)"></span>
                                             </div>
                                         </td>
 
@@ -1477,7 +1506,11 @@
                         name: '',
                         units: [],
                         stock: 0,
-                        unit_ratios: { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 }
+                        unit_ratios: {
+                            satuankecil: 1,
+                            satuanbesar: 1,
+                            satuanbesar2: 1
+                        }
                     };
                 }
                 return meta;
@@ -1486,18 +1519,22 @@
             formatStockLimit(code, qty, satuan) {
                 const meta = this.productMeta(code);
                 if (!code || !meta.stock) return '';
-                
+
                 const entered = Number(qty) || 0;
                 const remaining = Math.max(0, meta.stock - entered);
                 const units = meta.units || [];
-                const ratios = meta.unit_ratios || { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 };
-                
+                const ratios = meta.unit_ratios || {
+                    satuankecil: 1,
+                    satuanbesar: 1,
+                    satuanbesar2: 1
+                };
+
                 if (!units.length || !satuan) return '';
-                
+
                 const satKecil = units[0] || 'pcs';
                 const satBesar = units[1] || '';
                 const satBesar2 = units[2] || '';
-                
+
                 let ratio = 1;
                 if (satuan === satBesar2 && ratios.satuanbesar2 > 0) {
                     ratio = ratios.satuanbesar2;
@@ -1506,7 +1543,7 @@
                 } else if (satuan === satKecil) {
                     ratio = 1;
                 }
-                
+
                 const limitValue = Math.floor(remaining / ratio);
                 return '<span class="font-medium">limit:</span> ' + limitValue + ' ' + satuan;
             },
@@ -1515,22 +1552,26 @@
                 const n = +row.fqty;
                 const meta = this.productMeta(row.fprdcode);
                 const units = meta?.units || [];
-                const ratios = meta?.unit_ratios || { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 };
+                const ratios = meta?.unit_ratios || {
+                    satuankecil: 1,
+                    satuanbesar: 1,
+                    satuanbesar2: 1
+                };
                 const satKecil = units[0] || 'pcs';
                 const satBesar = units[1] || '';
                 const satBesar2 = units[2] || '';
                 const satuan = row.fsatuan || '';
-                
+
                 let ratio = 1;
                 if (satuan === satBesar2 && ratios.satuanbesar2 > 0) {
                     ratio = ratios.satuanbesar2;
                 } else if (satuan === satBesar && ratios.satuanbesar > 0) {
                     ratio = ratios.satuanbesar;
                 }
-                
+
                 const maxStock = meta?.stock || 999999;
                 const maxInUnit = Math.floor(maxStock / ratio);
-                
+
                 if (!Number.isFinite(n)) {
                     row.fqty = 1;
                     return;
@@ -1560,7 +1601,7 @@
                 if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
                 const stock = Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0;
                 row.maxqty = stock;
-                
+
                 if (row === this.draft) {
                     if (units.length > 1) {
                         populateDraftUnitSelect(units);
@@ -1718,7 +1759,7 @@
                 }, {
                     passive: true
                 });
-                
+
                 const self = this;
                 document.addEventListener('change', function(e) {
                     if (e.target && e.target.id === 'draftUnitSelect') {

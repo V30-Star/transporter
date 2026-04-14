@@ -83,8 +83,8 @@ class ReturPenjualanController extends Controller
                     'fbranchcode' => $row->fbranchcode,
                     'fsono' => $row->fsono,
                     'fsodate' => $row->fsodate instanceof \Carbon\Carbon
-                      ? $row->fsodate->format('Y-m-d')
-                      : $row->fsodate,
+                        ? $row->fsodate->format('Y-m-d')
+                        : $row->fsodate,
                     'frefno' => $row->frefno ?? '',
                     'fcustno' => $row->fcustno ?? '',
                     'fsalesman' => $row->fsalesman,
@@ -163,7 +163,7 @@ class ReturPenjualanController extends Controller
         $allowedColumns = ['fprno', 'fprdate'];
         if (in_array($orderColumn, $allowedColumns)) {
             if (in_array($orderColumn, ['fprno', 'fprdate'])) {
-                $query->orderBy('tr_prh.'.$orderColumn, $orderDir);
+                $query->orderBy('tr_prh.' . $orderColumn, $orderDir);
             } else {
                 $query->orderBy('mssupplier.fsuppliername', $orderDir);
             }
@@ -223,16 +223,16 @@ class ReturPenjualanController extends Controller
     private function generateInvoiceCode(?Carbon $onDate = null): string
     {
         $date = $onDate ?: now();
-        $prefix = 'REJ.'.$date->format('ym').'.';
+        $prefix = 'REJ.' . $date->format('ym') . '.';
 
         $last = DB::table('tranmt')
-            ->where('fsono', 'like', $prefix.'%')
-            ->selectRaw("MAX(CAST(substr(trim(fsono), length('".$prefix."') + 1) AS int)) AS lastno")
+            ->where('fsono', 'like', $prefix . '%')
+            ->selectRaw("MAX(CAST(substr(trim(fsono), length('" . $prefix . "') + 1) AS int)) AS lastno")
             ->value('lastno');
 
         $next = (int) $last + 1;
 
-        return $prefix.str_pad((string) $next, 4, '0', STR_PAD_LEFT);
+        return $prefix . str_pad((string) $next, 4, '0', STR_PAD_LEFT);
     }
 
     public function print(string $fsono)
@@ -268,9 +268,9 @@ class ReturPenjualanController extends Controller
             ]);
 
         // Format date helper
-        $fmt = fn ($d) => $d
-          ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y')
-          : '-';
+        $fmt = fn($d) => $d
+            ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y')
+            : '-';
 
         return view('returpenjualan.print', [
             'hdr' => $hdr,
@@ -292,10 +292,10 @@ class ReturPenjualanController extends Controller
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
         $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
+            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
             ->when(
                 ! is_numeric($raw),
-                fn ($q) => $q->where('fcabangkode', $raw)->orWhere('fcabangname', $raw)
+                fn($q) => $q->where('fcabangkode', $raw)->orWhere('fcabangname', $raw)
             )
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
 
@@ -313,7 +313,7 @@ class ReturPenjualanController extends Controller
             'fsatuankecil',
             'fsatuanbesar',
             'fsatuanbesar2',
-            'fqtykecil', 
+            'fqtykecil',
             'fqtykecil2',
             'fminstock'
         )->orderBy('fprdname')->get();
@@ -421,6 +421,50 @@ class ReturPenjualanController extends Controller
             ->whereIn('fprdcode', $filteredCodes)
             ->get(['fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2', 'fqtykecil', 'fqtykecil2', 'fminstock'])
             ->keyBy('fprdcode');
+
+        // ===== STOCK VALIDATION =====
+        $errors = new \Illuminate\Support\MessageBag();
+        foreach ($itemCodes as $i => $codeRaw) {
+            $code = trim($codeRaw ?? '');
+            $sat  = trim($sats[$i] ?? '');
+            if ($code === '') continue;
+
+            $qty = is_numeric($qtys[$i] ?? null) ? (int) $qtys[$i] : 0;
+            if ($qty < 1) {
+                $errors->add("fqty.$i", 'Qty minimal 1.');  // ← ganti
+                continue;
+            }
+
+            $product      = $productMap[$code] ?? null;
+            $stokTersedia = $product ? (float) ($product->fminstock ?? 0) : 0;
+
+            $qtyKecil = $qty;
+            if ($product) {
+                if ($sat === $product->fsatuanbesar) {
+                    $rasio    = is_numeric($product->fqtykecil) ? (float) $product->fqtykecil : 1;
+                    $qtyKecil = $qty * $rasio;
+                } elseif (!empty($product->fsatuanbesar2) && $sat === $product->fsatuanbesar2) {
+                    $rasio2   = is_numeric($product->fqtykecil2) ? (float) $product->fqtykecil2 : 1;
+                    $qtyKecil = $qty * $rasio2;
+                }
+            }
+
+            if ($stokTersedia <= 0) {
+                $errors->add(
+                    "fqty.$i",
+                    "Produk \"$code\" tidak dapat dipesan karena stok habis atau minus. (Stok saat ini: $stokTersedia)"
+                );
+            } elseif ($qtyKecil > $stokTersedia) {
+                $errors->add(
+                    "fqty.$i",
+                    "Qty produk \"$code\" melebihi stok tersedia. (Diminta: $qtyKecil, Stok: $stokTersedia)"
+                );
+            }
+        }
+
+        if ($errors->isNotEmpty()) {
+            return back()->withErrors($errors)->withInput();
+        }
 
         $stockErrors = [];
         foreach ($itemCodes as $i => $code) {
@@ -592,19 +636,19 @@ class ReturPenjualanController extends Controller
                 $fsono = $request->input('fsono');
 
                 if (empty($fsono)) {
-                    $prefix = 'REJ.'.$fsodate->format('ym').'.';
+                    $prefix = 'REJ.' . $fsodate->format('ym') . '.';
 
                     $lastRecord = DB::table('tranmt')
-                        ->where('fsono', 'like', $prefix.'%')
+                        ->where('fsono', 'like', $prefix . '%')
                         ->orderBy('fsono', 'desc')
                         ->lockForUpdate()
                         ->first();
 
                     $nextNumber = $lastRecord
-                      ? ((int) substr(trim($lastRecord->fsono), -4)) + 1
-                      : 1;
+                        ? ((int) substr(trim($lastRecord->fsono), -4)) + 1
+                        : 1;
 
-                    $fsono = $prefix.str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+                    $fsono = $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
                 }
 
                 $headerData = [
@@ -682,10 +726,20 @@ class ReturPenjualanController extends Controller
                 DB::table('trstockdt')->insert($stockDetailRows);
             });
 
+            // UPDATE STOK - gunakan qtyKecil hasil konversi, bukan qty mentah
+            foreach ($detailRows as $row) {
+                DB::table('msprd')
+                    ->where('fprdcode', $row['fprdcode'])
+                    ->update([
+                        'fminstock'  => DB::raw("CAST(fminstock AS NUMERIC) - " . $row['fqtyremain']),
+                        'fupdatedat' => now(),
+                    ]);
+            }
+
             return redirect()->route('returpenjualan.index')->with('success', 'Retur Penjualan berhasil disimpan.');
         } catch (\Exception $e) {
 
-            return back()->withInput()->with('error', 'Terjadi kesalahan: '.$e->getMessage());
+            return back()->withInput()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }
 
@@ -741,8 +795,8 @@ class ReturPenjualanController extends Controller
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
         $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn ($q) => $q
+            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
+            ->when(! is_numeric($raw), fn($q) => $q
                 ->where('fcabangkode', $raw)
                 ->orWhere('fcabangname', $raw))
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
@@ -760,7 +814,7 @@ class ReturPenjualanController extends Controller
                     'msprd.fprdcode as fitemcode',
                     'msprd.fprdname'
                 )
-              // Ubah order ke ftrandtid (Primary Key detail) karena ftranmtid tidak ada
+                // Ubah order ke ftrandtid (Primary Key detail) karena ftranmtid tidak ada
                 ->orderBy('trandt.ftrandtid', 'asc');
         }])->findOrFail($ftranmtid);
 
@@ -816,13 +870,13 @@ class ReturPenjualanController extends Controller
             'fsatuankecil',
             'fsatuanbesar',
             'fsatuanbesar2',
-            'fqtykecil', 
+            'fqtykecil',
             'fqtykecil2',
             'fminstock'
         )->orderBy('fprdname')->get();
 
         // Prepare the product map for frontend
-       $productMap = $products->mapWithKeys(function ($p) {
+        $productMap = $products->mapWithKeys(function ($p) {
             return [
                 $p->fprdcode => [
                     'name'  => $p->fprdname,
@@ -872,8 +926,8 @@ class ReturPenjualanController extends Controller
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
         $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn ($q) => $q
+            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
+            ->when(! is_numeric($raw), fn($q) => $q
                 ->where('fcabangkode', $raw)
                 ->orWhere('fcabangname', $raw))
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
@@ -891,7 +945,7 @@ class ReturPenjualanController extends Controller
                     'msprd.fprdcode as fitemcode',
                     'msprd.fprdname'
                 )
-              // Ubah order ke ftrandtid (Primary Key detail) karena ftranmtid tidak ada
+                // Ubah order ke ftrandtid (Primary Key detail) karena ftranmtid tidak ada
                 ->orderBy('trandt.ftrandtid', 'asc');
         }])->findOrFail($ftranmtid);
 
@@ -1025,7 +1079,7 @@ class ReturPenjualanController extends Controller
             $frefcode = 'UM';
         } else {
             $frefcode = $request->input('frefcode_global')
-              ?: ($header->frefcode ?? '');  // fallback dari DB jika kosong
+                ?: ($header->frefcode ?? '');  // fallback dari DB jika kosong
         }
 
         // Ambil mapping produk untuk mendapatkan fprdcodeid dan rasio
@@ -1033,6 +1087,50 @@ class ReturPenjualanController extends Controller
             ->whereIn('fprdcode', array_filter($itemCodes))
             ->get(['fprdid', 'fprdcode', 'fsatuanbesar', 'fqtykecil as rasio_konversi'])
             ->keyBy('fprdcode');
+
+        // ===== STOCK VALIDATION =====
+        $errors = new \Illuminate\Support\MessageBag();
+        foreach ($itemCodes as $i => $codeRaw) {
+            $code = trim($codeRaw ?? '');
+            $sat  = trim($sats[$i] ?? '');
+            if ($code === '') continue;
+
+            $qty = is_numeric($qtys[$i] ?? null) ? (int) $qtys[$i] : 0;
+            if ($qty < 1) {
+                $errors->add("fqty.$i", 'Qty minimal 1.');  // ← ganti
+                continue;
+            }
+
+            $product      = $productMap[$code] ?? null;
+            $stokTersedia = $product ? (float) ($product->fminstock ?? 0) : 0;
+
+            $qtyKecil = $qty;
+            if ($product) {
+                if ($sat === $product->fsatuanbesar) {
+                    $rasio    = is_numeric($product->fqtykecil) ? (float) $product->fqtykecil : 1;
+                    $qtyKecil = $qty * $rasio;
+                } elseif (!empty($product->fsatuanbesar2) && $sat === $product->fsatuanbesar2) {
+                    $rasio2   = is_numeric($product->fqtykecil2) ? (float) $product->fqtykecil2 : 1;
+                    $qtyKecil = $qty * $rasio2;
+                }
+            }
+
+            if ($stokTersedia <= 0) {
+                $errors->add(
+                    "fqty.$i",
+                    "Produk \"$code\" tidak dapat dipesan karena stok habis atau minus. (Stok saat ini: $stokTersedia)"
+                );
+            } elseif ($qtyKecil > $stokTersedia) {
+                $errors->add(
+                    "fqty.$i",
+                    "Qty produk \"$code\" melebihi stok tersedia. (Diminta: $qtyKecil, Stok: $stokTersedia)"
+                );
+            }
+        }
+
+        if ($errors->isNotEmpty()) {
+            return back()->withErrors($errors)->withInput();
+        }
 
         // 4. BUILD DETAIL ROWS
         $detailRows = [];
@@ -1234,9 +1332,19 @@ class ReturPenjualanController extends Controller
                 }
             });
 
+            // UPDATE STOK - gunakan qtyKecil hasil konversi, bukan qty mentah
+            foreach ($detailRows as $row) {
+                DB::table('msprd')
+                    ->where('fprdcode', $row['fprdcode'])
+                    ->update([
+                        'fminstock'  => DB::raw("CAST(fminstock AS NUMERIC) - " . $row['fqtyremain']),
+                        'fupdatedat' => now(),
+                    ]);
+            }
+
             return redirect()->route('returpenjualan.index')->with('success', "Retur Penjualan {$header->fsono} berhasil diperbarui.");
         } catch (\Exception $e) {
-            return back()->withInput()->with('error', 'Gagal update: '.$e->getMessage());
+            return back()->withInput()->with('error', 'Gagal update: ' . $e->getMessage());
         }
     }
 
@@ -1251,8 +1359,8 @@ class ReturPenjualanController extends Controller
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
         $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn ($q) => $q
+            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
+            ->when(! is_numeric($raw), fn($q) => $q
                 ->where('fcabangkode', $raw)
                 ->orWhere('fcabangname', $raw))
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
@@ -1270,7 +1378,7 @@ class ReturPenjualanController extends Controller
                     'msprd.fprdcode as fitemcode',
                     'msprd.fprdname'
                 )
-              // Ubah order ke ftrandtid (Primary Key detail) karena ftranmtid tidak ada
+                // Ubah order ke ftrandtid (Primary Key detail) karena ftranmtid tidak ada
                 ->orderBy('trandt.ftrandtid', 'asc');
         }])->findOrFail($ftranmtid);
 
@@ -1382,7 +1490,7 @@ class ReturPenjualanController extends Controller
 
             return redirect()->route('returpenjualan.index')->with('success', 'Data Retur Penjualan berhasil dihapus.');
         } catch (\Exception $e) {
-            return redirect()->route('returpenjualan.index')->with('error', 'Gagal menghapus data: '.$e->getMessage());
+            return redirect()->route('returpenjualan.index')->with('error', 'Gagal menghapus data: ' . $e->getMessage());
         }
     }
 }

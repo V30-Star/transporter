@@ -71,7 +71,33 @@
             -moz-appearance: textfield;
         }
     </style>
+    @if ($errors->any())
+        <div class="alert alert-danger alert-dismissible fade show border-0 shadow p-0 overflow-hidden" role="alert">
+            {{-- Header Strip --}}
+            <div class="d-flex align-items-center px-4 py-3" style="background-color: #c0392b;">
+                <i class="bi bi-exclamation-triangle-fill text-white me-2 fs-5"></i>
+                <strong class="text-white fs-6">Gagal Menyimpan Data!</strong>
+                <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="alert"
+                    aria-label="Close"></button>
+            </div>
 
+            {{-- Body --}}
+            <div class="px-4 py-3" style="background-color: #fdeded; border-left: 5px solid #c0392b;">
+                <p class="mb-2 text-danger fw-semibold">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Periksa kembali data berikut sebelum menyimpan:
+                </p>
+                <ul class="mb-0 ps-3">
+                    @foreach ($errors->all() as $error)
+                        <li class="text-danger mb-1">
+                            <i class="bi bi-dot fs-5 align-middle"></i>
+                            {{ $error }}
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+        </div>
+    @endif
     <div x-data="{ open: true }">
         <div x-data="{ fclose: {{ old('fclose', $salesorder->fclose) == '1' ? 'true' : 'false' }}, includePPN: false, ppnRate: 0, ppnAmount: 0, selected: 'alamatsurat', totalHarga: 100000 }" class="lg:col-span-5">
             <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
@@ -347,7 +373,8 @@
                                                         x-model.number="it.fqty" :max="it.maxqty > 0 ? it.maxqty : null"
                                                         @input="recalc(it); enforceQtyRow(it); recalc(it);">
                                                     <div class="text-xs text-gray-400 mt-0.5 text-right">
-                                                        <span x-show="it.fprdcode" x-html="formatStockLimit(it.fprdcode, it.fqty, it.fsatuan)"></span>
+                                                        <span x-show="it.fprdcode"
+                                                            x-html="formatStockLimit(it.fprdcode, it.fqty, it.fsatuan)"></span>
                                                     </div>
                                                 </td>
                                                 <td class="p-2 text-right">
@@ -453,7 +480,8 @@
                                                 "
                                                 @keydown.enter.prevent="$refs.editTerima?.focus()">
                                             <div class="text-xs text-gray-400 mt-0.5 text-right">
-                                                <span x-show="editRow.fprdcode" x-html="formatStockLimit(editRow.fprdcode, editRow.fqty, editRow.fsatuan)"></span>
+                                                <span x-show="editRow.fprdcode"
+                                                    x-html="formatStockLimit(editRow.fprdcode, editRow.fqty, editRow.fsatuan)"></span>
                                             </div>
                                         </td>
 
@@ -520,7 +548,8 @@
                                                 <!-- Checkbox -->
                                                 <div class="flex items-center">
                                                     <input id="fapplyppn" type="checkbox" name="fapplyppn"
-                                                        value="1" x-model="includePPN" disabled x-init="includePPN = {{ $salesorder->fppn == '1' ? 'true' : 'false' }}"
+                                                        value="1" x-model="includePPN" disabled
+                                                        x-init="includePPN = {{ $salesorder->fppn == '1' ? 'true' : 'false' }}"
                                                         class="h-4 w-4 text-blue-600 border-gray-300 rounded">
                                                     <label for="fapplyppn" class="ml-2 text-sm font-medium text-gray-700">
                                                         <span class="font-bold">PPN</span>
@@ -542,8 +571,7 @@
                                                 <!-- Input Rate + Nominal (kanan) -->
                                                 <div class="flex items-center gap-2">
                                                     <input disabled type="number" min="0" max="100"
-                                                        step="0.01" x-model.number="ppnRate"
-                                                        x-init="ppnRate = {{ old('fppnpersen', $fppnpersen) }}"
+                                                        step="0.01" x-model.number="ppnRate" x-init="ppnRate = {{ old('fppnpersen', $fppnpersen) }}"
                                                         :disabled="!(includePPN || fapplyppn)"
                                                         class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
                                                             [appearance:textfield]
@@ -1062,9 +1090,9 @@
 
                                                     <td class="p-2">
                                                         <template x-if="draft.units.length > 1">
-                                                            <select id="draftUnitSelect" class="w-full border rounded px-2 py-1 text-xs"
-                                                                x-model="draft.fsatuan"
-                                                                @change="recalc(draft)"
+                                                            <select id="draftUnitSelect"
+                                                                class="w-full border rounded px-2 py-1 text-xs"
+                                                                x-model="draft.fsatuan" @change="recalc(draft)"
                                                                 @keydown.enter.prevent="$refs.draftQty?.focus()">
                                                                 <template x-for="u in draft.units" :key="u">
                                                                     <option :value="u" x-text="u">
@@ -1091,7 +1119,8 @@
                                                             "
                                                             @keydown.enter.prevent="$refs.draftPrice?.focus()">
                                                         <div class="text-xs text-gray-400 mt-0.5 text-right">
-                                                            <span x-show="draft.fprdcode" x-html="formatStockLimit(draft.fprdcode, draft.fqty, draft.fsatuan)"></span>
+                                                            <span x-show="draft.fprdcode"
+                                                                x-html="formatStockLimit(draft.fprdcode, draft.fqty, draft.fsatuan)"></span>
                                                         </div>
                                                     </td>
                                                     <td class="p-2 text-right font-medium" x-text="fmt(0)"></td>
@@ -1160,8 +1189,8 @@
                                                 <div class="flex items-center justify-between gap-6">
                                                     <!-- Checkbox -->
                                                     <div class="flex items-center">
-                                                        <input id="fapplyppn" type="checkbox" value="1" name="fapplyppn"
-                                                            x-model="includePPN" x-init="includePPN = {{ $salesorder->fapplyppn == '1' ? 'true' : 'false' }}"
+                                                        <input id="fapplyppn" type="checkbox" value="1"
+                                                            name="fapplyppn" x-model="includePPN" x-init="includePPN = {{ $salesorder->fapplyppn == '1' ? 'true' : 'false' }}"
                                                             class="h-4 w-4 text-blue-600 border-gray-300 rounded">
                                                         <label for="fapplyppn"
                                                             class="ml-2 text-sm font-medium text-gray-700">
@@ -1183,10 +1212,9 @@
 
                                                     <!-- Input Rate + Nominal (kanan) -->
                                                     <div class="flex items-center gap-2">
-                                                        <input type="number" name="fppnpersen" min="0" max="100"
-                                                            step="0.01" x-model.number="ppnRate"
-                                                            x-init="ppnRate = {{ old('fppnpersen', $salesorder->fppnpersen ?? 11) }}"
-                                                            :disabled="!includePPN"
+                                                        <input type="number" name="fppnpersen" min="0"
+                                                            max="100" step="0.01" x-model.number="ppnRate"
+                                                            x-init="ppnRate = {{ old('fppnpersen', $salesorder->fppnpersen ?? 11) }}" :disabled="!includePPN"
                                                             class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
                                                             [appearance:textfield]
                                                             [&::-webkit-outer-spin-button]:appearance-none
@@ -2237,7 +2265,11 @@
                         name: '',
                         units: [],
                         stock: 0,
-                        unit_ratios: { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 }
+                        unit_ratios: {
+                            satuankecil: 1,
+                            satuanbesar: 1,
+                            satuanbesar2: 1
+                        }
                     };
                 }
                 return meta;
@@ -2246,17 +2278,21 @@
             formatStockLimit(code, qty, satuan) {
                 const meta = this.productMeta(code);
                 if (!code || !meta.stock) return '';
-                
+
                 const entered = Number(qty) || 0;
                 const units = meta.units || [];
-                const ratios = meta.unit_ratios || { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 };
-                
+                const ratios = meta.unit_ratios || {
+                    satuankecil: 1,
+                    satuanbesar: 1,
+                    satuanbesar2: 1
+                };
+
                 if (!units.length || !satuan) return '';
-                
+
                 const satKecil = units[0] || 'pcs';
                 const satBesar = units[1] || '';
                 const satBesar2 = units[2] || '';
-                
+
                 let ratio = 1;
                 if (satuan === satBesar2 && ratios.satuanbesar2 > 0) {
                     ratio = ratios.satuanbesar2;
@@ -2265,10 +2301,10 @@
                 } else if (satuan === satKecil) {
                     ratio = 1;
                 }
-                
+
                 const enteredInBase = entered * ratio;
                 const remaining = Math.max(0, meta.stock - enteredInBase);
-                
+
                 const limitValue = Math.floor(remaining / ratio);
                 return '<span class="font-medium">limit:</span> ' + limitValue + ' ' + satuan;
             },
@@ -2277,22 +2313,26 @@
                 const n = +row.fqty;
                 const meta = this.productMeta(row.fprdcode);
                 const units = meta?.units || [];
-                const ratios = meta?.unit_ratios || { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 };
+                const ratios = meta?.unit_ratios || {
+                    satuankecil: 1,
+                    satuanbesar: 1,
+                    satuanbesar2: 1
+                };
                 const satKecil = units[0] || 'pcs';
                 const satBesar = units[1] || '';
                 const satBesar2 = units[2] || '';
                 const satuan = row.fsatuan || '';
-                
+
                 let ratio = 1;
                 if (satuan === satBesar2 && ratios.satuanbesar2 > 0) {
                     ratio = ratios.satuanbesar2;
                 } else if (satuan === satBesar && ratios.satuanbesar > 0) {
                     ratio = ratios.satuanbesar;
                 }
-                
+
                 const maxStock = meta?.stock || 999999;
                 const maxInUnit = Math.floor(maxStock / ratio);
-                
+
                 if (!Number.isFinite(n)) {
                     row.fqty = 1;
                     return;
@@ -2322,7 +2362,7 @@
                 if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
                 const stock = Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0;
                 row.maxqty = stock;
-                
+
                 if (row === this.draft) {
                     if (units.length > 1) {
                         populateDraftUnitSelect(units);
@@ -2597,7 +2637,7 @@
                 }, {
                     passive: true
                 });
-                
+
                 const self = this;
                 document.addEventListener('change', function(e) {
                     if (e.target && e.target.id === 'draftUnitSelect') {

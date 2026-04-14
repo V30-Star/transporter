@@ -115,7 +115,7 @@ class Tr_prhController extends Controller
                     'fuserupdate' => $record->fuserupdate,
                     'fclose' => $record->fclose == '1' ? 'Done' : 'Not Done',
                     'fprhid' => $record->fprhid,
-                    'DT_RowId' => 'row_'.$record->fprhid,
+                    'DT_RowId' => 'row_' . $record->fprhid,
                 ];
             });
 
@@ -180,7 +180,7 @@ class Tr_prhController extends Controller
         $prefix = sprintf('PR.%s.%s.%s.', trim($kodeCabang), $date->format('y'), $date->format('m'));
 
         return DB::transaction(function () use ($prefix) {
-            $last = \App\Models\Tr_prh::where('fprno', 'like', $prefix.'%')
+            $last = \App\Models\Tr_prh::where('fprno', 'like', $prefix . '%')
                 ->lockForUpdate()
                 ->orderByDesc('fprno')
                 ->first();
@@ -192,7 +192,7 @@ class Tr_prhController extends Controller
 
             $next = str_pad((string) ($lastNum + 1), 4, '0', STR_PAD_LEFT);
 
-            return $prefix.$next; // PR.JK.25.08.0001
+            return $prefix . $next; // PR.JK.25.08.0001
         });
     }
 
@@ -222,7 +222,7 @@ class Tr_prhController extends Controller
                 'p.fprdcode as product_code',
             ]);
 
-        $fmt = fn ($d) => $d
+        $fmt = fn($d) => $d
             ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y')
             : '-';
 
@@ -245,10 +245,10 @@ class Tr_prhController extends Controller
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
         $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
+            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
             ->when(
                 ! is_numeric($raw),
-                fn ($q) => $q
+                fn($q) => $q
                     ->where('fcabangkode', $raw)
                     ->orWhere('fcabangname', $raw)
             )
@@ -374,41 +374,47 @@ class Tr_prhController extends Controller
             ->keyBy('fprdcode');
 
         // ===== STOCK VALIDATION =====
-        $validator = Validator::make([], []);
+        $errors = new \Illuminate\Support\MessageBag();
         foreach ($codes as $i => $codeRaw) {
             $code = trim($codeRaw ?? '');
-            $sat = trim($sats[$i] ?? '');
-            if ($code === '') {
-                continue;
-            }
+            $sat  = trim($sats[$i] ?? '');
+            if ($code === '') continue;
 
             $qty = is_numeric($qtys[$i] ?? null) ? (int) $qtys[$i] : 0;
             if ($qty < 1) {
-                $validator->errors()->add("fqty.$i", 'Qty minimal 1.');
-
+                $errors->add("fqty.$i", 'Qty minimal 1.');  // ← ganti
                 continue;
             }
 
-            $product = $productMap[$code] ?? null;
+            $product      = $productMap[$code] ?? null;
             $stokTersedia = $product ? (float) ($product->fminstock ?? 0) : 0;
 
             $qtyKecil = $qty;
             if ($product) {
                 if ($sat === $product->fsatuanbesar) {
-                    $rasio = is_numeric($product->fqtykecil) ? (float) $product->fqtykecil : 1;
+                    $rasio    = is_numeric($product->fqtykecil) ? (float) $product->fqtykecil : 1;
                     $qtyKecil = $qty * $rasio;
-                } elseif (! empty($product->fsatuanbesar2) && $sat === $product->fsatuanbesar2) {
-                    $rasio2 = is_numeric($product->fqtykecil2) ? (float) $product->fqtykecil2 : 1;
+                } elseif (!empty($product->fsatuanbesar2) && $sat === $product->fsatuanbesar2) {
+                    $rasio2   = is_numeric($product->fqtykecil2) ? (float) $product->fqtykecil2 : 1;
                     $qtyKecil = $qty * $rasio2;
                 }
             }
 
-            if ($stokTersedia > 0 && $qtyKecil > $stokTersedia) {
-                $validator->errors()->add("fqty.$i", "Qty untuk produk $code tidak boleh melebihi stok ($stokTersedia pcs).");
+            if ($stokTersedia <= 0) {
+                $errors->add(
+                    "fqty.$i",
+                    "Produk \"$code\" tidak dapat dipesan karena stok habis atau minus. (Stok saat ini: $stokTersedia)"
+                );
+            } elseif ($qtyKecil > $stokTersedia) {
+                $errors->add(
+                    "fqty.$i",
+                    "Qty produk \"$code\" melebihi stok tersedia. (Diminta: $qtyKecil, Stok: $stokTersedia)"
+                );
             }
         }
-        if ($validator->fails()) {
-            return back()->withErrors($validator)->withInput();
+
+        if ($errors->isNotEmpty()) {
+            return back()->withErrors($errors)->withInput();
         }
 
         // ===== CHECK DETAIL EXISTENCE =====
@@ -519,18 +525,14 @@ class Tr_prhController extends Controller
 
             Tr_prd::insert($detailRows);
 
-            // UPDATE STOK
-            foreach ($codes as $i => $codeRaw) {
-                $code = trim($codeRaw ?? '');
-                $qty = (int) ($qtys[$i] ?? 0);
-                if ($code !== '' && $qty > 0) {
-                    DB::table('msprd')
-                        ->where('fprdcode', $code)
-                        ->update([
-                            'fminstock' => DB::raw("CAST(fminstock AS INTEGER) - $qty"),
-                            'fupdatedat' => now(),
-                        ]);
-                }
+            // UPDATE STOK - gunakan qtyKecil hasil konversi, bukan qty mentah
+            foreach ($detailRows as $row) {
+                DB::table('msprd')
+                    ->where('fprdcode', $row['fprdcode'])
+                    ->update([
+                        'fminstock'  => DB::raw("CAST(fminstock AS NUMERIC) - " . $row['fqtyremain']),
+                        'fupdatedat' => now(),
+                    ]);
             }
 
             // KIRIM EMAIL JIKA APPROVAL
@@ -565,8 +567,8 @@ class Tr_prhController extends Controller
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
         $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn ($q) => $q
+            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
+            ->when(! is_numeric($raw), fn($q) => $q
                 ->where('fcabangkode', $raw)
                 ->orWhere('fcabangname', $raw))
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
@@ -692,8 +694,8 @@ class Tr_prhController extends Controller
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
         $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn ($q) => $q
+            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
+            ->when(! is_numeric($raw), fn($q) => $q
                 ->where('fcabangkode', $raw)
                 ->orWhere('fcabangname', $raw))
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
@@ -900,16 +902,7 @@ class Tr_prhController extends Controller
             ->pluck('total_used', 'frefdtid');
 
         // ===== 8) VALIDASI QTY TERHADAP PO & STOK =====
-        $validator = Validator::make([], []);
-
-        // Map untuk hitung perubahan stok per produk
-        $stockChanges = []; // productCode => change (+ for return to stock, - for take from stock)
-
-        // Kembalikan stok lama dulu ke perhitungan (secara virtual untuk validasi)
-        foreach ($oldDetails as $old) {
-            $oldCode = trim($old->fprdcode);
-            $stockChanges[$oldCode] = ($stockChanges[$oldCode] ?? 0) + (int) $old->fqty;
-        }
+        $errors = new \Illuminate\Support\MessageBag();
 
         foreach ($codes as $i => $codeStr) {
             $code = trim($codeStr);
@@ -917,56 +910,55 @@ class Tr_prhController extends Controller
             $did = (int) ($idsIn[$i] ?? 0);
             $sat = trim($sats[$i] ?? '');
 
-            // Validasi terhadap penggunaan PO
             if ($did > 0 && isset($oldDetails[$did])) {
                 $old = $oldDetails[$did];
                 $used = (float) ($poUsage[$did] ?? 0);
 
-                // Konversi qty baru ke satuan kecil untuk bandingkan dengan used (satuan kecil)
                 $qtyKecil = $qty;
                 $product = $productMap[$code] ?? null;
                 if ($product) {
                     if ($sat === $product->fsatuanbesar) {
                         $rasio = is_numeric($product->fqtykecil) ? (float) $product->fqtykecil : 1;
                         $qtyKecil = $qty * $rasio;
-                    } elseif (! empty($product->fsatuanbesar2) && $sat === $product->fsatuanbesar2) {
+                    } elseif (!empty($product->fsatuanbesar2) && $sat === $product->fsatuanbesar2) {
                         $rasio2 = is_numeric($product->fqtykecil2) ? (float) $product->fqtykecil2 : 1;
                         $qtyKecil = $qty * $rasio2;
                     }
                 }
 
                 if ($used > 0) {
-                    // Cek perubahan produk/satuan jika sudah ada PO
                     if (trim($old->fprdcode) !== $code) {
-                        $validator->errors()->add("fitemcode.$i", "Produk $code tidak boleh diubah karena sudah ada PO terkait.");
+                        $errors->add("fitemcode.$i", "Produk \"$code\" tidak boleh diubah karena sudah ada PO terkait.");
                     }
                     if (trim($old->fsatuan) !== $sat) {
-                        $validator->errors()->add("fsatuan.$i", 'Satuan tidak boleh diubah karena sudah ada PO terkait.');
+                        $errors->add("fsatuan.$i", 'Satuan tidak boleh diubah karena sudah ada PO terkait.');
                     }
-                    // Cek qty tidak boleh kurang dari yang sudah di-PO
                     if ($qtyKecil < $used) {
-                        $validator->errors()->add("fqty.$i", "Qty tidak boleh kurang dari yang sudah diproses ke PO ($used).");
+                        $errors->add("fqty.$i", "Qty tidak boleh kurang dari yang sudah diproses ke PO ($used).");
                     }
                 }
             }
 
-            // Kurangi stok yang baru diminta
             $stockChanges[$code] = ($stockChanges[$code] ?? 0) - $qty;
         }
 
         // Validasi Stok Akhir
         foreach ($stockChanges as $code => $change) {
-            if ($change < 0) { // Jika kita minta lebih banyak dari sebelumnya
-                $needed = abs($change);
-                $available = (int) ($productMap[$code]->fminstock ?? 0);
-                if ($needed > $available) {
-                    $validator->errors()->add('detail', "Stok produk $code tidak mencukupi untuk penambahan qty.");
+            if ($change < 0) {
+                $needed   = abs($change);
+                $available = (float) ($productMap[$code]->fminstock ?? 0);
+
+                // ✅ FIX: cek stok <= 0 atau tidak mencukupi
+                if ($available <= 0) {
+                    $errors->add('detail', "Produk \"$code\" tidak dapat dipesan karena stok habis atau minus. (Stok saat ini: $available)");
+                } elseif ($needed > $available) {
+                    $errors->add('detail', "Qty produk \"$code\" melebihi stok tersedia. (Diminta: $needed, Stok: $available)");
                 }
             }
         }
 
-        if ($validator->fails()) {
-            return back()->withErrors($validator)->withInput();
+        if ($errors->isNotEmpty()) {
+            return back()->withErrors($errors)->withInput();
         }
 
         // ===== 9) SUSUN BATCH DETAIL & TRANSACTION =====
@@ -1096,8 +1088,8 @@ class Tr_prhController extends Controller
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
         $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn ($q) => $q
+            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
+            ->when(! is_numeric($raw), fn($q) => $q
                 ->where('fcabangkode', $raw)
                 ->orWhere('fcabangname', $raw))
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
@@ -1210,10 +1202,10 @@ class Tr_prhController extends Controller
             $tr_prh = Tr_prh::findOrFail($fprhid);
             $tr_prh->delete();
 
-            return redirect()->route('tr_prh.index')->with('success', 'Data Permintaan Pembelian '.$tr_prh->fprno.' berhasil dihapus.');
+            return redirect()->route('tr_prh.index')->with('success', 'Data Permintaan Pembelian ' . $tr_prh->fprno . ' berhasil dihapus.');
         } catch (\Exception $e) {
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
-            return redirect()->route('tr_prh.delete', $fprhid)->with('error', 'Gakey: gal menghapus data: '.$e->getMessage());
+            return redirect()->route('tr_prh.delete', $fprhid)->with('error', 'Gakey: gal menghapus data: ' . $e->getMessage());
         }
     }
 }

@@ -93,7 +93,33 @@
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
     </style>
+    @if ($errors->any())
+        <div class="alert alert-danger alert-dismissible fade show border-0 shadow p-0 overflow-hidden" role="alert">
+            {{-- Header Strip --}}
+            <div class="d-flex align-items-center px-4 py-3" style="background-color: #c0392b;">
+                <i class="bi bi-exclamation-triangle-fill text-white me-2 fs-5"></i>
+                <strong class="text-white fs-6">Gagal Menyimpan Data!</strong>
+                <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="alert"
+                    aria-label="Close"></button>
+            </div>
 
+            {{-- Body --}}
+            <div class="px-4 py-3" style="background-color: #fdeded; border-left: 5px solid #c0392b;">
+                <p class="mb-2 text-danger fw-semibold">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Periksa kembali data berikut sebelum menyimpan:
+                </p>
+                <ul class="mb-0 ps-3">
+                    @foreach ($errors->all() as $error)
+                        <li class="text-danger mb-1">
+                            <i class="bi bi-dot fs-5 align-middle"></i>
+                            {{ $error }}
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+        </div>
+    @endif
     @php
         // Definisikan semua variabel Anda di sini
         $currentType = old('ftypebuy', $fakturpembelian->ftypebuy);
@@ -1126,14 +1152,14 @@
                                     <tbody>
                                         <template x-for="(it, i) in savedItems" :key="it.uid">
                                             <!-- ROW UTAMA -->
-                                            <tr class="border-t align-top transition-colors" :class="activeRow === it.uid ? 'bg-amber-50' : 'hover:bg-gray-50'">
+                                            <tr class="border-t align-top transition-colors"
+                                                :class="activeRow === it.uid ? 'bg-amber-50' : 'hover:bg-gray-50'">
                                                 <td class="p-2 text-gray-400" x-text="i + 1"></td>
                                                 <td class="p-2">
                                                     <div class="flex">
                                                         <input type="text"
                                                             class="flex-1 border rounded-l px-2 py-1 font-mono text-sm min-w-0"
-                                                            x-model="it.fitemcode"
-                                                            @input="onCodeTypedRow(it)"
+                                                            x-model="it.fitemcode" @input="onCodeTypedRow(it)"
                                                             @focus="activeRow = it.uid" @blur="activeRow = null">
                                                         <button type="button" @click="openBrowseFor('saved', i)"
                                                             class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50">
@@ -1156,9 +1182,8 @@
                                                 <td class="p-2">
                                                     <template x-if="(it.units?.length || 0) > 1">
                                                         <select class="w-full border rounded px-2 py-1 text-sm"
-                                                            x-model="it.fsatuan"
-                                                            @focus="activeRow = it.uid" @blur="activeRow = null"
-                                                            @change="recalc(it)">
+                                                            x-model="it.fsatuan" @focus="activeRow = it.uid"
+                                                            @blur="activeRow = null" @change="recalc(it)">
                                                             <template x-for="u in it.units" :key="u">
                                                                 <option :value="u" x-text="u"></option>
                                                             </template>
@@ -1171,32 +1196,38 @@
                                                     </template>
                                                 </td>
                                                 <td class="p-2 text-right">
-                                                    <input type="number" class="border rounded px-2 py-1 w-full text-right"
+                                                    <input type="number"
+                                                        class="border rounded px-2 py-1 w-full text-right"
                                                         x-model.number="it.fqty"
                                                         @focus="activeRow = it.uid; $event.target.select()"
-                                                        @blur="activeRow = null; enforceQtyRow(it)"
-                                                        @input="recalc(it);"
+                                                        @blur="activeRow = null; enforceQtyRow(it)" @input="recalc(it);"
                                                         @change="recalc(it);">
                                                     <div class="text-[10px] text-orange-600 mt-0.5" x-show="it.fitemcode"
-                                                         x-html="formatStockLimit(it.fitemcode, it.fqty, it.fsatuan)"></div>
+                                                        x-html="formatStockLimit(it.fitemcode, it.fqty, it.fsatuan)"></div>
                                                 </td>
                                                 <td class="p-2 text-right">
-                                                    <input type="number" class="border rounded px-2 py-1 w-full text-right"
-                                                        min="0" step="0.01"
-                                                        x-model.number="it.fprice" @focus="activeRow = it.uid; $event.target.select()"
-                                                        @blur="activeRow = null" @input="recalc(it)" @change="recalc(it)">
+                                                    <input type="number"
+                                                        class="border rounded px-2 py-1 w-full text-right" min="0"
+                                                        step="0.01" x-model.number="it.fprice"
+                                                        @focus="activeRow = it.uid; $event.target.select()"
+                                                        @blur="activeRow = null" @input="recalc(it)"
+                                                        @change="recalc(it)">
                                                 </td>
                                                 <td class="p-2 text-right">
-                                                    <input type="number" class="border rounded px-2 py-1 w-full text-right"
-                                                        min="0" step="0.01"
-                                                        x-model.number="it.fbiaya" @focus="activeRow = it.uid; $event.target.select()"
-                                                        @blur="activeRow = null" @input="recalc(it)" @change="recalc(it)">
+                                                    <input type="number"
+                                                        class="border rounded px-2 py-1 w-full text-right" min="0"
+                                                        step="0.01" x-model.number="it.fbiaya"
+                                                        @focus="activeRow = it.uid; $event.target.select()"
+                                                        @blur="activeRow = null" @input="recalc(it)"
+                                                        @change="recalc(it)">
                                                 </td>
                                                 <td class="p-2 text-right">
-                                                    <input type="number" class="border rounded px-2 py-1 w-full text-right"
-                                                        min="0" max="100" step="0.01"
-                                                        x-model.number="it.fdiscpersen" @focus="activeRow = it.uid; $event.target.select()"
-                                                        @blur="activeRow = null" @input="recalc(it)" @change="recalc(it)">
+                                                    <input type="number"
+                                                        class="border rounded px-2 py-1 w-full text-right" min="0"
+                                                        max="100" step="0.01" x-model.number="it.fdiscpersen"
+                                                        @focus="activeRow = it.uid; $event.target.select()"
+                                                        @blur="activeRow = null" @input="recalc(it)"
+                                                        @change="recalc(it)">
                                                 </td>
                                                 <td class="p-2 text-right">
                                                     <span x-text="fmt(it.ftotprice)"></span>
@@ -1242,7 +1273,7 @@
                                                         title="Cari Produk">
                                                         <x-heroicon-o-magnifying-glass class="w-4 h-4" />
                                                     </button>
-                                                    
+
                                                 </div>
                                             </td>
 
@@ -1289,7 +1320,9 @@
                                                     "
                                                     @keydown.enter.prevent="$refs.draftTerima?.focus()">
                                                 <div class="text-xs mt-0.5 text-right space-y-0.5">
-                                                    <div class="text-gray-400" x-show="draft.fitemcode" x-html="formatStockLimit(draft.fitemcode, draft.fqty, draft.fsatuan)"></div>
+                                                    <div class="text-gray-400" x-show="draft.fitemcode"
+                                                        x-html="formatStockLimit(draft.fitemcode, draft.fqty, draft.fsatuan)">
+                                                    </div>
                                                 </div>
                                             </td>
 
@@ -1433,8 +1466,8 @@
                                             class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
                                                 viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                    stroke-width="1.5" d="M12 4.5v15m7.5-7.5h-15" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                                    d="M12 4.5v15m7.5-7.5h-15" />
                                             </svg>
                                             Add Penerimaan Barang
                                         </button>
@@ -2318,7 +2351,11 @@
                             name: '',
                             units: [],
                             stock: 0,
-                            unit_ratios: { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 }
+                            unit_ratios: {
+                                satuankecil: 1,
+                                satuanbesar: 1,
+                                satuanbesar2: 1
+                            }
                         };
                     }
                     return meta;
@@ -2327,18 +2364,22 @@
                 formatStockLimit(code, qty, satuan) {
                     const meta = this.productMeta(code);
                     if (!code || !meta.stock) return '';
-                    
+
                     const entered = Number(qty) || 0;
                     const remaining = Math.max(0, meta.stock - entered);
                     const units = meta.units || [];
-                    const ratios = meta.unit_ratios || { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 };
-                    
+                    const ratios = meta.unit_ratios || {
+                        satuankecil: 1,
+                        satuanbesar: 1,
+                        satuanbesar2: 1
+                    };
+
                     if (!units.length || !satuan) return '';
-                    
+
                     const satKecil = units[0] || 'pcs';
                     const satBesar = units[1] || '';
                     const satBesar2 = units[2] || '';
-                    
+
                     let ratio = 1;
                     if (satuan === satBesar2 && ratios.satuanbesar2 > 0) {
                         ratio = ratios.satuanbesar2;
@@ -2347,7 +2388,7 @@
                     } else if (satuan === satKecil) {
                         ratio = 1;
                     }
-                    
+
                     const limitValue = Math.floor(remaining / ratio);
                     return '<span class="font-medium">limit:</span> ' + limitValue + ' ' + satuan;
                 },
@@ -2356,22 +2397,26 @@
                     const n = +row.fqty;
                     const meta = this.productMeta(row.fitemcode);
                     const units = meta?.units || [];
-                    const ratios = meta?.unit_ratios || { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 };
+                    const ratios = meta?.unit_ratios || {
+                        satuankecil: 1,
+                        satuanbesar: 1,
+                        satuanbesar2: 1
+                    };
                     const satKecil = units[0] || 'pcs';
                     const satBesar = units[1] || '';
                     const satBesar2 = units[2] || '';
                     const satuan = row.fsatuan || '';
-                    
+
                     let ratio = 1;
                     if (satuan === satBesar2 && ratios.satuanbesar2 > 0) {
                         ratio = ratios.satuanbesar2;
                     } else if (satuan === satBesar && ratios.satuanbesar > 0) {
                         ratio = ratios.satuanbesar;
                     }
-                    
+
                     const maxStock = meta?.stock || 999999;
                     const maxInUnit = Math.floor(maxStock / ratio);
-                    
+
                     if (!Number.isFinite(n)) {
                         row.fqty = 1;
                         return;
@@ -2401,7 +2446,7 @@
                     if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
                     const stock = Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0;
                     row.maxqty = stock;
-                    
+
                     if (row === this.draft) {
                         if (units.length > 1) {
                             populateDraftUnitSelect(units);
@@ -2678,7 +2723,7 @@
                     }, {
                         passive: true
                     });
-                    
+
                     const self = this;
                     document.addEventListener('change', function(e) {
                         if (e.target && e.target.id === 'draftUnitSelect') {
