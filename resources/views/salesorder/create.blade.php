@@ -959,22 +959,6 @@
 </style>
 {{-- DATA & SCRIPTS --}}
 <script>
-    // Map produk untuk auto-fill tabel
-    window.PRODUCT_MAP = {
-        @foreach ($products as $p)
-            "{{ $p->fprdcode }}": {
-                name: @json($p->fprdname),
-                units: @json(array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2]))),
-                stock: @json($p->fminstock ?? 0),
-                unit_ratios: {
-                    satuankecil: 1,
-                    satuanbesar: @json((float) ($p->fqtykecil ?? 1)),
-                    satuanbesar2: @json((float) ($p->fqtykecil2 ?? 1)),
-                },
-            },
-        @endforeach
-    };
-
     // id unik
     window.cryptoRandom = function() {
         try {
@@ -1836,9 +1820,7 @@
 
     <script>
         window.PRODUCT_MAP = @json($productMap ?? []);
-    </script>
 
-    <script>
         // Modal produk dengan DataTables
         function productBrowser() {
             return {

@@ -329,10 +329,19 @@ class ReturPenjualanController extends Controller
 
         $productMap = $products->mapWithKeys(function ($p) {
             return [
-                trim($p->fprdcode) => [
-                    'name' => $p->fprdname,
-                    'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
+                $p->fprdcode => [
+                    'name'  => $p->fprdname,
+                    'units' => array_values(array_filter([
+                        $p->fsatuankecil,
+                        $p->fsatuanbesar,
+                        $p->fsatuanbesar2,
+                    ])),
                     'stock' => $p->fminstock ?? 0,
+                    'unit_ratios' => [           // ← TAMBAH INI
+                        'satuankecil'  => 1,
+                        'satuanbesar'  => (float) ($p->fqtykecil  ?? 1),
+                        'satuanbesar2' => (float) ($p->fqtykecil2 ?? 1),
+                    ],
                 ],
             ];
         })->toArray();
@@ -822,12 +831,21 @@ class ReturPenjualanController extends Controller
         )->orderBy('fprdname')->get();
 
         // Prepare the product map for frontend
-        $productMap = $products->mapWithKeys(function ($p) {
+       $productMap = $products->mapWithKeys(function ($p) {
             return [
-                trim($p->fprdcode) => [
-                    'name' => $p->fprdname,
-                    'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
+                $p->fprdcode => [
+                    'name'  => $p->fprdname,
+                    'units' => array_values(array_filter([
+                        $p->fsatuankecil,
+                        $p->fsatuanbesar,
+                        $p->fsatuanbesar2,
+                    ])),
                     'stock' => $p->fminstock ?? 0,
+                    'unit_ratios' => [           // ← TAMBAH INI
+                        'satuankecil'  => 1,
+                        'satuanbesar'  => (float) ($p->fqtykecil  ?? 1),
+                        'satuanbesar2' => (float) ($p->fqtykecil2 ?? 1),
+                    ],
                 ],
             ];
         })->toArray();

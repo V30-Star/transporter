@@ -371,8 +371,17 @@ class SalesOrderController extends Controller
             return [
                 $p->fprdcode => [
                     'name'  => $p->fprdname,
-                    'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
+                    'units' => array_values(array_filter([
+                        $p->fsatuankecil,
+                        $p->fsatuanbesar,
+                        $p->fsatuanbesar2,
+                    ])),
                     'stock' => $p->fminstock ?? 0,
+                    'unit_ratios' => [           // ← TAMBAH INI
+                        'satuankecil'  => 1,
+                        'satuanbesar'  => (float) ($p->fqtykecil  ?? 1),
+                        'satuanbesar2' => (float) ($p->fqtykecil2 ?? 1),
+                    ],
                 ],
             ];
         })->toArray();
@@ -439,8 +448,7 @@ class SalesOrderController extends Controller
         $descs = $request->input('fdesc', []);
 
         // LOAD PRODUCT METADATA FOR STOCK VALIDATION
-        $uniqueCodes = array_values(array_unique(array_filter(array_map(fn($c) => trim((string)$c), $itemCodes)));
-        $prodMeta = DB::table('msprd')
+        $uniqueCodes = array_values(array_unique(array_filter(array_map(fn($c) => trim((string)$c), $itemCodes))));        $prodMeta = DB::table('msprd')
             ->whereIn('fprdcode', $uniqueCodes)
             ->get(['fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2', 'fqtykecil', 'fqtykecil2', 'fminstock'])
             ->keyBy('fprdcode');
@@ -783,10 +791,19 @@ class SalesOrderController extends Controller
         // Prepare the product map for frontend
         $productMap = $products->mapWithKeys(function ($p) {
             return [
-                (string) $p->fprdcode => [
-                    'name' => $p->fprdname,
-                    'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
-                    'stock' => (float) ($p->fminstock ?? 0),
+                $p->fprdcode => [
+                    'name'  => $p->fprdname,
+                    'units' => array_values(array_filter([
+                        $p->fsatuankecil,
+                        $p->fsatuanbesar,
+                        $p->fsatuanbesar2,
+                    ])),
+                    'stock' => $p->fminstock ?? 0,
+                    'unit_ratios' => [           // ← TAMBAH INI
+                        'satuankecil'  => 1,
+                        'satuanbesar'  => (float) ($p->fqtykecil  ?? 1),
+                        'satuanbesar2' => (float) ($p->fqtykecil2 ?? 1),
+                    ],
                 ],
             ];
         })->toArray();
