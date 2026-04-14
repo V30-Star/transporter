@@ -2608,11 +2608,34 @@
 
                 init() {
                     this.savedItems.forEach(item => {
+                        item.units = item.units || [];
+                        if (typeof item.units === 'string') {
+                            try {
+                                const parsed = JSON.parse(item.units);
+                                item.units = Array.isArray(parsed) ? parsed : [];
+                            } catch (e) {
+                                item.units = item.units.split(',').map(u => u.trim());
+                            }
+                        } else if (!Array.isArray(item.units)) {
+                            item.units = [];
+                        }
+
                         const meta = this.productMeta(item.fitemcode);
                         if (meta) {
                             item.maxqty = Number(meta.stock) || 0;
+                            if (meta.units && meta.units.length) {
+                                item.units = [...new Set([...item.units, ...meta.units])];
+                            } else if (item.fsatuan && !item.units.includes(item.fsatuan)) {
+                                item.units.unshift(item.fsatuan);
+                            }
+                            if (meta.unit_ratios) {
+                                item.unit_ratios = item.unit_ratios || meta.unit_ratios;
+                            }
                         } else {
                             item.maxqty = 0;
+                            if (item.fsatuan && !item.units.includes(item.fsatuan)) {
+                                item.units.unshift(item.fsatuan);
+                            }
                         }
                         const qty = +item.fqty || 0;
                         const price = +item.fprice || 0;
