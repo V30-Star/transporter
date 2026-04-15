@@ -141,12 +141,6 @@
 
                     {{-- PEMBUNGKUS TOMBOL: Agar Sejajar Horizontal --}}
                     <div class="flex flex-row space-x-4">
-                        <button type="button" onclick="showDeleteModal()"
-                            class="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700 flex items-center">
-                            <x-heroicon-o-trash class="w-5 h-5 mr-2" />
-                            Hapus
-                        </button>
-
                         <button type="button" onclick="window.location.href='{{ route('supplier.index') }}'"
                             class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
                             <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" />

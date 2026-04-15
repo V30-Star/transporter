@@ -3,7 +3,7 @@
 @section('title', 'Hapus Currency')
 
 @section('content')
-    <div class="bg-white rounded shadow p-6 md:p-8 max-w-[600px] mx-auto">
+    <div class="bg-white rounded shadow p-6 md:p-8 max-w-[700px] mx-auto">
         <div class="text-center mb-6">
             <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 mb-4">
                 <x-heroicon-o-trash class="w-8 h-8 text-red-600" />
@@ -65,34 +65,12 @@
             @endif
         </div>
 
-        @php
-            $hasRelatedData = \Illuminate\Support\Facades\DB::table('mscurrencydt')
-                ->where('fcurrid', $currency->fcurrid)
-                ->exists();
-        @endphp
-
-        @if($hasRelatedData)
-        <div class="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <div class="flex items-start">
-                <x-heroicon-o-exclamation-triangle class="w-5 h-5 text-red-500 mt-0.5 mr-3 flex-shrink-0" />
-                <div>
-                    <h4 class="text-sm font-semibold text-red-700">Currency Tidak Dapat Dihapus</h4>
-                    <ul class="mt-2 text-sm text-red-600 list-disc list-inside space-y-1">
-                        <li>Currency sudah digunakan dalam detail currency</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-        @endif
-
         <div class="mt-8 flex justify-center gap-4">
-            @if(!$hasRelatedData)
                 <button type="button" onclick="showDeleteModal()"
                     class="bg-red-600 text-white px-8 py-3 rounded-lg hover:bg-red-700 flex items-center font-medium">
                     <x-heroicon-o-trash class="w-5 h-5 mr-2" />
                     Ya, Hapus
                 </button>
-            @endif
             <a href="{{ route('currency.index') }}"
                 class="bg-gray-500 text-white px-8 py-3 rounded-lg hover:bg-gray-600 flex items-center font-medium">
                 <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" />
@@ -105,7 +83,6 @@
         </div>
     </div>
 
-    @if(!$hasRelatedData)
     <div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div class="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-100 bg-red-50">
@@ -232,5 +209,4 @@
             });
         }
     </script>
-    @endif
 @endsection

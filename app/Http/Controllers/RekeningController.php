@@ -124,13 +124,6 @@ class RekeningController extends Controller
         try {
             $rekening = Rekening::findOrFail($frekeningid);
 
-            if (\Illuminate\Support\Facades\DB::table('jurnaldt')->where('frekeningcode', $rekening->frekeningname)->exists()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Rekening sudah digunakan dalam transaksi jurnal.',
-                ], 422);
-            }
-
             $rekening->delete();
 
             return response()->json([

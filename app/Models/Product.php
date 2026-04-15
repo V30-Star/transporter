@@ -33,7 +33,7 @@ class Product extends Model
     }
     public function trPods()
     {
-        return $this->hasMany(Tr_pod::class, 'fprdcodeid', 'fprdid');
+        return $this->hasMany(Tr_pod::class, 'fprdid', 'fprdid');
     }
 
     public function trPrds()

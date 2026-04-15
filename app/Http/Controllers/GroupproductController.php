@@ -126,7 +126,7 @@ class GroupproductController extends Controller
         try {
             $groupproduct = Groupproduct::findOrFail($fgroupid);
 
-            if (\Illuminate\Support\Facades\DB::table('msprd')->where('fgroupprd', $groupproduct->fgroupid)->exists()) {
+            if (\Illuminate\Support\Facades\DB::table('msprd')->where('fgroupcode', $groupproduct->fgroupcode)->exists()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Group Product sudah digunakan dalam data Product.',

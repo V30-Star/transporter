@@ -366,56 +366,12 @@ class Tr_prhController extends Controller
                 'fminstock',
                 'fsatuankecil',
                 'fsatuanbesar',
-                'fqtykecil',     // rasio: 1 satuanbesar  = N satuankecil
+                'fqtykecil', 
                 'fsatuanbesar2',
-                'fqtykecil2',    // rasio: 1 satuanbesar2 = N satuankecil (varchar!)
+                'fqtykecil2',  
             )
             ->get()
             ->keyBy('fprdcode');
-
-        // ===== STOCK VALIDATION =====
-        $errors = new \Illuminate\Support\MessageBag();
-        foreach ($codes as $i => $codeRaw) {
-            $code = trim($codeRaw ?? '');
-            $sat  = trim($sats[$i] ?? '');
-            if ($code === '') continue;
-
-            $qty = is_numeric($qtys[$i] ?? null) ? (int) $qtys[$i] : 0;
-            if ($qty < 1) {
-                $errors->add("fqty.$i", 'Qty minimal 1.');  // ← ganti
-                continue;
-            }
-
-            $product      = $productMap[$code] ?? null;
-            $stokTersedia = $product ? (float) ($product->fminstock ?? 0) : 0;
-
-            $qtyKecil = $qty;
-            if ($product) {
-                if ($sat === $product->fsatuanbesar) {
-                    $rasio    = is_numeric($product->fqtykecil) ? (float) $product->fqtykecil : 1;
-                    $qtyKecil = $qty * $rasio;
-                } elseif (!empty($product->fsatuanbesar2) && $sat === $product->fsatuanbesar2) {
-                    $rasio2   = is_numeric($product->fqtykecil2) ? (float) $product->fqtykecil2 : 1;
-                    $qtyKecil = $qty * $rasio2;
-                }
-            }
-
-            if ($stokTersedia <= 0) {
-                $errors->add(
-                    "fqty.$i",
-                    "Produk \"$code\" tidak dapat dipesan karena stok habis atau minus. (Stok saat ini: $stokTersedia)"
-                );
-            } elseif ($qtyKecil > $stokTersedia) {
-                $errors->add(
-                    "fqty.$i",
-                    "Qty produk \"$code\" melebihi stok tersedia. (Diminta: $qtyKecil, Stok: $stokTersedia)"
-                );
-            }
-        }
-
-        if ($errors->isNotEmpty()) {
-            return back()->withErrors($errors)->withInput();
-        }
 
         // ===== CHECK DETAIL EXISTENCE =====
         $hasValidDetail = false;
@@ -524,16 +480,6 @@ class Tr_prhController extends Controller
             }
 
             Tr_prd::insert($detailRows);
-
-            // UPDATE STOK - gunakan qtyKecil hasil konversi, bukan qty mentah
-            foreach ($detailRows as $row) {
-                DB::table('msprd')
-                    ->where('fprdcode', $row['fprdcode'])
-                    ->update([
-                        'fminstock'  => DB::raw("CAST(fminstock AS NUMERIC) - " . $row['fqtyremain']),
-                        'fupdatedat' => now(),
-                    ]);
-            }
 
             // KIRIM EMAIL JIKA APPROVAL
             if ($isApproval === 1) {

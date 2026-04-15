@@ -104,6 +104,17 @@
                 @method('PATCH')
             @endif
 
+            @if ($errors->any())
+                <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">
+                    <p class="font-semibold mb-1">Tidak dapat menyimpan</p>
+                    <ul class="list-disc list-inside space-y-0.5">
+                        @foreach ($errors->all() as $err)
+                            <li>{{ $err }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             {{-- HEADER FORM --}}
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
 
@@ -302,7 +313,7 @@
                                                     :id="'unit_saved_' + i" x-model="it.fsatuan"
                                                     @focus="activeRow = it.uid" @blur="activeRow = null"
                                                     @keydown.enter.prevent="focusSavedQty(i)"
-                                                    @change="it.maxqty = calcMaxQty(it);">
+                                                    @change="it.maxqty = calcMaxQty(it); enforcePoQtyRow(it);">
                                                     <template x-for="u in it.units" :key="u">
                                                         <option :value="u" x-text="u"></option>
                                                     </template>
@@ -327,20 +338,21 @@
                                         @if ($action !== 'delete')
                                             <input type="number" class="border rounded px-2 py-1 w-20 text-right text-sm"
                                                 x-model.number="it.fqty" :id="'qty_saved_' + i"
-                                                @focus="activeRow = it.uid; $event.target.select()"
-                                                @blur="activeRow = null; enforceQtyRow(it);"
+                                                @focus="activeRow = it.uid; $event.target.select()" @blur="activeRow = null; enforcePoQtyRow(it);"
                                                 @input="
                                                     recalc(it);
-                                                    if (it.maxqty > 0 && it.fqty > it.maxqty) { it.fqty = it.maxqty; recalc(it); }
+                                                    const mx = calcMaxQty(it);
+                                                    if (it.frefdtid && mx > 0 && it.fqty > mx) { it.fqty = mx; recalc(it); }
                                                 "
                                                 @change="
                                                     recalc(it);
-                                                    if (it.maxqty > 0 && it.fqty > it.maxqty) { it.fqty = it.maxqty; recalc(it); }
+                                                    const mx = calcMaxQty(it);
+                                                    if (it.frefdtid && mx > 0 && it.fqty > mx) { it.fqty = mx; recalc(it); }
                                                 "
                                                 @keydown.enter.prevent="focusSavedPrice(i)">
-                                            <div class="text-[10px] text-orange-600 font-medium text-right mt-0.5"
-                                                x-show="it.fitemcode && productMeta(it.fitemcode).stock > 0"
-                                                x-html="formatStockLimit(it.fitemcode, it.fqty, it.fsatuan)">
+                                            <div class="text-[10px] text-amber-700 font-medium text-right mt-0.5"
+                                                x-show="it.frefdtid && calcMaxQty(it) > 0"
+                                                x-html="formatPoRemainHint(it)">
                                             </div>
                                         @else
                                             <span class="text-sm" x-text="it.fqty"></span>
@@ -445,11 +457,10 @@
                                     <td class="p-2 text-right">
                                         <input type="number" class="border rounded px-2 py-1 w-20 text-right text-sm"
                                             min="0" step="1" x-ref="draftQty" x-model.number="draft.fqty"
-                                            @input="recalc(draft)" @blur="enforceQtyRow(draft);"
-                                            @keydown.enter.prevent="$refs.draftPrice?.focus()">
-                                        <div class="text-[10px] text-orange-600 font-medium text-right mt-0.5"
-                                            x-show="draft.fitemcode && productMeta(draft.fitemcode).stock > 0"
-                                            x-html="formatStockLimit(draft.fitemcode, draft.fqty, draft.fsatuan)">
+                                            @input="recalc(draft)" @blur="enforcePoQtyRow(draft);" @keydown.enter.prevent="$refs.draftPrice?.focus()">
+                                        <div class="text-[10px] text-amber-700 font-medium text-right mt-0.5"
+                                            x-show="draft.frefdtid && calcMaxQty(draft) > 0"
+                                            x-html="formatPoRemainHint(draft)">
                                         </div>
                                     </td>
 
@@ -957,6 +968,7 @@
                     frefpr: '',
                     fprhid: '',
                     fprno: '',
+                    fpono: '',
                     fqty: 0,
                     fprice: 0,
                     ftotal: 0,
@@ -971,6 +983,10 @@
                     fqtykecil: 0,
                     fqtykecil2: 0,
                     maxqty_satuan: '',
+                    unit_ratios: { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 },
+                    frefdtid: '',
+                    fqtyremain: 0,
+                    fqtypo: 0,
                 };
             }
 
@@ -1045,70 +1061,25 @@
                     return meta;
                 },
 
-                formatStockLimit(code, qty, satuan) {
-                    const meta = this.productMeta(code);
-                    if (!code || !meta.stock) return '';
-
-                    const entered = Number(qty) || 0;
-                    const remaining = Math.max(0, meta.stock - entered);
-                    const units = meta.units || [];
-                    const ratios = meta.unit_ratios || {
-                        satuankecil: 1,
-                        satuanbesar: 1,
-                        satuanbesar2: 1
-                    };
-
-                    if (!units.length || !satuan) return '';
-
-                    const satKecil = units[0] || 'pcs';
-                    const satBesar = units[1] || '';
-                    const satBesar2 = units[2] || '';
-
-                    let ratio = 1;
-                    if (satuan === satBesar2 && ratios.satuanbesar2 > 0) {
-                        ratio = ratios.satuanbesar2;
-                    } else if (satuan === satBesar && ratios.satuanbesar > 0) {
-                        ratio = ratios.satuanbesar;
-                    } else if (satuan === satKecil) {
-                        ratio = 1;
-                    }
-
-                    const limitValue = Math.floor(remaining / ratio);
-                    return '<span class="font-medium">limit:</span> ' + limitValue + ' ' + satuan;
+                formatPoRemainHint(row) {
+                    if (!row || !row.frefdtid) return '';
+                    const max = this.calcMaxQty(row);
+                    if (!(max > 0)) return '';
+                    const sat = (row.fsatuan || '').trim() || 'satuan';
+                    return '<span class="font-medium">Sisa PO:</span> maks. ' + max + ' ' + sat;
                 },
 
-                enforceQtyRow(row) {
+                enforcePoQtyRow(row) {
                     const n = +row.fqty;
-                    const meta = this.productMeta(row.fitemcode);
-                    const units = meta?.units || [];
-                    const ratios = meta?.unit_ratios || {
-                        satuankecil: 1,
-                        satuanbesar: 1,
-                        satuanbesar2: 1
-                    };
-                    const satKecil = units[0] || 'pcs';
-                    const satBesar = units[1] || '';
-                    const satBesar2 = units[2] || '';
-                    const satuan = row.fsatuan || '';
-
-                    let ratio = 1;
-                    if (satuan === satBesar2 && ratios.satuanbesar2 > 0) {
-                        ratio = ratios.satuanbesar2;
-                    } else if (satuan === satBesar && ratios.satuanbesar > 0) {
-                        ratio = ratios.satuanbesar;
-                    }
-
-                    const maxStock = meta?.stock || 999999;
-                    const maxInUnit = Math.floor(maxStock / ratio);
-
                     if (!Number.isFinite(n)) {
                         row.fqty = 1;
                         return;
                     }
-                    if (n < 1) row.fqty = 1;
-                    if (maxInUnit > 0 && n > maxInUnit) {
-                        row.fqty = maxInUnit;
-                    }
+                    if (n < 0.001) row.fqty = 0.001;
+                    if (!row.frefdtid) return;
+                    const max = this.calcMaxQty(row);
+                    row.maxqty = max;
+                    if (max > 0 && n > max) row.fqty = max;
                 },
 
                 hydrateRowFromMeta(row, meta, keepMaxqty = false) {
@@ -1129,8 +1100,8 @@
                     row.units = units;
                     if (!currentSatuan) row.fsatuan = units[0] || '';
                     if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
-                    if (!keepMaxqty) row.maxqty = Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0;
-
+                    if (!keepMaxqty) row.maxqty = 0;
+                    
                     if (row === this.draft) {
                         if (units.length > 1) {
                             populateDraftUnitSelect(units);
@@ -1172,9 +1143,7 @@
                 },
 
                 calcMaxQty(row) {
-                    const qtyPR = row.fqtypr || 0;
-                    const fqtypo = row.fqtypo || 0;
-                    const satuanPR = (row.fqtypr_satuan || '').trim();
+                    const eq = (a, b) => (a || '').trim().toLowerCase() === (b || '').trim().toLowerCase();
                     const satuanPO = (row.fsatuan || '').trim();
                     const satKecil = (row.fsatuankecil || '').trim();
                     const satBesar = (row.fsatuanbesar || '').trim();
@@ -1182,21 +1151,21 @@
                     const rasio = Number(row.fqtykecil || 0);
                     const rasio2 = Number(row.fqtykecil2 || 0);
 
-                    if (!satuanPR || !qtyPR) return 0;
+                    const hasRemainField = row.fqtyremain !== undefined && row.fqtyremain !== null && row.fqtyremain !== '';
+                    if (!hasRemainField) return 0;
+                    const sisaKecil = Math.max(0, Number(row.fqtyremain) || 0);
 
-                    let qtyKecil = qtyPR;
-                    if (satuanPR === satBesar && rasio > 0) qtyKecil = qtyPR * rasio;
-                    else if (satuanPR === satBesar2 && rasio2 > 0) qtyKecil = qtyPR * rasio2;
-
-                    const sisaKecil = Math.max(0, qtyKecil - fqtypo);
-
-                    if (!satuanPO || satuanPO === satKecil) return sisaKecil;
-                    if (satuanPO === satBesar && rasio > 0) return Math.floor(sisaKecil / rasio);
-                    if (satuanPO === satBesar2 && rasio2 > 0) return Math.floor(sisaKecil / rasio2);
+                    if (!satuanPO || eq(satuanPO, satKecil)) return sisaKecil;
+                    if (eq(satuanPO, satBesar) && rasio > 0) return Math.floor(sisaKecil / rasio);
+                    if (eq(satuanPO, satBesar2) && rasio2 > 0) return Math.floor(sisaKecil / rasio2);
                     return sisaKecil;
                 },
 
                 isDupeItem(candidate) {
+                    const cPod = String(candidate.frefdtid ?? '').trim();
+                    if (cPod) {
+                        return this.savedItems.some(it => String(it.frefdtid ?? '').trim() === cPod);
+                    }
                     const cCode = (candidate.fitemcode || '').trim().toLowerCase();
                     const cSatuan = (candidate.fsatuan || '').trim().toLowerCase();
                     const cName = (candidate.fitemname || '').trim().toLowerCase();
@@ -1304,7 +1273,8 @@
                         const candidate = {
                             fitemcode: (src.fitemcode ?? '').trim(),
                             fitemname,
-                            fsatuan
+                            fsatuan,
+                            frefdtid: src.frefdtid ?? '',
                         };
                         if (this.isDupeItem(candidate)) {
                             skipped.push(src);
@@ -1327,11 +1297,10 @@
                             frefpr: String(header?.fprhid ?? src.fprhid ?? ''),
                             fprhid: String(src.fprhid ?? header?.fprhid ?? ''),
                             fprno: String(header?.fpono ?? src.fpono ?? ''),
-                            fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ?
-                                Number(src.fqty) : 1,
-                            fqtypo: Number(src.fqtypo ?? 0),
-                            fqtypr: Number(src.fqty ?? 0),
-                            fqtypr_satuan: (src.fsatuan ?? '').trim(),
+                            fpono: String(header?.fpono ?? src.fpono ?? ''),
+                            fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ? Number(src.fqty) : 1,
+                            fqtypo: 0,
+                            fqtyremain: Number(src.fqtyremain ?? src.maxqty ?? 0),
                             frefdtid: src.frefdtid ?? '',
                             fsatuankecil: src.fsatuankecil || meta?.fsatuankecil || '',
                             fsatuanbesar: src.fsatuanbesar || meta?.fsatuanbesar || '',
@@ -1361,7 +1330,9 @@
                 },
 
                 itemKey(it) {
-                    return `${(it.fitemcode??'').toString().trim()}::${(it.fsatuan??'').toString().trim()}`;
+                    const id = (it.frefdtid ?? '').toString().trim();
+                    if (id) return `pod:${id}`;
+                    return `manual:${(it.fitemcode??'').toString().trim()}::${(it.fsatuan??'').toString().trim()}`;
                 },
                 getCurrentItemKeys() {
                     return this.savedItems.map(it => this.itemKey(it));
@@ -1389,16 +1360,26 @@
                 },
 
                 init() {
-                    // ── Pastikan setiap savedItem punya uid + units + maxqty yang benar ──
                     this.savedItems = this.savedItems.map(it => {
                         const meta = this.productMeta(it.fitemcode);
-                        return {
+                        const units = (it.units && it.units.length) ? it.units : (meta ? [...new Set((meta.units || []).filter(Boolean))] : []);
+                        const fsatuankecil = it.fsatuankecil || meta?.fsatuankecil || '';
+                        const fsatuanbesar = it.fsatuanbesar || meta?.fsatuanbesar || '';
+                        const fsatuanbesar2 = it.fsatuanbesar2 || meta?.fsatuanbesar2 || '';
+                        const fqtykecil = Number(it.fqtykecil ?? meta?.fqtykecil ?? 0);
+                        const fqtykecil2 = Number(it.fqtykecil2 ?? meta?.fqtykecil2 ?? 0);
+                        const row = {
                             ...it,
                             uid: it.uid || cryptoRandom(),
-                            units: (it.units && it.units.length) ? it.units : (meta ? [...new Set((meta.units || [])
-                                .filter(Boolean))] : []),
-                            maxqty: meta ? (Number(meta.stock) || 0) : 0,
+                            units,
+                            fsatuankecil,
+                            fsatuanbesar,
+                            fsatuanbesar2,
+                            fqtykecil,
+                            fqtykecil2,
                         };
+                        row.maxqty = this.calcMaxQty(row);
+                        return row;
                     });
 
                     // ── Guard CURRENCY_MAP ──────────────────────────────────────
@@ -1454,6 +1435,8 @@
                     document.addEventListener('change', function(e) {
                         if (e.target && e.target.id === 'draftUnitSelect') {
                             self.draft.fsatuan = e.target.value;
+                            self.draft.maxqty = self.calcMaxQty(self.draft);
+                            self.enforcePoQtyRow(self.draft);
                         }
                     });
                 }

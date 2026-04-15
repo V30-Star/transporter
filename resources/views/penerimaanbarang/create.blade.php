@@ -100,6 +100,17 @@
             x-init="init()" @submit.prevent="submitForm($el)">
             @csrf
 
+            @if ($errors->any())
+                <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">
+                    <p class="font-semibold mb-1">Tidak dapat menyimpan</p>
+                    <ul class="list-disc list-inside space-y-0.5">
+                        @foreach ($errors->all() as $err)
+                            <li>{{ $err }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             {{-- HEADER FORM --}}
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
                 <div class="lg:col-span-4" x-data="{ autoCode: true }">
@@ -269,7 +280,7 @@
                                             <select class="w-full border rounded px-2 py-1 text-sm" :id="'unit_saved_' + i"
                                                 x-model="it.fsatuan" @focus="activeRow = it.uid" @blur="activeRow = null"
                                                 @keydown.enter.prevent="focusSavedQty(i)"
-                                                @change="it.maxqty = calcMaxQty(it);">
+                                                @change="it.maxqty = calcMaxQty(it); enforcePoQtyRow(it);">
                                                 <template x-for="u in it.units" :key="u">
                                                     <option :value="u" x-text="u"></option>
                                                 </template>
@@ -291,20 +302,19 @@
                                     <td class="p-2 text-right">
                                         <input type="number" class="border rounded px-2 py-1 w-20 text-right text-sm"
                                             x-model.number="it.fqty" :id="'qty_saved_' + i"
-                                            @focus="activeRow = it.uid; $event.target.select()"
-                                            @blur="activeRow = null; enforceQtyRow(it);"
+                                            @focus="activeRow = it.uid; $event.target.select()" @blur="activeRow = null; enforceQtyRow(it);"
                                             @input="
                                                 recalc(it);
-                                                if (it.maxqty > 0 && it.fqty > it.maxqty) { it.fqty = it.maxqty; recalc(it); }
+                                                const mx = calcMaxQty(it);
+                                                if (it.frefdtid && mx > 0 && it.fqty > mx) { it.fqty = mx; recalc(it); }
                                             "
                                             @change="
                                                 recalc(it);
-                                                if (it.maxqty > 0 && it.fqty > it.maxqty) { it.fqty = it.maxqty; recalc(it); }
+                                                const mx = calcMaxQty(it);
+                                                if (it.frefdtid && mx > 0 && it.fqty > mx) { it.fqty = mx; recalc(it); }
                                             "
                                             @keydown.enter.prevent="focusSavedPrice(i)">
-                                        <div class="text-[10px] text-orange-600 font-medium text-right mt-0.5"
-                                            x-show="it.fitemcode && productMeta(it.fitemcode).stock > 0"
-                                            x-html="formatStockLimit(it.fitemcode, it.fqty, it.fsatuan)">
+                                        <div class="text-[10px] text-orange-600 font-medium text-right mt-0.5" x-show="it.fitemcode && productMeta(it.fitemcode).stock > 0" x-html="formatStockLimit(it.fitemcode, it.fqty, it.fsatuan)">
                                         </div>
                                     </td>
 
@@ -873,6 +883,9 @@
                         satuanbesar2: 1
                     },
                     maxqty_satuan: '',
+                    frefdtid: '',
+                    fqtyremain: 0,
+                    fqtypo: 0,
                 };
             }
 
@@ -947,22 +960,18 @@
                 formatStockLimit(code, qty, satuan) {
                     const meta = this.productMeta(code);
                     if (!code || !meta.stock) return '';
-
+                    
                     const entered = Number(qty) || 0;
                     const remaining = Math.max(0, meta.stock - entered);
                     const units = meta.units || [];
-                    const ratios = meta.unit_ratios || {
-                        satuankecil: 1,
-                        satuanbesar: 1,
-                        satuanbesar2: 1
-                    };
-
+                    const ratios = meta.unit_ratios || { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 };
+                    
                     if (!units.length || !satuan) return '';
-
+                    
                     const satKecil = units[0] || 'pcs';
                     const satBesar = units[1] || '';
                     const satBesar2 = units[2] || '';
-
+                    
                     let ratio = 1;
                     if (satuan === satBesar2 && ratios.satuanbesar2 > 0) {
                         ratio = ratios.satuanbesar2;
@@ -971,43 +980,40 @@
                     } else if (satuan === satKecil) {
                         ratio = 1;
                     }
-
+                    
                     const limitValue = Math.floor(remaining / ratio);
                     return '<span class="font-medium">limit:</span> ' + limitValue + ' ' + satuan;
                 },
 
-                enforceQtyRow(row) {
+                enforcePoQtyRow(row) {
                     const n = +row.fqty;
                     const meta = this.productMeta(row.fitemcode);
                     const units = meta?.units || [];
-                    const ratios = meta?.unit_ratios || {
-                        satuankecil: 1,
-                        satuanbesar: 1,
-                        satuanbesar2: 1
-                    };
+                    const ratios = meta?.unit_ratios || { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 };
                     const satKecil = units[0] || 'pcs';
                     const satBesar = units[1] || '';
                     const satBesar2 = units[2] || '';
                     const satuan = row.fsatuan || '';
-
+                    
                     let ratio = 1;
                     if (satuan === satBesar2 && ratios.satuanbesar2 > 0) {
                         ratio = ratios.satuanbesar2;
                     } else if (satuan === satBesar && ratios.satuanbesar > 0) {
                         ratio = ratios.satuanbesar;
                     }
-
+                    
                     const maxStock = meta?.stock || 999999;
                     const maxInUnit = Math.floor(maxStock / ratio);
-
+                    
                     if (!Number.isFinite(n)) {
                         row.fqty = 1;
                         return;
                     }
-                    if (n < 1) row.fqty = 1;
-                    if (maxInUnit > 0 && n > maxInUnit) {
-                        row.fqty = maxInUnit;
-                    }
+                    if (n < 0.001) row.fqty = 0.001;
+                    if (!row.frefdtid) return;
+                    const max = this.calcMaxQty(row);
+                    row.maxqty = max;
+                    if (max > 0 && n > max) row.fqty = max;
                 },
 
                 hydrateRowFromMeta(row, meta, keepMaxqty = false) {
@@ -1029,7 +1035,7 @@
                     if (!currentSatuan) row.fsatuan = units[0] || '';
                     if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
                     if (!keepMaxqty) row.maxqty = Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0;
-
+                    
                     if (row === this.draft) {
                         if (units.length > 1) {
                             populateDraftUnitSelect(units);
@@ -1072,10 +1078,9 @@
                     return row.fitemcode && row.fitemname && row.fsatuan && Number(row.fqty) > 0;
                 },
 
+                // tr_pod.fqtyremain = satuan kecil; konversi ke satuan baris (pcs/ctn/coll)
                 calcMaxQty(row) {
-                    const qtyPR = row.fqtypr || 0;
-                    const fqtypo = row.fqtypo || 0;
-                    const satuanPR = (row.fqtypr_satuan || '').trim();
+                    const eq = (a, b) => (a || '').trim().toLowerCase() === (b || '').trim().toLowerCase();
                     const satuanPO = (row.fsatuan || '').trim();
                     const satKecil = (row.fsatuankecil || '').trim();
                     const satBesar = (row.fsatuanbesar || '').trim();
@@ -1083,22 +1088,25 @@
                     const rasio = Number(row.fqtykecil || 0);
                     const rasio2 = Number(row.fqtykecil2 || 0);
 
-                    if (!satuanPR || !qtyPR) return 0;
+                    const hasRemainField = row.fqtyremain !== undefined && row.fqtyremain !== null && row.fqtyremain !== '';
+                    let sisaKecil = 0;
+                    if (hasRemainField) {
+                        sisaKecil = Math.max(0, Number(row.fqtyremain) || 0);
+                    } else {
+                        return 0;
+                    }
 
-                    let qtyKecil = qtyPR;
-                    if (satuanPR === satBesar && rasio > 0) qtyKecil = qtyPR * rasio;
-                    else if (satuanPR === satBesar2 && rasio2 > 0) qtyKecil = qtyPR * rasio2;
-
-                    const qtyPoKecil = fqtypo;
-                    const sisaKecil = Math.max(0, qtyKecil - qtyPoKecil);
-
-                    if (!satuanPO || satuanPO === satKecil) return sisaKecil;
-                    if (satuanPO === satBesar && rasio > 0) return Math.floor(sisaKecil / rasio);
-                    if (satuanPO === satBesar2 && rasio2 > 0) return Math.floor(sisaKecil / rasio2);
+                    if (!satuanPO || eq(satuanPO, satKecil)) return sisaKecil;
+                    if (eq(satuanPO, satBesar) && rasio > 0) return Math.floor(sisaKecil / rasio);
+                    if (eq(satuanPO, satBesar2) && rasio2 > 0) return Math.floor(sisaKecil / rasio2);
                     return sisaKecil;
                 },
 
                 isDupeItem(candidate) {
+                    const cPod = String(candidate.frefdtid ?? '').trim();
+                    if (cPod) {
+                        return this.savedItems.some(it => String(it.frefdtid ?? '').trim() === cPod);
+                    }
                     const cCode = (candidate.fitemcode || '').trim().toLowerCase();
                     const cSatuan = (candidate.fsatuan || '').trim().toLowerCase();
                     const cName = (candidate.fitemname || '').trim().toLowerCase();
@@ -1207,7 +1215,8 @@
                         const candidate = {
                             fitemcode: (src.fitemcode ?? '').trim(),
                             fitemname,
-                            fsatuan
+                            fsatuan,
+                            frefdtid: src.frefdtid ?? '',
                         };
                         if (this.isDupeItem(candidate)) {
                             skipped.push(src);
@@ -1230,8 +1239,7 @@
                             frefpr: String(header?.fprhid ?? src.fprhid ?? ''),
                             fprhid: String(src.fprhid ?? header?.fprhid ?? ''),
                             fpono: String(header?.fpono ?? src.fpono ?? ''),
-                            fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ?
-                                Number(src.fqty) : 1,
+                            fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ? Number(src.fqty) : 1,
                             fqtypo: Number(src.fqtypo ?? 0),
                             fqtypr: Number(src.fqty ?? 0),
                             fqtypr_satuan: (src.fsatuan ?? '').trim(),
@@ -1265,7 +1273,9 @@
                 },
 
                 itemKey(it) {
-                    return `${(it.fitemcode??'').toString().trim()}::${(it.fsatuan??'').toString().trim()}`;
+                    const id = (it.frefdtid ?? '').toString().trim();
+                    if (id) return `pod:${id}`;
+                    return `manual:${(it.fitemcode??'').toString().trim()}::${(it.fsatuan??'').toString().trim()}`;
                 },
                 getCurrentItemKeys() {
                     return this.savedItems.map(it => this.itemKey(it));
@@ -1346,6 +1356,8 @@
                     document.addEventListener('change', function(e) {
                         if (e.target && e.target.id === 'draftUnitSelect') {
                             self.draft.fsatuan = e.target.value;
+                            self.draft.maxqty = self.calcMaxQty(self.draft);
+                            self.enforcePoQtyRow(self.draft);
                         }
                     });
                 }
@@ -1541,7 +1553,7 @@
                         const items = json.items || [];
                         const currentKeys = new Set((window.getCurrentItemKeys?.() || []).map(String));
                         const keyOf = (src) =>
-                            `${(src.fprdcode ?? '').toString().trim()}::${(src.frefdtno ?? '').toString().trim()}`;
+                            `pod:${(src.frefdtid ?? '').toString().trim()}`;
 
                         const duplicates = items.filter(src => currentKeys.has(keyOf(src)));
                         const uniques = items.filter(src => !currentKeys.has(keyOf(src)));

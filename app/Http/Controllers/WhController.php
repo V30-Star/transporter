@@ -172,7 +172,7 @@ class WhController extends Controller
         try {
             $gudang = Wh::findOrFail($fwhid);
 
-            if (\Illuminate\Support\Facades\DB::table('trstockhdr')->where('fwhid', $gudang->fwhid)->exists()) {
+            if (\Illuminate\Support\Facades\DB::table('trstockmt')->where('ffrom', $gudang->fwhid)->exists()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Gudang sudah digunakan dalam Transaksi Stok.',

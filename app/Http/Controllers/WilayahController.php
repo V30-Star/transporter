@@ -128,7 +128,7 @@ class WilayahController extends Controller
         try {
             $wilayah = Wilayah::findOrFail($fwilayahid);
 
-            if (\Illuminate\Support\Facades\DB::table('mscustomer')->where('fwilayahid', $wilayah->fwilayahid)->exists()) {
+            if (\Illuminate\Support\Facades\DB::table('mscustomer')->where('fwilayah', $wilayah->fwilayahid)->exists()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Wilayah sudah digunakan dalam data Customer.',
