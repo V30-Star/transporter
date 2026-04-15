@@ -221,7 +221,8 @@ class SalesOrderController extends Controller
                 'trsodt.fprdcode as fitemcode',  // Kode Produk (pake alias fitemcode buat frontend)
                 'm.fprdname as fitemname',       // Nama Produk dari master
                 'trsodt.fsatuan',                // Satuan
-                'trsodt.fqty',                   // Qty dari SO
+                DB::raw('COALESCE(trsodt.fqtyremain, 0) as fqty'), // default pakai sisa qty untuk Add SO
+                DB::raw('COALESCE(trsodt.fqtyremain, 0) as fqtyremain'),
                 'trsodt.fprice as fprice',       // Harga jual (alias fprice)
                 'trsodt.fprice as fharga',       // Legacy alias fharga
             ])
@@ -446,92 +447,6 @@ class SalesOrderController extends Controller
         $prices = $request->input('fprice', []);
         $discs = $request->input('fdisc', []);
         $descs = $request->input('fdesc', []);
-
-        // LOAD PRODUCT METADATA FOR STOCK VALIDATION
-        $uniqueCodes = array_values(array_unique(array_filter(array_map(fn($c) => trim((string)$c), $itemCodes))));
-        $prodMeta = DB::table('msprd')
-            ->whereIn('fprdcode', $uniqueCodes)
-            ->get(['fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2', 'fqtykecil', 'fqtykecil2', 'fminstock'])
-            ->keyBy('fprdcode');
-
-        // ===== STOCK VALIDATION =====
-        $errors = new \Illuminate\Support\MessageBag();
-        foreach ($itemCodes as $i => $codeRaw) {
-            $code = trim($codeRaw ?? '');
-            $sat  = trim($satuans[$i] ?? '');
-            if ($code === '') continue;
-
-            $qty = is_numeric($qtys[$i] ?? null) ? (int) $qtys[$i] : 0;
-            if ($qty < 1) {
-                $errors->add("fqty.$i", 'Qty minimal 1.');  // ← ganti
-                continue;
-            }
-
-            $product      = $productMap[$code] ?? null;
-            $stokTersedia = $product ? (float) ($product->fminstock ?? 0) : 0;
-
-            $qtyKecil = $qty;
-            if ($product) {
-                if ($sat === $product->fsatuanbesar) {
-                    $rasio    = is_numeric($product->fqtykecil) ? (float) $product->fqtykecil : 1;
-                    $qtyKecil = $qty * $rasio;
-                } elseif (!empty($product->fsatuanbesar2) && $sat === $product->fsatuanbesar2) {
-                    $rasio2   = is_numeric($product->fqtykecil2) ? (float) $product->fqtykecil2 : 1;
-                    $qtyKecil = $qty * $rasio2;
-                }
-            }
-
-            if ($stokTersedia <= 0) {
-                $errors->add(
-                    "fqty.$i",
-                    "Produk \"$code\" tidak dapat dipesan karena stok habis atau minus. (Stok saat ini: $stokTersedia)"
-                );
-            } elseif ($qtyKecil > $stokTersedia) {
-                $errors->add(
-                    "fqty.$i",
-                    "Qty produk \"$code\" melebihi stok tersedia. (Diminta: $qtyKecil, Stok: $stokTersedia)"
-                );
-            }
-        }
-
-        if ($errors->isNotEmpty()) {
-            return back()->withErrors($errors)->withInput();
-        }
-
-        // STOCK VALIDATION
-        $stockErrors = [];
-        foreach ($itemCodes as $i => $itemCode) {
-            $itemCode = trim((string)($itemCode ?? ''));
-            $qty = (float)($qtys[$i] ?? 0);
-            $satuan = trim((string)($satuans[$i] ?? ''));
-
-            if ($itemCode === '' || $qty <= 0) continue;
-
-            $meta = $prodMeta[$itemCode] ?? null;
-            if (!$meta) continue;
-
-            $stokTersedia = (float)($meta->fminstock ?? 0);
-            if ($stokTersedia <= 0) {
-                $stockErrors[] = "Produk [{$itemCode}] stok tidak tersedia (0).";
-                continue;
-            }
-
-            // Convert qty to smallest unit
-            $qtyKecil = $qty;
-            if ($satuan !== '' && $satuan === trim((string)($meta->fsatuanbesar ?? '')) && (float)($meta->fqtykecil ?? 0) > 0) {
-                $qtyKecil = $qty * (float)$meta->fqtykecil;
-            } elseif ($satuan !== '' && $satuan === trim((string)($meta->fsatuanbesar2 ?? '')) && (float)($meta->fqtykecil2 ?? 0) > 0) {
-                $qtyKecil = $qty * (float)$meta->fqtykecil2;
-            }
-
-            if ($qtyKecil > $stokTersedia) {
-                $stockErrors[] = "Produk [{$itemCode}]: Qty ({$qtyKecil} pcs) melebihi stok tersedia ({$stokTersedia} pcs).";
-            }
-        }
-
-        if (!empty($stockErrors)) {
-            return back()->withInput()->withErrors(['stock' => implode(' ', $stockErrors)]);
-        }
 
         // BUILD DETAIL ROWS
         $rowsSodt = [];
@@ -1086,50 +1001,6 @@ class SalesOrderController extends Controller
             count($descs),
             count($itemNames)
         );
-
-        // ===== STOCK VALIDATION =====
-        $errors = new \Illuminate\Support\MessageBag();
-        foreach ($itemCodes as $i => $codeRaw) {
-            $code = trim($codeRaw ?? '');
-            $sat  = trim($satuans[$i] ?? '');
-            if ($code === '') continue;
-
-            $qty = is_numeric($qtys[$i] ?? null) ? (int) $qtys[$i] : 0;
-            if ($qty < 1) {
-                $errors->add("fqty.$i", 'Qty minimal 1.');  // ← ganti
-                continue;
-            }
-
-            $product      = $productMap[$code] ?? null;
-            $stokTersedia = $product ? (float) ($product->fminstock ?? 0) : 0;
-
-            $qtyKecil = $qty;
-            if ($product) {
-                if ($sat === $product->fsatuanbesar) {
-                    $rasio    = is_numeric($product->fqtykecil) ? (float) $product->fqtykecil : 1;
-                    $qtyKecil = $qty * $rasio;
-                } elseif (!empty($product->fsatuanbesar2) && $sat === $product->fsatuanbesar2) {
-                    $rasio2   = is_numeric($product->fqtykecil2) ? (float) $product->fqtykecil2 : 1;
-                    $qtyKecil = $qty * $rasio2;
-                }
-            }
-
-            if ($stokTersedia <= 0) {
-                $errors->add(
-                    "fqty.$i",
-                    "Produk \"$code\" tidak dapat dipesan karena stok habis atau minus. (Stok saat ini: $stokTersedia)"
-                );
-            } elseif ($qtyKecil > $stokTersedia) {
-                $errors->add(
-                    "fqty.$i",
-                    "Qty produk \"$code\" melebihi stok tersedia. (Diminta: $qtyKecil, Stok: $stokTersedia)"
-                );
-            }
-        }
-
-        if ($errors->isNotEmpty()) {
-            return back()->withErrors($errors)->withInput();
-        }
 
         for ($i = 0; $i < $rowCount; $i++) {
             $itemeId = trim($itemId[$i] ?? '');

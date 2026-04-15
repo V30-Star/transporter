@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 // Pastikan ini ada jika menggunakan throw new \Exception
 use Illuminate\Support\Facades\DB; // sekalian biar aman untuk tanggal
+use Illuminate\Validation\ValidationException;
 
 class SuratJalanController extends Controller
 {
@@ -413,50 +414,6 @@ class SuratJalanController extends Controller
             array_filter(array_map(fn($c) => trim((string) $c), $codes))
         ));
 
-        // ===== STOCK VALIDATION =====
-        $errors = new \Illuminate\Support\MessageBag();
-        foreach ($codes as $i => $codeRaw) {
-            $code = trim($codeRaw ?? '');
-            $sat  = trim($sats[$i] ?? '');
-            if ($code === '') continue;
-
-            $qty = is_numeric($qtys[$i] ?? null) ? (int) $qtys[$i] : 0;
-            if ($qty < 1) {
-                $errors->add("fqty.$i", 'Qty minimal 1.');  // ← ganti
-                continue;
-            }
-
-            $product      = $productMap[$code] ?? null;
-            $stokTersedia = $product ? (float) ($product->fminstock ?? 0) : 0;
-
-            $qtyKecil = $qty;
-            if ($product) {
-                if ($sat === $product->fsatuanbesar) {
-                    $rasio    = is_numeric($product->fqtykecil) ? (float) $product->fqtykecil : 1;
-                    $qtyKecil = $qty * $rasio;
-                } elseif (!empty($product->fsatuanbesar2) && $sat === $product->fsatuanbesar2) {
-                    $rasio2   = is_numeric($product->fqtykecil2) ? (float) $product->fqtykecil2 : 1;
-                    $qtyKecil = $qty * $rasio2;
-                }
-            }
-
-            if ($stokTersedia <= 0) {
-                $errors->add(
-                    "fqty.$i",
-                    "Produk \"$code\" tidak dapat dipesan karena stok habis atau minus. (Stok saat ini: $stokTersedia)"
-                );
-            } elseif ($qtyKecil > $stokTersedia) {
-                $errors->add(
-                    "fqty.$i",
-                    "Qty produk \"$code\" melebihi stok tersedia. (Diminta: $qtyKecil, Stok: $stokTersedia)"
-                );
-            }
-        }
-
-        if ($errors->isNotEmpty()) {
-            return back()->withErrors($errors)->withInput();
-        }
-
         // =========================
         // 4) PRELOAD MASTER PRODUK
         // =========================
@@ -478,44 +435,6 @@ class SuratJalanController extends Controller
 
             return '';
         };
-
-        // =========================
-        // 5) VALIDASI STOK GUDANG
-        // =========================
-
-        $qtyInputPerKode = [];
-        for ($i = 0; $i < $rowCount; $i++) {
-            $code = trim((string) ($codes[$i] ?? ''));
-            $sat = trim((string) ($satuans[$i] ?? ''));
-            $qty = (float) ($qtys[$i] ?? 0);
-            if ($code === '' || $qty <= 0) {
-                continue;
-            }
-
-            $meta = $prodMeta[$code] ?? null;
-            $qtyKecil = $qty;
-            if ($meta && $sat !== '' && $sat === trim((string) ($meta->fsatuanbesar ?? '')) && (float) $meta->fqtykecil > 0) {
-                $qtyKecil = $qty * (float) $meta->fqtykecil;
-            }
-            $qtyInputPerKode[$code] = ($qtyInputPerKode[$code] ?? 0) + $qtyKecil;
-        }
-
-        $stockErrors = [];
-        foreach ($qtyInputPerKode as $code => $totalQtyInput) {
-            $meta = $prodMeta[$code] ?? null;
-            $stokTersedia = $meta ? (float) ($meta->fminstock ?? 0) : 0;
-
-            if (! $meta) {
-                $stockErrors[] = "Produk [{$code}] tidak ditemukan.";
-            } elseif ($stokTersedia > 0 && $totalQtyInput > $stokTersedia) {
-                $stockErrors[] = sprintf(
-                    'Produk [%s]: qty input (%.2f) melebihi stok tersedia (%.2f).',
-                    $code,
-                    $totalQtyInput,
-                    $stokTersedia
-                );
-            }
-        }
 
         // =========================
         // 6) RAKIT DETAIL + HITUNG SUBTOTAL
@@ -585,6 +504,36 @@ class SuratJalanController extends Controller
         }
 
         // =========================
+        // 6.5) VALIDASI QTY REMAIN SO
+        // =========================
+        $soUsageByDetailId = [];
+        foreach ($rowsDt as $row) {
+            $soDetailId = isset($row['frefsoid']) ? (int) $row['frefsoid'] : 0;
+            $qtyKecil = (float) ($row['fqtykecil'] ?? 0);
+            if ($soDetailId > 0 && $qtyKecil > 0) {
+                $soUsageByDetailId[$soDetailId] = ($soUsageByDetailId[$soDetailId] ?? 0) + $qtyKecil;
+            }
+        }
+
+        if (!empty($soUsageByDetailId)) {
+            $soRemainRows = DB::table('trsodt')
+                ->whereIn('ftrsodtid', array_keys($soUsageByDetailId))
+                ->pluck('fqtyremain', 'ftrsodtid');
+
+            $soRemainErrors = [];
+            foreach ($soUsageByDetailId as $soDetailId => $usedQtyKecil) {
+                $remain = (float) ($soRemainRows[$soDetailId] ?? 0);
+                if (abs($usedQtyKecil - $remain) > 0.00001) {
+                    $soRemainErrors[] = "Qty SO detail #{$soDetailId} harus sama dengan sisa (fqtyremain). Input: {$usedQtyKecil}, sisa: {$remain}.";
+                }
+            }
+
+            if (!empty($soRemainErrors)) {
+                throw ValidationException::withMessages(['detail' => $soRemainErrors]);
+            }
+        }
+
+        // =========================
         // 7) TRANSAKSI DB
         // =========================
         try {
@@ -602,7 +551,8 @@ class SuratJalanController extends Controller
                 &$fstockmtno,
                 &$rowsDt,
                 $subtotal,
-                $ppnAmount
+                $ppnAmount,
+                $soUsageByDetailId
             ) {
                 // ---- 7.1. kodeCabang ----
                 $kodeCabang = null;
@@ -699,6 +649,25 @@ class SuratJalanController extends Controller
                             'fminstock'  => DB::raw("CAST(fminstock AS NUMERIC) - " . $row['fqtyremain']),
                             'fupdatedat' => now(),
                         ]);
+                }
+
+                // Kurangi sisa qty SO (trsodt.fqtyremain) untuk item hasil Add SO
+                if (!empty($soUsageByDetailId)) {
+                    $lockedRemainRows = DB::table('trsodt')
+                        ->whereIn('ftrsodtid', array_keys($soUsageByDetailId))
+                        ->lockForUpdate()
+                        ->pluck('fqtyremain', 'ftrsodtid');
+
+                    foreach ($soUsageByDetailId as $soDetailId => $usedQtyKecil) {
+                        $remain = (float) ($lockedRemainRows[$soDetailId] ?? 0);
+                        if (abs($usedQtyKecil - $remain) > 0.00001) {
+                            throw new \RuntimeException("Qty SO detail #{$soDetailId} tidak sesuai sisa (fqtyremain).");
+                        }
+
+                        DB::table('trsodt')
+                            ->where('ftrsodtid', $soDetailId)
+                            ->update(['fqtyremain' => $remain - $usedQtyKecil]);
+                    }
                 }
 
                 // ---- 7.5. JURNAL ----
@@ -1110,54 +1079,25 @@ class SuratJalanController extends Controller
         $frefso = $request->input('frefso', []);
         $frefsoid = $request->input('frefsoid', []);
 
+        $oldSoUsageRows = DB::table('trstockdt')
+            ->where('fstockmtid', $header->fstockmtid)
+            ->whereNotNull('frefsoid')
+            ->select('frefsoid', DB::raw('SUM(COALESCE(fqtykecil, 0)) as used_qty_kecil'))
+            ->groupBy('frefsoid')
+            ->get();
+        $oldSoUsageByDetailId = [];
+        foreach ($oldSoUsageRows as $oldUsageRow) {
+            $detailId = (int) ($oldUsageRow->frefsoid ?? 0);
+            $qtyKecil = (float) ($oldUsageRow->used_qty_kecil ?? 0);
+            if ($detailId > 0 && $qtyKecil > 0) {
+                $oldSoUsageByDetailId[$detailId] = ($oldSoUsageByDetailId[$detailId] ?? 0) + $qtyKecil;
+            }
+        }
+
         $rowCount = count($codes);
         $uniqueCodes = array_values(array_unique(
             array_filter(array_map(fn($c) => trim((string) $c), $codes))
         ));
-
-        // ===== STOCK VALIDATION =====
-        $errors = new \Illuminate\Support\MessageBag();
-        foreach ($codes as $i => $codeRaw) {
-            $code = trim($codeRaw ?? '');
-            $sat  = trim($sats[$i] ?? '');
-            if ($code === '') continue;
-
-            $qty = is_numeric($qtys[$i] ?? null) ? (int) $qtys[$i] : 0;
-            if ($qty < 1) {
-                $errors->add("fqty.$i", 'Qty minimal 1.');  // ← ganti
-                continue;
-            }
-
-            $product      = $productMap[$code] ?? null;
-            $stokTersedia = $product ? (float) ($product->fminstock ?? 0) : 0;
-
-            $qtyKecil = $qty;
-            if ($product) {
-                if ($sat === $product->fsatuanbesar) {
-                    $rasio    = is_numeric($product->fqtykecil) ? (float) $product->fqtykecil : 1;
-                    $qtyKecil = $qty * $rasio;
-                } elseif (!empty($product->fsatuanbesar2) && $sat === $product->fsatuanbesar2) {
-                    $rasio2   = is_numeric($product->fqtykecil2) ? (float) $product->fqtykecil2 : 1;
-                    $qtyKecil = $qty * $rasio2;
-                }
-            }
-
-            if ($stokTersedia <= 0) {
-                $errors->add(
-                    "fqty.$i",
-                    "Produk \"$code\" tidak dapat dipesan karena stok habis atau minus. (Stok saat ini: $stokTersedia)"
-                );
-            } elseif ($qtyKecil > $stokTersedia) {
-                $errors->add(
-                    "fqty.$i",
-                    "Qty produk \"$code\" melebihi stok tersedia. (Diminta: $qtyKecil, Stok: $stokTersedia)"
-                );
-            }
-        }
-
-        if ($errors->isNotEmpty()) {
-            return back()->withErrors($errors)->withInput();
-        }
 
         // =========================
         // 4) PRELOAD MASTER PRODUK
@@ -1250,6 +1190,42 @@ class SuratJalanController extends Controller
         }
 
         // =========================
+        // 5.5) VALIDASI QTY REMAIN SO
+        // =========================
+        $soUsageByDetailId = [];
+        foreach ($rowsDt as $row) {
+            $soDetailId = isset($row['frefsoid']) ? (int) $row['frefsoid'] : 0;
+            $qtyKecil = (float) ($row['fqtykecil'] ?? 0);
+            if ($soDetailId > 0 && $qtyKecil > 0) {
+                $soUsageByDetailId[$soDetailId] = ($soUsageByDetailId[$soDetailId] ?? 0) + $qtyKecil;
+            }
+        }
+
+        $soIdsToCheck = array_values(array_unique(array_merge(
+            array_keys($soUsageByDetailId),
+            array_keys($oldSoUsageByDetailId)
+        )));
+
+        if (!empty($soIdsToCheck)) {
+            $soRemainRows = DB::table('trsodt')
+                ->whereIn('ftrsodtid', $soIdsToCheck)
+                ->pluck('fqtyremain', 'ftrsodtid');
+
+            $soRemainErrors = [];
+            foreach ($soUsageByDetailId as $soDetailId => $usedQtyKecil) {
+                $currentRemain = (float) ($soRemainRows[$soDetailId] ?? 0);
+                $restoredRemain = $currentRemain + (float) ($oldSoUsageByDetailId[$soDetailId] ?? 0);
+                if (abs($usedQtyKecil - $restoredRemain) > 0.00001) {
+                    $soRemainErrors[] = "Qty SO detail #{$soDetailId} harus sama dengan sisa (fqtyremain). Input: {$usedQtyKecil}, sisa: {$restoredRemain}.";
+                }
+            }
+
+            if (!empty($soRemainErrors)) {
+                throw ValidationException::withMessages(['detail' => $soRemainErrors]);
+            }
+        }
+
+        // =========================
         // 6) TRANSAKSI DB
         // =========================
         try {
@@ -1268,7 +1244,9 @@ class SuratJalanController extends Controller
                 $now,
                 &$rowsDt,
                 $subtotal,
-                $ppnAmount
+                $ppnAmount,
+                $oldSoUsageByDetailId,
+                $soUsageByDetailId
             ) {
                 // ---- 6.1. kodeCabang ----
                 $kodeCabang = $header->fbranchcode;
@@ -1337,6 +1315,34 @@ class SuratJalanController extends Controller
                             'fminstock'  => DB::raw("CAST(fminstock AS NUMERIC) - " . $row['fqtyremain']),
                             'fupdatedat' => now(),
                         ]);
+                }
+
+                // Kembalikan dulu pemakaian SO lama saat edit
+                foreach ($oldSoUsageByDetailId as $soDetailId => $oldQtyKecil) {
+                    DB::table('trsodt')
+                        ->where('ftrsodtid', $soDetailId)
+                        ->update([
+                            'fqtyremain' => DB::raw('COALESCE(fqtyremain,0) + ' . (float) $oldQtyKecil),
+                        ]);
+                }
+
+                // Kurangi kembali sesuai detail terbaru
+                if (!empty($soUsageByDetailId)) {
+                    $lockedRemainRows = DB::table('trsodt')
+                        ->whereIn('ftrsodtid', array_keys($soUsageByDetailId))
+                        ->lockForUpdate()
+                        ->pluck('fqtyremain', 'ftrsodtid');
+
+                    foreach ($soUsageByDetailId as $soDetailId => $usedQtyKecil) {
+                        $remain = (float) ($lockedRemainRows[$soDetailId] ?? 0);
+                        if (abs($usedQtyKecil - $remain) > 0.00001) {
+                            throw new \RuntimeException("Qty SO detail #{$soDetailId} tidak sesuai sisa (fqtyremain).");
+                        }
+
+                        DB::table('trsodt')
+                            ->where('ftrsodtid', $soDetailId)
+                            ->update(['fqtyremain' => $remain - $usedQtyKecil]);
+                    }
                 }
 
                 // ---- 6.4. JURNAL ----

@@ -334,7 +334,7 @@
                                                     @keydown.enter.prevent="$refs.editPrice?.focus()">
                                                 <div class="text-xs text-gray-400 mt-0.5 text-right">
                                                     <span x-show="editRow.fitemcode"
-                                                        x-html="formatStockLimit(editRow.fitemcode, editRow.fqty, editRow.fsatuan)"></span>
+                                                        x-html="formatStockLimit(editRow)"></span>
                                                 </div>
                                             </td>
                                         </tr>
@@ -585,7 +585,7 @@
                                                             @keydown.enter.prevent="$refs[`desc-${i}`]?.focus()">
                                                         <div class="text-xs text-gray-400 mt-0.5 text-right">
                                                             <span x-show="it.fitemcode"
-                                                                x-html="formatStockLimit(it.fitemcode, it.fqty, it.fsatuan)"></span>
+                                                                x-html="formatStockLimit(it)"></span>
                                                         </div>
                                                     </td>
                                                     <td class="p-2 text-center text-xs">
@@ -686,7 +686,7 @@
                                                         @keydown.enter.prevent="addIfComplete()">
                                                     <div class="text-xs text-gray-400 mt-0.5 text-right">
                                                         <span x-show="draft.fitemcode"
-                                                            x-html="formatStockLimit(draft.fitemcode, draft.fqty, draft.fsatuan)"></span>
+                                                            x-html="formatStockLimit(draft)"></span>
                                                     </div>
                                                 </td>
 
@@ -1694,12 +1694,12 @@
                 return meta;
             },
 
-            formatStockLimit(code, qty, satuan) {
-                const meta = this.productMeta(code);
-                if (!code || !meta.stock) return '';
+            formatStockLimit(row) {
+                if (!row?.fitemcode) return '';
+                const meta = this.productMeta(row.fitemcode);
+                const limitSource = Number(row.maxqty ?? 0);
+                if (!limitSource) return '';
 
-                const entered = Number(qty) || 0;
-                const remaining = Math.max(0, meta.stock - entered);
                 const units = meta.units || [];
                 const ratios = meta.unit_ratios || {
                     satuankecil: 1,
@@ -1707,6 +1707,7 @@
                     satuanbesar2: 1
                 };
 
+                const satuan = row.fsatuan || '';
                 if (!units.length || !satuan) return '';
 
                 const satKecil = units[0] || 'pcs';
@@ -1722,7 +1723,7 @@
                     ratio = 1;
                 }
 
-                const limitValue = Math.floor(remaining / ratio);
+                const limitValue = Math.floor(limitSource / ratio);
                 return '<span class="font-medium">limit:</span> ' + limitValue + ' ' + satuan;
             },
 
@@ -1747,7 +1748,7 @@
                     ratio = ratios.satuanbesar;
                 }
 
-                const maxStock = meta?.stock || 999999;
+                const maxStock = Number(row.maxqty ?? 0);
                 const maxInUnit = Math.floor(maxStock / ratio);
 
                 if (!Number.isFinite(n)) {
@@ -1777,8 +1778,8 @@
                 row.units = units;
                 if (!units.includes(row.fsatuan)) row.fsatuan = units[0] || '';
                 if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
-                const stock = Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0;
-                row.maxqty = stock;
+                const keepSoLimit = Number.isFinite(+row.maxqty) && +row.maxqty > 0 && Number(row.frefsoid) > 0;
+                row.maxqty = keepSoLimit ? +row.maxqty : 0;
                 row.frefdtno = meta.fprdid || 0;
 
                 if (row === this.draft) {
@@ -1861,7 +1862,7 @@
                         fketdt: src.fketdt ? src.fketdt.toString().trim() : '',
                         units: meta ? [...new Set((meta.units || []).map(u => (u ?? '').toString().trim())
                             .filter(Boolean))] : [satuan].filter(Boolean),
-                        maxqty: meta ? (Number(meta.stock) || 0) : 0,
+                        maxqty: Math.max(0, Number(src.fqtyremain ?? src.fqty ?? 0)),
                     };
 
                     row.ftotal = Number((row.fqty * row.fprice).toFixed(2));
@@ -2049,12 +2050,8 @@
                 window.getCurrentItemKeys = () => this.getCurrentItemKeys();
 
                 this.savedItems.forEach((item) => {
-                    const meta = this.productMeta(item.fitemcode);
-                    if (meta) {
-                        item.maxqty = Number(meta.stock) || 0;
-                    } else {
-                        item.maxqty = 0;
-                    }
+                    const soLimit = Number(item.maxqty ?? item.fqtyremain ?? 0);
+                    item.maxqty = Number(item.frefsoid) > 0 && soLimit > 0 ? soLimit : 0;
                 });
 
                 window.addEventListener('pr-picked', this.onPrPicked.bind(this), {
