@@ -524,6 +524,8 @@
                                                 <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
                                                 <input type="hidden" name="fitemname[]" :value="it.fitemname">
                                                 <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
+                                                <input type="hidden" name="frefdtid[]" :value="it.frefdtid">
+                                                <input type="hidden" name="fsource[]" :value="it.fsource">
                                                 <input type="hidden" name="fnouref[]" :value="it.fnouref">
                                                 <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
                                                 <input type="hidden" name="fqty[]" :value="it.fqty">
@@ -1242,6 +1244,8 @@
                                                     <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
                                                     <input type="hidden" name="fitemname[]" :value="it.fitemname">
                                                     <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
+                                                    <input type="hidden" name="frefdtid[]" :value="it.frefdtid">
+                                                    <input type="hidden" name="fsource[]" :value="it.fsource">
                                                     <input type="hidden" name="fnouref[]" :value="it.fnouref">
                                                     <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
                                                     <input type="hidden" name="fqty[]" :value="it.fqty">
@@ -2394,6 +2398,11 @@
                 },
 
                 enforceQtyRow(row) {
+                    if (row?.lockQty) {
+                        const lockedQty = Number(row.maxqty || 0);
+                        row.fqty = lockedQty;
+                        return;
+                    }
                     const n = +row.fqty;
                     const meta = this.productMeta(row.fitemcode);
                     const units = meta?.units || [];
@@ -2514,13 +2523,16 @@
                             fitemname: src.fitemname ?? '',
                             fsatuan: src.fsatuan ?? '',
                             frefdtno: frefdtnoVal,
+                            frefdtid: src.frefdtid ?? src.frefdtno ?? null,
+                            fsource: sourceType,
                             fnouref: fnourefVal,
                             frefpr: src.fnouref ?? fnourefVal,
 
                             // Data quantity
-                            fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ?
-                                Number(src.fqty) : 1,
-                            maxqty: Math.max(1, +src.fqty || 1),
+                            fqty: (src.fqtyremain !== null && src.fqtyremain !== undefined) ?
+                                Number(src.fqtyremain) : ((src.fqty !== null && src.fqty !== undefined) ? Number(src.fqty) : 0),
+                            maxqty: Math.max(0, +(src.fqtyremain ?? src.fqty) || 0),
+                            lockQty: false,
 
                             // Financial
                             fprice: +(src.fprice || 0),
@@ -2534,6 +2546,8 @@
                         };
 
                         this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                        row.maxqty = Math.max(0, +(src.fqtyremain ?? src.fqty) || 0);
+                        row.fqty = row.maxqty;
 
                         const key =
                             `${(row.fitemcode || '').toString().trim()}::${(row.frefdtno || '').toString().trim()}`;
@@ -2748,6 +2762,8 @@
                     units: [],
                     fsatuan: '',
                     frefdtno: '',
+                    frefdtid: '',
+                    fsource: '',
                     fnouref: '',
                     frefpr: '',
                     fqty: 0,
@@ -2759,6 +2775,7 @@
                     fdesc: '',
                     fketdt: '',
                     maxqty: 0,
+                    lockQty: false,
                 };
             }
 

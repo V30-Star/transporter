@@ -180,10 +180,12 @@ class FakturPembelianController extends Controller
     $items = Tr_pod::where('tr_pod.fpohid', $header->fpohid)
       ->leftJoin('msprd as m', 'm.fprdid', '=', 'tr_pod.fprdid')
       ->select([
+        'tr_pod.fpodid as frefdtid',
         'tr_pod.fpodid as frefdtno',
         'tr_pod.fprdcode as fitemcode',
         'm.fprdname as fitemname',
-        'tr_pod.fqty',
+        DB::raw('COALESCE(tr_pod.fqtyremain, tr_pod.fqty, 0) as fqty'),
+        DB::raw('COALESCE(tr_pod.fqtyremain, tr_pod.fqty, 0) as fqtyremain'),
         'tr_pod.fsatuan as fsatuan',
         'tr_pod.fprice',
         'tr_pod.fdisc',
@@ -266,10 +268,12 @@ class FakturPembelianController extends Controller
     $items = PenerimaanPembelianDetail::where('trstockdt.fstockmtid', $header->fstockmtid)
       ->leftJoin('msprd as m', 'm.fprdid', '=', 'trstockdt.fprdcodeid')
       ->select([
+        'trstockdt.fstockdtid as frefdtid',
         'trstockdt.fstockdtid as frefdtno',
         'trstockdt.fprdcode as fitemcode',
         'm.fprdname as fitemname',
-        'trstockdt.fqty',
+        DB::raw('COALESCE(trstockdt.fqtyremain, trstockdt.fqty, 0) as fqty'),
+        DB::raw('COALESCE(trstockdt.fqtyremain, trstockdt.fqty, 0) as fqtyremain'),
         'trstockdt.fsatuan as fsatuan',
         'trstockdt.fprice',
         'trstockdt.fdiscpersen',
@@ -289,6 +293,84 @@ class FakturPembelianController extends Controller
       ],
       'items'  => $items,
     ]);
+  }
+
+  private function getSourceRemain(string $sourceType, int $detailId): ?float
+  {
+    if ($sourceType === 'PO') {
+      $remain = DB::table('tr_pod')->where('fpodid', $detailId)->value('fqtyremain');
+      return $remain !== null ? (float) $remain : null;
+    }
+
+    if ($sourceType === 'PB') {
+      $remain = DB::table('trstockdt')->where('fstockdtid', $detailId)->value('fqtyremain');
+      return $remain !== null ? (float) $remain : null;
+    }
+
+    return null;
+  }
+
+  private function deductSourceRemain(string $sourceType, int $detailId, float $usedQty): void
+  {
+    $usedQty = max(0, $usedQty);
+
+    if ($sourceType === 'PO') {
+      DB::table('tr_pod')
+        ->where('fpodid', $detailId)
+        ->update([
+          'fqtyremain' => DB::raw("GREATEST(CAST(fqtyremain AS NUMERIC) - {$usedQty}, 0)"),
+        ]);
+      return;
+    }
+
+    if ($sourceType === 'PB') {
+      DB::table('trstockdt')
+        ->where('fstockdtid', $detailId)
+        ->update([
+          'fqtyremain' => DB::raw("GREATEST(CAST(fqtyremain AS NUMERIC) - {$usedQty}, 0)"),
+        ]);
+    }
+  }
+
+  private function validateSourceRemainForRows(array $codes, array $qtys, array $sources, array $refdtids): \Illuminate\Support\MessageBag
+  {
+    $errors = new \Illuminate\Support\MessageBag();
+    $tolerance = 0.00001;
+
+    foreach ($codes as $i => $codeRaw) {
+      $code = trim((string) ($codeRaw ?? ''));
+      if ($code === '') {
+        continue;
+      }
+
+      $sourceType = strtoupper(trim((string) ($sources[$i] ?? '')));
+      $detailId = (int) ($refdtids[$i] ?? 0);
+      $qty = (float) ($qtys[$i] ?? 0);
+
+      if (!in_array($sourceType, ['PO', 'PB'], true) || $detailId <= 0) {
+        continue;
+      }
+
+      if ($qty <= 0) {
+        $errors->add("fqty.$i", "Qty item {$code} harus lebih dari 0.");
+        continue;
+      }
+
+      $remain = $this->getSourceRemain($sourceType, $detailId);
+      if ($remain === null) {
+        $errors->add("fqty.$i", "Referensi {$sourceType} untuk item {$code} tidak ditemukan.");
+        continue;
+      }
+
+      if ($qty - $remain > $tolerance) {
+        $errors->add(
+          "fqty.$i",
+          "Qty item {$code} dari {$sourceType} tidak boleh melebihi Qty Remain referensi ({$remain})."
+        );
+      }
+    }
+
+    return $errors;
   }
 
   private function generatetr_poh_Code(?Carbon $onDate = null, $branch = null): string
@@ -479,6 +561,7 @@ class FakturPembelianController extends Controller
       $satuans = $request->input('fsatuan', []);
       $refdtnos = $request->input('frefdtno', []);
       $refdtids = $request->input('frefdtid', []);
+      $sources = $request->input('fsource', []);
       $qtys    = $request->input('fqty', []);
       $prices  = $request->input('fprice', []);
       $biayas  = $request->input('fbiaya', []);
@@ -490,49 +573,12 @@ class FakturPembelianController extends Controller
       $prodMeta    = DB::table('msprd')->whereIn('fprdcode', $uniqueCodes)->get()->keyBy('fprdcode');
 
       $rowsDt   = [];
+      $sourceRows = [];
       $subtotal = 0.0;
 
       $lineCounter = 1;
 
-      // ===== STOCK VALIDATION =====
-      $errors = new \Illuminate\Support\MessageBag();
-      foreach ($codes as $i => $codeRaw) {
-        $code = trim($codeRaw ?? '');
-        $sat  = trim($sats[$i] ?? '');
-        if ($code === '') continue;
-
-        $qty = is_numeric($qtys[$i] ?? null) ? (int) $qtys[$i] : 0;
-        if ($qty < 1) {
-          $errors->add("fqty.$i", 'Qty minimal 1.');  // ← ganti
-          continue;
-        }
-
-        $product      = $productMap[$code] ?? null;
-        $stokTersedia = $product ? (float) ($product->fminstock ?? 0) : 0;
-
-        $qtyKecil = $qty;
-        if ($product) {
-          if ($sat === $product->fsatuanbesar) {
-            $rasio    = is_numeric($product->fqtykecil) ? (float) $product->fqtykecil : 1;
-            $qtyKecil = $qty * $rasio;
-          } elseif (!empty($product->fsatuanbesar2) && $sat === $product->fsatuanbesar2) {
-            $rasio2   = is_numeric($product->fqtykecil2) ? (float) $product->fqtykecil2 : 1;
-            $qtyKecil = $qty * $rasio2;
-          }
-        }
-
-        if ($stokTersedia <= 0) {
-          $errors->add(
-            "fqty.$i",
-            "Produk \"$code\" tidak dapat dipesan karena stok habis atau minus. (Stok saat ini: $stokTersedia)"
-          );
-        } elseif ($qtyKecil > $stokTersedia) {
-          $errors->add(
-            "fqty.$i",
-            "Qty produk \"$code\" melebihi stok tersedia. (Diminta: $qtyKecil, Stok: $stokTersedia)"
-          );
-        }
-      }
+      $errors = $this->validateSourceRemainForRows($codes, $qtys, $sources, $refdtids);
 
       if ($errors->isNotEmpty()) {
         return back()->withErrors($errors)->withInput();
@@ -578,6 +624,12 @@ class FakturPembelianController extends Controller
           'fdiscpersen'  => (string)$discP,
           'fsatuan'      => $sat,
           'fclosedt'     => '0',
+        ];
+
+        $sourceRows[] = [
+          'source'  => strtoupper(trim((string)($sources[$i] ?? ''))),
+          'refdtid' => isset($refdtids[$i]) ? (int)$refdtids[$i] : 0,
+          'qty'     => $qty,
         ];
       }
 
@@ -678,6 +730,12 @@ class FakturPembelianController extends Controller
       });
 
       // UPDATE STOK - gunakan qtyKecil hasil konversi, bukan qty mentah
+      foreach ($sourceRows as $src) {
+        if (in_array($src['source'] ?? null, ['PO', 'PB'], true) && !empty($src['refdtid'])) {
+          $this->deductSourceRemain((string) $src['source'], (int) $src['refdtid'], (float) $src['qty']);
+        }
+      }
+
       foreach ($rowsDt as $row) {
         DB::table('msprd')
           ->where('fprdcode', $row['fprdcode'])
@@ -1026,6 +1084,8 @@ class FakturPembelianController extends Controller
       $codes = $request->input('fitemcode', []);
       $satuans = $request->input('fsatuan', []);
       $refdtno = $request->input('frefdtno', []);
+      $refdtids = $request->input('frefdtid', []);
+      $sources = $request->input('fsource', []);
       $qtys = $request->input('fqty', []);
       $prices = $request->input('fprice', []);
       $biayas = $request->input('fbiaya', []);
@@ -1041,48 +1101,11 @@ class FakturPembelianController extends Controller
 
       // BUILD DETAIL ROWS
       $rowsDt = [];
+      $sourceRows = [];
       $subtotal = 0.0;
       $rowCount = count($codes);
 
-      // ===== STOCK VALIDATION =====
-      $errors = new \Illuminate\Support\MessageBag();
-      foreach ($codes as $i => $codeRaw) {
-        $code = trim($codeRaw ?? '');
-        $sat  = trim($sats[$i] ?? '');
-        if ($code === '') continue;
-
-        $qty = is_numeric($qtys[$i] ?? null) ? (int) $qtys[$i] : 0;
-        if ($qty < 1) {
-          $errors->add("fqty.$i", 'Qty minimal 1.');  // ← ganti
-          continue;
-        }
-
-        $product      = $productMap[$code] ?? null;
-        $stokTersedia = $product ? (float) ($product->fminstock ?? 0) : 0;
-
-        $qtyKecil = $qty;
-        if ($product) {
-          if ($sat === $product->fsatuanbesar) {
-            $rasio    = is_numeric($product->fqtykecil) ? (float) $product->fqtykecil : 1;
-            $qtyKecil = $qty * $rasio;
-          } elseif (!empty($product->fsatuanbesar2) && $sat === $product->fsatuanbesar2) {
-            $rasio2   = is_numeric($product->fqtykecil2) ? (float) $product->fqtykecil2 : 1;
-            $qtyKecil = $qty * $rasio2;
-          }
-        }
-
-        if ($stokTersedia <= 0) {
-          $errors->add(
-            "fqty.$i",
-            "Produk \"$code\" tidak dapat dipesan karena stok habis atau minus. (Stok saat ini: $stokTersedia)"
-          );
-        } elseif ($qtyKecil > $stokTersedia) {
-          $errors->add(
-            "fqty.$i",
-            "Qty produk \"$code\" melebihi stok tersedia. (Diminta: $qtyKecil, Stok: $stokTersedia)"
-          );
-        }
-      }
+      $errors = $this->validateSourceRemainForRows($codes, $qtys, $sources, $refdtids);
 
       if ($errors->isNotEmpty()) {
         return back()->withErrors($errors)->withInput();
@@ -1115,13 +1138,11 @@ class FakturPembelianController extends Controller
         $amount = $qty * $priceNet;
         $subtotal += $amount;
 
-        $rnour = $nourefs[$i] ?? null;
-        $finalNour = is_numeric($rnour) ? (int)$rnour : null;
-
         $rowsDt[] = [
           'fprdcode'    => $code,
           'fprdcodeid'  => $meta->fprdid,
           'frefdtno'    => !empty($refdtno[$i]) ? $refdtno[$i] : null,
+          'frefdtid'    => isset($refdtids[$i]) ? (int)$refdtids[$i] : null,
           'fqty'        => $qty,
           'fqtyremain'  => $qtyKecil,
           'fprice'      => $price,
@@ -1138,6 +1159,12 @@ class FakturPembelianController extends Controller
           'fsatuan'     => $sat,
           'fqtykecil'   => $qtyKecil,
           'fclosedt'    => '0',
+        ];
+
+        $sourceRows[] = [
+          'source'  => strtoupper(trim((string)($sources[$i] ?? ''))),
+          'refdtid' => isset($refdtids[$i]) ? (int)$refdtids[$i] : 0,
+          'qty'     => $qty,
         ];
       }
 
@@ -1234,13 +1261,10 @@ class FakturPembelianController extends Controller
       });
 
       // UPDATE STOK - gunakan qtyKecil hasil konversi, bukan qty mentah
-      foreach ($rowsDt as $row) {
-        DB::table('msprd')
-          ->where('fprdcode', $row['fprdcode'])
-          ->update([
-            'fminstock'  => DB::raw("CAST(fminstock AS NUMERIC) - " . $row['fqtyremain']),
-            'fupdatedat' => now(),
-          ]);
+      foreach ($sourceRows as $src) {
+        if (in_array($src['source'] ?? null, ['PO', 'PB'], true) && !empty($src['refdtid'])) {
+          $this->deductSourceRemain((string) $src['source'], (int) $src['refdtid'], (float) $src['qty']);
+        }
       }
 
       return redirect()
