@@ -58,7 +58,9 @@ class Tr_pohController extends Controller
         ])
         ->leftJoin('mssupplier', 'tr_poh.fsupplier', '=', 'mssupplier.fsupplierid')
         ->leftJoin('tr_pod', 'tr_poh.fpohid', '=', 'tr_pod.fpohid')
-        ->leftJoin('tr_prd', 'tr_pod.frefdtid', '=', 'tr_prd.fprhid');
+        ->leftJoin('tr_prd', function ($join) {
+          $join->whereRaw('tr_prd.fprdid = CAST(tr_pod.frefdtid AS INTEGER)');
+        });
 
       $totalRecords = Tr_poh::count();
 
@@ -224,15 +226,12 @@ class Tr_pohController extends Controller
       ->leftJoin('msprd as m', 'm.fprdid', '=', 'd.fprdcodeid')
       ->leftJoin(DB::raw('(
             SELECT
-                frefdtid,
-                fprdcode,
+                CAST(frefdtid AS BIGINT) AS fprdlineid,
                 SUM(fqtykecil) AS fqtypo
             FROM tr_pod
-            GROUP BY frefdtid, fprdcode
-        ) as o'), function ($join) {
-        $join->on('o.frefdtid', '=', 'd.fprhid')
-          ->on('o.fprdcode', '=', 'm.fprdcode');
-      })
+            WHERE frefdtid IS NOT NULL
+            GROUP BY CAST(frefdtid AS BIGINT)
+        ) as o'), 'o.fprdlineid', '=', 'd.fprdid')
       ->where('d.fprhid', $fprhid)
       ->select([
         DB::raw('d.fprdcodeid::text as frefdtno'),
@@ -243,6 +242,7 @@ class Tr_pohController extends Controller
         'd.fdesc',
         'd.fketdt',
         'd.fprhid',
+        'd.fqtyremain',
         DB::raw('COALESCE(d.fprice, 0) as fprice'),
         DB::raw('0::numeric as fdisc'),
         DB::raw('d.fprhid::text as fnouref'),
@@ -252,13 +252,13 @@ class Tr_pohController extends Controller
         'm.fsatuanbesar2',
         'm.fqtykecil',
         'm.fqtykecil2',
-        DB::raw('COALESCE(o.fqtypo, 0) AS fqtypo'),  // ← qty yg sudah terpakai di PO lain
+        DB::raw('COALESCE(o.fqtypo, 0) AS fqtypo'),
       ])
       ->orderBy('d.fprdcodeid')
       ->get()
       ->map(function ($item) {
         $qty       = (float) $item->fqty;
-        $fqtypo    = (float) ($item->fqtypo ?? 0);   // ← sudah dalam satuan kecil
+        $fqtypo    = (float) ($item->fqtypo ?? 0);
         $satuan    = trim((string) $item->fsatuan);
         $satKecil  = trim((string) ($item->fsatuankecil  ?? ''));
         $satBesar  = trim((string) ($item->fsatuanbesar  ?? ''));
@@ -266,35 +266,27 @@ class Tr_pohController extends Controller
         $rasio     = (float) ($item->fqtykecil  ?? 0);
         $rasio2    = (float) ($item->fqtykecil2 ?? 0);
 
-        // Konversi qty PR ke satuan kecil
-        if ($satuan === $satBesar && $rasio > 0) {
-          $maxqtyKecil = $qty * $rasio;
-        } elseif ($satuan === $satBesar2 && $rasio2 > 0) {
-          $maxqtyKecil = $qty * $rasio2;
-        } else {
-          $maxqtyKecil = $qty;
-        }
-
-        // Sisa yang belum di-PO (dalam satuan kecil)
-        $sisaKecil = max(0, $maxqtyKecil - $fqtypo);
+        // Sisa dalam satuan kecil: gunakan kolom tr_prd.fqtyremain (dipelihara saat PO)
+        $sisaKecil = max(0, (float) ($item->fqtyremain ?? 0));
 
         return [
           'frefdtno'      => $item->frefdtno,
           'fitemcode'     => $item->fitemcode,
           'fitemname'     => $item->fitemname,
           'fqty'          => $qty,
-          'maxqty'        => $sisaKecil,     // ← sisa setelah dikurangi PO lain
+          'maxqty'        => $sisaKecil,
           'maxqty_satuan' => $satKecil,
           'fsatuan'       => $satuan,
-          'fdesc'         => $item->fdesc ?? '',    
-          'fketdt'        => $item->fketdt ?? '',   
+          'fdesc'         => $item->fdesc ?? '',
+          'fketdt'        => $item->fketdt ?? '',
           'fprhid'        => $item->fprhid,
           'fprice'        => (float) $item->fprice,
           'fdisc'         => 0,
           'fnouref'       => $item->fnouref,
           'frefdtid'      => $item->frefdtid,
-          'fqtypo'        => $fqtypo,        // ← kirim ke JS untuk calcMaxQty
-          'fqtypr'        => $qty,           // ← qty asli PR untuk referensi
+          'fqtypo'        => $fqtypo,
+          'fqtyremain'    => (float) ($item->fqtyremain ?? 0),
+          'fqtypr'        => $qty,
           'fsatuankecil'  => $satKecil,
           'fsatuanbesar'  => $satBesar,
           'fsatuanbesar2' => $satBesar2,
@@ -312,6 +304,92 @@ class Tr_pohController extends Controller
       ],
       'items' => $items,
     ]);
+  }
+
+  /**
+   * Konversi qty baris PO ke satuan kecil (sesuai logika PR).
+   */
+  private function qtyPoToKecil(?object $product, string $sat, float $qty): float
+  {
+    if (!$product) {
+      return $qty;
+    }
+    $sat = trim($sat);
+    $besar = trim((string) ($product->fsatuanbesar ?? ''));
+    $besar2 = trim((string) ($product->fsatuanbesar2 ?? ''));
+    $rasio = (float) ($product->fqtykecil ?? 0);
+    $rasio2 = (float) ($product->fqtykecil2 ?? 0);
+    if ($sat !== '' && $sat === $besar && $rasio > 0) {
+      return $qty * $rasio;
+    }
+    if ($sat !== '' && $sat === $besar2 && $rasio2 > 0) {
+      return $qty * $rasio2;
+    }
+
+    return $qty;
+  }
+
+  /**
+   * @param  array<int, array<string, mixed>>  $rowsPod
+   * @return array<int, float>
+   */
+  private function aggregatePrdUsageByPrd(array $rowsPod): array
+  {
+    $agg = [];
+    foreach ($rowsPod as $r) {
+      $fid = (int) ($r['frefdtid'] ?? 0);
+      if ($fid <= 0) {
+        continue;
+      }
+      $agg[$fid] = ($agg[$fid] ?? 0) + (float) ($r['fqtykecil'] ?? 0);
+    }
+
+    return $agg;
+  }
+
+  /**
+   * Kurangi tr_prd.fqtyremain per baris PR (satuan kecil), dengan kunci baris.
+   *
+   * @param  array<int, float>  $aggregateByPrd  fprdid => total fqtykecil
+   */
+  private function validateAndDeductPrdRemain(array $aggregateByPrd): void
+  {
+    foreach ($aggregateByPrd as $fprdid => $need) {
+      $fprdid = (int) $fprdid;
+      if ($fprdid <= 0 || $need <= 0) {
+        continue;
+      }
+      $row = DB::table('tr_prd')->where('fprdid', $fprdid)->lockForUpdate()->first();
+      if (!$row) {
+        throw new \RuntimeException('Baris detail PR tidak ditemukan.');
+      }
+      $remain = (float) ($row->fqtyremain ?? 0);
+      if ($need > $remain + 1e-4) {
+        throw new \RuntimeException('Qty PO melebihi sisa PR (fqtyremain). Tidak dapat menyimpan.');
+      }
+      $newRemain = max(0, round($remain - $need, 6));
+      DB::table('tr_prd')->where('fprdid', $fprdid)->update(['fqtyremain' => $newRemain]);
+    }
+  }
+
+  /**
+   * Kembalikan fqtyremain saat baris PO dihapus/diganti (nilai = fqtykecil yang pernah dipakai).
+   */
+  private function restorePrdRemainFromPodRows($pods): void
+  {
+    foreach ($pods as $pod) {
+      $fid = (int) ($pod->frefdtid ?? 0);
+      if ($fid <= 0) {
+        continue;
+      }
+      $q = (float) ($pod->fqtykecil ?? 0);
+      if ($q <= 0) {
+        continue;
+      }
+      DB::table('tr_prd')->where('fprdid', $fid)->update([
+        'fqtyremain' => DB::raw('COALESCE(fqtyremain,0) + ' . $q),
+      ]);
+    }
   }
 
   private function generatetr_poh_Code(?Carbon $onDate = null, $branch = null): string
@@ -545,7 +623,7 @@ class Tr_pohController extends Controller
     $codes   = $request->input('fitemcode', []);
     $satuans = $request->input('fsatuan', []);
     $refdtno = $request->input('frefdtno', []);
-    $fprhids = $request->input('fprhid', []);
+    $frefdtids = $request->input('frefdtid', []);
     $qtys    = $request->input('fqty', []);
     $prices  = $request->input('fprice', []);
     $discs   = $request->input('fdisc', []);
@@ -587,7 +665,7 @@ class Tr_pohController extends Controller
       $price  = (float)($prices[$i]  ?? 0);
       $discP  = (float)($discs[$i]   ?? 0);
       $desc   = (string)($descs[$i]  ?? '');
-      $fprhid_item = (int)($fprhids[$i] ?? 0);
+      $frefdtid = (int) ($frefdtids[$i] ?? 0);
 
       if ($code === '' || $qty <= 0) continue;
 
@@ -600,15 +678,10 @@ class Tr_pohController extends Controller
 
       $product = DB::table('msprd')
         ->where('fprdcode', $code)
-        ->select('fprdid', 'fprdcode', 'fsatuanbesar', 'fqtykecil as rasio_konversi')
+        ->select('fprdid', 'fprdcode', 'fsatuanbesar', 'fsatuanbesar2', 'fqtykecil', 'fqtykecil2')
         ->first();
 
-      $itemeId = $product ? $product->fprdid : $itemeId;
-
-      $qtyKecil = $qty;
-      if ($product && $sat === $product->fsatuanbesar) {
-        $qtyKecil = $qty * (float)$product->rasio_konversi;
-      }
+      $qtyKecil = $this->qtyPoToKecil($product, $sat, $qty);
 
       $priceGross = $price;
       $priceNet   = $priceGross * (1 - ($discP / 100));
@@ -634,7 +707,7 @@ class Tr_pohController extends Controller
         'fdesc'       => $desc,
         'fqtykecil'   => $qtyKecil,
         'fqtyremain'  => $qtyKecil,
-        'frefdtid'    => $fprhid_item ?: null,
+        'frefdtid'    => $frefdtid ?: null,
       ];
     }
 
@@ -642,8 +715,11 @@ class Tr_pohController extends Controller
       return back()->withInput()->withErrors(['detail' => 'Minimal satu item valid (Kode, Satuan, Qty > 0).']);
     }
 
+    $prdAgg = $this->aggregatePrdUsageByPrd($rowsPod);
+
     // TRANSACTION
     $fpono = null;
+    try {
     DB::transaction(function () use (
       $request,
       $fpodate,
@@ -657,8 +733,11 @@ class Tr_pohController extends Controller
       $totalHarga,
       $ppnAmount,
       $grandTotal,
+      $prdAgg,
       &$fpono
     ) {
+      $this->validateAndDeductPrdRemain($prdAgg);
+
       // Generate human code if not provided
       if (empty($fpohid)) {
         $rawBranch = $request->input('fbranchcode');
@@ -757,6 +836,9 @@ class Tr_pohController extends Controller
 
       DB::table('tr_pod')->insert($rowsPod);
     });
+    } catch (\RuntimeException $e) {
+      return back()->withInput()->withErrors(['detail' => $e->getMessage()]);
+    }
 
     return redirect()
       ->route('tr_poh.create')
@@ -815,8 +897,9 @@ class Tr_pohController extends Controller
           'm.fsatuanbesar2',
           'm.fqtykecil',
           'm.fqtykecil2',
-          DB::raw("COALESCE((SELECT fqty FROM tr_prd WHERE fprhid::text = tr_pod.frefdtid::text LIMIT 1), 0) as fqtypr"),
-          DB::raw("COALESCE((SELECT fsatuan FROM tr_prd WHERE fprhid::text = tr_pod.frefdtid::text LIMIT 1), '') as fqtypr_satuan"),
+          DB::raw("COALESCE((SELECT pr.fqty FROM tr_prd pr WHERE tr_pod.frefdtid IS NOT NULL AND pr.fprdid = CAST(tr_pod.frefdtid AS INTEGER) LIMIT 1), 0) as fqtypr"),
+          DB::raw("COALESCE((SELECT pr.fsatuan FROM tr_prd pr WHERE tr_pod.frefdtid IS NOT NULL AND pr.fprdid = CAST(tr_pod.frefdtid AS INTEGER) LIMIT 1), '') as fqtypr_satuan"),
+          DB::raw("COALESCE((SELECT pr.fqtyremain FROM tr_prd pr WHERE tr_pod.frefdtid IS NOT NULL AND pr.fprdid = CAST(tr_pod.frefdtid AS INTEGER) LIMIT 1), 0) as fqtyremain_pr"),
           DB::raw('COALESCE(r.total_terima, 0) AS fqtyterima'),
         );
     }])->findOrFail($fpohid);
@@ -880,7 +963,6 @@ class Tr_pohController extends Controller
 
     $savedItems = $tr_poh->details->map(function ($d) use ($products, $prQtyMap) {
       $qtyPR    = (float) $d->fqtypr;
-      $fqtypo    = (float) ($item->fqtypo ?? 0);   // ← sudah dalam satuan kecil
       $satPR    = trim((string) $d->fqtypr_satuan);
       $satKecil = trim((string) $d->fsatuankecil);
       $satBesar = trim((string) $d->fsatuanbesar);
@@ -890,16 +972,10 @@ class Tr_pohController extends Controller
 
       $prod  = $products->firstWhere('fprdcode', $d->fitemcode);
 
-      if ($satPR === $satBesar && $rasio > 0) {
-        $maxqtyKecil = $qtyPR * $rasio;
-      } elseif ($satPR === $satBesar2 && $rasio2 > 0) {
-        $maxqtyKecil = $qtyPR * $rasio2;
-      } else {
-        $maxqtyKecil = $qtyPR;
-      }
-
-      // Sisa yang belum di-PO (dalam satuan kecil)
-      $sisaKecil = max(0, $maxqtyKecil - $fqtypo);
+      // Sisa PR dalam satuan kecil dari tr_prd.fqtyremain (+ pemakaian baris PO ini saat edit)
+      $fqtyremainDb = (float) ($d->fqtyremain_pr ?? 0);
+      $qtyLineKecil = (float) ($d->fqtykecil ?? 0);
+      $sisaKecil = max(0, $fqtyremainDb + $qtyLineKecil);
 
       // Siapkan units untuk dropdown
       $units = array_values(array_filter(array_map('trim', [$satKecil, $satBesar, $satBesar2])));
@@ -944,6 +1020,7 @@ class Tr_pohController extends Controller
         'frefdtid'  => (string)($d->frefdtid ?? ''), // PASTIKAN INI ADA
         // Data konversi untuk JavaScript
         'fqtypo'    => (float)($d->fqtypo ?? 0),
+        'fqtyremain' => $sisaKecil,
         'fqtypr'        => $qtyPR,
         'fqtypr_satuan' => $satPR,
         'fsatuankecil'  => $satKecil,
@@ -1187,7 +1264,7 @@ class Tr_pohController extends Controller
 
       $product = DB::table('msprd')
         ->where('fprdcode', $code)
-        ->select('fprdid', 'fprdcode', 'fsatuanbesar', 'fqtykecil as rasio_konversi')
+        ->select('fprdid', 'fprdcode', 'fsatuanbesar', 'fsatuanbesar2', 'fqtykecil', 'fqtykecil2')
         ->first();
 
       if (!$product) continue;
@@ -1195,14 +1272,11 @@ class Tr_pohController extends Controller
       $productId = (int) $product->fprdid;
       if ($productId === 0) continue;
 
-      $qtyKecil = $qty;
-      if ($sat === $product->fsatuanbesar && (float)$product->rasio_konversi > 0) {
-        $qtyKecil = $qty * (float)$product->rasio_konversi;
-      }
-
       if ($sat === '') $sat = $pickDefaultSat($code);
       $sat = mb_substr($sat, 0, 20);
       if ($sat === '') continue;
+
+      $qtyKecil = $this->qtyPoToKecil($product, $sat, $qty);
 
       $priceGross = $price;
       $priceNet   = $priceGross * (1 - ($discP / 100));
@@ -1237,6 +1311,9 @@ class Tr_pohController extends Controller
       ]);
     }
 
+    $prdAgg = $this->aggregatePrdUsageByPrd($rowsPod);
+    $oldPods = DB::table('tr_pod')->where('fpohid', $fponoId)->get(['frefdtid', 'fqtykecil']);
+
     $ppnAmount  = $fincludeppn ? round($totalHarga * ($ppnRate / 100), 2) : 0.0;
     $grandTotal = round($totalHarga + $ppnAmount, 2);
 
@@ -1254,8 +1331,13 @@ class Tr_pohController extends Controller
         $totalHarga,
         $ppnAmount,
         $grandTotal,
-        $fincludeppn
+        $fincludeppn,
+        $oldPods,
+        $prdAgg
       ) {
+        $this->restorePrdRemainFromPodRows($oldPods);
+        $this->validateAndDeductPrdRemain($prdAgg);
+
         $fpohid = DB::table('tr_poh')
           ->where('fpohid', $fponoId)
           ->update([
@@ -1289,6 +1371,8 @@ class Tr_pohController extends Controller
 
         DB::table('tr_pod')->insert($rowsPod);
       });
+    } catch (\RuntimeException $e) {
+      return back()->withInput()->withErrors(['detail' => $e->getMessage()]);
     } catch (\Throwable $e) {
       return back()->withInput()->with('error', 'Gagal menyimpan: ' . $e->getMessage());
     }
@@ -1350,8 +1434,9 @@ class Tr_pohController extends Controller
           'm.fsatuanbesar2',
           'm.fqtykecil',
           'm.fqtykecil2',
-          DB::raw("COALESCE((SELECT fqty FROM tr_prd WHERE fprhid::text = tr_pod.frefdtid::text LIMIT 1), 0) as fqtypr"),
-          DB::raw("COALESCE((SELECT fsatuan FROM tr_prd WHERE fprhid::text = tr_pod.frefdtid::text LIMIT 1), '') as fqtypr_satuan"),
+          DB::raw("COALESCE((SELECT pr.fqty FROM tr_prd pr WHERE tr_pod.frefdtid IS NOT NULL AND pr.fprdid = CAST(tr_pod.frefdtid AS INTEGER) LIMIT 1), 0) as fqtypr"),
+          DB::raw("COALESCE((SELECT pr.fsatuan FROM tr_prd pr WHERE tr_pod.frefdtid IS NOT NULL AND pr.fprdid = CAST(tr_pod.frefdtid AS INTEGER) LIMIT 1), '') as fqtypr_satuan"),
+          DB::raw("COALESCE((SELECT pr.fqtyremain FROM tr_prd pr WHERE tr_pod.frefdtid IS NOT NULL AND pr.fprdid = CAST(tr_pod.frefdtid AS INTEGER) LIMIT 1), 0) as fqtyremain_pr"),
           DB::raw('COALESCE(r.total_terima, 0) AS fqtyterima'),
         );
     }])->findOrFail($fpohid);
@@ -1474,9 +1559,9 @@ class Tr_pohController extends Controller
       }
 
       DB::transaction(function () use ($tr_poh) {
-        // Hapus detailnya dulu
+        $oldPods = DB::table('tr_pod')->where('fpohid', $tr_poh->fpohid)->get(['frefdtid', 'fqtykecil']);
+        $this->restorePrdRemainFromPodRows($oldPods);
         $tr_poh->details()->delete();
-        // Baru hapus induknya
         $tr_poh->delete();
       });
 

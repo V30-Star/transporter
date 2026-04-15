@@ -1094,10 +1094,10 @@
                 return row.fitemcode && row.fitemname && row.fsatuan && Number(row.fqty) > 0;
             },
 
-            // Hitung maxqty dalam satuan yang dipilih di PO berdasarkan konversi dari PR
+            // Hitung maxqty dalam satuan yang dipilih di PO (sisa dari tr_prd.fqtyremain, satuan kecil)
             calcMaxQty(row) {
                 const qtyPR = row.fqtypr || 0;
-                const fqtypo = row.fqtypo || 0; // ← qty yg sudah di-PO lain
+                const fqtypo = row.fqtypo || 0;
                 const satuanPR = (row.fqtypr_satuan || '').trim();
                 const satuanPO = (row.fsatuan || '').trim();
                 const satKecil = (row.fsatuankecil || '').trim();
@@ -1108,21 +1108,18 @@
 
                 if (!satuanPR || !qtyPR) return 0;
 
-                // Step 1: konversi qty PR ke satuan kecil
-                let qtyKecil = qtyPR;
+                let qtyPRInKecil = qtyPR;
                 if (satuanPR === satBesar && rasio > 0) {
-                    qtyKecil = qtyPR * rasio;
+                    qtyPRInKecil = qtyPR * rasio;
                 } else if (satuanPR === satBesar2 && rasio2 > 0) {
-                    qtyKecil = qtyPR * rasio2;
+                    qtyPRInKecil = qtyPR * rasio2;
                 }
 
-                // Step 2: konversi fqtypo ke satuan kecil (fqtypo sudah dalam satuan kecil dari DB)
-                const qtyPoKecil = fqtypo; // SUM(fqtykecil) → sudah satuan kecil
+                const hasRemain = row.fqtyremain !== undefined && row.fqtyremain !== null && row.fqtyremain !== '';
+                const sisaKecil = hasRemain
+                    ? Math.max(0, Number(row.fqtyremain) || 0)
+                    : Math.max(0, qtyPRInKecil - fqtypo);
 
-                // Step 3: sisa qty yang belum di-PO (dalam satuan kecil)
-                const sisaKecil = Math.max(0, qtyKecil - qtyPoKecil);
-
-                // Step 4: konversi sisa ke satuan yang dipilih di PO
                 if (!satuanPO || satuanPO === satKecil) {
                     return sisaKecil;
                 } else if (satuanPO === satBesar && rasio > 0) {
@@ -1258,7 +1255,8 @@
                         fprhid: String(src.fprhid ?? header?.fprhid ?? ''),
                         fprno: String(header?.fprno ?? src.fprno ?? ''),
                         fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ? Number(src.fqty) : 1,
-                        fqtypo: Number(src.fqtypo ?? 0), // ← TAMBAH INI
+                        fqtypo: Number(src.fqtypo ?? 0),
+                        fqtyremain: Number(src.fqtyremain ?? 0),
                         fqtypr: Number(src.fqty ?? 0),
                         fqtypr_satuan: (src.fsatuan ?? '').trim(),
                         frefdtid: src.frefdtid ?? '',

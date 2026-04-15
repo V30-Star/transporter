@@ -1314,39 +1314,40 @@
                 return row.fitemcode && row.fitemname && row.fsatuan && Number(row.fqty) > 0;
             },
 
-            // Hitung maxqty dalam satuan yang dipilih di PO berdasarkan konversi dari PR
             calcMaxQty(row) {
-                // 1. Ambil data dasar
                 const qtyPR = parseFloat(row.fqtypr) || 0;
+                const fqtypo = parseFloat(row.fqtypo) || 0;
                 const satuanPR = (row.fqtypr_satuan || '').trim();
                 const satuanPO = (row.fsatuan || '').trim();
-
                 const satKecil = (row.fsatuankecil || '').trim();
                 const satBesar = (row.fsatuanbesar || '').trim();
                 const satBesar2 = (row.fsatuanbesar2 || '').trim();
                 const rasio = parseFloat(row.fqtykecil) || 0;
                 const rasio2 = parseFloat(row.fqtykecil2) || 0;
 
-                // Jika tidak ada referensi PR, maka tidak ada batas (kembalikan 0 atau angka sangat besar)
                 if (!satuanPR || qtyPR <= 0) return 0;
 
-                // Step 1: Konversi Qty PR ke Satuan Terkecil (Base Unit)
-                let qtyDalamKecil = qtyPR;
+                let qtyPRInKecil = qtyPR;
                 if (satuanPR === satBesar && rasio > 0) {
-                    qtyDalamKecil = qtyPR * rasio;
+                    qtyPRInKecil = qtyPR * rasio;
                 } else if (satuanPR === satBesar2 && rasio2 > 0) {
-                    qtyDalamKecil = qtyPR * rasio2;
+                    qtyPRInKecil = qtyPR * rasio2;
                 }
 
-                // Step 2: Konversi dari Satuan Terkecil ke Satuan yang sedang dipilih di baris PO
-                if (satuanPO === satBesar && rasio > 0) {
-                    return Math.floor(qtyDalamKecil / rasio);
+                const hasRemain = row.fqtyremain !== undefined && row.fqtyremain !== null && row.fqtyremain !== '';
+                const sisaKecil = hasRemain
+                    ? Math.max(0, parseFloat(row.fqtyremain) || 0)
+                    : Math.max(0, qtyPRInKecil - fqtypo);
+
+                if (!satuanPO || satuanPO === satKecil) {
+                    return sisaKecil;
+                } else if (satuanPO === satBesar && rasio > 0) {
+                    return Math.floor(sisaKecil / rasio);
                 } else if (satuanPO === satBesar2 && rasio2 > 0) {
-                    return Math.floor(qtyDalamKecil / rasio2);
+                    return Math.floor(sisaKecil / rasio2);
                 }
 
-                // Default / Jika pilih satuan kecil
-                return qtyDalamKecil;
+                return sisaKecil;
             },
 
             focusSavedUnit(item, i) {
@@ -1459,6 +1460,8 @@
                         fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ?
                             Number(src.fqty) : 1,
                         frefdtid: src.frefdtid ?? '',
+                        fqtypo: Number(src.fqtypo ?? 0),
+                        fqtyremain: Number(src.fqtyremain ?? 0),
                         fqtypr: Number(src.fqty ?? 0),
                         fqtypr_satuan: (src.fsatuan ?? '').trim(),
                         fsatuankecil,
