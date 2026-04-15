@@ -3,7 +3,7 @@
 @section('title', 'Hapus Gudang')
 
 @section('content')
-    <div class="bg-white rounded shadow p-6 md:p-8 max-w-[600px] mx-auto">
+    <div class="bg-white rounded shadow p-6 md:p-8 max-w-[700px] mx-auto">
         <div class="text-center mb-6">
             <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 mb-4">
                 <x-heroicon-o-trash class="w-8 h-8 text-red-600" />
@@ -75,8 +75,8 @@
         </div>
 
         @php
-            $hasRelatedData = \Illuminate\Support\Facades\DB::table('trstockhdr')
-                ->where('fwhid', $gudang->fwhid)
+            $hasRelatedData = \Illuminate\Support\Facades\DB::table('trstockmt')
+                ->where('ffrom', $gudang->fwhid)
                 ->exists();
         @endphp
 

@@ -124,7 +124,7 @@ class GroupcustomerController extends Controller
         try {
             $groupcustomer = Groupcustomer::findOrFail($fgroupid);
 
-            if (\Illuminate\Support\Facades\DB::table('mscustomer')->where('fgroupcustid', $groupcustomer->fgroupid)->exists()) {
+            if (\Illuminate\Support\Facades\DB::table('mscustomer')->where('fgroup', $groupcustomer->fgroupid)->exists()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Group Customer sudah digunakan dalam data Customer.',

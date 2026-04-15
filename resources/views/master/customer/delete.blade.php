@@ -102,8 +102,8 @@
         </div>
 
         @php
-            $hasRelatedData = \Illuminate\Support\Facades\DB::table('trsoh')
-                ->where('fcustomerid', $customer->fcustomerid)
+            $hasRelatedData = \Illuminate\Support\Facades\DB::table('trsomt')
+                ->where('fcustno', $customer->fcustomerid)
                 ->exists();
         @endphp
 

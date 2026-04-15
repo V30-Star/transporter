@@ -174,7 +174,7 @@ class SupplierController extends Controller
         try {
             $supplier = Supplier::findOrFail($fsupplierid);
 
-            if (\Illuminate\Support\Facades\DB::table('trpod')->where('fsupplierid', $supplier->fsupplierid)->exists()) {
+            if (\Illuminate\Support\Facades\DB::table('tr_poh')->where('fsupplier', $supplier->fsupplierid)->exists()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Supplier sudah digunakan dalam data PO (Purchase Order).',

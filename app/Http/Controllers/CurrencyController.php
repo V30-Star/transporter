@@ -133,7 +133,7 @@ class CurrencyController extends Controller
         try {
             $currency = Currency::findOrFail($fcurrid);
 
-            if (\Illuminate\Support\Facades\DB::table('mscurrencydt')->where('fcurrid', $currency->fcurrid)->exists()) {
+            if (\Illuminate\Support\Facades\DB::table('mscurrency')->where('fcurrid', $currency->fcurrid)->exists()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Currency sudah digunakan dalam detail currency.',

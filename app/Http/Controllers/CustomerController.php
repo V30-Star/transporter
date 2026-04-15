@@ -409,7 +409,7 @@ class CustomerController extends Controller
         try {
             $customer = Customer::findOrFail($fcustomerid);
 
-            if (\Illuminate\Support\Facades\DB::table('trsoh')->where('fcustomerid', $customer->fcustomerid)->exists()) {
+            if (\Illuminate\Support\Facades\DB::table('trsomt')->where('fcustno', $customer->fcustomerid)->exists()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Customer sudah digunakan dalam transaksi Sales Order.',

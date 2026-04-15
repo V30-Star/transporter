@@ -133,7 +133,7 @@ class SalesmanController extends Controller
         try {
             $salesman = Salesman::findOrFail($fsalesmanid);
 
-            if (\Illuminate\Support\Facades\DB::table('mscustomer')->where('fsalesmanid', $salesman->fsalesmanid)->exists()) {
+            if (\Illuminate\Support\Facades\DB::table('mscustomer')->where('fsalesman', $salesman->fsalesmanid)->exists()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Salesman sudah digunakan dalam data Customer.',

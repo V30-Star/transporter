@@ -104,8 +104,8 @@
         </div>
 
         @php
-            $hasRelatedData = \Illuminate\Support\Facades\DB::table('trpod')
-                ->where('fsupplierid', $supplier->fsupplierid)
+            $hasRelatedData = \Illuminate\Support\Facades\DB::table('tr_poh')
+                ->where('fsupplier', $supplier->fsupplierid)
                 ->exists();
         @endphp
 
