@@ -176,18 +176,17 @@ class PenerimaanBarangController extends Controller
       return response()->json(['message' => 'PO tidak ditemukan'], 404);
     }
 
-    // Ambil items dari tr_pod + join msprd, sertakan qty sisa (fqtyremain) sbg max qty
+    // Items PO: fqtyremain di tr_pod = satuan kecil; unit & rasio dari msprd untuk UI
     $items = DB::table('tr_pod')
       ->where('tr_pod.fpohid', $header->fpohid)
       ->leftJoin('msprd as m', 'm.fprdid', '=', 'tr_pod.fprdid')
       ->select([
-        'tr_pod.fpodid as frefdtid',          // ID detail PO (integer) → frefdtid
-        'tr_pod.fpodid as frefdtno_raw',      // Akan kita cast ke string untuk frefdtno
-        'm.fprdid as fprdcodeid',             // ID produk (integer) → fprdcodeid
-        'm.fprdcode as fitemcode',            // Kode produk string → fprdcode (varchar)
+        'tr_pod.fpodid as frefdtid',
+        'm.fprdid as fprdcodeid',
+        'm.fprdcode as fitemcode',
         'm.fprdname as fitemname',
         'tr_pod.fqty',
-        'tr_pod.fqtyremain',                  // Max qty yang boleh diterima
+        'tr_pod.fqtyremain',
         'tr_pod.fsatuan as fsatuan',
         'tr_pod.fpohid',
         'tr_pod.fprice as fprice',
@@ -195,16 +194,21 @@ class PenerimaanBarangController extends Controller
         'tr_pod.famount as ftotal',
         'tr_pod.fdesc as fdesc',
         'tr_pod.frefdtno',
+        'm.fsatuankecil',
+        'm.fsatuanbesar',
+        'm.fsatuanbesar2',
+        'm.fqtykecil',
+        'm.fqtykecil2',
         DB::raw('0::numeric as fterima'),
       ])
       ->orderBy('tr_pod.fnou')
       ->get()
       ->map(function ($item) {
-        // frefdtno sebagai varchar (string dari ID PO detail)
-        $item->frefdtno     = (string) $item->frefdtid;
-        $item->frefdtno_raw = null; // cleanup
-        // maxqty = qty yang masih bisa diterima
-        $item->maxqty = (float) ($item->fqtyremain ?? $item->fqty ?? 0);
+        $item->frefdtno = (string) $item->frefdtid;
+        $remainKecil = (float) ($item->fqtyremain ?? 0);
+        $item->fqtyremain = $remainKecil;
+        $item->maxqty = $remainKecil;
+
         return $item;
       });
 
@@ -217,6 +221,84 @@ class PenerimaanBarangController extends Controller
       ],
       'items' => $items,
     ]);
+  }
+
+  /**
+   * Qty baris penerimaan ke satuan kecil (sama seperti PO).
+   */
+  private function qtyPoToKecil(?object $product, string $sat, float $qty): float
+  {
+    if (!$product) {
+      return $qty;
+    }
+    $sat = trim($sat);
+    $besar = trim((string) ($product->fsatuanbesar ?? ''));
+    $besar2 = trim((string) ($product->fsatuanbesar2 ?? ''));
+    $rasio = (float) ($product->fqtykecil ?? 0);
+    $rasio2 = (float) ($product->fqtykecil2 ?? 0);
+    if ($sat !== '' && $besar !== '' && strcasecmp($sat, $besar) === 0 && $rasio > 0) {
+      return $qty * $rasio;
+    }
+    if ($sat !== '' && $besar2 !== '' && strcasecmp($sat, $besar2) === 0 && $rasio2 > 0) {
+      return $qty * $rasio2;
+    }
+
+    return $qty;
+  }
+
+  /**
+   * @param  array<int, array<string, mixed>>  $rows  baris sementara dengan frefdtid (fpodid) & fqtykecil
+   * @return array<int, float>
+   */
+  private function aggregatePodReceiptByPod(array $rows): array
+  {
+    $agg = [];
+    foreach ($rows as $r) {
+      $fid = (int) ($r['frefdtid'] ?? 0);
+      if ($fid <= 0) {
+        continue;
+      }
+      $agg[$fid] = ($agg[$fid] ?? 0) + (float) ($r['fqtykecil'] ?? 0);
+    }
+
+    return $agg;
+  }
+
+  private function validateAndDeductTrPodRemain(array $aggregateByPod): void
+  {
+    foreach ($aggregateByPod as $fpodid => $need) {
+      $fpodid = (int) $fpodid;
+      if ($fpodid <= 0 || $need <= 0) {
+        continue;
+      }
+      $row = DB::table('tr_pod')->where('fpodid', $fpodid)->lockForUpdate()->first();
+      if (!$row) {
+        throw new \RuntimeException('Baris detail PO tidak ditemukan.');
+      }
+      $remain = (float) ($row->fqtyremain ?? 0);
+      if ($need > $remain + 1e-4) {
+        throw new \RuntimeException('Qty penerimaan melebihi sisa PO (tr_pod.fqtyremain). Tidak dapat menyimpan.');
+      }
+      $newRemain = max(0, round($remain - $need, 6));
+      DB::table('tr_pod')->where('fpodid', $fpodid)->update(['fqtyremain' => $newRemain]);
+    }
+  }
+
+  private function restoreTrPodRemainFromReceiptLines($lines): void
+  {
+    foreach ($lines as $line) {
+      $fid = (int) ($line->frefdtid ?? 0);
+      if ($fid <= 0) {
+        continue;
+      }
+      $q = (float) ($line->fqtykecil ?? 0);
+      if ($q <= 0) {
+        continue;
+      }
+      DB::table('tr_pod')->where('fpodid', $fid)->update([
+        'fqtyremain' => DB::raw('COALESCE(fqtyremain,0) + ' . $q),
+      ]);
+    }
   }
 
   private function generateStockMtCode(?Carbon $onDate = null, $branch = null, string $prefix = 'TER'): string
@@ -388,7 +470,6 @@ class PenerimaanBarangController extends Controller
     $fponos     = $request->input('fpono', []);
     $refdtids   = $request->input('frefdtid', []);
     $qtys       = $request->input('fqty', []);
-    $maxqtys    = $request->input('fmaxqty', []);
     $prices     = $request->input('fprice', []);
     $descs      = $request->input('fdesc', []);
 
@@ -398,19 +479,12 @@ class PenerimaanBarangController extends Controller
 
     $rowsDt   = [];
     $subtotal = 0.0;
-    $errors   = [];
 
     for ($i = 0, $cnt = count($codes); $i < $cnt; $i++) {
       $code   = trim((string) ($codes[$i]   ?? ''));
       $qty    = (float) ($qtys[$i]   ?? 0);
-      $maxqty = isset($maxqtys[$i]) && $maxqtys[$i] !== '' ? (float) $maxqtys[$i] : null;
 
       if ($code === '' || $qty <= 0) continue;
-
-      if ($maxqty !== null && $maxqty > 0 && $qty > ($maxqty + 0.001)) {
-        $errors[] = "Baris " . ($i + 1) . ": Qty ({$qty}) melebihi sisa PO ({$maxqty}) untuk item {$code}.";
-        continue;
-      }
 
       $meta = $prodMeta[$code] ?? null;
       if (!$meta) continue;
@@ -420,10 +494,7 @@ class PenerimaanBarangController extends Controller
         $sat = mb_substr($meta->fsatuankecil ?? $meta->fsatuanbesar ?? '', 0, 5);
       }
 
-      $qtyKecil = $qty;
-      if ($sat === $meta->fsatuanbesar && ($meta->fqtykecil ?? 0) > 0) {
-        $qtyKecil = $qty * (float) $meta->fqtykecil;
-      }
+      $qtyKecil = $this->qtyPoToKecil($meta, $sat, $qty);
 
       $price  = (float) ($prices[$i]  ?? 0);
       $amount = $qty * $price;
@@ -450,13 +521,11 @@ class PenerimaanBarangController extends Controller
       ];
     }
 
-    if (!empty($errors)) {
-      return back()->withInput()->withErrors(['detail' => implode(" ", $errors)]);
-    }
-
     if (empty($rowsDt)) {
       return back()->withInput()->withErrors(['detail' => 'Minimal satu item valid diperlukan.']);
     }
+
+    $podAgg = $this->aggregatePodReceiptByPod($rowsDt);
 
     $grandTotal = $subtotal + $ppnAmount;
 
@@ -476,8 +545,11 @@ class PenerimaanBarangController extends Controller
         &$rowsDt,
         $subtotal,
         $ppnAmount,
-        $grandTotal
+        $grandTotal,
+        $podAgg
       ) {
+        $this->validateAndDeductTrPodRemain($podAgg);
+
         // A. Resolve Cabang
         $rawBranch = trim((string)$fbranchcode);
         $kodeCabang = DB::table('mscabang')
@@ -566,8 +638,10 @@ class PenerimaanBarangController extends Controller
         }
         DB::table('jurnaldt')->insert($jurnalDt);
       });
+    } catch (\RuntimeException $e) {
+      return back()->withInput()->withErrors(['detail' => $e->getMessage()]);
     } catch (Exception $e) {
-      return back()->withInput()->withErrors(['error' => 'Gagal simpan: ' . $e->getMessage()]);
+      return back()->withInput()->withErrors(['detail' => 'Gagal simpan: ' . $e->getMessage()]);
     }
 
     return redirect()->route('penerimaanbarang.create')->with('success', "Transaksi {$fstockmtno} berhasil disimpan.");
@@ -613,14 +687,20 @@ class PenerimaanBarangController extends Controller
     $penerimaanbarang = PenerimaanPembelianHeader::with([
       'details' => function ($q) {
         $q->leftJoin('msprd', 'msprd.fprdcode', '=', 'trstockdt.fprdcode')
-          // Join dulu ke header agar kolom ffrom bisa diakses
           ->leftJoin('trstockmt', 'trstockmt.fstockmtid', '=', 'trstockdt.fstockmtid')
           ->leftJoin('mswh', 'mswh.fwhid', '=', 'trstockmt.ffrom')
+          ->leftJoin('tr_pod as pod', 'pod.fpodid', '=', 'trstockdt.frefdtid')
           ->select(
             'trstockdt.*',
             'msprd.fprdname',
             'msprd.fprdcode as fitemcode_text',
-            'mswh.fwhname as fwhname'
+            'msprd.fsatuankecil',
+            'msprd.fsatuanbesar',
+            'msprd.fsatuanbesar2',
+            'msprd.fqtykecil',
+            'msprd.fqtykecil2',
+            'mswh.fwhname as fwhname',
+            DB::raw('COALESCE(pod.fqtyremain, 0) + COALESCE(trstockdt.fqtykecil, 0) as fqtyremain_hint'),
           )
           ->orderBy('trstockdt.fstockdtid');
       }
@@ -631,11 +711,11 @@ class PenerimaanBarangController extends Controller
         'uid'        => $d->fstockdtid,
         'fitemcode'  => $d->fitemcode_text ?? $d->fprdcode ?? '',
         'fitemname'  => $d->fprdname ?? '',
-        'fprdcodeid' => $d->fprdcodeid ?? null,   // integer id produk
+        'fprdcodeid' => $d->fprdcodeid ?? null,
         'fsatuan'    => $d->fsatuan ?? '',
         'fprno'      => $d->frefpr ?? '-',
-        'frefdtno'   => $d->frefdtno ?? null,     // varchar ref PO
-        'frefdtid'   => $d->frefdtid ?? null,     // integer ref PO detail
+        'frefdtno'   => $d->frefdtno ?? null,
+        'frefdtid'   => $d->frefdtid ?? null,
         'fqty'       => (float) ($d->fqty ?? 0),
         'fterima'    => (float) ($d->fterima ?? 0),
         'fprice'     => (float) ($d->fprice ?? 0),
@@ -644,8 +724,13 @@ class PenerimaanBarangController extends Controller
         'ftotal'     => (float) ($d->ftotprice ?? 0),
         'fdesc'      => is_array($d->fdesc) ? implode(', ', $d->fdesc) : ($d->fdesc ?? ''),
         'fketdt'     => $d->fketdt ?? '',
-        // maxqty: jika dari PO ambil fqtyremain, else 0 (tidak dibatasi → set besar)
-        'maxqty'     => $d->frefdtid ? (float) ($d->fqtyremain ?? 0) : 0,
+        'fqtyremain' => $d->frefdtid ? (float) ($d->fqtyremain_hint ?? 0) : 0,
+        'fsatuankecil' => $d->fsatuankecil ?? '',
+        'fsatuanbesar' => $d->fsatuanbesar ?? '',
+        'fsatuanbesar2' => $d->fsatuanbesar2 ?? '',
+        'fqtykecil' => (float) ($d->fqtykecil ?? 0),
+        'fqtykecil2' => (float) ($d->fqtykecil2 ?? 0),
+        'maxqty'     => 0,
         'units'      => [],
       ];
     })->values();
@@ -710,8 +795,6 @@ class PenerimaanBarangController extends Controller
       'fsatuan.*'      => ['nullable', 'string', 'max:5'],
       'fqty'           => ['required', 'array'],
       'fqty.*'         => ['numeric', 'min:0.001'],
-      'fmaxqty'        => ['nullable', 'array'],
-      'fmaxqty.*'      => ['nullable', 'numeric', 'min:0'],
       'fprice'         => ['required', 'array'],
       'fprice.*'       => ['numeric', 'min:0'],
       'fdesc'          => ['nullable', 'array'],
@@ -738,14 +821,13 @@ class PenerimaanBarangController extends Controller
     $refdtnos = $request->input('frefdtno', []);
     $refdtids = $request->input('frefdtid', []);
     $qtys     = $request->input('fqty', []);
-    $maxqtys  = $request->input('fmaxqty', []);
     $prices   = $request->input('fprice', []);
     $descs    = $request->input('fdesc', []);
 
     $uniqueCodes = array_values(array_unique(array_filter(array_map(fn($c) => trim((string)$c), $codes))));
     $prodMeta    = DB::table('msprd')
       ->whereIn('fprdcode', $uniqueCodes)
-      ->get(['fprdid', 'fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2'])
+      ->get()
       ->keyBy('fprdcode');
 
     $pickDefaultSat = function ($meta) {
@@ -759,44 +841,28 @@ class PenerimaanBarangController extends Controller
 
     $rowsDt   = [];
     $subtotal = 0.0;
-    $errors   = [];
 
     for ($i = 0, $cnt = count($codes); $i < $cnt; $i++) {
       $code   = trim((string) ($codes[$i]  ?? ''));
       $sat    = trim((string) ($satuans[$i] ?? ''));
       $rno    = trim((string) ($refdtnos[$i] ?? ''));
       $rid    = isset($refdtids[$i]) ? (int) $refdtids[$i] : null;
-      $rnour  = $nourefs[$i] ?? null;
       $qty    = (float) ($qtys[$i]   ?? 0);
-      $maxqty = isset($maxqtys[$i]) && $maxqtys[$i] !== '' ? (float) $maxqtys[$i] : null;
       $price  = (float) ($prices[$i]  ?? 0);
       $desc   = trim((string) ($descs[$i]   ?? ''));
 
       if ($code === '' || $qty <= 0) continue;
-
-      if ($maxqty !== null && $maxqty > 0 && $qty > $maxqty) {
-        $errors[] = "Baris " . ($i + 1) . ": Qty ({$qty}) melebihi sisa qty PO ({$maxqty}) untuk item {$code}.";
-        continue;
-      }
 
       $meta = $prodMeta[$code] ?? null;
       if (!$meta) continue;
 
       $prdCodeId = isset($prdIds[$i]) && $prdIds[$i] !== '' ? (int) $prdIds[$i] : (int) $meta->fprdid;
 
-      $produk = DB::table('msprd')
-        ->where('fprdcode', $code)
-        ->select('fprdid', 'fsatuanbesar', 'fqtykecil as rasio_konversi')
-        ->first();
-
-      $qtyKecil = $qty;
-      if ($produk && $sat === $produk->fsatuanbesar && $produk->rasio_konversi > 0) {
-        $qtyKecil = $qty * (float) $produk->rasio_konversi;
-      }
-
       if ($sat === '') $sat = $pickDefaultSat($meta);
       $sat = mb_substr($sat, 0, 5);
       if ($sat === '') continue;
+
+      $qtyKecil = $this->qtyPoToKecil($meta, $sat, $qty);
 
       $amount    = $qty * $price;
       $subtotal += $amount;
@@ -827,16 +893,16 @@ class PenerimaanBarangController extends Controller
       ];
     }
 
-    if (!empty($errors)) {
-      return back()->withInput()->withErrors(['detail' => implode("\n", $errors)]);
-    }
-
     if (empty($rowsDt)) {
       return back()->withInput()->withErrors(['detail' => 'Minimal satu item valid (Kode, Satuan, Qty > 0).']);
     }
 
+    $podAgg = $this->aggregatePodReceiptByPod($rowsDt);
+    $oldReceiptLines = DB::table('trstockdt')->where('fstockmtid', $fstockmtid)->get(['frefdtid', 'fqtykecil']);
+
     $grandTotal = $subtotal + $ppnAmount;
 
+    try {
     DB::transaction(function () use (
       $header,
       $fstockmtid,
@@ -851,8 +917,13 @@ class PenerimaanBarangController extends Controller
       &$rowsDt,
       $subtotal,
       $ppnAmount,
-      $grandTotal
+      $grandTotal,
+      $podAgg,
+      $oldReceiptLines
     ) {
+      $this->restoreTrPodRemainFromReceiptLines($oldReceiptLines);
+      $this->validateAndDeductTrPodRemain($podAgg);
+
       $kodeCabang = $header->fbranchcode;
       if ($fbranchcode && $fbranchcode !== $header->fbranchcode) {
         $kodeCabang = $this->resolveKodeCabang($fbranchcode) ?: $kodeCabang;
@@ -889,6 +960,9 @@ class PenerimaanBarangController extends Controller
 
       DB::table('trstockdt')->insert($rowsDt);
     });
+    } catch (\RuntimeException $e) {
+      return back()->withInput()->withErrors(['detail' => $e->getMessage()]);
+    }
 
     return redirect()->route('penerimaanbarang.index')
       ->with('success', "Transaksi {$header->fstockmtno} berhasil diperbarui.");
@@ -898,8 +972,13 @@ class PenerimaanBarangController extends Controller
   {
     try {
       $penerimaanbarang = PenerimaanPembelianHeader::findOrFail($fstockmtid);
-      $penerimaanbarang->details()->delete();
-      $penerimaanbarang->delete();
+      $oldLines = DB::table('trstockdt')->where('fstockmtid', $fstockmtid)->get(['frefdtid', 'fqtykecil']);
+
+      DB::transaction(function () use ($penerimaanbarang, $oldLines) {
+        $this->restoreTrPodRemainFromReceiptLines($oldLines);
+        $penerimaanbarang->details()->delete();
+        $penerimaanbarang->delete();
+      });
 
       return redirect()->route('penerimaanbarang.index')
         ->with('success', 'Data Penerimaan Barang ' . $penerimaanbarang->fstockmtno . ' berhasil dihapus.');
