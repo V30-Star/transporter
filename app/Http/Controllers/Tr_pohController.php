@@ -319,10 +319,10 @@ class Tr_pohController extends Controller
     $besar2 = trim((string) ($product->fsatuanbesar2 ?? ''));
     $rasio = (float) ($product->fqtykecil ?? 0);
     $rasio2 = (float) ($product->fqtykecil2 ?? 0);
-    if ($sat !== '' && $sat === $besar && $rasio > 0) {
+    if ($sat !== '' && $besar !== '' && strcasecmp($sat, $besar) === 0 && $rasio > 0) {
       return $qty * $rasio;
     }
-    if ($sat !== '' && $sat === $besar2 && $rasio2 > 0) {
+    if ($sat !== '' && $besar2 !== '' && strcasecmp($sat, $besar2) === 0 && $rasio2 > 0) {
       return $qty * $rasio2;
     }
 

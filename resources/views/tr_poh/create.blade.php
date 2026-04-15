@@ -74,6 +74,22 @@
             @submit.prevent="submitForm($el)">
             @csrf
 
+            @if ($errors->any())
+                <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">
+                    <p class="font-semibold mb-1">Tidak dapat menyimpan</p>
+                    <ul class="list-disc list-inside space-y-0.5">
+                        @foreach ($errors->all() as $err)
+                            <li>{{ $err }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+            @if (session('error'))
+                <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">
+                    {{ session('error') }}
+                </div>
+            @endif
+
             {{-- HEADER FORM --}}
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
 
@@ -268,7 +284,7 @@
                                             x-show="it.units.length > 1" :id="'unit_saved_' + i"
                                             @focus="activeRow = it.uid" @blur="activeRow = null"
                                             @keydown.enter.prevent="focusSavedQty(i)"
-                                            @change="it.fsatuan = $event.target.value; it.maxqty = calcMaxQty(it); updateLimitText(i, it);"
+                                            @change="it.fsatuan = $event.target.value; it.maxqty = calcMaxQty(it);"
                                             x-effect="
                                                 const sel = $el;
                                                 sel.innerHTML = '';
@@ -279,7 +295,7 @@
                                                     if (u === it.fsatuan) opt.selected = true;
                                                     sel.appendChild(opt);
                                                 });
-                                                updateLimitText(i, it);
+                                                it.maxqty = calcMaxQty(it);
                                             ">
                                         </select>
                                         <input type="text" x-show="it.units.length <= 1"
@@ -298,17 +314,21 @@
                                     <td class="p-2 text-right">
                                         <input type="number" class="border rounded px-2 py-1 w-20 text-right text-sm"
                                             x-model.number="it.fqty" :id="'qty_saved_' + i"
-                                            @focus="activeRow = it.uid; $event.target.select()" @blur="activeRow = null; enforceQtyRow(it);"
+                                            @focus="activeRow = it.uid; $event.target.select()" @blur="activeRow = null; enforcePrQtyRow(it);"
                                             @input="
                                                 recalc(it);
-                                                if (it.maxqty > 0 && it.fqty > it.maxqty) { it.fqty = it.maxqty; recalc(it); }
+                                                const mx = calcMaxQty(it);
+                                                if (it.frefdtid && mx > 0 && it.fqty > mx) { it.fqty = mx; recalc(it); }
                                             "
                                             @change="
                                                 recalc(it);
-                                                if (it.maxqty > 0 && it.fqty > it.maxqty) { it.fqty = it.maxqty; recalc(it); }
+                                                const mx = calcMaxQty(it);
+                                                if (it.frefdtid && mx > 0 && it.fqty > mx) { it.fqty = mx; recalc(it); }
                                             "
                                             @keydown.enter.prevent="focusSavedPrice(i)">
-                                        <div class="text-[10px] text-orange-600 font-medium text-right mt-0.5" x-show="it.fitemcode && productMeta(it.fitemcode).stock > 0" x-html="formatStockLimit(it.fitemcode, it.fqty, it.fsatuan)">
+                                        <div class="text-[10px] text-amber-700 font-medium text-right mt-0.5"
+                                            x-show="it.frefdtid && calcMaxQty(it) > 0"
+                                            x-html="formatPrRemainHint(it)">
                                         </div>
                                     </td>
 
@@ -407,8 +427,10 @@
                                 <td class="p-2 text-right">
                                     <input type="number" class="border rounded px-2 py-1 w-20 text-right text-sm"
                                         min="0" step="1" x-ref="draftQty" x-model.number="draft.fqty"
-                                        @input="recalc(draft);" @blur="enforceQtyRow(draft);" @keydown.enter.prevent="$refs.draftPrice?.focus()">
-                                    <div class="text-[10px] text-orange-600 font-medium text-right mt-0.5" x-show="draft.fitemcode && productMeta(draft.fitemcode).stock > 0" x-html="formatStockLimit(draft.fitemcode, draft.fqty, draft.fsatuan)">
+                                        @input="recalc(draft);" @blur="enforcePrQtyRow(draft);" @keydown.enter.prevent="$refs.draftPrice?.focus()">
+                                    <div class="text-[10px] text-amber-700 font-medium text-right mt-0.5"
+                                        x-show="draft.frefdtid && calcMaxQty(draft) > 0"
+                                        x-html="formatPrRemainHint(draft)">
                                     </div>
                                 </td>
 
@@ -874,6 +896,9 @@
                 fqtykecil2: 0,
                 unit_ratios: { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 },
                 maxqty_satuan: '',
+                frefdtid: '',
+                fqtypo: 0,
+                fqtyremain: 0,
             };
         }
 
@@ -971,67 +996,25 @@
                 return meta;
             },
 
-            formatStockLimit(code, qty, satuan) {
-                const meta = this.productMeta(code);
-                console.log('formatStockLimit:', code, qty, satuan, 'meta:', meta);
-                if (!code || !meta.stock) return '';
-                
-                const entered = Number(qty) || 0;
-                const remaining = Math.max(0, meta.stock - entered);
-                const units = meta.units || [];
-                const ratios = meta.unit_ratios || { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 };
-                
-                console.log('units:', units, 'ratios:', ratios);
-                
-                if (!units.length || !satuan) return '';
-                
-                const satKecil = units[0] || 'pcs';
-                const satBesar = units[1] || '';
-                const satBesar2 = units[2] || '';
-                
-                let ratio = 1;
-                if (satuan === satBesar2 && ratios.satuanbesar2 > 0) {
-                    ratio = ratios.satuanbesar2;
-                } else if (satuan === satBesar && ratios.satuanbesar > 0) {
-                    ratio = ratios.satuanbesar;
-                } else if (satuan === satKecil) {
-                    ratio = 1;
-                }
-                
-                console.log('satuan:', satuan, 'satKecil:', satKecil, 'satBesar:', satBesar, 'satBesar2:', satBesar2, 'ratio:', ratio);
-                
-                const limitValue = Math.floor(remaining / ratio);
-                return '<span class="font-medium">limit:</span> ' + limitValue + ' ' + satuan;
+            formatPrRemainHint(row) {
+                if (!row || !row.frefdtid) return '';
+                const max = this.calcMaxQty(row);
+                if (!(max > 0)) return '';
+                const sat = (row.fsatuan || '').trim() || 'satuan';
+                return '<span class="font-medium">Sisa PR:</span> maks. ' + max + ' ' + sat;
             },
 
-            enforceQtyRow(row) {
+            enforcePrQtyRow(row) {
                 const n = +row.fqty;
-                const meta = this.productMeta(row.fitemcode);
-                const units = meta?.units || [];
-                const ratios = meta?.unit_ratios || { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 };
-                const satKecil = units[0] || 'pcs';
-                const satBesar = units[1] || '';
-                const satBesar2 = units[2] || '';
-                const satuan = row.fsatuan || '';
-                
-                let ratio = 1;
-                if (satuan === satBesar2 && ratios.satuanbesar2 > 0) {
-                    ratio = ratios.satuanbesar2;
-                } else if (satuan === satBesar && ratios.satuanbesar > 0) {
-                    ratio = ratios.satuanbesar;
-                }
-                
-                const maxStock = meta?.stock || 999999;
-                const maxInUnit = Math.floor(maxStock / ratio);
-                
                 if (!Number.isFinite(n)) {
                     row.fqty = 1;
                     return;
                 }
                 if (n < 1) row.fqty = 1;
-                if (maxInUnit > 0 && n > maxInUnit) {
-                    row.fqty = maxInUnit;
-                }
+                if (!row.frefdtid) return;
+                const max = this.calcMaxQty(row);
+                row.maxqty = max;
+                if (max > 0 && n > max) row.fqty = max;
             },
 
             hydrateRowFromMeta(row, meta, keepMaxqty = false) {
@@ -1052,7 +1035,7 @@
                 row.units = units;
                 if (!currentSatuan) row.fsatuan = units[0] || '';
                 if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
-                if (!keepMaxqty) row.maxqty = Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0;
+                if (!keepMaxqty) row.maxqty = 0;
                 
                 if (row === this.draft) {
                     if (units.length > 1) {
@@ -1094,11 +1077,9 @@
                 return row.fitemcode && row.fitemname && row.fsatuan && Number(row.fqty) > 0;
             },
 
-            // Hitung maxqty dalam satuan yang dipilih di PO (sisa dari tr_prd.fqtyremain, satuan kecil)
+            // Sisa PR (tr_prd.fqtyremain) disimpan di satuan kecil (mis. pcs). Konversi ke satuan PO (pcs/ctn/coll) pakai rasio master.
             calcMaxQty(row) {
-                const qtyPR = row.fqtypr || 0;
-                const fqtypo = row.fqtypo || 0;
-                const satuanPR = (row.fqtypr_satuan || '').trim();
+                const eq = (a, b) => (a || '').trim().toLowerCase() === (b || '').trim().toLowerCase();
                 const satuanPO = (row.fsatuan || '').trim();
                 const satKecil = (row.fsatuankecil || '').trim();
                 const satBesar = (row.fsatuanbesar || '').trim();
@@ -1106,28 +1087,34 @@
                 const rasio = Number(row.fqtykecil || 0);
                 const rasio2 = Number(row.fqtykecil2 || 0);
 
-                if (!satuanPR || !qtyPR) return 0;
+                const hasRemainField = row.fqtyremain !== undefined && row.fqtyremain !== null && row.fqtyremain !== '';
 
-                let qtyPRInKecil = qtyPR;
-                if (satuanPR === satBesar && rasio > 0) {
-                    qtyPRInKecil = qtyPR * rasio;
-                } else if (satuanPR === satBesar2 && rasio2 > 0) {
-                    qtyPRInKecil = qtyPR * rasio2;
+                let sisaKecil = 0;
+                if (hasRemainField) {
+                    sisaKecil = Math.max(0, Number(row.fqtyremain) || 0);
+                } else {
+                    const qtyPR = Number(row.fqtypr) || 0;
+                    const fqtypo = Number(row.fqtypo) || 0;
+                    const satuanPR = (row.fqtypr_satuan || '').trim();
+                    if (!satuanPR || !(qtyPR > 0)) return 0;
+                    let qtyPRInKecil = qtyPR;
+                    if (eq(satuanPR, satBesar) && rasio > 0) {
+                        qtyPRInKecil = qtyPR * rasio;
+                    } else if (eq(satuanPR, satBesar2) && rasio2 > 0) {
+                        qtyPRInKecil = qtyPR * rasio2;
+                    }
+                    sisaKecil = Math.max(0, qtyPRInKecil - fqtypo);
                 }
 
-                const hasRemain = row.fqtyremain !== undefined && row.fqtyremain !== null && row.fqtyremain !== '';
-                const sisaKecil = hasRemain
-                    ? Math.max(0, Number(row.fqtyremain) || 0)
-                    : Math.max(0, qtyPRInKecil - fqtypo);
-
-                if (!satuanPO || satuanPO === satKecil) {
+                if (!satuanPO || eq(satuanPO, satKecil)) {
                     return sisaKecil;
-                } else if (satuanPO === satBesar && rasio > 0) {
+                }
+                if (eq(satuanPO, satBesar) && rasio > 0) {
                     return Math.floor(sisaKecil / rasio);
-                } else if (satuanPO === satBesar2 && rasio2 > 0) {
+                }
+                if (eq(satuanPO, satBesar2) && rasio2 > 0) {
                     return Math.floor(sisaKecil / rasio2);
                 }
-
                 return sisaKecil;
             },
 
