@@ -348,7 +348,7 @@
                                                     ">
                                             <div class="text-xs text-gray-400 mt-0.5 text-right">
                                                 <span x-show="it.fitemcode"
-                                                    x-html="formatStockLimit(it.fitemcode, it.fqty, it.fsatuan)"></span>
+                                                    x-html="formatStockLimit(it)"></span>
                                             </div>
                                         </td>
 
@@ -477,7 +477,7 @@
                                             @keydown.enter.prevent="$refs.draftPrice?.focus()">
                                         <div class="text-xs text-gray-400 mt-0.5 text-right">
                                             <span x-show="draft.fitemcode"
-                                                x-html="formatStockLimit(draft.fitemcode, draft.fqty, draft.fsatuan)"></span>
+                                                x-html="formatStockLimit(draft)"></span>
                                         </div>
                                     </td>
 
@@ -1956,12 +1956,12 @@
                 return meta;
             },
 
-            formatStockLimit(code, qty, satuan) {
-                const meta = this.productMeta(code);
-                if (!code || !meta.stock) return '';
+            formatStockLimit(row) {
+                if (!row?.fitemcode) return '';
+                const meta = this.productMeta(row.fitemcode);
+                const limitSource = Number(row.maxqty ?? 0);
+                if (!limitSource) return '';
 
-                const entered = Number(qty) || 0;
-                const remaining = Math.max(0, meta.stock - entered);
                 const units = meta.units || [];
                 const ratios = meta.unit_ratios || {
                     satuankecil: 1,
@@ -1969,6 +1969,7 @@
                     satuanbesar2: 1
                 };
 
+                const satuan = row.fsatuan || '';
                 if (!units.length || !satuan) return '';
 
                 const satKecil = units[0] || 'pcs';
@@ -1984,7 +1985,7 @@
                     ratio = 1;
                 }
 
-                const limitValue = Math.floor(remaining / ratio);
+                const limitValue = Math.floor(limitSource / ratio);
                 return '<span class="font-medium">limit:</span> ' + limitValue + ' ' + satuan;
             },
 
@@ -2009,7 +2010,7 @@
                     ratio = ratios.satuanbesar;
                 }
 
-                const maxStock = meta?.stock || 999999;
+                const maxStock = Number(row.maxqty ?? 0);
                 const maxInUnit = Math.floor(maxStock / ratio);
 
                 if (!Number.isFinite(n)) {
@@ -2041,8 +2042,9 @@
                 if (!units.includes(row.fsatuan)) row.fsatuan = units[0] || '';
                 row.fsatuan = row.fsatuan;
                 if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
-                const stock = Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0;
-                row.maxqty = stock;
+                const keepRefLimit = Number.isFinite(+row.maxqty) && +row.maxqty > 0 &&
+                    (Number(row.frefsoid) > 0 || Number(row.frefsrjid) > 0);
+                row.maxqty = keepRefLimit ? +row.maxqty : 0;
 
                 if (row === this.draft) {
                     if (units.length > 1) {
@@ -2061,14 +2063,14 @@
                 return row.fitemcode && row.fitemname && row.fsatuan && Number(row.fqty) > 0;
             },
 
-            onPrPicked(e) {
+            onPrPicked(e, source = 'SO') {
                 const {
                     header,
                     items
                 } = e.detail || {};
                 if (!items || !Array.isArray(items)) return;
                 this.resetDraft();
-                this.addManyFromPR(header, items);
+                this.addManyFromPR(header, items, source);
             },
 
             resetDraft() {
@@ -2076,7 +2078,7 @@
                 this.$nextTick(() => this.$refs.draftCode?.focus());
             },
 
-            addManyFromPR(header, items) {
+            addManyFromPR(header, items, source = 'SO') {
                 const existing = new Set(this.getCurrentItemKeys());
                 let added = 0;
 
@@ -2093,10 +2095,10 @@
                         frefpr: src.frefpr ?? (header?.fstockmtno ?? header?.fsono ?? ''),
                         fnouref: (src.frefdtno ?? src.fnouref ?? null),
                         frefno_display: src.frefno_display ?? header?.fstockmtno ?? header?.fsono ?? '',
-                        frefso: header?.fsono ?? '',
-                        frefsoid: header?.ftrsomtid ?? null,
-                        frefsrj: header?.fstockmtno ?? '',
-                        frefsrjid: header?.fstockmtid ?? null,
+                        frefso: source === 'SO' ? (header?.fsono ?? '') : '',
+                        frefsoid: source === 'SO' ? (src.frefdtno ?? null) : null,
+                        frefsrj: source === 'SRJ' ? (header?.fstockmtno ?? '') : '',
+                        frefsrjid: source === 'SRJ' ? (src.frefdtno ?? null) : null,
                         frefpr: (src.frefpr ?? header?.fsono ?? header?.fpono ?? header?.fstockmtno ?? '')
                             .toString().trim(),
                         fprhid: src.fprhid ?? header?.fprhid ?? '',
@@ -2111,6 +2113,7 @@
                         fketdt: src.fketdt ?? '',
                         units: Array.isArray(src.units) && src.units.length ? src.units : [src.fsatuan]
                             .filter(Boolean),
+                        maxqty: Math.max(0, Number(src.fqtyremain ?? src.fqty ?? 0)),
                     };
 
                     const key = this.itemKey({
@@ -2299,10 +2302,10 @@
                 this.$watch('ppnRate', () => this.recalcTotals());
 
                 window.getCurrentItemKeys = () => this.getCurrentItemKeys();
-                window.addEventListener('pr-picked', this.onPrPicked.bind(this), {
+                window.addEventListener('pr-picked', (e) => this.onPrPicked(e, 'SO'), {
                     passive: true
                 });
-                window.addEventListener('srj-picked', this.onPrPicked.bind(this), {
+                window.addEventListener('srj-picked', (e) => this.onPrPicked(e, 'SRJ'), {
                     passive: true
                 });
 

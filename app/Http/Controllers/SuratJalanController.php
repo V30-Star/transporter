@@ -169,7 +169,8 @@ class SuratJalanController extends Controller
                 // atau pastikan kolom ini memang yang berisi kode produk
                 'msprd.fprdcode as fitemcode',
                 'msprd.fprdname as fitemname',
-                'trstockdt.fqty',
+                DB::raw('COALESCE(trstockdt.fqtyremain, 0) as fqty'),
+                DB::raw('COALESCE(trstockdt.fqtyremain, 0) as fqtyremain'),
                 'trstockdt.fsatuan',
                 'trstockdt.fprice',
                 'trstockdt.ftotprice as ftotal'

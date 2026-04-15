@@ -295,7 +295,7 @@
                                                         x-model.number="it.fqty" :max="it.maxqty > 0 ? it.maxqty : null"
                                                         @input="recalc(it); enforceQtyRow(it); recalc(it);">
                                                     <div class="text-xs text-gray-400 mt-0.5 flex justify-end items-center" x-show="it.fitemcode">
-                                                        <div x-html="formatStockLimit(it.fitemcode, it.fqty, it.fsatuan)"></div>
+                                                        <div x-html="formatStockLimit(it)"></div>
                                                     </div>
                                                 </td>
                                                 <td class="p-2 text-right">
@@ -921,7 +921,7 @@
                                                         "
                                                         @keydown.enter.prevent="$refs.draftTerima?.focus()">
                                                     <div class="text-xs text-gray-400 mt-0.5 text-right">
-                                                        <span x-show="draft.fitemcode" x-html="formatStockLimit(draft.fitemcode, draft.fqty, draft.fsatuan)"></span>
+                                                        <span x-show="draft.fitemcode" x-html="formatStockLimit(draft)"></span>
                                                     </div>
                                                 </td>
                                                 <td class="p-2 text-right">
@@ -2539,21 +2539,22 @@
                 return meta;
             },
 
-            formatStockLimit(code, qty, satuan) {
-                const meta = this.productMeta(code);
-                if (!code || !meta.stock) return '';
-                
-                const entered = Number(qty) || 0;
-                const remaining = Math.max(0, meta.stock - entered);
+            formatStockLimit(row) {
+                if (!row?.fitemcode) return '';
+                const meta = this.productMeta(row.fitemcode);
+                const limitSource = Number(row.maxqty ?? 0);
+                if (!limitSource) return '';
+
                 const units = meta.units || [];
                 const ratios = meta.unit_ratios || { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 };
-                
+
+                const satuan = row.fsatuan || '';
                 if (!units.length || !satuan) return '';
-                
+
                 const satKecil = units[0] || 'pcs';
                 const satBesar = units[1] || '';
                 const satBesar2 = units[2] || '';
-                
+
                 let ratio = 1;
                 if (satuan === satBesar2 && ratios.satuanbesar2 > 0) {
                     ratio = ratios.satuanbesar2;
@@ -2562,8 +2563,8 @@
                 } else if (satuan === satKecil) {
                     ratio = 1;
                 }
-                
-                const limitValue = Math.floor(remaining / ratio);
+
+                const limitValue = Math.floor(limitSource / ratio);
                 return '<span class="font-medium">limit:</span> ' + limitValue + ' ' + satuan;
             },
 
@@ -2584,7 +2585,7 @@
                     ratio = ratios.satuanbesar;
                 }
                 
-                const maxStock = meta?.stock || 999999;
+                const maxStock = Number(row.maxqty ?? 0);
                 const maxInUnit = Math.floor(maxStock / ratio);
                 
                 if (!Number.isFinite(n)) {
@@ -2614,8 +2615,9 @@
                 if (!units.includes(row.fsatuan)) row.fsatuan = units[0] || '';
                 row.fsatuan = row.fsatuan;
                 if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
-                const stock = Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0;
-                row.maxqty = stock;
+                const keepRefLimit = Number.isFinite(+row.maxqty) && +row.maxqty > 0 &&
+                    (Number(row.frefsoid) > 0 || Number(row.frefsrjid) > 0);
+                row.maxqty = keepRefLimit ? +row.maxqty : 0;
                 
                 if (row === this.draft) {
                     if (units.length > 1) {
@@ -2703,9 +2705,9 @@
                         frefcode: source,
                         frefpr: docNo,
                         frefso: source === 'SO' ? docNo : (src.frefso || '').trim(),
-                        frefsoid: source === 'SO' ? (header?.ftrsomtid ?? null) : null,
+                        frefsoid: source === 'SO' ? (src.frefdtno ?? null) : null,
                         frefsrj: source === 'SRJ' ? docNo : (src.frefsrj || '').trim(),
-                        frefsrjid: source === 'SRJ' ? (header?.fstockmtid ?? null) : null,
+                        frefsrjid: source === 'SRJ' ? (src.frefdtno ?? null) : null,
 
                         fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ? Number(src.fqty) : 1,
                         fprice: Number(src.fprice ?? src.fharga ?? 0),
@@ -2715,7 +2717,7 @@
                         fketdt: src.fketdt ? src.fketdt.toString().trim() : '',
                         units: meta ? [...new Set((meta.units || []).map(u => (u ?? '').toString().trim())
                             .filter(Boolean))] : [satuan].filter(Boolean),
-                        maxqty: meta ? (Number(meta.stock) || 0) : 0,
+                        maxqty: Math.max(0, Number(src.fqtyremain ?? src.fqty ?? 0)),
                     };
 
                     row.ftotal = Number((row.fqty * row.fprice).toFixed(2));
@@ -2873,12 +2875,8 @@
                 this.$watch('ppnRate', () => this.recalcTotals());
 
                 this.savedItems.forEach((item) => {
-                    const meta = this.productMeta(item.fitemcode);
-                    if (meta) {
-                        item.maxqty = Number(meta.stock) || 0;
-                    } else {
-                        item.maxqty = 0;
-                    }
+                    const soLimit = Number(item.maxqty ?? item.fqtyremain ?? 0);
+                    item.maxqty = (Number(item.frefsoid) > 0 || Number(item.frefsrjid) > 0) && soLimit > 0 ? soLimit : 0;
                 });
 
                 window.getCurrentItemKeys = () => this.getCurrentItemKeys();

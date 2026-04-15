@@ -410,7 +410,7 @@
                                             @keydown.enter.prevent="$refs.editTerima?.focus()">
                                         <div class="text-xs text-gray-400 mt-0.5 text-right">
                                             <span x-show="editRow.fitemcode"
-                                                x-html="formatStockLimit(editRow.fitemcode, editRow.fqty, editRow.fsatuan)"></span>
+                                                x-html="formatStockLimit(editRow)"></span>
                                         </div>
                                     </td>
 
@@ -923,7 +923,7 @@
                                                             ">
                                                     <div class="text-xs text-gray-400 mt-0.5 text-right">
                                                         <span x-show="it.fitemcode"
-                                                            x-html="formatStockLimit(it.fitemcode, it.fqty, it.fsatuan)"></span>
+                                                            x-html="formatStockLimit(it)"></span>
                                                     </div>
                                                 </td>
 
@@ -1056,7 +1056,7 @@
                                                     @keydown.enter.prevent="$refs.draftPrice?.focus()">
                                                 <div class="text-xs text-gray-400 mt-0.5 text-right">
                                                     <span x-show="draft.fitemcode"
-                                                        x-html="formatStockLimit(draft.fitemcode, draft.fqty, draft.fsatuan)"></span>
+                                                        x-html="formatStockLimit(draft)"></span>
                                                 </div>
                                             </td>
 
@@ -2576,11 +2576,12 @@
                 return meta;
             },
 
-            formatStockLimit(code, qty, satuan) {
-                const meta = this.productMeta(code);
-                if (!code || !meta.stock) return '';
+            formatStockLimit(row) {
+                if (!row?.fitemcode) return '';
+                const meta = this.productMeta(row.fitemcode);
+                const limitSource = Number(row.maxqty ?? 0);
+                if (!limitSource) return '';
 
-                const entered = Number(qty) || 0;
                 const units = meta.units || [];
                 const ratios = meta.unit_ratios || {
                     satuankecil: 1,
@@ -2588,6 +2589,7 @@
                     satuanbesar2: 1
                 };
 
+                const satuan = row.fsatuan || '';
                 if (!units.length || !satuan) return '';
 
                 const satKecil = units[0] || 'pcs';
@@ -2603,10 +2605,7 @@
                     ratio = 1;
                 }
 
-                const enteredInBase = entered * ratio;
-                const remaining = Math.max(0, meta.stock - enteredInBase);
-
-                const limitValue = Math.floor(remaining / ratio);
+                const limitValue = Math.floor(limitSource / ratio);
                 return '<span class="font-medium">limit:</span> ' + limitValue + ' ' + satuan;
             },
 
@@ -2631,7 +2630,7 @@
                     ratio = ratios.satuanbesar;
                 }
 
-                const maxStock = meta?.stock || 999999;
+                const maxStock = Number(row.maxqty ?? 0);
                 const maxInUnit = Math.floor(maxStock / ratio);
 
                 if (!Number.isFinite(n)) {
@@ -2660,8 +2659,9 @@
                 row.units = units;
                 if (!units.includes(row.fsatuan)) row.fsatuan = units[0] || '';
                 if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
-                const stock = Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0;
-                row.maxqty = stock;
+                const keepRefLimit = Number.isFinite(+row.maxqty) && +row.maxqty > 0 &&
+                    (Number(row.frefsoid) > 0 || Number(row.frefsrjid) > 0);
+                row.maxqty = keepRefLimit ? +row.maxqty : 0;
 
                 if (row === this.draft) {
                     if (units.length > 1) {
@@ -2721,15 +2721,16 @@
                         frefcode: src.frefcode || '',
                         frefpr: refNo,
                         frefso: source === 'SO' ? (header?.fsono ?? '') : '',
-                        frefsoid: source === 'SO' ? (header?.ftrsomtid ?? null) : null,
+                        frefsoid: source === 'SO' ? (src.frefdtno ?? null) : null,
                         frefsrj: source === 'SRJ' ? (header?.fstockmtno ?? '') : '',
-                        frefsrjid: source === 'SRJ' ? (header?.fstockmtid ?? null) : null,
+                        frefsrjid: source === 'SRJ' ? (src.frefdtno ?? null) : null,
                         fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ?
                             Number(src.fqty) : 1,
                         fprice: Number(src.fprice ?? src.fharga ?? 0),
                         ftotal: 0,
                         fdesc: src.fdesc ? src.fdesc.toString().trim() : '',
                         units: [(src.fsatuan ?? '').toString().trim()].filter(Boolean),
+                        maxqty: Math.max(0, Number(src.fqtyremain ?? src.fqty ?? 0)),
                     };
 
                     this.recalc(row);
@@ -2808,9 +2809,9 @@
                         item.units = [];
                     }
 
-                    const meta = this.productMeta(item.fitemcode);
+                    const rowLimit = Number(item.maxqty ?? item.fqtyremain ?? 0);
                     if (meta) {
-                        item.maxqty = Number(meta.stock) || 0;
+                        item.maxqty = (Number(item.frefsoid) > 0 || Number(item.frefsrjid) > 0) && rowLimit > 0 ? rowLimit : 0;
                         if (meta.units && meta.units.length) {
                             item.units = [...new Set([...item.units, ...meta.units])];
                         } else if (item.fsatuan && !item.units.includes(item.fsatuan)) {

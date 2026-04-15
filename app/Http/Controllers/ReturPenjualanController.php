@@ -13,6 +13,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB; // sekalian biar aman untuk tanggal
+use Illuminate\Validation\ValidationException;
 
 class ReturPenjualanController extends Controller
 {
@@ -417,93 +418,6 @@ class ReturPenjualanController extends Controller
         // QUERY PRODUK
         $filteredCodes = array_values(array_filter($itemCodes));
 
-        $prodMeta = DB::table('msprd')
-            ->whereIn('fprdcode', $filteredCodes)
-            ->get(['fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2', 'fqtykecil', 'fqtykecil2', 'fminstock'])
-            ->keyBy('fprdcode');
-
-        // ===== STOCK VALIDATION =====
-        $errors = new \Illuminate\Support\MessageBag();
-        foreach ($itemCodes as $i => $codeRaw) {
-            $code = trim($codeRaw ?? '');
-            $sat  = trim($sats[$i] ?? '');
-            if ($code === '') continue;
-
-            $qty = is_numeric($qtys[$i] ?? null) ? (int) $qtys[$i] : 0;
-            if ($qty < 1) {
-                $errors->add("fqty.$i", 'Qty minimal 1.');  // ← ganti
-                continue;
-            }
-
-            $product      = $productMap[$code] ?? null;
-            $stokTersedia = $product ? (float) ($product->fminstock ?? 0) : 0;
-
-            $qtyKecil = $qty;
-            if ($product) {
-                if ($sat === $product->fsatuanbesar) {
-                    $rasio    = is_numeric($product->fqtykecil) ? (float) $product->fqtykecil : 1;
-                    $qtyKecil = $qty * $rasio;
-                } elseif (!empty($product->fsatuanbesar2) && $sat === $product->fsatuanbesar2) {
-                    $rasio2   = is_numeric($product->fqtykecil2) ? (float) $product->fqtykecil2 : 1;
-                    $qtyKecil = $qty * $rasio2;
-                }
-            }
-
-            if ($stokTersedia <= 0) {
-                $errors->add(
-                    "fqty.$i",
-                    "Produk \"$code\" tidak dapat dipesan karena stok habis atau minus. (Stok saat ini: $stokTersedia)"
-                );
-            } elseif ($qtyKecil > $stokTersedia) {
-                $errors->add(
-                    "fqty.$i",
-                    "Qty produk \"$code\" melebihi stok tersedia. (Diminta: $qtyKecil, Stok: $stokTersedia)"
-                );
-            }
-        }
-
-        if ($errors->isNotEmpty()) {
-            return back()->withErrors($errors)->withInput();
-        }
-
-        $stockErrors = [];
-        foreach ($itemCodes as $i => $code) {
-            $code = trim((string) ($code ?? ''));
-            $qty = (float) ($qtys[$i] ?? 0);
-            $satuan = trim((string) ($satuans[$i] ?? ''));
-
-            if ($code === '' || $qty <= 0) {
-                continue;
-            }
-
-            $meta = $prodMeta[$code] ?? null;
-            if (! $meta) {
-                continue;
-            }
-
-            $stokTersedia = (float) ($meta->fminstock ?? 0);
-            if ($stokTersedia <= 0) {
-                $stockErrors[] = "Produk [{$code}] stok tidak tersedia (0).";
-
-                continue;
-            }
-
-            $qtyKecil = $qty;
-            if ($satuan !== '' && $satuan === trim((string) ($meta->fsatuanbesar ?? '')) && (float) ($meta->fqtykecil ?? 0) > 0) {
-                $qtyKecil = $qty * (float) $meta->fqtykecil;
-            } elseif ($satuan !== '' && $satuan === trim((string) ($meta->fsatuanbesar2 ?? '')) && (float) ($meta->fqtykecil2 ?? 0) > 0) {
-                $qtyKecil = $qty * (float) $meta->fqtykecil2;
-            }
-
-            if ($qtyKecil > $stokTersedia) {
-                $stockErrors[] = "Produk [{$code}]: Qty ({$qtyKecil} pcs) melebihi stok tersedia ({$stokTersedia} pcs).";
-            }
-        }
-
-        if (! empty($stockErrors)) {
-            return back()->withInput()->withErrors(['stock' => implode(' ', $stockErrors)]);
-        }
-
         $products = DB::table('msprd')
             ->whereIn('fprdcode', $filteredCodes)
             ->get(['fprdid', 'fprdcode', 'fprdname', 'fdiscontinue', 'fsatuanbesar', 'fqtykecil as rasio_konversi'])
@@ -550,6 +464,7 @@ class ReturPenjualanController extends Controller
                 'fprdcode' => mb_substr($code, 0, 30),
                 'fdesc' => $itemDescs[$i] ?? '',
                 'fqty' => $qty,
+                'fqtykecil' => $qtyKecil,
                 'fqtyremain' => $qty,
                 'fprice' => $price,
                 'fprice_rp' => $price * $frate,
@@ -588,6 +503,50 @@ class ReturPenjualanController extends Controller
         // GUARD: detailRows kosong
         if (empty($detailRows)) {
             return back()->withInput()->with('error', 'Tidak ada item valid. Periksa kode produk dan qty.');
+        }
+
+        $soUsageByDetailId = [];
+        $srjUsageByDetailId = [];
+        foreach ($detailRows as $row) {
+            $qtyKecil = (float) ($row['fqtykecil'] ?? 0);
+            $soDetailId = (int) ($row['frefsoid'] ?? 0);
+            $srjDetailId = (int) ($row['frefsrjid'] ?? 0);
+            if ($qtyKecil <= 0) {
+                continue;
+            }
+            if ($soDetailId > 0) {
+                $soUsageByDetailId[$soDetailId] = ($soUsageByDetailId[$soDetailId] ?? 0) + $qtyKecil;
+            }
+            if ($srjDetailId > 0) {
+                $srjUsageByDetailId[$srjDetailId] = ($srjUsageByDetailId[$srjDetailId] ?? 0) + $qtyKecil;
+            }
+        }
+
+        $remainErrors = [];
+        if (! empty($soUsageByDetailId)) {
+            $soRemainRows = DB::table('trsodt')
+                ->whereIn('ftrsodtid', array_keys($soUsageByDetailId))
+                ->pluck('fqtyremain', 'ftrsodtid');
+            foreach ($soUsageByDetailId as $detailId => $usedQty) {
+                $remain = (float) ($soRemainRows[$detailId] ?? 0);
+                if (abs($usedQty - $remain) > 0.00001) {
+                    $remainErrors[] = "Qty SO detail #{$detailId} harus sama dengan sisa (fqtyremain). Input: {$usedQty}, sisa: {$remain}.";
+                }
+            }
+        }
+        if (! empty($srjUsageByDetailId)) {
+            $srjRemainRows = DB::table('trstockdt')
+                ->whereIn('fstockdtid', array_keys($srjUsageByDetailId))
+                ->pluck('fqtyremain', 'fstockdtid');
+            foreach ($srjUsageByDetailId as $detailId => $usedQty) {
+                $remain = (float) ($srjRemainRows[$detailId] ?? 0);
+                if (abs($usedQty - $remain) > 0.00001) {
+                    $remainErrors[] = "Qty SRJ detail #{$detailId} harus sama dengan sisa (fqtyremain). Input: {$usedQty}, sisa: {$remain}.";
+                }
+            }
+        }
+        if (! empty($remainErrors)) {
+            throw ValidationException::withMessages(['detail' => $remainErrors]);
         }
 
         // KALKULASI TOTAL
@@ -630,7 +589,9 @@ class ReturPenjualanController extends Controller
                 $frate,
                 $ppnPersen,
                 $typeSales,
-                $fapplyppn
+                $fapplyppn,
+                $soUsageByDetailId,
+                $srjUsageByDetailId
             ) {
 
                 $fsono = $request->input('fsono');
@@ -724,6 +685,33 @@ class ReturPenjualanController extends Controller
                 unset($srow);
 
                 DB::table('trstockdt')->insert($stockDetailRows);
+
+                if (! empty($soUsageByDetailId)) {
+                    $lockedSoRemainRows = DB::table('trsodt')
+                        ->whereIn('ftrsodtid', array_keys($soUsageByDetailId))
+                        ->lockForUpdate()
+                        ->pluck('fqtyremain', 'ftrsodtid');
+                    foreach ($soUsageByDetailId as $detailId => $usedQty) {
+                        $remain = (float) ($lockedSoRemainRows[$detailId] ?? 0);
+                        if (abs($usedQty - $remain) > 0.00001) {
+                            throw new \RuntimeException("Qty SO detail #{$detailId} tidak sesuai sisa (fqtyremain).");
+                        }
+                        DB::table('trsodt')->where('ftrsodtid', $detailId)->update(['fqtyremain' => $remain - $usedQty]);
+                    }
+                }
+                if (! empty($srjUsageByDetailId)) {
+                    $lockedSrjRemainRows = DB::table('trstockdt')
+                        ->whereIn('fstockdtid', array_keys($srjUsageByDetailId))
+                        ->lockForUpdate()
+                        ->pluck('fqtyremain', 'fstockdtid');
+                    foreach ($srjUsageByDetailId as $detailId => $usedQty) {
+                        $remain = (float) ($lockedSrjRemainRows[$detailId] ?? 0);
+                        if (abs($usedQty - $remain) > 0.00001) {
+                            throw new \RuntimeException("Qty SRJ detail #{$detailId} tidak sesuai sisa (fqtyremain).");
+                        }
+                        DB::table('trstockdt')->where('fstockdtid', $detailId)->update(['fqtyremain' => $remain - $usedQty]);
+                    }
+                }
             });
 
             // UPDATE STOK - gunakan qtyKecil hasil konversi, bukan qty mentah
@@ -1088,50 +1076,6 @@ class ReturPenjualanController extends Controller
             ->get(['fprdid', 'fprdcode', 'fsatuanbesar', 'fqtykecil as rasio_konversi'])
             ->keyBy('fprdcode');
 
-        // ===== STOCK VALIDATION =====
-        $errors = new \Illuminate\Support\MessageBag();
-        foreach ($itemCodes as $i => $codeRaw) {
-            $code = trim($codeRaw ?? '');
-            $sat  = trim($sats[$i] ?? '');
-            if ($code === '') continue;
-
-            $qty = is_numeric($qtys[$i] ?? null) ? (int) $qtys[$i] : 0;
-            if ($qty < 1) {
-                $errors->add("fqty.$i", 'Qty minimal 1.');  // ← ganti
-                continue;
-            }
-
-            $product      = $productMap[$code] ?? null;
-            $stokTersedia = $product ? (float) ($product->fminstock ?? 0) : 0;
-
-            $qtyKecil = $qty;
-            if ($product) {
-                if ($sat === $product->fsatuanbesar) {
-                    $rasio    = is_numeric($product->fqtykecil) ? (float) $product->fqtykecil : 1;
-                    $qtyKecil = $qty * $rasio;
-                } elseif (!empty($product->fsatuanbesar2) && $sat === $product->fsatuanbesar2) {
-                    $rasio2   = is_numeric($product->fqtykecil2) ? (float) $product->fqtykecil2 : 1;
-                    $qtyKecil = $qty * $rasio2;
-                }
-            }
-
-            if ($stokTersedia <= 0) {
-                $errors->add(
-                    "fqty.$i",
-                    "Produk \"$code\" tidak dapat dipesan karena stok habis atau minus. (Stok saat ini: $stokTersedia)"
-                );
-            } elseif ($qtyKecil > $stokTersedia) {
-                $errors->add(
-                    "fqty.$i",
-                    "Qty produk \"$code\" melebihi stok tersedia. (Diminta: $qtyKecil, Stok: $stokTersedia)"
-                );
-            }
-        }
-
-        if ($errors->isNotEmpty()) {
-            return back()->withErrors($errors)->withInput();
-        }
-
         // 4. BUILD DETAIL ROWS
         $detailRows = [];
         $totalGross = 0;
@@ -1183,6 +1127,7 @@ class ReturPenjualanController extends Controller
                 'fprdcode' => mb_substr($code, 0, 30),
                 'fdesc' => $itemDescs[$i] ?? '',
                 'fqty' => $qty,
+                'fqtykecil' => $qtyKecil,
                 'fqtyremain' => $qty,
                 'fprice' => $price,
                 'fprice_rp' => $price * $frate,
@@ -1216,6 +1161,67 @@ class ReturPenjualanController extends Controller
                 'fsatuan' => mb_substr($satuans[$i] ?? '', 0, 5),
                 'fcode' => '0',
             ];
+        }
+
+        $oldSoUsageRows = DB::table('trandt')
+            ->where('ftranmtid', $ftranmtid)
+            ->whereNotNull('frefsoid')
+            ->select('frefsoid', DB::raw('SUM(COALESCE(fqtykecil, 0)) as used_qty_kecil'))
+            ->groupBy('frefsoid')
+            ->get();
+        $oldSrjUsageRows = DB::table('trandt')
+            ->where('ftranmtid', $ftranmtid)
+            ->whereNotNull('frefsrjid')
+            ->select('frefsrjid', DB::raw('SUM(COALESCE(fqtykecil, 0)) as used_qty_kecil'))
+            ->groupBy('frefsrjid')
+            ->get();
+        $oldSoUsageByDetailId = [];
+        $oldSrjUsageByDetailId = [];
+        foreach ($oldSoUsageRows as $row) {
+            $detailId = (int) ($row->frefsoid ?? 0);
+            $qtyKecil = (float) ($row->used_qty_kecil ?? 0);
+            if ($detailId > 0 && $qtyKecil > 0) $oldSoUsageByDetailId[$detailId] = $qtyKecil;
+        }
+        foreach ($oldSrjUsageRows as $row) {
+            $detailId = (int) ($row->frefsrjid ?? 0);
+            $qtyKecil = (float) ($row->used_qty_kecil ?? 0);
+            if ($detailId > 0 && $qtyKecil > 0) $oldSrjUsageByDetailId[$detailId] = $qtyKecil;
+        }
+
+        $soUsageByDetailId = [];
+        $srjUsageByDetailId = [];
+        foreach ($detailRows as $row) {
+            $qtyKecil = (float) ($row['fqtykecil'] ?? 0);
+            $soDetailId = (int) ($row['frefsoid'] ?? 0);
+            $srjDetailId = (int) ($row['frefsrjid'] ?? 0);
+            if ($qtyKecil <= 0) continue;
+            if ($soDetailId > 0) $soUsageByDetailId[$soDetailId] = ($soUsageByDetailId[$soDetailId] ?? 0) + $qtyKecil;
+            if ($srjDetailId > 0) $srjUsageByDetailId[$srjDetailId] = ($srjUsageByDetailId[$srjDetailId] ?? 0) + $qtyKecil;
+        }
+
+        $remainErrors = [];
+        $soIdsToCheck = array_values(array_unique(array_merge(array_keys($soUsageByDetailId), array_keys($oldSoUsageByDetailId))));
+        if (! empty($soIdsToCheck)) {
+            $soRemainRows = DB::table('trsodt')->whereIn('ftrsodtid', $soIdsToCheck)->pluck('fqtyremain', 'ftrsodtid');
+            foreach ($soUsageByDetailId as $detailId => $usedQty) {
+                $available = (float) ($soRemainRows[$detailId] ?? 0) + (float) ($oldSoUsageByDetailId[$detailId] ?? 0);
+                if (abs($usedQty - $available) > 0.00001) {
+                    $remainErrors[] = "Qty SO detail #{$detailId} harus sama dengan sisa (fqtyremain). Input: {$usedQty}, sisa: {$available}.";
+                }
+            }
+        }
+        $srjIdsToCheck = array_values(array_unique(array_merge(array_keys($srjUsageByDetailId), array_keys($oldSrjUsageByDetailId))));
+        if (! empty($srjIdsToCheck)) {
+            $srjRemainRows = DB::table('trstockdt')->whereIn('fstockdtid', $srjIdsToCheck)->pluck('fqtyremain', 'fstockdtid');
+            foreach ($srjUsageByDetailId as $detailId => $usedQty) {
+                $available = (float) ($srjRemainRows[$detailId] ?? 0) + (float) ($oldSrjUsageByDetailId[$detailId] ?? 0);
+                if (abs($usedQty - $available) > 0.00001) {
+                    $remainErrors[] = "Qty SRJ detail #{$detailId} harus sama dengan sisa (fqtyremain). Input: {$usedQty}, sisa: {$available}.";
+                }
+            }
+        }
+        if (! empty($remainErrors)) {
+            throw ValidationException::withMessages(['detail' => $remainErrors]);
         }
 
         // 5. KALKULASI TOTAL
@@ -1254,6 +1260,10 @@ class ReturPenjualanController extends Controller
                 $ftypesales,
                 $detailRows,
                 $stockDetailRows,
+                $oldSoUsageByDetailId,
+                $oldSrjUsageByDetailId,
+                $soUsageByDetailId,
+                $srjUsageByDetailId,
                 $totalGross,
                 $totalDisc,
                 $amountNet,
@@ -1290,6 +1300,17 @@ class ReturPenjualanController extends Controller
 
                 // Delete detail lama agar tidak duplikat saat update
                 DB::table('trandt')->where('fsono', $header->fsono)->delete();
+
+                foreach ($oldSoUsageByDetailId as $detailId => $oldQty) {
+                    DB::table('trsodt')->where('ftrsodtid', $detailId)->update([
+                        'fqtyremain' => DB::raw('COALESCE(fqtyremain,0) + ' . (float) $oldQty),
+                    ]);
+                }
+                foreach ($oldSrjUsageByDetailId as $detailId => $oldQty) {
+                    DB::table('trstockdt')->where('fstockdtid', $detailId)->update([
+                        'fqtyremain' => DB::raw('COALESCE(fqtyremain,0) + ' . (float) $oldQty),
+                    ]);
+                }
 
                 // Insert detail baru
                 if (! empty($detailRows)) {
@@ -1329,6 +1350,33 @@ class ReturPenjualanController extends Controller
                     }
                     unset($srow);
                     DB::table('trstockdt')->insert($stockDetailRows);
+                }
+
+                if (! empty($soUsageByDetailId)) {
+                    $lockedSoRemainRows = DB::table('trsodt')
+                        ->whereIn('ftrsodtid', array_keys($soUsageByDetailId))
+                        ->lockForUpdate()
+                        ->pluck('fqtyremain', 'ftrsodtid');
+                    foreach ($soUsageByDetailId as $detailId => $usedQty) {
+                        $remain = (float) ($lockedSoRemainRows[$detailId] ?? 0);
+                        if (abs($usedQty - $remain) > 0.00001) {
+                            throw new \RuntimeException("Qty SO detail #{$detailId} tidak sesuai sisa (fqtyremain).");
+                        }
+                        DB::table('trsodt')->where('ftrsodtid', $detailId)->update(['fqtyremain' => $remain - $usedQty]);
+                    }
+                }
+                if (! empty($srjUsageByDetailId)) {
+                    $lockedSrjRemainRows = DB::table('trstockdt')
+                        ->whereIn('fstockdtid', array_keys($srjUsageByDetailId))
+                        ->lockForUpdate()
+                        ->pluck('fqtyremain', 'fstockdtid');
+                    foreach ($srjUsageByDetailId as $detailId => $usedQty) {
+                        $remain = (float) ($lockedSrjRemainRows[$detailId] ?? 0);
+                        if (abs($usedQty - $remain) > 0.00001) {
+                            throw new \RuntimeException("Qty SRJ detail #{$detailId} tidak sesuai sisa (fqtyremain).");
+                        }
+                        DB::table('trstockdt')->where('fstockdtid', $detailId)->update(['fqtyremain' => $remain - $usedQty]);
+                    }
                 }
             });
 
