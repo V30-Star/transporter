@@ -375,12 +375,8 @@
                                             </td>
                                             <td class="p-2 text-right">
                                                 <input type="number" class="w-full border rounded px-2 py-1 text-right"
-                                                    x-model.number="it.fqty" :max="it.maxqty > 0 ? it.maxqty : null"
-                                                    @input="recalc(it); enforceQtyRow(it); recalc(it);">
-                                                <div class="text-xs text-gray-400 mt-0.5 text-right">
-                                                    <span x-show="it.fprdcode"
-                                                        x-html="formatStockLimit(it.fprdcode, it.fqty, it.fsatuan)"></span>
-                                                </div>
+                                                    x-model.number="it.fqty"
+                                                    @input="recalc(it);">
                                             </td>
                                             <td class="p-2 text-right">
                                                 <input type="number" class="w-full border rounded px-2 py-1 text-right"
@@ -472,14 +468,8 @@
                                                 type="number" x-ref="draftQty" x-model.number="draft.fqty"
                                                 @input="
                                                     recalc(draft);
-                                                    enforceQtyRow(draft);
-                                                    recalc(draft);
                                                 "
                                                 @keydown.enter.prevent="$refs.draftPrice?.focus()">
-                                            <div class="text-xs text-gray-400 mt-0.5 text-right">
-                                                <span x-show="draft.fprdcode"
-                                                    x-html="formatStockLimit(draft.fprdcode, draft.fqty, draft.fsatuan)"></span>
-                                            </div>
                                         </td>
 
                                         <!-- @ Harga -->
@@ -1548,46 +1538,11 @@
                 return '<span class="font-medium">limit:</span> ' + limitValue + ' ' + satuan;
             },
 
-            enforceQtyRow(row) {
-                const n = +row.fqty;
-                const meta = this.productMeta(row.fprdcode);
-                const units = meta?.units || [];
-                const ratios = meta?.unit_ratios || {
-                    satuankecil: 1,
-                    satuanbesar: 1,
-                    satuanbesar2: 1
-                };
-                const satKecil = units[0] || 'pcs';
-                const satBesar = units[1] || '';
-                const satBesar2 = units[2] || '';
-                const satuan = row.fsatuan || '';
-
-                let ratio = 1;
-                if (satuan === satBesar2 && ratios.satuanbesar2 > 0) {
-                    ratio = ratios.satuanbesar2;
-                } else if (satuan === satBesar && ratios.satuanbesar > 0) {
-                    ratio = ratios.satuanbesar;
-                }
-
-                const maxStock = meta?.stock || 999999;
-                const maxInUnit = Math.floor(maxStock / ratio);
-
-                if (!Number.isFinite(n)) {
-                    row.fqty = 1;
-                    return;
-                }
-                if (n < 1) row.fqty = 1;
-                if (maxInUnit > 0 && n > maxInUnit) {
-                    row.fqty = maxInUnit;
-                }
-            },
-
             hydrateRowFromMeta(row, meta) {
                 if (!meta) {
                     row.fitemname = '';
                     row.units = [];
                     row.fsatuan = '';
-                    row.maxqty = 0;
                     if (row === this.draft) {
                         clearDraftUnitSelect();
                     }
@@ -1599,8 +1554,6 @@
                 if (!units.includes(row.fsatuan)) row.fsatuan = units[0] || '';
                 row.fsatuan = row.fsatuan;
                 if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
-                const stock = Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0;
-                row.maxqty = stock;
 
                 if (row === this.draft) {
                     if (units.length > 1) {
@@ -1795,7 +1748,6 @@
                 ftotal: 0,
                 fdesc: '',
                 fketdt: '',
-                maxqty: 0,
             };
         }
 

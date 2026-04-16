@@ -736,6 +736,32 @@ class InvoiceController extends Controller
             $invoice->setRelation('customer', Customer::find(trim($invoice->fcustno)));
         }
 
+        // For UI qty validation on edit: allow user to increase qty up to
+        // (SO/SRJ sisa after restore), i.e. current DB fqtyremain + qty already in this invoice line.
+        $soDetailIds = $invoice->details
+            ->pluck('frefsoid')
+            ->filter(fn($v) => is_numeric($v) && (int) $v > 0)
+            ->map(fn($v) => (int) $v)
+            ->unique()
+            ->values()
+            ->all();
+
+        $srjDetailIds = $invoice->details
+            ->pluck('frefsrjid')
+            ->filter(fn($v) => is_numeric($v) && (int) $v > 0)
+            ->map(fn($v) => (int) $v)
+            ->unique()
+            ->values()
+            ->all();
+
+        $soRemainRows = $soDetailIds
+            ? DB::table('trsodt')->whereIn('ftrsodtid', $soDetailIds)->pluck('fqtyremain', 'ftrsodtid')
+            : collect();
+
+        $srjRemainRows = $srjDetailIds
+            ? DB::table('trstockdt')->whereIn('fstockdtid', $srjDetailIds)->pluck('fqtyremain', 'fstockdtid')
+            : collect();
+
         $savedItems = $invoice->details->map(function ($d) {
             $refCode = trim($d->frefcode ?? '');
             if (empty($refCode)) {
@@ -749,6 +775,16 @@ class InvoiceController extends Controller
 
             // Priority: Joined Header Number -> Stored Detail String -> Type Prefix
             $refNoDisplay = $d->fsono_ref ?? ($d->fstockno_ref ?? (trim($d->frefso ?? $d->frefsrj ?? '') ?: $refCode));
+
+            $usedQtyKecil = (float) ($d->fqtykecil ?? 0);
+            $remainDb = 0.0;
+            if (is_numeric($d->frefsoid) && (int) $d->frefsoid > 0) {
+                $remainDb = (float) ($soRemainRows[(int) $d->frefsoid] ?? 0);
+            } elseif (is_numeric($d->frefsrjid) && (int) $d->frefsrjid > 0) {
+                $remainDb = (float) ($srjRemainRows[(int) $d->frefsrjid] ?? 0);
+            }
+
+            $fqtyremain = max(0.0, $remainDb + $usedQtyKecil);
 
             return [
                 'uid' => $d->ftrandtid,
@@ -772,6 +808,7 @@ class InvoiceController extends Controller
                 'fsono_ref' => trim($d->fsono_ref ?? ''),
                 'fstockno_ref' => trim($d->fstockno_ref ?? ''),
                 'fketdt' => (string) ($d->fketdt ?? ''),
+                'fqtyremain' => $fqtyremain,
             ];
         })->values();
         $selectedSupplierCode = $invoice->fsupplier;

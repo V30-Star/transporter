@@ -291,9 +291,8 @@
 
                                     <td class="p-2 text-right">
                                         <input type="number" class="border rounded px-2 py-1 w-24 text-right"
-                                            min="1" :max="editRow.maxqty || null" step="1"
+                                            min="1" step="1"
                                             x-model.number="editRow.fqty" x-ref="editQty" @focus="$event.target.select()"
-                                            @input="enforceQtyRow(editRow)"
                                             @keydown.enter.prevent="$refs.editKet?.focus()">
                                                 <div class="text-xs text-gray-400 mt-0.5 flex justify-between items-center" x-show="editRow.fitemcode">
                                                     <div>(<span x-text="productMeta(editRow.fitemcode).stock"></span>) in stock</div>
@@ -905,14 +904,9 @@
                         return Number.isFinite(n) ? n : d;
                     },
                     enforceQtyRow(row) {
-                        const n = this.sanitizeNumber(row.fqty, 1);
-                        if (!Number.isFinite(n)) {
-                            row.fqty = '';
-                            return;
-                        }
-                        if (n < 1) row.fqty = 1;
-                        if (row.maxqty > 0 && n > row.maxqty) row.fqty = row.maxqty;
-                        row.fqtypo = Math.max(0, Math.min(this.sanitizeNumber(row.fqtypo, 0), row.fqty));
+                        // max qty validation dihapus: qty tidak lagi dibatasi mengikuti stok maksimum.
+                        // (validasi min qty tetap dilakukan oleh server)
+                        return;
                     },
                     isComplete(row) {
                         return row.fitemcode && row.fitemname && row.fsatuan && Number(row.fqty) > 0;
@@ -988,7 +982,7 @@
                             this.hydrateRowFromMeta(it, meta);
 
                             // 3) Pastikan qty sesuai rules (min 1, max stok kalau ada)
-                            this.enforceQtyRow(it);
+                            // max qty validation dihapus
 
                             return it;
                         });
@@ -1122,7 +1116,6 @@
                             maxqty: 0
                         };
                         this.hydrateRowFromMeta(this.editRow, this.productMeta(this.editRow.fitemcode));
-                        this.enforceQtyRow(this.editRow);
                         this.$nextTick(() => this.$refs.editQty?.focus());
                     },
                     cancelEdit() {

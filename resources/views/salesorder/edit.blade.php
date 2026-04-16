@@ -370,12 +370,8 @@
                                                 <td class="p-2 text-right">
                                                     <input type="number"
                                                         class="w-full border rounded px-2 py-1 text-right"
-                                                        x-model.number="it.fqty" :max="it.maxqty > 0 ? it.maxqty : null"
-                                                        @input="recalc(it); enforceQtyRow(it); recalc(it);">
-                                                    <div class="text-xs text-gray-400 mt-0.5 text-right">
-                                                        <span x-show="it.fprdcode"
-                                                            x-html="formatStockLimit(it.fprdcode, it.fqty, it.fsatuan)"></span>
-                                                    </div>
+                                                        x-model.number="it.fqty"
+                                                        @input="recalc(it);">
                                                 </td>
                                                 <td class="p-2 text-right">
                                                     <input type="number"
@@ -475,14 +471,8 @@
                                                 type="number" x-ref="editQty" x-model.number="editRow.fqty"
                                                 @input="
                                                     recalc(editRow);
-                                                    enforceQtyRow(editRow);
-                                                    recalc(editRow);
                                                 "
                                                 @keydown.enter.prevent="$refs.editTerima?.focus()">
-                                            <div class="text-xs text-gray-400 mt-0.5 text-right">
-                                                <span x-show="editRow.fprdcode"
-                                                    x-html="formatStockLimit(editRow.fprdcode, editRow.fqty, editRow.fsatuan)"></span>
-                                            </div>
                                         </td>
 
                                         <!-- @ Harga -->
@@ -1000,10 +990,6 @@
                                                                     recalc(it);
                                                                     
                                                                 ">
-                                                            <div class="text-xs text-gray-400 mt-0.5 text-right">
-                                                                <span x-show="it.maxqty > 0">maks: <span
-                                                                        x-text="it.maxqty"></span></span>
-                                                            </div>
                                                         </td>
                                                         <td class="p-2 text-right font-medium"
                                                             x-text="fmt(it.fqtyremain)"></td>
@@ -1114,13 +1100,10 @@
                                                             type="number" x-ref="draftQty" x-model.number="draft.fqty"
                                                             @input="
                                                                 recalc(draft);
-                                                                enforceQtyRow(draft);
-                                                                recalc(draft);
                                                             "
                                                             @keydown.enter.prevent="$refs.draftPrice?.focus()">
-                                                        <div class="text-xs text-gray-400 mt-0.5 text-right">
-                                                            <span x-show="draft.fprdcode"
-                                                                x-html="formatStockLimit(draft.fprdcode, draft.fqty, draft.fsatuan)"></span>
+                                                        <div class="text-xs text-gray-400 mt-0.5 text-right invisible">
+                                                            limit
                                                         </div>
                                                     </td>
                                                     <td class="p-2 text-right font-medium" x-text="fmt(0)"></td>
@@ -2309,46 +2292,11 @@
                 return '<span class="font-medium">limit:</span> ' + limitValue + ' ' + satuan;
             },
 
-            enforceQtyRow(row) {
-                const n = +row.fqty;
-                const meta = this.productMeta(row.fprdcode);
-                const units = meta?.units || [];
-                const ratios = meta?.unit_ratios || {
-                    satuankecil: 1,
-                    satuanbesar: 1,
-                    satuanbesar2: 1
-                };
-                const satKecil = units[0] || 'pcs';
-                const satBesar = units[1] || '';
-                const satBesar2 = units[2] || '';
-                const satuan = row.fsatuan || '';
-
-                let ratio = 1;
-                if (satuan === satBesar2 && ratios.satuanbesar2 > 0) {
-                    ratio = ratios.satuanbesar2;
-                } else if (satuan === satBesar && ratios.satuanbesar > 0) {
-                    ratio = ratios.satuanbesar;
-                }
-
-                const maxStock = meta?.stock || 999999;
-                const maxInUnit = Math.floor(maxStock / ratio);
-
-                if (!Number.isFinite(n)) {
-                    row.fqty = 1;
-                    return;
-                }
-                if (n < 1) row.fqty = 1;
-                if (maxInUnit > 0 && n > maxInUnit) {
-                    row.fqty = maxInUnit;
-                }
-            },
-
             hydrateRowFromMeta(row, meta) {
                 if (!meta) {
                     row.fitemname = '';
                     row.units = [];
                     row.fsatuan = '';
-                    row.maxqty = 0;
                     if (row === this.draft) {
                         clearDraftUnitSelect();
                     }
@@ -2360,8 +2308,6 @@
                 if (!units.includes(row.fsatuan)) row.fsatuan = units[0] || '';
                 row.fsatuan = row.fsatuan;
                 if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
-                const stock = Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0;
-                row.maxqty = stock;
 
                 if (row === this.draft) {
                     if (units.length > 1) {
@@ -2577,7 +2523,6 @@
 
                     const meta = this.productMeta(item.fprdcode);
                     if (meta) {
-                        item.maxqty = Number(meta.stock) || 0;
                         if (meta.units && meta.units.length) {
                             item.units = [...new Set([...item.units, ...meta.units])];
                         } else if (item.fsatuan && !item.units.includes(item.fsatuan)) {
@@ -2587,7 +2532,6 @@
                             item.unit_ratios = item.unit_ratios || meta.unit_ratios;
                         }
                     } else {
-                        item.maxqty = 0;
                         if (item.fsatuan && !item.units.includes(item.fsatuan)) {
                             item.units.unshift(item.fsatuan);
                         }
@@ -2674,7 +2618,6 @@
                 ftotal: 0,
                 fdesc: '',
                 fketdt: '',
-                maxqty: 0,
             };
         }
 

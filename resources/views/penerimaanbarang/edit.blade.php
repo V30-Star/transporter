@@ -313,7 +313,7 @@
                                                     :id="'unit_saved_' + i" x-model="it.fsatuan"
                                                     @focus="activeRow = it.uid" @blur="activeRow = null"
                                                     @keydown.enter.prevent="focusSavedQty(i)"
-                                                    @change="it.maxqty = calcMaxQty(it); enforcePoQtyRow(it);">
+                                                    @change="enforcePoQtyRow(it);">
                                                     <template x-for="u in it.units" :key="u">
                                                         <option :value="u" x-text="u"></option>
                                                     </template>
@@ -338,7 +338,7 @@
                                         @if ($action !== 'delete')
                                             <input type="number" class="border rounded px-2 py-1 w-20 text-right text-sm"
                                                 x-model.number="it.fqty" :id="'qty_saved_' + i"
-                                                @focus="activeRow = it.uid; $event.target.select()" @blur="activeRow = null; enforcePoQtyRow(it);"
+                                                @focus="activeRow = it.uid; $event.target.select()" @blur="activeRow = null"
                                                 @input="
                                                     recalc(it);
                                                     const mx = calcMaxQty(it);
@@ -457,7 +457,8 @@
                                     <td class="p-2 text-right">
                                         <input type="number" class="border rounded px-2 py-1 w-20 text-right text-sm"
                                             min="0" step="1" x-ref="draftQty" x-model.number="draft.fqty"
-                                            @input="recalc(draft)" @blur="enforcePoQtyRow(draft);" @keydown.enter.prevent="$refs.draftPrice?.focus()">
+                                        @input="recalc(draft)" @blur="enforcePoQtyRow(draft);"
+                                        @keydown.enter.prevent="$refs.draftPrice?.focus()">
                                         <div class="text-[10px] text-amber-700 font-medium text-right mt-0.5"
                                             x-show="draft.frefdtid && calcMaxQty(draft) > 0"
                                             x-html="formatPoRemainHint(draft)">
@@ -1076,10 +1077,11 @@
                         return;
                     }
                     if (n < 0.001) row.fqty = 0.001;
+
                     if (!row.frefdtid) return;
                     const max = this.calcMaxQty(row);
-                    row.maxqty = max;
-                    if (max > 0 && n > max) row.fqty = max;
+                    const n2 = +row.fqty;
+                    if (max > 0 && n2 > max) row.fqty = max;
                 },
 
                 hydrateRowFromMeta(row, meta, keepMaxqty = false) {
@@ -1300,7 +1302,7 @@
                             fpono: String(header?.fpono ?? src.fpono ?? ''),
                             fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ? Number(src.fqty) : 1,
                             fqtypo: 0,
-                            fqtyremain: Number(src.fqtyremain ?? src.maxqty ?? 0),
+                            fqtyremain: Number(src.fqtyremain ?? 0),
                             frefdtid: src.frefdtid ?? '',
                             fsatuankecil: src.fsatuankecil || meta?.fsatuankecil || '',
                             fsatuanbesar: src.fsatuanbesar || meta?.fsatuanbesar || '',
@@ -1313,7 +1315,6 @@
                             fdesc: src.fdesc ?? src.fketdt ?? '',
                             fketdt: src.fketdt ?? '',
                         };
-                        row.maxqty = this.calcMaxQty(row);
                         if (!row.ftotal && row.fqty && row.fprice)
                             row.ftotal = +(row.fqty * row.fprice * (1 - (row.fdisc || 0) / 100)).toFixed(2);
                         toAdd.push(row);
@@ -1378,7 +1379,6 @@
                             fqtykecil,
                             fqtykecil2,
                         };
-                        row.maxqty = this.calcMaxQty(row);
                         return row;
                     });
 
@@ -1435,8 +1435,6 @@
                     document.addEventListener('change', function(e) {
                         if (e.target && e.target.id === 'draftUnitSelect') {
                             self.draft.fsatuan = e.target.value;
-                            self.draft.maxqty = self.calcMaxQty(self.draft);
-                            self.enforcePoQtyRow(self.draft);
                         }
                     });
                 }

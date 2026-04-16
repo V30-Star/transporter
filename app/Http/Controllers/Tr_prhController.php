@@ -888,20 +888,9 @@ class Tr_prhController extends Controller
             $stockChanges[$code] = ($stockChanges[$code] ?? 0) - $qty;
         }
 
-        // Validasi Stok Akhir
-        foreach ($stockChanges as $code => $change) {
-            if ($change < 0) {
-                $needed   = abs($change);
-                $available = (float) ($productMap[$code]->fminstock ?? 0);
-
-                // ✅ FIX: cek stok <= 0 atau tidak mencukupi
-                if ($available <= 0) {
-                    $errors->add('detail', "Produk \"$code\" tidak dapat dipesan karena stok habis atau minus. (Stok saat ini: $available)");
-                } elseif ($needed > $available) {
-                    $errors->add('detail', "Qty produk \"$code\" melebihi stok tersedia. (Diminta: $needed, Stok: $available)");
-                }
-            }
-        }
+        // max qty validation dihapus:
+        // PR qty tidak lagi ditolak berdasarkan stok minimum (fminstock).
+        // Validasi yang tersisa tetap: qty harus >= 1 dan terhadap PO usage (tidak boleh kurang dari yang sudah diproses ke PO).
 
         if ($errors->isNotEmpty()) {
             return back()->withErrors($errors)->withInput();

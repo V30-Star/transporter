@@ -435,7 +435,7 @@
                                             <select class="w-full border rounded px-2 py-1 text-sm" :id="'unit_saved_' + i"
                                                 x-model="it.fsatuan" @focus="activeRow = it.uid" @blur="activeRow = null"
                                                 @keydown.enter.prevent="focusSavedQty(i)"
-                                                @change="it.maxqty = calcMaxQty(it);">
+                                                >
                                                 <template x-for="u in it.units" :key="u">
                                                     <option :value="u" x-text="u"></option>
                                                 </template>
@@ -459,16 +459,12 @@
                                     @if ($isEdit)
                                         <input type="number" class="border rounded px-2 py-1 w-20 text-right text-sm"
                                             x-model.number="it.fqty" :id="'qty_saved_' + i"
-                                            @focus="activeRow = it.uid; $event.target.select()" @blur="activeRow = null; enforcePrQtyRow(it);"
+                                            @focus="activeRow = it.uid; $event.target.select()" @blur="activeRow = null"
                                             @input="
                                                 recalc(it);
-                                                const mx = calcMaxQty(it);
-                                                if (it.frefdtid && mx > 0 && it.fqty > mx) { it.fqty = mx; recalc(it); }
                                             "
                                             @change="
                                                 recalc(it);
-                                                const mx = calcMaxQty(it);
-                                                if (it.frefdtid && mx > 0 && it.fqty > mx) { it.fqty = mx; recalc(it); }
                                             "
                                             @keydown.enter.prevent="focusSavedPrice(i)">
                                         <div class="text-[10px] text-amber-700 font-medium text-right mt-0.5"
@@ -592,7 +588,7 @@
                                 <td class="p-2 text-right">
                                     <input type="number" class="border rounded px-2 py-1 w-20 text-right text-sm"
                                         min="0" step="1" x-ref="draftQty" x-model.number="draft.fqty"
-                                        @input="recalc(draft);" @blur="enforcePrQtyRow(draft);" @keydown.enter.prevent="$refs.draftPrice?.focus()">
+                                        @input="recalc(draft);" @keydown.enter.prevent="$refs.draftPrice?.focus()">
                                     <div class="text-[10px] text-amber-700 font-medium text-right mt-0.5"
                                         x-show="draft.frefdtid && calcMaxQty(draft) > 0"
                                         x-html="formatPrRemainHint(draft)">
@@ -1339,22 +1335,11 @@
 
                 const hasRemainField = row.fqtyremain !== undefined && row.fqtyremain !== null && row.fqtyremain !== '';
 
-                let sisaKecil = 0;
-                if (hasRemainField) {
-                    sisaKecil = Math.max(0, parseFloat(row.fqtyremain) || 0);
-                } else {
-                    const qtyPR = parseFloat(row.fqtypr) || 0;
-                    const fqtypo = parseFloat(row.fqtypo) || 0;
-                    const satuanPR = (row.fqtypr_satuan || '').trim();
-                    if (!satuanPR || !(qtyPR > 0)) return 0;
-                    let qtyPRInKecil = qtyPR;
-                    if (eq(satuanPR, satBesar) && rasio > 0) {
-                        qtyPRInKecil = qtyPR * rasio;
-                    } else if (eq(satuanPR, satBesar2) && rasio2 > 0) {
-                        qtyPRInKecil = qtyPR * rasio2;
-                    }
-                    sisaKecil = Math.max(0, qtyPRInKecil - fqtypo);
-                }
+                // Validasi qty untuk edit PO harus mengikuti sisa PR yang sudah dihitung server (fqtyremain).
+                // Jika fqtyremain tidak ada, jangan jalankan hitungan maxqty lain.
+                if (!hasRemainField) return 0;
+
+                const sisaKecil = Math.max(0, parseFloat(row.fqtyremain) || 0);
 
                 if (!satuanPO || eq(satuanPO, satKecil)) {
                     return sisaKecil;

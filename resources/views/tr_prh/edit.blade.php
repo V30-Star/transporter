@@ -486,11 +486,7 @@
                                                 <input type="number" class="w-full border rounded px-2 py-1 text-right"
                                                     x-model.number="it.fqty" min="1" :disabled="blockedByPO"
                                                     @focus="activeRow = it.uid; $event.target.select()"
-                                                    @blur="activeRow = null; enforceQtyRow(it)">
-                                                <div class="text-[10px] text-orange-600 font-medium text-right mt-0.5"
-                                                    x-show="it.fitemcode && productMeta(it.fitemcode).stock > 0"
-                                                    x-html="formatStockLimit(it.fitemcode, it.fqty, it.fsatuan)">
-                                                </div>
+                                                    @blur="activeRow = null">
                                             </td>
                                             <td class="p-2 text-right">
                                                 <input type="number"
@@ -564,11 +560,7 @@
                                         <td class="p-2">
                                             <input type="number" class="w-full border rounded px-2 py-1 text-right"
                                                 x-model.number="draft.fqty" min="1" x-ref="draftQty"
-                                                @keydown.enter.prevent="addIfComplete()" @blur="enforceQtyRow(draft)">
-                                            <div class="text-[10px] text-orange-600 font-medium text-right mt-0.5"
-                                                x-show="draft.fitemcode && productMeta(draft.fitemcode).stock > 0"
-                                                x-html="formatStockLimit(draft.fitemcode, draft.fqty, draft.fsatuan)">
-                                            </div>
+                                                @keydown.enter.prevent="addIfComplete()">
                                         </td>
                                         <td class="p-2 text-right">-</td>
                                         <td class="p-2">
@@ -1209,18 +1201,8 @@
                 },
 
                 enforceQtyRow(row) {
-                    const n = +row.fqty;
-                    const meta = this.productMeta(row.fitemcode);
-                    const max = meta ? meta.stock : 999999;
-
-                    if (!Number.isFinite(n)) {
-                        row.fqty = 1;
-                        return;
-                    }
-                    if (n < 1) row.fqty = 1;
-                    if (max > 0 && n > max) {
-                        row.fqty = max;
-                    }
+                    // max qty validation removed (qty tidak lagi dibatasi mengikuti stok maksimum)
+                    return;
                 },
 
                 init() {
