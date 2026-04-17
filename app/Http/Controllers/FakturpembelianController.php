@@ -332,6 +332,45 @@ class FakturPembelianController extends Controller
     }
   }
 
+  private function addBackSourceRemain(string $sourceType, int $detailId, float $qty): void
+  {
+    $qty = max(0, $qty);
+
+    if ($sourceType === 'PO') {
+      DB::table('tr_pod')
+        ->where('fpodid', $detailId)
+        ->update([
+          'fqtyremain' => DB::raw("CAST(fqtyremain AS NUMERIC) + {$qty}"),
+        ]);
+      return;
+    }
+
+    if ($sourceType === 'PB') {
+      DB::table('trstockdt')
+        ->where('fstockdtid', $detailId)
+        ->update([
+          'fqtyremain' => DB::raw("CAST(fqtyremain AS NUMERIC) + {$qty}"),
+        ]);
+    }
+  }
+
+  private function detectSourceTypeByDetailId(int $detailId): ?string
+  {
+    if ($detailId <= 0) {
+      return null;
+    }
+
+    if (DB::table('tr_pod')->where('fpodid', $detailId)->exists()) {
+      return 'PO';
+    }
+
+    if (DB::table('trstockdt')->where('fstockdtid', $detailId)->exists()) {
+      return 'PB';
+    }
+
+    return null;
+  }
+
   private function validateSourceRemainForRows(array $codes, array $qtys, array $sources, array $refdtids, array $extraAvailableBySourceRef = []): \Illuminate\Support\MessageBag
   {
     $errors = new \Illuminate\Support\MessageBag();
@@ -1119,7 +1158,38 @@ class FakturPembelianController extends Controller
       $subtotal = 0.0;
       $rowCount = count($codes);
 
-      $errors = $this->validateSourceRemainForRows($codes, $qtys, $sources, $refdtids);
+      $requestSourceByRefId = [];
+      foreach ($sources as $i => $sourceRaw) {
+        $sourceType = strtoupper(trim((string) ($sourceRaw ?? '')));
+        $detailId = (int) ($refdtids[$i] ?? 0);
+        if (in_array($sourceType, ['PO', 'PB'], true) && $detailId > 0) {
+          $requestSourceByRefId[$detailId] = $sourceType;
+        }
+      }
+
+      $oldUsageBySourceRef = [];
+      $oldDetails = DB::table('trstockdt')
+        ->where('fstockmtid', $header->fstockmtid)
+        ->get(['frefdtid', 'fqty']);
+
+      foreach ($oldDetails as $oldDetail) {
+        $detailId = (int) ($oldDetail->frefdtid ?? 0);
+        $qtyUsed = (float) ($oldDetail->fqty ?? 0);
+
+        if ($detailId <= 0 || $qtyUsed <= 0) {
+          continue;
+        }
+
+        $sourceType = $requestSourceByRefId[$detailId] ?? $this->detectSourceTypeByDetailId($detailId);
+        if (!in_array($sourceType, ['PO', 'PB'], true)) {
+          continue;
+        }
+
+        $sourceKey = $sourceType . ':' . $detailId;
+        $oldUsageBySourceRef[$sourceKey] = ($oldUsageBySourceRef[$sourceKey] ?? 0) + $qtyUsed;
+      }
+
+      $errors = $this->validateSourceRemainForRows($codes, $qtys, $sources, $refdtids, $oldUsageBySourceRef);
 
       if ($errors->isNotEmpty()) {
         return back()->withErrors($errors)->withInput();
@@ -1210,7 +1280,10 @@ class FakturPembelianController extends Controller
         $ppnAmount,
         $grandTotal,
         $faccid,
-        $fprdjadi
+        $fprdjadi,
+        $fbranchcode,
+        $oldUsageBySourceRef,
+        $sourceRows
       ) {
 
         // Logika Branch yang diperbaiki untuk PostgreSQL
@@ -1261,6 +1334,16 @@ class FakturPembelianController extends Controller
           'fjatuhtempo' => $request->input('fjatuhtempo') ? \Carbon\Carbon::parse($request->input('fjatuhtempo'))->startOfDay() : null,
         ]);
 
+        // Kembalikan qty remain lama dulu, agar edit tidak terus mengurangi remain.
+        foreach ($oldUsageBySourceRef as $sourceKey => $oldUsedQty) {
+          [$sourceType, $detailIdRaw] = explode(':', $sourceKey);
+          $detailId = (int) $detailIdRaw;
+          if (!in_array($sourceType, ['PO', 'PB'], true) || $detailId <= 0 || $oldUsedQty <= 0) {
+            continue;
+          }
+          $this->addBackSourceRemain($sourceType, $detailId, (float) $oldUsedQty);
+        }
+
         // Hapus detail lama dan masukkan yang baru
         $header->details()->delete();
 
@@ -1272,14 +1355,14 @@ class FakturPembelianController extends Controller
         }
 
         DB::table('trstockdt')->insert($rowsDt);
-      });
 
-      // UPDATE STOK - gunakan qtyKecil hasil konversi, bukan qty mentah
-      foreach ($sourceRows as $src) {
-        if (in_array($src['source'] ?? null, ['PO', 'PB'], true) && !empty($src['refdtid'])) {
-          $this->deductSourceRemain((string) $src['source'], (int) $src['refdtid'], (float) $src['qty']);
+        // Kurangi lagi berdasarkan detail terbaru.
+        foreach ($sourceRows as $src) {
+          if (in_array($src['source'] ?? null, ['PO', 'PB'], true) && !empty($src['refdtid'])) {
+            $this->deductSourceRemain((string) $src['source'], (int) $src['refdtid'], (float) $src['qty']);
+          }
         }
-      }
+      });
 
       return redirect()
         ->route('fakturpembelian.index')
