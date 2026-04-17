@@ -83,6 +83,38 @@
                 </div>
             </div>
 
+            @php
+                $imageRaw = (string) ($product->fimage1 ?? '');
+                $driveFileId = null;
+                if ($imageRaw !== '') {
+                    if (str_contains($imageRaw, 'http')) {
+                        if (preg_match('~/d/([a-zA-Z0-9_-]+)~', $imageRaw, $m)) {
+                            $driveFileId = $m[1];
+                        } elseif (preg_match('/[?&]id=([a-zA-Z0-9_-]+)/', $imageRaw, $m)) {
+                            $driveFileId = $m[1];
+                        }
+                    } else {
+                        $driveFileId = $imageRaw;
+                    }
+                }
+                $drivePreviewUrl = $driveFileId ? route('product.photo', $product->fprdid) : null;
+            @endphp
+            @if($driveFileId)
+            <div class="grid grid-cols-3 gap-4">
+                <div class="text-sm font-medium text-gray-500">Foto Product</div>
+                <div class="col-span-2">
+                    <div id="imagePreviewContainer">
+                        <img id="imagePreview"
+                            src="{{ $drivePreviewUrl }}"
+                            alt="Product Image"
+                            class="max-w-xs max-h-48 border rounded shadow cursor-zoom-in hover:opacity-90 transition"
+                            onclick="openModal()"
+                            onerror="this.onerror=null; this.src='https://drive.google.com/thumbnail?id={{ $driveFileId }}&sz=w1000';">
+                    </div>
+                </div>
+            </div>
+            @endif
+
             @if($product->fcreatedby)
             <div class="grid grid-cols-3 gap-4">
                 <div class="text-sm font-medium text-gray-500">Dibuat</div>
@@ -152,6 +184,13 @@
             <p>Last updated: {{ $product->fupdatedat ? \Carbon\Carbon::parse($product->fupdatedat)->format('d M Y, H:i') : \Carbon\Carbon::parse($product->fcreatedat)->format('d M Y, H:i') }}</p>
         </div>
     </div>
+
+    @if($driveFileId)
+    <div id="imageModal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-90 flex items-center justify-center p-4" onclick="closeModal()">
+        <span class="absolute top-5 right-10 text-white text-4xl font-bold cursor-pointer">&times;</span>
+        <img id="modalContent" class="max-w-full max-h-full rounded shadow-2xl">
+    </div>
+    @endif
 
     @if(!$hasRelatedData)
     <div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -223,6 +262,25 @@
             document.getElementById('deleteModal').classList.remove('hidden');
         }
 
+        function openModal() {
+            const modal = document.getElementById('imageModal');
+            const previewImg = document.getElementById('imagePreview');
+            const modalImg = document.getElementById('modalContent');
+
+            if (!modal || !previewImg || !modalImg || !previewImg.src) return;
+
+            modal.classList.remove('hidden');
+            modalImg.src = previewImg.src;
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('imageModal');
+            if (!modal) return;
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
         function closeDeleteModal() {
             document.getElementById('deleteModal').classList.add('hidden');
             document.getElementById('btnDeleteText').textContent = 'Ya, Hapus';
@@ -277,6 +335,10 @@
                 }
             });
         }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === "Escape") closeModal();
+        });
     </script>
     @endif
 @endsection

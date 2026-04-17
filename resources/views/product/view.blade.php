@@ -580,14 +580,31 @@
                     </div>
 
                     {{-- Foto Product --}}
-                    @if($product->fimage1)
+                    @php
+                        $imageRaw = (string) ($product->fimage1 ?? '');
+                        $driveFileId = null;
+                        if ($imageRaw !== '') {
+                            if (str_contains($imageRaw, 'http')) {
+                                if (preg_match('~/d/([a-zA-Z0-9_-]+)~', $imageRaw, $m)) {
+                                    $driveFileId = $m[1];
+                                } elseif (preg_match('/[?&]id=([a-zA-Z0-9_-]+)/', $imageRaw, $m)) {
+                                    $driveFileId = $m[1];
+                                }
+                            } else {
+                                $driveFileId = $imageRaw;
+                            }
+                        }
+                        $drivePreviewUrl = $driveFileId ? route('product.photo', $product->fprdid) : null;
+                    @endphp
+                    @if($driveFileId)
                     <div class="mt-4 w-1/2">
                         <label class="block text-sm font-medium">Foto Product</label>
                         <div class="mt-2">
-                            <img id="productImage" src="https://drive.google.com/uc?id={{ $product->fimage1 }}&export=view" 
+                            <img id="productImage" src="{{ $drivePreviewUrl }}"
                                  alt="Product Image" 
                                  class="max-w-xs max-h-64 border rounded shadow cursor-pointer hover:opacity-90 transition-opacity"
-                                 onclick="openImageModal(this.src)">
+                                 onclick="openImageModal(this.src)"
+                                 onerror="this.onerror=null; this.src='https://drive.google.com/thumbnail?id={{ $driveFileId }}&sz=w1000';">
                         </div>
                         <p class="text-xs text-gray-500 mt-2">Klik gambar untuk melihat lebih besar</p>
                     </div>
@@ -897,5 +914,28 @@
         modal.innerHTML = '<img src="' + src + '" style="max-width:90%;max-height:90%;border-radius:8px;box-shadow:0 0 20px rgba(255,255,255,0.3);" />';
         modal.onclick = function() { this.remove(); };
         document.body.appendChild(modal);
+    }
+
+    function deletePhoto() {
+        if (!confirm('Hapus foto product ini?')) return;
+
+        fetch('{{ route('product.delete-photo', $product->fprdid) }}', {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            }
+        })
+        .then(async (response) => {
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.message || 'Gagal menghapus foto');
+            }
+            alert(data.message || 'Foto berhasil dihapus');
+            window.location.reload();
+        })
+        .catch((error) => {
+            alert(error.message || 'Terjadi kesalahan saat menghapus foto');
+        });
     }
 </script>

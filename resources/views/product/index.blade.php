@@ -149,6 +149,11 @@
                                 data-column="4" placeholder="Cari...">
                         </div>
                     </th>
+                    <th class="border px-3 py-2 no-sort text-center">
+                        <div class="flex items-center justify-center">
+                            <span>Image</span>
+                        </div>
+                    </th>
                     <th class="border px-3 py-2 no-sort">
                         <div class="flex items-center justify-between">
                             <span>Status</span>
@@ -544,6 +549,38 @@
                     name: 'fminstock',
                     orderable: false,
                     searchable: true
+                },
+                {
+                    data: 'fimage1',
+                    name: 'fimage1',
+                    orderable: false,
+                    searchable: false,
+                    className: 'text-center',
+                    render: function(fileId) {
+                        if (!fileId) {
+                            return '<span class="text-gray-400">-</span>';
+                        }
+
+                        let normalizedId = String(fileId).trim();
+                        const directMatch = normalizedId.match(/\/d\/([a-zA-Z0-9_-]+)/);
+                        const queryMatch = normalizedId.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+
+                        if (directMatch && directMatch[1]) {
+                            normalizedId = directMatch[1];
+                        } else if (queryMatch && queryMatch[1]) {
+                            normalizedId = queryMatch[1];
+                        }
+
+                        const downloadUrl = `https://drive.google.com/uc?export=download&id=${encodeURIComponent(normalizedId)}`;
+
+                        return `
+                            <a href="${downloadUrl}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center text-blue-600 hover:text-blue-800" title="Download Image">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M12 11v9m0 0l-3-3m3 3l3-3"></path>
+                                </svg>
+                            </a>
+                        `;
+                    }
                 },
                 {
                     data: 'status',

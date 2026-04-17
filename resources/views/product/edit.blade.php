@@ -1289,17 +1289,6 @@
                                     </svg>
                                     Pilih Foto
                                 </button>
-                                @if($product->fimage1)
-                                <a href="https://drive.google.com/uc?id={{ $product->fimage1 }}&export=view" 
-                                   target="_blank"
-                                   class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 flex items-center gap-2">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                    </svg>
-                                    Lihat Foto
-                                </a>
-                                @endif
                                 <button type="button" id="btnRemoveImage" class="hidden bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 flex items-center gap-2" onclick="removeImage()">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -1309,15 +1298,35 @@
                             </div>
                             <p class="text-xs text-gray-500 mt-1">Format: JPG, PNG, GIF, WEBP. Maks 5MB</p>
                             
-                            @if($product->fimage1)
+                            @php
+                                $imageRaw = (string) ($product->fimage1 ?? '');
+                                $driveFileId = null;
+                                if ($imageRaw !== '') {
+                                    if (str_contains($imageRaw, 'http')) {
+                                        if (preg_match('~/d/([a-zA-Z0-9_-]+)~', $imageRaw, $m)) {
+                                            $driveFileId = $m[1];
+                                        } elseif (preg_match('/[?&]id=([a-zA-Z0-9_-]+)/', $imageRaw, $m)) {
+                                            $driveFileId = $m[1];
+                                        }
+                                    } else {
+                                        $driveFileId = $imageRaw;
+                                    }
+                                }
+                                $drivePreviewUrl = $driveFileId ? route('product.photo', $product->fprdid) : null;
+                            @endphp
+                            @if($driveFileId)
                             <div id="imagePreviewContainer" class="mt-3">
-                                <img id="imagePreview" src="https://drive.google.com/uc?id={{ $product->fimage1 }}&export=view" alt="Product Image" class="max-w-xs max-h-48 border rounded shadow cursor-pointer" onclick="openImageModal(this.src)">
+                                <img id="imagePreview" src="{{ $drivePreviewUrl }}" alt="Product Image" class="max-w-xs max-h-48 border rounded shadow cursor-zoom-in hover:opacity-90 transition" onclick="openModal()" onerror="this.onerror=null; this.src='https://drive.google.com/thumbnail?id={{ $driveFileId }}&sz=w1000';">
                             </div>
                             @else
                             <div id="imagePreviewContainer" class="mt-3 hidden">
-                                <img id="imagePreview" src="" alt="Preview" class="max-w-xs max-h-48 border rounded shadow cursor-pointer" onclick="openImageModal(this.src)">
+                                <img id="imagePreview" src="" alt="Preview" class="max-w-xs max-h-48 border rounded shadow cursor-zoom-in hover:opacity-90 transition" onclick="openModal()">
                             </div>
                             @endif
+                            <div id="imageModal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-90 flex items-center justify-center p-4" onclick="closeModal()">
+                                <span class="absolute top-5 right-10 text-white text-40px font-bold cursor-pointer">&times;</span>
+                                <img id="modalContent" class="max-w-full max-h-full rounded shadow-2xl">
+                            </div>
                         </div>
 
                         <div class="md:col-span-2 flex justify-center items-center space-x-2">
@@ -2591,7 +2600,6 @@
             
             reader.onload = function(e) {
                 document.getElementById('imagePreview').src = e.target.result;
-                document.getElementById('imagePreview').onclick = function() { openImageModal(e.target.result); };
                 document.getElementById('imagePreviewContainer').classList.remove('hidden');
                 document.getElementById('btnRemoveImage').classList.remove('hidden');
             }
@@ -2607,13 +2615,25 @@
         document.getElementById('btnRemoveImage').classList.add('hidden');
     }
 
-    function openImageModal(src) {
-        if (!src) return;
-        
-        var modal = document.createElement('div');
-        modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:10000;display:flex;align-items:center;justify-content:center;cursor:pointer;';
-        modal.innerHTML = '<img src="' + src + '" style="max-width:90%;max-height:90%;border-radius:8px;box-shadow:0 0 20px rgba(255,255,255,0.3);" />';
-        modal.onclick = function() { this.remove(); };
-        document.body.appendChild(modal);
+    function openModal() {
+        const modal = document.getElementById('imageModal');
+        const previewImg = document.getElementById('imagePreview');
+        const modalImg = document.getElementById('modalContent');
+
+        if (previewImg.src) {
+            modal.classList.remove('hidden');
+            modalImg.src = previewImg.src;
+            document.body.style.overflow = 'hidden';
+        }
     }
+
+    function closeModal() {
+        const modal = document.getElementById('imageModal');
+        modal.classList.add('hidden');
+        document.body.style.overflow = 'auto';
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === "Escape") closeModal();
+    });
 </script>

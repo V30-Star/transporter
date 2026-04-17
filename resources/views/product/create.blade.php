@@ -710,11 +710,18 @@
                             Hapus
                         </button>
                     </div>
-                    <p class="text-xs text-gray-500 mt-1">Format: JPG, PNG, GIF, WEBP. Maks 5MB</p>
+                    <p class="text-xs text-gray-500 mt-1">Format: JPG, PNG. Maks 2MB</p>
                     
                     {{-- Image Preview --}}
-                    <div id="imagePreviewContainer" class="mt-3 hidden">
-                        <img id="imagePreview" src="" alt="Preview" class="max-w-xs max-h-48 border rounded shadow">
+                   <div id="imagePreviewContainer" class="mt-3 hidden">
+                        <img id="imagePreview" src="" alt="Preview" 
+                            class="max-w-xs max-h-48 border rounded shadow cursor-zoom-in hover:opacity-90 transition"
+                            onclick="openModal()">
+                    </div>
+
+                    <div id="imageModal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-90 flex items-center justify-center p-4" onclick="closeModal()">
+                        <span class="absolute top-5 right-10 text-white text-40px font-bold cursor-pointer">&times;</span>
+                        <img id="modalContent" class="max-w-full max-h-full rounded shadow-2xl">
                     </div>
                 </div>
 
@@ -1858,23 +1865,56 @@
 
     // --- Image Preview Functions ---
     function previewImage(input) {
-        if (input.files && input.files[0]) {
-            var reader = new FileReader();
-            
-            reader.onload = function(e) {
-                document.getElementById('imagePreview').src = e.target.result;
-                document.getElementById('imagePreviewContainer').classList.remove('hidden');
-                document.getElementById('btnRemoveImage').classList.remove('hidden');
-            }
-            
-            reader.readAsDataURL(input.files[0]);
-        }
-    }
+    const container = document.getElementById('imagePreviewContainer');
+    const preview = document.getElementById('imagePreview');
+    const btnRemove = document.getElementById('btnRemoveImage');
 
-    function removeImage() {
-        document.getElementById('fimage1').value = '';
-        document.getElementById('imagePreview').src = '';
-        document.getElementById('imagePreviewContainer').classList.add('hidden');
-        document.getElementById('btnRemoveImage').classList.add('hidden');
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+            container.classList.remove('hidden');
+            btnRemove.classList.remove('hidden');
+        }
+
+        reader.readAsDataURL(input.files[0]);
     }
+}
+
+function removeImage() {
+    const input = document.getElementById('fimage1');
+    const container = document.getElementById('imagePreviewContainer');
+    const preview = document.getElementById('imagePreview');
+    const btnRemove = document.getElementById('btnRemoveImage');
+
+    input.value = ""; // Reset input file
+    preview.src = "";
+    container.classList.add('hidden');
+    btnRemove.classList.add('hidden');
+}
+
+// Fungsi Zoom Modal
+function openModal() {
+    const modal = document.getElementById('imageModal');
+    const previewImg = document.getElementById('imagePreview');
+    const modalImg = document.getElementById('modalContent');
+    
+    if (previewImg.src) {
+        modal.classList.remove('hidden');
+        modalImg.src = previewImg.src;
+        document.body.style.overflow = 'hidden'; // Kunci scroll layar belakang
+    }
+}
+
+function closeModal() {
+    const modal = document.getElementById('imageModal');
+    modal.classList.add('hidden');
+    document.body.style.overflow = 'auto'; // Aktifkan kembali scroll
+}
+
+// Tutup modal dengan tombol Escape
+document.addEventListener('keydown', function(e) {
+    if (e.key === "Escape") closeModal();
+});
 </script>

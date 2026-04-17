@@ -83,6 +83,7 @@ class ProductController extends Controller
                 'msprd.fprdname',
                 'msprd.fsatuankecil',
                 'msprd.fminstock',
+                'msprd.fimage1',
                 'msprd.fprdid',
                 'msprd.fnonactive',
                 'msprd.fmerek',
@@ -102,6 +103,7 @@ class ProductController extends Controller
                     'fmerek' => $item->merek_name,
                     'fsatuankecil' => $item->fsatuankecil,
                     'fminstock' => $item->fminstock,
+                    'fimage1' => $item->fimage1,
                     'status' => $statusBadge,
                     'fprdid' => $item->fprdid,
                 ];
@@ -494,6 +496,70 @@ class ProductController extends Controller
             ->with('success', 'Product berhasil di-update.');
     }
 
+    public function deletePhoto($fprdid)
+    {
+        $product = Product::findOrFail($fprdid);
+
+        if (empty($product->fimage1)) {
+            return response()->json([
+                'message' => 'Foto product tidak ditemukan.',
+            ], 422);
+        }
+
+        try {
+            $googleDriveService = new GoogleDriveService;
+            $fileId = $this->normalizeGoogleDriveFileId($product->fimage1);
+
+            if ($fileId) {
+                $googleDriveService->deleteImage($fileId);
+            }
+
+            $product->update(['fimage1' => null]);
+
+            return response()->json([
+                'message' => 'Foto product berhasil dihapus.',
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Delete product photo failed: ' . $e->getMessage());
+
+            return response()->json([
+                'message' => 'Gagal menghapus foto product.',
+            ], 500);
+        }
+    }
+
+    public function photo($fprdid)
+    {
+        $product = Product::findOrFail($fprdid);
+
+        if (empty($product->fimage1)) {
+            abort(404);
+        }
+
+        $fileId = $this->normalizeGoogleDriveFileId($product->fimage1);
+        if (! $fileId) {
+            abort(404);
+        }
+
+        try {
+            $googleDriveService = new GoogleDriveService;
+            $imageData = $googleDriveService->getImageContent($fileId);
+
+            if (! $imageData || empty($imageData['content'])) {
+                abort(404);
+            }
+
+            return response($imageData['content'], 200, [
+                'Content-Type' => $imageData['mimeType'] ?? 'application/octet-stream',
+                'Content-Disposition' => 'inline; filename="' . ($imageData['name'] ?? 'product-image') . '"',
+                'Cache-Control' => 'private, max-age=300',
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Product photo preview failed: ' . $e->getMessage());
+            abort(500);
+        }
+    }
+
     public function delete($fprdid)
     {
         $product = Product::with('merek')->findOrFail($fprdid);
@@ -601,5 +667,28 @@ class ProductController extends Controller
             'customer' => $customerData,
             'supplier' => $supplierData,
         ]);
+    }
+
+    private function normalizeGoogleDriveFileId(?string $rawValue): ?string
+    {
+        if (! $rawValue) {
+            return null;
+        }
+
+        $value = trim($rawValue);
+
+        if (! str_contains($value, 'http')) {
+            return $value;
+        }
+
+        if (preg_match('~/d/([a-zA-Z0-9_-]+)~', $value, $matches)) {
+            return $matches[1];
+        }
+
+        if (preg_match('/[?&]id=([a-zA-Z0-9_-]+)/', $value, $matches)) {
+            return $matches[1];
+        }
+
+        return null;
     }
 }
