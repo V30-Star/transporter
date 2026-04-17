@@ -582,7 +582,8 @@
                     {{-- Foto Product --}}
                     <div class="mt-4 w-full">
                         <label class="block text-sm font-medium mb-2">Foto Product</label>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+                        <div class="flex flex-col gap-6">
                             @foreach ([1, 2, 3] as $imgNo)
                                 @php
                                     $field = 'fimage' . $imgNo;
@@ -599,26 +600,31 @@
                                             $driveFileId = $imageRaw;
                                         }
                                     }
-                                    $drivePreviewUrl = $driveFileId ? route('product.photo', ['fprdid' => $product->fprdid, 'field' => $field]) : null;
+                                    $drivePreviewUrl = $driveFileId
+                                        ? route('product.photo', ['fprdid' => $product->fprdid, 'field' => $field])
+                                        : null;
                                 @endphp
-                                <div>
+
+                                <div class="max-w-md">
                                     <p class="text-xs font-semibold text-gray-500 mb-2">Foto {{ $imgNo }}</p>
                                     @if ($driveFileId)
                                         <img src="{{ $drivePreviewUrl }}" alt="Product Image {{ $imgNo }}"
-                                            class="max-w-xs max-h-64 border rounded shadow cursor-pointer hover:opacity-90 transition-opacity"
+                                            class="w-full max-h-80 object-cover border rounded shadow cursor-pointer hover:opacity-90 transition-opacity"
                                             onclick="openImageModal(this.src)"
                                             onerror="this.onerror=null; this.src='https://drive.google.com/thumbnail?id={{ $driveFileId }}&sz=w1000';">
                                     @else
-                                        <div class="max-w-xs h-32 border rounded bg-gray-100 text-gray-400 flex items-center justify-center text-sm">
-                                            Belum ada foto
+                                        <div
+                                            class="w-full h-32 border rounded bg-gray-100 text-gray-400 flex items-center justify-center text-sm italic">
+                                            Belum ada foto {{ $imgNo }}
                                         </div>
                                     @endif
                                 </div>
                             @endforeach
                         </div>
-                        <p class="text-xs text-gray-500 mt-2">Klik gambar untuk melihat lebih besar</p>
-                    </div>
 
+                        <p class="text-xs text-gray-500 mt-4 italic">Klik gambar untuk melihat lebih besar</p>
+                    </div>
+                    
                     <div class="md:col-span-2 flex justify-center items-center space-x-2">
                         <fieldset {{ $isApproved ? 'disabled' : '' }}>
                             <div class="flex items-center space-x-2">
