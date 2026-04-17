@@ -1330,16 +1330,27 @@
                 const satKecil = (row.fsatuankecil || '').trim();
                 const satBesar = (row.fsatuanbesar || '').trim();
                 const satBesar2 = (row.fsatuanbesar2 || '').trim();
-                const rasio = parseFloat(row.fqtykecil) || 0;
-                const rasio2 = parseFloat(row.fqtykecil2) || 0;
+                const rasio = Number(row.fqtykecil || 0);
+                const rasio2 = Number(row.fqtykecil2 || 0);
 
                 const hasRemainField = row.fqtyremain !== undefined && row.fqtyremain !== null && row.fqtyremain !== '';
 
-                // Validasi qty untuk edit PO harus mengikuti sisa PR yang sudah dihitung server (fqtyremain).
-                // Jika fqtyremain tidak ada, jangan jalankan hitungan maxqty lain.
-                if (!hasRemainField) return 0;
-
-                const sisaKecil = Math.max(0, parseFloat(row.fqtyremain) || 0);
+                let sisaKecil = 0;
+                if (hasRemainField) {
+                    sisaKecil = Math.max(0, Number(row.fqtyremain) || 0);
+                } else {
+                    const qtyPR = Number(row.fqtypr) || 0;
+                    const fqtypo = Number(row.fqtypo) || 0;
+                    const satuanPR = (row.fqtypr_satuan || '').trim();
+                    if (!satuanPR || !(qtyPR > 0)) return 0;
+                    let qtyPRInKecil = qtyPR;
+                    if (eq(satuanPR, satBesar) && rasio > 0) {
+                        qtyPRInKecil = qtyPR * rasio;
+                    } else if (eq(satuanPR, satBesar2) && rasio2 > 0) {
+                        qtyPRInKecil = qtyPR * rasio2;
+                    }
+                    sisaKecil = Math.max(0, qtyPRInKecil - fqtypo);
+                }
 
                 if (!satuanPO || eq(satuanPO, satKecil)) {
                     return sisaKecil;
