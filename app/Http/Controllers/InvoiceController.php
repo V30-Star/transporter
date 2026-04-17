@@ -800,6 +800,7 @@ class InvoiceController extends Controller
                 'frefno_display' => $refNoDisplay,
                 'fqty' => (float) ($d->fqty ?? 0),
                 'fterima' => (float) ($d->fterima ?? 0),
+                'fqtyremain' => (float) ($d->fqtyremain ?? 0),
                 'fprice' => (float) ($d->fprice ?? 0),
                 'fdisc' => (float) ($d->fdisc ?? 0),
                 'ftotal' => (float) ($d->famount ?? 0),

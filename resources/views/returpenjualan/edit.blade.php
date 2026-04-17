@@ -292,11 +292,8 @@
                                                 <td class="p-2 text-right">
                                                     <input type="number"
                                                         class="w-full border rounded px-2 py-1 text-right"
-                                                        x-model.number="it.fqty" :max="it.maxqty > 0 ? it.maxqty : null"
+                                                        x-model.number="it.fqty"
                                                         @input="recalc(it); enforceQtyRow(it); recalc(it);">
-                                                    <div class="text-xs text-gray-400 mt-0.5 flex justify-end items-center" x-show="it.fitemcode">
-                                                        <div x-html="formatStockLimit(it)"></div>
-                                                    </div>
                                                 </td>
                                                 <td class="p-2 text-right">
                                                     <input type="number"
@@ -388,14 +385,9 @@
                                                 <input type="number" class="border rounded px-2 py-1 w-24 text-right"
                                                     x-model.number="draft.fqty" @input="
                                                         recalc(draft);
-                                                        if (draft.maxqty > 0 && draft.fqty > draft.maxqty) { draft.fqty = draft.maxqty; recalc(draft); }
+                                                        enforceQtyRow(draft);
+                                                        recalc(draft);
                                                     " x-ref="draftQty">
-                                                <div class="text-xs text-gray-400 mt-0.5 flex justify-between items-center" x-show="draft.fitemcode">
-                                                    <div>(<span x-text="productMeta(draft.fitemcode).stock"></span>) in stock</div>
-                                                    <div class="font-medium text-orange-600" x-show="draft.maxqty > 0">
-                                                        maks: <span x-text="draft.maxqty"></span>
-                                                    </div>
-                                                </div>
                                             </td>
                                             <td class="p-2 text-right">
                                                 <input type="number" class="border rounded px-2 py-1 w-28 text-right"
@@ -815,11 +807,9 @@
                                                             type="number"
                                                             x-model.number="it.fqty" @input="
                                                                 recalc(it);
-                                                                if (it.maxqty > 0 && it.fqty > it.maxqty) { it.fqty = it.maxqty; recalc(it); }
+                                                                enforceQtyRow(it);
+                                                                recalc(it);
                                                             ">
-                                                        <div x-show="it.maxqty > 0" class="text-xs text-gray-400 mt-0.5 text-right">
-                                                            maks: <span x-text="it.maxqty"></span>
-                                                        </div>
                                                     </td>
                                                     <td class="p-2 text-right">
                                                         <input type="number"
@@ -2539,62 +2529,25 @@
                 return meta;
             },
 
-            formatStockLimit(row) {
-                if (!row?.fitemcode) return '';
-                const meta = this.productMeta(row.fitemcode);
-                const limitSource = Number(row.maxqty ?? 0);
-                if (!limitSource) return '';
-
-                const units = meta.units || [];
-                const ratios = meta.unit_ratios || { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 };
-
-                const satuan = row.fsatuan || '';
-                if (!units.length || !satuan) return '';
-
-                const satKecil = units[0] || 'pcs';
-                const satBesar = units[1] || '';
-                const satBesar2 = units[2] || '';
-
-                let ratio = 1;
-                if (satuan === satBesar2 && ratios.satuanbesar2 > 0) {
-                    ratio = ratios.satuanbesar2;
-                } else if (satuan === satBesar && ratios.satuanbesar > 0) {
-                    ratio = ratios.satuanbesar;
-                } else if (satuan === satKecil) {
-                    ratio = 1;
-                }
-
-                const limitValue = Math.floor(limitSource / ratio);
-                return '<span class="font-medium">limit:</span> ' + limitValue + ' ' + satuan;
+            formatStockLimit(code, qty, satuan) {
+                // On Retur Penjualan Edit: do not show/compute stock/max qty limit.
+                // Qty limiting is handled only by fqtyremain validation (if present on the row).
+                return '';
             },
 
             enforceQtyRow(row) {
                 const n = +row.fqty;
-                const meta = this.productMeta(row.fitemcode);
-                const units = meta?.units || [];
-                const ratios = meta?.unit_ratios || { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 };
-                const satKecil = units[0] || 'pcs';
-                const satBesar = units[1] || '';
-                const satBesar2 = units[2] || '';
-                const satuan = row.fsatuan || '';
-                
-                let ratio = 1;
-                if (satuan === satBesar2 && ratios.satuanbesar2 > 0) {
-                    ratio = ratios.satuanbesar2;
-                } else if (satuan === satBesar && ratios.satuanbesar > 0) {
-                    ratio = ratios.satuanbesar;
-                }
-                
-                const maxStock = Number(row.maxqty ?? 0);
-                const maxInUnit = Math.floor(maxStock / ratio);
-                
+
                 if (!Number.isFinite(n)) {
                     row.fqty = 1;
                     return;
                 }
                 if (n < 1) row.fqty = 1;
-                if (maxInUnit > 0 && n > maxInUnit) {
-                    row.fqty = maxInUnit;
+
+                // Keep only fqtyremain validation on edit.
+                const remain = Number(row.fqtyremain ?? 0);
+                if (Number.isFinite(remain) && remain > 0 && n > remain) {
+                    row.fqty = remain;
                 }
             },
 
@@ -2947,6 +2900,7 @@
                 frefsrjid: null,
                 fqty: 0,
                 fterima: 0,
+                fqtyremain: 0,
                 fprice: 0,
                 fdisc: 0,
                 ftotal: 0,

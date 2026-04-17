@@ -2576,70 +2576,25 @@
                 return meta;
             },
 
-            formatStockLimit(row) {
-                if (!row?.fitemcode) return '';
-                const meta = this.productMeta(row.fitemcode);
-                const limitSource = Number(row.fqtyremain ?? 0);
-                if (!limitSource) return '';
-
-                const units = meta.units || [];
-                const ratios = meta.unit_ratios || {
-                    satuankecil: 1,
-                    satuanbesar: 1,
-                    satuanbesar2: 1
-                };
-
-                const satuan = row.fsatuan || '';
-                if (!units.length || !satuan) return '';
-
-                const satKecil = units[0] || 'pcs';
-                const satBesar = units[1] || '';
-                const satBesar2 = units[2] || '';
-
-                let ratio = 1;
-                if (satuan === satBesar2 && ratios.satuanbesar2 > 0) {
-                    ratio = ratios.satuanbesar2;
-                } else if (satuan === satBesar && ratios.satuanbesar > 0) {
-                    ratio = ratios.satuanbesar;
-                } else if (satuan === satKecil) {
-                    ratio = 1;
-                }
-
-                const limitValue = Math.floor(limitSource / ratio);
-                return '<span class="font-medium">limit:</span> ' + limitValue + ' ' + satuan;
+            formatStockLimit(code, qty, satuan) {
+                // On Invoice Edit: do not show/compute stock/max qty limit.
+                // Qty limiting is handled only by fqtyremain validation (if present on the row).
+                return '';
             },
 
             enforceQtyRow(row) {
                 const n = +row.fqty;
-                const meta = this.productMeta(row.fitemcode);
-                const units = meta?.units || [];
-                const ratios = meta?.unit_ratios || {
-                    satuankecil: 1,
-                    satuanbesar: 1,
-                    satuanbesar2: 1
-                };
-                const satKecil = units[0] || 'pcs';
-                const satBesar = units[1] || '';
-                const satBesar2 = units[2] || '';
-                const satuan = row.fsatuan || '';
-
-                let ratio = 1;
-                if (satuan === satBesar2 && ratios.satuanbesar2 > 0) {
-                    ratio = ratios.satuanbesar2;
-                } else if (satuan === satBesar && ratios.satuanbesar > 0) {
-                    ratio = ratios.satuanbesar;
-                }
-
-                const maxStock = Number(row.fqtyremain ?? 0);
-                const maxInUnit = Math.floor(maxStock / ratio);
 
                 if (!Number.isFinite(n)) {
                     row.fqty = 1;
                     return;
                 }
                 if (n < 1) row.fqty = 1;
-                if (maxInUnit > 0 && n > maxInUnit) {
-                    row.fqty = maxInUnit;
+
+                // Keep only fqtyremain validation on edit.
+                const remain = Number(row.fqtyremain ?? 0);
+                if (Number.isFinite(remain) && remain > 0 && n > remain) {
+                    row.fqty = remain;
                 }
             },
 
@@ -2723,9 +2678,9 @@
                         frefso: source === 'SO' ? (header?.fsono ?? '') : '',
                         frefsoid: source === 'SO' ? (src.frefdtno ?? null) : null,
                         frefsrj: source === 'SRJ' ? (header?.fstockmtno ?? '') : '',
-                        frefsrjid: source === 'SRJ' ? (src.frefdtno ?? null) : null,
-                        fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ?
-                            Number(src.fqty) : 1,
+                        frefsrjid: source === 'SRJ' ? (header?.fstockmtid ?? null) : null,
+                        fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ? Number(src.fqty) : 1,
+                        fqtyremain: Number(src.fqtyremain ?? 0),
                         fprice: Number(src.fprice ?? src.fharga ?? 0),
                         ftotal: 0,
                         fdesc: src.fdesc ? src.fdesc.toString().trim() : '',
@@ -2880,25 +2835,25 @@
             },
         };
 
-        function newRow() {
-            return {
-                uid: null,
-                fitemcode: '',
-                fitemname: '',
-                units: [],
-                fsatuan: '',
-                frefdtno: '',
-                frefno_display: '',
-                frefcode: '',
-                frefpr: '',
-                fqty: 0,
-                fprice: 0,
-                fdisc: 0,
-                ftotal: 0,
-                fqtyremain: 0,
-                fdesc: '',
-            };
-        }
+    function newRow() {
+        return {
+            uid: null,
+            fitemcode: '',
+            fitemname: '',
+            units: [],
+            fsatuan: '',
+            frefdtno: '',
+            frefno_display: '',
+            frefcode: '',
+            frefpr: '',
+            fqty: 0,
+            fqtyremain: 0,
+            fprice: 0,
+            fdisc: 0,
+            ftotal: 0,
+            fdesc: '',
+        };
+    }
 
         function cryptoRandom() {
             return (window.crypto?.getRandomValues ? [...window.crypto.getRandomValues(new Uint32Array(2))].map(n => n
