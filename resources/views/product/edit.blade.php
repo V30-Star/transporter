@@ -1278,51 +1278,65 @@
 
                         {{-- Upload Foto --}}
                         <div class="mt-4 w-1/2">
-                            <label class="block text-sm font-medium">Upload Foto</label>
-                            <div class="flex items-center gap-4">
-                                <input type="file" name="fimage1" id="fimage1" accept="image/*" 
-                                    class="hidden" onchange="previewImage(this)">
-                                <button type="button" onclick="document.getElementById('fimage1').click()"
-                                    class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center gap-2">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                    </svg>
-                                    Pilih Foto
-                                </button>
-                                <button type="button" id="btnRemoveImage" class="hidden bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 flex items-center gap-2" onclick="removeImage()">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                    </svg>
-                                    Hapus
-                                </button>
-                            </div>
-                            <p class="text-xs text-gray-500 mt-1">Format: JPG, PNG, GIF, WEBP. Maks 5MB</p>
-                            
-                            @php
-                                $imageRaw = (string) ($product->fimage1 ?? '');
-                                $driveFileId = null;
-                                if ($imageRaw !== '') {
-                                    if (str_contains($imageRaw, 'http')) {
-                                        if (preg_match('~/d/([a-zA-Z0-9_-]+)~', $imageRaw, $m)) {
-                                            $driveFileId = $m[1];
-                                        } elseif (preg_match('/[?&]id=([a-zA-Z0-9_-]+)/', $imageRaw, $m)) {
-                                            $driveFileId = $m[1];
+                            <label class="block text-sm font-medium">Upload Foto Design (3 Foto)</label>
+                            <div class="space-y-4">
+                                @foreach ([1, 2, 3] as $imgNo)
+                                    @php
+                                        $field = 'fimage' . $imgNo;
+                                        $imageRaw = (string) ($product->{$field} ?? '');
+                                        $driveFileId = null;
+                                        if ($imageRaw !== '') {
+                                            if (str_contains($imageRaw, 'http')) {
+                                                if (preg_match('~/d/([a-zA-Z0-9_-]+)~', $imageRaw, $m)) {
+                                                    $driveFileId = $m[1];
+                                                } elseif (preg_match('/[?&]id=([a-zA-Z0-9_-]+)/', $imageRaw, $m)) {
+                                                    $driveFileId = $m[1];
+                                                }
+                                            } else {
+                                                $driveFileId = $imageRaw;
+                                            }
                                         }
-                                    } else {
-                                        $driveFileId = $imageRaw;
-                                    }
-                                }
-                                $drivePreviewUrl = $driveFileId ? route('product.photo', $product->fprdid) : null;
-                            @endphp
-                            @if($driveFileId)
-                            <div id="imagePreviewContainer" class="mt-3">
-                                <img id="imagePreview" src="{{ $drivePreviewUrl }}" alt="Product Image" class="max-w-xs max-h-48 border rounded shadow cursor-zoom-in hover:opacity-90 transition" onclick="openModal()" onerror="this.onerror=null; this.src='https://drive.google.com/thumbnail?id={{ $driveFileId }}&sz=w1000';">
+                                        $drivePreviewUrl = $driveFileId ? route('product.photo', [$product->fprdid, $field]) : null;
+                                    @endphp
+                                    <div>
+                                        <label class="block text-xs font-semibold text-gray-600 mb-1">Foto {{ $imgNo }}</label>
+                                        <div class="flex items-center gap-4">
+                                            <input type="file" name="{{ $field }}" id="{{ $field }}" accept="image/*"
+                                                class="hidden" onchange="previewImage(this, {{ $imgNo }})">
+                                            <button type="button" onclick="document.getElementById('{{ $field }}').click()"
+                                                class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center gap-2">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                </svg>
+                                                Pilih Foto {{ $imgNo }}
+                                            </button>
+                                            <button type="button" id="btnRemoveImage{{ $imgNo }}"
+                                                class="hidden bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 flex items-center gap-2"
+                                                onclick="removeImage({{ $imgNo }})">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
+                                                Hapus
+                                            </button>
+                                        </div>
+                                        @if($driveFileId)
+                                            <div id="imagePreviewContainer{{ $imgNo }}" class="mt-3">
+                                                <img id="imagePreview{{ $imgNo }}" src="{{ $drivePreviewUrl }}" alt="Product Image {{ $imgNo }}"
+                                                    class="max-w-xs max-h-48 border rounded shadow cursor-zoom-in hover:opacity-90 transition"
+                                                    onclick="openModal({{ $imgNo }})"
+                                                    onerror="this.onerror=null; this.src='https://drive.google.com/thumbnail?id={{ $driveFileId }}&sz=w1000';">
+                                            </div>
+                                        @else
+                                            <div id="imagePreviewContainer{{ $imgNo }}" class="mt-3 hidden">
+                                                <img id="imagePreview{{ $imgNo }}" src="" alt="Preview {{ $imgNo }}"
+                                                    class="max-w-xs max-h-48 border rounded shadow cursor-zoom-in hover:opacity-90 transition"
+                                                    onclick="openModal({{ $imgNo }})">
+                                            </div>
+                                        @endif
+                                    </div>
+                                @endforeach
                             </div>
-                            @else
-                            <div id="imagePreviewContainer" class="mt-3 hidden">
-                                <img id="imagePreview" src="" alt="Preview" class="max-w-xs max-h-48 border rounded shadow cursor-zoom-in hover:opacity-90 transition" onclick="openModal()">
-                            </div>
-                            @endif
+                            <p class="text-xs text-gray-500 mt-1">Format: JPG, PNG, GIF, WEBP. Maks 2MB</p>
                             <div id="imageModal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-90 flex items-center justify-center p-4" onclick="closeModal()">
                                 <span class="absolute top-5 right-10 text-white text-40px font-bold cursor-pointer">&times;</span>
                                 <img id="modalContent" class="max-w-full max-h-full rounded shadow-2xl">
@@ -2594,30 +2608,30 @@
     // Event listener untuk Satuan 2 (Sudah dipasang melalui onchange="updateSatuanLogic()" di HTML)
 
     // --- Image Preview Functions ---
-    function previewImage(input) {
+    function previewImage(input, imageNo = 1) {
         if (input.files && input.files[0]) {
             var reader = new FileReader();
             
             reader.onload = function(e) {
-                document.getElementById('imagePreview').src = e.target.result;
-                document.getElementById('imagePreviewContainer').classList.remove('hidden');
-                document.getElementById('btnRemoveImage').classList.remove('hidden');
+                document.getElementById(`imagePreview${imageNo}`).src = e.target.result;
+                document.getElementById(`imagePreviewContainer${imageNo}`).classList.remove('hidden');
+                document.getElementById(`btnRemoveImage${imageNo}`).classList.remove('hidden');
             }
             
             reader.readAsDataURL(input.files[0]);
         }
     }
 
-    function removeImage() {
-        document.getElementById('fimage1').value = '';
-        document.getElementById('imagePreview').src = '';
-        document.getElementById('imagePreviewContainer').classList.add('hidden');
-        document.getElementById('btnRemoveImage').classList.add('hidden');
+    function removeImage(imageNo = 1) {
+        document.getElementById(`fimage${imageNo}`).value = '';
+        document.getElementById(`imagePreview${imageNo}`).src = '';
+        document.getElementById(`imagePreviewContainer${imageNo}`).classList.add('hidden');
+        document.getElementById(`btnRemoveImage${imageNo}`).classList.add('hidden');
     }
 
-    function openModal() {
+    function openModal(imageNo = 1) {
         const modal = document.getElementById('imageModal');
-        const previewImg = document.getElementById('imagePreview');
+        const previewImg = document.getElementById(`imagePreview${imageNo}`);
         const modalImg = document.getElementById('modalContent');
 
         if (previewImg.src) {

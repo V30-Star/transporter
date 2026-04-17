@@ -427,6 +427,9 @@ class ProductController extends Controller
                 'fhpp' => 'nullable',
                 'fhpp2' => 'nullable',
                 'fhpp3' => 'nullable',
+                'fimage1' => 'nullable|image|max:2048',
+                'fimage2' => 'nullable|image|max:2048',
+                'fimage3' => 'nullable|image|max:2048',
             ],
             [
                 'fprdcode.unique' => 'Kode Produk sudah ada',
@@ -482,20 +485,26 @@ class ProductController extends Controller
         $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
         $product = Product::findOrFail($fprdid);
 
-        if ($request->hasFile('fimage1') && $request->file('fimage1')->isValid()) {
-            try {
-                $googleDriveService = new GoogleDriveService;
+        $googleDriveService = new GoogleDriveService;
+        foreach (['fimage1', 'fimage2', 'fimage3'] as $imageField) {
+            if ($request->hasFile($imageField) && $request->file($imageField)->isValid()) {
+                try {
+                    if (! empty($product->{$imageField})) {
+                        $oldFileId = $this->normalizeGoogleDriveFileId($product->{$imageField});
+                        if ($oldFileId) {
+                            $googleDriveService->deleteImage($oldFileId);
+                        }
+                    }
 
-                if ($product->fimage1) {
-                    $googleDriveService->deleteImage($product->fimage1);
+                    $fileId = $googleDriveService->uploadImage($request, $imageField);
+                    if ($fileId) {
+                        $validated[$imageField] = $fileId;
+                    }
+                } catch (\Exception $e) {
+                    \Log::error('Image update failed: ' . $e->getMessage(), [
+                        'field' => $imageField,
+                    ]);
                 }
-
-                $fileId = $googleDriveService->uploadImage($request, 'fimage1');
-                if ($fileId) {
-                    $validated['fimage1'] = $fileId;
-                }
-            } catch (\Exception $e) {
-                Log::error('Image update failed: ' . $e->getMessage());
             }
         }
 
@@ -506,11 +515,17 @@ class ProductController extends Controller
             ->with('success', 'Product berhasil di-update.');
     }
 
-    public function deletePhoto($fprdid)
+    public function deletePhoto($fprdid, $field = 'fimage1')
     {
         $product = Product::findOrFail($fprdid);
+        $allowedFields = ['fimage1', 'fimage2', 'fimage3'];
+        if (! in_array($field, $allowedFields, true)) {
+            return response()->json([
+                'message' => 'Field foto tidak valid.',
+            ], 422);
+        }
 
-        if (empty($product->fimage1)) {
+        if (empty($product->{$field})) {
             return response()->json([
                 'message' => 'Foto product tidak ditemukan.',
             ], 422);
@@ -518,13 +533,13 @@ class ProductController extends Controller
 
         try {
             $googleDriveService = new GoogleDriveService;
-            $fileId = $this->normalizeGoogleDriveFileId($product->fimage1);
+            $fileId = $this->normalizeGoogleDriveFileId($product->{$field});
 
             if ($fileId) {
                 $googleDriveService->deleteImage($fileId);
             }
 
-            $product->update(['fimage1' => null]);
+            $product->update([$field => null]);
 
             return response()->json([
                 'message' => 'Foto product berhasil dihapus.',
@@ -538,15 +553,19 @@ class ProductController extends Controller
         }
     }
 
-    public function photo($fprdid)
+    public function photo($fprdid, $field = 'fimage1')
     {
         $product = Product::findOrFail($fprdid);
-
-        if (empty($product->fimage1)) {
+        $allowedFields = ['fimage1', 'fimage2', 'fimage3'];
+        if (! in_array($field, $allowedFields, true)) {
             abort(404);
         }
 
-        $fileId = $this->normalizeGoogleDriveFileId($product->fimage1);
+        if (empty($product->{$field})) {
+            abort(404);
+        }
+
+        $fileId = $this->normalizeGoogleDriveFileId($product->{$field});
         if (! $fileId) {
             abort(404);
         }

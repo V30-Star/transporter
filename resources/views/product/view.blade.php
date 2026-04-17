@@ -580,34 +580,44 @@
                     </div>
 
                     {{-- Foto Product --}}
-                    @php
-                        $imageRaw = (string) ($product->fimage1 ?? '');
-                        $driveFileId = null;
-                        if ($imageRaw !== '') {
-                            if (str_contains($imageRaw, 'http')) {
-                                if (preg_match('~/d/([a-zA-Z0-9_-]+)~', $imageRaw, $m)) {
-                                    $driveFileId = $m[1];
-                                } elseif (preg_match('/[?&]id=([a-zA-Z0-9_-]+)/', $imageRaw, $m)) {
-                                    $driveFileId = $m[1];
-                                }
-                            } else {
-                                $driveFileId = $imageRaw;
-                            }
-                        }
-                        $drivePreviewUrl = $driveFileId ? route('product.photo', $product->fprdid) : null;
-                    @endphp
-                    @if ($driveFileId)
-                        <div class="mt-4 w-1/2">
-                            <label class="block text-sm font-medium">Foto Product</label>
-                            <div class="mt-2">
-                                <img id="productImage" src="{{ $drivePreviewUrl }}" alt="Product Image"
-                                    class="max-w-xs max-h-64 border rounded shadow cursor-pointer hover:opacity-90 transition-opacity"
-                                    onclick="openImageModal(this.src)"
-                                    onerror="this.onerror=null; this.src='https://drive.google.com/thumbnail?id={{ $driveFileId }}&sz=w1000';">
-                            </div>
-                            <p class="text-xs text-gray-500 mt-2">Klik gambar untuk melihat lebih besar</p>
+                    <div class="mt-4 w-full">
+                        <label class="block text-sm font-medium mb-2">Foto Product</label>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            @foreach ([1, 2, 3] as $imgNo)
+                                @php
+                                    $field = 'fimage' . $imgNo;
+                                    $imageRaw = (string) ($product->{$field} ?? '');
+                                    $driveFileId = null;
+                                    if ($imageRaw !== '') {
+                                        if (str_contains($imageRaw, 'http')) {
+                                            if (preg_match('~/d/([a-zA-Z0-9_-]+)~', $imageRaw, $m)) {
+                                                $driveFileId = $m[1];
+                                            } elseif (preg_match('/[?&]id=([a-zA-Z0-9_-]+)/', $imageRaw, $m)) {
+                                                $driveFileId = $m[1];
+                                            }
+                                        } else {
+                                            $driveFileId = $imageRaw;
+                                        }
+                                    }
+                                    $drivePreviewUrl = $driveFileId ? route('product.photo', [$product->fprdid, $field]) : null;
+                                @endphp
+                                <div>
+                                    <p class="text-xs font-semibold text-gray-500 mb-2">Foto {{ $imgNo }}</p>
+                                    @if ($driveFileId)
+                                        <img src="{{ $drivePreviewUrl }}" alt="Product Image {{ $imgNo }}"
+                                            class="max-w-xs max-h-64 border rounded shadow cursor-pointer hover:opacity-90 transition-opacity"
+                                            onclick="openImageModal(this.src)"
+                                            onerror="this.onerror=null; this.src='https://drive.google.com/thumbnail?id={{ $driveFileId }}&sz=w1000';">
+                                    @else
+                                        <div class="max-w-xs h-32 border rounded bg-gray-100 text-gray-400 flex items-center justify-center text-sm">
+                                            Belum ada foto
+                                        </div>
+                                    @endif
+                                </div>
+                            @endforeach
                         </div>
-                    @endif
+                        <p class="text-xs text-gray-500 mt-2">Klik gambar untuk melihat lebih besar</p>
+                    </div>
 
                     <div class="md:col-span-2 flex justify-center items-center space-x-2">
                         <fieldset {{ $isApproved ? 'disabled' : '' }}>

@@ -165,8 +165,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/product/{fprdid}/delete', [ProductController::class, 'delete'])->name('product.delete');
         Route::patch('/product/{fprdid}', [ProductController::class, 'update'])->name('product.update');
         Route::delete('/product/{fprdid}', [ProductController::class, 'destroy'])->name('product.destroy');
-        Route::delete('/product/{fprdid}/photo', [ProductController::class, 'deletePhoto'])->name('product.delete-photo');
-        Route::get('/product/{fprdid}/photo', [ProductController::class, 'photo'])->name('product.photo');
+        Route::delete('/product/{fprdid}/photo/{field?}', [ProductController::class, 'deletePhoto'])->name('product.delete-photo');
+        Route::get('/product/{fprdid}/photo/{field?}', [ProductController::class, 'photo'])->name('product.photo');
         Route::get('/product/{fprdid}/laporan', [ProductController::class, 'laporan'])->name('product.laporan');
 
         Route::get('/supplier', [SupplierController::class, 'index'])->name('supplier.index');
