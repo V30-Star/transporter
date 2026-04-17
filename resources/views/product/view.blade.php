@@ -579,6 +579,20 @@
                         @enderror
                     </div>
 
+                    {{-- Foto Product --}}
+                    @if($product->fimage1)
+                    <div class="mt-4 w-1/2">
+                        <label class="block text-sm font-medium">Foto Product</label>
+                        <div class="mt-2">
+                            <img id="productImage" src="https://drive.google.com/uc?id={{ $product->fimage1 }}&export=view" 
+                                 alt="Product Image" 
+                                 class="max-w-xs max-h-64 border rounded shadow cursor-pointer hover:opacity-90 transition-opacity"
+                                 onclick="openImageModal(this.src)">
+                        </div>
+                        <p class="text-xs text-gray-500 mt-2">Klik gambar untuk melihat lebih besar</p>
+                    </div>
+                    @endif
+
                     <div class="md:col-span-2 flex justify-center items-center space-x-2">
                         <fieldset {{ $isApproved ? 'disabled' : '' }}>
                             <div class="flex items-center space-x-2">
@@ -873,4 +887,15 @@
 
     // Event listener untuk Satuan Kecil (Sudah dipasang melalui onchange="updateSatuanLogic()" di HTML)
     // Event listener untuk Satuan 2 (Sudah dipasang melalui onchange="updateSatuanLogic()" di HTML)
+
+    // --- Image Modal Functions ---
+    function openImageModal(src) {
+        if (!src) return;
+        
+        var modal = document.createElement('div');
+        modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:10000;display:flex;align-items:center;justify-content:center;cursor:pointer;';
+        modal.innerHTML = '<img src="' + src + '" style="max-width:90%;max-height:90%;border-radius:8px;box-shadow:0 0 20px rgba(255,255,255,0.3);" />';
+        modal.onclick = function() { this.remove(); };
+        document.body.appendChild(modal);
+    }
 </script>

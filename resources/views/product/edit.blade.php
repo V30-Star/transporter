@@ -698,7 +698,7 @@
                 {{-- MODE EDIT: FORM EDITABLE                    --}}
                 {{-- ============================================ --}}
             @else
-                <form action="{{ route('product.update', $product->fprdid) }}" method="POST">
+                <form action="{{ route('product.update', $product->fprdid) }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     @method('PATCH')
                     @php
@@ -1274,6 +1274,50 @@
                                     {{ $message }}
                                 </div>
                             @enderror
+                        </div>
+
+                        {{-- Upload Foto --}}
+                        <div class="mt-4 w-1/2">
+                            <label class="block text-sm font-medium">Upload Foto</label>
+                            <div class="flex items-center gap-4">
+                                <input type="file" name="fimage1" id="fimage1" accept="image/*" 
+                                    class="hidden" onchange="previewImage(this)">
+                                <button type="button" onclick="document.getElementById('fimage1').click()"
+                                    class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                    Pilih Foto
+                                </button>
+                                @if($product->fimage1)
+                                <a href="https://drive.google.com/uc?id={{ $product->fimage1 }}&export=view" 
+                                   target="_blank"
+                                   class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                    Lihat Foto
+                                </a>
+                                @endif
+                                <button type="button" id="btnRemoveImage" class="hidden bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 flex items-center gap-2" onclick="removeImage()">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                    Hapus
+                                </button>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">Format: JPG, PNG, GIF, WEBP. Maks 5MB</p>
+                            
+                            @if($product->fimage1)
+                            <div id="imagePreviewContainer" class="mt-3">
+                                <img id="imagePreview" src="https://drive.google.com/uc?id={{ $product->fimage1 }}&export=view" alt="Product Image" class="max-w-xs max-h-48 border rounded shadow cursor-pointer" onclick="openImageModal(this.src)">
+                            </div>
+                            @else
+                            <div id="imagePreviewContainer" class="mt-3 hidden">
+                                <img id="imagePreview" src="" alt="Preview" class="max-w-xs max-h-48 border rounded shadow cursor-pointer" onclick="openImageModal(this.src)">
+                            </div>
+                            @endif
                         </div>
 
                         <div class="md:col-span-2 flex justify-center items-center space-x-2">
@@ -2539,4 +2583,37 @@
 
     // Event listener untuk Satuan Kecil (Sudah dipasang melalui onchange="updateSatuanLogic()" di HTML)
     // Event listener untuk Satuan 2 (Sudah dipasang melalui onchange="updateSatuanLogic()" di HTML)
+
+    // --- Image Preview Functions ---
+    function previewImage(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            
+            reader.onload = function(e) {
+                document.getElementById('imagePreview').src = e.target.result;
+                document.getElementById('imagePreview').onclick = function() { openImageModal(e.target.result); };
+                document.getElementById('imagePreviewContainer').classList.remove('hidden');
+                document.getElementById('btnRemoveImage').classList.remove('hidden');
+            }
+            
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function removeImage() {
+        document.getElementById('fimage1').value = '';
+        document.getElementById('imagePreview').src = '';
+        document.getElementById('imagePreviewContainer').classList.add('hidden');
+        document.getElementById('btnRemoveImage').classList.add('hidden');
+    }
+
+    function openImageModal(src) {
+        if (!src) return;
+        
+        var modal = document.createElement('div');
+        modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:10000;display:flex;align-items:center;justify-content:center;cursor:pointer;';
+        modal.innerHTML = '<img src="' + src + '" style="max-width:90%;max-height:90%;border-radius:8px;box-shadow:0 0 20px rgba(255,255,255,0.3);" />';
+        modal.onclick = function() { this.remove(); };
+        document.body.appendChild(modal);
+    }
 </script>

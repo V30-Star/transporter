@@ -3,9 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Groupproduct;
-use App\Models\Merek;  // Add this import to get the groups
-use App\Models\Product;         // If you have a model for "Merek"
+use App\Models\Merek;
+use App\Models\Product;
 use App\Models\Satuan;
+use App\Services\GoogleDriveService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -203,29 +204,21 @@ class ProductController extends Controller
 
     public function store(Request $request)
     {
+        // Log input awal untuk memastikan data sampai di controller
+        \Log::info('Product Store Process Started', ['request_all' => $request->all()]);
 
-        $validated = $request->validate(
-            [
+        try {
+            $validated = $request->validate([
                 'fprdcode' => 'nullable|string|unique:msprd,fprdcode',
                 'fprdname' => 'required|string',
                 'ftype' => 'string',
                 'fbarcode' => 'nullable',
-                'fgroupcode' => 'required', // Validate that fgroupcode exists in groups table
-                'fmerek' => 'required', // Validate the Merek field
-                'fsatuankecil' => '', // Validate Satuan 1 field
-                'fsatuanbesar' => [
-                    'nullable',               // Boleh kosong
-                    'string',
-                    'different:fsatuankecil',  // Jika diisi, harus beda dengan fsatuankecil
-                ],
-
-                'fsatuanbesar2' => [
-                    'nullable',               // Boleh kosong
-                    'string',
-                    'different:fsatuankecil', // Jika diisi, harus beda dengan fsatuankecil
-                    'different:fsatuanbesar',  // Jika diisi, harus beda dengan fsatuanbesar
-                ],
-                'fsatuandefault' => 'in:1,2,3', // Validate Satuan Default field
+                'fgroupcode' => 'required',
+                'fmerek' => 'required',
+                'fsatuankecil' => 'required',
+                'fsatuanbesar' => ['nullable', 'string', 'different:fsatuankecil'],
+                'fsatuanbesar2' => ['nullable', 'string', 'different:fsatuankecil', 'different:fsatuanbesar'],
+                'fsatuandefault' => 'in:1,2,3',
                 'fqtykecil' => [
                     'nullable',
                     'numeric',
@@ -244,90 +237,93 @@ class ProductController extends Controller
                         }
                     },
                 ],
-                'fhargasatuankecillevel1' => '', // Validate if nonactive is checked
-                'fhargasatuankecillevel2' => '', // Validate if nonactive is checked
-                'fhargasatuankecillevel3' => '', // Validate if nonactive is checked
-                'fhargajuallevel1' => '', // HJ. Kecil Level 1
-                'fhargajuallevel2' => '', // HJ. Kecil Level 2
-                'fhargajuallevel3' => '', // HJ. Kecil Level 3
-                'fhargajual2level1' => '', // HJ. Besar Level 1
-                'fhargajual2level2' => '', // HJ. Besar Level 2
-                'fhargajual2level3' => '', // HJ. Besar Level 3
-                'fhargajual3level1' => '', // HJ <PCS> Level 1
-                'fhargajual3level2' => '', // HJ <CTN> Level 1
-                'fhargajual3level3' => '', // HJ <DUS> Level 1
                 'fminstock' => 'numeric',
                 'fhpp' => 'nullable',
                 'fhpp2' => 'nullable',
                 'fhpp3' => 'nullable',
-            ],
-            [
-                'fprdcode.unique' => 'Kode Produk sudah ada',
-                'fprdcode.required' => 'Kode Produk harus diisi.',
-                'fprdname.required' => 'Nama Produk harus diisi.',
-                'ftype.required' => 'Tipe Produk harus diisi.',
-                'fbarcode.required' => 'Barcode Produk harus diisi.',
-                'fgroupcode.required' => 'Group Produk harus dipilih.',
-                'fmerek.required' => 'Merek harus dipilih.',
-                'fsatuankecil.required' => 'Satuan Kecil harus dipilih.',
-                'fsatuanbesar.required' => 'Satuan Besar harus dipilih.',
-                'fsatuanbesar2.required' => 'Satuan Besar 2 harus dipilih.',
-                'fsatuandefault.required' => 'Satuan Default harus dipilih.',
-                'fqtykecil.required' => 'Qty Kecil harus diisi.',
-                'fqtykecil2.required' => 'Qty Kecil 2 harus diisi.',
-                'fhargasatuankecillevel1.required' => 'Harga Satuan 1 harus diisi.',
-                'fhargasatuankecillevel2.required' => 'Harga Satuan 2 harus diisi.',
-                'fhargasatuankecillevel3.required' => 'Harga Satuan 3 harus diisi.',
-                'fhargajuallevel1.required' => 'Harga Jual Kecil Level 1 harus diisi.',
-                'fhargajuallevel2.required' => 'Harga Jual Kecil Level 2 harus diisi.',
-                'fhargajuallevel3.required' => 'Harga Jual Kecil Level 3 harus diisi.',
-                'fminstock.required' => 'Min Stok harus diisi.',
-                'fsatuanbesar.different' => 'Satuan Besar tidak boleh sama dengan Satuan Kecil.',
-                'fsatuanbesar2.different' => 'Satuan Besar 2 tidak boleh sama dengan Satuan Kecil atau Satuan Besar.',
-            ]
-        );
+            ]);
 
-        $validated['fprdname'] = strtoupper($validated['fprdname']);
+            // 1. Format Nama (Uppercase)
+            $validated['fprdname'] = strtoupper($request->fprdname);
 
-        if (empty($request->fprdcode)) {
-            // Jika input fprdcode kosong, maka generate otomatis
-            $validated['fprdcode'] = $this->generateProductCode(
-                $validated['fgroupcode'],
-                $validated['fmerek']
-            );
-        } else {
-            // Jika user isi manual, gunakan input tersebut (sudah ada di $validated dari hasil validasi)
-            $validated['fprdcode'] = $request->fprdcode;
+            // 2. Handle Product Code
+            if (empty($request->fprdcode)) {
+                $validated['fprdcode'] = $this->generateProductCode($request->fgroupcode, $request->fmerek);
+            } else {
+                $validated['fprdcode'] = $request->fprdcode;
+            }
+
+            // 3. Sanitasi Data Numeric
+            $sanitizeNumeric = function ($value) {
+                $clean = preg_replace('/[^0-9.]/', '', $value);
+                return (is_numeric($clean)) ? (float)$clean : 0;
+            };
+
+            $numericFields = [
+                'fhpp',
+                'fhpp2',
+                'fhpp3',
+                'fhargajuallevel1',
+                'fhargajuallevel2',
+                'fhargajuallevel3',
+                'fhargajual2level1',
+                'fhargajual2level2',
+                'fhargajual2level3',
+                'fhargajual3level1',
+                'fhargajual3level2',
+                'fhargajual3level3'
+            ];
+
+            foreach ($numericFields as $field) {
+                $validated[$field] = $sanitizeNumeric($request->$field);
+            }
+
+            // 4. Handle Metadata
+            $user = auth('sysuser')->user();
+            $validated['fapproval'] = $user->fname ?? 'System';
+            $validated['fcreatedby'] = $user->fname ?? 'System';
+            $validated['fcreatedat'] = now();
+            $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
+
+            // 5. Handle Google Drive Upload
+            if ($request->hasFile('fimage1') && $request->file('fimage1')->isValid()) {
+                try {
+                    $googleDriveService = new \App\Services\GoogleDriveService();
+                    $fileId = $googleDriveService->uploadImage($request, 'fimage1');
+                    if ($fileId) {
+                        $validated['fimage1'] = $fileId;
+                        \Log::info('Google Drive Upload Success', ['file_id' => $fileId]);
+                    }
+                } catch (\Exception $e) {
+                    \Log::error('Google Drive Upload Failed: ' . $e->getMessage());
+                }
+            }
+
+            // --- DEBUG POINT ---
+            // Log data final yang siap masuk ke DB
+            \Log::info('Data to be inserted', ['validated_data' => $validated]);
+
+            // 6. Simpan ke Database dengan Try-Catch Khusus Database
+            $product = Product::create($validated);
+
+            if ($product) {
+                \Log::info('Database Insert Success', ['product_id' => $product->fprdid ?? 'N/A']);
+                return redirect()
+                    ->route('product.create')
+                    ->with('success', 'Product berhasil ditambahkan.');
+            }
+
+            return redirect()->back()->with('error', 'Gagal menyimpan ke database tanpa error pesan.');
+        } catch (\Illuminate\Validation\ValidationException $v) {
+            \Log::warning('Validation Failed', ['errors' => $v->errors()]);
+            throw $v;
+        } catch (\Exception $e) {
+            \Log::error('Store Process Error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            return redirect()->back()->with('error', 'Terjadi kesalahan sistem: ' . $e->getMessage());
         }
-
-        $validated['fhpp'] = preg_replace('/[^0-9.]/', '', $request->fhpp);
-        $validated['fhpp2'] = preg_replace('/[^0-9.]/', '', $request->fhpp2);
-        $validated['fhpp3'] = preg_replace('/[^0-9.]/', '', $request->fhpp3);
-
-        $validated['fhargajuallevel1'] = preg_replace('/[^0-9.]/', '', $request->fhargajuallevel1);
-        $validated['fhargajuallevel2'] = preg_replace('/[^0-9.]/', '', $request->fhargajuallevel2);
-        $validated['fhargajuallevel3'] = preg_replace('/[^0-9.]/', '', $request->fhargajuallevel3);
-        $validated['fhargajual2level1'] = preg_replace('/[^0-9.]/', '', $request->fhargajual2level1);
-        $validated['fhargajual2level2'] = preg_replace('/[^0-9.]/', '', $request->fhargajual2level2);
-        $validated['fhargajual2level3'] = preg_replace('/[^0-9.]/', '', $request->fhargajual2level3);
-        $validated['fhargajual3level1'] = preg_replace('/[^0-9.]/', '', $request->fhargajual3level1);
-        $validated['fhargajual3level2'] = preg_replace('/[^0-9.]/', '', $request->fhargajual3level2);
-        $validated['fhargajual3level3'] = preg_replace('/[^0-9.]/', '', $request->fhargajual3level3);
-
-        $validated['fapproval'] = auth('sysuser')->user()->fname ?? null;
-        $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null;
-        $validated['fcreatedat'] = now(); // Use the current time
-
-        $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
-
-        // Create the new Product
-        Product::create($validated);
-
-        return redirect()
-            ->route('product.create')
-            ->with('success', 'Product berhasil ditambahkan.');
     }
-
     public function edit($id)
     {
         $product = Product::findOrFail($id);
@@ -473,6 +469,24 @@ class ProductController extends Controller
 
         $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
         $product = Product::findOrFail($fprdid);
+
+        if ($request->hasFile('fimage1') && $request->file('fimage1')->isValid()) {
+            try {
+                $googleDriveService = new GoogleDriveService;
+
+                if ($product->fimage1) {
+                    $googleDriveService->deleteImage($product->fimage1);
+                }
+
+                $fileId = $googleDriveService->uploadImage($request, 'fimage1');
+                if ($fileId) {
+                    $validated['fimage1'] = $fileId;
+                }
+            } catch (\Exception $e) {
+                Log::error('Image update failed: ' . $e->getMessage());
+            }
+        }
+
         $product->update($validated);
 
         return redirect()
@@ -519,7 +533,7 @@ class ProductController extends Controller
         $product = Product::findOrFail($fprdid);
 
         // Fetching data manually based on user's query
-        $stokData = \Illuminate\Support\Facades\DB::select('
+        $stokData = DB::select('
             SELECT 
                 v.fwhcode AS fwhcode, 
                 w.fwhname,
@@ -531,7 +545,7 @@ class ProductController extends Controller
             WHERE v.fprdcode = :fprdcode
         ', ['fprdcode' => $product->fprdcode]);
 
-        $customerData = \Illuminate\Support\Facades\DB::select('
+        $customerData = DB::select('
             SELECT 
                 m.fsono,
                 m.frefno,
@@ -551,7 +565,7 @@ class ProductController extends Controller
             LIMIT 30
         ', ['fprdcode' => $product->fprdcode]);
 
-        $supplierData = \Illuminate\Support\Facades\DB::select("
+        $supplierData = DB::select("
             SELECT 
                 d.fstockmtno,
                 CASE 

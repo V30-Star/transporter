@@ -150,7 +150,7 @@
 
     <div x-data="{ open: false, keyword: '', rows: [], page: 1, lastPage: 1, total: 0 }">
         <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1500px] w-full mx-auto">
-            <form action="{{ route('product.store') }}" method="POST">
+            <form action="{{ route('product.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
 
                 <div>
@@ -689,6 +689,35 @@
                         </div>
                     @enderror
                 </div>
+
+                {{-- Upload Foto --}}
+                <div class="mt-4 w-1/2">
+                    <label class="block text-sm font-medium">Upload Foto</label>
+                    <div class="flex items-center gap-4">
+                        <input type="file" name="fimage1" id="fimage1" accept="image/*" 
+                            class="hidden" onchange="previewImage(this)">
+                        <button type="button" onclick="document.getElementById('fimage1').click()"
+                            class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            Pilih Foto
+                        </button>
+                        <button type="button" id="btnRemoveImage" class="hidden bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 flex items-center gap-2" onclick="removeImage()">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                            Hapus
+                        </button>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">Format: JPG, PNG, GIF, WEBP. Maks 5MB</p>
+                    
+                    {{-- Image Preview --}}
+                    <div id="imagePreviewContainer" class="mt-3 hidden">
+                        <img id="imagePreview" src="" alt="Preview" class="max-w-xs max-h-48 border rounded shadow">
+                    </div>
+                </div>
+
                 <div class="md:col-span-2 flex justify-center items-center space-x-2">
                     <label class="block text-sm font-medium">Approval</label>
                     <label class="switch">
@@ -1826,4 +1855,26 @@
 
     // Event listener untuk Satuan Kecil (Sudah dipasang melalui onchange="updateSatuanLogic()" di HTML)
     // Event listener untuk Satuan 2 (Sudah dipasang melalui onchange="updateSatuanLogic()" di HTML)
+
+    // --- Image Preview Functions ---
+    function previewImage(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            
+            reader.onload = function(e) {
+                document.getElementById('imagePreview').src = e.target.result;
+                document.getElementById('imagePreviewContainer').classList.remove('hidden');
+                document.getElementById('btnRemoveImage').classList.remove('hidden');
+            }
+            
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function removeImage() {
+        document.getElementById('fimage1').value = '';
+        document.getElementById('imagePreview').src = '';
+        document.getElementById('imagePreviewContainer').classList.add('hidden');
+        document.getElementById('btnRemoveImage').classList.add('hidden');
+    }
 </script>
