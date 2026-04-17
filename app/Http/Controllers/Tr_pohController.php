@@ -1364,8 +1364,10 @@ class Tr_pohController extends Controller
       ]);
     }
 
-    // Strict server-side guard: qty item PR pada form update tidak boleh melebihi sisa PR saat ini.
-    // Ini sengaja mengikuti aturan frontend "Sisa PR" (berdasarkan tr_prd.fqtyremain tanpa add-back qty PO lama).
+    $oldPods = DB::table('tr_pod')->where('fpohid', $fponoId)->get(['frefdtid', 'fqtykecil']);
+
+    // Strict server-side guard untuk mode edit:
+    // qty baru tidak boleh melebihi (sisa PR saat ini + qty lama PO ini) per baris PR.
     $prNeedByRef = [];
     foreach ($rowsPod as $row) {
       $refId = (int) ($row['frefdtid'] ?? 0);
@@ -1381,18 +1383,27 @@ class Tr_pohController extends Controller
         ->get(['fprdid', 'fqtyremain'])
         ->keyBy('fprdid');
 
+      $oldUsageByRef = [];
+      foreach ($oldPods as $oldPod) {
+        $oldRefId = (int) ($oldPod->frefdtid ?? 0);
+        if ($oldRefId <= 0) {
+          continue;
+        }
+        $oldUsageByRef[$oldRefId] = ($oldUsageByRef[$oldRefId] ?? 0) + (float) ($oldPod->fqtykecil ?? 0);
+      }
+
       foreach ($prNeedByRef as $fprdid => $needKecil) {
         $remainKecil = (float) ($prRemainRows[$fprdid]->fqtyremain ?? 0);
-        if ($needKecil > $remainKecil + 1e-4) {
+        $availableKecil = $remainKecil + (float) ($oldUsageByRef[$fprdid] ?? 0);
+        if ($needKecil > $availableKecil + 1e-4) {
           return back()->withInput()->withErrors([
-            'detail' => "Qty item PR melebihi sisa PR (ID {$fprdid}). Maks sisa saat ini: {$remainKecil} (satuan kecil).",
+            'detail' => "Qty item PR melebihi batas yang diizinkan (ID {$fprdid}). Maks saat edit: {$availableKecil} (satuan kecil).",
           ]);
         }
       }
     }
 
     $prdAgg = $this->aggregatePrdUsageByPrd($rowsPod);
-    $oldPods = DB::table('tr_pod')->where('fpohid', $fponoId)->get(['frefdtid', 'fqtykecil']);
 
     $ppnAmount  = $fincludeppn ? round($totalHarga * ($ppnRate / 100), 2) : 0.0;
     $grandTotal = round($totalHarga + $ppnAmount, 2);
