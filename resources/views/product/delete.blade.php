@@ -104,8 +104,15 @@
                                         $driveFileId = $imageRaw;
                                     }
                                 }
+                                $photoVersion = !empty($product->fupdatedat)
+                                    ? strtotime((string) $product->fupdatedat)
+                                    : null;
                                 $drivePreviewUrl = $driveFileId
-                                    ? route('product.photo', ['fprdid' => $product->fprdid, 'field' => $field])
+                                    ? route('product.photo', [
+                                        'fprdid' => $product->fprdid,
+                                        'field' => $field,
+                                        'v' => $photoVersion ?: time(),
+                                    ])
                                     : null;
                             @endphp
 

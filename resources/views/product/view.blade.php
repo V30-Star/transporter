@@ -600,8 +600,15 @@
                                             $driveFileId = $imageRaw;
                                         }
                                     }
+                                    $photoVersion = !empty($product->fupdatedat)
+                                        ? strtotime((string) $product->fupdatedat)
+                                        : null;
                                     $drivePreviewUrl = $driveFileId
-                                        ? route('product.photo', ['fprdid' => $product->fprdid, 'field' => $field])
+                                        ? route('product.photo', [
+                                            'fprdid' => $product->fprdid,
+                                            'field' => $field,
+                                            'v' => $photoVersion ?: time(),
+                                        ])
                                         : null;
                                 @endphp
 
@@ -624,7 +631,7 @@
 
                         <p class="text-xs text-gray-500 mt-4 italic">Klik gambar untuk melihat lebih besar</p>
                     </div>
-                    
+
                     <div class="md:col-span-2 flex justify-center items-center space-x-2">
                         <fieldset {{ $isApproved ? 'disabled' : '' }}>
                             <div class="flex items-center space-x-2">

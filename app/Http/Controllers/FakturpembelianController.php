@@ -580,18 +580,8 @@ class FakturPembelianController extends Controller
 
       $lineCounter = 1;
 
-      $oldDetailRows = DB::table('trstockdt')
-        ->where('fstockmtid', $fstockmtid)
-        ->whereNotNull('frefdtid')
-        ->get(['frefdtid', 'fqty']);
       $oldUsageByRefId = [];
-      foreach ($oldDetailRows as $old) {
-        $refId = (int) ($old->frefdtid ?? 0);
-        if ($refId <= 0) {
-          continue;
-        }
-        $oldUsageByRefId[$refId] = ($oldUsageByRefId[$refId] ?? 0) + (float) ($old->fqty ?? 0);
-      }
+
       $extraAvailableBySourceRef = [];
       foreach ($sources as $i => $src) {
         $sourceType = strtoupper(trim((string) ($src ?? '')));
