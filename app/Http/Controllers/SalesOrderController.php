@@ -1046,6 +1046,7 @@ class SalesOrderController extends Controller
                 'ftrsomtid' => $ftrsomtid, // Foreign Key
                 'fsono' => $header->fsono, // Gunakan fsono yang sudah ada
                 'fprdcodeid' => ! empty($itemeId) && is_numeric($itemeId) ? (int) $itemeId : null,
+                'fprdcode' => $itemCode,
                 'fsatuan' => mb_substr($satuan, 0, 20),
                 'fdesc' => $desc,
                 'fqty' => $qty,

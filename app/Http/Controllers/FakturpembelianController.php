@@ -860,8 +860,65 @@ class FakturPembelianController extends Controller
     $currentAccountId = $currentAccountRecord?->faccid ?? '';
     $currentAccountName = $currentAccountRecord?->faccname ?? ''; // ← TAMBAH INI
 
+    $detailRefIds = $fakturpembelian->details
+      ->pluck('frefdtid')
+      ->filter(fn($id) => (int) $id > 0)
+      ->map(fn($id) => (int) $id)
+      ->unique()
+      ->values()
+      ->all();
+
+    $poRefSet = [];
+    $pbRefSet = [];
+    if (!empty($detailRefIds)) {
+      $poRefSet = DB::table('tr_pod')
+        ->whereIn('fpodid', $detailRefIds)
+        ->pluck('fpodid')
+        ->map(fn($id) => (int) $id)
+        ->flip()
+        ->all();
+
+      $pbRefSet = DB::table('trstockdt')
+        ->whereIn('fstockdtid', $detailRefIds)
+        ->pluck('fstockdtid')
+        ->map(fn($id) => (int) $id)
+        ->flip()
+        ->all();
+    }
+
+    $oldUsageBySourceRef = [];
+    foreach ($fakturpembelian->details as $d) {
+      $detailId = (int) ($d->frefdtid ?? 0);
+      if ($detailId <= 0) {
+        continue;
+      }
+
+      $sourceType = isset($poRefSet[$detailId]) ? 'PO' : (isset($pbRefSet[$detailId]) ? 'PB' : '');
+      if ($sourceType === '') {
+        continue;
+      }
+
+      $sourceKey = $sourceType . ':' . $detailId;
+      $oldUsageBySourceRef[$sourceKey] = ($oldUsageBySourceRef[$sourceKey] ?? 0) + (float) ($d->fqty ?? 0);
+    }
+
     // 4. Map the data for savedItems
-    $savedItems = $fakturpembelian->details->map(function ($d) {
+    $savedItems = $fakturpembelian->details->map(function ($d) use ($poRefSet, $pbRefSet, $oldUsageBySourceRef) {
+      $detailId = (int) ($d->frefdtid ?? 0);
+      $sourceType = isset($poRefSet[$detailId]) ? 'PO' : (isset($pbRefSet[$detailId]) ? 'PB' : '');
+      $sourceRemain = null;
+      if ($sourceType === 'PO' && $detailId > 0) {
+        $sourceRemain = DB::table('tr_pod')->where('fpodid', $detailId)->value('fqtyremain');
+      } elseif ($sourceType === 'PB' && $detailId > 0) {
+        $sourceRemain = DB::table('trstockdt')->where('fstockdtid', $detailId)->value('fqtyremain');
+      }
+
+      $maxFromSource = null;
+      if ($sourceType !== '' && $detailId > 0) {
+        $sourceKey = $sourceType . ':' . $detailId;
+        $maxFromSource = max(0, (float) ($sourceRemain ?? 0) + (float) ($oldUsageBySourceRef[$sourceKey] ?? 0));
+      }
+
       return [
         'uid' => $d->fstockdtid,
         'fitemcode' => $d->fitemcode_text ?? '',
@@ -873,6 +930,8 @@ class FakturPembelianController extends Controller
         'famountponet' => $d->famountponet ?? null,
         'famountpo' => $d->famountpo ?? null,
         'frefdtno' => $d->frefdtno ?? null,
+        'frefdtid' => $detailId > 0 ? $detailId : null,
+        'fsource' => $sourceType,
         'fqty' => (float)($d->fqty ?? 0),
         'fterima' => (float)($d->fterima ?? 0),
         'fprice' => (float)($d->fprice ?? 0),
@@ -882,6 +941,7 @@ class FakturPembelianController extends Controller
         'ftotal' => (float)($d->ftotprice ?? 0),
         'fdesc' => is_array($d->fdesc) ? implode(', ', $d->fdesc) : ($d->fdesc ?? ''),
         'fketdt' => $d->fketdt ?? '',
+        'maxqty' => $maxFromSource,
         'units' => [],
       ];
     })->values();
