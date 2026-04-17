@@ -206,9 +206,6 @@ class ProductController extends Controller
 
     public function store(Request $request)
     {
-        // Log input awal untuk memastikan data sampai di controller
-        \Log::info('Product Store Process Started', ['request_all' => $request->all()]);
-
         try {
             $validated = $request->validate([
                 'fprdcode' => 'nullable|string|unique:msprd,fprdcode',
@@ -248,18 +245,17 @@ class ProductController extends Controller
                 'fimage3' => 'nullable|image|max:2048',
             ]);
 
-            // 1. Format Nama (Uppercase)
             $validated['fprdname'] = strtoupper($request->fprdname);
 
-            // 2. Handle Product Code
             if (empty($request->fprdcode)) {
                 $validated['fprdcode'] = $this->generateProductCode($request->fgroupcode, $request->fmerek);
             } else {
                 $validated['fprdcode'] = $request->fprdcode;
             }
 
-            // 3. Sanitasi Data Numeric
+            // Sanitasi Numeric: Pastikan mengembalikan 0 jika input kosong (Penting untuk PostgreSQL)
             $sanitizeNumeric = function ($value) {
+                if ($value === null || $value === '') return 0;
                 $clean = preg_replace('/[^0-9.]/', '', $value);
                 return (is_numeric($clean)) ? (float)$clean : 0;
             };
@@ -280,17 +276,15 @@ class ProductController extends Controller
             ];
 
             foreach ($numericFields as $field) {
-                $validated[$field] = $sanitizeNumeric($request->$field);
+                $validated[$field] = $sanitizeNumeric($request->input($field));
             }
 
-            // 4. Handle Metadata
             $user = auth('sysuser')->user();
             $validated['fapproval'] = $user->fname ?? 'System';
             $validated['fcreatedby'] = $user->fname ?? 'System';
             $validated['fcreatedat'] = now();
             $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
 
-            // 5. Handle Google Drive Upload
             $googleDriveService = new \App\Services\GoogleDriveService();
             foreach (['fimage1', 'fimage2', 'fimage3'] as $imageField) {
                 if ($request->hasFile($imageField) && $request->file($imageField)->isValid()) {
@@ -298,41 +292,22 @@ class ProductController extends Controller
                         $fileId = $googleDriveService->uploadImage($request, $imageField);
                         if ($fileId) {
                             $validated[$imageField] = $fileId;
-                            \Log::info('Google Drive Upload Success', [
-                                'field' => $imageField,
-                                'file_id' => $fileId,
-                            ]);
                         }
                     } catch (\Exception $e) {
-                        \Log::error('Google Drive Upload Failed: ' . $e->getMessage(), [
-                            'field' => $imageField,
-                        ]);
+                        // Hanya mencatat error upload saja agar tidak membingungkan
+                        \Log::error("Upload $imageField Failed: " . $e->getMessage());
                     }
                 }
             }
 
-            // --- DEBUG POINT ---
-            // Log data final yang siap masuk ke DB
-            \Log::info('Data to be inserted', ['validated_data' => $validated]);
+            Product::create($validated);
 
-            // 6. Simpan ke Database dengan Try-Catch Khusus Database
-            $product = Product::create($validated);
-
-            if ($product) {
-                \Log::info('Database Insert Success', ['product_id' => $product->fprdid ?? 'N/A']);
-                return redirect()
-                    ->route('product.create')
-                    ->with('success', 'Product berhasil ditambahkan.');
-            }
-
-            return redirect()->back()->with('error', 'Gagal menyimpan ke database tanpa error pesan.');
+            return redirect()
+                ->route('product.create')
+                ->with('success', 'Product berhasil ditambahkan.');
         } catch (\Illuminate\Validation\ValidationException $v) {
-            \Log::warning('Validation Failed', ['errors' => $v->errors()]);
             throw $v;
         } catch (\Exception $e) {
-            \Log::error('Store Process Error: ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString()
-            ]);
             return redirect()->back()->with('error', 'Terjadi kesalahan sistem: ' . $e->getMessage());
         }
     }
@@ -369,7 +344,6 @@ class ProductController extends Controller
 
     public function update(Request $request, $fprdid)
     {
-
         // Validate the incoming data
         $validated = $request->validate(
             [
@@ -377,22 +351,17 @@ class ProductController extends Controller
                 'fprdname' => 'required|string',
                 'ftype' => 'string',
                 'fbarcode' => 'nullable',
-                'fgroupcode' => 'required', // Validate that fgroupcode exists in groups table
-                'fmerek' => 'required', // Validate the Merek field
-                'fsatuankecil' => '', // Validate Satuan 1 field
-                'fsatuanbesar' => [
-                    'nullable',               // Boleh kosong
-                    'string',
-                    'different:fsatuankecil',  // Jika diisi, harus beda dengan fsatuankecil
-                ],
-
+                'fgroupcode' => 'required',
+                'fmerek' => 'required',
+                'fsatuankecil' => 'required',
+                'fsatuanbesar' => ['nullable', 'string', 'different:fsatuankecil'],
                 'fsatuanbesar2' => [
-                    'nullable',               // Boleh kosong
+                    'nullable',
                     'string',
-                    'different:fsatuankecil', // Jika diisi, harus beda dengan fsatuankecil
-                    'different:fsatuanbesar',  // Jika diisi, harus beda dengan fsatuanbesar
+                    'different:fsatuankecil',
+                    'different:fsatuanbesar',
                 ],
-                'fsatuandefault' => 'in:1,2,3', // Validate Satuan Default field
+                'fsatuandefault' => 'in:1,2,3',
                 'fqtykecil' => [
                     'nullable',
                     'numeric',
@@ -411,18 +380,6 @@ class ProductController extends Controller
                         }
                     },
                 ],
-                'fhargasatuankecillevel1' => '', // Validate if nonactive is checked
-                'fhargasatuankecillevel2' => '', // Validate if nonactive is checked
-                'fhargasatuankecillevel3' => '', // Validate if nonactive is checked
-                'fhargajuallevel1' => '', // HJ. Kecil Level 1
-                'fhargajuallevel2' => '', // HJ. Kecil Level 2
-                'fhargajuallevel3' => '', // HJ. Kecil Level 3
-                'fhargajual2level1' => '', // HJ. Besar Level 1
-                'fhargajual2level2' => '', // HJ. Besar Level 2
-                'fhargajual2level3' => '', // HJ. Besar Level 3
-                'fhargajual3level1' => '', // HJ <PCS> Level 1
-                'fhargajual3level2' => '', // HJ <CTN> Level 1
-                'fhargajual3level3' => '', // HJ <DUS> Level 1
                 'fminstock' => 'numeric',
                 'fhpp' => 'nullable',
                 'fhpp2' => 'nullable',
@@ -434,23 +391,7 @@ class ProductController extends Controller
             [
                 'fprdcode.unique' => 'Kode Produk sudah ada',
                 'fprdname.required' => 'Nama Produk harus diisi.',
-                'ftype.required' => 'Tipe Produk harus diisi.',
-                'fbarcode.required' => 'Barcode Produk harus diisi.',
-                'fgroupcode.required' => 'Group Produk harus dipilih.',
-                'fmerek.required' => 'Merek harus dipilih.',
                 'fsatuankecil.required' => 'Satuan Kecil harus diisi.',
-                'fsatuanbesar.required' => 'Satuan Besar harus dipilih.',
-                'fsatuanbesar2.required' => 'Satuan Besar 2 harus dipilih.',
-                'fsatuandefault.required' => 'Satuan Default harus diisi.',
-                'fqtykecil.required' => 'Qty Kecil harus diisi.',
-                'fqtykecil2.required' => 'Qty Kecil 2 harus diisi.',
-                'fhargasatuankecillevel1.required' => 'Harga Satuan 1 harus diisi.',
-                'fhargasatuankecillevel2.required' => 'Harga Satuan 2 harus diisi.',
-                'fhargasatuankecillevel3.required' => 'Harga Satuan 3 harus diisi.',
-                'fhargajuallevel1.required' => 'Harga Jual Kecil Level 1 harus diisi.',
-                'fhargajuallevel2.required' => 'Harga Jual Kecil Level 2 harus diisi.',
-                'fhargajuallevel3.required' => 'Harga Jual Kecil Level 3 harus diisi.',
-                'fminstock.required' => 'Min Stok harus diisi.',
                 'fsatuanbesar.different' => 'Satuan Besar tidak boleh sama dengan Satuan Kecil.',
                 'fsatuanbesar2.different' => 'Satuan Besar 2 tidak boleh sama dengan Satuan Kecil atau Satuan Besar.',
             ]
@@ -465,31 +406,48 @@ class ProductController extends Controller
             $validated['fapproval'] = null;
         }
 
-        $validated['fhpp'] = preg_replace('/[^0-9.]/', '', $request->fhpp);
-        $validated['fhpp2'] = preg_replace('/[^0-9.]/', '', $request->fhpp2);
-        $validated['fhpp3'] = preg_replace('/[^0-9.]/', '', $request->fhpp3);
+        // Fungsi pembantu untuk mencegah string kosong pada PostgreSQL Numeric
+        $sanitizeNumeric = function ($value) {
+            if ($value === null || $value === '') return 0;
+            $clean = preg_replace('/[^0-9.]/', '', $value);
+            return (is_numeric($clean)) ? (float)$clean : 0;
+        };
 
-        $validated['fhargajuallevel1'] = preg_replace('/[^0-9.]/', '', $request->fhargajuallevel1);
-        $validated['fhargajuallevel2'] = preg_replace('/[^0-9.]/', '', $request->fhargajuallevel2);
-        $validated['fhargajuallevel3'] = preg_replace('/[^0-9.]/', '', $request->fhargajuallevel3);
-        $validated['fhargajual2level1'] = preg_replace('/[^0-9.]/', '', $request->fhargajual2level1);
-        $validated['fhargajual2level2'] = preg_replace('/[^0-9.]/', '', $request->fhargajual2level2);
-        $validated['fhargajual2level3'] = preg_replace('/[^0-9.]/', '', $request->fhargajual2level3);
-        $validated['fhargajual3level1'] = preg_replace('/[^0-9.]/', '', $request->fhargajual3level1);
-        $validated['fhargajual3level2'] = preg_replace('/[^0-9.]/', '', $request->fhargajual3level2);
-        $validated['fhargajual3level3'] = preg_replace('/[^0-9.]/', '', $request->fhargajual3level3);
+        // Daftar field yang harus disanitasi
+        $numericFields = [
+            'fhpp',
+            'fhpp2',
+            'fhpp3',
+            'fhargajuallevel1',
+            'fhargajuallevel2',
+            'fhargajuallevel3',
+            'fhargajual2level1',
+            'fhargajual2level2',
+            'fhargajual2level3',
+            'fhargajual3level1',
+            'fhargajual3level2',
+            'fhargajual3level3',
+            'fqtykecil',
+            'fqtykecil2',
+            'fminstock'
+        ];
+
+        foreach ($numericFields as $field) {
+            $validated[$field] = $sanitizeNumeric($request->input($field));
+        }
 
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
-        $validated['fupdatedat'] = now(); // Use the current time
-
+        $validated['fupdatedat'] = now();
         $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
+
         $product = Product::findOrFail($fprdid);
 
+        // Handle Google Drive Images
         $googleDriveService = new GoogleDriveService;
         foreach (['fimage1', 'fimage2', 'fimage3'] as $imageField) {
             if ($request->hasFile($imageField) && $request->file($imageField)->isValid()) {
                 try {
-                    if (! empty($product->{$imageField})) {
+                    if (!empty($product->{$imageField})) {
                         $oldFileId = $this->normalizeGoogleDriveFileId($product->{$imageField});
                         if ($oldFileId) {
                             $googleDriveService->deleteImage($oldFileId);
@@ -501,9 +459,7 @@ class ProductController extends Controller
                         $validated[$imageField] = $fileId;
                     }
                 } catch (\Exception $e) {
-                    \Log::error('Image update failed: ' . $e->getMessage(), [
-                        'field' => $imageField,
-                    ]);
+                    return redirect()->back()->with('error', 'Terjadi kesalahan sistem: ' . $e->getMessage());
                 }
             }
         }
