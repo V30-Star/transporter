@@ -596,18 +596,17 @@
                         }
                         $drivePreviewUrl = $driveFileId ? route('product.photo', $product->fprdid) : null;
                     @endphp
-                    @if($driveFileId)
-                    <div class="mt-4 w-1/2">
-                        <label class="block text-sm font-medium">Foto Product</label>
-                        <div class="mt-2">
-                            <img id="productImage" src="{{ $drivePreviewUrl }}"
-                                 alt="Product Image" 
-                                 class="max-w-xs max-h-64 border rounded shadow cursor-pointer hover:opacity-90 transition-opacity"
-                                 onclick="openImageModal(this.src)"
-                                 onerror="this.onerror=null; this.src='https://drive.google.com/thumbnail?id={{ $driveFileId }}&sz=w1000';">
+                    @if ($driveFileId)
+                        <div class="mt-4 w-1/2">
+                            <label class="block text-sm font-medium">Foto Product</label>
+                            <div class="mt-2">
+                                <img id="productImage" src="{{ $drivePreviewUrl }}" alt="Product Image"
+                                    class="max-w-xs max-h-64 border rounded shadow cursor-pointer hover:opacity-90 transition-opacity"
+                                    onclick="openImageModal(this.src)"
+                                    onerror="this.onerror=null; this.src='https://drive.google.com/thumbnail?id={{ $driveFileId }}&sz=w1000';">
+                            </div>
+                            <p class="text-xs text-gray-500 mt-2">Klik gambar untuk melihat lebih besar</p>
                         </div>
-                        <p class="text-xs text-gray-500 mt-2">Klik gambar untuk melihat lebih besar</p>
-                    </div>
                     @endif
 
                     <div class="md:col-span-2 flex justify-center items-center space-x-2">
@@ -676,266 +675,85 @@
         });
     });
 </script>
-
 <script>
     /**
-     * Fungsi utama untuk mengelola visibilitas field satuan dan pembaruan label.
-     * Dipanggil saat ada perubahan pada Satuan Kecil atau Satuan 2.
+     * Versi VIEW — hanya untuk tampilkan/sembunyikan block dan update label.
+     * Semua select/input tetap disabled, tidak ada enable/disable via JS.
      */
-    let isUpdating = false;
-
-    function updateSatuanLogic() {
-        if (isUpdating) return;
-
-        isUpdating = true; // Set flag sedang update
-        // --- 1. Ambil Elemen Utama ---
-        const smallSatuan = document.getElementById('fsatuankecil');
-        const largeSatuan1 = document.getElementById('fsatuanbesar');
-        const largeSatuan2 = document.getElementById('fsatuanbesar2');
-
-        const qty1 = document.getElementById('fqtykecil');
-        const qty2 = document.getElementById('fqtykecil2');
-
-        const block2 = document.getElementById('satuan2-block');
-        const br2 = document.getElementById('br-satuan2');
-        const block3 = document.getElementById('satuan3-block');
-
+    function initViewSatuanDisplay() {
         const satuanKecil = $('#fsatuankecil').val();
         const satuan2 = $('#fsatuanbesar').val();
         const satuan3 = $('#fsatuanbesar2').val();
 
-        // Target span untuk menampilkan kode Satuan Kecil
-        const targets = document.querySelectorAll('.satuan-kecil-display');
+        // --- Update span display ---
+        $('.satuan-kecil-display').text(satuanKecil || '');
 
-        // HJ Labels
-        const hjSatuanKecilLabel = document.getElementById('hj-satuan-kecil-label');
-        const hjSatuanBesarLabel = document.getElementById('hj-satuan-besar-label');
-        const hjSatuanBesar2Label = document.getElementById('hj-satuan-besar2-label');
+        // --- Update HJ Labels ---
+        $('#hj-satuan-kecil-level1-label, #hj-satuan-kecil-level2-label, #hj-satuan-kecil-level3-label')
+            .text(satuanKecil || '-');
+        $('#hj-satuan-besar-level1-label, #hj-satuan-besar-level2-label, #hj-satuan-besar-level3-label')
+            .text(satuan2 || '-');
+        $('#hj-satuan-kecil-label, #hj-satuan-besar-label, #hj-satuan-besar2-label')
+            .text(satuan3 || '-');
 
-        const hjSatuanKecilLevel1Label = document.getElementById('hj-satuan-kecil-level1-label');
-        const hjSatuanKecilLevel2Label = document.getElementById('hj-satuan-kecil-level2-label');
-        const hjSatuanKecilLevel3Label = document.getElementById('hj-satuan-kecil-level3-label');
-
-        const hjSatuanBesarLevel1Label = document.getElementById('hj-satuan-besar-level1-label');
-        const hjSatuanBesarLevel2Label = document.getElementById('hj-satuan-besar-level2-label');
-        const hjSatuanBesarLevel3Label = document.getElementById('hj-satuan-besar-level3-label');
-
-        // HJ Input Fields
-        const hjSatuanKecilInput = document.getElementById('fhargajual3level1');
-        const hjSatuanBesarInput = document.getElementById('fhargajual3level2');
-        const hjSatuanBesar2Input = document.getElementById('fhargajual3level3');
-
-        // Ambil nilai yang dipilih
-        const smallSatuanValue = smallSatuan ? smallSatuan.value : '';
-        const largeSatuan1Value = largeSatuan1 ? largeSatuan1.value : '';
-        const largeSatuan2Value = largeSatuan2 ? largeSatuan2.value : '';
-
-        // --- 2. Logika Satuan 2 & Satuan Kecil Display ---
-        if (smallSatuanValue) {
-            // Tampilkan block Satuan 2 dan elemen <br>
-            if (block2) block2.style.display = 'block';
-            if (br2) br2.style.display = 'block';
-
-            // Aktifkan field Satuan 2 (Select dan Input Isi)
-            if (largeSatuan1) largeSatuan1.disabled = false;
-            if (qty1) qty1.disabled = false;
-
-            // Aktifkan HJ Satuan Kecil input
-            if (hjSatuanKecilInput) hjSatuanKecilInput.disabled = false;
-
-        } else {
-            // Sembunyikan block Satuan 2, nonaktifkan, dan reset nilai
-            if (block2) block2.style.display = 'none';
-            if (br2) br2.style.display = 'none';
-
-            if (largeSatuan1) {
-                largeSatuan1.disabled = true;
-                largeSatuan1.value = "";
-            }
-            if (qty1) {
-                qty1.disabled = true;
-                qty1.value = 0;
-            }
-
-            // Nonaktifkan dan reset HJ Satuan Kecil input
-            if (hjSatuanKecilInput) {
-                hjSatuanKecilInput.disabled = true;
-                hjSatuanKecilInput.value = 0;
-            }
-        }
-
-        // Tampilkan kode Satuan Kecil di samping field Isi untuk semua target
-        targets.forEach(function(target) {
-            target.textContent = smallSatuanValue;
-        });
-
-        // --- 3. Update HJ Labels ---
-
-        if (hjSatuanKecilLevel1Label) {
-            hjSatuanKecilLevel1Label.textContent = smallSatuanValue || '-';
-        }
-        if (hjSatuanKecilLevel2Label) {
-            hjSatuanKecilLevel2Label.textContent = smallSatuanValue || '-';
-        }
-        if (hjSatuanKecilLevel3Label) {
-            hjSatuanKecilLevel3Label.textContent = smallSatuanValue || '-';
-        }
-
-        if (hjSatuanBesarLevel1Label) {
-            hjSatuanBesarLevel1Label.textContent = largeSatuan1Value || '-';
-        }
-        if (hjSatuanBesarLevel2Label) {
-            hjSatuanBesarLevel2Label.textContent = largeSatuan1Value || '-';
-        }
-        if (hjSatuanBesarLevel3Label) {
-            hjSatuanBesarLevel3Label.textContent = largeSatuan1Value || '-';
-        }
-
-        if (hjSatuanKecilLabel) {
-            hjSatuanKecilLabel.textContent = largeSatuan2Value || '-';
-        }
-        if (hjSatuanBesarLabel) {
-            hjSatuanBesarLabel.textContent = largeSatuan2Value || '-';
-        }
-        if (hjSatuanBesar2Label) {
-            hjSatuanBesar2Label.textContent = largeSatuan2Value || '-';
-        }
-
-        // --- 4. Logika Satuan 3 ---
-        // Satuan 3 muncul jika Satuan 2 sedang terlihat DAN Satuan 2 memiliki nilai yang dipilih
-        const isSatuan2Visible = block2 ? block2.style.display !== 'none' : false;
-
-        if (isSatuan2Visible && largeSatuan1Value) {
-            // Tampilkan block Satuan 3
-            if (block3) block3.style.display = 'block';
-
-            // Aktifkan field Satuan 3
-            if (largeSatuan2) largeSatuan2.disabled = false;
-            if (qty2) qty2.disabled = false;
-
-            // Aktifkan HJ Satuan Besar input
-            if (hjSatuanBesarInput) hjSatuanBesarInput.disabled = false;
-
-        } else {
-            // Sembunyikan block Satuan 3, nonaktifkan, dan reset nilai
-            if (block3) block3.style.display = 'none';
-
-            if (largeSatuan2) {
-                largeSatuan2.disabled = true;
-                largeSatuan2.value = "";
-            }
-            if (qty2) {
-                qty2.disabled = true;
-                qty2.value = 0;
-            }
-
-            // Nonaktifkan dan reset HJ Satuan Besar input
-            if (hjSatuanBesarInput) {
-                hjSatuanBesarInput.disabled = true;
-                hjSatuanBesarInput.value = 0;
-            }
-        }
-
-        // --- 5. HJ Satuan 3 ---
-        const isSatuan3Visible = block3 ? block3.style.display !== 'none' : false;
-
-        if (isSatuan3Visible && largeSatuan2Value) {
-            // Aktifkan HJ Satuan Besar 2 input
-            if (hjSatuanBesar2Input) hjSatuanBesar2Input.disabled = false;
-        } else {
-            // Nonaktifkan dan reset HJ Satuan Besar 2 input
-            if (hjSatuanBesar2Input) {
-                hjSatuanBesar2Input.disabled = true;
-                hjSatuanBesar2Input.value = 0;
-            }
-        }
-
-        if (satuanKecil !== "" && satuanKecil !== null) {
+        // --- Tampilkan/sembunyikan block Satuan 2 ---
+        if (satuanKecil !== '' && satuanKecil !== null) {
             $('#satuan2-block').show();
             $('#hj-level1-block').show();
-            $('#fsatuanbesar').prop('disabled', false);
-
-            $('.satuan-kecil-display').text(satuanKecil);
-            $('#hj-satuan-kecil-level1-label, #hj-satuan-kecil-level2-label, #hj-satuan-kecil-level3-label').text(
-                satuanKecil);
         } else {
             $('#satuan2-block').hide();
             $('#hj-level1-block').hide();
-            // Reset tanpa memicu loop yang parah
-            if ($('#fsatuanbesar').val() !== "") {
-                $('#fsatuanbesar').val('').trigger('change.select2'); // Gunakan namespace select2 agar lebih spesifik
-            }
-            $('#fsatuanbesar').prop('disabled', true);
         }
 
-        // --- LOGIKA SATUAN 2 ---
-        if (satuan2 !== "" && satuan2 !== null && satuanKecil !== "") {
+        // --- Tampilkan/sembunyikan block Satuan 3 ---
+        if (satuan2 !== '' && satuan2 !== null && satuanKecil !== '') {
             $('#satuan3-block').show();
             $('#hj-level2-block').show();
-            $('#fsatuanbesar2').prop('disabled', false);
-            $('#fqtykecil').prop('disabled', false);
-
-            $('#hj-satuan-besar-level1-label, #hj-satuan-besar-level2-label, #hj-satuan-besar-level3-label').text(
-                satuan2);
         } else {
             $('#satuan3-block').hide();
             $('#hj-level2-block').hide();
-            if ($('#fsatuanbesar2').val() !== "") {
-                $('#fsatuanbesar2').val('').trigger('change.select2');
-            }
-            $('#fsatuanbesar2').prop('disabled', true);
-            $('#fqtykecil').prop('disabled', true);
         }
-
-        // --- LOGIKA SATUAN 3 ---
-        if (satuan3 !== "" && satuan3 !== null) {
-            $('#fqtykecil2').prop('disabled', false);
-        } else {
-            $('#fqtykecil2').prop('disabled', true);
-        }
-
-        isUpdating = false;
     }
 
-    // --- Pemasangan Event Listener ---
+    $(document).ready(function() {
+        // Pastikan semua select benar-benar disabled — tidak ada yang boleh diklik
+        $('#fsatuankecil, #fsatuanbesar, #fsatuanbesar2').prop('disabled', true);
 
-    // Panggil fungsi ini saat dokumen dimuat untuk inisialisasi awal (kasus halaman Create)
-    document.addEventListener('DOMContentLoaded', updateSatuanLogic);
+        // Jalankan hanya untuk update tampilan label & show/hide block
+        initViewSatuanDisplay();
+    });
 
-    // Event listener untuk Satuan Kecil (Sudah dipasang melalui onchange="updateSatuanLogic()" di HTML)
-    // Event listener untuk Satuan 2 (Sudah dipasang melalui onchange="updateSatuanLogic()" di HTML)
-
-    // --- Image Modal Functions ---
+    // --- Image Modal ---
     function openImageModal(src) {
         if (!src) return;
-        
         var modal = document.createElement('div');
-        modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:10000;display:flex;align-items:center;justify-content:center;cursor:pointer;';
-        modal.innerHTML = '<img src="' + src + '" style="max-width:90%;max-height:90%;border-radius:8px;box-shadow:0 0 20px rgba(255,255,255,0.3);" />';
-        modal.onclick = function() { this.remove(); };
+        modal.style.cssText =
+            'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:10000;display:flex;align-items:center;justify-content:center;cursor:pointer;';
+        modal.innerHTML = '<img src="' + src +
+            '" style="max-width:90%;max-height:90%;border-radius:8px;box-shadow:0 0 20px rgba(255,255,255,0.3);" />';
+        modal.onclick = function() {
+            this.remove();
+        };
         document.body.appendChild(modal);
     }
 
     function deletePhoto() {
         if (!confirm('Hapus foto product ini?')) return;
-
         fetch('{{ route('product.delete-photo', $product->fprdid) }}', {
-            method: 'DELETE',
-            headers: {
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                'Accept': 'application/json'
-            }
-        })
-        .then(async (response) => {
-            const data = await response.json();
-            if (!response.ok) {
-                throw new Error(data.message || 'Gagal menghapus foto');
-            }
-            alert(data.message || 'Foto berhasil dihapus');
-            window.location.reload();
-        })
-        .catch((error) => {
-            alert(error.message || 'Terjadi kesalahan saat menghapus foto');
-        });
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(async (response) => {
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.message || 'Gagal menghapus foto');
+                alert(data.message || 'Foto berhasil dihapus');
+                window.location.reload();
+            })
+            .catch((error) => {
+                alert(error.message || 'Terjadi kesalahan saat menghapus foto');
+            });
     }
 </script>

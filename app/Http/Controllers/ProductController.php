@@ -243,6 +243,9 @@ class ProductController extends Controller
                 'fhpp' => 'nullable',
                 'fhpp2' => 'nullable',
                 'fhpp3' => 'nullable',
+                'fimage1' => 'nullable|image|max:2048',
+                'fimage2' => 'nullable|image|max:2048',
+                'fimage3' => 'nullable|image|max:2048',
             ]);
 
             // 1. Format Nama (Uppercase)
@@ -288,16 +291,23 @@ class ProductController extends Controller
             $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
 
             // 5. Handle Google Drive Upload
-            if ($request->hasFile('fimage1') && $request->file('fimage1')->isValid()) {
-                try {
-                    $googleDriveService = new \App\Services\GoogleDriveService();
-                    $fileId = $googleDriveService->uploadImage($request, 'fimage1');
-                    if ($fileId) {
-                        $validated['fimage1'] = $fileId;
-                        \Log::info('Google Drive Upload Success', ['file_id' => $fileId]);
+            $googleDriveService = new \App\Services\GoogleDriveService();
+            foreach (['fimage1', 'fimage2', 'fimage3'] as $imageField) {
+                if ($request->hasFile($imageField) && $request->file($imageField)->isValid()) {
+                    try {
+                        $fileId = $googleDriveService->uploadImage($request, $imageField);
+                        if ($fileId) {
+                            $validated[$imageField] = $fileId;
+                            \Log::info('Google Drive Upload Success', [
+                                'field' => $imageField,
+                                'file_id' => $fileId,
+                            ]);
+                        }
+                    } catch (\Exception $e) {
+                        \Log::error('Google Drive Upload Failed: ' . $e->getMessage(), [
+                            'field' => $imageField,
+                        ]);
                     }
-                } catch (\Exception $e) {
-                    \Log::error('Google Drive Upload Failed: ' . $e->getMessage());
                 }
             }
 
