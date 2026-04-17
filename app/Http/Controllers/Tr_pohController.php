@@ -982,10 +982,9 @@ class Tr_pohController extends Controller
 
       $prod  = $products->firstWhere('fprdcode', $d->fitemcode);
 
-      // Sisa PR dalam satuan kecil dari tr_prd.fqtyremain (+ pemakaian baris PO ini saat edit)
+      // Sisa PR dalam satuan kecil dari tr_prd.fqtyremain (nilai aktual tersisa saat ini)
       $fqtyremainDb = (float) ($d->fqtyremain_pr ?? 0);
-      $qtyLineKecil = (float) ($d->fqtykecil ?? 0);
-      $sisaKecil = max(0, $fqtyremainDb + $qtyLineKecil);
+      $sisaKecil = max(0, $fqtyremainDb);
 
       // Siapkan units untuk dropdown
       $units = array_values(array_filter(array_map('trim', [$satKecil, $satBesar, $satBesar2])));
@@ -1363,6 +1362,33 @@ class Tr_pohController extends Controller
       return back()->withInput()->withErrors([
         'detail' => 'Minimal satu item valid (Kode Produk ada di master, Satuan tidak kosong, Qty > 0).'
       ]);
+    }
+
+    // Strict server-side guard: qty item PR pada form update tidak boleh melebihi sisa PR saat ini.
+    // Ini sengaja mengikuti aturan frontend "Sisa PR" (berdasarkan tr_prd.fqtyremain tanpa add-back qty PO lama).
+    $prNeedByRef = [];
+    foreach ($rowsPod as $row) {
+      $refId = (int) ($row['frefdtid'] ?? 0);
+      if ($refId <= 0) {
+        continue;
+      }
+      $prNeedByRef[$refId] = ($prNeedByRef[$refId] ?? 0) + (float) ($row['fqtykecil'] ?? 0);
+    }
+
+    if (!empty($prNeedByRef)) {
+      $prRemainRows = DB::table('tr_prd')
+        ->whereIn('fprdid', array_keys($prNeedByRef))
+        ->get(['fprdid', 'fqtyremain'])
+        ->keyBy('fprdid');
+
+      foreach ($prNeedByRef as $fprdid => $needKecil) {
+        $remainKecil = (float) ($prRemainRows[$fprdid]->fqtyremain ?? 0);
+        if ($needKecil > $remainKecil + 1e-4) {
+          return back()->withInput()->withErrors([
+            'detail' => "Qty item PR melebihi sisa PR (ID {$fprdid}). Maks sisa saat ini: {$remainKecil} (satuan kecil).",
+          ]);
+        }
+      }
     }
 
     $prdAgg = $this->aggregatePrdUsageByPrd($rowsPod);
