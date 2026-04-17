@@ -1296,7 +1296,14 @@
                                                 $driveFileId = $imageRaw;
                                             }
                                         }
-                                        $drivePreviewUrl = $driveFileId ? route('product.photo', ['fprdid' => $product->fprdid, 'field' => $field]) : null;
+                                        $photoVersion = !empty($product->fupdatedat) ? strtotime((string) $product->fupdatedat) : null;
+                                        $drivePreviewUrl = $driveFileId
+                                            ? route('product.photo', [
+                                                'fprdid' => $product->fprdid,
+                                                'field' => $field,
+                                                'v' => $photoVersion ?: time(),
+                                            ])
+                                            : null;
                                     @endphp
                                     <div>
                                         <label class="block text-xs font-semibold text-gray-600 mb-1">Foto {{ $imgNo }}</label>
