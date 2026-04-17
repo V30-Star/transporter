@@ -103,7 +103,7 @@
                                         $driveFileId = $imageRaw;
                                     }
                                 }
-                                $drivePreviewUrl = $driveFileId ? route('product.photo', [$product->fprdid, $field]) : null;
+                                $drivePreviewUrl = $driveFileId ? route('product.photo', ['fprdid' => $product->fprdid, 'field' => $field]) : null;
                             @endphp
                             <div>
                                 <p class="text-xs font-semibold text-gray-500 mb-2">Foto {{ $imgNo }}</p>

@@ -518,6 +518,7 @@ class ProductController extends Controller
     public function deletePhoto($fprdid, $field = 'fimage1')
     {
         $product = Product::findOrFail($fprdid);
+        $field = request()->query('field', $field);
         $allowedFields = ['fimage1', 'fimage2', 'fimage3'];
         if (! in_array($field, $allowedFields, true)) {
             return response()->json([
@@ -556,6 +557,7 @@ class ProductController extends Controller
     public function photo($fprdid, $field = 'fimage1')
     {
         $product = Product::findOrFail($fprdid);
+        $field = request()->query('field', $field);
         $allowedFields = ['fimage1', 'fimage2', 'fimage3'];
         if (! in_array($field, $allowedFields, true)) {
             abort(404);
