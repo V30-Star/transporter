@@ -332,7 +332,7 @@ class FakturPembelianController extends Controller
     }
   }
 
-  private function validateSourceRemainForRows(array $codes, array $qtys, array $sources, array $refdtids): \Illuminate\Support\MessageBag
+  private function validateSourceRemainForRows(array $codes, array $qtys, array $sources, array $refdtids, array $extraAvailableBySourceRef = []): \Illuminate\Support\MessageBag
   {
     $errors = new \Illuminate\Support\MessageBag();
     $tolerance = 0.00001;
@@ -362,10 +362,12 @@ class FakturPembelianController extends Controller
         continue;
       }
 
-      if ($qty - $remain > $tolerance) {
+      $sourceKey = $sourceType . ':' . $detailId;
+      $available = $remain + (float) ($extraAvailableBySourceRef[$sourceKey] ?? 0);
+      if ($qty - $available > $tolerance) {
         $errors->add(
           "fqty.$i",
-          "Qty item {$code} dari {$sourceType} tidak boleh melebihi Qty Remain referensi ({$remain})."
+          "Qty item {$code} dari {$sourceType} tidak boleh melebihi Qty Remain referensi ({$available})."
         );
       }
     }
@@ -578,7 +580,29 @@ class FakturPembelianController extends Controller
 
       $lineCounter = 1;
 
-      $errors = $this->validateSourceRemainForRows($codes, $qtys, $sources, $refdtids);
+      $oldDetailRows = DB::table('trstockdt')
+        ->where('fstockmtid', $fstockmtid)
+        ->whereNotNull('frefdtid')
+        ->get(['frefdtid', 'fqty']);
+      $oldUsageByRefId = [];
+      foreach ($oldDetailRows as $old) {
+        $refId = (int) ($old->frefdtid ?? 0);
+        if ($refId <= 0) {
+          continue;
+        }
+        $oldUsageByRefId[$refId] = ($oldUsageByRefId[$refId] ?? 0) + (float) ($old->fqty ?? 0);
+      }
+      $extraAvailableBySourceRef = [];
+      foreach ($sources as $i => $src) {
+        $sourceType = strtoupper(trim((string) ($src ?? '')));
+        $detailId = (int) ($refdtids[$i] ?? 0);
+        if (!in_array($sourceType, ['PO', 'PB'], true) || $detailId <= 0) {
+          continue;
+        }
+        $extraAvailableBySourceRef[$sourceType . ':' . $detailId] = (float) ($oldUsageByRefId[$detailId] ?? 0);
+      }
+
+      $errors = $this->validateSourceRemainForRows($codes, $qtys, $sources, $refdtids, $extraAvailableBySourceRef);
 
       if ($errors->isNotEmpty()) {
         return back()->withErrors($errors)->withInput();

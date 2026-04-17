@@ -529,8 +529,8 @@ class ReturPenjualanController extends Controller
                 ->pluck('fqtyremain', 'ftrsodtid');
             foreach ($soUsageByDetailId as $detailId => $usedQty) {
                 $remain = (float) ($soRemainRows[$detailId] ?? 0);
-                if (abs($usedQty - $remain) > 0.00001) {
-                    $remainErrors[] = "Qty SO detail #{$detailId} harus sama dengan sisa (fqtyremain). Input: {$usedQty}, sisa: {$remain}.";
+                if ($usedQty - $remain > 0.00001) {
+                    $remainErrors[] = "Qty SO detail #{$detailId} melebihi sisa (fqtyremain). Input: {$usedQty}, sisa: {$remain}.";
                 }
             }
         }
@@ -540,8 +540,8 @@ class ReturPenjualanController extends Controller
                 ->pluck('fqtyremain', 'fstockdtid');
             foreach ($srjUsageByDetailId as $detailId => $usedQty) {
                 $remain = (float) ($srjRemainRows[$detailId] ?? 0);
-                if (abs($usedQty - $remain) > 0.00001) {
-                    $remainErrors[] = "Qty SRJ detail #{$detailId} harus sama dengan sisa (fqtyremain). Input: {$usedQty}, sisa: {$remain}.";
+                if ($usedQty - $remain > 0.00001) {
+                    $remainErrors[] = "Qty SRJ detail #{$detailId} melebihi sisa (fqtyremain). Input: {$usedQty}, sisa: {$remain}.";
                 }
             }
         }
@@ -693,8 +693,8 @@ class ReturPenjualanController extends Controller
                         ->pluck('fqtyremain', 'ftrsodtid');
                     foreach ($soUsageByDetailId as $detailId => $usedQty) {
                         $remain = (float) ($lockedSoRemainRows[$detailId] ?? 0);
-                        if (abs($usedQty - $remain) > 0.00001) {
-                            throw new \RuntimeException("Qty SO detail #{$detailId} tidak sesuai sisa (fqtyremain).");
+                        if ($usedQty - $remain > 0.00001) {
+                            throw new \RuntimeException("Qty SO detail #{$detailId} melebihi sisa (fqtyremain).");
                         }
                         DB::table('trsodt')->where('ftrsodtid', $detailId)->update(['fqtyremain' => $remain - $usedQty]);
                     }
@@ -706,8 +706,8 @@ class ReturPenjualanController extends Controller
                         ->pluck('fqtyremain', 'fstockdtid');
                     foreach ($srjUsageByDetailId as $detailId => $usedQty) {
                         $remain = (float) ($lockedSrjRemainRows[$detailId] ?? 0);
-                        if (abs($usedQty - $remain) > 0.00001) {
-                            throw new \RuntimeException("Qty SRJ detail #{$detailId} tidak sesuai sisa (fqtyremain).");
+                        if ($usedQty - $remain > 0.00001) {
+                            throw new \RuntimeException("Qty SRJ detail #{$detailId} melebihi sisa (fqtyremain).");
                         }
                         DB::table('trstockdt')->where('fstockdtid', $detailId)->update(['fqtyremain' => $remain - $usedQty]);
                     }
@@ -1207,8 +1207,8 @@ class ReturPenjualanController extends Controller
             $soRemainRows = DB::table('trsodt')->whereIn('ftrsodtid', $soIdsToCheck)->pluck('fqtyremain', 'ftrsodtid');
             foreach ($soUsageByDetailId as $detailId => $usedQty) {
                 $available = (float) ($soRemainRows[$detailId] ?? 0) + (float) ($oldSoUsageByDetailId[$detailId] ?? 0);
-                if (abs($usedQty - $available) > 0.00001) {
-                    $remainErrors[] = "Qty SO detail #{$detailId} harus sama dengan sisa (fqtyremain). Input: {$usedQty}, sisa: {$available}.";
+                if ($usedQty - $available > 0.00001) {
+                    $remainErrors[] = "Qty SO detail #{$detailId} melebihi sisa (fqtyremain). Input: {$usedQty}, sisa: {$available}.";
                 }
             }
         }
@@ -1217,8 +1217,8 @@ class ReturPenjualanController extends Controller
             $srjRemainRows = DB::table('trstockdt')->whereIn('fstockdtid', $srjIdsToCheck)->pluck('fqtyremain', 'fstockdtid');
             foreach ($srjUsageByDetailId as $detailId => $usedQty) {
                 $available = (float) ($srjRemainRows[$detailId] ?? 0) + (float) ($oldSrjUsageByDetailId[$detailId] ?? 0);
-                if (abs($usedQty - $available) > 0.00001) {
-                    $remainErrors[] = "Qty SRJ detail #{$detailId} harus sama dengan sisa (fqtyremain). Input: {$usedQty}, sisa: {$available}.";
+                if ($usedQty - $available > 0.00001) {
+                    $remainErrors[] = "Qty SRJ detail #{$detailId} melebihi sisa (fqtyremain). Input: {$usedQty}, sisa: {$available}.";
                 }
             }
         }
@@ -1361,8 +1361,8 @@ class ReturPenjualanController extends Controller
                         ->pluck('fqtyremain', 'ftrsodtid');
                     foreach ($soUsageByDetailId as $detailId => $usedQty) {
                         $remain = (float) ($lockedSoRemainRows[$detailId] ?? 0);
-                        if (abs($usedQty - $remain) > 0.00001) {
-                            throw new \RuntimeException("Qty SO detail #{$detailId} tidak sesuai sisa (fqtyremain).");
+                        if ($usedQty - $remain > 0.00001) {
+                            throw new \RuntimeException("Qty SO detail #{$detailId} melebihi sisa (fqtyremain).");
                         }
                         DB::table('trsodt')->where('ftrsodtid', $detailId)->update(['fqtyremain' => $remain - $usedQty]);
                     }
@@ -1374,8 +1374,8 @@ class ReturPenjualanController extends Controller
                         ->pluck('fqtyremain', 'fstockdtid');
                     foreach ($srjUsageByDetailId as $detailId => $usedQty) {
                         $remain = (float) ($lockedSrjRemainRows[$detailId] ?? 0);
-                        if (abs($usedQty - $remain) > 0.00001) {
-                            throw new \RuntimeException("Qty SRJ detail #{$detailId} tidak sesuai sisa (fqtyremain).");
+                        if ($usedQty - $remain > 0.00001) {
+                            throw new \RuntimeException("Qty SRJ detail #{$detailId} melebihi sisa (fqtyremain).");
                         }
                         DB::table('trstockdt')->where('fstockdtid', $detailId)->update(['fqtyremain' => $remain - $usedQty]);
                     }

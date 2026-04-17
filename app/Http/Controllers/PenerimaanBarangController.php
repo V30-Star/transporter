@@ -852,50 +852,9 @@ class PenerimaanBarangController extends Controller
 
     $rowsDt   = [];
     $subtotal = 0.0;
-    $errors   = [];
-    // ===== STOCK VALIDATION =====
-    $errors = new \Illuminate\Support\MessageBag();
-    foreach ($codes as $i => $codeRaw) {
-      $code = trim($codeRaw ?? '');
-      $sat  = trim($sats[$i] ?? '');
-      if ($code === '') continue;
-
-      $qty = is_numeric($qtys[$i] ?? null) ? (int) $qtys[$i] : 0;
-      if ($qty < 1) {
-        $errors->add("fqty.$i", 'Qty minimal 1.');  // ← ganti
-        continue;
-      }
-
-      $product      = $productMap[$code] ?? null;
-      $stokTersedia = $product ? (float) ($product->fminstock ?? 0) : 0;
-
-      $qtyKecil = $qty;
-      if ($product) {
-        if ($sat === $product->fsatuanbesar) {
-          $rasio    = is_numeric($product->fqtykecil) ? (float) $product->fqtykecil : 1;
-          $qtyKecil = $qty * $rasio;
-        } elseif (!empty($product->fsatuanbesar2) && $sat === $product->fsatuanbesar2) {
-          $rasio2   = is_numeric($product->fqtykecil2) ? (float) $product->fqtykecil2 : 1;
-          $qtyKecil = $qty * $rasio2;
-        }
-      }
-
-      if ($stokTersedia <= 0) {
-        $errors->add(
-          "fqty.$i",
-          "Produk \"$code\" tidak dapat dipesan karena stok habis atau minus. (Stok saat ini: $stokTersedia)"
-        );
-      } elseif ($qtyKecil > $stokTersedia) {
-        $errors->add(
-          "fqty.$i",
-          "Qty produk \"$code\" melebihi stok tersedia. (Diminta: $qtyKecil, Stok: $stokTersedia)"
-        );
-      }
-    }
-
-    if ($errors->isNotEmpty()) {
-      return back()->withErrors($errors)->withInput();
-    }
+    // NOTE:
+    // Pada edit penerimaan barang berbasis PO, batas qty mengikuti sisa referensi PO (tr_pod.fqtyremain),
+    // bukan berdasarkan nilai stok master msprd.fminstock.
 
     for ($i = 0, $cnt = count($codes); $i < $cnt; $i++) {
       $code   = trim((string) ($codes[$i]  ?? ''));

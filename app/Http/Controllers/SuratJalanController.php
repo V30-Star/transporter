@@ -524,8 +524,8 @@ class SuratJalanController extends Controller
             $soRemainErrors = [];
             foreach ($soUsageByDetailId as $soDetailId => $usedQtyKecil) {
                 $remain = (float) ($soRemainRows[$soDetailId] ?? 0);
-                if (abs($usedQtyKecil - $remain) > 0.00001) {
-                    $soRemainErrors[] = "Qty SO detail #{$soDetailId} harus sama dengan sisa (fqtyremain). Input: {$usedQtyKecil}, sisa: {$remain}.";
+                if ($usedQtyKecil - $remain > 0.00001) {
+                    $soRemainErrors[] = "Qty SO detail #{$soDetailId} melebihi sisa (fqtyremain). Input: {$usedQtyKecil}, sisa: {$remain}.";
                 }
             }
 
@@ -661,8 +661,8 @@ class SuratJalanController extends Controller
 
                     foreach ($soUsageByDetailId as $soDetailId => $usedQtyKecil) {
                         $remain = (float) ($lockedRemainRows[$soDetailId] ?? 0);
-                        if (abs($usedQtyKecil - $remain) > 0.00001) {
-                            throw new \RuntimeException("Qty SO detail #{$soDetailId} tidak sesuai sisa (fqtyremain).");
+                        if ($usedQtyKecil - $remain > 0.00001) {
+                            throw new \RuntimeException("Qty SO detail #{$soDetailId} melebihi sisa (fqtyremain).");
                         }
 
                         DB::table('trsodt')
@@ -1216,8 +1216,8 @@ class SuratJalanController extends Controller
             foreach ($soUsageByDetailId as $soDetailId => $usedQtyKecil) {
                 $currentRemain = (float) ($soRemainRows[$soDetailId] ?? 0);
                 $restoredRemain = $currentRemain + (float) ($oldSoUsageByDetailId[$soDetailId] ?? 0);
-                if (abs($usedQtyKecil - $restoredRemain) > 0.00001) {
-                    $soRemainErrors[] = "Qty SO detail #{$soDetailId} harus sama dengan sisa (fqtyremain). Input: {$usedQtyKecil}, sisa: {$restoredRemain}.";
+                if ($usedQtyKecil - $restoredRemain > 0.00001) {
+                    $soRemainErrors[] = "Qty SO detail #{$soDetailId} melebihi sisa (fqtyremain). Input: {$usedQtyKecil}, sisa: {$restoredRemain}.";
                 }
             }
 
@@ -1336,8 +1336,8 @@ class SuratJalanController extends Controller
 
                     foreach ($soUsageByDetailId as $soDetailId => $usedQtyKecil) {
                         $remain = (float) ($lockedRemainRows[$soDetailId] ?? 0);
-                        if (abs($usedQtyKecil - $remain) > 0.00001) {
-                            throw new \RuntimeException("Qty SO detail #{$soDetailId} tidak sesuai sisa (fqtyremain).");
+                        if ($usedQtyKecil - $remain > 0.00001) {
+                            throw new \RuntimeException("Qty SO detail #{$soDetailId} melebihi sisa (fqtyremain).");
                         }
 
                         DB::table('trsodt')
