@@ -1212,12 +1212,15 @@
                                                 <td class="p-2 text-right">
                                                     <input type="number"
                                                         class="border rounded px-2 py-1 w-full text-right"
+                                                        min="0"
+                                                        :max="(['PO','PB'].includes((it.fsource || '').toString().trim().toUpperCase()) ? Math.max(0, +(it.maxqty ?? 0) || 0) : null)"
                                                         x-model.number="it.fqty"
                                                         @focus="activeRow = it.uid; $event.target.select()"
-                                                        @blur="activeRow = null; enforceQtyRow(it)" @input="recalc(it);"
-                                                        @change="recalc(it);">
+                                                        @blur="activeRow = null; enforceQtyRow(it); recalc(it);"
+                                                        @input="enforceQtyRow(it); recalc(it);"
+                                                        @change="enforceQtyRow(it); recalc(it);">
                                                     <div class="text-[10px] text-orange-600 mt-0.5" x-show="it.fitemcode"
-                                                        x-html="formatStockLimit(it.fitemcode, it.fqty, it.fsatuan)"></div>
+                                                        x-html="formatStockLimit(it.fitemcode, it.fqty, it.fsatuan, it.fsource, it.maxqty)"></div>
                                                 </td>
                                                 <td class="p-2 text-right">
                                                     <input type="number"
@@ -1337,7 +1340,7 @@
                                                     @keydown.enter.prevent="$refs.draftTerima?.focus()">
                                                 <div class="text-xs mt-0.5 text-right space-y-0.5">
                                                     <div class="text-gray-400" x-show="draft.fitemcode"
-                                                        x-html="formatStockLimit(draft.fitemcode, draft.fqty, draft.fsatuan)">
+                                                        x-html="formatStockLimit(draft.fitemcode, draft.fqty, draft.fsatuan, draft.fsource, draft.maxqty)">
                                                     </div>
                                                 </div>
                                             </td>
@@ -2377,7 +2380,14 @@
                     return meta;
                 },
 
-                formatStockLimit(code, qty, satuan) {
+                formatStockLimit(code, qty, satuan, sourceType = '', sourceMaxQty = null) {
+                    const normalizedSource = (sourceType || '').toString().trim().toUpperCase();
+                    if (['PO', 'PB'].includes(normalizedSource)) {
+                        const sourceLimit = Math.max(0, +(sourceMaxQty ?? 0) || 0);
+                        if (!satuan) return '';
+                        return '<span class="font-medium">limit source:</span> ' + sourceLimit + ' ' + satuan;
+                    }
+
                     const meta = this.productMeta(code);
                     if (!code || !meta.stock) return '';
 
@@ -2720,8 +2730,14 @@
                         }
 
                         const meta = this.productMeta(item.fitemcode);
+                        const sourceType = (item.fsource || '').toString().trim().toUpperCase();
+                        const isSourceRow = ['PO', 'PB'].includes(sourceType);
                         if (meta) {
-                            item.maxqty = Number(meta.stock) || 0;
+                            if (!isSourceRow) {
+                                item.maxqty = Number(meta.stock) || 0;
+                            } else {
+                                item.maxqty = Math.max(0, +(item.maxqty ?? item.fqty) || 0);
+                            }
                             if (meta.units && meta.units.length) {
                                 item.units = [...new Set([...item.units, ...meta.units])];
                             } else if (item.fsatuan && !item.units.includes(item.fsatuan)) {
@@ -2731,7 +2747,11 @@
                                 item.unit_ratios = item.unit_ratios || meta.unit_ratios;
                             }
                         } else {
-                            item.maxqty = 0;
+                            if (!isSourceRow) {
+                                item.maxqty = 0;
+                            } else {
+                                item.maxqty = Math.max(0, +(item.maxqty ?? item.fqty) || 0);
+                            }
                             if (item.fsatuan && !item.units.includes(item.fsatuan)) {
                                 item.units.unshift(item.fsatuan);
                             }
