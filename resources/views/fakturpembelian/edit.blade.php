@@ -806,7 +806,19 @@
                         class="mt-6" x-data="{ showNoItems: false }"
                         @submit.prevent="
         const n = Number(document.getElementById('itemsCount')?.value || 0);
-        if (n < 1) { showNoItems = true } else { $el.submit() }
+        if (n < 1) {
+            showNoItems = true;
+            return;
+        }
+        const table = document.getElementById('itemsTableRoot');
+        if (table && typeof table.__x !== 'undefined') {
+            const vm = table.__x.$data;
+            if (vm && typeof vm.hasSourceQtyOverLimit === 'function' && vm.hasSourceQtyOverLimit()) {
+                alert('Qty dari Add PO/Add Penerimaan Barang tidak boleh melebihi Qty Remain.');
+                return;
+            }
+        }
+        $el.submit()
       ">
                         @csrf
                         @method('PATCH')
@@ -1112,7 +1124,7 @@
                             });
                         </script>
 
-                        <div x-data="itemsTable()" x-init="init()" class="mt-6 space-y-2">
+                        <div id="itemsTableRoot" x-data="itemsTable()" x-init="init()" class="mt-6 space-y-2">
                             <div class="flex justify-end mt-6">
                                 <div
                                     class="hpp-box bg-gray-50 p-3 rounded-lg border border-gray-200 shadow-sm flex items-center gap-4">
@@ -2404,6 +2416,18 @@
                         return;
                     }
                     const n = +row.fqty;
+                    const sourceType = (row?.fsource || '').toString().trim().toUpperCase();
+                    const isSourceRow = ['PO', 'PB'].includes(sourceType);
+                    if (isSourceRow) {
+                        const sourceMax = Math.max(0, +(row?.maxqty ?? 0) || 0);
+                        if (!Number.isFinite(n)) {
+                            row.fqty = sourceMax;
+                            return;
+                        }
+                        if (n < 0) row.fqty = 0;
+                        if (n > sourceMax) row.fqty = sourceMax;
+                        return;
+                    }
                     const meta = this.productMeta(row.fitemcode);
                     const units = meta?.units || [];
                     const ratios = meta?.unit_ratios || {
@@ -2434,6 +2458,16 @@
                     if (maxInUnit > 0 && n > maxInUnit) {
                         row.fqty = maxInUnit;
                     }
+                },
+
+                hasSourceQtyOverLimit() {
+                    return this.savedItems.some((row) => {
+                        const sourceType = (row?.fsource || '').toString().trim().toUpperCase();
+                        if (!['PO', 'PB'].includes(sourceType)) return false;
+                        const maxQty = Math.max(0, +(row?.maxqty ?? 0) || 0);
+                        const qty = Math.max(0, +(row?.fqty ?? 0) || 0);
+                        return qty > maxQty;
+                    });
                 },
 
                 hydrateRowFromMeta(row, meta) {
@@ -2517,6 +2551,11 @@
                             frefdtnoVal = header?.fstockmtno ?? '';
                         }
 
+                        const sourceLimit = Math.max(0, +(src.fqtyremain ?? src.fqty) || 0);
+                        if (sourceLimit <= 0) {
+                            return;
+                        }
+
                         const row = {
                             uid: cryptoRandom(),
                             fitemcode: src.fitemcode ?? '',
@@ -2531,7 +2570,7 @@
                             // Data quantity
                             fqty: (src.fqtyremain !== null && src.fqtyremain !== undefined) ?
                                 Number(src.fqtyremain) : ((src.fqty !== null && src.fqty !== undefined) ? Number(src.fqty) : 0),
-                            maxqty: Math.max(0, +(src.fqtyremain ?? src.fqty) || 0),
+                            maxqty: sourceLimit,
                             lockQty: false,
 
                             // Financial
@@ -2546,8 +2585,9 @@
                         };
 
                         this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
-                        row.maxqty = Math.max(0, +(src.fqtyremain ?? src.fqty) || 0);
-                        row.fqty = row.maxqty;
+                        row.maxqty = sourceLimit;
+                        row.fqty = sourceLimit;
+                        this.enforceQtyRow(row);
 
                         const key =
                             `${(row.fitemcode || '').toString().trim()}::${(row.frefdtno || '').toString().trim()}`;
