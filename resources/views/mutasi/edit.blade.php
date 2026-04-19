@@ -839,7 +839,7 @@
                                                         title="Cari Produk">
                                                         <x-heroicon-o-magnifying-glass class="w-4 h-4" />
                                                     </button>
-                                                  
+
                                                 </div>
                                             </td>
 
@@ -906,7 +906,7 @@
                                                         title="Cari Produk">
                                                         <x-heroicon-o-magnifying-glass class="w-4 h-4" />
                                                     </button>
-                                                  
+
                                                 </div>
                                             </td>
 
@@ -1678,10 +1678,11 @@
                         fitemname: src.fitemname ?? '',
                         fsatuan: src.fsatuan ?? '',
                         frefdtno: src.frefdtno ?? '',
-                        frefpr: src.frefpr ?? (header?.fpono ?? ''),
-                        frefso: source === 'SO' ? (header?.fsono ?? '') : '',
-                        frefsoid: source === 'SO' ? (src.frefdtno ?? '') : '',
-                        fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ? Number(src.fqty) : 1,
+                        frefpr: src.frefpr ?? (header?.fprno ?? header?.fpono ?? ''),
+                        frefso: header?.fprno ?? header?.fpono ?? '',
+                        frefsoid: header?.fprhid ?? header?.fpohid ?? '',
+                        fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ?
+                            Number(src.fqty) : 1,
                         fprice: Number(src.fprice ?? src.fharga ?? 0),
                         fdesc: src.fdesc ?? '',
                         fketdt: src.fketdt ?? '',

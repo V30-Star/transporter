@@ -269,6 +269,8 @@
                                                 <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
                                                 <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
                                                 <input type="hidden" name="frefpr[]" :value="it.frefpr">
+                                                <input type="hidden" name="frefso[]" :value="it.frefso">
+                                                <input type="hidden" name="frefsoid[]" :value="it.frefsoid">
                                                 <input type="hidden" name="fqty[]" :value="it.fqty">
                                                 <input type="hidden" name="fketdt[]" :value="it.fketdt">
                                             </td>
@@ -875,7 +877,10 @@
                         fitemcode: src.fitemcode ?? '',
                         fitemname: src.fitemname ?? '',
                         fsatuan: src.fsatuan ?? '',
-                        frefpr: src.frefpr ?? (header?.fpono ?? ''),
+                        frefpr: src.frefpr ?? (header?.fprno ?? header?.fpono ?? ''),
+                        frefso: header?.fprno ?? header?.fpono ?? '',
+                        frefsoid: header?.fprhid ?? header?.fpohid ?? '',
+                        frefdtno: src.frefdtno ?? '',
                         fqty: Number(src.fqty ?? 0),
                         fdesc: src.fdesc ?? '',
                         fketdt: src.fketdt ?? '',
@@ -1064,6 +1069,9 @@
                 units: [],
                 fsatuan: '',
                 frefpr: '',
+                frefso: '',
+                frefsoid: '',
+                frefdtno: '',
                 fqty: 0,
                 fdesc: '',
                 fketdt: '',
