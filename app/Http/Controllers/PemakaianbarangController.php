@@ -201,11 +201,12 @@ class PemakaianbarangController extends Controller
       ->leftJoin('msprd as m', 'm.fprdid', '=', 'tr_pod.fprdcode')
       ->select([
         DB::raw("COALESCE(NULLIF(tr_pod.frefdtno, ''), tr_pod.fpodid::text) as frefdtno"),
+        'tr_pod.fprdcode as fitemid', // <-- ID (integer) dari tr_pod
         'm.fprdcode as fitemcode', // <-- Ambil kode string dari master produk
         'm.fprdname as fitemname', // <-- Mengambil fprdname dari tabel msprd
         'tr_pod.fqty',
         'tr_pod.fsatuan as fsatuan',
-        'tr_pod.fpono', // Ini adalah kolom ID (integer) dari tr_pod
+        'tr_pod.fpono', 
         'tr_pod.fprice as fharga',
         DB::raw("COALESCE(NULLIF(regexp_replace(COALESCE(tr_pod.fdisc, ''), '[^0-9\\.]', '', 'g'), '')::numeric, 0) as fdiskon"),
       ])
@@ -284,9 +285,9 @@ class PemakaianbarangController extends Controller
     }
 
     $dt = PenerimaanPembelianDetail::query()
-      ->leftJoin('msprd as p', 'p.fprdid', '=', 'trstockdt.fprdcode')
+      ->leftJoin('msprd as p', 'p.fprdid', '=', 'trstockdt.fprdcodeid')
       ->where('trstockdt.fstockmtno', $fstockmtno)
-      ->orderBy('trstockdt.fprdcode')
+      ->orderBy('trstockdt.fstockmtid')
       ->get([
         'trstockdt.*',
         'p.fprdname as product_name',
@@ -386,7 +387,7 @@ class PemakaianbarangController extends Controller
       'fitemcode.*'     => ['required', 'string', 'max:50'],
 
       'fsatuan'         => ['nullable', 'array'],
-      'fsatuan.*'       => ['nullable', 'string', 'max:5'],
+      'fsatuan.*'       => ['nullable', 'string', 'max:20'],
 
       'frefdtno'        => ['nullable', 'array'],
       'frefdtno.*'      => ['nullable', 'string', 'max:20'],
@@ -487,7 +488,8 @@ class PemakaianbarangController extends Controller
       if ($sat === '') continue;
 
       $rowsDt[] = [
-        'fprdcode'       => $prdId,
+        'fprdcode'       => $code,
+        'fprdcodeid'     => $prdId,
         'frefdtno'       => $rref,
         'frefso'         => $rrso,
         'fqty'           => $qty,
@@ -710,8 +712,8 @@ class PemakaianbarangController extends Controller
     $pemakaianbarang = PenerimaanPembelianHeader::with([
       'details' => function ($query) {
         $query
-          ->join('msprd', 'msprd.fprdid', '=', 'trstockdt.fprdcode')
-          ->with(['account', 'subaccount']) // Eager load relasi
+          ->leftJoin('msprd', 'msprd.fprdid', '=', 'trstockdt.fprdcodeid')
+          ->with(['account', 'subaccount'])
           ->select(
             'trstockdt.*',
             'msprd.fprdname',
@@ -725,6 +727,7 @@ class PemakaianbarangController extends Controller
     $savedItems = $pemakaianbarang->details->map(function ($d) {
       return [
         'uid' => $d->fstockdtid,
+        'fitemid' => $d->fprdcodeid,
         'fitemcode' => $d->fitemcode_text ?? '',
         'fitemname' => $d->fprdname ?? '',
         'fsatuan' => $d->fsatuan ?? '',
@@ -743,7 +746,6 @@ class PemakaianbarangController extends Controller
         'fketdt' => $d->fketdt ?? '',
         'units' => [],
 
-        // TAMBAHKAN INI - untuk JavaScript
         'faccid' => $d->frefdtno ?? null,
         'faccname' => $d->account ? $d->account->faccname : null,
         'fsubaccountid' => $d->frefso ?? null,
@@ -832,7 +834,7 @@ class PemakaianbarangController extends Controller
     $pemakaianbarang = PenerimaanPembelianHeader::with([
       'details' => function ($query) {
         $query
-          ->join('msprd', 'msprd.fprdid', '=', 'trstockdt.fprdcode')
+          ->join('msprd', 'msprd.fprdid', '=', 'trstockdt.fprdcodeid')
           ->with(['account', 'subaccount']) // Eager load relasi
           ->select(
             'trstockdt.*',
@@ -928,7 +930,7 @@ class PemakaianbarangController extends Controller
       'fitemcode'      => ['required', 'array', 'min:1'],
       'fitemcode.*'    => ['required', 'string', 'max:50'],
       'fsatuan'        => ['nullable', 'array'],
-      'fsatuan.*'      => ['nullable', 'string', 'max:5'],
+      'fsatuan.*'      => ['nullable', 'string', 'max:20'],
       'frefdtno'       => ['nullable', 'array'],
       'frefdtno.*'     => ['nullable', 'string', 'max:20'],
       'frefso'        => ['nullable', 'array'],
@@ -1027,7 +1029,8 @@ class PemakaianbarangController extends Controller
       $subtotal += $amount;
 
       $rowsDt[] = [
-        'fprdcode'       => $prdId,
+        'fprdcode'       => $code,
+        'fprdcodeid'     => $prdId,
         'frefdtno'       => $rref,
         'frefso'         => $rrso,
         'fqty'           => $qty,
@@ -1082,24 +1085,8 @@ class PemakaianbarangController extends Controller
       }
       if (!$kodeCabang) $kodeCabang = 'NA';
 
-      $yy = $fstockmtdate->format('y');
-      $mm = $fstockmtdate->format('m');
-      $fstockmtcode = 'PBR';
-
-      if (empty($fstockmtno)) {
-        $prefix = sprintf('%s.%s.%s.%s.', $fstockmtcode, $kodeCabang, $yy, $mm);
-
-        $lockKey = crc32('STOCKMT|' . $fstockmtcode . '|' . $kodeCabang . '|' . $fstockmtdate->format('Y-m'));
-        DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
-
-        $last = DB::table('trstockmt')
-          ->where('fstockmtno', 'like', $prefix . '%')
-          ->selectRaw("MAX(CAST(split_part(fstockmtno, '.', 5) AS int)) AS lastno")
-          ->value('lastno');
-
-        $next = (int)$last + 1;
-        $fstockmtno = $prefix . str_pad((string)$next, 4, '0', STR_PAD_LEFT);
-      }
+      $fstockmtno   = $header->fstockmtno;
+      $fstockmtcode = $header->fstockmtcode;
 
       // ---- 5.2. UPDATE HEADER: trstockmt ----
       $masterData = [
@@ -1177,7 +1164,7 @@ class PemakaianbarangController extends Controller
     $pemakaianbarang = PenerimaanPembelianHeader::with([
       'details' => function ($query) {
         $query
-          ->join('msprd', 'msprd.fprdid', '=', 'trstockdt.fprdcode')
+          ->join('msprd', 'msprd.fprdid', '=', 'trstockdt.fprdcodeid')
           ->with(['account', 'subaccount']) // Eager load relasi
           ->select(
             'trstockdt.*',

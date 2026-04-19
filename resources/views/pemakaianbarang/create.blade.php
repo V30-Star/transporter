@@ -212,34 +212,58 @@
                                             <td class="p-2 font-mono" x-text="it.fitemcode"></td>
                                             <td class="p-2 text-gray-800">
                                                 <div x-text="it.fitemname"></div>
-                                                <div x-show="it.fdesc" class="mt-1 text-xs">
-                                                    <span
-                                                        class="inline-block px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 mr-2">
-                                                        Deskripsi
-                                                    </span>
-                                                    <span class="align-middle text-gray-600" x-text="it.fdesc"></span>
-                                                </div>
                                             </td>
                                             <td class="p-2 text-left">
-                                                <span x-text="it.faccname"></span>
+                                                <select class="w-full border rounded px-2 py-1 select2" :value="it.faccid"
+                                                    x-init="initSelect2($el)"
+                                                    @change="it.faccid = $event.target.value; it.faccname = $event.target.options[$event.target.selectedIndex].dataset.name">
+                                                    <option value="">Pilih Akun</option>
+                                                    <template x-for="acc in accounts" :key="acc.faccid">
+                                                        <option :value="acc.faccid" :data-name="acc.faccname"
+                                                            x-text="`${acc.faccount} - ${acc.faccname}`"
+                                                            :selected="it.faccid == acc.faccid"></option>
+                                                    </template>
+                                                </select>
                                             </td>
                                             <td class="p-2 text-left">
-                                                <span x-text="it.fsubaccountname"></span>
+                                                <select class="w-full border rounded px-2 py-1 select2" :value="it.fsubaccountid"
+                                                    x-init="initSelect2($el)"
+                                                    @change="it.fsubaccountid = $event.target.value; it.fsubaccountname = $event.target.options[$event.target.selectedIndex].dataset.name">
+                                                    <option value="">Pilih Sub Akun</option>
+                                                    <template x-for="sacc in subaccounts" :key="sacc.fsubaccountid">
+                                                        <option :value="sacc.fsubaccountid" :data-name="sacc.fsubaccountname"
+                                                            x-text="`${sacc.fsubaccountcode} - ${sacc.fsubaccountname}`"
+                                                            :selected="it.fsubaccountid == sacc.fsubaccountid"></option>
+                                                    </template>
+                                                </select>
                                             </td>
-                                            <td class="p-2 text-left" x-text="it.fsatuan"></td>
-                                            <td class="p-2 text-right" x-text="fmt(it.fqty)"></td>
+                                            <td class="p-2 text-left">
+                                                <template x-if="it.units.length > 1">
+                                                    <select class="w-full border rounded px-2 py-1" x-model="it.fsatuan">
+                                                        <template x-for="u in it.units" :key="u">
+                                                            <option :value="u" x-text="u" :selected="it.fsatuan == u"></option>
+                                                        </template>
+                                                    </select>
+                                                </template>
+                                                <template x-if="it.units.length <= 1">
+                                                    <span x-text="it.fsatuan || '-'"></span>
+                                                </template>
+                                            </td>
+                                            <td class="p-2 text-right">
+                                                <input type="number" class="border rounded px-2 py-1 w-24 text-right"
+                                                    min="0" step="1"
+                                                    x-model.number="it.fqty" @change="recalc(it)"
+                                                    @blur="recalc(it)">
+                                            </td>
                                             <td class="p-2 text-center">
-                                                <div class="flex items-center justify-center gap-2 flex-wrap">
-                                                    <button type="button" @click="edit(i)"
-                                                        class="px-3 py-1 rounded text-xs bg-amber-100 text-amber-700 hover:bg-amber-200">Edit</button>
-                                                    <button type="button" @click="removeSaved(i)"
-                                                        class="px-3 py-1 rounded text-xs bg-red-100 text-red-600 hover:bg-red-200">Hapus</button>
-                                                </div>
+                                                <button type="button" @click="removeSaved(i)"
+                                                    class="px-3 py-1 rounded text-xs bg-red-100 text-red-600 hover:bg-red-200">Hapus</button>
                                             </td>
 
                                             <!-- hidden inputs -->
                                             <td class="hidden">
                                                 <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
+                                                <input type="hidden" name="fprdcodeid[]" :value="it.fitemid">
                                                 <input type="hidden" name="fitemname[]" :value="it.fitemname">
                                                 <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
                                                 <input type="hidden" name="frefdtno[]" :value="it.faccid">
@@ -252,123 +276,18 @@
                                         </tr>
 
                                         <tr class="border-b">
-                                            <td class="p-0"></td> <!-- # -->
-                                            <td class="p-0"></td> <!-- Kode -->
-                                            <!-- Deskripsi HANYA di kolom Nama Produk -->
-                                            <td class="p-2">
+                                            <td class="p-0"></td>
+                                            <td class="p-0"></td>
+                                            <!-- Deskripsi di bawah Nama Produk & Akun -->
+                                            <td class="p-2" colspan="5">
                                                 <textarea x-model="it.fdesc" rows="2" class="w-full border rounded px-2 py-1"
                                                     placeholder="Deskripsi (opsional)"></textarea>
                                             </td>
-                                            <!-- Kolom sisanya kosong supaya total 7 kolom -->
-                                            <td class="p-0"></td> <!-- Satuan -->
-                                            <td class="p-0"></td> <!-- Qty -->
-                                            <td class="p-0"></td> <!-- Ket Item -->
-                                            <td class="p-0"></td> <!-- Aksi -->
+                                            <td class="p-0"></td>
                                         </tr>
                                     </template>
 
-                                    <!-- ROW EDIT UTAMA -->
-                                    <tr x-show="editingIndex !== null" class="border-t align-top" x-cloak>
-                                        <!-- # -->
-                                        <td class="p-2" x-text="(editingIndex ?? 0) + 1"></td>
 
-                                        <!-- Kode Produk -->
-                                        <td class="p-2">
-                                            <div class="flex">
-                                                <input type="text" class="flex-1 border rounded-l px-2 py-1 font-mono"
-                                                    x-ref="editCode" x-model.trim="editRow.fitemcode"
-                                                    @input="onCodeTypedRow(editRow)"
-                                                    @keydown.enter.prevent="handleEnterOnCode('edit')">
-                                                <button type="button" @click="openBrowseFor('edit')"
-                                                    class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
-                                                    title="Cari Produk">
-                                                    <x-heroicon-o-magnifying-glass class="w-4 h-4" />
-                                                </button>
-                                                
-                                            </div>
-                                        </td>
-
-                                        <!-- Nama Produk (readonly) -->
-                                        <td class="p-2">
-                                            <input type="text"
-                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
-                                                :value="editRow.fitemname" disabled>
-                                        </td>
-
-                                        <td class="p-2">
-                                            <select class="w-full border rounded px-2 py-1 select2" :value="editRow.faccid"
-                                                @input="updateAccount(editRow, $event.target.value, $event.target.options[$event.target.selectedIndex].dataset.name)">
-                                                <option value="">Pilih Akun</option>
-                                                <template x-for="acc in accounts" :key="acc.faccid">
-                                                    <option :value="acc.faccid" :data-name="acc.faccname"
-                                                        x-text="`${acc.faccount} - ${acc.faccname}`"></option>
-                                                </template>
-                                            </select>
-                                        </td>
-
-                                        <td class="p-2">
-                                            <select class="w-full border rounded px-2 py-1 select2" :value="editRow.fsubaccountid"
-                                                @input="updateSubAccount(editRow, $event.target.value, $event.target.options[$event.target.selectedIndex].dataset.name)">
-                                                <option value="">Pilih Sub Akun</option>
-                                                <template x-for="sacc in subaccounts" :key="sacc.fsubaccountid">
-                                                    <option :value="sacc.fsubaccountid" :data-name="sacc.fsubaccountname"
-                                                        x-text="`${sacc.fsubaccountcode} - ${sacc.fsubaccountname}`">
-                                                    </option>
-                                                </template>
-                                            </select>
-                                        </td>
-
-                                        <!-- Satuan -->
-                                        <td class="p-2">
-                                            <template x-if="editRow.units.length > 1">
-                                                <select class="w-full border rounded px-2 py-1" x-ref="editUnit"
-                                                    x-model="editRow.fsatuan"
-                                                    @keydown.enter.prevent="$refs.editRefPr?.focus()">
-                                                    <template x-for="u in editRow.units" :key="u">
-                                                        <option :value="u" x-text="u"></option>
-                                                    </template>
-                                                </select>
-                                            </template>
-                                            <template x-if="editRow.units.length <= 1">
-                                                <input type="text"
-                                                    class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
-                                                    :value="editRow.fsatuan || '-'" disabled>
-                                            </template>
-                                        </td>
-
-                                        <!-- Qty -->
-                                        <td class="p-2 text-right">
-                                            <input type="number" class="border rounded px-2 py-1 w-24 text-right"
-                                                min="0" step="1" x-ref="editQty"
-                                                x-model.number="editRow.fqty" @change="recalc(editRow)"
-                                                @blur="recalc(editRow)" @keydown.enter.prevent="$refs.editPrice?.focus()">
-                                        </td>
-
-                                        <!-- Aksi -->
-                                        <td class="p-2 text-center">
-                                            <div class="flex items-center justify-center gap-2 flex-wrap">
-                                                <button type="button" @click="applyEdit()"
-                                                    class="px-3 py-1 rounded text-xs bg-emerald-600 text-white">Simpan</button>
-                                                <button type="button" @click="cancelEdit()"
-                                                    class="px-3 py-1 rounded text-xs bg-gray-100">Batal</button>
-                                            </div>
-                                        </td>
-                                    </tr>
-
-                                    <!-- ROW EDIT DESC -->
-                                    <tr x-show="editingIndex !== null" class="bg-amber-50 border-b" x-cloak>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-2">
-                                            <textarea x-model="editRow.fdesc" rows="2" class="w-full border rounded px-2 py-1"
-                                                placeholder="Deskripsi (opsional)"></textarea>
-                                        </td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                    </tr>
 
                                     <!-- ROW DRAFT UTAMA -->
                                     <tr class="border-t align-top">
@@ -400,6 +319,7 @@
 
                                         <td class="p-2">
                                             <select class="w-full border rounded px-2 py-1 select2" :value="draft.faccid"
+                                                x-init="initSelect2($el)"
                                                 @input="updateAccount(draft, $event.target.value, $event.target.options[$event.target.selectedIndex].dataset.name)">
                                                 <option value="">Pilih Akun</option>
                                                 <template x-for="acc in accounts" :key="acc.faccid">
@@ -412,6 +332,7 @@
                                         <td class="p-2">
                                             <select class="w-full border rounded px-2 py-1 select2"
                                                 :value="draft.fsubaccountid"
+                                                x-init="initSelect2($el)"
                                                 @input="updateSubAccount(draft, $event.target.value, $event.target.options[$event.target.selectedIndex].dataset.name)">
                                                 <option value="">Pilih Sub Akun</option>
                                                 <template x-for="sacc in subaccounts" :key="sacc.fsubaccountid">
@@ -457,16 +378,13 @@
                                         </td>
                                     </tr>
                                     <!-- ROW DRAFT DESC -->
-                                    <tr class="bg-green-50 border-b">
+                                    <tr class="border-b">
                                         <td class="p-0"></td>
                                         <td class="p-0"></td>
-                                        <td class="p-2">
+                                        <td class="p-2" colspan="5">
                                             <textarea x-model="draft.fdesc" rows="2" class="w-full border rounded px-2 py-1"
                                                 placeholder="Deskripsi (opsional)"></textarea>
                                         </td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
                                         <td class="p-0"></td>
                                     </tr>
                                 </tbody>
@@ -709,15 +627,30 @@
 @push('scripts')
     <script>
         $(document).ready(function() {
-            $('.select2').select2({
-                width: '100%'
+            window.initSelect2 = function(sel = '.select2') {
+                $(sel).select2({
+                    width: '100%'
+                });
+            };
+
+            // Bridge: Select2 -> Alpine
+            $(document).on('select2:select select2:clear', 'select', function() {
+                this.dispatchEvent(new Event('input', {
+                    bubbles: true
+                }));
+                this.dispatchEvent(new Event('change', {
+                    bubbles: true
+                }));
             });
+
+            initSelect2();
         });
 
         // Map produk untuk auto-fill tabel
         window.PRODUCT_MAP = {
             @foreach ($products as $p)
                 "{{ $p->fprdcode }}": {
+                    id: @json($p->fprdid),
                     name: @json($p->fprdname),
                     units: @json(array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2]))),
                     stock: @json($p->fminstock ?? 0)
@@ -756,8 +689,6 @@
                 showNoItems: false,
                 savedItems: [],
                 draft: newRow(),
-                editingIndex: null,
-                editRow: newRow(),
                 totalHarga: 0,
 
                 updateAccount(row, faccid, accName) {
@@ -834,12 +765,14 @@
 
                 hydrateRowFromMeta(row, meta) {
                     if (!meta) {
+                        row.fitemid = '';
                         row.fitemname = '';
                         row.units = [];
                         row.fsatuan = '';
                         row.maxqty = 0;
                         return;
                     }
+                    row.fitemid = meta.id || '';
                     row.fitemname = meta.name || '';
                     const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
                     row.units = units;
@@ -882,6 +815,7 @@
                         const row = {
                             uid: cryptoRandom(),
                             fitemcode: src.fitemcode ?? '',
+                            fitemid: src.fitemid ?? '',
                             fitemname: src.fitemname ?? '',
                             fsatuan: src.fsatuan ?? '',
                             frefpr: src.frefpr ?? (header?.fpono ?? ''),
@@ -945,40 +879,14 @@
 
                     this.showNoItems = false;
                     this.resetDraft();
-                    this.$nextTick(() => this.$refs.draftCode?.focus());
-                    this.syncDescList?.();
-                    this.recalcTotals();
-                },
-
-                edit(i) {
-                    this.editingIndex = i;
-                    this.editRow = {
-                        ...this.savedItems[i]
-                    };
-                    this.hydrateRowFromMeta(this.editRow, this.productMeta(this.editRow.fitemcode));
-                    this.$nextTick(() => this.$refs.editQty?.focus());
-                },
-
-                applyEdit() {
-                    const r = this.editRow;
-                    if (!this.isComplete(r)) {
-                        alert('Lengkapi data item.');
-                        return;
-                    }
-
-                    this.recalc(r);
-                    this.savedItems.splice(this.editingIndex, 1, {
-                        ...r
+                    this.$nextTick(() => {
+                        this.$refs.draftCode?.focus();
                     });
-                    this.cancelEdit();
                     this.syncDescList?.();
                     this.recalcTotals();
                 },
 
-                cancelEdit() {
-                    this.editingIndex = null;
-                    this.editRow = newRow();
-                },
+
 
                 onSubmit($event) {
                     if (this.savedItems.length === 0) {
@@ -990,8 +898,7 @@
 
                 handleEnterOnCode(where) {
                     if (where === 'edit') {
-                        if (this.editRow.units.length > 1) this.$refs.editUnit?.focus();
-                        else this.$refs.editQty?.focus();
+                        // handled by inline
                     } else {
                         if (this.draft.units.length > 1) this.$refs.draftUnit?.focus();
                         else this.$refs.draftQty?.focus();
@@ -1000,7 +907,7 @@
 
                 handleEnterOnPrice(where) {
                     if (where === 'edit') {
-                        this.applyEdit();
+                        // handled by inline
                     } else {
                         this.addIfComplete();
                     }
@@ -1043,11 +950,12 @@
                         };
 
                         if (this.browseTarget === 'edit') {
-                            apply(this.editRow);
-                            this.$nextTick(() => this.$refs.editQty?.focus());
+                            // apply(this.editRow); 
                         } else {
                             apply(this.draft);
-                            this.$nextTick(() => this.$refs.draftQty?.focus());
+                            this.$nextTick(() => {
+                                this.$refs.draftQty?.focus();
+                            });
                         }
                     }, {
                         passive: true
@@ -1069,6 +977,7 @@
                 return {
                     uid: null,
                     fitemcode: '',
+                    fitemid: '',
                     fitemname: '',
                     units: [],
                     fsatuan: '',
@@ -1077,6 +986,10 @@
                     fdesc: '',
                     fketdt: '',
                     maxqty: 0,
+                    faccid: '',
+                    faccname: '',
+                    fsubaccountid: '',
+                    fsubaccountname: '',
                 };
             }
 
