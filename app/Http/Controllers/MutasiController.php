@@ -295,13 +295,18 @@ class MutasiController extends Controller
         }
 
         $dt = PenerimaanPembelianDetail::query()
-            ->leftJoin('msprd as p', 'p.fprdid', '=', 'trstockdt.fprdcode')
+            ->leftJoin('msprd as p', function ($join) {
+                $join->whereRaw(
+                    'p.fprdid = COALESCE(trstockdt.fprdcodeid, CASE WHEN btrim(trstockdt.fprdcode::text) ~ ? THEN cast(btrim(trstockdt.fprdcode::text) as integer) ELSE NULL END)',
+                    ['^[0-9]+$']
+                );
+            })
             ->where('trstockdt.fstockmtno', $fstockmtno)
             ->orderBy('trstockdt.fprdcode')
             ->get([
                 'trstockdt.*',
                 'p.fprdname as product_name',
-                'p.fprdcode as product_code',
+                DB::raw('COALESCE(p.fprdcode, NULLIF(trim(trstockdt.fprdcode::text), \'\')) as product_code'),
                 'p.fminstock as stock',
                 'trstockdt.fqtyremain',
             ]);
@@ -388,7 +393,7 @@ class MutasiController extends Controller
                 'fitemcode'      => ['required', 'array', 'min:1'],
                 'fitemcode.*'    => ['required', 'string', 'max:50'],
                 'fsatuan'        => ['nullable', 'array'],
-                'fsatuan.*'      => ['nullable', 'string', 'max:5'],
+                'fsatuan.*'      => ['nullable', 'string', 'max:20'],
                 'frefno.*'       => ['nullable', 'string', 'max:20'],
                 'fsupplier'      => ['nullable', 'integer'],
                 'fqty'           => ['required', 'array'],
@@ -399,6 +404,10 @@ class MutasiController extends Controller
                 'fcurrency'      => ['nullable', 'string', 'max:5'],
                 'frate'          => ['nullable', 'numeric', 'min:0'],
                 'famountpopajak' => ['nullable', 'numeric', 'min:0'],
+                'frefso'         => ['nullable', 'array'],
+                'frefso.*'       => ['nullable', 'string', 'max:100'],
+                'frefsoid'       => ['nullable', 'array'],
+                'frefsoid.*'     => ['nullable', 'integer'],
             ]);
 
             $uniqueCodes = array_values(array_unique(
@@ -437,60 +446,59 @@ class MutasiController extends Controller
             $frate    = (float)$request->input('frate', 1);
             if ($frate <= 0) $frate = 1;
 
-            $codes   = $request->input('fitemcode', []);
-            $satuans = $request->input('fsatuan', []);
-            $refdtno = $request->input('frefdtno', []);
-            $qtys    = $request->input('fqty', []);
-            $prices  = $request->input('fprice', []);
-            $descs   = $request->input('fdesc', []);
+            $codes    = $request->input('fitemcode', []);
+            $satuans  = $request->input('fsatuan', []);
+            $refdtno  = $request->input('frefdtno', []);
+            $frefso   = $request->input('frefso', []);
+            $frefsoid = $request->input('frefsoid', []);
+            $qtys     = $request->input('fqty', []);
+            $prices   = $request->input('fprice', []);
+            $descs    = $request->input('fdesc', []);
 
             $rowCount = count($codes);
-
-            $skippedRows = [];
-            $validRows = 0;
 
             for ($i = 0; $i < $rowCount; $i++) {
                 $code  = trim((string)($codes[$i]   ?? ''));
                 $sat   = trim((string)($satuans[$i] ?? ''));
                 $rref  = trim((string)($refdtno[$i] ?? ''));
-                $rnour = $nourefs[$i] ?? null;
                 $qty   = (float)($qtys[$i]    ?? 0);
                 $price = (float)($prices[$i]  ?? 0);
                 $desc  = (string)($descs[$i]   ?? '');
 
                 if ($code === '' || $qty <= 0) {
-                    $skippedRows[] = [
-                        'index' => $i,
-                        'reason' => $code === '' ? 'kode kosong' : 'qty <= 0',
-                        'code' => $code,
-                        'qty' => $qty
-                    ];
+                    continue;
                 }
+
+                $meta = $prodMeta[$code] ?? null;
+                if (! $meta) {
+                    continue;
+                }
+
+                $prdId = (int) $meta->fprdid;
+                $prdCodeStr = mb_substr((string) ($meta->fprdcode ?? $code), 0, 50);
 
                 $produk = DB::table('msprd')
                     ->where('fprdcode', $code)
                     ->select('fprdid', 'fsatuanbesar', 'fqtykecil as rasio_konversi')
                     ->first();
 
-                $itemeId = $produk ? $produk->fprdid : $itemeId;
-
                 $qtyKecil = $qty;
                 if ($produk && $sat === $produk->fsatuanbesar) {
-                    $qtyKecil = $qty * (float)$produk->rasio_konversi;
+                    $qtyKecil = $qty * (float) $produk->rasio_konversi;
                 }
-
-                $meta = $prodMeta[$code] ?? null;
-
-                $prdId = $meta->fprdid;
 
                 $sat = mb_substr($sat, 0, 5);
 
+                $refSo = trim((string) ($frefso[$i] ?? ''));
+                $refSoId = $frefsoid[$i] ?? null;
+                $refSoId = ($refSoId !== null && $refSoId !== '') ? (int) $refSoId : null;
+
                 $amount = $qty * $price;
                 $subtotal += $amount;
-                $validRows++;
 
                 $rowsDt[] = [
-                    'fprdcode'       => $prdId,
+                    'fprdcodeid'     => $prdId,
+                    'fprdcode'       => $prdCodeStr,
                     'frefdtno'       => $rref,
                     'fqty'           => $qty,
                     'fprice'         => $price,
@@ -501,7 +509,8 @@ class MutasiController extends Controller
                     'fdatetime'      => $now,
                     'fketdt'         => '',
                     'fcode'          => '0',
-                    'frefso'         => null,
+                    'frefso'         => $refSo !== '' ? mb_substr($refSo, 0, 100) : null,
+                    'frefsoid'       => $refSoId,
                     'fdesc'          => $desc,
                     'fsatuan'        => $sat,
                     'fclosedt'       => '0',
@@ -513,6 +522,12 @@ class MutasiController extends Controller
                     'fqtykecil'   => $qtyKecil,
                     'fqtyremain'  => $qtyKecil,
                 ];
+            }
+
+            if (empty($rowsDt)) {
+                return back()->withInput()->withErrors([
+                    'fitemcode' => 'Tidak ada baris item valid (periksa kode produk dan qty).',
+                ]);
             }
 
             // =========================
@@ -562,7 +577,9 @@ class MutasiController extends Controller
                 &$rowsDt
             ) {
 
-                if (empty($fstockmtno)) {
+                $fstockmtno = trim((string) ($headerData['fstockmtno'] ?? ''));
+
+                if ($fstockmtno === '') {
 
                     $kodeCabang = null;
                     $needle = trim((string)$headerData['fbranchcode']);
@@ -659,26 +676,14 @@ class MutasiController extends Controller
         $fcabang     = $branch->fcabangname ?? (string) $raw;
         $fbranchcode = $branch->fcabangkode ?? (string) $raw;
 
-        // 1. Ambil data Header (trstockmt) DAN relasi Details (trstockdt)
-        // Biarkan query ini. Sekarang $fstockmtid di sini adalah integer (misal: 8)
+        $self = $this;
         $mutasi = PenerimaanPembelianHeader::with([
-            'details' => function ($query) {
-                $query
-                    // 2. Join ke msprd berdasarkan ID
-                    ->join('msprd', 'msprd.fprdid', '=', 'trstockdt.fprdcode')
-                    // 3. Select kolom yang dibutuhkan
-                    ->select(
-                        'trstockdt.*', // Ambil semua kolom dari tabel detail
-                        'msprd.fprdname', // Ambil nama produk
-                        'msprd.fprdcode as fitemcode_text' // Ambil KODE string produk
-                    )
-                    ->orderBy('trstockdt.fstockdtid', 'asc');
-            }
+            'details' => function ($query) use ($self) {
+                $self->appendMutasiDetailProductJoin($query);
+            },
         ])
-            ->findOrFail($fstockmtid); // Temukan header berdasarkan $fstockmtid dari URL
+            ->findOrFail($fstockmtid);
 
-
-        // 4. Map the data for savedItems (sudah menggunakan data yang benar)
         $savedItems = $mutasi->details->map(function ($d) {
             return [
                 'uid'       => $d->fstockdtid,
@@ -691,6 +696,8 @@ class MutasiController extends Controller
                 'famountponet' => $d->famountponet ?? null,
                 'famountpo' => $d->famountpo ?? null,
                 'frefdtno'  => $d->frefdtno ?? null,
+                'frefso'    => trim((string) ($d->frefso ?? '')),
+                'frefsoid'  => $d->frefsoid !== null && $d->frefsoid !== '' ? (string) (int) $d->frefsoid : '',
                 'fqty'      => (float)($d->fqty ?? 0),
                 'fterima'   => (float)($d->fterima ?? 0),
                 'fprice'    => (float)($d->fprice ?? 0),
@@ -771,26 +778,14 @@ class MutasiController extends Controller
         $fcabang     = $branch->fcabangname ?? (string) $raw;
         $fbranchcode = $branch->fcabangkode ?? (string) $raw;
 
-        // 1. Ambil data Header (trstockmt) DAN relasi Details (trstockdt)
-        // Biarkan query ini. Sekarang $fstockmtid di sini adalah integer (misal: 8)
+        $self = $this;
         $mutasi = PenerimaanPembelianHeader::with([
-            'details' => function ($query) {
-                $query
-                    // 2. Join ke msprd berdasarkan ID
-                    ->join('msprd', 'msprd.fprdid', '=', 'trstockdt.fprdcode')
-                    // 3. Select kolom yang dibutuhkan
-                    ->select(
-                        'trstockdt.*', // Ambil semua kolom dari tabel detail
-                        'msprd.fprdname', // Ambil nama produk
-                        'msprd.fprdcode as fitemcode_text' // Ambil KODE string produk
-                    )
-                    ->orderBy('trstockdt.fstockdtid', 'asc');
-            }
+            'details' => function ($query) use ($self) {
+                $self->appendMutasiDetailProductJoin($query);
+            },
         ])
-            ->findOrFail($fstockmtid); // Temukan header berdasarkan $fstockmtid dari URL
+            ->findOrFail($fstockmtid);
 
-
-        // 4. Map the data for savedItems (sudah menggunakan data yang benar)
         $savedItems = $mutasi->details->map(function ($d) {
             return [
                 'uid'       => $d->fstockdtid,
@@ -803,6 +798,8 @@ class MutasiController extends Controller
                 'famountponet' => $d->famountponet ?? null,
                 'famountpo' => $d->famountpo ?? null,
                 'frefdtno'  => $d->frefdtno ?? null,
+                'frefso'    => trim((string) ($d->frefso ?? '')),
+                'frefsoid'  => $d->frefsoid !== null && $d->frefsoid !== '' ? (string) (int) $d->frefsoid : '',
                 'fqty'      => (float)($d->fqty ?? 0),
                 'fterima'   => (float)($d->fterima ?? 0),
                 'fprice'    => (float)($d->fprice ?? 0),
@@ -869,7 +866,7 @@ class MutasiController extends Controller
             'fitemcode'      => ['required', 'array', 'min:1'],
             'fitemcode.*'    => ['required', 'string', 'max:50'],
             'fsatuan'        => ['nullable', 'array'],
-            'fsatuan.*'      => ['nullable', 'string', 'max:5'],
+            'fsatuan.*'      => ['nullable', 'string', 'max:20'],
             'frefno' => ['nullable', 'string'],
             'fqty'           => ['required', 'array'],
             'fqty.*'         => ['required', 'numeric', 'min:0.01'], // Minimal 0.01
@@ -880,6 +877,10 @@ class MutasiController extends Controller
             'fcurrency'      => ['nullable', 'string', 'max:5'],
             'frate'          => ['nullable', 'numeric', 'min:0'],
             'famountpopajak' => ['nullable', 'numeric', 'min:0'],
+            'frefso'         => ['nullable', 'array'],
+            'frefso.*'       => ['nullable', 'string', 'max:100'],
+            'frefsoid'       => ['nullable', 'array'],
+            'frefsoid.*'     => ['nullable', 'integer'],
         ]);
         // =========================
         // 2) AMBIL DATA MASTER & HEADER
@@ -902,9 +903,11 @@ class MutasiController extends Controller
         // =========================
         // 3) DETAIL ARRAYS
         // =========================
-        $codes   = $request->input('fitemcode', []);
-        $satuans = $request->input('fsatuan', []);
-        $refdtno = $request->input('frefdtno', []);
+        $codes    = $request->input('fitemcode', []);
+        $satuans  = $request->input('fsatuan', []);
+        $refdtno  = $request->input('frefdtno', []);
+        $frefso   = $request->input('frefso', []);
+        $frefsoid = $request->input('frefsoid', []);
 
         $qtys    = $request->input('fqty', []);
         $prices  = $request->input('fprice', []);
@@ -936,7 +939,6 @@ class MutasiController extends Controller
             $code  = trim((string)($codes[$i]   ?? ''));
             $sat   = trim((string)($satuans[$i] ?? ''));
             $rref  = trim((string)($refdtno[$i] ?? ''));
-            $rnour = $nourefs[$i] ?? null;
             $qty   = (float)($qtys[$i]   ?? 0);
             $price = (float)($prices[$i] ?? 0);
             $desc  = (string)($descs[$i]  ?? '');
@@ -948,8 +950,6 @@ class MutasiController extends Controller
                 ->select('fprdid', 'fsatuanbesar', 'fqtykecil as rasio_konversi')
                 ->first();
 
-            $itemeId = $produk ? $produk->fprdid : $itemeId;
-
             $qtyKecil = $qty;
             if ($produk && $sat === $produk->fsatuanbesar) {
                 $qtyKecil = $qty * (float)$produk->rasio_konversi;
@@ -958,7 +958,8 @@ class MutasiController extends Controller
             $meta = $prodMeta[$code] ?? null;
             if (!$meta) continue;
 
-            $prdId = $meta->fprdid;
+            $prdId = (int) $meta->fprdid;
+            $prdCodeStr = mb_substr((string) ($meta->fprdcode ?? $code), 0, 50);
 
             if ($sat === '') {
                 $sat = $pickDefaultSat($meta);
@@ -966,11 +967,16 @@ class MutasiController extends Controller
             $sat = mb_substr($sat, 0, 5);
             if ($sat === '') continue;
 
+            $refSo = trim((string) ($frefso[$i] ?? ''));
+            $refSoId = $frefsoid[$i] ?? null;
+            $refSoId = ($refSoId !== null && $refSoId !== '') ? (int) $refSoId : null;
+
             $amount = $qty * $price;
             $subtotal += $amount;
 
             $rowsDt[] = [
-                'fprdcode'       => $prdId,
+                'fprdcodeid'     => $prdId,
+                'fprdcode'       => $prdCodeStr,
                 'frefdtno'       => $rref,
                 'fqty'           => $qty,
                 'fprice'         => $price,
@@ -981,7 +987,8 @@ class MutasiController extends Controller
                 'fdatetime'      => $now, // Tetap gunakan fdatetime
                 'fketdt'         => '',
                 'fcode'          => '0',
-                'frefso'         => null,
+                'frefso'         => $refSo !== '' ? mb_substr($refSo, 0, 100) : null,
+                'frefsoid'       => $refSoId,
                 'fdesc'          => $desc,
                 'fsatuan'        => $sat,
                 'fclosedt'       => '0',
@@ -1115,26 +1122,14 @@ class MutasiController extends Controller
         $fcabang     = $branch->fcabangname ?? (string) $raw;
         $fbranchcode = $branch->fcabangkode ?? (string) $raw;
 
-        // 1. Ambil data Header (trstockmt) DAN relasi Details (trstockdt)
-        // Biarkan query ini. Sekarang $fstockmtid di sini adalah integer (misal: 8)
+        $self = $this;
         $mutasi = PenerimaanPembelianHeader::with([
-            'details' => function ($query) {
-                $query
-                    // 2. Join ke msprd berdasarkan ID
-                    ->join('msprd', 'msprd.fprdid', '=', 'trstockdt.fprdcode')
-                    // 3. Select kolom yang dibutuhkan
-                    ->select(
-                        'trstockdt.*', // Ambil semua kolom dari tabel detail
-                        'msprd.fprdname', // Ambil nama produk
-                        'msprd.fprdcode as fitemcode_text' // Ambil KODE string produk
-                    )
-                    ->orderBy('trstockdt.fstockdtid', 'asc');
-            }
+            'details' => function ($query) use ($self) {
+                $self->appendMutasiDetailProductJoin($query);
+            },
         ])
-            ->findOrFail($fstockmtid); // Temukan header berdasarkan $fstockmtid dari URL
+            ->findOrFail($fstockmtid);
 
-
-        // 4. Map the data for savedItems (sudah menggunakan data yang benar)
         $savedItems = $mutasi->details->map(function ($d) {
             return [
                 'uid'       => $d->fstockdtid,
@@ -1147,6 +1142,8 @@ class MutasiController extends Controller
                 'famountponet' => $d->famountponet ?? null,
                 'famountpo' => $d->famountpo ?? null,
                 'frefdtno'  => $d->frefdtno ?? null,
+                'frefso'    => trim((string) ($d->frefso ?? '')),
+                'frefsoid'  => $d->frefsoid !== null && $d->frefsoid !== '' ? (string) (int) $d->frefsoid : '',
                 'fqty'      => (float)($d->fqty ?? 0),
                 'fterima'   => (float)($d->fterima ?? 0),
                 'fprice'    => (float)($d->fprice ?? 0),
@@ -1199,6 +1196,26 @@ class MutasiController extends Controller
         ]);
     }
 
+
+    /**
+     * Join trstockdt to msprd: fprdcodeid stores fprdid; fprdcode stores product code string.
+     * Legacy rows may have stored only fprdid in fprdcode (numeric).
+     */
+    private function appendMutasiDetailProductJoin($query): void
+    {
+        $query->leftJoin('msprd', function ($join) {
+            $join->whereRaw(
+                'msprd.fprdid = COALESCE(trstockdt.fprdcodeid, CASE WHEN btrim(trstockdt.fprdcode::text) ~ ? THEN cast(btrim(trstockdt.fprdcode::text) as integer) ELSE NULL END)',
+                ['^[0-9]+$']
+            );
+        })
+            ->select(
+                'trstockdt.*',
+                'msprd.fprdname',
+                DB::raw('COALESCE(msprd.fprdcode, NULLIF(trim(trstockdt.fprdcode::text), \'\')) as fitemcode_text')
+            )
+            ->orderBy('trstockdt.fstockdtid', 'asc');
+    }
 
     public function destroy($fstockmtid)
     {

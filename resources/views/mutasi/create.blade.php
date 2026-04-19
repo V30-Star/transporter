@@ -280,6 +280,8 @@
                                                 <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
                                                 <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
                                                 <input type="hidden" name="frefpr[]" :value="it.frefpr">
+                                                <input type="hidden" name="frefso[]" :value="it.frefso">
+                                                <input type="hidden" name="frefsoid[]" :value="it.frefsoid">
                                                 <input type="hidden" name="fqty[]" :value="it.fqty">
                                                 <input type="hidden" name="fketdt[]" :value="it.fketdt">
                                             </td>
@@ -998,7 +1000,18 @@
                 if (!items || !Array.isArray(items)) return;
 
                 this.resetDraft();
-                this.addManyFromPR(header, items);
+                this.addManyFromPR(header, items, 'PO');
+            },
+
+            onSoPicked(e) {
+                const {
+                    header,
+                    items
+                } = e.detail || {};
+                if (!items || !Array.isArray(items)) return;
+
+                this.resetDraft();
+                this.addManyFromPR(header, items, 'SO');
             },
 
             resetDraft() {
@@ -1006,7 +1019,7 @@
                 this.$nextTick(() => this.$refs.draftCode?.focus());
             },
 
-            addManyFromPR(header, items) {
+            addManyFromPR(header, items, source = 'PO') {
                 const existing = new Set(this.getCurrentItemKeys());
 
                 let added = 0,
@@ -1018,8 +1031,12 @@
                         fitemcode: src.fitemcode ?? '',
                         fitemname: src.fitemname ?? '',
                         fsatuan: src.fsatuan ?? '',
+                        frefdtno: src.frefdtno ?? '',
                         frefpr: src.frefpr ?? (header?.fpono ?? ''),
+                        frefso: source === 'SO' ? (header?.fsono ?? '') : '',
+                        frefsoid: source === 'SO' ? (src.frefdtno ?? '') : '',
                         fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ? Number(src.fqty) : 1,
+                        fprice: Number(src.fprice ?? src.fharga ?? 0),
                         fdesc: src.fdesc ?? '',
                         fketdt: src.fketdt ?? '',
                         units: Array.isArray(src.units) && src.units.length ? src.units : [src.fsatuan]
@@ -1162,6 +1179,9 @@
                 window.addEventListener('pr-picked', this.onPrPicked.bind(this), {
                     passive: true
                 });
+                window.addEventListener('so-picked', this.onSoPicked.bind(this), {
+                    passive: true
+                });
 
                 window.addEventListener('product-chosen', (e) => {
                     const {
@@ -1207,7 +1227,10 @@
                 units: [],
                 fsatuan: '',
                 frefpr: '',
+                frefso: '',
+                frefsoid: '',
                 fqty: 0,
+                fprice: 0,
                 fdesc: '',
                 fketdt: '',
                 maxqty: 0,
