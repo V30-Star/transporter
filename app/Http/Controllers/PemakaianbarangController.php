@@ -201,7 +201,6 @@ class PemakaianbarangController extends Controller
       ->leftJoin('msprd as m', 'm.fprdid', '=', 'tr_pod.fprdcode')
       ->select([
         DB::raw("COALESCE(NULLIF(tr_pod.frefdtno, ''), tr_pod.fpodid::text) as frefdtno"),
-        'tr_pod.fnouref as fnouref',
         'm.fprdcode as fitemcode', // <-- Ambil kode string dari master produk
         'm.fprdname as fitemname', // <-- Mengambil fprdname dari tabel msprd
         'tr_pod.fqty',
@@ -395,9 +394,6 @@ class PemakaianbarangController extends Controller
       'frefso'        => ['nullable', 'array'],
       'frefso.*'      => ['nullable', 'string', 'max:20'],
 
-      'fnouref'         => ['nullable', 'array'],
-      'fnouref.*'       => ['nullable', 'integer'],
-
       'fqty'            => ['required', 'array'],
       'fqty.*'          => ['numeric', 'min:0'],
 
@@ -433,7 +429,6 @@ class PemakaianbarangController extends Controller
     $satuans      = $request->input('fsatuan', []);
     $refdtno      = $request->input('frefdtno', []);
     $refso      = $request->input('frefso', []);
-    $nourefs      = $request->input('fnouref', []);
     $qtys         = $request->input('fqty', []);
     $descs        = $request->input('fdesc', []);
 
@@ -500,7 +495,6 @@ class PemakaianbarangController extends Controller
         'fdatetime'      => $now,
         'fketdt'         => '',
         'fcode'          => '0',
-        'fnouref'        => $rnour !== null ? (int)$rnour : null,
         'fdesc'          => $desc,
         'fsatuan'        => $sat,
         'fclosedt'       => '0',
@@ -597,20 +591,11 @@ class PemakaianbarangController extends Controller
         throw new Exception("Gagal menyimpan data master (header).");
       }
 
-      // INSERT DETAIL (trstockdt)
-      $lastNouRef = (int) DB::table('trstockdt')
-        ->where('fstockmtid', $newStockMasterId)
-        ->max('fnouref');
-      $nextNouRef = $lastNouRef + 1;
-
       foreach ($rowsDt as &$r) {
         $r['fstockmtid']   = $newStockMasterId;
         $r['fstockmtcode'] = $fstockmtcode;
         $r['fstockmtno']   = $fstockmtno;
 
-        if (!isset($r['fnouref']) || $r['fnouref'] === null) {
-          $r['fnouref'] = $nextNouRef++;
-        }
       }
       unset($r);
 
@@ -622,8 +607,6 @@ class PemakaianbarangController extends Controller
 
       // 1. Definisikan Kode Akun (GANTI DENGAN KODE AKUN GL ASLI ANDA)
       $INVENTORY_ACCOUNT_CODE = '11400'; // Contoh: Persediaan Barang Dagang
-      $PPN_IN_ACCOUNT_CODE    = '11500'; // Contoh: PPN Masukan
-      $PAYABLE_ACCOUNT_CODE   = '21100'; // Contoh: Hutang Dagang
 
       // 2. Generate Nomor Jurnal
       $fjurnaltype = 'JV';
@@ -648,7 +631,7 @@ class PemakaianbarangController extends Controller
         'fjurnaldate' => $fstockmtdate,
         'fjurnalnote' => 'Jurnal Penerimaan Barang ' . $fstockmtno,
         'fdatetime'   => $now,
-        'fusercreate' => (Auth::user()->fname ?? 'system'),
+        'fuserid' => (Auth::user()->fname ?? 'system'),
       ];
 
       Log::debug('JURNAL HEADER INSERT:', $jurnalHeader); // Debugging
@@ -752,7 +735,6 @@ class PemakaianbarangController extends Controller
         'famountponet' => $d->famountponet ?? null,
         'famountpo' => $d->famountpo ?? null,
         'frefdtno' => $d->frefdtno ?? null,
-        'fnouref' => $d->fnouref ?? null,
         'fqty' => (float)($d->fqty ?? 0),
         'fterima' => (float)($d->fterima ?? 0),
         'fdisc' => (float)($d->fdiscpersen ?? 0),
@@ -875,7 +857,6 @@ class PemakaianbarangController extends Controller
         'famountponet' => $d->famountponet ?? null,
         'famountpo' => $d->famountpo ?? null,
         'frefdtno' => $d->frefdtno ?? null,
-        'fnouref' => $d->fnouref ?? null,
         'fqty' => (float)($d->fqty ?? 0),
         'fterima' => (float)($d->fterima ?? 0),
         'fdisc' => (float)($d->fdiscpersen ?? 0),
@@ -952,8 +933,6 @@ class PemakaianbarangController extends Controller
       'frefdtno.*'     => ['nullable', 'string', 'max:20'],
       'frefso'        => ['nullable', 'array'],
       'frefso.*'      => ['nullable', 'string', 'max:20'],
-      'fnouref'        => ['nullable', 'array'],
-      'fnouref.*'      => ['nullable', 'integer'],
       'fdesc'          => ['nullable', 'array'],
       'fdesc.*'        => ['nullable', 'string', 'max:500'],
     ], [
@@ -984,7 +963,6 @@ class PemakaianbarangController extends Controller
     $satuans = $request->input('fsatuan', []);
     $refdtno      = $request->input('frefdtno', []);
     $refso      = $request->input('frefso', []);
-    $nourefs = $request->input('fnouref', []);
     $qtys    = $request->input('fqty', []);
     $descs   = $request->input('fdesc', []);
 
@@ -1057,7 +1035,6 @@ class PemakaianbarangController extends Controller
         'fdatetime'      => $now, // Tetap gunakan fdatetime
         'fketdt'         => '',
         'fcode'          => '0',
-        'fnouref'        => $rnour !== null ? (int)$rnour : null,
         'fdesc'          => $desc,
         'fsatuan'        => $sat,
         'fclosedt'       => '0',
@@ -1150,9 +1127,6 @@ class PemakaianbarangController extends Controller
         $r['fstockmtcode'] = $fstockmtcode;
         $r['fstockmtno']   = $fstockmtno;
 
-        if (!isset($r['fnouref']) || $r['fnouref'] === null) {
-          $r['fnouref'] = $nextNouRef++;
-        }
       }
       unset($r);
 
@@ -1228,7 +1202,6 @@ class PemakaianbarangController extends Controller
         'famountponet' => $d->famountponet ?? null,
         'famountpo' => $d->famountpo ?? null,
         'frefdtno' => $d->frefdtno ?? null,
-        'fnouref' => $d->fnouref ?? null,
         'fqty' => (float)($d->fqty ?? 0),
         'fterima' => (float)($d->fterima ?? 0),
         'fdisc' => (float)($d->fdiscpersen ?? 0),
