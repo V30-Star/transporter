@@ -773,8 +773,13 @@ class InvoiceController extends Controller
                 }
             }
 
+            // SO lines store the ref in frefso; SRJ lines in frefsrj (frefso is often '' not null, so ?? alone is wrong).
+            $trimSo = trim($d->frefso ?? '');
+            $trimSrj = trim($d->frefsrj ?? '');
+            $detailRef = $trimSo !== '' ? $trimSo : ($trimSrj !== '' ? $trimSrj : '');
+
             // Priority: Joined Header Number -> Stored Detail String -> Type Prefix
-            $refNoDisplay = $d->fsono_ref ?? ($d->fstockno_ref ?? (trim($d->frefso ?? $d->frefsrj ?? '') ?: $refCode));
+            $refNoDisplay = $d->fsono_ref ?? ($d->fstockno_ref ?? ($detailRef !== '' ? $detailRef : $refCode));
 
             $usedQtyKecil = (float) ($d->fqtykecil ?? 0);
             $remainDb = 0.0;
@@ -906,7 +911,10 @@ class InvoiceController extends Controller
         }
 
         $savedItems = $invoice->details->map(function ($d) {
-            $refNoDisplay = $d->fsono_ref ?? ($d->fstockno_ref ?? (trim($d->frefso ?? $d->frefsrj ?? '') ?: ($d->frefcode ?? '-')));
+            $trimSo = trim($d->frefso ?? '');
+            $trimSrj = trim($d->frefsrj ?? '');
+            $detailRef = $trimSo !== '' ? $trimSo : ($trimSrj !== '' ? $trimSrj : '');
+            $refNoDisplay = $d->fsono_ref ?? ($d->fstockno_ref ?? ($detailRef !== '' ? $detailRef : ($d->frefcode ?? '-')));
 
             return [
                 'uid' => $d->ftrandtid,
@@ -1322,7 +1330,10 @@ class InvoiceController extends Controller
         }
 
         $savedItems = $invoice->details->map(function ($d) {
-            $refNoDisplay = $d->fsono_ref ?? ($d->fstockno_ref ?? (trim($d->frefso ?? $d->frefsrj ?? '') ?: ($d->frefcode ?? '-')));
+            $trimSo = trim($d->frefso ?? '');
+            $trimSrj = trim($d->frefsrj ?? '');
+            $detailRef = $trimSo !== '' ? $trimSo : ($trimSrj !== '' ? $trimSrj : '');
+            $refNoDisplay = $d->fsono_ref ?? ($d->fstockno_ref ?? ($detailRef !== '' ? $detailRef : ($d->frefcode ?? '-')));
 
             return [
                 'uid' => $d->ftrandtid,

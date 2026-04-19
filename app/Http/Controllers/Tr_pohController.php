@@ -838,9 +838,9 @@ class Tr_pohController extends Controller
       $nextNou = $lastNou + 1;
 
       foreach ($rowsPod as &$r) {
-        $r['fpohid'] = $fpohid;  // FK → tr_poh.fpohid (integer)
+        $r['fpohid'] = $fpohid; 
         $r['fnou']  = $nextNou++;
-        $r['frefdtno'] = $fpono;    // ✅ string → tr_poh.fpono  (misal: "PO.BG.26.03.0008")
+        $r['frefdtno'] = $fpono;    
       }
       unset($r);
 
@@ -1236,7 +1236,6 @@ class Tr_pohController extends Controller
       ->get(['fprdid', 'fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2'])
       ->keyBy('fprdcode');
 
-    // NOTE:
     // Untuk update PO berbasis PR, validasi batas qty ditentukan oleh sisa PR (fqtyremain),
     // bukan oleh msprd.fminstock. Validasi sisa PR dilakukan di bawah (strict guard).
 

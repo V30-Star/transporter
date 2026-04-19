@@ -2678,7 +2678,7 @@
                         frefso: source === 'SO' ? (header?.fsono ?? '') : '',
                         frefsoid: source === 'SO' ? (src.frefdtno ?? null) : null,
                         frefsrj: source === 'SRJ' ? (header?.fstockmtno ?? '') : '',
-                        frefsrjid: source === 'SRJ' ? (header?.fstockmtid ?? null) : null,
+                        frefsrjid: source === 'SRJ' ? (src.frefdtno ?? null) : null,
                         fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ? Number(src.fqty) : 1,
                         fqtyremain: Number(src.fqtyremain ?? 0),
                         fprice: Number(src.fprice ?? src.fharga ?? 0),
