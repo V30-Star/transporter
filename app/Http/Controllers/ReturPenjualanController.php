@@ -240,8 +240,8 @@ class ReturPenjualanController extends Controller
     {
         // Header: find by SO code (string)
         $hdr = DB::table('tranmt')
-            ->leftJoin('mscustomer as c', 'c.fcustomerid', '=', DB::raw('CAST(tranmt.fcustno AS INTEGER)'))
-            ->leftJoin('mssalesman as s', 's.fsalesmanid', '=', DB::raw('CAST(tranmt.fsalesman AS INTEGER)'))
+            ->leftJoin('mscustomer as c', 'c.fcustomercode', '=', 'tranmt.fcustno')
+            ->leftJoin('mssalesman as s', 's.fsalesmancode', '=', 'tranmt.fsalesman')
             ->where('tranmt.fsono', $fsono)
             ->first([
                 'tranmt.*',
@@ -616,7 +616,7 @@ class ReturPenjualanController extends Controller
                     'fsono' => $fsono,
                     'fsodate' => $fsodate,
                     'fcustno' => mb_substr($request->fcustno, 0, 10),
-                    'fsalesman' => mb_substr($request->fsalesman ?? '', 0, 15),
+                    'fsalesman' => mb_substr((string) ($request->fsalesman ?? ''), 0, 30),
                     'fcurrency' => $fcurrency,
                     'frate' => $frate,
                     'fdiscount' => $totalDisc,
@@ -660,7 +660,7 @@ class ReturPenjualanController extends Controller
                     'fstockmtcode' => 'REB',
                     'fstockmtdate' => $fsodate,
                     'fprdout' => '0',
-                    'fsupplier' => mb_substr($request->fcustno, 0, 10), // Customer ID
+                    'fsupplier' => mb_substr($request->fcustno, 0, 10),
                     'famount' => $amountNet,
                     'famount_rp' => $amountNet * $frate,
                     'famountpajak' => $ppnAmount,
@@ -775,10 +775,10 @@ class ReturPenjualanController extends Controller
     public function edit(Request $request, $ftranmtid)
     {
         $customers = Customer::orderBy('fcustomername', 'asc')
-            ->get(['fcustomerid', 'fcustomername']);
+            ->get(['fcustomerid', 'fcustomername', 'fcustomercode']);
 
         $salesmans = Salesman::orderBy('fsalesmanname', 'asc')
-            ->get(['fsalesmanid', 'fsalesmanname']);
+            ->get(['fsalesmanid', 'fsalesmanname', 'fsalesmancode']);
 
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
@@ -807,7 +807,7 @@ class ReturPenjualanController extends Controller
         }])->findOrFail($ftranmtid);
 
         if (! $returpenjualan->customer) {
-            $returpenjualan->setRelation('customer', Customer::find(trim($returpenjualan->fcustno)));
+            $returpenjualan->setRelation('customer', Customer::where('fcustomercode', trim((string) $returpenjualan->fcustno))->first());
         }
 
         $savedItems = $returpenjualan->details->map(function ($d) {
@@ -907,10 +907,10 @@ class ReturPenjualanController extends Controller
     public function view(Request $request, $ftranmtid)
     {
         $customers = Customer::orderBy('fcustomername', 'asc')
-            ->get(['fcustomerid', 'fcustomername']);
+            ->get(['fcustomerid', 'fcustomername', 'fcustomercode']);
 
         $salesmans = Salesman::orderBy('fsalesmanname', 'asc')
-            ->get(['fsalesmanid', 'fsalesmanname']);
+            ->get(['fsalesmanid', 'fsalesmanname', 'fsalesmancode']);
 
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
@@ -939,7 +939,7 @@ class ReturPenjualanController extends Controller
         }])->findOrFail($ftranmtid);
 
         if (! $returpenjualan->customer) {
-            $returpenjualan->setRelation('customer', Customer::find(trim($returpenjualan->fcustno)));
+            $returpenjualan->setRelation('customer', Customer::where('fcustomercode', trim((string) $returpenjualan->fcustno))->first());
         }
 
         $savedItems = $returpenjualan->details->map(function ($d) {
@@ -1279,7 +1279,7 @@ class ReturPenjualanController extends Controller
                 DB::table('tranmt')->where('ftranmtid', $ftranmtid)->update([
                     'fsodate' => $fsodate,
                     'fcustno' => mb_substr($request->fcustno, 0, 10),
-                    'fsalesman' => mb_substr($request->fsalesman ?? '', 0, 15),
+                    'fsalesman' => mb_substr((string) ($request->fsalesman ?? ''), 0, 30),
                     'fdiscount' => $totalDisc,
                     'fdiscount_rp' => $totalDisc * $frate,
                     'famountgross' => $totalGross,
@@ -1401,10 +1401,10 @@ class ReturPenjualanController extends Controller
     public function delete(Request $request, $ftranmtid)
     {
         $customers = Customer::orderBy('fcustomername', 'asc')
-            ->get(['fcustomerid', 'fcustomername']);
+            ->get(['fcustomerid', 'fcustomername', 'fcustomercode']);
 
         $salesmans = Salesman::orderBy('fsalesmanname', 'asc')
-            ->get(['fsalesmanid', 'fsalesmanname']);
+            ->get(['fsalesmanid', 'fsalesmanname', 'fsalesmancode']);
 
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
@@ -1433,7 +1433,7 @@ class ReturPenjualanController extends Controller
         }])->findOrFail($ftranmtid);
 
         if (! $returpenjualan->customer) {
-            $returpenjualan->setRelation('customer', Customer::find(trim($returpenjualan->fcustno)));
+            $returpenjualan->setRelation('customer', Customer::where('fcustomercode', trim((string) $returpenjualan->fcustno))->first());
         }
 
         $savedItems = $returpenjualan->details->map(function ($d) {

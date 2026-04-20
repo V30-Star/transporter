@@ -68,13 +68,27 @@
         input[type=number] {
             -moz-appearance: textfield;
         }
+
+        .delete-readonly [role="button"],
+        .delete-readonly button,
+        .delete-readonly a {
+            pointer-events: none;
+        }
+
+        .delete-readonly select,
+        .delete-readonly input:not([type="hidden"]),
+        .delete-readonly textarea,
+        .delete-readonly button {
+            background-color: #e5e7eb;
+            cursor: not-allowed;
+        }
     </style>
 
     <div>
         <div class="lg:col-span-12">
             <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
                 @if ($action === 'delete')
-                    <div class="space-y-4">
+                    <fieldset disabled class="delete-readonly space-y-4">
 
                         <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
                             <div class="lg:col-span-4">
@@ -145,9 +159,9 @@
                                             disabled>
                                             <option value=""></option>
                                             @foreach ($customers as $customer)
-                                                <option value="{{ $customer->fcustomerid }}" {{-- CEK DISINI: Bandingkan dengan data yang tersimpan di DB --}}
-                                                    {{ old('fcustno', $returpenjualan->fcustno) == $customer->fcustomerid ? 'selected' : '' }}>
-                                                    {{ $customer->fcustomername }} ({{ $customer->fcustomerid }})
+                                                <option value="{{ $customer->fcustomercode }}" {{-- CEK DISINI: Bandingkan dengan data yang tersimpan di DB --}}
+                                                    {{ old('fcustno', $returpenjualan->fcustno) == $customer->fcustomercode ? 'selected' : '' }}>
+                                                    {{ $customer->fcustomername }} ({{ $customer->fcustomercode }})
                                                 </option>
                                             @endforeach
                                         </select>
@@ -173,9 +187,9 @@
                                             disabled>
                                             <option value=""></option>
                                             @foreach ($salesmans as $salesman)
-                                                <option value="{{ $salesman->fsalesmanid }}" {{-- CEK DISINI: Bandingkan old input atau data dari database --}}
-                                                    {{ old('fsalesman', $returpenjualan->fsalesman) == $salesman->fsalesmanid ? 'selected' : '' }}>
-                                                    {{ $salesman->fsalesmanname }} ({{ $salesman->fsalesmanid }})
+                                                <option value="{{ $salesman->fsalesmancode }}" {{-- CEK DISINI: Bandingkan old input atau data dari database --}}
+                                                    {{ old('fsalesman', $returpenjualan->fsalesman) == $salesman->fsalesmancode ? 'selected' : '' }}>
+                                                    {{ $salesman->fsalesmanname }} ({{ $salesman->fsalesmancode }})
                                                 </option>
                                             @endforeach
                                         </select>
@@ -584,6 +598,7 @@
                                 </label>
                             @endif
                         </div>
+                    </fieldset>
 
                         <div class="mt-6 flex justify-center space-x-4">
                             <button type="button" onclick="showDeleteModal()"
@@ -678,9 +693,9 @@
                                                 disabled>
                                                 <option value=""></option>
                                                 @foreach ($customers as $customer)
-                                                    <option value="{{ $customer->fcustomerid }}" {{-- CEK DISINI: Bandingkan dengan data yang tersimpan di DB --}}
-                                                        {{ old('fcustno', $returpenjualan->fcustno) == $customer->fcustomerid ? 'selected' : '' }}>
-                                                        {{ $customer->fcustomername }} ({{ $customer->fcustomerid }})
+                                                    <option value="{{ $customer->fcustomercode }}" {{-- CEK DISINI: Bandingkan dengan data yang tersimpan di DB --}}
+                                                        {{ old('fcustno', $returpenjualan->fcustno) == $customer->fcustomercode ? 'selected' : '' }}>
+                                                        {{ $customer->fcustomername }} ({{ $customer->fcustomercode }})
                                                     </option>
                                                 @endforeach
                                             </select>
@@ -717,9 +732,9 @@
                                                 disabled>
                                                 <option value=""></option>
                                                 @foreach ($salesmans as $salesman)
-                                                    <option value="{{ $salesman->fsalesmanid }}" {{-- CEK DISINI: Bandingkan old input atau data dari database --}}
-                                                        {{ old('fsalesman', $returpenjualan->fsalesman) == $salesman->fsalesmanid ? 'selected' : '' }}>
-                                                        {{ $salesman->fsalesmanname }} ({{ $salesman->fsalesmanid }})
+                                                    <option value="{{ $salesman->fsalesmancode }}" {{-- CEK DISINI: Bandingkan old input atau data dari database --}}
+                                                        {{ old('fsalesman', $returpenjualan->fsalesman) == $salesman->fsalesmancode ? 'selected' : '' }}>
+                                                        {{ $salesman->fsalesmanname }} ({{ $salesman->fsalesmancode }})
                                                     </option>
                                                 @endforeach
                                             </select>
@@ -2128,15 +2143,15 @@
                     return;
                 }
 
-                let opt = [...sel.options].find(o => o.value == String(customer.fcustomerid));
+                let opt = [...sel.options].find(o => o.value == String(customer.fcustomercode));
                 if (!opt) {
-                    opt = new Option(`${customer.fcustomername} (${customer.fcustomercode})`, customer.fcustomerid,
+                    opt = new Option(`${customer.fcustomername} (${customer.fcustomercode})`, customer.fcustomercode,
                         true, true);
                     sel.add(opt);
                 } else {
                     opt.selected = true;
                 }
-                if (hid) hid.value = customer.fcustomerid;
+                if (hid) hid.value = customer.fcustomercode;
 
                 window.dispatchEvent(new CustomEvent('customer-selected', {
                     detail: {
@@ -2307,11 +2322,11 @@
                     return;
                 }
 
-                let opt = [...sel.options].find(o => o.value == String(salesman.fsalesmanid));
+                let opt = [...sel.options].find(o => o.value == String(salesman.fsalesmancode));
                 const label = `${salesman.fsalesmanname} (${salesman.fsalesmancode})`;
 
                 if (!opt) {
-                    opt = new Option(label, salesman.fsalesmanid, true, true);
+                    opt = new Option(label, salesman.fsalesmancode, true, true);
                     sel.add(opt);
                 } else {
                     opt.text = label;
@@ -2319,7 +2334,7 @@
                 }
 
                 sel.dispatchEvent(new Event('change'));
-                if (hid) hid.value = salesman.fsalesmanid;
+                if (hid) hid.value = salesman.fsalesmancode;
                 this.close();
             },
 

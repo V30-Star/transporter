@@ -156,9 +156,9 @@
                                         disabled>
                                         <option value=""></option>
                                         @foreach ($customers as $customer)
-                                            <option value="{{ $customer->fcustomerid }}" {{-- CEK DISINI: Bandingkan dengan data yang tersimpan di DB --}}
-                                                {{ old('fcustno', $returpenjualan->fcustno) == $customer->fcustomerid ? 'selected' : '' }}>
-                                                {{ $customer->fcustomername }} ({{ $customer->fcustomerid }})
+                                            <option value="{{ $customer->fcustomercode }}" {{-- CEK DISINI: Bandingkan dengan data yang tersimpan di DB --}}
+                                                {{ old('fcustno', $returpenjualan->fcustno) == $customer->fcustomercode ? 'selected' : '' }}>
+                                                {{ $customer->fcustomername }} ({{ $customer->fcustomercode }})
                                             </option>
                                         @endforeach
                                     </select>
@@ -184,9 +184,9 @@
                                         disabled>
                                         <option value=""></option>
                                         @foreach ($salesmans as $salesman)
-                                            <option value="{{ $salesman->fsalesmanid }}" {{-- CEK DISINI: Bandingkan old input atau data dari database --}}
-                                                {{ old('fsalesman', $returpenjualan->fsalesman) == $salesman->fsalesmanid ? 'selected' : '' }}>
-                                                {{ $salesman->fsalesmanname }} ({{ $salesman->fsalesmanid }})
+                                            <option value="{{ $salesman->fsalesmancode }}" {{-- CEK DISINI: Bandingkan old input atau data dari database --}}
+                                                {{ old('fsalesman', $returpenjualan->fsalesman) == $salesman->fsalesmancode ? 'selected' : '' }}>
+                                                {{ $salesman->fsalesmanname }} ({{ $salesman->fsalesmancode }})
                                             </option>
                                         @endforeach
                                     </select>
@@ -832,15 +832,15 @@
                         }
 
                         // 1. Set Dropdown Customer (Logika lama Anda)
-                        let opt = [...sel.options].find(o => o.value == String(customer.fcustomerid));
+                        let opt = [...sel.options].find(o => o.value == String(customer.fcustomercode));
                         if (!opt) {
-                            opt = new Option(`${customer.fcustomername} (${customer.fcustomercode})`, customer.fcustomerid,
+                            opt = new Option(`${customer.fcustomername} (${customer.fcustomercode})`, customer.fcustomercode,
                                 true, true);
                             sel.add(opt);
                         } else {
                             opt.selected = true;
                         }
-                        if (hid) hid.value = customer.fcustomerid;
+                        if (hid) hid.value = customer.fcustomercode;
 
                         // 2. Kirim data alamat ke Alpine.js menggunakan Event
                         window.dispatchEvent(new CustomEvent('customer-selected', {
@@ -1013,11 +1013,11 @@
                             return;
                         }
 
-                        let opt = [...sel.options].find(o => o.value == String(salesman.fsalesmanid));
+                        let opt = [...sel.options].find(o => o.value == String(salesman.fsalesmancode));
                         const label = `${salesman.fsalesmanname} (${salesman.fsalesmancode})`;
 
                         if (!opt) {
-                            opt = new Option(label, salesman.fsalesmanid, true, true);
+                            opt = new Option(label, salesman.fsalesmancode, true, true);
                             sel.add(opt);
                         } else {
                             opt.text = label;
@@ -1025,7 +1025,7 @@
                         }
 
                         sel.dispatchEvent(new Event('change'));
-                        if (hid) hid.value = salesman.fsalesmanid;
+                        if (hid) hid.value = salesman.fsalesmancode;
                         this.close();
                     },
 

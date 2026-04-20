@@ -169,8 +169,8 @@
                                         disabled>
                                         <option value=""></option>
                                         @foreach ($customers as $customer)
-                                            <option value="{{ $customer->fcustomerid }}"
-                                                {{ $filterSupplierId == $customer->fcustomerid ? 'selected' : '' }}>
+                                            <option value="{{ $customer->fcustomercode }}"
+                                                {{ $filterSupplierId == $customer->fcustomercode ? 'selected' : '' }}>
                                                 {{ $customer->fcustomername }} ({{ $customer->fcustomercode }})
                                             </option>
                                         @endforeach
@@ -206,8 +206,8 @@
                                         disabled>
                                         <option value=""></option>
                                         @foreach ($salesmans as $salesman)
-                                            <option value="{{ $salesman->fsalesmanid }}"
-                                                {{ $filterSalesmanId == $salesman->fsalesmanid ? 'selected' : '' }}>
+                                            <option value="{{ $salesman->fsalesmancode }}"
+                                                {{ $filterSalesmanId == $salesman->fsalesmancode ? 'selected' : '' }}>
                                                 {{ $salesman->fsalesmanname }} ({{ $salesman->fsalesmancode }})
                                             </option>
                                         @endforeach
@@ -1494,16 +1494,16 @@
                     return;
                 }
 
-                let opt = [...sel.options].find(o => o.value == String(customer.fcustomerid));
+                let opt = [...sel.options].find(o => o.value == String(customer.fcustomercode));
                 const label = `${customer.fcustomername} (${customer.fcustomercode})`;
                 if (!opt) {
-                    opt = new Option(label, customer.fcustomerid, true, true);
+                    opt = new Option(label, customer.fcustomercode, true, true);
                     sel.add(opt);
                 } else {
                     opt.text = label;
                     opt.selected = true;
                 }
-                if (hid) hid.value = customer.fcustomerid;
+                if (hid) hid.value = customer.fcustomercode;
 
                 window.dispatchEvent(new CustomEvent('customer-selected', {
                     detail: {
@@ -1673,11 +1673,11 @@
                     return;
                 }
 
-                let opt = [...sel.options].find(o => o.value == String(salesman.fsalesmanid));
+                let opt = [...sel.options].find(o => o.value == String(salesman.fsalesmancode));
                 const label = `${salesman.fsalesmanname} (${salesman.fsalesmancode})`;
 
                 if (!opt) {
-                    opt = new Option(label, salesman.fsalesmanid, true, true);
+                    opt = new Option(label, salesman.fsalesmancode, true, true);
                     sel.add(opt);
                 } else {
                     opt.text = label;
@@ -1685,7 +1685,7 @@
                 }
 
                 sel.dispatchEvent(new Event('change'));
-                if (hid) hid.value = salesman.fsalesmanid;
+                if (hid) hid.value = salesman.fsalesmancode;
                 this.close();
             },
 
