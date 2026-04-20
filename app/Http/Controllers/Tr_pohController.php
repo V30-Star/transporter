@@ -256,7 +256,7 @@ class Tr_pohController extends Controller
       ])
       ->orderBy('d.fprdcodeid')
       ->get()
-      ->map(function ($item) {
+      ->map(function ($item) use ($header) {
         $qty       = (float) $item->fqty;
         $fqtypo    = (float) ($item->fqtypo ?? 0);
         $satuan    = trim((string) $item->fsatuan);
@@ -270,7 +270,7 @@ class Tr_pohController extends Controller
         $sisaKecil = max(0, (float) ($item->fqtyremain ?? 0));
 
         return [
-          'frefdtno'      => $item->frefdtno,
+          'frefdtno'      => (string) $header->fprno,
           'fitemcode'     => $item->fitemcode,
           'fitemname'     => $item->fitemname,
           'fqty'          => $qty,
@@ -838,9 +838,9 @@ class Tr_pohController extends Controller
       $nextNou = $lastNou + 1;
 
       foreach ($rowsPod as &$r) {
-        $r['fpohid'] = $fpohid; 
-        $r['fnou']  = $nextNou++;
-        $r['frefdtno'] = $fpono;    
+        $r['fpohid'] = $fpohid;
+        $r['fnou']   = $nextNou++;
+        $r['fpono']  = $fpono;
       }
       unset($r);
 
@@ -927,6 +927,12 @@ class Tr_pohController extends Controller
 
     $blockedByTerima = $existingTerima->isNotEmpty();
 
+    $qtyTerimaMap = DB::table('trstockdt')
+      ->where('frefdtno', $tr_poh->fpono)
+      ->select('fprdcode', DB::raw('SUM(fqty) as total_terima'))
+      ->groupBy('fprdcode')
+      ->pluck('total_terima', 'fprdcode');
+
     $fpohidInt = (int) $tr_poh->fpohid;
 
     $prQtyMap = DB::table('tr_prd as d')
@@ -971,7 +977,7 @@ class Tr_pohController extends Controller
       ];
     })->toArray();
 
-    $savedItems = $tr_poh->details->map(function ($d) use ($products, $prQtyMap) {
+    $savedItems = $tr_poh->details->map(function ($d) use ($products, $prQtyMap, $qtyTerimaMap) {
       $qtyPR    = (float) $d->fqtypr;
       $satPR    = trim((string) $d->fqtypr_satuan);
       $satKecil = trim((string) $d->fsatuankecil);
@@ -1014,12 +1020,13 @@ class Tr_pohController extends Controller
         'fsatuan'   => $fsatuan,   // ← pakai yang sudah di-trim
         'units'     => $units,     // ← sudah include fsatuan
         'frefdtno'  => (string)($d->frefdtno  ?? ''),
+        'fpono'     => (string)($d->fpono     ?? ''),
         'fnouref'   => (string)($d->fnouref   ?? ''),
-        'frefpr'    => (string)($d->frefdtno  ?? ''),
+        'frefpr'    => (string)($d->fprhid    ?? ''),
         'fprhid'    => (string)($d->fprhid    ?? ''),
         'fprno'     => (string)($d->frefdtno  ?? ''),
         'fqty'      => (float)($d->fqty    ?? 0),
-        'fqtyterima' => (float)($d->fqtyterima ?? 0),
+        'fqtyterima' => (float)($qtyTerimaMap[$d->fitemcode] ?? $d->fqtyterima ?? 0),
         'fterima'   => (float)($d->fterima ?? 0),
         'fprice'    => (float)($d->fprice  ?? 0),
         'fdisc'     => (float)($d->fdisc   ?? 0),
@@ -1424,6 +1431,7 @@ class Tr_pohController extends Controller
         $nextNou = 1;
         foreach ($rowsPod as &$r) {
           $r['fpohid'] = $fponoId;
+          $r['fpono']  = $header->fpono;
           $r['fnou']   = $nextNou++;
         }
         unset($r);
@@ -1509,6 +1517,12 @@ class Tr_pohController extends Controller
 
     $blockedByTerima = $existingTerima->isNotEmpty();
 
+    $qtyTerimaMap = DB::table('trstockdt')
+      ->where('frefdtno', $tr_poh->fpono)
+      ->select('fprdcode', DB::raw('SUM(fqty) as total_terima'))
+      ->groupBy('fprdcode')
+      ->pluck('total_terima', 'fprdcode');
+
     // Lookup currency berdasarkan fcurrency (integer ID) di tr_poh
     $currentCurrency = DB::table('mscurrency')
       ->where('fcurrid', $tr_poh->fcurrency)
@@ -1535,7 +1549,7 @@ class Tr_pohController extends Controller
       ];
     })->toArray();
 
-    $savedItems = $tr_poh->details->map(function ($d) use ($products) {
+    $savedItems = $tr_poh->details->map(function ($d) use ($products, $qtyTerimaMap) {
       $prod  = $products->firstWhere('fprdcode', $d->fitemcode);
       $units = $prod
         ? array_values(array_filter([
@@ -1557,10 +1571,11 @@ class Tr_pohController extends Controller
         'fsatuan'   => (string)($d->fsatuan   ?? ''),
         'units'     => $units,
         'frefdtno'  => (string)($d->frefdtno  ?? ''),
+        'fpono'     => (string)($d->fpono     ?? ''),
         'frefdtid'  => (string)($d->frefdtid  ?? ''),
         'fnouref'   => (string)($d->fnouref   ?? ''),
-        'fqtyterima' => (float)($d->fqtyterima ?? 0),
-        'frefpr'    => (string)($d->frefdtno  ?? ''),
+        'fqtyterima' => (float)($qtyTerimaMap[$d->fitemcode] ?? $d->fqtyterima ?? 0),
+        'frefpr'    => (string)($d->fprhid    ?? ''),
         'fprhid'    => (string)($d->fprhid    ?? ''),
         'fprno'     => (string)($d->frefdtno  ?? ''),
         'fqty'      => (float)($d->fqty    ?? 0),
