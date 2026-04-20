@@ -825,6 +825,7 @@ class SuratJalanController extends Controller
             ->findOrFail($fstockmtid); // Temukan header berdasarkan $fstockmtid dari URL
 
         // 4. Map the data for savedItems (sudah menggunakan data yang benar)
+        $usageLockMessage = $this->getUsageLockMessage($suratjalan);
         $savedItems = $suratjalan->details->map(function ($d) {
             return [
                 'uid' => $d->fstockdtid,
@@ -899,6 +900,8 @@ class SuratJalanController extends Controller
             'famountponet' => (float) ($suratjalan->famountponet ?? 0),
             'famountpo' => (float) ($suratjalan->famountpo ?? 0),
             'filterSupplierId' => $request->query('filter_supplier_id'),
+            'isUsageLocked' => !empty($usageLockMessage),
+            'usageLockMessage' => $usageLockMessage,
             'action' => 'edit',
         ]);
     }
@@ -1051,6 +1054,10 @@ class SuratJalanController extends Controller
         // 2) AMBIL DATA HEADER
         // =========================
         $header = PenerimaanPembelianHeader::findOrFail($fstockmtid);
+
+        if ($message = $this->getUsageLockMessage($header)) {
+            return redirect()->route('suratjalan.index')->with('error', $message);
+        }
 
         $fstockmtno = $header->fstockmtno;
         $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
@@ -1523,6 +1530,7 @@ class SuratJalanController extends Controller
             ->findOrFail($fstockmtid); // Temukan header berdasarkan $fstockmtid dari URL
 
         // 4. Map the data for savedItems (sudah menggunakan data yang benar)
+        $usageLockMessage = $this->getUsageLockMessage($suratjalan);
         $savedItems = $suratjalan->details->map(function ($d) {
             return [
                 'uid' => $d->fstockdtid,
@@ -1586,6 +1594,8 @@ class SuratJalanController extends Controller
             'famountponet' => (float) ($suratjalan->famountponet ?? 0),
             'famountpo' => (float) ($suratjalan->famountpo ?? 0),
             'filterSupplierId' => $request->query('filter_supplier_id'),
+            'isUsageLocked' => !empty($usageLockMessage),
+            'usageLockMessage' => $usageLockMessage,
             'action' => 'delete',
         ]);
     }
@@ -1594,6 +1604,11 @@ class SuratJalanController extends Controller
     {
         try {
             $suratjalan = PenerimaanPembelianHeader::findOrFail($fstockmtid);
+
+            if ($message = $this->getUsageLockMessage($suratjalan)) {
+                return redirect()->route('suratjalan.index')->with('error', $message);
+            }
+
             $suratjalan->details()->delete();
 
             // 2. Baru hapus header
@@ -1604,5 +1619,38 @@ class SuratJalanController extends Controller
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
             return redirect()->route('suratjalan.delete', $fstockmtid)->with('error', 'Gagal menghapus data: ' . $e->getMessage());
         }
+    }
+
+    private function getUsageLockMessage(PenerimaanPembelianHeader $header): ?string
+    {
+        $fstockmtno = trim((string) ($header->fstockmtno ?? ''));
+        if ($fstockmtno === '') {
+            return null;
+        }
+
+        $usedBySalesDocs = DB::table('trandt as dt')
+            ->join('tranmt as mt', 'mt.fsono', '=', 'dt.fsono')
+            ->where('dt.frefsrj', $fstockmtno)
+            ->select('mt.fsono')
+            ->distinct()
+            ->orderBy('mt.fsono')
+            ->pluck('mt.fsono');
+
+        $parts = [];
+        $usedByInvoice = $usedBySalesDocs->filter(fn($no) => str_starts_with((string) $no, 'INV.'));
+        if ($usedByInvoice->isNotEmpty()) {
+            $parts[] = 'Faktur Penjualan: ' . $usedByInvoice->implode(', ');
+        }
+
+        $usedByRetur = $usedBySalesDocs->filter(fn($no) => str_starts_with((string) $no, 'REJ.'));
+        if ($usedByRetur->isNotEmpty()) {
+            $parts[] = 'Retur Penjualan: ' . $usedByRetur->implode(', ');
+        }
+
+        if (empty($parts)) {
+            return null;
+        }
+
+        return 'Surat Jalan ' . $fstockmtno . ' tidak dapat diubah atau dihapus karena sudah digunakan pada ' . implode('; ', $parts) . '.';
     }
 }

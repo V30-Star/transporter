@@ -691,6 +691,8 @@ class SalesOrderController extends Controller
             $salesorder->setRelation('customer', Customer::where('fcustomercode', trim((string) $salesorder->fcustno))->first());
         }
 
+        $usageLockMessage = $this->getUsageLockMessage($salesorder);
+
         $savedItems = $salesorder->details->map(function ($d) {
             return [
                 'uid' => $d->ftrsodtid,
@@ -761,6 +763,8 @@ class SalesOrderController extends Controller
             'famountso' => (float) ($salesorder->famountso ?? 0),  // nilai Grand Total dari DB
             'filterSupplierId' => $request->query('filter_supplier_id'),
             'filterSalesmanId' => $request->query('filter_salesman_id'),
+            'isUsageLocked' => !empty($usageLockMessage),
+            'usageLockMessage' => $usageLockMessage,
             'action' => 'edit',
         ]);
     }
@@ -905,6 +909,10 @@ class SalesOrderController extends Controller
         $header = DB::table('trsomt')->where('ftrsomtid', $ftrsomtid)->first();
         if (! $header) {
             return abort(404, 'Sales Order tidak ditemukan.');
+        }
+
+        if ($message = $this->getUsageLockMessage((object) $header)) {
+            return redirect()->route('salesorder.index')->with('error', $message);
         }
 
         // 3. HEADER VALUES
@@ -1118,6 +1126,8 @@ class SalesOrderController extends Controller
             $salesorder->setRelation('customer', Customer::where('fcustomercode', trim((string) $salesorder->fcustno))->first());
         }
 
+        $usageLockMessage = $this->getUsageLockMessage($salesorder);
+
         $savedItems = $salesorder->details->map(function ($d) {
             return [
                 'uid' => $d->ftrsodtid,
@@ -1177,6 +1187,8 @@ class SalesOrderController extends Controller
             'famountso' => (float) ($salesorder->famountso ?? 0),  // nilai Grand Total dari DB
             'filterSupplierId' => $request->query('filter_supplier_id'),
             'filterSalesmanId' => $request->query('filter_salesman_id'),
+            'isUsageLocked' => !empty($usageLockMessage),
+            'usageLockMessage' => $usageLockMessage,
             'action' => 'delete',
         ]);
     }
@@ -1185,6 +1197,11 @@ class SalesOrderController extends Controller
     {
         try {
             $salesorder = SalesOrderHeader::findOrFail($ftrsomtid);
+
+            if ($message = $this->getUsageLockMessage($salesorder)) {
+                return redirect()->route('salesorder.index')->with('error', $message);
+            }
+
             $salesorder->delete();
 
             return redirect()->route('salesorder.index')->with('success', 'Data Sales Order ' . $salesorder->fsono . ' berhasil dihapus.');
@@ -1192,5 +1209,51 @@ class SalesOrderController extends Controller
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
             return redirect()->route('salesorder.delete', $ftrsomtid)->with('error', 'Gakey: gal menghapus data: ' . $e->getMessage());
         }
+    }
+
+    private function getUsageLockMessage($header): ?string
+    {
+        $fsono = trim((string) ($header->fsono ?? ''));
+        if ($fsono === '') {
+            return null;
+        }
+
+        $usedBySrj = DB::table('trstockdt as dt')
+            ->join('trstockmt as mt', 'mt.fstockmtno', '=', 'dt.fstockmtno')
+            ->where('mt.fstockmtcode', 'SRJ')
+            ->where('dt.frefso', $fsono)
+            ->select('mt.fstockmtno')
+            ->distinct()
+            ->orderBy('mt.fstockmtno')
+            ->pluck('mt.fstockmtno');
+
+        $usedBySalesDocs = DB::table('trandt as dt')
+            ->join('tranmt as mt', 'mt.fsono', '=', 'dt.fsono')
+            ->where('dt.frefso', $fsono)
+            ->select('mt.fsono')
+            ->distinct()
+            ->orderBy('mt.fsono')
+            ->pluck('mt.fsono');
+
+        $parts = [];
+        if ($usedBySrj->isNotEmpty()) {
+            $parts[] = 'Surat Jalan: ' . $usedBySrj->implode(', ');
+        }
+
+        $usedByInvoice = $usedBySalesDocs->filter(fn($no) => str_starts_with((string) $no, 'INV.'));
+        if ($usedByInvoice->isNotEmpty()) {
+            $parts[] = 'Faktur Penjualan: ' . $usedByInvoice->implode(', ');
+        }
+
+        $usedByRetur = $usedBySalesDocs->filter(fn($no) => str_starts_with((string) $no, 'REJ.'));
+        if ($usedByRetur->isNotEmpty()) {
+            $parts[] = 'Retur Penjualan: ' . $usedByRetur->implode(', ');
+        }
+
+        if (empty($parts)) {
+            return null;
+        }
+
+        return 'Sales Order ' . $fsono . ' tidak dapat diubah atau dihapus karena sudah digunakan pada ' . implode('; ', $parts) . '.';
     }
 }

@@ -810,6 +810,8 @@ class ReturPenjualanController extends Controller
             $returpenjualan->setRelation('customer', Customer::where('fcustomercode', trim((string) $returpenjualan->fcustno))->first());
         }
 
+        $usageLockMessage = $this->getUsageLockMessage($returpenjualan);
+
         $savedItems = $returpenjualan->details->map(function ($d) {
             $refCode = strtoupper(trim($d->frefcode ?? ''));
             $valSo = trim($d->frefso ?? '');
@@ -900,6 +902,8 @@ class ReturPenjualanController extends Controller
             'famountso' => (float) ($returpenjualan->famountso ?? 0),  // nilai Grand Total dari DB
             'filterSupplierId' => $request->query('filter_supplier_id'),
             'filterSalesmanId' => $request->query('filter_salesman_id'),
+            'isUsageLocked' => !empty($usageLockMessage),
+            'usageLockMessage' => $usageLockMessage,
             'action' => 'edit',
         ]);
     }
@@ -1043,6 +1047,10 @@ class ReturPenjualanController extends Controller
         $header = DB::table('tranmt')->where('ftranmtid', $ftranmtid)->first();
         if (! $header) {
             return abort(404, 'Faktur Penjualan tidak ditemukan.');
+        }
+
+        if ($message = $this->getUsageLockMessage((object) $header)) {
+            return redirect()->route('returpenjualan.index')->with('error', $message);
         }
 
         // 3. INISIALISASI DATA
@@ -1436,6 +1444,8 @@ class ReturPenjualanController extends Controller
             $returpenjualan->setRelation('customer', Customer::where('fcustomercode', trim((string) $returpenjualan->fcustno))->first());
         }
 
+        $usageLockMessage = $this->getUsageLockMessage($returpenjualan);
+
         $savedItems = $returpenjualan->details->map(function ($d) {
             $refCode = strtoupper(trim($d->frefcode ?? ''));
             $valSo = trim($d->frefso ?? '');
@@ -1512,6 +1522,8 @@ class ReturPenjualanController extends Controller
             'famountso' => (float) ($returpenjualan->famountso ?? 0),  // nilai Grand Total dari DB
             'filterSupplierId' => $request->query('filter_supplier_id'),
             'filterSalesmanId' => $request->query('filter_salesman_id'),
+            'isUsageLocked' => !empty($usageLockMessage),
+            'usageLockMessage' => $usageLockMessage,
             'action' => 'delete',
         ]);
     }
@@ -1521,6 +1533,11 @@ class ReturPenjualanController extends Controller
         try {
             DB::transaction(function () use ($ftranmtid) {
                 $returpenjualan = Tranmt::findOrFail($ftranmtid);
+
+                if ($message = $this->getUsageLockMessage($returpenjualan)) {
+                    throw new \RuntimeException($message);
+                }
+
                 $fsono = $returpenjualan->fsono;
 
                 // 1. Delete details (trandt)
@@ -1543,5 +1560,10 @@ class ReturPenjualanController extends Controller
         } catch (\Exception $e) {
             return redirect()->route('returpenjualan.index')->with('error', 'Gagal menghapus data: ' . $e->getMessage());
         }
+    }
+
+    private function getUsageLockMessage($header): ?string
+    {
+        return null;
     }
 }

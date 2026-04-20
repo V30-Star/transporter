@@ -736,6 +736,8 @@ class InvoiceController extends Controller
             $invoice->setRelation('customer', Customer::where('fcustomercode', trim((string) $invoice->fcustno))->first());
         }
 
+        $usageLockMessage = $this->getUsageLockMessage($invoice);
+
         // For UI qty validation on edit: allow user to increase qty up to
         // (SO/SRJ sisa after restore), i.e. current DB fqtyremain + qty already in this invoice line.
         $soDetailIds = $invoice->details
@@ -868,6 +870,8 @@ class InvoiceController extends Controller
             'famountso' => (float) ($invoice->famountso ?? 0),  // nilai Grand Total dari DB
             'filterSupplierId' => $request->query('filter_supplier_id'),
             'filterSalesmanId' => $request->query('filter_salesman_id'),
+            'isUsageLocked' => !empty($usageLockMessage),
+            'usageLockMessage' => $usageLockMessage,
             'action' => 'edit',
         ]);
     }
@@ -997,6 +1001,10 @@ class InvoiceController extends Controller
         if (! $header) {
 
             return abort(404, 'Faktur Penjualan tidak ditemukan.');
+        }
+
+        if ($message = $this->getUsageLockMessage((object) $header)) {
+            return redirect()->route('invoice.index')->with('error', $message);
         }
 
         // 3. INISIALISASI DATA
@@ -1329,6 +1337,8 @@ class InvoiceController extends Controller
             $invoice->setRelation('customer', Customer::where('fcustomercode', trim((string) $invoice->fcustno))->first());
         }
 
+        $usageLockMessage = $this->getUsageLockMessage($invoice);
+
         $savedItems = $invoice->details->map(function ($d) {
             $trimSo = trim($d->frefso ?? '');
             $trimSrj = trim($d->frefsrj ?? '');
@@ -1392,6 +1402,8 @@ class InvoiceController extends Controller
             'famountso' => (float) ($invoice->famountso ?? 0),  // nilai Grand Total dari DB
             'filterSupplierId' => $request->query('filter_supplier_id'),
             'filterSalesmanId' => $request->query('filter_salesman_id'),
+            'isUsageLocked' => !empty($usageLockMessage),
+            'usageLockMessage' => $usageLockMessage,
             'action' => 'delete',
         ]);
     }
@@ -1400,6 +1412,11 @@ class InvoiceController extends Controller
     {
         try {
             $invoice = Tranmt::findOrFail($ftranmtid);
+
+            if ($message = $this->getUsageLockMessage($invoice)) {
+                return redirect()->route('invoice.index')->with('error', $message);
+            }
+
             $invoice->delete();
 
             return redirect()->route('invoice.index')->with('success', 'Data Faktur Penjualan ' . $invoice->fsono . ' berhasil dihapus.');
@@ -1407,5 +1424,10 @@ class InvoiceController extends Controller
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
             return redirect()->route('invoice.delete', $ftranmtid)->with('error', 'Gakey: gal menghapus data: ' . $e->getMessage());
         }
+    }
+
+    private function getUsageLockMessage($header): ?string
+    {
+        return null;
     }
 }
