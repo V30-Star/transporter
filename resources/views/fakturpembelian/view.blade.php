@@ -191,10 +191,10 @@
                                     disabled>
                                     <option value=""></option>
                                     @foreach ($suppliers as $supplier)
-                                        <option value="{{ $supplier->fsupplierid }}"
-                                            {{ old('fsupplier', $fakturpembelian->fsupplier) == $supplier->fsupplierid ? 'selected' : '' }}>
+                                        <option value="{{ $supplier->fsuppliercode }}"
+                                            {{ old('fsupplier', $fakturpembelian->fsupplier) == $supplier->fsuppliercode ? 'selected' : '' }}>
                                             {{ $supplier->fsuppliername }}
-                                            ({{ $supplier->fsupplierid }})
+                                            ({{ $supplier->fsuppliercode }})
                                         </option>
                                     @endforeach
                                 </select>
@@ -229,9 +229,9 @@
                                     disabled>
                                     <option value=""></option>
                                     @foreach ($warehouses as $wh)
-                                        <option value="{{ $wh->fwhid }}" data-id="{{ $wh->fwhid }}"
+                                        <option value="{{ $wh->fwhcode }}" data-id="{{ $wh->fwhid }}"
                                             data-branch="{{ $wh->fbranchcode }}"
-                                            {{ old('ffrom', $fakturpembelian->ffrom) == $wh->fwhid ? 'selected' : '' }}>
+                                            {{ old('ffrom', $fakturpembelian->ffrom) == $wh->fwhcode ? 'selected' : '' }}>
                                             {{ $wh->fwhcode }} - {{ $wh->fwhname }}
                                         </option>
                                     @endforeach
@@ -241,7 +241,7 @@
                                 <div class="absolute inset-0" role="button" aria-label="Browse warehouse"
                                     @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"></div>
                             </div>
-                            <input type="hidden" name="ffrom" id="warehouseIdHidden"
+                            <input type="hidden" name="ffrom" id="warehouseCodeHidden"
                                 value="{{ old('ffrom', $fakturpembelian->ffrom) }}">
 
                             {{-- Tombol-tombol Anda --}}
@@ -431,8 +431,8 @@
                                     <th class="p-2 text-left w-10">#</th>
                                     <th class="p-2 text-left w-40">Kode Produk</th>
                                     <th class="p-2 text-left w-72">Nama Produk</th>
-                                    <th class="p-2 text-left w-72">No Refrensi</th>
-                                    <th class="p-2 text-left w-28">Satuan</th>
+                                    <th class="p-2 text-left w-36">No Refrensi</th>
+                                    <th class="p-2 text-left w-24">Satuan</th>
                                     <th class="p-2 text-right w-24 whitespace-nowrap">Qty.</th>
                                     <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
                                     <th class="p-2 text-right w-32 whitespace-nowrap">@ Biaya</th>
@@ -455,12 +455,10 @@
                                                 <span class="align-middle text-gray-600" x-text="it.fdesc"></span>
                                             </div>
                                         </td>
-                                        <td class="p-2 text-right" x-text="it.frefdtno"></td>
-                                        <td class="p-2 text-right" x-text="it.fsatuan"></td>
+                                        <td class="p-2" x-text="it.frefdtno"></td>
+                                        <td class="p-2" x-text="it.fsatuan"></td>
                                         <td class="p-2 text-right">
                                             <div x-text="fmt(it.fqty)"></div>
-                                            <div class="text-xs text-gray-400 mt-0.5" x-show="it.fitemcode"
-                                                 x-text="(productMeta(it.fitemcode)?.stock || 0) + ' in stock'"></div>
                                         </td>
                                         <td class="p-2 text-right" x-text="fmt(it.fprice)"></td>
                                         <td class="p-2 text-right" x-text="fmt(it.fbiaya)"></td>
@@ -556,9 +554,6 @@
                                         <input type="number" class="border rounded px-2 py-1 w-24 text-right"
                                             min="0" step="1" x-ref="editQty" x-model.number="editRow.fqty"
                                             @input="recalc(editRow)" @keydown.enter.prevent="$refs.editTerima?.focus()">
-                                        <div class="text-xs text-gray-400 mt-0.5 text-right space-y-0.5" x-show="editRow.fitemcode">
-                                            <div x-text="(productMeta(editRow.fitemcode)?.stock || 0) + ' in stock'"></div>
-                                        </div>
                                     </td>
 
                                     <!-- @ Harga -->
@@ -1969,19 +1964,16 @@
             // Helper: update field saat warehouse-picked
             document.addEventListener('DOMContentLoaded', () => {
                 window.addEventListener('warehouse-picked', (ev) => {
-                    const {
-                        fwhcode,
-                        fwhid
-                    } = ev.detail || {};
+                    const { fwhcode } = ev.detail || {};
                     const sel = document.getElementById('warehouseSelect');
-                    const hid = document.getElementById('warehouseIdHidden');
+                    const hid = document.getElementById('warehouseCodeHidden');
                     if (sel) {
                         sel.value = fwhcode || '';
                         sel.dispatchEvent(new Event('change', {
                             bubbles: true
                         }));
                     }
-                    if (hid) hid.value = fwhid || '';
+                    if (hid) hid.value = fwhcode || '';
                 });
             });
         </script>
@@ -2321,11 +2313,11 @@
                                 return;
                             }
 
-                            let opt = [...sel.options].find(o => o.value == String(supplier.fsupplierid));
+                            let opt = [...sel.options].find(o => o.value == String(supplier.fsuppliercode));
                             const label = `${supplier.fsuppliername} (${supplier.fsuppliercode})`;
 
                             if (!opt) {
-                                opt = new Option(label, supplier.fsupplierid, true, true);
+                                opt = new Option(label, supplier.fsuppliercode, true, true);
                                 sel.add(opt);
                             } else {
                                 opt.text = label;
@@ -2333,7 +2325,7 @@
                             }
 
                             sel.dispatchEvent(new Event('change'));
-                            if (hid) hid.value = supplier.fsupplierid;
+                            if (hid) hid.value = supplier.fsuppliercode;
                             this.close();
                         },
 

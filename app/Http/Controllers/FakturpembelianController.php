@@ -126,7 +126,7 @@ class FakturPembelianController extends Controller
     $perPage  = (int) $request->get('per_page', 10);
 
     $query = Tr_poh::query()
-      ->leftJoin('mssupplier', 'tr_poh.fsupplier', '=', 'mssupplier.fsupplierid')
+      ->leftJoin('mssupplier', 'tr_poh.fsupplier', '=', 'mssupplier.fsuppliercode')
       ->select([
         'tr_poh.fpohid',
         'tr_poh.fpono',
@@ -177,11 +177,11 @@ class FakturPembelianController extends Controller
   {
     $header = Tr_poh::where('fpohid', $id)->firstOrFail();
 
-    $items = Tr_pod::where('tr_pod.fpohid', $header->fpohid)
+    $items = Tr_pod::where('tr_pod.fpono', $header->fpono)
       ->leftJoin('msprd as m', 'm.fprdid', '=', 'tr_pod.fprdid')
       ->select([
         'tr_pod.fpodid as frefdtid',
-        'tr_pod.fpodid as frefdtno',
+        DB::raw('tr_pod.fpono as frefdtno'),
         'tr_pod.fprdcode as fitemcode',
         'm.fprdname as fitemname',
         DB::raw('COALESCE(tr_pod.fqtyremain, tr_pod.fqty, 0) as fqty'),
@@ -213,7 +213,7 @@ class FakturPembelianController extends Controller
     $perPage  = (int) $request->get('per_page', 10);
 
     $query = PenerimaanPembelianHeader::query()
-      ->leftJoin('mssupplier', 'trstockmt.fsupplier', '=', 'mssupplier.fsupplierid')
+      ->leftJoin('mssupplier', 'trstockmt.fsupplier', '=', 'mssupplier.fsuppliercode')
       ->select([
         'trstockmt.fstockmtid',
         'trstockmt.fstockmtno',
@@ -265,11 +265,11 @@ class FakturPembelianController extends Controller
   {
     $header = PenerimaanPembelianHeader::where('fstockmtid', $id)->firstOrFail();
 
-    $items = PenerimaanPembelianDetail::where('trstockdt.fstockmtid', $header->fstockmtid)
+    $items = PenerimaanPembelianDetail::where('trstockdt.fstockmtno', $header->fstockmtno)
       ->leftJoin('msprd as m', 'm.fprdid', '=', 'trstockdt.fprdcodeid')
       ->select([
         'trstockdt.fstockdtid as frefdtid',
-        'trstockdt.fstockdtid as frefdtno',
+        'trstockdt.frefdtno',
         'trstockdt.fprdcode as fitemcode',
         'm.fprdname as fitemname',
         DB::raw('COALESCE(trstockdt.fqtyremain, trstockdt.fqty, 0) as fqty'),
@@ -453,14 +453,14 @@ class FakturPembelianController extends Controller
 
   public function print(string $fstockmtno)
   {
-    $supplierSub = Supplier::select('fsupplierid', 'fsuppliercode', 'fsuppliername');
+    $supplierSub = Supplier::select('fsuppliercode', 'fsuppliername');
 
     $hdr = PenerimaanPembelianHeader::query()
       ->leftJoinSub($supplierSub, 's', function ($join) {
-        $join->on('s.fsupplierid', '=', 'trstockmt.fsupplier');
+        $join->on('s.fsuppliercode', '=', 'trstockmt.fsupplier');
       })
       ->leftJoin('mscabang as c', 'c.fcabangkode', '=', 'trstockmt.fbranchcode')
-      ->leftJoin('mswh as w', 'w.fwhid', '=', 'trstockmt.ffrom')
+      ->leftJoin('mswh as w', 'w.fwhcode', '=', 'trstockmt.ffrom')
       ->where('trstockmt.fstockmtno', $fstockmtno)
       ->first([
         'trstockmt.*',
@@ -501,7 +501,7 @@ class FakturPembelianController extends Controller
   public function create(Request $request)
   {
     $suppliers = Supplier::orderBy('fsuppliername', 'asc')
-      ->get(['fsupplierid', 'fsuppliername']);
+      ->get(['fsuppliercode', 'fsuppliername']);
 
     $warehouses = DB::table('mswh')
       ->select('fwhid', 'fwhcode', 'fwhname', 'fbranchcode', 'fnonactive')
@@ -512,7 +512,7 @@ class FakturPembelianController extends Controller
     $accounts = DB::table('account')
       ->select('faccid', 'faccount', 'faccname', 'fnonactive')
       ->where('fnonactive', '0')
-      ->orderBy('account')
+      ->orderBy('faccount')
       ->get();
 
     $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
@@ -582,7 +582,7 @@ class FakturPembelianController extends Controller
       $fstockmtno   = trim((string)$request->input('fstockmtno'));
       $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
       $fsupplier    = trim((string)$request->input('fsupplier'));
-      $ffrom        = $request->input('fwhid');
+      $ffrom        = trim((string)$request->input('ffrom'));
       $fket         = trim((string)$request->input('fket', ''));
       $fbranchcode  = $request->input('fbranchcode');
       $faccid       = $request->input('faccid');
@@ -808,7 +808,7 @@ class FakturPembelianController extends Controller
   public function edit(Request $request, $fstockmtid)
   {
     $suppliers = Supplier::orderBy('fsuppliername', 'asc')
-      ->get(['fsupplierid', 'fsuppliername']);
+      ->get(['fsuppliercode', 'fsuppliername']);
 
     // 1. PINDAHKAN INI KE ATAS
     // Ambil data Header (trstockmt) DULU
@@ -851,8 +851,12 @@ class FakturPembelianController extends Controller
       ->orderBy('fwhcode')
       ->get();
 
-    $fcabang = $branch->fcabangname ?? (string) $raw;
-    $fbranchcode = $branch->fcabangkode ?? (string) $raw;
+    $defaultCabang = $branch->fcabangname ?? (string) $raw;
+    $defaultBranchCode = $branch->fcabangkode ?? (string) $raw;
+    $savedBranchCode = trim((string) ($fakturpembelian->fbranchcode ?? ''));
+    $savedBranchName = $savedBranchCode !== ''
+      ? DB::table('mscabang')->where('fcabangkode', $savedBranchCode)->value('fcabangname')
+      : null;
 
     // (Query $fakturpembelian sudah dipindah ke atas)
     $currentAccount = trim($fakturpembelian->fprdjadi ?? '');
@@ -973,8 +977,8 @@ class FakturPembelianController extends Controller
     return view('fakturpembelian.edit', [
       'suppliers' => $suppliers,
       'selectedSupplierCode' => $selectedSupplierCode,
-      'fcabang' => $fcabang,
-      'fbranchcode' => $fbranchcode,
+      'fcabang' => $savedBranchName ?? $defaultCabang,
+      'fbranchcode' => $savedBranchCode ?: $defaultBranchCode,
       'warehouses' => $warehouses,
       'products' => $products,
       'accounts' => $accounts,
@@ -994,7 +998,7 @@ class FakturPembelianController extends Controller
   public function view(Request $request, $fstockmtid)
   {
     $suppliers = Supplier::orderBy('fsuppliername', 'asc')
-      ->get(['fsupplierid', 'fsuppliername']);
+      ->get(['fsuppliercode', 'fsuppliername']);
 
     // 1. PINDAHKAN INI KE ATAS
     // Ambil data Header (trstockmt) DULU
@@ -1037,8 +1041,12 @@ class FakturPembelianController extends Controller
       ->orderBy('fwhcode')
       ->get();
 
-    $fcabang = $branch->fcabangname ?? (string) $raw;
-    $fbranchcode = $branch->fcabangkode ?? (string) $raw;
+    $defaultCabang = $branch->fcabangname ?? (string) $raw;
+    $defaultBranchCode = $branch->fcabangkode ?? (string) $raw;
+    $savedBranchCode = trim((string) ($fakturpembelian->fbranchcode ?? ''));
+    $savedBranchName = $savedBranchCode !== ''
+      ? DB::table('mscabang')->where('fcabangkode', $savedBranchCode)->value('fcabangname')
+      : null;
     // (Query $fakturpembelian sudah dipindah ke atas)
     $currentAccount = trim($fakturpembelian->fprdjadi ?? '');
     $currentAccountRecord = $accounts->firstWhere('faccount', trim($fakturpembelian->fprdjadi ?? ''));
@@ -1098,8 +1106,8 @@ class FakturPembelianController extends Controller
     return view('fakturpembelian.view', [
       'suppliers' => $suppliers,
       'selectedSupplierCode' => $selectedSupplierCode,
-      'fcabang' => $fcabang,
-      'fbranchcode' => $fbranchcode,
+      'fcabang' => $savedBranchName ?? $defaultCabang,
+      'fbranchcode' => $savedBranchCode ?: $defaultBranchCode,
       'warehouses' => $warehouses,
       'products' => $products,
       'accounts' => $accounts,
@@ -1126,7 +1134,7 @@ class FakturPembelianController extends Controller
         'fstockmtno' => ['nullable', 'string', 'max:100'],
         'fstockmtdate' => ['required', 'date'],
         'fsupplier' => ['required', 'string', 'max:30'],
-        'ffrom' => ['nullable', 'integer', 'exists:mswh,fwhid'],
+        'ffrom' => ['nullable', 'string', 'max:30'],
         'fket' => ['nullable', 'string', 'max:50'],
         'fbranchcode' => ['nullable', 'string', 'max:20'],
         'faccid' => ['nullable', 'integer'],
@@ -1176,7 +1184,7 @@ class FakturPembelianController extends Controller
       $fstockmtno = $header->fstockmtno;
       $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
       $fsupplier = trim((string)$request->input('fsupplier'));
-      $ffrom = $request->input('ffrom');
+      $ffrom = trim((string)$request->input('ffrom'));
       $fket = trim((string)$request->input('fket', ''));
       $fbranchcode = $request->input('fbranchcode');
       $faccid = $request->input('faccid');
@@ -1229,7 +1237,7 @@ class FakturPembelianController extends Controller
 
       $oldUsageBySourceRef = [];
       $oldDetails = DB::table('trstockdt')
-        ->where('fstockmtid', $header->fstockmtid)
+        ->where('fstockmtno', $header->fstockmtno)
         ->get(['frefdtid', 'fqty']);
 
       foreach ($oldDetails as $oldDetail) {
@@ -1438,7 +1446,7 @@ class FakturPembelianController extends Controller
   public function delete(Request $request, $fstockmtid)
   {
     $suppliers = Supplier::orderBy('fsuppliername', 'asc')
-      ->get(['fsupplierid', 'fsuppliername']);
+      ->get(['fsuppliercode', 'fsuppliername']);
 
     // 1. PINDAHKAN INI KE ATAS
     // Ambil data Header (trstockmt) DULU
@@ -1481,8 +1489,12 @@ class FakturPembelianController extends Controller
       ->orderBy('fwhcode')
       ->get();
 
-    $fcabang = $branch->fcabangname ?? (string) $raw;
-    $fbranchcode = $branch->fcabangkode ?? (string) $raw;
+    $defaultCabang = $branch->fcabangname ?? (string) $raw;
+    $defaultBranchCode = $branch->fcabangkode ?? (string) $raw;
+    $savedBranchCode = trim((string) ($fakturpembelian->fbranchcode ?? ''));
+    $savedBranchName = $savedBranchCode !== ''
+      ? DB::table('mscabang')->where('fcabangkode', $savedBranchCode)->value('fcabangname')
+      : null;
     $currentAccount = trim($fakturpembelian->fprdjadi ?? '');
     $currentAccountRecord = $accounts->firstWhere('faccount', trim($fakturpembelian->fprdjadi ?? ''));
     $currentAccountId = $currentAccountRecord?->faccid ?? '';
@@ -1540,8 +1552,8 @@ class FakturPembelianController extends Controller
     return view('fakturpembelian.edit', [
       'suppliers' => $suppliers,
       'selectedSupplierCode' => $selectedSupplierCode,
-      'fcabang' => $fcabang,
-      'fbranchcode' => $fbranchcode,
+      'fcabang' => $savedBranchName ?? $defaultCabang,
+      'fbranchcode' => $savedBranchCode ?: $defaultBranchCode,
       'warehouses' => $warehouses,
       'products' => $products,
       'accounts' => $accounts,
