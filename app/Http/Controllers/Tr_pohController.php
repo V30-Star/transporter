@@ -53,14 +53,12 @@ class Tr_pohController extends Controller
           'tr_poh.fapproval',
           'tr_poh.fdatetime',
           'mssupplier.fsuppliername',
-          'tr_prd.fprno',
+          'tr_prh.fprno',
           DB::raw('STRING_AGG(DISTINCT tr_pod.frefdtno, \', \') as frefdtno'),
         ])
-        ->leftJoin('mssupplier', 'tr_poh.fsupplier', '=', 'mssupplier.fsupplierid')
-        ->leftJoin('tr_pod', 'tr_poh.fpohid', '=', 'tr_pod.fpohid')
-        ->leftJoin('tr_prd', function ($join) {
-          $join->whereRaw('tr_prd.fprdid = CAST(tr_pod.frefdtid AS INTEGER)');
-        });
+        ->leftJoin('mssupplier', 'tr_poh.fsupplier', '=', 'mssupplier.fsuppliercode')
+        ->leftJoin('tr_pod', 'tr_poh.fpono', '=', 'tr_pod.fpono')
+        ->leftJoin('tr_prh', 'tr_prh.fprno', '=', 'tr_pod.frefdtno');
 
       $totalRecords = Tr_poh::count();
 
@@ -101,7 +99,7 @@ class Tr_pohController extends Controller
         'tr_poh.fapproval',
         'tr_poh.fdatetime', // Pastikan semua kolom tr_poh masuk atau gunakan agregat
         'mssupplier.fsuppliername',
-        'tr_prd.fprno'
+        'tr_prh.fprno'
       );
 
       $filteredRecords = DB::table(DB::raw("({$query->toSql()}) as sub"))
@@ -161,7 +159,7 @@ class Tr_pohController extends Controller
   public function pickable(Request $request)
   {
     // Base query dengan JOIN
-    $query = Tr_prh::leftJoin('mssupplier', 'tr_prh.fsupplier', '=', 'mssupplier.fsupplierid')
+    $query = Tr_prh::leftJoin('mssupplier', 'tr_prh.fsupplier', '=', 'mssupplier.fsuppliercode')
       ->select(
         'tr_prh.*',
         'mssupplier.fsuppliername',
@@ -232,7 +230,7 @@ class Tr_pohController extends Controller
             WHERE frefdtid IS NOT NULL
             GROUP BY CAST(frefdtid AS BIGINT)
         ) as o'), 'o.fprdlineid', '=', 'd.fprdid')
-      ->where('d.fprhid', $fprhid)
+            ->where('d.fprno', $header->fprno)
       ->select([
         DB::raw('d.fprdcodeid::text as frefdtno'),
         'm.fprdcode as fitemcode',
@@ -429,14 +427,14 @@ class Tr_pohController extends Controller
     return $prefix . str_pad((string)$next, 4, '0', STR_PAD_LEFT);
   }
 
-  public function print(string $fpohid)
+  public function print(string $fpono)
   {
     $supplierTable = (new Supplier)->getTable();
 
     $hdr = Tr_poh::query()
-      ->leftJoin("{$supplierTable} as s", 's.fsupplierid', '=', 'tr_poh.fsupplier')
+      ->leftJoin("{$supplierTable} as s", 's.fsuppliercode', '=', 'tr_poh.fsupplier')
       ->leftJoin('mscabang as c', 'c.fcabangkode', '=', 'tr_poh.fbranchcode')
-      ->where('tr_poh.fpohid', $fpohid)
+      ->where('tr_poh.fpono', $fpono)
       ->first([
         'tr_poh.*',
         's.fsuppliername as supplier_name',
@@ -448,13 +446,11 @@ class Tr_pohController extends Controller
       return redirect()->back()->with('error', 'PO tidak ditemukan.');
     }
 
-    $fpohid = (int) $hdr->fpohid;
-
     $dt = DB::table('tr_pod')
       ->leftJoin('msprd as p', function ($j) {
         $j->on('p.fprdid', '=', DB::raw('CAST(tr_pod.fprdid AS INTEGER)'));
       })
-      ->where('tr_pod.fpohid', $fpohid)
+      ->where('tr_pod.fpono', $hdr->fpono)
       ->orderBy('tr_pod.fnou')
       ->get([
         'tr_pod.*',
@@ -496,7 +492,7 @@ class Tr_pohController extends Controller
     }
 
     $row = DB::table('tr_poh as m')
-      ->join('tr_pod as d', 'm.fpohid', '=', 'd.fpohid')
+      ->join('tr_pod as d', 'm.fpono', '=', 'd.fpono')
       ->whereRaw("trim(d.fprdcode) = ?", [$fprdcode])
       ->whereRaw("trim(m.fsupplier::text) = ?", [$fsupplier])
       ->whereRaw("trim(d.fsatuan) = ?", [$fsatuan])
@@ -514,7 +510,7 @@ class Tr_pohController extends Controller
   public function create(Request $request)
   {
     $suppliers = Supplier::orderBy('fsuppliername', 'asc')
-      ->get(['fsupplierid', 'fsuppliername']);
+      ->get(['fsupplierid', 'fsuppliercode', 'fsuppliername']);
 
     $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
@@ -817,7 +813,7 @@ class Tr_pohController extends Controller
 
           $dt  = Tr_pod::from('tr_pod as d')
             ->leftJoin('msprd as p', 'p.fprdid', '=', 'd.fprdid')  // <-- FK to msprd.fprdid
-            ->where('d.fpohid', $fpohid) // integer FK now
+            ->where('d.fpono', $hdr->fpono)
             ->orderBy('p.fprdname')
             ->get([
               'd.*',
@@ -834,7 +830,7 @@ class Tr_pohController extends Controller
       }
 
       // numbering + insert details — use fpohid
-      $lastNou = (int) DB::table('tr_pod')->where('fpohid', $fpohid)->max('fnou');
+      $lastNou = (int) DB::table('tr_pod')->where('fpono', $fpono)->max('fnou');
       $nextNou = $lastNou + 1;
 
       foreach ($rowsPod as &$r) {
@@ -858,7 +854,7 @@ class Tr_pohController extends Controller
   public function edit(Request $request, $fpohid)
   {
     $suppliers = Supplier::orderBy('fsuppliername', 'asc')
-      ->get(['fsupplierid', 'fsuppliername']);
+      ->get(['fsupplierid', 'fsuppliercode', 'fsuppliername']);
 
     $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
@@ -933,13 +929,11 @@ class Tr_pohController extends Controller
       ->groupBy('fprdcode')
       ->pluck('total_terima', 'fprdcode');
 
-    $fpohidInt = (int) $tr_poh->fpohid;
-
     $prQtyMap = DB::table('tr_prd as d')
-      ->join('tr_pod as pod', function ($join) use ($fpohidInt) {
-        $join->on('pod.frefdtid', '=', 'd.fprhid')
+      ->join('tr_pod as pod', function ($join) use ($tr_poh) {
+        $join->on('pod.frefdtid', '=', 'd.fprdid')
           ->on('pod.fprdid', '=', 'd.fprdcodeid')
-          ->where('pod.fpohid', '=', $fpohidInt);
+          ->where('pod.fpono', '=', $tr_poh->fpono);
       })
       ->select('pod.fpodid', 'd.fqty as qty_pr')
       ->get()
@@ -1075,7 +1069,7 @@ class Tr_pohController extends Controller
   public function view(Request $request, $fpohid)
   {
     $suppliers = Supplier::orderBy('fsuppliername', 'asc')
-      ->get(['fsupplierid', 'fsuppliername']);
+      ->get(['fsupplierid', 'fsuppliercode', 'fsuppliername']);
 
     $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
@@ -1330,7 +1324,7 @@ class Tr_pohController extends Controller
       ]);
     }
 
-    $oldPods = DB::table('tr_pod')->where('fpohid', $fponoId)->get(['frefdtid', 'fqtykecil']);
+    $oldPods = DB::table('tr_pod')->where('fpono', $header->fpono)->get(['frefdtid', 'fqtykecil']);
 
     // Strict server-side guard untuk mode edit:
     // qty baru tidak boleh melebihi (sisa PR saat ini + qty lama PO ini) per baris PR.
@@ -1417,7 +1411,7 @@ class Tr_pohController extends Controller
           ]);
         $fpono = DB::table('tr_poh')->where('fpohid', $fpohid)->value('fpono');
 
-        DB::table('tr_pod')->where('fpohid', $fponoId)->delete();
+        DB::table('tr_pod')->where('fpono', $header->fpono)->delete();
         // UPDATE STOK - gunakan qtyKecil hasil konversi, bukan qty mentah
         foreach ($rowsPod as $row) {
           DB::table('msprd')
@@ -1452,7 +1446,7 @@ class Tr_pohController extends Controller
   public function delete(Request $request, $fpohid)
   {
     $suppliers = Supplier::orderBy('fsuppliername', 'asc')
-      ->get(['fsupplierid', 'fsuppliername']);
+      ->get(['fsupplierid', 'fsuppliercode', 'fsuppliername']);
 
     $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
@@ -1633,7 +1627,7 @@ class Tr_pohController extends Controller
       }
 
       DB::transaction(function () use ($tr_poh) {
-        $oldPods = DB::table('tr_pod')->where('fpohid', $tr_poh->fpohid)->get(['frefdtid', 'fqtykecil']);
+        $oldPods = DB::table('tr_pod')->where('fpono', $tr_poh->fpono)->get(['frefdtid', 'fqtykecil']);
         $this->restorePrdRemainFromPodRows($oldPods);
         $tr_poh->details()->delete();
         $tr_poh->delete();

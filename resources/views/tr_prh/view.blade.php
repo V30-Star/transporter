@@ -121,9 +121,9 @@
                                     class="w-full border rounded-l px-3 py-2 bg-gray-200 text-gray-700" disabled>
                                     <option value=""></option>
                                     @foreach ($suppliers as $supplier)
-                                        <option value="{{ $supplier->fsupplierid }}"
-                                            {{ old('fsupplier', $tr_prh->fsupplier) == $supplier->fsupplierid ? 'selected' : '' }}>
-                                            {{ $supplier->fsuppliername }}
+                                        <option value="{{ $supplier->fsuppliercode }}"
+                                            {{ old('fsupplier', $tr_prh->fsupplier) == $supplier->fsuppliercode ? 'selected' : '' }}>
+                                            {{ $supplier->fsuppliername }} ({{ $supplier->fsuppliercode }})
                                         </option>
                                     @endforeach
                                 </select>
@@ -793,11 +793,11 @@
                             return;
                         }
 
-                        let opt = [...sel.options].find(o => o.value == String(supplier.fsupplierid));
+                        let opt = [...sel.options].find(o => o.value == String(supplier.fsuppliercode));
                         const label = `${supplier.fsuppliername} (${supplier.fsuppliercode})`;
 
                         if (!opt) {
-                            opt = new Option(label, supplier.fsupplierid, true, true);
+                            opt = new Option(label, supplier.fsuppliercode, true, true);
                             sel.add(opt);
                         } else {
                             opt.text = label;
@@ -805,7 +805,7 @@
                         }
 
                         sel.dispatchEvent(new Event('change'));
-                        if (hid) hid.value = supplier.fsupplierid;
+                        if (hid) hid.value = supplier.fsuppliercode;
                         this.close();
                     },
 

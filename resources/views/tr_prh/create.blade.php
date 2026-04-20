@@ -150,9 +150,9 @@
                                     disabled>
                                     <option value=""></option>
                                     @foreach ($suppliers as $supplier)
-                                        <option value="{{ $supplier->fsupplierid }}"
-                                            {{ $filterSupplierId == $supplier->fsupplierid ? 'selected' : '' }}>
-                                            {{ $supplier->fsuppliername }} ({{ $supplier->fsupplierid }})
+                                        <option value="{{ $supplier->fsuppliercode }}"
+                                            {{ $filterSupplierId == $supplier->fsuppliercode ? 'selected' : '' }}>
+                                            {{ $supplier->fsuppliername }} ({{ $supplier->fsuppliercode }})
                                         </option>
                                     @endforeach
                                 </select>
@@ -777,17 +777,17 @@
                     this.close();
                     return;
                 }
-                let opt = [...sel.options].find(o => o.value == String(supplier.fsupplierid));
+                let opt = [...sel.options].find(o => o.value == String(supplier.fsuppliercode));
                 const label = `${supplier.fsuppliername} (${supplier.fsuppliercode})`;
                 if (!opt) {
-                    opt = new Option(label, supplier.fsupplierid, true, true);
+                    opt = new Option(label, supplier.fsuppliercode, true, true);
                     sel.add(opt);
                 } else {
                     opt.text = label;
                     opt.selected = true;
                 }
                 sel.dispatchEvent(new Event('change'));
-                if (hid) hid.value = supplier.fsupplierid;
+                if (hid) hid.value = supplier.fsuppliercode;
                 this.close();
             },
 

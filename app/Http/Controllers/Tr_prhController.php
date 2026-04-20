@@ -38,7 +38,7 @@ class Tr_prhController extends Controller
         if ($request->ajax()) {
 
             $query = Tr_prh::query()
-                ->leftJoin('mssupplier', 'tr_prh.fsupplier', '=', 'mssupplier.fsupplierid');
+                ->leftJoin('mssupplier', 'tr_prh.fsupplier', '=', 'mssupplier.fsuppliercode');
             $totalRecords = Tr_prh::count();
 
             // Kolom yang bisa dicari
@@ -196,14 +196,14 @@ class Tr_prhController extends Controller
         });
     }
 
-    public function print(string $fprhid)
+    public function print(string $fprno)
     {
         $supplierSub = (new Supplier)->getTable();
 
         $hdr = Tr_prh::query()
-            ->leftJoin("{$supplierSub} as s", 's.fsupplierid', '=', 'tr_prh.fsupplier')
+            ->leftJoin("{$supplierSub} as s", 's.fsuppliercode', '=', 'tr_prh.fsupplier')
             ->leftJoin('mscabang as c', 'c.fcabangkode', '=', 'tr_prh.fbranchcode')
-            ->where('tr_prh.fprhid', $fprhid)
+            ->where('tr_prh.fprno', $fprno)
             ->first([
                 'tr_prh.*',
                 's.fsuppliername as supplier_name',
@@ -214,7 +214,7 @@ class Tr_prhController extends Controller
 
         $dt = Tr_prd::query()
             ->leftJoin('msprd as p', 'p.fprdid', '=', 'tr_prd.fprdcodeid')
-            ->where('tr_prd.fprhid', $hdr->fprhid)
+            ->where('tr_prd.fprno', $hdr->fprno)
             ->orderBy('p.fprdname')
             ->get([
                 'tr_prd.*',
@@ -240,7 +240,7 @@ class Tr_prhController extends Controller
 
         // Ambil SEMUA Supplier untuk dropdown filter
         $suppliers = Supplier::orderBy('fsuppliername', 'asc')
-            ->get(['fsupplierid', 'fsuppliername']);
+            ->get(['fsupplierid', 'fsuppliercode', 'fsuppliername']);
 
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
@@ -485,7 +485,7 @@ class Tr_prhController extends Controller
             if ($isApproval === 1) {
                 $dt = Tr_prd::query()
                     ->leftJoin('msprd as p', 'p.fprdid', '=', 'tr_prd.fprdcodeid')
-                    ->where('tr_prd.fprhid', $tr_prh->fprhid)
+                    ->where('tr_prd.fprno', $tr_prh->fprno)
                     ->orderBy('p.fprdname')
                     ->get([
                         'tr_prd.*',
@@ -508,7 +508,7 @@ class Tr_prhController extends Controller
     public function view(Request $request, $fprhid)
     {
         $suppliers = Supplier::orderBy('fsuppliername', 'asc')
-            ->get(['fsupplierid', 'fsuppliername']);
+            ->get(['fsupplierid', 'fsuppliercode', 'fsuppliername']);
 
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
@@ -532,32 +532,36 @@ class Tr_prhController extends Controller
                 );
         }])
             // PINDAHKAN KE SINI (Query Header)
-            ->leftJoin('mssupplier as s', 's.fsupplierid', '=', 'tr_prh.fsupplier')
+            ->leftJoin('mssupplier as s', 's.fsuppliercode', '=', 'tr_prh.fsupplier')
             ->select('tr_prh.*', 's.fsuppliername')
             ->findOrFail($fprhid);
 
-        $fprhid = (int) $tr_prh->fprhid;
+        $existingPO = DB::table('tr_pod as pod')
+            ->join('tr_poh as poh', 'poh.fpono', '=', 'pod.fpono')
+            ->leftJoin('mssupplier as s', 's.fsuppliercode', '=', 'poh.fsupplier')
+            ->where('pod.frefdtno', $tr_prh->fprno)
+            ->select('poh.fpono', 'poh.fpodate', 's.fsuppliername')
+            ->distinct()
+            ->orderBy('poh.fpodate', 'desc')
+            ->get();
 
-        $blockedByPO = DB::table('tr_pod')
-            ->where('fnou', $fprhid)
-            ->whereNotNull('fnou')
-            ->exists();
+        $blockedByPO = $existingPO->isNotEmpty();
 
         $details = DB::table('tr_prd as d')
             ->leftJoin('msprd as p', 'p.fprdid', '=', 'd.fprdcodeid')
             ->leftJoin(
                 DB::raw('(
-                                    SELECT frefdtid, fprdid, SUM(fqtykecil) AS fqtypo
+                                    SELECT frefdtno, frefdtid, SUM(fqtykecil) AS fqtypo
                                     FROM tr_pod
-                                    WHERE frefdtid IS NOT NULL AND frefdtid > 0
-                                    GROUP BY frefdtid, fprdid
+                                    WHERE frefdtno IS NOT NULL AND frefdtno <> \'\'
+                                    GROUP BY frefdtno, frefdtid
                                 ) as o'),
-                function ($join) use ($fprhid) {
-                    $join->whereRaw('o.frefdtid = ?', [$fprhid])   // ← pakai whereRaw
-                        ->on('o.fprdid', '=', 'p.fprdid');
+                function ($join) {
+                    $join->on('o.frefdtno', '=', 'd.fprno')
+                        ->on(DB::raw('CAST(o.frefdtid AS BIGINT)'), '=', 'd.fprdid');
                 }
             )
-            ->where('d.fprhid', $fprhid)
+            ->where('d.fprno', $tr_prh->fprno)
             ->select([
                 'd.*',
                 'p.fprdname',
@@ -628,6 +632,7 @@ class Tr_prhController extends Controller
             'tr_prh' => $tr_prh,
             'savedItems' => $savedItems,
             'blockedByPO' => $blockedByPO,
+            'existingPO' => $existingPO,
             'filterSupplierId' => $request->query('filter_supplier_id'),
         ]);
     }
@@ -635,7 +640,7 @@ class Tr_prhController extends Controller
     public function edit(Request $request, $fprhid)
     {
         $suppliers = Supplier::orderBy('fsuppliername', 'asc')
-            ->get(['fsupplierid', 'fsuppliername']);
+            ->get(['fsupplierid', 'fsuppliercode', 'fsuppliername']);
 
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
@@ -659,32 +664,36 @@ class Tr_prhController extends Controller
                 );
         }])
             // PINDAHKAN KE SINI (Query Header)
-            ->leftJoin('mssupplier as s', 's.fsupplierid', '=', 'tr_prh.fsupplier')
+            ->leftJoin('mssupplier as s', 's.fsuppliercode', '=', 'tr_prh.fsupplier')
             ->select('tr_prh.*', 's.fsuppliername')
             ->findOrFail($fprhid);
 
-        $fprhid = (int) $tr_prh->fprhid;
+        $existingPO = DB::table('tr_pod as pod')
+            ->join('tr_poh as poh', 'poh.fpono', '=', 'pod.fpono')
+            ->leftJoin('mssupplier as s', 's.fsuppliercode', '=', 'poh.fsupplier')
+            ->where('pod.frefdtno', $tr_prh->fprno)
+            ->select('poh.fpono', 'poh.fpodate', 's.fsuppliername')
+            ->distinct()
+            ->orderBy('poh.fpodate', 'desc')
+            ->get();
 
-        $blockedByPO = DB::table('tr_pod')
-            ->where('fnou', $fprhid)
-            ->whereNotNull('fnou')
-            ->exists();
+        $blockedByPO = $existingPO->isNotEmpty();
 
         $details = DB::table('tr_prd as d')
             ->leftJoin('msprd as p', 'p.fprdid', '=', 'd.fprdcodeid')
             ->leftJoin(
                 DB::raw('(
-                                    SELECT frefdtid, fprdid, SUM(fqtykecil) AS fqtypo
+                                    SELECT frefdtno, frefdtid, SUM(fqtykecil) AS fqtypo
                                     FROM tr_pod
-                                    WHERE frefdtid IS NOT NULL AND frefdtid > 0
-                                    GROUP BY frefdtid, fprdid
+                                    WHERE frefdtno IS NOT NULL AND frefdtno <> \'\'
+                                    GROUP BY frefdtno, frefdtid
                                 ) as o'),
-                function ($join) use ($fprhid) {
-                    $join->whereRaw('o.frefdtid = ?', [$fprhid])   // ← pakai whereRaw
-                        ->on('o.fprdid', '=', 'p.fprdid');
+                function ($join) {
+                    $join->on('o.frefdtno', '=', 'd.fprno')
+                        ->on(DB::raw('CAST(o.frefdtid AS BIGINT)'), '=', 'd.fprdid');
                 }
             )
-            ->where('d.fprhid', $fprhid)
+            ->where('d.fprno', $tr_prh->fprno)
             ->select([
                 'd.*',
                 'p.fprdname',
@@ -755,6 +764,7 @@ class Tr_prhController extends Controller
             'tr_prh' => $tr_prh,
             'savedItems' => $savedItems,
             'blockedByPO' => $blockedByPO,
+            'existingPO' => $existingPO,
             'action' => 'edit',
             'filterSupplierId' => $request->query('filter_supplier_id'),
         ]);
@@ -838,7 +848,7 @@ class Tr_prhController extends Controller
         $productMap = $products;
 
         // ===== 7) AMBIL DATA LAMA UNTUK VALDASI QTY-PO & STOK =====
-        $oldDetails = DB::table('tr_prd')->where('fprhid', $fprhid)->get()->keyBy('fprdid');
+        $oldDetails = DB::table('tr_prd')->where('fprno', $header->fprno)->get()->keyBy('fprdid');
 
         // Hitung QTY PO per detail ID
         $poUsage = DB::table('tr_pod')
@@ -921,7 +931,7 @@ class Tr_prhController extends Controller
             $approveNow = $request->boolean('fapproval');
             $headerUpdate = [
                 'fprdate' => $fprdate,
-                'fsupplier' => $request->filled('fsupplier') ? (int) $request->fsupplier : $header->fsupplier,
+                'fsupplier' => $request->filled('fsupplier') ? trim((string) $request->fsupplier) : $header->fsupplier,
                 'fket' => $request->fket,
                 'fbranchcode' => $request->fbranchcode,
                 'fneeddate' => $fneeddate,
@@ -943,7 +953,7 @@ class Tr_prhController extends Controller
             // Hapus detail yang tidak ada di form (ORPHANS)
             // Pastikan tidak menghapus yang sudah ada PO (seharusnya sudah dicek di frontend/validasi)
             DB::table('tr_prd')
-                ->where('fprhid', $fprhid)
+                ->where('fprno', $header->fprno)
                 ->whereNotIn('fprdid', $submittedIds)
                 ->delete();
 
@@ -1018,7 +1028,7 @@ class Tr_prhController extends Controller
     public function delete(Request $request, $fprhid)
     {
         $suppliers = Supplier::orderBy('fsuppliername', 'asc')
-            ->get(['fsupplierid', 'fsuppliername']);
+            ->get(['fsupplierid', 'fsuppliercode', 'fsuppliername']);
 
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
@@ -1042,24 +1052,22 @@ class Tr_prhController extends Controller
                 );
         }])
             // PINDAHKAN KE SINI (Query Header)
-            ->leftJoin('mssupplier as s', 's.fsupplierid', '=', 'tr_prh.fsupplier')
-            ->select('tr_prh.*', 's.fsuppliername')
+            ->leftJoin('mssupplier as s', 's.fsuppliercode', '=', 'tr_prh.fsupplier')
+            ->select('tr_prh.*', 's.fsuppliername', 's.fsuppliercode')
             ->findOrFail($fprhid);
-
-        $fprhid = (int) $tr_prh->fprhid;
 
         $details = DB::table('tr_prd as d')
             ->leftJoin('msprd as p', 'p.fprdid', '=', 'd.fprdcodeid')
             ->leftJoin(DB::raw('(
-        SELECT frefdtid, fprdid, SUM(fqtykecil) AS fqtypo
+        SELECT frefdtno, frefdtid, SUM(fqtykecil) AS fqtypo
         FROM tr_pod
-        WHERE frefdtid IS NOT NULL AND frefdtid > 0
-        GROUP BY frefdtid, fprdid
-    ) as o'), function ($join) use ($fprhid) {
-                $join->whereRaw('o.frefdtid = ?', [$fprhid])
-                    ->on('o.fprdid', '=', 'p.fprdid');
+        WHERE frefdtno IS NOT NULL AND frefdtno <> \'\'
+        GROUP BY frefdtno, frefdtid
+    ) as o'), function ($join) {
+                $join->on('o.frefdtno', '=', 'd.fprno')
+                    ->on(DB::raw('CAST(o.frefdtid AS BIGINT)'), '=', 'd.fprdid');
             })
-            ->where('d.fprhid', $fprhid)
+            ->where('d.fprno', $tr_prh->fprno)
             ->select([
                 'd.*',
                 'p.fprdname',
@@ -1126,6 +1134,14 @@ class Tr_prhController extends Controller
             'productMap' => $productMap,
             'tr_prh' => $tr_prh,
             'savedItems' => $savedItems,
+            'existingPO' => DB::table('tr_pod as pod')
+                ->join('tr_poh as poh', 'poh.fpono', '=', 'pod.fpono')
+                ->leftJoin('mssupplier as s', 's.fsuppliercode', '=', 'poh.fsupplier')
+                ->where('pod.frefdtno', $tr_prh->fprno)
+                ->select('poh.fpono', 'poh.fpodate', 's.fsuppliername')
+                ->distinct()
+                ->orderBy('poh.fpodate', 'desc')
+                ->get(),
             'filterSupplierId' => $request->query('filter_supplier_id'),
             'action' => 'delete',
         ]);
@@ -1135,7 +1151,10 @@ class Tr_prhController extends Controller
     {
         try {
             $tr_prh = Tr_prh::findOrFail($fprhid);
-            $tr_prh->delete();
+            DB::transaction(function () use ($tr_prh) {
+                $tr_prh->details()->delete();
+                $tr_prh->delete();
+            });
 
             return redirect()->route('tr_prh.index')->with('success', 'Data Permintaan Pembelian ' . $tr_prh->fprno . ' berhasil dihapus.');
         } catch (\Exception $e) {

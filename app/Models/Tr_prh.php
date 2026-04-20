@@ -26,6 +26,6 @@ class Tr_prh extends Model
 
   public function details()
   {
-    return $this->hasMany(Tr_prd::class, 'fprhid', 'fprhid');
+    return $this->hasMany(Tr_prd::class, 'fprno', 'fprno');
   }
 }

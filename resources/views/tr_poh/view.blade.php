@@ -47,9 +47,9 @@
                 <select disabled class="w-full border rounded px-3 py-2 bg-gray-100 text-gray-600 cursor-not-allowed">
                     <option value=""></option>
                     @foreach ($suppliers as $supplier)
-                        <option value="{{ $supplier->fsupplierid }}"
-                            {{ $tr_poh->fsupplier == $supplier->fsupplierid ? 'selected' : '' }}>
-                            {{ $supplier->fsuppliername }} 
+                        <option value="{{ $supplier->fsuppliercode }}"
+                            {{ $tr_poh->fsupplier == $supplier->fsuppliercode ? 'selected' : '' }}>
+                            {{ $supplier->fsuppliername }} ({{ $supplier->fsuppliercode }})
                         </option>
                     @endforeach
                 </select>

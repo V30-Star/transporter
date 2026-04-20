@@ -25,10 +25,10 @@ class Tr_poh extends Model
   }
   public function details()
   {
-    return $this->hasMany(Tr_pod::class, 'fpohid', 'fpohid');
+    return $this->hasMany(Tr_pod::class, 'fpono', 'fpono');
   }
   public function supplier()
   {
-    return $this->belongsTo(Supplier::class, 'fsupplier', 'fsupplierid');
+    return $this->belongsTo(Supplier::class, 'fsupplier', 'fsuppliercode');
   }
 }
