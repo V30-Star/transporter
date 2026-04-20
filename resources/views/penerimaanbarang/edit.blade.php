@@ -95,6 +95,40 @@
             </div>
         </div>
     @endif
+    @php
+        $usageLocked = !empty($isUsageLocked);
+    @endphp
+    @if ($usageLocked)
+        <div x-data="{ open: true }" x-show="open" x-cloak class="fixed inset-0 z-[99] flex items-center justify-center"
+            x-transition.opacity>
+            <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+            <div class="relative bg-white w-[92vw] max-w-xl rounded-2xl shadow-2xl overflow-hidden">
+                <div class="px-6 py-4 border-b border-orange-100 bg-orange-50 flex items-center gap-3">
+                    <div class="flex-shrink-0 w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
+                        <x-heroicon-o-lock-closed class="w-5 h-5 text-orange-600" />
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-base font-bold text-orange-700">
+                            {{ $action === 'delete' ? 'Penerimaan Barang Tidak Dapat Dihapus' : 'Penerimaan Barang Tidak Dapat Diedit' }}
+                        </h3>
+                        <p class="text-sm text-orange-500 mt-0.5">{{ $usageLockMessage }}</p>
+                    </div>
+                    <button type="button" @click="open = false"
+                        class="flex-shrink-0 w-8 h-8 rounded-full bg-orange-100 hover:bg-orange-200 flex items-center justify-center transition-colors"
+                        title="Tutup">
+                        <x-heroicon-o-x-mark class="w-4 h-4 text-orange-600" />
+                    </button>
+                </div>
+                <div class="px-6 py-4 border-t bg-gray-50 flex justify-end">
+                    <button type="button" @click="open = false"
+                        class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center gap-2">
+                        <x-heroicon-o-arrow-left class="w-5 h-5" />
+                        Tutup
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
     <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
         <form action="{{ $action === 'delete' ? '#' : route('penerimaanbarang.update', $penerimaanbarang->fstockmtid) }}"
             method="POST" class="mt-6" x-data="mainForm()" x-init="init()" @submit.prevent="submitForm($el)">
@@ -850,19 +884,33 @@
             {{-- TOMBOL AKSI --}}
             <div class="mt-8 flex justify-center gap-4">
                 @if ($action === 'delete')
-                    <button type="button" onclick="showDeleteModal()"
-                        class="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700 flex items-center">
-                        <x-heroicon-o-trash class="w-5 h-5 mr-2" /> Hapus
-                    </button>
+                    @if ($usageLocked)
+                        <button type="button" disabled title="{{ $usageLockMessage }}"
+                            class="bg-red-300 text-white px-6 py-2 rounded flex items-center cursor-not-allowed opacity-70">
+                            <x-heroicon-o-lock-closed class="w-5 h-5 mr-2" /> Hapus
+                        </button>
+                    @else
+                        <button type="button" onclick="showDeleteModal()"
+                            class="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700 flex items-center">
+                            <x-heroicon-o-trash class="w-5 h-5 mr-2" /> Hapus
+                        </button>
+                    @endif
                     <button type="button" onclick="window.location.href='{{ route('penerimaanbarang.index') }}'"
                         class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
                         <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" /> Kembali
                     </button>
                 @else
-                    <button type="submit"
-                        class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
-                        <x-heroicon-o-check class="w-5 h-5 mr-2" /> Simpan
-                    </button>
+                    @if ($usageLocked)
+                        <button type="button" disabled title="{{ $usageLockMessage }}"
+                            class="bg-blue-300 text-white px-6 py-2 rounded flex items-center cursor-not-allowed opacity-70">
+                            <x-heroicon-o-lock-closed class="w-5 h-5 mr-2" /> Simpan
+                        </button>
+                    @else
+                        <button type="submit"
+                            class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
+                            <x-heroicon-o-check class="w-5 h-5 mr-2" /> Simpan
+                        </button>
+                    @endif
                     <button type="button" onclick="window.location.href='{{ route('penerimaanbarang.index') }}'"
                         class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
                         <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" /> Keluar

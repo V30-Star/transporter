@@ -223,7 +223,7 @@
                                                     <span class="align-middle text-gray-600" x-text="it.fdesc"></span>
                                                 </div>
                                             </td>
-                                            <td class="p-2" x-text="it.frefdtno || '-'"></td>
+                                            <td class="p-2" x-text="it.frefno_display || it.frefso || '-'"></td>
                                             <td class="p-2 text-right" x-text="it.fsatuan"></td>
                                             <td class="p-2 text-right" x-text="fmt(it.fqty)"></td>
                                             <td class="hidden">
@@ -271,7 +271,7 @@
                                         <td class="p-2">
                                             <input type="text"
                                                 class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
-                                                :value="editRow.frefdtno" disabled placeholder="Ref PR">
+                                                    :value="editRow.frefno_display || editRow.frefso || '-'" disabled placeholder="Ref SO">
                                         </td>
 
                                         <td class="p-2">

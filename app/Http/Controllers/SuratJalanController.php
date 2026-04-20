@@ -1541,6 +1541,9 @@ class SuratJalanController extends Controller
                 'fdisc' => (float) ($d->fdiscpersen ?? 0),
                 'ftotal' => (float) ($d->ftotprice ?? 0),
                 'fdesc' => is_array($d->fdesc) ? implode(', ', $d->fdesc) : ($d->fdesc ?? ''),
+                'frefno_display' => $d->frefso ?? $d->frefpr ?? $d->fpono ?? '-',
+                'frefso' => $d->frefso ?? null,
+                'frefsoid' => $d->frefsoid ?? null,
                 'fketdt' => $d->fketdt ?? '',
                 'units' => [],
             ];

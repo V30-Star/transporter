@@ -765,6 +765,7 @@ class Tr_prhController extends Controller
             'savedItems' => $savedItems,
             'blockedByPO' => $blockedByPO,
             'existingPO' => $existingPO,
+            'usageLockMessage' => $blockedByPO ? $this->getUsageLockMessage($tr_prh) : null,
             'action' => 'edit',
             'filterSupplierId' => $request->query('filter_supplier_id'),
         ]);
@@ -774,6 +775,11 @@ class Tr_prhController extends Controller
     {
         // ===== 1) AMBIL HEADER DULU =====
         $header = Tr_prh::where('fprhid', $fprhid)->firstOrFail();
+
+        if ($message = $this->getUsageLockMessage($header)) {
+            return redirect()->route('tr_prh.index')->with('error', $message);
+        }
+
         $fprhid = (int) $header->fprhid;
 
         // ===== 2) VALIDASI INPUT =====
@@ -1142,6 +1148,8 @@ class Tr_prhController extends Controller
                 ->distinct()
                 ->orderBy('poh.fpodate', 'desc')
                 ->get(),
+            'blockedByPO' => DB::table('tr_pod')->where('frefdtno', $tr_prh->fprno)->exists(),
+            'usageLockMessage' => $this->getUsageLockMessage($tr_prh),
             'filterSupplierId' => $request->query('filter_supplier_id'),
             'action' => 'delete',
         ]);
@@ -1151,6 +1159,11 @@ class Tr_prhController extends Controller
     {
         try {
             $tr_prh = Tr_prh::findOrFail($fprhid);
+
+            if ($message = $this->getUsageLockMessage($tr_prh)) {
+                return redirect()->route('tr_prh.index')->with('error', $message);
+            }
+
             DB::transaction(function () use ($tr_prh) {
                 $tr_prh->details()->delete();
                 $tr_prh->delete();
@@ -1161,5 +1174,22 @@ class Tr_prhController extends Controller
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
             return redirect()->route('tr_prh.delete', $fprhid)->with('error', 'Gakey: gal menghapus data: ' . $e->getMessage());
         }
+    }
+
+    private function getUsageLockMessage(Tr_prh $header): ?string
+    {
+        $usedBy = DB::table('tr_pod as pod')
+            ->join('tr_poh as poh', 'poh.fpono', '=', 'pod.fpono')
+            ->where('pod.frefdtno', $header->fprno)
+            ->select('poh.fpono')
+            ->distinct()
+            ->orderBy('poh.fpono')
+            ->pluck('poh.fpono');
+
+        if ($usedBy->isEmpty()) {
+            return null;
+        }
+
+        return 'Permintaan Pembelian ' . $header->fprno . ' tidak dapat diubah atau dihapus karena sudah digunakan pada Order Pembelian: ' . $usedBy->implode(', ') . '.';
     }
 }

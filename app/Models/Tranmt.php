@@ -32,6 +32,6 @@ class Tranmt extends Model
   }
   public function customer()
   {
-    return $this->belongsTo(Customer::class, 'fcustno', 'fcustomerid');
+    return $this->belongsTo(Customer::class, 'fcustno', 'fcustomercode');
   }
 }

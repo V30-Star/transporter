@@ -275,8 +275,8 @@ class InvoiceController extends Controller
     {
         // Header: find by SO code (string)
         $hdr = DB::table('tranmt')
-            ->leftJoin('mscustomer as c', 'c.fcustomerid', '=', DB::raw('CAST(tranmt.fcustno AS INTEGER)'))
-            ->leftJoin('mssalesman as s', 's.fsalesmanid', '=', DB::raw('CAST(tranmt.fsalesman AS INTEGER)'))
+            ->leftJoin('mscustomer as c', 'c.fcustomercode', '=', 'tranmt.fcustno')
+            ->leftJoin('mssalesman as s', 's.fsalesmancode', '=', 'tranmt.fsalesman')
             ->where('tranmt.fsono', $fsono)
             ->first([
                 'tranmt.*',
@@ -320,10 +320,10 @@ class InvoiceController extends Controller
     public function create(Request $request)
     {
         $customers = Customer::orderBy('fcustomername', 'asc')
-            ->get(['fcustomerid', 'fcustomername']);
+            ->get(['fcustomerid', 'fcustomercode', 'fcustomername']);
 
         $salesmans = Salesman::orderBy('fsalesmanname', 'asc')
-            ->get(['fsalesmanid', 'fsalesmanname']);
+            ->get(['fsalesmanid', 'fsalesmancode', 'fsalesmanname']);
 
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
@@ -577,7 +577,7 @@ class InvoiceController extends Controller
                     'fsono' => $fsono,
                     'fsodate' => $fsodate,
                     'fcustno' => mb_substr($request->fcustno, 0, 10),
-                    'fsalesman' => (int) $request->input('fsalesman', 0),
+                    'fsalesman' => mb_substr((string) $request->input('fsalesman', ''), 0, 30),
                     'fcurrency' => $fcurrency,
                     'frate' => $frate,
                     'fdiscount' => $totalDisc,
@@ -701,10 +701,10 @@ class InvoiceController extends Controller
     public function edit(Request $request, $ftranmtid)
     {
         $customers = Customer::orderBy('fcustomername', 'asc')
-            ->get(['fcustomerid', 'fcustomername']);
+            ->get(['fcustomerid', 'fcustomercode', 'fcustomername']);
 
         $salesmans = Salesman::orderBy('fsalesmanname', 'asc')
-            ->get(['fsalesmanid', 'fsalesmanname']);
+            ->get(['fsalesmanid', 'fsalesmancode', 'fsalesmanname']);
 
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
@@ -720,8 +720,8 @@ class InvoiceController extends Controller
 
         $invoice = Tranmt::with(['customer', 'details' => function ($q) {
             $q->leftJoin('msprd', 'msprd.fprdid', '=', 'trandt.fprdcodeid')
-                ->leftJoin('trsomt as so_hdr', 'so_hdr.ftrsomtid', '=', 'trandt.frefsoid')
-                ->leftJoin('trstockmt as sj_hdr', 'sj_hdr.fstockmtid', '=', 'trandt.frefsrjid')
+                ->leftJoin('trsomt as so_hdr', 'so_hdr.fsono', '=', 'trandt.frefso')
+                ->leftJoin('trstockmt as sj_hdr', 'sj_hdr.fstockmtno', '=', 'trandt.frefsrj')
                 ->select(
                     'trandt.*',
                     'msprd.fprdcode as fitemcode',
@@ -733,7 +733,7 @@ class InvoiceController extends Controller
         }])->findOrFail($ftranmtid);
 
         if (! $invoice->customer) {
-            $invoice->setRelation('customer', Customer::find(trim($invoice->fcustno)));
+            $invoice->setRelation('customer', Customer::where('fcustomercode', trim((string) $invoice->fcustno))->first());
         }
 
         // For UI qty validation on edit: allow user to increase qty up to
@@ -875,10 +875,10 @@ class InvoiceController extends Controller
     public function view(Request $request, $ftranmtid)
     {
         $customers = Customer::orderBy('fcustomername', 'asc')
-            ->get(['fcustomerid', 'fcustomername']);
+            ->get(['fcustomerid', 'fcustomercode', 'fcustomername']);
 
         $salesmans = Salesman::orderBy('fsalesmanname', 'asc')
-            ->get(['fsalesmanid', 'fsalesmanname']);
+            ->get(['fsalesmanid', 'fsalesmancode', 'fsalesmanname']);
 
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
@@ -894,8 +894,8 @@ class InvoiceController extends Controller
 
         $invoice = Tranmt::with(['customer', 'details' => function ($q) {
             $q->leftJoin('msprd', 'msprd.fprdid', '=', 'trandt.fprdcodeid')
-                ->leftJoin('trsomt as so_hdr', 'so_hdr.ftrsomtid', '=', 'trandt.frefsoid')
-                ->leftJoin('trstockmt as sj_hdr', 'sj_hdr.fstockmtid', '=', 'trandt.frefsrjid')
+                ->leftJoin('trsomt as so_hdr', 'so_hdr.fsono', '=', 'trandt.frefso')
+                ->leftJoin('trstockmt as sj_hdr', 'sj_hdr.fstockmtno', '=', 'trandt.frefsrj')
                 ->select(
                     'trandt.*',
                     'msprd.fprdcode as fitemcode',
@@ -907,7 +907,7 @@ class InvoiceController extends Controller
         }])->findOrFail($ftranmtid);
 
         if (! $invoice->customer) {
-            $invoice->setRelation('customer', Customer::find(trim($invoice->fcustno)));
+            $invoice->setRelation('customer', Customer::where('fcustomercode', trim((string) $invoice->fcustno))->first());
         }
 
         $savedItems = $invoice->details->map(function ($d) {
@@ -1206,8 +1206,8 @@ class InvoiceController extends Controller
                 DB::table('tranmt')->where('ftranmtid', $ftranmtid)->update([
                     'ftaxno' => mb_substr($request->ftaxno ?? '', 0, 50),
                     'fsodate' => $fsodate,
-                    'fcustno' => mb_substr($request->fcustno, 0, 10) ?? 0,
-                    'fsalesman' => (int) $request->input('fsalesman', 0),
+                    'fcustno' => mb_substr((string) $request->fcustno, 0, 10),
+                    'fsalesman' => mb_substr((string) $request->input('fsalesman', ''), 0, 30),
                     'fdiscount' => $totalDisc,
                     'fdiscount_rp' => $totalDisc * $frate,
                     'famountgross' => $totalGross,
@@ -1294,10 +1294,10 @@ class InvoiceController extends Controller
     public function delete(Request $request, $ftranmtid)
     {
         $customers = Customer::orderBy('fcustomername', 'asc')
-            ->get(['fcustomerid', 'fcustomername']);
+            ->get(['fcustomerid', 'fcustomercode', 'fcustomername']);
 
         $salesmans = Salesman::orderBy('fsalesmanname', 'asc')
-            ->get(['fsalesmanid', 'fsalesmanname']);
+            ->get(['fsalesmanid', 'fsalesmancode', 'fsalesmanname']);
 
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
@@ -1313,8 +1313,8 @@ class InvoiceController extends Controller
 
         $invoice = Tranmt::with(['customer', 'details' => function ($q) {
             $q->leftJoin('msprd', 'msprd.fprdid', '=', 'trandt.fprdcodeid')
-                ->leftJoin('trsomt as so_hdr', 'so_hdr.ftrsomtid', '=', 'trandt.frefsoid')
-                ->leftJoin('trstockmt as sj_hdr', 'sj_hdr.fstockmtid', '=', 'trandt.frefsrjid')
+                ->leftJoin('trsomt as so_hdr', 'so_hdr.fsono', '=', 'trandt.frefso')
+                ->leftJoin('trstockmt as sj_hdr', 'sj_hdr.fstockmtno', '=', 'trandt.frefsrj')
                 ->select(
                     'trandt.*',
                     'msprd.fprdcode as fitemcode',
@@ -1326,7 +1326,7 @@ class InvoiceController extends Controller
         }])->findOrFail($ftranmtid);
 
         if (! $invoice->customer) {
-            $invoice->setRelation('customer', Customer::find(trim($invoice->fcustno)));
+            $invoice->setRelation('customer', Customer::where('fcustomercode', trim((string) $invoice->fcustno))->first());
         }
 
         $savedItems = $invoice->details->map(function ($d) {

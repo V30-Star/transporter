@@ -1053,6 +1053,7 @@ class Tr_pohController extends Controller
       'products'            => $products,
       'existingTerima'  => $existingTerima,
       'blockedByTerima' => $blockedByTerima,
+      'usageLockMessage' => $blockedByTerima ? $this->getUsageLockMessage($tr_poh) : null,
       'productMap'          => $productMap,
       'tr_poh'              => $tr_poh,
       'savedItems'          => $savedItems,
@@ -1202,6 +1203,11 @@ class Tr_pohController extends Controller
     ]);
 
     $header  = Tr_poh::where('fpohid', $fpohid)->firstOrFail();
+
+    if ($message = $this->getUsageLockMessage($header)) {
+      return redirect()->route('tr_poh.index')->with('error', $message);
+    }
+
     $fponoId = (int) $header->fpohid;
 
     $fpodate     = \Carbon\Carbon::parse($request->fpodate)->startOfDay();
@@ -1591,6 +1597,7 @@ class Tr_pohController extends Controller
       'fbranchcode'         => $fbranchcode,
       'existingTerima'  => $existingTerima,
       'blockedByTerima' => $blockedByTerima,
+      'usageLockMessage' => $blockedByTerima ? $this->getUsageLockMessage($tr_poh) : null,
       'products'            => $products,
       'productMap'          => $productMap,
       'tr_poh'              => $tr_poh,
@@ -1610,20 +1617,8 @@ class Tr_pohController extends Controller
     try {
       $tr_poh = Tr_poh::findOrFail($fpohid);
 
-      // 1. Cek apakah sudah ada penerimaan barang (Stock In) untuk PO ini
-      // Kita cek berdasarkan frefdtno (Nomor PO) di tabel detail stok
-      $existingTerima = DB::table('trstockdt')
-        ->where('frefdtno', $tr_poh->fpono)
-        ->select('fstockmtno')
-        ->distinct()
-        ->get();
-
-      if ($existingTerima->isNotEmpty()) {
-        $noTransaksi = $existingTerima->pluck('fstockmtno')->implode(', ');
-        return redirect()->back()->with(
-          'error',
-          "Order Pembelian {$tr_poh->fpono} tidak bisa dihapus karena sudah memiliki transaksi Penerimaan Barang: ({$noTransaksi})."
-        );
+      if ($message = $this->getUsageLockMessage($tr_poh)) {
+        return redirect()->route('tr_poh.index')->with('error', $message);
       }
 
       DB::transaction(function () use ($tr_poh) {
@@ -1638,5 +1633,21 @@ class Tr_pohController extends Controller
     } catch (\Exception $e) {
       return redirect()->back()->with('error', 'Gagal menghapus data: ' . $e->getMessage());
     }
+  }
+
+  private function getUsageLockMessage(Tr_poh $header): ?string
+  {
+    $usedBy = DB::table('trstockdt')
+      ->where('frefdtno', $header->fpono)
+      ->select('fstockmtno')
+      ->distinct()
+      ->orderBy('fstockmtno')
+      ->pluck('fstockmtno');
+
+    if ($usedBy->isEmpty()) {
+      return null;
+    }
+
+    return 'Order Pembelian ' . $header->fpono . ' tidak dapat diubah atau dihapus karena sudah digunakan pada Penerimaan Barang / Faktur Pembelian: ' . $usedBy->implode(', ') . '.';
   }
 }

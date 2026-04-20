@@ -721,6 +721,7 @@ class PenerimaanBarangController extends Controller
     $selectedBranchName = $selectedBranchCode !== ''
       ? DB::table('mscabang')->where('fcabangkode', $selectedBranchCode)->value('fcabangname')
       : null;
+    $usageLockMessage = $action === 'view' ? null : $this->getUsageLockMessage($penerimaanbarang);
 
     $savedItems = $penerimaanbarang->details->map(function ($d) {
       return [
@@ -786,6 +787,8 @@ class PenerimaanBarangController extends Controller
       'famountponet'         => (float) ($penerimaanbarang->famountponet ?? 0),
       'famountpo'            => (float) ($penerimaanbarang->famountpo ?? 0),
       'filterSupplierId'     => $request->query('filter_supplier_id'),
+      'isUsageLocked'        => !empty($usageLockMessage),
+      'usageLockMessage'     => $usageLockMessage,
       'action'               => $action,
     ]);
   }
@@ -821,6 +824,11 @@ class PenerimaanBarangController extends Controller
     ]);
 
     $header       = PenerimaanPembelianHeader::findOrFail($fstockmtid);
+
+    if ($message = $this->getUsageLockMessage($header)) {
+      return redirect()->route('penerimaanbarang.index')->with('error', $message);
+    }
+
     $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
     $fsupplier    = trim((string) $request->input('fsupplier'));
     $ffrom        = trim((string) $request->input('ffrom'));
@@ -1000,6 +1008,11 @@ class PenerimaanBarangController extends Controller
   {
     try {
       $penerimaanbarang = PenerimaanPembelianHeader::findOrFail($fstockmtid);
+
+      if ($message = $this->getUsageLockMessage($penerimaanbarang)) {
+        return redirect()->route('penerimaanbarang.index')->with('error', $message);
+      }
+
       $oldLines = DB::table('trstockdt')->where('fstockmtno', $penerimaanbarang->fstockmtno)->get(['frefdtid', 'fqtykecil']);
 
       DB::transaction(function () use ($penerimaanbarang, $oldLines) {
@@ -1033,5 +1046,33 @@ class PenerimaanBarangController extends Controller
       }
     }
     return $kodeCabang ?: 'NA';
+  }
+
+  private function getUsageLockMessage(PenerimaanPembelianHeader $header): ?string
+  {
+    $detailIds = DB::table('trstockdt')
+      ->where('fstockmtno', $header->fstockmtno)
+      ->pluck('fstockdtid')
+      ->map(fn($id) => (int) $id)
+      ->filter(fn($id) => $id > 0)
+      ->values();
+
+    if ($detailIds->isEmpty()) {
+      return null;
+    }
+
+    $usedBy = DB::table('trstockdt')
+      ->where('fstockmtcode', 'BUY')
+      ->whereIn('frefdtid', $detailIds->all())
+      ->select('fstockmtno')
+      ->distinct()
+      ->orderBy('fstockmtno')
+      ->pluck('fstockmtno');
+
+    if ($usedBy->isEmpty()) {
+      return null;
+    }
+
+    return 'Penerimaan Barang ' . $header->fstockmtno . ' tidak dapat diubah atau dihapus karena sudah digunakan pada Faktur Pembelian: ' . $usedBy->implode(', ') . '.';
   }
 }

@@ -108,6 +108,9 @@
             </div>
         </div>
     @endif
+    @php
+        $isUsageLocked = !empty($blockedByPO) && $blockedByPO;
+    @endphp
     {{-- ═══════════════════════════════════════════════════════════════════
      MODAL BLOCKED BY PO
 ════════════════════════════════════════════════════════════════════ --}}
@@ -581,11 +584,18 @@
                     </div>
 
                     <div class="mt-8 flex justify-center gap-4">
-                        <button type="submit"
-                            class="bg-blue-600 text-white px-8 py-2.5 rounded shadow hover:bg-blue-700 flex items-center transition"
-                            :class="blockedByPO ? 'hidden' : ''">
-                            <x-heroicon-o-check class="w-5 h-5 mr-2" /> Simpan Perubahan
-                        </button>
+                        @if ($isUsageLocked)
+                            <button type="button" disabled
+                                class="bg-blue-300 text-white px-8 py-2.5 rounded shadow flex items-center transition cursor-not-allowed opacity-70"
+                                title="{{ $usageLockMessage ?? 'Data ini sudah digunakan.' }}">
+                                <x-heroicon-o-lock-closed class="w-5 h-5 mr-2" /> Simpan Perubahan
+                            </button>
+                        @else
+                            <button type="submit"
+                                class="bg-blue-600 text-white px-8 py-2.5 rounded shadow hover:bg-blue-700 flex items-center transition">
+                                <x-heroicon-o-check class="w-5 h-5 mr-2" /> Simpan Perubahan
+                            </button>
+                        @endif
                         <button type="button" @click="window.location.href='{{ route('tr_prh.index') }}'"
                             class="bg-gray-500 text-white px-8 py-2.5 rounded shadow hover:bg-gray-600 flex items-center transition">
                             <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" /> Kembali

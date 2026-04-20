@@ -992,6 +992,8 @@ class FakturPembelianController extends Controller
       'famountponet' => (float) ($fakturpembelian->famountponet ?? 0),
       'famountpo' => (float) ($fakturpembelian->famountpo ?? 0),
       'filterSupplierId' => $request->query('filter_supplier_id'),
+      'isUsageLocked' => !empty($this->getUsageLockMessage($fakturpembelian)),
+      'usageLockMessage' => $this->getUsageLockMessage($fakturpembelian),
       'action' => 'edit'
     ]);
   }
@@ -1179,6 +1181,10 @@ class FakturPembelianController extends Controller
 
       // 2. Muat header yang ada
       $header = PenerimaanPembelianHeader::findOrFail($fstockmtid);
+
+      if ($message = $this->getUsageLockMessage($header)) {
+        return redirect()->route('fakturpembelian.index')->with('error', $message);
+      }
 
       // HEADER FIELDS
       $fstockmtno = $header->fstockmtno;
@@ -1567,6 +1573,8 @@ class FakturPembelianController extends Controller
       'famountponet' => (float) ($fakturpembelian->famountponet ?? 0),
       'famountpo' => (float) ($fakturpembelian->famountpo ?? 0),
       'filterSupplierId' => $request->query('filter_supplier_id'),
+      'isUsageLocked' => !empty($this->getUsageLockMessage($fakturpembelian)),
+      'usageLockMessage' => $this->getUsageLockMessage($fakturpembelian),
       'action' => 'delete'
     ]);
   }
@@ -1576,6 +1584,11 @@ class FakturPembelianController extends Controller
     try {
 
       $fakturpembelian = PenerimaanPembelianHeader::findOrFail($fstockmtid);
+
+      if ($message = $this->getUsageLockMessage($fakturpembelian)) {
+        return redirect()->route('fakturpembelian.index')->with('error', $message);
+      }
+
       $fakturpembelian->details()->delete();
       $fakturpembelian->delete();
 
@@ -1584,5 +1597,25 @@ class FakturPembelianController extends Controller
       // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
       return redirect()->route('fakturpembelian.delete', $fstockmtid)->with('error', 'Gagal menghapus data: ' . $e->getMessage());
     }
+  }
+
+  private function getUsageLockMessage(PenerimaanPembelianHeader $header): ?string
+  {
+    $usedBy = DB::table('trstockmt')
+      ->where('fstockmtcode', 'REB')
+      ->where(function ($query) use ($header) {
+        $query->where('frefno', $header->fstockmtno)
+          ->orWhere('frefpo', $header->fstockmtno);
+      })
+      ->select('fstockmtno')
+      ->distinct()
+      ->orderBy('fstockmtno')
+      ->pluck('fstockmtno');
+
+    if ($usedBy->isEmpty()) {
+      return null;
+    }
+
+    return 'Faktur Pembelian ' . $header->fstockmtno . ' tidak dapat diubah atau dihapus karena sudah digunakan pada Retur Pembelian: ' . $usedBy->implode(', ') . '.';
   }
 }
