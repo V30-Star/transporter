@@ -79,19 +79,19 @@ class PenerimaanBarangController extends Controller
       $records = $query->skip($start)->take($length)->get(['fstockmtid', 'fstockmtno', 'fstockmtdate', 'ffrom', 'fsupplier', 'fket', 'famountmt']);
 
       // Collect related data efficiently without breaking Postgres Types
-      $whIds = $records->pluck('ffrom')->filter()->unique();
-      $warehouses = DB::table('mswh')->whereIn('fwhid', $whIds)->pluck('fwhname', 'fwhid');
+      $warehouseCodes = $records->pluck('ffrom')->filter()->unique();
+      $warehouses = DB::table('mswh')->whereIn('fwhcode', $warehouseCodes)->pluck('fwhname', 'fwhcode');
 
-      $suppIds = $records->pluck('fsupplier')->filter()->unique();
-      $suppliers = DB::table('mssupplier')->whereIn('fsupplierid', $suppIds)->pluck('fsuppliername', 'fsupplierid');
+      $supplierCodes = $records->pluck('fsupplier')->filter()->unique();
+      $suppliers = DB::table('mssupplier')->whereIn('fsuppliercode', $supplierCodes)->pluck('fsuppliername', 'fsuppliercode');
 
-      $stockMtIds = $records->pluck('fstockmtid');
+      $stockMtNos = $records->pluck('fstockmtno');
       $trstockdts = DB::table('trstockdt')
-        ->whereIn('fstockmtid', $stockMtIds)
-        ->select('fstockmtid', DB::raw("MAX(frefdtno) as frefpo"))
-        ->groupBy('fstockmtid')
+        ->whereIn('fstockmtno', $stockMtNos)
+        ->select('fstockmtno', DB::raw("MAX(frefdtno) as frefpo"))
+        ->groupBy('fstockmtno')
         ->get()
-        ->pluck('frefpo', 'fstockmtid');
+        ->pluck('frefpo', 'fstockmtno');
 
       $data = $records->map(fn($row) => [
         'fstockmtid'   => $row->fstockmtid,
@@ -100,7 +100,7 @@ class PenerimaanBarangController extends Controller
         'fwhname'      => $warehouses[$row->ffrom] ?? '-',
         'fsuppliername' => $suppliers[$row->fsupplier] ?? '-',
         'fket'         => $row->fket ?? '-',
-        'frefpo'       => $trstockdts[$row->fstockmtid] ?? '-',
+        'frefpo'       => $trstockdts[$row->fstockmtno] ?? '-',
         'famountmt'    => 'Rp ' . number_format((float)$row->famountmt, 0, ',', '.'),
       ]);
 
@@ -126,7 +126,7 @@ class PenerimaanBarangController extends Controller
   public function pickable(Request $request)
   {
     $query = DB::table('tr_poh')
-      ->leftJoin('mssupplier', 'tr_poh.fsupplier', '=', 'mssupplier.fsupplierid')
+      ->leftJoin('mssupplier', 'tr_poh.fsupplier', '=', 'mssupplier.fsuppliercode')
       ->select('tr_poh.*', 'mssupplier.fsuppliername', 'mssupplier.fsuppliercode');
 
     $recordsTotal = DB::table('tr_poh')->count();
@@ -178,7 +178,7 @@ class PenerimaanBarangController extends Controller
 
     // Items PO: fqtyremain di tr_pod = satuan kecil; unit & rasio dari msprd untuk UI
     $items = DB::table('tr_pod')
-      ->where('tr_pod.fpohid', $header->fpohid)
+      ->where('tr_pod.fpono', $header->fpono)
       ->leftJoin('msprd as m', 'm.fprdid', '=', 'tr_pod.fprdid')
       ->select([
         'tr_pod.fpodid as frefdtid',
@@ -203,8 +203,8 @@ class PenerimaanBarangController extends Controller
       ])
       ->orderBy('tr_pod.fnou')
       ->get()
-      ->map(function ($item) {
-        $item->frefdtno = (string) $item->frefdtid;
+      ->map(function ($item) use ($header) {
+        $item->frefdtno = (string) $header->fpono;
         $remainKecil = (float) ($item->fqtyremain ?? 0);
         $item->fqtyremain = $remainKecil;
         $item->maxqty = $remainKecil;
@@ -338,12 +338,12 @@ class PenerimaanBarangController extends Controller
 
   public function print(string $fstockmtno)
   {
-    $supplierSub = Supplier::select('fsupplierid', 'fsuppliercode', 'fsuppliername');
+    $supplierSub = Supplier::select('fsuppliercode', 'fsuppliername');
 
     $hdr = PenerimaanPembelianHeader::query()
-      ->leftJoinSub($supplierSub, 's', fn($j) => $j->on('s.fsupplierid', '=', 'trstockmt.fsupplier'))
+      ->leftJoinSub($supplierSub, 's', fn($j) => $j->on('s.fsuppliercode', '=', 'trstockmt.fsupplier'))
       ->leftJoin('mscabang as c', 'c.fcabangkode', '=', 'trstockmt.fbranchcode')
-      ->leftJoin('mswh as w', 'w.fwhid', '=', 'trstockmt.ffrom')
+      ->leftJoin('mswh as w', 'w.fwhcode', '=', 'trstockmt.ffrom')
       ->where('trstockmt.fstockmtno', $fstockmtno)
       ->first([
         'trstockmt.*',
@@ -381,7 +381,7 @@ class PenerimaanBarangController extends Controller
 
   public function create(Request $request)
   {
-    $suppliers = Supplier::orderBy('fsuppliername', 'asc')->get(['fsupplierid', 'fsuppliername']);
+    $suppliers = Supplier::orderBy('fsuppliername', 'asc')->get(['fsuppliercode', 'fsuppliername']);
 
     $warehouses = DB::table('mswh')
       ->select('fwhid', 'fwhcode', 'fwhname', 'fbranchcode', 'fnonactive')
@@ -439,7 +439,7 @@ class PenerimaanBarangController extends Controller
       'fstockmtno'     => ['nullable', 'string', 'max:100'],
       'fstockmtdate'   => ['required', 'date'],
       'fsupplier'      => ['required', 'string', 'max:30'],
-      'fwhid'          => ['nullable'],
+      'ffrom'          => ['nullable', 'string', 'max:30'],
       'fket'           => ['nullable', 'string', 'max:500'],
       'fbranchcode'    => ['nullable', 'string', 'max:20'],
       'fitemcode'      => ['required', 'array', 'min:1'],
@@ -454,7 +454,7 @@ class PenerimaanBarangController extends Controller
     $fstockmtno   = trim((string) $request->input('fstockmtno', ''));
     $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
     $fsupplier    = trim((string) $request->input('fsupplier'));
-    $ffrom        = $request->input('fwhid');
+    $ffrom        = trim((string) $request->input('ffrom'));
     $fket         = trim((string) $request->input('fket', ''));
     $fbranchcode  = $request->input('fbranchcode');
     $fcurrency    = $request->input('fcurrency', 'IDR');
@@ -678,7 +678,7 @@ class PenerimaanBarangController extends Controller
    */
   private function loadFormView(Request $request, $fstockmtid, string $viewName, string $action)
   {
-    $suppliers = Supplier::orderBy('fsuppliername', 'asc')->get(['fsupplierid', 'fsuppliername']);
+    $suppliers = Supplier::orderBy('fsuppliername', 'asc')->get(['fsuppliercode', 'fsuppliername']);
 
     $raw    = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
     $branch = DB::table('mscabang')
@@ -692,14 +692,14 @@ class PenerimaanBarangController extends Controller
       ->orderBy('fwhcode')
       ->get();
 
-    $fcabang     = $branch->fcabangname ?? (string) $raw;
-    $fbranchcode = $branch->fcabangkode ?? (string) $raw;
+    $defaultCabangName = $branch->fcabangname ?? (string) $raw;
+    $defaultBranchCode = $branch->fcabangkode ?? (string) $raw;
 
     $penerimaanbarang = PenerimaanPembelianHeader::with([
       'details' => function ($q) {
         $q->leftJoin('msprd', 'msprd.fprdcode', '=', 'trstockdt.fprdcode')
-          ->leftJoin('trstockmt', 'trstockmt.fstockmtid', '=', 'trstockdt.fstockmtid')
-          ->leftJoin('mswh', 'mswh.fwhid', '=', 'trstockmt.ffrom')
+          ->leftJoin('trstockmt', 'trstockmt.fstockmtno', '=', 'trstockdt.fstockmtno')
+          ->leftJoin('mswh', 'mswh.fwhcode', '=', 'trstockmt.ffrom')
           ->leftJoin('tr_pod as pod', 'pod.fpodid', '=', 'trstockdt.frefdtid')
           ->select(
             'trstockdt.*',
@@ -716,6 +716,11 @@ class PenerimaanBarangController extends Controller
           ->orderBy('trstockdt.fstockdtid');
       }
     ])->findOrFail($fstockmtid);
+
+    $selectedBranchCode = trim((string) ($penerimaanbarang->fbranchcode ?? ''));
+    $selectedBranchName = $selectedBranchCode !== ''
+      ? DB::table('mscabang')->where('fcabangkode', $selectedBranchCode)->value('fcabangname')
+      : null;
 
     $savedItems = $penerimaanbarang->details->map(function ($d) {
       return [
@@ -770,8 +775,8 @@ class PenerimaanBarangController extends Controller
     return view($viewName, [
       'suppliers'            => $suppliers,
       'selectedSupplierCode' => $penerimaanbarang->fsupplier,
-      'fcabang'              => $fcabang,
-      'fbranchcode'          => $fbranchcode,
+      'fcabang'              => $selectedBranchName ?? $defaultCabangName,
+      'fbranchcode'          => $selectedBranchCode ?: $defaultBranchCode,
       'warehouses'           => $warehouses,
       'products'             => $products,
       'productMap'           => $productMap,
@@ -791,7 +796,7 @@ class PenerimaanBarangController extends Controller
       'fstockmtno'     => ['nullable', 'string', 'max:100'],
       'fstockmtdate'   => ['required', 'date'],
       'fsupplier'      => ['required', 'string', 'max:30'],
-      'ffrom'          => ['nullable'],
+      'ffrom'          => ['nullable', 'string', 'max:30'],
       'fket'           => ['nullable', 'string', 'max:500'],
       'fbranchcode'    => ['nullable', 'string', 'max:20'],
       'fitemcode'      => ['required', 'array', 'min:1'],
@@ -818,7 +823,7 @@ class PenerimaanBarangController extends Controller
     $header       = PenerimaanPembelianHeader::findOrFail($fstockmtid);
     $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
     $fsupplier    = trim((string) $request->input('fsupplier'));
-    $ffrom        = $request->input('ffrom');
+    $ffrom        = trim((string) $request->input('ffrom'));
     $fket         = trim((string) $request->input('fket', ''));
     $fbranchcode  = $request->input('fbranchcode');
     $fcurrency    = $request->input('fcurrency', 'IDR');
@@ -912,7 +917,7 @@ class PenerimaanBarangController extends Controller
     }
 
     $podAgg = $this->aggregatePodReceiptByPod($rowsDt);
-    $oldReceiptLines = DB::table('trstockdt')->where('fstockmtid', $fstockmtid)->get(['frefdtid', 'fqtykecil']);
+    $oldReceiptLines = DB::table('trstockdt')->where('fstockmtno', $header->fstockmtno)->get(['frefdtid', 'fqtykecil']);
 
     $grandTotal = $subtotal + $ppnAmount;
 
@@ -962,7 +967,7 @@ class PenerimaanBarangController extends Controller
         'fbranchcode'      => $kodeCabang,
       ]);
 
-      DB::table('trstockdt')->where('fstockmtid', $fstockmtid)->delete();
+      DB::table('trstockdt')->where('fstockmtno', $header->fstockmtno)->delete();
       // UPDATE STOK - gunakan qtyKecil hasil konversi, bukan qty mentah
       foreach ($rowsDt as $row) {
         DB::table('msprd')
@@ -995,7 +1000,7 @@ class PenerimaanBarangController extends Controller
   {
     try {
       $penerimaanbarang = PenerimaanPembelianHeader::findOrFail($fstockmtid);
-      $oldLines = DB::table('trstockdt')->where('fstockmtid', $fstockmtid)->get(['frefdtid', 'fqtykecil']);
+      $oldLines = DB::table('trstockdt')->where('fstockmtno', $penerimaanbarang->fstockmtno)->get(['frefdtid', 'fqtykecil']);
 
       DB::transaction(function () use ($penerimaanbarang, $oldLines) {
         $this->restoreTrPodRemainFromReceiptLines($oldLines);

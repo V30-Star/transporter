@@ -118,6 +118,13 @@
             {{-- HEADER FORM --}}
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
 
+                <div class="lg:col-span-4">
+                    <label class="block text-sm font-medium mb-1">Cabang</label>
+                    <input type="text" class="w-full border rounded px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
+                        value="{{ trim(($fbranchcode ?? '') . (($fcabang ?? '') ? ' - ' . $fcabang : '')) }}" disabled>
+                    <input type="hidden" name="fbranchcode" value="{{ old('fbranchcode', $fbranchcode) }}">
+                </div>
+                
                 {{-- Transaksi# — selalu disabled (nomor tidak bisa diubah) --}}
                 <div class="lg:col-span-4">
                     <label class="block text-sm font-medium mb-1">Transaksi#</label>
@@ -140,9 +147,9 @@
                                 disabled>
                                 <option value=""></option>
                                 @foreach ($suppliers as $supplier)
-                                    <option value="{{ $supplier->fsupplierid }}"
-                                        {{ old('fsupplier', $penerimaanbarang->fsupplier) == $supplier->fsupplierid ? 'selected' : '' }}>
-                                        {{ $supplier->fsuppliername }}
+                                    <option value="{{ $supplier->fsuppliercode }}"
+                                        {{ old('fsupplier', $penerimaanbarang->fsupplier) == $supplier->fsuppliercode ? 'selected' : '' }}>
+                                        {{ $supplier->fsuppliername }} ({{ $supplier->fsuppliercode }})
                                     </option>
                                 @endforeach
                             </select>
@@ -182,8 +189,8 @@
                                 @foreach ($warehouses as $wh)
                                     <option value="{{ $wh->fwhcode }}" data-id="{{ $wh->fwhid }}"
                                         data-branch="{{ $wh->fbranchcode }}"
-                                        {{ old('ffrom', $penerimaanbarang->ffrom) == $wh->fwhid ? 'selected' : '' }}>
-                                        {{ $wh->fwhname }}
+                                        {{ old('ffrom', $penerimaanbarang->ffrom) == $wh->fwhcode ? 'selected' : '' }}>
+                                        {{ $wh->fwhcode }} - {{ $wh->fwhname }}
                                     </option>
                                 @endforeach
                             </select>
@@ -194,8 +201,6 @@
                         </div>
                         <input type="hidden" name="ffrom" id="warehouseCodeHidden"
                             value="{{ old('ffrom', $penerimaanbarang->ffrom) }}">
-                        <input type="hidden" name="fwhid" id="warehouseIdHidden"
-                            value="{{ old('fwhid', $penerimaanbarang->ffrom) }}">
                         @if ($action !== 'delete')
                             <button type="button" @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"
                                 class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
@@ -257,7 +262,7 @@
                                 <th class="p-2 text-right w-24 whitespace-nowrap">Qty</th>
                                 <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
                                 <th class="p-2 text-right w-36 whitespace-nowrap">Total Harga</th>
-                                <th class="p-2 text-center w-20">Aksi</th>
+                                <th class="p-2 text-center w-20 {{ $action === 'delete' ? 'hidden' : '' }}">Aksi</th>
                             </tr>
                         </thead>
 
@@ -377,7 +382,7 @@
                                     <td class="p-2 text-right text-sm font-medium" x-text="rupiah(it.ftotal)"></td>
 
                                     {{-- Aksi --}}
-                                    <td class="p-2 text-center">
+                                    <td class="p-2 text-center {{ $action === 'delete' ? 'hidden' : '' }}">
                                         @if ($action !== 'delete')
                                             <button type="button" @click="removeSaved(i)"
                                                 class="px-3 py-1 rounded text-xs bg-red-100 text-red-600 hover:bg-red-200 whitespace-nowrap">
@@ -1792,17 +1797,17 @@
                         this.close();
                         return;
                     }
-                    let opt = [...sel.options].find(o => o.value == String(supplier.fsupplierid));
+                    let opt = [...sel.options].find(o => o.value == String(supplier.fsuppliercode));
                     const label = `${supplier.fsuppliername} (${supplier.fsuppliercode})`;
                     if (!opt) {
-                        opt = new Option(label, supplier.fsupplierid, true, true);
+                        opt = new Option(label, supplier.fsuppliercode, true, true);
                         sel.add(opt);
                     } else {
                         opt.text = label;
                         opt.selected = true;
                     }
                     sel.dispatchEvent(new Event('change'));
-                    if (hid) hid.value = supplier.fsupplierid;
+                    if (hid) hid.value = supplier.fsuppliercode;
                     this.close();
                 },
                 init() {
@@ -1938,27 +1943,13 @@
         };
 
         window.addEventListener('warehouse-picked', (ev) => {
-            const {
-                fwhcode,
-                fwhid
-            } = ev.detail || {};
+            const { fwhcode } = ev.detail || {};
 
             const sel = document.getElementById('warehouseSelect');
-            // Ambil elemen ffrom (yang penting untuk DB)
             const hidFrom = document.getElementById('warehouseCodeHidden');
-            const hidId = document.getElementById('warehouseIdHidden');
 
             if (sel) sel.value = fwhcode || '';
-
-            // PASTIKAN INI TERISI:
-            // Karena controller kamu mencari $request->input('ffrom')
-            if (hidFrom) {
-                hidFrom.value = fwhid || ''; // Isi dengan ID gudang (6)
-            }
-
-            if (hidId) {
-                hidId.value = fwhid || '';
-            }
+            if (hidFrom) hidFrom.value = fwhcode || '';
         });
 
         // ─── productBrowser — identik create ─────────────────────────────────────

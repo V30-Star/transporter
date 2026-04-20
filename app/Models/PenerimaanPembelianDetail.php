@@ -22,9 +22,9 @@ class PenerimaanPembelianDetail extends Model
       });
     });
   }
-  public function details()
+  public function header()
   {
-    return $this->hasMany(PenerimaanPembelianHeader::class, 'fstockmtid', 'fstockdtid');
+    return $this->belongsTo(PenerimaanPembelianHeader::class, 'fstockmtno', 'fstockmtno');
   }
   public function account()
   {
