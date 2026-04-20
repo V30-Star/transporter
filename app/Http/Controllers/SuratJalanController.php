@@ -113,7 +113,7 @@ class SuratJalanController extends Controller
     public function pickable(Request $request)
     {
         $query = DB::table('trstockmt')
-            ->leftJoin('mscustomer', 'trstockmt.fsupplier', '=', 'mscustomer.fcustomerid')
+            ->leftJoin('mscustomer', 'trstockmt.fsupplier', '=', 'mscustomer.fcustomercode')
             ->where('trstockmt.fstockmtcode', 'SRJ')
             ->select(
                 'trstockmt.fstockmtid',
@@ -161,7 +161,7 @@ class SuratJalanController extends Controller
         }
 
         $items = DB::table('trstockdt')
-            ->where('trstockdt.fstockmtid', $id)
+            ->where('trstockdt.fstockmtno', $header->fstockmtno)
             ->leftJoin('msprd', 'msprd.fprdid', '=', 'trstockdt.fprdcodeid')
             ->select(
                 'trstockdt.fstockdtid as frefdtno',
@@ -231,11 +231,11 @@ class SuratJalanController extends Controller
         $hdr = PenerimaanPembelianHeader::query()
             // Gunakan alias 'cust' untuk customer
             ->leftJoinSub($customerSub, 'cust', function ($join) {
-                $join->on('cust.fcustomerid', '=', 'trstockmt.fsupplier');
+                $join->on('cust.fcustomercode', '=', 'trstockmt.fsupplier');
             })
             // Gunakan alias 'cb' untuk cabang
             ->leftJoin('mscabang as cb', 'cb.fcabangkode', '=', 'trstockmt.fbranchcode')
-            ->leftJoin('mswh as w', 'w.fwhid', '=', 'trstockmt.ffrom')
+            ->leftJoin('mswh as w', 'w.fwhcode', '=', 'trstockmt.ffrom')
             ->where('trstockmt.fstockmtno', $fstockmtno)
             ->first([
                 'trstockmt.*',
@@ -275,7 +275,7 @@ class SuratJalanController extends Controller
     public function create(Request $request)
     {
         $customers = Customer::orderBy('fcustomername', 'asc')
-            ->get(['fcustomerid', 'fcustomername']);
+            ->get(['fcustomercode', 'fcustomername']);
 
         $warehouses = DB::table('mswh')
             ->select('fwhid', 'fwhcode', 'fwhname', 'fbranchcode', 'fnonactive')
@@ -384,8 +384,7 @@ class SuratJalanController extends Controller
         $fstockmtno = trim((string) $request->input('fstockmtno'));
         $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
         $fsupplier = trim((string) $request->input('fsupplier'));
-        $ffrom = $request->input('ffrom');
-        $fwhid = $request->input('fwhid');
+        $ffrom = trim((string) $request->input('ffrom'));
         $fket = trim((string) $request->input('fket', ''));
         $fkirim = trim((string) $request->input('fkirim', ''));
         $fbranchcode = $request->input('fbranchcode');
@@ -541,7 +540,7 @@ class SuratJalanController extends Controller
             DB::transaction(function () use (
                 $fstockmtdate,
                 $fsupplier,
-                $fwhid,
+                $ffrom,
                 $fket,
                 $fkirim,
                 $fbranchcode,
@@ -611,7 +610,7 @@ class SuratJalanController extends Controller
                     'frefno' => null,
                     'frefpo' => null,
                     'ftrancode' => null,
-                    'ffrom' => $fwhid,
+                    'ffrom' => $ffrom,
                     'fto' => null,
                     'fkirim' => $fkirim,
                     'fprdjadi' => null,
@@ -785,7 +784,7 @@ class SuratJalanController extends Controller
     public function edit(Request $request, $fstockmtid)
     {
         $customers = Customer::orderBy('fcustomername', 'asc')
-            ->get(['fcustomerid', 'fcustomername']);
+            ->get(['fcustomercode', 'fcustomername']);
 
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
@@ -821,7 +820,7 @@ class SuratJalanController extends Controller
                     ->orderBy('trstockdt.fstockdtid', 'asc');
             },
         ])
-            ->leftJoin('mswh', 'mswh.fwhid', '=', 'trstockmt.ffrom')
+            ->leftJoin('mswh', 'mswh.fwhcode', '=', 'trstockmt.ffrom')
             ->select('trstockmt.*', 'mswh.fwhcode as ffrom_code')
             ->findOrFail($fstockmtid); // Temukan header berdasarkan $fstockmtid dari URL
 
@@ -907,7 +906,7 @@ class SuratJalanController extends Controller
     public function view(Request $request, $fstockmtid)
     {
         $customers = Customer::orderBy('fcustomername', 'asc')
-            ->get(['fcustomerid', 'fcustomername']);
+            ->get(['fcustomercode', 'fcustomername']);
 
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
@@ -943,6 +942,8 @@ class SuratJalanController extends Controller
                     ->orderBy('trstockdt.fstockdtid', 'asc');
             },
         ])
+            ->leftJoin('mswh', 'mswh.fwhcode', '=', 'trstockmt.ffrom')
+            ->select('trstockmt.*', 'mswh.fwhcode as ffrom_code')
             ->findOrFail($fstockmtid); // Temukan header berdasarkan $fstockmtid dari URL
 
         // 4. Map the data for savedItems (sudah menggunakan data yang benar)
@@ -1054,8 +1055,7 @@ class SuratJalanController extends Controller
         $fstockmtno = $header->fstockmtno;
         $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
         $fsupplier = trim((string) $request->input('fsupplier'));
-        $ffrom = $request->input('ffrom');
-        $fwhid = $request->input('fwhid');
+        $ffrom = trim((string) $request->input('ffrom'));
         $fket = trim((string) $request->input('fket', ''));
         $fkirim = trim((string) $request->input('fkirim', ''));
         $fbranchcode = $request->input('fbranchcode');
@@ -1235,7 +1235,7 @@ class SuratJalanController extends Controller
                 $fstockmtno,
                 $fstockmtdate,
                 $fsupplier,
-                $fwhid,
+                $ffrom,
                 $fket,
                 $fkirim,
                 $fbranchcode,
@@ -1285,7 +1285,7 @@ class SuratJalanController extends Controller
                     'famountmt_rp' => ($subtotal + $ppnAmount) * $frate,
                     'famountremain' => $subtotal + $ppnAmount,
                     'famountremain_rp' => ($subtotal + $ppnAmount) * $frate,
-                    'ffrom' => $fwhid,
+                    'ffrom' => $ffrom,
                     'fkirim' => $fkirim,
                     'fket' => $fket,
                     'fuserupdate' => Auth::user()->fname ?? 'system',
@@ -1482,7 +1482,7 @@ class SuratJalanController extends Controller
     public function delete(Request $request, $fstockmtid)
     {
         $customers = Customer::orderBy('fcustomername', 'asc')
-            ->get(['fcustomerid', 'fcustomername']);
+            ->get(['fcustomercode', 'fcustomername']);
 
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
@@ -1518,6 +1518,8 @@ class SuratJalanController extends Controller
                     ->orderBy('trstockdt.fstockdtid', 'asc');
             },
         ])
+            ->leftJoin('mswh', 'mswh.fwhcode', '=', 'trstockmt.ffrom')
+            ->select('trstockmt.*', 'mswh.fwhcode as ffrom_code')
             ->findOrFail($fstockmtid); // Temukan header berdasarkan $fstockmtid dari URL
 
         // 4. Map the data for savedItems (sudah menggunakan data yang benar)

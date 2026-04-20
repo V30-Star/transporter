@@ -144,12 +144,13 @@
                             <div class="lg:col-span-2 flex items-end pb-2">
                                 <div class="inline-flex items-center">
                                     <input id="fclose" type="checkbox" name="fclose" value="1" x-model="fclose"
+                                        disabled
                                         {{-- text-red-600 mengubah isi centang, border-red-400 mengubah bingkai --}}
-                                        class="w-6 h-6 text-red-600 border-red-400 rounded cursor-pointer focus:ring-red-500"
+                                        class="w-6 h-6 text-red-600 border-red-400 bg-gray-200 rounded cursor-not-allowed focus:ring-red-500"
                                         {{ old('fclose', $salesorder->fclose) ? 'checked' : '' }}>
 
                                     <label for="fclose" {{-- text-red-600 mengubah warna tulisan menjadi merah --}}
-                                        class="ml-3 text-base font-bold text-red-600 whitespace-nowrap cursor-pointer">
+                                        class="ml-3 text-base font-bold text-red-600 whitespace-nowrap cursor-not-allowed">
                                         Close
                                     </label>
                                 </div>
@@ -165,14 +166,14 @@
                                             disabled>
                                             <option value=""></option>
                                             @foreach ($customers as $customer)
-                                                <option value="{{ $customer->fcustomerid }}" {{-- CEK DISINI: Bandingkan dengan data yang tersimpan di DB --}}
-                                                    {{ old('fcustno', $salesorder->fcustno) == $customer->fcustomerid ? 'selected' : '' }}>
-                                                    {{ $customer->fcustomername }} ({{ $customer->fcustomerid }})
+                                                <option value="{{ $customer->fcustomercode }}" {{-- CEK DISINI: Bandingkan dengan data yang tersimpan di DB --}}
+                                                    {{ old('fcustno', $salesorder->fcustno) == $customer->fcustomercode ? 'selected' : '' }}>
+                                                    {{ $customer->fcustomername }} ({{ $customer->fcustomercode }})
                                                 </option>
                                             @endforeach
                                         </select>
-                                        <div class="absolute inset-0" role="button" aria-label="Browse Customer"
-                                            @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))">
+                                        <div class="absolute inset-0 pointer-events-none" role="button"
+                                            aria-label="Browse Customer">
                                         </div>
                                     </div>
                                     <input type="hidden" name="fcustno" id="customerCodeHidden"
@@ -193,14 +194,14 @@
                                             disabled>
                                             <option value=""></option>
                                             @foreach ($salesmans as $salesman)
-                                                <option value="{{ $salesman->fsalesmanid }}" {{-- CEK DISINI: Bandingkan old input atau data dari database --}}
-                                                    {{ old('fsalesman', $salesorder->fsalesman) == $salesman->fsalesmanid ? 'selected' : '' }}>
-                                                    {{ $salesman->fsalesmanname }} ({{ $salesman->fsalesmanid }})
+                                                <option value="{{ $salesman->fsalesmancode }}" {{-- CEK DISINI: Bandingkan old input atau data dari database --}}
+                                                    {{ old('fsalesman', $salesorder->fsalesman) == $salesman->fsalesmancode ? 'selected' : '' }}>
+                                                    {{ $salesman->fsalesmanname }} ({{ $salesman->fsalesmancode }})
                                                 </option>
                                             @endforeach
                                         </select>
-                                        <div class="absolute inset-0" role="button" aria-label="Browse Salesman"
-                                            @click="window.dispatchEvent(new CustomEvent('salesman-browse-open'))">
+                                        <div class="absolute inset-0 pointer-events-none" role="button"
+                                            aria-label="Browse Salesman">
                                         </div>
                                     </div>
                                     <input type="hidden" name="fsalesman" id="salesmanCodeHidden"
@@ -350,12 +351,12 @@
                                             <!-- ROW UTAMA - SAVED ITEM (READ ONLY) -->
                                             <tr class="border-t align-top">
                                                 <td class="p-2" x-text="i + 1"></td>
-                                                <td class="p-2 font-mono" x-text="it.fitemcode"></td>
+                                                <td class="p-2 font-mono" x-text="it.fprdcode"></td>
                                                 <td class="p-2 text-gray-800" x-text="it.fitemname"></td>
                                                 <td class="p-2">
                                                     <template x-if="it.units && it.units.length > 1">
-                                                        <select class="w-full border rounded px-2 py-1 text-xs"
-                                                            x-model="it.fsatuan">
+                                                        <select class="w-full border rounded px-2 py-1 text-xs bg-gray-100 text-gray-600"
+                                                            x-model="it.fsatuan" disabled>
                                                             <template x-for="u in it.units" :key="u">
                                                                 <option :value="u" x-text="u"
                                                                     :selected="u === it.fsatuan"></option>
@@ -366,27 +367,26 @@
                                                         <span x-text="it.fsatuan"></span>
                                                     </template>
                                                 </td>
-                                                <td class="p-2 text-right font-medium" x-text="fmt(it.fqtyremain)"></td>
+                                                <td class="p-2 text-right font-medium" x-text="fmt(it.fqty)"></td>
                                                 <td class="p-2 text-right">
                                                     <input type="number"
-                                                        class="w-full border rounded px-2 py-1 text-right"
-                                                        x-model.number="it.fqty"
-                                                        @input="recalc(it);">
+                                                        class="w-full border rounded px-2 py-1 text-right bg-gray-100 text-gray-600"
+                                                        x-model.number="it.fqtyremain" disabled>
                                                 </td>
                                                 <td class="p-2 text-right">
                                                     <input type="number"
-                                                        class="w-full border rounded px-2 py-1 text-right"
-                                                        x-model.number="it.fprice" @input="recalc(it)">
+                                                        class="w-full border rounded px-2 py-1 text-right bg-gray-100 text-gray-600"
+                                                        x-model.number="it.fprice" disabled>
                                                 </td>
                                                 <td class="p-2 text-right">
                                                     <input type="text"
-                                                        class="w-full border rounded px-2 py-1 text-right"
-                                                        x-model="it.fdisc" @input="recalc(it)">
+                                                        class="w-full border rounded px-2 py-1 text-right bg-gray-100 text-gray-600"
+                                                        x-model="it.fdisc" disabled>
                                                 </td>
                                                 <td class="p-2 text-right font-semibold" x-text="fmt(it.ftotal)"></td>
                                                 <td class="p-2 text-center">
-                                                    <button type="button" @click="removeSaved(i)"
-                                                        class="px-3 py-1 rounded text-xs bg-red-100 text-red-600 hover:bg-red-200">Hapus</button>
+                                                    <button type="button" disabled
+                                                        class="px-3 py-1 rounded text-xs bg-gray-100 text-gray-400 cursor-not-allowed">Hapus</button>
                                                 </td>
                                             </tr>
 
@@ -395,7 +395,7 @@
                                                 <td class="p-0"></td>
                                                 <td class="p-0"></td>
                                                 <td class="p-2" colspan="2">
-                                                    <textarea x-model="it.fdesc" rows="1" class="w-full border rounded px-2 py-1 text-xs"
+                                                    <textarea x-model="it.fdesc" rows="1" readonly class="w-full border rounded px-2 py-1 text-xs bg-gray-100 text-gray-600"
                                                         placeholder="Deskripsi item (opsional)"></textarea>
                                                 </td>
                                                 <td class="p-0" colspan="6"></td>
@@ -426,7 +426,7 @@
 
 
                                     <!-- ROW EDIT UTAMA -->
-                                    <tr x-show="editingIndex !== null" class="border-t align-top" x-cloak>
+                                    <tr x-show="false" class="border-t align-top" x-cloak>
                                         <!-- # -->
                                         <td class="p-2" x-text="(editingIndex ?? 0) + 1"></td>
 
@@ -495,7 +495,7 @@
                                     </tr>
 
                                     <!-- ROW EDIT DESC -->
-                                    <tr x-show="editingIndex !== null" class="border-b" x-cloak>
+                                    <tr x-show="false" class="border-b" x-cloak>
                                         <td class="p-0"></td>
                                         <td class="p-0"></td>
                                         <td class="p-0"></td>
@@ -507,7 +507,7 @@
                                     </tr>
 
                                     <!-- ROW DRAFT DESC -->
-                                    <tr class="border-b">
+                                    <tr x-show="false" class="border-b">
                                         <td class="p-0"></td>
                                         <td class="p-0"></td>
                                         <td class="p-0"></td>
@@ -752,10 +752,10 @@
                                                     disabled>
                                                     <option value=""></option>
                                                     @foreach ($customers as $customer)
-                                                        <option value="{{ $customer->fcustomerid }}"
+                                                        <option value="{{ $customer->fcustomercode }}"
                                                             {{-- CEK DISINI: Bandingkan dengan data yang tersimpan di DB --}}
-                                                            {{ old('fcustno', $salesorder->fcustno) == $customer->fcustomerid ? 'selected' : '' }}>
-                                                            {{ $customer->fcustomername }} ({{ $customer->fcustomerid }})
+                                                            {{ old('fcustno', $salesorder->fcustno) == $customer->fcustomercode ? 'selected' : '' }}>
+                                                            {{ $customer->fcustomername }} ({{ $customer->fcustomercode }})
                                                         </option>
                                                     @endforeach
                                                 </select>
@@ -792,10 +792,10 @@
                                                     disabled>
                                                     <option value=""></option>
                                                     @foreach ($salesmans as $salesman)
-                                                        <option value="{{ $salesman->fsalesmanid }}"
+                                                        <option value="{{ $salesman->fsalesmancode }}"
                                                             {{-- CEK DISINI: Bandingkan old input atau data dari database --}}
-                                                            {{ old('fsalesman', $salesorder->fsalesman) == $salesman->fsalesmanid ? 'selected' : '' }}>
-                                                            {{ $salesman->fsalesmanname }} ({{ $salesman->fsalesmanid }})
+                                                            {{ old('fsalesman', $salesorder->fsalesman) == $salesman->fsalesmancode ? 'selected' : '' }}>
+                                                            {{ $salesman->fsalesmanname }} ({{ $salesman->fsalesmancode }})
                                                         </option>
                                                     @endforeach
                                                 </select>
@@ -1897,15 +1897,16 @@
                     return;
                 }
 
-                let opt = [...sel.options].find(o => o.value == String(customer.fcustomerid));
+                let opt = [...sel.options].find(o => o.value == String(customer.fcustomercode));
                 if (!opt) {
-                    opt = new Option(`${customer.fcustomername} (${customer.fcustomercode})`, customer.fcustomerid,
+                    opt = new Option(`${customer.fcustomername} (${customer.fcustomercode})`, customer.fcustomercode,
                         true, true);
                     sel.add(opt);
                 } else {
                     opt.selected = true;
                 }
-                if (hid) hid.value = customer.fcustomerid;
+                sel.value = customer.fcustomercode;
+                if (hid) hid.value = customer.fcustomercode;
 
                 window.dispatchEvent(new CustomEvent('customer-selected', {
                     detail: {
@@ -2075,11 +2076,11 @@
                     return;
                 }
 
-                let opt = [...sel.options].find(o => o.value == String(salesman.fsalesmanid));
+                let opt = [...sel.options].find(o => o.value == String(salesman.fsalesmancode));
                 const label = `${salesman.fsalesmanname} (${salesman.fsalesmancode})`;
 
                 if (!opt) {
-                    opt = new Option(label, salesman.fsalesmanid, true, true);
+                    opt = new Option(label, salesman.fsalesmancode, true, true);
                     sel.add(opt);
                 } else {
                     opt.text = label;
@@ -2087,7 +2088,8 @@
                 }
 
                 sel.dispatchEvent(new Event('change'));
-                if (hid) hid.value = salesman.fsalesmanid;
+                sel.value = salesman.fsalesmancode;
+                if (hid) hid.value = salesman.fsalesmancode;
                 this.close();
             },
 

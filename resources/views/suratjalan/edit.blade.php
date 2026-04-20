@@ -158,9 +158,9 @@
                                             disabled>
                                             <option value=""></option>
                                             @foreach ($customers as $customer)
-                                                <option value="{{ $customer->fcustomerid }}" {{-- CEK DISINI: Bandingkan dengan data yang tersimpan di DB --}}
-                                                    {{ old('fsupplier', $suratjalan->fsupplier) == $customer->fcustomerid ? 'selected' : '' }}>
-                                                    {{ $customer->fcustomername }} ({{ $customer->fcustomerid }})
+                                                <option value="{{ $customer->fcustomercode }}" {{-- CEK DISINI: Bandingkan dengan data yang tersimpan di DB --}}
+                                                    {{ old('fsupplier', $suratjalan->fsupplier) == $customer->fcustomercode ? 'selected' : '' }}>
+                                                    {{ $customer->fcustomername }} ({{ $customer->fcustomercode }})
                                                 </option>
                                             @endforeach
                                         </select>
@@ -186,9 +186,9 @@
                                             disabled>
                                             <option value=""></option>
                                             @foreach ($warehouses as $wh)
-                                                <option value="{{ $wh->fwhid }}" data-id="{{ $wh->fwhid }}"
+                                                <option value="{{ $wh->fwhcode }}" data-id="{{ $wh->fwhid }}"
                                                     data-branch="{{ $wh->fbranchcode }}"
-                                                    {{ old('ffrom', $suratjalan->ffrom) == $wh->fwhid ? 'selected' : '' }}>
+                                                    {{ old('ffrom', $suratjalan->ffrom) == $wh->fwhcode ? 'selected' : '' }}>
                                                     {{ $wh->fwhcode }} - {{ $wh->fwhname }}
                                                 </option>
                                             @endforeach
@@ -198,7 +198,7 @@
                                         <div class="absolute inset-0" role="button" aria-label="Browse warehouse"
                                             @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"></div>
                                     </div>
-                                    <input type="hidden" name="ffrom" id="warehouseIdHidden"
+                                    <input type="hidden" name="ffrom" id="warehouseCodeHidden"
                                         value="{{ old('ffrom', $suratjalan->ffrom) }}">
                                 </div>
                             </div>
@@ -433,9 +433,9 @@
                                                 disabled>
                                                 <option value=""></option>
                                                 @foreach ($customers as $customer)
-                                                    <option value="{{ $customer->fcustomerid }}" {{-- CEK DISINI: Bandingkan dengan data yang tersimpan di DB --}}
-                                                        {{ old('fsupplier', $suratjalan->fsupplier) == $customer->fcustomerid ? 'selected' : '' }}>
-                                                        {{ $customer->fcustomername }} ({{ $customer->fcustomerid }})
+                                                    <option value="{{ $customer->fcustomercode }}" {{-- CEK DISINI: Bandingkan dengan data yang tersimpan di DB --}}
+                                                        {{ old('fsupplier', $suratjalan->fsupplier) == $customer->fcustomercode ? 'selected' : '' }}>
+                                                        {{ $customer->fcustomername }} ({{ $customer->fcustomercode }})
                                                     </option>
                                                 @endforeach
                                             </select>
@@ -473,9 +473,9 @@
                                                 disabled>
                                                 <option value=""></option>
                                                 @foreach ($warehouses as $wh)
-                                                    <option value="{{ $wh->fwhid }}" data-id="{{ $wh->fwhid }}"
+                                                    <option value="{{ $wh->fwhcode }}" data-id="{{ $wh->fwhid }}"
                                                         data-branch="{{ $wh->fbranchcode }}"
-                                                        {{ old('ffrom', $suratjalan->ffrom) == $wh->fwhid ? 'selected' : '' }}>
+                                                        {{ old('ffrom', $suratjalan->ffrom) == $wh->fwhcode ? 'selected' : '' }}>
                                                         {{ $wh->fwhcode }} - {{ $wh->fwhname }}
                                                     </option>
                                                 @endforeach
@@ -1570,15 +1570,16 @@
                     return;
                 }
 
-                let opt = [...sel.options].find(o => o.value == String(customer.fcustomerid));
+                let opt = [...sel.options].find(o => o.value == String(customer.fcustomercode));
                 if (!opt) {
-                    opt = new Option(`${customer.fcustomername} (${customer.fcustomercode})`, customer.fcustomerid,
+                    opt = new Option(`${customer.fcustomername} (${customer.fcustomercode})`, customer.fcustomercode,
                         true, true);
                     sel.add(opt);
                 } else {
                     opt.selected = true;
                 }
-                if (hid) hid.value = customer.fcustomerid;
+                sel.value = customer.fcustomercode;
+                if (hid) hid.value = customer.fcustomercode;
 
                 window.dispatchEvent(new CustomEvent('customer-selected', {
                     detail: {
@@ -2542,7 +2543,7 @@
             const hidCode = document.getElementById('warehouseCodeHidden');
 
             if (sel) {
-                sel.value = fwhid || '';
+                sel.value = fwhcode || '';
                 sel.dispatchEvent(new Event('change', {
                     bubbles: true
                 }));

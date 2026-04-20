@@ -17,6 +17,6 @@ class SalesOrderDetail extends Model
 
   public function header()
   {
-    return $this->belongsTo(SalesOrderHeader::class, 'ftrsomtid', 'ftrsomtid');
+    return $this->belongsTo(SalesOrderHeader::class, 'fsono', 'fsono');
   }
 }

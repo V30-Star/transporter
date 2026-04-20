@@ -26,10 +26,15 @@ class SalesOrderHeader extends Model
 
   public function details()
   {
-    return $this->hasMany(SalesOrderDetail::class, 'ftrsomtid', 'ftrsomtid');
+    return $this->hasMany(SalesOrderDetail::class, 'fsono', 'fsono');
   }
   public function customer()
   {
-    return $this->belongsTo(Customer::class, 'fcustno', 'fcustomerid');
+    return $this->belongsTo(Customer::class, 'fcustno', 'fcustomercode');
+  }
+
+  public function salesman()
+  {
+    return $this->belongsTo(Salesman::class, 'fsalesman', 'fsalesmancode');
   }
 }

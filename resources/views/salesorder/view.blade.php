@@ -149,9 +149,9 @@
                                         disabled>
                                         <option value=""></option>
                                         @foreach ($customers as $customer)
-                                            <option value="{{ $customer->fcustomerid }}" {{-- CEK DISINI: Bandingkan dengan data yang tersimpan di DB --}}
-                                                {{ old('fcustno', $salesorder->fcustno) == $customer->fcustomerid ? 'selected' : '' }}>
-                                                {{ $customer->fcustomername }} ({{ $customer->fcustomerid }})
+                                            <option value="{{ $customer->fcustomercode }}" {{-- CEK DISINI: Bandingkan dengan data yang tersimpan di DB --}}
+                                                {{ old('fcustno', $salesorder->fcustno) == $customer->fcustomercode ? 'selected' : '' }}>
+                                                {{ $customer->fcustomername }} ({{ $customer->fcustomercode }})
                                             </option>
                                         @endforeach
                                     </select>
@@ -177,9 +177,9 @@
                                         disabled>
                                         <option value=""></option>
                                         @foreach ($salesmans as $salesman)
-                                            <option value="{{ $salesman->fsalesmanid }}" {{-- CEK DISINI: Bandingkan old input atau data dari database --}}
-                                                {{ old('fsalesman', $salesorder->fsalesman) == $salesman->fsalesmanid ? 'selected' : '' }}>
-                                                {{ $salesman->fsalesmanname }} ({{ $salesman->fsalesmanid }})
+                                            <option value="{{ $salesman->fsalesmancode }}" {{-- CEK DISINI: Bandingkan old input atau data dari database --}}
+                                                {{ old('fsalesman', $salesorder->fsalesman) == $salesman->fsalesmancode ? 'selected' : '' }}>
+                                                {{ $salesman->fsalesmanname }} ({{ $salesman->fsalesmancode }})
                                             </option>
                                         @endforeach
                                     </select>

@@ -161,9 +161,9 @@
                                         disabled>
                                         <option value=""></option>
                                         @foreach ($customers as $customer)
-                                            <option value="{{ $customer->fcustomerid }}"
-                                                {{ $filterSupplierId == $customer->fcustomerid ? 'selected' : '' }}>
-                                                {{ $customer->fcustomername }} ({{ $customer->fcustomerid }})
+                                            <option value="{{ $customer->fcustomercode }}"
+                                                {{ $filterSupplierId == $customer->fcustomercode ? 'selected' : '' }}>
+                                                {{ $customer->fcustomername }} ({{ $customer->fcustomercode }})
                                             </option>
                                         @endforeach
                                     </select>
@@ -2079,15 +2079,16 @@
                     return;
                 }
 
-                let opt = [...sel.options].find(o => o.value == String(customer.fcustomerid));
+                let opt = [...sel.options].find(o => o.value == String(customer.fcustomercode));
                 if (!opt) {
-                    opt = new Option(`${customer.fcustomername} (${customer.fcustomercode})`, customer.fcustomerid,
+                    opt = new Option(`${customer.fcustomername} (${customer.fcustomercode})`, customer.fcustomercode,
                         true, true);
                     sel.add(opt);
                 } else {
                     opt.selected = true;
                 }
-                if (hid) hid.value = customer.fcustomerid;
+                sel.value = customer.fcustomercode;
+                if (hid) hid.value = customer.fcustomercode;
 
                 window.dispatchEvent(new CustomEvent('customer-selected', {
                     detail: {
