@@ -135,9 +135,9 @@
                                         disabled>
                                         <option value=""></option>
                                         @foreach ($warehouses as $wh)
-                                            <option value="{{ $wh->fwhid }}" data-id="{{ $wh->fwhid }}"
+                                            <option value="{{ $wh->fwhcode }}" data-id="{{ $wh->fwhid }}"
                                                 data-branch="{{ $wh->fbranchcode }}"
-                                                {{ old('ffrom', $assembling->ffrom) == $wh->fwhid ? 'selected' : '' }}>
+                                                {{ old('ffrom', $assembling->ffrom) == $wh->fwhcode ? 'selected' : '' }}>
                                                 {{ $wh->fwhcode }} - {{ $wh->fwhname }}
                                             </option>
                                         @endforeach
@@ -1419,12 +1419,12 @@
                 const sel = document.getElementById('warehouseSelectFrom');
                 const hid = document.getElementById('warehouseCodeHiddenFrom');
                 if (sel) {
-                    sel.value = fwhid || '';
+                    sel.value = fwhcode || '';
                     sel.dispatchEvent(new Event('change', {
                         bubbles: true
                     }));
                 }
-                if (hid) hid.value = fwhid || '';
+                if (hid) hid.value = fwhcode || '';
             });
         });
 

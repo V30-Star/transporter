@@ -222,14 +222,14 @@ class AdjstockController extends Controller
 
   public function print(string $fstockmtno)
   {
-    $supplierSub = Supplier::select('fsupplierid', 'fsuppliercode', 'fsuppliername');
+    $supplierSub = Supplier::select('fsuppliercode', 'fsuppliername');
 
     $hdr = PenerimaanPembelianHeader::query()
       ->leftJoinSub($supplierSub, 's', function ($join) {
-        $join->on('s.fsupplierid', '=', 'trstockmt.fsupplier');
+        $join->on('s.fsuppliercode', '=', 'trstockmt.fsupplier');
       })
       ->leftJoin('mscabang as c', 'c.fcabangkode', '=', 'trstockmt.fbranchcode')
-      ->leftJoin('mswh as w', 'w.fwhid', '=', 'trstockmt.ffrom')
+      ->leftJoin('mswh as w', 'w.fwhcode', '=', 'trstockmt.ffrom')
       ->where('trstockmt.fstockmtno', $fstockmtno)
       ->first([
         'trstockmt.*',
@@ -239,7 +239,7 @@ class AdjstockController extends Controller
       ]);
 
     if (!$hdr) {
-      return redirect()->back()->with('error', 'PO tidak ditemukan.');
+      return redirect()->back()->with('error', 'Adjustment Stock tidak ditemukan.');
     }
 
     $dt = PenerimaanPembelianDetail::query()
@@ -332,7 +332,7 @@ class AdjstockController extends Controller
       $validated = $request->validate([
         'fstockmtno'     => ['nullable', 'string', 'max:100'],
         'fstockmtdate'   => ['required', 'date'],
-        'ffrom'          => ['nullable', 'string', 'max:10'], // Sepertinya ini fwhid?
+        'ffrom'          => ['nullable', 'string', 'max:10'],
         'ftrancode'      => ['nullable', 'string', 'max:3'],
         'fket'           => ['nullable', 'string', 'max:50'],
         'fbranchcode'    => ['nullable', 'string', 'max:20'],
@@ -340,8 +340,7 @@ class AdjstockController extends Controller
         'fitemcode.*'    => ['required', 'string', 'max:50'],
         'fsatuan'        => ['nullable', 'array'],
         'fsatuan.*'      => ['nullable', 'string', 'max:5'],
-        'frefno.*'       => ['nullable', 'string', 'max:20'],
-        'fsupplier'      => ['nullable', 'integer'],
+        'frefno'         => ['nullable', 'string', 'max:20'],
         'fnouref'        => ['nullable', 'array'],
         'fnouref.*'      => ['nullable', 'integer'],
         'fqty'           => ['required', 'array'],
@@ -512,8 +511,8 @@ class AdjstockController extends Controller
         'famountremain_rp' => round($grandTotal * $frate, 2),
         'frefpo'           => null,
         'ftrancode'        => $request->input('ftrancode') ?: null,
-        'ffrom'            => $request->input('fwhid') ?: null, // <-- Asumsikan ini fwhid
-        'frefno'           => $request->input('faccid') ?: null, // <-- Asumsikan ini faccid
+        'ffrom'            => $request->input('ffrom') ?: null,
+        'frefno'           => $request->input('frefno') ?: null,
         'fto'              => null,
         'fkirim'           => null,
         'fprdjadi'         => null,
@@ -689,6 +688,8 @@ class AdjstockController extends Controller
     ])
       ->findOrFail($fstockmtid); // Temukan header berdasarkan $fstockmtid dari URL
 
+    $usageLockMessage = $this->getUsageLockMessage($adjstock);
+
 
     // 4. Map the data for savedItems (sudah menggunakan data yang benar)
     $savedItems = $adjstock->details->map(function ($d) {
@@ -752,6 +753,8 @@ class AdjstockController extends Controller
       'ppnAmount'          => (float) ($adjstock->famountpopajak ?? 0),
       'famountponet'       => (float) ($adjstock->famountponet ?? 0),
       'famountpo'          => (float) ($adjstock->famountpo ?? 0),
+      'isUsageLocked'      => !empty($usageLockMessage),
+      'usageLockMessage'   => $usageLockMessage,
       'action' => 'edit'
     ]);
   }
@@ -876,7 +879,7 @@ class AdjstockController extends Controller
     $validated = $request->validate([
       'fstockmtno'     => ['nullable', 'string', 'max:100'],
       'fstockmtdate'   => ['required', 'date'],
-      'ffrom'          => ['nullable', 'string', 'max:10'], // Sepertinya ini fwhid?
+      'ffrom'          => ['nullable', 'string', 'max:10'],
       'ftrancode'      => ['nullable', 'string', 'max:3'],
       'fket'           => ['nullable', 'string', 'max:50'],
       'fbranchcode'    => ['nullable', 'string', 'max:20'],
@@ -901,6 +904,9 @@ class AdjstockController extends Controller
     // 2) AMBIL DATA MASTER & HEADER
     // =========================
     $header = PenerimaanPembelianHeader::findOrFail($fstockmtid);
+    if ($message = $this->getUsageLockMessage($header)) {
+      return redirect()->route('adjstock.index')->with('error', $message);
+    }
 
     $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
     $ffrom        = $request->input('ffrom');
@@ -1141,6 +1147,8 @@ class AdjstockController extends Controller
     ])
       ->findOrFail($fstockmtid); // Temukan header berdasarkan $fstockmtid dari URL
 
+    $usageLockMessage = $this->getUsageLockMessage($adjstock);
+
 
     // 4. Map the data for savedItems (sudah menggunakan data yang benar)
     $savedItems = $adjstock->details->map(function ($d) {
@@ -1204,6 +1212,8 @@ class AdjstockController extends Controller
       'ppnAmount'          => (float) ($adjstock->famountpopajak ?? 0),
       'famountponet'       => (float) ($adjstock->famountponet ?? 0),
       'famountpo'          => (float) ($adjstock->famountpo ?? 0),
+      'isUsageLocked'      => !empty($usageLockMessage),
+      'usageLockMessage'   => $usageLockMessage,
       'action' => 'delete'
     ]);
   }
@@ -1212,13 +1222,36 @@ class AdjstockController extends Controller
   {
     try {
       $adjstock = PenerimaanPembelianHeader::findOrFail($fstockmtid);
+      if ($message = $this->getUsageLockMessage($adjstock)) {
+        return redirect()->route('adjstock.index')->with('error', $message);
+      }
       $adjstock->details()->delete();
       $adjstock->delete();
 
-      return redirect()->route('adjstock.index')->with('success', 'Data Adjustment Stock ' . $adjstock->fpono . ' berhasil dihapus.');
+      return redirect()->route('adjstock.index')->with('success', 'Data Adjustment Stock ' . $adjstock->fstockmtno . ' berhasil dihapus.');
     } catch (\Exception $e) {
       // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
       return redirect()->route('adjstock.delete', $fstockmtid)->with('error', 'Gagal menghapus data: ' . $e->getMessage());
     }
+  }
+
+  private function getUsageLockMessage(PenerimaanPembelianHeader $header): ?string
+  {
+    $usedBy = DB::table('trstockdt')
+      ->where('fstockmtno', '<>', $header->fstockmtno)
+      ->where(function ($query) use ($header) {
+        $query->where('frefdtno', $header->fstockmtno)
+          ->orWhere('frefso', $header->fstockmtno);
+      })
+      ->select('fstockmtno')
+      ->distinct()
+      ->orderBy('fstockmtno')
+      ->pluck('fstockmtno');
+
+    if ($usedBy->isEmpty()) {
+      return null;
+    }
+
+    return 'Adjustment Stock ' . $header->fstockmtno . ' tidak dapat diubah atau dihapus karena sudah digunakan pada transaksi lain: ' . $usedBy->implode(', ') . '.';
   }
 }

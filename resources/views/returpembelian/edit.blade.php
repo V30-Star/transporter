@@ -81,6 +81,18 @@
         input[type=number] {
             -moz-appearance: textfield;
         }
+
+        .readonly-mode input:not([type="hidden"]),
+        .readonly-mode select,
+        .readonly-mode textarea,
+        .readonly-mode button {
+            pointer-events: none;
+        }
+
+        .readonly-mode .allow-action,
+        .readonly-mode .allow-action * {
+            pointer-events: auto;
+        }
     </style>
 
     @php
@@ -90,7 +102,40 @@
         $currentAccountId = old('faccid', $returpembelian->faccid);
         $currentPpnAmount = old('famountpajak', $returpembelian->famountpajak ?? 0);
         $currentSubtotal = old('famount', $returpembelian->famount ?? 0);
+        $usageLocked = !empty($isUsageLocked);
     @endphp
+
+    @if ($usageLocked)
+        <div x-data="{ open: true }" x-show="open" x-cloak class="fixed inset-0 z-[99] flex items-center justify-center"
+            x-transition.opacity>
+            <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+            <div class="relative bg-white w-[92vw] max-w-xl rounded-2xl shadow-2xl overflow-hidden allow-action">
+                <div class="px-6 py-4 border-b border-orange-100 bg-orange-50 flex items-center gap-3">
+                    <div class="flex-shrink-0 w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
+                        <x-heroicon-o-lock-closed class="w-5 h-5 text-orange-600" />
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-base font-bold text-orange-700">
+                            {{ $action === 'delete' ? 'Retur Pembelian Tidak Dapat Dihapus' : 'Retur Pembelian Tidak Dapat Diedit' }}
+                        </h3>
+                        <p class="text-sm text-orange-500 mt-0.5">{{ $usageLockMessage }}</p>
+                    </div>
+                    <button type="button" @click="open = false"
+                        class="flex-shrink-0 w-8 h-8 rounded-full bg-orange-100 hover:bg-orange-200 flex items-center justify-center transition-colors"
+                        title="Tutup">
+                        <x-heroicon-o-x-mark class="w-4 h-4 text-orange-600" />
+                    </button>
+                </div>
+                <div class="px-6 py-4 border-t bg-gray-50 flex justify-end">
+                    <button type="button" @click="open = false"
+                        class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center gap-2">
+                        <x-heroicon-o-arrow-left class="w-5 h-5" />
+                        Tutup
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
 
     <div x-data="{
         open: true,
@@ -104,7 +149,7 @@
     
         {{-- State untuk form --}}
         showNoItems: false
-    }" class="lg:col-span-5">
+    }" class="lg:col-span-5 {{ $action === 'delete' || $usageLocked ? 'readonly-mode' : '' }}">
         <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
             {{-- ============================================ --}}
             {{-- MODE DELETE: VIEW ONLY + BUTTON HAPUS       --}}
@@ -152,10 +197,10 @@
                                         disabled>
                                         <option value=""></option>
                                         @foreach ($suppliers as $supplier)
-                                            <option value="{{ $supplier->fsupplierid }}"
-                                                {{ old('fsupplier', $returpembelian->fsupplier) == $supplier->fsupplierid ? 'selected' : '' }}>
+                                            <option value="{{ $supplier->fsuppliercode }}"
+                                                {{ old('fsupplier', $returpembelian->fsupplier) == $supplier->fsuppliercode ? 'selected' : '' }}>
                                                 {{ $supplier->fsuppliername }}
-                                                ({{ $supplier->fsupplierid }})
+                                                ({{ $supplier->fsuppliercode }})
                                             </option>
                                         @endforeach
                                     </select>
@@ -191,9 +236,9 @@
                                         disabled>
                                         <option value=""></option>
                                         @foreach ($warehouses as $wh)
-                                            <option value="{{ $wh->fwhid }}" data-id="{{ $wh->fwhid }}"
+                                            <option value="{{ $wh->fwhcode }}" data-id="{{ $wh->fwhid }}"
                                                 data-branch="{{ $wh->fbranchcode }}"
-                                                {{ old('ffrom', $returpembelian->ffrom) == $wh->fwhid ? 'selected' : '' }}>
+                                                {{ old('ffrom', $returpembelian->ffrom) == $wh->fwhcode ? 'selected' : '' }}>
                                                 {{ $wh->fwhcode }} - {{ $wh->fwhname }}
                                             </option>
                                         @endforeach
@@ -203,7 +248,7 @@
                                     <div class="absolute inset-0" role="button" aria-label="Browse warehouse"
                                         @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"></div>
                                 </div>
-                                <input type="hidden" name="ffrom" id="warehouseIdHidden"
+                                <input type="hidden" name="ffrom" id="warehouseCodeHidden"
                                     value="{{ old('ffrom', $returpembelian->ffrom) }}">
 
                                 {{-- Tombol-tombol Anda --}}
@@ -756,9 +801,10 @@
 
                 </div>
 
-                <div class="mt-6 flex justify-center space-x-4">
+                <div class="mt-6 flex justify-center space-x-4 allow-action">
                     <button type="button" onclick="showDeleteModal()"
-                        class="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700 flex items-center">
+                        @if ($usageLocked) disabled @endif
+                        class="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700 flex items-center disabled:opacity-60 disabled:cursor-not-allowed">
                         <x-heroicon-o-trash class="w-5 h-5 mr-2" />
                         Hapus
                     </button>
@@ -822,10 +868,10 @@
                                         disabled>
                                         <option value=""></option>
                                         @foreach ($suppliers as $supplier)
-                                            <option value="{{ $supplier->fsupplierid }}"
-                                                {{ old('fsupplier', $returpembelian->fsupplier) == $supplier->fsupplierid ? 'selected' : '' }}>
+                                            <option value="{{ $supplier->fsuppliercode }}"
+                                                {{ old('fsupplier', $returpembelian->fsupplier) == $supplier->fsuppliercode ? 'selected' : '' }}>
                                                 {{ $supplier->fsuppliername }}
-                                                ({{ $supplier->fsupplierid }})
+                                                ({{ $supplier->fsuppliercode }})
                                             </option>
                                         @endforeach
                                     </select>
@@ -861,9 +907,9 @@
                                         disabled>
                                         <option value=""></option>
                                         @foreach ($warehouses as $wh)
-                                            <option value="{{ $wh->fwhid }}" data-id="{{ $wh->fwhid }}"
+                                            <option value="{{ $wh->fwhcode }}" data-id="{{ $wh->fwhid }}"
                                                 data-branch="{{ $wh->fbranchcode }}"
-                                                {{ old('ffrom', $returpembelian->ffrom) == $wh->fwhid ? 'selected' : '' }}>
+                                                {{ old('ffrom', $returpembelian->ffrom) == $wh->fwhcode ? 'selected' : '' }}>
                                                 {{ $wh->fwhcode }} - {{ $wh->fwhname }}
                                             </option>
                                         @endforeach
@@ -873,7 +919,7 @@
                                     <div class="absolute inset-0" role="button" aria-label="Browse warehouse"
                                         @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"></div>
                                 </div>
-                                <input type="hidden" name="ffrom" id="warehouseIdHidden"
+                                <input type="hidden" name="ffrom" id="warehouseCodeHidden"
                                     value="{{ old('ffrom', $returpembelian->ffrom) }}">
 
                                 {{-- Tombol-tombol Anda --}}
@@ -1610,9 +1656,10 @@
                         @endif
                     </div>
 
-                    <div class="mt-8 flex justify-center gap-4">
+                    <div class="mt-8 flex justify-center gap-4 allow-action">
                         <button type="submit"
-                            class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
+                            @if ($usageLocked) disabled @endif
+                            class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center disabled:opacity-60 disabled:cursor-not-allowed">
                             <x-heroicon-o-check class="w-5 h-5 mr-2" /> Simpan
                         </button>
                         <button type="button" @click="window.location.href='{{ route('tr_poh.index') }}'"
@@ -1631,7 +1678,7 @@
     @if ($action === 'delete')
         {{-- Modal Delete --}}
         <div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
+            <div class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6 allow-action">
                 <h3 class="text-lg font-semibold mb-4">Konfirmasi Hapus returpembelian ini?</h3>
                 <form id="deleteForm" action="{{ route('returpembelian.destroy', $returpembelian->fstockmtid) }}"
                     method="POST">
@@ -1642,7 +1689,7 @@
                             id="btnTidak">
                             Tidak
                         </button>
-                        <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+                        <button type="submit" @if ($usageLocked) disabled @endif class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed">
                             Ya, Hapus
                         </button>
                     </div>
@@ -2669,18 +2716,17 @@
     document.addEventListener('DOMContentLoaded', () => {
         window.addEventListener('warehouse-picked', (ev) => {
             const {
-                fwhcode,
-                fwhid
+                fwhcode
             } = ev.detail || {};
             const sel = document.getElementById('warehouseSelect');
-            const hid = document.getElementById('warehouseIdHidden');
+            const hid = document.getElementById('warehouseCodeHidden');
             if (sel) {
                 sel.value = fwhcode || '';
                 sel.dispatchEvent(new Event('change', {
                     bubbles: true
                 }));
             }
-            if (hid) hid.value = fwhid || '';
+            if (hid) hid.value = fwhcode || '';
         });
     });
 </script>
@@ -3020,11 +3066,11 @@
                         return;
                     }
 
-                    let opt = [...sel.options].find(o => o.value == String(supplier.fsupplierid));
+                    let opt = [...sel.options].find(o => o.value == String(supplier.fsuppliercode));
                     const label = `${supplier.fsuppliername} (${supplier.fsuppliercode})`;
 
                     if (!opt) {
-                        opt = new Option(label, supplier.fsupplierid, true, true);
+                        opt = new Option(label, supplier.fsuppliercode, true, true);
                         sel.add(opt);
                     } else {
                         opt.text = label;
@@ -3032,7 +3078,7 @@
                     }
 
                     sel.dispatchEvent(new Event('change'));
-                    if (hid) hid.value = supplier.fsupplierid;
+                    if (hid) hid.value = supplier.fsuppliercode;
                     this.close();
                 },
 

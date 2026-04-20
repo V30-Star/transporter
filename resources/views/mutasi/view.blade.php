@@ -142,9 +142,9 @@
                                         disabled>
                                         <option value=""></option>
                                         @foreach ($warehouses as $wh)
-                                            <option value="{{ $wh->fwhid }}" data-id="{{ $wh->fwhid }}"
+                                            <option value="{{ $wh->fwhcode }}" data-id="{{ $wh->fwhid }}"
                                                 data-branch="{{ $wh->fbranchcode }}"
-                                                {{ old('ffrom', $mutasi->ffrom) == $wh->fwhid ? 'selected' : '' }}>
+                                                {{ old('ffrom', $mutasi->ffrom) == $wh->fwhcode ? 'selected' : '' }}>
                                                 {{ $wh->fwhcode }} - {{ $wh->fwhname }}
                                             </option>
                                         @endforeach
@@ -188,9 +188,9 @@
                                         disabled>
                                         <option value=""></option>
                                         @foreach ($warehouses as $wh)
-                                            <option value="{{ $wh->fwhid }}" data-id="{{ $wh->fwhid }}"
+                                            <option value="{{ $wh->fwhcode }}" data-id="{{ $wh->fwhid }}"
                                                 data-branch="{{ $wh->fbranchcode }}"
-                                                {{ old('fto', $mutasi->fto) == $wh->fwhid ? 'selected' : '' }}>
+                                                {{ old('fto', $mutasi->fto) == $wh->fwhcode ? 'selected' : '' }}>
                                                 {{ $wh->fwhcode }} - {{ $wh->fwhname }}
                                             </option>
                                         @endforeach
@@ -1323,6 +1323,7 @@
         return {
             open: false,
             table: null,
+            currentTarget: '',
 
             initDataTable() {
                 if (this.table) {
@@ -1434,7 +1435,8 @@
                 });
             },
 
-            openModal() {
+            openModal(target) {
+                this.currentTarget = target;
                 this.open = true;
                 this.$nextTick(() => {
                     this.initDataTable();
@@ -1454,14 +1456,15 @@
                         fwhid: w.fwhid,
                         fwhcode: w.fwhcode,
                         fwhname: w.fwhname,
-                        fbranchcode: w.fbranchcode
+                        fbranchcode: w.fbranchcode,
+                        target: this.currentTarget
                     }
                 }));
                 this.close();
             },
 
             init() {
-                window.addEventListener('warehouse-browse-open', () => this.openModal());
+                window.addEventListener('warehouse-browse-open', (e) => this.openModal(e.detail));
             }
         }
     };
@@ -1471,17 +1474,18 @@
         window.addEventListener('warehouse-picked', (ev) => {
             const {
                 fwhcode,
-                fwhid
+                target
             } = ev.detail || {};
-            const sel = document.getElementById('warehouseSelect');
-            const hid = document.getElementById('warehouseIdHidden');
+            const suffix = target === 'from' ? 'From' : 'To';
+            const sel = document.getElementById('warehouseSelect' + suffix);
+            const hid = document.getElementById('warehouseCodeHidden' + suffix);
             if (sel) {
                 sel.value = fwhcode || '';
                 sel.dispatchEvent(new Event('change', {
                     bubbles: true
                 }));
             }
-            if (hid) hid.value = fwhid || '';
+            if (hid) hid.value = fwhcode || '';
         });
     });
 </script>

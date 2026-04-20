@@ -139,7 +139,7 @@ class MutasiController extends Controller
     {
         // Base query dengan JOIN
         $query = DB::table('tr_poh')
-            ->leftJoin('mssupplier', 'tr_poh.fsupplier', '=', 'mssupplier.fsupplierid')
+            ->leftJoin('mssupplier', 'tr_poh.fsupplier', '=', 'mssupplier.fsuppliercode')
             ->select(
                 'tr_poh.*',
                 'mssupplier.fsuppliername',
@@ -274,14 +274,14 @@ class MutasiController extends Controller
 
     public function print(string $fstockmtno)
     {
-        $supplierSub = Supplier::select('fsupplierid', 'fsuppliercode', 'fsuppliername');
+        $supplierSub = Supplier::select('fsuppliercode', 'fsuppliername');
 
         $hdr = PenerimaanPembelianHeader::query()
             ->leftJoinSub($supplierSub, 's', function ($join) {
-                $join->on('s.fsupplierid', '=', 'trstockmt.fsupplier');
+                $join->on('s.fsuppliercode', '=', 'trstockmt.fsupplier');
             })
             ->leftJoin('mscabang as c', 'c.fcabangkode', '=', 'trstockmt.fbranchcode')
-            ->leftJoin('mswh as w', 'w.fwhid', '=', 'trstockmt.ffrom')
+            ->leftJoin('mswh as w', 'w.fwhcode', '=', 'trstockmt.ffrom')
             ->where('trstockmt.fstockmtno', $fstockmtno)
             ->first([
                 'trstockmt.*',
@@ -291,7 +291,7 @@ class MutasiController extends Controller
             ]);
 
         if (!$hdr) {
-            return redirect()->back()->with('error', 'PO tidak ditemukan.');
+            return redirect()->back()->with('error', 'Mutasi Stock tidak ditemukan.');
         }
 
         $dt = PenerimaanPembelianDetail::query()
@@ -385,8 +385,8 @@ class MutasiController extends Controller
             $validated = $request->validate([
                 'fstockmtno'     => ['nullable', 'string', 'max:100'],
                 'fstockmtdate'   => ['required', 'date'],
-                'ffrom'          => ['required', 'integer'],  // ✅ TAMBAHKAN required
-                'fto'            => ['required', 'integer'],  // ✅ TAMBAHKAN required
+                'ffrom'          => ['required', 'string', 'max:10'],
+                'fto'            => ['required', 'string', 'max:10'],
                 'ftrancode'      => ['nullable', 'string', 'max:3'],
                 'fket'           => ['nullable', 'string', 'max:50'],
                 'fbranchcode'    => ['nullable', 'string', 'max:20'],
@@ -394,8 +394,7 @@ class MutasiController extends Controller
                 'fitemcode.*'    => ['required', 'string', 'max:50'],
                 'fsatuan'        => ['nullable', 'array'],
                 'fsatuan.*'      => ['nullable', 'string', 'max:20'],
-                'frefno.*'       => ['nullable', 'string', 'max:20'],
-                'fsupplier'      => ['nullable', 'integer'],
+                'frefno'         => ['nullable', 'string', 'max:20'],
                 'fqty'           => ['required', 'array'],
                 'fqty.*'         => ['required', 'numeric', 'min:0.01'],
                 'fprice.*'       => ['numeric', 'min:0'],
@@ -683,6 +682,8 @@ class MutasiController extends Controller
         ])
             ->findOrFail($fstockmtid);
 
+        $usageLockMessage = $this->getUsageLockMessage($mutasi);
+
         $savedItems = $mutasi->details->map(function ($d) {
             return [
                 'uid'       => $d->fstockdtid,
@@ -745,6 +746,8 @@ class MutasiController extends Controller
             'ppnAmount'          => (float) ($mutasi->famountpopajak ?? 0),
             'famountponet'       => (float) ($mutasi->famountponet ?? 0),
             'famountpo'          => (float) ($mutasi->famountpo ?? 0),
+            'isUsageLocked'      => !empty($usageLockMessage),
+            'usageLockMessage'   => $usageLockMessage,
             'action' => 'edit',
         ]);
     }
@@ -859,8 +862,8 @@ class MutasiController extends Controller
             $validated = $request->validate([
                 'fstockmtno'     => ['nullable', 'string', 'max:100'],
                 'fstockmtdate'   => ['required', 'date'],
-                'ffrom'          => ['required', 'integer'], // Samakan dengan store
-                'fto'            => ['required', 'integer'], // Samakan dengan store
+                'ffrom'          => ['required', 'string', 'max:10'],
+                'fto'            => ['required', 'string', 'max:10'],
                 'ftrancode'      => ['nullable', 'string', 'max:3'],
                 'fket'           => ['nullable', 'string', 'max:50'],
                 'fbranchcode'    => ['nullable', 'string', 'max:20'],
@@ -887,6 +890,9 @@ class MutasiController extends Controller
             // =========================
             // Pastikan nama model ini benar merujuk ke tabel trstockmt
             $header = PenerimaanPembelianHeader::findOrFail($fstockmtid);
+            if ($message = $this->getUsageLockMessage($header)) {
+                return redirect()->route('mutasi.index')->with('error', $message);
+            }
 
             $uniqueCodes = array_values(array_unique(
                 array_filter(array_map(fn($c) => trim((string)$c), $request->input('fitemcode', [])))
@@ -1064,6 +1070,8 @@ class MutasiController extends Controller
         ])
             ->findOrFail($fstockmtid);
 
+        $usageLockMessage = $this->getUsageLockMessage($mutasi);
+
         $savedItems = $mutasi->details->map(function ($d) {
             return [
                 'uid'       => $d->fstockdtid,
@@ -1126,6 +1134,8 @@ class MutasiController extends Controller
             'ppnAmount'          => (float) ($mutasi->famountpopajak ?? 0),
             'famountponet'       => (float) ($mutasi->famountponet ?? 0),
             'famountpo'          => (float) ($mutasi->famountpo ?? 0),
+            'isUsageLocked'      => !empty($usageLockMessage),
+            'usageLockMessage'   => $usageLockMessage,
             'action' => 'delete'
         ]);
     }
@@ -1165,6 +1175,11 @@ class MutasiController extends Controller
                 return redirect()->route('mutasi.index')->with('error', 'Data Mutasi tidak ditemukan.');
             }
 
+            if ($message = $this->getUsageLockMessage(PenerimaanPembelianHeader::findOrFail($fstockmtid))) {
+                DB::rollBack();
+                return redirect()->route('mutasi.index')->with('error', $message);
+            }
+
             $docNo = $mutasi->fstockmtno;
 
             // 2. Hapus detail (trstockdt)
@@ -1186,5 +1201,25 @@ class MutasiController extends Controller
             }
             return redirect()->route('mutasi.index')->with('error', 'Gagal menghapus data: ' . $e->getMessage());
         }
+    }
+
+    private function getUsageLockMessage(PenerimaanPembelianHeader $header): ?string
+    {
+        $usedBy = DB::table('trstockdt')
+            ->where('fstockmtno', '<>', $header->fstockmtno)
+            ->where(function ($query) use ($header) {
+                $query->where('frefdtno', $header->fstockmtno)
+                    ->orWhere('frefso', $header->fstockmtno);
+            })
+            ->select('fstockmtno')
+            ->distinct()
+            ->orderBy('fstockmtno')
+            ->pluck('fstockmtno');
+
+        if ($usedBy->isEmpty()) {
+            return null;
+        }
+
+        return 'Mutasi Stock ' . $header->fstockmtno . ' tidak dapat diubah atau dihapus karena sudah digunakan pada transaksi lain: ' . $usedBy->implode(', ') . '.';
     }
 }

@@ -264,14 +264,14 @@ class PemakaianbarangController extends Controller
 
   public function print(string $fstockmtno)
   {
-    $supplierSub = Supplier::select('fsupplierid', 'fsuppliercode', 'fsuppliername');
+    $supplierSub = Supplier::select('fsuppliercode', 'fsuppliername');
 
     $hdr = PenerimaanPembelianHeader::query()
       ->leftJoinSub($supplierSub, 's', function ($join) {
-        $join->on('s.fsupplierid', '=', 'trstockmt.fsupplier');
+        $join->on('s.fsuppliercode', '=', 'trstockmt.fsupplier');
       })
       ->leftJoin('mscabang as c', 'c.fcabangkode', '=', 'trstockmt.fbranchcode')
-      ->leftJoin('mswh as w', 'w.fwhid', '=', 'trstockmt.ffrom')
+      ->leftJoin('mswh as w', 'w.fwhcode', '=', 'trstockmt.ffrom')
       ->where('trstockmt.fstockmtno', $fstockmtno)
       ->first([
         'trstockmt.*',
@@ -281,7 +281,7 @@ class PemakaianbarangController extends Controller
       ]);
 
     if (!$hdr) {
-      return redirect()->back()->with('error', 'PO tidak ditemukan.');
+      return redirect()->back()->with('error', 'Pemakaian Barang tidak ditemukan.');
     }
 
     $dt = PenerimaanPembelianDetail::query()
@@ -379,7 +379,7 @@ class PemakaianbarangController extends Controller
     $request->validate([
       'fstockmtno'      => ['nullable', 'string', 'max:100'],
       'fstockmtdate'    => ['required', 'date'],
-      'ffrom'           => ['nullable', 'string', 'max:10'], // gudang ID
+      'ffrom'           => ['nullable', 'string', 'max:10'],
       'fket'            => ['nullable', 'string', 'max:50'],
       'fbranchcode'     => ['nullable', 'string', 'max:20'],
 
@@ -416,7 +416,7 @@ class PemakaianbarangController extends Controller
     // =========================
     $fstockmtno   = trim((string)$request->input('fstockmtno'));
     $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
-    $ffrom        = $request->input('ffrom'); // Gudang ID
+    $ffrom        = $request->input('ffrom');
     $fket         = trim((string)$request->input('fket', ''));
     $fbranchcode  = $request->input('fbranchcode');
 
@@ -723,6 +723,8 @@ class PemakaianbarangController extends Controller
       }
     ])->findOrFail($fstockmtid);
 
+    $usageLockMessage = $this->getUsageLockMessage($pemakaianbarang);
+
     // 4. Map the data for savedItems (sudah menggunakan data yang benar)
     $savedItems = $pemakaianbarang->details->map(function ($d) {
       return [
@@ -791,6 +793,8 @@ class PemakaianbarangController extends Controller
       'ppnAmount'          => (float) ($pemakaianbarang->famountpopajak ?? 0),
       'famountponet'       => (float) ($pemakaianbarang->famountponet ?? 0),
       'famountpo'          => (float) ($pemakaianbarang->famountpo ?? 0),
+      'isUsageLocked'      => !empty($usageLockMessage),
+      'usageLockMessage'   => $usageLockMessage,
       'action' => 'edit'
     ]);
   }
@@ -924,7 +928,7 @@ class PemakaianbarangController extends Controller
     $request->validate([
       'fstockmtno'     => ['nullable', 'string', 'max:100'],
       'fstockmtdate'   => ['required', 'date'],
-      'ffrom'          => ['nullable', 'integer', 'exists:mswh,fwhid'],
+      'ffrom'          => ['nullable', 'string', 'max:10'],
       'fket'           => ['nullable', 'string', 'max:50'],
       'fbranchcode'    => ['nullable', 'string', 'max:20'],
       'fitemcode'      => ['required', 'array', 'min:1'],
@@ -941,14 +945,16 @@ class PemakaianbarangController extends Controller
       'fstockmtdate.required' => 'Tanggal transaksi wajib diisi.',
       'fitemcode.required'    => 'Minimal 1 item.',
       'fqty.*.min'            => 'Qty tidak boleh 0.',
-      'ffrom.exists'          => 'Gudang (ffrom/fwhid) tidak valid.',
-      'ffrom.integer'         => 'Gudang (ffrom/fwhid) harus berupa angka ID.',
+      'ffrom.max'             => 'Gudang tidak boleh lebih dari 10 karakter.',
     ]);
 
     // =========================
     // 2) AMBIL DATA MASTER & HEADER
     // =========================
     $header = PenerimaanPembelianHeader::findOrFail($fstockmtid);
+    if ($message = $this->getUsageLockMessage($header)) {
+      return redirect()->route('pemakaianbarang.index')->with('error', $message);
+    }
 
     $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
     $ffrom        = $request->input('ffrom');
@@ -1175,6 +1181,8 @@ class PemakaianbarangController extends Controller
       }
     ])->findOrFail($fstockmtid);
 
+    $usageLockMessage = $this->getUsageLockMessage($pemakaianbarang);
+
     // 4. Map the data for savedItems (sudah menggunakan data yang benar)
     $savedItems = $pemakaianbarang->details->map(function ($d) {
       return [
@@ -1243,6 +1251,8 @@ class PemakaianbarangController extends Controller
       'ppnAmount'          => (float) ($pemakaianbarang->famountpopajak ?? 0),
       'famountponet'       => (float) ($pemakaianbarang->famountponet ?? 0),
       'famountpo'          => (float) ($pemakaianbarang->famountpo ?? 0),
+      'isUsageLocked'      => !empty($usageLockMessage),
+      'usageLockMessage'   => $usageLockMessage,
       'action' => 'delete'
     ]);
   }
@@ -1251,14 +1261,37 @@ class PemakaianbarangController extends Controller
   {
     try {
       $pemakaianbarang = PenerimaanPembelianHeader::findOrFail($fstockmtid);
+      if ($message = $this->getUsageLockMessage($pemakaianbarang)) {
+        return redirect()->route('pemakaianbarang.index')->with('error', $message);
+      }
       $pemakaianbarang->details()->delete();
 
       // 2. Baru hapus header
       $pemakaianbarang->delete();
-      return redirect()->route('pemakaianbarang.index')->with('success', 'Data pemakaianbarang ' . $pemakaianbarang->fpono . ' berhasil dihapus.');
+      return redirect()->route('pemakaianbarang.index')->with('success', 'Data pemakaianbarang ' . $pemakaianbarang->fstockmtno . ' berhasil dihapus.');
     } catch (\Exception $e) {
       // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
       return redirect()->route('pemakaianbarang.delete', $fstockmtid)->with('error', 'Gagal menghapus data: ' . $e->getMessage());
     }
+  }
+
+  private function getUsageLockMessage(PenerimaanPembelianHeader $header): ?string
+  {
+    $usedBy = DB::table('trstockdt')
+      ->where('fstockmtno', '<>', $header->fstockmtno)
+      ->where(function ($query) use ($header) {
+        $query->where('frefdtno', $header->fstockmtno)
+          ->orWhere('frefso', $header->fstockmtno);
+      })
+      ->select('fstockmtno')
+      ->distinct()
+      ->orderBy('fstockmtno')
+      ->pluck('fstockmtno');
+
+    if ($usedBy->isEmpty()) {
+      return null;
+    }
+
+    return 'Pemakaian Barang ' . $header->fstockmtno . ' tidak dapat diubah atau dihapus karena sudah digunakan pada transaksi lain: ' . $usedBy->implode(', ') . '.';
   }
 }

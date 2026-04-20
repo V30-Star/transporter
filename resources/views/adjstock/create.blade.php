@@ -160,7 +160,6 @@
                                 </div>
 
                                 <input type="hidden" name="frefno" id="accountCodeHidden" value="{{ old('frefno') }}">
-                                <input type="hidden" name="faccid" id="accountIdHidden" value="{{ old('faccid') }}">
 
                                 <button type="button" @click="window.dispatchEvent(new CustomEvent('account-browse-open'))"
                                     class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
@@ -197,7 +196,6 @@
                                 </div>
 
                                 <input type="hidden" name="ffrom" id="warehouseCodeHidden" value="{{ old('ffrom') }}">
-                                <input type="hidden" name="fwhid" id="warehouseIdHidden" value="{{ old('fwhid') }}">
 
                                 <button type="button"
                                     @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"
@@ -2140,24 +2138,11 @@
     // Helper: update field saat account-picked
     document.addEventListener('DOMContentLoaded', () => {
         window.addEventListener('account-picked', (ev) => {
-            let {
-                faccount,
-                faccid
+            const {
+                faccount
             } = ev.detail || {};
 
-            // Fallback untuk mencari faccid dari option jika tidak ada
-            if (!faccid && faccount) {
-                const sel = document.getElementById('accountSelect');
-                if (sel) {
-                    const option = sel.querySelector(`option[value="${faccount}"]`);
-                    if (option) {
-                        faccid = option.getAttribute('data-faccid');
-                    }
-                }
-            }
-
             const sel = document.getElementById('accountSelect');
-            const hidId = document.getElementById('accountIdHidden');
             const hidCode = document.getElementById('accountCodeHidden');
 
             if (sel) {
@@ -2165,10 +2150,6 @@
                 sel.dispatchEvent(new Event('change', {
                     bubbles: true
                 }));
-            }
-
-            if (hidId) {
-                hidId.value = faccid || '';
             }
 
             if (hidCode) {
@@ -2331,18 +2312,17 @@
     document.addEventListener('DOMContentLoaded', () => {
         window.addEventListener('warehouse-picked', (ev) => {
             const {
-                fwhcode,
-                fwhid
+                fwhcode
             } = ev.detail || {};
             const sel = document.getElementById('warehouseSelect');
-            const hid = document.getElementById('warehouseIdHidden');
+            const hid = document.getElementById('warehouseCodeHidden');
             if (sel) {
                 sel.value = fwhcode || '';
                 sel.dispatchEvent(new Event('change', {
                     bubbles: true
                 }));
             }
-            if (hid) hid.value = fwhid || '';
+            if (hid) hid.value = fwhcode || '';
         });
     });
 </script>

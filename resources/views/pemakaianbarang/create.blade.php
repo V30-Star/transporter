@@ -138,9 +138,9 @@
                                         disabled>
                                         <option value=""></option>
                                         @foreach ($warehouses as $wh)
-                                            <option value="{{ $wh->fwhid }}" data-code="{{ $wh->fwhcode }}"
+                                            <option value="{{ $wh->fwhcode }}" data-id="{{ $wh->fwhid }}"
                                                 data-branch="{{ $wh->fbranchcode }}"
-                                                {{ old('ffrom', $mutasi->ffrom ?? '') == $wh->fwhid ? 'selected' : '' }}>
+                                                {{ old('ffrom', $mutasi->ffrom ?? '') == $wh->fwhcode ? 'selected' : '' }}>
                                                 {{ $wh->fwhcode }} - {{ $wh->fwhname }}
                                             </option>
                                         @endforeach
@@ -218,10 +218,10 @@
                                                     x-init="initSelect2($el)"
                                                     @change="it.faccid = $event.target.value; it.faccname = $event.target.options[$event.target.selectedIndex].dataset.name">
                                                     <option value="">Pilih Akun</option>
-                                                    <template x-for="acc in accounts" :key="acc.faccid">
-                                                        <option :value="acc.faccid" :data-name="acc.faccname"
+                                                    <template x-for="acc in accounts" :key="acc.faccount">
+                                                        <option :value="acc.faccount" :data-name="acc.faccname"
                                                             x-text="`${acc.faccount} - ${acc.faccname}`"
-                                                            :selected="it.faccid == acc.faccid"></option>
+                                                            :selected="it.faccid == acc.faccount"></option>
                                                     </template>
                                                 </select>
                                             </td>
@@ -230,10 +230,10 @@
                                                     x-init="initSelect2($el)"
                                                     @change="it.fsubaccountid = $event.target.value; it.fsubaccountname = $event.target.options[$event.target.selectedIndex].dataset.name">
                                                     <option value="">Pilih Sub Akun</option>
-                                                    <template x-for="sacc in subaccounts" :key="sacc.fsubaccountid">
-                                                        <option :value="sacc.fsubaccountid" :data-name="sacc.fsubaccountname"
+                                                    <template x-for="sacc in subaccounts" :key="sacc.fsubaccountcode">
+                                                        <option :value="sacc.fsubaccountcode" :data-name="sacc.fsubaccountname"
                                                             x-text="`${sacc.fsubaccountcode} - ${sacc.fsubaccountname}`"
-                                                            :selected="it.fsubaccountid == sacc.fsubaccountid"></option>
+                                                            :selected="it.fsubaccountid == sacc.fsubaccountcode"></option>
                                                     </template>
                                                 </select>
                                             </td>
@@ -322,8 +322,8 @@
                                                 x-init="initSelect2($el)"
                                                 @input="updateAccount(draft, $event.target.value, $event.target.options[$event.target.selectedIndex].dataset.name)">
                                                 <option value="">Pilih Akun</option>
-                                                <template x-for="acc in accounts" :key="acc.faccid">
-                                                    <option :value="acc.faccid" :data-name="acc.faccname"
+                                                <template x-for="acc in accounts" :key="acc.faccount">
+                                                    <option :value="acc.faccount" :data-name="acc.faccname"
                                                         x-text="`${acc.faccount} - ${acc.faccname}`"></option>
                                                 </template>
                                             </select>
@@ -335,8 +335,8 @@
                                                 x-init="initSelect2($el)"
                                                 @input="updateSubAccount(draft, $event.target.value, $event.target.options[$event.target.selectedIndex].dataset.name)">
                                                 <option value="">Pilih Sub Akun</option>
-                                                <template x-for="sacc in subaccounts" :key="sacc.fsubaccountid">
-                                                    <option :value="sacc.fsubaccountid" :data-name="sacc.fsubaccountname"
+                                                <template x-for="sacc in subaccounts" :key="sacc.fsubaccountcode">
+                                                    <option :value="sacc.fsubaccountcode" :data-name="sacc.fsubaccountname"
                                                         x-text="`${sacc.fsubaccountcode} - ${sacc.fsubaccountname}`">
                                                     </option>
                                                 </template>
@@ -1158,12 +1158,12 @@
                 const sel = document.getElementById('warehouseSelectFrom');
                 const hid = document.getElementById('warehouseCodeHiddenFrom');
                 if (sel) {
-                    sel.value = fwhid || '';
+                    sel.value = fwhcode || '';
                     sel.dispatchEvent(new Event('change', {
                         bubbles: true
                     }));
                 }
-                if (hid) hid.value = fwhid || '';
+                if (hid) hid.value = fwhcode || '';
             });
         });
 

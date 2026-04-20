@@ -296,14 +296,14 @@ class ReturPembelianController extends Controller
 
   public function print(string $fstockmtno)
   {
-    $supplierSub = Supplier::select('fsupplierid', 'fsuppliercode', 'fsuppliername');
+    $supplierSub = Supplier::select('fsuppliercode', 'fsuppliername');
 
     $hdr = PenerimaanPembelianHeader::query()
       ->leftJoinSub($supplierSub, 's', function ($join) {
-        $join->on('s.fsupplierid', '=', 'trstockmt.fsupplier');
+        $join->on('s.fsuppliercode', '=', 'trstockmt.fsupplier');
       })
       ->leftJoin('mscabang as c', 'c.fcabangkode', '=', 'trstockmt.fbranchcode')
-      ->leftJoin('mswh as w', 'w.fwhid', '=', 'trstockmt.ffrom')
+      ->leftJoin('mswh as w', 'w.fwhcode', '=', 'trstockmt.ffrom')
       ->where('trstockmt.fstockmtno', $fstockmtno)
       ->first([
         'trstockmt.*',
@@ -313,7 +313,7 @@ class ReturPembelianController extends Controller
       ]);
 
     if (!$hdr) {
-      return redirect()->back()->with('error', 'PO tidak ditemukan.');
+      return redirect()->back()->with('error', 'Retur Pembelian tidak ditemukan.');
     }
 
     $dt = PenerimaanPembelianDetail::query()
@@ -344,7 +344,7 @@ class ReturPembelianController extends Controller
   public function create(Request $request)
   {
     $suppliers = Supplier::orderBy('fsuppliername', 'asc')
-      ->get(['fsupplierid', 'fsuppliername']);
+      ->get(['fsupplierid', 'fsuppliercode', 'fsuppliername']);
 
     $warehouses = DB::table('mswh')
       ->select('fwhid', 'fwhcode', 'fwhname', 'fbranchcode', 'fnonactive')
@@ -423,8 +423,8 @@ class ReturPembelianController extends Controller
         'fprice.*' => ['numeric', 'min:0'],
         'fdesc' => ['nullable', 'array'],
         'fdesc.*' => ['nullable', 'string', 'max:500'],
-        'frefno' => ['nullable', 'integer'],
-        'frefpo' => ['nullable', 'integer'],
+        'frefno' => ['nullable', 'string', 'max:100'],
+        'frefpo' => ['nullable', 'string', 'max:100'],
       ], [
         'fstockmtdate.required' => 'Tanggal transaksi wajib diisi.',
         'fsupplier.required' => 'Supplier wajib diisi.',
@@ -436,7 +436,7 @@ class ReturPembelianController extends Controller
       $fstockmtno = trim((string)$request->input('fstockmtno'));
       $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
       $fsupplier = trim((string)$request->input('fsupplier'));
-      $ffrom = $request->input('fwhid');
+      $ffrom = $request->input('ffrom');
       $fket = trim((string)$request->input('fket', ''));
       $fbranchcode = $request->input('fbranchcode');
       $frefno = $request->input('frefno');
@@ -661,7 +661,7 @@ class ReturPembelianController extends Controller
   public function edit(Request $request, $fstockmtid)
   {
     $suppliers = Supplier::orderBy('fsuppliername', 'asc')
-      ->get(['fsupplierid', 'fsuppliername']);
+      ->get(['fsupplierid', 'fsuppliercode', 'fsuppliername']);
 
     // 1. PINDAHKAN INI KE ATAS
     // Ambil data Header (trstockmt) DULU
@@ -678,6 +678,8 @@ class ReturPembelianController extends Controller
       }
     ])
       ->findOrFail($fstockmtid); // Temukan header berdasarkan $fstockmtid
+
+    $usageLockMessage = $this->getUsageLockMessage($returpembelian);
 
     // 2. Ambil kode akun yang tersimpan dari faktur
     $savedAccountCode = $returpembelian->fprdjadi;
@@ -774,6 +776,8 @@ class ReturPembelianController extends Controller
       'famountponet' => (float) ($returpembelian->famountponet ?? 0),
       'famountpo' => (float) ($returpembelian->famountpo ?? 0),
       'filterSupplierId' => $request->query('filter_supplier_id'),
+      'isUsageLocked' => !empty($usageLockMessage),
+      'usageLockMessage' => $usageLockMessage,
       'action' => 'edit'
     ]);
   }
@@ -781,7 +785,7 @@ class ReturPembelianController extends Controller
   public function view(Request $request, $fstockmtid)
   {
     $suppliers = Supplier::orderBy('fsuppliername', 'asc')
-      ->get(['fsupplierid', 'fsuppliername']);
+      ->get(['fsupplierid', 'fsuppliercode', 'fsuppliername']);
 
     // 1. PINDAHKAN INI KE ATAS
     // Ambil data Header (trstockmt) DULU
@@ -905,7 +909,7 @@ class ReturPembelianController extends Controller
         'fstockmtno' => ['nullable', 'string', 'max:100'],
         'fstockmtdate' => ['required', 'date'],
         'fsupplier' => ['required', 'string', 'max:30'],
-        'ffrom'          => ['nullable', 'integer', 'exists:mswh,fwhid'],
+        'ffrom'          => ['nullable', 'string', 'max:10'],
         'fket' => ['nullable', 'string', 'max:50'],
         'fbranchcode' => ['nullable', 'string', 'max:20'],
         'fitemcode' => ['required', 'array', 'min:1'],
@@ -934,6 +938,9 @@ class ReturPembelianController extends Controller
 
       // 1. Muat header yang ada
       $header = PenerimaanPembelianHeader::findOrFail($fstockmtid);
+      if ($message = $this->getUsageLockMessage($header)) {
+        return redirect()->route('returpembelian.index')->with('error', $message);
+      }
 
       // HEADER FIELDS
       $fstockmtno = $header->fstockmtno;
@@ -1153,7 +1160,7 @@ class ReturPembelianController extends Controller
   public function delete(Request $request, $fstockmtid)
   {
     $suppliers = Supplier::orderBy('fsuppliername', 'asc')
-      ->get(['fsupplierid', 'fsuppliername']);
+      ->get(['fsupplierid', 'fsuppliercode', 'fsuppliername']);
 
     // 1. PINDAHKAN INI KE ATAS
     // Ambil data Header (trstockmt) DULU
@@ -1170,6 +1177,8 @@ class ReturPembelianController extends Controller
       }
     ])
       ->findOrFail($fstockmtid); // Temukan header berdasarkan $fstockmtid
+
+    $usageLockMessage = $this->getUsageLockMessage($returpembelian);
 
     // 2. Ambil kode akun yang tersimpan dari faktur
     $savedAccountCode = $returpembelian->fprdjadi;
@@ -1266,6 +1275,8 @@ class ReturPembelianController extends Controller
       'famountponet' => (float) ($returpembelian->famountponet ?? 0),
       'famountpo' => (float) ($returpembelian->famountpo ?? 0),
       'filterSupplierId' => $request->query('filter_supplier_id'),
+      'isUsageLocked' => !empty($usageLockMessage),
+      'usageLockMessage' => $usageLockMessage,
       'action' => 'delete'
     ]);
   }
@@ -1274,13 +1285,36 @@ class ReturPembelianController extends Controller
   {
     try {
       $returpembelian = PenerimaanPembelianHeader::findOrFail($fstockmtid);
+      if ($message = $this->getUsageLockMessage($returpembelian)) {
+        return redirect()->route('returpembelian.index')->with('error', $message);
+      }
       $returpembelian->details()->delete();
       $returpembelian->delete();
 
-      return redirect()->route('returpembelian.index')->with('success', 'Data Retur Pembelian ' . $returpembelian->fpono . ' berhasil dihapus.');
+      return redirect()->route('returpembelian.index')->with('success', 'Data Retur Pembelian ' . $returpembelian->fstockmtno . ' berhasil dihapus.');
     } catch (\Exception $e) {
       // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
       return redirect()->route('returpembelian.delete', $fstockmtid)->with('error', 'Gagal menghapus data: ' . $e->getMessage());
     }
+  }
+
+  private function getUsageLockMessage(PenerimaanPembelianHeader $header): ?string
+  {
+    $usedBy = DB::table('trstockdt')
+      ->where('fstockmtno', '<>', $header->fstockmtno)
+      ->where(function ($query) use ($header) {
+        $query->where('frefdtno', $header->fstockmtno)
+          ->orWhere('frefso', $header->fstockmtno);
+      })
+      ->select('fstockmtno')
+      ->distinct()
+      ->orderBy('fstockmtno')
+      ->pluck('fstockmtno');
+
+    if ($usedBy->isEmpty()) {
+      return null;
+    }
+
+    return 'Retur Pembelian ' . $header->fstockmtno . ' tidak dapat diubah atau dihapus karena sudah digunakan pada transaksi lain: ' . $usedBy->implode(', ') . '.';
   }
 }

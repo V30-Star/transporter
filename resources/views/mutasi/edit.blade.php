@@ -82,9 +82,57 @@
         input[type=number] {
             -moz-appearance: textfield;
         }
+
+        .readonly-mode input:not([type="hidden"]),
+        .readonly-mode select,
+        .readonly-mode textarea,
+        .readonly-mode button {
+            pointer-events: none;
+        }
+
+        .readonly-mode .allow-action,
+        .readonly-mode .allow-action * {
+            pointer-events: auto;
+        }
     </style>
 
-    <div x-data="{ open: true }">
+    @php
+        $usageLocked = !empty($isUsageLocked);
+    @endphp
+
+    @if ($usageLocked)
+        <div x-data="{ open: true }" x-show="open" x-cloak class="fixed inset-0 z-[99] flex items-center justify-center"
+            x-transition.opacity>
+            <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+            <div class="relative bg-white w-[92vw] max-w-xl rounded-2xl shadow-2xl overflow-hidden allow-action">
+                <div class="px-6 py-4 border-b border-orange-100 bg-orange-50 flex items-center gap-3">
+                    <div class="flex-shrink-0 w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
+                        <x-heroicon-o-lock-closed class="w-5 h-5 text-orange-600" />
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-base font-bold text-orange-700">
+                            {{ $action === 'delete' ? 'Mutasi Stock Tidak Dapat Dihapus' : 'Mutasi Stock Tidak Dapat Diedit' }}
+                        </h3>
+                        <p class="text-sm text-orange-500 mt-0.5">{{ $usageLockMessage }}</p>
+                    </div>
+                    <button type="button" @click="open = false"
+                        class="flex-shrink-0 w-8 h-8 rounded-full bg-orange-100 hover:bg-orange-200 flex items-center justify-center transition-colors"
+                        title="Tutup">
+                        <x-heroicon-o-x-mark class="w-4 h-4 text-orange-600" />
+                    </button>
+                </div>
+                <div class="px-6 py-4 border-t bg-gray-50 flex justify-end">
+                    <button type="button" @click="open = false"
+                        class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center gap-2">
+                        <x-heroicon-o-arrow-left class="w-5 h-5" />
+                        Tutup
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <div x-data="{ open: true }" class="{{ $action === 'delete' || $usageLocked ? 'readonly-mode' : '' }}">
         <div x-data="{
             open: true,
         
@@ -148,9 +196,9 @@
                                             disabled>
                                             <option value=""></option>
                                             @foreach ($warehouses as $wh)
-                                                <option value="{{ $wh->fwhid }}" data-id="{{ $wh->fwhid }}"
+                                                <option value="{{ $wh->fwhcode }}" data-id="{{ $wh->fwhid }}"
                                                     data-branch="{{ $wh->fbranchcode }}"
-                                                    {{ old('ffrom', $mutasi->ffrom) == $wh->fwhid ? 'selected' : '' }}>
+                                                    {{ old('ffrom', $mutasi->ffrom) == $wh->fwhcode ? 'selected' : '' }}>
                                                     {{ $wh->fwhcode }} - {{ $wh->fwhname }}
                                                 </option>
                                             @endforeach
@@ -194,9 +242,9 @@
                                             disabled>
                                             <option value=""></option>
                                             @foreach ($warehouses as $wh)
-                                                <option value="{{ $wh->fwhid }}" data-id="{{ $wh->fwhid }}"
+                                                <option value="{{ $wh->fwhcode }}" data-id="{{ $wh->fwhid }}"
                                                     data-branch="{{ $wh->fbranchcode }}"
-                                                    {{ old('fto', $mutasi->fto) == $wh->fwhid ? 'selected' : '' }}>
+                                                    {{ old('fto', $mutasi->fto) == $wh->fwhcode ? 'selected' : '' }}>
                                                     {{ $wh->fwhcode }} - {{ $wh->fwhname }}
                                                 </option>
                                             @endforeach
@@ -614,9 +662,10 @@
                         </div>
                     </div>
 
-                    <div class="mt-6 flex justify-center space-x-4">
+                    <div class="mt-6 flex justify-center space-x-4 allow-action">
                         <button type="button" onclick="showDeleteModal()"
-                            class="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700 flex items-center">
+                            @if ($usageLocked) disabled @endif
+                            class="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700 flex items-center disabled:opacity-60 disabled:cursor-not-allowed">
                             <x-heroicon-o-trash class="w-5 h-5 mr-2" />
                             Hapus
                         </button>
@@ -679,9 +728,9 @@
                                             disabled>
                                             <option value=""></option>
                                             @foreach ($warehouses as $wh)
-                                                <option value="{{ $wh->fwhid }}" data-id="{{ $wh->fwhid }}"
-                                                    data-branch="{{ $wh->fbranchcode }}"
-                                                    {{ old('ffrom', $mutasi->ffrom) == $wh->fwhid ? 'selected' : '' }}>
+                                            <option value="{{ $wh->fwhcode }}" data-id="{{ $wh->fwhid }}"
+                                                data-branch="{{ $wh->fbranchcode }}"
+                                                {{ old('ffrom', $mutasi->ffrom) == $wh->fwhcode ? 'selected' : '' }}>
                                                     {{ $wh->fwhcode }} - {{ $wh->fwhname }}
                                                 </option>
                                             @endforeach
@@ -725,9 +774,9 @@
                                             disabled>
                                             <option value=""></option>
                                             @foreach ($warehouses as $wh)
-                                                <option value="{{ $wh->fwhid }}" data-id="{{ $wh->fwhid }}"
-                                                    data-branch="{{ $wh->fbranchcode }}"
-                                                    {{ old('fto', $mutasi->fto) == $wh->fwhid ? 'selected' : '' }}>
+                                            <option value="{{ $wh->fwhcode }}" data-id="{{ $wh->fwhid }}"
+                                                data-branch="{{ $wh->fbranchcode }}"
+                                                {{ old('fto', $mutasi->fto) == $wh->fwhcode ? 'selected' : '' }}>
                                                     {{ $wh->fwhcode }} - {{ $wh->fwhname }}
                                                 </option>
                                             @endforeach
@@ -1241,9 +1290,10 @@
                             </div>
                         </div>
 
-                        <div class="mt-8 flex justify-center gap-4">
+                        <div class="mt-8 flex justify-center gap-4 allow-action">
                             <button type="submit"
-                                class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
+                                @if ($usageLocked) disabled @endif
+                                class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center disabled:opacity-60 disabled:cursor-not-allowed">
                                 <x-heroicon-o-check class="w-5 h-5 mr-2" /> Simpan
                             </button>
                             <button type="button" @click="window.location.href='{{ route('mutasi.index') }}'"
@@ -1263,7 +1313,7 @@
     @if ($action === 'delete')
         {{-- Modal Delete --}}
         <div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
+            <div class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6 allow-action">
                 <h3 class="text-lg font-semibold mb-4">Konfirmasi Hapus mutasi ini?</h3>
                 <form id="deleteForm" action="{{ route('mutasi.destroy', $mutasi->fstockmtid) }}" method="POST">
                     @csrf
@@ -1273,7 +1323,7 @@
                             id="btnTidak">
                             Tidak
                         </button>
-                        <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+                        <button type="submit" @if ($usageLocked) disabled @endif class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed">
                             Ya, Hapus
                         </button>
                     </div>
@@ -2066,6 +2116,7 @@
         return {
             open: false,
             table: null,
+            currentTarget: '',
 
             initDataTable() {
                 if (this.table) {
@@ -2177,7 +2228,8 @@
                 });
             },
 
-            openModal() {
+            openModal(target) {
+                this.currentTarget = target;
                 this.open = true;
                 this.$nextTick(() => {
                     this.initDataTable();
@@ -2197,14 +2249,15 @@
                         fwhid: w.fwhid,
                         fwhcode: w.fwhcode,
                         fwhname: w.fwhname,
-                        fbranchcode: w.fbranchcode
+                        fbranchcode: w.fbranchcode,
+                        target: this.currentTarget
                     }
                 }));
                 this.close();
             },
 
             init() {
-                window.addEventListener('warehouse-browse-open', () => this.openModal());
+                window.addEventListener('warehouse-browse-open', (e) => this.openModal(e.detail));
             }
         }
     };
@@ -2214,17 +2267,18 @@
         window.addEventListener('warehouse-picked', (ev) => {
             const {
                 fwhcode,
-                fwhid
+                target
             } = ev.detail || {};
-            const sel = document.getElementById('warehouseSelect');
-            const hid = document.getElementById('warehouseIdHidden');
+            const suffix = target === 'from' ? 'From' : 'To';
+            const sel = document.getElementById('warehouseSelect' + suffix);
+            const hid = document.getElementById('warehouseCodeHidden' + suffix);
             if (sel) {
                 sel.value = fwhcode || '';
                 sel.dispatchEvent(new Event('change', {
                     bubbles: true
                 }));
             }
-            if (hid) hid.value = fwhid || '';
+            if (hid) hid.value = fwhcode || '';
         });
     });
 </script>

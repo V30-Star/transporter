@@ -158,9 +158,9 @@
                                         disabled>
                                         <option value=""></option>
                                         @foreach ($accounts as $account)
-                                            <option value="{{ $account->faccid }}" data-id="{{ $account->faccid }}"
+                                            <option value="{{ $account->faccount }}" data-faccid="{{ $account->faccid }}"
                                                 data-branch="{{ $account->faccount }}"
-                                                {{ old('frefno', $adjstock->frefno ?? '') == $account->faccid ? 'selected' : '' }}>
+                                                {{ old('frefno', $adjstock->frefno ?? '') == $account->faccount ? 'selected' : '' }}>
                                                 {{ $account->faccount }} - {{ $account->faccname }}
                                             </option>
                                         @endforeach
@@ -171,7 +171,7 @@
                                 </div>
 
                                 <!-- Hidden input yang akan dikirim ke server -->
-                                <input type="hidden" name="frefno" id="accountIdHidden"
+                                <input type="hidden" name="frefno" id="accountCodeHidden"
                                     value="{{ old('frefno', $adjstock->frefno ?? '') }}">
 
                                 <button disabled type="button"
@@ -196,9 +196,9 @@
                                         disabled>
                                         <option value=""></option>
                                         @foreach ($warehouses as $wh)
-                                            <option value="{{ $wh->fwhid }}" data-id="{{ $wh->fwhid }}"
+                                            <option value="{{ $wh->fwhcode }}" data-id="{{ $wh->fwhid }}"
                                                 data-branch="{{ $wh->fbranchcode }}"
-                                                {{ old('ffrom', $adjstock->ffrom) == $wh->fwhid ? 'selected' : '' }}>
+                                                {{ old('ffrom', $adjstock->ffrom) == $wh->fwhcode ? 'selected' : '' }}>
                                                 {{ $wh->fwhcode }} - {{ $wh->fwhname }}
                                             </option>
                                         @endforeach
@@ -209,7 +209,7 @@
                                         @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"></div>
                                 </div>
 
-                                <input type="hidden" name="ffrom" id="warehouseIdHidden"
+                                <input type="hidden" name="ffrom" id="warehouseCodeHidden"
                                     value="{{ old('ffrom', $adjstock->ffrom) }}">
 
                                 <button type="button" disabled
@@ -1680,24 +1680,11 @@
     // Helper: update field saat account-picked
     document.addEventListener('DOMContentLoaded', () => {
         window.addEventListener('account-picked', (ev) => {
-            let {
-                faccount,
-                faccid
+            const {
+                faccount
             } = ev.detail || {};
 
-            // Fallback untuk mencari faccid dari option jika tidak ada
-            if (!faccid && faccount) {
-                const sel = document.getElementById('accountSelect');
-                if (sel) {
-                    const option = sel.querySelector(`option[value="${faccount}"]`);
-                    if (option) {
-                        faccid = option.getAttribute('data-faccid');
-                    }
-                }
-            }
-
             const sel = document.getElementById('accountSelect');
-            const hidId = document.getElementById('accountIdHidden');
             const hidCode = document.getElementById('accountCodeHidden');
 
             if (sel) {
@@ -1705,10 +1692,6 @@
                 sel.dispatchEvent(new Event('change', {
                     bubbles: true
                 }));
-            }
-
-            if (hidId) {
-                hidId.value = faccid || '';
             }
 
             if (hidCode) {

@@ -264,14 +264,14 @@ class AssemblingController extends Controller
 
   public function print(string $fstockmtno)
   {
-    $supplierSub = Supplier::select('fsupplierid', 'fsuppliercode', 'fsuppliername');
+    $supplierSub = Supplier::select('fsuppliercode', 'fsuppliername');
 
     $hdr = PenerimaanPembelianHeader::query()
       ->leftJoinSub($supplierSub, 's', function ($join) {
-        $join->on('s.fsupplierid', '=', 'trstockmt.fsupplier');
+        $join->on('s.fsuppliercode', '=', 'trstockmt.fsupplier');
       })
       ->leftJoin('mscabang as c', 'c.fcabangkode', '=', 'trstockmt.fbranchcode')
-      ->leftJoin('mswh as w', 'w.fwhid', '=', 'trstockmt.ffrom')
+      ->leftJoin('mswh as w', 'w.fwhcode', '=', 'trstockmt.ffrom')
       ->where('trstockmt.fstockmtno', $fstockmtno)
       ->first([
         'trstockmt.*',
@@ -281,7 +281,7 @@ class AssemblingController extends Controller
       ]);
 
     if (!$hdr) {
-      return redirect()->back()->with('error', 'PO tidak ditemukan.');
+      return redirect()->back()->with('error', 'Assembling tidak ditemukan.');
     }
 
     $dt = PenerimaanPembelianDetail::query()
@@ -655,6 +655,8 @@ class AssemblingController extends Controller
       }
     ])->findOrFail($fstockmtid);
 
+    $usageLockMessage = $this->getUsageLockMessage($assembling);
+
     // 4. Map the data for savedItems (sudah menggunakan data yang benar)
     $savedItems = $assembling->details->map(function ($d) {
       $fitemtype = 'barang_jadi'; // default
@@ -732,6 +734,8 @@ class AssemblingController extends Controller
       'ppnAmount'          => (float) ($assembling->famountpopajak ?? 0),
       'famountponet'       => (float) ($assembling->famountponet ?? 0),
       'famountpo'          => (float) ($assembling->famountpo ?? 0),
+      'isUsageLocked'      => !empty($usageLockMessage),
+      'usageLockMessage'   => $usageLockMessage,
       'action' => 'edit',
     ]);
   }
@@ -861,7 +865,7 @@ class AssemblingController extends Controller
     $request->validate([
       'fstockmtno'     => ['nullable', 'string', 'max:100'],
       'fstockmtdate'   => ['required', 'date'],
-      'ffrom'          => ['nullable', 'integer', 'exists:mswh,fwhid'],
+      'ffrom'          => ['nullable', 'string', 'max:10'],
       'fket'           => ['nullable', 'string', 'max:50'],
       'fbranchcode'    => ['nullable', 'string', 'max:20'],
       'fitemcode'      => ['required', 'array', 'min:1'],
@@ -878,14 +882,16 @@ class AssemblingController extends Controller
       'fstockmtdate.required' => 'Tanggal transaksi wajib diisi.',
       'fitemcode.required'    => 'Minimal 1 item.',
       'fqty.*.min'            => 'Qty tidak boleh 0.',
-      'ffrom.exists'          => 'Gudang (ffrom/fwhid) tidak valid.',
-      'ffrom.integer'         => 'Gudang (ffrom/fwhid) harus berupa angka ID.',
+      'ffrom.max'             => 'Gudang tidak boleh lebih dari 10 karakter.',
     ]);
 
     // =========================
     // 2) AMBIL DATA MASTER & HEADER
     // =========================
     $header = PenerimaanPembelianHeader::findOrFail($fstockmtid);
+    if ($message = $this->getUsageLockMessage($header)) {
+      return redirect()->route('assembling.index')->with('error', $message);
+    }
 
     $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
     $ffrom        = $request->input('ffrom');
@@ -1123,6 +1129,8 @@ class AssemblingController extends Controller
       }
     ])->findOrFail($fstockmtid);
 
+    $usageLockMessage = $this->getUsageLockMessage($assembling);
+
     // 4. Map the data for savedItems (sudah menggunakan data yang benar)
     $savedItems = $assembling->details->map(function ($d) {
       $fitemtype = 'barang_jadi'; // default
@@ -1200,6 +1208,8 @@ class AssemblingController extends Controller
       'ppnAmount'          => (float) ($assembling->famountpopajak ?? 0),
       'famountponet'       => (float) ($assembling->famountponet ?? 0),
       'famountpo'          => (float) ($assembling->famountpo ?? 0),
+      'isUsageLocked'      => !empty($usageLockMessage),
+      'usageLockMessage'   => $usageLockMessage,
       'action' => 'delete',
     ]);
   }
@@ -1207,13 +1217,36 @@ class AssemblingController extends Controller
   {
     try {
       $assembling = PenerimaanPembelianHeader::findOrFail($fstockmtid);
+      if ($message = $this->getUsageLockMessage($assembling)) {
+        return redirect()->route('assembling.index')->with('error', $message);
+      }
       $assembling->details()->delete();
 
       $assembling->delete();
-      return redirect()->route('assembling.index')->with('success', 'Data assembling ' . $assembling->fpono . ' berhasil dihapus.');
+      return redirect()->route('assembling.index')->with('success', 'Data assembling ' . $assembling->fstockmtno . ' berhasil dihapus.');
     } catch (\Exception $e) {
       // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
       return redirect()->route('assembling.delete', $fstockmtid)->with('error', 'Gagal menghapus data: ' . $e->getMessage());
     }
+  }
+
+  private function getUsageLockMessage(PenerimaanPembelianHeader $header): ?string
+  {
+    $usedBy = DB::table('trstockdt')
+      ->where('fstockmtno', '<>', $header->fstockmtno)
+      ->where(function ($query) use ($header) {
+        $query->where('frefdtno', $header->fstockmtno)
+          ->orWhere('frefso', $header->fstockmtno);
+      })
+      ->select('fstockmtno')
+      ->distinct()
+      ->orderBy('fstockmtno')
+      ->pluck('fstockmtno');
+
+    if ($usedBy->isEmpty()) {
+      return null;
+    }
+
+    return 'Assembling ' . $header->fstockmtno . ' tidak dapat diubah atau dihapus karena sudah digunakan pada transaksi lain: ' . $usedBy->implode(', ') . '.';
   }
 }

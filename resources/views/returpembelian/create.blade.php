@@ -134,9 +134,9 @@
                                         disabled>
                                         <option value=""></option>
                                         @foreach ($suppliers as $supplier)
-                                            <option value="{{ $supplier->fsupplierid }}"
-                                                {{ $filterSupplierId == $supplier->fsupplierid ? 'selected' : '' }}>
-                                                {{ $supplier->fsuppliername }} ({{ $supplier->fsupplierid }})
+                                            <option value="{{ $supplier->fsuppliercode }}"
+                                                {{ $filterSupplierId == $supplier->fsuppliercode ? 'selected' : '' }}>
+                                                {{ $supplier->fsuppliername }} ({{ $supplier->fsuppliercode }})
                                             </option>
                                         @endforeach
                                     </select>
@@ -185,7 +185,6 @@
                                 </div>
 
                                 <input type="hidden" name="ffrom" id="warehouseCodeHidden" value="{{ old('ffrom') }}">
-                                <input type="hidden" name="fwhid" id="warehouseIdHidden" value="{{ old('fwhid') }}">
 
                                 <button type="button"
                                     @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"
@@ -1878,18 +1877,17 @@
     document.addEventListener('DOMContentLoaded', () => {
         window.addEventListener('warehouse-picked', (ev) => {
             const {
-                fwhcode,
-                fwhid
+                fwhcode
             } = ev.detail || {};
             const sel = document.getElementById('warehouseSelect');
-            const hid = document.getElementById('warehouseIdHidden');
+            const hid = document.getElementById('warehouseCodeHidden');
             if (sel) {
                 sel.value = fwhcode || '';
                 sel.dispatchEvent(new Event('change', {
                     bubbles: true
                 }));
             }
-            if (hid) hid.value = fwhid || '';
+            if (hid) hid.value = fwhcode || '';
         });
     });
 </script>
@@ -2229,11 +2227,11 @@
                         return;
                     }
 
-                    let opt = [...sel.options].find(o => o.value == String(supplier.fsupplierid));
+                    let opt = [...sel.options].find(o => o.value == String(supplier.fsuppliercode));
                     const label = `${supplier.fsuppliername} (${supplier.fsuppliercode})`;
 
                     if (!opt) {
-                        opt = new Option(label, supplier.fsupplierid, true, true);
+                        opt = new Option(label, supplier.fsuppliercode, true, true);
                         sel.add(opt);
                     } else {
                         opt.text = label;
@@ -2241,7 +2239,7 @@
                     }
 
                     sel.dispatchEvent(new Event('change'));
-                    if (hid) hid.value = supplier.fsupplierid;
+                    if (hid) hid.value = supplier.fsuppliercode;
                     this.close();
                 },
 

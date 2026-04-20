@@ -28,11 +28,11 @@ class PenerimaanPembelianDetail extends Model
   }
   public function account()
   {
-    return $this->belongsTo(Account::class, 'frefdtno', 'faccid');
+    return $this->belongsTo(Account::class, 'frefdtno', 'faccount');
   }
 
   public function subaccount()
   {
-    return $this->belongsTo(Subaccount::class, 'frefso', 'fsubaccountid');
+    return $this->belongsTo(Subaccount::class, 'frefso', 'fsubaccountcode');
   }
 }

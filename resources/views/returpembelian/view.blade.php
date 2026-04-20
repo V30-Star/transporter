@@ -146,10 +146,10 @@
                                     disabled>
                                     <option value=""></option>
                                     @foreach ($suppliers as $supplier)
-                                        <option value="{{ $supplier->fsupplierid }}"
-                                            {{ old('fsupplier', $returpembelian->fsupplier) == $supplier->fsupplierid ? 'selected' : '' }}>
+                                            <option value="{{ $supplier->fsuppliercode }}"
+                                            {{ old('fsupplier', $returpembelian->fsupplier) == $supplier->fsuppliercode ? 'selected' : '' }}>
                                             {{ $supplier->fsuppliername }}
-                                            ({{ $supplier->fsupplierid }})
+                                            ({{ $supplier->fsuppliercode }})
                                         </option>
                                     @endforeach
                                 </select>
@@ -184,9 +184,9 @@
                                     disabled>
                                     <option value=""></option>
                                     @foreach ($warehouses as $wh)
-                                        <option value="{{ $wh->fwhid }}" data-id="{{ $wh->fwhid }}"
-                                            data-branch="{{ $wh->fbranchcode }}"
-                                            {{ old('ffrom', $returpembelian->ffrom) == $wh->fwhid ? 'selected' : '' }}>
+                                            <option value="{{ $wh->fwhcode }}" data-id="{{ $wh->fwhid }}"
+                                                data-branch="{{ $wh->fbranchcode }}"
+                                                {{ old('ffrom', $returpembelian->ffrom) == $wh->fwhcode ? 'selected' : '' }}>
                                             {{ $wh->fwhcode }} - {{ $wh->fwhname }}
                                         </option>
                                     @endforeach
@@ -196,8 +196,8 @@
                                 <div class="absolute inset-0" role="button" aria-label="Browse warehouse"
                                     @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"></div>
                             </div>
-                            <input type="hidden" name="ffrom" id="warehouseIdHidden"
-                                value="{{ old('ffrom', $returpembelian->ffrom) }}">
+                            <input type="hidden" name="ffrom" id="warehouseCodeHidden"
+                                    value="{{ old('ffrom', $returpembelian->ffrom) }}">
 
                             {{-- Tombol-tombol Anda --}}
                             <button type="button" disabled
@@ -1700,18 +1700,17 @@
     document.addEventListener('DOMContentLoaded', () => {
         window.addEventListener('warehouse-picked', (ev) => {
             const {
-                fwhcode,
-                fwhid
+                fwhcode
             } = ev.detail || {};
             const sel = document.getElementById('warehouseSelect');
-            const hid = document.getElementById('warehouseIdHidden');
+            const hid = document.getElementById('warehouseCodeHidden');
             if (sel) {
                 sel.value = fwhcode || '';
                 sel.dispatchEvent(new Event('change', {
                     bubbles: true
                 }));
             }
-            if (hid) hid.value = fwhid || '';
+            if (hid) hid.value = fwhcode || '';
         });
     });
 </script>
@@ -2051,11 +2050,11 @@
                         return;
                     }
 
-                    let opt = [...sel.options].find(o => o.value == String(supplier.fsupplierid));
+                    let opt = [...sel.options].find(o => o.value == String(supplier.fsuppliercode));
                     const label = `${supplier.fsuppliername} (${supplier.fsuppliercode})`;
 
                     if (!opt) {
-                        opt = new Option(label, supplier.fsupplierid, true, true);
+                        opt = new Option(label, supplier.fsuppliercode, true, true);
                         sel.add(opt);
                     } else {
                         opt.text = label;
@@ -2063,7 +2062,7 @@
                     }
 
                     sel.dispatchEvent(new Event('change'));
-                    if (hid) hid.value = supplier.fsupplierid;
+                    if (hid) hid.value = supplier.fsuppliercode;
                     this.close();
                 },
 

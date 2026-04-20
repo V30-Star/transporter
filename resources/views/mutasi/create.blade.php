@@ -144,9 +144,9 @@
                                         disabled>
                                         <option value=""></option>
                                         @foreach ($warehouses as $wh)
-                                            <option value="{{ $wh->fwhid }}" data-code="{{ $wh->fwhcode }}"
+                                            <option value="{{ $wh->fwhcode }}" data-id="{{ $wh->fwhid }}"
                                                 data-branch="{{ $wh->fbranchcode }}"
-                                                {{ old('ffrom', $mutasi->ffrom ?? '') == $wh->fwhid ? 'selected' : '' }}>
+                                                {{ old('ffrom', $mutasi->ffrom ?? '') == $wh->fwhcode ? 'selected' : '' }}>
                                                 {{ $wh->fwhcode }} - {{ $wh->fwhname }}
                                             </option>
                                         @endforeach
@@ -190,9 +190,9 @@
                                         disabled>
                                         <option value=""></option>
                                         @foreach ($warehouses as $wh)
-                                            <option value="{{ $wh->fwhid }}" data-code="{{ $wh->fwhcode }}"
+                                            <option value="{{ $wh->fwhcode }}" data-id="{{ $wh->fwhid }}"
                                                 data-branch="{{ $wh->fbranchcode }}"
-                                                {{ old('fto', $mutasi->fto ?? '') == $wh->fwhid ? 'selected' : '' }}>
+                                                {{ old('fto', $mutasi->fto ?? '') == $wh->fwhcode ? 'selected' : '' }}>
                                                 {{ $wh->fwhcode }} - {{ $wh->fwhname }}
                                             </option>
                                         @endforeach
@@ -1577,7 +1577,7 @@
 
             if (sel) {
                 // Set value select (fwhid harus cocok dengan value di <option>)
-                sel.value = fwhid;
+                sel.value = fwhcode || '';
                 // Penting: beritahu browser/Alpine bahwa value berubah
                 sel.dispatchEvent(new Event('change', {
                     bubbles: true
@@ -1585,7 +1585,7 @@
             }
 
             if (hid) {
-                hid.value = fwhid;
+                hid.value = fwhcode || '';
             }
         });
     });
