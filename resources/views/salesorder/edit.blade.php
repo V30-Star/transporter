@@ -2309,7 +2309,8 @@
                 return meta;
             },
 
-            formatStockLimit(code, qty, satuan) {
+            formatStockLimit(code, qty, satuan, hideQtyLimitHint = false) {
+                if (hideQtyLimitHint) return '';
                 const meta = this.productMeta(code);
                 if (!code || !meta.stock) return '';
 
@@ -2409,6 +2410,7 @@
                         ftotal: Number(src.ftotal ?? 0),
                         fdesc: src.fdesc ?? '',
                         fketdt: src.fketdt ?? '',
+                        hideQtyLimitHint: false,
                         units: Array.isArray(src.units) && src.units.length ? src.units : [src.fsatuan]
                             .filter(Boolean),
                     };
@@ -2560,6 +2562,7 @@
                 this.$watch('ppnRate', () => this.recalcTotals());
 
                 this.savedItems.forEach((item) => {
+                    item.hideQtyLimitHint = !((item.frefdtno ?? '').toString().trim());
                     item.units = item.units || [];
                     if (typeof item.units === 'string') {
                         try {
@@ -2601,6 +2604,7 @@
                     if (!product) return;
                     const apply = (row) => {
                         row.fprdcode = (product.fprdcode || '').toString();
+                        row.hideQtyLimitHint = true;
 
                         // Gunakan data dari modal sebaga primary, fallback ke PRODUCT_MAP
                         const meta = {
@@ -2669,6 +2673,7 @@
                 ftotal: 0,
                 fdesc: '',
                 fketdt: '',
+                hideQtyLimitHint: false,
             };
         }
 

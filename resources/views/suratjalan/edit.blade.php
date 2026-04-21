@@ -1746,6 +1746,7 @@
 
             formatStockLimit(row) {
                 if (!row?.fitemcode) return '';
+                if (row?.hideQtyLimitHint) return '';
                 const meta = this.productMeta(row.fitemcode);
                 const limitSource = Number(row.maxqty ?? 0);
                 if (!limitSource) return '';
@@ -1913,6 +1914,7 @@
                         units: meta ? [...new Set((meta.units || []).map(u => (u ?? '').toString().trim())
                             .filter(Boolean))] : [satuan].filter(Boolean),
                         maxqty: Math.max(0, Number(src.fqtyremain ?? src.fqty ?? 0)),
+                        hideQtyLimitHint: false,
                     };
 
                     row.ftotal = Number((row.fqty * row.fprice).toFixed(2));
@@ -2102,6 +2104,7 @@
                 this.savedItems.forEach((item) => {
                     const soLimit = Number(item.maxqty ?? item.fqtyremain ?? 0);
                     item.maxqty = Number(item.frefsoid) > 0 && soLimit > 0 ? soLimit : 0;
+                    item.hideQtyLimitHint = !(Number(item.frefsoid) > 0 && soLimit > 0);
                 });
 
                 window.addEventListener('pr-picked', this.onPrPicked.bind(this), {
@@ -2116,6 +2119,7 @@
 
                     const apply = (row) => {
                         row.fitemcode = (product.fprdcode || '').toString();
+                        row.hideQtyLimitHint = true;
                         this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
                         if (!row.fqty) row.fqty = 1;
                         this.recalc(row);
@@ -2173,6 +2177,7 @@
                 fdesc: '',
                 fketdt: '',
                 maxqty: 0,
+                hideQtyLimitHint: false,
             };
         }
 

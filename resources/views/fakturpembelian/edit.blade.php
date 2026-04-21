@@ -2781,6 +2781,7 @@
                         const meta = this.productMeta(item.fitemcode);
                         const sourceType = (item.fsource || '').toString().trim().toUpperCase();
                         const isSourceRow = ['PO', 'PB'].includes(sourceType);
+                        item.hideQtyLimitHint = !isSourceRow;
                         if (meta) {
                             if (!isSourceRow) {
                                 item.maxqty = Number(meta.stock) || 0;
