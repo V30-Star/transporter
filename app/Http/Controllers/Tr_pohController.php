@@ -1087,11 +1087,20 @@ class Tr_pohController extends Controller
     $tr_poh = Tr_poh::with(['details' => function ($q) {
       $q->leftJoin('msprd', function ($j) {
         $j->on('msprd.fprdid', '=', 'tr_pod.fprdid');
-      })->select(
-        'tr_pod.*',
-        'msprd.fprdcode as fitemcode',
-        'msprd.fprdname'
-      );
+      })
+        ->leftJoin(DB::raw("(SELECT frefdtno, fprdcode, SUM(fqty) AS total_terima FROM trstockdt GROUP BY frefdtno, fprdcode) r"), function ($join) {
+          $join->on('r.frefdtno', '=', 'tr_pod.fpono')
+            ->on('r.fprdcode', '=', 'msprd.fprdcode');
+        })
+        ->select(
+          'tr_pod.*',
+          'msprd.fprdcode as fitemcode',
+          'msprd.fprdname',
+          'msprd.fsatuankecil',
+          'msprd.fsatuanbesar',
+          'msprd.fsatuanbesar2',
+          DB::raw('COALESCE(r.total_terima, 0) AS fqtyterima')
+        );
     }])->findOrFail($fpohid);
 
     $currencies = DB::table('mscurrency')
@@ -1107,6 +1116,12 @@ class Tr_pohController extends Controller
     $currentCurrency = DB::table('mscurrency')
       ->where('fcurrid', $tr_poh->fcurrency)
       ->first(['fcurrid', 'fcurrcode', 'fcurrname', 'frate']);
+
+    $qtyTerimaMap = DB::table('trstockdt')
+      ->where('frefdtno', $tr_poh->fpono)
+      ->select('fprdcode', DB::raw('SUM(fqty) as total_terima'))
+      ->groupBy('fprdcode')
+      ->pluck('total_terima', 'fprdcode');
 
     $products = Product::select(
       'fprdid',
@@ -1133,15 +1148,27 @@ class Tr_pohController extends Controller
       ];
     })->toArray();
 
-    $savedItems = $tr_poh->details->map(function ($d) {
+    $savedItems = $tr_poh->details->map(function ($d) use ($qtyTerimaMap) {
+      $satKecil = trim((string) ($d->fsatuankecil ?? ''));
+      $satBesar = trim((string) ($d->fsatuanbesar ?? ''));
+      $satBesar2 = trim((string) ($d->fsatuanbesar2 ?? ''));
+      $units = array_values(array_filter(array_map('trim', [$satKecil, $satBesar, $satBesar2])));
+      $fsatuan = trim((string) ($d->fsatuan ?? ''));
+
+      if ($fsatuan !== '' && !in_array($fsatuan, $units)) {
+        array_unshift($units, $fsatuan);
+      }
+
       return [
         'uid'       => (string)($d->fpodid   ?? \Illuminate\Support\Str::uuid()),
         'fitemcode' => (string)($d->fitemcode ?? ''),
         'fitemname' => (string)($d->fprdname  ?? ''),
-        'fsatuan'   => (string)($d->fsatuan   ?? ''),
+        'fsatuan'   => $fsatuan,
+        'units'     => $units,
         'frefdtno'  => (string)($d->frefdtno  ?? ''),
         'fprno'     => (string)($d->frefdtno  ?? ''),
         'fqty'      => (float)($d->fqty    ?? 0),
+        'fqtyterima' => (float)($qtyTerimaMap[$d->fitemcode] ?? $d->fqtyterima ?? 0),
         'fterima'   => (float)($d->fterima ?? 0),
         'fprice'    => (float)($d->fprice  ?? 0),
         'fdisc'     => (float)($d->fdisc   ?? 0),

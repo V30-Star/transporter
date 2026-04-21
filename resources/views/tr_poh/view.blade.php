@@ -116,6 +116,7 @@
                             <th class="p-2 text-left w-28">Satuan</th>
                             <th class="p-2 text-left w-36">Ref.PR#</th>
                             <th class="p-2 text-right w-24 whitespace-nowrap">Qty</th>
+                            <th class="p-2 text-right w-32 whitespace-nowrap">Qty Terima</th>
                             <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
                             <th class="p-2 text-right w-24 whitespace-nowrap">Disc. %</th>
                             <th class="p-2 text-right w-36 whitespace-nowrap">Total Harga</th>
@@ -139,6 +140,9 @@
                                 <td class="p-2 text-right text-sm">
                                     <div x-text="it.fqty"></div>
                                 </td>
+                                <td class="p-2 text-right text-sm">
+                                    <div x-text="it.fqtyterima ?? 0"></div>
+                                </td>
                                 <td class="p-2 text-right text-sm" x-text="fmtCurr(it.fprice)"></td>
                                 <td class="p-2 text-right text-sm" x-text="it.fdisc"></td>
                                 <td class="p-2 text-right text-sm font-medium" x-text="fmtCurr(it.ftotal)"></td>
@@ -148,7 +152,7 @@
                         {{-- Empty state --}}
                         <template x-if="savedItems.length === 0">
                             <tr>
-                                <td colspan="9" class="p-6 text-center text-gray-400 text-sm">Tidak ada item</td>
+                                <td colspan="10" class="p-6 text-center text-gray-400 text-sm">Tidak ada item</td>
                             </tr>
                         </template>
                     </tbody>

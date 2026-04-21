@@ -426,8 +426,8 @@
 
                         <div class="lg:col-span-12">
                             <label class="block text-sm font-medium">Keterangan</label>
-                            <textarea name="fket" rows="3"
-                                class="w-full border rounded px-3 py-2 @error('fket') border-red-500 @enderror"
+                            <textarea name="fket" rows="3" readonly disabled
+                                class="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed text-gray-700 @error('fket') border-red-500 @enderror"
                                 placeholder="Tulis keterangan tambahan di sini...">{{ old('fket', $fakturpembelian->fket) }}</textarea>
                             @error('fket')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -499,12 +499,12 @@
                                 <label class="text-sm font-semibold text-gray-700 whitespace-nowrap">Hitung
                                     Biaya</label>
                                 <div class="flex items-center gap-2">
-                                    <input type="number" x-model.number="biayaGlobal"
+                                    <input type="number" x-model.number="biayaGlobal" readonly disabled
                                         placeholder="Masukkan Total Ongkir"
-                                        class="w-40 border rounded px-3 py-2 text-right font-mono bg-white">
+                                        class="w-40 border rounded px-3 py-2 text-right font-mono bg-gray-100 cursor-not-allowed text-gray-700">
 
-                                    <button type="button" @click="alokasiBiaya()"
-                                        class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded transition flex items-center gap-2">
+                                    <button type="button" @click.prevent disabled
+                                        class="bg-blue-300 text-white font-medium py-2 px-4 rounded transition flex items-center gap-2 cursor-not-allowed opacity-70">
                                         Hitung
                                     </button>
                                 </div>
@@ -739,7 +739,7 @@
                                         </div>
 
                                         <!-- Dropdown Include / Exclude (tengah) -->
-                                        <div class="flex items-center gap-2">
+                                        <div class="flex items-center gap-2 pointer-events-none">
                                             <select disabled id="includePPN" name="includePPN" x-model.number="fapplyppn"
                                                 x-init="fapplyppn = 0" :disabled="!(includePPN || fapplyppn)"
                                                 class="w-28 h-9 px-2 text-sm leading-tight border rounded transition-opacity appearance-none
@@ -750,8 +750,8 @@
                                         </div>
 
                                         <!-- Input Rate + Nominal (kanan) -->
-                                        <div class="flex items-center gap-2">
-                                            <input disabled type="number" min="0" max="100" step="0.01"
+                                        <div class="flex items-center gap-2 pointer-events-none">
+                                            <input disabled readonly type="number" min="0" max="100" step="0.01"
                                                 x-model.number="ppnRate" :disabled="!(includePPN || fapplyppn)"
                                                 class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
                                                             [appearance:textfield]
@@ -1261,7 +1261,7 @@
                                                         @input="enforceQtyRow(it); recalc(it);"
                                                         @change="enforceQtyRow(it); recalc(it);">
                                                     <div class="text-[10px] text-orange-600 mt-0.5" x-show="it.fitemcode"
-                                                        x-html="formatStockLimit(it.fitemcode, it.fqty, it.fsatuan, it.fsource, it.maxqty)"></div>
+                                                        x-html="formatStockLimit(it.fitemcode, it.fqty, it.fsatuan, it.fsource, it.maxqty, it.hideQtyLimitHint)"></div>
                                                 </td>
                                                 <td class="p-2 text-right">
                                                     <input type="number"
@@ -1381,7 +1381,7 @@
                                                     @keydown.enter.prevent="$refs.draftTerima?.focus()">
                                                 <div class="text-xs mt-0.5 text-right space-y-0.5">
                                                     <div class="text-gray-400" x-show="draft.fitemcode"
-                                                        x-html="formatStockLimit(draft.fitemcode, draft.fqty, draft.fsatuan, draft.fsource, draft.maxqty)">
+                                                        x-html="formatStockLimit(draft.fitemcode, draft.fqty, draft.fsatuan, draft.fsource, draft.maxqty, draft.hideQtyLimitHint)">
                                                     </div>
                                                 </div>
                                             </td>
@@ -2428,7 +2428,8 @@
                     return meta;
                 },
 
-                formatStockLimit(code, qty, satuan, sourceType = '', sourceMaxQty = null) {
+                formatStockLimit(code, qty, satuan, sourceType = '', sourceMaxQty = null, hideQtyLimitHint = false) {
+                    if (hideQtyLimitHint) return '';
                     const normalizedSource = (sourceType || '').toString().trim().toUpperCase();
                     if (['PO', 'PB'].includes(normalizedSource)) {
                         const sourceLimit = Math.max(0, +(sourceMaxQty ?? 0) || 0);
@@ -2832,6 +2833,7 @@
                         if (!product) return;
                         const apply = (row) => {
                             row.fitemcode = (product.fprdcode || '').toString();
+                            row.hideQtyLimitHint = true;
                             this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
                             if (!row.fqty) row.fqty = 1;
                             this.recalc(row);
@@ -2884,6 +2886,7 @@
                     fketdt: '',
                     maxqty: 0,
                     lockQty: false,
+                    hideQtyLimitHint: false,
                 };
             }
 
