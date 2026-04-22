@@ -438,6 +438,8 @@
                                             x-ref="editQty" x-model.number="editRow.fqty"
                                             @input="
                                                         recalc(editRow);
+                                                    "
+                                            @blur="
                                                         enforceQtyRow(editRow);
                                                         recalc(editRow);
                                                     "
@@ -2709,6 +2711,7 @@
                 items.forEach(src => {
                     const itemcode = (src.fitemcode ?? '').toString().trim();
                     const frefdtno = (src.frefdtno ?? src.frefcode ?? '').toString().trim();
+                    const remainingQty = Math.max(0, Number(src.fqtyremain ?? src.fqty ?? 0));
                     const key = `${itemcode}::${frefdtno}`;
 
                     if (existing.has(key)) return;
@@ -2813,6 +2816,7 @@
                         item.units = [];
                     }
 
+                    const meta = this.productMeta(item.fitemcode);
                     const rowLimit = Number(item.fqtyremain ?? 0);
                     if (meta) {
                         item.fqtyremain = (Number(item.frefsoid) > 0 || Number(item.frefsrjid) > 0) && rowLimit > 0 ? rowLimit : 0;
@@ -2839,12 +2843,20 @@
                 });
                 window.addEventListener('product-chosen', (e) => {
                     const {
-                        product
+                        product,
+                        forEdit
                     } = e.detail || {};
                     if (!product) return;
-                    this.draft.fitemcode = (product.fprdcode || '').toString();
-                    this.onCodeTypedRow(this.draft);
-                    this.$nextTick(() => this.$refs.draftQty?.focus());
+
+                    const targetRow = (forEdit && this.editRow) ? this.editRow : this.draft;
+                    targetRow.fitemcode = (product.fprdcode || '').toString();
+                    this.onCodeTypedRow(targetRow);
+
+                    if (targetRow === this.editRow) {
+                        this.$nextTick(() => this.$refs.editQty?.focus());
+                    } else {
+                        this.$nextTick(() => this.$refs.draftQty?.focus());
+                    }
                 }, {
                     passive: true
                 });
@@ -2859,9 +2871,10 @@
 
             browseTarget: 'draft',
             openBrowseFor(where) {
+                this.browseTarget = where || 'draft';
                 window.dispatchEvent(new CustomEvent('browse-open', {
                     detail: {
-                        forEdit: false
+                        forEdit: this.browseTarget === 'edit'
                     }
                 }));
             },
