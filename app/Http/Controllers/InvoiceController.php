@@ -764,7 +764,7 @@ class InvoiceController extends Controller
             ? DB::table('trstockdt')->whereIn('fstockdtid', $srjDetailIds)->pluck('fqtyremain', 'fstockdtid')
             : collect();
 
-        $savedItems = $invoice->details->map(function ($d) {
+        $savedItems = $invoice->details->map(function ($d) use ($soRemainRows, $srjRemainRows) {
             $refCode = trim($d->frefcode ?? '');
             if (empty($refCode)) {
                 if (! empty(trim($d->frefso ?? ''))) {
@@ -807,7 +807,6 @@ class InvoiceController extends Controller
                 'frefno_display' => $refNoDisplay,
                 'fqty' => (float) ($d->fqty ?? 0),
                 'fterima' => (float) ($d->fterima ?? 0),
-                'fqtyremain' => (float) ($d->fqtyremain ?? 0),
                 'fprice' => (float) ($d->fprice ?? 0),
                 'fdisc' => (float) ($d->fdisc ?? 0),
                 'ftotal' => (float) ($d->famount ?? 0),
@@ -1091,6 +1090,7 @@ class InvoiceController extends Controller
             $totalDisc += $discAmount;
 
             $rowData = [
+                'ftranmtid' => $ftranmtid,
                 'fsono' => $header->fsono,
                 'fnou' => $i + 1,
                 'fprdcodeid' => $product->fprdid,
@@ -1120,13 +1120,19 @@ class InvoiceController extends Controller
         }
 
         $oldSoUsageRows = DB::table('trandt')
-            ->where('ftranmtid', $ftranmtid)
+            ->where(function ($query) use ($ftranmtid, $header) {
+                $query->where('ftranmtid', $ftranmtid)
+                    ->orWhere('fsono', $header->fsono);
+            })
             ->whereNotNull('frefsoid')
             ->select('frefsoid', DB::raw('SUM(COALESCE(fqtykecil, 0)) as used_qty_kecil'))
             ->groupBy('frefsoid')
             ->get();
         $oldSrjUsageRows = DB::table('trandt')
-            ->where('ftranmtid', $ftranmtid)
+            ->where(function ($query) use ($ftranmtid, $header) {
+                $query->where('ftranmtid', $ftranmtid)
+                    ->orWhere('fsono', $header->fsono);
+            })
             ->whereNotNull('frefsrjid')
             ->select('frefsrjid', DB::raw('SUM(COALESCE(fqtykecil, 0)) as used_qty_kecil'))
             ->groupBy('frefsrjid')

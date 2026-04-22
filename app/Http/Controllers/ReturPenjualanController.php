@@ -812,7 +812,31 @@ class ReturPenjualanController extends Controller
 
         $usageLockMessage = $this->getUsageLockMessage($returpenjualan);
 
-        $savedItems = $returpenjualan->details->map(function ($d) {
+        $soDetailIds = $returpenjualan->details
+            ->pluck('frefsoid')
+            ->filter(fn($v) => is_numeric($v) && (int) $v > 0)
+            ->map(fn($v) => (int) $v)
+            ->unique()
+            ->values()
+            ->all();
+
+        $srjDetailIds = $returpenjualan->details
+            ->pluck('frefsrjid')
+            ->filter(fn($v) => is_numeric($v) && (int) $v > 0)
+            ->map(fn($v) => (int) $v)
+            ->unique()
+            ->values()
+            ->all();
+
+        $soRemainRows = $soDetailIds
+            ? DB::table('trsodt')->whereIn('ftrsodtid', $soDetailIds)->pluck('fqtyremain', 'ftrsodtid')
+            : collect();
+
+        $srjRemainRows = $srjDetailIds
+            ? DB::table('trstockdt')->whereIn('fstockdtid', $srjDetailIds)->pluck('fqtyremain', 'fstockdtid')
+            : collect();
+
+        $savedItems = $returpenjualan->details->map(function ($d) use ($soRemainRows, $srjRemainRows) {
             $refCode = strtoupper(trim($d->frefcode ?? ''));
             $valSo = trim($d->frefso ?? '');
             $valSrj = trim($d->frefsrj ?? '');
@@ -830,6 +854,16 @@ class ReturPenjualanController extends Controller
                 $refCode = 'SO';
             }
 
+            $usedQtyKecil = (float) ($d->fqtykecil ?? 0);
+            $remainDb = 0.0;
+            if (is_numeric($d->frefsoid) && (int) $d->frefsoid > 0) {
+                $remainDb = (float) ($soRemainRows[(int) $d->frefsoid] ?? 0);
+            } elseif (is_numeric($d->frefsrjid) && (int) $d->frefsrjid > 0) {
+                $remainDb = (float) ($srjRemainRows[(int) $d->frefsrjid] ?? 0);
+            }
+
+            $fqtyremain = max(0.0, $remainDb + $usedQtyKecil);
+
             return [
                 'uid' => $d->ftrandtid,
                 'fitemcode' => (string) ($d->fitemcode ?? ''),
@@ -840,7 +874,7 @@ class ReturPenjualanController extends Controller
                 'frefsrjid' => (string) ($d->frefsrjid ?? ''),
                 'fqty' => (float) ($d->fqty ?? 0),
                 'fterima' => (float) ($d->fterima ?? 0),
-                'fqtyremain' => (float) ($d->fqtyremain ?? 0),
+                'fqtyremain' => $fqtyremain,
                 'fprice' => (float) ($d->fprice ?? 0),
                 'fdisc' => (string) ($d->fdisc ?? '0'),
                 'ftotal' => (float) ($d->famount ?? 0),
@@ -1174,13 +1208,19 @@ class ReturPenjualanController extends Controller
         }
 
         $oldSoUsageRows = DB::table('trandt')
-            ->where('ftranmtid', $ftranmtid)
+            ->where(function ($query) use ($ftranmtid, $header) {
+                $query->where('ftranmtid', $ftranmtid)
+                    ->orWhere('fsono', $header->fsono);
+            })
             ->whereNotNull('frefsoid')
             ->select('frefsoid', DB::raw('SUM(COALESCE(fqtykecil, 0)) as used_qty_kecil'))
             ->groupBy('frefsoid')
             ->get();
         $oldSrjUsageRows = DB::table('trandt')
-            ->where('ftranmtid', $ftranmtid)
+            ->where(function ($query) use ($ftranmtid, $header) {
+                $query->where('ftranmtid', $ftranmtid)
+                    ->orWhere('fsono', $header->fsono);
+            })
             ->whereNotNull('frefsrjid')
             ->select('frefsrjid', DB::raw('SUM(COALESCE(fqtykecil, 0)) as used_qty_kecil'))
             ->groupBy('frefsrjid')
