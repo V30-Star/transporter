@@ -1423,7 +1423,14 @@ class InvoiceController extends Controller
                 return redirect()->route('invoice.index')->with('error', $message);
             }
 
-            $invoice->delete();
+            DB::transaction(function () use ($invoice) {
+                DB::table('trandt')
+                    ->where('ftranmtid', $invoice->ftranmtid)
+                    ->orWhere('fsono', $invoice->fsono)
+                    ->delete();
+
+                $invoice->delete();
+            });
 
             return redirect()->route('invoice.index')->with('success', 'Data Faktur Penjualan ' . $invoice->fsono . ' berhasil dihapus.');
         } catch (\Exception $e) {

@@ -1589,10 +1589,16 @@ class FakturPembelianController extends Controller
         return redirect()->route('fakturpembelian.index')->with('error', $message);
       }
 
-      $fakturpembelian->details()->delete();
-      $fakturpembelian->delete();
+      DB::transaction(function () use ($fakturpembelian) {
+        DB::table('trstockdt')
+          ->where('fstockmtid', $fakturpembelian->fstockmtid)
+          ->orWhere('fstockmtno', $fakturpembelian->fstockmtno)
+          ->delete();
 
-      return redirect()->route('fakturpembelian.index')->with('success', 'Data Faktur Pembelian ' . $fakturpembelian->fpono . ' berhasil dihapus.');
+        $fakturpembelian->delete();
+      });
+
+      return redirect()->route('fakturpembelian.index')->with('success', 'Data Faktur Pembelian ' . $fakturpembelian->fstockmtno . ' berhasil dihapus.');
     } catch (\Exception $e) {
       // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
       return redirect()->route('fakturpembelian.delete', $fstockmtid)->with('error', 'Gagal menghapus data: ' . $e->getMessage());

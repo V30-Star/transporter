@@ -1609,12 +1609,16 @@ class SuratJalanController extends Controller
                 return redirect()->route('suratjalan.index')->with('error', $message);
             }
 
-            $suratjalan->details()->delete();
+            DB::transaction(function () use ($suratjalan) {
+                DB::table('trstockdt')
+                    ->where('fstockmtid', $suratjalan->fstockmtid)
+                    ->orWhere('fstockmtno', $suratjalan->fstockmtno)
+                    ->delete();
 
-            // 2. Baru hapus header
-            $suratjalan->delete();
+                $suratjalan->delete();
+            });
 
-            return redirect()->route('suratjalan.index')->with('success', 'Data Surat Jalan ' . $suratjalan->fpono . ' berhasil dihapus.');
+            return redirect()->route('suratjalan.index')->with('success', 'Data Surat Jalan ' . $suratjalan->fstockmtno . ' berhasil dihapus.');
         } catch (\Exception $e) {
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
             return redirect()->route('suratjalan.delete', $fstockmtid)->with('error', 'Gagal menghapus data: ' . $e->getMessage());

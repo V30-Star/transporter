@@ -1202,7 +1202,13 @@ class SalesOrderController extends Controller
                 return redirect()->route('salesorder.index')->with('error', $message);
             }
 
-            $salesorder->delete();
+            DB::transaction(function () use ($salesorder) {
+                DB::table('trsodt')
+                    ->where('fsono', $salesorder->fsono)
+                    ->delete();
+
+                $salesorder->delete();
+            });
 
             return redirect()->route('salesorder.index')->with('success', 'Data Sales Order ' . $salesorder->fsono . ' berhasil dihapus.');
         } catch (\Exception $e) {

@@ -1581,14 +1581,20 @@ class ReturPenjualanController extends Controller
                 $fsono = $returpenjualan->fsono;
 
                 // 1. Delete details (trandt)
-                DB::table('trandt')->where('fsono', $fsono)->delete();
+                DB::table('trandt')
+                    ->where('ftranmtid', $returpenjualan->ftranmtid)
+                    ->orWhere('fsono', $fsono)
+                    ->delete();
 
                 // 2. Delete stock records (trstockmt & trstockdt)
                 $fstockmtno = str_replace('REJ.', 'REB.', $fsono);
                 $stockHeader = DB::table('trstockmt')->where('fstockmtno', $fstockmtno)->first();
 
                 if ($stockHeader) {
-                    DB::table('trstockdt')->where('fstockmtid', $stockHeader->fstockmtid)->delete();
+                    DB::table('trstockdt')
+                        ->where('fstockmtid', $stockHeader->fstockmtid)
+                        ->orWhere('fstockmtno', $fstockmtno)
+                        ->delete();
                     DB::table('trstockmt')->where('fstockmtid', $stockHeader->fstockmtid)->delete();
                 }
 

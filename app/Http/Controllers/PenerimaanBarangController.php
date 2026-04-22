@@ -1017,7 +1017,23 @@ class PenerimaanBarangController extends Controller
 
       DB::transaction(function () use ($penerimaanbarang, $oldLines) {
         $this->restoreTrPodRemainFromReceiptLines($oldLines);
-        $penerimaanbarang->details()->delete();
+        DB::table('trstockdt')
+          ->where('fstockmtid', $penerimaanbarang->fstockmtid)
+          ->orWhere('fstockmtno', $penerimaanbarang->fstockmtno)
+          ->delete();
+
+        $jurnalIds = DB::table('jurnaldt')
+          ->where('frefno', $penerimaanbarang->fstockmtno)
+          ->pluck('fjurnalmtid')
+          ->filter(fn($id) => !is_null($id))
+          ->unique()
+          ->values();
+
+        if ($jurnalIds->isNotEmpty()) {
+          DB::table('jurnaldt')->whereIn('fjurnalmtid', $jurnalIds->all())->delete();
+          DB::table('jurnalmt')->whereIn('fjurnalmtid', $jurnalIds->all())->delete();
+        }
+
         $penerimaanbarang->delete();
       });
 

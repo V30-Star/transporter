@@ -1165,7 +1165,10 @@ class Tr_prhController extends Controller
             }
 
             DB::transaction(function () use ($tr_prh) {
-                $tr_prh->details()->delete();
+                DB::table('tr_prd')
+                    ->where('fprhid', $tr_prh->fprhid)
+                    ->orWhere('fprno', $tr_prh->fprno)
+                    ->delete();
                 $tr_prh->delete();
             });
 

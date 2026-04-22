@@ -1651,7 +1651,7 @@ class Tr_pohController extends Controller
       DB::transaction(function () use ($tr_poh) {
         $oldPods = DB::table('tr_pod')->where('fpono', $tr_poh->fpono)->get(['frefdtid', 'fqtykecil']);
         $this->restorePrdRemainFromPodRows($oldPods);
-        $tr_poh->details()->delete();
+        DB::table('tr_pod')->where('fpono', $tr_poh->fpono)->delete();
         $tr_poh->delete();
       });
 
