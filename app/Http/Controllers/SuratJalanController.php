@@ -1610,6 +1610,31 @@ class SuratJalanController extends Controller
             }
 
             DB::transaction(function () use ($suratjalan) {
+                $oldSoUsageRows = DB::table('trstockdt')
+                    ->where(function ($query) use ($suratjalan) {
+                        $query->where('fstockmtid', $suratjalan->fstockmtid)
+                            ->orWhere('fstockmtno', $suratjalan->fstockmtno);
+                    })
+                    ->whereNotNull('frefsoid')
+                    ->select('frefsoid', DB::raw('SUM(COALESCE(fqtykecil, 0)) as used_qty_kecil'))
+                    ->groupBy('frefsoid')
+                    ->get();
+
+                foreach ($oldSoUsageRows as $row) {
+                    $detailId = (int) ($row->frefsoid ?? 0);
+                    $qtyKecil = (float) ($row->used_qty_kecil ?? 0);
+
+                    if ($detailId <= 0 || $qtyKecil <= 0) {
+                        continue;
+                    }
+
+                    DB::table('trsodt')
+                        ->where('ftrsodtid', $detailId)
+                        ->update([
+                            'fqtyremain' => DB::raw('COALESCE(fqtyremain,0) + ' . $qtyKecil),
+                        ]);
+                }
+
                 DB::table('trstockdt')
                     ->where('fstockmtid', $suratjalan->fstockmtid)
                     ->orWhere('fstockmtno', $suratjalan->fstockmtno)

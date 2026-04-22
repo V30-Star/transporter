@@ -1590,6 +1590,27 @@ class FakturPembelianController extends Controller
       }
 
       DB::transaction(function () use ($fakturpembelian) {
+        $oldDetails = DB::table('trstockdt')
+          ->where('fstockmtid', $fakturpembelian->fstockmtid)
+          ->orWhere('fstockmtno', $fakturpembelian->fstockmtno)
+          ->get(['frefdtid', 'fqty']);
+
+        foreach ($oldDetails as $oldDetail) {
+          $detailId = (int) ($oldDetail->frefdtid ?? 0);
+          $qtyUsed = (float) ($oldDetail->fqty ?? 0);
+
+          if ($detailId <= 0 || $qtyUsed <= 0) {
+            continue;
+          }
+
+          $sourceType = $this->detectSourceTypeByDetailId($detailId);
+          if (!in_array($sourceType, ['PO', 'PB'], true)) {
+            continue;
+          }
+
+          $this->addBackSourceRemain($sourceType, $detailId, $qtyUsed);
+        }
+
         DB::table('trstockdt')
           ->where('fstockmtid', $fakturpembelian->fstockmtid)
           ->orWhere('fstockmtno', $fakturpembelian->fstockmtno)

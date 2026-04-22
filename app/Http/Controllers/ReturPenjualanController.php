@@ -1580,6 +1580,54 @@ class ReturPenjualanController extends Controller
 
                 $fsono = $returpenjualan->fsono;
 
+                $oldSoUsageRows = DB::table('trandt')
+                    ->where(function ($query) use ($returpenjualan, $fsono) {
+                        $query->where('ftranmtid', $returpenjualan->ftranmtid)
+                            ->orWhere('fsono', $fsono);
+                    })
+                    ->whereNotNull('frefsoid')
+                    ->select('frefsoid', DB::raw('SUM(COALESCE(fqtykecil, 0)) as used_qty_kecil'))
+                    ->groupBy('frefsoid')
+                    ->get();
+
+                $oldSrjUsageRows = DB::table('trandt')
+                    ->where(function ($query) use ($returpenjualan, $fsono) {
+                        $query->where('ftranmtid', $returpenjualan->ftranmtid)
+                            ->orWhere('fsono', $fsono);
+                    })
+                    ->whereNotNull('frefsrjid')
+                    ->select('frefsrjid', DB::raw('SUM(COALESCE(fqtykecil, 0)) as used_qty_kecil'))
+                    ->groupBy('frefsrjid')
+                    ->get();
+
+                foreach ($oldSoUsageRows as $row) {
+                    $detailId = (int) ($row->frefsoid ?? 0);
+                    $qtyKecil = (float) ($row->used_qty_kecil ?? 0);
+                    if ($detailId <= 0 || $qtyKecil <= 0) {
+                        continue;
+                    }
+
+                    DB::table('trsodt')
+                        ->where('ftrsodtid', $detailId)
+                        ->update([
+                            'fqtyremain' => DB::raw('COALESCE(fqtyremain,0) + ' . $qtyKecil),
+                        ]);
+                }
+
+                foreach ($oldSrjUsageRows as $row) {
+                    $detailId = (int) ($row->frefsrjid ?? 0);
+                    $qtyKecil = (float) ($row->used_qty_kecil ?? 0);
+                    if ($detailId <= 0 || $qtyKecil <= 0) {
+                        continue;
+                    }
+
+                    DB::table('trstockdt')
+                        ->where('fstockdtid', $detailId)
+                        ->update([
+                            'fqtyremain' => DB::raw('COALESCE(fqtyremain,0) + ' . $qtyKecil),
+                        ]);
+                }
+
                 // 1. Delete details (trandt)
                 DB::table('trandt')
                     ->where('ftranmtid', $returpenjualan->ftranmtid)
