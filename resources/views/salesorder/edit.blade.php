@@ -99,6 +99,11 @@
         </div>
     @endif
     @php
+        $currentCustomerCode = trim((string) old('fcustno', $salesorder->fcustno ?? ''));
+        $currentCustomerName = trim((string) old('fcustomername', $salesorder->customer->fcustomername ?? ''));
+        $hasCurrentCustomer = $currentCustomerCode !== '' && $customers->contains(function ($customer) use ($currentCustomerCode) {
+            return trim((string) $customer->fcustomercode) === $currentCustomerCode;
+        });
         $usageLocked = !empty($isUsageLocked);
     @endphp
     @if ($usageLocked)
@@ -199,6 +204,11 @@
                                             class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 bg-gray-200 cursor-not-allowed"
                                             disabled>
                                             <option value=""></option>
+                                            @if ($currentCustomerCode !== '' && !$hasCurrentCustomer)
+                                                <option value="{{ $currentCustomerCode }}" selected>
+                                                    {{ $currentCustomerName !== '' ? $currentCustomerName . ' (' . $currentCustomerCode . ')' : $currentCustomerCode }}
+                                                </option>
+                                            @endif
                                             @foreach ($customers as $customer)
                                                 <option value="{{ $customer->fcustomercode }}" {{-- CEK DISINI: Bandingkan dengan data yang tersimpan di DB --}}
                                                     {{ old('fcustno', $salesorder->fcustno) == $customer->fcustomercode ? 'selected' : '' }}>
@@ -793,6 +803,11 @@
                                                     class="w-full border rounded-l px-3 py-2 bg-gray-100 text-gray-700 cursor-not-allowed"
                                                     disabled>
                                                     <option value=""></option>
+                                                    @if ($currentCustomerCode !== '' && !$hasCurrentCustomer)
+                                                        <option value="{{ $currentCustomerCode }}" selected>
+                                                            {{ $currentCustomerName !== '' ? $currentCustomerName . ' (' . $currentCustomerCode . ')' : $currentCustomerCode }}
+                                                        </option>
+                                                    @endif
                                                     @foreach ($customers as $customer)
                                                         <option value="{{ $customer->fcustomercode }}"
                                                             {{-- CEK DISINI: Bandingkan dengan data yang tersimpan di DB --}}
