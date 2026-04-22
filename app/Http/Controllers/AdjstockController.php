@@ -1225,8 +1225,14 @@ class AdjstockController extends Controller
       if ($message = $this->getUsageLockMessage($adjstock)) {
         return redirect()->route('adjstock.index')->with('error', $message);
       }
-      $adjstock->details()->delete();
-      $adjstock->delete();
+      DB::transaction(function () use ($adjstock) {
+        DB::table('trstockdt')
+          ->where('fstockmtid', $adjstock->fstockmtid)
+          ->orWhere('fstockmtno', $adjstock->fstockmtno)
+          ->delete();
+
+        $adjstock->delete();
+      });
 
       return redirect()->route('adjstock.index')->with('success', 'Data Adjustment Stock ' . $adjstock->fstockmtno . ' berhasil dihapus.');
     } catch (\Exception $e) {

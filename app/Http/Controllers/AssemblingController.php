@@ -1220,9 +1220,14 @@ class AssemblingController extends Controller
       if ($message = $this->getUsageLockMessage($assembling)) {
         return redirect()->route('assembling.index')->with('error', $message);
       }
-      $assembling->details()->delete();
+      DB::transaction(function () use ($assembling) {
+        DB::table('trstockdt')
+          ->where('fstockmtid', $assembling->fstockmtid)
+          ->orWhere('fstockmtno', $assembling->fstockmtno)
+          ->delete();
 
-      $assembling->delete();
+        $assembling->delete();
+      });
       return redirect()->route('assembling.index')->with('success', 'Data assembling ' . $assembling->fstockmtno . ' berhasil dihapus.');
     } catch (\Exception $e) {
       // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error

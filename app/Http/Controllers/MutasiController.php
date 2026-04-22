@@ -1185,6 +1185,7 @@ class MutasiController extends Controller
             // 2. Hapus detail (trstockdt)
             DB::table('trstockdt')
                 ->where('fstockmtid', $fstockmtid)
+                ->orWhere('fstockmtno', $docNo)
                 ->delete();
 
             // 3. Hapus header (trstockmt)

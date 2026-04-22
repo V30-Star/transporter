@@ -1288,8 +1288,14 @@ class ReturPembelianController extends Controller
       if ($message = $this->getUsageLockMessage($returpembelian)) {
         return redirect()->route('returpembelian.index')->with('error', $message);
       }
-      $returpembelian->details()->delete();
-      $returpembelian->delete();
+      DB::transaction(function () use ($returpembelian) {
+        DB::table('trstockdt')
+          ->where('fstockmtid', $returpembelian->fstockmtid)
+          ->orWhere('fstockmtno', $returpembelian->fstockmtno)
+          ->delete();
+
+        $returpembelian->delete();
+      });
 
       return redirect()->route('returpembelian.index')->with('success', 'Data Retur Pembelian ' . $returpembelian->fstockmtno . ' berhasil dihapus.');
     } catch (\Exception $e) {

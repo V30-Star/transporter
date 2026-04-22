@@ -1264,10 +1264,14 @@ class PemakaianbarangController extends Controller
       if ($message = $this->getUsageLockMessage($pemakaianbarang)) {
         return redirect()->route('pemakaianbarang.index')->with('error', $message);
       }
-      $pemakaianbarang->details()->delete();
+      DB::transaction(function () use ($pemakaianbarang) {
+        DB::table('trstockdt')
+          ->where('fstockmtid', $pemakaianbarang->fstockmtid)
+          ->orWhere('fstockmtno', $pemakaianbarang->fstockmtno)
+          ->delete();
 
-      // 2. Baru hapus header
-      $pemakaianbarang->delete();
+        $pemakaianbarang->delete();
+      });
       return redirect()->route('pemakaianbarang.index')->with('success', 'Data pemakaianbarang ' . $pemakaianbarang->fstockmtno . ' berhasil dihapus.');
     } catch (\Exception $e) {
       // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
