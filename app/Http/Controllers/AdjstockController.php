@@ -339,7 +339,7 @@ class AdjstockController extends Controller
         'fitemcode.*'    => ['required', 'string', 'max:50'],
         'fsatuan'        => ['nullable', 'array'],
         'fsatuan.*'      => ['nullable', 'string', 'max:20'],
-        'frefno'         => ['nullable', 'string', 'max:20'],
+        'fprdjadi'       => ['nullable', 'string', 'max:20'],
         'fqty'           => ['required', 'array'],
         'fqty.*'         => ['required', 'numeric', 'min:0.01'],
         'fprice'         => ['required', 'array'],
@@ -466,7 +466,7 @@ class AdjstockController extends Controller
         'famountremain_rp' => round($grandTotal * $frate, 2),
         'ftrancode'        => $request->input('ftrancode') ?: null,
         'ffrom'            => $request->input('ffrom') ?: null,
-        'frefno'           => $request->input('frefno') ?: null,
+        'fprdjadi'         => $request->input('fprdjadi') ?: null,
         'fket'             => trim((string)$request->input('fket', '')) ?: null,
         'fusercreate'      => (Auth::user()->fname ?? 'system'),
         'fdatetime'        => $now,
@@ -778,7 +778,7 @@ class AdjstockController extends Controller
       'fitemcode.*'    => ['required', 'string', 'max:50'],
       'fsatuan'        => ['nullable', 'array'],
       'fsatuan.*'      => ['nullable', 'string', 'max:20'],
-      'frefno' => ['nullable', 'string'],
+      'fprdjadi' => ['nullable', 'string'],
       'fqty'           => ['required', 'array'],
       'fqty.*'         => ['required', 'numeric', 'min:0.01'], // Minimal 0.01
       'fprice'         => ['required', 'array'],
@@ -799,7 +799,7 @@ class AdjstockController extends Controller
 
     $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
     $ffrom        = $request->input('ffrom');
-    $frefno        = $request->input('frefno');
+    $fprdjadi      = $request->input('fprdjadi');
     $ftrancode        = $request->input('ftrancode');
     $fket         = trim((string)$request->input('fket', ''));
     $fbranchcode  = $request->input('fbranchcode');
@@ -910,7 +910,7 @@ class AdjstockController extends Controller
       $fstockmtid,
       $fstockmtdate,
       $ffrom,
-      $frefno,
+      $fprdjadi,
       $ftrancode,
       $fket,
       $fbranchcode,
@@ -954,7 +954,7 @@ class AdjstockController extends Controller
         'famountremain_rp' => round($grandTotal * $frate, 2),
         'ffrom'            => $ffrom,
         'ftrancode'            => $ftrancode,
-        'frefno'           => $frefno,
+        'fprdjadi'         => $fprdjadi,
         'fket'             => $fket,
         'fuserupdate'      => (Auth::user()->fname ?? 'system'),
         'fbranchcode'      => $kodeCabang,

@@ -149,7 +149,7 @@
                                         @foreach ($accounts as $account)
                                             <option value="{{ $account->faccount }}" data-faccid="{{ $account->faccid }}"
                                                 data-branch="{{ $account->faccount }}"
-                                                {{ old('frefno') == $account->faccount ? 'selected' : '' }}>
+                                                {{ old('fprdjadi') == $account->faccount ? 'selected' : '' }}>
                                                 {{ $account->faccount }} - {{ $account->faccname }}
                                             </option>
                                         @endforeach
@@ -159,7 +159,7 @@
                                         @click="window.dispatchEvent(new CustomEvent('account-browse-open'))"></div>
                                 </div>
 
-                                <input type="hidden" name="frefno" id="accountCodeHidden" value="{{ old('frefno') }}">
+                                <input type="hidden" name="fprdjadi" id="accountCodeHidden" value="{{ old('fprdjadi') }}">
 
                                 <button type="button" @click="window.dispatchEvent(new CustomEvent('account-browse-open'))"
                                     class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
@@ -168,7 +168,7 @@
                                 </button>
                             </div>
 
-                            @error('frefno')
+                            @error('fprdjadi')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
                         </div>

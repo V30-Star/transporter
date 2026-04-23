@@ -87,7 +87,7 @@
     @php
         // Definisikan semua variabel Anda di sini
         $currentType = old('ftypebuy', $adjstock->ftypebuy);
-        $currentAccount = trim((string) old('frefno', $adjstock->frefno));
+        $currentAccount = trim((string) old('fprdjadi', $adjstock->fprdjadi));
         $currentAccountId = old('faccid', $adjstock->faccid);
         $currentPpnAmount = old('famountpajak', $adjstock->famountpajak ?? 0);
         $currentSubtotal = old('famount', $adjstock->famount ?? 0);
@@ -160,7 +160,7 @@
                                         @foreach ($accounts as $account)
                                             <option value="{{ $account->faccount }}" data-faccid="{{ $account->faccid }}"
                                                 data-branch="{{ $account->faccount }}"
-                                                {{ old('frefno', $adjstock->frefno ?? '') == $account->faccount ? 'selected' : '' }}>
+                                                {{ old('fprdjadi', $adjstock->fprdjadi ?? '') == $account->faccount ? 'selected' : '' }}>
                                                 {{ $account->faccount }} - {{ $account->faccname }}
                                             </option>
                                         @endforeach
@@ -171,8 +171,8 @@
                                 </div>
 
                                 <!-- Hidden input yang akan dikirim ke server -->
-                                <input type="hidden" name="frefno" id="accountCodeHidden"
-                                    value="{{ old('frefno', $adjstock->frefno ?? '') }}">
+                                <input type="hidden" name="fprdjadi" id="accountCodeHidden"
+                                    value="{{ old('fprdjadi', $adjstock->fprdjadi ?? '') }}">
 
                                 <button disabled type="button"
                                     @click="window.dispatchEvent(new CustomEvent('account-browse-open'))"
@@ -182,7 +182,7 @@
                                 </button>
                             </div>
 
-                            @error('frefno')
+                            @error('fprdjadi')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
                         </div>
