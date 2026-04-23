@@ -382,7 +382,10 @@ class MutasiController extends Controller
     public function store(Request $request)
     {
         try {
-            $validated = $request->validate([
+            // =========================
+            // TAHAP 1: VALIDASI INPUT
+            // =========================
+            $request->validate([
                 'fstockmtno'     => ['nullable', 'string', 'max:100'],
                 'fstockmtdate'   => ['required', 'date'],
                 'ffrom'          => ['required', 'string', 'max:10'],
@@ -409,6 +412,9 @@ class MutasiController extends Controller
                 'frefsoid.*'     => ['nullable', 'integer'],
             ]);
 
+            // =========================
+            // TAHAP 2: AMBIL DATA MASTER PRODUK
+            // =========================
             $uniqueCodes = array_values(array_unique(
                 array_filter(
                     array_map(fn($c) => trim((string)$c), $request->input('fitemcode', []))
@@ -419,28 +425,15 @@ class MutasiController extends Controller
             if (!empty($uniqueCodes)) {
                 $prodMeta = DB::table('msprd')
                     ->whereIn('fprdcode', $uniqueCodes)
-                    ->get(['fprdid', 'fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2'])
+                    ->get(['fprdid', 'fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2', 'fqtykecil'])
                     ->keyBy('fprdcode');
-
-                if ($prodMeta->count() < count($uniqueCodes)) {
-                    $notFound = array_diff($uniqueCodes, $prodMeta->keys()->toArray());
-                }
             }
 
-            $pickDefaultSat = function (?object $meta): string {
-                if (!$meta) return '';
-                foreach (['fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2'] as $k) {
-                    $v = trim((string)($meta->$k ?? ''));
-                    if ($v !== '') {
-                        return mb_substr($v, 0, 5);
-                    }
-                }
-                return '';
-            };
-
+            // =========================
+            // TAHAP 3: RAKIT DETAIL & KONVERSI QTY
+            // =========================
             $rowsDt   = [];
             $subtotal = 0.0;
-            $userid   = auth('sysuser')->user()->fsysuserid ?? 'admin';
             $now      = now();
             $frate    = (float)$request->input('frate', 1);
             if ($frate <= 0) $frate = 1;
@@ -454,86 +447,63 @@ class MutasiController extends Controller
             $prices   = $request->input('fprice', []);
             $descs    = $request->input('fdesc', []);
 
-            $rowCount = count($codes);
+            for ($i = 0; $i < count($codes); $i++) {
+                $code = trim((string)($codes[$i] ?? ''));
+                $qty  = (float)($qtys[$i] ?? 0);
 
-            for ($i = 0; $i < $rowCount; $i++) {
-                $code  = trim((string)($codes[$i]   ?? ''));
-                $sat   = trim((string)($satuans[$i] ?? ''));
-                $rref  = trim((string)($refdtno[$i] ?? ''));
-                $qty   = (float)($qtys[$i]    ?? 0);
-                $price = (float)($prices[$i]  ?? 0);
-                $desc  = (string)($descs[$i]   ?? '');
-
-                if ($code === '' || $qty <= 0) {
-                    continue;
-                }
+                if ($code === '' || $qty <= 0) continue;
 
                 $meta = $prodMeta[$code] ?? null;
-                if (! $meta) {
-                    continue;
-                }
+                if (!$meta) continue;
 
-                $prdId = (int) $meta->fprdid;
-                $prdCodeStr = mb_substr((string) ($meta->fprdcode ?? $code), 0, 50);
+                $sat = trim((string)($satuans[$i] ?? ''));
 
-                $produk = DB::table('msprd')
-                    ->where('fprdcode', $code)
-                    ->select('fprdid', 'fsatuanbesar', 'fqtykecil as rasio_konversi')
-                    ->first();
-
+                // Konversi ke Qty Kecil
                 $qtyKecil = $qty;
-                if ($produk && $sat === $produk->fsatuanbesar) {
-                    $qtyKecil = $qty * (float) $produk->rasio_konversi;
+                if ($sat === $meta->fsatuanbesar) {
+                    $qtyKecil = $qty * (float) ($meta->fqtykecil ?? 1);
                 }
 
-                $sat = mb_substr($sat, 0, 5);
-
-                $refSo = trim((string) ($frefso[$i] ?? ''));
-                $refSoId = $frefsoid[$i] ?? null;
-                $refSoId = ($refSoId !== null && $refSoId !== '') ? (int) $refSoId : null;
-
+                $price  = (float)($prices[$i] ?? 0);
                 $amount = $qty * $price;
                 $subtotal += $amount;
 
                 $rowsDt[] = [
-                    'fprdcodeid'     => $prdId,
-                    'fprdcode'       => $prdCodeStr,
-                    'frefdtno'       => $rref,
-                    'fqty'           => $qty,
-                    'fprice'         => $price,
-                    'fprice_rp'      => $price * $frate,
-                    'ftotprice'      => $amount,
-                    'ftotprice_rp'   => $amount * $frate,
-                    'fusercreate' => (Auth::user()->fname ?? 'system'),
-                    'fdatetime'      => $now,
-                    'fketdt'         => '',
-                    'fcode'          => '0',
-                    'frefso'         => $refSo !== '' ? mb_substr($refSo, 0, 100) : null,
-                    'frefsoid'       => $refSoId,
-                    'fdesc'          => $desc,
-                    'fsatuan'        => $sat,
-                    'fclosedt'       => '0',
-                    'fdiscpersen'    => 0,
-                    'fbiaya'         => 0,
-                    'fstockmtid'     => null,
-                    'fstockmtcode'   => null,
-                    'fstockmtno'     => null,
-                    'fqtykecil'   => $qtyKecil,
-                    'fqtyremain'  => $qtyKecil,
+                    'fprdcodeid'   => (int) $meta->fprdid,
+                    'fprdcode'     => mb_substr((string)$meta->fprdcode, 0, 50),
+                    'frefdtno'     => trim((string)($refdtno[$i] ?? '')) ?: null,
+                    'fqty'         => $qty,
+                    'fprice'       => $price,
+                    'fprice_rp'    => $price * $frate,
+                    'ftotprice'    => $amount,
+                    'ftotprice_rp' => $amount * $frate,
+                    'fusercreate'  => (Auth::user()->fname ?? 'system'),
+                    'fdatetime'    => $now,
+                    'fketdt'       => '',
+                    'fcode'        => '0',
+                    'frefso'       => trim((string)($frefso[$i] ?? '')) ?: null,
+                    'frefsoid'     => isset($frefsoid[$i]) && $frefsoid[$i] !== '' ? (int)$frefsoid[$i] : null,
+                    'fdesc'        => $descs[$i] ?? '',
+                    'fsatuan'      => mb_substr($sat, 0, 5),
+                    'fclosedt'     => '0',
+                    'fdiscpersen'  => 0,
+                    'fbiaya'       => 0,
+                    'fstockmtid'   => null,
+                    'fstockmtcode' => null,
+                    'fstockmtno'   => null,
+                    'fqtykecil'    => $qtyKecil,
+                    'fqtyremain'   => $qtyKecil,
                 ];
             }
 
             if (empty($rowsDt)) {
-                return back()->withInput()->withErrors([
-                    'fitemcode' => 'Tidak ada baris item valid (periksa kode produk dan qty).',
-                ]);
+                return back()->withInput()->withErrors(['fitemcode' => 'Tidak ada baris item valid.']);
             }
 
             // =========================
-            // TAHAP 4: PERSIAPAN DATA HEADER
+            // TAHAP 4: PERSIAPAN HEADER
             // =========================
-
-            $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
+            $fstockmtdate = \Carbon\Carbon::parse($request->fstockmtdate)->startOfDay();
             $ppnAmount    = (float)$request->input('famountpopajak', 0);
             $grandTotal   = $subtotal + $ppnAmount;
 
@@ -553,36 +523,27 @@ class MutasiController extends Controller
                 'famountmt_rp'     => round($grandTotal * $frate, 2),
                 'famountremain'    => round($grandTotal, 2),
                 'famountremain_rp' => round($grandTotal * $frate, 2),
-                'frefpo'           => null,
                 'ftrancode'        => $request->input('ftrancode'),
-                'ffrom'            => $request->input('ffrom'),  // ✅ PERBAIKAN
-                'fto'              => $request->input('fto'),    // ✅ PERBAIKAN
-                'fkirim'           => null,
-                'fprdjadi'         => null,
-                'fqtyjadi'         => null,
+                'ffrom'            => $request->input('ffrom'),
+                'fto'              => $request->input('fto'),
                 'fket'             => trim((string)$request->input('fket', '')),
-                'fusercreate' => (Auth::user()->fname ?? 'system'),
+                'fusercreate'      => (Auth::user()->fname ?? 'system'),
                 'fdatetime'        => $now,
-                'fsalesman'        => null,
-                'fjatuhtempo'      => null,
+                'fbranchcode'      => $request->input('fbranchcode'),
                 'fprint'           => 0,
                 'fsudahtagih'      => '0',
-                'fbranchcode'      => $request->input('fbranchcode'),
                 'fdiscount'        => 0,
             ];
 
-            $fstockmtno = DB::transaction(function () use (
-                $headerData,
-                &$rowsDt
-            ) {
-
-                $fstockmtno = trim((string) ($headerData['fstockmtno'] ?? ''));
+            // =========================
+            // TAHAP 5: TRANSAKSI DATABASE
+            // =========================
+            $finalNo = DB::transaction(function () use ($headerData, &$rowsDt) {
+                $fstockmtno = $headerData['fstockmtno'];
 
                 if ($fstockmtno === '') {
-
-                    $kodeCabang = null;
                     $needle = trim((string)$headerData['fbranchcode']);
-
+                    $kodeCabang = null;
 
                     if ($needle !== '') {
                         if (is_numeric($needle)) {
@@ -596,13 +557,9 @@ class MutasiController extends Controller
                     }
                     $kodeCabang = $kodeCabang ?: 'NA';
 
-                    $fstockmtcode = $headerData['fstockmtcode'];
-                    $date         = $headerData['fstockmtdate'];
-                    $yy = $date->format('y');
-                    $mm = $date->format('m');
-                    $prefix = sprintf('%s.%s.%s.%s.', $fstockmtcode, $kodeCabang, $yy, $mm);
+                    $prefix = sprintf('MUT.%s.%s.%s.', $kodeCabang, $headerData['fstockmtdate']->format('y'), $headerData['fstockmtdate']->format('m'));
 
-                    $lockKey = crc32('STOCKMT|' . $fstockmtcode . '|' . $kodeCabang . '|' . $date->format('Y-m'));
+                    $lockKey = crc32('STOCKMT|MUT|' . $kodeCabang . '|' . $headerData['fstockmtdate']->format('Y-m'));
                     DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
                     $last = DB::table('trstockmt')
@@ -610,42 +567,33 @@ class MutasiController extends Controller
                         ->selectRaw("MAX(CAST(split_part(fstockmtno, '.', 5) AS int)) AS lastno")
                         ->value('lastno');
 
-                    $next = (int)$last + 1;
-                    $fstockmtno = $prefix . str_pad((string)$next, 4, '0', STR_PAD_LEFT);
-
+                    $fstockmtno = $prefix . str_pad((string)((int)$last + 1), 4, '0', STR_PAD_LEFT);
                     $headerData['fbranchcode'] = $kodeCabang;
                     $headerData['fstockmtno']  = $fstockmtno;
                 }
 
-                $newStockMasterId = DB::table('trstockmt')->insertGetId(
-                    $headerData,
-                    'fstockmtid'
-                );
+                $newId = DB::table('trstockmt')->insertGetId($headerData, 'fstockmtid');
 
-                foreach ($rowsDt as $idx => &$r) {
-                    $r['fstockmtid']   = $newStockMasterId;
-                    $r['fstockmtcode'] = $headerData['fstockmtcode'];
+                foreach ($rowsDt as &$r) {
+                    $r['fstockmtid']   = $newId;
+                    $r['fstockmtcode'] = 'MUT';
                     $r['fstockmtno']   = $fstockmtno;
                 }
                 unset($r);
 
                 DB::table('trstockdt')->insert($rowsDt);
+
                 return $fstockmtno;
             });
 
             return redirect()
                 ->route('mutasi.create')
-                ->with('success', "Transaksi {$fstockmtno} berhasil disimpan.");
-        } catch (ValidationException $e) {
-            throw $e;
+                ->with('success', "Transaksi {$finalNo} berhasil disimpan.");
         } catch (\Exception $e) {
-
-            return back()->withInput()->withErrors([
-                'fatal' => 'Terjadi error: ' . $e->getMessage()
-            ]);
+            return back()->withInput()->withErrors(['fatal' => 'Terjadi error: ' . $e->getMessage()]);
         }
     }
-
+    
     public function edit($fstockmtid)
     {
         $supplier = Supplier::all();
