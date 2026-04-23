@@ -201,7 +201,6 @@ class AssemblingController extends Controller
       ->leftJoin('msprd as m', 'm.fprdid', '=', 'tr_pod.fprdcode')
       ->select([
         DB::raw("COALESCE(NULLIF(tr_pod.frefdtno, ''), tr_pod.fpodid::text) as frefdtno"),
-        'tr_pod.fnouref as fnouref',
         'm.fprdcode as fitemcode', // <-- Ambil kode string dari master produk
         'm.fprdname as fitemname', // <-- Mengambil fprdname dari tabel msprd
         'tr_pod.fqty',
@@ -285,7 +284,10 @@ class AssemblingController extends Controller
     }
 
     $dt = PenerimaanPembelianDetail::query()
-      ->leftJoin('msprd as p', 'p.fprdid', '=', 'trstockdt.fprdcode')
+      ->leftJoin('msprd as p', function ($join) {
+        $join->on('p.fprdid', '=', 'trstockdt.fprdcodeid')
+          ->orOn('p.fprdid', '=', DB::raw("NULLIF(trstockdt.fprdcode, '')::integer"));
+      })
       ->where('trstockdt.fstockmtno', $fstockmtno)
       ->orderBy('trstockdt.fprdcode')
       ->get([
@@ -372,10 +374,7 @@ class AssemblingController extends Controller
       'fitemcode.*'     => ['required', 'string', 'max:50'],
 
       'fsatuan'         => ['nullable', 'array'],
-      'fsatuan.*'       => ['nullable', 'string', 'max:5'],
-
-      'fnouref'         => ['nullable', 'array'],
-      'fnouref.*'       => ['nullable', 'integer'],
+      'fsatuan.*'       => ['nullable', 'string', 'max:20'],
 
       'fqty'            => ['required', 'array'],
       'fqty.*'          => ['numeric', 'min:0'],
@@ -415,7 +414,6 @@ class AssemblingController extends Controller
     // =========================
     $codes        = $request->input('fitemcode', []);
     $satuans      = $request->input('fsatuan', []);
-    $nourefs      = $request->input('fnouref', []);
     $qtys         = $request->input('fqty', []);
     $descs        = $request->input('fdesc', []);
     $itemtypes    = $request->input('fitemtype', []); // AMBIL FITEMTYPE
@@ -488,7 +486,8 @@ class AssemblingController extends Controller
       }
 
       $rowsDt[] = [
-        'fprdcode'       => $prdId,
+        'fprdcode'       => $code,
+        'fprdcodeid'     => $prdId,
         'frefdtno'       => '0',
         'frefso'         => '0',
         'fqty'           => $qty,
@@ -496,7 +495,6 @@ class AssemblingController extends Controller
         'fdatetime'      => $now,
         'fketdt'         => '',
         'fcode'          => $fcode, // SET FCODE SESUAI TYPE
-        'fnouref'        => $rnour !== null ? (int)$rnour : null,
         'fdesc'          => $desc,
         'fsatuan'        => $sat,
         'fclosedt'       => '0',
@@ -592,20 +590,11 @@ class AssemblingController extends Controller
         throw new Exception("Gagal menyimpan data master (header).");
       }
 
-      // INSERT DETAIL (trstockdt)
-      $lastNouRef = (int) DB::table('trstockdt')
-        ->where('fstockmtid', $newStockMasterId)
-        ->max('fnouref');
-      $nextNouRef = $lastNouRef + 1;
-
       foreach ($rowsDt as &$r) {
         $r['fstockmtid']   = $newStockMasterId;
         $r['fstockmtcode'] = $fstockmtcode;
         $r['fstockmtno']   = $fstockmtno;
 
-        if (!isset($r['fnouref']) || $r['fnouref'] === null) {
-          $r['fnouref'] = $nextNouRef++;
-        }
       }
       unset($r);
 
@@ -644,7 +633,10 @@ class AssemblingController extends Controller
     $assembling = PenerimaanPembelianHeader::with([
       'details' => function ($query) {
         $query
-          ->join('msprd', 'msprd.fprdid', '=', 'trstockdt.fprdcode')
+          ->leftJoin('msprd', function ($join) {
+            $join->on('msprd.fprdid', '=', 'trstockdt.fprdcodeid')
+              ->orOn('msprd.fprdid', '=', DB::raw("NULLIF(trstockdt.fprdcode, '')::integer"));
+          })
           ->with(['account', 'subaccount']) // Eager load relasi
           ->select(
             'trstockdt.*',
@@ -686,7 +678,6 @@ class AssemblingController extends Controller
         'famountponet' => $d->famountponet ?? null,
         'famountpo' => $d->famountpo ?? null,
         'frefdtno' => $d->frefdtno ?? null,
-        'fnouref' => $d->fnouref ?? null,
         'fqty' => (float)($d->fqty ?? 0),
         'fterima' => (float)($d->fterima ?? 0),
         'fdisc' => (float)($d->fdiscpersen ?? 0),
@@ -720,6 +711,10 @@ class AssemblingController extends Controller
         ],
       ];
     })->toArray();
+
+    $assembling->fstockmtdate = !empty($assembling->fstockmtdate)
+      ? Carbon::parse($assembling->fstockmtdate)->format('Y-m-d')
+      : null;
 
     return view('assembling.edit', [
       'supplier'           => $supplier,
@@ -766,7 +761,10 @@ class AssemblingController extends Controller
     $assembling = PenerimaanPembelianHeader::with([
       'details' => function ($query) {
         $query
-          ->join('msprd', 'msprd.fprdid', '=', 'trstockdt.fprdcode')
+          ->leftJoin('msprd', function ($join) {
+            $join->on('msprd.fprdid', '=', 'trstockdt.fprdcodeid')
+              ->orOn('msprd.fprdid', '=', DB::raw("NULLIF(trstockdt.fprdcode, '')::integer"));
+          })
           ->with(['account', 'subaccount']) // Eager load relasi
           ->select(
             'trstockdt.*',
@@ -806,7 +804,6 @@ class AssemblingController extends Controller
         'famountponet' => $d->famountponet ?? null,
         'famountpo' => $d->famountpo ?? null,
         'frefdtno' => $d->frefdtno ?? null,
-        'fnouref' => $d->fnouref ?? null,
         'fqty' => (float)($d->fqty ?? 0),
         'fterima' => (float)($d->fterima ?? 0),
         'fdisc' => (float)($d->fdiscpersen ?? 0),
@@ -841,6 +838,10 @@ class AssemblingController extends Controller
       ];
     })->toArray();
 
+    $assembling->fstockmtdate = !empty($assembling->fstockmtdate)
+      ? Carbon::parse($assembling->fstockmtdate)->format('Y-m-d')
+      : null;
+
     return view('assembling.view', [
       'supplier'           => $supplier,
       'selectedSupplierCode' => $selectedSupplierCode,
@@ -871,9 +872,7 @@ class AssemblingController extends Controller
       'fitemcode'      => ['required', 'array', 'min:1'],
       'fitemcode.*'    => ['required', 'string', 'max:50'],
       'fsatuan'        => ['nullable', 'array'],
-      'fsatuan.*'      => ['nullable', 'string', 'max:5'],
-      'fnouref'        => ['nullable', 'array'],
-      'fnouref.*'      => ['nullable', 'integer'],
+      'fsatuan.*'      => ['nullable', 'string', 'max:20'],
       'fdesc'          => ['nullable', 'array'],
       'fdesc.*'        => ['nullable', 'string', 'max:500'],
       'fitemtype'       => ['nullable', 'array'],
@@ -906,7 +905,6 @@ class AssemblingController extends Controller
     // =========================
     $codes   = $request->input('fitemcode', []);
     $satuans = $request->input('fsatuan', []);
-    $nourefs = $request->input('fnouref', []);
     $qtys    = $request->input('fqty', []);
     $descs   = $request->input('fdesc', []);
 
@@ -977,14 +975,14 @@ class AssemblingController extends Controller
       $subtotal += $amount;
 
       $rowsDt[] = [
-        'fprdcode'       => $prdId,
+        'fprdcode'       => $code,
+        'fprdcodeid'     => $prdId,
         'frefdtno'       => '0',
         'frefso'         => '0',
         'fqty'           => $qty,
         'fuserupdate'     => (Auth::user()->fname ?? 'system'),
         'fdatetime'      => $now, // Tetap gunakan fdatetime
         'fketdt'         => '',
-        'fnouref'        => $rnour !== null ? (int)$rnour : null,
         'fdesc'          => $desc,
         'fcode'          => $fcode, // SET FCODE SESUAI TYPE
         'fsatuan'        => $sat,
@@ -1078,9 +1076,6 @@ class AssemblingController extends Controller
         $r['fstockmtcode'] = $fstockmtcode;
         $r['fstockmtno']   = $fstockmtno;
 
-        if (!isset($r['fnouref']) || $r['fnouref'] === null) {
-          $r['fnouref'] = $nextNouRef++;
-        }
       }
       unset($r);
 
@@ -1118,7 +1113,10 @@ class AssemblingController extends Controller
     $assembling = PenerimaanPembelianHeader::with([
       'details' => function ($query) {
         $query
-          ->join('msprd', 'msprd.fprdid', '=', 'trstockdt.fprdcode')
+          ->leftJoin('msprd', function ($join) {
+            $join->on('msprd.fprdid', '=', 'trstockdt.fprdcodeid')
+              ->orOn('msprd.fprdid', '=', DB::raw("NULLIF(trstockdt.fprdcode, '')::integer"));
+          })
           ->with(['account', 'subaccount']) // Eager load relasi
           ->select(
             'trstockdt.*',
@@ -1160,7 +1158,6 @@ class AssemblingController extends Controller
         'famountponet' => $d->famountponet ?? null,
         'famountpo' => $d->famountpo ?? null,
         'frefdtno' => $d->frefdtno ?? null,
-        'fnouref' => $d->fnouref ?? null,
         'fqty' => (float)($d->fqty ?? 0),
         'fterima' => (float)($d->fterima ?? 0),
         'fdisc' => (float)($d->fdiscpersen ?? 0),
@@ -1194,6 +1191,10 @@ class AssemblingController extends Controller
         ],
       ];
     })->toArray();
+
+    $assembling->fstockmtdate = !empty($assembling->fstockmtdate)
+      ? Carbon::parse($assembling->fstockmtdate)->format('Y-m-d')
+      : null;
 
     return view('assembling.edit', [
       'supplier'           => $supplier,

@@ -118,7 +118,7 @@
                     <div class="lg:col-span-4" x-data="{ autoCode: true }">
                         <label class="block text-sm font-medium mb-1">Transaksi#</label>
                         <div class="flex items-center gap-3">
-                            <input type="text" name="fpono" class="w-full border rounded px-3 py-2"
+                            <input type="text" name="fpono" class="w-full border rounded px-3 py-2" value="{{ old('fpono') ?? $returpembelian->fstockmtno }}"
                                 :disabled="autoCode" :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
                             <label class="inline-flex items-center select-none">
                                 <input type="checkbox" x-model="autoCode" checked>
@@ -130,7 +130,7 @@
                     <div class="lg:col-span-4">
                         <label class="block text-sm font-medium">Tanggal</label>
                         <input disabled type="date" id="fstockmtdate" name="fstockmtdate"
-                            value="{{ old('fstockmtdate') ?? date('Y-m-d') }}"
+                            value="{{ old('fstockmtdate', optional($returpembelian->fstockmtdate)->format('Y-m-d')) }}"
                             class="w-full border rounded px-3 py-2 bg-gray-100 @error('fstockmtdate') border-red-500 @enderror">
                         @error('fstockmtdate')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>

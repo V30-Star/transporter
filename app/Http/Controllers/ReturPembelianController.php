@@ -234,7 +234,6 @@ class ReturPembelianController extends Controller
       ->leftJoin('msprd as m', 'm.fprdid', '=', 'tr_prd.fprdcode')
       ->select([
         'tr_prd.fprdid as frefdtno',
-        'tr_prd.fprhid as fnouref',
         'tr_prd.fprdcode as fitemcode',
         'm.fprdname as fitemname',
         'tr_prd.fqty',
@@ -317,7 +316,10 @@ class ReturPembelianController extends Controller
     }
 
     $dt = PenerimaanPembelianDetail::query()
-      ->leftJoin('msprd as p', 'p.fprdid', '=', 'trstockdt.fprdcode')
+      ->leftJoin('msprd as p', function ($join) {
+        $join->on('p.fprdid', '=', 'trstockdt.fprdcodeid')
+          ->orOn('p.fprdid', '=', DB::raw("NULLIF(trstockdt.fprdcode, '')::integer"));
+      })
       ->where('trstockdt.fstockmtno', $fstockmtno)
       ->orderBy('trstockdt.fprdcode')
       ->get([
@@ -412,11 +414,9 @@ class ReturPembelianController extends Controller
         'fitemcode' => ['required', 'array', 'min:1'],
         'fitemcode.*' => ['required', 'string', 'max:50'],
         'fsatuan' => ['nullable', 'array'],
-        'fsatuan.*' => ['nullable', 'string', 'max:5'],
+        'fsatuan.*' => ['nullable', 'string', 'max:20'],
         'frefdtno' => ['nullable', 'array'],
         'frefdtno.*' => ['nullable', 'string', 'max:20'],
-        'fnouref' => ['nullable', 'array'],
-        'fnouref.*' => ['nullable', 'integer'],
         'fqty' => ['required', 'array'],
         'fqty.*' => ['numeric', 'min:0'],
         'fprice' => ['required', 'array'],
@@ -449,7 +449,6 @@ class ReturPembelianController extends Controller
       $codes = $request->input('fitemcode', []);
       $satuans = $request->input('fsatuan', []);
       $refdtno = $request->input('frefdtno', []);
-      $nourefs = $request->input('fnouref', []);
       $qtys = $request->input('fqty', []);
       $prices = $request->input('fprice', []);
       $descs = $request->input('fdesc', []);
@@ -519,7 +518,8 @@ class ReturPembelianController extends Controller
         $subtotal += $amount;
 
         $rowsDt[] = [
-          'fprdcode' => $prdId,
+          'fprdcode' => $code,
+          'fprdcodeid' => $prdId,
           'frefdtno' => $rref,
           'fqty' => $qty,
           'fprice' => $price,
@@ -528,7 +528,6 @@ class ReturPembelianController extends Controller
           'fdatetime' => $now,
           'fketdt' => '',
           'fcode' => '0',
-          'fnouref' => $rnour !== null ? (int)$rnour : null,
           'frefso' => null,
           'fdesc' => $desc,
           'fsatuan' => $sat,
@@ -628,20 +627,10 @@ class ReturPembelianController extends Controller
 
         $newStockMasterId = DB::table('trstockmt')->insertGetId($masterData, 'fstockmtid');
 
-        // INSERT DETAILS
-        $lastNouRef = (int) DB::table('trstockdt')
-          ->where('fstockmtid', $newStockMasterId)
-          ->max('fnouref');
-        $nextNouRef = $lastNouRef + 1;
-
         foreach ($rowsDt as &$r) {
           $r['fstockmtid'] = $newStockMasterId;
           $r['fstockmtcode'] = $fstockmtcode;
           $r['fstockmtno'] = $fstockmtno;
-
-          if (!isset($r['fnouref']) || $r['fnouref'] === null) {
-            $r['fnouref'] = $nextNouRef++;
-          }
         }
         unset($r);
 
@@ -668,7 +657,10 @@ class ReturPembelianController extends Controller
     $returpembelian = PenerimaanPembelianHeader::with([
       'details' => function ($query) {
         $query
-          ->join('msprd', 'msprd.fprdid', '=', 'trstockdt.fprdcode')
+          ->leftJoin('msprd', function ($join) {
+            $join->on('msprd.fprdid', '=', 'trstockdt.fprdcodeid')
+              ->orOn('msprd.fprdid', '=', DB::raw("NULLIF(trstockdt.fprdcode, '')::integer"));
+          })
           ->select(
             'trstockdt.*',
             'msprd.fprdname',
@@ -725,7 +717,6 @@ class ReturPembelianController extends Controller
         'famountponet' => $d->famountponet ?? null,
         'famountpo' => $d->famountpo ?? null,
         'frefdtno' => $d->frefdtno ?? null,
-        'fnouref' => $d->fnouref ?? null,
         'fqty' => (float)($d->fqty ?? 0),
         'fterima' => (float)($d->fterima ?? 0),
         'fprice' => (float)($d->fprice ?? 0),
@@ -792,7 +783,10 @@ class ReturPembelianController extends Controller
     $returpembelian = PenerimaanPembelianHeader::with([
       'details' => function ($query) {
         $query
-          ->join('msprd', 'msprd.fprdid', '=', 'trstockdt.fprdcode')
+          ->leftJoin('msprd', function ($join) {
+            $join->on('msprd.fprdid', '=', 'trstockdt.fprdcodeid')
+              ->orOn('msprd.fprdid', '=', DB::raw("NULLIF(trstockdt.fprdcode, '')::integer"));
+          })
           ->select(
             'trstockdt.*',
             'msprd.fprdname',
@@ -847,7 +841,6 @@ class ReturPembelianController extends Controller
         'famountponet' => $d->famountponet ?? null,
         'famountpo' => $d->famountpo ?? null,
         'frefdtno' => $d->frefdtno ?? null,
-        'fnouref' => $d->fnouref ?? null,
         'fqty' => (float)($d->fqty ?? 0),
         'fterima' => (float)($d->fterima ?? 0),
         'fprice' => (float)($d->fprice ?? 0),
@@ -915,11 +908,9 @@ class ReturPembelianController extends Controller
         'fitemcode' => ['required', 'array', 'min:1'],
         'fitemcode.*' => ['required', 'string', 'max:50'],
         'fsatuan' => ['nullable', 'array'],
-        'fsatuan.*' => ['nullable', 'string', 'max:5'],
+        'fsatuan.*' => ['nullable', 'string', 'max:20'],
         'frefdtno' => ['nullable', 'array'],
         'frefdtno.*' => ['nullable', 'string', 'max:20'],
-        'fnouref' => ['nullable', 'array'],
-        'fnouref.*' => ['nullable', 'integer'],
         'fqty' => ['required', 'array'],
         'fqty.*' => ['numeric', 'min:0'],
         'fprice' => ['required', 'array'],
@@ -958,7 +949,6 @@ class ReturPembelianController extends Controller
       $codes = $request->input('fitemcode', []);
       $satuans = $request->input('fsatuan', []);
       $refdtno = $request->input('frefdtno', []);
-      $nourefs = $request->input('fnouref', []);
       $qtys = $request->input('fqty', []);
       $prices = $request->input('fprice', []);
       $descs = $request->input('fdesc', []);
@@ -1032,7 +1022,8 @@ class ReturPembelianController extends Controller
         $subtotal += $amount;
 
         $rowsDt[] = [
-          'fprdcode' => $prdId,
+          'fprdcode' => $code,
+          'fprdcodeid' => $prdId,
           'frefdtno' => $rref,
           'fqty' => $qty,
           'fprice' => $price,
@@ -1041,7 +1032,6 @@ class ReturPembelianController extends Controller
           'fdatetime' => $now,
           'fketdt' => '',
           'fcode' => '0',
-          'fnouref' => $rnour !== null ? (int)$rnour : null,
           'frefso' => null,
           'fdesc' => $desc,
           'fsatuan' => $sat,
@@ -1138,9 +1128,6 @@ class ReturPembelianController extends Controller
           $r['fstockmtcode'] = $fstockmtcode;
           $r['fstockmtno'] = $fstockmtno;
 
-          if (!isset($r['fnouref']) || $r['fnouref'] === null) {
-            $r['fnouref'] = $nextNouRef++;
-          }
         }
         unset($r);
 
@@ -1167,7 +1154,10 @@ class ReturPembelianController extends Controller
     $returpembelian = PenerimaanPembelianHeader::with([
       'details' => function ($query) {
         $query
-          ->join('msprd', 'msprd.fprdid', '=', 'trstockdt.fprdcode')
+          ->leftJoin('msprd', function ($join) {
+            $join->on('msprd.fprdid', '=', 'trstockdt.fprdcodeid')
+              ->orOn('msprd.fprdid', '=', DB::raw("NULLIF(trstockdt.fprdcode, '')::integer"));
+          })
           ->select(
             'trstockdt.*',
             'msprd.fprdname',
@@ -1224,7 +1214,6 @@ class ReturPembelianController extends Controller
         'famountponet' => $d->famountponet ?? null,
         'famountpo' => $d->famountpo ?? null,
         'frefdtno' => $d->frefdtno ?? null,
-        'fnouref' => $d->fnouref ?? null,
         'fqty' => (float)($d->fqty ?? 0),
         'fterima' => (float)($d->fterima ?? 0),
         'fprice' => (float)($d->fprice ?? 0),

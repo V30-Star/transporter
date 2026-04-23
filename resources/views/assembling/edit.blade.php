@@ -98,6 +98,10 @@
 
     @php
         $usageLocked = !empty($isUsageLocked);
+        $assemblingDate = old(
+            'fstockmtdate',
+            !empty($assembling->fstockmtdate) ? \Carbon\Carbon::parse($assembling->fstockmtdate)->format('Y-m-d') : '',
+        );
     @endphp
 
     @if ($usageLocked)
@@ -154,7 +158,7 @@
                             <div class="lg:col-span-4" x-data="{ autoCode: true }">
                                 <label class="block text-sm font-medium mb-1">Transaksi#</label>
                                 <div class="flex items-center gap-3">
-                                    <input type="text" name="fstockmtno" class="w-full border rounded px-3 py-2"
+                                    <input type="text" name="fstockmtno" class="w-full border rounded px-3 py-2" value=" {{ old('fstockmtno', $assembling->fstockmtno) }}"
                                         :disabled="autoCode"
                                         :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
                                     <label class="inline-flex items-center select-none">
@@ -169,7 +173,7 @@
                             <div class="lg:col-span-4">
                                 <label class="block text-sm font-medium">Tanggal</label>
                                 <input disabled type="date" name="fstockmtdate"
-                                    value="{{ old('fstockmtdate') ?? date('Y-m-d') }}"
+                                    value="{{ $assemblingDate }}"
                                     class="w-full border rounded px-3 py-2 bg-gray-100 @error('fstockmtdate') border-red-500 @enderror">
                                 @error('fstockmtdate')
                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -885,7 +889,7 @@
                                 <label class="block text-sm font-medium mb-1">Transaksi#</label>
                                 <div class="flex items-center gap-3">
                                     <input type="text" name="fstockmtno" class="w-full border rounded px-3 py-2"
-                                        :disabled="autoCode"
+                                        :disabled="autoCode" value=" {{ old('fstockmtno', $assembling->fstockmtno) }}"
                                         :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
                                     <label class="inline-flex items-center select-none">
                                         <input type="checkbox" x-model="autoCode" checked>
@@ -899,7 +903,7 @@
                             <div class="lg:col-span-4">
                                 <label class="block text-sm font-medium">Tanggal</label>
                                 <input type="date" name="fstockmtdate"
-                                    value="{{ old('fstockmtdate') ?? date('Y-m-d') }}"
+                                    value="{{ $assemblingDate }}"
                                     class="w-full border rounded px-3 py-2 @error('fstockmtdate') border-red-500 @enderror">
                                 @error('fstockmtdate')
                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>

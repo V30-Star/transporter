@@ -214,10 +214,10 @@
                                                 </div>
                                             </td>
                                             <td class="p-2 text-left">
-                                                <span x-text="it.faccname"></span>
+                                                <span x-text="it.account_label"></span>
                                             </td>
                                             <td class="p-2 text-left">
-                                                <span x-text="it.fsubaccountname"></span>
+                                                <span x-text="it.subaccount_label"></span>
                                             </td>
                                             <td class="p-2 text-left" x-text="it.fsatuan"></td>
                                             <td class="p-2 text-right" x-text="fmt(it.fqty)"></td>
@@ -227,8 +227,8 @@
                                                 <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
                                                 <input type="hidden" name="fitemname[]" :value="it.fitemname">
                                                 <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
-                                                <input type="hidden" name="frefdtno[]" :value="it.faccid">
-                                                <input type="hidden" name="frefso[]" :value="it.fsubaccountid">
+                                                <input type="hidden" name="frefdtno[]" :value="it.account_code">
+                                                <input type="hidden" name="frefso[]" :value="it.subaccount_code">
                                                 <input type="hidden" name="frefpr[]" :value="it.frefpr">
                                                 <input type="hidden" name="fqty[]" :value="it.fqty">
                                                 <input type="hidden" name="fdesc[]" :value="it.fdesc">
@@ -418,17 +418,17 @@
                 editRow: newRow(),
                 totalHarga: 0,
 
-                updateAccount(row, faccid, accName) {
-                    row.faccid = faccid;
-                    row.faccname = accName;
+                updateAccount(row, accountCode, accName) {
+                    row.account_code = accountCode;
+                    row.account_name = accName;
 
                     // Opsional: Cek apakah item lain di draft/edit perlu di-recalc
                     // this.recalc(row); 
                 },
 
-                updateSubAccount(row, fsubaccountid, SubAccName) {
-                    row.fsubaccountid = fsubaccountid;
-                    row.fsubaccountname = SubAccName;
+                updateSubAccount(row, subAccountCode, subAccName) {
+                    row.subaccount_code = subAccountCode;
+                    row.subaccount_name = subAccName;
                 },
 
                 fmt(n) {
@@ -552,14 +552,14 @@
 
                         const key = this.itemKey({
                             fitemcode: row.fitemcode,
-                            frefdtno: row.frefdtno
+                            account_code: row.account_code
                         });
 
                         if (existing.has(key)) {
                             duplicates.push({
                                 key,
                                 code: row.fitemcode,
-                                ref: row.frefdtno
+                                ref: row.account_code
                             });
                             return;
                         }
@@ -673,7 +673,7 @@
                 applyDesc() {},
 
                 itemKey(it) {
-                    return `${(it.fitemcode ?? '').toString().trim()}::${(it.frefdtno ?? '').toString().trim()}`;
+                    return `${(it.fitemcode ?? '').toString().trim()}::${(it.account_code ?? '').toString().trim()}`;
                 },
 
                 getCurrentItemKeys() {
@@ -735,10 +735,12 @@
                     fdesc: '',
                     fketdt: '',
                     maxqty: 0,
-                    faccid: null,
-                    faccname: '',
-                    fsubaccountid: null,
-                    fsubaccountname: '',
+                    account_code: null,
+                    account_name: '',
+                    account_label: '',
+                    subaccount_code: null,
+                    subaccount_name: '',
+                    subaccount_label: '',
                 };
             }
 

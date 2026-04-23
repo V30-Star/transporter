@@ -266,10 +266,10 @@
                                                     </div>
                                                 </td>
                                                 <td class="p-2 text-left">
-                                                    <span x-text="it.faccname"></span>
+                                                    <span x-text="it.account_label"></span>
                                                 </td>
                                                 <td class="p-2 text-left">
-                                                    <span x-text="it.fsubaccountname"></span>
+                                                    <span x-text="it.subaccount_label"></span>
                                                 </td>
                                                 <td class="p-2 text-left" x-text="it.fsatuan"></td>
                                                 <td class="p-2 text-right" x-text="fmt(it.fqty)"></td>
@@ -279,8 +279,8 @@
                                                     <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
                                                     <input type="hidden" name="fitemname[]" :value="it.fitemname">
                                                     <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
-                                                    <input type="hidden" name="frefdtno[]" :value="it.faccid">
-                                                    <input type="hidden" name="frefso[]" :value="it.fsubaccountid">
+                                                    <input type="hidden" name="frefdtno[]" :value="it.account_code">
+                                                    <input type="hidden" name="frefso[]" :value="it.subaccount_code">
                                                     <input type="hidden" name="frefpr[]" :value="it.frefpr">
                                                     <input type="hidden" name="fqty[]" :value="it.fqty">
                                                     <input type="hidden" name="fdesc[]" :value="it.fdesc">
@@ -466,27 +466,27 @@
                                                     <div x-text="it.fitemname"></div>
                                                 </td>
                                                 <td class="p-2 text-left">
-                                                    <select class="w-full border rounded px-2 py-1 select2"
-                                                        :value="it.faccid" x-init="initSelect2($el)"
-                                                        @change="it.faccid = $event.target.value; it.faccname = $event.target.options[$event.target.selectedIndex].dataset.name">
+                                                    <select class="w-full border rounded px-2 py-1"
+                                                        x-model="it.account_code"
+                                                        @change="updateAccount(it, $event.target.value, $event.target.options[$event.target.selectedIndex].dataset.name)">
                                                         <option value="">Pilih Akun</option>
                                                         <template x-for="acc in accounts" :key="acc.faccount">
                                                             <option :value="acc.faccount" :data-name="acc.faccname"
                                                                 x-text="`${acc.faccount} - ${acc.faccname}`"
-                                                                :selected="it.faccid == acc.faccount"></option>
+                                                                :selected="it.account_code == acc.faccount"></option>
                                                         </template>
                                                     </select>
                                                 </td>
                                                 <td class="p-2 text-left">
-                                                    <select class="w-full border rounded px-2 py-1 select2"
-                                                        :value="it.fsubaccountid" x-init="initSelect2($el)"
-                                                        @change="it.fsubaccountid = $event.target.value; it.fsubaccountname = $event.target.options[$event.target.selectedIndex].dataset.name">
+                                                    <select class="w-full border rounded px-2 py-1"
+                                                        x-model="it.subaccount_code"
+                                                        @change="updateSubAccount(it, $event.target.value, $event.target.options[$event.target.selectedIndex].dataset.name)">
                                                         <option value="">Pilih Sub Akun</option>
                                                         <template x-for="sacc in subaccounts" :key="sacc.fsubaccountcode">
                                                             <option :value="sacc.fsubaccountcode"
                                                                 :data-name="sacc.fsubaccountname"
                                                                 x-text="`${sacc.fsubaccountcode} - ${sacc.fsubaccountname}`"
-                                                                :selected="it.fsubaccountid == sacc.fsubaccountcode">
+                                                                :selected="it.subaccount_code == sacc.fsubaccountcode">
                                                             </option>
                                                         </template>
                                                     </select>
@@ -521,8 +521,8 @@
                                                     <input type="hidden" name="fprdcodeid[]" :value="it.fitemid">
                                                     <input type="hidden" name="fitemname[]" :value="it.fitemname">
                                                     <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
-                                                    <input type="hidden" name="frefdtno[]" :value="it.faccid">
-                                                    <input type="hidden" name="frefso[]" :value="it.fsubaccountid">
+                                                    <input type="hidden" name="frefdtno[]" :value="it.account_code">
+                                                    <input type="hidden" name="frefso[]" :value="it.subaccount_code">
                                                     <input type="hidden" name="frefpr[]" :value="it.frefpr">
                                                     <input type="hidden" name="fqty[]" :value="it.fqty">
                                                     <input type="hidden" name="fdesc[]" :value="it.fdesc">
@@ -574,8 +574,8 @@
                                             </td>
 
                                             <td class="p-2">
-                                                <select class="w-full border rounded px-2 py-1 select2"
-                                                    :value="draft.faccid" x-init="initSelect2($el)"
+                                                <select class="w-full border rounded px-2 py-1"
+                                                    x-model="draft.account_code"
                                                     @input="updateAccount(draft, $event.target.value, $event.target.options[$event.target.selectedIndex].dataset.name)">
                                                     <option value="">Pilih Akun</option>
                                                     <template x-for="acc in accounts" :key="acc.faccount">
@@ -586,8 +586,8 @@
                                             </td>
 
                                             <td class="p-2">
-                                                <select class="w-full border rounded px-2 py-1 select2"
-                                                    :value="draft.fsubaccountid" x-init="initSelect2($el)"
+                                                <select class="w-full border rounded px-2 py-1"
+                                                    x-model="draft.subaccount_code"
                                                     @input="updateSubAccount(draft, $event.target.value, $event.target.options[$event.target.selectedIndex].dataset.name)">
                                                     <option value="">Pilih Sub Akun</option>
                                                     <template x-for="sacc in subaccounts" :key="sacc.fsubaccountcode">
@@ -982,10 +982,27 @@
 @push('scripts')
     <script>
         $(document).ready(function() {
-            window.initSelect2 = function(sel = '.select2') {
-                $(sel).select2({
+            window.initSelect2 = function(sel = '.select2', selectedValue = null) {
+                const $select = $(sel);
+                if (!$select.length) return;
+                if ($select.hasClass('select2-hidden-accessible')) {
+                    $select.select2('destroy');
+                }
+                $select.select2({
                     width: '100%'
                 });
+                if (selectedValue !== null && selectedValue !== undefined && selectedValue !== '') {
+                    $select.val(selectedValue).trigger('change.select2');
+                }
+            };
+
+            window.syncSelect2Value = function(el, value) {
+                const $select = $(el);
+                if (!$select.length || !$select.hasClass('select2-hidden-accessible')) return;
+                const normalized = value ?? '';
+                if (($select.val() ?? '') !== normalized) {
+                    $select.val(normalized).trigger('change.select2');
+                }
             };
 
             // Bridge: Select2 -> Alpine
@@ -1046,17 +1063,19 @@
                 draft: newRow(),
                 totalHarga: 0,
 
-                updateAccount(row, faccid, accName) {
-                    row.faccid = faccid;
-                    row.faccname = accName;
+                updateAccount(row, accountCode, accName) {
+                    row.account_code = accountCode;
+                    row.account_name = accName;
+                    row.account_label = accountCode ? `${accountCode} - ${accName || accountCode}` : '';
 
                     // Opsional: Cek apakah item lain di draft/edit perlu di-recalc
                     // this.recalc(row); 
                 },
 
-                updateSubAccount(row, fsubaccountid, SubAccName) {
-                    row.fsubaccountid = fsubaccountid;
-                    row.fsubaccountname = SubAccName;
+                updateSubAccount(row, subAccountCode, subAccName) {
+                    row.subaccount_code = subAccountCode;
+                    row.subaccount_name = subAccName;
+                    row.subaccount_label = subAccountCode ? `${subAccountCode} - ${subAccName || subAccountCode}` : '';
                 },
 
                 fmt(n) {
@@ -1183,14 +1202,14 @@
 
                         const key = this.itemKey({
                             fitemcode: row.fitemcode,
-                            frefdtno: row.frefdtno
+                            account_code: row.account_code
                         });
 
                         if (existing.has(key)) {
                             duplicates.push({
                                 key,
                                 code: row.fitemcode,
-                                ref: row.frefdtno
+                                ref: row.account_code
                             });
                             return;
                         }
@@ -1277,7 +1296,7 @@
                 applyDesc() {},
 
                 itemKey(it) {
-                    return `${(it.fitemcode ?? '').toString().trim()}::${(it.frefdtno ?? '').toString().trim()}`;
+                    return `${(it.fitemcode ?? '').toString().trim()}::${(it.account_code ?? '').toString().trim()}`;
                 },
 
                 getCurrentItemKeys() {
@@ -1285,6 +1304,48 @@
                 },
 
                 init() {
+                    const normalizedAccounts = (this.accounts || []).map(acc => ({
+                        ...acc,
+                        faccount: (acc?.faccount ?? '').toString().trim(),
+                        faccname: (acc?.faccname ?? '').toString().trim(),
+                    }));
+                    const normalizedSubaccounts = (this.subaccounts || []).map(sacc => ({
+                        ...sacc,
+                        fsubaccountcode: (sacc?.fsubaccountcode ?? '').toString().trim(),
+                        fsubaccountname: (sacc?.fsubaccountname ?? '').toString().trim(),
+                    }));
+
+                    this.accounts = normalizedAccounts;
+                    this.subaccounts = normalizedSubaccounts;
+
+                    const accountMap = Object.fromEntries(
+                        normalizedAccounts.map(acc => [acc.faccount, acc])
+                    );
+                    const subaccountMap = Object.fromEntries(
+                        normalizedSubaccounts.map(sacc => [sacc.fsubaccountcode, sacc])
+                    );
+
+                    this.savedItems = (this.savedItems || []).map((it) => {
+                        const accountCode = (it?.account_code ?? '').toString().trim();
+                        const subaccountCode = (it?.subaccount_code ?? '').toString().trim();
+                        const account = accountMap[accountCode] ?? null;
+                        const subaccount = subaccountMap[subaccountCode] ?? null;
+
+                        return {
+                            ...it,
+                            account_code: accountCode,
+                            account_name: account?.faccname || it?.account_name || '',
+                            account_label: accountCode
+                                ? `${accountCode} - ${account?.faccname || it?.account_name || accountCode}`
+                                : '',
+                            subaccount_code: subaccountCode,
+                            subaccount_name: subaccount?.fsubaccountname || it?.subaccount_name || '',
+                            subaccount_label: subaccountCode
+                                ? `${subaccountCode} - ${subaccount?.fsubaccountname || it?.subaccount_name || subaccountCode}`
+                                : '',
+                        };
+                    });
+
                     window.getCurrentItemKeys = () => this.getCurrentItemKeys();
 
                     window.addEventListener('pr-picked', this.onPrPicked.bind(this), {
@@ -1344,10 +1405,12 @@
                     fdesc: '',
                     fketdt: '',
                     maxqty: 0,
-                    faccid: '',
-                    faccname: '',
-                    fsubaccountid: '',
-                    fsubaccountname: '',
+                    account_code: '',
+                    account_name: '',
+                    account_label: '',
+                    subaccount_code: '',
+                    subaccount_name: '',
+                    subaccount_label: '',
                 };
             }
 

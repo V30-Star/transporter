@@ -3,6 +3,12 @@
 @section('title', 'Assembling')
 
 @section('content')
+    @php
+        $assemblingDate = old(
+            'fstockmtdate',
+            !empty($assembling->fstockmtdate) ? \Carbon\Carbon::parse($assembling->fstockmtdate)->format('Y-m-d') : '',
+        );
+    @endphp
     <style>
         input:focus,
         select:focus,
@@ -103,7 +109,7 @@
                             <label class="block text-sm font-medium mb-1">Transaksi#</label>
                             <div class="flex items-center gap-3">
                                 <input type="text" name="fstockmtno" class="w-full border rounded px-3 py-2"
-                                    :disabled="autoCode"
+                                    value=" {{ old('fstockmtno', $assembling->fstockmtno) }}" :disabled="autoCode"
                                     :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
                                 <label class="inline-flex items-center select-none">
                                     <input type="checkbox" x-model="autoCode" checked>
@@ -117,7 +123,7 @@
                         <div class="lg:col-span-4">
                             <label class="block text-sm font-medium">Tanggal</label>
                             <input disabled type="date" name="fstockmtdate"
-                                value="{{ old('fstockmtdate') ?? date('Y-m-d') }}"
+                                value="{{ $assemblingDate }}"
                                 class="w-full border rounded px-3 py-2 bg-gray-100 @error('fstockmtdate') border-red-500 @enderror">
                             @error('fstockmtdate')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -795,7 +801,7 @@
                     </div>
                 </div>
                 <div class="mt-6 flex justify-center space-x-4">
-                     <a href="{{ route('assembling.print', $assembling->fstockmtno) }}" target="_blank"
+                    <a href="{{ route('assembling.print', $assembling->fstockmtno) }}" target="_blank"
                         class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

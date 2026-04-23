@@ -428,8 +428,8 @@ class PemakaianbarangController extends Controller
     // =========================
     $codes        = $request->input('fitemcode', []);
     $satuans      = $request->input('fsatuan', []);
-    $refdtno      = $request->input('frefdtno', []);
-    $refso      = $request->input('frefso', []);
+    $accountCodes   = $request->input('frefdtno', []);
+    $subAccountCodes = $request->input('frefso', []);
     $qtys         = $request->input('fqty', []);
     $descs        = $request->input('fdesc', []);
 
@@ -456,8 +456,8 @@ class PemakaianbarangController extends Controller
     for ($i = 0; $i < $rowCount; $i++) {
       $code  = trim((string)($codes[$i]   ?? ''));
       $sat   = trim((string)($satuans[$i] ?? ''));
-      $rref  = trim((string)($refdtno[$i] ?? ''));
-      $rrso  = trim((string)($refso[$i] ?? ''));
+      $accountCode    = trim((string)($accountCodes[$i] ?? ''));
+      $subAccountCode = trim((string)($subAccountCodes[$i] ?? ''));
       $rnour = $nourefs[$i] ?? null;
       $qty   = (float)($qtys[$i]   ?? 0);
       $desc  = (string)($descs[$i] ?? '');
@@ -490,8 +490,8 @@ class PemakaianbarangController extends Controller
       $rowsDt[] = [
         'fprdcode'       => $code,
         'fprdcodeid'     => $prdId,
-        'frefdtno'       => $rref,
-        'frefso'         => $rrso,
+        'frefdtno'       => $accountCode !== '' ? $accountCode : null,
+        'frefso'         => $subAccountCode !== '' ? $subAccountCode : null,
         'fqty'           => $qty,
         'fusercreate'        => (Auth::user()->fname ?? 'system'),
         'fdatetime'      => $now,
@@ -713,11 +713,18 @@ class PemakaianbarangController extends Controller
       'details' => function ($query) {
         $query
           ->leftJoin('msprd', 'msprd.fprdid', '=', 'trstockdt.fprdcodeid')
-          ->with(['account', 'subaccount'])
+          ->leftJoin('account', function ($join) {
+            $join->on(DB::raw('TRIM(account.faccount)'), '=', DB::raw('TRIM(trstockdt.frefdtno)'));
+          })
+          ->leftJoin('mssubaccount', function ($join) {
+            $join->on(DB::raw('TRIM(mssubaccount.fsubaccountcode)'), '=', DB::raw('TRIM(trstockdt.frefso)'));
+          })
           ->select(
             'trstockdt.*',
             'msprd.fprdname',
-            'msprd.fprdcode as fitemcode_text'
+            'msprd.fprdcode as fitemcode_text',
+            'account.faccname as account_name_text',
+            'mssubaccount.fsubaccountname as subaccount_name_text'
           )
           ->orderBy('trstockdt.fstockdtid', 'asc');
       }
@@ -727,6 +734,9 @@ class PemakaianbarangController extends Controller
 
     // 4. Map the data for savedItems (sudah menggunakan data yang benar)
     $savedItems = $pemakaianbarang->details->map(function ($d) {
+      $accountCode = trim((string)($d->frefdtno ?? '')) ?: null;
+      $subaccountCode = trim((string)($d->frefso ?? '')) ?: null;
+
       return [
         'uid' => $d->fstockdtid,
         'fitemid' => $d->fprdcodeid,
@@ -748,10 +758,16 @@ class PemakaianbarangController extends Controller
         'fketdt' => $d->fketdt ?? '',
         'units' => [],
 
-        'faccid' => $d->frefdtno ?? null,
-        'faccname' => $d->account ? $d->account->faccname : null,
-        'fsubaccountid' => $d->frefso ?? null,
-        'fsubaccountname' => $d->subaccount ? $d->subaccount->fsubaccountname : null,
+        'account_code' => $accountCode,
+        'account_name' => $d->account_name_text ?? null,
+        'account_label' => $accountCode
+          ? trim($accountCode . ' - ' . ($d->account_name_text ?? $accountCode))
+          : null,
+        'subaccount_code' => $subaccountCode,
+        'subaccount_name' => $d->subaccount_name_text ?? null,
+        'subaccount_label' => $subaccountCode
+          ? trim($subaccountCode . ' - ' . ($d->subaccount_name_text ?? $subaccountCode))
+          : null,
       ];
     })->values();
 
@@ -839,11 +855,18 @@ class PemakaianbarangController extends Controller
       'details' => function ($query) {
         $query
           ->join('msprd', 'msprd.fprdid', '=', 'trstockdt.fprdcodeid')
-          ->with(['account', 'subaccount']) // Eager load relasi
+          ->leftJoin('account', function ($join) {
+            $join->on(DB::raw('TRIM(account.faccount)'), '=', DB::raw('TRIM(trstockdt.frefdtno)'));
+          })
+          ->leftJoin('mssubaccount', function ($join) {
+            $join->on(DB::raw('TRIM(mssubaccount.fsubaccountcode)'), '=', DB::raw('TRIM(trstockdt.frefso)'));
+          })
           ->select(
             'trstockdt.*',
             'msprd.fprdname',
-            'msprd.fprdcode as fitemcode_text'
+            'msprd.fprdcode as fitemcode_text',
+            'account.faccname as account_name_text',
+            'mssubaccount.fsubaccountname as subaccount_name_text'
           )
           ->orderBy('trstockdt.fstockdtid', 'asc');
       }
@@ -851,6 +874,9 @@ class PemakaianbarangController extends Controller
 
     // 4. Map the data for savedItems (sudah menggunakan data yang benar)
     $savedItems = $pemakaianbarang->details->map(function ($d) {
+      $accountCode = trim((string)($d->frefdtno ?? '')) ?: null;
+      $subaccountCode = trim((string)($d->frefso ?? '')) ?: null;
+
       return [
         'uid' => $d->fstockdtid,
         'fitemcode' => $d->fitemcode_text ?? '',
@@ -872,10 +898,16 @@ class PemakaianbarangController extends Controller
         'units' => [],
 
         // TAMBAHKAN INI - untuk JavaScript
-        'faccid' => $d->frefdtno ?? null,
-        'faccname' => $d->account ? $d->account->faccname : null,
-        'fsubaccountid' => $d->frefso ?? null,
-        'fsubaccountname' => $d->subaccount ? $d->subaccount->fsubaccountname : null,
+        'account_code' => $accountCode,
+        'account_name' => $d->account_name_text ?? null,
+        'account_label' => $accountCode
+          ? trim($accountCode . ' - ' . ($d->account_name_text ?? $accountCode))
+          : null,
+        'subaccount_code' => $subaccountCode,
+        'subaccount_name' => $d->subaccount_name_text ?? null,
+        'subaccount_label' => $subaccountCode
+          ? trim($subaccountCode . ' - ' . ($d->subaccount_name_text ?? $subaccountCode))
+          : null,
       ];
     })->values();
 
@@ -969,8 +1001,8 @@ class PemakaianbarangController extends Controller
     // =========================
     $codes   = $request->input('fitemcode', []);
     $satuans = $request->input('fsatuan', []);
-    $refdtno      = $request->input('frefdtno', []);
-    $refso      = $request->input('frefso', []);
+    $accountCodes   = $request->input('frefdtno', []);
+    $subAccountCodes = $request->input('frefso', []);
     $qtys    = $request->input('fqty', []);
     $descs   = $request->input('fdesc', []);
 
@@ -999,8 +1031,8 @@ class PemakaianbarangController extends Controller
     for ($i = 0; $i < $rowCount; $i++) {
       $code  = trim((string)($codes[$i]   ?? ''));
       $sat   = trim((string)($satuans[$i] ?? ''));
-      $rref  = trim((string)($refdtno[$i] ?? ''));
-      $rrso  = trim((string)($refso[$i] ?? ''));
+      $accountCode    = trim((string)($accountCodes[$i] ?? ''));
+      $subAccountCode = trim((string)($subAccountCodes[$i] ?? ''));
       $rnour = $nourefs[$i] ?? null;
       $qty   = (float)($qtys[$i]   ?? 0);
       $price = (float)($prices[$i] ?? 0);
@@ -1037,8 +1069,8 @@ class PemakaianbarangController extends Controller
       $rowsDt[] = [
         'fprdcode'       => $code,
         'fprdcodeid'     => $prdId,
-        'frefdtno'       => $rref,
-        'frefso'         => $rrso,
+        'frefdtno'       => $accountCode !== '' ? $accountCode : null,
+        'frefso'         => $subAccountCode !== '' ? $subAccountCode : null,
         'fqty'           => $qty,
         'fuserupdate'     => (Auth::user()->fname ?? 'system'),
         'fdatetime'      => $now, // Tetap gunakan fdatetime
@@ -1171,11 +1203,18 @@ class PemakaianbarangController extends Controller
       'details' => function ($query) {
         $query
           ->join('msprd', 'msprd.fprdid', '=', 'trstockdt.fprdcodeid')
-          ->with(['account', 'subaccount']) // Eager load relasi
+          ->leftJoin('account', function ($join) {
+            $join->on(DB::raw('TRIM(account.faccount)'), '=', DB::raw('TRIM(trstockdt.frefdtno)'));
+          })
+          ->leftJoin('mssubaccount', function ($join) {
+            $join->on(DB::raw('TRIM(mssubaccount.fsubaccountcode)'), '=', DB::raw('TRIM(trstockdt.frefso)'));
+          })
           ->select(
             'trstockdt.*',
             'msprd.fprdname',
-            'msprd.fprdcode as fitemcode_text'
+            'msprd.fprdcode as fitemcode_text',
+            'account.faccname as account_name_text',
+            'mssubaccount.fsubaccountname as subaccount_name_text'
           )
           ->orderBy('trstockdt.fstockdtid', 'asc');
       }
@@ -1185,6 +1224,9 @@ class PemakaianbarangController extends Controller
 
     // 4. Map the data for savedItems (sudah menggunakan data yang benar)
     $savedItems = $pemakaianbarang->details->map(function ($d) {
+      $accountCode = trim((string)($d->frefdtno ?? '')) ?: null;
+      $subaccountCode = trim((string)($d->frefso ?? '')) ?: null;
+
       return [
         'uid' => $d->fstockdtid,
         'fitemcode' => $d->fitemcode_text ?? '',
@@ -1206,10 +1248,16 @@ class PemakaianbarangController extends Controller
         'units' => [],
 
         // TAMBAHKAN INI - untuk JavaScript
-        'faccid' => $d->frefdtno ?? null,
-        'faccname' => $d->account ? $d->account->faccname : null,
-        'fsubaccountid' => $d->frefso ?? null,
-        'fsubaccountname' => $d->subaccount ? $d->subaccount->fsubaccountname : null,
+        'account_code' => $accountCode,
+        'account_name' => $d->account_name_text ?? null,
+        'account_label' => $accountCode
+          ? trim($accountCode . ' - ' . ($d->account_name_text ?? $accountCode))
+          : null,
+        'subaccount_code' => $subaccountCode,
+        'subaccount_name' => $d->subaccount_name_text ?? null,
+        'subaccount_label' => $subaccountCode
+          ? trim($subaccountCode . ' - ' . ($d->subaccount_name_text ?? $subaccountCode))
+          : null,
       ];
     })->values();
 
