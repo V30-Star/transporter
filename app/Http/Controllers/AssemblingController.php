@@ -594,7 +594,6 @@ class AssemblingController extends Controller
         $r['fstockmtid']   = $newStockMasterId;
         $r['fstockmtcode'] = $fstockmtcode;
         $r['fstockmtno']   = $fstockmtno;
-
       }
       unset($r);
 
@@ -634,8 +633,7 @@ class AssemblingController extends Controller
       'details' => function ($query) {
         $query
           ->leftJoin('msprd', function ($join) {
-            $join->on('msprd.fprdid', '=', 'trstockdt.fprdcodeid')
-              ->orOn('msprd.fprdid', '=', DB::raw("NULLIF(trstockdt.fprdcode, '')::integer"));
+            $join->on('msprd.fprdid', '=', 'trstockdt.fprdcodeid');
           })
           ->with(['account', 'subaccount']) // Eager load relasi
           ->select(
@@ -762,8 +760,7 @@ class AssemblingController extends Controller
       'details' => function ($query) {
         $query
           ->leftJoin('msprd', function ($join) {
-            $join->on('msprd.fprdid', '=', 'trstockdt.fprdcodeid')
-              ->orOn('msprd.fprdid', '=', DB::raw("NULLIF(trstockdt.fprdcode, '')::integer"));
+            $join->on('msprd.fprdid', '=', 'trstockdt.fprdcodeid');
           })
           ->with(['account', 'subaccount']) // Eager load relasi
           ->select(
@@ -1075,7 +1072,6 @@ class AssemblingController extends Controller
         $r['fstockmtid']   = $fstockmtid;
         $r['fstockmtcode'] = $fstockmtcode;
         $r['fstockmtno']   = $fstockmtno;
-
       }
       unset($r);
 
@@ -1114,8 +1110,7 @@ class AssemblingController extends Controller
       'details' => function ($query) {
         $query
           ->leftJoin('msprd', function ($join) {
-            $join->on('msprd.fprdid', '=', 'trstockdt.fprdcodeid')
-              ->orOn('msprd.fprdid', '=', DB::raw("NULLIF(trstockdt.fprdcode, '')::integer"));
+            $join->on('msprd.fprdid', '=', 'trstockdt.fprdcodeid');
           })
           ->with(['account', 'subaccount']) // Eager load relasi
           ->select(

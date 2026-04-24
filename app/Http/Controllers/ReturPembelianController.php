@@ -658,8 +658,7 @@ class ReturPembelianController extends Controller
       'details' => function ($query) {
         $query
           ->leftJoin('msprd', function ($join) {
-            $join->on('msprd.fprdid', '=', 'trstockdt.fprdcodeid')
-              ->orOn('msprd.fprdid', '=', DB::raw("NULLIF(trstockdt.fprdcode, '')::integer"));
+            $join->on('msprd.fprdid', '=', 'trstockdt.fprdcodeid');
           })
           ->select(
             'trstockdt.*',
@@ -784,8 +783,7 @@ class ReturPembelianController extends Controller
       'details' => function ($query) {
         $query
           ->leftJoin('msprd', function ($join) {
-            $join->on('msprd.fprdid', '=', 'trstockdt.fprdcodeid')
-              ->orOn('msprd.fprdid', '=', DB::raw("NULLIF(trstockdt.fprdcode, '')::integer"));
+            $join->on('msprd.fprdid', '=', 'trstockdt.fprdcodeid');
           })
           ->select(
             'trstockdt.*',
@@ -1127,7 +1125,6 @@ class ReturPembelianController extends Controller
           $r['fstockmtid'] = $header->fstockmtid;
           $r['fstockmtcode'] = $fstockmtcode;
           $r['fstockmtno'] = $fstockmtno;
-
         }
         unset($r);
 
@@ -1155,8 +1152,7 @@ class ReturPembelianController extends Controller
       'details' => function ($query) {
         $query
           ->leftJoin('msprd', function ($join) {
-            $join->on('msprd.fprdid', '=', 'trstockdt.fprdcodeid')
-              ->orOn('msprd.fprdid', '=', DB::raw("NULLIF(trstockdt.fprdcode, '')::integer"));
+            $join->on('msprd.fprdid', '=', 'trstockdt.fprdcodeid');
           })
           ->select(
             'trstockdt.*',
