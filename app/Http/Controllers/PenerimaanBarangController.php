@@ -188,7 +188,7 @@ class PenerimaanBarangController extends Controller
         'tr_pod.fqty',
         'tr_pod.fqtyremain',
         'tr_pod.fsatuan as fsatuan',
-        'tr_pod.fpohid',
+        'tr_pod.fpono',
         'tr_pod.fprice as fprice',
         'tr_pod.fprice_rp as fprice_rp',
         'tr_pod.famount as ftotal',

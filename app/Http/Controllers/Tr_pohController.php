@@ -218,7 +218,6 @@ class Tr_pohController extends Controller
   public function items($id)
   {
     $header = Tr_prh::where('fprhid', $id)->firstOrFail();
-    $fprhid = (int) $header->fprhid;
 
     $items = DB::table('tr_prd as d')
       ->leftJoin('msprd as m', 'm.fprdid', '=', 'd.fprdcodeid')
@@ -239,11 +238,11 @@ class Tr_pohController extends Controller
         'd.fsatuan',
         'd.fdesc',
         'd.fketdt',
-        'd.fprhid',
+        'd.fprno',
         'd.fqtyremain',
         DB::raw('COALESCE(d.fprice, 0) as fprice'),
         DB::raw('0::numeric as fdisc'),
-        DB::raw('d.fprhid::text as fnouref'),
+        DB::raw('d.fprno::text as fnouref'),
         DB::raw('d.fprdid::text as frefdtid'),
         'm.fsatuankecil',
         'm.fsatuanbesar',
@@ -277,7 +276,8 @@ class Tr_pohController extends Controller
           'fsatuan'       => $satuan,
           'fdesc'         => $item->fdesc ?? '',
           'fketdt'        => $item->fketdt ?? '',
-          'fprhid'        => $item->fprhid,
+          'fprhid'        => $header->fprhid,
+          'fprno'         => $item->fprno ?? $header->fprno,
           'fprice'        => (float) $item->fprice,
           'fdisc'         => 0,
           'fnouref'       => $item->fnouref,
@@ -829,12 +829,11 @@ class Tr_pohController extends Controller
         });
       }
 
-      // numbering + insert details — use fpohid
+      // numbering + insert details — use fpono
       $lastNou = (int) DB::table('tr_pod')->where('fpono', $fpono)->max('fnou');
       $nextNou = $lastNou + 1;
 
       foreach ($rowsPod as &$r) {
-        $r['fpohid'] = $fpohid;
         $r['fnou']   = $nextNou++;
         $r['fpono']  = $fpono;
       }
@@ -1457,7 +1456,6 @@ class Tr_pohController extends Controller
 
         $nextNou = 1;
         foreach ($rowsPod as &$r) {
-          $r['fpohid'] = $fponoId;
           $r['fpono']  = $header->fpono;
           $r['fnou']   = $nextNou++;
         }

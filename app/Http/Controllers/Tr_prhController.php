@@ -463,7 +463,6 @@ class Tr_prhController extends Controller
                     }
 
                     $detailRows[] = [
-                        'fprhid' => $tr_prh->fprhid,
                         'fprdcodeid' => $productId,
                         'fprdcode' => $product->fprdcode ?? '', // nama produk dari msprd.fprdname
                         'fqty' => (int) $qty,
@@ -990,7 +989,6 @@ class Tr_prhController extends Controller
                 }
 
                 $data = [
-                    'fprhid' => $fprhid,
                     'fprdcodeid' => $prodId,
                     'fprdcode' => $code,
                     'fqty' => $qty,
@@ -1166,8 +1164,7 @@ class Tr_prhController extends Controller
 
             DB::transaction(function () use ($tr_prh) {
                 DB::table('tr_prd')
-                    ->where('fprhid', $tr_prh->fprhid)
-                    ->orWhere('fprno', $tr_prh->fprno)
+                    ->where('fprno', $tr_prh->fprno)
                     ->delete();
                 $tr_prh->delete();
             });

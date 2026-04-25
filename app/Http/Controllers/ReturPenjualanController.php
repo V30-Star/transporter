@@ -194,8 +194,8 @@ class ReturPenjualanController extends Controller
         // Ambil data header PR berdasarkan fprhid
         $header = Tr_prh::where('fprhid', $id)->firstOrFail();
 
-        // PERBAIKAN: Gunakan fprhid (integer) bukan fprno (varchar)
-        $items = Tr_prd::where('tr_prd.fprhid', $header->fprhid)
+        // Detail PR sekarang dihubungkan lewat fprno
+        $items = Tr_prd::where('tr_prd.fprno', $header->fprno)
             ->leftJoin('msprd as m', 'm.fprdcodeid', '=', 'tr_prd.fitemid')
             ->select([
                 'tr_prd.fprdcodeid as frefdtno',
@@ -203,7 +203,7 @@ class ReturPenjualanController extends Controller
                 'm.fprdname as fitemname',
                 'tr_prd.fqty',
                 'tr_prd.fsatuan as fsatuan',
-                'tr_prd.fprhid',
+                'tr_prd.fprno',
                 'tr_prd.fprice as fprice',
                 DB::raw('0::numeric as fdisc'),
             ])

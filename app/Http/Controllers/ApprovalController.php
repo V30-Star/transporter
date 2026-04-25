@@ -21,7 +21,7 @@ class ApprovalController extends Controller
     if (!$hdr) return redirect()->route('tr_prh.index')->with('error', 'Permintaan Pembelian tidak ditemukan.');
     $dt = Tr_prd::query()
       ->leftJoin('msprd as p', 'p.fprdcode', '=', 'tr_prd.fprdcode')
-      ->where('tr_prd.fprhid', $hdr->fprno)
+      ->where('tr_prd.fprno', $hdr->fprno)
       ->orderBy('tr_prd.fprdcode')
       ->get([
         'tr_prd.*',

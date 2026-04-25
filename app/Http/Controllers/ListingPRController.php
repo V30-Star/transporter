@@ -147,7 +147,7 @@ class ListingPRController extends Controller
             ->groupBy('fprdid','frefdtno', 'fprdcode', 'frefdtid');
 
         $query = DB::table('tr_prh as h')
-            ->leftJoin('tr_prd as d', 'h.fprhid', '=', 'd.fprhid')
+            ->leftJoin('tr_prd as d', 'h.fprno', '=', 'd.fprno')
             ->leftJoin('mssupplier as s', 'h.fsupplier', '=', 's.fsupplierid')
             ->leftJoin('msprd as p', 'd.fprdid', '=', 'p.fprdid')
             ->leftJoinSub($subPO, 'o', function ($join) {

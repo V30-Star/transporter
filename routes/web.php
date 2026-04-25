@@ -21,6 +21,7 @@ use App\Http\Controllers\ListingSOController;
 use App\Http\Controllers\MerekController;
 use App\Http\Controllers\MutasiController;
 use App\Http\Controllers\PemakaianbarangController;
+use App\Http\Controllers\PengeluaranKasController;
 use App\Http\Controllers\PenerimaanBarangController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
@@ -213,6 +214,14 @@ Route::middleware('auth')->group(function () {
         Route::get('/jurnaltransaksi/{fcurrid}/delete', [JurnalTransaksiController::class, 'delete'])->name('jurnaltransaksi.delete');
         Route::patch('/jurnaltransaksi/{fcurrid}', [JurnalTransaksiController::class, 'update'])->name('jurnaltransaksi.update');
         Route::delete('/jurnaltransaksi/{fcurrid}', [JurnalTransaksiController::class, 'destroy'])->name('jurnaltransaksi.destroy');
+
+        Route::get('/pengeluarankas', [PengeluaranKasController::class, 'index'])->name('pengeluarankas.index');
+        Route::post('/pengeluarankas', [PengeluaranKasController::class, 'store'])->name('pengeluarankas.store');
+        Route::get('/pengeluarankas/create', [PengeluaranKasController::class, 'create'])->name('pengeluarankas.create');
+        Route::get('/pengeluarankas/{fkasmtno}/view', [PengeluaranKasController::class, 'view'])->name('pengeluarankas.view');
+        Route::get('/pengeluarankas/{fkasmtno}/edit', [PengeluaranKasController::class, 'edit'])->name('pengeluarankas.edit');
+        Route::patch('/pengeluarankas/{fkasmtno}', [PengeluaranKasController::class, 'update'])->name('pengeluarankas.update');
+        Route::delete('/pengeluarankas/{fkasmtno}', [PengeluaranKasController::class, 'destroy'])->name('pengeluarankas.destroy');
 
         Route::get('/account', [AccountController::class, 'index'])->name('account.index');
         Route::post('/account', [AccountController::class, 'store'])->name('account.store');

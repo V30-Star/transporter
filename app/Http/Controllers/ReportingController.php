@@ -136,7 +136,7 @@ class ReportingController extends Controller
 
     foreach ($pohData as $poh) {
       $poh->details = DB::table('tr_pod')
-        ->where('fpono', $poh->fpohid)
+        ->where('fpono', $poh->fpono)
         ->orderBy('fnou')
         ->get();
       $grandTotalHarga += $poh->total_harga ?? 0;

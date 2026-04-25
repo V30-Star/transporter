@@ -191,11 +191,8 @@ class PemakaianbarangController extends Controller
 
     // Mengambil detail dari tr_pod
     $items = DB::table('tr_pod')
-      // =================================================================
-      // PERBAIKAN: Gunakan ID dari header (fpohid) untuk mencocokkan.
-      // Kolom tr_pod.fpono (integer) dicocokkan dengan $header->fpohid (integer).
-      // =================================================================
-      ->where('tr_pod.fpono', $header->fpohid) // <-- DIUBAH DARI $header->fpono
+      // Detail PO sekarang dihubungkan lewat fpono
+      ->where('tr_pod.fpono', $header->fpono)
 
       // PERBAIKAN JOIN: tr_pod.fprdcode (sekarang integer) di-join ke msprd.fprdid (integer)
       ->leftJoin('msprd as m', 'm.fprdid', '=', 'tr_pod.fprdcode')
