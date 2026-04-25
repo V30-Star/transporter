@@ -275,7 +275,7 @@ class ReportingFakturPembelianController extends Controller
       elseif (($faktur->ftypebuy ?? '') == '1') $typeLabel = 'Non Stok';
       elseif (($faktur->ftypebuy ?? '') == '2') $typeLabel = 'Uang Muka';
 
-      $details = DB::table('trstockdt')->where('fstockmtid', $faktur->fstockmtid)->get();
+      $details = DB::table('trstockdt')->where('fstockmtno', $faktur->fstockmtno)->get();
 
       if ($details->isNotEmpty()) {
         foreach ($details as $detail) {

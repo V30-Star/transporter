@@ -284,7 +284,7 @@ class PemakaianbarangController extends Controller
     $dt = PenerimaanPembelianDetail::query()
       ->leftJoin('msprd as p', 'p.fprdid', '=', 'trstockdt.fprdcodeid')
       ->where('trstockdt.fstockmtno', $fstockmtno)
-      ->orderBy('trstockdt.fstockmtid')
+      ->orderBy('trstockdt.fstockdtid')
       ->get([
         'trstockdt.*',
         'p.fprdname as product_name',
@@ -591,7 +591,6 @@ class PemakaianbarangController extends Controller
       }
 
       foreach ($rowsDt as &$r) {
-        $r['fstockmtid']   = $newStockMasterId;
         $r['fstockmtcode'] = $fstockmtcode;
         $r['fstockmtno']   = $fstockmtno;
 
@@ -1137,7 +1136,7 @@ class PemakaianbarangController extends Controller
       $header->update($masterData);
 
       // ---- 5.3. HAPUS DETAIL LAMA ----
-      DB::table('trstockdt')->where('fstockmtid', $fstockmtid)->delete();
+      DB::table('trstockdt')->where('fstockmtno', $header->fstockmtno)->delete();
 
       // ---- 5.4. INSERT DETAIL BARU ----
       $fstockmtcode = $header->fstockmtcode;
@@ -1145,7 +1144,6 @@ class PemakaianbarangController extends Controller
       $nextNouRef = 1;
 
       foreach ($rowsDt as &$r) {
-        $r['fstockmtid']   = $fstockmtid;
         $r['fstockmtcode'] = $fstockmtcode;
         $r['fstockmtno']   = $fstockmtno;
 
@@ -1311,8 +1309,7 @@ class PemakaianbarangController extends Controller
       }
       DB::transaction(function () use ($pemakaianbarang) {
         DB::table('trstockdt')
-          ->where('fstockmtid', $pemakaianbarang->fstockmtid)
-          ->orWhere('fstockmtno', $pemakaianbarang->fstockmtno)
+          ->where('fstockmtno', $pemakaianbarang->fstockmtno)
           ->delete();
 
         $pemakaianbarang->delete();

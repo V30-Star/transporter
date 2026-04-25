@@ -268,7 +268,7 @@ class ReportingAdjStockController extends Controller
       elseif (($adj->ftrancode ?? '') == 'k') $adjType = 'Keluar';
 
       $details = DB::table('trstockdt')
-        ->where('fstockmtid', $adj->fstockmtid)
+        ->where('fstockmtno', $adj->fstockmtno)
         ->get();
 
       if ($details->isNotEmpty()) {

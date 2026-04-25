@@ -633,7 +633,6 @@ class SuratJalanController extends Controller
                 }
 
                 foreach ($rowsDt as &$r) {
-                    $r['fstockmtid'] = $newStockMasterId;
                     $r['fstockmtcode'] = $fstockmtcode;
                     $r['fstockmtno'] = $fstockmtno;
                 }
@@ -1088,7 +1087,7 @@ class SuratJalanController extends Controller
         $frefsoid = $request->input('frefsoid', []);
 
         $oldSoUsageRows = DB::table('trstockdt')
-            ->where('fstockmtid', $header->fstockmtid)
+            ->where('fstockmtno', $header->fstockmtno)
             ->whereNotNull('frefsoid')
             ->select('frefsoid', DB::raw('SUM(COALESCE(fqtykecil, 0)) as used_qty_kecil'))
             ->groupBy('frefsoid')
@@ -1303,11 +1302,10 @@ class SuratJalanController extends Controller
                 $header->update($masterData);
 
                 // ---- 6.3. UPDATE DETAIL (Refresh) ----
-                DB::table('trstockdt')->where('fstockmtid', $header->fstockmtid)->delete();
+                DB::table('trstockdt')->where('fstockmtno', $header->fstockmtno)->delete();
 
                 $nextNouRef = 1;
                 foreach ($rowsDt as &$r) {
-                    $r['fstockmtid'] = $header->fstockmtid;
                     $r['fstockmtcode'] = $fstockmtcode;
                     $r['fstockmtno'] = $fstockmtno;
                 }
@@ -1611,10 +1609,7 @@ class SuratJalanController extends Controller
 
             DB::transaction(function () use ($suratjalan) {
                 $oldSoUsageRows = DB::table('trstockdt')
-                    ->where(function ($query) use ($suratjalan) {
-                        $query->where('fstockmtid', $suratjalan->fstockmtid)
-                            ->orWhere('fstockmtno', $suratjalan->fstockmtno);
-                    })
+                    ->where('fstockmtno', $suratjalan->fstockmtno)
                     ->whereNotNull('frefsoid')
                     ->select('frefsoid', DB::raw('SUM(COALESCE(fqtykecil, 0)) as used_qty_kecil'))
                     ->groupBy('frefsoid')
@@ -1636,8 +1631,7 @@ class SuratJalanController extends Controller
                 }
 
                 DB::table('trstockdt')
-                    ->where('fstockmtid', $suratjalan->fstockmtid)
-                    ->orWhere('fstockmtno', $suratjalan->fstockmtno)
+                    ->where('fstockmtno', $suratjalan->fstockmtno)
                     ->delete();
 
                 $suratjalan->delete();

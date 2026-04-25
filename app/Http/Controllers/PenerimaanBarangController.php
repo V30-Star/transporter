@@ -604,7 +604,6 @@ class PenerimaanBarangController extends Controller
 
         // D. Insert Details
         foreach ($rowsDt as &$r) {
-          $r['fstockmtid']   = $masterId;
           $r['fstockmtcode'] = $fstockmtcode;
           $r['fstockmtno']   = $fstockmtno;
         }
@@ -988,7 +987,6 @@ class PenerimaanBarangController extends Controller
 
       $nextNouRef = 1;
       foreach ($rowsDt as &$r) {
-        $r['fstockmtid']   = $fstockmtid;
         $r['fstockmtcode'] = $header->fstockmtcode;
         $r['fstockmtno']   = $header->fstockmtno;
       }
@@ -1018,8 +1016,7 @@ class PenerimaanBarangController extends Controller
       DB::transaction(function () use ($penerimaanbarang, $oldLines) {
         $this->restoreTrPodRemainFromReceiptLines($oldLines);
         DB::table('trstockdt')
-          ->where('fstockmtid', $penerimaanbarang->fstockmtid)
-          ->orWhere('fstockmtno', $penerimaanbarang->fstockmtno)
+          ->where('fstockmtno', $penerimaanbarang->fstockmtno)
           ->delete();
 
         $jurnalIds = DB::table('jurnaldt')

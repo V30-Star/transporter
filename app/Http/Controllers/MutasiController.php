@@ -488,7 +488,6 @@ class MutasiController extends Controller
                     'fclosedt'     => '0',
                     'fdiscpersen'  => 0,
                     'fbiaya'       => 0,
-                    'fstockmtid'   => null,
                     'fstockmtcode' => null,
                     'fstockmtno'   => null,
                     'fqtykecil'    => $qtyKecil,
@@ -575,7 +574,6 @@ class MutasiController extends Controller
                 $newId = DB::table('trstockmt')->insertGetId($headerData, 'fstockmtid');
 
                 foreach ($rowsDt as &$r) {
-                    $r['fstockmtid']   = $newId;
                     $r['fstockmtcode'] = 'MUT';
                     $r['fstockmtno']   = $fstockmtno;
                 }
@@ -925,7 +923,6 @@ class MutasiController extends Controller
                     'fclosedt'       => '0',
                     'fdiscpersen'    => 0,
                     'fbiaya'         => 0,
-                    'fstockmtid'     => $fstockmtid,
                     'fstockmtcode'   => $header->fstockmtcode,
                     'fstockmtno'     => $header->fstockmtno,
                     'fqtykecil'      => $qtyKecil,
@@ -968,7 +965,7 @@ class MutasiController extends Controller
                 ]);
 
                 // 4.2 Sync Detail (Hapus lama, pasang baru)
-                DB::table('trstockdt')->where('fstockmtid', $fstockmtid)->delete();
+                DB::table('trstockdt')->where('fstockmtno', $header->fstockmtno)->delete();
                 DB::table('trstockdt')->insert($rowsDt);
             });
 
@@ -1132,8 +1129,7 @@ class MutasiController extends Controller
 
             // 2. Hapus detail (trstockdt)
             DB::table('trstockdt')
-                ->where('fstockmtid', $fstockmtid)
-                ->orWhere('fstockmtno', $docNo)
+                ->where('fstockmtno', $docNo)
                 ->delete();
 
             // 3. Hapus header (trstockmt)

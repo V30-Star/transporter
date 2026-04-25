@@ -775,7 +775,6 @@ class FakturPembelianController extends Controller
 
         // D. Insert Details
         foreach ($rowsDt as &$r) {
-          $r['fstockmtid']   = $masterId;
           $r['fstockmtno']   = $fstockmtno;
           $r['fstockmtcode'] = $fstockmtcode;
         }
@@ -1423,7 +1422,6 @@ class FakturPembelianController extends Controller
 
         $nextNouRef = 1;
         foreach ($rowsDt as &$r) {
-          $r['fstockmtid'] = $header->fstockmtid;
           $r['fstockmtcode'] = 'BUY';
           $r['fstockmtno'] = $fstockmtno;
         }
@@ -1591,8 +1589,7 @@ class FakturPembelianController extends Controller
 
       DB::transaction(function () use ($fakturpembelian) {
         $oldDetails = DB::table('trstockdt')
-          ->where('fstockmtid', $fakturpembelian->fstockmtid)
-          ->orWhere('fstockmtno', $fakturpembelian->fstockmtno)
+          ->where('fstockmtno', $fakturpembelian->fstockmtno)
           ->get(['frefdtid', 'fqty']);
 
         foreach ($oldDetails as $oldDetail) {
@@ -1612,8 +1609,7 @@ class FakturPembelianController extends Controller
         }
 
         DB::table('trstockdt')
-          ->where('fstockmtid', $fakturpembelian->fstockmtid)
-          ->orWhere('fstockmtno', $fakturpembelian->fstockmtno)
+          ->where('fstockmtno', $fakturpembelian->fstockmtno)
           ->delete();
 
         $fakturpembelian->delete();

@@ -628,7 +628,6 @@ class ReturPembelianController extends Controller
         $newStockMasterId = DB::table('trstockmt')->insertGetId($masterData, 'fstockmtid');
 
         foreach ($rowsDt as &$r) {
-          $r['fstockmtid'] = $newStockMasterId;
           $r['fstockmtcode'] = $fstockmtcode;
           $r['fstockmtno'] = $fstockmtno;
         }
@@ -1122,7 +1121,6 @@ class ReturPembelianController extends Controller
         $nextNouRef = 1;
 
         foreach ($rowsDt as &$r) {
-          $r['fstockmtid'] = $header->fstockmtid;
           $r['fstockmtcode'] = $fstockmtcode;
           $r['fstockmtno'] = $fstockmtno;
         }
@@ -1275,8 +1273,7 @@ class ReturPembelianController extends Controller
       }
       DB::transaction(function () use ($returpembelian) {
         DB::table('trstockdt')
-          ->where('fstockmtid', $returpembelian->fstockmtid)
-          ->orWhere('fstockmtno', $returpembelian->fstockmtno)
+          ->where('fstockmtno', $returpembelian->fstockmtno)
           ->delete();
 
         $returpembelian->delete();

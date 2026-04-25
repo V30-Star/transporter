@@ -246,7 +246,7 @@ class ReportingPenerimaanBarangController extends Controller
 
       // 2. Ambil Details dari table trstockdt
       $details = DB::table('trstockdt')
-        ->where('fstockmtid', $penerimaanbarang->fstockmtid)
+        ->where('fstockmtno', $penerimaanbarang->fstockmtno)
         ->get();
 
       if ($details->isNotEmpty()) {

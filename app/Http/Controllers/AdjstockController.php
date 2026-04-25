@@ -428,7 +428,6 @@ class AdjstockController extends Controller
           'fclosedt'     => '0',
           'fdiscpersen'  => 0,
           'fbiaya'       => 0,
-          'fstockmtid'   => null,
           'fstockmtcode' => null,
           'fstockmtno'   => null,
         ];
@@ -513,7 +512,6 @@ class AdjstockController extends Controller
         $newId = DB::table('trstockmt')->insertGetId($headerData, 'fstockmtid');
 
         foreach ($rowsDt as &$r) {
-          $r['fstockmtid']   = $newId;
           $r['fstockmtcode'] = $headerData['fstockmtcode'];
           $r['fstockmtno']   = $fstockmtno;
         }
@@ -885,7 +883,6 @@ class AdjstockController extends Controller
         'fclosedt'       => '0',
         'fdiscpersen'    => 0,
         'fbiaya'         => 0,
-        'fstockmtid'     => null, // Akan diisi di Tahap 5
         'fstockmtcode'   => null, // Akan diisi di Tahap 5
         'fstockmtno'     => null, // Akan diisi di Tahap 5
       ];
@@ -960,7 +957,7 @@ class AdjstockController extends Controller
       $header->update($masterData);
 
       // ---- 5.3. HAPUS DETAIL LAMA ----
-      DB::table('trstockdt')->where('fstockmtid', $fstockmtid)->delete();
+      DB::table('trstockdt')->where('fstockmtno', $header->fstockmtno)->delete();
 
       // ---- 5.4. INSERT DETAIL BARU ----
       $fstockmtcode = $header->fstockmtcode;
@@ -968,7 +965,6 @@ class AdjstockController extends Controller
       $nextNouRef = 1;
 
       foreach ($rowsDt as &$r) {
-        $r['fstockmtid']   = $fstockmtid;
         $r['fstockmtcode'] = $fstockmtcode;
         $r['fstockmtno']   = $fstockmtno;
       }
@@ -1107,8 +1103,7 @@ class AdjstockController extends Controller
       }
       DB::transaction(function () use ($adjstock) {
         DB::table('trstockdt')
-          ->where('fstockmtid', $adjstock->fstockmtid)
-          ->orWhere('fstockmtno', $adjstock->fstockmtno)
+          ->where('fstockmtno', $adjstock->fstockmtno)
           ->delete();
 
         $adjstock->delete();

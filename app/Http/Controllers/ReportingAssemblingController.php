@@ -254,7 +254,7 @@ class ReportingAssemblingController extends Controller
 
       // Ambil Details
       $details = DB::table('trstockdt')
-        ->where('fstockmtid', $assembling->fstockmtid)
+        ->where('fstockmtno', $assembling->fstockmtno)
         ->get();
 
       foreach ($details as $detail) {

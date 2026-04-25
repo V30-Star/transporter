@@ -678,7 +678,6 @@ class ReturPenjualanController extends Controller
                 $newStockId = DB::table('trstockmt')->insertGetId($masterStockData, 'fstockmtid');
 
                 foreach ($stockDetailRows as &$srow) {
-                    $srow['fstockmtid'] = $newStockId;
                     $srow['fstockmtno'] = $fstockmtno;
                     $srow['fstockmtcode'] = 'REB';
                 }
@@ -1392,9 +1391,8 @@ class ReturPenjualanController extends Controller
                     ]);
 
                     // Sync Stock Details
-                    DB::table('trstockdt')->where('fstockmtid', $stockHeader->fstockmtid)->delete();
+                    DB::table('trstockdt')->where('fstockmtno', $fstockmtno)->delete();
                     foreach ($stockDetailRows as &$srow) {
-                        $srow['fstockmtid'] = $stockHeader->fstockmtid;
                         $srow['fstockmtno'] = $fstockmtno;
                         $srow['fstockmtcode'] = 'REB';
                     }
@@ -1640,8 +1638,7 @@ class ReturPenjualanController extends Controller
 
                 if ($stockHeader) {
                     DB::table('trstockdt')
-                        ->where('fstockmtid', $stockHeader->fstockmtid)
-                        ->orWhere('fstockmtno', $fstockmtno)
+                        ->where('fstockmtno', $fstockmtno)
                         ->delete();
                     DB::table('trstockmt')->where('fstockmtid', $stockHeader->fstockmtid)->delete();
                 }

@@ -588,7 +588,6 @@ class AssemblingController extends Controller
       }
 
       foreach ($rowsDt as &$r) {
-        $r['fstockmtid']   = $newStockMasterId;
         $r['fstockmtcode'] = $fstockmtcode;
         $r['fstockmtno']   = $fstockmtno;
       }
@@ -1058,7 +1057,7 @@ class AssemblingController extends Controller
       $header->update($masterData);
 
       // ---- 5.3. HAPUS DETAIL LAMA ----
-      DB::table('trstockdt')->where('fstockmtid', $fstockmtid)->delete();
+      DB::table('trstockdt')->where('fstockmtno', $header->fstockmtno)->delete();
 
       // ---- 5.4. INSERT DETAIL BARU ----
       $fstockmtcode = $header->fstockmtcode;
@@ -1066,7 +1065,6 @@ class AssemblingController extends Controller
       $nextNouRef = 1;
 
       foreach ($rowsDt as &$r) {
-        $r['fstockmtid']   = $fstockmtid;
         $r['fstockmtcode'] = $fstockmtcode;
         $r['fstockmtno']   = $fstockmtno;
       }
@@ -1215,8 +1213,7 @@ class AssemblingController extends Controller
       }
       DB::transaction(function () use ($assembling) {
         DB::table('trstockdt')
-          ->where('fstockmtid', $assembling->fstockmtid)
-          ->orWhere('fstockmtno', $assembling->fstockmtno)
+          ->where('fstockmtno', $assembling->fstockmtno)
           ->delete();
 
         $assembling->delete();
