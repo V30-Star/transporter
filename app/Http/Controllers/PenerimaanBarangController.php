@@ -176,7 +176,10 @@ class PenerimaanBarangController extends Controller
       return response()->json(['message' => 'PO tidak ditemukan'], 404);
     }
 
-    // Items PO: fqtyremain di tr_pod = satuan kecil; unit & rasio dari msprd untuk UI
+    $remainMap = $this->getPodRemainByIds(
+      DB::table('tr_pod')->where('fpono', $header->fpono)->pluck('fpodid')->all()
+    );
+
     $items = DB::table('tr_pod')
       ->where('tr_pod.fpono', $header->fpono)
       ->leftJoin('msprd as m', 'm.fprdid', '=', 'tr_pod.fprdid')
@@ -186,7 +189,6 @@ class PenerimaanBarangController extends Controller
         'm.fprdcode as fitemcode',
         'm.fprdname as fitemname',
         'tr_pod.fqty',
-        'tr_pod.fqtyremain',
         'tr_pod.fsatuan as fsatuan',
         'tr_pod.fpono',
         'tr_pod.fprice as fprice',
@@ -203,9 +205,9 @@ class PenerimaanBarangController extends Controller
       ])
       ->orderBy('tr_pod.fnou')
       ->get()
-      ->map(function ($item) use ($header) {
+      ->map(function ($item) use ($header, $remainMap) {
         $item->frefdtno = (string) $header->fpono;
-        $remainKecil = (float) ($item->fqtyremain ?? 0);
+        $remainKecil = (float) ($remainMap[(int) ($item->frefdtid ?? 0)] ?? 0);
         $item->fqtyremain = $remainKecil;
         $item->maxqty = $remainKecil;
 
@@ -264,40 +266,56 @@ class PenerimaanBarangController extends Controller
     return $agg;
   }
 
-  private function validateAndDeductTrPodRemain(array $aggregateByPod): void
+  /**
+   * Hitung sisa PO dinamis dalam satuan kecil berdasarkan detail PO dikurangi transaksi turunan.
+   *
+   * @param  array<int, int|string>  $podIds
+   * @return array<int, float>
+   */
+  private function getPodRemainByIds(array $podIds): array
   {
-    foreach ($aggregateByPod as $fpodid => $need) {
-      $fpodid = (int) $fpodid;
-      if ($fpodid <= 0 || $need <= 0) {
-        continue;
-      }
-      $row = DB::table('tr_pod')->where('fpodid', $fpodid)->lockForUpdate()->first();
-      if (!$row) {
-        throw new \RuntimeException('Baris detail PO tidak ditemukan.');
-      }
-      $remain = (float) ($row->fqtyremain ?? 0);
-      if ($need > $remain + 1e-4) {
-        throw new \RuntimeException('Qty penerimaan melebihi sisa PO (tr_pod.fqtyremain). Tidak dapat menyimpan.');
-      }
-      $newRemain = max(0, round($remain - $need, 6));
-      DB::table('tr_pod')->where('fpodid', $fpodid)->update(['fqtyremain' => $newRemain]);
+    $ids = collect($podIds)
+      ->map(fn($id) => (int) $id)
+      ->filter(fn($id) => $id > 0)
+      ->unique()
+      ->values()
+      ->all();
+
+    if (empty($ids)) {
+      return [];
     }
+
+    $usedSub = DB::table('trstockdt')
+      ->selectRaw('CAST(frefdtid AS BIGINT) AS fpodid, SUM(COALESCE(fqtykecil, 0)) AS used_kecil')
+      ->whereNotNull('frefdtid')
+      ->whereIn('fstockmtcode', ['TER', 'BUY'])
+      ->whereIn(DB::raw('CAST(frefdtid AS BIGINT)'), $ids)
+      ->groupBy(DB::raw('CAST(frefdtid AS BIGINT)'));
+
+    return DB::table('tr_pod as d')
+      ->leftJoinSub($usedSub, 'u', fn($join) => $join->on('u.fpodid', '=', 'd.fpodid'))
+      ->whereIn('d.fpodid', $ids)
+      ->selectRaw('d.fpodid, GREATEST(COALESCE(d.fqtykecil, 0) - COALESCE(u.used_kecil, 0), 0) AS remain_kecil')
+      ->pluck('remain_kecil', 'd.fpodid')
+      ->map(fn($value) => (float) $value)
+      ->all();
   }
 
-  private function restoreTrPodRemainFromReceiptLines($lines): void
+  private function validateTrPodRemain(array $aggregateByPod, array $extraAvailableByPod = []): void
   {
-    foreach ($lines as $line) {
-      $fid = (int) ($line->frefdtid ?? 0);
-      if ($fid <= 0) {
+    $remainMap = $this->getPodRemainByIds(array_keys($aggregateByPod));
+
+    foreach ($aggregateByPod as $fpodid => $needKecil) {
+      $fpodid = (int) $fpodid;
+      $needKecil = (float) $needKecil;
+      if ($fpodid <= 0 || $needKecil <= 0) {
         continue;
       }
-      $q = (float) ($line->fqtykecil ?? 0);
-      if ($q <= 0) {
-        continue;
+
+      $availableKecil = (float) ($remainMap[$fpodid] ?? 0) + (float) ($extraAvailableByPod[$fpodid] ?? 0);
+      if ($needKecil > $availableKecil + 1e-4) {
+        throw new \RuntimeException("Qty penerimaan melebihi sisa PO. Maksimum tersedia untuk referensi {$fpodid} adalah {$availableKecil} dalam satuan kecil.");
       }
-      DB::table('tr_pod')->where('fpodid', $fid)->update([
-        'fqtyremain' => DB::raw('COALESCE(fqtyremain,0) + ' . $q),
-      ]);
     }
   }
 
@@ -549,7 +567,7 @@ class PenerimaanBarangController extends Controller
         $grandTotal,
         $podAgg
       ) {
-        $this->validateAndDeductTrPodRemain($podAgg);
+        $this->validateTrPodRemain($podAgg);
 
         // A. Resolve Cabang
         $rawBranch = trim((string)$fbranchcode);
@@ -710,7 +728,6 @@ class PenerimaanBarangController extends Controller
             'msprd.fqtykecil',
             'msprd.fqtykecil2',
             'mswh.fwhname as fwhname',
-            DB::raw('COALESCE(pod.fqtyremain, 0) + COALESCE(trstockdt.fqtykecil, 0) as fqtyremain_hint'),
           )
           ->orderBy('trstockdt.fstockdtid');
       }
@@ -722,7 +739,14 @@ class PenerimaanBarangController extends Controller
       : null;
     $usageLockMessage = $action === 'view' ? null : $this->getUsageLockMessage($penerimaanbarang);
 
-    $savedItems = $penerimaanbarang->details->map(function ($d) {
+    $oldUsageByPod = $penerimaanbarang->details
+      ->groupBy(fn($d) => (int) ($d->frefdtid ?? 0))
+      ->map(fn($rows) => (float) $rows->sum(fn($r) => (float) ($r->fqtykecil ?? 0)))
+      ->all();
+
+    $podRemainMap = $this->getPodRemainByIds($penerimaanbarang->details->pluck('frefdtid')->all());
+
+    $savedItems = $penerimaanbarang->details->map(function ($d) use ($oldUsageByPod, $podRemainMap) {
       return [
         'uid'        => $d->fstockdtid,
         'fitemcode'  => $d->fitemcode_text ?? $d->fprdcode ?? '',
@@ -740,7 +764,7 @@ class PenerimaanBarangController extends Controller
         'ftotal'     => (float) ($d->ftotprice ?? 0),
         'fdesc'      => is_array($d->fdesc) ? implode(', ', $d->fdesc) : ($d->fdesc ?? ''),
         'fketdt'     => $d->fketdt ?? '',
-        'fqtyremain' => $d->frefdtid ? (float) ($d->fqtyremain_hint ?? 0) : 0,
+        'fqtyremain' => $d->frefdtid ? max(0, (float) ($podRemainMap[(int) $d->frefdtid] ?? 0) + (float) ($oldUsageByPod[(int) $d->frefdtid] ?? 0)) : 0,
         'fsatuankecil' => $d->fsatuankecil ?? '',
         'fsatuanbesar' => $d->fsatuanbesar ?? '',
         'fsatuanbesar2' => $d->fsatuanbesar2 ?? '',
@@ -947,8 +971,16 @@ class PenerimaanBarangController extends Controller
       $podAgg,
       $oldReceiptLines
     ) {
-      $this->restoreTrPodRemainFromReceiptLines($oldReceiptLines);
-      $this->validateAndDeductTrPodRemain($podAgg);
+      $oldUsageByPod = [];
+      foreach ($oldReceiptLines as $oldLine) {
+        $oldRefId = (int) ($oldLine->frefdtid ?? 0);
+        if ($oldRefId <= 0) {
+          continue;
+        }
+        $oldUsageByPod[$oldRefId] = ($oldUsageByPod[$oldRefId] ?? 0) + (float) ($oldLine->fqtykecil ?? 0);
+      }
+
+      $this->validateTrPodRemain($podAgg, $oldUsageByPod);
 
       $kodeCabang = $header->fbranchcode;
       if ($fbranchcode && $fbranchcode !== $header->fbranchcode) {
@@ -1011,10 +1043,7 @@ class PenerimaanBarangController extends Controller
         return redirect()->route('penerimaanbarang.index')->with('error', $message);
       }
 
-      $oldLines = DB::table('trstockdt')->where('fstockmtno', $penerimaanbarang->fstockmtno)->get(['frefdtid', 'fqtykecil']);
-
-      DB::transaction(function () use ($penerimaanbarang, $oldLines) {
-        $this->restoreTrPodRemainFromReceiptLines($oldLines);
+      DB::transaction(function () use ($penerimaanbarang) {
         DB::table('trstockdt')
           ->where('fstockmtno', $penerimaanbarang->fstockmtno)
           ->delete();

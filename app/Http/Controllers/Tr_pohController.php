@@ -235,11 +235,11 @@ class Tr_pohController extends Controller
         'm.fprdcode as fitemcode',
         'm.fprdname as fitemname',
         'd.fqty',
+        DB::raw('COALESCE(d.fqtykecil, 0) as fqtykecil_pr'),
         'd.fsatuan',
         'd.fdesc',
         'd.fketdt',
         'd.fprno',
-        'd.fqtyremain',
         DB::raw('COALESCE(d.fprice, 0) as fprice'),
         DB::raw('0::numeric as fdisc'),
         DB::raw('d.fprno::text as fnouref'),
@@ -263,8 +263,7 @@ class Tr_pohController extends Controller
         $rasio     = (float) ($item->fqtykecil  ?? 0);
         $rasio2    = (float) ($item->fqtykecil2 ?? 0);
 
-        // Sisa dalam satuan kecil: gunakan kolom tr_prd.fqtyremain (dipelihara saat PO)
-        $sisaKecil = max(0, (float) ($item->fqtyremain ?? 0));
+        $sisaKecil = max(0, (float) ($item->fqtykecil_pr ?? 0) - $fqtypo);
 
         return [
           'frefdtno'      => (string) $header->fprno,
@@ -283,7 +282,7 @@ class Tr_pohController extends Controller
           'fnouref'       => $item->fnouref,
           'frefdtid'      => $item->frefdtid,
           'fqtypo'        => $fqtypo,
-          'fqtyremain'    => (float) ($item->fqtyremain ?? 0),
+          'fqtyremain'    => $sisaKecil,
           'fqtypr'        => $qty,
           'fsatuankecil'  => $satKecil,
           'fsatuanbesar'  => $satBesar,
@@ -346,47 +345,60 @@ class Tr_pohController extends Controller
   }
 
   /**
-   * Kurangi tr_prd.fqtyremain per baris PR (satuan kecil), dengan kunci baris.
+   * Hitung sisa PR dinamis dalam satuan kecil berdasarkan fqtykecil dikurangi pemakaian PO.
    *
-   * @param  array<int, float>  $aggregateByPrd  fprdid => total fqtykecil
+   * @param  array<int, int|string>  $prDetailIds
+   * @return array<int, float>
    */
-  private function validateAndDeductPrdRemain(array $aggregateByPrd): void
+  private function getPrRemainByDetailIds(array $prDetailIds): array
   {
-    foreach ($aggregateByPrd as $fprdid => $need) {
-      $fprdid = (int) $fprdid;
-      if ($fprdid <= 0 || $need <= 0) {
-        continue;
-      }
-      $row = DB::table('tr_prd')->where('fprdid', $fprdid)->lockForUpdate()->first();
-      if (!$row) {
-        throw new \RuntimeException('Baris detail PR tidak ditemukan.');
-      }
-      $remain = (float) ($row->fqtyremain ?? 0);
-      if ($need > $remain + 1e-4) {
-        throw new \RuntimeException('Qty PO melebihi sisa PR (fqtyremain). Tidak dapat menyimpan.');
-      }
-      $newRemain = max(0, round($remain - $need, 6));
-      DB::table('tr_prd')->where('fprdid', $fprdid)->update(['fqtyremain' => $newRemain]);
+    $ids = collect($prDetailIds)
+      ->map(fn($id) => (int) $id)
+      ->filter(fn($id) => $id > 0)
+      ->unique()
+      ->values()
+      ->all();
+
+    if (empty($ids)) {
+      return [];
     }
+
+    $usedSub = DB::table('tr_pod')
+      ->selectRaw('CAST(frefdtid AS BIGINT) AS fprdid, SUM(COALESCE(fqtykecil, 0)) AS used_kecil')
+      ->whereNotNull('frefdtid')
+      ->whereIn(DB::raw('CAST(frefdtid AS BIGINT)'), $ids)
+      ->groupBy(DB::raw('CAST(frefdtid AS BIGINT)'));
+
+    return DB::table('tr_prd as d')
+      ->leftJoinSub($usedSub, 'u', fn($join) => $join->on('u.fprdid', '=', 'd.fprdid'))
+      ->whereIn('d.fprdid', $ids)
+      ->selectRaw('d.fprdid, GREATEST(COALESCE(d.fqtykecil, 0) - COALESCE(u.used_kecil, 0), 0) AS remain_kecil')
+      ->pluck('remain_kecil', 'd.fprdid')
+      ->map(fn($value) => (float) $value)
+      ->all();
   }
 
   /**
-   * Kembalikan fqtyremain saat baris PO dihapus/diganti (nilai = fqtykecil yang pernah dipakai).
+   * Validasi sisa PR dinamis per baris detail PR.
+   *
+   * @param  array<int, float>  $aggregateByPrd
+   * @param  array<int, float>  $extraAvailableByPrd
    */
-  private function restorePrdRemainFromPodRows($pods): void
+  private function validatePrdRemain(array $aggregateByPrd, array $extraAvailableByPrd = []): void
   {
-    foreach ($pods as $pod) {
-      $fid = (int) ($pod->frefdtid ?? 0);
-      if ($fid <= 0) {
+    $remainMap = $this->getPrRemainByDetailIds(array_keys($aggregateByPrd));
+
+    foreach ($aggregateByPrd as $fprdid => $needKecil) {
+      $fprdid = (int) $fprdid;
+      $needKecil = (float) $needKecil;
+      if ($fprdid <= 0 || $needKecil <= 0) {
         continue;
       }
-      $q = (float) ($pod->fqtykecil ?? 0);
-      if ($q <= 0) {
-        continue;
+
+      $availableKecil = (float) ($remainMap[$fprdid] ?? 0) + (float) ($extraAvailableByPrd[$fprdid] ?? 0);
+      if ($needKecil > $availableKecil + 1e-4) {
+        throw new \RuntimeException("Qty PO melebihi sisa PR. Maksimum tersedia untuk referensi {$fprdid} adalah {$availableKecil} dalam satuan kecil.");
       }
-      DB::table('tr_prd')->where('fprdid', $fid)->update([
-        'fqtyremain' => DB::raw('COALESCE(fqtyremain,0) + ' . $q),
-      ]);
     }
   }
 
@@ -732,7 +744,7 @@ class Tr_pohController extends Controller
       $prdAgg,
       &$fpono
     ) {
-      $this->validateAndDeductPrdRemain($prdAgg);
+      $this->validatePrdRemain($prdAgg);
 
       // Generate human code if not provided
       if (empty($fpohid)) {
@@ -904,7 +916,6 @@ class Tr_pohController extends Controller
           'm.fqtykecil2',
           DB::raw("COALESCE((SELECT pr.fqty FROM tr_prd pr WHERE tr_pod.frefdtid IS NOT NULL AND pr.fprdid = CAST(tr_pod.frefdtid AS INTEGER) LIMIT 1), 0) as fqtypr"),
           DB::raw("COALESCE((SELECT pr.fsatuan FROM tr_prd pr WHERE tr_pod.frefdtid IS NOT NULL AND pr.fprdid = CAST(tr_pod.frefdtid AS INTEGER) LIMIT 1), '') as fqtypr_satuan"),
-          DB::raw("COALESCE((SELECT pr.fqtyremain FROM tr_prd pr WHERE tr_pod.frefdtid IS NOT NULL AND pr.fprdid = CAST(tr_pod.frefdtid AS INTEGER) LIMIT 1), 0) as fqtyremain_pr"),
           DB::raw('COALESCE(r.total_terima, 0) AS fqtyterima'),
         );
     }])->findOrFail($fpohid);
@@ -970,7 +981,14 @@ class Tr_pohController extends Controller
       ];
     })->toArray();
 
-    $savedItems = $tr_poh->details->map(function ($d) use ($products, $prQtyMap, $qtyTerimaMap) {
+    $oldUsageByRef = $tr_poh->details
+      ->groupBy(fn($d) => (int) ($d->frefdtid ?? 0))
+      ->map(fn($rows) => (float) $rows->sum(fn($r) => (float) ($r->fqtykecil ?? 0)))
+      ->all();
+
+    $prRemainMap = $this->getPrRemainByDetailIds($tr_poh->details->pluck('frefdtid')->all());
+
+    $savedItems = $tr_poh->details->map(function ($d) use ($products, $prQtyMap, $qtyTerimaMap, $oldUsageByRef, $prRemainMap) {
       $qtyPR    = (float) $d->fqtypr;
       $satPR    = trim((string) $d->fqtypr_satuan);
       $satKecil = trim((string) $d->fsatuankecil);
@@ -981,9 +999,8 @@ class Tr_pohController extends Controller
 
       $prod  = $products->firstWhere('fprdcode', $d->fitemcode);
 
-      // Sisa PR dalam satuan kecil dari tr_prd.fqtyremain (nilai aktual tersisa saat ini)
-      $fqtyremainDb = (float) ($d->fqtyremain_pr ?? 0);
-      $sisaKecil = max(0, $fqtyremainDb);
+      $refId = (int) ($d->frefdtid ?? 0);
+      $sisaKecil = max(0, (float) ($prRemainMap[$refId] ?? 0) + (float) ($oldUsageByRef[$refId] ?? 0));
 
       // Siapkan units untuk dropdown
       $units = array_values(array_filter(array_map('trim', [$satKecil, $satBesar, $satBesar2])));
@@ -1356,8 +1373,6 @@ class Tr_pohController extends Controller
       ]);
     }
 
-    $oldPods = DB::table('tr_pod')->where('fpono', $header->fpono)->get(['frefdtid', 'fqtykecil']);
-
     // Strict server-side guard untuk mode edit:
     // qty baru tidak boleh melebihi (sisa PR saat ini + qty lama PO ini) per baris PR.
     $prNeedByRef = [];
@@ -1370,10 +1385,8 @@ class Tr_pohController extends Controller
     }
 
     if (!empty($prNeedByRef)) {
-      $prRemainRows = DB::table('tr_prd')
-        ->whereIn('fprdid', array_keys($prNeedByRef))
-        ->get(['fprdid', 'fqtyremain'])
-        ->keyBy('fprdid');
+      $prRemainMap = $this->getPrRemainByDetailIds(array_keys($prNeedByRef));
+      $oldPods = DB::table('tr_pod')->where('fpono', $header->fpono)->get(['frefdtid', 'fqtykecil']);
 
       $oldUsageByRef = [];
       foreach ($oldPods as $oldPod) {
@@ -1385,7 +1398,7 @@ class Tr_pohController extends Controller
       }
 
       foreach ($prNeedByRef as $fprdid => $needKecil) {
-        $remainKecil = (float) ($prRemainRows[$fprdid]->fqtyremain ?? 0);
+        $remainKecil = (float) ($prRemainMap[$fprdid] ?? 0);
         $availableKecil = $remainKecil + (float) ($oldUsageByRef[$fprdid] ?? 0);
         if ($needKecil > $availableKecil + 1e-4) {
           return back()->withInput()->withErrors([
@@ -1394,6 +1407,8 @@ class Tr_pohController extends Controller
         }
       }
     }
+
+    $oldUsageByRef = $oldUsageByRef ?? [];
 
     $prdAgg = $this->aggregatePrdUsageByPrd($rowsPod);
 
@@ -1415,11 +1430,10 @@ class Tr_pohController extends Controller
         $ppnAmount,
         $grandTotal,
         $fincludeppn,
-        $oldPods,
-        $prdAgg
+        $prdAgg,
+        $oldUsageByRef
       ) {
-        $this->restorePrdRemainFromPodRows($oldPods);
-        $this->validateAndDeductPrdRemain($prdAgg);
+        $this->validatePrdRemain($prdAgg, $oldUsageByRef);
 
         $fpohid = DB::table('tr_poh')
           ->where('fpohid', $fponoId)
@@ -1528,7 +1542,6 @@ class Tr_pohController extends Controller
           'm.fqtykecil2',
           DB::raw("COALESCE((SELECT pr.fqty FROM tr_prd pr WHERE tr_pod.frefdtid IS NOT NULL AND pr.fprdid = CAST(tr_pod.frefdtid AS INTEGER) LIMIT 1), 0) as fqtypr"),
           DB::raw("COALESCE((SELECT pr.fsatuan FROM tr_prd pr WHERE tr_pod.frefdtid IS NOT NULL AND pr.fprdid = CAST(tr_pod.frefdtid AS INTEGER) LIMIT 1), '') as fqtypr_satuan"),
-          DB::raw("COALESCE((SELECT pr.fqtyremain FROM tr_prd pr WHERE tr_pod.frefdtid IS NOT NULL AND pr.fprdid = CAST(tr_pod.frefdtid AS INTEGER) LIMIT 1), 0) as fqtyremain_pr"),
           DB::raw('COALESCE(r.total_terima, 0) AS fqtyterima'),
         );
     }])->findOrFail($fpohid);
@@ -1647,8 +1660,6 @@ class Tr_pohController extends Controller
       }
 
       DB::transaction(function () use ($tr_poh) {
-        $oldPods = DB::table('tr_pod')->where('fpono', $tr_poh->fpono)->get(['frefdtid', 'fqtykecil']);
-        $this->restorePrdRemainFromPodRows($oldPods);
         DB::table('tr_pod')->where('fpono', $tr_poh->fpono)->delete();
         $tr_poh->delete();
       });

@@ -547,34 +547,7 @@ class Tr_prhController extends Controller
 
         $blockedByPO = $existingPO->isNotEmpty();
 
-        $details = DB::table('tr_prd as d')
-            ->leftJoin('msprd as p', 'p.fprdid', '=', 'd.fprdcodeid')
-            ->leftJoin(
-                DB::raw('(
-                                    SELECT frefdtno, frefdtid, SUM(fqtykecil) AS fqtypo
-                                    FROM tr_pod
-                                    WHERE frefdtno IS NOT NULL AND frefdtno <> \'\'
-                                    GROUP BY frefdtno, frefdtid
-                                ) as o'),
-                function ($join) {
-                    $join->on('o.frefdtno', '=', 'd.fprno')
-                        ->on(DB::raw('CAST(o.frefdtid AS BIGINT)'), '=', 'd.fprdid');
-                }
-            )
-            ->where('d.fprno', $tr_prh->fprno)
-            ->select([
-                'd.*',
-                'p.fprdname',
-                'p.fprdcode as fprdcode_master',
-                DB::raw('COALESCE(
-            CASE
-                WHEN d.fsatuan = p.fsatuanbesar
-                THEN o.fqtypo / NULLIF(p.fqtykecil::numeric, 0)
-                ELSE o.fqtypo
-            END, 0
-        ) AS fqtypo'),
-            ])
-            ->get();
+        $details = $this->getPrDetailsWithPoUsage($tr_prh->fprno);
 
         // Map ke savedItems (agar cocok dengan table di Blade yang biasa kamu pakai)
         $savedItems = $details->map(function ($d) {
@@ -585,7 +558,7 @@ class Tr_prhController extends Controller
                 'fitemname' => (string) ($d->fprdname ?? ''),
                 'fsatuan' => (string) ($d->fsatuan ?? ''),
                 'fqty' => (float) ($d->fqty ?? 0),
-                'fqtypo' => (float) ($d->fqtypo ?? 0),   // ← sekarang dari $details
+                'fqtypo' => (float) ($d->fqtysisapr ?? 0),
                 'fdesc' => (string) ($d->fdesc ?? ''),
                 'fketdt' => (string) ($d->fketdt ?? ''),
                 'fprice' => (float) ($d->fprice ?? 0),
@@ -679,34 +652,7 @@ class Tr_prhController extends Controller
 
         $blockedByPO = $existingPO->isNotEmpty();
 
-        $details = DB::table('tr_prd as d')
-            ->leftJoin('msprd as p', 'p.fprdid', '=', 'd.fprdcodeid')
-            ->leftJoin(
-                DB::raw('(
-                                    SELECT frefdtno, frefdtid, SUM(fqtykecil) AS fqtypo
-                                    FROM tr_pod
-                                    WHERE frefdtno IS NOT NULL AND frefdtno <> \'\'
-                                    GROUP BY frefdtno, frefdtid
-                                ) as o'),
-                function ($join) {
-                    $join->on('o.frefdtno', '=', 'd.fprno')
-                        ->on(DB::raw('CAST(o.frefdtid AS BIGINT)'), '=', 'd.fprdid');
-                }
-            )
-            ->where('d.fprno', $tr_prh->fprno)
-            ->select([
-                'd.*',
-                'p.fprdname',
-                'p.fprdcode as fprdcode_master',
-                DB::raw('COALESCE(
-            CASE
-                WHEN d.fsatuan = p.fsatuanbesar
-                THEN o.fqtypo / NULLIF(p.fqtykecil::numeric, 0)
-                ELSE o.fqtypo
-            END, 0
-        ) AS fqtypo'),
-            ])
-            ->get();
+        $details = $this->getPrDetailsWithPoUsage($tr_prh->fprno);
 
         // Map ke savedItems (agar cocok dengan table di Blade yang biasa kamu pakai)
         $savedItems = $details->map(function ($d) {
@@ -717,7 +663,7 @@ class Tr_prhController extends Controller
                 'fitemname' => (string) ($d->fprdname ?? ''),
                 'fsatuan' => (string) ($d->fsatuan ?? ''),
                 'fqty' => (float) ($d->fqty ?? 0),
-                'fqtypo' => (float) ($d->fqtypo ?? 0),   // ← sekarang dari $details
+                'fqtypo' => (float) ($d->fqtysisapr ?? 0),
                 'fdesc' => (string) ($d->fdesc ?? ''),
                 'fketdt' => (string) ($d->fketdt ?? ''),
                 'fprice' => (float) ($d->fprice ?? 0),
@@ -1045,31 +991,7 @@ class Tr_prhController extends Controller
             ->select('tr_prh.*', 's.fsuppliername', 's.fsuppliercode')
             ->findOrFail($fprhid);
 
-        $details = DB::table('tr_prd as d')
-            ->leftJoin('msprd as p', 'p.fprdid', '=', 'd.fprdcodeid')
-            ->leftJoin(DB::raw('(
-        SELECT frefdtno, frefdtid, SUM(fqtykecil) AS fqtypo
-        FROM tr_pod
-        WHERE frefdtno IS NOT NULL AND frefdtno <> \'\'
-        GROUP BY frefdtno, frefdtid
-    ) as o'), function ($join) {
-                $join->on('o.frefdtno', '=', 'd.fprno')
-                    ->on(DB::raw('CAST(o.frefdtid AS BIGINT)'), '=', 'd.fprdid');
-            })
-            ->where('d.fprno', $tr_prh->fprno)
-            ->select([
-                'd.*',
-                'p.fprdname',
-                'p.fprdcode as fprdcode_master',
-                DB::raw('COALESCE(
-            CASE
-                WHEN d.fsatuan = p.fsatuanbesar
-                THEN o.fqtypo / NULLIF(p.fqtykecil::numeric, 0)
-                ELSE o.fqtypo
-            END, 0
-        ) AS fqtypo'),
-            ])
-            ->get();
+        $details = $this->getPrDetailsWithPoUsage($tr_prh->fprno);
 
         $savedItems = $details->map(function ($d) {
             return [
@@ -1079,7 +1001,7 @@ class Tr_prhController extends Controller
                 'fitemname' => (string) ($d->fprdname ?? ''),
                 'fsatuan' => (string) ($d->fsatuan ?? ''),
                 'fqty' => (float) ($d->fqty ?? 0),
-                'fqtypo' => (float) ($d->fqtypo ?? 0),   // ← sekarang terisi
+                'fqtypo' => (float) ($d->fqtysisapr ?? 0),
                 'fdesc' => (string) ($d->fdesc ?? ''),
                 'fketdt' => (string) ($d->fketdt ?? ''),
             ];
@@ -1176,5 +1098,55 @@ class Tr_prhController extends Controller
         }
 
         return 'Permintaan Pembelian ' . $header->fprno . ' tidak dapat diubah atau dihapus karena sudah digunakan pada Order Pembelian: ' . $usedBy->implode(', ') . '.';
+    }
+
+    private function getPrDetailsWithPoUsage(string $fprno)
+    {
+        return DB::table('tr_prd as d')
+            ->leftJoin('msprd as p', 'p.fprdcode', '=', 'd.fprdcode')
+            ->leftJoin(
+                DB::raw('(
+                    SELECT frefdtno, fprdcode, frefnoacak, SUM(fqtykecil) AS fqtykecilpo
+                    FROM tr_pod
+                    GROUP BY frefdtno, fprdcode, frefnoacak
+                ) as po'),
+                function ($join) {
+                    $join->on('po.frefdtno', '=', 'd.fprno')
+                        ->on('po.fprdcode', '=', 'd.fprdcode')
+                        ->on('po.frefnoacak', '=', 'd.fnoacak');
+                }
+            )
+            ->where('d.fprno', $fprno)
+            ->select([
+                'd.*',
+                'p.fprdname',
+                'p.fprdcode as fprdcode_master',
+                DB::raw('COALESCE(
+                    CASE
+                        WHEN d.fsatuan = p.fsatuanbesar
+                            THEN po.fqtykecilpo / NULLIF(p.fqtykecil::numeric, 0)
+                        WHEN d.fsatuan = p.fsatuanbesar2
+                            THEN po.fqtykecilpo / NULLIF(p.fqtykecil2::numeric, 0)
+                        ELSE po.fqtykecilpo
+                    END, 0
+                ) AS fqtysisapr'),
+                DB::raw('COALESCE(
+                    CASE 
+                        WHEN d.fsatuan=p.fsatuanbesar 
+                            THEN (coalesce(fqtykecilpo,0))/p.fqtykecil
+                        WHEN d.fsatuan=p.fsatuanbesar2 
+                            THEN (coalesce(fqtykecilpo,0))/p.fqtykecil2
+                        ELSE coalesce(fqtykecilpo,0) END,0) AS fqtypo'),
+                DB::raw('COALESCE(
+                    CASE
+                        WHEN d.fsatuan = p.fsatuanbesar
+                            THEN (d.fqtykecil - COALESCE(po.fqtykecilpo, 0)) / NULLIF(p.fqtykecil::numeric, 0)
+                        WHEN d.fsatuan = p.fsatuanbesar2
+                            THEN (d.fqtykecil - COALESCE(po.fqtykecilpo, 0)) / NULLIF(p.fqtykecil2::numeric, 0)
+                        ELSE d.fqtykecil - COALESCE(po.fqtykecilpo, 0)
+                    END, 0
+                ) AS fqtysisapr'),
+            ])
+            ->get();
     }
 }
