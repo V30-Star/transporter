@@ -558,7 +558,7 @@ class Tr_prhController extends Controller
                 'fitemname' => (string) ($d->fprdname ?? ''),
                 'fsatuan' => (string) ($d->fsatuan ?? ''),
                 'fqty' => (float) ($d->fqty ?? 0),
-                'fqtypo' => (float) ($d->fqtysisapr ?? 0),
+                'fqtypo' => (float) ($d->fqtypo ?? 0),
                 'fdesc' => (string) ($d->fdesc ?? ''),
                 'fketdt' => (string) ($d->fketdt ?? ''),
                 'fprice' => (float) ($d->fprice ?? 0),
@@ -663,7 +663,7 @@ class Tr_prhController extends Controller
                 'fitemname' => (string) ($d->fprdname ?? ''),
                 'fsatuan' => (string) ($d->fsatuan ?? ''),
                 'fqty' => (float) ($d->fqty ?? 0),
-                'fqtypo' => (float) ($d->fqtysisapr ?? 0),
+                'fqtypo' => (float) ($d->fqtypo ?? 0),
                 'fdesc' => (string) ($d->fdesc ?? ''),
                 'fketdt' => (string) ($d->fketdt ?? ''),
                 'fprice' => (float) ($d->fprice ?? 0),
@@ -1001,7 +1001,7 @@ class Tr_prhController extends Controller
                 'fitemname' => (string) ($d->fprdname ?? ''),
                 'fsatuan' => (string) ($d->fsatuan ?? ''),
                 'fqty' => (float) ($d->fqty ?? 0),
-                'fqtypo' => (float) ($d->fqtysisapr ?? 0),
+                'fqtypo' => (float) ($d->fqtypo ?? 0),
                 'fdesc' => (string) ($d->fdesc ?? ''),
                 'fketdt' => (string) ($d->fketdt ?? ''),
             ];
@@ -1122,30 +1122,12 @@ class Tr_prhController extends Controller
                 'p.fprdname',
                 'p.fprdcode as fprdcode_master',
                 DB::raw('COALESCE(
-                    CASE
-                        WHEN d.fsatuan = p.fsatuanbesar
-                            THEN po.fqtykecilpo / NULLIF(p.fqtykecil::numeric, 0)
-                        WHEN d.fsatuan = p.fsatuanbesar2
-                            THEN po.fqtykecilpo / NULLIF(p.fqtykecil2::numeric, 0)
-                        ELSE po.fqtykecilpo
-                    END, 0
-                ) AS fqtysisapr'),
-                DB::raw('COALESCE(
                     CASE 
                         WHEN d.fsatuan=p.fsatuanbesar 
                             THEN (coalesce(fqtykecilpo,0))/p.fqtykecil
                         WHEN d.fsatuan=p.fsatuanbesar2 
                             THEN (coalesce(fqtykecilpo,0))/p.fqtykecil2
                         ELSE coalesce(fqtykecilpo,0) END,0) AS fqtypo'),
-                DB::raw('COALESCE(
-                    CASE
-                        WHEN d.fsatuan = p.fsatuanbesar
-                            THEN (d.fqtykecil - COALESCE(po.fqtykecilpo, 0)) / NULLIF(p.fqtykecil::numeric, 0)
-                        WHEN d.fsatuan = p.fsatuanbesar2
-                            THEN (d.fqtykecil - COALESCE(po.fqtykecilpo, 0)) / NULLIF(p.fqtykecil2::numeric, 0)
-                        ELSE d.fqtykecil - COALESCE(po.fqtykecilpo, 0)
-                    END, 0
-                ) AS fqtysisapr'),
             ])
             ->get();
     }
