@@ -247,6 +247,13 @@ class ProductController extends Controller
                 'fgroupcode.required' => 'Group Produk harus diisi.',
                 'fmerek.required' => 'Merek harus diisi.',
                 'fprdname.required' => 'Nama Produk harus di isi',
+                'fsatuankecil.required' => 'Satuan 1 harus diisi.',
+                'fsatuanbesar.string' => 'Satuan 2 tidak valid.',
+                'fsatuanbesar.different' => 'Satuan 2 tidak boleh sama dengan Satuan 1.',
+                'fsatuanbesar2.string' => 'Satuan 3 tidak valid.',
+                'fsatuanbesar2.different' => 'Satuan 3 tidak boleh sama dengan Satuan 1 atau Satuan 2.',
+                'fqtykecil.numeric' => 'Isi Satuan 2 harus berupa angka.',
+                'fqtykecil2.numeric' => 'Isi Satuan 3 harus berupa angka.',
             ]);
 
             $validated['fprdname'] = strtoupper($request->fprdname);
@@ -397,9 +404,13 @@ class ProductController extends Controller
                 'fprdname.required' => 'Nama Produk harus di isi',
                 'fgroupcode.required' => 'Group Produk harus diisi.',
                 'fmerek.required' => 'Merek harus diisi.',
-                'fsatuankecil.required' => 'Satuan Kecil harus diisi.',
-                'fsatuanbesar.different' => 'Satuan Besar tidak boleh sama dengan Satuan Kecil.',
-                'fsatuanbesar2.different' => 'Satuan Besar 2 tidak boleh sama dengan Satuan Kecil atau Satuan Besar.',
+                'fsatuankecil.required' => 'Satuan 1 harus diisi.',
+                'fsatuanbesar.string' => 'Satuan 2 tidak valid.',
+                'fsatuanbesar.different' => 'Satuan 2 tidak boleh sama dengan Satuan 1.',
+                'fsatuanbesar2.string' => 'Satuan 3 tidak valid.',
+                'fsatuanbesar2.different' => 'Satuan 3 tidak boleh sama dengan Satuan 1 atau Satuan 2.',
+                'fqtykecil.numeric' => 'Isi Satuan 2 harus berupa angka.',
+                'fqtykecil2.numeric' => 'Isi Satuan 3 harus berupa angka.',
             ]
         );
 

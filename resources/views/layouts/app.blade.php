@@ -174,6 +174,117 @@
         </div>
     </div>
     @stack('scripts')
+    <script>
+        (() => {
+            const shouldRestoreFormState = @json($errors->any() || session()->hasOldInput() || session()->has('error'));
+            const formSelector = 'form:not([method="GET"]):not([data-disable-form-persist="true"])';
+
+            function formStorageKey(form) {
+                const action = form.getAttribute('action') || window.location.pathname;
+                return `persisted-form:${window.location.pathname}:${action}`;
+            }
+
+            function serializeForm(form) {
+                const data = {};
+
+                form.querySelectorAll('input[name], select[name], textarea[name]').forEach((field) => {
+                    if (!field.name || field.disabled || field.type === 'file') {
+                        return;
+                    }
+
+                    if (field.type === 'checkbox') {
+                        if (!Array.isArray(data[field.name])) {
+                            data[field.name] = [];
+                        }
+
+                        if (field.checked) {
+                            data[field.name].push(field.value);
+                        }
+                        return;
+                    }
+
+                    if (field.type === 'radio') {
+                        if (field.checked) {
+                            data[field.name] = field.value;
+                        }
+                        return;
+                    }
+
+                    if (field.tagName === 'SELECT' && field.multiple) {
+                        data[field.name] = Array.from(field.selectedOptions).map((option) => option.value);
+                        return;
+                    }
+
+                    data[field.name] = field.value;
+                });
+
+                return data;
+            }
+
+            function restoreForm(form, data) {
+                if (!data || typeof data !== 'object') {
+                    return;
+                }
+
+                form.querySelectorAll('input[name], select[name], textarea[name]').forEach((field) => {
+                    if (!field.name || !(field.name in data) || field.type === 'file') {
+                        return;
+                    }
+
+                    const value = data[field.name];
+
+                    if (field.type === 'checkbox') {
+                        const values = Array.isArray(value) ? value.map(String) : [String(value)];
+                        field.checked = values.includes(String(field.value));
+                    } else if (field.type === 'radio') {
+                        field.checked = String(value) === String(field.value);
+                    } else if (field.tagName === 'SELECT' && field.multiple) {
+                        const values = Array.isArray(value) ? value.map(String) : [];
+                        Array.from(field.options).forEach((option) => {
+                            option.selected = values.includes(String(option.value));
+                        });
+                    } else {
+                        field.value = value ?? '';
+                    }
+
+                    if (window.jQuery) {
+                        window.jQuery(field).trigger('change');
+                    } else {
+                        field.dispatchEvent(new Event('change', {
+                            bubbles: true
+                        }));
+                    }
+                });
+            }
+
+            document.addEventListener('DOMContentLoaded', () => {
+                document.querySelectorAll(formSelector).forEach((form) => {
+                    const storageKey = formStorageKey(form);
+
+                    if (shouldRestoreFormState) {
+                        const saved = sessionStorage.getItem(storageKey);
+                        if (saved) {
+                            try {
+                                restoreForm(form, JSON.parse(saved));
+                            } catch (error) {
+                                sessionStorage.removeItem(storageKey);
+                            }
+                        }
+                    } else {
+                        sessionStorage.removeItem(storageKey);
+                    }
+
+                    const persist = () => {
+                        sessionStorage.setItem(storageKey, JSON.stringify(serializeForm(form)));
+                    };
+
+                    form.addEventListener('input', persist);
+                    form.addEventListener('change', persist);
+                    form.addEventListener('submit', persist);
+                });
+            });
+        })();
+    </script>
 </body>
 
 </html>
