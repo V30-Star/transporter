@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Master Product')
+@section('title', 'Master Produk')
 
 @section('content')
     @php
@@ -46,7 +46,7 @@
                 <tr>
                     <th class="border px-3 py-2">
                         <div class="flex items-center justify-between">
-                            <span>Kode Product</span>
+                            <span>Kode Produk</span>
                             <div class="flex items-center gap-1">
                                 {{-- <button type="button" class="col-search-btn p-1 hover:bg-gray-200 rounded" data-column="0" title="Filter Kolom">
                                     <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -70,7 +70,7 @@
                     </th>
                     <th class="border px-3 py-2">
                         <div class="flex items-center justify-between">
-                            <span>Nama Product</span>
+                            <span>Nama Produk</span>
                             <div class="flex items-center gap-1">
                                 {{-- <button type="button" class="col-search-btn p-1 hover:bg-gray-200 rounded" data-column="1" title="Filter Kolom">
                                     <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -149,11 +149,11 @@
                                 data-column="4" placeholder="Cari...">
                         </div>
                     </th>
-                    <th class="border px-3 py-2 no-sort text-center">
+                    {{-- <th class="border px-3 py-2 no-sort text-center">
                         <div class="flex items-center justify-center">
                             <span>Image</span>
                         </div>
-                    </th>
+                    </th> --}}
                     <th class="border px-3 py-2 no-sort">
                         <div class="flex items-center justify-between">
                             <span>Status</span>
@@ -174,7 +174,7 @@
                 class="bg-white rounded-lg shadow-lg w-full max-w-[95vw] max-h-[90vh] flex flex-col">
                 <div class="px-6 py-4 border-b flex justify-between items-center flex-shrink-0">
                     <div class="flex items-center gap-3">
-                        <h3 class="text-lg font-semibold">Laporan Product</h3>
+                        <h3 class="text-lg font-semibold">Laporan Produk</h3>
                         <template x-if="!$store.laporanStore.isLoading && $store.laporanStore.productCode">
                             <div class="flex items-center gap-2 text-sm text-gray-600">
                                 <span class="bg-gray-100 text-gray-700 px-2 py-0.5 rounded font-mono font-medium"
@@ -550,38 +550,38 @@
                     orderable: false,
                     searchable: true
                 },
-                {
-                    data: 'fimage1',
-                    name: 'fimage1',
-                    orderable: false,
-                    searchable: false,
-                    className: 'text-center',
-                    render: function(fileId) {
-                        if (!fileId) {
-                            return '<span class="text-gray-400">-</span>';
-                        }
+                // {
+                //     data: 'fimage1',
+                //     name: 'fimage1',
+                //     orderable: false,
+                //     searchable: false,
+                //     className: 'text-center',
+                //     render: function(fileId) {
+                //         if (!fileId) {
+                //             return '<span class="text-gray-400">-</span>';
+                //         }
 
-                        let normalizedId = String(fileId).trim();
-                        const directMatch = normalizedId.match(/\/d\/([a-zA-Z0-9_-]+)/);
-                        const queryMatch = normalizedId.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+                //         let normalizedId = String(fileId).trim();
+                //         const directMatch = normalizedId.match(/\/d\/([a-zA-Z0-9_-]+)/);
+                //         const queryMatch = normalizedId.match(/[?&]id=([a-zA-Z0-9_-]+)/);
 
-                        if (directMatch && directMatch[1]) {
-                            normalizedId = directMatch[1];
-                        } else if (queryMatch && queryMatch[1]) {
-                            normalizedId = queryMatch[1];
-                        }
+                //         if (directMatch && directMatch[1]) {
+                //             normalizedId = directMatch[1];
+                //         } else if (queryMatch && queryMatch[1]) {
+                //             normalizedId = queryMatch[1];
+                //         }
 
-                        const downloadUrl = `https://drive.google.com/uc?export=download&id=${encodeURIComponent(normalizedId)}`;
+                //         const downloadUrl = `https://drive.google.com/uc?export=download&id=${encodeURIComponent(normalizedId)}`;
 
-                        return `
-                            <a href="${downloadUrl}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center text-blue-600 hover:text-blue-800" title="Download Image">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M12 11v9m0 0l-3-3m3 3l3-3"></path>
-                                </svg>
-                            </a>
-                        `;
-                    }
-                },
+                //         return `
+                //             <a href="${downloadUrl}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center text-blue-600 hover:text-blue-800" title="Download Image">
+                //                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                //                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M12 11v9m0 0l-3-3m3 3l3-3"></path>
+                //                 </svg>
+                //             </a>
+                //         `;
+                //     }
+                // },
                 {
                     data: 'status',
                     name: 'status',
@@ -613,7 +613,7 @@
                                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                                 </svg>
-                                History
+                                Detail Produk
                             </button>
                         `;
 
@@ -653,6 +653,33 @@
             // ------------------------------------------
             // Inisialisasi DataTables server-side
             // ------------------------------------------
+            const $productTable = $('#productTable');
+            let activeColumnSearch = null;
+
+            function syncColumnSearchVisibility() {
+                const $dtContainer = $productTable.closest('.dt-container');
+
+                $dtContainer.find('.col-search-input').addClass('hidden');
+
+                if (activeColumnSearch === null) {
+                    return;
+                }
+
+                const $activeInputWrap = $dtContainer.find(`.dt-column-search[data-column="${activeColumnSearch}"]`)
+                    .closest('.col-search-input');
+
+                if ($activeInputWrap.length) {
+                    $activeInputWrap.removeClass('hidden');
+                }
+            }
+
+            function hasColumnSearchValue(columnIndex) {
+                const $input = $productTable.closest('.dt-container')
+                    .find(`.dt-column-search[data-column="${columnIndex}"]`);
+
+                return $input.length && String($input.val() || '').trim() !== '';
+            }
+
             const table = $('#productTable').DataTable({
                 processing: true,
                 serverSide: true,
@@ -682,6 +709,8 @@
                     processing: 'Loading...',
                 },
                 drawCallback: function(settings) {
+                    syncColumnSearchVisibility();
+
                     if (!this.api().settings()[0]._sortApplied) {
                         this.api().settings()[0]._sortApplied = true;
                         this.api().order([0, 'asc']).draw();
@@ -723,11 +752,14 @@
                 const $th = $(this).closest('th');
                 const $searchInput = $th.find('.col-search-input');
 
-                // Close other open search inputs
-                $('.col-search-input').not($searchInput).addClass('hidden');
+                if (activeColumnSearch === columnIndex && !$searchInput.hasClass('hidden')) {
+                    activeColumnSearch = null;
+                    $searchInput.addClass('hidden');
+                    return;
+                }
 
-                // Toggle current search input
-                $searchInput.toggleClass('hidden');
+                activeColumnSearch = columnIndex;
+                syncColumnSearchVisibility();
 
                 // Focus input if shown
                 if (!$searchInput.hasClass('hidden')) {
@@ -739,7 +771,13 @@
             $(document).on('click', function(e) {
                 if (!$(e.target).closest('.col-search-btn').length && !$(e.target).closest(
                         '.col-search-input').length) {
-                    $('.col-search-input').addClass('hidden');
+                    if (activeColumnSearch !== null && hasColumnSearchValue(activeColumnSearch)) {
+                        syncColumnSearchVisibility();
+                        return;
+                    }
+
+                    activeColumnSearch = null;
+                    syncColumnSearchVisibility();
                 }
             });
 

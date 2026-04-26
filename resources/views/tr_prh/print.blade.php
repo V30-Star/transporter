@@ -271,7 +271,6 @@
                     <th style="width: 18%;">Kode Produk</th>
                     <th style="width: 32%;">Nama Produk</th>
                     <th style="width: 13%;" class="text-right">Qty</th>
-                    <th style="width: 12%;" class="text-right">Stok</th>
                     <th style="width: 20%;">Keterangan</th>
                 </tr>
             </thead>
@@ -287,7 +286,6 @@
                             @endif
                         </td>
                         <td class="text-right">{{ number_format((float) $r->fqty, 0, ',', '.') }} {{ $r->fsatuan }}</td>
-                        <td class="text-right">{{ number_format((float) ($r->stock ?? 0), 0, ',', '.') }}</td>
                         <td>{{ $r->fketdt ?: '-' }}</td>
                     </tr>
                 @empty

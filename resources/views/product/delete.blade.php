@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Hapus Product')
+@section('title', 'Hapus Produk')
 
 @section('content')
     <div class="bg-white rounded shadow p-6 md:p-8 max-w-[700px] mx-auto">
@@ -8,20 +8,20 @@
             <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 mb-4">
                 <x-heroicon-o-trash class="w-8 h-8 text-red-600" />
             </div>
-            <h2 class="text-xl font-bold text-gray-800">Konfirmasi Hapus Product</h2>
+            <h2 class="text-xl font-bold text-gray-800">Konfirmasi Hapus Produk</h2>
             <p class="text-gray-600 mt-1">Data berikut akan dihapus secara permanen:</p>
         </div>
 
         <div class="bg-gray-50 rounded-lg p-6 space-y-4">
             <div class="grid grid-cols-3 gap-4">
-                <div class="text-sm font-medium text-gray-500">Kode Product</div>
+                <div class="text-sm font-medium text-gray-500">Kode Produk</div>
                 <div class="col-span-2 text-sm font-semibold text-gray-900 uppercase">
                     {{ $product->fprdcode }}
                 </div>
             </div>
 
             <div class="grid grid-cols-3 gap-4">
-                <div class="text-sm font-medium text-gray-500">Nama Product</div>
+                <div class="text-sm font-medium text-gray-500">Nama Produk</div>
                 <div class="col-span-2 text-sm font-semibold text-gray-900 uppercase">
                     {{ $product->fprdname }}
                 </div>
@@ -38,7 +38,7 @@
 
             @if ($product->fgroupprd)
                 <div class="grid grid-cols-3 gap-4">
-                    <div class="text-sm font-medium text-gray-500">Group Product</div>
+                    <div class="text-sm font-medium text-gray-500">Group Produk</div>
                     <div class="col-span-2 text-sm font-semibold text-gray-900">
                         {{ $product->fgroupprd }}
                     </div>
@@ -85,7 +85,7 @@
             </div>
 
             <div class="grid grid-cols-3 gap-4">
-                <div class="text-sm font-medium text-gray-500">Foto Product</div>
+                <div class="text-sm font-medium text-gray-500">Foto Produk</div>
                 <div class="col-span-2">
                     <div class="flex flex-col gap-6">
                         @foreach ([1, 2, 3] as $imgNo)
@@ -119,7 +119,7 @@
                             <div class="border-b border-gray-100 pb-4 last:border-0">
                                 <p class="text-xs font-semibold text-gray-500 mb-2">Foto {{ $imgNo }}</p>
                                 @if ($driveFileId)
-                                    <img src="{{ $drivePreviewUrl }}" alt="Product Image {{ $imgNo }}"
+                                    <img src="{{ $drivePreviewUrl }}" alt="Produk Image {{ $imgNo }}"
                                         class="max-w-xs max-h-64 border rounded shadow cursor-zoom-in hover:opacity-90 transition"
                                         onclick="openModal(this.src)"
                                         onerror="this.onerror=null; this.src='https://drive.google.com/thumbnail?id={{ $driveFileId }}&sz=w1000';">
@@ -168,16 +168,16 @@
                 <div class="flex items-start">
                     <x-heroicon-o-exclamation-triangle class="w-5 h-5 text-red-500 mt-0.5 mr-3 flex-shrink-0" />
                     <div>
-                        <h4 class="text-sm font-semibold text-red-700">Product Tidak Dapat Dihapus</h4>
+                        <h4 class="text-sm font-semibold text-red-700">Produk Tidak Dapat Dihapus</h4>
                         <ul class="mt-2 text-sm text-red-600 list-disc list-inside space-y-1">
                             @if ($hasPOData)
-                                <li>Product sudah digunakan di data PO (Purchase Order)</li>
+                                <li>Produk sudah digunakan di data PO (Purchase Order)</li>
                             @endif
                             @if ($hasPRData)
-                                <li>Product sudah digunakan di data PR (Purchase Request)</li>
+                                <li>Produk sudah digunakan di data PR (Purchase Request)</li>
                             @endif
                             @if ($hasStokData)
-                                <li>Product sudah digunakan di Transaksi Stok</li>
+                                <li>Produk sudah digunakan di Transaksi Stok</li>
                             @endif
                         </ul>
                     </div>

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Master Product')
+@section('title', 'Master Produk')
 
 @section('content')
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.3/themes/base/jquery-ui.css">
@@ -159,13 +159,13 @@
                         <label class="block text-sm font-medium">Group Produk</label>
                         <div class="flex items-center gap-2">
                             <select :disabled="!isEditable"
-                                class="w-full border rounded px-3 py-2 @error('fgroupid') border-red-500 @enderror"
+                                class="w-full border rounded px-3 py-2 @error('fgroupcode') border-red-500 bg-red-50 @enderror"
                                 id="groupSelect">
                                 <option value="">-- Pilih Group Produk --</option>
                                 @foreach ($groups as $group)
                                     <option value="{{ $group->fgroupid }}"
-                                        {{ old('fgroupid') == $group->fgroupid ? 'selected' : '' }}>
-                                        {{ $group->fgroupname }} ({{ $group->fgroupcode }})
+                                        {{ old('fgroupid', old('fgroupcode')) == $group->fgroupid ? 'selected' : '' }}>
+                                        {{ $group->fgroupcode }} - {{ $group->fgroupname }}
                                     </option>
                                 @endforeach
                             </select>
@@ -185,7 +185,7 @@
                             </button>
                         </div>
 
-                        @error('fgroupid')
+                        @error('fgroupcode')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
                     </div>
@@ -196,12 +196,12 @@
                         <div class="flex items-center gap-2">
                             <!-- Merek Dropdown -->
                             <select name="fmerek" id="merkSelect" :disabled="!isMerekEditable"
-                                class="w-full border rounded px-3 py-2 @error('fmerek') border-red-500 @enderror">
+                                class="w-full border rounded px-3 py-2 @error('fmerek') border-red-500 bg-red-50 @enderror">
                                 <option value="">-- Pilih Merek --</option>
                                 @foreach ($merks as $merk)
                                     <option value="{{ $merk->fmerekid }}"
                                         {{ old('fmerek') == $merk->fmerekid ? 'selected' : '' }}>
-                                        {{ $merk->fmerekname }} ({{ $merk->fmerekcode }})
+                                        {{ $merk->fmerekcode }} - {{ $merk->fmerekname }}
                                     </option>
                                 @endforeach
                             </select>
@@ -228,11 +228,11 @@
                     </div>
 
                     <div x-data="{ autoCode: true }" class="flex items-center gap-4">
-                        <!-- Input Kode Product -->
+                        <!-- Input Kode Produk -->
                         <div class="mt-2 w-1/3">
-                            <label class="block text-sm font-medium">Kode Product</label>
+                            <label class="block text-sm font-medium">Kode Produk</label>
                             <input type="text" name="fprdcode" id="fprdcode"
-                                class="w-full border rounded px-3 py-2 uppercase" placeholder="Masukkan Kode Product"
+                                class="w-full border rounded px-3 py-2 uppercase" placeholder="Masukkan Kode Produk"
                                 :disabled="autoCode" :value="autoCode ? '' : '{{ old('fprdcode') }}'"
                                 :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
                         </div>
@@ -278,11 +278,11 @@
                     </div>
                 </div>
 
-                <!-- Nama Product -->
+                <!-- Nama Produk -->
                 <div class="mt-2 w-1/2">
-                    <label class="block text-sm font-medium">Nama Product</label>
+                    <label class="block text-sm font-medium">Nama Produk</label>
                     <input type="text" name="fprdname" id="fprdname" value="{{ old('fprdname') }}"
-                        class="w-full border rounded px-3 py-2 uppercase @error('fprdname') border-red-500 @enderror"
+                        class="w-full border rounded px-3 py-2 uppercase @error('fprdname') border-red-500 bg-red-50 @enderror"
                         autofocus>
                     @error('fprdname')
                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -303,7 +303,7 @@
                     {{-- 1. Satuan Kecil (Field Biru) --}}
                     <div class="mt-2 flex items-end gap-4">
                         <div class="w-1/3">
-                            <label class="block text-sm font-medium">Satuan Kecil</label>
+                            <label class="block text-sm font-medium">Satuan 1</label>
                             <select
                                 class="w-full border rounded px-3 py-2 bg-blue-50 border-blue-300 focus:ring-blue-500 @error('fsatuankecil') border-red-500 @enderror"
                                 name="fsatuankecil" id="fsatuankecil" onchange="updateSatuanLogic();">
@@ -329,7 +329,7 @@
 
                     {{-- 2. Satuan 2 (Field Kuning) --}}
                     <div id="satuan2-block" style="display: none;" class="mt-4">
-                        <div class="flex items-end gap-4">
+                        <div class="flex items-start gap-4">
                             <div class="w-1/3">
                                 <label class="block text-sm font-medium">Satuan 2</label>
                                 <select class="w-full border border-yellow-300 rounded px-3 py-2 bg-yellow-50"
@@ -347,7 +347,7 @@
                                 @enderror
                             </div>
 
-                            <div class="w-1/4"> {{-- Kita lebarkan sedikit dari 1/6 ke 1/4 agar ruang teks lebih lega --}}
+                            <div class="w-1/4 min-h-[96px]"> {{-- Kita lebarkan sedikit dari 1/6 ke 1/4 agar ruang teks lebih lega --}}
                                 <label class="block text-sm font-medium">Isi</label>
                                 <div
                                     class="flex items-center border border-yellow-300 rounded bg-yellow-50 focus-within:bg-white focus-within:ring-1 focus-within:ring-yellow-400 transition-all">
@@ -377,7 +377,7 @@
 
                     {{-- 3. Satuan 3 (Field Ungu) --}}
                     <div id="satuan3-block" style="display: none;" class="mt-4">
-                        <div class="flex items-end gap-4">
+                        <div class="flex items-start gap-4">
                             <div class="w-1/3">
                                 <label class="block text-sm font-medium">Satuan 3</label>
                                 <select class="w-full border border-purple-300 rounded px-3 py-2 bg-purple-50"
@@ -395,7 +395,7 @@
                                 @enderror
                             </div>
 
-                            <div class="w-1/4"> {{-- Lebar dinaikkan ke 1/4 agar ruang teks lebih lega --}}
+                            <div class="w-1/4 min-h-[96px]"> {{-- Lebar dinaikkan ke 1/4 agar ruang teks lebih lega --}}
                                 <label class="block text-sm font-medium">Isi</label>
                                 <div
                                     class="flex items-center border border-purple-300 rounded bg-purple-50 focus-within:bg-white focus-within:ring-1 focus-within:ring-purple-400 transition-all">
@@ -488,8 +488,8 @@
                 <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <!-- Harga Satuan 3 Level 1 -->
                     <div>
-                        <label for="fhargajuallevel1" class="block text-sm font-medium">Harga Jual Satuan 1 <span
-                                id="hj-satuan-kecil-level1-label" class="uppercase">-</span> Level
+                        <label for="fhargajuallevel1" class="block text-sm font-medium">Harga Jual 1 (<span
+                                id="hj-satuan-kecil-level1-label" class="uppercase">-</span>) Level
                             1</label>
                         <div class="d-flex">
                             <input type="text"
@@ -505,8 +505,8 @@
 
                     <!-- Harga Satuan 3 Level 2 -->
                     <div>
-                        <label for="fhargajuallevel2" class="block text-sm font-medium">Harga Jual Satuan 1 <span
-                                id="hj-satuan-kecil-level2-label" class="uppercase">-</span> Level
+                        <label for="fhargajuallevel2" class="block text-sm font-medium">Harga Jual 1 (<span
+                                id="hj-satuan-kecil-level2-label" class="uppercase">-</span>) Level
                             2</label>
                         <div class="d-flex">
                             <input type="text"
@@ -522,8 +522,8 @@
 
                     <!-- Harga Satuan 3 Level 3 -->
                     <div>
-                        <label for="fhargajuallevel3" class="block text-sm font-medium">Harga Jual Satuan 1 <span
-                                id="hj-satuan-kecil-level3-label" class="uppercase">-</span> Level
+                        <label for="fhargajuallevel3" class="block text-sm font-medium">Harga Jual 1 (<span
+                                id="hj-satuan-kecil-level3-label" class="uppercase">-</span>) Level
                             3</label>
                         <div class="d-flex">
                             <input type="text"
@@ -541,9 +541,9 @@
                 <div id="hj-level1-block" style="display: none;">
                     <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <!-- HJ. Besar Level 1 -->
-                        <div>
-                            <label for="fhargajual2level1" class="block text-sm font-medium">Harga Jual Satuan 2 <span
-                                    id="hj-satuan-besar-level1-label" class="uppercase">-</span> Level 1</label>
+                        <div class="min-h-[96px]">
+                            <label for="fhargajual2level1" class="block text-sm font-medium">Harga Jual 2 (<span
+                                    id="hj-satuan-besar-level1-label" class="uppercase">-</span>) Level 1</label>
                             <div class="d-flex">
                                 <input type="text"
                                     class="w-1/10 border rounded px-3 py-2 bg-yellow-50 @error('fhargajual2level1') is-invalid @enderror"
@@ -558,9 +558,9 @@
                         </div>
 
                         <!-- HJ. Besar Level 2 -->
-                        <div>
-                            <label for="fhargajual2level2" class="block text-sm font-medium">Harga Jual Satuan 2 <span
-                                    id="hj-satuan-besar-level2-label" class="uppercase">-</span> Level 2</label>
+                        <div class="min-h-[96px]">
+                            <label for="fhargajual2level2" class="block text-sm font-medium">Harga Jual 2 (<span
+                                    id="hj-satuan-besar-level2-label" class="uppercase">-</span>) Level 2</label>
                             <div class="d-flex">
                                 <input type="text"
                                     class="w-1/10 border rounded px-3 py-2 bg-yellow-50 @error('fhargajual2level2') is-invalid @enderror"
@@ -575,9 +575,9 @@
                         </div>
 
                         <!-- HJ. Besar Level 3 -->
-                        <div>
-                            <label for="fhargajual2level3" class="block text-sm font-medium">Harga Jual Satuan 2 <span
-                                    id="hj-satuan-besar-level3-label" class="uppercase">-</span> Level 3</label>
+                        <div class="min-h-[96px]">
+                            <label for="fhargajual2level3" class="block text-sm font-medium">Harga Jual 2 (<span
+                                    id="hj-satuan-besar-level3-label" class="uppercase">-</span>) Level 3</label>
                             <div class="d-flex">
                                 <input type="text"
                                     class="w-1/10 border rounded px-3 py-2 bg-yellow-50 @error('fhargajual2level3') is-invalid @enderror"
@@ -597,9 +597,9 @@
                 <div id="hj-level2-block" style="display: none;">
                     <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-4" id="hj-satuan-section">
                         <!-- HJ <PCS> Level 1 -->
-                        <div>
+                        <div class="min-h-[96px]">
                             <label for="fhargajual3level1" class="block text-sm font-medium">
-                                Harga Jual Satuan 3 <span id="hj-satuan-kecil-label" class="uppercase">-</span> Level 1
+                                Harga Jual 3 (<span id="hj-satuan-kecil-label" class="uppercase">-</span>) Level 1
                             </label>
                             <div class="d-flex">
                                 <input type="text"
@@ -615,9 +615,9 @@
                         </div>
 
                         <!-- HJ <CTN> Level 1 -->
-                        <div>
+                        <div class="min-h-[96px]">
                             <label for="fhargajual3level2" class="block text-sm font-medium">
-                                Harga Jual Satuan 3 <span id="hj-satuan-besar-label" class="uppercase">-</span> Level 2
+                                Harga Jual 3 (<span id="hj-satuan-besar-label" class="uppercase">-</span>) Level 2
                             </label>
                             <div class="d-flex">
                                 <input type="text"
@@ -633,9 +633,9 @@
                         </div>
 
                         <!-- HJ <DUS> Level 1 -->
-                        <div>
+                        <div class="min-h-[96px]">
                             <label for="fhargajual3level3" class="block text-sm font-medium">
-                                Harga Jual Satuan 3 <span id="hj-satuan-besar2-label" class="uppercase">-</span> Level 3
+                                Harga Jual 3 (<span id="hj-satuan-besar2-label" class="uppercase">-</span>) Level 3
                             </label>
                             <div class="d-flex">
                                 <input type="text"
@@ -680,7 +680,7 @@
                     <label class="block text-sm font-medium">Jenis</label>
                     <select name="ftype"
                         class="w-full border rounded px-3 py-2 @error('ftype') border-red-500 @enderror">
-                        <option value="Produk">Product</option>
+                        <option value="Produk">Produk</option>
                         <option value="Jasa"> Jasa </option>
                     </select>
                     @error('ftype')
@@ -692,10 +692,10 @@
 
                 {{-- Upload Foto --}}
                 <div class="mt-4 w-1/2">
-                    <label class="block text-sm font-medium">Upload Foto Design (3 Foto)</label>
+                    <label class="block text-sm font-medium">Upload Foto Design (2 Foto)</label>
 
                     <div class="space-y-4">
-                        @foreach ([1, 2, 3] as $imgNo)
+                        @foreach ([1, 2] as $imgNo)
                             <div>
                                 <label class="block text-xs font-semibold text-gray-600 mb-1">Foto {{ $imgNo }}</label>
                                 <div class="flex items-center gap-4">
@@ -966,7 +966,7 @@
             <div
                 class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
                 <div>
-                    <h3 class="text-xl font-bold text-gray-800">Browse Group Product</h3>
+                    <h3 class="text-xl font-bold text-gray-800">Browse Group Produk</h3>
                     <p class="text-sm text-gray-500 mt-0.5">Pilih group product yang diinginkan</p>
                 </div>
                 <button type="button" @click="close()"
@@ -1160,7 +1160,7 @@
         let hargajual3level2 = new AutoNumeric('#fhargajual3level2', 'commaDecimalCharDotSeparator');
         let hargajual3level3 = new AutoNumeric('#fhargajual3level3', 'commaDecimalCharDotSeparator');
 
-        // Product Name Autocomplete
+        // Produk Name Autocomplete
         $(function() {
             const $inp = $("#fprdname");
             let lastXHR = null;

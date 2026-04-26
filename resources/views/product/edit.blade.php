@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', $action === 'delete' ? 'Hapus Product' : 'Edit Product')
+@section('title', $action === 'delete' ? 'Hapus Produk' : 'Edit Produk')
 
 @section('content')
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.3/themes/base/jquery-ui.css">
@@ -203,9 +203,9 @@
                             @enderror
                         </div>
 
-                        <!-- Kode Product -->
+                        <!-- Kode Produk -->
                         <div class="mt-2 w-1/3">
-                            <label class="block text-sm font-medium">Kode Product</label>
+                            <label class="block text-sm font-medium">Kode Produk</label>
                             <input type="text" name="fprdcode" id="fprdcode" readonly
                                 value="{{ old('fprdcode', $product->fprdcode) }}"
                                 class="w-full border rounded px-3 py-2 bg-gray-100 uppercase @error('fprdcode') border-red-500 @enderror">
@@ -248,9 +248,9 @@
                             </div>
                         </div>
 
-                        <!-- Nama Product -->
+                        <!-- Nama Produk -->
                         <div class="mt-2 w-1/2">
-                            <label class="block text-sm font-medium">Nama Product</label>
+                            <label class="block text-sm font-medium">Nama Produk</label>
                             <input type="text" name="fprdname" id="fprdname" readonly
                                 value="{{ old('fprdname', $product->fprdname) }}"
                                 class="w-full border rounded px-3 py-2 bg-gray-100 uppercase @error('fprdname') border-red-500 @enderror"
@@ -277,7 +277,7 @@
                             <div class="mt-2 flex items-end gap-4">
                                 <div class="w-1/3">
 
-                                    <label class="block text-sm font-medium">Satuan Kecil</label>
+                                    <label class="block text-sm font-medium">Satuan 1</label>
                                     <select
                                         class="w-full border rounded px-3 py-2 bg-blue-50 border-blue-300 focus:ring-blue-500 @error('fsatuankecil') border-red-500 @enderror"
                                         name="fsatuankecil" id="fsatuankecil" onchange="updateSatuanLogic();">
@@ -308,7 +308,7 @@
 
                             {{-- Satuan 2 --}}
                             <div id="satuan2-block" style="display: none;">
-                                <div class="flex items-end gap-4">
+                                <div class="flex items-start gap-4">
                                     <div class="w-1/3">
                                         <label class="block text-sm font-medium">Satuan 2</label>
                                         <select
@@ -331,7 +331,7 @@
                                         @enderror
                                     </div>
 
-                                    <div class="w-1/4"> {{-- Kita lebarkan sedikit dari 1/6 ke 1/4 agar ruang teks lebih lega --}}
+                                    <div class="w-1/4 min-h-[96px]"> {{-- Kita lebarkan sedikit dari 1/6 ke 1/4 agar ruang teks lebih lega --}}
                                         <label class="block text-sm font-medium">Isi</label>
                                         <div
                                             class="flex items-center border border-yellow-300 rounded bg-yellow-50 focus-within:bg-white focus-within:ring-1 focus-within:ring-yellow-400 transition-all">
@@ -362,7 +362,7 @@
 
                             {{-- Satuan 3 --}}
                             <div id="satuan3-block" style="display: none;">
-                                <div class="flex items-end gap-4">
+                                <div class="flex items-start gap-4">
                                     <div class="w-1/3">
                                         <label class="block text-sm font-medium">Satuan 3</label>
                                         <select
@@ -386,7 +386,7 @@
                                         @enderror
                                     </div>
 
-                                    <div class="w-1/4"> {{-- Lebar dinaikkan ke 1/4 agar ruang teks lebih lega --}}
+                                    <div class="w-1/4 min-h-[96px]"> {{-- Lebar dinaikkan ke 1/4 agar ruang teks lebih lega --}}
                                         <label class="block text-sm font-medium">Isi</label>
                                         <div
                                             class="flex items-center border border-purple-300 rounded bg-purple-50 focus-within:bg-white focus-within:ring-1 focus-within:ring-purple-400 transition-all">
@@ -579,7 +579,7 @@
                                 <!-- HJ <PCS> Level 1 -->
                                 <div>
                                     <label class="block text-sm font-medium">
-                                        Harga Jual Satuan 3 <span
+                                        Harga Jual 3 <span
                                             class="uppercase">{{ $product->fsatuankecil ?? '-' }}</span>
                                         Level 1
                                     </label>
@@ -593,7 +593,7 @@
                                 <!-- HJ <CTN> Level 1 -->
                                 <div>
                                     <label class="block text-sm font-medium">
-                                        Harga Jual Satuan 3 <span
+                                        Harga Jual 3 <span
                                             class="uppercase">{{ $product->fsatuanbesar ?? '-' }}</span>
                                         Level 1
                                     </label>
@@ -607,7 +607,7 @@
                                 <!-- HJ <DUS> Level 1 -->
                                 <div>
                                     <label class="block text-sm font-medium">
-                                        Harga Jual Satuan 3 <span
+                                        Harga Jual 3 <span
                                             class="uppercase">{{ $product->fsatuanbesar2 ?? '-' }}</span> Level 1
                                     </label>
                                     <div class="d-flex">
@@ -650,7 +650,7 @@
                             <select name="ftype" disabled
                                 class="w-full border rounded px-3 py-2 bg-gray-100 @error('ftype') border-red-500 @enderror">
                                 <option value="Produk" {{ old('ftype', $product->ftype) == 'Produk' ? 'selected' : '' }}>
-                                    Product</option>
+                                    Produk</option>
                                 <option value="Jasa" {{ old('ftype', $product->ftype) == 'Jasa' ? 'selected' : '' }}>
                                     Jasa</option>
                             </select>
@@ -710,13 +710,13 @@
                             <label class="block text-sm font-medium text-gray-700">Group Produk</label>
                             <div class="flex items-center gap-2">
                                 <select name="fgroupcodeSelect" :disabled="!isEditable"
-                                    class="w-full border rounded px-3 py-2 @error('fgroupcode') border-red-500 @enderror"
+                                    class="w-full border rounded px-3 py-2 @error('fgroupcode') border-red-500 bg-red-50 @enderror"
                                     id="groupSelect">
                                     <option value=""></option>
                                     @foreach ($groups as $group)
                                         <option value="{{ $group->fgroupid }}"
                                             {{ old('fgroupcode', $product->fgroupcode) == $group->fgroupid ? 'selected' : '' }}>
-                                            {{ $group->fgroupname }}
+                                            {{ $group->fgroupcode }} - {{ $group->fgroupname }}
                                         </option>
                                     @endforeach
                                 </select>
@@ -744,13 +744,13 @@
                         <div class="mt-2 w-1/2" x-data="{ isMerekEditable: false }">
                             <label class="block text-sm font-medium">Merek</label>
                             <div class="flex items-center gap-2">
-                                <select name="fmerek" {{-- Nama langsung fmerek, tidak perlu input hidden lagi --}} class="w-full border rounded px-3 py-2"
+                                <select name="fmerek" {{-- Nama langsung fmerek, tidak perlu input hidden lagi --}} class="w-full border rounded px-3 py-2 @error('fmerek') border-red-500 bg-red-50 @enderror"
                                     id="merkSelect">
                                     <option value=""></option>
                                     @foreach ($merks as $merk)
                                         <option value="{{ $merk->fmerekid }}"
                                             {{ old('fmerek', $product->fmerek) == $merk->fmerekid ? 'selected' : '' }}>
-                                            {{ $merk->fmerekname }}
+                                            {{ $merk->fmerekcode }} - {{ $merk->fmerekname }}
                                         </option>
                                     @endforeach
                                 </select>
@@ -775,12 +775,13 @@
                             @enderror
                         </div>
 
-                        <!-- Kode Product -->
+                        <!-- Kode Produk -->
                         <div class="mt-2 w-1/3">
-                            <label class="block text-sm font-medium">Kode Product</label>
+                            <label class="block text-sm font-medium">Kode Produk</label>
                             <input type="text" name="fprdcode" id="fprdcode"
                                 value="{{ old('fprdcode', $product->fprdcode) }}"
-                                class="w-full border rounded px-3 py-2 uppercase @error('fprdcode') border-red-500 @enderror">
+                                class="w-full border rounded px-3 py-2 uppercase bg-gray-100 cursor-not-allowed @error('fprdcode') border-red-500 @enderror"
+                                readonly>
                             @error('fprdcode')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
@@ -820,12 +821,12 @@
                             </div>
                         </div>
 
-                        <!-- Nama Product -->
+                        <!-- Nama Produk -->
                         <div class="mt-2 w-1/2">
-                            <label class="block text-sm font-medium">Nama Product</label>
+                            <label class="block text-sm font-medium">Nama Produk</label>
                             <input type="text" name="fprdname" id="fprdname"
                                 value="{{ old('fprdname', $product->fprdname) }}"
-                                class="w-full border rounded px-3 py-2 uppercase @error('fprdname') border-red-500 @enderror"
+                                class="w-full border rounded px-3 py-2 uppercase @error('fprdname') border-red-500 bg-red-50 @enderror"
                                 autofocus>
                             @error('fprdname')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -848,7 +849,7 @@
                             <div class="mt-2 flex items-end gap-4">
                                 <div class="w-1/3">
 
-                                    <label class="block text-sm font-medium">Satuan Kecil</label>
+                                    <label class="block text-sm font-medium">Satuan 1</label>
                                     <select
                                         class="w-full border rounded px-3 py-2 bg-blue-50 border-blue-300 focus:ring-blue-500 @error('fsatuankecil') border-red-500 @enderror"
                                         name="fsatuankecil" id="fsatuankecil" onchange="updateSatuanLogic();">
@@ -1064,8 +1065,8 @@
                         <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <!-- Harga Satuan 3 Level 1 -->
                             <div>
-                                <label for="fhargajuallevel1" class="block text-sm font-medium">Harga Jual Satuan 1
-                                    <span id="hj-satuan-kecil-level1-label" class="uppercase">-</span> Level
+                                <label for="fhargajuallevel1" class="block text-sm font-medium">Harga Jual 1
+                                    (<span id="hj-satuan-kecil-level1-label" class="uppercase">-</span>) Level
                                     1</label>
                                 <div class="d-flex">
                                     <input type="text"
@@ -1082,8 +1083,8 @@
 
                             <!-- Harga Satuan 3 Level 2 -->
                             <div>
-                                <label for="fhargajuallevel2" class="block text-sm font-medium">Harga Jual Satuan
-                                    1<span id="hj-satuan-kecil-level2-label" class="uppercase">-</span> Level
+                                <label for="fhargajuallevel2" class="block text-sm font-medium">Harga Jual
+                                    1 (<span id="hj-satuan-kecil-level2-label" class="uppercase">-</span>) Level
                                     2</label>
                                 <div class="d-flex">
                                     <input type="text"
@@ -1100,8 +1101,8 @@
 
                             <!-- Harga Satuan 3 Level 3 -->
                             <div>
-                                <label for="fhargajuallevel3" class="block text-sm font-medium">Harga Jual Satuan 1
-                                    <span id="hj-satuan-kecil-level3-label" class="uppercase">-</span> Level
+                                <label for="fhargajuallevel3" class="block text-sm font-medium">Harga Jual 1
+                                    (<span id="hj-satuan-kecil-level3-label" class="uppercase">-</span>) Level
                                     3</label>
                                 <div class="d-flex">
                                     <input type="text"
@@ -1120,9 +1121,9 @@
                         <div id="hj-level1-block" style="display: none;">
                             <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
                                 <!-- Harga Jual Satuan 2 -->
-                                <div>
-                                    <label for="fhargajual2level1" class="block text-sm font-medium">Harga Jual Satuan 2
-                                        <span id="hj-satuan-besar-level1-label" class="uppercase">-</span> Level 1</label>
+                                <div class="min-h-[96px]">
+                                    <label for="fhargajual2level1" class="block text-sm font-medium">Harga Jual 2
+                                        (<span id="hj-satuan-besar-level1-label" class="uppercase">-</span>) Level 1</label>
                                     <div class="d-flex">
                                         <input type="text"
                                             class="w-1/10 border rounded px-3 py-2 bg-yellow-50 @error('fhargajual2level1') is-invalid @enderror"
@@ -1137,9 +1138,9 @@
                                 </div>
 
                                 <!-- HJ. Besar Level 2 -->
-                                <div>
-                                    <label for="fhargajual2level2" class="block text-sm font-medium">Harga Jual Satuan 2
-                                        <span id="hj-satuan-besar-level2-label" class="uppercase">-</span> Level 2</label>
+                                <div class="min-h-[96px]">
+                                    <label for="fhargajual2level2" class="block text-sm font-medium">Harga Jual 2
+                                        (<span id="hj-satuan-besar-level2-label" class="uppercase">-</span>) Level 2</label>
                                     <div class="d-flex">
                                         <input type="text"
                                             class="w-1/10 border rounded px-3 py-2 bg-yellow-50 @error('fhargajual2level2') is-invalid @enderror"
@@ -1154,9 +1155,9 @@
                                 </div>
 
                                 <!-- HJ. Besar Level 3 -->
-                                <div>
-                                    <label for="fhargajual2level3" class="block text-sm font-medium">Harga Jual Satuan 2
-                                        <span id="hj-satuan-besar-level3-label" class="uppercase">-</span> Level 3</label>
+                                <div class="min-h-[96px]">
+                                    <label for="fhargajual2level3" class="block text-sm font-medium">Harga Jual 2
+                                        (<span id="hj-satuan-besar-level3-label" class="uppercase">-</span>) Level 3</label>
                                     <div class="d-flex">
                                         <input type="text"
                                             class="w-1/10 border rounded px-3 py-2 bg-yellow-50 @error('fhargajual2level3') is-invalid @enderror"
@@ -1176,10 +1177,10 @@
                         <div id="hj-level2-block" style="display: none;">
                             <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
                                 <!-- HJ <PCS> Level 1 -->
-                                <div>
+                                <div class="min-h-[96px]">
                                     <label for="fhargajual3level1" class="block text-sm font-medium">
-                                        Harga Jual Satuan 3 <span id="hj-satuan-kecil-label"
-                                            class="uppercase">{{ $product->fsatuankecil ?? '-' }}</span> Level 1
+                                        Harga Jual 3 (<span id="hj-satuan-kecil-label"
+                                            class="uppercase">{{ $product->fsatuankecil ?? '-' }}</span>) Level 1
                                     </label>
                                     <div class="d-flex">
                                         <input type="text" autocomplete="off"
@@ -1195,10 +1196,10 @@
                                 </div>
 
                                 <!-- HJ <CTN> Level 1 -->
-                                <div>
+                                <div class="min-h-[96px]">
                                     <label for="fhargajual3level2" class="block text-sm font-medium">
-                                        Harga Jual Satuan 3 <span id="hj-satuan-besar2-label"
-                                            class="uppercase">{{ $product->fsatuanbesar ?? '-' }}</span> Level 2
+                                        Harga Jual 3 (<span id="hj-satuan-besar2-label"
+                                            class="uppercase">{{ $product->fsatuanbesar ?? '-' }}</span>) Level 2
                                     </label>
                                     <div class="d-flex">
                                         <input type="text" autocomplete="off"
@@ -1214,10 +1215,10 @@
                                 </div>
 
                                 <!-- HJ <DUS> Level 1 -->
-                                <div>
+                                <div class="min-h-[96px]">
                                     <label for="fhargajual3level3" class="block text-sm font-medium">
-                                        Harga Jual Satuan 3 <span id="hjSatuanBesar2Label"
-                                            class="uppercase">{{ $product->fsatuanbesar2 ?? '-' }}</span> Level 3
+                                        Harga Jual 3 (<span id="hjSatuanBesar2Label"
+                                            class="uppercase">{{ $product->fsatuanbesar2 ?? '-' }}</span>) Level 3
                                     </label>
                                     <div class="d-flex">
                                         <input type="text" autocomplete="off"
@@ -1265,7 +1266,7 @@
                             <select name="ftype"
                                 class="w-full border rounded px-3 py-2 @error('ftype') border-red-500 @enderror">
                                 <option value="Produk" {{ old('ftype', $product->ftype) == 'Produk' ? 'selected' : '' }}>
-                                    Product</option>
+                                    Produk</option>
                                 <option value="Jasa" {{ old('ftype', $product->ftype) == 'Jasa' ? 'selected' : '' }}>
                                     Jasa</option>
                             </select>
@@ -1278,9 +1279,9 @@
 
                         {{-- Upload Foto --}}
                         <div class="mt-4 w-1/2">
-                            <label class="block text-sm font-medium">Upload Foto Design (3 Foto)</label>
+                            <label class="block text-sm font-medium">Upload Foto Design (2 Foto)</label>
                             <div class="space-y-4">
-                                @foreach ([1, 2, 3] as $imgNo)
+                                @foreach ([1, 2] as $imgNo)
                                     @php
                                         $field = 'fimage' . $imgNo;
                                         $imageRaw = (string) ($product->{$field} ?? '');
@@ -1328,7 +1329,7 @@
                                         </div>
                                         @if($driveFileId)
                                             <div id="imagePreviewContainer{{ $imgNo }}" class="mt-3">
-                                                <img id="imagePreview{{ $imgNo }}" src="{{ $drivePreviewUrl }}" alt="Product Image {{ $imgNo }}"
+                                                <img id="imagePreview{{ $imgNo }}" src="{{ $drivePreviewUrl }}" alt="Produk Image {{ $imgNo }}"
                                                     class="max-w-xs max-h-48 border rounded shadow cursor-zoom-in hover:opacity-90 transition"
                                                     onclick="openModal({{ $imgNo }})"
                                                     onerror="this.onerror=null; this.src='https://drive.google.com/thumbnail?id={{ $driveFileId }}&sz=w1000';">
@@ -1725,7 +1726,7 @@
             <div
                 class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
                 <div>
-                    <h3 class="text-xl font-bold text-gray-800">Browse Group Product</h3>
+                    <h3 class="text-xl font-bold text-gray-800">Browse Group Produk</h3>
                     <p class="text-sm text-gray-500 mt-0.5">Pilih group product yang diinginkan</p>
                 </div>
                 <button type="button" @click="close()"

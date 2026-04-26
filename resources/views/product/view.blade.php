@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'View Product')
+@section('title', 'View Produk')
 
 @section('content')
 
@@ -168,9 +168,9 @@
                         @enderror
                     </div>
 
-                    <!-- Kode Product -->
+                    <!-- Kode Produk -->
                     <div class="mt-2 w-1/3">
-                        <label class="block text-sm font-medium">Kode Product</label>
+                        <label class="block text-sm font-medium">Kode Produk</label>
                         <input type="text" name="fprdcode" id="fprdcode" readonly
                             value="{{ old('fprdcode', $product->fprdcode) }}"
                             class="w-full border rounded px-3 py-2 bg-gray-100 uppercase @error('fprdcode') border-red-500 @enderror">
@@ -179,9 +179,9 @@
                         @enderror
                     </div>
 
-                    <!-- Nama Product -->
+                    <!-- Nama Produk -->
                     <div class="mt-2 w-1/2">
-                        <label class="block text-sm font-medium">Nama Product</label>
+                        <label class="block text-sm font-medium">Nama Produk</label>
                         <input type="text" name="fprdname" id="fprdname" readonly
                             value="{{ old('fprdname', $product->fprdname) }}"
                             class="w-full border rounded px-3 py-2 bg-gray-100 uppercase @error('fprdname') border-red-500 @enderror"
@@ -407,10 +407,10 @@
                     </div>
 
                     <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <!-- Harga Satuan 3 Level 1 -->
+                        <!-- Harga 3 Level 1 -->
                         <div>
-                            <label for="fhargajuallevel1" class="block text-sm font-medium">Harga Jual Satuan 1
-                                <span id="hj-satuan-kecil-level1-label" class="uppercase">-</span> Level
+                            <label for="fhargajuallevel1" class="block text-sm font-medium">Harga Jual 1
+                                (<span id="hj-satuan-kecil-level1-label" class="uppercase">-</span>) Level
                                 1</label>
                             <div class="d-flex">
                                 <input type="text" disabled
@@ -425,10 +425,10 @@
                             </div>
                         </div>
 
-                        <!-- Harga Satuan 3 Level 2 -->
+                        <!-- Harga 3 Level 2 -->
                         <div>
-                            <label for="fhargajuallevel2" class="block text-sm font-medium">Harga Jual Satuan
-                                1<span id="hj-satuan-kecil-level2-label" class="uppercase">-</span> Level
+                            <label for="fhargajuallevel2" class="block text-sm font-medium">Harga Jual
+                                1 (<span id="hj-satuan-kecil-level2-label" class="uppercase">-</span>) Level
                                 2</label>
                             <div class="d-flex">
                                 <input type="text" disabled
@@ -443,10 +443,10 @@
                             </div>
                         </div>
 
-                        <!-- Harga Satuan 3 Level 3 -->
+                        <!-- Harga 3 Level 3 -->
                         <div>
-                            <label for="fhargajuallevel3" class="block text-sm font-medium">Harga Jual Satuan 1
-                                <span id="hj-satuan-kecil-level3-label" class="uppercase">-</span> Level
+                            <label for="fhargajuallevel3" class="block text-sm font-medium">Harga Jual 1
+                                (<span id="hj-satuan-kecil-level3-label" class="uppercase">-</span>) Level
                                 3</label>
                             <div class="d-flex">
                                 <input type="text" disabled
@@ -466,8 +466,8 @@
                         <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <!-- HJ. Besar Level 1 -->
                             <div>
-                                <label for="fhargajual2level1" class="block text-sm font-medium">Harga Jual Satuan 2
-                                    <span id="hj-satuan-besar-level1-label" class="uppercase">-</span> Level 1</label>
+                                <label for="fhargajual2level1" class="block text-sm font-medium">Harga Jual 2
+                                    (<span id="hj-satuan-besar-level1-label" class="uppercase">-</span>) Level 1</label>
                                 <div class="d-flex">
                                     <input type="text" disabled class="w-1/10 border rounded px-3 py-2 bg-yellow-50"
                                         value="{{ $product->fhargajual2level1 ?? 0 }}">
@@ -476,8 +476,8 @@
 
                             <!-- HJ. Besar Level 2 -->
                             <div>
-                                <label for="fhargajual2level2" class="block text-sm font-medium">Harga Jual Satuan 2
-                                    <span id="hj-satuan-besar-level2-label" class="uppercase">-</span> Level 2</label>
+                                <label for="fhargajual2level2" class="block text-sm font-medium">Harga Jual 2
+                                    (<span id="hj-satuan-besar-level2-label" class="uppercase">-</span>) Level 2</label>
                                 <div class="d-flex">
                                     <input type="text" disabled class="w-1/10 border rounded px-3 py-2 bg-yellow-50"
                                         value="{{ $product->fhargajual2level2 ?? 0 }}">
@@ -486,8 +486,8 @@
 
                             <!-- HJ. Besar Level 3 -->
                             <div>
-                                <label for="fhargajual2level3" class="block text-sm font-medium">Harga Jual Satuan 2
-                                    <span id="hj-satuan-besar-level3-label" class="uppercase">-</span> Level 3</label>
+                                <label for="fhargajual2level3" class="block text-sm font-medium">Harga Jual 2
+                                    (<span id="hj-satuan-besar-level3-label" class="uppercase">-</span>) Level 3</label>
                                 <div class="d-flex">
                                     <input type="text" disabled class="w-1/10 border rounded px-3 py-2 bg-yellow-50"
                                         value="{{ $product->fhargajual2level3 ?? 0 }}">
@@ -502,8 +502,8 @@
                             <!-- HJ <PCS> Level 1 -->
                             <div>
                                 <label for="fhargajual3level1" class="block text-sm font-medium">
-                                    Harga Jual Satuan 3 <span id="hj-satuan-kecil-label"
-                                        class="uppercase">{{ $product->fsatuankecil ?? '-' }}</span> Level 1
+                                    Harga Jual 3 (<span id="hj-satuan-kecil-label"
+                                        class="uppercase">{{ $product->fsatuankecil ?? '-' }}</span>) Level 1
                                 </label>
                                 <div class="d-flex">
                                     <input type="text" disabled class="w-1/10 border rounded px-3 py-2 bg-purple-50"
@@ -514,8 +514,8 @@
                             <!-- HJ <CTN> Level 1 -->
                             <div>
                                 <label for="fhargajual3level2" class="block text-sm font-medium">
-                                    Harga Jual Satuan 3 <span id="hj-satuan-besar2-label"
-                                        class="uppercase">{{ $product->fsatuanbesar ?? '-' }}</span> Level 2
+                                    Harga Jual 3 (<span id="hj-satuan-besar2-label"
+                                        class="uppercase">({{ $product->fsatuanbesar ?? '-' }})</span>) Level 2
                                 </label>
                                 <div class="d-flex">
                                     <input type="text" disabled class="w-1/10 border rounded px-3 py-2 bg-purple-50"
@@ -526,8 +526,8 @@
                             <!-- HJ <DUS> Level 1 -->
                             <div>
                                 <label for="fhargajual3level3" class="block text-sm font-medium">
-                                    Harga Jual Satuan 3 <span id="hjSatuanBesar2Label"
-                                        class="uppercase">{{ $product->fsatuanbesar2 ?? '-' }}</span> Level 3
+                                    Harga Jual 3 (<span id="hjSatuanBesar2Label"
+                                        class="uppercase">({{ $product->fsatuanbesar2 ?? '-' }})</span>) Level 3
                                 </label>
                                 <div class="d-flex">
                                     <input type="text" disabled class="w-1/10 border rounded px-3 py-2 bg-purple-50"
@@ -568,7 +568,7 @@
                         <select name="ftype" disabled
                             class="w-full border rounded px-3 py-2 bg-gray-100 @error('ftype') border-red-500 @enderror">
                             <option value="Produk" {{ old('ftype', $product->ftype) == 'Produk' ? 'selected' : '' }}>
-                                Product</option>
+                                Produk</option>
                             <option value="Jasa" {{ old('ftype', $product->ftype) == 'Jasa' ? 'selected' : '' }}>
                                 Jasa</option>
                         </select>
@@ -579,9 +579,9 @@
                         @enderror
                     </div>
 
-                    {{-- Foto Product --}}
+                    {{-- Foto Produk --}}
                     <div class="mt-4 w-full">
-                        <label class="block text-sm font-medium mb-2">Foto Product</label>
+                        <label class="block text-sm font-medium mb-2">Foto Produk</label>
 
                         <div class="flex flex-col gap-6">
                             @foreach ([1, 2, 3] as $imgNo)
@@ -615,7 +615,7 @@
                                 <div class="max-w-md">
                                     <p class="text-xs font-semibold text-gray-500 mb-2">Foto {{ $imgNo }}</p>
                                     @if ($driveFileId)
-                                        <img src="{{ $drivePreviewUrl }}" alt="Product Image {{ $imgNo }}"
+                                        <img src="{{ $drivePreviewUrl }}" alt="Produk Image {{ $imgNo }}"
                                             class="w-full max-h-80 object-cover border rounded shadow cursor-pointer hover:opacity-90 transition-opacity"
                                             onclick="openImageModal(this.src)"
                                             onerror="this.onerror=null; this.src='https://drive.google.com/thumbnail?id={{ $driveFileId }}&sz=w1000';">

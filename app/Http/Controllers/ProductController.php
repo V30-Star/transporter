@@ -243,6 +243,10 @@ class ProductController extends Controller
                 'fimage1' => 'nullable|image|max:2048',
                 'fimage2' => 'nullable|image|max:2048',
                 'fimage3' => 'nullable|image|max:2048',
+            ], [
+                'fgroupcode.required' => 'Group Produk harus diisi.',
+                'fmerek.required' => 'Merek harus diisi.',
+                'fprdname.required' => 'Nama Produk harus di isi',
             ]);
 
             $validated['fprdname'] = strtoupper($request->fprdname);
@@ -390,7 +394,9 @@ class ProductController extends Controller
             ],
             [
                 'fprdcode.unique' => 'Kode Produk sudah ada',
-                'fprdname.required' => 'Nama Produk harus diisi.',
+                'fprdname.required' => 'Nama Produk harus di isi',
+                'fgroupcode.required' => 'Group Produk harus diisi.',
+                'fmerek.required' => 'Merek harus diisi.',
                 'fsatuankecil.required' => 'Satuan Kecil harus diisi.',
                 'fsatuanbesar.different' => 'Satuan Besar tidak boleh sama dengan Satuan Kecil.',
                 'fsatuanbesar2.different' => 'Satuan Besar 2 tidak boleh sama dengan Satuan Kecil atau Satuan Besar.',
