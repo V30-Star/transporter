@@ -904,10 +904,6 @@ class Tr_prhController extends Controller
             $stockChanges[$code] = ($stockChanges[$code] ?? 0) - $qty;
         }
 
-        // max qty validation dihapus:
-        // PR qty tidak lagi ditolak berdasarkan stok minimum (fminstock).
-        // Validasi yang tersisa tetap: qty harus >= 1 dan terhadap PO usage (tidak boleh kurang dari yang sudah diproses ke PO).
-
         if ($errors->isNotEmpty()) {
             return back()->withErrors($errors)->withInput();
         }
@@ -1008,18 +1004,6 @@ class Tr_prhController extends Controller
                     $data['fcreatedat'] = $now;
                     $data['fusercreate'] = $userName;
                     DB::table('tr_prd')->insert($data);
-                }
-            }
-
-            // 3. Update Stok (Hanya yang berubah)
-            foreach ($stockChanges as $code => $change) {
-                if ($change !== 0) {
-                    DB::table('msprd')
-                        ->where('fprdcode', $code)
-                        ->update([
-                            'fminstock' => DB::raw("CAST(fminstock AS INTEGER) + {$change}"),
-                            'fupdatedat' => now(),
-                        ]);
                 }
             }
         });

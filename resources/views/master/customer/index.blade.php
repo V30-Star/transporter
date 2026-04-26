@@ -40,9 +40,27 @@
                 <tr>
                     <th class="border px-2 py-2">Kode Customer</th>
                     <th class="border px-2 py-2">Nama Customer</th>
-                    <th class="border px-2 py-2 no-sort">Wilayah</th>
+                    <th class="border px-2 py-2 no-sort">
+                        <div class="flex items-center justify-between">
+                            <span>Wilayah</span>
+                            <div class="flex items-center gap-1">
+                                <button type="button" class="col-search-btn p-1 hover:bg-gray-200 rounded"
+                                    data-column="2" title="Filter Kolom">
+                                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-search-input mt-2 hidden">
+                            <input type="text"
+                                class="dt-column-search w-full px-2 py-1.5 border border-gray-300 rounded text-sm uppercase focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                data-column="2" placeholder="Cari...">
+                        </div>
+                    </th>
                     <th class="border px-2 py-2 no-sort">Alamat</th>
-                    <th class="border px-2 py-2 no-sort">Tempo</th> {{-- Diganti dari 'Kota' --}}
                     <th class="border px-2 py-2 no-sort">Status</th>
                     {{-- Kolom StatusRaw Dihapus --}}
                     @if ($showActionsColumn)
@@ -112,11 +130,22 @@
             white-space: nowrap;
         }
 
+        #customerTable td.customer-address-cell {
+            white-space: normal !important;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+            vertical-align: top;
+        }
+
         .dataTables_wrapper .dt-search {
             display: flex;
             align-items: center;
             gap: .75rem;
             flex-wrap: wrap;
+        }
+
+        .col-search-btn {
+            line-height: 1;
         }
 
         #statusFilterWrap {
@@ -137,6 +166,32 @@
             const hasActions = {{ $showActionsColumn ? 'true' : 'false' }};
             const canEdit = {{ $canEdit ? 'true' : 'false' }};
             const canDelete = {{ $canDelete ? 'true' : 'false' }};
+            const $customerTable = $('#customerTable');
+            let activeColumnSearch = null;
+
+            function syncColumnSearchVisibility() {
+                const $dtContainer = $customerTable.closest('.dt-container');
+
+                $dtContainer.find('.col-search-input').addClass('hidden');
+
+                if (activeColumnSearch === null) {
+                    return;
+                }
+
+                const $activeInputWrap = $dtContainer.find(`.dt-column-search[data-column="${activeColumnSearch}"]`)
+                    .closest('.col-search-input');
+
+                if ($activeInputWrap.length) {
+                    $activeInputWrap.removeClass('hidden');
+                }
+            }
+
+            function hasColumnSearchValue(columnIndex) {
+                const $input = $customerTable.closest('.dt-container')
+                    .find(`.dt-column-search[data-column="${columnIndex}"]`);
+
+                return $input.length && String($input.val() || '').trim() !== '';
+            }
 
             // Targetkan kolom yg tidak bisa di-sort
             const columnDefs = [{
@@ -154,10 +209,25 @@
                     data: 'wilayah_name'
                 },
                 {
-                    data: 'faddress'
-                },
-                {
-                    data: 'ftempo'
+                    data: 'faddress',
+                    className: 'customer-address-cell',
+                    render: function(data, type) {
+                        const value = data || '-';
+
+                        if (type !== 'display') {
+                            return value;
+                        }
+
+                        const escaped = String(value)
+                            .replace(/&/g, '&amp;')
+                            .replace(/</g, '&lt;')
+                            .replace(/>/g, '&gt;')
+                            .replace(/"/g, '&quot;')
+                            .replace(/'/g, '&#039;')
+                            .replace(/\r?\n/g, '<br>');
+
+                        return `<div class="whitespace-normal break-words leading-5">${escaped}</div>`;
+                    }
                 },
                 {
                     data: 'status',
@@ -277,7 +347,54 @@
                     $select.on('change', function() {
                         table.ajax.reload();
                     });
+                },
+                drawCallback: function() {
+                    syncColumnSearchVisibility();
                 }
+            });
+
+            const $container = $(table.table().container());
+
+            $container.on('click', '.col-search-btn', function(e) {
+                e.stopPropagation();
+                const columnIndex = $(this).data('column');
+                const $th = $(this).closest('th');
+                const $searchInput = $th.find('.col-search-input');
+
+                if (activeColumnSearch === columnIndex && !$searchInput.hasClass('hidden')) {
+                    activeColumnSearch = null;
+                    $searchInput.addClass('hidden');
+                    return;
+                }
+
+                activeColumnSearch = columnIndex;
+                syncColumnSearchVisibility();
+
+                if (!$searchInput.hasClass('hidden')) {
+                    $searchInput.find('input').focus();
+                }
+            });
+
+            $(document).on('click', function(e) {
+                if (!$(e.target).closest('.col-search-btn').length && !$(e.target).closest(
+                        '.col-search-input').length) {
+                    if (activeColumnSearch !== null && hasColumnSearchValue(activeColumnSearch)) {
+                        syncColumnSearchVisibility();
+                        return;
+                    }
+
+                    activeColumnSearch = null;
+                    syncColumnSearchVisibility();
+                }
+            });
+
+            $container.on('input', '.dt-column-search', function() {
+                const columnIndex = $(this).data('column');
+                const cursorStart = this.selectionStart;
+                const cursorEnd = this.selectionEnd;
+                this.value = this.value.toUpperCase();
+                this.setSelectionRange(cursorStart, cursorEnd);
+                table.column(columnIndex).search(this.value).draw();
             });
         });
     </script>

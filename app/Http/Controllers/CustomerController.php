@@ -55,6 +55,21 @@ class CustomerController extends Controller
                 });
             }
 
+            // Pencarian per kolom
+            $columnFields = [
+                'mscustomer.fcustomercode',
+                'mscustomer.fcustomername',
+                'w.fwilayahname',
+                'mscustomer.faddress',
+            ];
+
+            foreach ($columnFields as $index => $field) {
+                $colSearch = $request->input("columns.{$index}.search.value");
+                if ($colSearch !== null && $colSearch !== '') {
+                    $query->where($field, 'ilike', "%{$colSearch}%");
+                }
+            }
+
             $filteredRecords = (clone $query)->count();
 
             // Sorting
