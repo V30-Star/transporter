@@ -647,7 +647,6 @@ class ReturPenjualanController extends Controller
 
                 foreach ($detailRows as &$row) {
                     $row['fsono'] = $fsono;
-                    $row['ftranmtid'] = $ftranmtid;
                 }
                 unset($row);
 
@@ -1164,7 +1163,6 @@ class ReturPenjualanController extends Controller
 
             $detailRows[] = [
                 'fsono' => $header->fsono,
-                'ftranmtid' => $ftranmtid,
                 'fnou' => $i + 1,
                 'fprdcodeid' => $fprdcodeid,
                 'fprdcode' => mb_substr($code, 0, 30),
@@ -1207,19 +1205,13 @@ class ReturPenjualanController extends Controller
         }
 
         $oldSoUsageRows = DB::table('trandt')
-            ->where(function ($query) use ($ftranmtid, $header) {
-                $query->where('ftranmtid', $ftranmtid)
-                    ->orWhere('fsono', $header->fsono);
-            })
+            ->where('fsono', $header->fsono)
             ->whereNotNull('frefsoid')
             ->select('frefsoid', DB::raw('SUM(COALESCE(fqtykecil, 0)) as used_qty_kecil'))
             ->groupBy('frefsoid')
             ->get();
         $oldSrjUsageRows = DB::table('trandt')
-            ->where(function ($query) use ($ftranmtid, $header) {
-                $query->where('ftranmtid', $ftranmtid)
-                    ->orWhere('fsono', $header->fsono);
-            })
+            ->where('fsono', $header->fsono)
             ->whereNotNull('frefsrjid')
             ->select('frefsrjid', DB::raw('SUM(COALESCE(fqtykecil, 0)) as used_qty_kecil'))
             ->groupBy('frefsrjid')
@@ -1579,20 +1571,14 @@ class ReturPenjualanController extends Controller
                 $fsono = $returpenjualan->fsono;
 
                 $oldSoUsageRows = DB::table('trandt')
-                    ->where(function ($query) use ($returpenjualan, $fsono) {
-                        $query->where('ftranmtid', $returpenjualan->ftranmtid)
-                            ->orWhere('fsono', $fsono);
-                    })
+                    ->where('fsono', $fsono)
                     ->whereNotNull('frefsoid')
                     ->select('frefsoid', DB::raw('SUM(COALESCE(fqtykecil, 0)) as used_qty_kecil'))
                     ->groupBy('frefsoid')
                     ->get();
 
                 $oldSrjUsageRows = DB::table('trandt')
-                    ->where(function ($query) use ($returpenjualan, $fsono) {
-                        $query->where('ftranmtid', $returpenjualan->ftranmtid)
-                            ->orWhere('fsono', $fsono);
-                    })
+                    ->where('fsono', $fsono)
                     ->whereNotNull('frefsrjid')
                     ->select('frefsrjid', DB::raw('SUM(COALESCE(fqtykecil, 0)) as used_qty_kecil'))
                     ->groupBy('frefsrjid')
@@ -1628,8 +1614,7 @@ class ReturPenjualanController extends Controller
 
                 // 1. Delete details (trandt)
                 DB::table('trandt')
-                    ->where('ftranmtid', $returpenjualan->ftranmtid)
-                    ->orWhere('fsono', $fsono)
+                    ->where('fsono', $fsono)
                     ->delete();
 
                 // 2. Delete stock records (trstockmt & trstockdt)

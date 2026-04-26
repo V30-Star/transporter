@@ -586,7 +586,6 @@ class SalesOrderController extends Controller
                 // D. Insert Details
                 foreach ($rowsSodt as &$r) {
                     $r['fsono'] = $fsono;
-                    $r['ftrsomtid'] = $ftrsomtid;
                 }
                 DB::table('trsodt')->insert($rowsSodt);
 
@@ -989,7 +988,6 @@ class SalesOrderController extends Controller
             }
 
             $rowsSodt[] = [
-                'ftrsomtid' => $ftrsomtid, // Foreign Key
                 'fsono' => $header->fsono, // Gunakan fsono yang sudah ada
                 'fprdcodeid' => ! empty($itemeId) && is_numeric($itemeId) ? (int) $itemeId : null,
                 'fprdcode' => $itemCode,

@@ -17,6 +17,6 @@ class Trandt extends Model
 
   public function header()
   {
-    return $this->belongsTo(Tranmt::class, 'ftranmtid', 'ftranmtid');
+    return $this->belongsTo(Tranmt::class, 'fsono', 'fsono');
   }
 }

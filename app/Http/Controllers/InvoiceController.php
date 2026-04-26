@@ -483,7 +483,6 @@ class InvoiceController extends Controller
 
             $detailRows[] = [
                 'fsono' => '', // Akan diisi di dalam transaksi
-                'ftranmtid' => null, // Akan diisi di dalam transaksi menggunakan insertGetId header
                 'fnou' => $i + 1,
                 'fprdcodeid' => $fprdcodeid,
                 'fprdcode' => mb_substr($code, 0, 30),
@@ -606,7 +605,6 @@ class InvoiceController extends Controller
                 // --- UPDATE DETAIL ROWS DENGAN ID HEADER DAN NOMOR SONO ---
                 foreach ($detailRows as &$row) {
                     $row['fsono'] = $fsono;
-                    $row['ftranmtid'] = $ftranmtid; // Mengisi foreign key dari ID header baru
                 }
 
                 // INSERT DETAIL
@@ -1090,7 +1088,6 @@ class InvoiceController extends Controller
             $totalDisc += $discAmount;
 
             $rowData = [
-                'ftranmtid' => $ftranmtid,
                 'fsono' => $header->fsono,
                 'fnou' => $i + 1,
                 'fprdcodeid' => $product->fprdid,
@@ -1120,19 +1117,13 @@ class InvoiceController extends Controller
         }
 
         $oldSoUsageRows = DB::table('trandt')
-            ->where(function ($query) use ($ftranmtid, $header) {
-                $query->where('ftranmtid', $ftranmtid)
-                    ->orWhere('fsono', $header->fsono);
-            })
+            ->where('fsono', $header->fsono)
             ->whereNotNull('frefsoid')
             ->select('frefsoid', DB::raw('SUM(COALESCE(fqtykecil, 0)) as used_qty_kecil'))
             ->groupBy('frefsoid')
             ->get();
         $oldSrjUsageRows = DB::table('trandt')
-            ->where(function ($query) use ($ftranmtid, $header) {
-                $query->where('ftranmtid', $ftranmtid)
-                    ->orWhere('fsono', $header->fsono);
-            })
+            ->where('fsono', $header->fsono)
             ->whereNotNull('frefsrjid')
             ->select('frefsrjid', DB::raw('SUM(COALESCE(fqtykecil, 0)) as used_qty_kecil'))
             ->groupBy('frefsrjid')
@@ -1425,20 +1416,14 @@ class InvoiceController extends Controller
 
             DB::transaction(function () use ($invoice) {
                 $oldSoUsageRows = DB::table('trandt')
-                    ->where(function ($query) use ($invoice) {
-                        $query->where('ftranmtid', $invoice->ftranmtid)
-                            ->orWhere('fsono', $invoice->fsono);
-                    })
+                    ->where('fsono', $invoice->fsono)
                     ->whereNotNull('frefsoid')
                     ->select('frefsoid', DB::raw('SUM(COALESCE(fqtykecil, 0)) as used_qty_kecil'))
                     ->groupBy('frefsoid')
                     ->get();
 
                 $oldSrjUsageRows = DB::table('trandt')
-                    ->where(function ($query) use ($invoice) {
-                        $query->where('ftranmtid', $invoice->ftranmtid)
-                            ->orWhere('fsono', $invoice->fsono);
-                    })
+                    ->where('fsono', $invoice->fsono)
                     ->whereNotNull('frefsrjid')
                     ->select('frefsrjid', DB::raw('SUM(COALESCE(fqtykecil, 0)) as used_qty_kecil'))
                     ->groupBy('frefsrjid')
@@ -1473,8 +1458,7 @@ class InvoiceController extends Controller
                 }
 
                 DB::table('trandt')
-                    ->where('ftranmtid', $invoice->ftranmtid)
-                    ->orWhere('fsono', $invoice->fsono)
+                    ->where('fsono', $invoice->fsono)
                     ->delete();
 
                 $invoice->delete();
