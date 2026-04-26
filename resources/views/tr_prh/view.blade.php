@@ -530,7 +530,7 @@
             </div>
 
             <div class="mt-6 flex justify-center space-x-4">
-                <a href="{{ route('tr_prh.print', $tr_prh->fprhid) }}" target="_blank"
+                <a href="{{ route('tr_prh.print', $tr_prh->fprno) }}" target="_blank"
                     class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

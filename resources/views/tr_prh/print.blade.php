@@ -9,336 +9,322 @@
         :root {
             --fg: #000;
             --bd: #000;
-            --muted: #555;
+            --blue: #0000ff;
+            --red: #ff0000;
         }
 
         * {
-            box-sizing: border-box
+            box-sizing: border-box;
         }
 
         body {
             margin: 0;
             background: #ececec;
-            font: 13px/1.45 Arial, Helvetica, sans-serif;
-            color: var(--fg)
+            font: 12px Arial, Helvetica, sans-serif;
+            color: var(--fg);
         }
 
-        /* --- PERUBAHAN UTAMA UNTUK A4 --- */
         .sheet {
             width: 8.27in;
-            /* Lebar A4 */
             min-height: 11.69in;
-            /* Tinggi A4 */
             margin: 0.4in auto;
             padding: 0.4in 0.5in;
             background: #fff;
             border: 1px solid #cfcfcf;
             box-shadow: 0 6px 18px rgba(0, 0, 0, .12);
+            position: relative;
         }
 
-        /* -------------------------------- */
-
-        .row {
+        .header-row {
             display: flex;
-            gap: 16px;
-            align-items: flex-start
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 5px;
         }
 
-        .left {
-            flex: 1
+        .comp-name {
+            font-size: 18px;
+            font-weight: bold;
+            font-style: italic;
         }
 
-        .right {
-            text-align: right
-        }
-
-        .title {
-            font-weight: 700;
+        .title-so {
             font-size: 20px;
-            text-decoration: underline
+            color: var(--blue);
+            text-decoration: underline;
+            font-weight: bold;
+            text-align: right;
         }
 
-        .mono {
-            font-family: "Courier New", monospace
+        .so-no {
+            color: var(--red);
+            font-weight: bold;
+            font-size: 11px;
+            text-align: right;
         }
 
-        .muted {
-            color: var(--muted)
+        .customer-container {
+            border: 1px solid #000;
+            border-radius: 10px;
+            padding: 5px 12px;
+            width: 450px;
+            min-height: 78px;
+            position: relative;
+            margin-top: 10px;
         }
 
-        hr {
-            border: 0;
-            border-top: 1px solid var(--bd);
-            margin: 10px 0 8px
+        .customer-label {
+            position: absolute;
+            top: -8px;
+            left: 15px;
+            background: #fff;
+            padding: 0 5px;
+            font-size: 11px;
         }
 
-        table.tb {
+        .info-table {
+            float: right;
+            font-size: 12px;
+            margin-top: -68px;
+        }
+
+        .info-table td {
+            padding: 1px 2px;
+            vertical-align: top;
+        }
+
+        .tb {
             width: 100%;
-            border-collapse: collapse
-        }
-
-        .tb th,
-        .tb td {
-            border: 1px solid var(--bd);
-            padding: 6px 8px;
-            vertical-align: top
+            border-collapse: collapse;
+            margin-top: 15px;
         }
 
         .tb th {
-            background: #fff;
-            font-weight: 700;
-            text-align: center
+            border-top: 1px solid #000;
+            border-bottom: 1px solid #000;
+            padding: 5px;
+            text-align: left;
+            font-weight: normal;
         }
 
-        .tb td.center {
-            text-align: center
-        }
-
-        table.sign {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 14px
-        }
-
-        .sign td {
-            border: 1px solid var(--bd);
-            height: 55px;
-            vertical-align: bottom;
-            padding: 6px 8px;
-        }
-
-        .sign .head {
+        .tb td {
+            padding: 5px;
             vertical-align: top;
-            height: auto;
-            font-weight: 700;
-            text-align: center
         }
 
-        .sign .small {
-            font-size: 12px;
-            color: var(--muted)
+        .text-center {
+            text-align: center;
         }
 
-        .footer-wrap {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 20px;
-        }
-
-        .note-top {
-            font-weight: 700;
-            margin: 6px 0 4px;
-        }
-
-        .note-box {
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            height: 100%;
-            margin-top: 10px;
-            font-size: 11px;
-            width: 50%;
-            /* Mengembalikan lebar relatif */
-        }
-
-        .hal {
+        .text-right {
             text-align: right;
-            margin-top: 12px;
         }
 
-        .hr-strong {
-            border: 0;
-            border-top: 2px solid var(--bd);
-            margin: 16px 0 10px
+        .muted {
+            color: #444;
+            font-size: 11px;
+        }
+
+        .note-block {
+            margin-top: 24px;
+            min-height: 48px;
+        }
+
+        .note-title {
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .footer-line {
+            border-top: 1.5px solid #000;
+            margin-top: 28px;
+        }
+
+        .sign-container {
+            margin-top: 18px;
+            clear: both;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 16px;
+        }
+
+        .sign-table {
+            border-collapse: collapse;
+            width: 450px;
+        }
+
+        .sign-table td {
+            border: 1px solid #000;
+            width: 33.33%;
+            height: 26px;
+            text-align: center;
+            padding: 4px;
+        }
+
+        .sign-table .box-content {
+            height: 78px;
+            vertical-align: bottom;
+            padding-bottom: 6px;
+        }
+
+        .meta-right {
+            font-size: 10px;
+            text-align: right;
+            white-space: nowrap;
         }
 
         .print-hide {
             position: fixed;
-            left: 16px;
             top: 10px;
-            z-index: 10
+            left: 10px;
+            z-index: 999;
         }
 
         .print-hide button {
-            margin-right: 6px
+            padding: 10px 20px;
+            cursor: pointer;
+            margin-right: 6px;
         }
 
         @media print {
             body {
-                background: #fff
+                background: #fff;
             }
 
             .sheet {
                 margin: 0;
                 border: none;
                 box-shadow: none;
-                width: 8.27in;
-                /* A4 Print Width */
-                min-height: 11.69in;
-                /* A4 Print Height */
-                padding: 0.4in 0.5in;
             }
 
             .print-hide {
-                display: none !important
+                display: none;
             }
 
             @page {
                 size: A4;
-                /* Mengatur halaman cetak ke A4 */
                 margin: 0;
             }
-        }
-
-        .footer-left {
-            display: flex;
-            flex-direction: column;
-            width: 60%;
-            /* Disesuaikan untuk A4 */
-        }
-
-        .footer-right {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            width: 40%;
-            /* Disesuaikan untuk A4 */
-            margin-left: 18px;
-            /* Menggunakan gap yang lebih konsisten */
-        }
-
-        .total-section {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 5px;
-            width: 100%;
-        }
-
-        .label {
-            font-weight: 550;
-        }
-
-        .value {
-            font-weight: 550;
-            text-align: right;
-        }
-
-        .sign td {
-            padding: 8px 10px;
-            border: 1px solid var(--bd);
-        }
-
-        .sign .head {
-            font-weight: 700;
-            text-align: center;
-        }
-
-        .grand-total {
-            border-top: 1px solid #000000;
-            padding-top: 8px;
-            margin-top: 8px;
-            font-weight: bold;
         }
     </style>
 </head>
 
 <body>
     <div class="print-hide">
-        <button onclick="window.print()">Print</button>
-        <button onclick="window.close()">Close</button>
+        <button onclick="window.print()">PRINT</button>
+        <button onclick="window.close()">CLOSE</button>
     </div>
 
-    <div class="sheet"><!-- <<< mulai kanvas -->
-
-        <!-- Header -->
-        <div class="row">
-            <div class="left">
-                <div style="font-weight:700">{{ $company_name }}</div>
-                <div class="muted">{{ $company_city }}</div>
+    <div class="sheet">
+        <div class="header-row">
+            <div>
+                <div class="comp-name">{{ strtoupper($company_name ?? 'PT. DEMO VERSION') }}</div>
+                <div>{{ $company_city ?? 'Tangerang' }}</div>
             </div>
-            <div class="right">
-                <div class="title">PERMINTAAN PEMBELIAN</div>
-                <div>No. <span class="mono">{{ $hdr->fprno }}</span></div>
+            <div>
+                <div class="title-so">Permintaan Pembelian</div>
+                <div class="so-no">No. {{ $hdr->fprno ?? '-' }}</div>
             </div>
         </div>
 
-        <hr>
+        <div style="overflow: hidden; margin-top: 10px;">
+            <div class="customer-container">
+                <span class="customer-label">Supplier</span>
+                <div style="font-weight: bold;">
+                    {{ trim(($hdr->fsupplier ?? '') . ' - ' . ($hdr->supplier_name ?? ''), ' -') ?: '-' }}
+                </div>
+                <div style="font-size: 11px;">
+                    Cabang : {{ $hdr->cabang_name ?? ($hdr->fbranchcode ?? '-') }}
+                </div>
+                <div style="font-size: 11px;">
+                    Keterangan : {{ $hdr->fket ?: '-' }}
+                </div>
+            </div>
 
-        <!-- Info supplier dan tanggal -->
-        <table style="width:100%;border-collapse:collapse;margin-bottom:8px">
-            <tr>
-                <td style="border:0;padding:0 0 4px 0">
-                    <strong>Supplier</strong> :
-                    {{ $hdr->supplier_name ? $hdr->supplier_name : '' }}
-                </td>
-                <td style="border:0;padding:0;text-align:right">
-                    <div><strong>Tanggal</strong> : {{ $fmt($hdr->fprdate) }}</div>
-                    <div><strong>Tgl.dibutuhkan</strong> : {{ $fmt($hdr->fneeddate) }}</div>
-                    <div><strong>Tgl.Paling Lambat</strong> : {{ $fmt($hdr->fduedate) }}</div>
-                </td>
-            </tr>
-        </table>
+            <table class="info-table">
+                <tr>
+                    <td>Tanggal</td>
+                    <td>:</td>
+                    <td>{{ $fmt($hdr->fprdate) }}</td>
+                </tr>
+                <tr>
+                    <td>Tgl. Dibutuhkan</td>
+                    <td>:</td>
+                    <td>{{ $fmt($hdr->fneeddate) }}</td>
+                </tr>
+                <tr>
+                    <td>Tgl. Jatuh Tempo</td>
+                    <td>:</td>
+                    <td>{{ $fmt($hdr->fduedate) }}</td>
+                </tr>
+                <tr>
+                    <td colspan="3" style="text-align: right; font-size: 10px; padding-top: 12px;">Hal : 1 / 1</td>
+                </tr>
+            </table>
+        </div>
 
-        <!-- Tabel item -->
         <table class="tb">
             <thead>
                 <tr>
-                    <th style="width:5px">No.</th>
-                    <th style="width:200px">Nama Barang</th>
-                    <th style="width:50px">Q t y.</th>
-                    <th style="width:50px">Stok</th>
-                    <th style="width:240px;text-align:left">Keterangan</th>
+                    <th style="width: 5%;">No.</th>
+                    <th style="width: 18%;">Kode Produk</th>
+                    <th style="width: 32%;">Nama Produk</th>
+                    <th style="width: 13%;" class="text-right">Qty</th>
+                    <th style="width: 12%;" class="text-right">Stok</th>
+                    <th style="width: 20%;">Keterangan</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach ($dt as $i => $r)
+                @forelse ($dt as $i => $r)
                     <tr>
-                        <td class="center">{{ $i + 1 }}</td>
+                        <td class="text-center">{{ $i + 1 }}</td>
+                        <td>{{ $r->product_code ?? '-' }}</td>
                         <td>
                             <div>{{ $r->product_name ?? '-' }}</div>
                             @if (!empty($r->fdesc))
-                                <div class="muted">({{ $r->fdesc }})</div>
+                                <div class="muted">{{ $r->fdesc }}</div>
                             @endif
                         </td>
-                        <td class="center">{{ number_format($r->fqty, 0, ',', '.') }} {{ $r->fsatuan }}</td>
-                        <td class="center">{{ (int) $r->stock }}</td>
-                        <td>{{ $r->fketdt ?? '' }}</td>
+                        <td class="text-right">{{ number_format((float) $r->fqty, 0, ',', '.') }} {{ $r->fsatuan }}</td>
+                        <td class="text-right">{{ number_format((float) ($r->stock ?? 0), 0, ',', '.') }}</td>
+                        <td>{{ $r->fketdt ?: '-' }}</td>
                     </tr>
-                @endforeach
+                @empty
+                    <tr>
+                        <td colspan="6" class="text-center">Tidak ada detail item.</td>
+                    </tr>
+                @endforelse
             </tbody>
         </table>
 
-        <hr class="hr-strong">
-
-        <div class="footer-wrap">
-            <!-- Kolom kiri: tanda tangan -->
-            <div>
-                <table class="sign">
-                    <tr>
-                        <td class="head">Dibuat,</td>
-                        <td class="head">User,</td>
-                        <td class="head">Plant Manager,</td>
-                    </tr>
-                    <tr>
-                        <td class="center" style="vertical-align:bottom">{{ strtoupper($hdr->fusercreate ?? '') }}</td>
-                        <td></td>
-                        <td></td>
-                    </tr>
-                </table>
-            </div>
-
-            <!-- Kolom kanan: Note + Hal -->
-            <div class="note-box">
-                <div>
-                    <div class="note-top">Note :</div>
-                    <div>{{ $hdr->fket ?? '' }}</div>
-                </div>
-                <div class="hal">Hal : 1 / 1</div>
-            </div>
+        <div class="note-block">
+            <div class="note-title">Catatan</div>
+            <div>{{ $hdr->fket ?: '-' }}</div>
         </div>
 
+        <div class="footer-line"></div>
 
-    </div><!-- <<< akhir kanvas -->
+        <div class="sign-container">
+            <table class="sign-table">
+                <tr>
+                    <td>Dibuat Oleh</td>
+                    <td>Diperiksa</td>
+                    <td>Disetujui</td>
+                </tr>
+                <tr>
+                    <td class="box-content">{{ strtoupper($hdr->fusercreate ?? '-') }}</td>
+                    <td class="box-content">{{ strtoupper($hdr->fuserupdate ?? '-') }}</td>
+                    <td class="box-content">{{ strtoupper($hdr->fuserapproved ?? '-') }}</td>
+                </tr>
+            </table>
+
+            <div class="meta-right">
+                <div>Dicetak: {{ now()->format('d-m-Y H:i') }}</div>
+                <div>User: {{ strtoupper(auth('sysuser')->user()->fname ?? Auth::user()->fname ?? 'SYSTEM') }}</div>
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>

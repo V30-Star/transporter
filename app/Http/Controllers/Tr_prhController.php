@@ -220,6 +220,7 @@ class Tr_prhController extends Controller
                 'tr_prd.*',
                 'p.fprdname as product_name',
                 'p.fprdcode as product_code',
+                'p.fminstock as stock',
             ]);
 
         $fmt = fn($d) => $d
