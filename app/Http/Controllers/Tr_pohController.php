@@ -935,6 +935,7 @@ class Tr_pohController extends Controller
                     DB::raw('COALESCE(r.total_terima, 0) AS fqtyterima'),
                 );
         }])->findOrFail($fpohid);
+        $details = $this->getPoDetailsWithTerimaUsage($tr_poh->fpono);
 
         $existingTerima = DB::table('trstockdt')
             ->where('frefdtno', $tr_poh->fpono)
@@ -948,22 +949,6 @@ class Tr_pohController extends Controller
             ->get();
 
         $blockedByTerima = $existingTerima->isNotEmpty();
-
-        $qtyTerimaMap = DB::table('trstockdt')
-            ->where('frefdtno', $tr_poh->fpono)
-            ->select('fprdcode', DB::raw('SUM(fqty) as total_terima'))
-            ->groupBy('fprdcode')
-            ->pluck('total_terima', 'fprdcode');
-
-        $prQtyMap = DB::table('tr_prd as d')
-            ->join('tr_pod as pod', function ($join) use ($tr_poh) {
-                $join->on('pod.frefdtid', '=', 'd.fprdid')
-                    ->on('pod.fprdid', '=', 'd.fprdcodeid')
-                    ->where('pod.fpono', '=', $tr_poh->fpono);
-            })
-            ->select('pod.fpodid', 'd.fqty as qty_pr')
-            ->get()
-            ->keyBy('fpodid');
 
         // Lookup currency berdasarkan fcurrency (integer ID) di tr_poh
         $currentCurrency = DB::table('mscurrency')
@@ -997,14 +982,14 @@ class Tr_pohController extends Controller
             ];
         })->toArray();
 
-        $oldUsageByRef = $tr_poh->details
+        $oldUsageByRef = $details
             ->groupBy(fn ($d) => (int) ($d->frefdtid ?? 0))
             ->map(fn ($rows) => (float) $rows->sum(fn ($r) => (float) ($r->fqtykecil ?? 0)))
             ->all();
 
-        $prRemainMap = $this->getPrRemainByDetailIds($tr_poh->details->pluck('frefdtid')->all());
+        $prRemainMap = $this->getPrRemainByDetailIds($details->pluck('frefdtid')->all());
 
-        $savedItems = $tr_poh->details->map(function ($d) use ($products, $qtyTerimaMap, $oldUsageByRef, $prRemainMap) {
+        $savedItems = $details->map(function ($d) use ($products, $oldUsageByRef, $prRemainMap) {
             $qtyPR = (float) $d->fqtypr;
             $satPR = trim((string) $d->fqtypr_satuan);
             $satKecil = trim((string) $d->fsatuankecil);
@@ -1052,7 +1037,7 @@ class Tr_pohController extends Controller
                 'fprhid' => (string) ($d->fprhid ?? ''),
                 'fprno' => (string) ($d->frefdtno ?? ''),
                 'fqty' => (float) ($d->fqty ?? 0),
-                'fqtyterima' => (float) ($qtyTerimaMap[$d->fitemcode] ?? $d->fqtyterima ?? 0),
+                'fqtyterima' => (float) ($d->fqtyterima ?? 0),
                 'fterima' => (float) ($d->fterima ?? 0),
                 'fprice' => (float) ($d->fprice ?? 0),
                 'fdisc' => (float) ($d->fdisc ?? 0),
@@ -1134,6 +1119,7 @@ class Tr_pohController extends Controller
                     DB::raw('COALESCE(r.total_terima, 0) AS fqtyterima')
                 );
         }])->findOrFail($fpohid);
+        $details = $this->getPoDetailsWithTerimaUsage($tr_poh->fpono);
 
         $currencies = DB::table('mscurrency')
             ->where(function ($q) {
@@ -1148,12 +1134,6 @@ class Tr_pohController extends Controller
         $currentCurrency = DB::table('mscurrency')
             ->where('fcurrid', $tr_poh->fcurrency)
             ->first(['fcurrid', 'fcurrcode', 'fcurrname', 'frate']);
-
-        $qtyTerimaMap = DB::table('trstockdt')
-            ->where('frefdtno', $tr_poh->fpono)
-            ->select('fprdcode', DB::raw('SUM(fqty) as total_terima'))
-            ->groupBy('fprdcode')
-            ->pluck('total_terima', 'fprdcode');
 
         $products = Product::select(
             'fprdid',
@@ -1180,7 +1160,7 @@ class Tr_pohController extends Controller
             ];
         })->toArray();
 
-        $savedItems = $tr_poh->details->map(function ($d) use ($qtyTerimaMap) {
+        $savedItems = $details->map(function ($d) {
             $satKecil = trim((string) ($d->fsatuankecil ?? ''));
             $satBesar = trim((string) ($d->fsatuanbesar ?? ''));
             $satBesar2 = trim((string) ($d->fsatuanbesar2 ?? ''));
@@ -1200,7 +1180,7 @@ class Tr_pohController extends Controller
                 'frefdtno' => (string) ($d->frefdtno ?? ''),
                 'fprno' => (string) ($d->frefdtno ?? ''),
                 'fqty' => (float) ($d->fqty ?? 0),
-                'fqtyterima' => (float) ($qtyTerimaMap[$d->fitemcode] ?? $d->fqtyterima ?? 0),
+                'fqtyterima' => (float) ($d->fqtyterima ?? 0),
                 'fterima' => (float) ($d->fterima ?? 0),
                 'fprice' => (float) ($d->fprice ?? 0),
                 'fdisc' => (float) ($d->fdisc ?? 0),
@@ -1575,6 +1555,7 @@ class Tr_pohController extends Controller
                     DB::raw('COALESCE(r.total_terima, 0) AS fqtyterima'),
                 );
         }])->findOrFail($fpohid);
+        $details = $this->getPoDetailsWithTerimaUsage($tr_poh->fpono);
 
         // Cek apakah PO sudah ada penerimaan barang
         $existingTerima = DB::table('trstockdt')
@@ -1584,12 +1565,6 @@ class Tr_pohController extends Controller
             ->get();
 
         $blockedByTerima = $existingTerima->isNotEmpty();
-
-        $qtyTerimaMap = DB::table('trstockdt')
-            ->where('frefdtno', $tr_poh->fpono)
-            ->select('fprdcode', DB::raw('SUM(fqty) as total_terima'))
-            ->groupBy('fprdcode')
-            ->pluck('total_terima', 'fprdcode');
 
         // Lookup currency berdasarkan fcurrency (integer ID) di tr_poh
         $currentCurrency = DB::table('mscurrency')
@@ -1617,7 +1592,7 @@ class Tr_pohController extends Controller
             ];
         })->toArray();
 
-        $savedItems = $tr_poh->details->map(function ($d) use ($products, $qtyTerimaMap) {
+        $savedItems = $details->map(function ($d) use ($products) {
             $prod = $products->firstWhere('fprdcode', $d->fitemcode);
             $units = $prod
               ? array_values(array_filter([
@@ -1642,7 +1617,7 @@ class Tr_pohController extends Controller
                 'fpono' => (string) ($d->fpono ?? ''),
                 'frefdtid' => (string) ($d->frefdtid ?? ''),
                 'fnouref' => (string) ($d->fnouref ?? ''),
-                'fqtyterima' => (float) ($qtyTerimaMap[$d->fitemcode] ?? $d->fqtyterima ?? 0),
+                'fqtyterima' => (float) ($d->fqtyterima ?? 0),
                 'frefpr' => (string) ($d->fprhid ?? ''),
                 'fprhid' => (string) ($d->fprhid ?? ''),
                 'fprno' => (string) ($d->frefdtno ?? ''),
@@ -1699,6 +1674,41 @@ class Tr_pohController extends Controller
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Gagal menghapus data: '.$e->getMessage());
         }
+    }
+
+    private function getPoDetailsWithTerimaUsage(string $fpono)
+    {
+        return DB::table('tr_pod as d')
+            ->leftJoin('msprd as p', 'p.fprdid', '=', 'd.fprdid')
+            ->leftJoin(
+                DB::raw('(
+                    SELECT
+                        CAST(frefdtid AS BIGINT) AS fpodid,
+                        SUM(COALESCE(fqty, 0)) AS fqtyterima
+                    FROM trstockdt
+                    WHERE
+                        frefdtid IS NOT NULL
+                        AND (fstockmtcode = \'TER\' OR (fcode = \'P\' AND fstockmtcode = \'BUY\'))
+                    GROUP BY CAST(frefdtid AS BIGINT)
+                ) as ter'),
+                fn ($join) => $join->on('ter.fpodid', '=', 'd.fpodid')
+            )
+            ->where('d.fpono', $fpono)
+            ->select([
+                'd.*',
+                'p.fprdcode as fitemcode',
+                'p.fprdname',
+                'p.fsatuankecil',
+                'p.fsatuanbesar',
+                'p.fsatuanbesar2',
+                'p.fqtykecil',
+                'p.fqtykecil2',
+                DB::raw('COALESCE((SELECT pr.fqty FROM tr_prd pr WHERE d.frefdtid IS NOT NULL AND pr.fprdid = CAST(d.frefdtid AS INTEGER) LIMIT 1), 0) as fqtypr'),
+                DB::raw("COALESCE((SELECT pr.fsatuan FROM tr_prd pr WHERE d.frefdtid IS NOT NULL AND pr.fprdid = CAST(d.frefdtid AS INTEGER) LIMIT 1), '') as fqtypr_satuan"),
+                DB::raw('COALESCE(ter.fqtyterima, 0) AS fqtyterima'),
+            ])
+            ->orderBy('d.fnou')
+            ->get();
     }
 
     private function getUsageLockMessage(Tr_poh $header): ?string
