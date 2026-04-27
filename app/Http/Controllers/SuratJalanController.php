@@ -220,92 +220,17 @@ class SuratJalanController extends Controller
         $prefix = sprintf('PO.%s.%s.%s.', $kodeCabang, $date->format('y'), $date->format('m'));
 
         // kunci per (branch, tahun-bulan) — TANPA bikin tabel baru
-        $lockKey = crc32('PO|' . $kodeCabang . '|' . $date->format('Y-m'));
+        $lockKey = crc32('PO|'.$kodeCabang.'|'.$date->format('Y-m'));
         DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
         $last = DB::table('trstockmt')
-            ->where('fstockmtno', 'like', $prefix . '%')
+            ->where('fstockmtno', 'like', $prefix.'%')
             ->selectRaw("MAX(CAST(split_part(fstockmtno, '.', 5) AS int)) AS lastno")
             ->value('lastno');
 
         $next = (int) $last + 1;
 
-        return $prefix . str_pad((string) $next, 4, '0', STR_PAD_LEFT);
-    }
-
-    /**
-     * Sisa SO dinamis dalam satuan kecil.
-     *
-     * @param  array<int, int|string>  $soDetailIds
-     * @return array<int, float>
-     */
-    private function getSoRemainByIds(array $soDetailIds): array
-    {
-        $ids = collect($soDetailIds)
-            ->map(fn($id) => (int) $id)
-            ->filter(fn($id) => $id > 0)
-            ->unique()
-            ->values()
-            ->all();
-
-        if (empty($ids)) {
-            return [];
-        }
-
-        $srjUsed = DB::table('trstockdt')
-            ->selectRaw('CAST(frefsoid AS BIGINT) AS detail_id, SUM(COALESCE(fqtykecil, 0)) AS used_kecil')
-            ->whereNotNull('frefsoid')
-            ->whereIn(DB::raw('CAST(frefsoid AS BIGINT)'), $ids)
-            ->groupBy(DB::raw('CAST(frefsoid AS BIGINT)'));
-
-        $salesUsed = DB::table('trandt')
-            ->selectRaw('CAST(frefsoid AS BIGINT) AS detail_id, SUM(COALESCE(fqtykecil, 0)) AS used_kecil')
-            ->whereNotNull('frefsoid')
-            ->whereIn(DB::raw('CAST(frefsoid AS BIGINT)'), $ids)
-            ->groupBy(DB::raw('CAST(frefsoid AS BIGINT)'));
-
-        return DB::table('trsodt as d')
-            ->leftJoinSub($srjUsed, 'srj', fn($join) => $join->on('srj.detail_id', '=', 'd.ftrsodtid'))
-            ->leftJoinSub($salesUsed, 'sale', fn($join) => $join->on('sale.detail_id', '=', 'd.ftrsodtid'))
-            ->whereIn('d.ftrsodtid', $ids)
-            ->selectRaw('d.ftrsodtid, GREATEST(COALESCE(d.fqtykecil, 0) - COALESCE(srj.used_kecil, 0) - COALESCE(sale.used_kecil, 0), 0) AS remain_kecil')
-            ->pluck('remain_kecil', 'd.ftrsodtid')
-            ->map(fn($value) => (float) $value)
-            ->all();
-    }
-
-    /**
-     * Sisa SRJ dinamis dalam satuan kecil.
-     *
-     * @param  array<int, int|string>  $srjDetailIds
-     * @return array<int, float>
-     */
-    private function getSrjRemainByIds(array $srjDetailIds): array
-    {
-        $ids = collect($srjDetailIds)
-            ->map(fn($id) => (int) $id)
-            ->filter(fn($id) => $id > 0)
-            ->unique()
-            ->values()
-            ->all();
-
-        if (empty($ids)) {
-            return [];
-        }
-
-        $salesUsed = DB::table('trandt')
-            ->selectRaw('CAST(frefsrjid AS BIGINT) AS detail_id, SUM(COALESCE(fqtykecil, 0)) AS used_kecil')
-            ->whereNotNull('frefsrjid')
-            ->whereIn(DB::raw('CAST(frefsrjid AS BIGINT)'), $ids)
-            ->groupBy(DB::raw('CAST(frefsrjid AS BIGINT)'));
-
-        return DB::table('trstockdt as d')
-            ->leftJoinSub($salesUsed, 'sale', fn($join) => $join->on('sale.detail_id', '=', 'd.fstockdtid'))
-            ->whereIn('d.fstockdtid', $ids)
-            ->selectRaw('d.fstockdtid, GREATEST(COALESCE(d.fqtykecil, 0) - COALESCE(sale.used_kecil, 0), 0) AS remain_kecil')
-            ->pluck('remain_kecil', 'd.fstockdtid')
-            ->map(fn($value) => (float) $value)
-            ->all();
+        return $prefix.str_pad((string) $next, 4, '0', STR_PAD_LEFT);
     }
 
     public function print(string $fstockmtno)
@@ -344,7 +269,7 @@ class SuratJalanController extends Controller
                 'p.fprdcode as product_code',
             ]);
 
-        $fmt = fn($d) => $d
+        $fmt = fn ($d) => $d
             ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y')
             : '-';
 
@@ -371,10 +296,10 @@ class SuratJalanController extends Controller
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
         $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
+            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
             ->when(
                 ! is_numeric($raw),
-                fn($q) => $q->where('fcabangkode', $raw)->orWhere('fcabangname', $raw)
+                fn ($q) => $q->where('fcabangkode', $raw)->orWhere('fcabangname', $raw)
             )
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
 
@@ -400,7 +325,7 @@ class SuratJalanController extends Controller
         $productMap = $products->mapWithKeys(function ($p) {
             return [
                 $p->fprdcode => [
-                    'name'  => $p->fprdname,
+                    'name' => $p->fprdname,
                     'units' => array_values(array_filter([
                         $p->fsatuankecil,
                         $p->fsatuanbesar,
@@ -408,8 +333,8 @@ class SuratJalanController extends Controller
                     ])),
                     'stock' => $p->fminstock ?? 0,
                     'unit_ratios' => [           // ← TAMBAH INI
-                        'satuankecil'  => 1,
-                        'satuanbesar'  => (float) ($p->fqtykecil  ?? 1),
+                        'satuankecil' => 1,
+                        'satuanbesar' => (float) ($p->fqtykecil ?? 1),
                         'satuanbesar2' => (float) ($p->fqtykecil2 ?? 1),
                     ],
                 ],
@@ -496,7 +421,7 @@ class SuratJalanController extends Controller
 
         $rowCount = count($codes);
         $uniqueCodes = array_values(array_unique(
-            array_filter(array_map(fn($c) => trim((string) $c), $codes))
+            array_filter(array_map(fn ($c) => trim((string) $c), $codes))
         ));
 
         // =========================
@@ -600,8 +525,10 @@ class SuratJalanController extends Controller
             }
         }
 
-        if (!empty($soUsageByDetailId)) {
-            $soRemainRows = $this->getSoRemainByIds(array_keys($soUsageByDetailId));
+        if (! empty($soUsageByDetailId)) {
+            $soRemainRows = DB::table('trsodt')
+                ->whereIn('ftrsodtid', array_keys($soUsageByDetailId))
+                ->pluck('fqtyremain', 'ftrsodtid');
 
             $soRemainErrors = [];
             foreach ($soUsageByDetailId as $soDetailId => $usedQtyKecil) {
@@ -611,7 +538,7 @@ class SuratJalanController extends Controller
                 }
             }
 
-            if (!empty($soRemainErrors)) {
+            if (! empty($soRemainErrors)) {
                 throw ValidationException::withMessages(['detail' => $soRemainErrors]);
             }
         }
@@ -661,15 +588,15 @@ class SuratJalanController extends Controller
                 // ---- 7.2. Generate nomor transaksi ----
                 if (empty($fstockmtno)) {
                     $prefix = sprintf('%s.%s.%s.%s.', $fstockmtcode, $kodeCabang, $yy, $mm);
-                    $lockKey = crc32('STOCKMT|' . $fstockmtcode . '|' . $kodeCabang . '|' . $fstockmtdate->format('Y-m'));
+                    $lockKey = crc32('STOCKMT|'.$fstockmtcode.'|'.$kodeCabang.'|'.$fstockmtdate->format('Y-m'));
                     DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
                     $last = DB::table('trstockmt')
-                        ->where('fstockmtno', 'like', $prefix . '%')
+                        ->where('fstockmtno', 'like', $prefix.'%')
                         ->selectRaw("MAX(CAST(split_part(fstockmtno, '.', 5) AS int)) AS lastno")
                         ->value('lastno');
                     $next = (int) $last + 1;
-                    $fstockmtno = $prefix . str_pad((string) $next, 4, '0', STR_PAD_LEFT);
+                    $fstockmtno = $prefix.str_pad((string) $next, 4, '0', STR_PAD_LEFT);
                 }
 
                 // ---- 7.3. INSERT HEADER ----
@@ -728,13 +655,18 @@ class SuratJalanController extends Controller
                     DB::table('msprd')
                         ->where('fprdcode', $row['fprdcode'])
                         ->update([
-                            'fminstock'  => DB::raw("CAST(fminstock AS NUMERIC) - " . $row['fqtyremain']),
+                            'fminstock' => DB::raw('CAST(fminstock AS NUMERIC) - '.$row['fqtyremain']),
                             'fupdatedat' => now(),
                         ]);
                 }
 
-                if (!empty($soUsageByDetailId)) {
-                    $remainRows = $this->getSoRemainByIds(array_keys($soUsageByDetailId));
+                // Kurangi sisa qty SO (trsodt.fqtyremain) untuk item hasil Add SO
+                if (! empty($soUsageByDetailId)) {
+                    $lockedRemainRows = DB::table('trsodt')
+                        ->whereIn('ftrsodtid', array_keys($soUsageByDetailId))
+                        ->lockForUpdate()
+                        ->pluck('fqtyremain', 'ftrsodtid');
+
                     foreach ($soUsageByDetailId as $soDetailId => $usedQtyKecil) {
                         $remain = (float) ($remainRows[$soDetailId] ?? 0);
                         if ($usedQtyKecil - $remain > 0.00001) {
@@ -751,23 +683,23 @@ class SuratJalanController extends Controller
                 $fjurnaltype = 'JV';
                 $jurnalPrefix = sprintf('%s.%s.%s.%s.', $fjurnaltype, $kodeCabang, $yy, $mm);
 
-                $jurnalLockKey = crc32('JURNAL|' . $fjurnaltype . '|' . $kodeCabang . '|' . $fstockmtdate->format('Y-m'));
+                $jurnalLockKey = crc32('JURNAL|'.$fjurnaltype.'|'.$kodeCabang.'|'.$fstockmtdate->format('Y-m'));
                 DB::statement('SELECT pg_advisory_xact_lock(?)', [$jurnalLockKey]);
 
                 $lastJurnalNo = DB::table('jurnalmt')
-                    ->where('fjurnalno', 'like', $jurnalPrefix . '%')
+                    ->where('fjurnalno', 'like', $jurnalPrefix.'%')
                     ->selectRaw("MAX(CAST(split_part(fjurnalno, '.', 5) AS int)) AS lastno")
                     ->value('lastno');
 
                 $nextJurnalNo = (int) $lastJurnalNo + 1;
-                $fjurnalno = $jurnalPrefix . str_pad((string) $nextJurnalNo, 4, '0', STR_PAD_LEFT);
+                $fjurnalno = $jurnalPrefix.str_pad((string) $nextJurnalNo, 4, '0', STR_PAD_LEFT);
 
                 $jurnalHeader = [
                     'fbranchcode' => $kodeCabang,
                     'fjurnalno' => $fjurnalno,
                     'fjurnaltype' => $fjurnaltype,
                     'fjurnaldate' => $fstockmtdate,
-                    'fjurnalnote' => 'Jurnal Penerimaan Barang ' . $fstockmtno . ' dari Customer: ' . $fsupplier,
+                    'fjurnalnote' => 'Jurnal Penerimaan Barang '.$fstockmtno.' dari Customer: '.$fsupplier,
                     'fbalance' => $subtotal + $ppnAmount,
                     'fbalance_rp' => ($subtotal + $ppnAmount) * $frate,
                     'fdatetime' => $now,
@@ -796,7 +728,7 @@ class SuratJalanController extends Controller
                     'frate' => $frate,
                     'famount' => $subtotal,
                     'famount_rp' => $subtotalRp,
-                    'faccountnote' => 'Persediaan Barang Dagang ' . $fstockmtno,
+                    'faccountnote' => 'Persediaan Barang Dagang '.$fstockmtno,
                     'fusercreate' => $userid,
                     'fdatetime' => $now,
                 ];
@@ -815,7 +747,7 @@ class SuratJalanController extends Controller
                         'frate' => $frate,
                         'famount' => $ppnAmount,
                         'famount_rp' => $ppnAmount * $frate,
-                        'faccountnote' => 'PPN Masukan ' . $fstockmtno,
+                        'faccountnote' => 'PPN Masukan '.$fstockmtno,
                         'fusercreate' => $userid,
                         'fdatetime' => $now,
                     ];
@@ -835,7 +767,7 @@ class SuratJalanController extends Controller
                     'frate' => $frate,
                     'famount' => $totalHutang,
                     'famount_rp' => $totalHutang * $frate,
-                    'faccountnote' => 'Hutang Dagang Customer ' . $fsupplier . ' (Total Pembelian)',
+                    'faccountnote' => 'Hutang Dagang Customer '.$fsupplier.' (Total Pembelian)',
                     'fusercreate' => $userid,
                     'fdatetime' => $now,
                 ];
@@ -845,7 +777,7 @@ class SuratJalanController extends Controller
         } catch (\Throwable $e) {
 
             return back()->withInput()->withErrors([
-                'detail' => 'Transaksi gagal disimpan: ' . $e->getMessage(),
+                'detail' => 'Transaksi gagal disimpan: '.$e->getMessage(),
             ]);
         }
 
@@ -862,8 +794,8 @@ class SuratJalanController extends Controller
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
         $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn($q) => $q
+            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
+            ->when(! is_numeric($raw), fn ($q) => $q
                 ->where('fcabangkode', $raw)
                 ->orWhere('fcabangname', $raw))
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
@@ -950,7 +882,7 @@ class SuratJalanController extends Controller
         $productMap = $products->mapWithKeys(function ($p) {
             return [
                 $p->fprdcode => [
-                    'name'  => $p->fprdname,
+                    'name' => $p->fprdname,
                     'units' => array_values(array_filter([
                         $p->fsatuankecil,
                         $p->fsatuanbesar,
@@ -958,8 +890,8 @@ class SuratJalanController extends Controller
                     ])),
                     'stock' => $p->fminstock ?? 0,
                     'unit_ratios' => [           // ← TAMBAH INI
-                        'satuankecil'  => 1,
-                        'satuanbesar'  => (float) ($p->fqtykecil  ?? 1),
+                        'satuankecil' => 1,
+                        'satuanbesar' => (float) ($p->fqtykecil ?? 1),
                         'satuanbesar2' => (float) ($p->fqtykecil2 ?? 1),
                     ],
                 ],
@@ -980,7 +912,7 @@ class SuratJalanController extends Controller
             'famountponet' => (float) ($suratjalan->famountponet ?? 0),
             'famountpo' => (float) ($suratjalan->famountpo ?? 0),
             'filterSupplierId' => $request->query('filter_supplier_id'),
-            'isUsageLocked' => !empty($usageLockMessage),
+            'isUsageLocked' => ! empty($usageLockMessage),
             'usageLockMessage' => $usageLockMessage,
             'action' => 'edit',
         ]);
@@ -994,8 +926,8 @@ class SuratJalanController extends Controller
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
         $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn($q) => $q
+            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
+            ->when(! is_numeric($raw), fn ($q) => $q
                 ->where('fcabangkode', $raw)
                 ->orWhere('fcabangname', $raw))
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
@@ -1191,7 +1123,7 @@ class SuratJalanController extends Controller
 
         $rowCount = count($codes);
         $uniqueCodes = array_values(array_unique(
-            array_filter(array_map(fn($c) => trim((string) $c), $codes))
+            array_filter(array_map(fn ($c) => trim((string) $c), $codes))
         ));
 
         // =========================
@@ -1301,8 +1233,10 @@ class SuratJalanController extends Controller
             array_keys($oldSoUsageByDetailId)
         )));
 
-        if (!empty($soIdsToCheck)) {
-            $soRemainRows = $this->getSoRemainByIds($soIdsToCheck);
+        if (! empty($soIdsToCheck)) {
+            $soRemainRows = DB::table('trsodt')
+                ->whereIn('ftrsodtid', $soIdsToCheck)
+                ->pluck('fqtyremain', 'ftrsodtid');
 
             $soRemainErrors = [];
             foreach ($soUsageByDetailId as $soDetailId => $usedQtyKecil) {
@@ -1313,7 +1247,7 @@ class SuratJalanController extends Controller
                 }
             }
 
-            if (!empty($soRemainErrors)) {
+            if (! empty($soRemainErrors)) {
                 throw ValidationException::withMessages(['detail' => $soRemainErrors]);
             }
         }
@@ -1404,13 +1338,26 @@ class SuratJalanController extends Controller
                     DB::table('msprd')
                         ->where('fprdcode', $row['fprdcode'])
                         ->update([
-                            'fminstock'  => DB::raw("CAST(fminstock AS NUMERIC) - " . $row['fqtyremain']),
+                            'fminstock' => DB::raw('CAST(fminstock AS NUMERIC) - '.$row['fqtyremain']),
                             'fupdatedat' => now(),
                         ]);
                 }
 
-                if (!empty($soUsageByDetailId)) {
-                    $dynamicRemainRows = $this->getSoRemainByIds(array_keys($soUsageByDetailId));
+                // Kembalikan dulu pemakaian SO lama saat edit
+                foreach ($oldSoUsageByDetailId as $soDetailId => $oldQtyKecil) {
+                    DB::table('trsodt')
+                        ->where('ftrsodtid', $soDetailId)
+                        ->update([
+                            'fqtyremain' => DB::raw('COALESCE(fqtyremain,0) + '.(float) $oldQtyKecil),
+                        ]);
+                }
+
+                // Kurangi kembali sesuai detail terbaru
+                if (! empty($soUsageByDetailId)) {
+                    $lockedRemainRows = DB::table('trsodt')
+                        ->whereIn('ftrsodtid', array_keys($soUsageByDetailId))
+                        ->lockForUpdate()
+                        ->pluck('fqtyremain', 'ftrsodtid');
 
                     foreach ($soUsageByDetailId as $soDetailId => $usedQtyKecil) {
                         $remain = (float) ($dynamicRemainRows[$soDetailId] ?? 0) + (float) ($oldSoUsageByDetailId[$soDetailId] ?? 0);
@@ -1437,7 +1384,7 @@ class SuratJalanController extends Controller
                     // Update jurnalmt
                     DB::table('jurnalmt')->where('fjurnalmtid', $jurnalmtId)->update([
                         'fjurnaldate' => $fstockmtdate,
-                        'fjurnalnote' => 'Jurnal Penerimaan Barang ' . $fstockmtno . ' dari Customer: ' . $fsupplier,
+                        'fjurnalnote' => 'Jurnal Penerimaan Barang '.$fstockmtno.' dari Customer: '.$fsupplier,
                         'fbalance' => $subtotal + $ppnAmount,
                         'fbalance_rp' => ($subtotal + $ppnAmount) * $frate,
                         'fdatetime' => $now,
@@ -1452,23 +1399,23 @@ class SuratJalanController extends Controller
                 } else {
                     // Buat Jurnal Baru jika belum ada (fallback)
                     $jurnalPrefix = sprintf('%s.%s.%s.%s.', $fjurnaltype, $kodeCabang, $yy, $mm);
-                    $jurnalLockKey = crc32('JURNAL|' . $fjurnaltype . '|' . $kodeCabang . '|' . $fstockmtdate->format('Y-m'));
+                    $jurnalLockKey = crc32('JURNAL|'.$fjurnaltype.'|'.$kodeCabang.'|'.$fstockmtdate->format('Y-m'));
                     DB::statement('SELECT pg_advisory_xact_lock(?)', [$jurnalLockKey]);
 
                     $lastJurnalNo = DB::table('jurnalmt')
-                        ->where('fjurnalno', 'like', $jurnalPrefix . '%')
+                        ->where('fjurnalno', 'like', $jurnalPrefix.'%')
                         ->selectRaw("MAX(CAST(split_part(fjurnalno, '.', 5) AS int)) AS lastno")
                         ->value('lastno');
 
                     $nextJurnalNo = (int) $lastJurnalNo + 1;
-                    $fjurnalno = $jurnalPrefix . str_pad((string) $nextJurnalNo, 4, '0', STR_PAD_LEFT);
+                    $fjurnalno = $jurnalPrefix.str_pad((string) $nextJurnalNo, 4, '0', STR_PAD_LEFT);
 
                     $jurnalHeader = [
                         'fbranchcode' => $kodeCabang,
                         'fjurnalno' => $fjurnalno,
                         'fjurnaltype' => $fjurnaltype,
                         'fjurnaldate' => $fstockmtdate,
-                        'fjurnalnote' => 'Jurnal Penerimaan Barang ' . $fstockmtno . ' dari Customer: ' . $fsupplier,
+                        'fjurnalnote' => 'Jurnal Penerimaan Barang '.$fstockmtno.' dari Customer: '.$fsupplier,
                         'fbalance' => $subtotal + $ppnAmount,
                         'fbalance_rp' => ($subtotal + $ppnAmount) * $frate,
                         'fdatetime' => $now,
@@ -1495,7 +1442,7 @@ class SuratJalanController extends Controller
                         'frate' => $frate,
                         'famount' => $subtotal,
                         'famount_rp' => $subtotalRp,
-                        'faccountnote' => 'Persediaan Barang Dagang ' . $fstockmtno,
+                        'faccountnote' => 'Persediaan Barang Dagang '.$fstockmtno,
                         'fusercreate' => $userid,
                         'fdatetime' => $now,
                     ];
@@ -1514,7 +1461,7 @@ class SuratJalanController extends Controller
                             'frate' => $frate,
                             'famount' => $ppnAmount,
                             'famount_rp' => $ppnAmount * $frate,
-                            'faccountnote' => 'PPN Masukan ' . $fstockmtno,
+                            'faccountnote' => 'PPN Masukan '.$fstockmtno,
                             'fusercreate' => $userid,
                             'fdatetime' => $now,
                         ];
@@ -1534,7 +1481,7 @@ class SuratJalanController extends Controller
                         'frate' => $frate,
                         'famount' => $totalHutang,
                         'famount_rp' => $totalHutang * $frate,
-                        'faccountnote' => 'Hutang Dagang Customer ' . $fsupplier . ' (Total Pembelian)',
+                        'faccountnote' => 'Hutang Dagang Customer '.$fsupplier.' (Total Pembelian)',
                         'fusercreate' => $userid,
                         'fdatetime' => $now,
                     ];
@@ -1544,7 +1491,7 @@ class SuratJalanController extends Controller
             });
         } catch (\Throwable $e) {
             return back()->withInput()->withErrors([
-                'detail' => 'Transaksi gagal diperbarui: ' . $e->getMessage(),
+                'detail' => 'Transaksi gagal diperbarui: '.$e->getMessage(),
             ]);
         }
 
@@ -1561,8 +1508,8 @@ class SuratJalanController extends Controller
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
         $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn($q) => $q
+            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
+            ->when(! is_numeric($raw), fn ($q) => $q
                 ->where('fcabangkode', $raw)
                 ->orWhere('fcabangname', $raw))
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
@@ -1668,7 +1615,7 @@ class SuratJalanController extends Controller
             'famountponet' => (float) ($suratjalan->famountponet ?? 0),
             'famountpo' => (float) ($suratjalan->famountpo ?? 0),
             'filterSupplierId' => $request->query('filter_supplier_id'),
-            'isUsageLocked' => !empty($usageLockMessage),
+            'isUsageLocked' => ! empty($usageLockMessage),
             'usageLockMessage' => $usageLockMessage,
             'action' => 'delete',
         ]);
@@ -1684,6 +1631,28 @@ class SuratJalanController extends Controller
             }
 
             DB::transaction(function () use ($suratjalan) {
+                $oldSoUsageRows = DB::table('trstockdt')
+                    ->where('fstockmtno', $suratjalan->fstockmtno)
+                    ->whereNotNull('frefsoid')
+                    ->select('frefsoid', DB::raw('SUM(COALESCE(fqtykecil, 0)) as used_qty_kecil'))
+                    ->groupBy('frefsoid')
+                    ->get();
+
+                foreach ($oldSoUsageRows as $row) {
+                    $detailId = (int) ($row->frefsoid ?? 0);
+                    $qtyKecil = (float) ($row->used_qty_kecil ?? 0);
+
+                    if ($detailId <= 0 || $qtyKecil <= 0) {
+                        continue;
+                    }
+
+                    DB::table('trsodt')
+                        ->where('ftrsodtid', $detailId)
+                        ->update([
+                            'fqtyremain' => DB::raw('COALESCE(fqtyremain,0) + '.$qtyKecil),
+                        ]);
+                }
+
                 DB::table('trstockdt')
                     ->where('fstockmtno', $suratjalan->fstockmtno)
                     ->delete();
@@ -1691,10 +1660,10 @@ class SuratJalanController extends Controller
                 $suratjalan->delete();
             });
 
-            return redirect()->route('suratjalan.index')->with('success', 'Data Surat Jalan ' . $suratjalan->fstockmtno . ' berhasil dihapus.');
+            return redirect()->route('suratjalan.index')->with('success', 'Data Surat Jalan '.$suratjalan->fstockmtno.' berhasil dihapus.');
         } catch (\Exception $e) {
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
-            return redirect()->route('suratjalan.delete', $fstockmtid)->with('error', 'Gagal menghapus data: ' . $e->getMessage());
+            return redirect()->route('suratjalan.delete', $fstockmtid)->with('error', 'Gagal menghapus data: '.$e->getMessage());
         }
     }
 
@@ -1714,20 +1683,20 @@ class SuratJalanController extends Controller
             ->pluck('mt.fsono');
 
         $parts = [];
-        $usedByInvoice = $usedBySalesDocs->filter(fn($no) => str_starts_with((string) $no, 'INV.'));
+        $usedByInvoice = $usedBySalesDocs->filter(fn ($no) => str_starts_with((string) $no, 'INV.'));
         if ($usedByInvoice->isNotEmpty()) {
-            $parts[] = 'Faktur Penjualan: ' . $usedByInvoice->implode(', ');
+            $parts[] = 'Faktur Penjualan: '.$usedByInvoice->implode(', ');
         }
 
-        $usedByRetur = $usedBySalesDocs->filter(fn($no) => str_starts_with((string) $no, 'REJ.'));
+        $usedByRetur = $usedBySalesDocs->filter(fn ($no) => str_starts_with((string) $no, 'REJ.'));
         if ($usedByRetur->isNotEmpty()) {
-            $parts[] = 'Retur Penjualan: ' . $usedByRetur->implode(', ');
+            $parts[] = 'Retur Penjualan: '.$usedByRetur->implode(', ');
         }
 
         if (empty($parts)) {
             return null;
         }
 
-        return 'Surat Jalan ' . $fstockmtno . ' tidak dapat diubah atau dihapus karena sudah digunakan pada ' . implode('; ', $parts) . '.';
+        return 'Surat Jalan '.$fstockmtno.' tidak dapat diubah atau dihapus karena sudah digunakan pada '.implode('; ', $parts).'.';
     }
 }

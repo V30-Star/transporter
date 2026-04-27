@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Sysuser;
 use App\Models\RoleAccess;
+use App\Models\Sysuser;
 use Illuminate\Http\Request;
 
 class RoleAccessController extends Controller
@@ -26,8 +26,8 @@ class RoleAccessController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'fuid'        => 'required|exists:sysuser,fuid',
-            'permission'  => 'nullable|array',
+            'fuid' => 'required|exists:sysuser,fuid',
+            'permission' => 'nullable|array',
         ]);
 
         $user = Sysuser::findOrFail($request->fuid);
@@ -49,7 +49,7 @@ class RoleAccessController extends Controller
         } else {
             if ($restrictedPermissions !== null) {
                 RoleAccess::create([
-                    'fusercreate'     => $user->fuid,      // relasi ke Sysuser.fuid
+                    'fusercreate' => $user->fuid,      // relasi ke Sysuser.fuid
                     'fpermission' => $restrictedPermissions,
                 ]);
             }
@@ -70,7 +70,7 @@ class RoleAccessController extends Controller
         return response()->json([
             'permissions' => $ra && $ra->fpermission
                 ? array_filter(array_map('trim', explode(',', $ra->fpermission)))
-                : []
+                : [],
         ]);
     }
 
@@ -81,8 +81,8 @@ class RoleAccessController extends Controller
     {
         $request->validate([
             'source_fuid' => 'required|exists:sysuser,fuid',
-            'fuid'        => 'required|exists:sysuser,fuid', // target
-            'fusercreate'     => 'required',                      // target fsysuserid (untuk disimpan bila perlu)
+            'fuid' => 'required|exists:sysuser,fuid', // target
+            'fusercreate' => 'required',                      // target fsysuserid (untuk disimpan bila perlu)
         ]);
 
         // Ambil permission dari sumber

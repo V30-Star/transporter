@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
-use OpenSpout\Writer\XLSX\Writer;
-use OpenSpout\Common\Entity\Row;
 use OpenSpout\Common\Entity\Cell;
+use OpenSpout\Common\Entity\Row;
 use OpenSpout\Common\Entity\Style\Style;
+use OpenSpout\Writer\XLSX\Writer;
 
 class ListingSOController extends Controller
 {
@@ -27,8 +27,12 @@ class ListingSOController extends Controller
             ->leftJoin('public.mssalesman as sls', 'mt.fsalesman', '=', 'sls.fsalesmanid')
             ->select('mt.*', 'cust.fcustomercode', 'cust.fcustomername', 'sls.fsalesmanname');
 
-        if ($request->date_from) $query->where('mt.fsodate', '>=', $request->date_from);
-        if ($request->date_to) $query->where('mt.fsodate', '<=', $request->date_to . ' 23:59:59');
+        if ($request->date_from) {
+            $query->where('mt.fsodate', '>=', $request->date_from);
+        }
+        if ($request->date_to) {
+            $query->where('mt.fsodate', '<=', $request->date_to.' 23:59:59');
+        }
 
         if ($request->cust_from && $request->cust_to) {
             $query->whereBetween('cust.fcustomercode', [$request->cust_from, $request->cust_to]);
@@ -43,7 +47,7 @@ class ListingSOController extends Controller
             });
         }
 
-        if (!$request->has('all_so') && $request->has('only_pending')) {
+        if (! $request->has('all_so') && $request->has('only_pending')) {
             $query->where('mt.fclose', '0');
         }
 
@@ -61,7 +65,7 @@ class ListingSOController extends Controller
             'chunkedData' => $chunkedData,
             'totalPages' => $chunkedData->count(),
             'totalFaktur' => $totalFaktur,
-            'user_session' => auth()->user()
+            'user_session' => auth()->user(),
         ]);
     }
 
@@ -72,8 +76,12 @@ class ListingSOController extends Controller
             ->leftJoin('public.mssalesman as sls', 'mt.fsalesman', '=', 'sls.fsalesmanid')
             ->select('mt.*', 'cust.fcustomercode', 'cust.fcustomername', 'sls.fsalesmanname');
 
-        if ($request->date_from) $query->where('mt.fsodate', '>=', $request->date_from);
-        if ($request->date_to) $query->where('mt.fsodate', '<=', $request->date_to . ' 23:59:59');
+        if ($request->date_from) {
+            $query->where('mt.fsodate', '>=', $request->date_from);
+        }
+        if ($request->date_to) {
+            $query->where('mt.fsodate', '<=', $request->date_to.' 23:59:59');
+        }
 
         if ($request->cust_from && $request->cust_to) {
             $query->whereBetween('cust.fcustomercode', [$request->cust_from, $request->cust_to]);
@@ -88,7 +96,7 @@ class ListingSOController extends Controller
             });
         }
 
-        if (!$request->has('all_so') && $request->has('only_pending')) {
+        if (! $request->has('all_so') && $request->has('only_pending')) {
             $query->where('mt.fclose', '0');
         }
 
@@ -98,24 +106,25 @@ class ListingSOController extends Controller
             $row->details = DB::table('public.trsodt as dt')->where('dt.fsono', $row->fsono)->get();
         }
 
-        $filename = "Listing_SO_" . date('YmdHis') . ".xlsx";
+        $filename = 'Listing_SO_'.date('YmdHis').'.xlsx';
         $tempFile = tempnam(sys_get_temp_dir(), 'xlsx_');
 
-        $writer = new Writer();
+        $writer = new Writer;
         $writer->openToFile($tempFile);
 
         // --- Styles ---
-        $styleTitle      = new Style(fontBold: true, fontSize: 14);
-        $styleHeader     = new Style(fontBold: true, backgroundColor: 'D3D3D3');
-        $styleMaster     = new Style(fontBold: true);
-        $styleDetail     = new Style(fontColor: '0000FF'); // biru untuk detail
+        $styleTitle = new Style(fontBold: true, fontSize: 14);
+        $styleHeader = new Style(fontBold: true, backgroundColor: 'D3D3D3');
+        $styleMaster = new Style(fontBold: true);
+        $styleDetail = new Style(fontColor: '0000FF'); // biru untuk detail
         $styleGrandTotal = new Style(fontBold: true, backgroundColor: '333333', fontColor: 'FFFFFF');
 
         $makeRow = function (array $values, ?Style $style = null): Row {
             $cells = array_map(
-                fn($value) => $style ? Cell::fromValue($value, $style) : Cell::fromValue($value),
+                fn ($value) => $style ? Cell::fromValue($value, $style) : Cell::fromValue($value),
                 $values
             );
+
             return new Row($cells);
         };
 
@@ -124,12 +133,12 @@ class ListingSOController extends Controller
         $writer->addRow($makeRow([
             'Customer:',
             $request->cust_from
-                ? '[' . $request->cust_from . '] s/d [' . $request->cust_to . ']'
-                : 'Semua'
+                ? '['.$request->cust_from.'] s/d ['.$request->cust_to.']'
+                : 'Semua',
         ]));
         $writer->addRow($makeRow([
             'Periode:',
-            ($request->date_from ?? '...') . ' s/d ' . ($request->date_to ?? '...')
+            ($request->date_from ?? '...').' s/d '.($request->date_to ?? '...'),
         ]));
         $writer->addRow($makeRow([]));
 
@@ -197,7 +206,7 @@ class ListingSOController extends Controller
             '',
             '',
             '',
-            ''
+            '',
         ], $styleGrandTotal));
 
         $writer->close();

@@ -168,13 +168,13 @@ class ProductController extends Controller
         $paddedMerekId = str_pad($merekId, 3, '0', STR_PAD_LEFT);
 
         // 2. Buat prefix untuk pencarian (e.g., "001.002.")
-        $prefix = $paddedGroupId . '.' . $paddedMerekId . '.';
+        $prefix = $paddedGroupId.'.'.$paddedMerekId.'.';
         $prefixLength = strlen($prefix);
 
         // 3. Cari kode terakhir dengan prefix yang sama
-        $lastCode = Product::where('fprdcode', 'like', $prefix . '%')
+        $lastCode = Product::where('fprdcode', 'like', $prefix.'%')
             // Urutkan berdasarkan angka di belakang prefix
-            ->orderByRaw('CAST(SUBSTRING(fprdcode FROM ' . ($prefixLength + 1) . ') AS INTEGER) DESC')
+            ->orderByRaw('CAST(SUBSTRING(fprdcode FROM '.($prefixLength + 1).') AS INTEGER) DESC')
             ->value('fprdcode');
 
         // 4. Jika tidak ditemukan, mulai dari 1
@@ -190,7 +190,7 @@ class ProductController extends Controller
 
         // 6. Kembalikan kode baru dengan padding 6 digit untuk sequence
         // e.g., "001.002.000006"
-        return $prefix . str_pad($newNumber, 6, '0', STR_PAD_LEFT);
+        return $prefix.str_pad($newNumber, 6, '0', STR_PAD_LEFT);
     }
 
     public function create()
@@ -266,9 +266,12 @@ class ProductController extends Controller
 
             // Sanitasi Numeric: Pastikan mengembalikan 0 jika input kosong (Penting untuk PostgreSQL)
             $sanitizeNumeric = function ($value) {
-                if ($value === null || $value === '') return 0;
+                if ($value === null || $value === '') {
+                    return 0;
+                }
                 $clean = preg_replace('/[^0-9.]/', '', $value);
-                return (is_numeric($clean)) ? (float)$clean : 0;
+
+                return (is_numeric($clean)) ? (float) $clean : 0;
             };
 
             $numericFields = [
@@ -283,7 +286,7 @@ class ProductController extends Controller
                 'fhargajual2level3',
                 'fhargajual3level1',
                 'fhargajual3level2',
-                'fhargajual3level3'
+                'fhargajual3level3',
             ];
 
             foreach ($numericFields as $field) {
@@ -296,7 +299,7 @@ class ProductController extends Controller
             $validated['fcreatedat'] = now();
             $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
 
-            $googleDriveService = new \App\Services\GoogleDriveService();
+            $googleDriveService = new \App\Services\GoogleDriveService;
             foreach (['fimage1', 'fimage2', 'fimage3'] as $imageField) {
                 if ($request->hasFile($imageField) && $request->file($imageField)->isValid()) {
                     try {
@@ -306,7 +309,7 @@ class ProductController extends Controller
                         }
                     } catch (\Exception $e) {
                         // Hanya mencatat error upload saja agar tidak membingungkan
-                        \Log::error("Upload $imageField Failed: " . $e->getMessage());
+                        \Log::error("Upload $imageField Failed: ".$e->getMessage());
                     }
                 }
             }
@@ -319,9 +322,10 @@ class ProductController extends Controller
         } catch (\Illuminate\Validation\ValidationException $v) {
             throw $v;
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Terjadi kesalahan sistem: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Terjadi kesalahan sistem: '.$e->getMessage());
         }
     }
+
     public function edit($id)
     {
         $product = Product::findOrFail($id);
@@ -425,9 +429,12 @@ class ProductController extends Controller
 
         // Fungsi pembantu untuk mencegah string kosong pada PostgreSQL Numeric
         $sanitizeNumeric = function ($value) {
-            if ($value === null || $value === '') return 0;
+            if ($value === null || $value === '') {
+                return 0;
+            }
             $clean = preg_replace('/[^0-9.]/', '', $value);
-            return (is_numeric($clean)) ? (float)$clean : 0;
+
+            return (is_numeric($clean)) ? (float) $clean : 0;
         };
 
         // Daftar field yang harus disanitasi
@@ -446,7 +453,7 @@ class ProductController extends Controller
             'fhargajual3level3',
             'fqtykecil',
             'fqtykecil2',
-            'fminstock'
+            'fminstock',
         ];
 
         foreach ($numericFields as $field) {
@@ -464,7 +471,7 @@ class ProductController extends Controller
         foreach (['fimage1', 'fimage2', 'fimage3'] as $imageField) {
             if ($request->hasFile($imageField) && $request->file($imageField)->isValid()) {
                 try {
-                    if (!empty($product->{$imageField})) {
+                    if (! empty($product->{$imageField})) {
                         $oldFileId = $this->normalizeGoogleDriveFileId($product->{$imageField});
                         if ($oldFileId) {
                             $googleDriveService->deleteImage($oldFileId);
@@ -476,7 +483,7 @@ class ProductController extends Controller
                         $validated[$imageField] = $fileId;
                     }
                 } catch (\Exception $e) {
-                    return redirect()->back()->with('error', 'Terjadi kesalahan sistem: ' . $e->getMessage());
+                    return redirect()->back()->with('error', 'Terjadi kesalahan sistem: '.$e->getMessage());
                 }
             }
         }
@@ -519,7 +526,7 @@ class ProductController extends Controller
                 'message' => 'Foto product berhasil dihapus.',
             ]);
         } catch (\Exception $e) {
-            \Log::error('Delete product photo failed: ' . $e->getMessage());
+            \Log::error('Delete product photo failed: '.$e->getMessage());
 
             return response()->json([
                 'message' => 'Gagal menghapus foto product.',
@@ -555,11 +562,11 @@ class ProductController extends Controller
 
             return response($imageData['content'], 200, [
                 'Content-Type' => $imageData['mimeType'] ?? 'application/octet-stream',
-                'Content-Disposition' => 'inline; filename="' . ($imageData['name'] ?? 'product-image') . '"',
+                'Content-Disposition' => 'inline; filename="'.($imageData['name'] ?? 'product-image').'"',
                 'Cache-Control' => 'private, max-age=300',
             ]);
         } catch (\Exception $e) {
-            \Log::error('Product photo preview failed: ' . $e->getMessage());
+            \Log::error('Product photo preview failed: '.$e->getMessage());
             abort(500);
         }
     }
@@ -592,9 +599,9 @@ class ProductController extends Controller
 
             $product->delete();
 
-            return response()->json(['message' => 'Data produk ' . $product->fprdname . ' berhasil dihapus.']);
+            return response()->json(['message' => 'Data produk '.$product->fprdname.' berhasil dihapus.']);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Gagal menghapus: ' . $e->getMessage()], 500);
+            return response()->json(['message' => 'Gagal menghapus: '.$e->getMessage()], 500);
         }
     }
 

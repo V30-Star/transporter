@@ -4,17 +4,17 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use OpenSpout\Writer\XLSX\Writer;
-use OpenSpout\Common\Entity\Row;
 use OpenSpout\Common\Entity\Cell;
+use OpenSpout\Common\Entity\Row;
 use OpenSpout\Common\Entity\Style\Style;
+use OpenSpout\Writer\XLSX\Writer;
 
 class ListingPenjualanController extends Controller
 {
     public function index()
     {
-        $groups   = DB::table('ms_groupprd')->get();
-        $mereks   = DB::table('msmerek')->get();
+        $groups = DB::table('ms_groupprd')->get();
+        $mereks = DB::table('msmerek')->get();
         $salesmans = DB::table('mssalesman')->get();
 
         return view('listingpenjualan.index', compact('groups', 'mereks', 'salesmans'));
@@ -61,17 +61,37 @@ class ListingPenjualanController extends Controller
                 DB::raw('ROUND(m.ftotalsalesnet) as famountgross'),
                 DB::raw('d.fsalesnet * d.fqty as famount')
             );
-            
-        if ($request->date_from)   $query->where('m.fsodate', '>=', $request->date_from);
-        if ($request->date_to)     $query->where('m.fsodate', '<=', $request->date_to);
-        if ($request->prd_from)    $query->where('d.fprdcode', '>=', $request->prd_from);
-        if ($request->prd_to)      $query->where('d.fprdcode', '<=', $request->prd_to);
-        if ($request->cust_from)   $query->where('m.fcustno', '>=', $request->cust_from);
-        if ($request->cust_to)     $query->where('m.fcustno', '<=', $request->cust_to);
-        if ($request->group_code)  $query->where('p.fgroupcode', $request->group_code);
-        if ($request->merek_code)  $query->where('p.fmerek', $request->merek_code);
-        if ($request->salesman)    $query->where('m.fsalesman', $request->salesman);
-        if ($request->has('belum_kirim')) $query->where('d.fqtyremain', '>', 0);
+
+        if ($request->date_from) {
+            $query->where('m.fsodate', '>=', $request->date_from);
+        }
+        if ($request->date_to) {
+            $query->where('m.fsodate', '<=', $request->date_to);
+        }
+        if ($request->prd_from) {
+            $query->where('d.fprdcode', '>=', $request->prd_from);
+        }
+        if ($request->prd_to) {
+            $query->where('d.fprdcode', '<=', $request->prd_to);
+        }
+        if ($request->cust_from) {
+            $query->where('m.fcustno', '>=', $request->cust_from);
+        }
+        if ($request->cust_to) {
+            $query->where('m.fcustno', '<=', $request->cust_to);
+        }
+        if ($request->group_code) {
+            $query->where('p.fgroupcode', $request->group_code);
+        }
+        if ($request->merek_code) {
+            $query->where('p.fmerek', $request->merek_code);
+        }
+        if ($request->salesman) {
+            $query->where('m.fsalesman', $request->salesman);
+        }
+        if ($request->has('belum_kirim')) {
+            $query->where('d.fqtyremain', '>', 0);
+        }
 
         return $query->orderBy('m.fsono')->orderBy('d.fnou');
     }
@@ -82,18 +102,18 @@ class ListingPenjualanController extends Controller
     public function print(Request $request)
     {
         $results = $this->buildQuery($request)->get();
-        $type    = $request->display_type;
+        $type = $request->display_type;
 
         $groupedData = $results->groupBy('fsono');
-        $perPage     = ($type == 'detail') ? 4 : 15;
+        $perPage = ($type == 'detail') ? 4 : 15;
         $chunkedData = $groupedData->chunk($perPage);
 
         return view('listingpenjualan.print', [
-            'chunkedData'  => $chunkedData,
-            'totalPages'   => $chunkedData->count(),
-            'type'         => $type,
+            'chunkedData' => $chunkedData,
+            'totalPages' => $chunkedData->count(),
+            'type' => $type,
             'user_session' => auth()->user(),
-            'request'      => $request,
+            'request' => $request,
         ]);
     }
 
@@ -103,28 +123,28 @@ class ListingPenjualanController extends Controller
     public function exportExcel(Request $request)
     {
         $results = $this->buildQuery($request)->get();
-        $type    = $request->display_type ?? 'rekap';
+        $type = $request->display_type ?? 'rekap';
         $grouped = $results->groupBy('fsono');
 
-        $filename = 'listing_penjualan_' . date('Ymd_His') . '.xlsx';
+        $filename = 'listing_penjualan_'.date('Ymd_His').'.xlsx';
 
         // ── Style preset (named constructor args, sama seperti ListingPenerimaan) ──────
-        $styleTitle     = new Style(fontBold: true,  fontColor: 'C00000');
-        $styleInfo      = new Style();
-        $styleColHeader = new Style(fontBold: true,  backgroundColor: 'D3D3D3');
-        $styleDetHeader = new Style(fontBold: true,  fontColor: 'C00000', backgroundColor: 'FFE6E6');
+        $styleTitle = new Style(fontBold: true, fontColor: 'C00000');
+        $styleInfo = new Style;
+        $styleColHeader = new Style(fontBold: true, backgroundColor: 'D3D3D3');
+        $styleDetHeader = new Style(fontBold: true, fontColor: 'C00000', backgroundColor: 'FFE6E6');
         $styleInvHeader = new Style(fontBold: true);
-        $styleDetail    = new Style(fontColor: 'C00000');
-        $styleFooter    = new Style(fontBold: true,  backgroundColor: '333333', fontColor: 'FFFFFF');
+        $styleDetail = new Style(fontColor: 'C00000');
+        $styleFooter = new Style(fontBold: true, backgroundColor: '333333', fontColor: 'FFFFFF');
 
         // ── Buat writer ───────────────────────────────────────────
         $tempFile = tempnam(sys_get_temp_dir(), 'xlsx_');
-        $writer   = new Writer();
+        $writer = new Writer;
         $writer->openToFile($tempFile);
 
         $makeRow = function (array $values, ?Style $style = null) use ($writer): void {
             $cells = array_map(
-                fn($value) => $style ? Cell::fromValue($value, $style) : Cell::fromValue($value),
+                fn ($value) => $style ? Cell::fromValue($value, $style) : Cell::fromValue($value),
                 $values
             );
             $writer->addRow(new Row($cells));
@@ -132,13 +152,13 @@ class ListingPenjualanController extends Controller
 
         // ── Baris judul & info ────────────────────────────────────
         $periodeFrom = $request->date_from ?? '...';
-        $periodeTo   = $request->date_to   ?? '...';
-        $customer    = $request->cust_from ? '[' . $request->cust_from . ']' : 'Semua';
-        $operator    = auth()->user()->fname ?? 'admin';
+        $periodeTo = $request->date_to ?? '...';
+        $customer = $request->cust_from ? '['.$request->cust_from.']' : 'Semua';
+        $operator = auth()->user()->fname ?? 'admin';
 
         $makeRow(['LISTING PENJUALAN'], $styleTitle);
         $makeRow(["Periode: {$periodeFrom} s/d {$periodeTo}"], $styleInfo);
-        $makeRow(["Customer: {$customer}", '', '', '', '', '', '', 'Tanggal: ' . date('d/m/Y'), '', 'Opr: ' . $operator], $styleInfo);
+        $makeRow(["Customer: {$customer}", '', '', '', '', '', '', 'Tanggal: '.date('d/m/Y'), '', 'Opr: '.$operator], $styleInfo);
         $makeRow([]);   // baris kosong
 
         // ── Header kolom utama ────────────────────────────────────
@@ -154,7 +174,7 @@ class ListingPenjualanController extends Controller
                 'Qty.Jual',
                 '@Harga',
                 'Disc%',
-                'Jumlah'
+                'Jumlah',
             ]);
         }
 

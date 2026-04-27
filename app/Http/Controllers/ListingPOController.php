@@ -2,58 +2,60 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
-use OpenSpout\Writer\XLSX\Writer;
-use OpenSpout\Common\Entity\Row;
 use OpenSpout\Common\Entity\Cell;
+use OpenSpout\Common\Entity\Row;
 use OpenSpout\Common\Entity\Style\Style;
+use OpenSpout\Writer\XLSX\Writer;
 
 class ListingPOController extends Controller
 {
     public function index()
     {
         $suppliers = DB::table('mssupplier')->orderBy('fsuppliercode')->get();
+
         return view('listingpo.index', compact('suppliers'));
     }
 
     public function print(Request $request)
     {
-        $results     = $this->getRawData($request);
+        $results = $this->getRawData($request);
         $groupedData = $results->groupBy('fpono');
         $chunkedData = $groupedData->chunk(4);
 
         return view('listingpo.print', [
-            'chunkedData'  => $chunkedData,
-            'totalPages'   => $chunkedData->count(),
-            'user_session' => auth()->user()
+            'chunkedData' => $chunkedData,
+            'totalPages' => $chunkedData->count(),
+            'user_session' => auth()->user(),
         ]);
     }
 
     public function exportExcel(Request $request)
     {
-        $results     = $this->getRawData($request);
+        $results = $this->getRawData($request);
         $groupedData = $results->groupBy('fpono');
 
-        $filename = "Listing_PO_" . date('YmdHis') . ".xlsx";
+        $filename = 'Listing_PO_'.date('YmdHis').'.xlsx';
         $tempFile = tempnam(sys_get_temp_dir(), 'xlsx_');
 
-        $writer = new Writer();
+        $writer = new Writer;
         $writer->openToFile($tempFile);
 
         // --- Styles ---
-        $styleTitle      = new Style(fontBold: true, fontSize: 14);
-        $styleHeader     = new Style(fontBold: true, backgroundColor: 'D3D3D3');
-        $styleMaster     = new Style(fontBold: true);
-        $styleDetail     = new Style(fontColor: 'CC0000');
+        $styleTitle = new Style(fontBold: true, fontSize: 14);
+        $styleHeader = new Style(fontBold: true, backgroundColor: 'D3D3D3');
+        $styleMaster = new Style(fontBold: true);
+        $styleDetail = new Style(fontColor: 'CC0000');
         $styleGrandTotal = new Style(fontBold: true, backgroundColor: '333333', fontColor: 'FFFFFF');
 
         $makeRow = function (array $values, ?Style $style = null): Row {
             $cells = array_map(
-                fn($value) => $style ? Cell::fromValue($value, $style) : Cell::fromValue($value),
+                fn ($value) => $style ? Cell::fromValue($value, $style) : Cell::fromValue($value),
                 $values
             );
+
             return new Row($cells);
         };
 
@@ -62,12 +64,12 @@ class ListingPOController extends Controller
         $writer->addRow($makeRow([
             'Supplier:',
             $request->sup_from
-                ? '[' . $request->sup_from . '] s/d [' . $request->sup_to . ']'
-                : 'Semua'
+                ? '['.$request->sup_from.'] s/d ['.$request->sup_to.']'
+                : 'Semua',
         ]));
         $writer->addRow($makeRow([
             'Periode:',
-            ($request->date_from ?? '...') . ' s/d ' . ($request->date_to ?? '...')
+            ($request->date_from ?? '...').' s/d '.($request->date_to ?? '...'),
         ]));
         $writer->addRow($makeRow([]));
 
@@ -88,20 +90,20 @@ class ListingPOController extends Controller
             'Total Amount',
         ], $styleHeader));
 
-        $totalQtyPO     = 0;
+        $totalQtyPO = 0;
         $totalQtyTerima = 0;
-        $totalAmount    = 0;
+        $totalAmount = 0;
 
         foreach ($groupedData as $fpono => $details) {
-            $h       = $details->first();
+            $h = $details->first();
             $isFirst = true;
 
             foreach ($details as $d) {
                 $sisa = (float) $d->fqty - (float) $d->fqtyterima;
 
-                $totalQtyPO     += (float) $d->fqty;
+                $totalQtyPO += (float) $d->fqty;
                 $totalQtyTerima += (float) $d->fqtyterima;
-                $totalAmount    += (float) $d->famount;
+                $totalAmount += (float) $d->famount;
 
                 $writer->addRow($makeRow([
                     $isFirst ? $h->fpono : '',
@@ -186,14 +188,18 @@ class ListingPOController extends Controller
                 DB::raw('COALESCE(ter.fqtyterima, 0) as fqtyterima')
             );
 
-        if ($request->date_from) $query->where('h.fpodate', '>=', $request->date_from);
-        if ($request->date_to)   $query->where('h.fpodate', '<=', $request->date_to);
+        if ($request->date_from) {
+            $query->where('h.fpodate', '>=', $request->date_from);
+        }
+        if ($request->date_to) {
+            $query->where('h.fpodate', '<=', $request->date_to);
+        }
 
         if ($request->sup_from && $request->sup_to) {
             $query->whereBetween('s.fsuppliercode', [$request->sup_from, $request->sup_to]);
         }
 
-        if (!$request->has('all_po') && $request->has('only_pending')) {
+        if (! $request->has('all_po') && $request->has('only_pending')) {
             $query->whereRaw('d.fqty > COALESCE(ter.fqtyterima, 0)')->where('h.fclose', '0');
         }
 
