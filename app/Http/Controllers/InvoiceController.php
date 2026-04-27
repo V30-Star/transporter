@@ -527,24 +527,20 @@ class InvoiceController extends Controller
 
         $remainErrors = [];
         if (! empty($soUsageByDetailId)) {
-            $soRemainRows = DB::table('trsodt')
-                ->whereIn('ftrsodtid', array_keys($soUsageByDetailId))
-                ->pluck('fqtyremain', 'ftrsodtid');
+            $soRemainRows = $this->getSoRemainByIds(array_keys($soUsageByDetailId));
             foreach ($soUsageByDetailId as $detailId => $usedQty) {
                 $remain = (float) ($soRemainRows[$detailId] ?? 0);
                 if ($usedQty - $remain > 0.00001) {
-                    $remainErrors[] = "Qty SO detail #{$detailId} melebihi sisa (fqtyremain). Input: {$usedQty}, sisa: {$remain}.";
+                    $remainErrors[] = "Qty SO detail #{$detailId} melebihi sisa. Input: {$usedQty}, sisa: {$remain}.";
                 }
             }
         }
         if (! empty($srjUsageByDetailId)) {
-            $srjRemainRows = DB::table('trstockdt')
-                ->whereIn('fstockdtid', array_keys($srjUsageByDetailId))
-                ->pluck('fqtyremain', 'fstockdtid');
+            $srjRemainRows = $this->getSrjRemainByIds(array_keys($srjUsageByDetailId));
             foreach ($srjUsageByDetailId as $detailId => $usedQty) {
                 $remain = (float) ($srjRemainRows[$detailId] ?? 0);
                 if ($usedQty - $remain > 0.00001) {
-                    $remainErrors[] = "Qty SRJ detail #{$detailId} melebihi sisa (fqtyremain). Input: {$usedQty}, sisa: {$remain}.";
+                    $remainErrors[] = "Qty SRJ detail #{$detailId} melebihi sisa. Input: {$usedQty}, sisa: {$remain}.";
                 }
             }
         }
@@ -611,30 +607,22 @@ class InvoiceController extends Controller
                 DB::table('trandt')->insert($detailRows);
 
                 if (! empty($soUsageByDetailId)) {
-                    $lockedSoRemainRows = DB::table('trsodt')
-                        ->whereIn('ftrsodtid', array_keys($soUsageByDetailId))
-                        ->lockForUpdate()
-                        ->pluck('fqtyremain', 'ftrsodtid');
+                    $remainRows = $this->getSoRemainByIds(array_keys($soUsageByDetailId));
                     foreach ($soUsageByDetailId as $detailId => $usedQty) {
-                        $remain = (float) ($lockedSoRemainRows[$detailId] ?? 0);
+                        $remain = (float) ($remainRows[$detailId] ?? 0);
                         if ($usedQty - $remain > 0.00001) {
-                            throw new \RuntimeException("Qty SO detail #{$detailId} melebihi sisa (fqtyremain).");
+                            throw new \RuntimeException("Qty SO detail #{$detailId} melebihi sisa.");
                         }
-                        DB::table('trsodt')->where('ftrsodtid', $detailId)->update(['fqtyremain' => $remain - $usedQty]);
                     }
                 }
 
                 if (! empty($srjUsageByDetailId)) {
-                    $lockedSrjRemainRows = DB::table('trstockdt')
-                        ->whereIn('fstockdtid', array_keys($srjUsageByDetailId))
-                        ->lockForUpdate()
-                        ->pluck('fqtyremain', 'fstockdtid');
+                    $remainRows = $this->getSrjRemainByIds(array_keys($srjUsageByDetailId));
                     foreach ($srjUsageByDetailId as $detailId => $usedQty) {
-                        $remain = (float) ($lockedSrjRemainRows[$detailId] ?? 0);
+                        $remain = (float) ($remainRows[$detailId] ?? 0);
                         if ($usedQty - $remain > 0.00001) {
-                            throw new \RuntimeException("Qty SRJ detail #{$detailId} melebihi sisa (fqtyremain).");
+                            throw new \RuntimeException("Qty SRJ detail #{$detailId} melebihi sisa.");
                         }
-                        DB::table('trstockdt')->where('fstockdtid', $detailId)->update(['fqtyremain' => $remain - $usedQty]);
                     }
                 }
             });
@@ -696,6 +684,69 @@ class InvoiceController extends Controller
         }
     }
 
+    /**
+     * Sisa SO dinamis dalam satuan kecil.
+     *
+     * @param  array<int, int|string>  $soDetailIds
+     * @return array<int, float>
+     */
+    private function getSoRemainByIds(array $soDetailIds): array
+    {
+        $ids = collect($soDetailIds)->map(fn($id) => (int) $id)->filter(fn($id) => $id > 0)->unique()->values()->all();
+        if (empty($ids)) {
+            return [];
+        }
+
+        $srjUsed = DB::table('trstockdt')
+            ->selectRaw('CAST(frefsoid AS BIGINT) AS detail_id, SUM(COALESCE(fqtykecil, 0)) AS used_kecil')
+            ->whereNotNull('frefsoid')
+            ->whereIn(DB::raw('CAST(frefsoid AS BIGINT)'), $ids)
+            ->groupBy(DB::raw('CAST(frefsoid AS BIGINT)'));
+
+        $salesUsed = DB::table('trandt')
+            ->selectRaw('CAST(frefsoid AS BIGINT) AS detail_id, SUM(COALESCE(fqtykecil, 0)) AS used_kecil')
+            ->whereNotNull('frefsoid')
+            ->whereIn(DB::raw('CAST(frefsoid AS BIGINT)'), $ids)
+            ->groupBy(DB::raw('CAST(frefsoid AS BIGINT)'));
+
+        return DB::table('trsodt as d')
+            ->leftJoinSub($srjUsed, 'srj', fn($join) => $join->on('srj.detail_id', '=', 'd.ftrsodtid'))
+            ->leftJoinSub($salesUsed, 'sale', fn($join) => $join->on('sale.detail_id', '=', 'd.ftrsodtid'))
+            ->whereIn('d.ftrsodtid', $ids)
+            ->selectRaw('d.ftrsodtid, GREATEST(COALESCE(d.fqtykecil, 0) - COALESCE(srj.used_kecil, 0) - COALESCE(sale.used_kecil, 0), 0) AS remain_kecil')
+            ->pluck('remain_kecil', 'd.ftrsodtid')
+            ->map(fn($value) => (float) $value)
+            ->all();
+    }
+
+    /**
+     * Sisa SRJ dinamis dalam satuan kecil.
+     *
+     * @param  array<int, int|string>  $srjDetailIds
+     * @return array<int, float>
+     */
+    private function getSrjRemainByIds(array $srjDetailIds): array
+    {
+        $ids = collect($srjDetailIds)->map(fn($id) => (int) $id)->filter(fn($id) => $id > 0)->unique()->values()->all();
+        if (empty($ids)) {
+            return [];
+        }
+
+        $salesUsed = DB::table('trandt')
+            ->selectRaw('CAST(frefsrjid AS BIGINT) AS detail_id, SUM(COALESCE(fqtykecil, 0)) AS used_kecil')
+            ->whereNotNull('frefsrjid')
+            ->whereIn(DB::raw('CAST(frefsrjid AS BIGINT)'), $ids)
+            ->groupBy(DB::raw('CAST(frefsrjid AS BIGINT)'));
+
+        return DB::table('trstockdt as d')
+            ->leftJoinSub($salesUsed, 'sale', fn($join) => $join->on('sale.detail_id', '=', 'd.fstockdtid'))
+            ->whereIn('d.fstockdtid', $ids)
+            ->selectRaw('d.fstockdtid, GREATEST(COALESCE(d.fqtykecil, 0) - COALESCE(sale.used_kecil, 0), 0) AS remain_kecil')
+            ->pluck('remain_kecil', 'd.fstockdtid')
+            ->map(fn($value) => (float) $value)
+            ->all();
+    }
+
     public function edit(Request $request, $ftranmtid)
     {
         $customers = Customer::orderBy('fcustomername', 'asc')
@@ -754,13 +805,8 @@ class InvoiceController extends Controller
             ->values()
             ->all();
 
-        $soRemainRows = $soDetailIds
-            ? DB::table('trsodt')->whereIn('ftrsodtid', $soDetailIds)->pluck('fqtyremain', 'ftrsodtid')
-            : collect();
-
-        $srjRemainRows = $srjDetailIds
-            ? DB::table('trstockdt')->whereIn('fstockdtid', $srjDetailIds)->pluck('fqtyremain', 'fstockdtid')
-            : collect();
+        $soRemainRows = $this->getSoRemainByIds($soDetailIds);
+        $srjRemainRows = $this->getSrjRemainByIds($srjDetailIds);
 
         $savedItems = $invoice->details->map(function ($d) use ($soRemainRows, $srjRemainRows) {
             $refCode = trim($d->frefcode ?? '');
@@ -1155,21 +1201,21 @@ class InvoiceController extends Controller
         $remainErrors = [];
         $soIdsToCheck = array_values(array_unique(array_merge(array_keys($soUsageByDetailId), array_keys($oldSoUsageByDetailId))));
         if (! empty($soIdsToCheck)) {
-            $soRemainRows = DB::table('trsodt')->whereIn('ftrsodtid', $soIdsToCheck)->pluck('fqtyremain', 'ftrsodtid');
+            $soRemainRows = $this->getSoRemainByIds($soIdsToCheck);
             foreach ($soUsageByDetailId as $detailId => $usedQty) {
                 $available = (float) ($soRemainRows[$detailId] ?? 0) + (float) ($oldSoUsageByDetailId[$detailId] ?? 0);
                 if ($usedQty - $available > 0.00001) {
-                    $remainErrors[] = "Qty SO detail #{$detailId} melebihi sisa (fqtyremain). Input: {$usedQty}, sisa: {$available}.";
+                    $remainErrors[] = "Qty SO detail #{$detailId} melebihi sisa. Input: {$usedQty}, sisa: {$available}.";
                 }
             }
         }
         $srjIdsToCheck = array_values(array_unique(array_merge(array_keys($srjUsageByDetailId), array_keys($oldSrjUsageByDetailId))));
         if (! empty($srjIdsToCheck)) {
-            $srjRemainRows = DB::table('trstockdt')->whereIn('fstockdtid', $srjIdsToCheck)->pluck('fqtyremain', 'fstockdtid');
+            $srjRemainRows = $this->getSrjRemainByIds($srjIdsToCheck);
             foreach ($srjUsageByDetailId as $detailId => $usedQty) {
                 $available = (float) ($srjRemainRows[$detailId] ?? 0) + (float) ($oldSrjUsageByDetailId[$detailId] ?? 0);
                 if ($usedQty - $available > 0.00001) {
-                    $remainErrors[] = "Qty SRJ detail #{$detailId} melebihi sisa (fqtyremain). Input: {$usedQty}, sisa: {$available}.";
+                    $remainErrors[] = "Qty SRJ detail #{$detailId} melebihi sisa. Input: {$usedQty}, sisa: {$available}.";
                 }
             }
         }
@@ -1235,17 +1281,6 @@ class InvoiceController extends Controller
                 // Hapus detail lama
                 DB::table('trandt')->where('fsono', $header->fsono)->delete();
 
-                foreach ($oldSoUsageByDetailId as $detailId => $oldQty) {
-                    DB::table('trsodt')->where('ftrsodtid', $detailId)->update([
-                        'fqtyremain' => DB::raw('COALESCE(fqtyremain,0) + ' . (float) $oldQty),
-                    ]);
-                }
-                foreach ($oldSrjUsageByDetailId as $detailId => $oldQty) {
-                    DB::table('trstockdt')->where('fstockdtid', $detailId)->update([
-                        'fqtyremain' => DB::raw('COALESCE(fqtyremain,0) + ' . (float) $oldQty),
-                    ]);
-                }
-
                 // UPDATE STOK - gunakan qtyKecil hasil konversi, bukan qty mentah
                 foreach ($detailRows as $row) {
                     DB::table('msprd')
@@ -1262,29 +1297,21 @@ class InvoiceController extends Controller
                 }
 
                 if (! empty($soUsageByDetailId)) {
-                    $lockedSoRemainRows = DB::table('trsodt')
-                        ->whereIn('ftrsodtid', array_keys($soUsageByDetailId))
-                        ->lockForUpdate()
-                        ->pluck('fqtyremain', 'ftrsodtid');
+                    $dynamicRemainRows = $this->getSoRemainByIds(array_keys($soUsageByDetailId));
                     foreach ($soUsageByDetailId as $detailId => $usedQty) {
-                        $remain = (float) ($lockedSoRemainRows[$detailId] ?? 0);
+                        $remain = (float) ($dynamicRemainRows[$detailId] ?? 0) + (float) ($oldSoUsageByDetailId[$detailId] ?? 0);
                         if ($usedQty - $remain > 0.00001) {
-                            throw new \RuntimeException("Qty SO detail #{$detailId} melebihi sisa (fqtyremain).");
+                            throw new \RuntimeException("Qty SO detail #{$detailId} melebihi sisa.");
                         }
-                        DB::table('trsodt')->where('ftrsodtid', $detailId)->update(['fqtyremain' => $remain - $usedQty]);
                     }
                 }
                 if (! empty($srjUsageByDetailId)) {
-                    $lockedSrjRemainRows = DB::table('trstockdt')
-                        ->whereIn('fstockdtid', array_keys($srjUsageByDetailId))
-                        ->lockForUpdate()
-                        ->pluck('fqtyremain', 'fstockdtid');
+                    $dynamicRemainRows = $this->getSrjRemainByIds(array_keys($srjUsageByDetailId));
                     foreach ($srjUsageByDetailId as $detailId => $usedQty) {
-                        $remain = (float) ($lockedSrjRemainRows[$detailId] ?? 0);
+                        $remain = (float) ($dynamicRemainRows[$detailId] ?? 0) + (float) ($oldSrjUsageByDetailId[$detailId] ?? 0);
                         if ($usedQty - $remain > 0.00001) {
-                            throw new \RuntimeException("Qty SRJ detail #{$detailId} melebihi sisa (fqtyremain).");
+                            throw new \RuntimeException("Qty SRJ detail #{$detailId} melebihi sisa.");
                         }
-                        DB::table('trstockdt')->where('fstockdtid', $detailId)->update(['fqtyremain' => $remain - $usedQty]);
                     }
                 }
             });
@@ -1415,48 +1442,6 @@ class InvoiceController extends Controller
             }
 
             DB::transaction(function () use ($invoice) {
-                $oldSoUsageRows = DB::table('trandt')
-                    ->where('fsono', $invoice->fsono)
-                    ->whereNotNull('frefsoid')
-                    ->select('frefsoid', DB::raw('SUM(COALESCE(fqtykecil, 0)) as used_qty_kecil'))
-                    ->groupBy('frefsoid')
-                    ->get();
-
-                $oldSrjUsageRows = DB::table('trandt')
-                    ->where('fsono', $invoice->fsono)
-                    ->whereNotNull('frefsrjid')
-                    ->select('frefsrjid', DB::raw('SUM(COALESCE(fqtykecil, 0)) as used_qty_kecil'))
-                    ->groupBy('frefsrjid')
-                    ->get();
-
-                foreach ($oldSoUsageRows as $row) {
-                    $detailId = (int) ($row->frefsoid ?? 0);
-                    $qtyKecil = (float) ($row->used_qty_kecil ?? 0);
-                    if ($detailId <= 0 || $qtyKecil <= 0) {
-                        continue;
-                    }
-
-                    DB::table('trsodt')
-                        ->where('ftrsodtid', $detailId)
-                        ->update([
-                            'fqtyremain' => DB::raw('COALESCE(fqtyremain,0) + ' . $qtyKecil),
-                        ]);
-                }
-
-                foreach ($oldSrjUsageRows as $row) {
-                    $detailId = (int) ($row->frefsrjid ?? 0);
-                    $qtyKecil = (float) ($row->used_qty_kecil ?? 0);
-                    if ($detailId <= 0 || $qtyKecil <= 0) {
-                        continue;
-                    }
-
-                    DB::table('trstockdt')
-                        ->where('fstockdtid', $detailId)
-                        ->update([
-                            'fqtyremain' => DB::raw('COALESCE(fqtyremain,0) + ' . $qtyKecil),
-                        ]);
-                }
-
                 DB::table('trandt')
                     ->where('fsono', $invoice->fsono)
                     ->delete();

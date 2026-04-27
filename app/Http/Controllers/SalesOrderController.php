@@ -211,6 +211,9 @@ class SalesOrderController extends Controller
     {
         // 1. Ambil data header SO berdasarkan ftrsomtid (Primary Key dari trsomt)
         $header = SalesOrderHeader::where('ftrsomtid', $id)->firstOrFail();
+        $remainMap = $this->getSoRemainByIds(
+            DB::table('trsodt')->where('fsono', $header->fsono)->pluck('ftrsodtid')->all()
+        );
 
         // 2. Ambil data detail dari trsodt menggunakan nomor SO
         $items = SalesOrderDetail::where('trsodt.fsono', $header->fsono)
@@ -221,13 +224,19 @@ class SalesOrderController extends Controller
                 'trsodt.fprdcode as fitemcode',  // Kode Produk (pake alias fitemcode buat frontend)
                 'm.fprdname as fitemname',       // Nama Produk dari master
                 'trsodt.fsatuan',                // Satuan
-                DB::raw('COALESCE(trsodt.fqtyremain, 0) as fqty'), // default pakai sisa qty untuk Add SO
-                DB::raw('COALESCE(trsodt.fqtyremain, 0) as fqtyremain'),
+                'trsodt.fqty',
                 'trsodt.fprice as fprice',       // Harga jual (alias fprice)
                 'trsodt.fprice as fharga',       // Legacy alias fharga
             ])
             ->orderBy('trsodt.ftrsodtid')
-            ->get();
+            ->get()
+            ->map(function ($item) use ($remainMap) {
+                $remain = (float) ($remainMap[(int) ($item->frefdtno ?? 0)] ?? 0);
+                $item->fqty = $remain;
+                $item->fqtyremain = $remain;
+
+                return $item;
+            });
 
         return response()->json([
             'header' => [
@@ -279,6 +288,47 @@ class SalesOrderController extends Controller
         $next = (int) $last + 1;
 
         return $prefix . str_pad((string) $next, 4, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * Hitung sisa SO dinamis dalam satuan kecil dari semua transaksi turunannya.
+     *
+     * @param  array<int, int|string>  $soDetailIds
+     * @return array<int, float>
+     */
+    private function getSoRemainByIds(array $soDetailIds): array
+    {
+        $ids = collect($soDetailIds)
+            ->map(fn($id) => (int) $id)
+            ->filter(fn($id) => $id > 0)
+            ->unique()
+            ->values()
+            ->all();
+
+        if (empty($ids)) {
+            return [];
+        }
+
+        $srjUsed = DB::table('trstockdt')
+            ->selectRaw('CAST(frefsoid AS BIGINT) AS detail_id, SUM(COALESCE(fqtykecil, 0)) AS used_kecil')
+            ->whereNotNull('frefsoid')
+            ->whereIn(DB::raw('CAST(frefsoid AS BIGINT)'), $ids)
+            ->groupBy(DB::raw('CAST(frefsoid AS BIGINT)'));
+
+        $salesUsed = DB::table('trandt')
+            ->selectRaw('CAST(frefsoid AS BIGINT) AS detail_id, SUM(COALESCE(fqtykecil, 0)) AS used_kecil')
+            ->whereNotNull('frefsoid')
+            ->whereIn(DB::raw('CAST(frefsoid AS BIGINT)'), $ids)
+            ->groupBy(DB::raw('CAST(frefsoid AS BIGINT)'));
+
+        return DB::table('trsodt as d')
+            ->leftJoinSub($srjUsed, 'srj', fn($join) => $join->on('srj.detail_id', '=', 'd.ftrsodtid'))
+            ->leftJoinSub($salesUsed, 'sale', fn($join) => $join->on('sale.detail_id', '=', 'd.ftrsodtid'))
+            ->whereIn('d.ftrsodtid', $ids)
+            ->selectRaw('d.ftrsodtid, GREATEST(COALESCE(d.fqtykecil, 0) - COALESCE(srj.used_kecil, 0) - COALESCE(sale.used_kecil, 0), 0) AS remain_kecil')
+            ->pluck('remain_kecil', 'd.ftrsodtid')
+            ->map(fn($value) => (float) $value)
+            ->all();
     }
 
     public function print(string $fsono)
@@ -692,7 +742,9 @@ class SalesOrderController extends Controller
 
         $usageLockMessage = $this->getUsageLockMessage($salesorder);
 
-        $savedItems = $salesorder->details->map(function ($d) {
+        $soRemainMap = $this->getSoRemainByIds($salesorder->details->pluck('ftrsodtid')->all());
+
+        $savedItems = $salesorder->details->map(function ($d) use ($soRemainMap) {
             return [
                 'uid' => $d->ftrsodtid,
                 'fprdcode' => (string) ($d->fprdcode ?? ''),
@@ -701,7 +753,7 @@ class SalesOrderController extends Controller
                 'frefdtno' => (string) ($d->ftrsodtid ?? ''),
                 'fnouref' => (string) ($d->fnouref ?? ''),
                 'fqty' => (float) ($d->fqty ?? 0),
-                'fqtyremain' => (float) ($d->fqtyremain ?? 0),
+                'fqtyremain' => (float) ($soRemainMap[(int) ($d->ftrsodtid ?? 0)] ?? 0),
                 'fterima' => (float) ($d->fterima ?? 0),
                 'fprice' => (float) ($d->fprice ?? 0),
                 'fdisc' => (float) ($d->fdiscpersen ?? 0),
@@ -805,7 +857,9 @@ class SalesOrderController extends Controller
             $salesorder->setRelation('customer', Customer::where('fcustomercode', trim((string) $salesorder->fcustno))->first());
         }
 
-        $savedItems = $salesorder->details->map(function ($d) {
+        $soRemainMap = $this->getSoRemainByIds($salesorder->details->pluck('ftrsodtid')->all());
+
+        $savedItems = $salesorder->details->map(function ($d) use ($soRemainMap) {
             return [
                 'uid'        => $d->ftrsodtid,
                 'fprdcode'  => (string) ($d->fprdcode ?? ''),
@@ -813,7 +867,7 @@ class SalesOrderController extends Controller
                 'fsatuan'    => (string) ($d->fsatuan ?? ''),
                 'frefdtno'   => (string) ($d->ftrsodtid ?? ''),
                 'fqty'       => (float) ($d->fqty ?? 0),
-                'fqtyremain' => (float) ($d->fqtyremain ?? 0),
+                'fqtyremain' => (float) ($soRemainMap[(int) ($d->ftrsodtid ?? 0)] ?? 0),
                 'fterima'    => (float) ($d->fterima ?? 0),
                 'fprice'     => (float) ($d->fprice ?? 0),
                 'fdisc'      => (float) ($d->fdiscpersen ?? 0),
@@ -1126,7 +1180,9 @@ class SalesOrderController extends Controller
 
         $usageLockMessage = $this->getUsageLockMessage($salesorder);
 
-        $savedItems = $salesorder->details->map(function ($d) {
+        $soRemainMap = $this->getSoRemainByIds($salesorder->details->pluck('ftrsodtid')->all());
+
+        $savedItems = $salesorder->details->map(function ($d) use ($soRemainMap) {
             return [
                 'uid' => $d->ftrsodtid,
                 'fprdcode' => (string) ($d->fprdcode ?? ''),
@@ -1135,7 +1191,7 @@ class SalesOrderController extends Controller
                 'frefdtno' => (string) ($d->frefdtno ?? ''),
                 'fnouref' => (string) ($d->fnouref ?? ''),
                 'fqty' => (float) ($d->fqty ?? 0),
-                'fqtyremain' => (float) ($d->fqtyremain ?? 0),
+                'fqtyremain' => (float) ($soRemainMap[(int) ($d->ftrsodtid ?? 0)] ?? 0),
                 'fterima' => (float) ($d->fterima ?? 0),
                 'fprice' => (float) ($d->fprice ?? 0),
                 'fdisc' => (float) ($d->fdiscpersen ?? 0),
