@@ -271,12 +271,12 @@ class AccountController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Data account ' . $account->faccname . ' berhasil dihapus.',
+                'message' => 'Data account '.$account->faccname.' berhasil dihapus.',
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
+                'message' => 'Terjadi kesalahan: '.$e->getMessage(),
             ], 500);
         }
     }

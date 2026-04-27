@@ -4,14 +4,13 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\LogUser;
+use App\Models\RoleAccess;
+use App\Providers\RouteServiceProvider;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\View\View;
-use App\Providers\RouteServiceProvider;
-use App\Models\RoleAccess; // Pastikan RoleAccess model diimport
-use App\Models\LogUser; // Pastikan RoleAccess model diimport
+use Illuminate\Support\Facades\Auth; // Pastikan RoleAccess model diimport
+use Illuminate\View\View; // Pastikan RoleAccess model diimport
 
 class AuthenticatedSessionController extends Controller
 {
@@ -31,7 +30,7 @@ class AuthenticatedSessionController extends Controller
     {
         $credentials = [
             'fsysuserid' => $request->fsysuserid,
-            'password' => $request->password
+            'password' => $request->password,
         ];
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
@@ -52,10 +51,10 @@ class AuthenticatedSessionController extends Controller
             ]);
 
             LogUser::create([
-                'ip'          => $request->ip(),
-                'akun'        => $user->fsysuserid,
-                'komp'        => gethostname(),
-                'login_date'  => now(),
+                'ip' => $request->ip(),
+                'akun' => $user->fsysuserid,
+                'komp' => gethostname(),
+                'login_date' => now(),
                 'log_out_date' => null,
             ]);
 

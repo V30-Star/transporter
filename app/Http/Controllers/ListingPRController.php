@@ -2,19 +2,20 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
-use OpenSpout\Writer\XLSX\Writer;
-use OpenSpout\Common\Entity\Row;
 use OpenSpout\Common\Entity\Cell;
+use OpenSpout\Common\Entity\Row;
 use OpenSpout\Common\Entity\Style\Style;
+use OpenSpout\Writer\XLSX\Writer;
 
 class ListingPRController extends Controller
 {
     public function index()
     {
         $suppliers = DB::table('mssupplier')->orderBy('fsuppliercode')->get();
+
         return view('listingpr.index', compact('suppliers'));
     }
 
@@ -26,36 +27,37 @@ class ListingPRController extends Controller
         $chunkedData = $groupedData->chunk(4);
 
         return view('listingpr.print', [
-            'chunkedData'  => $chunkedData,
-            'totalPages'   => $chunkedData->count(),
+            'chunkedData' => $chunkedData,
+            'totalPages' => $chunkedData->count(),
             'user_session' => auth()->user(),
-            'request'      => $request
+            'request' => $request,
         ]);
     }
 
     public function exportExcel(Request $request)
     {
-        $results    = $this->getRawData($request);
+        $results = $this->getRawData($request);
         $groupedData = $results->groupBy('fprno');
 
-        $filename = "Listing_PR_" . date('YmdHis') . ".xlsx";
+        $filename = 'Listing_PR_'.date('YmdHis').'.xlsx';
         $tempFile = tempnam(sys_get_temp_dir(), 'xlsx_');
 
-        $writer = new Writer();
+        $writer = new Writer;
         $writer->openToFile($tempFile);
 
         // --- Styles ---
-        $styleTitle      = new Style(fontBold: true, fontSize: 14);
-        $styleHeader     = new Style(fontBold: true, backgroundColor: 'D3D3D3');
-        $styleMaster     = new Style(fontBold: true);
-        $styleDetail     = new Style(fontColor: 'CC0000');
+        $styleTitle = new Style(fontBold: true, fontSize: 14);
+        $styleHeader = new Style(fontBold: true, backgroundColor: 'D3D3D3');
+        $styleMaster = new Style(fontBold: true);
+        $styleDetail = new Style(fontColor: 'CC0000');
         $styleGrandTotal = new Style(fontBold: true, backgroundColor: '333333', fontColor: 'FFFFFF');
 
         $makeRow = function (array $values, ?Style $style = null): Row {
             $cells = array_map(
-                fn($value) => $style ? Cell::fromValue($value, $style) : Cell::fromValue($value),
+                fn ($value) => $style ? Cell::fromValue($value, $style) : Cell::fromValue($value),
                 $values
             );
+
             return new Row($cells);
         };
 
@@ -64,12 +66,12 @@ class ListingPRController extends Controller
         $writer->addRow($makeRow([
             'Supplier:',
             $request->sup_from
-                ? '[' . $request->sup_from . '] s/d [' . $request->sup_to . ']'
-                : 'Semua'
+                ? '['.$request->sup_from.'] s/d ['.$request->sup_to.']'
+                : 'Semua',
         ]));
         $writer->addRow($makeRow([
             'Periode:',
-            ($request->date_from ?? '...') . ' s/d ' . ($request->date_to ?? '...')
+            ($request->date_from ?? '...').' s/d '.($request->date_to ?? '...'),
         ]));
         $writer->addRow($makeRow([]));
 
@@ -92,7 +94,7 @@ class ListingPRController extends Controller
         $totalQtyPO = 0;
 
         foreach ($groupedData as $fprno => $details) {
-            $h       = $details->first();
+            $h = $details->first();
             $isFirst = true;
 
             foreach ($details as $d) {
@@ -143,8 +145,8 @@ class ListingPRController extends Controller
     private function getRawData(Request $request)
     {
         $subPO = DB::table('tr_pod')
-            ->select('fprdid', 'frefdtno', 'fprdcode', 'frefdtid',DB::raw('sum(fqtykecil) as fqtypo'))
-            ->groupBy('fprdid','frefdtno', 'fprdcode', 'frefdtid');
+            ->select('fprdid', 'frefdtno', 'fprdcode', 'frefdtid', DB::raw('sum(fqtykecil) as fqtypo'))
+            ->groupBy('fprdid', 'frefdtno', 'fprdcode', 'frefdtid');
 
         $query = DB::table('tr_prh as h')
             ->leftJoin('tr_prd as d', 'h.fprno', '=', 'd.fprno')
@@ -170,14 +172,18 @@ class ListingPRController extends Controller
                 DB::raw('COALESCE(o.fqtypo, 0) as fqtypo')
             );
 
-        if ($request->date_from) $query->where('h.fprdate', '>=', $request->date_from);
-        if ($request->date_to)   $query->where('h.fprdate', '<=', $request->date_to);
+        if ($request->date_from) {
+            $query->where('h.fprdate', '>=', $request->date_from);
+        }
+        if ($request->date_to) {
+            $query->where('h.fprdate', '<=', $request->date_to);
+        }
 
         if ($request->sup_from && $request->sup_to) {
             $query->whereBetween('s.fsuppliercode', [$request->sup_from, $request->sup_to]);
         }
 
-        if (!$request->has('all_pr') && $request->has('only_pending')) {
+        if (! $request->has('all_pr') && $request->has('only_pending')) {
             $query->whereRaw('(CASE WHEN d.fsatuan = p.fsatuanbesar THEN d.fqty * p.fqtykecil ELSE d.fqty END - COALESCE(o.fqtypo, 0)) > 0');
         }
 

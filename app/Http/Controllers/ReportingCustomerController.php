@@ -2,27 +2,27 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
-use OpenSpout\Writer\XLSX\Writer;
-use OpenSpout\Common\Entity\Row;
 use OpenSpout\Common\Entity\Cell;
+use OpenSpout\Common\Entity\Row;
 use OpenSpout\Common\Entity\Style\Style;
+use OpenSpout\Writer\XLSX\Writer;
 
 class ReportingCustomerController extends Controller
 {
     public function index()
     {
         $customers = DB::table('mscustomer')->orderBy('fcustomercode', 'asc')->get();
-        $salesmen  = DB::table('mssalesman')->where('fnonactive', '0')->orderBy('fsalesmanname', 'asc')->get();
+        $salesmen = DB::table('mssalesman')->where('fnonactive', '0')->orderBy('fsalesmanname', 'asc')->get();
 
         return view('reportingcustomer.index', compact('customers', 'salesmen'));
     }
 
     public function print(Request $request)
     {
-        $data      = $this->getData($request);
+        $data = $this->getData($request);
         $printDate = Carbon::now()->format('d/m/Y H:i');
 
         return view('reportingcustomer.print', compact('data', 'printDate'));
@@ -32,47 +32,48 @@ class ReportingCustomerController extends Controller
     {
         $data = $this->getData($request);
 
-        $filename = "Master_Customer_" . date('YmdHis') . ".xlsx";
+        $filename = 'Master_Customer_'.date('YmdHis').'.xlsx';
         $tempFile = tempnam(sys_get_temp_dir(), 'xlsx_');
 
-        $writer = new Writer();
+        $writer = new Writer;
         $writer->openToFile($tempFile);
 
         // --- Styles ---
-        $styleTitle      = new Style(fontBold: true, fontSize: 14);
-        $styleHeader     = new Style(fontBold: true, backgroundColor: 'D3D3D3');
-        $styleRow        = new Style(fontBold: false);
-        $styleBlokir     = new Style(fontColor: 'CC0000'); // merah untuk customer blokir
+        $styleTitle = new Style(fontBold: true, fontSize: 14);
+        $styleHeader = new Style(fontBold: true, backgroundColor: 'D3D3D3');
+        $styleRow = new Style(fontBold: false);
+        $styleBlokir = new Style(fontColor: 'CC0000'); // merah untuk customer blokir
         $styleGrandTotal = new Style(fontBold: true, backgroundColor: '333333', fontColor: 'FFFFFF');
 
         $makeRow = function (array $values, ?Style $style = null): Row {
             $cells = array_map(
-                fn($value) => $style ? Cell::fromValue($value, $style) : Cell::fromValue($value),
+                fn ($value) => $style ? Cell::fromValue($value, $style) : Cell::fromValue($value),
                 $values
             );
+
             return new Row($cells);
         };
 
         // --- Header Informasi ---
         $writer->addRow($makeRow(['LIST OF MASTER CUSTOMER'], $styleTitle));
-        $writer->addRow($makeRow(['Tanggal:', date('d/m/Y') . '  Jam: ' . date('H:i')]));
+        $writer->addRow($makeRow(['Tanggal:', date('d/m/Y').'  Jam: '.date('H:i')]));
         $writer->addRow($makeRow([
             'Customer:',
             $request->cust_from
-                ? '[' . $request->cust_from . '] s/d [' . $request->cust_to . ']'
-                : 'Semua'
+                ? '['.$request->cust_from.'] s/d ['.$request->cust_to.']'
+                : 'Semua',
         ]));
         $writer->addRow($makeRow([
             'Salesman:',
-            $request->salesman ?? 'Semua'
+            $request->salesman ?? 'Semua',
         ]));
         $writer->addRow($makeRow([
             'Min. Limit:',
-            $request->limit > 0 ? number_format($request->limit, 0, ',', '.') : 'Semua'
+            $request->limit > 0 ? number_format($request->limit, 0, ',', '.') : 'Semua',
         ]));
         $writer->addRow($makeRow([
             'Filter Blokir:',
-            $request->has('is_blocked') ? 'Hanya Yang Diblokir' : 'Semua'
+            $request->has('is_blocked') ? 'Hanya Yang Diblokir' : 'Semua',
         ]));
         $writer->addRow($makeRow([]));
 
@@ -93,7 +94,7 @@ class ReportingCustomerController extends Controller
 
         foreach ($data as $i => $row) {
             $isBlokir = $row->fblokir == '1';
-            $style    = $isBlokir ? $styleBlokir : $styleRow;
+            $style = $isBlokir ? $styleBlokir : $styleRow;
 
             $writer->addRow($makeRow([
                 $i + 1,
@@ -114,7 +115,7 @@ class ReportingCustomerController extends Controller
         $writer->addRow($makeRow([]));
         $writer->addRow($makeRow([
             'TOTAL KESELURUHAN DATA CUSTOMER',
-            count($data) . ' Records',
+            count($data).' Records',
             '',
             '',
             '',
@@ -123,7 +124,7 @@ class ReportingCustomerController extends Controller
             '',
             '',
             '',
-            ''
+            '',
         ], $styleGrandTotal));
 
         $writer->close();

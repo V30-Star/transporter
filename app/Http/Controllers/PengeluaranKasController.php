@@ -63,7 +63,7 @@ class PengeluaranKasController extends Controller
     {
         return view('pengeluarankas.create', $this->formViewData(new Trkasmt([
             'fkasmtdate' => now()->toDateString(),
-        ]), collect([new Trkasdt()]), [
+        ]), collect([new Trkasdt]), [
             'pageTitle' => 'Pengeluaran Kas',
             'formAction' => route('pengeluarankas.store'),
             'formMethod' => 'POST',
@@ -140,7 +140,7 @@ class PengeluaranKasController extends Controller
 
         return redirect()
             ->route('pengeluarankas.view', ['fkasmtno' => $header->fkasmtno])
-            ->with('success', 'Data Pengeluaran Kas ' . $header->fkasmtno . ' berhasil disimpan.');
+            ->with('success', 'Data Pengeluaran Kas '.$header->fkasmtno.' berhasil disimpan.');
     }
 
     public function view($fkasmtno)
@@ -224,7 +224,7 @@ class PengeluaranKasController extends Controller
 
         return redirect()
             ->route('pengeluarankas.index')
-            ->with('success', 'Data Pengeluaran Kas ' . $header->fkasmtno . ' berhasil diperbarui.');
+            ->with('success', 'Data Pengeluaran Kas '.$header->fkasmtno.' berhasil diperbarui.');
     }
 
     public function destroy($fkasmtno)
@@ -238,7 +238,7 @@ class PengeluaranKasController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Data Pengeluaran Kas ' . $header->fkasmtno . ' berhasil dihapus.',
+            'message' => 'Data Pengeluaran Kas '.$header->fkasmtno.' berhasil dihapus.',
         ]);
     }
 
@@ -246,7 +246,7 @@ class PengeluaranKasController extends Controller
     {
         return array_merge([
             'pengeluaranKas' => $header,
-            'details' => $details->isNotEmpty() ? $details : collect([new Trkasdt()]),
+            'details' => $details->isNotEmpty() ? $details : collect([new Trkasdt]),
             'accounts' => Account::query()
                 ->where('fend', 1)
                 ->where('fnonactive', '0')
@@ -319,13 +319,13 @@ class PengeluaranKasController extends Controller
 
     private function generateVoucherNo(Carbon $date): string
     {
-        $prefix = 'PK.' . $date->format('ym') . '.';
+        $prefix = 'PK.'.$date->format('ym').'.';
         $lastNumber = DB::table('trkasmt')
-            ->where('fkasmtno', 'like', $prefix . '%')
+            ->where('fkasmtno', 'like', $prefix.'%')
             ->selectRaw("MAX(CAST(split_part(fkasmtno, '.', 3) AS integer)) as last_no")
             ->value('last_no');
 
-        return $prefix . str_pad((string) (((int) $lastNumber) + 1), 4, '0', STR_PAD_LEFT);
+        return $prefix.str_pad((string) (((int) $lastNumber) + 1), 4, '0', STR_PAD_LEFT);
     }
 
     private function nextIntegerId(string $table, string $column): int

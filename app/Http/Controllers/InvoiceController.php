@@ -13,7 +13,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log; // sekalian biar aman untuk tanggal
+// sekalian biar aman untuk tanggal
 use Illuminate\Validation\ValidationException;
 
 class InvoiceController extends Controller
@@ -174,7 +174,7 @@ class InvoiceController extends Controller
         $allowedColumns = ['fprno', 'fprdate'];
         if (in_array($orderColumn, $allowedColumns)) {
             if (in_array($orderColumn, ['fprno', 'fprdate'])) {
-                $query->orderBy('tr_prh.' . $orderColumn, $orderDir);
+                $query->orderBy('tr_prh.'.$orderColumn, $orderDir);
             } else {
                 $query->orderBy('mssupplier.fsuppliername', $orderDir);
             }
@@ -258,17 +258,17 @@ class InvoiceController extends Controller
         $prefix = sprintf('PO.%s.%s.%s.', $kodeCabang, $date->format('y'), $date->format('m'));
 
         // kunci per (branch, tahun-bulan) — TANPA bikin tabel baru
-        $lockKey = crc32('PO|' . $kodeCabang . '|' . $date->format('Y-m'));
+        $lockKey = crc32('PO|'.$kodeCabang.'|'.$date->format('Y-m'));
         DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
         $last = DB::table('tranmt')
-            ->where('fsono', 'like', $prefix . '%')
+            ->where('fsono', 'like', $prefix.'%')
             ->selectRaw("MAX(CAST(split_part(fsono, '.', 5) AS int)) AS lastno")
             ->value('lastno');
 
         $next = (int) $last + 1;
 
-        return $prefix . str_pad((string) $next, 4, '0', STR_PAD_LEFT);
+        return $prefix.str_pad((string) $next, 4, '0', STR_PAD_LEFT);
     }
 
     public function print(string $fsono)
@@ -304,7 +304,7 @@ class InvoiceController extends Controller
             ]);
 
         // Format date helper
-        $fmt = fn($d) => $d
+        $fmt = fn ($d) => $d
             ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y')
             : '-';
 
@@ -328,10 +328,10 @@ class InvoiceController extends Controller
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
         $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
+            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
             ->when(
                 ! is_numeric($raw),
-                fn($q) => $q->where('fcabangkode', $raw)->orWhere('fcabangname', $raw)
+                fn ($q) => $q->where('fcabangkode', $raw)->orWhere('fcabangname', $raw)
             )
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
 
@@ -357,7 +357,7 @@ class InvoiceController extends Controller
         $productMap = $products->mapWithKeys(function ($p) {
             return [
                 $p->fprdcode => [
-                    'name'  => $p->fprdname,
+                    'name' => $p->fprdname,
                     'units' => array_values(array_filter([
                         $p->fsatuankecil,
                         $p->fsatuanbesar,
@@ -365,8 +365,8 @@ class InvoiceController extends Controller
                     ])),
                     'stock' => $p->fminstock ?? 0,
                     'unit_ratios' => [           // ← TAMBAH INI
-                        'satuankecil'  => 1,
-                        'satuanbesar'  => (float) ($p->fqtykecil  ?? 1),
+                        'satuankecil' => 1,
+                        'satuanbesar' => (float) ($p->fqtykecil ?? 1),
                         'satuanbesar2' => (float) ($p->fqtykecil2 ?? 1),
                     ],
                 ],
@@ -564,10 +564,10 @@ class InvoiceController extends Controller
                 // Penomoran Otomatis (Tetap sama)
                 $fsono = $request->input('fsono');
                 if (empty($fsono)) {
-                    $prefix = 'INV.' . $fsodate->format('ym') . '.';
-                    $lastRecord = DB::table('tranmt')->where('fsono', 'like', $prefix . '%')->orderBy('fsono', 'desc')->lockForUpdate()->first();
+                    $prefix = 'INV.'.$fsodate->format('ym').'.';
+                    $lastRecord = DB::table('tranmt')->where('fsono', 'like', $prefix.'%')->orderBy('fsono', 'desc')->lockForUpdate()->first();
                     $nextNumber = $lastRecord ? ((int) substr(trim($lastRecord->fsono), -4) + 1) : 1;
-                    $fsono = $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+                    $fsono = $prefix.str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
                 }
 
                 // --- INSERT HEADER DAN AMBIL ID ---
@@ -644,14 +644,14 @@ class InvoiceController extends Controller
                 DB::table('msprd')
                     ->where('fprdcode', $row['fprdcode'])
                     ->update([
-                        'fminstock'  => DB::raw("CAST(fminstock AS NUMERIC) - " . $row['fqtyremain']),
+                        'fminstock' => DB::raw('CAST(fminstock AS NUMERIC) - '.$row['fqtyremain']),
                         'fupdatedat' => now(),
                     ]);
             }
 
             return redirect()->route('invoice.index')->with('success', 'Faktur Penjualan berhasil disimpan.');
         } catch (\Exception $e) {
-            return back()->withInput()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+            return back()->withInput()->with('error', 'Terjadi kesalahan: '.$e->getMessage());
         }
     }
 
@@ -707,8 +707,8 @@ class InvoiceController extends Controller
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
         $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn($q) => $q
+            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
+            ->when(! is_numeric($raw), fn ($q) => $q
                 ->where('fcabangkode', $raw)
                 ->orWhere('fcabangname', $raw))
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
@@ -740,16 +740,16 @@ class InvoiceController extends Controller
         // (SO/SRJ sisa after restore), i.e. current DB fqtyremain + qty already in this invoice line.
         $soDetailIds = $invoice->details
             ->pluck('frefsoid')
-            ->filter(fn($v) => is_numeric($v) && (int) $v > 0)
-            ->map(fn($v) => (int) $v)
+            ->filter(fn ($v) => is_numeric($v) && (int) $v > 0)
+            ->map(fn ($v) => (int) $v)
             ->unique()
             ->values()
             ->all();
 
         $srjDetailIds = $invoice->details
             ->pluck('frefsrjid')
-            ->filter(fn($v) => is_numeric($v) && (int) $v > 0)
-            ->map(fn($v) => (int) $v)
+            ->filter(fn ($v) => is_numeric($v) && (int) $v > 0)
+            ->map(fn ($v) => (int) $v)
             ->unique()
             ->values()
             ->all();
@@ -835,7 +835,7 @@ class InvoiceController extends Controller
         $productMap = $products->mapWithKeys(function ($p) {
             return [
                 $p->fprdcode => [
-                    'name'  => $p->fprdname,
+                    'name' => $p->fprdname,
                     'units' => array_values(array_filter([
                         $p->fsatuankecil,
                         $p->fsatuanbesar,
@@ -843,8 +843,8 @@ class InvoiceController extends Controller
                     ])),
                     'stock' => $p->fminstock ?? 0,
                     'unit_ratios' => [           // ← TAMBAH INI
-                        'satuankecil'  => 1,
-                        'satuanbesar'  => (float) ($p->fqtykecil  ?? 1),
+                        'satuankecil' => 1,
+                        'satuanbesar' => (float) ($p->fqtykecil ?? 1),
                         'satuanbesar2' => (float) ($p->fqtykecil2 ?? 1),
                     ],
                 ],
@@ -867,7 +867,7 @@ class InvoiceController extends Controller
             'famountso' => (float) ($invoice->famountso ?? 0),  // nilai Grand Total dari DB
             'filterSupplierId' => $request->query('filter_supplier_id'),
             'filterSalesmanId' => $request->query('filter_salesman_id'),
-            'isUsageLocked' => !empty($usageLockMessage),
+            'isUsageLocked' => ! empty($usageLockMessage),
             'usageLockMessage' => $usageLockMessage,
             'action' => 'edit',
         ]);
@@ -884,8 +884,8 @@ class InvoiceController extends Controller
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
         $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn($q) => $q
+            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
+            ->when(! is_numeric($raw), fn ($q) => $q
                 ->where('fcabangkode', $raw)
                 ->orWhere('fcabangname', $raw))
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
@@ -1133,12 +1133,16 @@ class InvoiceController extends Controller
         foreach ($oldSoUsageRows as $row) {
             $detailId = (int) ($row->frefsoid ?? 0);
             $qtyKecil = (float) ($row->used_qty_kecil ?? 0);
-            if ($detailId > 0 && $qtyKecil > 0) $oldSoUsageByDetailId[$detailId] = $qtyKecil;
+            if ($detailId > 0 && $qtyKecil > 0) {
+                $oldSoUsageByDetailId[$detailId] = $qtyKecil;
+            }
         }
         foreach ($oldSrjUsageRows as $row) {
             $detailId = (int) ($row->frefsrjid ?? 0);
             $qtyKecil = (float) ($row->used_qty_kecil ?? 0);
-            if ($detailId > 0 && $qtyKecil > 0) $oldSrjUsageByDetailId[$detailId] = $qtyKecil;
+            if ($detailId > 0 && $qtyKecil > 0) {
+                $oldSrjUsageByDetailId[$detailId] = $qtyKecil;
+            }
         }
 
         $soUsageByDetailId = [];
@@ -1147,9 +1151,15 @@ class InvoiceController extends Controller
             $qtyKecil = (float) ($row['fqtykecil'] ?? 0);
             $soDetailId = (int) ($row['frefsoid'] ?? 0);
             $srjDetailId = (int) ($row['frefsrjid'] ?? 0);
-            if ($qtyKecil <= 0) continue;
-            if ($soDetailId > 0) $soUsageByDetailId[$soDetailId] = ($soUsageByDetailId[$soDetailId] ?? 0) + $qtyKecil;
-            if ($srjDetailId > 0) $srjUsageByDetailId[$srjDetailId] = ($srjUsageByDetailId[$srjDetailId] ?? 0) + $qtyKecil;
+            if ($qtyKecil <= 0) {
+                continue;
+            }
+            if ($soDetailId > 0) {
+                $soUsageByDetailId[$soDetailId] = ($soUsageByDetailId[$soDetailId] ?? 0) + $qtyKecil;
+            }
+            if ($srjDetailId > 0) {
+                $srjUsageByDetailId[$srjDetailId] = ($srjUsageByDetailId[$srjDetailId] ?? 0) + $qtyKecil;
+            }
         }
 
         $remainErrors = [];
@@ -1237,12 +1247,12 @@ class InvoiceController extends Controller
 
                 foreach ($oldSoUsageByDetailId as $detailId => $oldQty) {
                     DB::table('trsodt')->where('ftrsodtid', $detailId)->update([
-                        'fqtyremain' => DB::raw('COALESCE(fqtyremain,0) + ' . (float) $oldQty),
+                        'fqtyremain' => DB::raw('COALESCE(fqtyremain,0) + '.(float) $oldQty),
                     ]);
                 }
                 foreach ($oldSrjUsageByDetailId as $detailId => $oldQty) {
                     DB::table('trstockdt')->where('fstockdtid', $detailId)->update([
-                        'fqtyremain' => DB::raw('COALESCE(fqtyremain,0) + ' . (float) $oldQty),
+                        'fqtyremain' => DB::raw('COALESCE(fqtyremain,0) + '.(float) $oldQty),
                     ]);
                 }
 
@@ -1251,7 +1261,7 @@ class InvoiceController extends Controller
                     DB::table('msprd')
                         ->where('fprdcode', $row['fprdcode'])
                         ->update([
-                            'fminstock'  => DB::raw("CAST(fminstock AS NUMERIC) - " . $row['fqtyremain']),
+                            'fminstock' => DB::raw('CAST(fminstock AS NUMERIC) - '.$row['fqtyremain']),
                             'fupdatedat' => now(),
                         ]);
                 }
@@ -1292,7 +1302,7 @@ class InvoiceController extends Controller
             return redirect()->route('invoice.index')->with('success', "Faktur Penjualan {$header->fsono} berhasil diperbarui.");
         } catch (\Exception $e) {
 
-            return back()->withInput()->with('error', 'Gagal update: ' . $e->getMessage());
+            return back()->withInput()->with('error', 'Gagal update: '.$e->getMessage());
         }
     }
 
@@ -1307,8 +1317,8 @@ class InvoiceController extends Controller
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
         $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn($q) => $q
+            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
+            ->when(! is_numeric($raw), fn ($q) => $q
                 ->where('fcabangkode', $raw)
                 ->orWhere('fcabangname', $raw))
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
@@ -1399,7 +1409,7 @@ class InvoiceController extends Controller
             'famountso' => (float) ($invoice->famountso ?? 0),  // nilai Grand Total dari DB
             'filterSupplierId' => $request->query('filter_supplier_id'),
             'filterSalesmanId' => $request->query('filter_salesman_id'),
-            'isUsageLocked' => !empty($usageLockMessage),
+            'isUsageLocked' => ! empty($usageLockMessage),
             'usageLockMessage' => $usageLockMessage,
             'action' => 'delete',
         ]);
@@ -1439,7 +1449,7 @@ class InvoiceController extends Controller
                     DB::table('trsodt')
                         ->where('ftrsodtid', $detailId)
                         ->update([
-                            'fqtyremain' => DB::raw('COALESCE(fqtyremain,0) + ' . $qtyKecil),
+                            'fqtyremain' => DB::raw('COALESCE(fqtyremain,0) + '.$qtyKecil),
                         ]);
                 }
 
@@ -1453,7 +1463,7 @@ class InvoiceController extends Controller
                     DB::table('trstockdt')
                         ->where('fstockdtid', $detailId)
                         ->update([
-                            'fqtyremain' => DB::raw('COALESCE(fqtyremain,0) + ' . $qtyKecil),
+                            'fqtyremain' => DB::raw('COALESCE(fqtyremain,0) + '.$qtyKecil),
                         ]);
                 }
 
@@ -1464,10 +1474,10 @@ class InvoiceController extends Controller
                 $invoice->delete();
             });
 
-            return redirect()->route('invoice.index')->with('success', 'Data Faktur Penjualan ' . $invoice->fsono . ' berhasil dihapus.');
+            return redirect()->route('invoice.index')->with('success', 'Data Faktur Penjualan '.$invoice->fsono.' berhasil dihapus.');
         } catch (\Exception $e) {
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
-            return redirect()->route('invoice.delete', $ftranmtid)->with('error', 'Gakey: gal menghapus data: ' . $e->getMessage());
+            return redirect()->route('invoice.delete', $ftranmtid)->with('error', 'Gakey: gal menghapus data: '.$e->getMessage());
         }
     }
 

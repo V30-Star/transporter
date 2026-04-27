@@ -12,7 +12,8 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB; // sekalian biar aman untuk tanggal
-use Illuminate\Support\Facades\Log; // sekalian biar aman untuk tanggal
+
+// sekalian biar aman untuk tanggal
 
 class SalesOrderController extends Controller
 {
@@ -185,7 +186,7 @@ class SalesOrderController extends Controller
             if ($orderColumn == 'fcustomername') {
                 $query->orderBy('mscustomer.fcustomername', $orderDir);
             } else {
-                $query->orderBy('trsomt.' . $orderColumn, $orderDir);
+                $query->orderBy('trsomt.'.$orderColumn, $orderDir);
             }
         } else {
             $query->orderBy('trsomt.fsodate', 'desc');
@@ -240,7 +241,6 @@ class SalesOrderController extends Controller
         ]);
     }
 
-
     private function generatetr_poh_Code(?Carbon $onDate = null, $branch = null): string
     {
         $date = $onDate ?: now();
@@ -268,17 +268,17 @@ class SalesOrderController extends Controller
         $prefix = sprintf('PO.%s.%s.%s.', $kodeCabang, $date->format('y'), $date->format('m'));
 
         // kunci per (branch, tahun-bulan) — TANPA bikin tabel baru
-        $lockKey = crc32('PO|' . $kodeCabang . '|' . $date->format('Y-m'));
+        $lockKey = crc32('PO|'.$kodeCabang.'|'.$date->format('Y-m'));
         DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
         $last = DB::table('trsomt')
-            ->where('fsono', 'like', $prefix . '%')
+            ->where('fsono', 'like', $prefix.'%')
             ->selectRaw("MAX(CAST(split_part(fsono, '.', 5) AS int)) AS lastno")
             ->value('lastno');
 
         $next = (int) $last + 1;
 
-        return $prefix . str_pad((string) $next, 4, '0', STR_PAD_LEFT);
+        return $prefix.str_pad((string) $next, 4, '0', STR_PAD_LEFT);
     }
 
     public function print(string $fsono)
@@ -315,7 +315,7 @@ class SalesOrderController extends Controller
             ]);
 
         // Format date helper
-        $fmt = fn($d) => $d
+        $fmt = fn ($d) => $d
             ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y')
             : '-';
 
@@ -339,10 +339,10 @@ class SalesOrderController extends Controller
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
         $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
+            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
             ->when(
                 ! is_numeric($raw),
-                fn($q) => $q->where('fcabangkode', $raw)->orWhere('fcabangname', $raw)
+                fn ($q) => $q->where('fcabangkode', $raw)->orWhere('fcabangname', $raw)
             )
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
 
@@ -368,7 +368,7 @@ class SalesOrderController extends Controller
         $productMap = $products->mapWithKeys(function ($p) {
             return [
                 $p->fprdcode => [
-                    'name'  => $p->fprdname,
+                    'name' => $p->fprdname,
                     'units' => array_values(array_filter([
                         $p->fsatuankecil,
                         $p->fsatuanbesar,
@@ -376,8 +376,8 @@ class SalesOrderController extends Controller
                     ])),
                     'stock' => $p->fminstock ?? 0,
                     'unit_ratios' => [           // ← TAMBAH INI
-                        'satuankecil'  => 1,
-                        'satuanbesar'  => (float) ($p->fqtykecil  ?? 1),
+                        'satuankecil' => 1,
+                        'satuanbesar' => (float) ($p->fqtykecil ?? 1),
                         'satuanbesar2' => (float) ($p->fqtykecil2 ?? 1),
                     ],
                 ],
@@ -520,9 +520,8 @@ class SalesOrderController extends Controller
                 $totalGross,
                 $totalDisc,
                 $amountNet,
-                $ppnAmount,
-                $fppn,
-                $fppnpersen
+                $ppnAmount
+
             ) {
                 // A. Generate fsono (Auto Numbering)
                 if (empty($fsono)) {
@@ -540,15 +539,15 @@ class SalesOrderController extends Controller
                     $mm = $fsodate->format('m');
                     $prefix = sprintf('SO.%s.%s.%s.', $kodeCabang, $yy, $mm);
 
-                    $lockKey = crc32('SO|' . $kodeCabang . '|' . $fsodate->format('Y-m'));
+                    $lockKey = crc32('SO|'.$kodeCabang.'|'.$fsodate->format('Y-m'));
                     DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
                     $last = DB::table('trsomt')
-                        ->where('fsono', 'like', $prefix . '%')
+                        ->where('fsono', 'like', $prefix.'%')
                         ->selectRaw("MAX(CAST(split_part(fsono, '.', 5) AS int)) AS lastno")
                         ->value('lastno');
 
-                    $fsono = $prefix . str_pad((string) ((int)$last + 1), 4, '0', STR_PAD_LEFT);
+                    $fsono = $prefix.str_pad((string) ((int) $last + 1), 4, '0', STR_PAD_LEFT);
                 }
 
                 $lastRefNo = DB::table('trsomt')
@@ -571,9 +570,9 @@ class SalesOrderController extends Controller
                     'fdatetime' => $now,
                     'famountgross' => round($totalGross, 2),
                     'fdiscount' => round($totalDisc, 2),
-                    'fincludeppn'    => $fincludeppn,
-                    'fapplyppn'      => $fapplyppn,
-                    'fppnpersen'      => $request->input('ppn_rate', 0),
+                    'fincludeppn' => $fincludeppn,
+                    'fapplyppn' => $fapplyppn,
+                    'fppnpersen' => $request->input('ppn_rate', 0),
                     'famountsonet' => round($amountNet, 2),
                     'famountpajak' => round($ppnAmount, 2),
                     'famountso' => 0,
@@ -594,7 +593,7 @@ class SalesOrderController extends Controller
                     DB::table('msprd')
                         ->where('fprdcode', $row['fprdcode'])
                         ->update([
-                            'fminstock'  => DB::raw("CAST(fminstock AS NUMERIC) - " . $row['fqtyremain']),
+                            'fminstock' => DB::raw('CAST(fminstock AS NUMERIC) - '.$row['fqtyremain']),
                             'fupdatedat' => now(),
                         ]);
                 }
@@ -607,7 +606,7 @@ class SalesOrderController extends Controller
 
             return redirect()->route('salesorder.create')->with('success', "Sales Order {$fsono} berhasil disimpan.");
         } catch (\Exception $e) {
-            return back()->withInput()->withErrors(['error' => 'Gagal simpan: ' . $e->getMessage()]);
+            return back()->withInput()->withErrors(['error' => 'Gagal simpan: '.$e->getMessage()]);
         }
     }
 
@@ -663,8 +662,8 @@ class SalesOrderController extends Controller
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
         $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn($q) => $q
+            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
+            ->when(! is_numeric($raw), fn ($q) => $q
                 ->where('fcabangkode', $raw)
                 ->orWhere('fcabangname', $raw))
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
@@ -729,7 +728,7 @@ class SalesOrderController extends Controller
         $productMap = $products->mapWithKeys(function ($p) {
             return [
                 $p->fprdcode => [
-                    'name'  => $p->fprdname,
+                    'name' => $p->fprdname,
                     'units' => array_values(array_filter([
                         $p->fsatuankecil,
                         $p->fsatuanbesar,
@@ -737,8 +736,8 @@ class SalesOrderController extends Controller
                     ])),
                     'stock' => $p->fminstock ?? 0,
                     'unit_ratios' => [           // ← TAMBAH INI
-                        'satuankecil'  => 1,
-                        'satuanbesar'  => (float) ($p->fqtykecil  ?? 1),
+                        'satuankecil' => 1,
+                        'satuanbesar' => (float) ($p->fqtykecil ?? 1),
                         'satuanbesar2' => (float) ($p->fqtykecil2 ?? 1),
                     ],
                 ],
@@ -762,7 +761,7 @@ class SalesOrderController extends Controller
             'famountso' => (float) ($salesorder->famountso ?? 0),  // nilai Grand Total dari DB
             'filterSupplierId' => $request->query('filter_supplier_id'),
             'filterSalesmanId' => $request->query('filter_salesman_id'),
-            'isUsageLocked' => !empty($usageLockMessage),
+            'isUsageLocked' => ! empty($usageLockMessage),
             'usageLockMessage' => $usageLockMessage,
             'action' => 'edit',
         ]);
@@ -778,13 +777,13 @@ class SalesOrderController extends Controller
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
         $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn($q) => $q
+            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
+            ->when(! is_numeric($raw), fn ($q) => $q
                 ->where('fcabangkode', $raw)
                 ->orWhere('fcabangname', $raw))
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
 
-        $fcabang     = $branch->fcabangname ?? (string) $raw;
+        $fcabang = $branch->fcabangname ?? (string) $raw;
         $fbranchcode = $branch->fcabangkode ?? (string) $raw;
 
         $salesorder = SalesOrderHeader::with(['customer', 'details' => function ($q) {
@@ -807,19 +806,19 @@ class SalesOrderController extends Controller
 
         $savedItems = $salesorder->details->map(function ($d) {
             return [
-                'uid'        => $d->ftrsodtid,
-                'fprdcode'  => (string) ($d->fprdcode ?? ''),
-                'fitemname'  => (string) ($d->fprdname ?? ''),
-                'fsatuan'    => (string) ($d->fsatuan ?? ''),
-                'frefdtno'   => (string) ($d->ftrsodtid ?? ''),
-                'fqty'       => (float) ($d->fqty ?? 0),
+                'uid' => $d->ftrsodtid,
+                'fprdcode' => (string) ($d->fprdcode ?? ''),
+                'fitemname' => (string) ($d->fprdname ?? ''),
+                'fsatuan' => (string) ($d->fsatuan ?? ''),
+                'frefdtno' => (string) ($d->ftrsodtid ?? ''),
+                'fqty' => (float) ($d->fqty ?? 0),
                 'fqtyremain' => (float) ($d->fqtyremain ?? 0),
-                'fterima'    => (float) ($d->fterima ?? 0),
-                'fprice'     => (float) ($d->fprice ?? 0),
-                'fdisc'      => (float) ($d->fdiscpersen ?? 0),
-                'ftotal'     => (float) ($d->famount ?? 0),
-                'fdesc'      => (string) ($d->fdesc ?? ''),
-                'fketdt'     => (string) ($d->fketdt ?? ''),
+                'fterima' => (float) ($d->fterima ?? 0),
+                'fprice' => (float) ($d->fprice ?? 0),
+                'fdisc' => (float) ($d->fdiscpersen ?? 0),
+                'ftotal' => (float) ($d->famount ?? 0),
+                'fdesc' => (string) ($d->fdesc ?? ''),
+                'fketdt' => (string) ($d->fketdt ?? ''),
             ];
         })->values();
 
@@ -838,7 +837,7 @@ class SalesOrderController extends Controller
         $productMap = $products->mapWithKeys(function ($p) {
             return [
                 (string) $p->fprdcode => [
-                    'name'  => $p->fprdname,
+                    'name' => $p->fprdname,
                     'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
                     'stock' => (float) ($p->fminstock ?? 0),
                 ],
@@ -846,21 +845,21 @@ class SalesOrderController extends Controller
         })->toArray();
 
         return view('salesorder.view', [
-            'customers'            => $customers,
-            'salesmans'            => $salesmans,
+            'customers' => $customers,
+            'salesmans' => $salesmans,
             'selectedSupplierCode' => $selectedSupplierCode,
-            'fcabang'              => $fcabang,
-            'fbranchcode'          => $fbranchcode,
-            'products'             => $products,
-            'productMap'           => $productMap,
+            'fcabang' => $fcabang,
+            'fbranchcode' => $fbranchcode,
+            'products' => $products,
+            'productMap' => $productMap,
             'fppnpersen' => (float) ($salesorder->fppnpersen ?? 11),
-            'salesorder'           => $salesorder,
-            'savedItems'           => $savedItems,
-            'ppnAmount'            => (float) ($salesorder->famountpopajak ?? 0),
-            'famountgross'         => (float) ($salesorder->famountgross ?? 0),
-            'famountso'            => (float) ($salesorder->famountso ?? 0),
-            'filterSupplierId'     => $request->query('filter_supplier_id'),
-            'filterSalesmanId'     => $request->query('filter_salesman_id'),
+            'salesorder' => $salesorder,
+            'savedItems' => $savedItems,
+            'ppnAmount' => (float) ($salesorder->famountpopajak ?? 0),
+            'famountgross' => (float) ($salesorder->famountgross ?? 0),
+            'famountso' => (float) ($salesorder->famountso ?? 0),
+            'filterSupplierId' => $request->query('filter_supplier_id'),
+            'filterSalesmanId' => $request->query('filter_salesman_id'),
         ]);
     }
 
@@ -1057,7 +1056,7 @@ class SalesOrderController extends Controller
                 'falamatkirim' => mb_substr($request->input('falamatkirim', ''), 0, 300),
                 'fuserupdate' => mb_substr($userid, 0, 10),
                 'fdatetime' => $now,
-                'fapplyppn'      => $fapplyppn,
+                'fapplyppn' => $fapplyppn,
                 'fppnpersen' => $fppnpersen,
                 'famountgross' => round($totalGross, 2),
                 'fdiscount' => round($totalDisc, 2),
@@ -1074,7 +1073,7 @@ class SalesOrderController extends Controller
                 DB::table('msprd')
                     ->where('fprdcode', $row['fprdcode'])
                     ->update([
-                        'fminstock'  => DB::raw("CAST(fminstock AS NUMERIC) - " . $row['fqtyremain']),
+                        'fminstock' => DB::raw('CAST(fminstock AS NUMERIC) - '.$row['fqtyremain']),
                         'fupdatedat' => now(),
                     ]);
             }
@@ -1099,8 +1098,8 @@ class SalesOrderController extends Controller
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
         $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn($q) => $q
+            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
+            ->when(! is_numeric($raw), fn ($q) => $q
                 ->where('fcabangkode', $raw)
                 ->orWhere('fcabangname', $raw))
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
@@ -1185,7 +1184,7 @@ class SalesOrderController extends Controller
             'famountso' => (float) ($salesorder->famountso ?? 0),  // nilai Grand Total dari DB
             'filterSupplierId' => $request->query('filter_supplier_id'),
             'filterSalesmanId' => $request->query('filter_salesman_id'),
-            'isUsageLocked' => !empty($usageLockMessage),
+            'isUsageLocked' => ! empty($usageLockMessage),
             'usageLockMessage' => $usageLockMessage,
             'action' => 'delete',
         ]);
@@ -1208,10 +1207,10 @@ class SalesOrderController extends Controller
                 $salesorder->delete();
             });
 
-            return redirect()->route('salesorder.index')->with('success', 'Data Sales Order ' . $salesorder->fsono . ' berhasil dihapus.');
+            return redirect()->route('salesorder.index')->with('success', 'Data Sales Order '.$salesorder->fsono.' berhasil dihapus.');
         } catch (\Exception $e) {
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
-            return redirect()->route('salesorder.delete', $ftrsomtid)->with('error', 'Gakey: gal menghapus data: ' . $e->getMessage());
+            return redirect()->route('salesorder.delete', $ftrsomtid)->with('error', 'Gakey: gal menghapus data: '.$e->getMessage());
         }
     }
 
@@ -1241,23 +1240,23 @@ class SalesOrderController extends Controller
 
         $parts = [];
         if ($usedBySrj->isNotEmpty()) {
-            $parts[] = 'Surat Jalan: ' . $usedBySrj->implode(', ');
+            $parts[] = 'Surat Jalan: '.$usedBySrj->implode(', ');
         }
 
-        $usedByInvoice = $usedBySalesDocs->filter(fn($no) => str_starts_with((string) $no, 'INV.'));
+        $usedByInvoice = $usedBySalesDocs->filter(fn ($no) => str_starts_with((string) $no, 'INV.'));
         if ($usedByInvoice->isNotEmpty()) {
-            $parts[] = 'Faktur Penjualan: ' . $usedByInvoice->implode(', ');
+            $parts[] = 'Faktur Penjualan: '.$usedByInvoice->implode(', ');
         }
 
-        $usedByRetur = $usedBySalesDocs->filter(fn($no) => str_starts_with((string) $no, 'REJ.'));
+        $usedByRetur = $usedBySalesDocs->filter(fn ($no) => str_starts_with((string) $no, 'REJ.'));
         if ($usedByRetur->isNotEmpty()) {
-            $parts[] = 'Retur Penjualan: ' . $usedByRetur->implode(', ');
+            $parts[] = 'Retur Penjualan: '.$usedByRetur->implode(', ');
         }
 
         if (empty($parts)) {
             return null;
         }
 
-        return 'Sales Order ' . $fsono . ' tidak dapat diubah atau dihapus karena sudah digunakan pada ' . implode('; ', $parts) . '.';
+        return 'Sales Order '.$fsono.' tidak dapat diubah atau dihapus karena sudah digunakan pada '.implode('; ', $parts).'.';
     }
 }

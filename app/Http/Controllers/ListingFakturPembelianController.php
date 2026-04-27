@@ -2,61 +2,63 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
-use OpenSpout\Writer\XLSX\Writer;
-use OpenSpout\Common\Entity\Row;
 use OpenSpout\Common\Entity\Cell;
+use OpenSpout\Common\Entity\Row;
 use OpenSpout\Common\Entity\Style\Style;
+use OpenSpout\Writer\XLSX\Writer;
 
 class ListingFakturPembelianController extends Controller
 {
     public function index()
     {
         $suppliers = DB::table('mssupplier')->orderBy('fsuppliercode')->get();
+
         return view('listingfakturpembelian.index', compact('suppliers'));
     }
 
     public function print(Request $request)
     {
-        $results     = $this->getRawData($request);
+        $results = $this->getRawData($request);
         $groupedData = $results->groupBy('fstockmtno');
         $chunkedData = $groupedData->chunk(4);
 
         $totalLaporan = $results->unique('fstockmtno')->sum('famountmt');
 
         return view('listingfakturpembelian.print', [
-            'chunkedData'  => $chunkedData,
-            'totalPages'   => $chunkedData->count(),
+            'chunkedData' => $chunkedData,
+            'totalPages' => $chunkedData->count(),
             'totalLaporan' => $totalLaporan,
-            'user_session' => auth()->user()
+            'user_session' => auth()->user(),
         ]);
     }
 
     public function exportExcel(Request $request)
     {
-        $results     = $this->getRawData($request);
+        $results = $this->getRawData($request);
         $groupedData = $results->groupBy('fstockmtno');
 
-        $filename = "Listing_Faktur_Pembelian_" . date('YmdHis') . ".xlsx";
+        $filename = 'Listing_Faktur_Pembelian_'.date('YmdHis').'.xlsx';
         $tempFile = tempnam(sys_get_temp_dir(), 'xlsx_');
 
-        $writer = new Writer();
+        $writer = new Writer;
         $writer->openToFile($tempFile);
 
         // --- Styles ---
-        $styleTitle      = new Style(fontBold: true, fontSize: 14);
-        $styleHeader     = new Style(fontBold: true, backgroundColor: 'D3D3D3');
-        $styleMaster     = new Style(fontBold: true);
-        $styleDetail     = new Style(fontColor: 'CC0000');
+        $styleTitle = new Style(fontBold: true, fontSize: 14);
+        $styleHeader = new Style(fontBold: true, backgroundColor: 'D3D3D3');
+        $styleMaster = new Style(fontBold: true);
+        $styleDetail = new Style(fontColor: 'CC0000');
         $styleGrandTotal = new Style(fontBold: true, backgroundColor: '333333', fontColor: 'FFFFFF');
 
         $makeRow = function (array $values, ?Style $style = null): Row {
             $cells = array_map(
-                fn($value) => $style ? Cell::fromValue($value, $style) : Cell::fromValue($value),
+                fn ($value) => $style ? Cell::fromValue($value, $style) : Cell::fromValue($value),
                 $values
             );
+
             return new Row($cells);
         };
 
@@ -65,20 +67,20 @@ class ListingFakturPembelianController extends Controller
         $writer->addRow($makeRow([
             'Supplier:',
             $request->sup_from
-                ? '[' . $request->sup_from . '] s/d [' . $request->sup_to . ']'
-                : 'Semua'
+                ? '['.$request->sup_from.'] s/d ['.$request->sup_to.']'
+                : 'Semua',
         ]));
         $writer->addRow($makeRow([
             'Periode:',
-            ($request->date_from ?? '...') . ' s/d ' . ($request->date_to ?? '...')
+            ($request->date_from ?? '...').' s/d '.($request->date_to ?? '...'),
         ]));
         $writer->addRow($makeRow([
             'Tipe Transaksi:',
             match ($request->type_transaksi) {
-                '1'     => 'Trade',
-                '2'     => 'Non Trade',
+                '1' => 'Trade',
+                '2' => 'Non Trade',
                 default => 'Semua'
-            }
+            },
         ]));
         $writer->addRow($makeRow([]));
 
@@ -105,7 +107,7 @@ class ListingFakturPembelianController extends Controller
         $totalLaporan = 0;
 
         foreach ($groupedData as $fstockmtno => $details) {
-            $h       = $details->first();
+            $h = $details->first();
             $isFirst = true;
             $totalLaporan += (float) $h->famountmt;
 
@@ -150,7 +152,7 @@ class ListingFakturPembelianController extends Controller
             '',
             '',
             '',
-            ''
+            '',
         ], $styleGrandTotal));
 
         $writer->addRow($makeRow(['*** Akhir Laporan ***'], $styleGrandTotal));
@@ -190,8 +192,12 @@ class ListingFakturPembelianController extends Controller
             )
             ->where('m.fstockmtcode', 'BUY');
 
-        if ($request->date_from) $query->where('m.fstockmtdate', '>=', $request->date_from);
-        if ($request->date_to)   $query->where('m.fstockmtdate', '<=', $request->date_to . ' 23:59:59');
+        if ($request->date_from) {
+            $query->where('m.fstockmtdate', '>=', $request->date_from);
+        }
+        if ($request->date_to) {
+            $query->where('m.fstockmtdate', '<=', $request->date_to.' 23:59:59');
+        }
 
         if ($request->type_transaksi == '1') {
             $query->where('m.ftrancode', '0');
