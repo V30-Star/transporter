@@ -169,6 +169,7 @@ class SuratJalanController extends Controller
             ->leftJoin('msprd', 'msprd.fprdid', '=', 'trstockdt.fprdcodeid')
             ->select(
                 'trstockdt.fstockdtid as frefdtno',
+                DB::raw("TRIM(BOTH ', ' FROM CONCAT_WS(', ', NULLIF(TRIM(COALESCE(trstockdt.frefnoacak::text, '')), ''), NULLIF(TRIM(COALESCE(trstockdt.fnoacak::text, '')), ''))) as frefnoacak"),
                 // UBAH BAGIAN INI: Ambil kolom kode dari msprd (misal: fprdcode_string)
                 // atau pastikan kolom ini memang yang berisi kode produk
                 'msprd.fprdcode as fitemcode',
@@ -191,6 +192,33 @@ class SuratJalanController extends Controller
             'header' => $header,
             'items' => $items,
         ]);
+    }
+
+    private function normalizeRandomNumber($value, array &$usedNumbers): string
+    {
+        $value = trim((string) ($value ?? ''));
+        $candidate = preg_match('/^\d{3}$/', $value) ? $value : null;
+
+        if ($candidate !== null && ! in_array($candidate, $usedNumbers, true)) {
+            $usedNumbers[] = $candidate;
+
+            return $candidate;
+        }
+
+        do {
+            $candidate = str_pad((string) random_int(0, 999), 3, '0', STR_PAD_LEFT);
+        } while (in_array($candidate, $usedNumbers, true));
+
+        $usedNumbers[] = $candidate;
+
+        return $candidate;
+    }
+
+    private function normalizeReferenceRandomNumber($value): ?string
+    {
+        $value = trim((string) ($value ?? ''));
+
+        return preg_match('/^\d{3}$/', $value) ? $value : null;
     }
 
     private function generatetr_poh_Code(?Carbon $onDate = null, $branch = null): string
@@ -386,6 +414,10 @@ class SuratJalanController extends Controller
             'frefso.*' => ['nullable', 'string', 'max:100'],
             'frefsoid' => ['nullable', 'array'],
             'frefsoid.*' => ['nullable', 'integer'],
+            'fnoacak' => ['nullable', 'array'],
+            'fnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
+            'frefnoacak' => ['nullable', 'array'],
+            'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
         ]);
 
         // =========================
@@ -418,6 +450,8 @@ class SuratJalanController extends Controller
         $descs = $request->input('fdesc', []);
         $frefso = $request->input('frefso', []);
         $frefsoid = $request->input('frefsoid', []);
+        $fnoacaks = $request->input('fnoacak', []);
+        $frefnoacaks = $request->input('frefnoacak', []);
 
         $rowCount = count($codes);
         $uniqueCodes = array_values(array_unique(
@@ -451,12 +485,12 @@ class SuratJalanController extends Controller
         // =========================
         $rowsDt = [];
         $subtotal = 0.0;
+        $usedNoAcaks = [];
 
         for ($i = 0; $i < $rowCount; $i++) {
             $code = trim((string) ($codes[$i] ?? ''));
             $sat = trim((string) ($satuans[$i] ?? ''));
             $rref = $refdtno[$i] ?? null;
-            $rnour = $nourefs[$i] ?? null;
             $qty = (float) ($qtys[$i] ?? 0);
             $price = (float) ($prices[$i] ?? 0);
             $desc = (string) ($descs[$i] ?? '');
@@ -495,6 +529,10 @@ class SuratJalanController extends Controller
                 'fcode' => '0',
                 'frefso' => $frefso[$i] ?? null,
                 'frefsoid' => isset($frefsoid[$i]) ? (int) $frefsoid[$i] : null,
+                'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
+                'frefnoacak' => isset($frefsoid[$i]) && (int) $frefsoid[$i] > 0
+                    ? $this->normalizeReferenceRandomNumber($frefnoacaks[$i] ?? null)
+                    : null,
                 'fdesc' => $desc,
                 'fsatuan' => $sat,
                 'fclosedt' => '0',
@@ -858,6 +896,8 @@ class SuratJalanController extends Controller
                 'frefno_display' => $d->frefso ?? $d->frefpr ?? $d->fpono ?? '-',
                 'frefso' => $d->frefso ?? null,
                 'frefsoid' => $d->frefsoid ?? null,
+                'fnoacak' => (string) ($d->fnoacak ?? ''),
+                'frefnoacak' => (string) ($d->frefnoacak ?? ''),
                 'fqtyremain' => $d->frefsoid ? max(0, (float) ($soRemainMap[(int) $d->frefsoid] ?? 0) + (float) ($oldUsageBySo[(int) $d->frefsoid] ?? 0)) : 0,
                 'fketdt' => $d->fketdt ?? '',
                 'units' => [],
@@ -989,6 +1029,8 @@ class SuratJalanController extends Controller
                 'frefno_display' => $d->frefso ?? $d->frefpr ?? $d->fpono ?? '-',
                 'frefso' => $d->frefso ?? null,
                 'frefsoid' => $d->frefsoid ?? null,
+                'fnoacak' => (string) ($d->fnoacak ?? ''),
+                'frefnoacak' => (string) ($d->frefnoacak ?? ''),
                 'fqtyremain' => $d->frefsoid ? max(0, (float) ($soRemainMap[(int) $d->frefsoid] ?? 0) + (float) ($oldUsageBySo[(int) $d->frefsoid] ?? 0)) : 0,
                 'fketdt' => $d->fketdt ?? '',
                 'units' => [],
@@ -1067,6 +1109,10 @@ class SuratJalanController extends Controller
             'frefso.*' => ['nullable', 'string', 'max:100'],
             'frefsoid' => ['nullable', 'array'],
             'frefsoid.*' => ['nullable', 'integer'],
+            'fnoacak' => ['nullable', 'array'],
+            'fnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
+            'frefnoacak' => ['nullable', 'array'],
+            'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
         ]);
 
         // =========================
@@ -1105,6 +1151,8 @@ class SuratJalanController extends Controller
         $descs = $request->input('fdesc', []);
         $frefso = $request->input('frefso', []);
         $frefsoid = $request->input('frefsoid', []);
+        $fnoacaks = $request->input('fnoacak', []);
+        $frefnoacaks = $request->input('frefnoacak', []);
 
         $oldSoUsageRows = DB::table('trstockdt')
             ->where('fstockmtno', $header->fstockmtno)
@@ -1153,12 +1201,12 @@ class SuratJalanController extends Controller
         // =========================
         $rowsDt = [];
         $subtotal = 0.0;
+        $usedNoAcaks = [];
 
         for ($i = 0; $i < $rowCount; $i++) {
             $code = trim((string) ($codes[$i] ?? ''));
             $sat = trim((string) ($satuans[$i] ?? ''));
             $rref = $refdtno[$i] ?? null;
-            $rnour = $nourefs[$i] ?? null;
             $qty = (float) ($qtys[$i] ?? 0);
             $price = (float) ($prices[$i] ?? 0);
             $desc = (string) ($descs[$i] ?? '');
@@ -1198,6 +1246,10 @@ class SuratJalanController extends Controller
                 'fcode' => '0',
                 'frefso' => $frefso[$i] ?? null,
                 'frefsoid' => isset($frefsoid[$i]) ? (int) $frefsoid[$i] : null,
+                'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
+                'frefnoacak' => isset($frefsoid[$i]) && (int) $frefsoid[$i] > 0
+                    ? $this->normalizeReferenceRandomNumber($frefnoacaks[$i] ?? null)
+                    : null,
                 'fdesc' => $desc,
                 'fsatuan' => $sat,
                 'fclosedt' => '0',
@@ -1572,6 +1624,8 @@ class SuratJalanController extends Controller
                 'frefno_display' => $d->frefso ?? $d->frefpr ?? $d->fpono ?? '-',
                 'frefso' => $d->frefso ?? null,
                 'frefsoid' => $d->frefsoid ?? null,
+                'fnoacak' => (string) ($d->fnoacak ?? ''),
+                'frefnoacak' => (string) ($d->frefnoacak ?? ''),
                 'fqtyremain' => $d->frefsoid ? max(0, (float) ($soRemainMap[(int) $d->frefsoid] ?? 0) + (float) ($oldUsageBySo[(int) $d->frefsoid] ?? 0)) : 0,
                 'fketdt' => $d->fketdt ?? '',
                 'units' => [],

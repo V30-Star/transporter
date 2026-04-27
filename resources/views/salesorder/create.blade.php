@@ -397,6 +397,7 @@
                                                 <input type="hidden" name="fprdcode[]" :value="it.fprdcode">
                                                 <input type="hidden" name="fitemname[]" :value="it.fitemname">
                                                 <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
+                                                <input type="hidden" name="fnoacak[]" :value="it.fnoacak">
                                                 <input type="hidden" name="fqty[]" :value="it.fqty">
                                                 <input type="hidden" name="fprice[]" :value="it.fprice">
                                                 <input type="hidden" name="fdisc[]" :value="it.fdisc">
@@ -1586,7 +1587,23 @@
 
             resetDraft() {
                 this.draft = newRow();
+                this.draft.fnoacak = this.generateUniqueNoAcak();
                 this.$nextTick(() => this.$refs.draftCode?.focus());
+            },
+
+            normalizeNoAcak(value) {
+                const normalized = String(value ?? '').trim();
+                return /^\d{3}$/.test(normalized) ? normalized : '';
+            },
+
+            generateUniqueNoAcak() {
+                const used = new Set(this.savedItems.map(item => this.normalizeNoAcak(item.fnoacak)).filter(Boolean));
+                let candidate = '';
+                do {
+                    candidate = String(Math.floor(Math.random() * 1000)).padStart(3, '0');
+                } while (used.has(candidate));
+
+                return candidate;
             },
 
 
@@ -1617,6 +1634,7 @@
 
                 this.savedItems.push({
                     ...r,
+                    fnoacak: this.normalizeNoAcak(r.fnoacak) || this.generateUniqueNoAcak(),
                     uid: cryptoRandom()
                 });
                 this.showNoItems = false;
@@ -1706,6 +1724,7 @@
                     const apply = (row) => {
                         row.fprdcode = (product.fprdcode || '').toString();
                         this.hydrateRowFromMeta(row, this.productMeta(row.fprdcode));
+                        row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak();
                         if (!row.fqty) row.fqty = 1;
                         this.recalc(row);
                     };
@@ -1716,6 +1735,7 @@
                 });
 
                 const self = this;
+                this.draft.fnoacak = this.generateUniqueNoAcak();
                 document.addEventListener('change', function(e) {
                     if (e.target && e.target.id === 'draftUnitSelect') {
                         self.draft.fsatuan = e.target.value;
@@ -1740,6 +1760,7 @@
                 fitemname: '',
                 units: [],
                 fsatuan: '',
+                fnoacak: '',
                 frefdtno: '',
                 fnouref: '',
                 frefpr: '',

@@ -513,6 +513,7 @@
                                                 <input type="hidden" name="fprdid[]" :value="it.fprdid">
                                                 <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
                                                 <input type="hidden" name="fitemname[]" :value="it.fitemname">
+                                                <input type="hidden" name="fnoacak[]" :value="it.fnoacak">
                                                 <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
                                                 <input type="hidden" name="fqty[]" :value="it.fqty">
                                                 <input type="hidden" name="fqtypo[]" :value="it.fqtypo">
@@ -1081,28 +1082,25 @@
                 draft: {
                     fitemcode: '',
                     fitemname: '',
+                    fnoacak: '',
                     units: [],
                     fsatuan: '',
                     fqty: 1,
                     fdesc: '',
                     fketdt: ''
                 },
-                init() {
-                    window.addEventListener('product-chosen', (e) => {
-                        const {
-                            code,
-                            target,
-                            index
-                        } = e.detail;
-                        if (target === 'saved') {
-                            const it = this.savedItems[index];
-                            it.fitemcode = code;
-                            this.onCodeTypedSaved(it);
-                        } else {
-                            this.draft.fitemcode = code;
-                            this.onCodeTypedDraft();
-                        }
-                    });
+                normalizeNoAcak(value) {
+                    return (value || '').toString().replace(/\D/g, '').slice(0, 3);
+                },
+                generateUniqueNoAcak() {
+                    const used = new Set(this.savedItems.map(item => this.normalizeNoAcak(item.fnoacak)).filter(Boolean));
+                    let candidate = '';
+
+                    do {
+                        candidate = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+                    } while (used.has(candidate));
+
+                    return candidate;
                 },
                 onCodeTypedDraft() {
                     const meta = window.PRODUCT_MAP[this.draft.fitemcode];
@@ -1111,6 +1109,7 @@
                         this.draft.fitemname = meta.name;
                         this.draft.units = meta.units;
                         this.draft.fsatuan = meta.units[0] || '';
+                        this.draft.fnoacak = this.normalizeNoAcak(this.draft.fnoacak) || this.generateUniqueNoAcak();
                     } else {
                         this.draft.fprdid = 0;
                         this.draft.fitemname = '';
@@ -1125,6 +1124,7 @@
                         it.fitemname = meta.name;
                         it.units = meta.units;
                         if (!it.units.includes(it.fsatuan)) it.fsatuan = it.units[0] || '';
+                        it.fnoacak = this.normalizeNoAcak(it.fnoacak) || this.generateUniqueNoAcak();
                     }
                 },
                 handleEnterOnDraftCode() {
@@ -1136,11 +1136,13 @@
                     this.savedItems.push({
                         ...this.draft,
                         uid: cryptoRandom(),
+                        fnoacak: this.normalizeNoAcak(this.draft.fnoacak) || this.generateUniqueNoAcak(),
                         fqtypo: 0
                     });
                     this.draft = {
                         fitemcode: '',
                         fitemname: '',
+                        fnoacak: this.generateUniqueNoAcak(),
                         units: [],
                         fsatuan: '',
                         fqty: 1,
@@ -1216,6 +1218,12 @@
                 },
 
                 init() {
+                    this.savedItems = this.savedItems.map(it => ({
+                        ...it,
+                        fnoacak: this.normalizeNoAcak(it.fnoacak) || this.generateUniqueNoAcak()
+                    }));
+                    this.draft.fnoacak = this.generateUniqueNoAcak();
+
                     window.addEventListener('product-chosen', (e) => {
                         const {
                             code,

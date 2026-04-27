@@ -231,6 +231,44 @@ class InvoiceController extends Controller
         ]);
     }
 
+    private function normalizeRandomNumber($value, array &$usedNumbers): string
+    {
+        $value = trim((string) ($value ?? ''));
+        $candidate = preg_match('/^\d{3}$/', $value) ? $value : null;
+
+        if ($candidate !== null && ! in_array($candidate, $usedNumbers, true)) {
+            $usedNumbers[] = $candidate;
+
+            return $candidate;
+        }
+
+        do {
+            $candidate = str_pad((string) random_int(0, 999), 3, '0', STR_PAD_LEFT);
+        } while (in_array($candidate, $usedNumbers, true));
+
+        $usedNumbers[] = $candidate;
+
+        return $candidate;
+    }
+
+    private function normalizeReferenceRandomNumbers($value): ?string
+    {
+        $parts = preg_split('/\s*,\s*/', trim((string) ($value ?? ''))) ?: [];
+        $normalized = [];
+
+        foreach ($parts as $part) {
+            $candidate = trim((string) $part);
+            if (! preg_match('/^\d{3}$/', $candidate)) {
+                continue;
+            }
+            if (! in_array($candidate, $normalized, true)) {
+                $normalized[] = $candidate;
+            }
+        }
+
+        return empty($normalized) ? null : implode(',', $normalized);
+    }
+
     private function generatetr_poh_Code(?Carbon $onDate = null, $branch = null): string
     {
         $date = $onDate ?: now();
@@ -404,6 +442,10 @@ class InvoiceController extends Controller
             'frefcode' => ['nullable', 'string', 'in:SO,SRJ,UM'],
             'frefso' => ['nullable'],
             'frefsrj' => ['nullable'],
+            'fnoacak' => ['nullable', 'array'],
+            'fnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
+            'frefnoacak' => ['nullable', 'array'],
+            'frefnoacak.*' => ['nullable', 'regex:/^\d{3}(,\s*\d{3})*$/'],
         ], [
             'fsodate.required' => 'Tanggal Faktur Penjualan wajib diisi.',
             'fcustno.required' => 'Customer wajib diisi.',
@@ -431,10 +473,13 @@ class InvoiceController extends Controller
         $frefso_ids = $request->input('frefsoid', []);
         $frefsrjid_ids = $request->input('frefsrjid', []);
         $frefpr_codes = $request->input('frefpr', []);
+        $fnoacaks = $request->input('fnoacak', []);
+        $frefnoacaks = $request->input('frefnoacak', []);
 
         $detailRows = [];
         $totalGross = 0;
         $totalDisc = 0;
+        $usedNoAcaks = [];
 
         // Logika UM (Tetap sama)
         $hasUM = in_array('UM', $itemCodes);
@@ -505,6 +550,8 @@ class InvoiceController extends Controller
                 'frefsoid' => ! empty($frefso_ids[$i]) ? (int) $frefso_ids[$i] : null,
                 'frefsrj' => ! empty($frefsrjid_ids[$i]) ? ($frefpr_codes[$i] ?? '') : '',
                 'frefsrjid' => ! empty($frefsrjid_ids[$i]) ? (int) $frefsrjid_ids[$i] : null,
+                'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
+                'frefnoacak' => $this->normalizeReferenceRandomNumbers($frefnoacaks[$i] ?? null),
             ];
         }
 
@@ -848,6 +895,8 @@ class InvoiceController extends Controller
                 'frefsoid' => (string) ($d->frefsoid ?? ''),
                 'frefsrj' => trim($d->frefsrj ?? ''),
                 'frefsrjid' => (string) ($d->frefsrjid ?? ''),
+                'fnoacak' => (string) ($d->fnoacak ?? ''),
+                'frefnoacak' => (string) ($d->frefnoacak ?? ''),
                 'frefno_display' => $refNoDisplay,
                 'fqty' => (float) ($d->fqty ?? 0),
                 'fterima' => (float) ($d->fterima ?? 0),
@@ -976,6 +1025,8 @@ class InvoiceController extends Controller
                 'ftotal' => (float) ($d->famount ?? 0),
                 'fdesc' => (string) ($d->fdesc ?? ''),
                 'frefcode' => (string) ($d->frefcode ?? ''),
+                'fnoacak' => (string) ($d->fnoacak ?? ''),
+                'frefnoacak' => (string) ($d->frefnoacak ?? ''),
                 'frefno_display' => $refNoDisplay,
                 'fketdt' => (string) ($d->fketdt ?? ''),
             ];
@@ -1037,6 +1088,10 @@ class InvoiceController extends Controller
             'fqty.*' => ['numeric', 'min:0.01'],
             'fprice' => ['required', 'array'],
             'fprice.*' => ['numeric', 'min:0'],
+            'fnoacak' => ['nullable', 'array'],
+            'fnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
+            'frefnoacak' => ['nullable', 'array'],
+            'frefnoacak.*' => ['nullable', 'regex:/^\d{3}(,\s*\d{3})*$/'],
         ]);
 
         // 2. LOAD HEADER
@@ -1069,11 +1124,14 @@ class InvoiceController extends Controller
         $frefso_ids = $request->input('frefsoid', []);
         $frefsrjid_ids = $request->input('frefsrjid', []);
         $frefpr_codes = $request->input('frefpr', []);
+        $fnoacaks = $request->input('fnoacak', []);
+        $frefnoacaks = $request->input('frefnoacak', []);
 
         // 4. BUILD DETAIL ROWS
         $detailRows = [];
         $totalGross = 0;
         $totalDisc = 0;
+        $usedNoAcaks = [];
 
         $hasUM = in_array('UM', $itemCodes);
         if ($hasUM && $typeSales === 0) {
@@ -1157,6 +1215,8 @@ class InvoiceController extends Controller
                 'frefsoid' => ! empty($frefso_ids[$i]) ? (int) $frefso_ids[$i] : null,
                 'frefsrj' => ! empty($frefsrjid_ids[$i]) ? $refPr : '',
                 'frefsrjid' => ! empty($frefsrjid_ids[$i]) ? (int) $frefsrjid_ids[$i] : null,
+                'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
+                'frefnoacak' => $this->normalizeReferenceRandomNumbers($frefnoacaks[$i] ?? null),
             ];
 
             $detailRows[] = $rowData;
@@ -1403,6 +1463,8 @@ class InvoiceController extends Controller
                 'ftotal' => (float) ($d->famount ?? 0),
                 'fdesc' => (string) ($d->fdesc ?? ''),
                 'frefcode' => (string) ($d->frefcode ?? ''),
+                'fnoacak' => (string) ($d->fnoacak ?? ''),
+                'frefnoacak' => (string) ($d->frefnoacak ?? ''),
                 'frefno_display' => $refNoDisplay,
                 'fketdt' => (string) ($d->fketdt ?? ''),
             ];

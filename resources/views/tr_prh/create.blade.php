@@ -308,6 +308,7 @@
                                         <td class="hidden">
                                             <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
                                             <input type="hidden" name="fitemname[]" :value="it.fitemname">
+                                            <input type="hidden" name="fnoacak[]" :value="it.fnoacak">
                                             <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
                                             <input type="hidden" name="fqty[]" :value="it.fqty">
                                             <input type="hidden" name="fqtypo[]" :value="it.fqtypo">
@@ -809,6 +810,7 @@
             draft: {
                 fitemcode: '',
                 fitemname: '',
+                fnoacak: '',
                 units: [],
                 fsatuan: '',
                 fqty: '',
@@ -821,6 +823,7 @@
                 this.draft = {
                     fitemcode: '',
                     fitemname: '',
+                    fnoacak: this.generateUniqueNoAcak(),
                     units: [],
                     fsatuan: '',
                     fqty: '',
@@ -829,6 +832,21 @@
                     maxqty: 0
                 };
                 clearDraftUnitSelect();
+            },
+
+            normalizeNoAcak(value) {
+                return (value || '').toString().replace(/\D/g, '').slice(0, 3);
+            },
+
+            generateUniqueNoAcak() {
+                const used = new Set(this.savedItems.map(item => this.normalizeNoAcak(item.fnoacak)).filter(Boolean));
+                let candidate = '';
+
+                do {
+                    candidate = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+                } while (used.has(candidate));
+
+                return candidate;
             },
 
             productMeta(code) {
@@ -892,6 +910,7 @@
                 row.units = units;
                 row.fsatuan = units.includes(prev) ? prev : (units[0] || '');
                 row.maxqty = Number.isFinite(+meta.stock) && +meta.stock > 0 ? +meta.stock : 0;
+                row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak();
             },
 
             // Hydrate baris DRAFT — pure DOM untuk select
@@ -916,6 +935,7 @@
                     clearDraftUnitSelect();
                     row.fsatuan = units[0] || '';
                 }
+                row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak();
             },
 
             onCodeTypedRow(row) {
@@ -971,6 +991,7 @@
                     uid: cryptoRandom(),
                     fitemcode: r.fitemcode,
                     fitemname: r.fitemname,
+                    fnoacak: this.normalizeNoAcak(r.fnoacak) || this.generateUniqueNoAcak(),
                     units: [...r.units],
                     fsatuan: satuanFinal, // dari DOM, bukan Alpine proxy
                     fqty: +r.fqty,
@@ -998,6 +1019,8 @@
             },
 
             init() {
+                this.resetDraft();
+
                 window.addEventListener('product-chosen', (e) => {
                     const {
                         product

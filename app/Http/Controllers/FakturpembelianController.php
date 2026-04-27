@@ -183,6 +183,7 @@ class FakturPembelianController extends Controller
                 'tr_pod.fdisc',
                 'tr_pod.famount as fbiaya',
                 'tr_pod.fpricenet as fharga',
+                DB::raw("COALESCE(tr_pod.fnoacak::text, '') as frefnoacak"),
                 DB::raw('0::numeric as fdiskon'),
             ])
             ->orderBy('tr_pod.fprdcode')
@@ -278,6 +279,7 @@ class FakturPembelianController extends Controller
                 'trstockdt.fdiscpersen',
                 'trstockdt.fbiaya',
                 'trstockdt.ftotprice as fharga',
+                DB::raw("TRIM(BOTH ', ' FROM CONCAT_WS(', ', NULLIF(TRIM(COALESCE(trstockdt.frefnoacak::text, '')), ''), NULLIF(TRIM(COALESCE(trstockdt.fnoacak::text, '')), ''))) as frefnoacak"),
                 DB::raw('0::numeric as fdiskon'),
             ])
             ->orderBy('trstockdt.fprdcode')
@@ -428,6 +430,24 @@ class FakturPembelianController extends Controller
         }
 
         return null;
+    }
+
+    private function normalizeReferenceRandomNumbers($value): ?string
+    {
+        $parts = preg_split('/\s*,\s*/', trim((string) ($value ?? ''))) ?: [];
+        $normalized = [];
+
+        foreach ($parts as $part) {
+            $candidate = trim((string) $part);
+            if (! preg_match('/^\d{3}$/', $candidate)) {
+                continue;
+            }
+            if (! in_array($candidate, $normalized, true)) {
+                $normalized[] = $candidate;
+            }
+        }
+
+        return empty($normalized) ? null : implode(',', $normalized);
     }
 
     private function validateSourceRemainForRows(array $codes, array $qtys, array $sources, array $refdtids, array $extraAvailableBySourceRef = []): \Illuminate\Support\MessageBag
@@ -638,6 +658,8 @@ class FakturPembelianController extends Controller
                 'fqty.*' => ['numeric', 'min:0.001'],
                 'fprice' => ['required', 'array'],
                 'fprice.*' => ['numeric', 'min:0'],
+                'frefnoacak' => ['nullable', 'array'],
+                'frefnoacak.*' => ['nullable', 'regex:/^\d{3}(,\s*\d{3})*$/'],
             ], [
                 'fprdjadi.required_if' => 'Account wajib diisi ketika tipe pembelian adalah Non Stok.',
             ]);
@@ -667,6 +689,7 @@ class FakturPembelianController extends Controller
             $refdtnos = $request->input('frefdtno', []);
             $refdtids = $request->input('frefdtid', []);
             $sources = $request->input('fsource', []);
+            $frefnoacaks = $request->input('frefnoacak', []);
             $qtys = $request->input('fqty', []);
             $prices = $request->input('fprice', []);
             $biayas = $request->input('fbiaya', []);
@@ -728,6 +751,7 @@ class FakturPembelianController extends Controller
                     'fprdcodeid' => $meta->fprdid,
                     'frefdtno' => trim((string) ($refdtnos[$i] ?? '')) ?: null,
                     'frefdtid' => isset($refdtids[$i]) ? (int) $refdtids[$i] : null,
+                    'frefnoacak' => $this->normalizeReferenceRandomNumbers($frefnoacaks[$i] ?? null),
                     'fqty' => $qty,
                     'fqtykecil' => $qtyKecil,
                     'fqtyremain' => $qtyKecil,
@@ -986,6 +1010,7 @@ class FakturPembelianController extends Controller
                 'famountpo' => $d->famountpo ?? null,
                 'frefdtno' => $d->frefdtno ?? null,
                 'frefdtid' => $detailId > 0 ? $detailId : null,
+                'frefnoacak' => $d->frefnoacak ?? null,
                 'fsource' => $sourceType,
                 'fqty' => (float) ($d->fqty ?? 0),
                 'fterima' => (float) ($d->fterima ?? 0),
@@ -1122,6 +1147,7 @@ class FakturPembelianController extends Controller
                 'famountponet' => $d->famountponet ?? null,
                 'famountpo' => $d->famountpo ?? null,
                 'frefdtno' => $d->frefdtno ?? null,
+                'frefnoacak' => $d->frefnoacak ?? null,
                 'fqty' => (float) ($d->fqty ?? 0),
                 'fterima' => (float) ($d->fterima ?? 0),
                 'fprice' => (float) ($d->fprice ?? 0),
@@ -1222,6 +1248,8 @@ class FakturPembelianController extends Controller
                 'ftypebuy' => ['nullable', 'integer'],
                 'frefno' => ['nullable', 'string'],
                 'frefpo' => ['nullable', 'string'],
+                'frefnoacak' => ['nullable', 'array'],
+                'frefnoacak.*' => ['nullable', 'regex:/^\d{3}(,\s*\d{3})*$/'],
                 'fprdjadi' => ['required_if:ftypebuy,1'],
             ], [
                 'fstockmtdate.required' => 'Tanggal transaksi wajib diisi.',
@@ -1267,6 +1295,7 @@ class FakturPembelianController extends Controller
             $refdtno = $request->input('frefdtno', []);
             $refdtids = $request->input('frefdtid', []);
             $sources = $request->input('fsource', []);
+            $frefnoacaks = $request->input('frefnoacak', []);
             $qtys = $request->input('fqty', []);
             $prices = $request->input('fprice', []);
             $biayas = $request->input('fbiaya', []);
@@ -1356,6 +1385,7 @@ class FakturPembelianController extends Controller
                     'fprdcodeid' => $meta->fprdid,
                     'frefdtno' => ! empty($refdtno[$i]) ? $refdtno[$i] : null,
                     'frefdtid' => isset($refdtids[$i]) ? (int) $refdtids[$i] : null,
+                    'frefnoacak' => $this->normalizeReferenceRandomNumbers($frefnoacaks[$i] ?? null),
                     'fqty' => $qty,
                     'fqtyremain' => $qtyKecil,
                     'fprice' => $price,
@@ -1551,6 +1581,7 @@ class FakturPembelianController extends Controller
                 'famountponet' => $d->famountponet ?? null,
                 'famountpo' => $d->famountpo ?? null,
                 'frefdtno' => $d->frefdtno ?? null,
+                'frefnoacak' => $d->frefnoacak ?? null,
                 'fqty' => (float) ($d->fqty ?? 0),
                 'fterima' => (float) ($d->fterima ?? 0),
                 'fprice' => (float) ($d->fprice ?? 0),

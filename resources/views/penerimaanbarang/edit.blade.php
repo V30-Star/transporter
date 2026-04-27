@@ -434,6 +434,8 @@
                                         <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
                                         <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
                                         <input type="hidden" name="frefdtid[]" :value="it.frefdtid">
+                                        <input type="hidden" name="fnoacak[]" :value="it.fnoacak">
+                                        <input type="hidden" name="frefnoacak[]" :value="it.frefnoacak">
                                         <input type="hidden" name="fnouref[]" :value="it.fnouref">
                                         <input type="hidden" name="frefpr[]" :value="it.frefpr">
                                         <input type="hidden" name="fprhid[]" :value="it.fprhid">
@@ -1018,6 +1020,8 @@
                     units: [],
                     fsatuan: '',
                     frefdtno: '',
+                    fnoacak: '',
+                    frefnoacak: '',
                     fnouref: '',
                     frefpr: '',
                     fprhid: '',
@@ -1197,6 +1201,21 @@
                     return row.fitemcode && row.fitemname && row.fsatuan && Number(row.fqty) > 0;
                 },
 
+                normalizeNoAcak(value) {
+                    const normalized = String(value ?? '').trim();
+                    return /^\d{3}$/.test(normalized) ? normalized : '';
+                },
+
+                generateUniqueNoAcak() {
+                    const used = new Set(this.savedItems.map(item => this.normalizeNoAcak(item.fnoacak)).filter(Boolean));
+                    let candidate = '';
+                    do {
+                        candidate = String(Math.floor(Math.random() * 1000)).padStart(3, '0');
+                    } while (used.has(candidate));
+
+                    return candidate;
+                },
+
                 calcMaxQty(row) {
                     const eq = (a, b) => (a || '').trim().toLowerCase() === (b || '').trim().toLowerCase();
                     const satuanPO = (row.fsatuan || '').trim();
@@ -1293,10 +1312,13 @@
                     }
                     this.savedItems.push({
                         ...r,
+                        fnoacak: this.normalizeNoAcak(r.fnoacak) || this.generateUniqueNoAcak(),
+                        frefnoacak: this.normalizeNoAcak(r.frefnoacak),
                         uid: cryptoRandom()
                     });
                     this.showNoItems = false;
                     this.draft = newRow();
+                    this.draft.fnoacak = this.generateUniqueNoAcak();
                     this.$nextTick(() => this.$refs.draftCode?.focus());
                 },
 
@@ -1348,6 +1370,8 @@
                             units,
                             fsatuan: fsatuan || units[0] || '',
                             frefdtno: src.fpono || header?.fpono || '',
+                            fnoacak: this.generateUniqueNoAcak(),
+                            frefnoacak: this.normalizeNoAcak(src.frefnoacak ?? src.fnoacak ?? ''),
                             fnouref: src.fnouref ?? '',
                             frefpr: String(header?.fprhid ?? src.fprhid ?? ''),
                             fprhid: String(src.fprhid ?? header?.fprhid ?? ''),
@@ -1431,6 +1455,8 @@
                             fsatuanbesar2,
                             fqtykecil,
                             fqtykecil2,
+                            fnoacak: this.normalizeNoAcak(it.fnoacak) || this.generateUniqueNoAcak(),
+                            frefnoacak: this.normalizeNoAcak(it.frefnoacak),
                         };
                         return row;
                     });
@@ -1447,6 +1473,7 @@
 
                     window.getCurrentItemKeys = () => this.getCurrentItemKeys();
                     window.isDupeItem = (candidate) => this.isDupeItem(candidate);
+                    this.draft.fnoacak = this.generateUniqueNoAcak();
 
                     if (this._ac) this._ac.abort();
                     this._ac = new AbortController();
@@ -1467,6 +1494,7 @@
                         const apply = (row) => {
                             row.fitemcode = (product.fprdcode || '').toString();
                             this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                            row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak();
                             if (!row.fqty) row.fqty = 1;
                             this.recalc(row);
                             this.$nextTick(() => this.applyLastPrice(row));

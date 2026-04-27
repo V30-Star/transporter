@@ -569,6 +569,7 @@
                                                 <input type="hidden" name="fketdt[]" :value="it.fketdt">
                                                 <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
                                                 <input type="hidden" name="frefdtid[]" :value="it.frefdtid">
+                                                <input type="hidden" name="frefnoacak[]" :value="it.frefnoacak">
                                                 <input type="hidden" name="fsource[]" :value="it.fsource">
                                                 <input type="hidden" name="fnouref[]" :value="it.fnouref">
                                                 <input type="hidden" name="frefpr[]" :value="it.frefpr">
@@ -1654,6 +1655,11 @@
                 this.$nextTick(() => this.$refs.draftCode?.focus());
             },
 
+            normalizeRefNoAcak(value) {
+                const parts = String(value ?? '').split(',').map(part => part.trim()).filter(part => /^\d{3}$/.test(part));
+                return [...new Set(parts)].join(',');
+            },
+
             addManyFromSource(header, items, sourceType) {
                 const existing = new Set(this.getCurrentItemKeys());
 
@@ -1678,6 +1684,7 @@
                         fsatuan: src.fsatuan ?? '',
                         frefdtno: frefdtnoVal,
                         frefdtid: src.frefdtid ?? src.frefdtno ?? null,
+                        frefnoacak: this.normalizeRefNoAcak(src.frefnoacak ?? ''),
                         fsource: sourceType,
                         fnouref: fnourefVal,
                         frefpr: src.fnouref ?? fnourefVal,
@@ -1750,6 +1757,7 @@
 
                 this.savedItems.push({
                     ...r,
+                    frefnoacak: this.normalizeRefNoAcak(r.frefnoacak),
                     uid: cryptoRandom()
                 });
                 this.showNoItems = false;
@@ -1904,6 +1912,7 @@
                 fsatuan: '',
                 frefdtno: '',
                 frefdtid: '',
+                frefnoacak: '',
                 fsource: '',
                 fnouref: '',
                 frefpr: '',

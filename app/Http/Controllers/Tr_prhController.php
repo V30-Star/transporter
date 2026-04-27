@@ -277,6 +277,9 @@ class Tr_prhController extends Controller
             'fqty' => ['array'],
             'fqty.*' => ['nullable'],
 
+            'fnoacak' => ['array'],
+            'fnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
+
             'fdesc' => ['array'],
             'fdesc.*' => ['nullable', 'string'],
 
@@ -287,6 +290,7 @@ class Tr_prhController extends Controller
         ], [
             'fitemcode.*.max' => 'Panjang kode produk maksimal 50 karakter.',
             'fsatuan.*.max' => 'Panjang satuan maksimal 20 karakter.',
+            'fnoacak.*.regex' => 'No acak harus terdiri dari 3 digit angka.',
             'fdesc.*.max' => 'Panjang deskripsi maksimal 300 karakter.',
             'fketdt.*.max' => 'Panjang keterangan detail maksimal 50 karakter.',
         ]);
@@ -311,6 +315,7 @@ class Tr_prhController extends Controller
         $codes = $request->input('fitemcode', []);
         $sats = $request->input('fsatuan', []);
         $qtys = $request->input('fqty', []);
+        $noacaks = $request->input('fnoacak', []);
         $descs = $request->input('fdesc', []);
         $ketdts = $request->input('fketdt', []);
 
@@ -332,7 +337,7 @@ class Tr_prhController extends Controller
 
         // ===== CHECK DETAIL EXISTENCE =====
         $hasValidDetail = false;
-        $rowCount = max(count($codes), count($sats), count($qtys), count($descs), count($ketdts));
+        $rowCount = max(count($codes), count($sats), count($qtys), count($noacaks), count($descs), count($ketdts));
         for ($i = 0; $i < $rowCount; $i++) {
             $code = trim($codes[$i] ?? '');
             $sat = trim($sats[$i] ?? '');
@@ -359,6 +364,7 @@ class Tr_prhController extends Controller
             $codes,
             $sats,
             $qtys,
+            $noacaks,
             $descs,
             $ketdts,
             $productMap
@@ -387,12 +393,14 @@ class Tr_prhController extends Controller
             // CREATE DETAILS
             $detailRows = [];
             $now = now();
-            $rowCount = max(count($codes), count($sats), count($qtys), count($descs), count($ketdts));
+            $rowCount = max(count($codes), count($sats), count($qtys), count($noacaks), count($descs), count($ketdts));
+            $usedNoAcaks = [];
 
             for ($i = 0; $i < $rowCount; $i++) {
                 $code = trim($codes[$i] ?? '');
                 $sat = trim($sats[$i] ?? '');
                 $qty = is_numeric($qtys[$i] ?? null) ? (int) $qtys[$i] : null;
+                $noacak = $this->normalizeRandomNumber($noacaks[$i] ?? null, $usedNoAcaks);
                 $desc = $descs[$i] ?? null;
                 $ketdt = $ketdts[$i] ?? null;
 
@@ -411,6 +419,7 @@ class Tr_prhController extends Controller
                         'fprdcode' => $product->fprdcode ?? '', // nama produk dari msprd.fprdname
                         'fqty' => (int) $qty,
                         'fqtyremain' => $qtyKecil,
+                        'fnoacak' => $noacak,
                         'fprice' => 0,
                         'fketdt' => $ketdt,
                         'fcreatedat' => $now,
@@ -560,6 +569,8 @@ class Tr_prhController extends Controller
             'fsatuan.*' => ['nullable', 'string', 'max:20'],
             'fqty' => ['array'],
             'fqty.*' => ['nullable', 'numeric', 'min:1'],
+            'fnoacak' => ['array'],
+            'fnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
             'fdesc' => ['array'],
             'fdesc.*' => ['nullable', 'string'],
             'fketdt' => ['array'],
@@ -571,6 +582,7 @@ class Tr_prhController extends Controller
             'fprdid.*.integer' => 'ID produk tidak valid.',
             'fprdid.*.min' => 'ID produk harus lebih besar dari 0.',
             'fsatuan.*.max' => 'Panjang satuan maksimal 20 karakter.',
+            'fnoacak.*.regex' => 'No acak harus terdiri dari 3 digit angka.',
             'fdesc.*.max' => 'Panjang deskripsi maksimal 300 karakter.',
             'fketdt.*.max' => 'Panjang keterangan detail maksimal 50 karakter.',
         ]);
@@ -593,6 +605,7 @@ class Tr_prhController extends Controller
         $idsIn = $request->input('fprdid', []);
         $sats = $request->input('fsatuan', []);
         $qtys = $request->input('fqty', []);
+        $noacaks = $request->input('fnoacak', []);
         $descs = $request->input('fdesc', []);
         $ketdts = $request->input('fketdt', []);
 
@@ -672,6 +685,7 @@ class Tr_prhController extends Controller
             $idsIn,
             $sats,
             $qtys,
+            $noacaks,
             $descs,
             $ketdts,
             $productMap,
@@ -680,6 +694,7 @@ class Tr_prhController extends Controller
         ) {
             $now = now();
             $userName = (auth('sysuser')->user()->fname ?? Auth::user()->fname ?? 'system');
+            $usedNoAcaks = [];
 
             // 1. Update Header
             $approveNow = $request->boolean('fapproval');
@@ -720,6 +735,7 @@ class Tr_prhController extends Controller
                 $did = (int) ($idsIn[$i] ?? 0);
                 $sat = trim($sats[$i] ?? '');
                 $qty = (int) ($qtys[$i] ?? 0);
+                $noacak = $this->normalizeRandomNumber($noacaks[$i] ?? null, $usedNoAcaks);
                 $desc = $descs[$i] ?? null;
                 $ket = $ketdts[$i] ?? null;
                 $product = $productMap[$code] ?? null;
@@ -733,6 +749,7 @@ class Tr_prhController extends Controller
                     'fprdcode' => $code,
                     'fqty' => $qty,
                     'fqtyremain' => $qtyKecil,
+                    'fnoacak' => $noacak,
                     'fketdt' => $ket,
                     'fsatuan' => $sat,
                     'fdesc' => $desc,
@@ -929,6 +946,7 @@ class Tr_prhController extends Controller
                 'fsatuan' => (string) ($detail->fsatuan ?? ''),
                 'fqty' => (float) ($detail->fqty ?? 0),
                 'fqtypo' => (float) ($detail->fqtypo ?? 0),
+                'fnoacak' => (string) ($detail->fnoacak ?? ''),
                 'fdesc' => (string) ($detail->fdesc ?? ''),
                 'fketdt' => (string) ($detail->fketdt ?? ''),
             ];
@@ -963,20 +981,40 @@ class Tr_prhController extends Controller
         return $qty;
     }
 
+    private function normalizeRandomNumber($value, array &$usedNumbers): string
+    {
+        $value = trim((string) ($value ?? ''));
+        $candidate = preg_match('/^\d{3}$/', $value) ? $value : null;
+
+        if ($candidate !== null && ! in_array($candidate, $usedNumbers, true)) {
+            $usedNumbers[] = $candidate;
+
+            return $candidate;
+        }
+
+        do {
+            $candidate = str_pad((string) random_int(0, 999), 3, '0', STR_PAD_LEFT);
+        } while (in_array($candidate, $usedNumbers, true));
+
+        $usedNumbers[] = $candidate;
+
+        return $candidate;
+    }
+
     private function getPrDetailsWithPoUsage(string $fprno)
     {
         return DB::table('tr_prd as d')
             ->leftJoin('msprd as p', 'p.fprdcode', '=', 'd.fprdcode')
             ->leftJoin(
                 DB::raw('(
-                    SELECT frefdtno, fprdcode, frefnoacak, SUM(fqtykecil) AS fqtykecilpo
+                    SELECT frefdtno, fprdcode, fnourefacak, SUM(fqtykecil) AS fqtykecilpo
                     FROM tr_pod
-                    GROUP BY frefdtno, fprdcode, frefnoacak
+                    GROUP BY frefdtno, fprdcode, fnourefacak
                 ) as po'),
                 function ($join) {
                     $join->on('po.frefdtno', '=', 'd.fprno')
                         ->on('po.fprdcode', '=', 'd.fprdcode')
-                        ->on('po.frefnoacak', '=', 'd.fnoacak');
+                        ->on('po.fnourefacak', '=', 'd.fnoacak');
                 }
             )
             ->where('d.fprno', $fprno)

@@ -451,6 +451,7 @@
                                                     <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
                                                     <input type="hidden" name="fitemname[]" :value="it.fitemname">
                                                     <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
+                                                    <input type="hidden" name="fnoacak[]" :value="it.fnoacak">
                                                     <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
                                                     <input type="hidden" name="fnouref[]" :value="it.fnouref">
                                                     <input type="hidden" name="frefpr[]" :value="it.frefpr">
@@ -2403,6 +2404,21 @@
                 this.addManyFromPR(header, items);
             },
 
+            normalizeNoAcak(value) {
+                const normalized = String(value ?? '').trim();
+                return /^\d{3}$/.test(normalized) ? normalized : '';
+            },
+
+            generateUniqueNoAcak() {
+                const used = new Set(this.savedItems.map(item => this.normalizeNoAcak(item.fnoacak)).filter(Boolean));
+                let candidate = '';
+                do {
+                    candidate = String(Math.floor(Math.random() * 1000)).padStart(3, '0');
+                } while (used.has(candidate));
+
+                return candidate;
+            },
+
             addManyFromPR(header, items) {
                 const existing = new Set(this.getCurrentItemKeys());
                 let added = 0;
@@ -2413,6 +2429,7 @@
                         fprdcode: src.fitemcode ?? '',
                         fitemname: src.fitemname ?? '',
                         fsatuan: src.fsatuan ?? '',
+                        fnoacak: this.generateUniqueNoAcak(),
                         frefdtno: src.frefdtno ?? '',
                         fnouref: src.fnouref ?? '',
                         frefpr: src.frefpr ?? (header?.fsono ?? ''),
@@ -2480,6 +2497,7 @@
 
                 this.savedItems.push({
                     ...r,
+                    fnoacak: this.normalizeNoAcak(r.fnoacak) || this.generateUniqueNoAcak(),
                     uid: cryptoRandom()
                 });
                 this.showNoItems = false;
@@ -2577,6 +2595,7 @@
                 this.$watch('ppnRate', () => this.recalcTotals());
 
                 this.savedItems.forEach((item) => {
+                    item.fnoacak = this.normalizeNoAcak(item.fnoacak) || this.generateUniqueNoAcak();
                     item.hideQtyLimitHint = !((item.frefdtno ?? '').toString().trim());
                     item.units = item.units || [];
                     if (typeof item.units === 'string') {
@@ -2620,6 +2639,7 @@
                     const apply = (row) => {
                         row.fprdcode = (product.fprdcode || '').toString();
                         row.hideQtyLimitHint = true;
+                        row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak();
 
                         // Gunakan data dari modal sebaga primary, fallback ke PRODUCT_MAP
                         const meta = {
@@ -2653,6 +2673,7 @@
                 });
 
                 const self = this;
+                this.draft.fnoacak = this.generateUniqueNoAcak();
                 document.addEventListener('change', function(e) {
                     if (e.target && e.target.id === 'draftUnitSelect') {
                         self.draft.fsatuan = e.target.value;
@@ -2678,6 +2699,7 @@
                 fitemname: '',
                 units: [],
                 fsatuan: '',
+                fnoacak: '',
                 frefdtno: '',
                 fnouref: '',
                 frefpr: '',

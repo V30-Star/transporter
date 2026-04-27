@@ -322,6 +322,8 @@
                                                 <input type="hidden" name="frefpr[]" :value="it.frefpr">
                                                 <input type="hidden" name="frefso[]" :value="it.frefso">
                                                 <input type="hidden" name="frefsoid[]" :value="it.frefsoid">
+                                                <input type="hidden" name="fnoacak[]" :value="it.fnoacak">
+                                                <input type="hidden" name="frefnoacak[]" :value="it.frefnoacak">
                                                 <input type="hidden" name="fqty[]" :value="it.fqty">
                                                 <input type="hidden" name="fprice[]" :value="it.fprice">
                                                 <input type="hidden" name="ftotal[]" :value="it.ftotal">
@@ -1166,6 +1168,21 @@
                 return row.fitemcode && row.fitemname && row.fsatuan && Number(row.fqty) > 0;
             },
 
+            normalizeNoAcak(value) {
+                const normalized = String(value ?? '').trim();
+                return /^\d{3}$/.test(normalized) ? normalized : '';
+            },
+
+            generateUniqueNoAcak() {
+                const used = new Set(this.savedItems.map(item => this.normalizeNoAcak(item.fnoacak)).filter(Boolean));
+                let candidate = '';
+                do {
+                    candidate = String(Math.floor(Math.random() * 1000)).padStart(3, '0');
+                } while (used.has(candidate));
+
+                return candidate;
+            },
+
             onPrPicked(e) {
                 const {
                     header,
@@ -1179,6 +1196,7 @@
 
             resetDraft() {
                 this.draft = newRow();
+                this.draft.fnoacak = this.generateUniqueNoAcak();
                 this.$nextTick(() => this.$refs.draftCode?.focus());
             },
 
@@ -1216,6 +1234,8 @@
                         fitemname: itemname,
                         fsatuan: satuan,
                         frefdtno: frefdtno,
+                        fnoacak: this.generateUniqueNoAcak(),
+                        frefnoacak: this.normalizeNoAcak(src.frefnoacak ?? src.fnoacak ?? ''),
                         frefno_display: (src.frefpr ?? header?.fsono ?? '').toString().trim(),
                         frefpr: (src.frefpr ?? header?.fpono ?? header?.fsono ?? '').toString().trim(),
                         frefso: header?.fsono ?? null,
@@ -1308,6 +1328,8 @@
 
                 this.savedItems.push({
                     ...r,
+                    fnoacak: this.normalizeNoAcak(r.fnoacak) || this.generateUniqueNoAcak(),
+                    frefnoacak: this.normalizeNoAcak(r.frefnoacak),
                     uid: cryptoRandom()
                 });
 
@@ -1413,6 +1435,12 @@
 
             init() {
                 window.getCurrentItemKeys = () => this.getCurrentItemKeys();
+                this.savedItems = (this.savedItems || []).map(item => ({
+                    ...item,
+                    fnoacak: this.normalizeNoAcak(item.fnoacak) || this.generateUniqueNoAcak(),
+                    frefnoacak: this.normalizeNoAcak(item.frefnoacak),
+                }));
+                this.draft.fnoacak = this.generateUniqueNoAcak();
 
                 window.addEventListener('pr-picked', this.onPrPicked.bind(this), {
                     passive: true
@@ -1428,6 +1456,7 @@
                         row.fitemcode = (product.fprdcode || '').toString();
                         row.frefdtno = product.fprdid || '';
                         this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                        row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak();
                         if (!row.fqty) row.fqty = 1;
                         this.recalc(row);
                     };
@@ -1470,6 +1499,8 @@
                 units: [],
                 fsatuan: '',
                 frefdtno: 0,
+                fnoacak: '',
+                frefnoacak: '',
                 frefno_display: '',
                 frefpr: '',
                 frefso: null,

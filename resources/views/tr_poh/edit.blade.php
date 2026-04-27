@@ -528,6 +528,8 @@
                                         <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
                                         <input type="hidden" name="frefdtid[]" :value="it.frefdtid">
                                         <input type="hidden" name="fnouref[]" :value="it.fnouref">
+                                        <input type="hidden" name="fnoacak[]" :value="it.fnoacak">
+                                        <input type="hidden" name="fnourefacak[]" :value="it.fnourefacak">
                                         <input type="hidden" name="frefpr[]" :value="it.frefpr">
                                         <input type="hidden" name="fprhid[]" :value="it.fprhid">
                                         <input type="hidden" name="fqty[]" :value="it.fqty">
@@ -1119,6 +1121,8 @@
                 fsatuan: '',
                 frefdtno: '',
                 fnouref: '',
+                fnoacak: '',
+                fnourefacak: '',
                 frefpr: '',
                 fprhid: '',
                 fprno: '',
@@ -1165,6 +1169,21 @@
             showDupItemModal: false,
             dupItemName: '',
             dupItemSatuan: '',
+
+            normalizeNoAcak(value) {
+                return (value || '').toString().replace(/\D/g, '').slice(0, 3);
+            },
+
+            generateUniqueNoAcak() {
+                const used = new Set(this.savedItems.map(item => this.normalizeNoAcak(item.fnoacak)).filter(Boolean));
+                let candidate = '';
+
+                do {
+                    candidate = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+                } while (used.has(candidate));
+
+                return candidate;
+            },
 
             get totalHarga() {
                 return this.savedItems.reduce((s, it) => s + (it.ftotal || 0), 0);
@@ -1408,10 +1427,13 @@
                 }
                 this.savedItems.push({
                     ...r,
+                    fnoacak: this.normalizeNoAcak(r.fnoacak) || this.generateUniqueNoAcak(),
+                    fnourefacak: this.normalizeNoAcak(r.fnourefacak),
                     uid: cryptoRandom()
                 });
                 this.showNoItems = false;
                 this.draft = newRow();
+                this.draft.fnoacak = this.generateUniqueNoAcak();
                 this.$nextTick(() => this.$refs.draftCode?.focus());
             },
 
@@ -1468,6 +1490,8 @@
                         fsatuan: fsatuan || units[0] || '',
                         frefdtno: src.frefdtno ?? '',
                         fnouref: src.fnouref ?? '',
+                        fnoacak: this.generateUniqueNoAcak(),
+                        fnourefacak: this.normalizeNoAcak(src.fnourefacak ?? src.fnoacak ?? ''),
                         frefpr: String(header?.fprhid ?? src.fprhid ?? ''),
                         fprhid: String(src.fprhid ?? header?.fprhid ?? ''),
                         fprno: String(header?.fprno ?? src.fprno ?? ''),
@@ -1574,6 +1598,8 @@
                     }
 
                     it.maxqty = this.calcMaxQty(it);
+                    it.fnoacak = this.normalizeNoAcak(it.fnoacak) || this.generateUniqueNoAcak();
+                    it.fnourefacak = this.normalizeNoAcak(it.fnourefacak);
 
                     if (!it.uid) it.uid = cryptoRandom();
                     if (!it.fprno) it.fprno = it.frefpr || '';
@@ -1581,6 +1607,7 @@
                 });
 
                 if (IS_EDIT) this.draft = newRow();
+                if (IS_EDIT) this.draft.fnoacak = this.generateUniqueNoAcak();
 
                 const currId = parseInt(this.selectedCurrId);
                 if (currId && window.CURRENCY_MAP[currId]) {
@@ -1606,6 +1633,7 @@
                     const apply = (row) => {
                         row.fitemcode = (product.fprdcode || '').toString();
                         this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                        row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak();
                         if (!row.fqty) row.fqty = 1;
                         this.recalc(row);
                         this.$nextTick(() => this.applyLastPrice(row));

@@ -372,6 +372,8 @@
                                                 <input type="hidden" name="frefsoid[]" :value="it.frefsoid">
                                                 <input type="hidden" name="frefsrj[]" :value="it.frefsrj">
                                                 <input type="hidden" name="frefsrjid[]" :value="it.frefsrjid">
+                                                <input type="hidden" name="fnoacak[]" :value="it.fnoacak">
+                                                <input type="hidden" name="frefnoacak[]" :value="it.frefnoacak">
                                                 <input type="hidden" name="fqty[]" :value="it.fqty">
                                                 <input type="hidden" name="fterima[]" :value="it.fterima">
                                                 <input type="hidden" name="fprice[]" :value="it.fprice">
@@ -1020,6 +1022,8 @@
                                                     <input type="hidden" name="frefsoid[]" :value="it.frefsoid">
                                                     <input type="hidden" name="frefsrj[]" :value="it.frefsrj">
                                                     <input type="hidden" name="frefsrjid[]" :value="it.frefsrjid">
+                                                    <input type="hidden" name="fnoacak[]" :value="it.fnoacak">
+                                                    <input type="hidden" name="frefnoacak[]" :value="it.frefnoacak">
                                                     <input type="hidden" name="fqty[]" :value="it.fqty">
                                                     <input type="hidden" name="fterima[]" :value="it.fterima">
                                                     <input type="hidden" name="fprice[]" :value="it.fprice">
@@ -2697,7 +2701,27 @@
 
             resetDraft() {
                 this.draft = newRow();
+                this.draft.fnoacak = this.generateUniqueNoAcak();
                 this.$nextTick(() => this.$refs.draftCode?.focus());
+            },
+
+            normalizeNoAcak(value) {
+                const normalized = String(value ?? '').trim();
+                return /^\d{3}$/.test(normalized) ? normalized : '';
+            },
+
+            normalizeRefNoAcak(value) {
+                const parts = String(value ?? '').split(',').map(v => v.trim()).filter(v => /^\d{3}$/.test(v));
+                return [...new Set(parts)].join(',');
+            },
+
+            generateUniqueNoAcak() {
+                const used = new Set(this.savedItems.map(item => this.normalizeNoAcak(item.fnoacak)).filter(Boolean));
+                let candidate = '';
+                do {
+                    candidate = String(Math.floor(Math.random() * 1000)).padStart(3, '0');
+                } while (used.has(candidate));
+                return candidate;
             },
 
             addManyFromPR(header, items, source = 'SO') {
@@ -2731,6 +2755,8 @@
                         frefsoid: source === 'SO' ? (src.frefdtno ?? null) : null,
                         frefsrj: source === 'SRJ' ? (header?.fstockmtno ?? '') : '',
                         frefsrjid: source === 'SRJ' ? (src.frefdtno ?? null) : null,
+                        fnoacak: this.generateUniqueNoAcak(),
+                        frefnoacak: this.normalizeRefNoAcak(src.frefnoacak ?? src.fnoacak ?? ''),
                         fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ? Number(src.fqty) : 1,
                         fqtyremain: Number(src.fqtyremain ?? 0),
                         fprice: Number(src.fprice ?? src.fharga ?? 0),
@@ -2765,6 +2791,8 @@
 
                 this.savedItems.push({
                     ...r,
+                    fnoacak: this.normalizeNoAcak(r.fnoacak) || this.generateUniqueNoAcak(),
+                    frefnoacak: this.normalizeRefNoAcak(r.frefnoacak),
                     uid: cryptoRandom()
                 });
                 this.resetDraft();
@@ -2804,6 +2832,8 @@
                 window.getCurrentItemKeys = () => this.getCurrentItemKeys();
 
                 this.savedItems.forEach((item) => {
+                    item.fnoacak = this.normalizeNoAcak(item.fnoacak) || this.generateUniqueNoAcak();
+                    item.frefnoacak = this.normalizeRefNoAcak(item.frefnoacak);
                     item.units = item.units || [];
                     if (typeof item.units === 'string') {
                         try {
@@ -2851,6 +2881,7 @@
                     const targetRow = (forEdit && this.editRow) ? this.editRow : this.draft;
                     targetRow.fitemcode = (product.fprdcode || '').toString();
                     this.onCodeTypedRow(targetRow);
+                    targetRow.fnoacak = this.normalizeNoAcak(targetRow.fnoacak) || this.generateUniqueNoAcak();
 
                     if (targetRow === this.editRow) {
                         this.$nextTick(() => this.$refs.editQty?.focus());
@@ -2908,6 +2939,8 @@
             frefno_display: '',
             frefcode: '',
             frefpr: '',
+            fnoacak: '',
+            frefnoacak: '',
             fqty: 0,
             fqtyremain: 0,
             fprice: 0,

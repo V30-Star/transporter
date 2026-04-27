@@ -222,6 +222,7 @@ class SalesOrderController extends Controller
             ->select([
                 'trsodt.ftrsodtid as frefdtno',  // ID Detail sebagai referensi unik
                 'trsodt.fsono as fnouref',       // Nomor Header
+                DB::raw("COALESCE(trsodt.fnoacak::text, '') as frefnoacak"),
                 'trsodt.fprdcode as fitemcode',  // Kode Produk (pake alias fitemcode buat frontend)
                 'm.fprdname as fitemname',       // Nama Produk dari master
                 'trsodt.fsatuan',                // Satuan
@@ -248,6 +249,26 @@ class SalesOrderController extends Controller
             ],
             'items' => $items,
         ]);
+    }
+
+    private function normalizeRandomNumber($value, array &$usedNumbers): string
+    {
+        $value = trim((string) ($value ?? ''));
+        $candidate = preg_match('/^\d{3}$/', $value) ? $value : null;
+
+        if ($candidate !== null && ! in_array($candidate, $usedNumbers, true)) {
+            $usedNumbers[] = $candidate;
+
+            return $candidate;
+        }
+
+        do {
+            $candidate = str_pad((string) random_int(0, 999), 3, '0', STR_PAD_LEFT);
+        } while (in_array($candidate, $usedNumbers, true));
+
+        $usedNumbers[] = $candidate;
+
+        return $candidate;
     }
 
     private function generatetr_poh_Code(?Carbon $onDate = null, $branch = null): string
@@ -430,6 +451,8 @@ class SalesOrderController extends Controller
             'fprice' => ['nullable', 'array'],
             'fprice.*' => ['numeric', 'min:0'],
             'fdisc' => ['nullable', 'array'],
+            'fnoacak' => ['nullable', 'array'],
+            'fnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
         ], [
             'fsodate.required' => 'Tanggal SO wajib diisi.',
             'fcustno.required' => 'Customer wajib diisi.',
@@ -453,11 +476,13 @@ class SalesOrderController extends Controller
         $prices = $request->input('fprice', []);
         $discs = $request->input('fdisc', []);
         $descs = $request->input('fdesc', []);
+        $fnoacaks = $request->input('fnoacak', []);
 
         // BUILD DETAIL ROWS
         $rowsSodt = [];
         $totalGross = 0.0;
         $totalDisc = 0.0;
+        $usedNoAcaks = [];
 
         $rowCount = count($itemCodes);
 
@@ -497,6 +522,7 @@ class SalesOrderController extends Controller
             $rowsSodt[] = [
                 'fprdcodeid' => $itemeId,
                 'fprdcode' => mb_substr($itemCode, 0, 20),
+                'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
                 'fsatuan' => mb_substr($satuan, 0, 20),
                 'fdesc' => $descs[$i] ?? '',
                 'fqty' => $qty,
@@ -708,6 +734,7 @@ class SalesOrderController extends Controller
                 'fprdcode' => (string) ($d->fprdcode ?? ''),
                 'fitemname' => (string) ($d->fprdname ?? ''),
                 'fsatuan' => (string) ($d->fsatuan ?? ''),
+                'fnoacak' => (string) ($d->fnoacak ?? ''),
                 'frefdtno' => (string) ($d->ftrsodtid ?? ''),
                 'fnouref' => (string) ($d->fnouref ?? ''),
                 'fqty' => (float) ($d->fqty ?? 0),
@@ -823,6 +850,7 @@ class SalesOrderController extends Controller
                 'fprdcode' => (string) ($d->fprdcode ?? ''),
                 'fitemname' => (string) ($d->fprdname ?? ''),
                 'fsatuan' => (string) ($d->fsatuan ?? ''),
+                'fnoacak' => (string) ($d->fnoacak ?? ''),
                 'frefdtno' => (string) ($d->ftrsodtid ?? ''),
                 'fqty' => (float) ($d->fqty ?? 0),
                 'fqtyremain' => (float) ($d->fqtyremain ?? 0),
@@ -910,6 +938,8 @@ class SalesOrderController extends Controller
 
             'fdisc' => ['nullable', 'array'],
             'fdisc.*' => ['nullable'], // Support "10+2"
+            'fnoacak' => ['nullable', 'array'],
+            'fnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
         ], [
             'fsodate.required' => 'Tanggal SO wajib diisi.',
             'fcustno.required' => 'Customer wajib diisi.',
@@ -944,11 +974,13 @@ class SalesOrderController extends Controller
         $prices = $request->input('fprice', []);
         $discs = $request->input('fdisc', []);
         $descs = $request->input('fdesc', []);
+        $fnoacaks = $request->input('fnoacak', []);
 
         // 5. BUILD DETAIL ROWS (Logika sama dengan store)
         $rowsSodt = [];
         $totalGross = 0.0;
         $totalDisc = 0.0;
+        $usedNoAcaks = [];
         $rowCount = max(
             count($itemCodes),
             count($satuans),
@@ -1003,6 +1035,7 @@ class SalesOrderController extends Controller
                 'fsono' => $header->fsono, // Gunakan fsono yang sudah ada
                 'fprdcodeid' => ! empty($itemeId) && is_numeric($itemeId) ? (int) $itemeId : null,
                 'fprdcode' => $itemCode,
+                'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
                 'fsatuan' => mb_substr($satuan, 0, 20),
                 'fdesc' => $desc,
                 'fqty' => $qty,
@@ -1146,6 +1179,7 @@ class SalesOrderController extends Controller
                 'fprdcode' => (string) ($d->fprdcode ?? ''),
                 'fitemname' => (string) ($d->fprdname ?? ''),
                 'fsatuan' => (string) ($d->fsatuan ?? ''),
+                'fnoacak' => (string) ($d->fnoacak ?? ''),
                 'frefdtno' => (string) ($d->frefdtno ?? ''),
                 'fnouref' => (string) ($d->fnouref ?? ''),
                 'fqty' => (float) ($d->fqty ?? 0),

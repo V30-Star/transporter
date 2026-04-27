@@ -369,6 +369,8 @@
                                                     <input type="hidden" name="frefsoid[]" :value="it.frefsoid">
                                                     <input type="hidden" name="frefsrj[]" :value="it.frefsrj">
                                                     <input type="hidden" name="frefsrjid[]" :value="it.frefsrjid">
+                                                    <input type="hidden" name="fnoacak[]" :value="it.fnoacak">
+                                                    <input type="hidden" name="frefnoacak[]" :value="it.frefnoacak">
                                                     <input type="hidden" name="fqty[]" :value="it.fqty">
                                                     <input type="hidden" name="fterima[]" :value="it.fterima">
                                                     <input type="hidden" name="fprice[]" :value="it.fprice">
@@ -894,6 +896,8 @@
                                                         <input type="hidden" name="frefsoid[]" :value="it.frefsoid">
                                                         <input type="hidden" name="frefsrj[]" :value="it.frefsrj">
                                                         <input type="hidden" name="frefsrjid[]" :value="it.frefsrjid">
+                                                        <input type="hidden" name="fnoacak[]" :value="it.fnoacak">
+                                                        <input type="hidden" name="frefnoacak[]" :value="it.frefnoacak">
                                                         <input type="hidden" name="fqty[]" :value="it.fqty">
                                                         <input type="hidden" name="fterima[]" :value="it.fterima">
                                                         <input type="hidden" name="fprice[]" :value="it.fprice">
@@ -2653,6 +2657,25 @@
                 return row.fitemcode && row.fitemname && row.fsatuan && Number(row.fqty) > 0;
             },
 
+            normalizeNoAcak(value) {
+                const normalized = String(value ?? '').trim();
+                return /^\d{3}$/.test(normalized) ? normalized : '';
+            },
+
+            normalizeRefNoAcak(value) {
+                const parts = String(value ?? '').split(',').map(v => v.trim()).filter(v => /^\d{3}$/.test(v));
+                return [...new Set(parts)].join(',');
+            },
+
+            generateUniqueNoAcak() {
+                const used = new Set(this.savedItems.map(item => this.normalizeNoAcak(item.fnoacak)).filter(Boolean));
+                let candidate = '';
+                do {
+                    candidate = String(Math.floor(Math.random() * 1000)).padStart(3, '0');
+                } while (used.has(candidate));
+                return candidate;
+            },
+
             onPrPicked(e, source) {
                 const {
                     header,
@@ -2665,6 +2688,7 @@
 
             resetDraft() {
                 this.draft = newRow();
+                this.draft.fnoacak = this.generateUniqueNoAcak();
                 this.$nextTick(() => this.$refs.draftCode?.focus());
             },
 
@@ -2725,6 +2749,8 @@
                         frefsoid: source === 'SO' ? (src.frefdtno ?? null) : null,
                         frefsrj: source === 'SRJ' ? docNo : (src.frefsrj || '').trim(),
                         frefsrjid: source === 'SRJ' ? (src.frefdtno ?? null) : null,
+                        fnoacak: this.generateUniqueNoAcak(),
+                        frefnoacak: this.normalizeRefNoAcak(src.frefnoacak ?? src.fnoacak ?? ''),
 
                         fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ? Number(src.fqty) : 1,
                         fprice: Number(src.fprice ?? src.fharga ?? 0),
@@ -2806,6 +2832,8 @@
 
                 this.savedItems.push({
                     ...r,
+                    fnoacak: this.normalizeNoAcak(r.fnoacak) || this.generateUniqueNoAcak(),
+                    frefnoacak: this.normalizeRefNoAcak(r.frefnoacak),
                     uid: cryptoRandom()
                 });
                 this.showNoItems = false;
@@ -2892,6 +2920,8 @@
                 this.$watch('ppnRate', () => this.recalcTotals());
 
                 this.savedItems.forEach((item) => {
+                    item.fnoacak = this.normalizeNoAcak(item.fnoacak) || this.generateUniqueNoAcak();
+                    item.frefnoacak = this.normalizeRefNoAcak(item.frefnoacak);
                     const soLimit = Number(item.maxqty ?? item.fqtyremain ?? 0);
                     item.maxqty = (Number(item.frefsoid) > 0 || Number(item.frefsrjid) > 0) && soLimit > 0 ? soLimit : 0;
                 });
@@ -2913,6 +2943,7 @@
                         row.fitemcode = (product.fprdcode || '').toString();
                         row.frefcode = product.fprdid || '';
                         this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                        row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak();
                         if (!row.fqty) row.fqty = 1;
                         this.recalc(row);
                     };
@@ -2962,6 +2993,8 @@
                 frefsoid: null,
                 frefsrj: '',
                 frefsrjid: null,
+                fnoacak: '',
+                frefnoacak: '',
                 fqty: 0,
                 fterima: 0,
                 fqtyremain: 0,

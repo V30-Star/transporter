@@ -192,6 +192,7 @@ class PenerimaanBarangController extends Controller
                 'tr_pod.famount as ftotal',
                 'tr_pod.fdesc as fdesc',
                 'tr_pod.frefdtno',
+                DB::raw("COALESCE(tr_pod.fnoacak::text, '') as frefnoacak"),
                 'm.fsatuankecil',
                 'm.fsatuanbesar',
                 'm.fsatuanbesar2',
@@ -242,6 +243,33 @@ class PenerimaanBarangController extends Controller
         }
 
         return $qty;
+    }
+
+    private function normalizeRandomNumber($value, array &$usedNumbers): string
+    {
+        $value = trim((string) ($value ?? ''));
+        $candidate = preg_match('/^\d{3}$/', $value) ? $value : null;
+
+        if ($candidate !== null && ! in_array($candidate, $usedNumbers, true)) {
+            $usedNumbers[] = $candidate;
+
+            return $candidate;
+        }
+
+        do {
+            $candidate = str_pad((string) random_int(0, 999), 3, '0', STR_PAD_LEFT);
+        } while (in_array($candidate, $usedNumbers, true));
+
+        $usedNumbers[] = $candidate;
+
+        return $candidate;
+    }
+
+    private function normalizeReferenceRandomNumber($value): ?string
+    {
+        $value = trim((string) ($value ?? ''));
+
+        return preg_match('/^\d{3}$/', $value) ? $value : null;
     }
 
     /**
@@ -465,6 +493,10 @@ class PenerimaanBarangController extends Controller
             'fqty.*' => ['numeric', 'min:0.001'],
             'fprice' => ['required', 'array'],
             'fprice.*' => ['numeric', 'min:0'],
+            'fnoacak' => ['nullable', 'array'],
+            'fnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
+            'frefnoacak' => ['nullable', 'array'],
+            'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
         ]);
 
         // 2) HEADER FIELDS
@@ -486,6 +518,8 @@ class PenerimaanBarangController extends Controller
         $satuans = $request->input('fsatuan', []);
         $fponos = $request->input('fpono', []);
         $refdtids = $request->input('frefdtid', []);
+        $fnoacaks = $request->input('fnoacak', []);
+        $frefnoacaks = $request->input('frefnoacak', []);
         $qtys = $request->input('fqty', []);
         $prices = $request->input('fprice', []);
         $descs = $request->input('fdesc', []);
@@ -497,6 +531,7 @@ class PenerimaanBarangController extends Controller
         $rowsDt = [];
         $subtotal = 0.0;
         $errors = [];
+        $usedNoAcaks = [];
 
         for ($i = 0, $cnt = count($codes); $i < $cnt; $i++) {
             $code = trim((string) ($codes[$i] ?? ''));
@@ -521,12 +556,15 @@ class PenerimaanBarangController extends Controller
             $price = (float) ($prices[$i] ?? 0);
             $amount = $qty * $price;
             $subtotal += $amount;
+            $frefdtid = isset($refdtids[$i]) ? (int) $refdtids[$i] : null;
 
             $rowsDt[] = [
                 'fprdcode' => $code,
                 'fprdcodeid' => isset($prdIds[$i]) ? (int) $prdIds[$i] : (int) $meta->fprdid,
                 'frefdtno' => trim((string) ($fponos[$i] ?? '')),
-                'frefdtid' => isset($refdtids[$i]) ? (int) $refdtids[$i] : null,
+                'frefdtid' => $frefdtid,
+                'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
+                'frefnoacak' => $frefdtid ? $this->normalizeReferenceRandomNumber($frefnoacaks[$i] ?? null) : null,
                 'fqty' => $qty,
                 'fqtykecil' => $qtyKecil,
                 'fqtyremain' => $qtyKecil,
@@ -759,6 +797,8 @@ class PenerimaanBarangController extends Controller
                 'fprno' => $d->frefpr ?? '-',
                 'frefdtno' => $d->frefdtno ?? null,
                 'frefdtid' => $d->frefdtid ?? null,
+                'fnoacak' => $d->fnoacak ?? '',
+                'frefnoacak' => $d->frefnoacak ?? '',
                 'fqty' => (float) ($d->fqty ?? 0),
                 'fterima' => (float) ($d->fterima ?? 0),
                 'fprice' => (float) ($d->fprice ?? 0),
@@ -844,6 +884,10 @@ class PenerimaanBarangController extends Controller
             'fprice.*' => ['numeric', 'min:0'],
             'fdesc' => ['nullable', 'array'],
             'fdesc.*' => ['nullable', 'string', 'max:500'],
+            'fnoacak' => ['nullable', 'array'],
+            'fnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
+            'frefnoacak' => ['nullable', 'array'],
+            'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
             'fcurrency' => ['nullable', 'string', 'max:5'],
             'frate' => ['nullable', 'numeric', 'min:0'],
             'famountpopajak' => ['nullable', 'numeric', 'min:0'],
@@ -870,6 +914,8 @@ class PenerimaanBarangController extends Controller
         $satuans = $request->input('fsatuan', []);
         $refdtnos = $request->input('frefdtno', []);
         $refdtids = $request->input('frefdtid', []);
+        $fnoacaks = $request->input('fnoacak', []);
+        $frefnoacaks = $request->input('frefnoacak', []);
         $qtys = $request->input('fqty', []);
         $prices = $request->input('fprice', []);
         $descs = $request->input('fdesc', []);
@@ -896,6 +942,7 @@ class PenerimaanBarangController extends Controller
 
         $rowsDt = [];
         $subtotal = 0.0;
+        $usedNoAcaks = [];
         // NOTE:
         // Pada edit penerimaan barang berbasis PO, batas qty mengikuti sisa referensi PO (tr_pod.fqtyremain),
         // bukan berdasarkan nilai stok master msprd.fminstock.
@@ -938,6 +985,8 @@ class PenerimaanBarangController extends Controller
                 'fprdcodeid' => $prdCodeId,
                 'frefdtno' => $rno ?: null,
                 'frefdtid' => $rid,
+                'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
+                'frefnoacak' => $rid ? $this->normalizeReferenceRandomNumber($frefnoacaks[$i] ?? null) : null,
                 'frefso' => null,
                 'frefsoid' => null,
                 'fqty' => $qty,
