@@ -1210,7 +1210,7 @@
                     const used = new Set(this.savedItems.map(item => this.normalizeNoAcak(item.fnoacak)).filter(Boolean));
                     let candidate = '';
                     do {
-                        candidate = String(Math.floor(Math.random() * 1000)).padStart(3, '0');
+                        candidate = Array.from({ length: 3 }, () => '123456789'[Math.floor(Math.random() * 9)]).join('');
                     } while (used.has(candidate));
 
                     return candidate;

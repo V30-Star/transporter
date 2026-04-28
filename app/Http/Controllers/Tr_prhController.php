@@ -278,7 +278,7 @@ class Tr_prhController extends Controller
             'fqty.*' => ['nullable'],
 
             'fnoacak' => ['array'],
-            'fnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
+            'fnoacak.*' => ['nullable', 'regex:/^[1-9]{3}$/'],
 
             'fdesc' => ['array'],
             'fdesc.*' => ['nullable', 'string'],
@@ -290,7 +290,7 @@ class Tr_prhController extends Controller
         ], [
             'fitemcode.*.max' => 'Panjang kode produk maksimal 50 karakter.',
             'fsatuan.*.max' => 'Panjang satuan maksimal 20 karakter.',
-            'fnoacak.*.regex' => 'No acak harus terdiri dari 3 digit angka.',
+            'fnoacak.*.regex' => 'No acak harus terdiri dari 3 digit angka 1-9 tanpa 0.',
             'fdesc.*.max' => 'Panjang deskripsi maksimal 300 karakter.',
             'fketdt.*.max' => 'Panjang keterangan detail maksimal 50 karakter.',
         ]);
@@ -570,7 +570,7 @@ class Tr_prhController extends Controller
             'fqty' => ['array'],
             'fqty.*' => ['nullable', 'numeric', 'min:1'],
             'fnoacak' => ['array'],
-            'fnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
+            'fnoacak.*' => ['nullable', 'regex:/^[1-9]{3}$/'],
             'fdesc' => ['array'],
             'fdesc.*' => ['nullable', 'string'],
             'fketdt' => ['array'],
@@ -582,7 +582,7 @@ class Tr_prhController extends Controller
             'fprdid.*.integer' => 'ID produk tidak valid.',
             'fprdid.*.min' => 'ID produk harus lebih besar dari 0.',
             'fsatuan.*.max' => 'Panjang satuan maksimal 20 karakter.',
-            'fnoacak.*.regex' => 'No acak harus terdiri dari 3 digit angka.',
+            'fnoacak.*.regex' => 'No acak harus terdiri dari 3 digit angka 1-9 tanpa 0.',
             'fdesc.*.max' => 'Panjang deskripsi maksimal 300 karakter.',
             'fketdt.*.max' => 'Panjang keterangan detail maksimal 50 karakter.',
         ]);
@@ -984,7 +984,7 @@ class Tr_prhController extends Controller
     private function normalizeRandomNumber($value, array &$usedNumbers): string
     {
         $value = trim((string) ($value ?? ''));
-        $candidate = preg_match('/^\d{3}$/', $value) ? $value : null;
+        $candidate = preg_match('/^[1-9]{3}$/', $value) ? $value : null;
 
         if ($candidate !== null && ! in_array($candidate, $usedNumbers, true)) {
             $usedNumbers[] = $candidate;
@@ -993,7 +993,7 @@ class Tr_prhController extends Controller
         }
 
         do {
-            $candidate = str_pad((string) random_int(0, 999), 3, '0', STR_PAD_LEFT);
+            $candidate = (string) random_int(1, 9).random_int(1, 9).random_int(1, 9);
         } while (in_array($candidate, $usedNumbers, true));
 
         $usedNumbers[] = $candidate;

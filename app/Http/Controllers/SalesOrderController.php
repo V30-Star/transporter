@@ -254,7 +254,7 @@ class SalesOrderController extends Controller
     private function normalizeRandomNumber($value, array &$usedNumbers): string
     {
         $value = trim((string) ($value ?? ''));
-        $candidate = preg_match('/^\d{3}$/', $value) ? $value : null;
+        $candidate = preg_match('/^[1-9]{3}$/', $value) ? $value : null;
 
         if ($candidate !== null && ! in_array($candidate, $usedNumbers, true)) {
             $usedNumbers[] = $candidate;
@@ -263,7 +263,7 @@ class SalesOrderController extends Controller
         }
 
         do {
-            $candidate = str_pad((string) random_int(0, 999), 3, '0', STR_PAD_LEFT);
+            $candidate = (string) random_int(1, 9).random_int(1, 9).random_int(1, 9);
         } while (in_array($candidate, $usedNumbers, true));
 
         $usedNumbers[] = $candidate;
@@ -452,7 +452,7 @@ class SalesOrderController extends Controller
             'fprice.*' => ['numeric', 'min:0'],
             'fdisc' => ['nullable', 'array'],
             'fnoacak' => ['nullable', 'array'],
-            'fnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
+            'fnoacak.*' => ['nullable', 'regex:/^[1-9]{3}$/'],
         ], [
             'fsodate.required' => 'Tanggal SO wajib diisi.',
             'fcustno.required' => 'Customer wajib diisi.',
@@ -939,7 +939,7 @@ class SalesOrderController extends Controller
             'fdisc' => ['nullable', 'array'],
             'fdisc.*' => ['nullable'], // Support "10+2"
             'fnoacak' => ['nullable', 'array'],
-            'fnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
+            'fnoacak.*' => ['nullable', 'regex:/^[1-9]{3}$/'],
         ], [
             'fsodate.required' => 'Tanggal SO wajib diisi.',
             'fcustno.required' => 'Customer wajib diisi.',

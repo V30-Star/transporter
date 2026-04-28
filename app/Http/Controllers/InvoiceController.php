@@ -234,7 +234,7 @@ class InvoiceController extends Controller
     private function normalizeRandomNumber($value, array &$usedNumbers): string
     {
         $value = trim((string) ($value ?? ''));
-        $candidate = preg_match('/^\d{3}$/', $value) ? $value : null;
+        $candidate = preg_match('/^[1-9]{3}$/', $value) ? $value : null;
 
         if ($candidate !== null && ! in_array($candidate, $usedNumbers, true)) {
             $usedNumbers[] = $candidate;
@@ -243,7 +243,7 @@ class InvoiceController extends Controller
         }
 
         do {
-            $candidate = str_pad((string) random_int(0, 999), 3, '0', STR_PAD_LEFT);
+            $candidate = (string) random_int(1, 9).random_int(1, 9).random_int(1, 9);
         } while (in_array($candidate, $usedNumbers, true));
 
         $usedNumbers[] = $candidate;
@@ -443,7 +443,7 @@ class InvoiceController extends Controller
             'frefso' => ['nullable'],
             'frefsrj' => ['nullable'],
             'fnoacak' => ['nullable', 'array'],
-            'fnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
+            'fnoacak.*' => ['nullable', 'regex:/^[1-9]{3}$/'],
             'frefnoacak' => ['nullable', 'array'],
             'frefnoacak.*' => ['nullable', 'regex:/^\d{3}(,\s*\d{3})*$/'],
         ], [
@@ -1089,7 +1089,7 @@ class InvoiceController extends Controller
             'fprice' => ['required', 'array'],
             'fprice.*' => ['numeric', 'min:0'],
             'fnoacak' => ['nullable', 'array'],
-            'fnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
+            'fnoacak.*' => ['nullable', 'regex:/^[1-9]{3}$/'],
             'frefnoacak' => ['nullable', 'array'],
             'frefnoacak.*' => ['nullable', 'regex:/^\d{3}(,\s*\d{3})*$/'],
         ]);

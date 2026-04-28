@@ -329,7 +329,7 @@ class Tr_pohController extends Controller
     private function normalizeRandomNumber($value, array &$usedNumbers): string
     {
         $value = trim((string) ($value ?? ''));
-        $candidate = preg_match('/^\d{3}$/', $value) ? $value : null;
+        $candidate = preg_match('/^[1-9]{3}$/', $value) ? $value : null;
 
         if ($candidate !== null && ! in_array($candidate, $usedNumbers, true)) {
             $usedNumbers[] = $candidate;
@@ -338,7 +338,7 @@ class Tr_pohController extends Controller
         }
 
         do {
-            $candidate = str_pad((string) random_int(0, 999), 3, '0', STR_PAD_LEFT);
+            $candidate = (string) random_int(1, 9).random_int(1, 9).random_int(1, 9);
         } while (in_array($candidate, $usedNumbers, true));
 
         $usedNumbers[] = $candidate;
@@ -630,7 +630,7 @@ class Tr_pohController extends Controller
             'frefdtno.*' => ['nullable'],
 
             'fnoacak' => ['nullable', 'array'],
-            'fnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
+            'fnoacak.*' => ['nullable', 'regex:/^[1-9]{3}$/'],
             'fnourefacak' => ['nullable', 'array'],
             'fnourefacak.*' => ['nullable', 'regex:/^\d{3}$/'],
 
@@ -655,7 +655,7 @@ class Tr_pohController extends Controller
             'fsupplier.required' => 'Supplier wajib diisi.',
             'fitemcode.required' => 'Minimal 1 item.',
             'fqty.*.gt' => 'Harap hapus data atau isi qty data pada detail item (Qty tidak boleh 0).',
-            'fnoacak.*.regex' => 'No acak PO harus terdiri dari 3 digit angka.',
+            'fnoacak.*.regex' => 'No acak PO harus terdiri dari 3 digit angka 1-9 tanpa 0.',
             'fnourefacak.*.regex' => 'No referensi acak harus terdiri dari 3 digit angka.',
         ]);
 
@@ -1273,7 +1273,7 @@ class Tr_pohController extends Controller
             'frefdtno' => ['nullable'],
             'frefdtno.*' => ['nullable'],
             'fnoacak' => ['nullable', 'array'],
-            'fnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
+            'fnoacak.*' => ['nullable', 'regex:/^[1-9]{3}$/'],
             'fnourefacak' => ['nullable', 'array'],
             'fnourefacak.*' => ['nullable', 'regex:/^\d{3}$/'],
             'fqty' => ['required', 'array'],
@@ -1292,7 +1292,7 @@ class Tr_pohController extends Controller
             'fsupplier.required' => 'Supplier wajib diisi.',
             'fitemcode.required' => 'Minimal 1 item.',
             'fqty.*.gt' => 'Harap hapus data atau isi qty data pada detail item (Qty tidak boleh 0).',
-            'fnoacak.*.regex' => 'No acak PO harus terdiri dari 3 digit angka.',
+            'fnoacak.*.regex' => 'No acak PO harus terdiri dari 3 digit angka 1-9 tanpa 0.',
             'fnourefacak.*.regex' => 'No referensi acak harus terdiri dari 3 digit angka.',
         ]);
 

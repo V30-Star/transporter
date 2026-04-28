@@ -1179,7 +1179,7 @@
                 let candidate = '';
 
                 do {
-                    candidate = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+                    candidate = Array.from({ length: 3 }, () => '123456789'[Math.floor(Math.random() * 9)]).join('');
                 } while (used.has(candidate));
 
                 return candidate;
