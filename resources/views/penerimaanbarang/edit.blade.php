@@ -1043,7 +1043,7 @@
                     maxqty_satuan: '',
                     unit_ratios: { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 },
                     frefdtid: '',
-                    fqtyremain: 0,
+                    fqtykecil_ref: 0,
                     fqtypo: 0,
                 };
             }
@@ -1225,9 +1225,9 @@
                     const rasio = Number(row.fqtykecil || 0);
                     const rasio2 = Number(row.fqtykecil2 || 0);
 
-                    const hasRemainField = row.fqtyremain !== undefined && row.fqtyremain !== null && row.fqtyremain !== '';
+                    const hasRemainField = row.fqtykecil_ref !== undefined && row.fqtykecil_ref !== null && row.fqtykecil_ref !== '';
                     if (!hasRemainField) return 0;
-                    const sisaKecil = Math.max(0, Number(row.fqtyremain) || 0);
+                    const sisaKecil = Math.max(0, Number(row.fqtykecil_ref) || 0);
 
                     if (!satuanPO || eq(satuanPO, satKecil)) return sisaKecil;
                     if (eq(satuanPO, satBesar) && rasio > 0) return Math.floor(sisaKecil / rasio);
@@ -1379,7 +1379,7 @@
                             fpono: String(header?.fpono ?? src.fpono ?? ''),
                             fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ? Number(src.fqty) : 1,
                             fqtypo: 0,
-                            fqtyremain: Number(src.fqtyremain ?? 0),
+                            fqtykecil_ref: Number(src.fqtykecil ?? src.fqtyremain ?? 0),
                             frefdtid: src.frefdtid ?? '',
                             fsatuankecil: src.fsatuankecil || meta?.fsatuankecil || '',
                             fsatuanbesar: src.fsatuanbesar || meta?.fsatuanbesar || '',

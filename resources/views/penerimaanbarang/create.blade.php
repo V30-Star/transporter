@@ -898,7 +898,7 @@
                     },
                     maxqty_satuan: '',
                     frefdtid: '',
-                    fqtyremain: 0,
+                    fqtykecil_ref: 0,
                     fqtypo: 0,
                 };
             }
@@ -1115,7 +1115,7 @@
                     return candidate;
                 },
 
-                // tr_pod.fqtyremain = satuan kecil; konversi ke satuan baris (pcs/ctn/coll)
+                // tr_pod.fqtykecil = satuan kecil; konversi ke satuan baris (pcs/ctn/coll)
                 calcMaxQty(row) {
                     const eq = (a, b) => (a || '').trim().toLowerCase() === (b || '').trim().toLowerCase();
                     const satuanPO = (row.fsatuan || '').trim();
@@ -1125,10 +1125,10 @@
                     const rasio = Number(row.fqtykecil || 0);
                     const rasio2 = Number(row.fqtykecil2 || 0);
 
-                    const hasRemainField = row.fqtyremain !== undefined && row.fqtyremain !== null && row.fqtyremain !== '';
+                    const hasRemainField = row.fqtykecil_ref !== undefined && row.fqtykecil_ref !== null && row.fqtykecil_ref !== '';
                     let sisaKecil = 0;
                     if (hasRemainField) {
-                        sisaKecil = Math.max(0, Number(row.fqtyremain) || 0);
+                        sisaKecil = Math.max(0, Number(row.fqtykecil_ref) || 0);
                     } else {
                         return 0;
                     }

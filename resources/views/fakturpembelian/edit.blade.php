@@ -2616,7 +2616,7 @@
                             frefdtnoVal = header?.fstockmtno ?? '';
                         }
 
-                        const sourceLimit = Math.max(0, +(src.fqtyremain ?? src.fqty) || 0);
+                        const sourceLimit = Math.max(0, +(src.fqtykecil ?? src.fqty) || 0);
                         if (sourceLimit <= 0) {
                             return;
                         }
@@ -2634,8 +2634,8 @@
                             frefpr: src.fnouref ?? fnourefVal,
 
                             // Data quantity
-                            fqty: (src.fqtyremain !== null && src.fqtyremain !== undefined) ?
-                                Number(src.fqtyremain) : ((src.fqty !== null && src.fqty !== undefined) ? Number(src.fqty) : 0),
+                            fqty: (src.fqtykecil !== null && src.fqtykecil !== undefined) ?
+                                Number(src.fqtykecil) : ((src.fqty !== null && src.fqty !== undefined) ? Number(src.fqty) : 0),
                             maxqty: sourceLimit,
                             lockQty: false,
 

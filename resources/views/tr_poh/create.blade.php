@@ -353,7 +353,7 @@
                                             "
                                             @keydown.enter.prevent="focusSavedPrice(i)">
                                         <div class="text-[10px] text-amber-700 font-medium text-right mt-0.5"
-                                            x-show="it.frefdtid && calcMaxQty(it) > 0"
+                                            x-show="it.frefdtid && formatPrRemainHint(it)"
                                             x-html="formatPrRemainHint(it)">
                                         </div>
                                     </td>
@@ -456,7 +456,7 @@
                                         min="0" step="1" x-ref="draftQty" x-model.number="draft.fqty"
                                         @input="recalc(draft);" @blur="enforcePrQtyRow(draft);" @keydown.enter.prevent="$refs.draftPrice?.focus()">
                                     <div class="text-[10px] text-amber-700 font-medium text-right mt-0.5"
-                                        x-show="draft.frefdtid && calcMaxQty(draft) > 0"
+                                        x-show="draft.frefdtid && formatPrRemainHint(draft)"
                                         x-html="formatPrRemainHint(draft)">
                                     </div>
                                 </td>
@@ -931,7 +931,7 @@
                 maxqty_satuan: '',
                 frefdtid: '',
                 fqtypo: 0,
-                fqtyremain: 0,
+                fqtykecil_ref: 0,
             };
         }
 
@@ -1047,8 +1047,8 @@
             formatPrRemainHint(row) {
                 if (!row || !row.frefdtid) return '';
                 const max = this.calcMaxQty(row);
-                if (!(max > 0)) return '';
                 const sat = (row.fsatuan || '').trim() || 'satuan';
+                if (!(max > 0)) return '';
                 return '<span class="font-medium">Sisa PR:</span> maks. ' + max + ' ' + sat;
             },
 
@@ -1125,7 +1125,7 @@
                 return row.fitemcode && row.fitemname && row.fsatuan && Number(row.fqty) > 0;
             },
 
-            // Sisa PR (tr_prd.fqtyremain) disimpan di satuan kecil (mis. pcs). Konversi ke satuan PO (pcs/ctn/coll) pakai rasio master.
+            // Sisa PR (tr_prd.fqtykecil) disimpan di satuan kecil (mis. pcs). Konversi ke satuan PO (pcs/ctn/coll) pakai rasio master.
             calcMaxQty(row) {
                 const eq = (a, b) => (a || '').trim().toLowerCase() === (b || '').trim().toLowerCase();
                 const satuanPO = (row.fsatuan || '').trim();
@@ -1135,11 +1135,11 @@
                 const rasio = Number(row.fqtykecil || 0);
                 const rasio2 = Number(row.fqtykecil2 || 0);
 
-                const hasRemainField = row.fqtyremain !== undefined && row.fqtyremain !== null && row.fqtyremain !== '';
+                const hasRemainField = row.fqtykecil_ref !== undefined && row.fqtykecil_ref !== null && row.fqtykecil_ref !== '';
 
                 let sisaKecil = 0;
                 if (hasRemainField) {
-                    sisaKecil = Math.max(0, Number(row.fqtyremain) || 0);
+                    sisaKecil = Math.max(0, Number(row.fqtykecil_ref) || 0);
                 } else {
                     const qtyPR = Number(row.fqtypr) || 0;
                     const fqtypo = Number(row.fqtypo) || 0;
@@ -1296,9 +1296,9 @@
                         fprno: String(header?.fprno ?? src.fprno ?? ''),
                         fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ? Number(src.fqty) : 1,
                         fqtypo: Number(src.fqtypo ?? 0),
-                        fqtyremain: Number(src.fqtyremain ?? 0),
-                        fqtypr: Number(src.fqty ?? 0),
-                        fqtypr_satuan: (src.fsatuan ?? '').trim(),
+                        fqtykecil_ref: Number(src.fqtykecil_ref ?? src.fqtyremain ?? 0),
+                        fqtypr: Number(src.fqtypr ?? src.fqty ?? 0),
+                        fqtypr_satuan: (src.fqtypr_satuan ?? src.fsatuan ?? '').trim(),
                         frefdtid: src.frefdtid ?? '',
                         fsatuankecil: src.fsatuankecil || meta?.fsatuankecil || '',
                         fsatuanbesar: src.fsatuanbesar || meta?.fsatuanbesar || '',

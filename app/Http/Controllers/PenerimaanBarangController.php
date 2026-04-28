@@ -309,20 +309,36 @@ class PenerimaanBarangController extends Controller
             return [];
         }
 
-        $usedSub = DB::table('trstockdt')
-            ->selectRaw('CAST(frefdtid AS BIGINT) AS fpodid, SUM(COALESCE(fqtykecil, 0)) AS used_kecil')
-            ->whereNotNull('frefdtid')
-            ->whereIn('fstockmtcode', ['TER', 'BUY'])
-            ->whereIn(DB::raw('CAST(frefdtid AS BIGINT)'), $ids)
-            ->groupBy(DB::raw('CAST(frefdtid AS BIGINT)'));
-
         return DB::table('tr_pod as d')
-            ->leftJoinSub($usedSub, 'u', fn ($join) => $join->on('u.fpodid', '=', 'd.fpodid'))
             ->whereIn('d.fpodid', $ids)
-            ->selectRaw('d.fpodid, GREATEST(COALESCE(d.fqtykecil, 0) - COALESCE(u.used_kecil, 0), 0) AS remain_kecil')
+            ->selectRaw('d.fpodid, GREATEST(COALESCE(d.fqtykecil, 0), 0) AS remain_kecil')
             ->pluck('remain_kecil', 'd.fpodid')
             ->map(fn ($value) => (float) $value)
             ->all();
+    }
+
+    /**
+     * @param  array<int, float|int>  $usageByPod
+     */
+    private function adjustPoReferenceQtyKecil(array $usageByPod, int $direction): void
+    {
+        foreach ($usageByPod as $fpodid => $qtyKecil) {
+            $fpodid = (int) $fpodid;
+            $qtyKecil = (float) $qtyKecil;
+
+            if ($fpodid <= 0 || $qtyKecil <= 0) {
+                continue;
+            }
+
+            $signedQty = $direction * $qtyKecil;
+
+            DB::table('tr_pod')
+                ->where('fpodid', $fpodid)
+                ->update([
+                    'fqtykecil' => DB::raw('GREATEST(COALESCE(fqtykecil, 0) + ('.$signedQty.'), 0)'),
+                    'fdatetime' => now(),
+                ]);
+        }
     }
 
     private function validateTrPodRemain(array $aggregateByPod, array $extraAvailableByPod = []): void
@@ -410,7 +426,7 @@ class PenerimaanBarangController extends Controller
                 'p.fprdname as product_name',
                 'p.fprdcode as product_code',
                 'p.fminstock as stock',
-                'trstockdt.fqtyremain',
+                'trstockdt.fqtykecil',
             ]);
 
         $fmt = fn ($d) => $d ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y') : '-';
@@ -667,13 +683,14 @@ class PenerimaanBarangController extends Controller
                     $r['fstockmtno'] = $fstockmtno;
                 }
                 DB::table('trstockdt')->insert($rowsDt);
+                $this->adjustPoReferenceQtyKecil($podAgg, -1);
 
                 // UPDATE STOK - gunakan qtyKecil hasil konversi, bukan qty mentah
                 foreach ($rowsDt as $row) {
                     DB::table('msprd')
                         ->where('fprdcode', $row['fprdcode'])
                         ->update([
-                            'fminstock' => DB::raw('CAST(fminstock AS NUMERIC) - '.$row['fqtyremain']),
+                            'fminstock' => DB::raw('CAST(fminstock AS NUMERIC) - '.$row['fqtykecil']),
                             'fupdatedat' => now(),
                         ]);
                 }
@@ -944,7 +961,7 @@ class PenerimaanBarangController extends Controller
         $subtotal = 0.0;
         $usedNoAcaks = [];
         // NOTE:
-        // Pada edit penerimaan barang berbasis PO, batas qty mengikuti sisa referensi PO (tr_pod.fqtyremain),
+        // Pada edit penerimaan barang berbasis PO, batas qty mengikuti sisa referensi PO (tr_pod.fqtykecil),
         // bukan berdasarkan nilai stok master msprd.fminstock.
 
         for ($i = 0, $cnt = count($codes); $i < $cnt; $i++) {
@@ -1044,6 +1061,7 @@ class PenerimaanBarangController extends Controller
                 }
 
                 $this->validateTrPodRemain($podAgg, $oldUsageByPod);
+                $this->adjustPoReferenceQtyKecil($oldUsageByPod, 1);
 
                 $kodeCabang = $header->fbranchcode;
                 if ($fbranchcode && $fbranchcode !== $header->fbranchcode) {
@@ -1075,7 +1093,7 @@ class PenerimaanBarangController extends Controller
                     DB::table('msprd')
                         ->where('fprdcode', $row['fprdcode'])
                         ->update([
-                            'fminstock' => DB::raw('CAST(fminstock AS NUMERIC) - '.$row['fqtyremain']),
+                            'fminstock' => DB::raw('CAST(fminstock AS NUMERIC) - '.$row['fqtykecil']),
                             'fupdatedat' => now(),
                         ]);
                 }
@@ -1088,6 +1106,7 @@ class PenerimaanBarangController extends Controller
                 unset($r);
 
                 DB::table('trstockdt')->insert($rowsDt);
+                $this->adjustPoReferenceQtyKecil($podAgg, -1);
             });
         } catch (\RuntimeException $e) {
             return back()->withInput()->withErrors(['detail' => $e->getMessage()]);
@@ -1107,6 +1126,14 @@ class PenerimaanBarangController extends Controller
             }
 
             DB::transaction(function () use ($penerimaanbarang) {
+                $oldUsageByPod = DB::table('trstockdt')
+                    ->where('fstockmtno', $penerimaanbarang->fstockmtno)
+                    ->get(['frefdtid', 'fqtykecil'])
+                    ->groupBy(fn ($row) => (int) ($row->frefdtid ?? 0))
+                    ->map(fn ($rows) => (float) $rows->sum(fn ($row) => (float) ($row->fqtykecil ?? 0)))
+                    ->all();
+
+                $this->adjustPoReferenceQtyKecil($oldUsageByPod, 1);
                 DB::table('trstockdt')
                     ->where('fstockmtno', $penerimaanbarang->fstockmtno)
                     ->delete();

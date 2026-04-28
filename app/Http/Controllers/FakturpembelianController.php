@@ -192,6 +192,7 @@ class FakturPembelianController extends Controller
                 $remain = (float) ($remainMap[(int) ($item->frefdtid ?? 0)] ?? 0);
                 $item->fqty = $remain;
                 $item->fqtyremain = $remain;
+                $item->fqtykecil = $remain;
 
                 return $item;
             });
@@ -288,6 +289,7 @@ class FakturPembelianController extends Controller
                 $remain = (float) ($remainMap[(int) ($item->frefdtid ?? 0)] ?? 0);
                 $item->fqty = $remain;
                 $item->fqtyremain = $remain;
+                $item->fqtykecil = $remain;
 
                 return $item;
             });
@@ -340,16 +342,8 @@ class FakturPembelianController extends Controller
         }
 
         if ($sourceType === 'PO') {
-            $usedSub = DB::table('trstockdt')
-                ->selectRaw('CAST(frefdtid AS BIGINT) AS detail_id, SUM(COALESCE(fqtykecil, 0)) AS used_kecil')
-                ->whereNotNull('frefdtid')
-                ->whereIn('fstockmtcode', ['TER', 'BUY'])
-                ->whereIn(DB::raw('CAST(frefdtid AS BIGINT)'), $ids)
-                ->groupBy(DB::raw('CAST(frefdtid AS BIGINT)'));
-
             $rows = DB::table('tr_pod as d')
                 ->leftJoin('msprd as p', 'p.fprdid', '=', 'd.fprdid')
-                ->leftJoinSub($usedSub, 'u', fn ($join) => $join->on('u.detail_id', '=', 'd.fpodid'))
                 ->whereIn('d.fpodid', $ids)
                 ->select([
                     'd.fpodid as detail_id',
@@ -359,28 +353,19 @@ class FakturPembelianController extends Controller
                     'p.fsatuanbesar2',
                     DB::raw('COALESCE(p.fqtykecil, 0) as fqtykecil_master'),
                     DB::raw('COALESCE(p.fqtykecil2, 0) as fqtykecil2_master'),
-                    DB::raw('COALESCE(u.used_kecil, 0) as used_kecil'),
                 ])
                 ->get();
 
             return $rows->mapWithKeys(function ($row) {
-                $remainKecil = max(0, (float) ($row->total_kecil ?? 0) - (float) ($row->used_kecil ?? 0));
+                $remainKecil = max(0, (float) ($row->total_kecil ?? 0));
 
                 return [(int) $row->detail_id => $this->qtyKecilToSourceUnit($row, $remainKecil)];
             })->all();
         }
 
         if ($sourceType === 'PB') {
-            $usedSub = DB::table('trstockdt')
-                ->selectRaw('CAST(frefdtid AS BIGINT) AS detail_id, SUM(COALESCE(fqtykecil, 0)) AS used_kecil')
-                ->whereNotNull('frefdtid')
-                ->where('fstockmtcode', 'BUY')
-                ->whereIn(DB::raw('CAST(frefdtid AS BIGINT)'), $ids)
-                ->groupBy(DB::raw('CAST(frefdtid AS BIGINT)'));
-
             $rows = DB::table('trstockdt as d')
                 ->leftJoin('msprd as p', 'p.fprdid', '=', 'd.fprdcodeid')
-                ->leftJoinSub($usedSub, 'u', fn ($join) => $join->on('u.detail_id', '=', 'd.fstockdtid'))
                 ->whereIn('d.fstockdtid', $ids)
                 ->select([
                     'd.fstockdtid as detail_id',
@@ -390,12 +375,11 @@ class FakturPembelianController extends Controller
                     'p.fsatuanbesar2',
                     DB::raw('COALESCE(p.fqtykecil, 0) as fqtykecil_master'),
                     DB::raw('COALESCE(p.fqtykecil2, 0) as fqtykecil2_master'),
-                    DB::raw('COALESCE(u.used_kecil, 0) as used_kecil'),
                 ])
                 ->get();
 
             return $rows->mapWithKeys(function ($row) {
-                $remainKecil = max(0, (float) ($row->total_kecil ?? 0) - (float) ($row->used_kecil ?? 0));
+                $remainKecil = max(0, (float) ($row->total_kecil ?? 0));
 
                 return [(int) $row->detail_id => $this->qtyKecilToSourceUnit($row, $remainKecil)];
             })->all();
@@ -448,6 +432,57 @@ class FakturPembelianController extends Controller
         }
 
         return empty($normalized) ? null : implode(',', $normalized);
+    }
+
+    private function normalizeReferenceRandomNumberSingle($value): ?string
+    {
+        $parts = preg_split('/\s*,\s*/', trim((string) ($value ?? ''))) ?: [];
+        $normalized = [];
+
+        foreach ($parts as $part) {
+            $candidate = trim((string) $part);
+            if (preg_match('/^\d{3}$/', $candidate)) {
+                $normalized[] = $candidate;
+            }
+        }
+
+        if (empty($normalized)) {
+            return null;
+        }
+
+        return (string) end($normalized);
+    }
+
+    /**
+     * @param  array<string, float|int>  $usageBySourceRef
+     */
+    private function adjustSourceQtyKecil(array $usageBySourceRef, int $direction): void
+    {
+        foreach ($usageBySourceRef as $sourceKey => $qtyKecil) {
+            $qtyKecil = (float) $qtyKecil;
+            if ($qtyKecil <= 0) {
+                continue;
+            }
+
+            [$sourceType, $detailId] = array_pad(explode(':', (string) $sourceKey, 2), 2, null);
+            $sourceType = strtoupper(trim((string) $sourceType));
+            $detailId = (int) $detailId;
+
+            if (! in_array($sourceType, ['PO', 'PB'], true) || $detailId <= 0) {
+                continue;
+            }
+
+            $signedQty = $direction * $qtyKecil;
+            $table = $sourceType === 'PO' ? 'tr_pod' : 'trstockdt';
+            $pk = $sourceType === 'PO' ? 'fpodid' : 'fstockdtid';
+
+            DB::table($table)
+                ->where($pk, $detailId)
+                ->update([
+                    'fqtykecil' => DB::raw('GREATEST(COALESCE(fqtykecil, 0) + ('.$signedQty.'), 0)'),
+                    'fdatetime' => now(),
+                ]);
+        }
     }
 
     private function validateSourceRemainForRows(array $codes, array $qtys, array $sources, array $refdtids, array $extraAvailableBySourceRef = []): \Illuminate\Support\MessageBag
@@ -566,7 +601,7 @@ class FakturPembelianController extends Controller
                 'p.fprdname as product_name',
                 'p.fprdcode as product_code',
                 'p.fminstock as stock',
-                'trstockdt.fqtyremain',
+                'trstockdt.fqtykecil',
             ]);
 
         $fmt = fn ($d) => $d
@@ -702,6 +737,7 @@ class FakturPembelianController extends Controller
 
             $rowsDt = [];
             $subtotal = 0.0;
+            $sourceUsageByRef = [];
 
             $lineCounter = 1;
 
@@ -751,7 +787,7 @@ class FakturPembelianController extends Controller
                     'fprdcodeid' => $meta->fprdid,
                     'frefdtno' => trim((string) ($refdtnos[$i] ?? '')) ?: null,
                     'frefdtid' => isset($refdtids[$i]) ? (int) $refdtids[$i] : null,
-                    'frefnoacak' => $this->normalizeReferenceRandomNumbers($frefnoacaks[$i] ?? null),
+                    'frefnoacak' => $this->normalizeReferenceRandomNumberSingle($frefnoacaks[$i] ?? null),
                     'fqty' => $qty,
                     'fqtykecil' => $qtyKecil,
                     'fqtyremain' => $qtyKecil,
@@ -769,6 +805,13 @@ class FakturPembelianController extends Controller
                     'fsatuan' => $sat,
                     'fclosedt' => '0',
                 ];
+
+                $sourceType = strtoupper(trim((string) ($sources[$i] ?? '')));
+                $detailId = isset($refdtids[$i]) ? (int) $refdtids[$i] : 0;
+                if (in_array($sourceType, ['PO', 'PB'], true) && $detailId > 0) {
+                    $sourceKey = $sourceType.':'.$detailId;
+                    $sourceUsageByRef[$sourceKey] = ($sourceUsageByRef[$sourceKey] ?? 0) + $qtyKecil;
+                }
 
             }
 
@@ -798,7 +841,8 @@ class FakturPembelianController extends Controller
                 &$rowsDt,
                 $subtotal,
                 $ppnAmount,
-                $grandTotal
+                $grandTotal,
+                $sourceUsageByRef
             ) {
                 // A. Resolve Cabang
                 $rawBranch = trim((string) $fbranchcode);
@@ -865,13 +909,14 @@ class FakturPembelianController extends Controller
                     $r['fstockmtcode'] = $fstockmtcode;
                 }
                 DB::table('trstockdt')->insert($rowsDt);
+                $this->adjustSourceQtyKecil($sourceUsageByRef, -1);
             });
 
             foreach ($rowsDt as $row) {
                 DB::table('msprd')
                     ->where('fprdcode', $row['fprdcode'])
                     ->update([
-                        'fminstock' => DB::raw('CAST(fminstock AS NUMERIC) - '.$row['fqtyremain']),
+                        'fminstock' => DB::raw('CAST(fminstock AS NUMERIC) - '.$row['fqtykecil']),
                         'fupdatedat' => now(),
                     ]);
             }
@@ -1313,6 +1358,7 @@ class FakturPembelianController extends Controller
             $rowsDt = [];
             $subtotal = 0.0;
             $rowCount = count($codes);
+            $sourceUsageByRef = [];
 
             $requestSourceByRefId = [];
             foreach ($sources as $i => $sourceRaw) {
@@ -1326,11 +1372,11 @@ class FakturPembelianController extends Controller
             $oldUsageBySourceRef = [];
             $oldDetails = DB::table('trstockdt')
                 ->where('fstockmtno', $header->fstockmtno)
-                ->get(['frefdtid', 'fqty']);
+                ->get(['frefdtid', 'fqtykecil']);
 
             foreach ($oldDetails as $oldDetail) {
                 $detailId = (int) ($oldDetail->frefdtid ?? 0);
-                $qtyUsed = (float) ($oldDetail->fqty ?? 0);
+                $qtyUsed = (float) ($oldDetail->fqtykecil ?? 0);
 
                 if ($detailId <= 0 || $qtyUsed <= 0) {
                     continue;
@@ -1385,8 +1431,9 @@ class FakturPembelianController extends Controller
                     'fprdcodeid' => $meta->fprdid,
                     'frefdtno' => ! empty($refdtno[$i]) ? $refdtno[$i] : null,
                     'frefdtid' => isset($refdtids[$i]) ? (int) $refdtids[$i] : null,
-                    'frefnoacak' => $this->normalizeReferenceRandomNumbers($frefnoacaks[$i] ?? null),
+                    'frefnoacak' => $this->normalizeReferenceRandomNumberSingle($frefnoacaks[$i] ?? null),
                     'fqty' => $qty,
+                    'fqtykecil' => $qtyKecil,
                     'fqtyremain' => $qtyKecil,
                     'fprice' => $price,
                     'fbiaya' => $biaya,
@@ -1400,9 +1447,15 @@ class FakturPembelianController extends Controller
                     'fcode' => '0',
                     'fdiscpersen' => (string) $discP,
                     'fsatuan' => $sat,
-                    'fqtykecil' => $qtyKecil,
                     'fclosedt' => '0',
                 ];
+
+                $sourceType = strtoupper(trim((string) ($sources[$i] ?? '')));
+                $detailId = isset($refdtids[$i]) ? (int) $refdtids[$i] : 0;
+                if (in_array($sourceType, ['PO', 'PB'], true) && $detailId > 0) {
+                    $sourceKey = $sourceType.':'.$detailId;
+                    $sourceUsageByRef[$sourceKey] = ($sourceUsageByRef[$sourceKey] ?? 0) + $qtyKecil;
+                }
 
             }
 
@@ -1435,7 +1488,9 @@ class FakturPembelianController extends Controller
                 $grandTotal,
                 $faccid,
                 $fprdjadi,
-                $fbranchcode
+                $fbranchcode,
+                $oldUsageBySourceRef,
+                $sourceUsageByRef
 
             ) {
 
@@ -1488,6 +1543,7 @@ class FakturPembelianController extends Controller
                 ]);
 
                 // Hapus detail lama dan masukkan yang baru
+                $this->adjustSourceQtyKecil($oldUsageBySourceRef, 1);
                 $header->details()->delete();
 
                 $nextNouRef = 1;
@@ -1497,6 +1553,7 @@ class FakturPembelianController extends Controller
                 }
 
                 DB::table('trstockdt')->insert($rowsDt);
+                $this->adjustSourceQtyKecil($sourceUsageByRef, -1);
             });
 
             return redirect()
@@ -1652,6 +1709,29 @@ class FakturPembelianController extends Controller
             }
 
             DB::transaction(function () use ($fakturpembelian) {
+                $oldUsageBySourceRef = [];
+                $oldDetails = DB::table('trstockdt')
+                    ->where('fstockmtno', $fakturpembelian->fstockmtno)
+                    ->get(['frefdtid', 'fqtykecil']);
+
+                foreach ($oldDetails as $oldDetail) {
+                    $detailId = (int) ($oldDetail->frefdtid ?? 0);
+                    $qtyUsed = (float) ($oldDetail->fqtykecil ?? 0);
+
+                    if ($detailId <= 0 || $qtyUsed <= 0) {
+                        continue;
+                    }
+
+                    $sourceType = $this->detectSourceTypeByDetailId($detailId);
+                    if (! in_array($sourceType, ['PO', 'PB'], true)) {
+                        continue;
+                    }
+
+                    $sourceKey = $sourceType.':'.$detailId;
+                    $oldUsageBySourceRef[$sourceKey] = ($oldUsageBySourceRef[$sourceKey] ?? 0) + $qtyUsed;
+                }
+
+                $this->adjustSourceQtyKecil($oldUsageBySourceRef, 1);
                 DB::table('trstockdt')
                     ->where('fstockmtno', $fakturpembelian->fstockmtno)
                     ->delete();

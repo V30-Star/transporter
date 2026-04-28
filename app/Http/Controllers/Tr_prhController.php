@@ -418,6 +418,7 @@ class Tr_prhController extends Controller
                         'fprdcodeid' => $productId,
                         'fprdcode' => $product->fprdcode ?? '', // nama produk dari msprd.fprdname
                         'fqty' => (int) $qty,
+                        'fqtykecil' => (int) $qty,
                         'fqtyremain' => $qtyKecil,
                         'fnoacak' => $noacak,
                         'fprice' => 0,
@@ -748,6 +749,7 @@ class Tr_prhController extends Controller
                     'fprdcodeid' => $prodId,
                     'fprdcode' => $code,
                     'fqty' => $qty,
+                    'fqtykecil' => $qty,
                     'fqtyremain' => $qtyKecil,
                     'fnoacak' => $noacak,
                     'fketdt' => $ket,
@@ -1007,14 +1009,14 @@ class Tr_prhController extends Controller
             ->leftJoin('msprd as p', 'p.fprdcode', '=', 'd.fprdcode')
             ->leftJoin(
                 DB::raw('(
-                    SELECT frefdtno, fprdcode, fnourefacak, SUM(fqtykecil) AS fqtykecilpo
+                    SELECT frefdtno, fprdcode, frefnoacak, SUM(fqtykecil) AS fqtykecilpo
                     FROM tr_pod
-                    GROUP BY frefdtno, fprdcode, fnourefacak
+                    GROUP BY frefdtno, fprdcode, frefnoacak
                 ) as po'),
                 function ($join) {
                     $join->on('po.frefdtno', '=', 'd.fprno')
                         ->on('po.fprdcode', '=', 'd.fprdcode')
-                        ->on('po.fnourefacak', '=', 'd.fnoacak');
+                        ->on('po.frefnoacak', '=', 'd.fnoacak');
                 }
             )
             ->where('d.fprno', $fprno)

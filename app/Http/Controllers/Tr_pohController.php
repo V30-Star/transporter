@@ -188,7 +188,7 @@ class Tr_pohController extends Controller
         $allowedColumns = ['fprno', 'fsupplier', 'fprdate'];
         if (in_array($orderColumn, $allowedColumns)) {
             if (in_array($orderColumn, ['fprno', 'fprdate'])) {
-                $query->orderBy('tr_prh.'.$orderColumn, $orderDir);
+                $query->orderBy('tr_prh.' . $orderColumn, $orderDir);
             } else {
                 $query->orderBy('mssupplier.fsuppliername', $orderDir);
             }
@@ -262,7 +262,7 @@ class Tr_pohController extends Controller
                 $rasio = (float) ($item->fqtykecil ?? 0);
                 $rasio2 = (float) ($item->fqtykecil2 ?? 0);
 
-                $sisaKecil = max(0, (float) ($item->fqtykecil_pr ?? 0) - $fqtypo);
+                $sisaKecil = max(0, (float) ($item->fqtykecil_pr ?? 0));
 
                 return [
                     'frefdtno' => (string) $header->fprno,
@@ -282,6 +282,7 @@ class Tr_pohController extends Controller
                     'frefdtid' => $item->frefdtid,
                     'fnourefacak' => (string) ($item->fnourefacak ?? ''),
                     'fqtypo' => $fqtypo,
+                    'fqtykecil_ref' => $sisaKecil,
                     'fqtyremain' => $sisaKecil,
                     'fqtypr' => $qty,
                     'fsatuankecil' => $satKecil,
@@ -338,7 +339,7 @@ class Tr_pohController extends Controller
         }
 
         do {
-            $candidate = (string) random_int(1, 9).random_int(1, 9).random_int(1, 9);
+            $candidate = (string) random_int(1, 9) . random_int(1, 9) . random_int(1, 9);
         } while (in_array($candidate, $usedNumbers, true));
 
         $usedNumbers[] = $candidate;
@@ -384,8 +385,8 @@ class Tr_pohController extends Controller
     private function getPrRemainByDetailIds(array $prDetailIds): array
     {
         $ids = collect($prDetailIds)
-            ->map(fn ($id) => (int) $id)
-            ->filter(fn ($id) => $id > 0)
+            ->map(fn($id) => (int) $id)
+            ->filter(fn($id) => $id > 0)
             ->unique()
             ->values()
             ->all();
@@ -394,19 +395,36 @@ class Tr_pohController extends Controller
             return [];
         }
 
-        $usedSub = DB::table('tr_pod')
-            ->selectRaw('CAST(frefdtid AS BIGINT) AS fprdid, SUM(COALESCE(fqtykecil, 0)) AS used_kecil')
-            ->whereNotNull('frefdtid')
-            ->whereIn(DB::raw('CAST(frefdtid AS BIGINT)'), $ids)
-            ->groupBy(DB::raw('CAST(frefdtid AS BIGINT)'));
-
         return DB::table('tr_prd as d')
-            ->leftJoinSub($usedSub, 'u', fn ($join) => $join->on('u.fprdid', '=', 'd.fprdid'))
             ->whereIn('d.fprdid', $ids)
-            ->selectRaw('d.fprdid, GREATEST(COALESCE(d.fqtykecil, 0) - COALESCE(u.used_kecil, 0), 0) AS remain_kecil')
+            ->selectRaw('d.fprdid, GREATEST(COALESCE(d.fqtykecil, 0), 0) AS remain_kecil')
             ->pluck('remain_kecil', 'd.fprdid')
-            ->map(fn ($value) => (float) $value)
+            ->map(fn($value) => (float) $value)
             ->all();
+    }
+
+    /**
+     * @param  array<int, float|int>  $usageByRef
+     */
+    private function adjustPrReferenceQtyKecil(array $usageByRef, int $direction): void
+    {
+        foreach ($usageByRef as $fprdid => $qtyKecil) {
+            $fprdid = (int) $fprdid;
+            $qtyKecil = (float) $qtyKecil;
+
+            if ($fprdid <= 0 || $qtyKecil <= 0) {
+                continue;
+            }
+
+            $signedQty = $direction * $qtyKecil;
+
+            DB::table('tr_prd')
+                ->where('fprdid', $fprdid)
+                ->update([
+                    'fqtykecil' => DB::raw('GREATEST(COALESCE(fqtykecil, 0) + (' . $signedQty . '), 0)'),
+                    'fupdatedat' => now(),
+                ]);
+        }
     }
 
     /**
@@ -438,9 +456,9 @@ class Tr_pohController extends Controller
         $date = $onDate ?: now();
 
         $branch = $branch
-          ?? Auth::guard('sysuser')->user()?->fcabang
-          ?? Auth::user()?->fcabang
-          ?? null;
+            ?? Auth::guard('sysuser')->user()?->fcabang
+            ?? Auth::user()?->fcabang
+            ?? null;
 
         // resolve kode cabang
         $kodeCabang = null;
@@ -450,7 +468,7 @@ class Tr_pohController extends Controller
                 $kodeCabang = DB::table('mscabang')->where('fcabangid', (int) $needle)->value('fcabangkode');
             } else {
                 $kodeCabang = DB::table('mscabang')->whereRaw('LOWER(fcabangkode)=LOWER(?)', [$needle])->value('fcabangkode')
-                  ?: DB::table('mscabang')->whereRaw('LOWER(fcabangname)=LOWER(?)', [$needle])->value('fcabangkode');
+                    ?: DB::table('mscabang')->whereRaw('LOWER(fcabangname)=LOWER(?)', [$needle])->value('fcabangkode');
             }
         }
         if (! $kodeCabang) {
@@ -460,17 +478,17 @@ class Tr_pohController extends Controller
         $prefix = sprintf('PO.%s.%s.%s.', $kodeCabang, $date->format('y'), $date->format('m'));
 
         // kunci per (branch, tahun-bulan) — TANPA bikin tabel baru
-        $lockKey = crc32('PO|'.$kodeCabang.'|'.$date->format('Y-m'));
+        $lockKey = crc32('PO|' . $kodeCabang . '|' . $date->format('Y-m'));
         DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
         $last = DB::table('tr_poh')
-            ->where('fpono', 'like', $prefix.'%')
+            ->where('fpono', 'like', $prefix . '%')
             ->selectRaw("MAX(CAST(split_part(fpono, '.', 5) AS int)) AS lastno")
             ->value('lastno');
 
         $next = (int) $last + 1;
 
-        return $prefix.str_pad((string) $next, 4, '0', STR_PAD_LEFT);
+        return $prefix . str_pad((string) $next, 4, '0', STR_PAD_LEFT);
     }
 
     public function print(string $fpono)
@@ -510,9 +528,9 @@ class Tr_pohController extends Controller
         $ppnAmount = $hdr->fincludeppn == '1' ? round($subtotal * $ppnPersen / 100, 2) : 0;
         $grandTotal = round($subtotal + $ppnAmount, 2);
 
-        $fmt = fn ($d) => $d
-          ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y')
-          : '-';
+        $fmt = fn($d) => $d
+            ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y')
+            : '-';
 
         return view('tr_poh.print', [
             'hdr' => $hdr,
@@ -561,10 +579,10 @@ class Tr_pohController extends Controller
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
         $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
+            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
             ->when(
                 ! is_numeric($raw),
-                fn ($q) => $q->where('fcabangkode', $raw)->orWhere('fcabangname', $raw)
+                fn($q) => $q->where('fcabangkode', $raw)->orWhere('fcabangname', $raw)
             )
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
 
@@ -687,7 +705,7 @@ class Tr_pohController extends Controller
         $grandTotal = (float) $request->input('famountpo', 0);
 
         // Load product metadata: map code -> (fprdid, satuans)
-        $uniqueCodes = array_values(array_unique(array_filter(array_map(fn ($c) => trim((string) $c), $codes))));
+        $uniqueCodes = array_values(array_unique(array_filter(array_map(fn($c) => trim((string) $c), $codes))));
         $prodMeta = DB::table('msprd')
             ->whereIn('fprdcode', $uniqueCodes)
             ->get(['fprdid', 'fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2'])
@@ -817,7 +835,7 @@ class Tr_pohController extends Controller
                             $kodeCabang = DB::table('mscabang')->where('fcabangid', (int) $needle)->value('fcabangkode');
                         } else {
                             $kodeCabang = DB::table('mscabang')->whereRaw('LOWER(fcabangkode)=LOWER(?)', [$needle])->value('fcabangkode')
-                              ?: DB::table('mscabang')->whereRaw('LOWER(fcabangname)=LOWER(?)', [$needle])->value('fcabangkode');
+                                ?: DB::table('mscabang')->whereRaw('LOWER(fcabangname)=LOWER(?)', [$needle])->value('fcabangkode');
                         }
                     }
                     if (! $kodeCabang) {
@@ -829,17 +847,17 @@ class Tr_pohController extends Controller
                     $prefix = sprintf('PO.%s.%s.%s.', $kodeCabang, $yy, $mm);
 
                     // advisory lock per (branch, y-m)
-                    $lockKey = crc32('PO|'.$kodeCabang.'|'.$fpodate->format('Y-m'));
+                    $lockKey = crc32('PO|' . $kodeCabang . '|' . $fpodate->format('Y-m'));
                     DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
                     // get last sequence under this prefix
                     $last = DB::table('tr_poh')
-                        ->where('fpono', 'like', $prefix.'%')
+                        ->where('fpono', 'like', $prefix . '%')
                         ->selectRaw("MAX(CAST(split_part(fpono, '.', 5) AS int)) AS lastno")
                         ->value('lastno');
 
                     $next = (int) $last + 1;
-                    $fpohid = $prefix.str_pad((string) $next, 4, '0', STR_PAD_LEFT);
+                    $fpohid = $prefix . str_pad((string) $next, 4, '0', STR_PAD_LEFT);
                 }
 
                 $fcurrency = $request->input('fcurrency', 'IDR');
@@ -876,7 +894,7 @@ class Tr_pohController extends Controller
                     DB::table('msprd')
                         ->where('fprdcode', $row['fprdcode'])
                         ->update([
-                            'fminstock' => DB::raw('CAST(fminstock AS NUMERIC) - '.$row['fqtyremain']),
+                            'fminstock' => DB::raw('CAST(fminstock AS NUMERIC) - ' . $row['fqtykecil']),
                             'fupdatedat' => now(),
                         ]);
                 }
@@ -915,6 +933,7 @@ class Tr_pohController extends Controller
                 unset($r);
 
                 DB::table('tr_pod')->insert($rowsPod);
+                $this->adjustPrReferenceQtyKecil($prdAgg, -1);
             });
         } catch (\RuntimeException $e) {
             return back()->withInput()->withErrors(['detail' => $e->getMessage()]);
@@ -942,8 +961,8 @@ class Tr_pohController extends Controller
             ->get(['fcurrid', 'fcurrcode', 'fcurrname', 'frate']);
 
         $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn ($q) => $q
+            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
+            ->when(! is_numeric($raw), fn($q) => $q
                 ->where('fcabangkode', $raw)
                 ->orWhere('fcabangname', $raw))
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
@@ -954,18 +973,18 @@ class Tr_pohController extends Controller
         $tr_poh = Tr_poh::with(['details' => function ($q) {
             $q->leftJoin('msprd as m', 'm.fprdid', '=', 'tr_pod.fprdid')
                 ->leftJoin(DB::raw('(
-        SELECT
-            fprdcode,
-            frefdtno,
-            SUM(fqty) AS total_terima
-        FROM trstockdt
-        WHERE
-            (fstockmtcode = \'TER\' OR (fcode = \'P\' AND fstockmtcode = \'BUY\'))
-        GROUP BY
-            fprdcode,
-            frefdtno
-    ) as r'), function ($join) {
-                    $join->on('r.frefdtno', '=', 'tr_pod.frefdtno')   // ← join via frefdtno
+            SELECT 
+                frefdtno,           
+                fprdcode,           
+                SUM(fqty) AS total_terima
+            FROM trstockdt
+            WHERE 
+                (fstockmtcode = \'TER\' OR (fcode = \'P\' AND fstockmtcode = \'BUY\'))
+                AND frefdtno IS NOT NULL 
+            GROUP BY 
+                frefdtno, fprdcode  
+        ) as r'), function ($join) {
+                    $join->on('r.frefdtno', '=', 'tr_pod.frefdtno')
                         ->on('r.fprdcode', '=', 'm.fprdcode');
                 })
                 ->select(
@@ -975,11 +994,11 @@ class Tr_pohController extends Controller
                     'm.fsatuankecil',
                     'm.fsatuanbesar',
                     'm.fsatuanbesar2',
-                    'm.fqtykecil',
-                    'm.fqtykecil2',
+                    DB::raw('COALESCE(m.fqtykecil, 0) as fqtykecil_master'),
+                    DB::raw('COALESCE(m.fqtykecil2, 0) as fqtykecil2_master'),
                     DB::raw('COALESCE((SELECT pr.fqty FROM tr_prd pr WHERE tr_pod.frefdtid IS NOT NULL AND pr.fprdid = CAST(tr_pod.frefdtid AS INTEGER) LIMIT 1), 0) as fqtypr'),
                     DB::raw("COALESCE((SELECT pr.fsatuan FROM tr_prd pr WHERE tr_pod.frefdtid IS NOT NULL AND pr.fprdid = CAST(tr_pod.frefdtid AS INTEGER) LIMIT 1), '') as fqtypr_satuan"),
-                    DB::raw('COALESCE(r.total_terima, 0) AS fqtyterima'),
+                    DB::raw('COALESCE(r.total_terima, 0) AS fqtyterima')
                 );
         }])->findOrFail($fpohid);
         $details = $this->getPoDetailsWithTerimaUsage($tr_poh->fpono);
@@ -1030,8 +1049,8 @@ class Tr_pohController extends Controller
         })->toArray();
 
         $oldUsageByRef = $details
-            ->groupBy(fn ($d) => (int) ($d->frefdtid ?? 0))
-            ->map(fn ($rows) => (float) $rows->sum(fn ($r) => (float) ($r->fqtykecil ?? 0)))
+            ->groupBy(fn($d) => (int) ($d->frefdtid ?? 0))
+            ->map(fn($rows) => (float) $rows->sum(fn($r) => (float) ($r->fqtykecil ?? 0)))
             ->all();
 
         $prRemainMap = $this->getPrRemainByDetailIds($details->pluck('frefdtid')->all());
@@ -1042,8 +1061,8 @@ class Tr_pohController extends Controller
             $satKecil = trim((string) $d->fsatuankecil);
             $satBesar = trim((string) $d->fsatuanbesar);
             $satBesar2 = trim((string) $d->fsatuanbesar2);
-            $rasio = (float) $d->fqtykecil;
-            $rasio2 = (float) $d->fqtykecil2;
+            $rasio = (float) ($d->fqtykecil_master ?? 0);
+            $rasio2 = (float) ($d->fqtykecil2_master ?? 0);
 
             $prod = $products->firstWhere('fprdcode', $d->fitemcode);
 
@@ -1096,6 +1115,7 @@ class Tr_pohController extends Controller
                 'fnourefacak' => (string) ($d->fnourefacak ?? ''),
                 // Data konversi untuk JavaScript
                 'fqtypo' => (float) ($d->fqtypo ?? 0),
+                'fqtykecil_ref' => $sisaKecil,
                 'fqtyremain' => $sisaKecil,
                 'fqtypr' => $qtyPR,
                 'fqtypr_satuan' => $satPR,
@@ -1141,8 +1161,8 @@ class Tr_pohController extends Controller
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
         $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn ($q) => $q
+            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
+            ->when(! is_numeric($raw), fn($q) => $q
                 ->where('fcabangkode', $raw)
                 ->orWhere('fcabangname', $raw))
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
@@ -1306,12 +1326,12 @@ class Tr_pohController extends Controller
 
         $fpodate = \Carbon\Carbon::parse($request->fpodate)->startOfDay();
         $fkirimdate = $request->filled('fkirimdate')
-          ? \Carbon\Carbon::parse($request->fkirimdate)->startOfDay()
-          : null;
+            ? \Carbon\Carbon::parse($request->fkirimdate)->startOfDay()
+            : null;
         $fincludeppn = $request->boolean('fincludeppn') ? 1 : 0;
         $userid = Auth::guard('sysuser')->user()?->fname
-          ?? Auth::user()?->fname
-          ?? 'system';
+            ?? Auth::user()?->fname
+            ?? 'system';
         $now = now();
 
         $codes = $request->input('fitemcode', []);
@@ -1331,7 +1351,7 @@ class Tr_pohController extends Controller
         $ppnRate = max(0, min(100, $ppnRate));
 
         $uniqueCodes = array_values(array_unique(
-            array_filter(array_map(fn ($c) => trim((string) $c), $codes))
+            array_filter(array_map(fn($c) => trim((string) $c), $codes))
         ));
 
         $prodMeta = DB::table('msprd')
@@ -1339,7 +1359,7 @@ class Tr_pohController extends Controller
             ->get(['fprdid', 'fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2'])
             ->keyBy('fprdcode');
 
-        // Untuk update PO berbasis PR, validasi batas qty ditentukan oleh sisa PR (fqtyremain),
+        // Untuk update PO berbasis PR, validasi batas qty ditentukan oleh sisa PR (fqtykecil),
         // bukan oleh msprd.fminstock. Validasi sisa PR dilakukan di bawah (strict guard).
 
         $pickDefaultSat = function ($code) use ($prodMeta) {
@@ -1509,6 +1529,7 @@ class Tr_pohController extends Controller
                 $oldUsageByRef
             ) {
                 $this->validatePrdRemain($prdAgg, $oldUsageByRef);
+                $this->adjustPrReferenceQtyKecil($oldUsageByRef, 1);
 
                 $fpohid = DB::table('tr_poh')
                     ->where('fpohid', $fponoId)
@@ -1538,7 +1559,7 @@ class Tr_pohController extends Controller
                     DB::table('msprd')
                         ->where('fprdcode', $row['fprdcode'])
                         ->update([
-                            'fminstock' => DB::raw('CAST(fminstock AS NUMERIC) - '.$row['fqtyremain']),
+                            'fminstock' => DB::raw('CAST(fminstock AS NUMERIC) - ' . $row['fqtykecil']),
                             'fupdatedat' => now(),
                         ]);
                 }
@@ -1551,11 +1572,12 @@ class Tr_pohController extends Controller
                 unset($r);
 
                 DB::table('tr_pod')->insert($rowsPod);
+                $this->adjustPrReferenceQtyKecil($prdAgg, -1);
             });
         } catch (\RuntimeException $e) {
             return back()->withInput()->withErrors(['detail' => $e->getMessage()]);
         } catch (\Throwable $e) {
-            return back()->withInput()->with('error', 'Gagal menyimpan: '.$e->getMessage());
+            return back()->withInput()->with('error', 'Gagal menyimpan: ' . $e->getMessage());
         }
 
         return redirect()
@@ -1580,8 +1602,8 @@ class Tr_pohController extends Controller
             ->get(['fcurrid', 'fcurrcode', 'fcurrname', 'frate']);
 
         $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn ($q) => $q
+            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
+            ->when(! is_numeric($raw), fn($q) => $q
                 ->where('fcabangkode', $raw)
                 ->orWhere('fcabangname', $raw))
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
@@ -1660,12 +1682,12 @@ class Tr_pohController extends Controller
         $savedItems = $details->map(function ($d) use ($products) {
             $prod = $products->firstWhere('fprdcode', $d->fitemcode);
             $units = $prod
-              ? array_values(array_filter([
-                  $prod->fsatuankecil,
-                  $prod->fsatuanbesar,
-                  $prod->fsatuanbesar2,
-              ]))
-              : ($d->fsatuan ? [$d->fsatuan] : []);
+                ? array_values(array_filter([
+                    $prod->fsatuankecil,
+                    $prod->fsatuanbesar,
+                    $prod->fsatuanbesar2,
+                ]))
+                : ($d->fsatuan ? [$d->fsatuan] : []);
 
             // Pastikan fsatuan ada di units
             if ($d->fsatuan && ! in_array($d->fsatuan, $units)) {
@@ -1732,6 +1754,14 @@ class Tr_pohController extends Controller
             }
 
             DB::transaction(function () use ($tr_poh) {
+                $oldUsageByRef = DB::table('tr_pod')
+                    ->where('fpono', $tr_poh->fpono)
+                    ->get(['frefdtid', 'fqtykecil'])
+                    ->groupBy(fn($row) => (int) ($row->frefdtid ?? 0))
+                    ->map(fn($rows) => (float) $rows->sum(fn($row) => (float) ($row->fqtykecil ?? 0)))
+                    ->all();
+
+                $this->adjustPrReferenceQtyKecil($oldUsageByRef, 1);
                 DB::table('tr_pod')->where('fpono', $tr_poh->fpono)->delete();
                 $tr_poh->delete();
             });
@@ -1739,7 +1769,7 @@ class Tr_pohController extends Controller
             return redirect()->route('tr_poh.index')
                 ->with('success', "Data Order Pembelian {$tr_poh->fpono} berhasil dihapus.");
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Gagal menghapus data: '.$e->getMessage());
+            return redirect()->back()->with('error', 'Gagal menghapus data: ' . $e->getMessage());
         }
     }
 
@@ -1750,9 +1780,7 @@ class Tr_pohController extends Controller
         return DB::table('tr_pod as d')
             ->leftJoin('msprd as p', 'p.fprdid', '=', 'd.fprdid')
             ->leftJoinSub($terimaUsageSub, 'ter', function ($join) {
-                $join->on('ter.frefdtno', '=', 'd.fpono')
-                    ->on('ter.fprdcode', '=', 'p.fprdcode')
-                    ->whereRaw("COALESCE(ter.fnoacak::text, '') = COALESCE(d.fnoacak::text, '')");
+                $join->on('ter.frefdtid', '=', 'd.fpodid');
             })
             ->where('d.fpono', $fpono)
             ->select([
@@ -1762,8 +1790,8 @@ class Tr_pohController extends Controller
                 'p.fsatuankecil',
                 'p.fsatuanbesar',
                 'p.fsatuanbesar2',
-                'p.fqtykecil',
-                'p.fqtykecil2',
+                DB::raw('COALESCE(p.fqtykecil, 0) as fqtykecil_master'),
+                DB::raw('COALESCE(p.fqtykecil2, 0) as fqtykecil2_master'),
                 DB::raw('COALESCE((SELECT pr.fqty FROM tr_prd pr WHERE d.frefdtid IS NOT NULL AND pr.fprdid = CAST(d.frefdtid AS INTEGER) LIMIT 1), 0) as fqtypr'),
                 DB::raw("COALESCE((SELECT pr.fsatuan FROM tr_prd pr WHERE d.frefdtid IS NOT NULL AND pr.fprdid = CAST(d.frefdtid AS INTEGER) LIMIT 1), '') as fqtypr_satuan"),
                 DB::raw('COALESCE(ter.fqtyterima, 0) AS fqtyterima'),
@@ -1784,17 +1812,17 @@ class Tr_pohController extends Controller
                     });
             })
             ->selectRaw("
-                d.frefdtno,
-                d.fprdcode,
-                d.fnoacak,
+                CAST(d.frefdtid AS BIGINT) AS frefdtid,
                 SUM(
                     CASE
-                        WHEN d.fsatuan = p.fsatuanbesar THEN COALESCE(d.fqtykecil, 0) / NULLIF(p.fqtykecil, 0)
-                        ELSE COALESCE(d.fqtykecil, 0)
+                        WHEN d.fsatuan = p.fsatuanbesar THEN COALESCE(NULLIF(d.fqtykecil, 0) / NULLIF(p.fqtykecil, 0), d.fqty, 0)
+                        WHEN d.fsatuan = p.fsatuanbesar2 THEN COALESCE(NULLIF(d.fqtykecil, 0) / NULLIF(p.fqtykecil2, 0), d.fqty, 0)
+                        ELSE COALESCE(NULLIF(d.fqtykecil, 0), d.fqty, 0)
                     END
                 ) AS fqtyterima
             ")
-            ->groupBy('d.frefdtno', 'd.fprdcode', 'd.fnoacak');
+            ->whereNotNull('d.frefdtid')
+            ->groupBy(DB::raw('CAST(d.frefdtid AS BIGINT)'));
     }
 
     private function getUsageLockMessage(Tr_poh $header): ?string
@@ -1810,6 +1838,6 @@ class Tr_pohController extends Controller
             return null;
         }
 
-        return 'Order Pembelian '.$header->fpono.' tidak dapat diubah atau dihapus karena sudah digunakan pada Penerimaan Barang / Faktur Pembelian: '.$usedBy->implode(', ').'.';
+        return 'Order Pembelian ' . $header->fpono . ' tidak dapat diubah atau dihapus karena sudah digunakan pada Penerimaan Barang / Faktur Pembelian: ' . $usedBy->implode(', ') . '.';
     }
 }

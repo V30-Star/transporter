@@ -1690,8 +1690,8 @@
                         frefpr: src.fnouref ?? fnourefVal,
 
                         // Data quantity
-                        fqty: (src.fqtyremain !== null && src.fqtyremain !== undefined) ? Number(src.fqtyremain) : ((src.fqty !== null && src.fqty !== undefined) ? Number(src.fqty) : 0),
-                        maxqty: Math.max(0, +(src.fqtyremain ?? src.fqty) || 0),
+                        fqty: (src.fqtykecil !== null && src.fqtykecil !== undefined) ? Number(src.fqtykecil) : ((src.fqty !== null && src.fqty !== undefined) ? Number(src.fqty) : 0),
+                        maxqty: Math.max(0, +(src.fqtykecil ?? src.fqty) || 0),
                         lockQty: false,
 
                         // Financial
@@ -1705,7 +1705,7 @@
                     };
 
                     this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
-                    row.maxqty = Math.max(0, +(src.fqtyremain ?? src.fqty) || 0);
+                    row.maxqty = Math.max(0, +(src.fqtykecil ?? src.fqty) || 0);
                     row.fqty = row.maxqty;
 
                     const key = `${(row.fitemcode || '').toString().trim()}::${(row.frefdtno || '').toString().trim()}`;
