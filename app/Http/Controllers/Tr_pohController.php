@@ -1745,21 +1745,15 @@ class Tr_pohController extends Controller
 
     private function getPoDetailsWithTerimaUsage(string $fpono)
     {
+        $terimaUsageSub = $this->getPoTerimaUsageSubquery();
+
         return DB::table('tr_pod as d')
             ->leftJoin('msprd as p', 'p.fprdid', '=', 'd.fprdid')
-            ->leftJoin(
-                DB::raw('(
-                    SELECT
-                        CAST(frefdtid AS BIGINT) AS fpodid,
-                        SUM(COALESCE(fqty, 0)) AS fqtyterima
-                    FROM trstockdt
-                    WHERE
-                        frefdtid IS NOT NULL
-                        AND (fstockmtcode = \'TER\' OR (fcode = \'P\' AND fstockmtcode = \'BUY\'))
-                    GROUP BY CAST(frefdtid AS BIGINT)
-                ) as ter'),
-                fn ($join) => $join->on('ter.fpodid', '=', 'd.fpodid')
-            )
+            ->leftJoinSub($terimaUsageSub, 'ter', function ($join) {
+                $join->on('ter.frefdtno', '=', 'd.fpono')
+                    ->on('ter.fprdcode', '=', 'p.fprdcode')
+                    ->whereRaw("COALESCE(ter.fnoacak::text, '') = COALESCE(d.fnoacak::text, '')");
+            })
             ->where('d.fpono', $fpono)
             ->select([
                 'd.*',
@@ -1776,6 +1770,31 @@ class Tr_pohController extends Controller
             ])
             ->orderBy('d.fnou')
             ->get();
+    }
+
+    private function getPoTerimaUsageSubquery()
+    {
+        return DB::table('trstockdt as d')
+            ->join('msprd as p', 'd.fprdcode', '=', 'p.fprdcode')
+            ->where(function ($query) {
+                $query->where('d.fstockmtcode', 'TER')
+                    ->orWhere(function ($subQuery) {
+                        $subQuery->where('d.fcode', 'P')
+                            ->where('d.fstockmtcode', 'BUY');
+                    });
+            })
+            ->selectRaw("
+                d.frefdtno,
+                d.fprdcode,
+                d.fnoacak,
+                SUM(
+                    CASE
+                        WHEN d.fsatuan = p.fsatuanbesar THEN COALESCE(d.fqtykecil, 0) / NULLIF(p.fqtykecil, 0)
+                        ELSE COALESCE(d.fqtykecil, 0)
+                    END
+                ) AS fqtyterima
+            ")
+            ->groupBy('d.frefdtno', 'd.fprdcode', 'd.fnoacak');
     }
 
     private function getUsageLockMessage(Tr_poh $header): ?string
