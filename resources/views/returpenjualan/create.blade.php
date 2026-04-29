@@ -2001,7 +2001,7 @@
 
             normalizeRefNoAcak(value) {
                 const parts = String(value ?? '').split(',').map(v => v.trim()).filter(v => /^\d{3}$/.test(v));
-                return [...new Set(parts)].join(',');
+                return parts[0] ?? '';
             },
 
             generateUniqueNoAcak() {

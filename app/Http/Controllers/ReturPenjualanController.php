@@ -244,19 +244,26 @@ class ReturPenjualanController extends Controller
     private function normalizeReferenceRandomNumbers($value): ?string
     {
         $parts = preg_split('/\s*,\s*/', trim((string) ($value ?? ''))) ?: [];
-        $normalized = [];
 
         foreach ($parts as $part) {
             $candidate = trim((string) $part);
-            if (! preg_match('/^\d{3}$/', $candidate)) {
-                continue;
-            }
-            if (! in_array($candidate, $normalized, true)) {
-                $normalized[] = $candidate;
+            if (preg_match('/^\d{3}$/', $candidate)) {
+                return $candidate;
             }
         }
 
-        return empty($normalized) ? null : implode(',', $normalized);
+        return null;
+    }
+
+    private function buildReferenceRandomNumberColumns(?string $sourceCode, $value): array
+    {
+        $normalized = $this->normalizeReferenceRandomNumbers($value);
+        $sourceCode = strtoupper(trim((string) ($sourceCode ?? '')));
+
+        return [
+            'frefnosoacak' => $sourceCode === 'S' ? $normalized : null,
+            'frefnosrjacak' => $sourceCode === 'R' ? $normalized : null,
+        ];
     }
 
     private function generateInvoiceCode(?Carbon $onDate = null): string
@@ -410,7 +417,7 @@ class ReturPenjualanController extends Controller
                 'fnoacak' => ['nullable', 'array'],
                 'fnoacak.*' => ['nullable', 'regex:/^[1-9]{3}$/'],
                 'frefnoacak' => ['nullable', 'array'],
-                'frefnoacak.*' => ['nullable', 'regex:/^\d{3}(,\s*\d{3})*$/'],
+                'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             throw $e; // tetap lempar agar Laravel handle redirect
@@ -503,7 +510,7 @@ class ReturPenjualanController extends Controller
             $totalGross += $subtotal;
             $totalDisc += $discAmount;
 
-            $detailRows[] = [
+            $detailRows[] = array_merge([
                 'fnou' => $nouCounter,
                 'fprdcodeid' => $fprdcodeid,
                 'fprdcode' => mb_substr($code, 0, 30),
@@ -527,8 +534,7 @@ class ReturPenjualanController extends Controller
                 'frefsrj' => $frefsrjid_ids[$i] ? ($frefpr_codes[$i] ?? '') : '',
                 'frefsrjid' => $frefsrjid_ids[$i] ?? null,
                 'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
-                'frefnoacak' => $this->normalizeReferenceRandomNumbers($frefnoacaks[$i] ?? null),
-            ];
+            ], $this->buildReferenceRandomNumberColumns($frefcode ?? '', $frefnoacaks[$i] ?? null));
 
             $stockDetailRows[] = [
                 'fprdcodeid' => $fprdcodeid,
@@ -950,7 +956,7 @@ class ReturPenjualanController extends Controller
                 'frefso' => $valSo,
                 'frefsrj' => $valSrj,
                 'fnoacak' => (string) ($d->fnoacak ?? ''),
-                'frefnoacak' => (string) ($d->frefnoacak ?? ''),
+                'frefnoacak' => (string) ($d->frefnosoacak ?? $d->frefnosrjacak ?? ''),
             ];
         })->values();
         $selectedSupplierCode = $returpenjualan->fsupplier;
@@ -1083,7 +1089,7 @@ class ReturPenjualanController extends Controller
                 'frefcode' => $refCode,
                 'frefpr' => $displayRef,
                 'fnoacak' => (string) ($d->fnoacak ?? ''),
-                'frefnoacak' => (string) ($d->frefnoacak ?? ''),
+                'frefnoacak' => (string) ($d->frefnosoacak ?? $d->frefnosrjacak ?? ''),
             ];
         })->values();
         $selectedSupplierCode = $returpenjualan->fsupplier;
@@ -1148,7 +1154,7 @@ class ReturPenjualanController extends Controller
             'fnoacak' => ['nullable', 'array'],
             'fnoacak.*' => ['nullable', 'regex:/^[1-9]{3}$/'],
             'frefnoacak' => ['nullable', 'array'],
-            'frefnoacak.*' => ['nullable', 'regex:/^\d{3}(,\s*\d{3})*$/'],
+            'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
         ]);
 
         // 2. LOAD HEADER
@@ -1240,7 +1246,7 @@ class ReturPenjualanController extends Controller
             $totalGross += $subtotal;
             $totalDisc += $discAmount;
 
-            $detailRows[] = [
+            $detailRows[] = array_merge([
                 'fsono' => $header->fsono,
                 'fnou' => $i + 1,
                 'fprdcodeid' => $fprdcodeid,
@@ -1265,8 +1271,7 @@ class ReturPenjualanController extends Controller
                 'frefso' => $frefso_ids[$i] ? ($frefpr_codes[$i] ?? '') : '',
                 'frefsrj' => $frefsrjid_ids[$i] ? ($frefpr_codes[$i] ?? '') : '',
                 'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
-                'frefnoacak' => $this->normalizeReferenceRandomNumbers($frefnoacaks[$i] ?? null),
-            ];
+            ], $this->buildReferenceRandomNumberColumns($frefcode ?? '', $frefnoacaks[$i] ?? null));
 
             $stockDetailRows[] = [
                 'fprdcodeid' => $fprdcodeid,
