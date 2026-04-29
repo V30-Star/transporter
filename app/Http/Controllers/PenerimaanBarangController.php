@@ -172,40 +172,66 @@ class PenerimaanBarangController extends Controller
             return response()->json(['message' => 'PO tidak ditemukan'], 404);
         }
 
-        $remainMap = $this->getPodRemainByIds(
-            DB::table('tr_pod')->where('fpono', $header->fpono)->pluck('fpodid')->all()
-        );
+        $receiptSub = DB::table('trstockdt')
+            ->selectRaw('frefdtno, fprdcode, frefnoacak, SUM(COALESCE(fqtykecil, 0)) AS fqtykecilterima')
+            ->where('fstockmtcode', 'TER')
+            ->groupBy('frefdtno', 'fprdcode', 'frefnoacak');
 
-        $items = DB::table('tr_pod')
-            ->where('tr_pod.fpono', $header->fpono)
-            ->leftJoin('msprd as m', 'm.fprdid', '=', 'tr_pod.fprdid')
+        $items = DB::table('tr_pod as d')
+            ->where('d.fpono', $header->fpono)
+            ->leftJoin('msprd as m', 'm.fprdid', '=', 'd.fprdid')
+            ->leftJoinSub($receiptSub, 'st', function ($join) {
+                $join->on('st.frefdtno', '=', 'd.fpono')
+                    ->on('st.fprdcode', '=', 'd.fprdcode')
+                    ->on('st.frefnoacak', '=', 'd.fnoacak');
+            })
             ->select([
-                'tr_pod.fpodid as frefdtid',
+                'd.fpodid as frefdtid',
                 'm.fprdid as fprdcodeid',
                 'm.fprdcode as fitemcode',
                 'm.fprdname as fitemname',
-                'tr_pod.fqty',
-                'tr_pod.fsatuan as fsatuan',
-                'tr_pod.fpono',
-                'tr_pod.fprice as fprice',
-                'tr_pod.fprice_rp as fprice_rp',
-                'tr_pod.famount as ftotal',
-                'tr_pod.fdesc as fdesc',
-                'tr_pod.frefdtno',
-                DB::raw("COALESCE(tr_pod.fnoacak::text, '') as frefnoacak"),
+                'd.fqty',
+                'd.fqtyremain',
+                'd.fsatuan as fsatuan',
+                'd.fpono',
+                'd.fprice as fprice',
+                'd.fprice_rp as fprice_rp',
+                'd.famount as ftotal',
+                'd.fdesc as fdesc',
+                'd.frefdtno',
+                DB::raw("COALESCE(d.fnoacak::text, '') as frefnoacak"),
                 'm.fsatuankecil',
                 'm.fsatuanbesar',
                 'm.fsatuanbesar2',
                 'm.fqtykecil',
                 'm.fqtykecil2',
+                DB::raw('COALESCE(st.fqtykecilterima, 0) AS fqtykecilterima'),
+                DB::raw('GREATEST(COALESCE(d.fqtykecil, 0) - COALESCE(st.fqtykecilterima, 0), 0) AS fqtykecil_sisa'),
+                DB::raw("COALESCE(
+                    CASE
+                        WHEN d.fsatuan = m.fsatuanbesar
+                            THEN (COALESCE(d.fqtykecil, 0) - COALESCE(st.fqtykecilterima, 0)) / NULLIF(m.fqtykecil, 0)
+                        WHEN d.fsatuan = m.fsatuanbesar2
+                            THEN (COALESCE(d.fqtykecil, 0) - COALESCE(st.fqtykecilterima, 0)) / NULLIF(m.fqtykecil2, 0)
+                        ELSE COALESCE(d.fqtykecil, 0) - COALESCE(st.fqtykecilterima, 0)
+                    END, 0) AS fqtysisapo"),
+                DB::raw("COALESCE(
+                    CASE
+                        WHEN d.fsatuan = m.fsatuanbesar
+                            THEN COALESCE(st.fqtykecilterima, 0) / NULLIF(m.fqtykecil, 0)
+                        WHEN d.fsatuan = m.fsatuanbesar2
+                            THEN COALESCE(st.fqtykecilterima, 0) / NULLIF(m.fqtykecil2, 0)
+                        ELSE COALESCE(st.fqtykecilterima, 0)
+                    END, 0) AS fqtyditer"),
                 DB::raw('0::numeric as fterima'),
             ])
-            ->orderBy('tr_pod.fnou')
+            ->orderBy('d.fnou')
             ->get()
-            ->map(function ($item) use ($header, $remainMap) {
+            ->map(function ($item) use ($header) {
                 $item->frefdtno = (string) $header->fpono;
-                $remainKecil = (float) ($remainMap[(int) ($item->frefdtid ?? 0)] ?? 0);
+                $remainKecil = (float) ($item->fqtykecil_sisa ?? 0);
                 $item->fqtyremain = $remainKecil;
+                $item->fqtykecil_ref = $remainKecil;
                 $item->maxqty = $remainKecil;
 
                 return $item;
@@ -309,9 +335,18 @@ class PenerimaanBarangController extends Controller
             return [];
         }
 
+        $receiptSub = DB::table('trstockdt')
+            ->selectRaw('CAST(frefdtid AS INTEGER) AS fpodid, SUM(COALESCE(fqtykecil, 0)) AS fqtykecilterima')
+            ->where('fstockmtcode', 'TER')
+            ->whereNotNull('frefdtid')
+            ->groupByRaw('CAST(frefdtid AS INTEGER)');
+
         return DB::table('tr_pod as d')
+            ->leftJoinSub($receiptSub, 'st', function ($join) {
+                $join->on('st.fpodid', '=', 'd.fpodid');
+            })
             ->whereIn('d.fpodid', $ids)
-            ->selectRaw('d.fpodid, GREATEST(COALESCE(d.fqtykecil, 0), 0) AS remain_kecil')
+            ->selectRaw('d.fpodid, GREATEST(COALESCE(d.fqtykecil, 0) - COALESCE(st.fqtykecilterima, 0), 0) AS remain_kecil')
             ->pluck('remain_kecil', 'd.fpodid')
             ->map(fn ($value) => (float) $value)
             ->all();
@@ -327,7 +362,70 @@ class PenerimaanBarangController extends Controller
 
     private function validateTrPodRemain(array $aggregateByPod, array $extraAvailableByPod = []): void
     {
-        // Validasi batas sisa PO berdasarkan fqtykecil dinonaktifkan.
+        if (empty($aggregateByPod)) {
+            return;
+        }
+
+        $podMetaMap = DB::table('tr_pod as d')
+            ->leftJoin('msprd as p', 'p.fprdcode', '=', 'd.fprdcode')
+            ->whereIn('d.fpodid', array_keys($aggregateByPod))
+            ->get([
+                'd.fpodid',
+                'd.fpono',
+                'd.fprdcode',
+                'd.fsatuan',
+                'p.fsatuankecil',
+                'p.fsatuanbesar',
+                'p.fsatuanbesar2',
+                'p.fqtykecil',
+                'p.fqtykecil2',
+            ])
+            ->keyBy('fpodid');
+
+        $remainMap = $this->getPodRemainByIds(array_keys($aggregateByPod));
+        $tolerance = 0.00001;
+
+        foreach ($aggregateByPod as $podId => $qtyKecilNeed) {
+            $needKecil = (float) $qtyKecilNeed;
+            if ($needKecil <= 0) {
+                continue;
+            }
+
+            $remainKecil = (float) ($remainMap[(int) $podId] ?? 0);
+            $extraKecil = (float) ($extraAvailableByPod[(int) $podId] ?? 0);
+            $availableKecil = $remainKecil + $extraKecil;
+
+            if ($needKecil > $availableKecil + $tolerance) {
+                $meta = $podMetaMap->get((int) $podId);
+                $poNo = trim((string) ($meta->fpono ?? ''));
+                $prdCode = trim((string) ($meta->fprdcode ?? ''));
+                $satuan = trim((string) ($meta->fsatuan ?? ''));
+                $satBesar = trim((string) ($meta->fsatuanbesar ?? ''));
+                $satBesar2 = trim((string) ($meta->fsatuanbesar2 ?? ''));
+                $rasio = (float) ($meta->fqtykecil ?? 0);
+                $rasio2 = (float) ($meta->fqtykecil2 ?? 0);
+                $parts = array_filter([
+                    $poNo !== '' ? "PO {$poNo}" : null,
+                    $prdCode !== '' ? "Produk {$prdCode}" : null,
+                    "Detail ID {$podId}",
+                ]);
+                $label = implode(' / ', $parts);
+                $availableInPoUnit = $availableKecil;
+                if ($satuan !== '' && strcasecmp($satuan, $satBesar) === 0 && $rasio > 0) {
+                    $availableInPoUnit = $availableKecil / $rasio;
+                } elseif ($satuan !== '' && strcasecmp($satuan, $satBesar2) === 0 && $rasio2 > 0) {
+                    $availableInPoUnit = $availableKecil / $rasio2;
+                }
+                $availableInPoUnitText = rtrim(rtrim(number_format($availableInPoUnit, 4, '.', ''), '0'), '.');
+                $availableKecilText = rtrim(rtrim(number_format($availableKecil, 4, '.', ''), '0'), '.');
+
+                throw new \RuntimeException(
+                    "Qty PO melebihi batas pada {$label}. Maksimal {$availableKecilText} dalam satuan kecil"
+                    .($satuan !== '' ? " atau {$availableInPoUnitText} {$satuan}" : '')
+                    .", berdasarkan total penerimaan barang."
+                );
+            }
+        }
     }
 
     private function generateStockMtCode(?Carbon $onDate = null, $branch = null, string $prefix = 'TER'): string
@@ -786,6 +884,7 @@ class PenerimaanBarangController extends Controller
                 'fdesc' => is_array($d->fdesc) ? implode(', ', $d->fdesc) : ($d->fdesc ?? ''),
                 'fketdt' => $d->fketdt ?? '',
                 'fqtyremain' => $d->frefdtid ? max(0, (float) ($podRemainMap[(int) $d->frefdtid] ?? 0) + (float) ($oldUsageByPod[(int) $d->frefdtid] ?? 0)) : 0,
+                'fqtykecil_ref' => $d->frefdtid ? max(0, (float) ($podRemainMap[(int) $d->frefdtid] ?? 0) + (float) ($oldUsageByPod[(int) $d->frefdtid] ?? 0)) : 0,
                 'fsatuankecil' => $d->fsatuankecil ?? '',
                 'fsatuanbesar' => $d->fsatuanbesar ?? '',
                 'fsatuanbesar2' => $d->fsatuanbesar2 ?? '',

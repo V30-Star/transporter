@@ -1655,13 +1655,11 @@
                     duplicates = [];
 
                 items.forEach(src => {
-                    let fnourefVal = src.fnouref ?? '';
+                    let fnourefVal = src.fnouref ?? src.fnou ?? '';
                     let frefdtnoVal = src.frefdtno ?? '';
                     if (sourceType === 'PO') {
-                       fnourefVal  = header?.fpono ?? '';
                        frefdtnoVal = header?.fpono ?? '';
                     } else if (sourceType === 'PB') {
-                       fnourefVal  = header?.fstockmtno ?? '';
                        frefdtnoVal = header?.fstockmtno ?? '';
                     }
 

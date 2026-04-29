@@ -168,31 +168,57 @@ class FakturPembelianController extends Controller
     public function itemsPO($id)
     {
         $header = Tr_poh::where('fpohid', $id)->firstOrFail();
-        $remainMap = $this->getSourceRemainMap('PO', DB::table('tr_pod')->where('fpono', $header->fpono)->pluck('fpodid')->all());
+        $usedSub = DB::table('trstockdt')
+            ->selectRaw('frefdtid, SUM(COALESCE(fqtykecil, 0)) AS qty_used')
+            ->where(function ($q) {
+                $q->where('fstockmtcode', 'TER')
+                    ->orWhere(function ($qq) {
+                        $qq->where('fstockmtcode', 'BUY')
+                            ->where('fcode', 'P');
+                    });
+            })
+            ->whereNotNull('frefdtid')
+            ->groupBy('frefdtid');
 
         $items = Tr_pod::where('tr_pod.fpono', $header->fpono)
             ->leftJoin('msprd as m', 'm.fprdid', '=', 'tr_pod.fprdid')
+            ->leftJoinSub($usedSub, 'ter', function ($join) {
+                $join->on('ter.frefdtid', '=', 'tr_pod.fpodid');
+            })
             ->select([
                 'tr_pod.fpodid as frefdtid',
                 DB::raw('tr_pod.fpono as frefdtno'),
+                'tr_pod.fnou as fnouref',
                 'tr_pod.fprdcode as fitemcode',
                 'm.fprdname as fitemname',
                 'tr_pod.fqty',
+                'tr_pod.fqtyremain',
                 'tr_pod.fsatuan as fsatuan',
                 'tr_pod.fprice',
                 'tr_pod.fdisc',
                 'tr_pod.famount as fbiaya',
                 'tr_pod.fpricenet as fharga',
                 DB::raw("COALESCE(tr_pod.fnoacak::text, '') as frefnoacak"),
+                DB::raw('COALESCE(tr_pod.fqtykecil, 0) as fqtypo'),
+                DB::raw('COALESCE(ter.qty_used, 0) as fqtyterima'),
+                DB::raw('GREATEST(COALESCE(tr_pod.fqtykecil, 0) - COALESCE(ter.qty_used, 0), 0) as fqtyremain_kecil'),
+                DB::raw("COALESCE(
+                    CASE
+                        WHEN tr_pod.fsatuan = m.fsatuanbesar
+                            THEN (COALESCE(tr_pod.fqtykecil, 0) - COALESCE(ter.qty_used, 0)) / NULLIF(m.fqtykecil, 0)
+                        WHEN tr_pod.fsatuan = m.fsatuanbesar2
+                            THEN (COALESCE(tr_pod.fqtykecil, 0) - COALESCE(ter.qty_used, 0)) / NULLIF(m.fqtykecil2, 0)
+                        ELSE COALESCE(tr_pod.fqtykecil, 0) - COALESCE(ter.qty_used, 0)
+                    END, 0) as fqtysisa"),
                 DB::raw('0::numeric as fdiskon'),
             ])
             ->orderBy('tr_pod.fprdcode')
             ->get()
-            ->map(function ($item) use ($remainMap) {
-                $remain = (float) ($remainMap[(int) ($item->frefdtid ?? 0)] ?? 0);
-                $item->fqty = $remain;
-                $item->fqtyremain = $remain;
-                $item->fqtykecil = $remain;
+            ->filter(fn ($item) => (float) ($item->fqtyremain_kecil ?? 0) > 0)
+            ->map(function ($item) {
+                $item->fqty = max(0, (float) ($item->fqtysisa ?? 0));
+                $item->fqtyremain = max(0, (float) ($item->fqtyremain_kecil ?? 0));
+                $item->fqtykecil = $item->fqtyremain;
 
                 return $item;
             });
@@ -265,13 +291,21 @@ class FakturPembelianController extends Controller
     public function itemsPB($id)
     {
         $header = PenerimaanPembelianHeader::where('fstockmtid', $id)->firstOrFail();
-        $remainMap = $this->getSourceRemainMap('PB', DB::table('trstockdt')->where('fstockmtno', $header->fstockmtno)->pluck('fstockdtid')->all());
+        $usedSub = DB::table('trstockdt')
+            ->selectRaw('frefdtid, SUM(COALESCE(fqtykecil, 0)) AS qty_used')
+            ->where('fstockmtcode', 'BUY')
+            ->whereNotNull('frefdtid')
+            ->groupBy('frefdtid');
 
         $items = PenerimaanPembelianDetail::where('trstockdt.fstockmtno', $header->fstockmtno)
             ->leftJoin('msprd as m', 'm.fprdid', '=', 'trstockdt.fprdcodeid')
+            ->leftJoinSub($usedSub, 'buy', function ($join) {
+                $join->on('buy.frefdtid', '=', 'trstockdt.fstockdtid');
+            })
             ->select([
                 'trstockdt.fstockdtid as frefdtid',
                 'trstockdt.frefdtno',
+                'trstockdt.fnou as fnouref',
                 'trstockdt.fprdcode as fitemcode',
                 'm.fprdname as fitemname',
                 'trstockdt.fqty',
@@ -281,15 +315,26 @@ class FakturPembelianController extends Controller
                 'trstockdt.fbiaya',
                 'trstockdt.ftotprice as fharga',
                 DB::raw("TRIM(BOTH ', ' FROM CONCAT_WS(', ', NULLIF(TRIM(COALESCE(trstockdt.frefnoacak::text, '')), ''), NULLIF(TRIM(COALESCE(trstockdt.fnoacak::text, '')), ''))) as frefnoacak"),
+                DB::raw('COALESCE(trstockdt.fqtykecil, 0) as fqtykecil_source'),
+                DB::raw('COALESCE(buy.qty_used, 0) as fqtybuy'),
+                DB::raw('GREATEST(COALESCE(trstockdt.fqtykecil, 0) - COALESCE(buy.qty_used, 0), 0) as fqtyremain_kecil'),
+                DB::raw("COALESCE(
+                    CASE
+                        WHEN trstockdt.fsatuan = m.fsatuanbesar
+                            THEN (COALESCE(trstockdt.fqtykecil, 0) - COALESCE(buy.qty_used, 0)) / NULLIF(m.fqtykecil, 0)
+                        WHEN trstockdt.fsatuan = m.fsatuanbesar2
+                            THEN (COALESCE(trstockdt.fqtykecil, 0) - COALESCE(buy.qty_used, 0)) / NULLIF(m.fqtykecil2, 0)
+                        ELSE COALESCE(trstockdt.fqtykecil, 0) - COALESCE(buy.qty_used, 0)
+                    END, 0) as fqtysisa"),
                 DB::raw('0::numeric as fdiskon'),
             ])
             ->orderBy('trstockdt.fprdcode')
             ->get()
-            ->map(function ($item) use ($remainMap) {
-                $remain = (float) ($remainMap[(int) ($item->frefdtid ?? 0)] ?? 0);
-                $item->fqty = $remain;
-                $item->fqtyremain = $remain;
-                $item->fqtykecil = $remain;
+            ->filter(fn ($item) => (float) ($item->fqtyremain_kecil ?? 0) > 0)
+            ->map(function ($item) {
+                $item->fqty = max(0, (float) ($item->fqtysisa ?? 0));
+                $item->fqtyremain = max(0, (float) ($item->fqtyremain_kecil ?? 0));
+                $item->fqtykecil = $item->fqtyremain;
 
                 return $item;
             });
@@ -342,13 +387,28 @@ class FakturPembelianController extends Controller
         }
 
         if ($sourceType === 'PO') {
+            $usedSub = DB::table('trstockdt')
+                ->selectRaw('frefdtid, SUM(COALESCE(fqtykecil, 0)) AS qty_used')
+                ->where(function ($q) {
+                    $q->where('fstockmtcode', 'TER')
+                        ->orWhere(function ($qq) {
+                            $qq->where('fstockmtcode', 'BUY')
+                                ->where('fcode', 'P');
+                        });
+                })
+                ->whereNotNull('frefdtid')
+                ->groupBy('frefdtid');
+
             $rows = DB::table('tr_pod as d')
                 ->leftJoin('msprd as p', 'p.fprdid', '=', 'd.fprdid')
+                ->leftJoinSub($usedSub, 'u', function ($join) {
+                    $join->on('u.frefdtid', '=', 'd.fpodid');
+                })
                 ->whereIn('d.fpodid', $ids)
                 ->select([
                     'd.fpodid as detail_id',
                     'd.fsatuan',
-                    DB::raw('COALESCE(d.fqtykecil, 0) as total_kecil'),
+                    DB::raw('GREATEST(COALESCE(d.fqtykecil, 0) - COALESCE(u.qty_used, 0), 0) as total_kecil'),
                     'p.fsatuanbesar',
                     'p.fsatuanbesar2',
                     DB::raw('COALESCE(p.fqtykecil, 0) as fqtykecil_master'),
@@ -364,13 +424,22 @@ class FakturPembelianController extends Controller
         }
 
         if ($sourceType === 'PB') {
+            $usedSub = DB::table('trstockdt')
+                ->selectRaw('frefdtid, SUM(COALESCE(fqtykecil, 0)) AS qty_used')
+                ->where('fstockmtcode', 'BUY')
+                ->whereNotNull('frefdtid')
+                ->groupBy('frefdtid');
+
             $rows = DB::table('trstockdt as d')
                 ->leftJoin('msprd as p', 'p.fprdid', '=', 'd.fprdcodeid')
+                ->leftJoinSub($usedSub, 'u', function ($join) {
+                    $join->on('u.frefdtid', '=', 'd.fstockdtid');
+                })
                 ->whereIn('d.fstockdtid', $ids)
                 ->select([
                     'd.fstockdtid as detail_id',
                     'd.fsatuan',
-                    DB::raw('COALESCE(d.fqtykecil, 0) as total_kecil'),
+                    DB::raw('GREATEST(COALESCE(d.fqtykecil, 0) - COALESCE(u.qty_used, 0), 0) as total_kecil'),
                     'p.fsatuanbesar',
                     'p.fsatuanbesar2',
                     DB::raw('COALESCE(p.fqtykecil, 0) as fqtykecil_master'),
@@ -495,6 +564,9 @@ class FakturPembelianController extends Controller
 
             $sourceKey = $sourceType.':'.$detailId;
             $available = $remain + (float) ($extraAvailableBySourceRef[$sourceKey] ?? 0);
+            if ($qty > $available + $tolerance) {
+                $errors->add("fqty.$i", "Qty item {$code} melebihi sisa {$sourceType}. Maksimal {$available}.");
+            }
         }
 
         return $errors;
@@ -663,6 +735,8 @@ class FakturPembelianController extends Controller
                 'fqty.*' => ['numeric', 'min:0.001'],
                 'fprice' => ['required', 'array'],
                 'fprice.*' => ['numeric', 'min:0'],
+                'fnouref' => ['nullable', 'array'],
+                'fnouref.*' => ['nullable', 'integer'],
                 'frefnoacak' => ['nullable', 'array'],
                 'frefnoacak.*' => ['nullable', 'regex:/^\d{3}(,\s*\d{3})*$/'],
             ], [
@@ -695,6 +769,7 @@ class FakturPembelianController extends Controller
             $refdtids = $request->input('frefdtid', []);
             $sources = $request->input('fsource', []);
             $frefnoacaks = $request->input('frefnoacak', []);
+            $fnourefs = $request->input('fnouref', []);
             $qtys = $request->input('fqty', []);
             $prices = $request->input('fprice', []);
             $biayas = $request->input('fbiaya', []);
@@ -760,6 +835,7 @@ class FakturPembelianController extends Controller
                     'frefdtno' => trim((string) ($refdtnos[$i] ?? '')) ?: null,
                     'frefdtid' => isset($refdtids[$i]) ? (int) $refdtids[$i] : null,
                     'frefnoacak' => $this->normalizeReferenceRandomNumberSingle($frefnoacaks[$i] ?? null),
+                    'fnouref' => isset($fnourefs[$i]) && $fnourefs[$i] !== '' ? (int) $fnourefs[$i] : null,
                     'fqty' => $qty,
                     'fqtykecil' => $qtyKecil,
                     'fqtyremain' => $qtyKecil,
@@ -1019,6 +1095,7 @@ class FakturPembelianController extends Controller
                 'frefdtno' => $d->frefdtno ?? null,
                 'frefdtid' => $detailId > 0 ? $detailId : null,
                 'frefnoacak' => $d->frefnoacak ?? null,
+                'fnouref' => $d->fnouref ?? null,
                 'fsource' => $sourceType,
                 'fqty' => (float) ($d->fqty ?? 0),
                 'fterima' => (float) ($d->fterima ?? 0),
@@ -1156,6 +1233,7 @@ class FakturPembelianController extends Controller
                 'famountpo' => $d->famountpo ?? null,
                 'frefdtno' => $d->frefdtno ?? null,
                 'frefnoacak' => $d->frefnoacak ?? null,
+                'fnouref' => $d->fnouref ?? null,
                 'fqty' => (float) ($d->fqty ?? 0),
                 'fterima' => (float) ($d->fterima ?? 0),
                 'fprice' => (float) ($d->fprice ?? 0),
@@ -1258,6 +1336,8 @@ class FakturPembelianController extends Controller
                 'frefpo' => ['nullable', 'string'],
                 'frefnoacak' => ['nullable', 'array'],
                 'frefnoacak.*' => ['nullable', 'regex:/^\d{3}(,\s*\d{3})*$/'],
+                'fnouref' => ['nullable', 'array'],
+                'fnouref.*' => ['nullable', 'integer'],
                 'fprdjadi' => ['required_if:ftypebuy,1'],
             ], [
                 'fstockmtdate.required' => 'Tanggal transaksi wajib diisi.',
@@ -1304,6 +1384,7 @@ class FakturPembelianController extends Controller
             $refdtids = $request->input('frefdtid', []);
             $sources = $request->input('fsource', []);
             $frefnoacaks = $request->input('frefnoacak', []);
+            $fnourefs = $request->input('fnouref', []);
             $qtys = $request->input('fqty', []);
             $prices = $request->input('fprice', []);
             $biayas = $request->input('fbiaya', []);
@@ -1397,6 +1478,7 @@ class FakturPembelianController extends Controller
                     'frefdtno' => ! empty($refdtno[$i]) ? $refdtno[$i] : null,
                     'frefdtid' => isset($refdtids[$i]) ? (int) $refdtids[$i] : null,
                     'frefnoacak' => $this->normalizeReferenceRandomNumberSingle($frefnoacaks[$i] ?? null),
+                    'fnouref' => isset($fnourefs[$i]) && $fnourefs[$i] !== '' ? (int) $fnourefs[$i] : null,
                     'fqty' => $qty,
                     'fqtykecil' => $qtyKecil,
                     'fqtyremain' => $qtyKecil,
@@ -1604,6 +1686,7 @@ class FakturPembelianController extends Controller
                 'famountpo' => $d->famountpo ?? null,
                 'frefdtno' => $d->frefdtno ?? null,
                 'frefnoacak' => $d->frefnoacak ?? null,
+                'fnouref' => $d->fnouref ?? null,
                 'fqty' => (float) ($d->fqty ?? 0),
                 'fterima' => (float) ($d->fterima ?? 0),
                 'fprice' => (float) ($d->fprice ?? 0),

@@ -321,8 +321,8 @@
                                             "
                                             @keydown.enter.prevent="focusSavedPrice(i)">
                                         <div class="text-[10px] text-orange-600 font-medium text-right mt-0.5"
-                                            x-show="it.fitemcode && productMeta(it.fitemcode).stock > 0"
-                                            x-html="formatStockLimit(it.fitemcode, it.fqty, it.fsatuan)">
+                                            x-show="it.frefdtid && calcMaxQty(it) > 0"
+                                            x-html="formatPoRemainHint(it)">
                                         </div>
                                     </td>
 
@@ -898,6 +898,8 @@
                     frefdtid: '',
                     fqtykecil_ref: 0,
                     fqtypo: 0,
+                    fqtysisapo: 0,
+                    fqtyditer: 0,
                 };
             }
 
@@ -999,6 +1001,16 @@
 
                     const limitValue = Math.floor(remaining / ratio);
                     return '<span class="font-medium">limit:</span> ' + limitValue + ' ' + satuan;
+                },
+
+                formatPoRemainHint(row) {
+                    if (!row || !row.frefdtid) return '';
+                    const max = this.calcMaxQty(row);
+                    if (!(max > 0)) return '';
+                    const sat = (row.fsatuan || '').trim() || 'satuan';
+                    const qtyDiter = Number(row.fqtyditer ?? 0);
+                    return '<span class="font-medium">Sisa PO:</span> maks. ' + max + ' ' + sat
+                        + (qtyDiter > 0 ? ' | <span class="font-medium">Qty Diterima:</span> ' + qtyDiter + ' ' + sat : '');
                 },
 
                 enforcePoQtyRow(row) {
@@ -1280,6 +1292,8 @@
                             fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ?
                                 Number(src.fqty) : 1,
                             fqtypo: Number(src.fqtypo ?? 0),
+                            fqtysisapo: Number(src.fqtysisapo ?? 0),
+                            fqtyditer: Number(src.fqtyditer ?? 0),
                             fqtypr: Number(src.fqty ?? 0),
                             fqtypr_satuan: (src.fsatuan ?? '').trim(),
                             frefdtid: src.frefdtid ?? '',
@@ -1294,6 +1308,7 @@
                             fdesc: src.fdesc ?? src.fketdt ?? '',
                             fketdt: src.fketdt ?? '',
                         };
+                        row.fqtykecil_ref = Number(src.fqtykecil_ref ?? src.fqtyremain ?? src.fqtykecil_sisa ?? 0);
 
                         row.maxqty = this.calcMaxQty(row);
                         if (!row.ftotal && row.fqty && row.fprice)

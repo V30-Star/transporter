@@ -1043,6 +1043,8 @@
                     frefdtid: '',
                     fqtykecil_ref: 0,
                     fqtypo: 0,
+                    fqtysisapo: 0,
+                    fqtyditer: 0,
                 };
             }
 
@@ -1122,7 +1124,9 @@
                     const max = this.calcMaxQty(row);
                     if (!(max > 0)) return '';
                     const sat = (row.fsatuan || '').trim() || 'satuan';
-                    return '<span class="font-medium">Sisa PO:</span> maks. ' + max + ' ' + sat;
+                    const qtyDiter = Number(row.fqtyditer ?? 0);
+                    return '<span class="font-medium">Sisa PO:</span> maks. ' + max + ' ' + sat
+                        + (qtyDiter > 0 ? ' | <span class="font-medium">Qty Diterima:</span> ' + qtyDiter + ' ' + sat : '');
                 },
 
                 enforcePoQtyRow(row) {
@@ -1375,7 +1379,9 @@
                             fpono: String(header?.fpono ?? src.fpono ?? ''),
                             fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ? Number(src.fqty) : 1,
                             fqtypo: 0,
-                            fqtykecil_ref: Number(src.fqtykecil ?? src.fqtyremain ?? 0),
+                            fqtysisapo: Number(src.fqtysisapo ?? 0),
+                            fqtyditer: Number(src.fqtyditer ?? 0),
+                            fqtykecil_ref: Number(src.fqtykecil_ref ?? src.fqtyremain ?? src.fqtykecil_sisa ?? 0),
                             frefdtid: src.frefdtid ?? '',
                             fsatuankecil: src.fsatuankecil || meta?.fsatuankecil || '',
                             fsatuanbesar: src.fsatuanbesar || meta?.fsatuanbesar || '',
@@ -1451,6 +1457,7 @@
                             fsatuanbesar2,
                             fqtykecil,
                             fqtykecil2,
+                            fqtykecil_ref: Number(it.fqtykecil_ref ?? it.fqtyremain ?? 0),
                             fnoacak: this.normalizeNoAcak(it.fnoacak) || this.generateUniqueNoAcak(),
                             frefnoacak: this.normalizeNoAcak(it.frefnoacak),
                         };
