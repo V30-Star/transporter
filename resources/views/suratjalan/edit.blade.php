@@ -1803,17 +1803,11 @@
                     ratio = ratios.satuanbesar;
                 }
 
-                const maxStock = Number(row.maxqty ?? 0);
-                const maxInUnit = Math.floor(maxStock / ratio);
-
                 if (!Number.isFinite(n)) {
                     row.fqty = 1;
                     return;
                 }
                 if (n < 1) row.fqty = 1;
-                if (maxInUnit > 0 && n > maxInUnit) {
-                    row.fqty = maxInUnit;
-                }
             },
 
             hydrateRowFromMeta(row, meta) {
@@ -1833,8 +1827,7 @@
                 row.units = units;
                 if (!units.includes(row.fsatuan)) row.fsatuan = units[0] || '';
                 if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
-                const keepSoLimit = Number.isFinite(+row.maxqty) && +row.maxqty > 0 && Number(row.frefsoid) > 0;
-                row.maxqty = keepSoLimit ? +row.maxqty : 0;
+                row.maxqty = Number.isFinite(+row.maxqty) ? +row.maxqty : 0;
                 row.frefdtno = meta.fprdid || 0;
 
                 if (row === this.draft) {
@@ -2136,8 +2129,8 @@
 
                 this.savedItems.forEach((item) => {
                     const soLimit = Number(item.maxqty ?? item.fqtyremain ?? 0);
-                    item.maxqty = Number(item.frefsoid) > 0 && soLimit > 0 ? soLimit : 0;
-                    item.hideQtyLimitHint = !(Number(item.frefsoid) > 0 && soLimit > 0);
+                    item.maxqty = Number.isFinite(soLimit) ? soLimit : 0;
+                    item.hideQtyLimitHint = false;
                 });
                 this.draft.fnoacak = this.generateUniqueNoAcak();
 

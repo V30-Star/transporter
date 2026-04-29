@@ -507,11 +507,9 @@
                                                     @focus="activeRow = it.uid; $event.target.select()" @blur="activeRow = null; enforceQtyRow(it);"
                                                     @input="
                                                         recalc(it);
-                                                        if (it.maxqty > 0 && it.fqty > it.maxqty) { it.fqty = it.maxqty; recalc(it); }
                                                     "
                                                     @change="
                                                         recalc(it);
-                                                        if (it.maxqty > 0 && it.fqty > it.maxqty) { it.fqty = it.maxqty; recalc(it); }
                                                     "
                                                     @keydown.enter.prevent="$refs['price_saved_' + i]?.focus()">
                                                 <div class="text-[10px] text-orange-600 font-medium text-right mt-0.5" x-show="it.fitemcode && productMeta(it.fitemcode).stock > 0" x-html="formatStockLimit(it.fitemcode, it.fqty, it.fsatuan)">
@@ -765,7 +763,7 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                                     d="M12 4.5v15m7.5-7.5h-15" />
                                             </svg>
-                                            Add Penerimaan Barang
+                                            Add TER
                                         </button>
 
                                         <!-- PB Modal -->
@@ -1706,7 +1704,6 @@
 
                     this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
                     row.maxqty = Math.max(0, +(src.fqtykecil ?? src.fqty) || 0);
-                    row.fqty = row.maxqty;
 
                     const key = `${(row.fitemcode || '').toString().trim()}::${(row.frefdtno || '').toString().trim()}`;
 

@@ -519,12 +519,6 @@ class FakturPembelianController extends Controller
 
             $sourceKey = $sourceType.':'.$detailId;
             $available = $remain + (float) ($extraAvailableBySourceRef[$sourceKey] ?? 0);
-            if ($qty - $available > $tolerance) {
-                $errors->add(
-                    "fqty.$i",
-                    "Qty item {$code} dari {$sourceType} tidak boleh melebihi Qty Remain referensi ({$available})."
-                );
-            }
         }
 
         return $errors;

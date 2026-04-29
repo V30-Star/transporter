@@ -578,28 +578,7 @@ class InvoiceController extends Controller
             }
         }
 
-        $remainErrors = [];
-        if (! empty($soUsageByDetailId)) {
-            $soRemainRows = $this->getSoRemainByIds(array_keys($soUsageByDetailId));
-            foreach ($soUsageByDetailId as $detailId => $usedQty) {
-                $remain = (float) ($soRemainRows[$detailId] ?? 0);
-                if ($usedQty - $remain > 0.00001) {
-                    $remainErrors[] = "Qty SO detail #{$detailId} melebihi sisa. Input: {$usedQty}, sisa: {$remain}.";
-                }
-            }
-        }
-        if (! empty($srjUsageByDetailId)) {
-            $srjRemainRows = $this->getSrjRemainByIds(array_keys($srjUsageByDetailId));
-            foreach ($srjUsageByDetailId as $detailId => $usedQty) {
-                $remain = (float) ($srjRemainRows[$detailId] ?? 0);
-                if ($usedQty - $remain > 0.00001) {
-                    $remainErrors[] = "Qty SRJ detail #{$detailId} melebihi sisa. Input: {$usedQty}, sisa: {$remain}.";
-                }
-            }
-        }
-        if (! empty($remainErrors)) {
-            throw ValidationException::withMessages(['detail' => $remainErrors]);
-        }
+        // Validasi sisa SO/SRJ berdasarkan fqtykecil dinonaktifkan.
 
         $amountNet = $totalGross - $totalDisc;
         $ppnPersen = (float) $request->input('fppnpersen', 11);
@@ -1241,30 +1220,7 @@ class InvoiceController extends Controller
             }
         }
 
-        $remainErrors = [];
-        $soIdsToCheck = array_values(array_unique(array_merge(array_keys($soUsageByDetailId), array_keys($oldSoUsageByDetailId))));
-        if (! empty($soIdsToCheck)) {
-            $soRemainRows = $this->getSoRemainByIds($soIdsToCheck);
-            foreach ($soUsageByDetailId as $detailId => $usedQty) {
-                $available = (float) ($soRemainRows[$detailId] ?? 0) + (float) ($oldSoUsageByDetailId[$detailId] ?? 0);
-                if ($usedQty - $available > 0.00001) {
-                    $remainErrors[] = "Qty SO detail #{$detailId} melebihi sisa. Input: {$usedQty}, sisa: {$available}.";
-                }
-            }
-        }
-        $srjIdsToCheck = array_values(array_unique(array_merge(array_keys($srjUsageByDetailId), array_keys($oldSrjUsageByDetailId))));
-        if (! empty($srjIdsToCheck)) {
-            $srjRemainRows = $this->getSrjRemainByIds($srjIdsToCheck);
-            foreach ($srjUsageByDetailId as $detailId => $usedQty) {
-                $available = (float) ($srjRemainRows[$detailId] ?? 0) + (float) ($oldSrjUsageByDetailId[$detailId] ?? 0);
-                if ($usedQty - $available > 0.00001) {
-                    $remainErrors[] = "Qty SRJ detail #{$detailId} melebihi sisa. Input: {$usedQty}, sisa: {$available}.";
-                }
-            }
-        }
-        if (! empty($remainErrors)) {
-            throw ValidationException::withMessages(['detail' => $remainErrors]);
-        }
+        // Validasi sisa SO/SRJ berdasarkan fqtykecil dinonaktifkan.
 
         // 5. KALKULASI TOTAL AKHIR
         $amountNet = $totalGross - $totalDisc;

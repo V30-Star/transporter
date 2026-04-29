@@ -2646,11 +2646,6 @@
                 }
                 if (n < 1) row.fqty = 1;
 
-                // Keep only reference max qty validation on edit.
-                const remain = Number(row.maxqty ?? row.fqtyremain ?? 0);
-                if (Number.isFinite(remain) && remain > 0 && n > remain) {
-                    row.fqty = remain;
-                }
             },
 
             hydrateRowFromMeta(row, meta) {
@@ -2669,9 +2664,7 @@
                 row.units = units;
                 if (!units.includes(row.fsatuan)) row.fsatuan = units[0] || '';
                 if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
-                const keepRefLimit = Number.isFinite(+row.maxqty) && +row.maxqty > 0 &&
-                    (Number(row.frefsoid) > 0 || Number(row.frefsrjid) > 0);
-                row.maxqty = keepRefLimit ? +row.maxqty : 0;
+                row.maxqty = Number.isFinite(+row.maxqty) ? +row.maxqty : 0;
 
                 if (row === this.draft) {
                     if (units.length > 1) {
@@ -2848,7 +2841,7 @@
                     const meta = this.productMeta(item.fitemcode);
                     const rowLimit = Number(item.maxqty ?? item.fqtyremain ?? 0);
                     if (meta) {
-                        item.maxqty = (Number(item.frefsoid) > 0 || Number(item.frefsrjid) > 0) && rowLimit > 0 ? rowLimit : 0;
+                        item.maxqty = Number.isFinite(rowLimit) ? rowLimit : 0;
                         if (meta.units && meta.units.length) {
                             item.units = [...new Set([...item.units, ...meta.units])];
                         } else if (item.fsatuan && !item.units.includes(item.fsatuan)) {

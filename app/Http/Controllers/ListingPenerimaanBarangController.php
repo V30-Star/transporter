@@ -87,7 +87,7 @@ class ListingPenerimaanBarangController extends Controller
         if ($request->status == '1') {
             $query->whereRaw('d.fqtykecil - COALESCE(buy.fqtybuy, 0) = 0');
         } elseif ($request->status == '2') {
-            $query->whereRaw('d.fqtykecil - COALESCE(buy.fqtybuy, 0) > 0');
+            // Filter sisa TER berdasarkan fqtykecil dinonaktifkan.
         }
 
         // Urutan

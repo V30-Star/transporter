@@ -435,20 +435,7 @@ class Tr_pohController extends Controller
      */
     private function validatePrdRemain(array $aggregateByPrd, array $extraAvailableByPrd = []): void
     {
-        $remainMap = $this->getPrRemainByDetailIds(array_keys($aggregateByPrd));
-
-        foreach ($aggregateByPrd as $fprdid => $needKecil) {
-            $fprdid = (int) $fprdid;
-            $needKecil = (float) $needKecil;
-            if ($fprdid <= 0 || $needKecil <= 0) {
-                continue;
-            }
-
-            $availableKecil = (float) ($remainMap[$fprdid] ?? 0) + (float) ($extraAvailableByPrd[$fprdid] ?? 0);
-            if ($needKecil > $availableKecil + 1e-4) {
-                throw new \RuntimeException("Qty PO melebihi sisa PR. Maksimum tersedia untuk referensi {$fprdid} adalah {$availableKecil} dalam satuan kecil.");
-            }
-        }
+        // Validasi batas sisa PR berdasarkan fqtykecil dinonaktifkan.
     }
 
     private function generatetr_poh_Code(?Carbon $onDate = null, $branch = null): string

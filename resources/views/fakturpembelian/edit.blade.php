@@ -851,14 +851,6 @@
             showNoItems = true;
             return;
         }
-        const table = document.getElementById('itemsTableRoot');
-        if (table && typeof table.__x !== 'undefined') {
-            const vm = table.__x.$data;
-            if (vm && typeof vm.hasSourceQtyOverLimit === 'function' && vm.hasSourceQtyOverLimit()) {
-                alert('Qty dari Add PO/Add Penerimaan Barang tidak boleh melebihi Qty Remain.');
-                return;
-            }
-        }
         $el.submit()
       ">
                         @csrf
@@ -1530,7 +1522,7 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                                     d="M12 4.5v15m7.5-7.5h-15" />
                                             </svg>
-                                            Add Penerimaan Barang
+                                            Add TER
                                         </button>
 
                                         <!-- PB Modal -->
@@ -2479,13 +2471,11 @@
                     const sourceType = (row?.fsource || '').toString().trim().toUpperCase();
                     const isSourceRow = ['PO', 'PB'].includes(sourceType);
                     if (isSourceRow) {
-                        const sourceMax = Math.max(0, +(row?.maxqty ?? 0) || 0);
                         if (!Number.isFinite(n)) {
-                            row.fqty = sourceMax;
+                            row.fqty = 1;
                             return;
                         }
-                        if (n < 0) row.fqty = 0;
-                        if (n > sourceMax) row.fqty = sourceMax;
+                        if (n < 1) row.fqty = 1;
                         return;
                     }
                     const meta = this.productMeta(row.fitemcode);
@@ -2518,16 +2508,6 @@
                     if (maxInUnit > 0 && n > maxInUnit) {
                         row.fqty = maxInUnit;
                     }
-                },
-
-                hasSourceQtyOverLimit() {
-                    return this.savedItems.some((row) => {
-                        const sourceType = (row?.fsource || '').toString().trim().toUpperCase();
-                        if (!['PO', 'PB'].includes(sourceType)) return false;
-                        const maxQty = Math.max(0, +(row?.maxqty ?? 0) || 0);
-                        const qty = Math.max(0, +(row?.fqty ?? 0) || 0);
-                        return qty > maxQty;
-                    });
                 },
 
                 hydrateRowFromMeta(row, meta) {
@@ -2652,7 +2632,6 @@
 
                         this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
                         row.maxqty = sourceLimit;
-                        row.fqty = sourceLimit;
                         this.enforceQtyRow(row);
 
                         const key =

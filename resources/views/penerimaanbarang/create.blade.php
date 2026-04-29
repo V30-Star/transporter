@@ -1033,9 +1033,7 @@
                     }
                     if (n < 0.001) row.fqty = 0.001;
                     if (!row.frefdtid) return;
-                    const max = this.calcMaxQty(row);
-                    row.maxqty = max;
-                    if (max > 0 && n > max) row.fqty = max;
+                    row.maxqty = this.calcMaxQty(row);
                 },
 
                 hydrateRowFromMeta(row, meta, keepMaxqty = false) {

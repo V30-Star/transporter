@@ -575,28 +575,7 @@ class ReturPenjualanController extends Controller
             }
         }
 
-        $remainErrors = [];
-        if (! empty($soUsageByDetailId)) {
-            $soRemainRows = $this->getSoRemainByIds(array_keys($soUsageByDetailId));
-            foreach ($soUsageByDetailId as $detailId => $usedQty) {
-                $remain = (float) ($soRemainRows[$detailId] ?? 0);
-                if ($usedQty - $remain > 0.00001) {
-                    $remainErrors[] = "Qty SO detail #{$detailId} melebihi sisa. Input: {$usedQty}, sisa: {$remain}.";
-                }
-            }
-        }
-        if (! empty($srjUsageByDetailId)) {
-            $srjRemainRows = $this->getSrjRemainByIds(array_keys($srjUsageByDetailId));
-            foreach ($srjUsageByDetailId as $detailId => $usedQty) {
-                $remain = (float) ($srjRemainRows[$detailId] ?? 0);
-                if ($usedQty - $remain > 0.00001) {
-                    $remainErrors[] = "Qty SRJ detail #{$detailId} melebihi sisa. Input: {$usedQty}, sisa: {$remain}.";
-                }
-            }
-        }
-        if (! empty($remainErrors)) {
-            throw ValidationException::withMessages(['detail' => $remainErrors]);
-        }
+        // Validasi sisa SO/SRJ berdasarkan fqtykecil dinonaktifkan.
 
         // KALKULASI TOTAL
         $fapplyppn = $request->input('fapplyppn', '0'); // 0: Exclude, 1: Include
@@ -733,24 +712,7 @@ class ReturPenjualanController extends Controller
 
                 DB::table('trstockdt')->insert($stockDetailRows);
 
-                if (! empty($soUsageByDetailId)) {
-                    $remainRows = $this->getSoRemainByIds(array_keys($soUsageByDetailId));
-                    foreach ($soUsageByDetailId as $detailId => $usedQty) {
-                        $remain = (float) ($remainRows[$detailId] ?? 0);
-                        if ($usedQty - $remain > 0.00001) {
-                            throw new \RuntimeException("Qty SO detail #{$detailId} melebihi sisa.");
-                        }
-                    }
-                }
-                if (! empty($srjUsageByDetailId)) {
-                    $remainRows = $this->getSrjRemainByIds(array_keys($srjUsageByDetailId));
-                    foreach ($srjUsageByDetailId as $detailId => $usedQty) {
-                        $remain = (float) ($remainRows[$detailId] ?? 0);
-                        if ($usedQty - $remain > 0.00001) {
-                            throw new \RuntimeException("Qty SRJ detail #{$detailId} melebihi sisa.");
-                        }
-                    }
-                }
+                // Validasi sisa SO/SRJ berdasarkan fqtykecil dinonaktifkan.
             });
 
             // UPDATE STOK - gunakan qtyKecil hasil konversi, bukan qty mentah
@@ -1336,30 +1298,7 @@ class ReturPenjualanController extends Controller
             }
         }
 
-        $remainErrors = [];
-        $soIdsToCheck = array_values(array_unique(array_merge(array_keys($soUsageByDetailId), array_keys($oldSoUsageByDetailId))));
-        if (! empty($soIdsToCheck)) {
-            $soRemainRows = $this->getSoRemainByIds($soIdsToCheck);
-            foreach ($soUsageByDetailId as $detailId => $usedQty) {
-                $available = (float) ($soRemainRows[$detailId] ?? 0) + (float) ($oldSoUsageByDetailId[$detailId] ?? 0);
-                if ($usedQty - $available > 0.00001) {
-                    $remainErrors[] = "Qty SO detail #{$detailId} melebihi sisa. Input: {$usedQty}, sisa: {$available}.";
-                }
-            }
-        }
-        $srjIdsToCheck = array_values(array_unique(array_merge(array_keys($srjUsageByDetailId), array_keys($oldSrjUsageByDetailId))));
-        if (! empty($srjIdsToCheck)) {
-            $srjRemainRows = $this->getSrjRemainByIds($srjIdsToCheck);
-            foreach ($srjUsageByDetailId as $detailId => $usedQty) {
-                $available = (float) ($srjRemainRows[$detailId] ?? 0) + (float) ($oldSrjUsageByDetailId[$detailId] ?? 0);
-                if ($usedQty - $available > 0.00001) {
-                    $remainErrors[] = "Qty SRJ detail #{$detailId} melebihi sisa. Input: {$usedQty}, sisa: {$available}.";
-                }
-            }
-        }
-        if (! empty($remainErrors)) {
-            throw ValidationException::withMessages(['detail' => $remainErrors]);
-        }
+        // Validasi sisa SO/SRJ berdasarkan fqtykecil dinonaktifkan.
 
         // 5. KALKULASI TOTAL
         $fapplyppn = $request->input('fapplyppn', '0');
@@ -1488,24 +1427,7 @@ class ReturPenjualanController extends Controller
                     DB::table('trstockdt')->insert($stockDetailRows);
                 }
 
-                if (! empty($soUsageByDetailId)) {
-                    $dynamicRemainRows = $this->getSoRemainByIds(array_keys($soUsageByDetailId));
-                    foreach ($soUsageByDetailId as $detailId => $usedQty) {
-                        $remain = (float) ($dynamicRemainRows[$detailId] ?? 0);
-                        if ($usedQty - $remain > 0.00001) {
-                            throw new \RuntimeException("Qty SO detail #{$detailId} melebihi sisa.");
-                        }
-                    }
-                }
-                if (! empty($srjUsageByDetailId)) {
-                    $dynamicRemainRows = $this->getSrjRemainByIds(array_keys($srjUsageByDetailId));
-                    foreach ($srjUsageByDetailId as $detailId => $usedQty) {
-                        $remain = (float) ($dynamicRemainRows[$detailId] ?? 0) + (float) ($oldSrjUsageByDetailId[$detailId] ?? 0);
-                        if ($usedQty - $remain > 0.00001) {
-                            throw new \RuntimeException("Qty SRJ detail #{$detailId} melebihi sisa.");
-                        }
-                    }
-                }
+                // Validasi sisa SO/SRJ berdasarkan fqtykecil dinonaktifkan.
             });
 
             // UPDATE STOK - gunakan qtyKecil hasil konversi, bukan qty mentah

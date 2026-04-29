@@ -343,20 +343,7 @@ class PenerimaanBarangController extends Controller
 
     private function validateTrPodRemain(array $aggregateByPod, array $extraAvailableByPod = []): void
     {
-        $remainMap = $this->getPodRemainByIds(array_keys($aggregateByPod));
-
-        foreach ($aggregateByPod as $fpodid => $needKecil) {
-            $fpodid = (int) $fpodid;
-            $needKecil = (float) $needKecil;
-            if ($fpodid <= 0 || $needKecil <= 0) {
-                continue;
-            }
-
-            $availableKecil = (float) ($remainMap[$fpodid] ?? 0) + (float) ($extraAvailableByPod[$fpodid] ?? 0);
-            if ($needKecil > $availableKecil + 1e-4) {
-                throw new \RuntimeException("Qty penerimaan melebihi sisa PO. Maksimum tersedia untuk referensi {$fpodid} adalah {$availableKecil} dalam satuan kecil.");
-            }
-        }
+        // Validasi batas sisa PO berdasarkan fqtykecil dinonaktifkan.
     }
 
     private function generateStockMtCode(?Carbon $onDate = null, $branch = null, string $prefix = 'TER'): string

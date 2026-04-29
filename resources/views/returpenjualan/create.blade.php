@@ -291,7 +291,7 @@
                                             </td>
                                             <td class="p-2 text-right">
                                                 <input type="number" class="w-full border rounded px-2 py-1 text-right"
-                                                    x-model.number="it.fqty" :max="it.maxqty > 0 ? it.maxqty : null"
+                                                    x-model.number="it.fqty"
                                                     @input="recalc(it); enforceQtyRow(it); recalc(it);">
                                                 <div class="text-xs text-gray-400 mt-0.5 flex justify-end items-center"
                                                     x-show="it.fitemcode">
@@ -1941,17 +1941,11 @@
                     ratio = ratios.satuanbesar;
                 }
 
-                const maxStock = Number(row.maxqty ?? 0);
-                const maxInUnit = Math.floor(maxStock / ratio);
-
                 if (!Number.isFinite(n)) {
                     row.fqty = 1;
                     return;
                 }
                 if (n < 1) row.fqty = 1;
-                if (maxInUnit > 0 && n > maxInUnit) {
-                    row.fqty = maxInUnit;
-                }
             },
 
             hydrateRowFromMeta(row, meta) {
@@ -1973,9 +1967,7 @@
                 if (!units.includes(row.fsatuan)) row.fsatuan = units[0] || '';
                 row.fsatuan = row.fsatuan;
                 if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
-                const keepRefLimit = Number.isFinite(+row.maxqty) && +row.maxqty > 0 &&
-                    (Number(row.frefsoid) > 0 || Number(row.frefsrjid) > 0);
-                row.maxqty = keepRefLimit ? +row.maxqty : 0;
+                row.maxqty = Number.isFinite(+row.maxqty) ? +row.maxqty : 0;
 
                 if (row === this.draft) {
                     if (units.length > 1) {

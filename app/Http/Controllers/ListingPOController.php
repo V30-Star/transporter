@@ -200,7 +200,7 @@ class ListingPOController extends Controller
         }
 
         if (! $request->has('all_po') && $request->has('only_pending')) {
-            $query->whereRaw('d.fqty > COALESCE(ter.fqtyterima, 0)')->where('h.fclose', '0');
+            $query->where('h.fclose', '0');
         }
 
         if ($request->sort_by == 'name') {

@@ -563,21 +563,7 @@ class SuratJalanController extends Controller
             }
         }
 
-        if (! empty($soUsageByDetailId)) {
-            $soRemainRows = $this->getSoRemainByIds(array_keys($soUsageByDetailId));
-
-            $soRemainErrors = [];
-            foreach ($soUsageByDetailId as $soDetailId => $usedQtyKecil) {
-                $remain = (float) ($soRemainRows[$soDetailId] ?? 0);
-                if ($usedQtyKecil - $remain > 0.00001) {
-                    $soRemainErrors[] = "Qty SO detail #{$soDetailId} melebihi sisa. Input: {$usedQtyKecil}, sisa: {$remain}.";
-                }
-            }
-
-            if (! empty($soRemainErrors)) {
-                throw ValidationException::withMessages(['detail' => $soRemainErrors]);
-            }
-        }
+        // Validasi sisa SO berdasarkan fqtykecil dinonaktifkan.
 
         // =========================
         // 7) TRANSAKSI DB
@@ -691,14 +677,7 @@ class SuratJalanController extends Controller
                         ->lockForUpdate()
                         ->get();
 
-                    $lockedRemainRows = $this->getSoRemainByIds(array_keys($soUsageByDetailId));
-
                     foreach ($soUsageByDetailId as $soDetailId => $usedQtyKecil) {
-                        $remain = (float) ($lockedRemainRows[$soDetailId] ?? 0);
-                        if ($usedQtyKecil - $remain > 0.00001) {
-                            throw new \RuntimeException("Qty SO detail #{$soDetailId} melebihi sisa.");
-                        }
-
                         DB::table('trsodt')
                             ->where('ftrsodtid', $soDetailId)
                             ->update([
@@ -1294,20 +1273,7 @@ class SuratJalanController extends Controller
         )));
 
         if (! empty($soIdsToCheck)) {
-            $soRemainRows = $this->getSoRemainByIds($soIdsToCheck);
-
-            $soRemainErrors = [];
-            foreach ($soUsageByDetailId as $soDetailId => $usedQtyKecil) {
-                $currentRemain = (float) ($soRemainRows[$soDetailId] ?? 0);
-                $restoredRemain = $currentRemain + (float) ($oldSoUsageByDetailId[$soDetailId] ?? 0);
-                if ($usedQtyKecil - $restoredRemain > 0.00001) {
-                    $soRemainErrors[] = "Qty SO detail #{$soDetailId} melebihi sisa. Input: {$usedQtyKecil}, sisa: {$restoredRemain}.";
-                }
-            }
-
-            if (! empty($soRemainErrors)) {
-                throw ValidationException::withMessages(['detail' => $soRemainErrors]);
-            }
+            // Validasi sisa SO berdasarkan fqtykecil dinonaktifkan.
         }
 
         // =========================
@@ -1405,14 +1371,7 @@ class SuratJalanController extends Controller
                         ->lockForUpdate()
                         ->get();
 
-                    $lockedRemainRows = $this->getSoRemainByIds(array_keys($soUsageByDetailId));
-
                     foreach ($soUsageByDetailId as $soDetailId => $usedQtyKecil) {
-                        $remain = (float) ($lockedRemainRows[$soDetailId] ?? 0);
-                        if ($usedQtyKecil - $remain > 0.00001) {
-                            throw new \RuntimeException("Qty SO detail #{$soDetailId} melebihi sisa.");
-                        }
-
                         DB::table('trsodt')
                             ->where('ftrsodtid', $soDetailId)
                             ->update([

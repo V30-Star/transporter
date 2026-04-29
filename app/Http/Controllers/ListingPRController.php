@@ -184,7 +184,7 @@ class ListingPRController extends Controller
         }
 
         if (! $request->has('all_pr') && $request->has('only_pending')) {
-            $query->whereRaw('(CASE WHEN d.fsatuan = p.fsatuanbesar THEN d.fqty * p.fqtykecil ELSE d.fqty END - COALESCE(o.fqtypo, 0)) > 0');
+            // Filter sisa PR berdasarkan fqtykecil dinonaktifkan.
         }
 
         if ($request->sort_by == 'name') {

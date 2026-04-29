@@ -2012,17 +2012,11 @@
                     ratio = ratios.satuanbesar;
                 }
 
-                const maxStock = Number(row.maxqty ?? 0);
-                const maxInUnit = Math.floor(maxStock / ratio);
-
                 if (!Number.isFinite(n)) {
                     row.fqty = 1;
                     return;
                 }
                 if (n < 1) row.fqty = 1;
-                if (maxInUnit > 0 && n > maxInUnit) {
-                    row.fqty = maxInUnit;
-                }
             },
 
             hydrateRowFromMeta(row, meta) {
@@ -2044,9 +2038,7 @@
                 if (!units.includes(row.fsatuan)) row.fsatuan = units[0] || '';
                 row.fsatuan = row.fsatuan;
                 if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
-                const keepRefLimit = Number.isFinite(+row.maxqty) && +row.maxqty > 0 &&
-                    (Number(row.frefsoid) > 0 || Number(row.frefsrjid) > 0);
-                row.maxqty = keepRefLimit ? +row.maxqty : 0;
+                row.maxqty = Number.isFinite(+row.maxqty) ? +row.maxqty : 0;
 
                 if (row === this.draft) {
                     if (units.length > 1) {

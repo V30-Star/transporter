@@ -2612,11 +2612,6 @@
                 }
                 if (n < 1) row.fqty = 1;
 
-                // Keep only reference max qty validation on edit.
-                const remain = Number(row.maxqty ?? row.fqtyremain ?? 0);
-                if (Number.isFinite(remain) && remain > 0 && n > remain) {
-                    row.fqty = remain;
-                }
             },
 
             hydrateRowFromMeta(row, meta) {
@@ -2636,9 +2631,7 @@
                 if (!units.includes(row.fsatuan)) row.fsatuan = units[0] || '';
                 row.fsatuan = row.fsatuan;
                 if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
-                const keepRefLimit = Number.isFinite(+row.maxqty) && +row.maxqty > 0 &&
-                    (Number(row.frefsoid) > 0 || Number(row.frefsrjid) > 0);
-                row.maxqty = keepRefLimit ? +row.maxqty : 0;
+                row.maxqty = Number.isFinite(+row.maxqty) ? +row.maxqty : 0;
                 
                 if (row === this.draft) {
                     if (units.length > 1) {
@@ -2923,7 +2916,7 @@
                     item.fnoacak = this.normalizeNoAcak(item.fnoacak) || this.generateUniqueNoAcak();
                     item.frefnoacak = this.normalizeRefNoAcak(item.frefnoacak);
                     const soLimit = Number(item.maxqty ?? item.fqtyremain ?? 0);
-                    item.maxqty = (Number(item.frefsoid) > 0 || Number(item.frefsrjid) > 0) && soLimit > 0 ? soLimit : 0;
+                    item.maxqty = Number.isFinite(soLimit) ? soLimit : 0;
                 });
 
                 window.getCurrentItemKeys = () => this.getCurrentItemKeys();
