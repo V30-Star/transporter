@@ -412,6 +412,7 @@ class AssemblingController extends Controller
         $itemtypes = $request->input('fitemtype', []); // AMBIL FITEMTYPE
 
         $rowsDt = [];
+        $usedNoAcaks = [];
         $subtotal = 0.0;
         $rowCount = count($codes);
 
@@ -492,6 +493,7 @@ class AssemblingController extends Controller
             $rowsDt[] = [
                 'fprdcode' => $code,
                 'fprdcodeid' => $prdId,
+                'fnoacak' => $this->normalizeRandomNumber(null, $usedNoAcaks),
                 'frefdtno' => '0',
                 'frefso' => '0',
                 'fqty' => $qty,
@@ -936,6 +938,7 @@ class AssemblingController extends Controller
         };
 
         $rowsDt = [];
+        $usedNoAcaks = [];
         $subtotal = 0.0;
         $rowCount = count($codes);
 
@@ -992,6 +995,7 @@ class AssemblingController extends Controller
             $rowsDt[] = [
                 'fprdcode' => $code,
                 'fprdcodeid' => $prdId,
+                'fnoacak' => $this->normalizeRandomNumber(null, $usedNoAcaks),
                 'frefdtno' => '0',
                 'frefso' => '0',
                 'fqty' => $qty,
@@ -1268,5 +1272,25 @@ class AssemblingController extends Controller
         }
 
         return 'Assembling '.$header->fstockmtno.' tidak dapat diubah atau dihapus karena sudah digunakan pada transaksi lain: '.$usedBy->implode(', ').'.';
+    }
+
+    private function normalizeRandomNumber($value, array &$usedNumbers): string
+    {
+        $value = trim((string) ($value ?? ''));
+        $candidate = preg_match('/^[1-9]{3}$/', $value) ? $value : null;
+
+        if ($candidate !== null && ! in_array($candidate, $usedNumbers, true)) {
+            $usedNumbers[] = $candidate;
+
+            return $candidate;
+        }
+
+        do {
+            $candidate = (string) random_int(1, 9).random_int(1, 9).random_int(1, 9);
+        } while (in_array($candidate, $usedNumbers, true));
+
+        $usedNumbers[] = $candidate;
+
+        return $candidate;
     }
 }

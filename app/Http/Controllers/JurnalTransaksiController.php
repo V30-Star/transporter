@@ -925,6 +925,7 @@ class JurnalTransaksiController extends Controller
         $rowsDt = [];
         $subtotal = 0.0;
         $rowCount = count($codes);
+        $usedNoAcaks = [];
 
         for ($i = 0; $i < $rowCount; $i++) {
             $code = trim((string) ($codes[$i] ?? ''));
@@ -962,6 +963,7 @@ class JurnalTransaksiController extends Controller
                 'fprdcode' => $prdId,
                 'frefdtno' => $rref,
                 'frefso' => $rrso,
+                'fnoacak' => $this->normalizeRandomNumber(null, $usedNoAcaks),
                 'fqty' => $qty,
                 'fuserupdate' => (Auth::user()->fname ?? 'system'),
                 'fdatetime' => $now, // Tetap gunakan fdatetime
@@ -1208,5 +1210,25 @@ class JurnalTransaksiController extends Controller
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
             return redirect()->route('jurnaltransaksi.delete', $fstockmtid)->with('error', 'Gagal menghapus data: '.$e->getMessage());
         }
+    }
+
+    private function normalizeRandomNumber($value, array &$usedNumbers): string
+    {
+        $value = trim((string) ($value ?? ''));
+        $candidate = preg_match('/^[1-9]{3}$/', $value) ? $value : null;
+
+        if ($candidate !== null && ! in_array($candidate, $usedNumbers, true)) {
+            $usedNumbers[] = $candidate;
+
+            return $candidate;
+        }
+
+        do {
+            $candidate = (string) random_int(1, 9).random_int(1, 9).random_int(1, 9);
+        } while (in_array($candidate, $usedNumbers, true));
+
+        $usedNumbers[] = $candidate;
+
+        return $candidate;
     }
 }

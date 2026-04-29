@@ -429,6 +429,7 @@ class MutasiController extends Controller
             // TAHAP 3: RAKIT DETAIL & KONVERSI QTY
             // =========================
             $rowsDt = [];
+            $usedNoAcaks = [];
             $subtotal = 0.0;
             $now = now();
             $frate = (float) $request->input('frate', 1);
@@ -474,6 +475,7 @@ class MutasiController extends Controller
                     'fprdcodeid' => (int) $meta->fprdid,
                     'fprdcode' => mb_substr((string) $meta->fprdcode, 0, 50),
                     'frefdtno' => trim((string) ($refdtno[$i] ?? '')) ?: null,
+                    'fnoacak' => $this->normalizeRandomNumber(null, $usedNoAcaks),
                     'fqty' => $qty,
                     'fprice' => $price,
                     'fprice_rp' => $price * $frate,
@@ -855,6 +857,7 @@ class MutasiController extends Controller
             }
 
             $rowsDt = [];
+            $usedNoAcaks = [];
             $subtotal = 0.0;
             $now = now();
             $frate = (float) $request->input('frate', 1);
@@ -915,6 +918,7 @@ class MutasiController extends Controller
                     'fprdcodeid' => (int) $meta->fprdid,
                     'fprdcode' => mb_substr((string) ($meta->fprdcode ?? $code), 0, 50),
                     'frefdtno' => $rref,
+                    'fnoacak' => $this->normalizeRandomNumber(null, $usedNoAcaks),
                     'fqty' => $qty,
                     'fprice' => $price,
                     'fprice_rp' => $price * $frate,
@@ -1176,5 +1180,25 @@ class MutasiController extends Controller
         }
 
         return 'Mutasi Stock '.$header->fstockmtno.' tidak dapat diubah atau dihapus karena sudah digunakan pada transaksi lain: '.$usedBy->implode(', ').'.';
+    }
+
+    private function normalizeRandomNumber($value, array &$usedNumbers): string
+    {
+        $value = trim((string) ($value ?? ''));
+        $candidate = preg_match('/^[1-9]{3}$/', $value) ? $value : null;
+
+        if ($candidate !== null && ! in_array($candidate, $usedNumbers, true)) {
+            $usedNumbers[] = $candidate;
+
+            return $candidate;
+        }
+
+        do {
+            $candidate = (string) random_int(1, 9).random_int(1, 9).random_int(1, 9);
+        } while (in_array($candidate, $usedNumbers, true));
+
+        $usedNumbers[] = $candidate;
+
+        return $candidate;
     }
 }

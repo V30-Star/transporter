@@ -379,6 +379,7 @@ class AdjstockController extends Controller
             };
 
             $rowsDt = [];
+            $usedNoAcaks = [];
             $subtotal = 0.0;
             $now = now();
             $frate = (float) $request->input('frate', 1);
@@ -419,6 +420,7 @@ class AdjstockController extends Controller
                 $rowsDt[] = [
                     'fprdcode' => $meta->fprdcode,
                     'fprdcodeid' => $meta->fprdid,
+                    'fnoacak' => $this->normalizeRandomNumber(null, $usedNoAcaks),
                     'frefdtno' => trim((string) ($refdtno[$i] ?? '')) ?: null,
                     'fqty' => $qty,
                     'fqtyremain' => $qty,
@@ -848,6 +850,7 @@ class AdjstockController extends Controller
         };
 
         $rowsDt = [];
+        $usedNoAcaks = [];
         $subtotal = 0.0;
         $rowCount = count($codes);
 
@@ -885,6 +888,7 @@ class AdjstockController extends Controller
             $rowsDt[] = [
                 'fprdcode' => $code,
                 'fprdcodeid' => $prdId,
+                'fnoacak' => $this->normalizeRandomNumber(null, $usedNoAcaks),
                 'frefdtno' => $rref,
                 'fqty' => $qty,
                 'fqtyremain' => $qty,
@@ -1152,5 +1156,25 @@ class AdjstockController extends Controller
         }
 
         return 'Adjustment Stock '.$header->fstockmtno.' tidak dapat diubah atau dihapus karena sudah digunakan pada transaksi lain: '.$usedBy->implode(', ').'.';
+    }
+
+    private function normalizeRandomNumber($value, array &$usedNumbers): string
+    {
+        $value = trim((string) ($value ?? ''));
+        $candidate = preg_match('/^[1-9]{3}$/', $value) ? $value : null;
+
+        if ($candidate !== null && ! in_array($candidate, $usedNumbers, true)) {
+            $usedNumbers[] = $candidate;
+
+            return $candidate;
+        }
+
+        do {
+            $candidate = (string) random_int(1, 9).random_int(1, 9).random_int(1, 9);
+        } while (in_array($candidate, $usedNumbers, true));
+
+        $usedNumbers[] = $candidate;
+
+        return $candidate;
     }
 }
