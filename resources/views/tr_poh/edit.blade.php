@@ -1282,15 +1282,10 @@
 
             formatPrRemainHint(row) {
                 if (!row || !row.frefdtid) return '';
-                const max = this.calcMaxQty(row);
-                const sat = (row.fsatuan || '').trim() || 'satuan';
-                const satPr = (row.fqtypr_satuan || row.fsatuan || '').trim() || sat;
                 const qtyDiPo = Number(row.fqtydipo ?? 0);
-                if (!(max > 0) && !(qtyDiPo > 0)) return '';
-                const parts = [];
-                if (qtyDiPo > 0) parts.push('<span class="font-medium">Qty di PO:</span> ' + qtyDiPo + ' ' + satPr);
-                if (max > 0) parts.push('<span class="font-medium">Sisa PR:</span> ' + max + ' ' + sat);
-                return parts.join('<br>');
+                const satPr = (row.fqtypr_satuan || row.fsatuan || '').trim() || 'satuan';
+                if (!(qtyDiPo > 0)) return '';
+                return '<span class="font-medium">Sisa Qty PR:</span> ' + qtyDiPo + ' ' + satPr;
             },
 
             enforcePrQtyRow(row) {

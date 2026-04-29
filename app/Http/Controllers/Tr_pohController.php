@@ -434,23 +434,7 @@ class Tr_pohController extends Controller
      */
     private function adjustPrReferenceQtyKecil(array $usageByRef, int $direction): void
     {
-        foreach ($usageByRef as $fprdid => $qtyKecil) {
-            $fprdid = (int) $fprdid;
-            $qtyKecil = (float) $qtyKecil;
-
-            if ($fprdid <= 0 || $qtyKecil <= 0) {
-                continue;
-            }
-
-            $signedQty = $direction * $qtyKecil;
-
-            DB::table('tr_prd')
-                ->where('fprdid', $fprdid)
-                ->update([
-                    'fqtykecil' => DB::raw('GREATEST(COALESCE(fqtykecil, 0) + (' . $signedQty . '), 0)'),
-                    'fupdatedat' => now(),
-                ]);
-        }
+        // Pemakaian PR dari PO tidak lagi mengurangi / mengembalikan tr_prd.fqtykecil.
     }
 
     /**
@@ -901,16 +885,6 @@ class Tr_pohController extends Controller
                 ], 'fpohid');
 
                 $fpono = DB::table('tr_poh')->where('fpohid', $fpohid)->value('fpono');
-
-                // UPDATE STOK - gunakan qtyKecil hasil konversi, bukan qty mentah
-                foreach ($rowsPod as $row) {
-                    DB::table('msprd')
-                        ->where('fprdcode', $row['fprdcode'])
-                        ->update([
-                            'fminstock' => DB::raw('CAST(fminstock AS NUMERIC) - ' . $row['fqtykecil']),
-                            'fupdatedat' => now(),
-                        ]);
-                }
 
                 // EMAIL after commit — use fpohid and fprdid
                 if ($isApproval === 1) {
@@ -1372,9 +1346,6 @@ class Tr_pohController extends Controller
             ->get(['fprdid', 'fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2'])
             ->keyBy('fprdcode');
 
-        // Untuk update PO berbasis PR, validasi batas qty ditentukan oleh sisa PR (fqtykecil),
-        // bukan oleh msprd.fminstock. Validasi sisa PR dilakukan di bawah (strict guard).
-
         $pickDefaultSat = function ($code) use ($prodMeta) {
             $m = $prodMeta[$code] ?? null;
             if (! $m) {
@@ -1567,15 +1538,6 @@ class Tr_pohController extends Controller
                 $fpono = DB::table('tr_poh')->where('fpohid', $fpohid)->value('fpono');
 
                 DB::table('tr_pod')->where('fpono', $header->fpono)->delete();
-                // UPDATE STOK - gunakan qtyKecil hasil konversi, bukan qty mentah
-                foreach ($rowsPod as $row) {
-                    DB::table('msprd')
-                        ->where('fprdcode', $row['fprdcode'])
-                        ->update([
-                            'fminstock' => DB::raw('CAST(fminstock AS NUMERIC) - ' . $row['fqtykecil']),
-                            'fupdatedat' => now(),
-                        ]);
-                }
 
                 $nextNou = 1;
                 foreach ($rowsPod as &$r) {
