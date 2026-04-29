@@ -1165,6 +1165,8 @@
                 maxqty_satuan: '',
                 frefdtid: '',
                 fqtypo: 0,
+                fqtysisapr: 0,
+                fqtydipo: 0,
                 fqtykecil_ref: 0,
             };
         }
@@ -1282,8 +1284,13 @@
                 if (!row || !row.frefdtid) return '';
                 const max = this.calcMaxQty(row);
                 const sat = (row.fsatuan || '').trim() || 'satuan';
-                if (!(max > 0)) return '';
-                return '<span class="font-medium">Sisa PR:</span> maks. ' + max + ' ' + sat;
+                const satPr = (row.fqtypr_satuan || row.fsatuan || '').trim() || sat;
+                const qtyDiPo = Number(row.fqtydipo ?? 0);
+                if (!(max > 0) && !(qtyDiPo > 0)) return '';
+                const parts = [];
+                if (qtyDiPo > 0) parts.push('<span class="font-medium">Qty di PO:</span> ' + qtyDiPo + ' ' + satPr);
+                if (max > 0) parts.push('<span class="font-medium">Sisa PR:</span> ' + max + ' ' + sat);
+                return parts.join('<br>');
             },
 
             enforcePrQtyRow(row) {
@@ -1361,11 +1368,17 @@
             calcMaxQty(row) {
                 const eq = (a, b) => (a || '').trim().toLowerCase() === (b || '').trim().toLowerCase();
                 const satuanPO = (row.fsatuan || '').trim();
+                const satuanPR = (row.fqtypr_satuan || '').trim();
                 const satKecil = (row.fsatuankecil || '').trim();
                 const satBesar = (row.fsatuanbesar || '').trim();
                 const satBesar2 = (row.fsatuanbesar2 || '').trim();
                 const rasio = Number(row.fqtykecil || 0);
                 const rasio2 = Number(row.fqtykecil2 || 0);
+                const sisaPrBaris = Number(row.fqtysisapr ?? 0);
+
+                if (sisaPrBaris > 0 && (!satuanPR || eq(satuanPO, satuanPR))) {
+                    return sisaPrBaris;
+                }
 
                 const hasRemainField = row.fqtykecil_ref !== undefined && row.fqtykecil_ref !== null && row.fqtykecil_ref !== '';
 
@@ -1514,6 +1527,8 @@
                             Number(src.fqty) : 1,
                         frefdtid: src.frefdtid ?? '',
                         fqtypo: Number(src.fqtypo ?? 0),
+                        fqtysisapr: Number(src.fqtysisapr ?? 0),
+                        fqtydipo: Number(src.fqtydipo ?? 0),
                         fqtykecil_ref: Number(src.fqtykecil_ref ?? src.fqtyremain ?? 0),
                         fqtypr: Number(src.fqtypr ?? src.fqty ?? 0),
                         fqtypr_satuan: (src.fqtypr_satuan ?? src.fsatuan ?? '').trim(),

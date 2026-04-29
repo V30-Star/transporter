@@ -947,7 +947,9 @@ class Tr_prhController extends Controller
                 'fitemname' => (string) ($detail->fprdname ?? ''),
                 'fsatuan' => (string) ($detail->fsatuan ?? ''),
                 'fqty' => (float) ($detail->fqty ?? 0),
-                'fqtypo' => (float) ($detail->fqtypo ?? 0),
+                'fqtypo' => (float) ($detail->fqtysisapr ?? $detail->fqtypo ?? 0),
+                'fqtysisapr' => (float) ($detail->fqtysisapr ?? 0),
+                'fqtydipo' => (float) ($detail->fqtydipo ?? 0),
                 'fnoacak' => (string) ($detail->fnoacak ?? ''),
                 'fdesc' => (string) ($detail->fdesc ?? ''),
                 'fketdt' => (string) ($detail->fketdt ?? ''),
@@ -1031,6 +1033,22 @@ class Tr_prhController extends Controller
                         WHEN d.fsatuan=p.fsatuanbesar2 
                             THEN (coalesce(fqtykecilpo,0))/p.fqtykecil2
                         ELSE coalesce(fqtykecilpo,0) END,0) AS fqtypo'),
+                DB::raw('COALESCE(
+                    CASE
+                        WHEN d.fsatuan = p.fsatuanbesar
+                            THEN (COALESCE(d.fqtykecil, 0) - COALESCE(fqtykecilpo, 0)) / NULLIF(p.fqtykecil, 0)
+                        WHEN d.fsatuan = p.fsatuanbesar2
+                            THEN (COALESCE(d.fqtykecil, 0) - COALESCE(fqtykecilpo, 0)) / NULLIF(p.fqtykecil2, 0)
+                        ELSE COALESCE(d.fqtykecil, 0) - COALESCE(fqtykecilpo, 0)
+                    END, 0) AS fqtysisapr'),
+                DB::raw('COALESCE(
+                    CASE
+                        WHEN d.fsatuan = p.fsatuanbesar
+                            THEN COALESCE(fqtykecilpo, 0) / NULLIF(p.fqtykecil, 0)
+                        WHEN d.fsatuan = p.fsatuanbesar2
+                            THEN COALESCE(fqtykecilpo, 0) / NULLIF(p.fqtykecil2, 0)
+                        ELSE COALESCE(fqtykecilpo, 0)
+                    END, 0) AS fqtydipo'),
             ])
             ->get();
     }

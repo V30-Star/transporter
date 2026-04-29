@@ -614,20 +614,7 @@
             window.PRODUCT_MAP = @json($productMap ?? []);
 
             // Seed items dari server (details)
-            window.INIT_ITEMS = [
-                @foreach ($tr_prh->details as $d)
-                    {
-                        uid: null, // akan diisi cryptoRandom()
-                        fitemcode: @json($d->fprdcode),
-                        fitemname: @json($d->fprdname),
-                        fsatuan: @json($d->fsatuan),
-                        fqty: {{ (int) $d->fqty }},
-                        fqtypo: {{ (float) $d['fqtypo'] }},
-                        fdesc: @json($d->fdesc ?? ''),
-                        fketdt: @json($d->fketdt ?? ''),
-                    },
-                @endforeach
-            ];
+            window.INIT_ITEMS = @json($savedItems ?? []);
 
             // id unik
             window.cryptoRandom = function() {

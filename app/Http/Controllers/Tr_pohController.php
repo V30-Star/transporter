@@ -221,12 +221,17 @@ class Tr_pohController extends Controller
             ->leftJoin('msprd as m', 'm.fprdid', '=', 'd.fprdcodeid')
             ->leftJoin(DB::raw('(
             SELECT
-                CAST(frefdtid AS BIGINT) AS fprdlineid,
-                SUM(fqtykecil) AS fqtypo
+                frefdtno,
+                fprdcode,
+                frefnoacak,
+                SUM(fqtykecil) AS fqtykecilpo
             FROM tr_pod
-            WHERE frefdtid IS NOT NULL
-            GROUP BY CAST(frefdtid AS BIGINT)
-        ) as o'), 'o.fprdlineid', '=', 'd.fprdid')
+            GROUP BY frefdtno, fprdcode, frefnoacak
+        ) as o'), function ($join) {
+                $join->on('o.frefdtno', '=', 'd.fprno')
+                    ->on('o.fprdcode', '=', 'd.fprdcode')
+                    ->on('o.frefnoacak', '=', 'd.fnoacak');
+            })
             ->where('d.fprno', $header->fprno)
             ->select([
                 DB::raw('d.fprdcodeid::text as frefdtno'),
@@ -248,13 +253,32 @@ class Tr_pohController extends Controller
                 'm.fsatuanbesar2',
                 'm.fqtykecil',
                 'm.fqtykecil2',
-                DB::raw('COALESCE(o.fqtypo, 0) AS fqtypo'),
+                DB::raw('COALESCE(o.fqtykecilpo, 0) AS fqtykecilpo'),
+                DB::raw('GREATEST(COALESCE(d.fqtykecil, 0) - COALESCE(o.fqtykecilpo, 0), 0) AS fqtykecil_sisa'),
+                DB::raw('COALESCE(
+                    CASE
+                        WHEN d.fsatuan = m.fsatuanbesar
+                            THEN (COALESCE(d.fqtykecil, 0) - COALESCE(o.fqtykecilpo, 0)) / NULLIF(m.fqtykecil, 0)
+                        WHEN d.fsatuan = m.fsatuanbesar2
+                            THEN (COALESCE(d.fqtykecil, 0) - COALESCE(o.fqtykecilpo, 0)) / NULLIF(m.fqtykecil2, 0)
+                        ELSE COALESCE(d.fqtykecil, 0) - COALESCE(o.fqtykecilpo, 0)
+                    END, 0) AS fqtysisapr'),
+                DB::raw('COALESCE(
+                    CASE
+                        WHEN d.fsatuan = m.fsatuanbesar
+                            THEN COALESCE(o.fqtykecilpo, 0) / NULLIF(m.fqtykecil, 0)
+                        WHEN d.fsatuan = m.fsatuanbesar2
+                            THEN COALESCE(o.fqtykecilpo, 0) / NULLIF(m.fqtykecil2, 0)
+                        ELSE COALESCE(o.fqtykecilpo, 0)
+                    END, 0) AS fqtydipo'),
             ])
             ->orderBy('d.fprdcodeid')
             ->get()
             ->map(function ($item) use ($header) {
                 $qty = (float) $item->fqty;
-                $fqtypo = (float) ($item->fqtypo ?? 0);
+                $fqtypo = (float) ($item->fqtykecilpo ?? 0);
+                $fqtysisapr = (float) ($item->fqtysisapr ?? 0);
+                $fqtydipo = (float) ($item->fqtydipo ?? 0);
                 $satuan = trim((string) $item->fsatuan);
                 $satKecil = trim((string) ($item->fsatuankecil ?? ''));
                 $satBesar = trim((string) ($item->fsatuanbesar ?? ''));
@@ -262,14 +286,14 @@ class Tr_pohController extends Controller
                 $rasio = (float) ($item->fqtykecil ?? 0);
                 $rasio2 = (float) ($item->fqtykecil2 ?? 0);
 
-                $sisaKecil = max(0, (float) ($item->fqtykecil_pr ?? 0));
+                $sisaKecil = max(0, (float) ($item->fqtykecil_sisa ?? 0));
 
                 return [
                     'frefdtno' => (string) $header->fprno,
                     'fitemcode' => $item->fitemcode,
                     'fitemname' => $item->fitemname,
                     'fqty' => $qty,
-                    'maxqty' => $sisaKecil,
+                    'maxqty' => $fqtysisapr,
                     'maxqty_satuan' => $satKecil,
                     'fsatuan' => $satuan,
                     'fdesc' => $item->fdesc ?? '',
@@ -282,6 +306,8 @@ class Tr_pohController extends Controller
                     'frefdtid' => $item->frefdtid,
                     'frefnoacak' => (string) ($item->frefnoacak ?? ''),
                     'fqtypo' => $fqtypo,
+                    'fqtysisapr' => $fqtysisapr,
+                    'fqtydipo' => $fqtydipo,
                     'fqtykecil_ref' => $sisaKecil,
                     'fqtyremain' => $sisaKecil,
                     'fqtypr' => $qty,
