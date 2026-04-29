@@ -736,6 +736,7 @@ class FakturPembelianController extends Controller
             $prodMeta = DB::table('msprd')->whereIn('fprdcode', $uniqueCodes)->get()->keyBy('fprdcode');
 
             $rowsDt = [];
+            $usedNoAcaks = [];
             $subtotal = 0.0;
             $sourceUsageByRef = [];
 
@@ -785,6 +786,7 @@ class FakturPembelianController extends Controller
                 $rowsDt[] = [
                     'fprdcode' => $code,
                     'fprdcodeid' => $meta->fprdid,
+                    'fnoacak' => $this->normalizeRandomNumber(null, $usedNoAcaks),
                     'frefdtno' => trim((string) ($refdtnos[$i] ?? '')) ?: null,
                     'frefdtid' => isset($refdtids[$i]) ? (int) $refdtids[$i] : null,
                     'frefnoacak' => $this->normalizeReferenceRandomNumberSingle($frefnoacaks[$i] ?? null),
@@ -1356,6 +1358,7 @@ class FakturPembelianController extends Controller
 
             // BUILD DETAIL ROWS
             $rowsDt = [];
+            $usedNoAcaks = [];
             $subtotal = 0.0;
             $rowCount = count($codes);
             $sourceUsageByRef = [];
@@ -1429,6 +1432,7 @@ class FakturPembelianController extends Controller
                 $rowsDt[] = [
                     'fprdcode' => $code,
                     'fprdcodeid' => $meta->fprdid,
+                    'fnoacak' => $this->normalizeRandomNumber(null, $usedNoAcaks),
                     'frefdtno' => ! empty($refdtno[$i]) ? $refdtno[$i] : null,
                     'frefdtid' => isset($refdtids[$i]) ? (int) $refdtids[$i] : null,
                     'frefnoacak' => $this->normalizeReferenceRandomNumberSingle($frefnoacaks[$i] ?? null),
@@ -1764,5 +1768,25 @@ class FakturPembelianController extends Controller
         }
 
         return 'Faktur Pembelian '.$header->fstockmtno.' tidak dapat diubah atau dihapus karena sudah digunakan pada Retur Pembelian: '.$usedBy->implode(', ').'.';
+    }
+
+    private function normalizeRandomNumber($value, array &$usedNumbers): string
+    {
+        $value = trim((string) ($value ?? ''));
+        $candidate = preg_match('/^[1-9]{3}$/', $value) ? $value : null;
+
+        if ($candidate !== null && ! in_array($candidate, $usedNumbers, true)) {
+            $usedNumbers[] = $candidate;
+
+            return $candidate;
+        }
+
+        do {
+            $candidate = (string) random_int(1, 9).random_int(1, 9).random_int(1, 9);
+        } while (in_array($candidate, $usedNumbers, true));
+
+        $usedNumbers[] = $candidate;
+
+        return $candidate;
     }
 }

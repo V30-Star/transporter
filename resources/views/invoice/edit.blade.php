@@ -2633,7 +2633,7 @@
 
             formatStockLimit(code, qty, satuan) {
                 // On Invoice Edit: do not show/compute stock/max qty limit.
-                // Qty limiting is handled only by fqtyremain validation (if present on the row).
+                // Qty limiting is handled only by reference max qty validation (if present on the row).
                 return '';
             },
 
@@ -2646,8 +2646,8 @@
                 }
                 if (n < 1) row.fqty = 1;
 
-                // Keep only fqtyremain validation on edit.
-                const remain = Number(row.fqtyremain ?? 0);
+                // Keep only reference max qty validation on edit.
+                const remain = Number(row.maxqty ?? row.fqtyremain ?? 0);
                 if (Number.isFinite(remain) && remain > 0 && n > remain) {
                     row.fqty = remain;
                 }
@@ -2658,7 +2658,7 @@
                     row.fitemname = '';
                     row.units = [];
                     row.fsatuan = '';
-                    row.fqtyremain = 0;
+                    row.maxqty = 0;
                     if (row === this.draft) {
                         clearDraftUnitSelect();
                     }
@@ -2669,9 +2669,9 @@
                 row.units = units;
                 if (!units.includes(row.fsatuan)) row.fsatuan = units[0] || '';
                 if (meta.unit_ratios) row.unit_ratios = meta.unit_ratios;
-                const keepRefLimit = Number.isFinite(+row.fqtyremain) && +row.fqtyremain > 0 &&
+                const keepRefLimit = Number.isFinite(+row.maxqty) && +row.maxqty > 0 &&
                     (Number(row.frefsoid) > 0 || Number(row.frefsrjid) > 0);
-                row.fqtyremain = keepRefLimit ? +row.fqtyremain : 0;
+                row.maxqty = keepRefLimit ? +row.maxqty : 0;
 
                 if (row === this.draft) {
                     if (units.length > 1) {
@@ -2712,7 +2712,7 @@
 
             normalizeRefNoAcak(value) {
                 const parts = String(value ?? '').split(',').map(v => v.trim()).filter(v => /^\d{3}$/.test(v));
-                return [...new Set(parts)].join(',');
+                return parts[0] ?? '';
             },
 
             generateUniqueNoAcak() {
@@ -2735,7 +2735,7 @@
                 items.forEach(src => {
                     const itemcode = (src.fitemcode ?? '').toString().trim();
                     const frefdtno = (src.frefdtno ?? src.frefcode ?? '').toString().trim();
-                    const remainingQty = Math.max(0, Number(src.fqtyremain ?? src.fqty ?? 0));
+                    const remainingQty = Math.max(0, Number(src.maxqty ?? src.fqtyremain ?? src.fqty ?? 0));
                     const key = `${itemcode}::${frefdtno}`;
 
                     if (existing.has(key)) return;
@@ -2758,12 +2758,11 @@
                         fnoacak: this.generateUniqueNoAcak(),
                         frefnoacak: this.normalizeRefNoAcak(src.frefnoacak ?? src.fnoacak ?? ''),
                         fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ? Number(src.fqty) : 1,
-                        fqtyremain: Number(src.fqtyremain ?? 0),
                         fprice: Number(src.fprice ?? src.fharga ?? 0),
                         ftotal: 0,
                         fdesc: src.fdesc ? src.fdesc.toString().trim() : '',
                         units: [(src.fsatuan ?? '').toString().trim()].filter(Boolean),
-                        fqtyremain: Math.max(0, Number(src.fqtyremain ?? 0)),
+                        maxqty: Math.max(0, Number(src.maxqty ?? src.fqtyremain ?? 0)),
                     };
 
                     this.recalc(row);
@@ -2847,9 +2846,9 @@
                     }
 
                     const meta = this.productMeta(item.fitemcode);
-                    const rowLimit = Number(item.fqtyremain ?? 0);
+                    const rowLimit = Number(item.maxqty ?? item.fqtyremain ?? 0);
                     if (meta) {
-                        item.fqtyremain = (Number(item.frefsoid) > 0 || Number(item.frefsrjid) > 0) && rowLimit > 0 ? rowLimit : 0;
+                        item.maxqty = (Number(item.frefsoid) > 0 || Number(item.frefsrjid) > 0) && rowLimit > 0 ? rowLimit : 0;
                         if (meta.units && meta.units.length) {
                             item.units = [...new Set([...item.units, ...meta.units])];
                         } else if (item.fsatuan && !item.units.includes(item.fsatuan)) {
@@ -2859,7 +2858,7 @@
                             item.unit_ratios = item.unit_ratios || meta.unit_ratios;
                         }
                     } else {
-                        item.fqtyremain = 0;
+                        item.maxqty = 0;
                         if (item.fsatuan && !item.units.includes(item.fsatuan)) {
                             item.units.unshift(item.fsatuan);
                         }
@@ -2941,9 +2940,9 @@
             frefpr: '',
             fnoacak: '',
             frefnoacak: '',
-            fqty: 0,
-            fqtyremain: 0,
-            fprice: 0,
+                fqty: 0,
+                maxqty: 0,
+                fprice: 0,
             fdisc: 0,
             ftotal: 0,
             fdesc: '',

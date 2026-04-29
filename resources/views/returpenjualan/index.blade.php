@@ -318,7 +318,18 @@
                 },
                 {
                     data: 'fsono',
-                    name: 'fsono'
+                    name: 'fsono',
+                    render: function(data, type) {
+                        if (type !== 'display') {
+                            return data;
+                        }
+
+                        if (!data) {
+                            return '';
+                        }
+
+                        return data.startsWith('REJ') ? data : `REJ${data}`;
+                    }
                 },
                 {
                     data: 'fsodate',

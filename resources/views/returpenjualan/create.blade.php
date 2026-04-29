@@ -2001,7 +2001,7 @@
 
             normalizeRefNoAcak(value) {
                 const parts = String(value ?? '').split(',').map(v => v.trim()).filter(v => /^\d{3}$/.test(v));
-                return [...new Set(parts)].join(',');
+                return parts[0] ?? '';
             },
 
             generateUniqueNoAcak() {
@@ -2064,7 +2064,7 @@
                         fketdt: src.fketdt ?? '',
                         units: Array.isArray(src.units) && src.units.length ? src.units : [src.fsatuan]
                             .filter(Boolean),
-                        maxqty: Math.max(0, Number(src.fqtyremain ?? src.fqty ?? 0)),
+                        maxqty: Math.max(0, Number(src.maxqty ?? src.fqtyremain ?? src.fqty ?? 0)),
                     };
 
                     const key = this.itemKey({

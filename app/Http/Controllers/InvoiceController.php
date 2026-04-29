@@ -254,19 +254,26 @@ class InvoiceController extends Controller
     private function normalizeReferenceRandomNumbers($value): ?string
     {
         $parts = preg_split('/\s*,\s*/', trim((string) ($value ?? ''))) ?: [];
-        $normalized = [];
 
         foreach ($parts as $part) {
             $candidate = trim((string) $part);
-            if (! preg_match('/^\d{3}$/', $candidate)) {
-                continue;
-            }
-            if (! in_array($candidate, $normalized, true)) {
-                $normalized[] = $candidate;
+            if (preg_match('/^\d{3}$/', $candidate)) {
+                return $candidate;
             }
         }
 
-        return empty($normalized) ? null : implode(',', $normalized);
+        return null;
+    }
+
+    private function buildReferenceRandomNumberColumns(?string $sourceCode, $value): array
+    {
+        $normalized = $this->normalizeReferenceRandomNumbers($value);
+        $sourceCode = strtoupper(trim((string) ($sourceCode ?? '')));
+
+        return [
+            'frefnosoacak' => $sourceCode === 'S' ? $normalized : null,
+            'frefnosrjacak' => $sourceCode === 'R' ? $normalized : null,
+        ];
     }
 
     private function generatetr_poh_Code(?Carbon $onDate = null, $branch = null): string
@@ -445,7 +452,7 @@ class InvoiceController extends Controller
             'fnoacak' => ['nullable', 'array'],
             'fnoacak.*' => ['nullable', 'regex:/^[1-9]{3}$/'],
             'frefnoacak' => ['nullable', 'array'],
-            'frefnoacak.*' => ['nullable', 'regex:/^\d{3}(,\s*\d{3})*$/'],
+            'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
         ], [
             'fsodate.required' => 'Tanggal Faktur Penjualan wajib diisi.',
             'fcustno.required' => 'Customer wajib diisi.',
@@ -526,7 +533,7 @@ class InvoiceController extends Controller
             $totalGross += $subtotal;
             $totalDisc += $discAmount;
 
-            $detailRows[] = [
+            $detailRows[] = array_merge([
                 'fsono' => '', // Akan diisi di dalam transaksi
                 'fnou' => $i + 1,
                 'fprdcodeid' => $fprdcodeid,
@@ -551,8 +558,7 @@ class InvoiceController extends Controller
                 'frefsrj' => ! empty($frefsrjid_ids[$i]) ? ($frefpr_codes[$i] ?? '') : '',
                 'frefsrjid' => ! empty($frefsrjid_ids[$i]) ? (int) $frefsrjid_ids[$i] : null,
                 'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
-                'frefnoacak' => $this->normalizeReferenceRandomNumbers($frefnoacaks[$i] ?? null),
-            ];
+            ], $this->buildReferenceRandomNumberColumns($refCode, $frefnoacaks[$i] ?? null));
         }
 
         $soUsageByDetailId = [];
@@ -653,25 +659,6 @@ class InvoiceController extends Controller
                 // INSERT DETAIL
                 DB::table('trandt')->insert($detailRows);
 
-                if (! empty($soUsageByDetailId)) {
-                    $remainRows = $this->getSoRemainByIds(array_keys($soUsageByDetailId));
-                    foreach ($soUsageByDetailId as $detailId => $usedQty) {
-                        $remain = (float) ($remainRows[$detailId] ?? 0);
-                        if ($usedQty - $remain > 0.00001) {
-                            throw new \RuntimeException("Qty SO detail #{$detailId} melebihi sisa.");
-                        }
-                    }
-                }
-
-                if (! empty($srjUsageByDetailId)) {
-                    $remainRows = $this->getSrjRemainByIds(array_keys($srjUsageByDetailId));
-                    foreach ($srjUsageByDetailId as $detailId => $usedQty) {
-                        $remain = (float) ($remainRows[$detailId] ?? 0);
-                        if ($usedQty - $remain > 0.00001) {
-                            throw new \RuntimeException("Qty SRJ detail #{$detailId} melebihi sisa.");
-                        }
-                    }
-                }
             });
 
             // UPDATE STOK - gunakan qtyKecil hasil konversi, bukan qty mentah
@@ -744,23 +731,9 @@ class InvoiceController extends Controller
             return [];
         }
 
-        $srjUsed = DB::table('trstockdt')
-            ->selectRaw('CAST(frefsoid AS BIGINT) AS detail_id, SUM(COALESCE(fqtykecil, 0)) AS used_kecil')
-            ->whereNotNull('frefsoid')
-            ->whereIn(DB::raw('CAST(frefsoid AS BIGINT)'), $ids)
-            ->groupBy(DB::raw('CAST(frefsoid AS BIGINT)'));
-
-        $salesUsed = DB::table('trandt')
-            ->selectRaw('CAST(frefsoid AS BIGINT) AS detail_id, SUM(COALESCE(fqtykecil, 0)) AS used_kecil')
-            ->whereNotNull('frefsoid')
-            ->whereIn(DB::raw('CAST(frefsoid AS BIGINT)'), $ids)
-            ->groupBy(DB::raw('CAST(frefsoid AS BIGINT)'));
-
         return DB::table('trsodt as d')
-            ->leftJoinSub($srjUsed, 'srj', fn($join) => $join->on('srj.detail_id', '=', 'd.ftrsodtid'))
-            ->leftJoinSub($salesUsed, 'sale', fn($join) => $join->on('sale.detail_id', '=', 'd.ftrsodtid'))
             ->whereIn('d.ftrsodtid', $ids)
-            ->selectRaw('d.ftrsodtid, GREATEST(COALESCE(d.fqtykecil, 0) - COALESCE(srj.used_kecil, 0) - COALESCE(sale.used_kecil, 0), 0) AS remain_kecil')
+            ->selectRaw('d.ftrsodtid, GREATEST(COALESCE(d.fqtykecil, 0), 0) AS remain_kecil')
             ->pluck('remain_kecil', 'd.ftrsodtid')
             ->map(fn($value) => (float) $value)
             ->all();
@@ -835,7 +808,7 @@ class InvoiceController extends Controller
         $usageLockMessage = $this->getUsageLockMessage($invoice);
 
         // For UI qty validation on edit: allow user to increase qty up to
-        // (SO/SRJ sisa after restore), i.e. current DB fqtyremain + qty already in this invoice line.
+        // (SO/SRJ sisa after restore), i.e. current DB qty available + qty already in this invoice line.
         $soDetailIds = $invoice->details
             ->pluck('frefsoid')
             ->filter(fn ($v) => is_numeric($v) && (int) $v > 0)
@@ -882,7 +855,7 @@ class InvoiceController extends Controller
                 $remainDb = (float) ($srjRemainRows[(int) $d->frefsrjid] ?? 0);
             }
 
-            $fqtyremain = max(0.0, $remainDb + $usedQtyKecil);
+            $maxqty = max(0.0, $remainDb + $usedQtyKecil);
 
             return [
                 'uid' => $d->ftrandtid,
@@ -896,7 +869,7 @@ class InvoiceController extends Controller
                 'frefsrj' => trim($d->frefsrj ?? ''),
                 'frefsrjid' => (string) ($d->frefsrjid ?? ''),
                 'fnoacak' => (string) ($d->fnoacak ?? ''),
-                'frefnoacak' => (string) ($d->frefnoacak ?? ''),
+                'frefnoacak' => (string) ($d->frefnosoacak ?? $d->frefnosrjacak ?? ''),
                 'frefno_display' => $refNoDisplay,
                 'fqty' => (float) ($d->fqty ?? 0),
                 'fterima' => (float) ($d->fterima ?? 0),
@@ -908,7 +881,8 @@ class InvoiceController extends Controller
                 'fsono_ref' => trim($d->fsono_ref ?? ''),
                 'fstockno_ref' => trim($d->fstockno_ref ?? ''),
                 'fketdt' => (string) ($d->fketdt ?? ''),
-                'fqtyremain' => $fqtyremain,
+                'fqtyremain' => $maxqty,
+                'maxqty' => $maxqty,
             ];
         })->values();
         $selectedSupplierCode = $invoice->fsupplier;
@@ -1026,7 +1000,7 @@ class InvoiceController extends Controller
                 'fdesc' => (string) ($d->fdesc ?? ''),
                 'frefcode' => (string) ($d->frefcode ?? ''),
                 'fnoacak' => (string) ($d->fnoacak ?? ''),
-                'frefnoacak' => (string) ($d->frefnoacak ?? ''),
+                'frefnoacak' => (string) ($d->frefnosoacak ?? $d->frefnosrjacak ?? ''),
                 'frefno_display' => $refNoDisplay,
                 'fketdt' => (string) ($d->fketdt ?? ''),
             ];
@@ -1091,7 +1065,7 @@ class InvoiceController extends Controller
             'fnoacak' => ['nullable', 'array'],
             'fnoacak.*' => ['nullable', 'regex:/^[1-9]{3}$/'],
             'frefnoacak' => ['nullable', 'array'],
-            'frefnoacak.*' => ['nullable', 'regex:/^\d{3}(,\s*\d{3})*$/'],
+            'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
         ]);
 
         // 2. LOAD HEADER
@@ -1191,7 +1165,7 @@ class InvoiceController extends Controller
             $totalGross += $subtotal;
             $totalDisc += $discAmount;
 
-            $rowData = [
+            $rowData = array_merge([
                 'fsono' => $header->fsono,
                 'fnou' => $i + 1,
                 'fprdcodeid' => $product->fprdid,
@@ -1216,8 +1190,7 @@ class InvoiceController extends Controller
                 'frefsrj' => ! empty($frefsrjid_ids[$i]) ? $refPr : '',
                 'frefsrjid' => ! empty($frefsrjid_ids[$i]) ? (int) $frefsrjid_ids[$i] : null,
                 'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
-                'frefnoacak' => $this->normalizeReferenceRandomNumbers($frefnoacaks[$i] ?? null),
-            ];
+            ], $this->buildReferenceRandomNumberColumns($refCode, $frefnoacaks[$i] ?? null));
 
             $detailRows[] = $rowData;
         }
@@ -1353,7 +1326,7 @@ class InvoiceController extends Controller
 
                 foreach ($oldSoUsageByDetailId as $detailId => $oldQty) {
                     DB::table('trsodt')->where('ftrsodtid', $detailId)->update([
-                        'fqtyremain' => DB::raw('COALESCE(fqtyremain,0) + '.(float) $oldQty),
+                        'fqtykecil' => DB::raw('COALESCE(fqtykecil,0) + '.(float) $oldQty),
                     ]);
                 }
                 foreach ($oldSrjUsageByDetailId as $detailId => $oldQty) {
@@ -1377,24 +1350,6 @@ class InvoiceController extends Controller
                     DB::table('trandt')->insert($detailRows);
                 }
 
-                if (! empty($soUsageByDetailId)) {
-                    $dynamicRemainRows = $this->getSoRemainByIds(array_keys($soUsageByDetailId));
-                    foreach ($soUsageByDetailId as $detailId => $usedQty) {
-                        $remain = (float) ($dynamicRemainRows[$detailId] ?? 0) + (float) ($oldSoUsageByDetailId[$detailId] ?? 0);
-                        if ($usedQty - $remain > 0.00001) {
-                            throw new \RuntimeException("Qty SO detail #{$detailId} melebihi sisa.");
-                        }
-                    }
-                }
-                if (! empty($srjUsageByDetailId)) {
-                    $dynamicRemainRows = $this->getSrjRemainByIds(array_keys($srjUsageByDetailId));
-                    foreach ($srjUsageByDetailId as $detailId => $usedQty) {
-                        $remain = (float) ($dynamicRemainRows[$detailId] ?? 0) + (float) ($oldSrjUsageByDetailId[$detailId] ?? 0);
-                        if ($usedQty - $remain > 0.00001) {
-                            throw new \RuntimeException("Qty SRJ detail #{$detailId} melebihi sisa.");
-                        }
-                    }
-                }
             });
 
             return redirect()->route('invoice.index')->with('success', "Faktur Penjualan {$header->fsono} berhasil diperbarui.");
@@ -1464,7 +1419,7 @@ class InvoiceController extends Controller
                 'fdesc' => (string) ($d->fdesc ?? ''),
                 'frefcode' => (string) ($d->frefcode ?? ''),
                 'fnoacak' => (string) ($d->fnoacak ?? ''),
-                'frefnoacak' => (string) ($d->frefnoacak ?? ''),
+                'frefnoacak' => (string) ($d->frefnosoacak ?? $d->frefnosrjacak ?? ''),
                 'frefno_display' => $refNoDisplay,
                 'fketdt' => (string) ($d->fketdt ?? ''),
             ];
@@ -1549,7 +1504,7 @@ class InvoiceController extends Controller
                     DB::table('trsodt')
                         ->where('ftrsodtid', $detailId)
                         ->update([
-                            'fqtyremain' => DB::raw('COALESCE(fqtyremain,0) + '.$qtyKecil),
+                            'fqtykecil' => DB::raw('COALESCE(fqtykecil,0) + '.$qtyKecil),
                         ]);
                 }
 

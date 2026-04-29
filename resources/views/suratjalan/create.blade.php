@@ -1247,7 +1247,7 @@
                         fdesc: src.fdesc ? src.fdesc.toString().trim() : '',
                         fketdt: src.fketdt ? src.fketdt.toString().trim() : '',
                         units: meta ? [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))] : [satuan].filter(Boolean),
-                        maxqty: Math.max(0, Number(src.fqtyremain ?? src.fqty ?? 0)),
+                        maxqty: Math.max(0, Number(src.maxqty ?? src.fqtyremain ?? src.fqty ?? 0)),
                     };
 
                     row.ftotal = Number((row.fqty * row.fprice).toFixed(2));

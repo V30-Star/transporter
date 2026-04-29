@@ -430,6 +430,7 @@ class PemakaianbarangController extends Controller
         $rowsDt = [];
         $subtotal = 0.0;
         $rowCount = count($codes);
+        $usedNoAcaks = [];
 
         // Ambil referensi master produk untuk fallback satuan
         $uniqueCodes = array_values(array_unique(array_filter(array_map(fn ($c) => trim((string) $c), $codes))));
@@ -497,6 +498,7 @@ class PemakaianbarangController extends Controller
                 'fprdcodeid' => $prdId,
                 'frefdtno' => $accountCode !== '' ? $accountCode : null,
                 'frefso' => $subAccountCode !== '' ? $subAccountCode : null,
+                'fnoacak' => $this->normalizeRandomNumber(null, $usedNoAcaks),
                 'fqty' => $qty,
                 'fusercreate' => (Auth::user()->fname ?? 'system'),
                 'fdatetime' => $now,
@@ -1036,6 +1038,7 @@ class PemakaianbarangController extends Controller
         $rowsDt = [];
         $subtotal = 0.0;
         $rowCount = count($codes);
+        $usedNoAcaks = [];
 
         for ($i = 0; $i < $rowCount; $i++) {
             $code = trim((string) ($codes[$i] ?? ''));
@@ -1086,6 +1089,7 @@ class PemakaianbarangController extends Controller
                 'fprdcodeid' => $prdId,
                 'frefdtno' => $accountCode !== '' ? $accountCode : null,
                 'frefso' => $subAccountCode !== '' ? $subAccountCode : null,
+                'fnoacak' => $this->normalizeRandomNumber(null, $usedNoAcaks),
                 'fqty' => $qty,
                 'fuserupdate' => (Auth::user()->fname ?? 'system'),
                 'fdatetime' => $now, // Tetap gunakan fdatetime
@@ -1358,5 +1362,25 @@ class PemakaianbarangController extends Controller
         }
 
         return 'Pemakaian Barang '.$header->fstockmtno.' tidak dapat diubah atau dihapus karena sudah digunakan pada transaksi lain: '.$usedBy->implode(', ').'.';
+    }
+
+    private function normalizeRandomNumber($value, array &$usedNumbers): string
+    {
+        $value = trim((string) ($value ?? ''));
+        $candidate = preg_match('/^[1-9]{3}$/', $value) ? $value : null;
+
+        if ($candidate !== null && ! in_array($candidate, $usedNumbers, true)) {
+            $usedNumbers[] = $candidate;
+
+            return $candidate;
+        }
+
+        do {
+            $candidate = (string) random_int(1, 9).random_int(1, 9).random_int(1, 9);
+        } while (in_array($candidate, $usedNumbers, true));
+
+        $usedNumbers[] = $candidate;
+
+        return $candidate;
     }
 }
