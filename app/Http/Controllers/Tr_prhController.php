@@ -418,7 +418,7 @@ class Tr_prhController extends Controller
                         'fprdcodeid' => $productId,
                         'fprdcode' => $product->fprdcode ?? '', // nama produk dari msprd.fprdname
                         'fqty' => (int) $qty,
-                        'fqtykecil' => (int) $qty,
+                        'fqtykecil' => $qtyKecil,
                         'fqtyremain' => $qtyKecil,
                         'fnoacak' => $noacak,
                         'fprice' => 0,
@@ -749,7 +749,7 @@ class Tr_prhController extends Controller
                     'fprdcodeid' => $prodId,
                     'fprdcode' => $code,
                     'fqty' => $qty,
-                    'fqtykecil' => $qty,
+                    'fqtykecil' => $qtyKecil,
                     'fqtyremain' => $qtyKecil,
                     'fnoacak' => $noacak,
                     'fketdt' => $ket,

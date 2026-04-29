@@ -458,31 +458,7 @@ class FakturPembelianController extends Controller
      */
     private function adjustSourceQtyKecil(array $usageBySourceRef, int $direction): void
     {
-        foreach ($usageBySourceRef as $sourceKey => $qtyKecil) {
-            $qtyKecil = (float) $qtyKecil;
-            if ($qtyKecil <= 0) {
-                continue;
-            }
-
-            [$sourceType, $detailId] = array_pad(explode(':', (string) $sourceKey, 2), 2, null);
-            $sourceType = strtoupper(trim((string) $sourceType));
-            $detailId = (int) $detailId;
-
-            if (! in_array($sourceType, ['PO', 'PB'], true) || $detailId <= 0) {
-                continue;
-            }
-
-            $signedQty = $direction * $qtyKecil;
-            $table = $sourceType === 'PO' ? 'tr_pod' : 'trstockdt';
-            $pk = $sourceType === 'PO' ? 'fpodid' : 'fstockdtid';
-
-            DB::table($table)
-                ->where($pk, $detailId)
-                ->update([
-                    'fqtykecil' => DB::raw('GREATEST(COALESCE(fqtykecil, 0) + ('.$signedQty.'), 0)'),
-                    'fdatetime' => now(),
-                ]);
-        }
+        // Faktur Pembelian tidak lagi mengurangi / mengembalikan fqtykecil pada referensi PO/PB.
     }
 
     private function validateSourceRemainForRows(array $codes, array $qtys, array $sources, array $refdtids, array $extraAvailableBySourceRef = []): \Illuminate\Support\MessageBag
@@ -907,15 +883,6 @@ class FakturPembelianController extends Controller
                 DB::table('trstockdt')->insert($rowsDt);
                 $this->adjustSourceQtyKecil($sourceUsageByRef, -1);
             });
-
-            foreach ($rowsDt as $row) {
-                DB::table('msprd')
-                    ->where('fprdcode', $row['fprdcode'])
-                    ->update([
-                        'fminstock' => DB::raw('CAST(fminstock AS NUMERIC) - '.$row['fqtykecil']),
-                        'fupdatedat' => now(),
-                    ]);
-            }
 
             return redirect()->route('fakturpembelian.create')
                 ->with('success', "Faktur Pembelian $fstockmtno berhasil disimpan.");
