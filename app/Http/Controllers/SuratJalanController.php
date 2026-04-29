@@ -564,9 +564,7 @@ class SuratJalanController extends Controller
         }
 
         if (! empty($soUsageByDetailId)) {
-            $soRemainRows = DB::table('trsodt')
-                ->whereIn('ftrsodtid', array_keys($soUsageByDetailId))
-                ->pluck('fqtyremain', 'ftrsodtid');
+            $soRemainRows = $this->getSoRemainByIds(array_keys($soUsageByDetailId));
 
             $soRemainErrors = [];
             foreach ($soUsageByDetailId as $soDetailId => $usedQtyKecil) {
@@ -686,6 +684,29 @@ class SuratJalanController extends Controller
                 }
                 unset($r);
 
+                // Kurangi sisa qty SO (trsodt.fqtyremain) untuk item hasil Add SO
+                if (! empty($soUsageByDetailId)) {
+                    DB::table('trsodt')
+                        ->whereIn('ftrsodtid', array_keys($soUsageByDetailId))
+                        ->lockForUpdate()
+                        ->get();
+
+                    $lockedRemainRows = $this->getSoRemainByIds(array_keys($soUsageByDetailId));
+
+                    foreach ($soUsageByDetailId as $soDetailId => $usedQtyKecil) {
+                        $remain = (float) ($lockedRemainRows[$soDetailId] ?? 0);
+                        if ($usedQtyKecil - $remain > 0.00001) {
+                            throw new \RuntimeException("Qty SO detail #{$soDetailId} melebihi sisa.");
+                        }
+
+                        DB::table('trsodt')
+                            ->where('ftrsodtid', $soDetailId)
+                            ->update([
+                                'fqtyremain' => DB::raw('GREATEST(COALESCE(fqtyremain,0) - '.(float) $usedQtyKecil.', 0)'),
+                            ]);
+                    }
+                }
+
                 DB::table('trstockdt')->insert($rowsDt);
 
                 // UPDATE STOK - gunakan qtyKecil hasil konversi, bukan qty mentah
@@ -696,21 +717,6 @@ class SuratJalanController extends Controller
                             'fminstock' => DB::raw('CAST(fminstock AS NUMERIC) - '.$row['fqtyremain']),
                             'fupdatedat' => now(),
                         ]);
-                }
-
-                // Kurangi sisa qty SO (trsodt.fqtyremain) untuk item hasil Add SO
-                if (! empty($soUsageByDetailId)) {
-                    $lockedRemainRows = DB::table('trsodt')
-                        ->whereIn('ftrsodtid', array_keys($soUsageByDetailId))
-                        ->lockForUpdate()
-                        ->pluck('fqtyremain', 'ftrsodtid');
-
-                    foreach ($soUsageByDetailId as $soDetailId => $usedQtyKecil) {
-                        $remain = (float) ($remainRows[$soDetailId] ?? 0);
-                        if ($usedQtyKecil - $remain > 0.00001) {
-                            throw new \RuntimeException("Qty SO detail #{$soDetailId} melebihi sisa.");
-                        }
-                    }
                 }
 
                 // ---- 7.5. JURNAL ----
@@ -1286,9 +1292,7 @@ class SuratJalanController extends Controller
         )));
 
         if (! empty($soIdsToCheck)) {
-            $soRemainRows = DB::table('trsodt')
-                ->whereIn('ftrsodtid', $soIdsToCheck)
-                ->pluck('fqtyremain', 'ftrsodtid');
+            $soRemainRows = $this->getSoRemainByIds($soIdsToCheck);
 
             $soRemainErrors = [];
             foreach ($soUsageByDetailId as $soDetailId => $usedQtyKecil) {
@@ -1383,18 +1387,6 @@ class SuratJalanController extends Controller
                 }
                 unset($r);
 
-                DB::table('trstockdt')->insert($rowsDt);
-
-                // UPDATE STOK - gunakan qtyKecil hasil konversi, bukan qty mentah
-                foreach ($rowsDt as $row) {
-                    DB::table('msprd')
-                        ->where('fprdcode', $row['fprdcode'])
-                        ->update([
-                            'fminstock' => DB::raw('CAST(fminstock AS NUMERIC) - '.$row['fqtyremain']),
-                            'fupdatedat' => now(),
-                        ]);
-                }
-
                 // Kembalikan dulu pemakaian SO lama saat edit
                 foreach ($oldSoUsageByDetailId as $soDetailId => $oldQtyKecil) {
                     DB::table('trsodt')
@@ -1406,17 +1398,37 @@ class SuratJalanController extends Controller
 
                 // Kurangi kembali sesuai detail terbaru
                 if (! empty($soUsageByDetailId)) {
-                    $lockedRemainRows = DB::table('trsodt')
+                    DB::table('trsodt')
                         ->whereIn('ftrsodtid', array_keys($soUsageByDetailId))
                         ->lockForUpdate()
-                        ->pluck('fqtyremain', 'ftrsodtid');
+                        ->get();
+
+                    $lockedRemainRows = $this->getSoRemainByIds(array_keys($soUsageByDetailId));
 
                     foreach ($soUsageByDetailId as $soDetailId => $usedQtyKecil) {
-                        $remain = (float) ($dynamicRemainRows[$soDetailId] ?? 0) + (float) ($oldSoUsageByDetailId[$soDetailId] ?? 0);
+                        $remain = (float) ($lockedRemainRows[$soDetailId] ?? 0);
                         if ($usedQtyKecil - $remain > 0.00001) {
                             throw new \RuntimeException("Qty SO detail #{$soDetailId} melebihi sisa.");
                         }
+
+                        DB::table('trsodt')
+                            ->where('ftrsodtid', $soDetailId)
+                            ->update([
+                                'fqtyremain' => DB::raw('GREATEST(COALESCE(fqtyremain,0) - '.(float) $usedQtyKecil.', 0)'),
+                            ]);
                     }
+                }
+
+                DB::table('trstockdt')->insert($rowsDt);
+
+                // UPDATE STOK - gunakan qtyKecil hasil konversi, bukan qty mentah
+                foreach ($rowsDt as $row) {
+                    DB::table('msprd')
+                        ->where('fprdcode', $row['fprdcode'])
+                        ->update([
+                            'fminstock' => DB::raw('CAST(fminstock AS NUMERIC) - '.$row['fqtyremain']),
+                            'fupdatedat' => now(),
+                        ]);
                 }
 
                 // ---- 6.4. JURNAL ----
@@ -1719,6 +1731,81 @@ class SuratJalanController extends Controller
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
             return redirect()->route('suratjalan.delete', $fstockmtid)->with('error', 'Gagal menghapus data: '.$e->getMessage());
         }
+    }
+
+    /**
+     * Hitung sisa qty SO dinamis dalam satuan kecil per detail SO.
+     *
+     * @param  array<int, int|string>  $soDetailIds
+     * @return array<int, float>
+     */
+    private function getSoRemainByIds(array $soDetailIds): array
+    {
+        $ids = collect($soDetailIds)
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn ($id) => $id > 0)
+            ->unique()
+            ->values()
+            ->all();
+
+        if (empty($ids)) {
+            return [];
+        }
+
+        $srjUsed = DB::table('trstockdt')
+            ->selectRaw('CAST(frefsoid AS BIGINT) AS detail_id, SUM(COALESCE(fqtykecil, 0)) AS used_kecil')
+            ->whereNotNull('frefsoid')
+            ->whereIn(DB::raw('CAST(frefsoid AS BIGINT)'), $ids)
+            ->groupBy(DB::raw('CAST(frefsoid AS BIGINT)'));
+
+        $salesUsed = DB::table('trandt')
+            ->selectRaw('CAST(frefsoid AS BIGINT) AS detail_id, SUM(COALESCE(fqtykecil, 0)) AS used_kecil')
+            ->whereNotNull('frefsoid')
+            ->whereIn(DB::raw('CAST(frefsoid AS BIGINT)'), $ids)
+            ->groupBy(DB::raw('CAST(frefsoid AS BIGINT)'));
+
+        return DB::table('trsodt as d')
+            ->leftJoinSub($srjUsed, 'srj', fn ($join) => $join->on('srj.detail_id', '=', 'd.ftrsodtid'))
+            ->leftJoinSub($salesUsed, 'sale', fn ($join) => $join->on('sale.detail_id', '=', 'd.ftrsodtid'))
+            ->whereIn('d.ftrsodtid', $ids)
+            ->selectRaw('d.ftrsodtid, GREATEST(COALESCE(d.fqtykecil, 0) - COALESCE(srj.used_kecil, 0) - COALESCE(sale.used_kecil, 0), 0) AS remain_kecil')
+            ->pluck('remain_kecil', 'd.ftrsodtid')
+            ->map(fn ($value) => (float) $value)
+            ->all();
+    }
+
+    /**
+     * Hitung sisa qty SRJ dinamis dalam satuan kecil per detail SRJ.
+     *
+     * @param  array<int, int|string>  $srjDetailIds
+     * @return array<int, float>
+     */
+    private function getSrjRemainByIds(array $srjDetailIds): array
+    {
+        $ids = collect($srjDetailIds)
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn ($id) => $id > 0)
+            ->unique()
+            ->values()
+            ->all();
+
+        if (empty($ids)) {
+            return [];
+        }
+
+        $salesUsed = DB::table('trandt')
+            ->selectRaw('CAST(frefsrjid AS BIGINT) AS detail_id, SUM(COALESCE(fqtykecil, 0)) AS used_kecil')
+            ->whereNotNull('frefsrjid')
+            ->whereIn(DB::raw('CAST(frefsrjid AS BIGINT)'), $ids)
+            ->groupBy(DB::raw('CAST(frefsrjid AS BIGINT)'));
+
+        return DB::table('trstockdt as d')
+            ->leftJoinSub($salesUsed, 'sale', fn ($join) => $join->on('sale.detail_id', '=', 'd.fstockdtid'))
+            ->whereIn('d.fstockdtid', $ids)
+            ->selectRaw('d.fstockdtid, GREATEST(COALESCE(d.fqtykecil, 0) - COALESCE(sale.used_kecil, 0), 0) AS remain_kecil')
+            ->pluck('remain_kecil', 'd.fstockdtid')
+            ->map(fn ($value) => (float) $value)
+            ->all();
     }
 
     private function getUsageLockMessage(PenerimaanPembelianHeader $header): ?string

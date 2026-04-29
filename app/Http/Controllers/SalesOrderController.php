@@ -707,7 +707,7 @@ class SalesOrderController extends Controller
         $fbranchcode = $branch->fcabangkode ?? (string) $raw;   // hidden post
 
         $salesorder = SalesOrderHeader::with(['customer', 'details' => function ($q) {
-            $q->orderBy('ftrsomtid')
+            $q->orderBy('trsodt.ftrsodtid')
                 ->leftJoin('msprd', function ($j) {
                     $j->on('msprd.fprdid', '=', DB::raw('CAST(trsodt.fprdcodeid AS INTEGER)'));
                 })
@@ -825,7 +825,7 @@ class SalesOrderController extends Controller
         $fbranchcode = $branch->fcabangkode ?? (string) $raw;
 
         $salesorder = SalesOrderHeader::with(['customer', 'details' => function ($q) {
-            $q->orderBy('ftrsomtid')
+            $q->orderBy('trsodt.ftrsodtid')
                 ->leftJoin('msprd', function ($j) {
                     $j->on('msprd.fprdid', '=', DB::raw('CAST(trsodt.fprdcodeid AS INTEGER)'));
                 })
@@ -1154,7 +1154,7 @@ class SalesOrderController extends Controller
         $fbranchcode = $branch->fcabangkode ?? (string) $raw;   // hidden post
 
         $salesorder = SalesOrderHeader::with(['customer', 'details' => function ($q) { // TAMBAHKAN 'customer' di sini
-            $q->orderBy('ftrsomtid')
+            $q->orderBy('trsodt.ftrsodtid')
                 ->leftJoin('msprd', function ($j) {
                     $j->on('msprd.fprdid', '=', DB::raw('CAST(trsodt.fprdcodeid AS INTEGER)'));
                 })
@@ -1261,6 +1261,47 @@ class SalesOrderController extends Controller
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
             return redirect()->route('salesorder.delete', $ftrsomtid)->with('error', 'Gakey: gal menghapus data: '.$e->getMessage());
         }
+    }
+
+    /**
+     * Hitung sisa qty SO dinamis dalam satuan kecil per detail SO.
+     *
+     * @param  array<int, int|string>  $soDetailIds
+     * @return array<int, float>
+     */
+    private function getSoRemainByIds(array $soDetailIds): array
+    {
+        $ids = collect($soDetailIds)
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn ($id) => $id > 0)
+            ->unique()
+            ->values()
+            ->all();
+
+        if (empty($ids)) {
+            return [];
+        }
+
+        $srjUsed = DB::table('trstockdt')
+            ->selectRaw('CAST(frefsoid AS BIGINT) AS detail_id, SUM(COALESCE(fqtykecil, 0)) AS used_kecil')
+            ->whereNotNull('frefsoid')
+            ->whereIn(DB::raw('CAST(frefsoid AS BIGINT)'), $ids)
+            ->groupBy(DB::raw('CAST(frefsoid AS BIGINT)'));
+
+        $salesUsed = DB::table('trandt')
+            ->selectRaw('CAST(frefsoid AS BIGINT) AS detail_id, SUM(COALESCE(fqtykecil, 0)) AS used_kecil')
+            ->whereNotNull('frefsoid')
+            ->whereIn(DB::raw('CAST(frefsoid AS BIGINT)'), $ids)
+            ->groupBy(DB::raw('CAST(frefsoid AS BIGINT)'));
+
+        return DB::table('trsodt as d')
+            ->leftJoinSub($srjUsed, 'srj', fn ($join) => $join->on('srj.detail_id', '=', 'd.ftrsodtid'))
+            ->leftJoinSub($salesUsed, 'sale', fn ($join) => $join->on('sale.detail_id', '=', 'd.ftrsodtid'))
+            ->whereIn('d.ftrsodtid', $ids)
+            ->selectRaw('d.ftrsodtid, GREATEST(COALESCE(d.fqtykecil, 0) - COALESCE(srj.used_kecil, 0) - COALESCE(sale.used_kecil, 0), 0) AS remain_kecil')
+            ->pluck('remain_kecil', 'd.ftrsodtid')
+            ->map(fn ($value) => (float) $value)
+            ->all();
     }
 
     private function getUsageLockMessage($header): ?string
