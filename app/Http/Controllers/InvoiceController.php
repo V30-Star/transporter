@@ -744,23 +744,9 @@ class InvoiceController extends Controller
             return [];
         }
 
-        $srjUsed = DB::table('trstockdt')
-            ->selectRaw('CAST(frefsoid AS BIGINT) AS detail_id, SUM(COALESCE(fqtykecil, 0)) AS used_kecil')
-            ->whereNotNull('frefsoid')
-            ->whereIn(DB::raw('CAST(frefsoid AS BIGINT)'), $ids)
-            ->groupBy(DB::raw('CAST(frefsoid AS BIGINT)'));
-
-        $salesUsed = DB::table('trandt')
-            ->selectRaw('CAST(frefsoid AS BIGINT) AS detail_id, SUM(COALESCE(fqtykecil, 0)) AS used_kecil')
-            ->whereNotNull('frefsoid')
-            ->whereIn(DB::raw('CAST(frefsoid AS BIGINT)'), $ids)
-            ->groupBy(DB::raw('CAST(frefsoid AS BIGINT)'));
-
         return DB::table('trsodt as d')
-            ->leftJoinSub($srjUsed, 'srj', fn($join) => $join->on('srj.detail_id', '=', 'd.ftrsodtid'))
-            ->leftJoinSub($salesUsed, 'sale', fn($join) => $join->on('sale.detail_id', '=', 'd.ftrsodtid'))
             ->whereIn('d.ftrsodtid', $ids)
-            ->selectRaw('d.ftrsodtid, GREATEST(COALESCE(d.fqtykecil, 0) - COALESCE(srj.used_kecil, 0) - COALESCE(sale.used_kecil, 0), 0) AS remain_kecil')
+            ->selectRaw('d.ftrsodtid, GREATEST(COALESCE(d.fqtykecil, 0), 0) AS remain_kecil')
             ->pluck('remain_kecil', 'd.ftrsodtid')
             ->map(fn($value) => (float) $value)
             ->all();
@@ -835,7 +821,7 @@ class InvoiceController extends Controller
         $usageLockMessage = $this->getUsageLockMessage($invoice);
 
         // For UI qty validation on edit: allow user to increase qty up to
-        // (SO/SRJ sisa after restore), i.e. current DB fqtyremain + qty already in this invoice line.
+        // (SO/SRJ sisa after restore), i.e. current DB qty available + qty already in this invoice line.
         $soDetailIds = $invoice->details
             ->pluck('frefsoid')
             ->filter(fn ($v) => is_numeric($v) && (int) $v > 0)
@@ -882,7 +868,7 @@ class InvoiceController extends Controller
                 $remainDb = (float) ($srjRemainRows[(int) $d->frefsrjid] ?? 0);
             }
 
-            $fqtyremain = max(0.0, $remainDb + $usedQtyKecil);
+            $maxqty = max(0.0, $remainDb + $usedQtyKecil);
 
             return [
                 'uid' => $d->ftrandtid,
@@ -908,7 +894,8 @@ class InvoiceController extends Controller
                 'fsono_ref' => trim($d->fsono_ref ?? ''),
                 'fstockno_ref' => trim($d->fstockno_ref ?? ''),
                 'fketdt' => (string) ($d->fketdt ?? ''),
-                'fqtyremain' => $fqtyremain,
+                'fqtyremain' => $maxqty,
+                'maxqty' => $maxqty,
             ];
         })->values();
         $selectedSupplierCode = $invoice->fsupplier;
@@ -1353,7 +1340,7 @@ class InvoiceController extends Controller
 
                 foreach ($oldSoUsageByDetailId as $detailId => $oldQty) {
                     DB::table('trsodt')->where('ftrsodtid', $detailId)->update([
-                        'fqtyremain' => DB::raw('COALESCE(fqtyremain,0) + '.(float) $oldQty),
+                        'fqtykecil' => DB::raw('COALESCE(fqtykecil,0) + '.(float) $oldQty),
                     ]);
                 }
                 foreach ($oldSrjUsageByDetailId as $detailId => $oldQty) {
@@ -1380,7 +1367,7 @@ class InvoiceController extends Controller
                 if (! empty($soUsageByDetailId)) {
                     $dynamicRemainRows = $this->getSoRemainByIds(array_keys($soUsageByDetailId));
                     foreach ($soUsageByDetailId as $detailId => $usedQty) {
-                        $remain = (float) ($dynamicRemainRows[$detailId] ?? 0) + (float) ($oldSoUsageByDetailId[$detailId] ?? 0);
+                        $remain = (float) ($dynamicRemainRows[$detailId] ?? 0);
                         if ($usedQty - $remain > 0.00001) {
                             throw new \RuntimeException("Qty SO detail #{$detailId} melebihi sisa.");
                         }
@@ -1549,7 +1536,7 @@ class InvoiceController extends Controller
                     DB::table('trsodt')
                         ->where('ftrsodtid', $detailId)
                         ->update([
-                            'fqtyremain' => DB::raw('COALESCE(fqtyremain,0) + '.$qtyKecil),
+                            'fqtykecil' => DB::raw('COALESCE(fqtykecil,0) + '.$qtyKecil),
                         ]);
                 }
 

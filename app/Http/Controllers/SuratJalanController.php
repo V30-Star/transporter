@@ -684,7 +684,7 @@ class SuratJalanController extends Controller
                 }
                 unset($r);
 
-                // Kurangi sisa qty SO (trsodt.fqtyremain) untuk item hasil Add SO
+                // Kurangi sisa qty SO (trsodt.fqtykecil) untuk item hasil Add SO
                 if (! empty($soUsageByDetailId)) {
                     DB::table('trsodt')
                         ->whereIn('ftrsodtid', array_keys($soUsageByDetailId))
@@ -702,7 +702,7 @@ class SuratJalanController extends Controller
                         DB::table('trsodt')
                             ->where('ftrsodtid', $soDetailId)
                             ->update([
-                                'fqtyremain' => DB::raw('GREATEST(COALESCE(fqtyremain,0) - '.(float) $usedQtyKecil.', 0)'),
+                                'fqtykecil' => DB::raw('GREATEST(COALESCE(fqtykecil,0) - '.(float) $usedQtyKecil.', 0)'),
                             ]);
                     }
                 }
@@ -905,6 +905,7 @@ class SuratJalanController extends Controller
                 'fnoacak' => (string) ($d->fnoacak ?? ''),
                 'frefnoacak' => (string) ($d->frefnoacak ?? ''),
                 'fqtyremain' => $d->frefsoid ? max(0, (float) ($soRemainMap[(int) $d->frefsoid] ?? 0) + (float) ($oldUsageBySo[(int) $d->frefsoid] ?? 0)) : 0,
+                'maxqty' => $d->frefsoid ? max(0, (float) ($soRemainMap[(int) $d->frefsoid] ?? 0) + (float) ($oldUsageBySo[(int) $d->frefsoid] ?? 0)) : 0,
                 'fketdt' => $d->fketdt ?? '',
                 'units' => [],
             ];
@@ -1038,6 +1039,7 @@ class SuratJalanController extends Controller
                 'fnoacak' => (string) ($d->fnoacak ?? ''),
                 'frefnoacak' => (string) ($d->frefnoacak ?? ''),
                 'fqtyremain' => $d->frefsoid ? max(0, (float) ($soRemainMap[(int) $d->frefsoid] ?? 0) + (float) ($oldUsageBySo[(int) $d->frefsoid] ?? 0)) : 0,
+                'maxqty' => $d->frefsoid ? max(0, (float) ($soRemainMap[(int) $d->frefsoid] ?? 0) + (float) ($oldUsageBySo[(int) $d->frefsoid] ?? 0)) : 0,
                 'fketdt' => $d->fketdt ?? '',
                 'units' => [],
             ];
@@ -1392,7 +1394,7 @@ class SuratJalanController extends Controller
                     DB::table('trsodt')
                         ->where('ftrsodtid', $soDetailId)
                         ->update([
-                            'fqtyremain' => DB::raw('COALESCE(fqtyremain,0) + '.(float) $oldQtyKecil),
+                            'fqtykecil' => DB::raw('COALESCE(fqtykecil,0) + '.(float) $oldQtyKecil),
                         ]);
                 }
 
@@ -1414,7 +1416,7 @@ class SuratJalanController extends Controller
                         DB::table('trsodt')
                             ->where('ftrsodtid', $soDetailId)
                             ->update([
-                                'fqtyremain' => DB::raw('GREATEST(COALESCE(fqtyremain,0) - '.(float) $usedQtyKecil.', 0)'),
+                                'fqtykecil' => DB::raw('GREATEST(COALESCE(fqtykecil,0) - '.(float) $usedQtyKecil.', 0)'),
                             ]);
                     }
                 }
@@ -1639,6 +1641,7 @@ class SuratJalanController extends Controller
                 'fnoacak' => (string) ($d->fnoacak ?? ''),
                 'frefnoacak' => (string) ($d->frefnoacak ?? ''),
                 'fqtyremain' => $d->frefsoid ? max(0, (float) ($soRemainMap[(int) $d->frefsoid] ?? 0) + (float) ($oldUsageBySo[(int) $d->frefsoid] ?? 0)) : 0,
+                'maxqty' => $d->frefsoid ? max(0, (float) ($soRemainMap[(int) $d->frefsoid] ?? 0) + (float) ($oldUsageBySo[(int) $d->frefsoid] ?? 0)) : 0,
                 'fketdt' => $d->fketdt ?? '',
                 'units' => [],
             ];
@@ -1715,7 +1718,7 @@ class SuratJalanController extends Controller
                     DB::table('trsodt')
                         ->where('ftrsodtid', $detailId)
                         ->update([
-                            'fqtyremain' => DB::raw('COALESCE(fqtyremain,0) + '.$qtyKecil),
+                            'fqtykecil' => DB::raw('COALESCE(fqtykecil,0) + '.$qtyKecil),
                         ]);
                 }
 
@@ -1752,23 +1755,9 @@ class SuratJalanController extends Controller
             return [];
         }
 
-        $srjUsed = DB::table('trstockdt')
-            ->selectRaw('CAST(frefsoid AS BIGINT) AS detail_id, SUM(COALESCE(fqtykecil, 0)) AS used_kecil')
-            ->whereNotNull('frefsoid')
-            ->whereIn(DB::raw('CAST(frefsoid AS BIGINT)'), $ids)
-            ->groupBy(DB::raw('CAST(frefsoid AS BIGINT)'));
-
-        $salesUsed = DB::table('trandt')
-            ->selectRaw('CAST(frefsoid AS BIGINT) AS detail_id, SUM(COALESCE(fqtykecil, 0)) AS used_kecil')
-            ->whereNotNull('frefsoid')
-            ->whereIn(DB::raw('CAST(frefsoid AS BIGINT)'), $ids)
-            ->groupBy(DB::raw('CAST(frefsoid AS BIGINT)'));
-
         return DB::table('trsodt as d')
-            ->leftJoinSub($srjUsed, 'srj', fn ($join) => $join->on('srj.detail_id', '=', 'd.ftrsodtid'))
-            ->leftJoinSub($salesUsed, 'sale', fn ($join) => $join->on('sale.detail_id', '=', 'd.ftrsodtid'))
             ->whereIn('d.ftrsodtid', $ids)
-            ->selectRaw('d.ftrsodtid, GREATEST(COALESCE(d.fqtykecil, 0) - COALESCE(srj.used_kecil, 0) - COALESCE(sale.used_kecil, 0), 0) AS remain_kecil')
+            ->selectRaw('d.ftrsodtid, GREATEST(COALESCE(d.fqtykecil, 0), 0) AS remain_kecil')
             ->pluck('remain_kecil', 'd.ftrsodtid')
             ->map(fn ($value) => (float) $value)
             ->all();

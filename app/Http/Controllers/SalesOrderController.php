@@ -853,7 +853,7 @@ class SalesOrderController extends Controller
                 'fnoacak' => (string) ($d->fnoacak ?? ''),
                 'frefdtno' => (string) ($d->ftrsodtid ?? ''),
                 'fqty' => (float) ($d->fqty ?? 0),
-                'fqtyremain' => (float) ($d->fqtyremain ?? 0),
+                'fqtyremain' => (float) ($soRemainMap[(int) ($d->ftrsodtid ?? 0)] ?? 0),
                 'fterima' => (float) ($d->fterima ?? 0),
                 'fprice' => (float) ($d->fprice ?? 0),
                 'fdisc' => (float) ($d->fdiscpersen ?? 0),
@@ -1282,23 +1282,9 @@ class SalesOrderController extends Controller
             return [];
         }
 
-        $srjUsed = DB::table('trstockdt')
-            ->selectRaw('CAST(frefsoid AS BIGINT) AS detail_id, SUM(COALESCE(fqtykecil, 0)) AS used_kecil')
-            ->whereNotNull('frefsoid')
-            ->whereIn(DB::raw('CAST(frefsoid AS BIGINT)'), $ids)
-            ->groupBy(DB::raw('CAST(frefsoid AS BIGINT)'));
-
-        $salesUsed = DB::table('trandt')
-            ->selectRaw('CAST(frefsoid AS BIGINT) AS detail_id, SUM(COALESCE(fqtykecil, 0)) AS used_kecil')
-            ->whereNotNull('frefsoid')
-            ->whereIn(DB::raw('CAST(frefsoid AS BIGINT)'), $ids)
-            ->groupBy(DB::raw('CAST(frefsoid AS BIGINT)'));
-
         return DB::table('trsodt as d')
-            ->leftJoinSub($srjUsed, 'srj', fn ($join) => $join->on('srj.detail_id', '=', 'd.ftrsodtid'))
-            ->leftJoinSub($salesUsed, 'sale', fn ($join) => $join->on('sale.detail_id', '=', 'd.ftrsodtid'))
             ->whereIn('d.ftrsodtid', $ids)
-            ->selectRaw('d.ftrsodtid, GREATEST(COALESCE(d.fqtykecil, 0) - COALESCE(srj.used_kecil, 0) - COALESCE(sale.used_kecil, 0), 0) AS remain_kecil')
+            ->selectRaw('d.ftrsodtid, GREATEST(COALESCE(d.fqtykecil, 0), 0) AS remain_kecil')
             ->pluck('remain_kecil', 'd.ftrsodtid')
             ->map(fn ($value) => (float) $value)
             ->all();

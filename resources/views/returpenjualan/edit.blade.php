@@ -2599,7 +2599,7 @@
 
             formatStockLimit(code, qty, satuan) {
                 // On Retur Penjualan Edit: do not show/compute stock/max qty limit.
-                // Qty limiting is handled only by fqtyremain validation (if present on the row).
+                // Qty limiting is handled only by reference max qty validation (if present on the row).
                 return '';
             },
 
@@ -2612,8 +2612,8 @@
                 }
                 if (n < 1) row.fqty = 1;
 
-                // Keep only fqtyremain validation on edit.
-                const remain = Number(row.fqtyremain ?? 0);
+                // Keep only reference max qty validation on edit.
+                const remain = Number(row.maxqty ?? row.fqtyremain ?? 0);
                 if (Number.isFinite(remain) && remain > 0 && n > remain) {
                     row.fqty = remain;
                 }
@@ -2760,7 +2760,7 @@
                         fketdt: src.fketdt ? src.fketdt.toString().trim() : '',
                         units: meta ? [...new Set((meta.units || []).map(u => (u ?? '').toString().trim())
                             .filter(Boolean))] : [satuan].filter(Boolean),
-                        maxqty: Math.max(0, Number(src.fqtyremain ?? src.fqty ?? 0)),
+                        maxqty: Math.max(0, Number(src.maxqty ?? src.fqtyremain ?? src.fqty ?? 0)),
                     };
 
                     row.ftotal = Number((row.fqty * row.fprice).toFixed(2));
@@ -2997,13 +2997,12 @@
                 frefnoacak: '',
                 fqty: 0,
                 fterima: 0,
-                fqtyremain: 0,
+                maxqty: 0,
                 fprice: 0,
                 fdisc: 0,
                 ftotal: 0,
                 fdesc: '',
                 fketdt: '',
-                maxqty: 0,
             };
         }
 
