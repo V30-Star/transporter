@@ -396,7 +396,7 @@
                                         <input type="hidden" name="frefdtid[]" :value="it.frefdtid">
                                         <input type="hidden" name="fnouref[]" :value="it.fnouref">
                                         <input type="hidden" name="fnoacak[]" :value="it.fnoacak">
-                                        <input type="hidden" name="fnourefacak[]" :value="it.fnourefacak">
+                                        <input type="hidden" name="frefnoacak[]" :value="it.frefnoacak">
                                         <input type="hidden" name="frefpr[]" :value="it.frefpr">
                                         <input type="hidden" name="fprhid[]" :value="it.fprhid">
                                         <input type="hidden" name="fqty[]" :value="it.fqty">
@@ -905,7 +905,7 @@
                 frefdtno: '',
                 fnouref: '',
                 fnoacak: '',
-                fnourefacak: '',
+                frefnoacak: '',
                 frefpr: '',
                 fprhid: '',
                 fprno: '',
@@ -1226,7 +1226,7 @@
                 this.savedItems.push({
                     ...r,
                     fnoacak: this.normalizeNoAcak(r.fnoacak) || this.generateUniqueNoAcak(),
-                    fnourefacak: this.normalizeNoAcak(r.fnourefacak),
+                    frefnoacak: this.normalizeNoAcak(r.frefnoacak),
                     uid: cryptoRandom()
                 });
                 this.showNoItems = false;
@@ -1290,7 +1290,7 @@
                         frefdtno: src.frefdtno ?? '',
                         fnouref: src.fnouref ?? '',
                         fnoacak: this.generateUniqueNoAcak(),
-                        fnourefacak: this.normalizeNoAcak(src.fnourefacak ?? src.fnoacak ?? ''),
+                        frefnoacak: this.normalizeNoAcak(src.frefnoacak ?? src.fnoacak ?? ''),
                         frefpr: String(header?.fprhid ?? src.fprhid ?? ''),
                         fprhid: String(src.fprhid ?? header?.fprhid ?? ''),
                         fprno: String(header?.fprno ?? src.fprno ?? ''),

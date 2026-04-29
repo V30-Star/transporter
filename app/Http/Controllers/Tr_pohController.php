@@ -242,7 +242,7 @@ class Tr_pohController extends Controller
                 DB::raw('0::numeric as fdisc'),
                 DB::raw('d.fprno::text as fnouref'),
                 DB::raw('d.fprdid::text as frefdtid'),
-                DB::raw("COALESCE(d.fnoacak::text, '') as fnourefacak"),
+                DB::raw("COALESCE(d.fnoacak::text, '') as frefnoacak"),
                 'm.fsatuankecil',
                 'm.fsatuanbesar',
                 'm.fsatuanbesar2',
@@ -280,7 +280,7 @@ class Tr_pohController extends Controller
                     'fdisc' => 0,
                     'fnouref' => $item->fnouref,
                     'frefdtid' => $item->frefdtid,
-                    'fnourefacak' => (string) ($item->fnourefacak ?? ''),
+                    'frefnoacak' => (string) ($item->frefnoacak ?? ''),
                     'fqtypo' => $fqtypo,
                     'fqtykecil_ref' => $sisaKecil,
                     'fqtyremain' => $sisaKecil,
@@ -649,8 +649,8 @@ class Tr_pohController extends Controller
 
             'fnoacak' => ['nullable', 'array'],
             'fnoacak.*' => ['nullable', 'regex:/^[1-9]{3}$/'],
-            'fnourefacak' => ['nullable', 'array'],
-            'fnourefacak.*' => ['nullable', 'regex:/^\d{3}$/'],
+            'frefnoacak' => ['nullable', 'array'],
+            'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
 
             'fqty' => ['required', 'array'],
             'fqty.*' => ['numeric', 'gt:0', 'min:0'],
@@ -674,7 +674,7 @@ class Tr_pohController extends Controller
             'fitemcode.required' => 'Minimal 1 item.',
             'fqty.*.gt' => 'Harap hapus data atau isi qty data pada detail item (Qty tidak boleh 0).',
             'fnoacak.*.regex' => 'No acak PO harus terdiri dari 3 digit angka 1-9 tanpa 0.',
-            'fnourefacak.*.regex' => 'No referensi acak harus terdiri dari 3 digit angka.',
+            'frefnoacak.*.regex' => 'No referensi acak harus terdiri dari 3 digit angka.',
         ]);
 
         // HEADER VALUES
@@ -692,7 +692,7 @@ class Tr_pohController extends Controller
         $refdtno = $request->input('frefdtno', []);
         $frefdtids = $request->input('frefdtid', []);
         $fnoacaks = $request->input('fnoacak', []);
-        $fnourefacaks = $request->input('fnourefacak', []);
+        $frefnoacaks = $request->input('frefnoacak', []);
         $qtys = $request->input('fqty', []);
         $prices = $request->input('fprice', []);
         $discs = $request->input('fdisc', []);
@@ -729,7 +729,7 @@ class Tr_pohController extends Controller
         // BUILD DETAIL ROWS (use fprdid, not fprdid)
         $rowsPod = [];
         $totalHarga = 0.0; // recompute to be safe
-        $rowCount = max(count($codes), count($satuans), count($refdtno), count($frefdtids), count($fnoacaks), count($fnourefacaks), count($qtys), count($prices), count($discs), count($refprs), count($descs));
+        $rowCount = max(count($codes), count($satuans), count($refdtno), count($frefdtids), count($fnoacaks), count($frefnoacaks), count($qtys), count($prices), count($discs), count($refprs), count($descs));
         $usedNoAcaks = [];
 
         for ($i = 0; $i < $rowCount; $i++) {
@@ -742,7 +742,7 @@ class Tr_pohController extends Controller
             $desc = (string) ($descs[$i] ?? '');
             $frefdtid = (int) ($frefdtids[$i] ?? 0);
             $fnoacak = $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks);
-            $fnourefacak = $this->normalizeReferenceRandomNumber($fnourefacaks[$i] ?? null, $frefdtid > 0);
+            $frefnoacak = $this->normalizeReferenceRandomNumber($frefnoacaks[$i] ?? null, $frefdtid > 0);
 
             if ($code === '' || $qty <= 0) {
                 continue;
@@ -794,7 +794,7 @@ class Tr_pohController extends Controller
                 'fqtyremain' => $qtyKecil,
                 'frefdtid' => $frefdtid ?: null,
                 'fnoacak' => $fnoacak,
-                'fnourefacak' => $fnourefacak,
+                'frefnoacak' => $frefnoacak,
             ];
         }
 
@@ -1112,7 +1112,7 @@ class Tr_pohController extends Controller
                 'fketdt' => (string) ($d->fketdt ?? ''),
                 'frefdtid' => (string) ($d->frefdtid ?? ''), // PASTIKAN INI ADA
                 'fnoacak' => (string) ($d->fnoacak ?? ''),
-                'fnourefacak' => (string) ($d->fnourefacak ?? ''),
+                'frefnoacak' => (string) ($d->frefnoacak ?? ''),
                 // Data konversi untuk JavaScript
                 'fqtypo' => (float) ($d->fqtypo ?? 0),
                 'fqtykecil_ref' => $sisaKecil,
@@ -1294,8 +1294,8 @@ class Tr_pohController extends Controller
             'frefdtno.*' => ['nullable'],
             'fnoacak' => ['nullable', 'array'],
             'fnoacak.*' => ['nullable', 'regex:/^[1-9]{3}$/'],
-            'fnourefacak' => ['nullable', 'array'],
-            'fnourefacak.*' => ['nullable', 'regex:/^\d{3}$/'],
+            'frefnoacak' => ['nullable', 'array'],
+            'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
             'fqty' => ['required', 'array'],
             'fqty.*' => ['numeric', 'min:0', 'gt:0'],
             'fprice' => ['nullable', 'array'],
@@ -1313,7 +1313,7 @@ class Tr_pohController extends Controller
             'fitemcode.required' => 'Minimal 1 item.',
             'fqty.*.gt' => 'Harap hapus data atau isi qty data pada detail item (Qty tidak boleh 0).',
             'fnoacak.*.regex' => 'No acak PO harus terdiri dari 3 digit angka 1-9 tanpa 0.',
-            'fnourefacak.*.regex' => 'No referensi acak harus terdiri dari 3 digit angka.',
+            'frefnoacak.*.regex' => 'No referensi acak harus terdiri dari 3 digit angka.',
         ]);
 
         $header = Tr_poh::where('fpohid', $fpohid)->firstOrFail();
@@ -1339,7 +1339,7 @@ class Tr_pohController extends Controller
         $refdtns = $request->input('frefdtno', []);
         $frefdtids = $request->input('frefdtid', []);
         $fnoacaks = $request->input('fnoacak', []);
-        $fnourefacaks = $request->input('fnourefacak', []);
+        $frefnoacaks = $request->input('frefnoacak', []);
         $qtys = $request->input('fqty', []);
         $prices = $request->input('fprice', []);
         $discs = $request->input('fdisc', []);
@@ -1385,7 +1385,7 @@ class Tr_pohController extends Controller
             count($refdtns),
             count($frefdtids),
             count($fnoacaks),
-            count($fnourefacaks),
+            count($frefnoacaks),
             count($qtys),
             count($prices),
             count($discs),
@@ -1404,7 +1404,7 @@ class Tr_pohController extends Controller
             $desc = (string) ($descs[$i] ?? '');
             $frefdtid = (int) ($frefdtids[$i] ?? 0);
             $fnoacak = $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks);
-            $fnourefacak = $this->normalizeReferenceRandomNumber($fnourefacaks[$i] ?? null, $frefdtid > 0);
+            $frefnoacak = $this->normalizeReferenceRandomNumber($frefnoacaks[$i] ?? null, $frefdtid > 0);
 
             if ($code === '' || $qty <= 0) {
                 continue;
@@ -1459,7 +1459,7 @@ class Tr_pohController extends Controller
                 'frefdtno' => $refdt,
                 'frefdtid' => $frefdtid ?: null,
                 'fnoacak' => $fnoacak,
-                'fnourefacak' => $fnourefacak,
+                'frefnoacak' => $frefnoacak,
             ];
         }
 
@@ -1705,7 +1705,7 @@ class Tr_pohController extends Controller
                 'frefdtid' => (string) ($d->frefdtid ?? ''),
                 'fnouref' => (string) ($d->fnouref ?? ''),
                 'fnoacak' => (string) ($d->fnoacak ?? ''),
-                'fnourefacak' => (string) ($d->fnourefacak ?? ''),
+                'frefnoacak' => (string) ($d->frefnoacak ?? ''),
                 'fqtyterima' => (float) ($d->fqtyterima ?? 0),
                 'frefpr' => (string) ($d->fprhid ?? ''),
                 'fprhid' => (string) ($d->fprhid ?? ''),
