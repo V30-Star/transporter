@@ -1555,11 +1555,7 @@
             },
 
             enforceQtyRow(row) {
-                if (row?.lockQty) {
-                    const lockedQty = Number(row.maxqty || 0);
-                    row.fqty = lockedQty;
-                    return;
-                }
+                if (row?.lockQty) return;
                 const n = +row.fqty;
                 const meta = this.productMeta(row.fitemcode);
                 const units = meta?.units || [];
@@ -1576,17 +1572,11 @@
                     ratio = ratios.satuanbesar;
                 }
                 
-                const maxStock = meta?.stock || 999999;
-                const maxInUnit = Math.floor(maxStock / ratio);
-                
                 if (!Number.isFinite(n)) {
                     row.fqty = 1;
                     return;
                 }
                 if (n < 1) row.fqty = 1;
-                if (maxInUnit > 0 && n > maxInUnit) {
-                    row.fqty = maxInUnit;
-                }
             },
 
             hydrateRowFromMeta(row, meta) {

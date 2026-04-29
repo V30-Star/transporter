@@ -1246,7 +1246,6 @@
                                                     <input type="number"
                                                         class="border rounded px-2 py-1 w-full text-right"
                                                         min="0"
-                                                        :max="(['PO','PB'].includes((it.fsource || '').toString().trim().toUpperCase()) ? Math.max(0, +(it.maxqty ?? 0) || 0) : null)"
                                                         x-model.number="it.fqty"
                                                         @focus="activeRow = it.uid; $event.target.select()"
                                                         @blur="activeRow = null; enforceQtyRow(it); recalc(it);"
@@ -2462,11 +2461,7 @@
                 },
 
                 enforceQtyRow(row) {
-                    if (row?.lockQty) {
-                        const lockedQty = Number(row.maxqty || 0);
-                        row.fqty = lockedQty;
-                        return;
-                    }
+                    if (row?.lockQty) return;
                     const n = +row.fqty;
                     const sourceType = (row?.fsource || '').toString().trim().toUpperCase();
                     const isSourceRow = ['PO', 'PB'].includes(sourceType);
@@ -2497,17 +2492,11 @@
                         ratio = ratios.satuanbesar;
                     }
 
-                    const maxStock = meta?.stock || 999999;
-                    const maxInUnit = Math.floor(maxStock / ratio);
-
                     if (!Number.isFinite(n)) {
                         row.fqty = 1;
                         return;
                     }
                     if (n < 1) row.fqty = 1;
-                    if (maxInUnit > 0 && n > maxInUnit) {
-                        row.fqty = maxInUnit;
-                    }
                 },
 
                 hydrateRowFromMeta(row, meta) {

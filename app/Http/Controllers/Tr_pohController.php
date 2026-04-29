@@ -411,8 +411,8 @@ class Tr_pohController extends Controller
     private function getPrRemainByDetailIds(array $prDetailIds): array
     {
         $ids = collect($prDetailIds)
-            ->map(fn($id) => (int) $id)
-            ->filter(fn($id) => $id > 0)
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn ($id) => $id > 0)
             ->unique()
             ->values()
             ->all();
@@ -421,11 +421,19 @@ class Tr_pohController extends Controller
             return [];
         }
 
+        $poUsageSub = DB::table('tr_pod')
+            ->selectRaw('CAST(frefdtid AS INTEGER) AS fprdid, SUM(COALESCE(fqtykecil, 0)) AS fqtykecilpo')
+            ->whereNotNull('frefdtid')
+            ->groupByRaw('CAST(frefdtid AS INTEGER)');
+
         return DB::table('tr_prd as d')
+            ->leftJoinSub($poUsageSub, 'po', function ($join) {
+                $join->on('po.fprdid', '=', 'd.fprdid');
+            })
             ->whereIn('d.fprdid', $ids)
-            ->selectRaw('d.fprdid, GREATEST(COALESCE(d.fqtykecil, 0), 0) AS remain_kecil')
+            ->selectRaw('d.fprdid, GREATEST(COALESCE(d.fqtykecil, 0) - COALESCE(po.fqtykecilpo, 0), 0) AS remain_kecil')
             ->pluck('remain_kecil', 'd.fprdid')
-            ->map(fn($value) => (float) $value)
+            ->map(fn ($value) => (float) $value)
             ->all();
     }
 
@@ -445,7 +453,71 @@ class Tr_pohController extends Controller
      */
     private function validatePrdRemain(array $aggregateByPrd, array $extraAvailableByPrd = []): void
     {
-        // Validasi batas sisa PR berdasarkan fqtykecil dinonaktifkan.
+        if (empty($aggregateByPrd)) {
+            return;
+        }
+
+        $prMetaMap = DB::table('tr_prd as d')
+            ->leftJoin('tr_prh as h', 'h.fprno', '=', 'd.fprno')
+            ->leftJoin('msprd as p', 'p.fprdcode', '=', 'd.fprdcode')
+            ->whereIn('d.fprdid', array_keys($aggregateByPrd))
+            ->get([
+                'd.fprdid',
+                'd.fprno',
+                'd.fprdcode',
+                'd.fsatuan',
+                'p.fsatuankecil',
+                'p.fsatuanbesar',
+                'p.fsatuanbesar2',
+                'p.fqtykecil',
+                'p.fqtykecil2',
+            ])
+            ->keyBy('fprdid');
+
+        $remainMap = $this->getPrRemainByDetailIds(array_keys($aggregateByPrd));
+        $tolerance = 0.00001;
+
+        foreach ($aggregateByPrd as $prDetailId => $qtyKecilNeed) {
+            $needKecil = (float) $qtyKecilNeed;
+            if ($needKecil <= 0) {
+                continue;
+            }
+
+            $remainKecil = (float) ($remainMap[(int) $prDetailId] ?? 0);
+            $extraKecil = (float) ($extraAvailableByPrd[(int) $prDetailId] ?? 0);
+            $availableKecil = $remainKecil + $extraKecil;
+
+            if ($needKecil > $availableKecil + $tolerance) {
+                $meta = $prMetaMap->get((int) $prDetailId);
+                $prNo = trim((string) ($meta->fprno ?? ''));
+                $prdCode = trim((string) ($meta->fprdcode ?? ''));
+                $satuan = trim((string) ($meta->fsatuan ?? ''));
+                $satBesar = trim((string) ($meta->fsatuanbesar ?? ''));
+                $satBesar2 = trim((string) ($meta->fsatuanbesar2 ?? ''));
+                $rasio = (float) ($meta->fqtykecil ?? 0);
+                $rasio2 = (float) ($meta->fqtykecil2 ?? 0);
+                $parts = array_filter([
+                    $prNo !== '' ? "PR {$prNo}" : null,
+                    $prdCode !== '' ? "Produk {$prdCode}" : null,
+                    "Detail ID {$prDetailId}",
+                ]);
+                $label = implode(' / ', $parts);
+                $availableInPrUnit = $availableKecil;
+                if ($satuan !== '' && strcasecmp($satuan, $satBesar) === 0 && $rasio > 0) {
+                    $availableInPrUnit = $availableKecil / $rasio;
+                } elseif ($satuan !== '' && strcasecmp($satuan, $satBesar2) === 0 && $rasio2 > 0) {
+                    $availableInPrUnit = $availableKecil / $rasio2;
+                }
+                $availableInPrUnitText = rtrim(rtrim(number_format($availableInPrUnit, 4, '.', ''), '0'), '.');
+                $availableKecilText = rtrim(rtrim(number_format($availableKecil, 4, '.', ''), '0'), '.');
+
+                throw new \RuntimeException(
+                    "Qty PR melebihi batas pada {$label}. Maksimal {$availableKecilText} dalam satuan kecil"
+                    .($satuan !== '' ? " atau {$availableInPrUnitText} {$satuan}" : '')
+                    .", berdasarkan total pemakaian PO."
+                );
+            }
+        }
     }
 
     private function generatetr_poh_Code(?Carbon $onDate = null, $branch = null): string
@@ -1453,42 +1525,14 @@ class Tr_pohController extends Controller
             ]);
         }
 
-        // Strict server-side guard untuk mode edit:
-        // qty baru tidak boleh melebihi (sisa PR saat ini + qty lama PO ini) per baris PR.
-        $prNeedByRef = [];
-        foreach ($rowsPod as $row) {
-            $refId = (int) ($row['frefdtid'] ?? 0);
-            if ($refId <= 0) {
-                continue;
-            }
-            $prNeedByRef[$refId] = ($prNeedByRef[$refId] ?? 0) + (float) ($row['fqtykecil'] ?? 0);
-        }
-
-        if (! empty($prNeedByRef)) {
-            $prRemainMap = $this->getPrRemainByDetailIds(array_keys($prNeedByRef));
-            $oldPods = DB::table('tr_pod')->where('fpono', $header->fpono)->get(['frefdtid', 'fqtykecil']);
-
-            $oldUsageByRef = [];
-            foreach ($oldPods as $oldPod) {
-                $oldRefId = (int) ($oldPod->frefdtid ?? 0);
-                if ($oldRefId <= 0) {
-                    continue;
-                }
-                $oldUsageByRef[$oldRefId] = ($oldUsageByRef[$oldRefId] ?? 0) + (float) ($oldPod->fqtykecil ?? 0);
-            }
-
-            foreach ($prNeedByRef as $fprdid => $needKecil) {
-                $remainKecil = (float) ($prRemainMap[$fprdid] ?? 0);
-                $availableKecil = $remainKecil + (float) ($oldUsageByRef[$fprdid] ?? 0);
-                if ($needKecil > $availableKecil + 1e-4) {
-                    return back()->withInput()->withErrors([
-                        'detail' => "Qty item PR melebihi batas yang diizinkan (ID {$fprdid}). Maks saat edit: {$availableKecil} (satuan kecil).",
-                    ]);
-                }
-            }
-        }
-
-        $oldUsageByRef = $oldUsageByRef ?? [];
+        $oldUsageByRef = DB::table('tr_pod')
+            ->where('fpono', $header->fpono)
+            ->whereNotNull('frefdtid')
+            ->selectRaw('CAST(frefdtid AS INTEGER) AS fprdid, SUM(COALESCE(fqtykecil, 0)) AS used_kecil')
+            ->groupByRaw('CAST(frefdtid AS INTEGER)')
+            ->pluck('used_kecil', 'fprdid')
+            ->map(fn ($value) => (float) $value)
+            ->all();
 
         $prdAgg = $this->aggregatePrdUsageByPrd($rowsPod);
 

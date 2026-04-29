@@ -907,7 +907,6 @@
                         }
 
                         r.fqtypo = Number.isFinite(+r.fqtypo) ? +r.fqtypo : 0;
-                        if (r.fqtypo > r.fqty) r.fqtypo = r.fqty;
                         r.fqty = this.sanitizeNumber(r.fqty, 1);
 
                         // pastikan ada ID:
@@ -1132,7 +1131,7 @@
                         it.fsatuan = r.fsatuan;
                         it.fqty = this.sanitizeNumber(r.fqty, 1);
                         it.fdesc = r.fdesc || '';
-                        it.fqtypo = Math.max(0, Math.min(this.sanitizeNumber(r.fqtypo, 0), it.fqty));
+                        it.fqtypo = Math.max(0, this.sanitizeNumber(r.fqtypo, 0));
                         it.fketdt = r.fketdt || '';
 
                         this.cancelEdit();
@@ -1175,7 +1174,7 @@
                                     row.fitemname = product.fprdname || row.fitemname || '';
                                 }
                                 // perbaiki qty
-                                row.fqtypo = Math.max(0, Math.min(this.sanitizeNumber(row.fqtypo, 0), row.fqty));
+                                row.fqtypo = Math.max(0, this.sanitizeNumber(row.fqtypo, 0));
                             };
 
                             if (this.browseTarget === 'edit') {

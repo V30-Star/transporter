@@ -313,13 +313,11 @@
                                             @blur="activeRow = null; enforceQtyRow(it);"
                                             @input="
                                                 recalc(it);
-                                                const mx = calcMaxQty(it);
-                                                if (it.frefdtid && mx > 0 && it.fqty > mx) { it.fqty = mx; recalc(it); }
+                                                calcMaxQty(it);
                                             "
                                             @change="
                                                 recalc(it);
-                                                const mx = calcMaxQty(it);
-                                                if (it.frefdtid && mx > 0 && it.fqty > mx) { it.fqty = mx; recalc(it); }
+                                                calcMaxQty(it);
                                             "
                                             @keydown.enter.prevent="focusSavedPrice(i)">
                                         <div class="text-[10px] text-orange-600 font-medium text-right mt-0.5"

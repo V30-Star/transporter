@@ -343,13 +343,11 @@
                                             @focus="activeRow = it.uid; $event.target.select()" @blur="activeRow = null; enforcePrQtyRow(it);"
                                             @input="
                                                 recalc(it);
-                                                const mx = calcMaxQty(it);
-                                                if (it.frefdtid && mx > 0 && it.fqty > mx) { it.fqty = mx; recalc(it); }
+                                                calcMaxQty(it);
                                             "
                                             @change="
                                                 recalc(it);
-                                                const mx = calcMaxQty(it);
-                                                if (it.frefdtid && mx > 0 && it.fqty > mx) { it.fqty = mx; recalc(it); }
+                                                calcMaxQty(it);
                                             "
                                             @keydown.enter.prevent="focusSavedPrice(i)">
                                         <div class="text-[10px] text-amber-700 font-medium text-right mt-0.5"
