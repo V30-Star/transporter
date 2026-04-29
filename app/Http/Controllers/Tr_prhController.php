@@ -947,7 +947,7 @@ class Tr_prhController extends Controller
                 'fitemname' => (string) ($detail->fprdname ?? ''),
                 'fsatuan' => (string) ($detail->fsatuan ?? ''),
                 'fqty' => (float) ($detail->fqty ?? 0),
-                'fqtypo' => (float) ($detail->fqtysisapr ?? $detail->fqtypo ?? 0),
+                'fqtypo' => (float) ($detail->fqtydipo ?? $detail->fqtypo ?? 0),
                 'fqtysisapr' => (float) ($detail->fqtysisapr ?? 0),
                 'fqtydipo' => (float) ($detail->fqtydipo ?? 0),
                 'fnoacak' => (string) ($detail->fnoacak ?? ''),

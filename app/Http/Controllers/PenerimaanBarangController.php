@@ -322,23 +322,7 @@ class PenerimaanBarangController extends Controller
      */
     private function adjustPoReferenceQtyKecil(array $usageByPod, int $direction): void
     {
-        foreach ($usageByPod as $fpodid => $qtyKecil) {
-            $fpodid = (int) $fpodid;
-            $qtyKecil = (float) $qtyKecil;
-
-            if ($fpodid <= 0 || $qtyKecil <= 0) {
-                continue;
-            }
-
-            $signedQty = $direction * $qtyKecil;
-
-            DB::table('tr_pod')
-                ->where('fpodid', $fpodid)
-                ->update([
-                    'fqtykecil' => DB::raw('GREATEST(COALESCE(fqtykecil, 0) + ('.$signedQty.'), 0)'),
-                    'fdatetime' => now(),
-                ]);
-        }
+        // Pemakaian PO dari Penerimaan Barang tidak lagi mengurangi / mengembalikan tr_pod.fqtykecil.
     }
 
     private function validateTrPodRemain(array $aggregateByPod, array $extraAvailableByPod = []): void
@@ -671,16 +655,6 @@ class PenerimaanBarangController extends Controller
                 }
                 DB::table('trstockdt')->insert($rowsDt);
                 $this->adjustPoReferenceQtyKecil($podAgg, -1);
-
-                // UPDATE STOK - gunakan qtyKecil hasil konversi, bukan qty mentah
-                foreach ($rowsDt as $row) {
-                    DB::table('msprd')
-                        ->where('fprdcode', $row['fprdcode'])
-                        ->update([
-                            'fminstock' => DB::raw('CAST(fminstock AS NUMERIC) - '.$row['fqtykecil']),
-                            'fupdatedat' => now(),
-                        ]);
-                }
 
                 // E. Jurnal
                 $fjurnaltype = 'JTB';
@@ -1075,15 +1049,6 @@ class PenerimaanBarangController extends Controller
                 ]);
 
                 DB::table('trstockdt')->where('fstockmtno', $header->fstockmtno)->delete();
-                // UPDATE STOK - gunakan qtyKecil hasil konversi, bukan qty mentah
-                foreach ($rowsDt as $row) {
-                    DB::table('msprd')
-                        ->where('fprdcode', $row['fprdcode'])
-                        ->update([
-                            'fminstock' => DB::raw('CAST(fminstock AS NUMERIC) - '.$row['fqtykecil']),
-                            'fupdatedat' => now(),
-                        ]);
-                }
 
                 $nextNouRef = 1;
                 foreach ($rowsDt as &$r) {
