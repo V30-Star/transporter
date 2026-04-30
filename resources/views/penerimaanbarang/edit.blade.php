@@ -1045,6 +1045,7 @@
                     fqtypo: 0,
                     fqtysisapo: 0,
                     fqtyditer: 0,
+                    fqtymaxedit: 0,
                 };
             }
 
@@ -1121,7 +1122,7 @@
 
                 formatPoRemainHint(row) {
                     if (!row || !row.frefdtid) return '';
-                    const max = this.calcMaxQty(row);
+                    const max = Math.max(0, Number(row.fqtysisapo ?? 0) || 0);
                     if (!(max > 0)) return '';
                     const sat = (row.fsatuan || '').trim() || 'satuan';
                     const qtyDiter = Number(row.fqtyditer ?? 0);
@@ -1218,8 +1219,8 @@
 
                 calcMaxQty(row) {
                     const eq = (a, b) => (a || '').trim().toLowerCase() === (b || '').trim().toLowerCase();
-                    const hasSisaPo = row.fqtysisapo !== undefined && row.fqtysisapo !== null && row.fqtysisapo !== '';
-                    if (hasSisaPo) return Math.max(0, Number(row.fqtysisapo) || 0);
+                    const hasEditMax = row.fqtymaxedit !== undefined && row.fqtymaxedit !== null && row.fqtymaxedit !== '';
+                    if (hasEditMax) return Math.max(0, Number(row.fqtymaxedit) || 0);
 
                     const satuanPO = (row.fsatuan || '').trim();
                     const satKecil = (row.fsatuankecil || '').trim();
@@ -1384,6 +1385,7 @@
                             fqtypo: 0,
                             fqtysisapo: Number(src.fqtysisapo ?? 0),
                             fqtyditer: Number(src.fqtyditer ?? 0),
+                            fqtymaxedit: Number(src.fqtymaxedit ?? 0),
                             fqtykecil_ref: Number(src.fqtykecil_ref ?? src.fqtyremain ?? src.fqtykecil_sisa ?? 0),
                             frefdtid: src.frefdtid ?? '',
                             fsatuankecil: src.fsatuankecil || meta?.fsatuankecil || '',
@@ -1461,6 +1463,7 @@
                             fqtykecil,
                             fqtykecil2,
                             fqtysisapo: Number(it.fqtysisapo ?? 0),
+                            fqtymaxedit: Number(it.fqtymaxedit ?? 0),
                             fqtykecil_ref: Number(it.fqtykecil_ref ?? it.fqtyremain ?? 0),
                             fnoacak: this.normalizeNoAcak(it.fnoacak) || this.generateUniqueNoAcak(),
                             frefnoacak: this.normalizeNoAcak(it.frefnoacak),

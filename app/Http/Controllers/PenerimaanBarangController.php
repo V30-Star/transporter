@@ -378,6 +378,68 @@ class PenerimaanBarangController extends Controller
     }
 
     /**
+     * Ambil metric referensi PO untuk tampilan Sisa PO / Qty Diterima
+     * menggunakan rumus yang sama dengan query browse PO.
+     *
+     * @return array<int, array<string, float>>
+     */
+    private function getPoReferenceMetricsByPodIds(array $podIds): array
+    {
+        $ids = collect($podIds)
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn ($id) => $id > 0)
+            ->unique()
+            ->values()
+            ->all();
+
+        if (empty($ids)) {
+            return [];
+        }
+
+        $receiptSub = DB::table('trstockdt')
+            ->selectRaw('frefdtno, fprdcode, frefnoacak, SUM(COALESCE(fqtykecil, 0)) AS fqtykecilterima')
+            ->where('fstockmtcode', 'TER')
+            ->groupBy('frefdtno', 'fprdcode', 'frefnoacak');
+
+        return DB::table('tr_pod as d')
+            ->leftJoin('tr_poh as h', 'h.fpono', '=', 'd.fpono')
+            ->leftJoinSub($receiptSub, 'st', function ($join) {
+                $join->on('st.frefdtno', '=', 'h.fpono')
+                    ->on('st.fprdcode', '=', 'd.fprdcode')
+                    ->on('st.frefnoacak', '=', 'd.fnoacak');
+            })
+            ->leftJoin('msprd as p', 'd.fprdcode', '=', 'p.fprdcode')
+            ->whereIn('d.fpodid', $ids)
+            ->select([
+                'd.fpodid',
+                DB::raw("COALESCE(
+                    CASE
+                        WHEN d.fsatuan = p.fsatuanbesar
+                            THEN (COALESCE(d.fqtykecil, 0) - COALESCE(st.fqtykecilterima, 0)) / NULLIF(p.fqtykecil, 0)
+                        WHEN d.fsatuan = p.fsatuanbesar2
+                            THEN (COALESCE(d.fqtykecil, 0) - COALESCE(st.fqtykecilterima, 0)) / NULLIF(p.fqtykecil2, 0)
+                        ELSE COALESCE(d.fqtykecil, 0) - COALESCE(st.fqtykecilterima, 0)
+                    END, 0) AS fqtysisapo"),
+                DB::raw("COALESCE(
+                    CASE
+                        WHEN d.fsatuan = p.fsatuanbesar
+                            THEN COALESCE(st.fqtykecilterima, 0) / NULLIF(p.fqtykecil, 0)
+                        WHEN d.fsatuan = p.fsatuanbesar2
+                            THEN COALESCE(st.fqtykecilterima, 0) / NULLIF(p.fqtykecil2, 0)
+                        ELSE COALESCE(st.fqtykecilterima, 0)
+                    END, 0) AS fqtyditer"),
+            ])
+            ->get()
+            ->mapWithKeys(fn ($row) => [
+                (int) $row->fpodid => [
+                    'fqtysisapo' => (float) ($row->fqtysisapo ?? 0),
+                    'fqtyditer' => (float) ($row->fqtyditer ?? 0),
+                ],
+            ])
+            ->all();
+    }
+
+    /**
      * @param  array<int, float|int>  $usageByPod
      */
     private function adjustPoReferenceQtyKecil(array $usageByPod, int $direction): void
@@ -886,12 +948,17 @@ class PenerimaanBarangController extends Controller
             ->map(fn ($rows) => (float) $rows->sum(fn ($r) => (float) ($r->fqtykecil ?? 0)))
             ->all();
 
-        $podRemainMap = $this->getPodRemainByIds($penerimaanbarang->details->pluck('frefdtid')->all());
+        $refPodIds = $penerimaanbarang->details->pluck('frefdtid')->all();
+        $podRemainMap = $this->getPodRemainByIds($refPodIds);
+        $poMetricMap = $this->getPoReferenceMetricsByPodIds($refPodIds);
 
-        $savedItems = $penerimaanbarang->details->map(function ($d) use ($oldUsageByPod, $podRemainMap) {
+        $savedItems = $penerimaanbarang->details->map(function ($d) use ($oldUsageByPod, $podRemainMap, $poMetricMap) {
             $remainKecil = $d->frefdtid
                 ? max(0, (float) ($podRemainMap[(int) $d->frefdtid] ?? 0) + (float) ($oldUsageByPod[(int) $d->frefdtid] ?? 0))
                 : 0;
+            $poMetrics = $d->frefdtid
+                ? ($poMetricMap[(int) $d->frefdtid] ?? ['fqtysisapo' => 0, 'fqtyditer' => 0])
+                : ['fqtysisapo' => 0, 'fqtyditer' => 0];
 
             return [
                 'uid' => $d->fstockdtid,
@@ -914,7 +981,9 @@ class PenerimaanBarangController extends Controller
                 'fketdt' => $d->fketdt ?? '',
                 'fqtyremain' => $remainKecil,
                 'fqtykecil_ref' => $remainKecil,
-                'fqtysisapo' => $this->qtyKecilToUnit($d, (string) ($d->fsatuan ?? ''), $remainKecil),
+                'fqtysisapo' => (float) ($poMetrics['fqtysisapo'] ?? 0),
+                'fqtyditer' => (float) ($poMetrics['fqtyditer'] ?? 0),
+                'fqtymaxedit' => $this->qtyKecilToUnit($d, (string) ($d->fsatuan ?? ''), $remainKecil),
                 'fsatuankecil' => $d->fsatuankecil ?? '',
                 'fsatuanbesar' => $d->fsatuanbesar ?? '',
                 'fsatuanbesar2' => $d->fsatuanbesar2 ?? '',
