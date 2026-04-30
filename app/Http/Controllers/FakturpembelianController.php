@@ -117,6 +117,18 @@ class FakturPembelianController extends Controller
         $search = trim((string) $request->get('search', ''));
         $perPage = (int) $request->get('per_page', 10);
 
+        $usedSub = DB::table('trstockdt')
+            ->selectRaw('frefdtid, SUM(COALESCE(fqtykecil, 0)) AS qty_used')
+            ->where(function ($q) {
+                $q->where('fstockmtcode', 'TER')
+                    ->orWhere(function ($qq) {
+                        $qq->where('fstockmtcode', 'BUY')
+                            ->where('fcode', 'P');
+                    });
+            })
+            ->whereNotNull('frefdtid')
+            ->groupBy('frefdtid');
+
         $query = Tr_poh::query()
             ->leftJoin('mssupplier', 'tr_poh.fsupplier', '=', 'mssupplier.fsuppliercode')
             ->select([
@@ -124,7 +136,15 @@ class FakturPembelianController extends Controller
                 'tr_poh.fpono',
                 'mssupplier.fsuppliername',
                 'tr_poh.fpodate',
-            ]);
+            ])
+            ->whereExists(function ($sub) use ($usedSub) {
+                $sub->from('tr_pod')
+                    ->leftJoinSub($usedSub, 'u', function ($join) {
+                        $join->on('u.frefdtid', '=', 'tr_pod.fpodid');
+                    })
+                    ->whereColumn('tr_pod.fpono', 'tr_poh.fpono')
+                    ->whereRaw('GREATEST(COALESCE(tr_pod.fqtykecil, 0) - COALESCE(u.qty_used, 0), 0) > 0');
+            });
 
         if ($search !== '') {
             $likeOp = DB::getDriverName() === 'pgsql' ? 'ILIKE' : 'LIKE';
@@ -239,6 +259,12 @@ class FakturPembelianController extends Controller
         $search = trim((string) $request->get('search', ''));
         $perPage = (int) $request->get('per_page', 10);
 
+        $usedSub = DB::table('trstockdt')
+            ->selectRaw('frefdtid, SUM(COALESCE(fqtykecil, 0)) AS qty_used')
+            ->where('fstockmtcode', 'BUY')
+            ->whereNotNull('frefdtid')
+            ->groupBy('frefdtid');
+
         $query = PenerimaanPembelianHeader::query()
             ->leftJoin('mssupplier', 'trstockmt.fsupplier', '=', 'mssupplier.fsuppliercode')
             ->select([
@@ -247,7 +273,15 @@ class FakturPembelianController extends Controller
                 'mssupplier.fsuppliername',
                 'trstockmt.fstockmtdate',
             ])
-            ->where('trstockmt.fstockmtcode', 'TER');
+            ->where('trstockmt.fstockmtcode', 'TER')
+            ->whereExists(function ($sub) use ($usedSub) {
+                $sub->from('trstockdt')
+                    ->leftJoinSub($usedSub, 'u', function ($join) {
+                        $join->on('u.frefdtid', '=', 'trstockdt.fstockdtid');
+                    })
+                    ->whereColumn('trstockdt.fstockmtno', 'trstockmt.fstockmtno')
+                    ->whereRaw('GREATEST(COALESCE(trstockdt.fqtykecil, 0) - COALESCE(u.qty_used, 0), 0) > 0');
+            });
 
         if ($search !== '') {
             $likeOp = DB::getDriverName() === 'pgsql' ? 'ILIKE' : 'LIKE';
@@ -305,7 +339,7 @@ class FakturPembelianController extends Controller
             ->select([
                 'trstockdt.fstockdtid as frefdtid',
                 'trstockdt.frefdtno',
-                'trstockdt.fnou as fnouref',
+                DB::raw('trstockdt.fstockdtid as fnouref'),
                 'trstockdt.fprdcode as fitemcode',
                 'm.fprdname as fitemname',
                 'trstockdt.fqty',
