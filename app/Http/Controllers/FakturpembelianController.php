@@ -117,17 +117,16 @@ class FakturPembelianController extends Controller
         $search = trim((string) $request->get('search', ''));
         $perPage = (int) $request->get('per_page', 10);
 
-        $usedSub = DB::table('trstockdt')
-            ->selectRaw('frefdtid, SUM(COALESCE(fqtykecil, 0)) AS qty_used')
+        $terSub = DB::table('trstockdt')
+            ->selectRaw('fprdcode, frefdtno, SUM(COALESCE(fqtykecil, 0)) AS fqtyterima')
             ->where(function ($q) {
                 $q->where('fstockmtcode', 'TER')
                     ->orWhere(function ($qq) {
-                        $qq->where('fstockmtcode', 'BUY')
-                            ->where('fcode', 'P');
+                        $qq->where('fcode', 'P')
+                            ->where('fstockmtcode', 'BUY');
                     });
             })
-            ->whereNotNull('frefdtid')
-            ->groupBy('frefdtid');
+            ->groupBy('frefdtno', 'fprdcode');
 
         $query = Tr_poh::query()
             ->leftJoin('mssupplier', 'tr_poh.fsupplier', '=', 'mssupplier.fsuppliercode')
@@ -137,13 +136,14 @@ class FakturPembelianController extends Controller
                 'mssupplier.fsuppliername',
                 'tr_poh.fpodate',
             ])
-            ->whereExists(function ($sub) use ($usedSub) {
+            ->whereExists(function ($sub) use ($terSub) {
                 $sub->from('tr_pod')
-                    ->leftJoinSub($usedSub, 'u', function ($join) {
-                        $join->on('u.frefdtid', '=', 'tr_pod.fpodid');
+                    ->leftJoinSub($terSub, 'ter', function ($join) {
+                        $join->on('ter.frefdtno', '=', 'tr_pod.fpono')
+                            ->on('ter.fprdcode', '=', 'tr_pod.fprdcode');
                     })
                     ->whereColumn('tr_pod.fpono', 'tr_poh.fpono')
-                    ->whereRaw('GREATEST(COALESCE(tr_pod.fqtykecil, 0) - COALESCE(u.qty_used, 0), 0) > 0');
+                    ->whereRaw('COALESCE(tr_pod.fqtykecil, 0) - COALESCE(ter.fqtyterima, 0) > 0');
             });
 
         if ($search !== '') {
@@ -188,22 +188,23 @@ class FakturPembelianController extends Controller
     public function itemsPO($id)
     {
         $header = Tr_poh::where('fpohid', $id)->firstOrFail();
-        $usedSub = DB::table('trstockdt')
-            ->selectRaw('frefdtid, SUM(COALESCE(fqtykecil, 0)) AS qty_used')
+        $terSub = DB::table('trstockdt')
+            ->selectRaw('fprdcode, frefdtno, SUM(COALESCE(fqtykecil, 0)) AS fqtyterima')
             ->where(function ($q) {
                 $q->where('fstockmtcode', 'TER')
                     ->orWhere(function ($qq) {
-                        $qq->where('fstockmtcode', 'BUY')
-                            ->where('fcode', 'P');
+                        $qq->where('fcode', 'P')
+                            ->where('fstockmtcode', 'BUY');
                     });
             })
-            ->whereNotNull('frefdtid')
-            ->groupBy('frefdtid');
+            ->groupBy('frefdtno', 'fprdcode');
 
-        $items = Tr_pod::where('tr_pod.fpono', $header->fpono)
-            ->leftJoin('msprd as m', 'm.fprdid', '=', 'tr_pod.fprdid')
-            ->leftJoinSub($usedSub, 'ter', function ($join) {
-                $join->on('ter.frefdtid', '=', 'tr_pod.fpodid');
+        $items = Tr_pod::query()
+            ->where('tr_pod.fpono', $header->fpono)
+            ->leftJoin('msprd as m', 'm.fprdcode', '=', 'tr_pod.fprdcode')
+            ->leftJoinSub($terSub, 'ter', function ($join) {
+                $join->on('ter.frefdtno', '=', 'tr_pod.fpono')
+                    ->on('ter.fprdcode', '=', 'tr_pod.fprdcode');
             })
             ->select([
                 'tr_pod.fpodid as frefdtid',
@@ -211,8 +212,7 @@ class FakturPembelianController extends Controller
                 'tr_pod.fnou as fnouref',
                 'tr_pod.fprdcode as fitemcode',
                 'm.fprdname as fitemname',
-                'tr_pod.fqty',
-                'tr_pod.fqtyremain',
+                'tr_pod.fdesc',
                 'tr_pod.fsatuan as fsatuan',
                 'tr_pod.fprice',
                 'tr_pod.fdisc',
@@ -220,24 +220,24 @@ class FakturPembelianController extends Controller
                 'tr_pod.fpricenet as fharga',
                 DB::raw("COALESCE(tr_pod.fnoacak::text, '') as frefnoacak"),
                 DB::raw('COALESCE(tr_pod.fqtykecil, 0) as fqtypo'),
-                DB::raw('COALESCE(ter.qty_used, 0) as fqtyterima'),
-                DB::raw('GREATEST(COALESCE(tr_pod.fqtykecil, 0) - COALESCE(ter.qty_used, 0), 0) as fqtyremain_kecil'),
+                DB::raw('COALESCE(ter.fqtyterima, 0) as fqtyterima'),
                 DB::raw("COALESCE(
                     CASE
                         WHEN tr_pod.fsatuan = m.fsatuanbesar
-                            THEN (COALESCE(tr_pod.fqtykecil, 0) - COALESCE(ter.qty_used, 0)) / NULLIF(m.fqtykecil, 0)
+                            THEN (COALESCE(tr_pod.fqtykecil, 0) - COALESCE(ter.fqtyterima, 0)) / NULLIF(m.fqtykecil, 0)
                         WHEN tr_pod.fsatuan = m.fsatuanbesar2
-                            THEN (COALESCE(tr_pod.fqtykecil, 0) - COALESCE(ter.qty_used, 0)) / NULLIF(m.fqtykecil2, 0)
-                        ELSE COALESCE(tr_pod.fqtykecil, 0) - COALESCE(ter.qty_used, 0)
+                            THEN (COALESCE(tr_pod.fqtykecil, 0) - COALESCE(ter.fqtyterima, 0)) / NULLIF(m.fqtykecil2, 0)
+                        ELSE COALESCE(tr_pod.fqtykecil, 0) - COALESCE(ter.fqtyterima, 0)
                     END, 0) as fqtysisa"),
+                DB::raw('COALESCE(tr_pod.fqtykecil, 0) - COALESCE(ter.fqtyterima, 0) as fqtyremain'),
                 DB::raw('0::numeric as fdiskon'),
             ])
+            ->whereRaw('COALESCE(tr_pod.fqtykecil, 0) - COALESCE(ter.fqtyterima, 0) > 0')
             ->orderBy('tr_pod.fprdcode')
             ->get()
-            ->filter(fn ($item) => (float) ($item->fqtyremain_kecil ?? 0) > 0)
             ->map(function ($item) {
                 $item->fqty = max(0, (float) ($item->fqtysisa ?? 0));
-                $item->fqtyremain = max(0, (float) ($item->fqtyremain_kecil ?? 0));
+                $item->fqtyremain = max(0, (float) ($item->fqtyremain ?? 0));
                 $item->fqtykecil = $item->fqtyremain;
 
                 return $item;
@@ -259,11 +259,10 @@ class FakturPembelianController extends Controller
         $search = trim((string) $request->get('search', ''));
         $perPage = (int) $request->get('per_page', 10);
 
-        $usedSub = DB::table('trstockdt')
-            ->selectRaw('frefdtid, SUM(COALESCE(fqtykecil, 0)) AS qty_used')
+        $buySub = DB::table('trstockdt')
+            ->selectRaw('frefdtno, fprdcode, SUM(COALESCE(fqtykecil, 0)) AS fqtybuy')
             ->where('fstockmtcode', 'BUY')
-            ->whereNotNull('frefdtid')
-            ->groupBy('frefdtid');
+            ->groupBy('frefdtno', 'fprdcode');
 
         $query = PenerimaanPembelianHeader::query()
             ->leftJoin('mssupplier', 'trstockmt.fsupplier', '=', 'mssupplier.fsuppliercode')
@@ -274,13 +273,14 @@ class FakturPembelianController extends Controller
                 'trstockmt.fstockmtdate',
             ])
             ->where('trstockmt.fstockmtcode', 'TER')
-            ->whereExists(function ($sub) use ($usedSub) {
+            ->whereExists(function ($sub) use ($buySub) {
                 $sub->from('trstockdt')
-                    ->leftJoinSub($usedSub, 'u', function ($join) {
-                        $join->on('u.frefdtid', '=', 'trstockdt.fstockdtid');
+                    ->leftJoinSub($buySub, 'buy', function ($join) {
+                        $join->on('buy.frefdtno', '=', 'trstockdt.fstockmtno')
+                            ->on('buy.fprdcode', '=', 'trstockdt.fprdcode');
                     })
                     ->whereColumn('trstockdt.fstockmtno', 'trstockmt.fstockmtno')
-                    ->whereRaw('GREATEST(COALESCE(trstockdt.fqtykecil, 0) - COALESCE(u.qty_used, 0), 0) > 0');
+                    ->whereRaw('COALESCE(trstockdt.fqtykecil, 0) - COALESCE(buy.fqtybuy, 0) > 0');
             });
 
         if ($search !== '') {
@@ -325,16 +325,20 @@ class FakturPembelianController extends Controller
     public function itemsPB($id)
     {
         $header = PenerimaanPembelianHeader::where('fstockmtid', $id)->firstOrFail();
-        $usedSub = DB::table('trstockdt')
-            ->selectRaw('frefdtid, SUM(COALESCE(fqtykecil, 0)) AS qty_used')
+        $buySub = DB::table('trstockdt')
+            ->selectRaw('frefdtno, fprdcode, SUM(COALESCE(fqtykecil, 0)) AS fqtybuy')
             ->where('fstockmtcode', 'BUY')
-            ->whereNotNull('frefdtid')
-            ->groupBy('frefdtid');
+            ->groupBy('frefdtno', 'fprdcode');
 
-        $items = PenerimaanPembelianDetail::where('trstockdt.fstockmtno', $header->fstockmtno)
-            ->leftJoin('msprd as m', 'm.fprdid', '=', 'trstockdt.fprdcodeid')
-            ->leftJoinSub($usedSub, 'buy', function ($join) {
-                $join->on('buy.frefdtid', '=', 'trstockdt.fstockdtid');
+        $items = PenerimaanPembelianDetail::query()
+            ->where('trstockdt.fstockmtno', $header->fstockmtno)
+            ->where('trstockdt.fstockmtcode', 'TER')
+            ->leftJoin('trstockmt as hdr', 'hdr.fstockmtno', '=', 'trstockdt.fstockmtno')
+            ->leftJoin('tr_poh as po', 'po.fpono', '=', 'trstockdt.frefdtno')
+            ->leftJoin('msprd as m', 'm.fprdcode', '=', 'trstockdt.fprdcode')
+            ->leftJoinSub($buySub, 'buy', function ($join) {
+                $join->on('buy.frefdtno', '=', 'trstockdt.fstockmtno')
+                    ->on('buy.fprdcode', '=', 'trstockdt.fprdcode');
             })
             ->select([
                 'trstockdt.fstockdtid as frefdtid',
@@ -342,32 +346,37 @@ class FakturPembelianController extends Controller
                 DB::raw('trstockdt.fstockdtid as fnouref'),
                 'trstockdt.fprdcode as fitemcode',
                 'm.fprdname as fitemname',
-                'trstockdt.fqty',
+                'hdr.fsupplier',
+                'trstockdt.fdesc',
                 'trstockdt.fsatuan as fsatuan',
                 'trstockdt.fprice',
                 'trstockdt.fdiscpersen',
                 'trstockdt.fbiaya',
                 'trstockdt.ftotprice as fharga',
+                'trstockdt.frefso',
+                'po.fppnpersen',
+                'po.famountpopajak',
+                'po.ftempohr',
                 DB::raw("TRIM(BOTH ', ' FROM CONCAT_WS(', ', NULLIF(TRIM(COALESCE(trstockdt.frefnoacak::text, '')), ''), NULLIF(TRIM(COALESCE(trstockdt.fnoacak::text, '')), ''))) as frefnoacak"),
-                DB::raw('COALESCE(trstockdt.fqtykecil, 0) as fqtykecil_source'),
-                DB::raw('COALESCE(buy.qty_used, 0) as fqtybuy'),
-                DB::raw('GREATEST(COALESCE(trstockdt.fqtykecil, 0) - COALESCE(buy.qty_used, 0), 0) as fqtyremain_kecil'),
+                DB::raw('COALESCE(trstockdt.fqtykecil, 0) as fqtykecil'),
+                DB::raw('COALESCE(buy.fqtybuy, 0) as fqtybuy'),
                 DB::raw("COALESCE(
                     CASE
                         WHEN trstockdt.fsatuan = m.fsatuanbesar
-                            THEN (COALESCE(trstockdt.fqtykecil, 0) - COALESCE(buy.qty_used, 0)) / NULLIF(m.fqtykecil, 0)
+                            THEN (COALESCE(trstockdt.fqtykecil, 0) - COALESCE(buy.fqtybuy, 0)) / NULLIF(m.fqtykecil, 0)
                         WHEN trstockdt.fsatuan = m.fsatuanbesar2
-                            THEN (COALESCE(trstockdt.fqtykecil, 0) - COALESCE(buy.qty_used, 0)) / NULLIF(m.fqtykecil2, 0)
-                        ELSE COALESCE(trstockdt.fqtykecil, 0) - COALESCE(buy.qty_used, 0)
+                            THEN (COALESCE(trstockdt.fqtykecil, 0) - COALESCE(buy.fqtybuy, 0)) / NULLIF(m.fqtykecil2, 0)
+                        ELSE COALESCE(trstockdt.fqtykecil, 0) - COALESCE(buy.fqtybuy, 0)
                     END, 0) as fqtysisa"),
+                DB::raw('COALESCE(trstockdt.fqtykecil, 0) - COALESCE(buy.fqtybuy, 0) as fqtyremain'),
                 DB::raw('0::numeric as fdiskon'),
             ])
+            ->whereRaw('COALESCE(trstockdt.fqtykecil, 0) - COALESCE(buy.fqtybuy, 0) > 0')
             ->orderBy('trstockdt.fprdcode')
             ->get()
-            ->filter(fn ($item) => (float) ($item->fqtyremain_kecil ?? 0) > 0)
             ->map(function ($item) {
                 $item->fqty = max(0, (float) ($item->fqtysisa ?? 0));
-                $item->fqtyremain = max(0, (float) ($item->fqtyremain_kecil ?? 0));
+                $item->fqtyremain = max(0, (float) ($item->fqtyremain ?? 0));
                 $item->fqtykecil = $item->fqtyremain;
 
                 return $item;
@@ -379,6 +388,9 @@ class FakturPembelianController extends Controller
                 'fstockmtno' => $header->fstockmtno,
                 'fsupplier' => trim($header->fsupplier ?? ''),
                 'fstockmtdate' => optional($header->fstockmtdate)->format('Y-m-d H:i:s'),
+                'fppnpersen' => (float) ($items->first()->fppnpersen ?? 0),
+                'famountpopajak' => (float) ($items->first()->famountpopajak ?? 0),
+                'ftempohr' => (int) ($items->first()->ftempohr ?? 0),
             ],
             'items' => $items,
         ]);
