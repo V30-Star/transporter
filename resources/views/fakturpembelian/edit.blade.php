@@ -2583,7 +2583,9 @@
                             frefdtnoVal = header?.fstockmtno ?? '';
                         }
 
-                        const sourceLimit = Math.max(0, +(src.fqtykecil ?? src.fqty) || 0);
+                        const sourceQty = Math.max(0, +(src.fqty ?? 0) || 0);
+                        const sourceQtyKecil = Math.max(0, +(src.fqtykecil ?? src.fqtyremain ?? src.fqty ?? 0) || 0);
+                        const sourceLimit = sourceQty > 0 ? sourceQty : sourceQtyKecil;
                         if (sourceLimit <= 0) {
                             return;
                         }
@@ -2608,7 +2610,7 @@
 
                             // Financial
                             fprice: +(src.fprice || 0),
-                            fdiscpersen: +(src.fdiscpersen || 0),
+                            fdiscpersen: +((src.fdiscpersen ?? src.fdisc) || 0),
                             fbiaya: +(src.fbiaya || 0),
                             ftotprice: +(src.fharga || 0),
 
@@ -2617,12 +2619,14 @@
                                 .filter(Boolean)
                         };
 
-                        this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                        const rawMeta = window.PRODUCT_MAP?.[(row.fitemcode || '').trim()];
+                        if (rawMeta) {
+                            this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                        }
                         row.maxqty = sourceLimit;
                         this.enforceQtyRow(row);
 
-                        const key =
-                            `${(row.fitemcode || '').toString().trim()}::${(row.frefdtno || '').toString().trim()}`;
+                        const key = this.itemKey(row);
 
                         if (existing.has(key)) {
                             duplicates.push({
@@ -2713,7 +2717,11 @@
                 applyDesc() {},
 
                 itemKey(it) {
-                    return `${(it.fitemcode ?? '').toString().trim()}::${(it.frefdtno ?? '').toString().trim()}`;
+                    const code = (it.fitemcode ?? '').toString().trim();
+                    const refId = (it.frefdtid ?? '').toString().trim();
+                    const refNo = (it.frefdtno ?? '').toString().trim();
+                    const satuan = (it.fsatuan ?? '').toString().trim();
+                    return refId !== '' ? `${code}::${refId}` : `${code}::${refNo}::${satuan}`;
                 },
 
                 getCurrentItemKeys() {
@@ -3026,8 +3034,13 @@
 
                         const items = json.items || [];
                         const currentKeys = new Set((window.getCurrentItemKeys?.() || []).map(String));
-                        const keyOf = (src) =>
-                            `${(src.fitemcode ?? '').toString().trim()}::${(src.frefdtno ?? '').toString().trim()}`;
+                        const keyOf = (src) => {
+                            const code = (src.fitemcode ?? '').toString().trim();
+                            const refId = (src.frefdtid ?? '').toString().trim();
+                            const refNo = ((row?.fpono ?? src.frefdtno) ?? '').toString().trim();
+                            const satuan = (src.fsatuan ?? '').toString().trim();
+                            return refId !== '' ? `${code}::${refId}` : `${code}::${refNo}::${satuan}`;
+                        };
 
                         const duplicates = items.filter(src => currentKeys.has(keyOf(src)));
                         const uniques = items.filter(src => !currentKeys.has(keyOf(src)));
@@ -3182,8 +3195,13 @@
 
                         const items = json.items || [];
                         const currentKeys = new Set((window.getCurrentItemKeys?.() || []).map(String));
-                        const keyOf = (src) =>
-                            `${(src.fitemcode ?? '').toString().trim()}::${(src.frefdtno ?? '').toString().trim()}`;
+                        const keyOf = (src) => {
+                            const code = (src.fitemcode ?? '').toString().trim();
+                            const refId = (src.frefdtid ?? '').toString().trim();
+                            const refNo = ((row?.fstockmtno ?? src.frefdtno) ?? '').toString().trim();
+                            const satuan = (src.fsatuan ?? '').toString().trim();
+                            return refId !== '' ? `${code}::${refId}` : `${code}::${refNo}::${satuan}`;
+                        };
 
                         const duplicates = items.filter(src => currentKeys.has(keyOf(src)));
                         const uniques = items.filter(src => !currentKeys.has(keyOf(src)));

@@ -271,6 +271,31 @@ class PenerimaanBarangController extends Controller
         return $qty;
     }
 
+    /**
+     * Qty satuan kecil PO ke satuan tampilan baris.
+     */
+    private function qtyKecilToUnit(?object $product, string $sat, float $qtyKecil): float
+    {
+        if (! $product) {
+            return $qtyKecil;
+        }
+
+        $sat = trim($sat);
+        $besar = trim((string) ($product->fsatuanbesar ?? ''));
+        $besar2 = trim((string) ($product->fsatuanbesar2 ?? ''));
+        $rasio = (float) ($product->fqtykecil ?? 0);
+        $rasio2 = (float) ($product->fqtykecil2 ?? 0);
+
+        if ($sat !== '' && $besar !== '' && strcasecmp($sat, $besar) === 0 && $rasio > 0) {
+            return $qtyKecil / $rasio;
+        }
+        if ($sat !== '' && $besar2 !== '' && strcasecmp($sat, $besar2) === 0 && $rasio2 > 0) {
+            return $qtyKecil / $rasio2;
+        }
+
+        return $qtyKecil;
+    }
+
     private function normalizeRandomNumber($value, array &$usedNumbers): string
     {
         $value = trim((string) ($value ?? ''));
@@ -864,6 +889,10 @@ class PenerimaanBarangController extends Controller
         $podRemainMap = $this->getPodRemainByIds($penerimaanbarang->details->pluck('frefdtid')->all());
 
         $savedItems = $penerimaanbarang->details->map(function ($d) use ($oldUsageByPod, $podRemainMap) {
+            $remainKecil = $d->frefdtid
+                ? max(0, (float) ($podRemainMap[(int) $d->frefdtid] ?? 0) + (float) ($oldUsageByPod[(int) $d->frefdtid] ?? 0))
+                : 0;
+
             return [
                 'uid' => $d->fstockdtid,
                 'fitemcode' => $d->fitemcode_text ?? $d->fprdcode ?? '',
@@ -883,8 +912,9 @@ class PenerimaanBarangController extends Controller
                 'ftotal' => (float) ($d->ftotprice ?? 0),
                 'fdesc' => is_array($d->fdesc) ? implode(', ', $d->fdesc) : ($d->fdesc ?? ''),
                 'fketdt' => $d->fketdt ?? '',
-                'fqtyremain' => $d->frefdtid ? max(0, (float) ($podRemainMap[(int) $d->frefdtid] ?? 0) + (float) ($oldUsageByPod[(int) $d->frefdtid] ?? 0)) : 0,
-                'fqtykecil_ref' => $d->frefdtid ? max(0, (float) ($podRemainMap[(int) $d->frefdtid] ?? 0) + (float) ($oldUsageByPod[(int) $d->frefdtid] ?? 0)) : 0,
+                'fqtyremain' => $remainKecil,
+                'fqtykecil_ref' => $remainKecil,
+                'fqtysisapo' => $this->qtyKecilToUnit($d, (string) ($d->fsatuan ?? ''), $remainKecil),
                 'fsatuankecil' => $d->fsatuankecil ?? '',
                 'fsatuanbesar' => $d->fsatuanbesar ?? '',
                 'fsatuanbesar2' => $d->fsatuanbesar2 ?? '',

@@ -1218,6 +1218,9 @@
 
                 calcMaxQty(row) {
                     const eq = (a, b) => (a || '').trim().toLowerCase() === (b || '').trim().toLowerCase();
+                    const hasSisaPo = row.fqtysisapo !== undefined && row.fqtysisapo !== null && row.fqtysisapo !== '';
+                    if (hasSisaPo) return Math.max(0, Number(row.fqtysisapo) || 0);
+
                     const satuanPO = (row.fsatuan || '').trim();
                     const satKecil = (row.fsatuankecil || '').trim();
                     const satBesar = (row.fsatuanbesar || '').trim();
@@ -1457,6 +1460,7 @@
                             fsatuanbesar2,
                             fqtykecil,
                             fqtykecil2,
+                            fqtysisapo: Number(it.fqtysisapo ?? 0),
                             fqtykecil_ref: Number(it.fqtykecil_ref ?? it.fqtyremain ?? 0),
                             fnoacak: this.normalizeNoAcak(it.fnoacak) || this.generateUniqueNoAcak(),
                             frefnoacak: this.normalizeNoAcak(it.frefnoacak),
