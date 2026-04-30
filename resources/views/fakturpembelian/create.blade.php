@@ -1557,11 +1557,58 @@
                 return '<span class="font-medium">limit:</span> ' + limitValue + ' ' + satuan;
             },
 
+            qtyToKecil(code, qty, satuan) {
+                const meta = this.productMeta(code);
+                const units = meta?.units || [];
+                const ratios = meta?.unit_ratios || { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 };
+                const satKecil = units[0] || '';
+                const satBesar = units[1] || '';
+                const satBesar2 = units[2] || '';
+                const value = Number(qty || 0);
+
+                if (satuan === satBesar2 && Number(ratios.satuanbesar2) > 0) {
+                    return value * Number(ratios.satuanbesar2);
+                }
+                if (satuan === satBesar && Number(ratios.satuanbesar) > 0) {
+                    return value * Number(ratios.satuanbesar);
+                }
+                if (satuan === satKecil) {
+                    return value;
+                }
+
+                return value;
+            },
+
+            kecilToUnit(code, qtyKecil, satuan) {
+                const meta = this.productMeta(code);
+                const units = meta?.units || [];
+                const ratios = meta?.unit_ratios || { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 };
+                const satKecil = units[0] || '';
+                const satBesar = units[1] || '';
+                const satBesar2 = units[2] || '';
+                const value = Number(qtyKecil || 0);
+
+                if (satuan === satBesar2 && Number(ratios.satuanbesar2) > 0) {
+                    return value / Number(ratios.satuanbesar2);
+                }
+                if (satuan === satBesar && Number(ratios.satuanbesar) > 0) {
+                    return value / Number(ratios.satuanbesar);
+                }
+                if (satuan === satKecil) {
+                    return value;
+                }
+
+                return value;
+            },
+
             formatSourceSummary(row) {
-                const qtyTerima = Number(row?.fqtyterima ?? 0) || 0;
-                const qtySisa = Number(row?.fqtysisa_source ?? row?.maxqty ?? 0) || 0;
-                const qtyRemain = Number(row?.fqtyremain_source ?? row?.fqtykecil ?? row?.maxqty ?? 0) || 0;
-                return `Terima: ${this.fmt(qtyTerima)} | Sisa: ${this.fmt(qtySisa)} | Remain: ${this.fmt(qtyRemain)}`;
+                const baseTerimaKecil = Number(row?.fqtyterima ?? 0) || 0;
+                const baseRemainKecil = Number(row?.fqtyremain_source ?? row?.fqtykecil ?? row?.maxqty ?? 0) || 0;
+                const currentQtyKecil = this.qtyToKecil(row?.fitemcode, row?.fqty, row?.fsatuan);
+                const terimaPreview = baseTerimaKecil + currentQtyKecil;
+                const remainPreviewKecil = Math.max(0, baseRemainKecil - currentQtyKecil);
+                const sisaPreview = this.kecilToUnit(row?.fitemcode, remainPreviewKecil, row?.fsatuan);
+                return `Terima: ${this.fmt(terimaPreview)} | Sisa: ${this.fmt(sisaPreview)} | Remain: ${this.fmt(remainPreviewKecil)}`;
             },
 
             enforceQtyRow(row) {
@@ -1676,7 +1723,6 @@
                     const sourceQty = Math.max(0, +(src.fqty ?? 0) || 0);
                     const sourceQtyKecil = Math.max(0, +(src.fqtykecil ?? src.fqtyremain ?? src.fqty ?? 0) || 0);
                     const sourceLimit = sourceQty > 0 ? sourceQty : sourceQtyKecil;
-                    if (sourceLimit <= 0) return;
 
                     const row = {
                         uid: cryptoRandom(),
@@ -1690,8 +1736,8 @@
                         fnouref: fnourefVal,
                         frefpr: src.fnouref ?? fnourefVal,
                         fqtyterima: +(src.fqtyterima || 0),
-                        fqtysisa_source: +(src.fqtysisa ?? sourceLimit || 0),
-                        fqtyremain_source: +(src.fqtyremain ?? sourceQtyKecil || 0),
+                        fqtysisa_source: Number(src.fqtysisa ?? sourceLimit ?? 0),
+                        fqtyremain_source: Number(src.fqtyremain ?? sourceQtyKecil ?? 0),
 
                         // Data quantity
                         fqty: sourceLimit,

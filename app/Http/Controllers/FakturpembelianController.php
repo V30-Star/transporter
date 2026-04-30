@@ -137,16 +137,7 @@ class FakturPembelianController extends Controller
                 'tr_poh.fpono',
                 'mssupplier.fsuppliername',
                 'tr_poh.fpodate',
-            ])
-            ->whereExists(function ($sub) use ($terSub) {
-                $sub->from('tr_pod')
-                    ->leftJoinSub($terSub, 'ter', function ($join) {
-                        $join->on('ter.frefdtno', '=', 'tr_pod.fpono')
-                            ->on('ter.fprdcode', '=', 'tr_pod.fprdcode');
-                    })
-                    ->whereColumn('tr_pod.fpono', 'tr_poh.fpono')
-                    ->whereRaw('COALESCE(tr_pod.fqtykecil, 0) - COALESCE(ter.fqtyterima, 0) > 0');
-            });
+            ]);
 
         $recordsTotal = (clone $query)->count();
 
@@ -229,12 +220,11 @@ class FakturPembelianController extends Controller
                 DB::raw('COALESCE(tr_pod.fqtykecil, 0) - COALESCE(ter.fqtyterima, 0) as fqtyremain'),
                 DB::raw('0::numeric as fdiskon'),
             ])
-            ->whereRaw('COALESCE(tr_pod.fqtykecil, 0) - COALESCE(ter.fqtyterima, 0) > 0')
             ->orderBy('tr_pod.fprdcode')
             ->get()
             ->map(function ($item) {
-                $item->fqty = max(0, (float) ($item->fqtysisa ?? 0));
-                $item->fqtyremain = max(0, (float) ($item->fqtyremain ?? 0));
+                $item->fqty = (float) ($item->fqtysisa ?? 0);
+                $item->fqtyremain = (float) ($item->fqtyremain ?? 0);
                 $item->fqtykecil = $item->fqtyremain;
 
                 return $item;
@@ -271,16 +261,7 @@ class FakturPembelianController extends Controller
                 'mssupplier.fsuppliername',
                 'trstockmt.fstockmtdate',
             ])
-            ->where('trstockmt.fstockmtcode', 'TER')
-            ->whereExists(function ($sub) use ($buySub) {
-                $sub->from('trstockdt')
-                    ->leftJoinSub($buySub, 'buy', function ($join) {
-                        $join->on('buy.frefdtno', '=', 'trstockdt.fstockmtno')
-                            ->on('buy.fprdcode', '=', 'trstockdt.fprdcode');
-                    })
-                    ->whereColumn('trstockdt.fstockmtno', 'trstockmt.fstockmtno')
-                    ->whereRaw('COALESCE(trstockdt.fqtykecil, 0) - COALESCE(buy.fqtybuy, 0) > 0');
-            });
+            ->where('trstockmt.fstockmtcode', 'TER');
 
         $recordsTotal = (clone $query)->count();
 
@@ -365,12 +346,11 @@ class FakturPembelianController extends Controller
                 DB::raw('COALESCE(trstockdt.fqtykecil, 0) - COALESCE(buy.fqtybuy, 0) as fqtyremain'),
                 DB::raw('0::numeric as fdiskon'),
             ])
-            ->whereRaw('COALESCE(trstockdt.fqtykecil, 0) - COALESCE(buy.fqtybuy, 0) > 0')
             ->orderBy('trstockdt.fprdcode')
             ->get()
             ->map(function ($item) {
-                $item->fqty = max(0, (float) ($item->fqtysisa ?? 0));
-                $item->fqtyremain = max(0, (float) ($item->fqtyremain ?? 0));
+                $item->fqty = (float) ($item->fqtysisa ?? 0);
+                $item->fqtyremain = (float) ($item->fqtyremain ?? 0);
                 $item->fqtykecil = $item->fqtyremain;
 
                 return $item;
@@ -413,6 +393,29 @@ class FakturPembelianController extends Controller
         return $qtyKecil;
     }
 
+    private function qtySourceUnitToKecil(?object $row, string $sat, float $qty): float
+    {
+        if (! $row) {
+            return $qty;
+        }
+
+        $sat = trim((string) $sat);
+        $satBesar = trim((string) ($row->fsatuanbesar ?? ''));
+        $satBesar2 = trim((string) ($row->fsatuanbesar2 ?? ''));
+        $rasio = (float) ($row->fqtykecil_master ?? $row->fqtykecil ?? 0);
+        $rasio2 = (float) ($row->fqtykecil2_master ?? $row->fqtykecil2 ?? 0);
+
+        if ($sat !== '' && $satBesar !== '' && strcasecmp($sat, $satBesar) === 0 && $rasio > 0) {
+            return $qty * $rasio;
+        }
+
+        if ($sat !== '' && $satBesar2 !== '' && strcasecmp($sat, $satBesar2) === 0 && $rasio2 > 0) {
+            return $qty * $rasio2;
+        }
+
+        return $qty;
+    }
+
     private function getSourceRemainMap(string $sourceType, array $detailIds): array
     {
         $ids = collect($detailIds)
@@ -428,21 +431,21 @@ class FakturPembelianController extends Controller
 
         if ($sourceType === 'PO') {
             $usedSub = DB::table('trstockdt')
-                ->selectRaw('frefdtid, SUM(COALESCE(fqtykecil, 0)) AS qty_used')
+                ->selectRaw('fprdcode, frefdtno, SUM(COALESCE(fqtykecil, 0)) AS qty_used')
                 ->where(function ($q) {
                     $q->where('fstockmtcode', 'TER')
                         ->orWhere(function ($qq) {
-                            $qq->where('fstockmtcode', 'BUY')
-                                ->where('fcode', 'P');
+                            $qq->where('fcode', 'P')
+                                ->where('fstockmtcode', 'BUY');
                         });
                 })
-                ->whereNotNull('frefdtid')
-                ->groupBy('frefdtid');
+                ->groupBy('frefdtno', 'fprdcode');
 
             $rows = DB::table('tr_pod as d')
-                ->leftJoin('msprd as p', 'p.fprdid', '=', 'd.fprdid')
+                ->leftJoin('msprd as p', 'p.fprdcode', '=', 'd.fprdcode')
                 ->leftJoinSub($usedSub, 'u', function ($join) {
-                    $join->on('u.frefdtid', '=', 'd.fpodid');
+                    $join->on('u.frefdtno', '=', 'd.fpono')
+                        ->on('u.fprdcode', '=', 'd.fprdcode');
                 })
                 ->whereIn('d.fpodid', $ids)
                 ->select([
@@ -465,15 +468,15 @@ class FakturPembelianController extends Controller
 
         if ($sourceType === 'PB') {
             $usedSub = DB::table('trstockdt')
-                ->selectRaw('frefdtid, SUM(COALESCE(fqtykecil, 0)) AS qty_used')
+                ->selectRaw('frefdtno, fprdcode, SUM(COALESCE(fqtykecil, 0)) AS qty_used')
                 ->where('fstockmtcode', 'BUY')
-                ->whereNotNull('frefdtid')
-                ->groupBy('frefdtid');
+                ->groupBy('frefdtno', 'fprdcode');
 
             $rows = DB::table('trstockdt as d')
-                ->leftJoin('msprd as p', 'p.fprdid', '=', 'd.fprdcodeid')
+                ->leftJoin('msprd as p', 'p.fprdcode', '=', 'd.fprdcode')
                 ->leftJoinSub($usedSub, 'u', function ($join) {
-                    $join->on('u.frefdtid', '=', 'd.fstockdtid');
+                    $join->on('u.frefdtno', '=', 'd.fstockmtno')
+                        ->on('u.fprdcode', '=', 'd.fprdcode');
                 })
                 ->whereIn('d.fstockdtid', $ids)
                 ->select([
@@ -492,6 +495,64 @@ class FakturPembelianController extends Controller
 
                 return [(int) $row->detail_id => $this->qtyKecilToSourceUnit($row, $remainKecil)];
             })->all();
+        }
+
+        return [];
+    }
+
+    private function getSourceRemainKecilMap(string $sourceType, array $detailIds): array
+    {
+        $ids = collect($detailIds)
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn ($id) => $id > 0)
+            ->unique()
+            ->values()
+            ->all();
+
+        if (empty($ids)) {
+            return [];
+        }
+
+        if ($sourceType === 'PO') {
+            $usedSub = DB::table('trstockdt')
+                ->selectRaw('fprdcode, frefdtno, SUM(COALESCE(fqtykecil, 0)) AS qty_used')
+                ->where(function ($q) {
+                    $q->where('fstockmtcode', 'TER')
+                        ->orWhere(function ($qq) {
+                            $qq->where('fcode', 'P')
+                                ->where('fstockmtcode', 'BUY');
+                        });
+                })
+                ->groupBy('frefdtno', 'fprdcode');
+
+            return DB::table('tr_pod as d')
+                ->leftJoinSub($usedSub, 'u', function ($join) {
+                    $join->on('u.frefdtno', '=', 'd.fpono')
+                        ->on('u.fprdcode', '=', 'd.fprdcode');
+                })
+                ->whereIn('d.fpodid', $ids)
+                ->selectRaw('d.fpodid as detail_id, COALESCE(d.fqtykecil, 0) - COALESCE(u.qty_used, 0) as remain_kecil')
+                ->pluck('remain_kecil', 'detail_id')
+                ->map(fn ($value) => (float) $value)
+                ->all();
+        }
+
+        if ($sourceType === 'PB') {
+            $usedSub = DB::table('trstockdt')
+                ->selectRaw('frefdtno, fprdcode, SUM(COALESCE(fqtykecil, 0)) AS qty_used')
+                ->where('fstockmtcode', 'BUY')
+                ->groupBy('frefdtno', 'fprdcode');
+
+            return DB::table('trstockdt as d')
+                ->leftJoinSub($usedSub, 'u', function ($join) {
+                    $join->on('u.frefdtno', '=', 'd.fstockmtno')
+                        ->on('u.fprdcode', '=', 'd.fprdcode');
+                })
+                ->whereIn('d.fstockdtid', $ids)
+                ->selectRaw('d.fstockdtid as detail_id, COALESCE(d.fqtykecil, 0) - COALESCE(u.qty_used, 0) as remain_kecil')
+                ->pluck('remain_kecil', 'detail_id')
+                ->map(fn ($value) => (float) $value)
+                ->all();
         }
 
         return [];
@@ -570,10 +631,48 @@ class FakturPembelianController extends Controller
         // Faktur Pembelian tidak lagi mengurangi / mengembalikan fqtykecil pada referensi PO/PB.
     }
 
-    private function validateSourceRemainForRows(array $codes, array $qtys, array $sources, array $refdtids, array $extraAvailableBySourceRef = []): \Illuminate\Support\MessageBag
+    private function validateSourceRemainForRows(array $codes, array $qtys, array $sources, array $refdtids, array $satuans, array $extraAvailableBySourceRef = []): \Illuminate\Support\MessageBag
     {
         $errors = new \Illuminate\Support\MessageBag;
         $tolerance = 0.00001;
+
+        $products = DB::table('msprd')
+            ->whereIn('fprdcode', array_values(array_unique(array_filter(array_map(fn ($code) => trim((string) $code), $codes)))))
+            ->get([
+                'fprdcode',
+                'fsatuankecil',
+                'fsatuanbesar',
+                'fsatuanbesar2',
+                'fqtykecil',
+                'fqtykecil2',
+            ])
+            ->map(function ($row) {
+                $row->fqtykecil_master = $row->fqtykecil ?? 0;
+                $row->fqtykecil2_master = $row->fqtykecil2 ?? 0;
+
+                return $row;
+            })
+            ->keyBy('fprdcode');
+
+        $poIds = [];
+        $pbIds = [];
+        foreach ($sources as $i => $sourceRaw) {
+            $sourceType = strtoupper(trim((string) ($sourceRaw ?? '')));
+            $detailId = (int) ($refdtids[$i] ?? 0);
+            if ($detailId <= 0) {
+                continue;
+            }
+            if ($sourceType === 'PO') {
+                $poIds[] = $detailId;
+            } elseif ($sourceType === 'PB') {
+                $pbIds[] = $detailId;
+            }
+        }
+
+        $remainKecilBySource = [
+            'PO' => $this->getSourceRemainKecilMap('PO', $poIds),
+            'PB' => $this->getSourceRemainKecilMap('PB', $pbIds),
+        ];
 
         foreach ($codes as $i => $codeRaw) {
             $code = trim((string) ($codeRaw ?? ''));
@@ -595,16 +694,26 @@ class FakturPembelianController extends Controller
                 continue;
             }
 
-            $remain = $this->getSourceRemain($sourceType, $detailId);
-            if ($remain === null) {
+            $remainKecil = $remainKecilBySource[$sourceType][$detailId] ?? null;
+            if ($remainKecil === null) {
                 $errors->add("fqty.$i", "Referensi {$sourceType} untuk item {$code} tidak ditemukan.");
 
                 continue;
             }
 
+            $product = $products->get($code);
+            $sat = trim((string) ($satuans[$i] ?? ''));
+            $needKecil = $this->qtySourceUnitToKecil($product, $sat, $qty);
             $sourceKey = $sourceType.':'.$detailId;
-            $available = $remain + (float) ($extraAvailableBySourceRef[$sourceKey] ?? 0);
-            if ($qty > $available + $tolerance) {
+            $availableKecil = $remainKecil + (float) ($extraAvailableBySourceRef[$sourceKey] ?? 0);
+            if ($needKecil > $availableKecil + $tolerance) {
+                $available = $this->qtyKecilToSourceUnit((object) [
+                    'fsatuan' => $sat,
+                    'fsatuanbesar' => $product->fsatuanbesar ?? '',
+                    'fsatuanbesar2' => $product->fsatuanbesar2 ?? '',
+                    'fqtykecil_master' => $product->fqtykecil_master ?? 0,
+                    'fqtykecil2_master' => $product->fqtykecil2_master ?? 0,
+                ], $availableKecil);
                 $errors->add("fqty.$i", "Qty item {$code} melebihi sisa {$sourceType}. Maksimal {$available}.");
             }
         }
@@ -839,7 +948,7 @@ class FakturPembelianController extends Controller
                 $extraAvailableBySourceRef[$sourceType.':'.$detailId] = (float) ($oldUsageByRefId[$detailId] ?? 0);
             }
 
-            $errors = $this->validateSourceRemainForRows($codes, $qtys, $sources, $refdtids, $extraAvailableBySourceRef);
+            $errors = $this->validateSourceRemainForRows($codes, $qtys, $sources, $refdtids, $satuans, $extraAvailableBySourceRef);
 
             if ($errors->isNotEmpty()) {
                 return back()->withErrors($errors)->withInput();
@@ -1475,7 +1584,7 @@ class FakturPembelianController extends Controller
                 $oldUsageBySourceRef[$sourceKey] = ($oldUsageBySourceRef[$sourceKey] ?? 0) + $qtyUsed;
             }
 
-            $errors = $this->validateSourceRemainForRows($codes, $qtys, $sources, $refdtids, $oldUsageBySourceRef);
+            $errors = $this->validateSourceRemainForRows($codes, $qtys, $sources, $refdtids, $satuans, $oldUsageBySourceRef);
 
             if ($errors->isNotEmpty()) {
                 return back()->withErrors($errors)->withInput();
