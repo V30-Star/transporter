@@ -479,10 +479,11 @@ class PenerimaanBarangController extends Controller
             }
 
             $remainKecil = (float) ($remainMap[(int) $podId] ?? 0);
-            $extraKecil = (float) ($extraAvailableByPod[(int) $podId] ?? 0);
-            $availableKecil = $remainKecil + $extraKecil;
+            $oldKecil = max(0, (float) ($extraAvailableByPod[(int) $podId] ?? 0));
+            $deltaNeedKecil = max(0, $needKecil - $oldKecil);
+            $availableKecil = $remainKecil + $oldKecil;
 
-            if ($needKecil > $availableKecil + $tolerance) {
+            if ($deltaNeedKecil > $remainKecil + $tolerance) {
                 $meta = $podMetaMap->get((int) $podId);
                 $poNo = trim((string) ($meta->fpono ?? ''));
                 $prdCode = trim((string) ($meta->fprdcode ?? ''));
