@@ -1251,6 +1251,9 @@
                                                         @blur="activeRow = null; enforceQtyRow(it); recalc(it);"
                                                         @input="enforceQtyRow(it); recalc(it);"
                                                         @change="enforceQtyRow(it); recalc(it);">
+                                                    <div class="text-[10px] text-slate-500 mt-0.5 text-right"
+                                                        x-show="it.fsource === 'PO' || it.fsource === 'PB'"
+                                                        x-text="formatSourceSummary(it)"></div>
                                                     <div class="text-[10px] text-orange-600 mt-0.5" x-show="it.fitemcode"
                                                         x-html="formatStockLimit(it.fitemcode, it.fqty, it.fsatuan, it.fsource, it.maxqty, it.hideQtyLimitHint)"></div>
                                                 </td>
@@ -1466,7 +1469,7 @@
                                                         <button type="button" @click="closeModal()"
                                                             class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">Tutup</button>
                                                     </div>
-                                                    <div class="flex-1 overflow-y-auto p-6" style="min-height: 0;">
+                                                    <div class="flex-1 overflow-auto p-6" style="min-height: 0;">
                                                         <table id="poTable"
                                                             class="min-w-full text-sm display nowrap stripe hover"
                                                             style="width:100%">
@@ -1540,7 +1543,7 @@
                                                         <button type="button" @click="closeModal()"
                                                             class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">Tutup</button>
                                                     </div>
-                                                    <div class="flex-1 overflow-y-auto p-6" style="min-height: 0;">
+                                                    <div class="flex-1 overflow-auto p-6" style="min-height: 0;">
                                                         <table id="pbTable"
                                                             class="min-w-full text-sm display nowrap stripe hover"
                                                             style="width:100%">
@@ -2460,6 +2463,13 @@
                     return '<span class="font-medium">limit:</span> ' + limitValue + ' ' + satuan;
                 },
 
+                formatSourceSummary(row) {
+                    const qtyTerima = Number(row?.fqtyterima ?? 0) || 0;
+                    const qtySisa = Number(row?.fqtysisa_source ?? row?.maxqty ?? 0) || 0;
+                    const qtyRemain = Number(row?.fqtyremain_source ?? row?.fqtykecil ?? row?.maxqty ?? 0) || 0;
+                    return `Terima: ${this.fmt(qtyTerima)} | Sisa: ${this.fmt(qtySisa)} | Remain: ${this.fmt(qtyRemain)}`;
+                },
+
                 enforceQtyRow(row) {
                     if (row?.lockQty) return;
                     const n = +row.fqty;
@@ -2601,6 +2611,9 @@
                             fsource: sourceType,
                             fnouref: fnourefVal,
                             frefpr: src.fnouref ?? fnourefVal,
+                            fqtyterima: +(src.fqtyterima || 0),
+                            fqtysisa_source: +(src.fqtysisa ?? sourceLimit || 0),
+                            fqtyremain_source: +(src.fqtyremain ?? sourceQtyKecil || 0),
 
                             // Data quantity
                             fqty: (src.fqtykecil !== null && src.fqtykecil !== undefined) ?
@@ -2923,6 +2936,9 @@
                     this.table = $('#poTable').DataTable({
                         processing: true,
                         serverSide: true,
+                        destroy: true,
+                        scrollX: true,
+                        scrollCollapse: true,
                         ajax: {
                             url: "{{ route('fakturpembelian.pickablePO') }}",
                             type: 'GET',
@@ -3084,6 +3100,9 @@
                     this.table = $('#pbTable').DataTable({
                         processing: true,
                         serverSide: true,
+                        destroy: true,
+                        scrollX: true,
+                        scrollCollapse: true,
                         ajax: {
                             url: "{{ route('fakturpembelian.pickablePB') }}",
                             type: 'GET',

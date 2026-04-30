@@ -115,7 +115,9 @@ class FakturPembelianController extends Controller
     public function pickablePO(Request $request)
     {
         $search = trim((string) $request->get('search', ''));
-        $perPage = (int) $request->get('per_page', 10);
+        $perPage = max(1, (int) $request->get('length', $request->get('per_page', 10)));
+        $start = max(0, (int) $request->get('start', 0));
+        $draw = (int) $request->get('draw', 0);
 
         $terSub = DB::table('trstockdt')
             ->selectRaw('fprdcode, frefdtno, SUM(COALESCE(fqtykecil, 0)) AS fqtyterima')
@@ -146,6 +148,8 @@ class FakturPembelianController extends Controller
                     ->whereRaw('COALESCE(tr_pod.fqtykecil, 0) - COALESCE(ter.fqtyterima, 0) > 0');
             });
 
+        $recordsTotal = (clone $query)->count();
+
         if ($search !== '') {
             $likeOp = DB::getDriverName() === 'pgsql' ? 'ILIKE' : 'LIKE';
             $query->where(function ($q) use ($search, $likeOp) {
@@ -155,12 +159,12 @@ class FakturPembelianController extends Controller
             });
         }
 
+        $recordsFiltered = (clone $query)->count();
+
         $query->orderByDesc('tr_poh.fpodate')
             ->orderByDesc('tr_poh.fpohid');
 
-        $paginated = $query->paginate($perPage)->withQueryString();
-
-        $rows = collect($paginated->items())->map(function ($t) {
+        $rows = $query->skip($start)->take($perPage)->get()->map(function ($t) {
             return [
                 'fpohid' => $t->fpohid,
                 'fpono' => $t->fpono,
@@ -172,16 +176,9 @@ class FakturPembelianController extends Controller
 
         return response()->json([
             'data' => $rows,
-            'links' => [
-                'prev' => $paginated->previousPageUrl(),
-                'next' => $paginated->nextPageUrl(),
-                'current_page' => $paginated->currentPage(),
-                'last_page' => $paginated->lastPage(),
-                'total' => $paginated->total(),
-            ],
-            'current_page' => $paginated->currentPage(),
-            'last_page' => $paginated->lastPage(),
-            'total' => $paginated->total(),
+            'draw' => $draw,
+            'recordsTotal' => $recordsTotal,
+            'recordsFiltered' => $recordsFiltered,
         ]);
     }
 
@@ -257,7 +254,9 @@ class FakturPembelianController extends Controller
     public function pickablePB(Request $request)
     {
         $search = trim((string) $request->get('search', ''));
-        $perPage = (int) $request->get('per_page', 10);
+        $perPage = max(1, (int) $request->get('length', $request->get('per_page', 10)));
+        $start = max(0, (int) $request->get('start', 0));
+        $draw = (int) $request->get('draw', 0);
 
         $buySub = DB::table('trstockdt')
             ->selectRaw('frefdtno, fprdcode, SUM(COALESCE(fqtykecil, 0)) AS fqtybuy')
@@ -283,6 +282,8 @@ class FakturPembelianController extends Controller
                     ->whereRaw('COALESCE(trstockdt.fqtykecil, 0) - COALESCE(buy.fqtybuy, 0) > 0');
             });
 
+        $recordsTotal = (clone $query)->count();
+
         if ($search !== '') {
             $likeOp = DB::getDriverName() === 'pgsql' ? 'ILIKE' : 'LIKE';
             $query->where(function ($q) use ($search, $likeOp) {
@@ -292,12 +293,12 @@ class FakturPembelianController extends Controller
             });
         }
 
+        $recordsFiltered = (clone $query)->count();
+
         $query->orderByDesc('trstockmt.fstockmtdate')
             ->orderByDesc('trstockmt.fstockmtid');
 
-        $paginated = $query->paginate($perPage)->withQueryString();
-
-        $rows = collect($paginated->items())->map(function ($t) {
+        $rows = $query->skip($start)->take($perPage)->get()->map(function ($t) {
             return [
                 'fstockmtid' => $t->fstockmtid,
                 'fstockmtno' => $t->fstockmtno,
@@ -309,16 +310,9 @@ class FakturPembelianController extends Controller
 
         return response()->json([
             'data' => $rows,
-            'links' => [
-                'prev' => $paginated->previousPageUrl(),
-                'next' => $paginated->nextPageUrl(),
-                'current_page' => $paginated->currentPage(),
-                'last_page' => $paginated->lastPage(),
-                'total' => $paginated->total(),
-            ],
-            'current_page' => $paginated->currentPage(),
-            'last_page' => $paginated->lastPage(),
-            'total' => $paginated->total(),
+            'draw' => $draw,
+            'recordsTotal' => $recordsTotal,
+            'recordsFiltered' => $recordsFiltered,
         ]);
     }
 
@@ -869,6 +863,7 @@ class FakturPembelianController extends Controller
                 $price = (float) ($prices[$i] ?? 0);
                 $biaya = (float) ($biayas[$i] ?? 0);
                 $discP = (float) ($discs[$i] ?? 0);
+                $sourceType = strtoupper(trim((string) ($sources[$i] ?? '')));
 
                 $priceNet = ($price + $biaya) * (1 - ($discP / 100));
                 $amount = $qty * $priceNet;
@@ -892,14 +887,13 @@ class FakturPembelianController extends Controller
                     'ftotprice_rp' => $amount * $frate,
                     'fusercreate' => $userid,
                     'fdatetime' => $now,
-                    'fcode' => '0',
+                    'fcode' => $sourceType === 'PO' ? 'P' : '0',
                     'fdesc' => trim((string) ($descs[$i] ?? '')) ?: null,
                     'fdiscpersen' => (string) $discP,
                     'fsatuan' => $sat,
                     'fclosedt' => '0',
                 ];
 
-                $sourceType = strtoupper(trim((string) ($sources[$i] ?? '')));
                 $detailId = isset($refdtids[$i]) ? (int) $refdtids[$i] : 0;
                 if (in_array($sourceType, ['PO', 'PB'], true) && $detailId > 0) {
                     $sourceKey = $sourceType.':'.$detailId;
@@ -1505,6 +1499,7 @@ class FakturPembelianController extends Controller
                 $biaya = (float) ($biayas[$i] ?? 0);
                 $discP = (float) ($discs[$i] ?? 0);
                 $desc = trim((string) ($descs[$i] ?? ''));
+                $sourceType = strtoupper(trim((string) ($sources[$i] ?? '')));
 
                 // Konversi Satuan & Qty Kecil
                 $qtyKecil = $qty;
@@ -1535,13 +1530,12 @@ class FakturPembelianController extends Controller
                     'fuserupdate' => (Auth::user()->fname ?? 'system'),
                     'fdatetime' => $now,
                     'fketdt' => $desc ?: null,
-                    'fcode' => '0',
+                    'fcode' => $sourceType === 'PO' ? 'P' : '0',
                     'fdiscpersen' => (string) $discP,
                     'fsatuan' => $sat,
                     'fclosedt' => '0',
                 ];
 
-                $sourceType = strtoupper(trim((string) ($sources[$i] ?? '')));
                 $detailId = isset($refdtids[$i]) ? (int) $refdtids[$i] : 0;
                 if (in_array($sourceType, ['PO', 'PB'], true) && $detailId > 0) {
                     $sourceKey = $sourceType.':'.$detailId;
