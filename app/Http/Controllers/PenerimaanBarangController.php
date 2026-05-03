@@ -121,11 +121,17 @@ class PenerimaanBarangController extends Controller
 
     public function pickable(Request $request)
     {
+        $supplierCode = trim((string) $request->input('supplier', ''));
+
         $query = DB::table('tr_poh')
             ->leftJoin('mssupplier', 'tr_poh.fsupplier', '=', 'mssupplier.fsuppliercode')
             ->select('tr_poh.*', 'mssupplier.fsuppliername', 'mssupplier.fsuppliercode');
 
         $recordsTotal = DB::table('tr_poh')->count();
+
+        if ($supplierCode !== '') {
+            $query->where('tr_poh.fsupplier', $supplierCode);
+        }
 
         if ($request->filled('search') && $request->search != '') {
             $search = $request->search;

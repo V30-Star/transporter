@@ -1581,6 +1581,7 @@
                                     draw: d.draw,
                                     start: d.start,
                                     length: d.length,
+                                    supplier: document.getElementById('supplierCodeHidden')?.value || '',
                                     search: d.search.value,
                                     order_column: d.columns[d.order[0].column].data,
                                     order_dir: d.order[0].dir

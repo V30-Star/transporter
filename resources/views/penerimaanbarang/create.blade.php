@@ -1440,6 +1440,7 @@
                                     draw: d.draw,
                                     start: d.start,
                                     length: d.length,
+                                    supplier: document.getElementById('supplierCodeHidden')?.value || '',
                                     search: d.search.value,
                                     order_column: d.columns[d.order[0].column].data,
                                     order_dir: d.order[0].dir
@@ -1514,15 +1515,6 @@
                 },
 
                 openModal() {
-                    // Ambil nilai supplier dari input hidden secara langsung
-                    const supplierId = document.getElementById('supplierCodeHidden')?.value;
-
-                    if (!supplierId || supplierId === "") {
-                        // Trigger event untuk memunculkan modal "showNoSupplier" yang ada di mainForm
-                        window.dispatchEvent(new CustomEvent('show-no-supplier'));
-                        return;
-                    }
-
                     this.show = true;
                     this.$nextTick(() => {
                         setTimeout(() => this.initDataTable(), 50);
