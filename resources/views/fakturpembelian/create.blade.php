@@ -1735,6 +1735,11 @@
                         this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
                     }
                     row.maxqty = sourceLimit;
+                    if (Number(row.fqtysisa_source) > 0) {
+                        row.fqty = Number(row.fqtysisa_source);
+                    } else if (Number(row.maxqty) > 0) {
+                        row.fqty = Number(row.maxqty);
+                    }
                     this.enforceQtyRow(row);
 
                     const key = this.itemKey(row);

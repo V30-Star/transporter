@@ -1393,6 +1393,10 @@
                             fdesc: src.fdesc ?? src.fketdt ?? '',
                             fketdt: src.fketdt ?? '',
                         };
+                        row.maxqty = this.calcMaxQty(row);
+                        if (Number(row.maxqty) > 0) {
+                            row.fqty = Number(row.maxqty);
+                        }
                         if (!row.ftotal && row.fqty && row.fprice)
                             row.ftotal = +(row.fqty * row.fprice * (1 - (row.fdisc || 0) / 100)).toFixed(2);
                         toAdd.push(row);

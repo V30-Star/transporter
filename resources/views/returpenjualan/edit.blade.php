@@ -2781,10 +2781,10 @@
                         maxqty: Math.max(0, Number(src.maxqty ?? src.fqtyremain ?? src.fqty ?? 0)),
                     };
 
-                    if ((Number(row.frefsoid ?? 0) > 0 || Number(row.frefsrjid ?? 0) > 0) && this.getRowQtyLimit(row) <= 0) {
-                        return;
+                    const rowLimit = this.getRowQtyLimit(row);
+                    if (rowLimit > 0) {
+                        row.fqty = Number(rowLimit);
                     }
-
                     row.ftotal = Number((row.fqty * row.fprice).toFixed(2));
 
                     this.validateReferenceQty(row, false);

@@ -1535,6 +1535,9 @@
                     };
                     // Hitung maxqty berdasarkan satuan PO saat ini
                     row.maxqty = this.calcMaxQty(row);
+                    if (Number(row.maxqty) > 0) {
+                        row.fqty = Number(row.maxqty);
+                    }
                     if (!row.ftotal && row.fqty && row.fprice)
                         row.ftotal = +(row.fqty * row.fprice * (1 - row.fdisc / 100)).toFixed(2);
                     toAdd.push(row);

@@ -1957,14 +1957,9 @@
                         hideQtyLimitHint: false,
                     };
 
-                    if (Number(row.frefsoid ?? 0) > 0 && this.getRowQtyLimit(row) <= 0) {
-                        skipped.push({
-                            code: row.fitemcode,
-                            reason: 'Qty SO sudah habis'
-                        });
-                        return;
+                    if (Number(row.maxqty) > 0) {
+                        row.fqty = Number(row.maxqty);
                     }
-
                     row.ftotal = Number((row.fqty * row.fprice).toFixed(2));
                     this.validateSoQtyRow(row, false);
 

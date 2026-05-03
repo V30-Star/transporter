@@ -2134,8 +2134,11 @@
                     });
 
                     if (existing.has(key)) return;
-                    if ((Number(row.frefsoid ?? 0) > 0 || Number(row.frefsrjid ?? 0) > 0) && this.getRowQtyLimit(row) <= 0) return;
 
+                    const rowLimit = this.getRowQtyLimit(row);
+                    if (rowLimit > 0) {
+                        row.fqty = Number(rowLimit);
+                    }
                     this.validateReferenceQty(row, false);
                     this.savedItems.push(row);
                     existing.add(key);
