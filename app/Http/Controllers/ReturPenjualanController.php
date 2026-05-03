@@ -810,6 +810,79 @@ class ReturPenjualanController extends Controller
             ->all();
     }
 
+    private function getReferenceSummaryByTranNo(string $fsono): array
+    {
+        $rows = DB::table('tranmt as h')
+            ->leftJoin('trandt as d', 'h.fsono', '=', 'd.fsono')
+            ->leftJoin('trsodt as so_d', 'so_d.ftrsodtid', '=', 'd.frefsoid')
+            ->leftJoin('trsomt as so_h', 'so_h.fsono', '=', 'd.frefso')
+            ->leftJoin('trstockdt as sj_d', 'sj_d.fstockdtid', '=', 'd.frefsrjid')
+            ->leftJoin('trstockmt as sj_h', 'sj_h.fstockmtno', '=', 'd.frefsrj')
+            ->leftJoinSub(
+                DB::table('trandt as dt')
+                    ->selectRaw('dt.frefsoid, dt.fprdcode, dt.frefnosoacak, SUM(COALESCE(dt.fqtykecil, 0)) as fqtykecilinv')
+                    ->whereNotNull('dt.frefsoid')
+                    ->groupBy('dt.frefsoid', 'dt.fprdcode', 'dt.frefnosoacak'),
+                'inv_so',
+                function ($join) {
+                    $join->on('inv_so.frefsoid', '=', 'd.frefsoid')
+                        ->on('inv_so.fprdcode', '=', 'd.fprdcode')
+                        ->whereRaw('COALESCE(inv_so.frefnosoacak, 0) = COALESCE(d.frefnosoacak, 0)');
+                }
+            )
+            ->leftJoinSub(
+                DB::table('trandt as dt')
+                    ->selectRaw('dt.frefsrjid, dt.fprdcode, dt.frefnosrjacak, SUM(COALESCE(dt.fqtykecil, 0)) as fqtykecilinv')
+                    ->whereNotNull('dt.frefsrjid')
+                    ->groupBy('dt.frefsrjid', 'dt.fprdcode', 'dt.frefnosrjacak'),
+                'inv_srj',
+                function ($join) {
+                    $join->on('inv_srj.frefsrjid', '=', 'd.frefsrjid')
+                        ->on('inv_srj.fprdcode', '=', 'd.fprdcode')
+                        ->whereRaw('COALESCE(inv_srj.frefnosrjacak, 0) = COALESCE(d.frefnosrjacak, 0)');
+                }
+            )
+            ->leftJoin('msprd as p', 'p.fprdcode', '=', 'd.fprdcode')
+            ->where('h.fsono', $fsono)
+            ->selectRaw("
+                d.ftrandtid,
+                CASE
+                    WHEN d.frefcode = 'SO' AND so_d.fsatuan = p.fsatuanbesar
+                        THEN COALESCE(inv_so.fqtykecilinv, 0) / NULLIF(p.fqtykecil, 0)
+                    WHEN d.frefcode = 'SO' AND so_d.fsatuan = p.fsatuanbesar2
+                        THEN COALESCE(inv_so.fqtykecilinv, 0) / NULLIF(p.fqtykecil2, 0)
+                    WHEN d.frefcode = 'SRJ' AND sj_d.fsatuan = p.fsatuanbesar
+                        THEN COALESCE(inv_srj.fqtykecilinv, 0) / NULLIF(p.fqtykecil, 0)
+                    WHEN d.frefcode = 'SRJ' AND sj_d.fsatuan = p.fsatuanbesar2
+                        THEN COALESCE(inv_srj.fqtykecilinv, 0) / NULLIF(p.fqtykecil2, 0)
+                    ELSE COALESCE(d.fqtykecil, 0)
+                END as fqtyterinvoice,
+                CASE
+                    WHEN d.frefcode = 'SO' AND so_d.fsatuan = p.fsatuanbesar
+                        THEN (COALESCE(so_d.fqtykecil, 0) + COALESCE(inv_so.fqtykecilinv, 0)) / NULLIF(p.fqtykecil, 0)
+                    WHEN d.frefcode = 'SO' AND so_d.fsatuan = p.fsatuanbesar2
+                        THEN (COALESCE(so_d.fqtykecil, 0) + COALESCE(inv_so.fqtykecilinv, 0)) / NULLIF(p.fqtykecil2, 0)
+                    WHEN d.frefcode = 'SRJ' AND sj_d.fsatuan = p.fsatuanbesar
+                        THEN (COALESCE(sj_d.fqtykecil, 0) + COALESCE(inv_srj.fqtykecilinv, 0)) / NULLIF(p.fqtykecil, 0)
+                    WHEN d.frefcode = 'SRJ' AND sj_d.fsatuan = p.fsatuanbesar2
+                        THEN (COALESCE(sj_d.fqtykecil, 0) + COALESCE(inv_srj.fqtykecilinv, 0)) / NULLIF(p.fqtykecil2, 0)
+                    WHEN d.frefcode = 'SO'
+                        THEN COALESCE(so_d.fqtykecil, 0) + COALESCE(inv_so.fqtykecilinv, 0)
+                    WHEN d.frefcode = 'SRJ'
+                        THEN COALESCE(sj_d.fqtykecil, 0) + COALESCE(inv_srj.fqtykecilinv, 0)
+                    ELSE 0
+                END as fqtysisa_ref
+            ")
+            ->get();
+
+        return $rows->keyBy('ftrandtid')->map(function ($row) {
+            return [
+                'fqtyterinvoice' => (float) ($row->fqtyterinvoice ?? 0),
+                'fqtysisa_ref' => (float) ($row->fqtysisa_ref ?? 0),
+            ];
+        })->all();
+    }
+
     public function edit(Request $request, $ftranmtid)
     {
         $customers = Customer::orderBy('fcustomername', 'asc')
@@ -868,8 +941,9 @@ class ReturPenjualanController extends Controller
 
         $soRemainRows = $this->getSoRemainByIds($soDetailIds);
         $srjRemainRows = $this->getSrjRemainByIds($srjDetailIds);
+        $referenceSummary = $this->getReferenceSummaryByTranNo((string) $returpenjualan->fsono);
 
-        $savedItems = $returpenjualan->details->map(function ($d) use ($soRemainRows, $srjRemainRows) {
+        $savedItems = $returpenjualan->details->map(function ($d) use ($soRemainRows, $srjRemainRows, $referenceSummary) {
             $refCode = strtoupper(trim($d->frefcode ?? ''));
             $valSo = trim($d->frefso ?? '');
             $valSrj = trim($d->frefsrj ?? '');
@@ -896,6 +970,7 @@ class ReturPenjualanController extends Controller
             }
 
             $maxqty = max(0.0, $remainDb + $usedQtyKecil);
+            $summary = $referenceSummary[(int) ($d->ftrandtid ?? 0)] ?? ['fqtyterinvoice' => 0, 'fqtysisa_ref' => 0];
 
             return [
                 'uid' => $d->ftrandtid,
@@ -919,6 +994,8 @@ class ReturPenjualanController extends Controller
                 'frefsrj' => $valSrj,
                 'fnoacak' => (string) ($d->fnoacak ?? ''),
                 'frefnoacak' => (string) ($d->frefnosoacak ?? $d->frefnosrjacak ?? ''),
+                'fqtyterinvoice' => (float) ($summary['fqtyterinvoice'] ?? 0),
+                'fqtysisa_ref' => (float) ($summary['fqtysisa_ref'] ?? 0),
             ];
         })->values();
         $selectedSupplierCode = $returpenjualan->fsupplier;
@@ -1016,7 +1093,9 @@ class ReturPenjualanController extends Controller
             $returpenjualan->setRelation('customer', Customer::where('fcustomercode', trim((string) $returpenjualan->fcustno))->first());
         }
 
-        $savedItems = $returpenjualan->details->map(function ($d) {
+        $referenceSummary = $this->getReferenceSummaryByTranNo((string) $returpenjualan->fsono);
+
+        $savedItems = $returpenjualan->details->map(function ($d) use ($referenceSummary) {
             $refCode = strtoupper(trim($d->frefcode ?? ''));
             $valSo = trim($d->frefso ?? '');
             $valSrj = trim($d->frefsrj ?? '');
@@ -1033,6 +1112,8 @@ class ReturPenjualanController extends Controller
                 $displayRef = $valSo;
                 $refCode = 'SO';
             }
+
+            $summary = $referenceSummary[(int) ($d->ftrandtid ?? 0)] ?? ['fqtyterinvoice' => 0, 'fqtysisa_ref' => 0];
 
             return [
                 'uid' => $d->ftrandtid,
@@ -1052,6 +1133,8 @@ class ReturPenjualanController extends Controller
                 'frefpr' => $displayRef,
                 'fnoacak' => (string) ($d->fnoacak ?? ''),
                 'frefnoacak' => (string) ($d->frefnosoacak ?? $d->frefnosrjacak ?? ''),
+                'fqtyterinvoice' => (float) ($summary['fqtyterinvoice'] ?? 0),
+                'fqtysisa_ref' => (float) ($summary['fqtysisa_ref'] ?? 0),
             ];
         })->values();
         $selectedSupplierCode = $returpenjualan->fsupplier;
@@ -1485,8 +1568,9 @@ class ReturPenjualanController extends Controller
         }
 
         $usageLockMessage = $this->getUsageLockMessage($returpenjualan);
+        $referenceSummary = $this->getReferenceSummaryByTranNo((string) $returpenjualan->fsono);
 
-        $savedItems = $returpenjualan->details->map(function ($d) {
+        $savedItems = $returpenjualan->details->map(function ($d) use ($referenceSummary) {
             $refCode = strtoupper(trim($d->frefcode ?? ''));
             $valSo = trim($d->frefso ?? '');
             $valSrj = trim($d->frefsrj ?? '');
@@ -1504,6 +1588,8 @@ class ReturPenjualanController extends Controller
                 $refCode = 'SO';
             }
 
+            $summary = $referenceSummary[(int) ($d->ftrandtid ?? 0)] ?? ['fqtyterinvoice' => 0, 'fqtysisa_ref' => 0];
+
             return [
                 'uid' => $d->ftrandtid,
                 'fitemcode' => (string) ($d->fitemcode ?? ''),  // dari alias msprd.fprdcodeid
@@ -1520,6 +1606,8 @@ class ReturPenjualanController extends Controller
                 'fketdt' => (string) ($d->fketdt ?? ''),
                 'frefcode' => $refCode,
                 'frefpr' => $displayRef,
+                'fqtyterinvoice' => (float) ($summary['fqtyterinvoice'] ?? 0),
+                'fqtysisa_ref' => (float) ($summary['fqtysisa_ref'] ?? 0),
             ];
         })->values();
         $selectedSupplierCode = $returpenjualan->fsupplier;

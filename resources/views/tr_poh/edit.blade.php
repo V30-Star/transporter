@@ -1280,10 +1280,10 @@
 
             formatPrRemainHint(row) {
                 if (!row || !row.frefdtid) return '';
-                const qtyDiPo = Number(row.fqtydipo ?? 0);
-                const satPr = (row.fqtypr_satuan || row.fsatuan || '').trim() || 'satuan';
-                if (!(qtyDiPo > 0)) return '';
-                return '<span class="font-medium">Sisa Qty PR:</span> ' + qtyDiPo + ' ' + satPr;
+                const sisaQtyPr = Number(row.fqtysisapr ?? row.fqtydipo ?? 0);
+                const satPr = (row.maxqty_satuan || row.fqtypr_satuan || row.fsatuan || '').trim() || 'satuan';
+                if (!(sisaQtyPr > 0)) return '';
+                return '<span class="font-medium">Sisa Qty PR:</span> ' + sisaQtyPr + ' ' + satPr;
             },
 
             enforcePrQtyRow(row) {

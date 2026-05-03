@@ -746,6 +746,79 @@ class InvoiceController extends Controller
             ->all();
     }
 
+    private function getReferenceSummaryByTranNo(string $fsono): array
+    {
+        $rows = DB::table('tranmt as h')
+            ->leftJoin('trandt as d', 'h.fsono', '=', 'd.fsono')
+            ->leftJoin('trsodt as so_d', 'so_d.ftrsodtid', '=', 'd.frefsoid')
+            ->leftJoin('trsomt as so_h', 'so_h.fsono', '=', 'd.frefso')
+            ->leftJoin('trstockdt as sj_d', 'sj_d.fstockdtid', '=', 'd.frefsrjid')
+            ->leftJoin('trstockmt as sj_h', 'sj_h.fstockmtno', '=', 'd.frefsrj')
+            ->leftJoinSub(
+                DB::table('trandt as dt')
+                    ->selectRaw('dt.frefsoid, dt.fprdcode, dt.frefnosoacak, SUM(COALESCE(dt.fqtykecil, 0)) as fqtykecilinv')
+                    ->whereNotNull('dt.frefsoid')
+                    ->groupBy('dt.frefsoid', 'dt.fprdcode', 'dt.frefnosoacak'),
+                'inv_so',
+                function ($join) {
+                    $join->on('inv_so.frefsoid', '=', 'd.frefsoid')
+                        ->on('inv_so.fprdcode', '=', 'd.fprdcode')
+                        ->whereRaw('COALESCE(inv_so.frefnosoacak, 0) = COALESCE(d.frefnosoacak, 0)');
+                }
+            )
+            ->leftJoinSub(
+                DB::table('trandt as dt')
+                    ->selectRaw('dt.frefsrjid, dt.fprdcode, dt.frefnosrjacak, SUM(COALESCE(dt.fqtykecil, 0)) as fqtykecilinv')
+                    ->whereNotNull('dt.frefsrjid')
+                    ->groupBy('dt.frefsrjid', 'dt.fprdcode', 'dt.frefnosrjacak'),
+                'inv_srj',
+                function ($join) {
+                    $join->on('inv_srj.frefsrjid', '=', 'd.frefsrjid')
+                        ->on('inv_srj.fprdcode', '=', 'd.fprdcode')
+                        ->whereRaw('COALESCE(inv_srj.frefnosrjacak, 0) = COALESCE(d.frefnosrjacak, 0)');
+                }
+            )
+            ->leftJoin('msprd as p', 'p.fprdcode', '=', 'd.fprdcode')
+            ->where('h.fsono', $fsono)
+            ->selectRaw("
+                d.ftrandtid,
+                CASE
+                    WHEN d.frefcode = 'SO' AND so_d.fsatuan = p.fsatuanbesar
+                        THEN COALESCE(inv_so.fqtykecilinv, 0) / NULLIF(p.fqtykecil, 0)
+                    WHEN d.frefcode = 'SO' AND so_d.fsatuan = p.fsatuanbesar2
+                        THEN COALESCE(inv_so.fqtykecilinv, 0) / NULLIF(p.fqtykecil2, 0)
+                    WHEN d.frefcode = 'SRJ' AND sj_d.fsatuan = p.fsatuanbesar
+                        THEN COALESCE(inv_srj.fqtykecilinv, 0) / NULLIF(p.fqtykecil, 0)
+                    WHEN d.frefcode = 'SRJ' AND sj_d.fsatuan = p.fsatuanbesar2
+                        THEN COALESCE(inv_srj.fqtykecilinv, 0) / NULLIF(p.fqtykecil2, 0)
+                    ELSE COALESCE(d.fqtykecil, 0)
+                END as fqtyterinvoice,
+                CASE
+                    WHEN d.frefcode = 'SO' AND so_d.fsatuan = p.fsatuanbesar
+                        THEN (COALESCE(so_d.fqtykecil, 0) + COALESCE(inv_so.fqtykecilinv, 0)) / NULLIF(p.fqtykecil, 0)
+                    WHEN d.frefcode = 'SO' AND so_d.fsatuan = p.fsatuanbesar2
+                        THEN (COALESCE(so_d.fqtykecil, 0) + COALESCE(inv_so.fqtykecilinv, 0)) / NULLIF(p.fqtykecil2, 0)
+                    WHEN d.frefcode = 'SRJ' AND sj_d.fsatuan = p.fsatuanbesar
+                        THEN (COALESCE(sj_d.fqtykecil, 0) + COALESCE(inv_srj.fqtykecilinv, 0)) / NULLIF(p.fqtykecil, 0)
+                    WHEN d.frefcode = 'SRJ' AND sj_d.fsatuan = p.fsatuanbesar2
+                        THEN (COALESCE(sj_d.fqtykecil, 0) + COALESCE(inv_srj.fqtykecilinv, 0)) / NULLIF(p.fqtykecil2, 0)
+                    WHEN d.frefcode = 'SO'
+                        THEN COALESCE(so_d.fqtykecil, 0) + COALESCE(inv_so.fqtykecilinv, 0)
+                    WHEN d.frefcode = 'SRJ'
+                        THEN COALESCE(sj_d.fqtykecil, 0) + COALESCE(inv_srj.fqtykecilinv, 0)
+                    ELSE 0
+                END as fqtysisa_ref
+            ")
+            ->get();
+
+        return $rows->keyBy('ftrandtid')->map(function ($row) {
+            return [
+                'fqtyterinvoice' => (float) ($row->fqtyterinvoice ?? 0),
+                'fqtysisa_ref' => (float) ($row->fqtysisa_ref ?? 0),
+            ];
+        })->all();
+    }
+
     public function edit(Request $request, $ftranmtid)
     {
         $customers = Customer::orderBy('fcustomername', 'asc')
@@ -806,8 +879,9 @@ class InvoiceController extends Controller
 
         $soRemainRows = $this->getSoRemainByIds($soDetailIds);
         $srjRemainRows = $this->getSrjRemainByIds($srjDetailIds);
+        $referenceSummary = $this->getReferenceSummaryByTranNo((string) $invoice->fsono);
 
-        $savedItems = $invoice->details->map(function ($d) use ($soRemainRows, $srjRemainRows) {
+        $savedItems = $invoice->details->map(function ($d) use ($soRemainRows, $srjRemainRows, $referenceSummary) {
             $refCode = trim($d->frefcode ?? '');
             if (empty($refCode)) {
                 if (! empty(trim($d->frefso ?? ''))) {
@@ -835,6 +909,7 @@ class InvoiceController extends Controller
             }
 
             $maxqty = max(0.0, $remainDb + $usedQtyKecil);
+            $summary = $referenceSummary[(int) ($d->ftrandtid ?? 0)] ?? ['fqtyterinvoice' => 0, 'fqtysisa_ref' => 0];
 
             return [
                 'uid' => $d->ftrandtid,
@@ -862,6 +937,8 @@ class InvoiceController extends Controller
                 'fketdt' => (string) ($d->fketdt ?? ''),
                 'fqtyremain' => $maxqty,
                 'maxqty' => $maxqty,
+                'fqtyterinvoice' => (float) ($summary['fqtyterinvoice'] ?? 0),
+                'fqtysisa_ref' => (float) ($summary['fqtysisa_ref'] ?? 0),
             ];
         })->values();
         $selectedSupplierCode = $invoice->fsupplier;
@@ -959,11 +1036,14 @@ class InvoiceController extends Controller
             $invoice->setRelation('customer', Customer::where('fcustomercode', trim((string) $invoice->fcustno))->first());
         }
 
-        $savedItems = $invoice->details->map(function ($d) {
+        $referenceSummary = $this->getReferenceSummaryByTranNo((string) $invoice->fsono);
+
+        $savedItems = $invoice->details->map(function ($d) use ($referenceSummary) {
             $trimSo = trim($d->frefso ?? '');
             $trimSrj = trim($d->frefsrj ?? '');
             $detailRef = $trimSo !== '' ? $trimSo : ($trimSrj !== '' ? $trimSrj : '');
             $refNoDisplay = $d->fsono_ref ?? ($d->fstockno_ref ?? ($detailRef !== '' ? $detailRef : ($d->frefcode ?? '-')));
+            $summary = $referenceSummary[(int) ($d->ftrandtid ?? 0)] ?? ['fqtyterinvoice' => 0, 'fqtysisa_ref' => 0];
 
             return [
                 'uid' => $d->ftrandtid,
@@ -982,6 +1062,8 @@ class InvoiceController extends Controller
                 'frefnoacak' => (string) ($d->frefnosoacak ?? $d->frefnosrjacak ?? ''),
                 'frefno_display' => $refNoDisplay,
                 'fketdt' => (string) ($d->fketdt ?? ''),
+                'fqtyterinvoice' => (float) ($summary['fqtyterinvoice'] ?? 0),
+                'fqtysisa_ref' => (float) ($summary['fqtysisa_ref'] ?? 0),
             ];
         })->values();
         $selectedSupplierCode = $invoice->fsupplier;
@@ -1355,11 +1437,14 @@ class InvoiceController extends Controller
 
         $usageLockMessage = $this->getUsageLockMessage($invoice);
 
-        $savedItems = $invoice->details->map(function ($d) {
+        $referenceSummary = $this->getReferenceSummaryByTranNo((string) $invoice->fsono);
+
+        $savedItems = $invoice->details->map(function ($d) use ($referenceSummary) {
             $trimSo = trim($d->frefso ?? '');
             $trimSrj = trim($d->frefsrj ?? '');
             $detailRef = $trimSo !== '' ? $trimSo : ($trimSrj !== '' ? $trimSrj : '');
             $refNoDisplay = $d->fsono_ref ?? ($d->fstockno_ref ?? ($detailRef !== '' ? $detailRef : ($d->frefcode ?? '-')));
+            $summary = $referenceSummary[(int) ($d->ftrandtid ?? 0)] ?? ['fqtyterinvoice' => 0, 'fqtysisa_ref' => 0];
 
             return [
                 'uid' => $d->ftrandtid,
@@ -1378,6 +1463,8 @@ class InvoiceController extends Controller
                 'frefnoacak' => (string) ($d->frefnosoacak ?? $d->frefnosrjacak ?? ''),
                 'frefno_display' => $refNoDisplay,
                 'fketdt' => (string) ($d->fketdt ?? ''),
+                'fqtyterinvoice' => (float) ($summary['fqtyterinvoice'] ?? 0),
+                'fqtysisa_ref' => (float) ($summary['fqtysisa_ref'] ?? 0),
             ];
         })->values();
         $selectedSupplierCode = $invoice->fsupplier;
