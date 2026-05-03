@@ -125,7 +125,8 @@ class PenerimaanBarangController extends Controller
 
         $query = DB::table('tr_poh')
             ->leftJoin('mssupplier', 'tr_poh.fsupplier', '=', 'mssupplier.fsuppliercode')
-            ->select('tr_poh.*', 'mssupplier.fsuppliername', 'mssupplier.fsuppliercode');
+            ->select('tr_poh.*', 'mssupplier.fsuppliername', 'mssupplier.fsuppliercode')
+            ->where('tr_poh.fprdin', '0');
 
         $recordsTotal = DB::table('tr_poh')->count();
 

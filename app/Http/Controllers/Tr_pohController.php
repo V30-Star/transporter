@@ -411,8 +411,8 @@ class Tr_pohController extends Controller
     private function getPrRemainByDetailIds(array $prDetailIds): array
     {
         $ids = collect($prDetailIds)
-            ->map(fn ($id) => (int) $id)
-            ->filter(fn ($id) => $id > 0)
+            ->map(fn($id) => (int) $id)
+            ->filter(fn($id) => $id > 0)
             ->unique()
             ->values()
             ->all();
@@ -433,7 +433,7 @@ class Tr_pohController extends Controller
             ->whereIn('d.fprdid', $ids)
             ->selectRaw('d.fprdid, GREATEST(COALESCE(d.fqtykecil, 0) - COALESCE(po.fqtykecilpo, 0), 0) AS remain_kecil')
             ->pluck('remain_kecil', 'd.fprdid')
-            ->map(fn ($value) => (float) $value)
+            ->map(fn($value) => (float) $value)
             ->all();
     }
 
@@ -513,8 +513,8 @@ class Tr_pohController extends Controller
 
                 throw new \RuntimeException(
                     "Qty PR melebihi batas pada {$label}. Maksimal {$availableKecilText} dalam satuan kecil"
-                    .($satuan !== '' ? " atau {$availableInPrUnitText} {$satuan}" : '')
-                    .", berdasarkan total pemakaian PO."
+                        . ($satuan !== '' ? " atau {$availableInPrUnitText} {$satuan}" : '')
+                        . ", berdasarkan total pemakaian PO."
                 );
             }
         }
@@ -954,6 +954,7 @@ class Tr_pohController extends Controller
                     'fapproval' => $isApproval,
                     'fppnpersen' => $request->input('ppn_rate', 0),
                     'fclose' => '0',
+                    'fprdin' => '0',
                 ], 'fpohid');
 
                 $fpono = DB::table('tr_poh')->where('fpohid', $fpohid)->value('fpono');
@@ -1531,7 +1532,7 @@ class Tr_pohController extends Controller
             ->selectRaw('CAST(frefdtid AS INTEGER) AS fprdid, SUM(COALESCE(fqtykecil, 0)) AS used_kecil')
             ->groupByRaw('CAST(frefdtid AS INTEGER)')
             ->pluck('used_kecil', 'fprdid')
-            ->map(fn ($value) => (float) $value)
+            ->map(fn($value) => (float) $value)
             ->all();
 
         $prdAgg = $this->aggregatePrdUsageByPrd($rowsPod);
@@ -1578,6 +1579,7 @@ class Tr_pohController extends Controller
                         'fapplyppn' => $fapplyppn,
                         'fppnpersen' => $request->input('ppn_rate', 0),
                         'fclose' => '0',
+                        'fprdin' => '0',
                     ]);
                 $fpono = DB::table('tr_poh')->where('fpohid', $fpohid)->value('fpono');
 
