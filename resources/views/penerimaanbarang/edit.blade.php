@@ -1394,6 +1394,7 @@
                             fketdt: src.fketdt ?? '',
                         };
                         row.maxqty = this.calcMaxQty(row);
+                        if (!(Number(row.maxqty) > 0)) return;
                         if (Number(row.maxqty) > 0) {
                             row.fqty = Number(row.maxqty);
                         }

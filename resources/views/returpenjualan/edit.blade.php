@@ -2782,6 +2782,7 @@
                     };
 
                     const rowLimit = this.getRowQtyLimit(row);
+                    if (!(rowLimit > 0)) return;
                     if (rowLimit > 0) {
                         row.fqty = Number(rowLimit);
                     }

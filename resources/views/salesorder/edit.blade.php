@@ -2425,6 +2425,7 @@
                         frefdtno: row.frefdtno
                     });
 
+                    if (!(Number(row.fqty) > 0)) return;
                     if (existing.has(key)) return;
 
                     this.recalc(row);

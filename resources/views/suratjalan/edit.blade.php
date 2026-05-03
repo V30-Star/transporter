@@ -1957,6 +1957,7 @@
                         hideQtyLimitHint: false,
                     };
 
+                    if (!(Number(row.maxqty) > 0)) return;
                     if (Number(row.maxqty) > 0) {
                         row.fqty = Number(row.maxqty);
                     }

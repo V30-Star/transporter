@@ -1269,6 +1269,7 @@
                         maxqty: Math.max(0, Number(src.maxqty ?? src.fqtyremain ?? src.fqty ?? 0)),
                     };
 
+                    if (!(Number(row.maxqty) > 0)) return;
                     if (Number(row.maxqty) > 0) {
                         row.fqty = Number(row.maxqty);
                     }

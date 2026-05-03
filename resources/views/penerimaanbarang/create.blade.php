@@ -1277,6 +1277,7 @@
                         row.fqtykecil_ref = Number(src.fqtykecil_ref ?? src.fqtyremain ?? src.fqtykecil_sisa ?? 0);
 
                         row.maxqty = this.calcMaxQty(row);
+                        if (!(Number(row.maxqty) > 0)) return;
                         if (Number(row.maxqty) > 0) {
                             row.fqty = Number(row.maxqty);
                         }

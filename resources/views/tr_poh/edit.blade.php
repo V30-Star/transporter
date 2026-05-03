@@ -1535,6 +1535,7 @@
                     };
                     // Hitung maxqty berdasarkan satuan PO saat ini
                     row.maxqty = this.calcMaxQty(row);
+                    if (!(Number(row.maxqty) > 0)) return;
                     if (Number(row.maxqty) > 0) {
                         row.fqty = Number(row.maxqty);
                     }
