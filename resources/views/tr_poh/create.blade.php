@@ -95,9 +95,51 @@
             </div>
         </div>
     @endif
+    @php
+        $oldItemCodes = old('fitemcode', []);
+        $oldItemNames = old('fitemname', []);
+        $oldSatuans = old('fsatuan', []);
+        $oldRefDtNos = old('frefdtno', []);
+        $oldRefDtIds = old('frefdtid', []);
+        $oldNoUrefs = old('fnouref', []);
+        $oldNoAcaks = old('fnoacak', []);
+        $oldRefNoAcaks = old('frefnoacak', []);
+        $oldRefPrs = old('frefpr', []);
+        $oldPrhIds = old('fprhid', []);
+        $oldQtys = old('fqty', []);
+        $oldPrices = old('fprice', []);
+        $oldDiscs = old('fdisc', []);
+        $oldTotals = old('ftotal', []);
+        $oldDescs = old('fdesc', []);
+        $oldKetdts = old('fketdt', []);
+        $initialPoItems = [];
+
+        foreach ($oldItemCodes as $index => $itemCode) {
+            $initialPoItems[] = [
+                'fitemcode' => $itemCode,
+                'fitemname' => $oldItemNames[$index] ?? '',
+                'fsatuan' => $oldSatuans[$index] ?? '',
+                'frefdtno' => $oldRefDtNos[$index] ?? '',
+                'frefdtid' => $oldRefDtIds[$index] ?? '',
+                'fnouref' => $oldNoUrefs[$index] ?? '',
+                'fnoacak' => $oldNoAcaks[$index] ?? '',
+                'frefnoacak' => $oldRefNoAcaks[$index] ?? '',
+                'frefpr' => $oldRefPrs[$index] ?? '',
+                'fprhid' => $oldPrhIds[$index] ?? '',
+                'fqty' => $oldQtys[$index] ?? 0,
+                'fprice' => $oldPrices[$index] ?? 0,
+                'fdisc' => $oldDiscs[$index] ?? 0,
+                'ftotal' => $oldTotals[$index] ?? 0,
+                'fdesc' => $oldDescs[$index] ?? '',
+                'fketdt' => $oldKetdts[$index] ?? '',
+            ];
+        }
+    @endphp
     <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
-        <form action="{{ route('tr_poh.store') }}" method="POST" class="mt-6" x-data="mainForm()"
-            x-init="init()" @submit.prevent="submitForm($el)">
+        <form action="{{ route('tr_poh.store') }}" method="POST" class="mt-6" data-form-draft="true"
+            data-draft-key="tr_poh:create" x-data="mainForm()"
+            x-init="syncSupplierDisplay(@js(old('fsupplier', ''))); restoreSavedItems(@js($initialPoItems)); init()"
+            @submit.prevent="submitForm($el)">
             @csrf
 
             @if ($errors->any())
@@ -151,7 +193,7 @@
                                 <option value=""></option>
                                 @foreach ($suppliers as $supplier)
                                     <option value="{{ $supplier->fsuppliercode }}"
-                                        {{ ($filterSupplierId ?? '') == $supplier->fsuppliercode ? 'selected' : '' }}>
+                                        {{ old('fsupplier', $filterSupplierId) == $supplier->fsuppliercode ? 'selected' : '' }}>
                                         {{ $supplier->fsuppliername }} ({{ $supplier->fsuppliercode }})
                                     </option>
                                 @endforeach
@@ -1101,6 +1143,99 @@
                 return (document.getElementById('supplierCodeHidden')?.value || '').trim();
             },
 
+            syncSupplierDisplay(code) {
+                const supplierCode = (code || '').toString().trim();
+                const sel = document.getElementById('modal_filter_supplier_id');
+                const hid = document.getElementById('supplierCodeHidden');
+                if (hid) {
+                    hid.value = supplierCode;
+                }
+                if (!sel) {
+                    return;
+                }
+
+                let found = false;
+                Array.from(sel.options).forEach((option) => {
+                    const selected = String(option.value) === supplierCode;
+                    option.selected = selected;
+                    if (selected) {
+                        found = true;
+                    }
+                });
+
+                if (!found && supplierCode) {
+                    sel.add(new Option(supplierCode, supplierCode, true, true));
+                }
+
+                sel.dispatchEvent(new Event('change', {
+                    bubbles: true
+                }));
+            },
+
+            buildSavedItem(source = {}) {
+                const row = {
+                    ...newRow(),
+                    ...source
+                };
+                const meta = this.productMeta(row.fitemcode);
+                const units = [...new Set((meta.units || []).map((unit) => (unit ?? '').toString().trim()).filter(Boolean))];
+                const currentSatuan = (row.fsatuan || '').toString().trim();
+
+                if (currentSatuan && !units.includes(currentSatuan)) {
+                    units.unshift(currentSatuan);
+                }
+
+                row.uid = row.uid || cryptoRandom();
+                row.fitemcode = (row.fitemcode || '').toString().trim();
+                row.fitemname = (row.fitemname || meta.name || '').toString();
+                row.units = units;
+                row.fsatuan = currentSatuan || units[0] || '';
+                row.frefdtno = (row.frefdtno || '').toString();
+                row.frefdtid = (row.frefdtid || '').toString();
+                row.fnouref = (row.fnouref || '').toString();
+                row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak();
+                row.frefnoacak = this.normalizeNoAcak(row.frefnoacak);
+                row.frefpr = (row.frefpr || '').toString();
+                row.fprhid = (row.fprhid || '').toString();
+                row.fqty = Number(row.fqty || 0);
+                row.fprice = Number(row.fprice || 0);
+                row.fdisc = Number(row.fdisc || 0);
+                row.ftotal = Number(row.ftotal || 0);
+                row.fdesc = (row.fdesc || '').toString();
+                row.fketdt = (row.fketdt || '').toString();
+                row.fsatuankecil = row.fsatuankecil || meta.fsatuankecil || '';
+                row.fsatuanbesar = row.fsatuanbesar || meta.fsatuanbesar || '';
+                row.fsatuanbesar2 = row.fsatuanbesar2 || meta.fsatuanbesar2 || '';
+                row.fqtykecil = Number(row.fqtykecil || meta.fqtykecil || 0);
+                row.fqtykecil2 = Number(row.fqtykecil2 || meta.fqtykecil2 || 0);
+                row.unit_ratios = meta.unit_ratios || row.unit_ratios || {
+                    satuankecil: 1,
+                    satuanbesar: 1,
+                    satuanbesar2: 1
+                };
+                row.maxqty = this.calcMaxQty(row);
+
+                if (!row.ftotal && row.fqty && row.fprice) {
+                    row.ftotal = +(row.fqty * row.fprice * (1 - row.fdisc / 100)).toFixed(2);
+                }
+
+                return row;
+            },
+
+            restoreSavedItems(items = []) {
+                if (!Array.isArray(items) || items.length === 0) {
+                    return;
+                }
+
+                this.savedItems = items
+                    .filter((item) => (item?.fitemcode || '').toString().trim() !== '')
+                    .map((item) => this.buildSavedItem(item));
+
+                if (this.savedItems.length > 0) {
+                    this.showNoItems = false;
+                }
+            },
+
             async applyLastPrice(row) {
                 const supplier = this.getSupplier();
                 const code = (row.fitemcode || '').trim();
@@ -1371,6 +1506,8 @@
                     this.rateValue = 1;
                 }
                 this.draft.fnoacak = this.generateUniqueNoAcak();
+                this.syncSupplierDisplay(@js(old('fsupplier', '')));
+                this.restoreSavedItems(@js($initialPoItems));
                 window.getCurrentItemKeys = () => this.getCurrentItemKeys();
                 window.isDupeItem = (candidate) => this.isDupeItem(candidate);
                 if (this._ac) this._ac.abort();

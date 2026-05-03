@@ -101,7 +101,8 @@
     <div x-data="{ open: true }">
         <div x-data="{ includePPN: false, ppnRate: 11, ppnAmount: 0, selected: 'alamatsurat', totalHarga: 0 }" class="lg:col-span-5">
             <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
-                <form action="{{ route('salesorder.store') }}" method="POST" class="mt-6" x-data="{ showNoItems: false }"
+                <form action="{{ route('salesorder.store') }}" method="POST" class="mt-6" data-form-draft="true"
+                    data-draft-key="salesorder:create" x-data="{ showNoItems: false }"
                     @submit.prevent="
                         const count = Number($el.querySelector('input[name=itemsCount]')?.value || 0);
                         if (count < 1) {

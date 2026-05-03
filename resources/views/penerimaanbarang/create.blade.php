@@ -95,9 +95,53 @@
             </div>
         </div>
     @endif
+    @php
+        $oldItemCodes = old('fitemcode', []);
+        $oldItemNames = old('fitemname', []);
+        $oldSatuans = old('fsatuan', []);
+        $oldRefDtNos = old('frefdtno', []);
+        $oldRefDtIds = old('frefdtid', []);
+        $oldNoAcaks = old('fnoacak', []);
+        $oldRefNoAcaks = old('frefnoacak', []);
+        $oldPonos = old('fpono', []);
+        $oldRefSoIds = old('frefsoid', []);
+        $oldNoUrefs = old('fnouref', []);
+        $oldRefPrs = old('frefpr', []);
+        $oldPrhIds = old('fprhid', []);
+        $oldQtys = old('fqty', []);
+        $oldPrices = old('fprice', []);
+        $oldTotals = old('ftotal', []);
+        $oldDescs = old('fdesc', []);
+        $oldKetdts = old('fketdt', []);
+        $initialPenerimaanItems = [];
+
+        foreach ($oldItemCodes as $index => $itemCode) {
+            $initialPenerimaanItems[] = [
+                'fitemcode' => $itemCode,
+                'fitemname' => $oldItemNames[$index] ?? '',
+                'fsatuan' => $oldSatuans[$index] ?? '',
+                'frefdtno' => $oldRefDtNos[$index] ?? '',
+                'frefdtid' => $oldRefDtIds[$index] ?? '',
+                'fnoacak' => $oldNoAcaks[$index] ?? '',
+                'frefnoacak' => $oldRefNoAcaks[$index] ?? '',
+                'fpono' => $oldPonos[$index] ?? '',
+                'frefsoid' => $oldRefSoIds[$index] ?? '',
+                'fnouref' => $oldNoUrefs[$index] ?? '',
+                'frefpr' => $oldRefPrs[$index] ?? '',
+                'fprhid' => $oldPrhIds[$index] ?? '',
+                'fqty' => $oldQtys[$index] ?? 0,
+                'fprice' => $oldPrices[$index] ?? 0,
+                'ftotal' => $oldTotals[$index] ?? 0,
+                'fdesc' => $oldDescs[$index] ?? '',
+                'fketdt' => $oldKetdts[$index] ?? '',
+            ];
+        }
+    @endphp
     <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
-        <form action="{{ route('penerimaanbarang.store') }}" method="POST" class="mt-6" x-data="mainForm()"
-            x-init="init()" @submit.prevent="submitForm($el)">
+        <form action="{{ route('penerimaanbarang.store') }}" method="POST" class="mt-6" data-form-draft="true"
+            data-draft-key="penerimaanbarang:create" x-data="mainForm()"
+            x-init="syncSupplierDisplay(@js(old('fsupplier', ''))); restoreSavedItems(@js($initialPenerimaanItems)); init()"
+            @submit.prevent="submitForm($el)">
             @csrf
 
             @if ($errors->any())
@@ -145,7 +189,7 @@
                                 <option value=""></option>
                                 @foreach ($suppliers as $supplier)
                                     <option value="{{ $supplier->fsuppliercode }}"
-                                        {{ $filterSupplierId == $supplier->fsuppliercode ? 'selected' : '' }}>
+                                        {{ old('fsupplier', $filterSupplierId) == $supplier->fsuppliercode ? 'selected' : '' }}>
                                         {{ $supplier->fsuppliername }} ({{ $supplier->fsuppliercode }})
                                     </option>
                                 @endforeach
@@ -816,6 +860,48 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
     <script>
+        @php
+            $oldItemCodes = old('fitemcode', []);
+            $oldItemNames = old('fitemname', []);
+            $oldSatuans = old('fsatuan', []);
+            $oldRefDtNos = old('frefdtno', []);
+            $oldRefDtIds = old('frefdtid', []);
+            $oldNoAcaks = old('fnoacak', []);
+            $oldRefNoAcaks = old('frefnoacak', []);
+            $oldPonos = old('fpono', []);
+            $oldRefSoIds = old('frefsoid', []);
+            $oldNoUrefs = old('fnouref', []);
+            $oldRefPrs = old('frefpr', []);
+            $oldPrhIds = old('fprhid', []);
+            $oldQtys = old('fqty', []);
+            $oldPrices = old('fprice', []);
+            $oldTotals = old('ftotal', []);
+            $oldDescs = old('fdesc', []);
+            $oldKetdts = old('fketdt', []);
+            $initialPenerimaanItems = [];
+
+            foreach ($oldItemCodes as $index => $itemCode) {
+                $initialPenerimaanItems[] = [
+                    'fitemcode' => $itemCode,
+                    'fitemname' => $oldItemNames[$index] ?? '',
+                    'fsatuan' => $oldSatuans[$index] ?? '',
+                    'frefdtno' => $oldRefDtNos[$index] ?? '',
+                    'frefdtid' => $oldRefDtIds[$index] ?? '',
+                    'fnoacak' => $oldNoAcaks[$index] ?? '',
+                    'frefnoacak' => $oldRefNoAcaks[$index] ?? '',
+                    'fpono' => $oldPonos[$index] ?? '',
+                    'frefsoid' => $oldRefSoIds[$index] ?? '',
+                    'fnouref' => $oldNoUrefs[$index] ?? '',
+                    'frefpr' => $oldRefPrs[$index] ?? '',
+                    'fprhid' => $oldPrhIds[$index] ?? '',
+                    'fqty' => $oldQtys[$index] ?? 0,
+                    'fprice' => $oldPrices[$index] ?? 0,
+                    'ftotal' => $oldTotals[$index] ?? 0,
+                    'fdesc' => $oldDescs[$index] ?? '',
+                    'fketdt' => $oldKetdts[$index] ?? '',
+                ];
+            }
+        @endphp
         // ─── FIX 1: Definisikan CURRENCY_MAP supaya init() tidak crash ─────────────
         window.CURRENCY_MAP = window.CURRENCY_MAP || {};
 
@@ -826,6 +912,11 @@
                     name: @json($p->fprdname),
                     units: @json(array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2]))),
                     stock: @json($p->fminstock ?? 0),
+                    fsatuankecil: @json($p->fsatuankecil),
+                    fsatuanbesar: @json($p->fsatuanbesar),
+                    fsatuanbesar2: @json($p->fsatuanbesar2),
+                    fqtykecil: @json((float) ($p->fqtykecil ?? 0)),
+                    fqtykecil2: @json((float) ($p->fqtykecil2 ?? 0)),
                     unit_ratios: {
                         satuankecil: 1,
                         satuanbesar: @json((float) ($p->fqtykecil ?? 1)),
@@ -833,6 +924,11 @@
                     },
                 },
             @endforeach
+        };
+
+        window.PENERIMAANBARANG_INITIAL_STATE = {
+            fsupplier: @json(old('fsupplier', '')),
+            items: @json($initialPenerimaanItems),
         };
 
         window.cryptoRandom = function() {
@@ -1054,6 +1150,155 @@
                     // Cek value dari input hidden, pastikan tidak null/undefined
                     const el = document.getElementById('supplierCodeHidden');
                     return el ? el.value.trim() : '';
+                },
+
+                syncSupplierDisplay(code) {
+                    const supplierCode = (code || '').toString().trim();
+                    const sel = document.getElementById('modal_filter_supplier_id');
+                    const hid = document.getElementById('supplierCodeHidden');
+                    if (hid) {
+                        hid.value = supplierCode;
+                    }
+                    if (!sel) {
+                        return;
+                    }
+
+                    let found = false;
+                    Array.from(sel.options).forEach((option) => {
+                        const selected = String(option.value) === supplierCode;
+                        option.selected = selected;
+                        if (selected) {
+                            found = true;
+                        }
+                    });
+
+                    if (!found && supplierCode) {
+                        sel.add(new Option(supplierCode, supplierCode, true, true));
+                    }
+
+                    sel.dispatchEvent(new Event('change', {
+                        bubbles: true
+                    }));
+                },
+
+                buildSavedItem(source = {}) {
+                    const row = {
+                        ...newRow(),
+                        ...source
+                    };
+                    const meta = this.productMeta(row.fitemcode);
+                    const units = [...new Set((meta.units || []).map((unit) => (unit ?? '').toString().trim()).filter(Boolean))];
+                    const currentSatuan = (row.fsatuan || '').toString().trim();
+
+                    if (currentSatuan && !units.includes(currentSatuan)) {
+                        units.unshift(currentSatuan);
+                    }
+
+                    row.uid = row.uid || cryptoRandom();
+                    row.fitemcode = (row.fitemcode || '').toString().trim();
+                    row.fitemname = (row.fitemname || meta.name || '').toString();
+                    row.units = units;
+                    row.fsatuan = currentSatuan || units[0] || '';
+                    row.frefdtno = (row.frefdtno || '').toString();
+                    row.frefdtid = (row.frefdtid || '').toString();
+                    row.fnoacak = this.normalizeNoAcak(row.fnoacak) || this.generateUniqueNoAcak();
+                    row.frefnoacak = this.normalizeNoAcak(row.frefnoacak);
+                    row.fpono = (row.fpono || '').toString();
+                    row.frefsoid = (row.frefsoid || '').toString();
+                    row.fnouref = (row.fnouref || '').toString();
+                    row.frefpr = (row.frefpr || '').toString();
+                    row.fprhid = (row.fprhid || '').toString();
+                    row.fqty = Number(row.fqty || 0);
+                    row.fprice = Number(row.fprice || 0);
+                    row.ftotal = Number(row.ftotal || 0);
+                    row.fdesc = (row.fdesc || '').toString();
+                    row.fketdt = (row.fketdt || '').toString();
+                    row.fsatuankecil = row.fsatuankecil || meta.fsatuankecil || '';
+                    row.fsatuanbesar = row.fsatuanbesar || meta.fsatuanbesar || '';
+                    row.fsatuanbesar2 = row.fsatuanbesar2 || meta.fsatuanbesar2 || '';
+                    row.fqtykecil = Number(row.fqtykecil || meta.fqtykecil || 0);
+                    row.fqtykecil2 = Number(row.fqtykecil2 || meta.fqtykecil2 || 0);
+                    row.unit_ratios = meta.unit_ratios || row.unit_ratios || {
+                        satuankecil: 1,
+                        satuanbesar: 1,
+                        satuanbesar2: 1
+                    };
+                    row.maxqty = this.calcMaxQty(row);
+
+                    if (!row.ftotal && row.fqty && row.fprice) {
+                        row.ftotal = +(row.fqty * row.fprice).toFixed(2);
+                    }
+
+                    return row;
+                },
+
+                restoreSavedItems(items = []) {
+                    if (!Array.isArray(items) || items.length === 0) {
+                        return;
+                    }
+
+                    this.savedItems = items
+                        .filter((item) => (item?.fitemcode || '').toString().trim() !== '')
+                        .map((item) => this.buildSavedItem(item));
+
+                    if (this.savedItems.length > 0) {
+                        this.showNoItems = false;
+                    }
+                },
+
+                restoreFormState(payload = {}) {
+                    const values = payload?.values || {};
+                    const customState = payload?.customState || {};
+
+                    if (!values || typeof values !== 'object') {
+                        return;
+                    }
+
+                    this.syncSupplierDisplay(values.fsupplier || values.filter_supplier_id || '');
+
+                    if (Array.isArray(customState.savedItems) && customState.savedItems.length > 0) {
+                        this.restoreSavedItems(customState.savedItems);
+                        return;
+                    }
+
+                    const itemCodes = Array.isArray(values.fitemcode) ? values.fitemcode : [];
+                    if (itemCodes.length === 0) {
+                        return;
+                    }
+
+                    const fields = [
+                        'fitemname',
+                        'fsatuan',
+                        'frefdtno',
+                        'frefdtid',
+                        'fnoacak',
+                        'frefnoacak',
+                        'fpono',
+                        'frefsoid',
+                        'fnouref',
+                        'frefpr',
+                        'fprhid',
+                        'fqty',
+                        'fprice',
+                        'ftotal',
+                        'fdesc',
+                        'fketdt'
+                    ];
+
+                    const restoredItems = itemCodes.map((itemCode, index) => {
+                        const restored = {
+                            fitemcode: itemCode
+                        };
+
+                        fields.forEach((field) => {
+                            const value = values[field];
+                            restored[field] = Array.isArray(value) ? (value[index] ?? '') : '';
+                        });
+
+                        return restored;
+                    });
+
+                    this.restoreSavedItems(restoredItems);
                 },
 
                 async applyLastPrice(row) {
@@ -1340,6 +1585,8 @@
                     window.getCurrentItemKeys = () => this.getCurrentItemKeys();
                     window.isDupeItem = (candidate) => this.isDupeItem(candidate);
                     this.draft.fnoacak = this.generateUniqueNoAcak();
+                    this.syncSupplierDisplay(window.PENERIMAANBARANG_INITIAL_STATE?.fsupplier || '');
+                    this.restoreSavedItems(window.PENERIMAANBARANG_INITIAL_STATE?.items || []);
 
                     if (this._ac) this._ac.abort();
                     this._ac = new AbortController();
@@ -1376,6 +1623,19 @@
                             apply(this.draft);
                             this.$nextTick(() => this.$refs.draftQty?.focus());
                         }
+                    }, sig);
+                    this.$root.addEventListener('form-draft-restored', (event) => {
+                        this.restoreFormState({
+                            values: event.detail?.values || {},
+                            customState: event.detail?.draft?.customState || {}
+                        });
+                    }, sig);
+                    this.$root.addEventListener('form-draft-collect', (event) => {
+                        event.detail.customState = {
+                            savedItems: this.savedItems.map((item) => ({
+                                ...item
+                            }))
+                        };
                     }, sig);
 
                     const self = this;

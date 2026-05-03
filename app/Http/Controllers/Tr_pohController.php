@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail; // sekalian biar aman untuk tanggal
+use Illuminate\Support\Facades\Validator;
 
 class Tr_pohController extends Controller
 {
@@ -696,10 +697,11 @@ class Tr_pohController extends Controller
     public function store(Request $request)
     {
         // VALIDATION
-        $request->validate([
+        $validator = Validator::make($request->all(), [
             'fpohid' => ['nullable', 'string', 'max:25'],
             'fpodate' => ['required', 'date'],
             'fkirimdate' => ['nullable', 'date'],
+            'fsupplier' => ['required', 'string', 'max:30'],
             'fincludeppn' => ['nullable'],
             'fket' => ['nullable', 'string', 'max:300'],
             'fbranchcode' => ['nullable', 'string', 'max:20'],
@@ -745,6 +747,12 @@ class Tr_pohController extends Controller
             'fnoacak.*.regex' => 'No acak PO harus terdiri dari 3 digit angka 1-9 tanpa 0.',
             'frefnoacak.*.regex' => 'No referensi acak harus terdiri dari 3 digit angka.',
         ]);
+
+        if ($validator->fails()) {
+            return back()
+                ->withErrors($validator)
+                ->withInput();
+        }
 
         // HEADER VALUES
         $fpodate = Carbon::parse($request->fpodate)->startOfDay();
@@ -1339,7 +1347,7 @@ class Tr_pohController extends Controller
 
     public function update(Request $request, $fpohid)
     {
-        $request->validate([
+        $validator = Validator::make($request->all(), [
             'fpodate' => ['required', 'date'],
             'fkirimdate' => ['nullable', 'date'],
             'fsupplier' => ['required', 'string', 'max:30'],
@@ -1375,6 +1383,12 @@ class Tr_pohController extends Controller
             'fnoacak.*.regex' => 'No acak PO harus terdiri dari 3 digit angka 1-9 tanpa 0.',
             'frefnoacak.*.regex' => 'No referensi acak harus terdiri dari 3 digit angka.',
         ]);
+
+        if ($validator->fails()) {
+            return back()
+                ->withErrors($validator)
+                ->withInput();
+        }
 
         $header = Tr_poh::where('fpohid', $fpohid)->firstOrFail();
 
