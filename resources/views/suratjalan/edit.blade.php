@@ -1749,37 +1749,7 @@
             },
 
             formatStockLimit(row) {
-                if (!row?.fitemcode) return '';
-                if (row?.hideQtyLimitHint) return '';
-                const meta = this.productMeta(row.fitemcode);
-                const limitSource = Number(row.maxqty ?? 0);
-                if (!limitSource) return '';
-
-                const units = meta.units || [];
-                const ratios = meta.unit_ratios || {
-                    satuankecil: 1,
-                    satuanbesar: 1,
-                    satuanbesar2: 1
-                };
-
-                const satuan = row.fsatuan || '';
-                if (!units.length || !satuan) return '';
-
-                const satKecil = units[0] || 'pcs';
-                const satBesar = units[1] || '';
-                const satBesar2 = units[2] || '';
-
-                let ratio = 1;
-                if (satuan === satBesar2 && ratios.satuanbesar2 > 0) {
-                    ratio = ratios.satuanbesar2;
-                } else if (satuan === satBesar && ratios.satuanbesar > 0) {
-                    ratio = ratios.satuanbesar;
-                } else if (satuan === satKecil) {
-                    ratio = 1;
-                }
-
-                const limitValue = Math.floor(limitSource / ratio);
-                return '<span class="font-medium">limit:</span> ' + limitValue + ' ' + satuan;
+                return '';
             },
 
             getRowQtyLimit(row) {

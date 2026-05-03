@@ -1121,13 +1121,7 @@
                 },
 
                 formatPoRemainHint(row) {
-                    if (!row || !row.frefdtid) return '';
-                    const sisaQtyPo = Math.max(0, Number(row.fqtysisapo ?? 0) || 0);
-                    if (!(sisaQtyPo > 0)) return '';
-                    const sat = (row.fsatuan || '').trim() || 'satuan';
-                    const qtyDiter = Number(row.fqtyditer ?? 0);
-                    return '<span class="font-medium">Sisa Qty PO:</span> ' + sisaQtyPo + ' ' + sat
-                        + (qtyDiter > 0 ? ' | <span class="font-medium">Qty Diterima:</span> ' + qtyDiter + ' ' + sat : '');
+                    return '';
                 },
 
                 enforcePoQtyRow(row) {

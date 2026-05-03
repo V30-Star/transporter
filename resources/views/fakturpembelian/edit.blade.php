@@ -2424,43 +2424,7 @@
                 },
 
                 formatStockLimit(code, qty, satuan, sourceType = '', sourceMaxQty = null, hideQtyLimitHint = false) {
-                    if (hideQtyLimitHint) return '';
-                    const normalizedSource = (sourceType || '').toString().trim().toUpperCase();
-                    if (['PO', 'PB'].includes(normalizedSource)) {
-                        const sourceLimit = Math.max(0, +(sourceMaxQty ?? 0) || 0);
-                        if (!satuan) return '';
-                        return '<span class="font-medium">limit source:</span> ' + sourceLimit + ' ' + satuan;
-                    }
-
-                    const meta = this.productMeta(code);
-                    if (!code || !meta.stock) return '';
-
-                    const entered = Number(qty) || 0;
-                    const remaining = Math.max(0, meta.stock - entered);
-                    const units = meta.units || [];
-                    const ratios = meta.unit_ratios || {
-                        satuankecil: 1,
-                        satuanbesar: 1,
-                        satuanbesar2: 1
-                    };
-
-                    if (!units.length || !satuan) return '';
-
-                    const satKecil = units[0] || 'pcs';
-                    const satBesar = units[1] || '';
-                    const satBesar2 = units[2] || '';
-
-                    let ratio = 1;
-                    if (satuan === satBesar2 && ratios.satuanbesar2 > 0) {
-                        ratio = ratios.satuanbesar2;
-                    } else if (satuan === satBesar && ratios.satuanbesar > 0) {
-                        ratio = ratios.satuanbesar;
-                    } else if (satuan === satKecil) {
-                        ratio = 1;
-                    }
-
-                    const limitValue = Math.floor(remaining / ratio);
-                    return '<span class="font-medium">limit:</span> ' + limitValue + ' ' + satuan;
+                    return '';
                 },
 
                 qtyToKecil(code, qty, satuan) {

@@ -972,45 +972,11 @@
                 },
 
                 formatStockLimit(code, qty, satuan) {
-                    const meta = this.productMeta(code);
-                    if (!code || !meta.stock) return '';
-
-                    const entered = Number(qty) || 0;
-                    const remaining = Math.max(0, meta.stock - entered);
-                    const units = meta.units || [];
-                    const ratios = meta.unit_ratios || {
-                        satuankecil: 1,
-                        satuanbesar: 1,
-                        satuanbesar2: 1
-                    };
-
-                    if (!units.length || !satuan) return '';
-
-                    const satKecil = units[0] || 'pcs';
-                    const satBesar = units[1] || '';
-                    const satBesar2 = units[2] || '';
-
-                    let ratio = 1;
-                    if (satuan === satBesar2 && ratios.satuanbesar2 > 0) {
-                        ratio = ratios.satuanbesar2;
-                    } else if (satuan === satBesar && ratios.satuanbesar > 0) {
-                        ratio = ratios.satuanbesar;
-                    } else if (satuan === satKecil) {
-                        ratio = 1;
-                    }
-
-                    const limitValue = Math.floor(remaining / ratio);
-                    return '<span class="font-medium">limit:</span> ' + limitValue + ' ' + satuan;
+                    return '';
                 },
 
                 formatPoRemainHint(row) {
-                    if (!row || !row.frefdtid) return '';
-                    const sisaQtyPo = Number(row.fqtysisapo ?? this.calcMaxQty(row) ?? 0);
-                    if (!(sisaQtyPo > 0)) return '';
-                    const sat = (row.fsatuan || '').trim() || 'satuan';
-                    const qtyDiter = Number(row.fqtyditer ?? 0);
-                    return '<span class="font-medium">Sisa Qty PO:</span> ' + sisaQtyPo + ' ' + sat
-                        + (qtyDiter > 0 ? ' | <span class="font-medium">Qty Diterima:</span> ' + qtyDiter + ' ' + sat : '');
+                    return '';
                 },
 
                 enforcePoQtyRow(row) {
