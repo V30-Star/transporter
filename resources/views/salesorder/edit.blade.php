@@ -415,7 +415,7 @@
                                                 <td class="p-2 text-right">
                                                     <input type="number"
                                                         class="w-full border rounded px-2 py-1 text-right bg-gray-100 text-gray-600"
-                                                        x-model.number="it.fqtyremain" disabled>
+                                                        x-model.number="it.fqtysrj" disabled>
                                                 </td>
                                                 <td class="p-2 text-right">
                                                     <input type="number"
@@ -1050,7 +1050,7 @@
                                                                 ">
                                                         </td>
                                                         <td class="p-2 text-right font-medium"
-                                                            x-text="fmt(it.fqtyremain)"></td>
+                                                            x-text="fmt(it.fqtysrj)"></td>
                                                         <td class="p-2 text-right">
                                                             <input type="number"
                                                                 class="w-full border rounded px-2 py-1 text-right"

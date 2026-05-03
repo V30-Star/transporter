@@ -716,7 +716,9 @@ class SalesOrderController extends Controller
                     'msprd.fprdcode as fprdcode',
                     'msprd.fprdname',
                     'msprd.fsatuanbesar',
-                    'msprd.fqtykecil  as fprd_qtykonversi'
+                    'msprd.fsatuanbesar2',
+                    'msprd.fqtykecil  as fprd_qtykonversi',
+                    'msprd.fqtykecil2 as fprd_qtykonversi2'
                 );
         }])->findOrFail($ftrsomtid);
 
@@ -729,6 +731,13 @@ class SalesOrderController extends Controller
         $soRemainMap = $this->getSoRemainByIds($salesorder->details->pluck('ftrsodtid')->all());
 
         $savedItems = $salesorder->details->map(function ($d) use ($soRemainMap) {
+            $remainDisplay = $this->convertSoRemainToDisplayUnit(
+                (float) ($soRemainMap[(int) ($d->ftrsodtid ?? 0)] ?? 0),
+                (string) ($d->fsatuan ?? ''),
+                $d
+            );
+            $qtySrj = max(0, (float) ($d->fqty ?? 0) - $remainDisplay);
+
             return [
                 'uid' => $d->ftrsodtid,
                 'fprdcode' => (string) ($d->fprdcode ?? ''),
@@ -739,6 +748,7 @@ class SalesOrderController extends Controller
                 'fnouref' => (string) ($d->fnouref ?? ''),
                 'fqty' => (float) ($d->fqty ?? 0),
                 'fqtyremain' => (float) ($soRemainMap[(int) ($d->ftrsodtid ?? 0)] ?? 0),
+                'fqtysrj' => $qtySrj,
                 'fterima' => (float) ($d->fterima ?? 0),
                 'fprice' => (float) ($d->fprice ?? 0),
                 'fdisc' => (float) ($d->fdiscpersen ?? 0),
@@ -834,6 +844,8 @@ class SalesOrderController extends Controller
                     'msprd.fprdcode      as fprdcode',
                     'msprd.fprdname',
                     'msprd.fsatuanbesar',
+                    'msprd.fsatuanbesar2',
+                    'msprd.fqtykecil2    as fprd_qtykonversi2',
                     'msprd.fqtykecil     as fprd_qtykonversi'  // alias jelas, tidak konflik
                 );
         }])->findOrFail($ftrsomtid);
@@ -845,6 +857,13 @@ class SalesOrderController extends Controller
         $soRemainMap = $this->getSoRemainByIds($salesorder->details->pluck('ftrsodtid')->all());
 
         $savedItems = $salesorder->details->map(function ($d) use ($soRemainMap) {
+            $remainDisplay = $this->convertSoRemainToDisplayUnit(
+                (float) ($soRemainMap[(int) ($d->ftrsodtid ?? 0)] ?? 0),
+                (string) ($d->fsatuan ?? ''),
+                $d
+            );
+            $qtySrj = max(0, (float) ($d->fqty ?? 0) - $remainDisplay);
+
             return [
                 'uid' => $d->ftrsodtid,
                 'fprdcode' => (string) ($d->fprdcode ?? ''),
@@ -854,6 +873,7 @@ class SalesOrderController extends Controller
                 'frefdtno' => (string) ($d->ftrsodtid ?? ''),
                 'fqty' => (float) ($d->fqty ?? 0),
                 'fqtyremain' => (float) ($soRemainMap[(int) ($d->ftrsodtid ?? 0)] ?? 0),
+                'fqtysrj' => $qtySrj,
                 'fterima' => (float) ($d->fterima ?? 0),
                 'fprice' => (float) ($d->fprice ?? 0),
                 'fdisc' => (float) ($d->fdiscpersen ?? 0),
@@ -1161,7 +1181,11 @@ class SalesOrderController extends Controller
                 ->select(
                     'trsodt.*',
                     'msprd.fprdcode as fprdcode',
-                    'msprd.fprdname'
+                    'msprd.fprdname',
+                    'msprd.fsatuanbesar',
+                    'msprd.fsatuanbesar2',
+                    'msprd.fqtykecil as fprd_qtykonversi',
+                    'msprd.fqtykecil2 as fprd_qtykonversi2'
                 );
         }])->findOrFail($ftrsomtid);
 
@@ -1174,6 +1198,13 @@ class SalesOrderController extends Controller
         $soRemainMap = $this->getSoRemainByIds($salesorder->details->pluck('ftrsodtid')->all());
 
         $savedItems = $salesorder->details->map(function ($d) use ($soRemainMap) {
+            $remainDisplay = $this->convertSoRemainToDisplayUnit(
+                (float) ($soRemainMap[(int) ($d->ftrsodtid ?? 0)] ?? 0),
+                (string) ($d->fsatuan ?? ''),
+                $d
+            );
+            $qtySrj = max(0, (float) ($d->fqty ?? 0) - $remainDisplay);
+
             return [
                 'uid' => $d->ftrsodtid,
                 'fprdcode' => (string) ($d->fprdcode ?? ''),
@@ -1184,6 +1215,7 @@ class SalesOrderController extends Controller
                 'fnouref' => (string) ($d->fnouref ?? ''),
                 'fqty' => (float) ($d->fqty ?? 0),
                 'fqtyremain' => (float) ($soRemainMap[(int) ($d->ftrsodtid ?? 0)] ?? 0),
+                'fqtysrj' => $qtySrj,
                 'fterima' => (float) ($d->fterima ?? 0),
                 'fprice' => (float) ($d->fprice ?? 0),
                 'fdisc' => (float) ($d->fdiscpersen ?? 0),
@@ -1288,6 +1320,25 @@ class SalesOrderController extends Controller
             ->pluck('remain_kecil', 'd.ftrsodtid')
             ->map(fn ($value) => (float) $value)
             ->all();
+    }
+
+    private function convertSoRemainToDisplayUnit(float $qtyKecil, string $unit, object $detail): float
+    {
+        $unit = trim($unit);
+        $satBesar = trim((string) ($detail->fsatuanbesar ?? ''));
+        $satBesar2 = trim((string) ($detail->fsatuanbesar2 ?? ''));
+        $ratioBesar = (float) ($detail->fprd_qtykonversi ?? 0);
+        $ratioBesar2 = (float) ($detail->fprd_qtykonversi2 ?? 0);
+
+        if ($unit !== '' && $unit === $satBesar2 && $ratioBesar2 > 0) {
+            return $qtyKecil / $ratioBesar2;
+        }
+
+        if ($unit !== '' && $unit === $satBesar && $ratioBesar > 0) {
+            return $qtyKecil / $ratioBesar;
+        }
+
+        return $qtyKecil;
     }
 
     private function getUsageLockMessage($header): ?string

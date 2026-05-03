@@ -327,7 +327,7 @@
                                             </td>
                                             <td class="p-2" x-text="it.fsatuan"></td>
                                             <td class="p-2 text-right" x-text="fmt(it.fqty)"></td>
-                                            <td class="p-2 text-right font-medium" x-text="fmt(it.fqtyremain)"></td>
+                                            <td class="p-2 text-right font-medium" x-text="fmt(it.fqtysrj)"></td>
                                             <td class="p-2 text-right" x-text="fmt(it.fprice)"></td>
                                             <td class="p-2 text-right" x-text="it.fdisc"></td>
                                             <td class="p-2 text-right" x-text="fmt(it.ftotal)"></td>

@@ -1100,6 +1100,56 @@
                 return '<span class="font-medium">limit:</span> ' + limitValue + ' ' + satuan;
             },
 
+            getRowQtyLimit(row) {
+                if (!row?.fitemcode) return 0;
+
+                const meta = this.productMeta(row.fitemcode);
+                const limitSource = Number(row.maxqty ?? 0);
+                if (!Number.isFinite(limitSource) || limitSource <= 0) return 0;
+
+                const units = meta.units || [];
+                const ratios = meta.unit_ratios || { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 };
+                const satuan = row.fsatuan || '';
+                const satKecil = units[0] || 'pcs';
+                const satBesar = units[1] || '';
+                const satBesar2 = units[2] || '';
+
+                let ratio = 1;
+                if (satuan === satBesar2 && ratios.satuanbesar2 > 0) {
+                    ratio = ratios.satuanbesar2;
+                } else if (satuan === satBesar && ratios.satuanbesar > 0) {
+                    ratio = ratios.satuanbesar;
+                } else if (satuan === satKecil) {
+                    ratio = 1;
+                }
+
+                return Math.floor(limitSource / ratio);
+            },
+
+            validateSoQtyRow(row, showToast = true) {
+                const soDetailId = Number(row?.frefsoid ?? 0);
+                if (!(soDetailId > 0)) return true;
+
+                const limit = this.getRowQtyLimit(row);
+                if (limit <= 0) {
+                    row.fqty = 0;
+                    if (showToast) {
+                        window.toast?.error('Qty SO untuk item ini sudah habis atau sudah digunakan.');
+                    }
+                    return false;
+                }
+
+                const qty = Number(row?.fqty ?? 0);
+                if (qty > limit) {
+                    row.fqty = limit;
+                    if (showToast) {
+                        window.toast?.error(`Qty melebihi sisa SO. Maksimal ${limit} ${row.fsatuan || ''}`.trim());
+                    }
+                }
+
+                return Number(row?.fqty ?? 0) > 0;
+            },
+
             enforceQtyRow(row) {
                 const n = +row.fqty;
                 const meta = this.productMeta(row.fitemcode);
@@ -1122,6 +1172,7 @@
                     return;
                 }
                 if (n < 1) row.fqty = 1;
+                this.validateSoQtyRow(row, false);
             },
 
             hydrateRowFromMeta(row, meta) {
@@ -1243,7 +1294,16 @@
                         maxqty: Math.max(0, Number(src.maxqty ?? src.fqtyremain ?? src.fqty ?? 0)),
                     };
 
+                    if (Number(row.frefsoid ?? 0) > 0 && this.getRowQtyLimit(row) <= 0) {
+                        skipped.push({
+                            code: row.fitemcode,
+                            reason: 'Qty SO sudah habis'
+                        });
+                        return;
+                    }
+
                     row.ftotal = Number((row.fqty * row.fprice).toFixed(2));
+                    this.validateSoQtyRow(row, false);
 
                     const key = this.itemKey({
                         fitemcode: row.fitemcode,
@@ -1307,6 +1367,9 @@
                 }
 
                 this.recalc(r);
+                if (!this.validateSoQtyRow(r, true)) {
+                    return this.$refs.draftQty?.focus();
+                }
 
                 const dupe = this.savedItems.find(it =>
                     it.fitemcode === r.fitemcode &&

@@ -563,7 +563,11 @@ class SuratJalanController extends Controller
             }
         }
 
-        // Validasi sisa SO berdasarkan fqtykecil dinonaktifkan.
+        if ($validationMessage = $this->validateSoUsageRequest($soUsageByDetailId)) {
+            return back()->withInput()->withErrors([
+                'detail' => $validationMessage,
+            ]);
+        }
 
         // =========================
         // 7) TRANSAKSI DB
@@ -1273,7 +1277,11 @@ class SuratJalanController extends Controller
         )));
 
         if (! empty($soIdsToCheck)) {
-            // Validasi sisa SO berdasarkan fqtykecil dinonaktifkan.
+            if ($validationMessage = $this->validateSoUsageRequest($soUsageByDetailId, $oldSoUsageByDetailId)) {
+                return back()->withInput()->withErrors([
+                    'detail' => $validationMessage,
+                ]);
+            }
         }
 
         // =========================
@@ -1720,6 +1728,72 @@ class SuratJalanController extends Controller
             ->pluck('remain_kecil', 'd.ftrsodtid')
             ->map(fn ($value) => (float) $value)
             ->all();
+    }
+
+    /**
+     * Validasi pemakaian qty SO dalam satuan kecil.
+     *
+     * @param  array<int, float|int>  $requestedUsageByDetailId
+     * @param  array<int, float|int>  $restoredUsageByDetailId
+     */
+    private function validateSoUsageRequest(array $requestedUsageByDetailId, array $restoredUsageByDetailId = []): ?string
+    {
+        $requested = collect($requestedUsageByDetailId)
+            ->mapWithKeys(fn ($qty, $id) => [(int) $id => (float) $qty])
+            ->filter(fn ($qty, $id) => $id > 0 && $qty > 0)
+            ->all();
+
+        if (empty($requested)) {
+            return null;
+        }
+
+        $restored = collect($restoredUsageByDetailId)
+            ->mapWithKeys(fn ($qty, $id) => [(int) $id => (float) $qty])
+            ->filter(fn ($qty, $id) => $id > 0 && $qty > 0)
+            ->all();
+
+        $ids = array_values(array_unique(array_merge(array_keys($requested), array_keys($restored))));
+        $remainMap = $this->getSoRemainByIds($ids);
+
+        $details = DB::table('trsodt as d')
+            ->leftJoin('trsomt as h', 'h.fsono', '=', 'd.fsono')
+            ->leftJoin('msprd as p', 'p.fprdcode', '=', 'd.fprdcode')
+            ->whereIn('d.ftrsodtid', $ids)
+            ->select(
+                'd.ftrsodtid',
+                'd.fsono',
+                'd.fprdcode',
+                'd.fsatuan',
+                'h.fsono as fsono_header',
+                'p.fprdname'
+            )
+            ->get()
+            ->keyBy('ftrsodtid');
+
+        foreach ($requested as $detailId => $requestedQtyKecil) {
+            $availableQtyKecil = max(
+                0,
+                (float) ($remainMap[$detailId] ?? 0) + (float) ($restored[$detailId] ?? 0)
+            );
+
+            if ($availableQtyKecil <= 0) {
+                $detail = $details->get($detailId);
+                $product = trim((string) ($detail->fprdname ?? $detail->fprdcode ?? $detailId));
+                $soNo = trim((string) ($detail->fsono_header ?? $detail->fsono ?? ''));
+
+                return 'Qty Surat Jalan untuk item '.$product.($soNo !== '' ? ' pada SO '.$soNo : '').' tidak bisa diinput karena qty sudah habis atau sudah digunakan.';
+            }
+
+            if ($requestedQtyKecil - $availableQtyKecil > 0.000001) {
+                $detail = $details->get($detailId);
+                $product = trim((string) ($detail->fprdname ?? $detail->fprdcode ?? $detailId));
+                $soNo = trim((string) ($detail->fsono_header ?? $detail->fsono ?? ''));
+
+                return 'Qty Surat Jalan untuk item '.$product.($soNo !== '' ? ' pada SO '.$soNo : '').' melebihi sisa qty yang tersedia.';
+            }
+        }
+
+        return null;
     }
 
     /**
