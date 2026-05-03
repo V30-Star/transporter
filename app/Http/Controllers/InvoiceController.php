@@ -578,7 +578,9 @@ class InvoiceController extends Controller
             }
         }
 
-        // Validasi sisa SO/SRJ berdasarkan fqtykecil dinonaktifkan.
+        if ($validationMessage = $this->validateReferenceUsage($soUsageByDetailId, $srjUsageByDetailId)) {
+            return back()->withInput()->with('error', $validationMessage);
+        }
 
         $amountNet = $totalGross - $totalDisc;
         $ppnPersen = (float) $request->input('fppnpersen', 11);
@@ -639,16 +641,6 @@ class InvoiceController extends Controller
                 DB::table('trandt')->insert($detailRows);
 
             });
-
-            // UPDATE STOK - gunakan qtyKecil hasil konversi, bukan qty mentah
-            foreach ($detailRows as $row) {
-                DB::table('msprd')
-                    ->where('fprdcode', $row['fprdcode'])
-                    ->update([
-                        'fminstock' => DB::raw('CAST(fminstock AS NUMERIC) - '.$row['fqtyremain']),
-                        'fupdatedat' => now(),
-                    ]);
-            }
 
             return redirect()->route('invoice.index')->with('success', 'Faktur Penjualan berhasil disimpan.');
         } catch (\Exception $e) {
@@ -817,6 +809,55 @@ class InvoiceController extends Controller
                 'fqtysisa_ref' => (float) ($row->fqtysisa_ref ?? 0),
             ];
         })->all();
+    }
+
+    private function validateReferenceUsage(array $soUsageByDetailId, array $srjUsageByDetailId, array $oldSoUsageByDetailId = [], array $oldSrjUsageByDetailId = []): ?string
+    {
+        $soIds = array_values(array_unique(array_merge(array_keys($soUsageByDetailId), array_keys($oldSoUsageByDetailId))));
+        if (! empty($soIds)) {
+            $soRemainMap = $this->getSoRemainByIds($soIds);
+            $soDetails = DB::table('trsodt as d')
+                ->leftJoin('trsomt as h', 'h.fsono', '=', 'd.fsono')
+                ->leftJoin('msprd as p', 'p.fprdcode', '=', 'd.fprdcode')
+                ->whereIn('d.ftrsodtid', $soIds)
+                ->select('d.ftrsodtid', 'h.fsono as refno', 'p.fprdname', 'd.fprdcode')
+                ->get()
+                ->keyBy('ftrsodtid');
+
+            foreach ($soUsageByDetailId as $detailId => $qtyKecil) {
+                $available = max(0, (float) ($soRemainMap[$detailId] ?? 0) + (float) ($oldSoUsageByDetailId[$detailId] ?? 0));
+                if ((float) $qtyKecil - $available > 0.000001) {
+                    $detail = $soDetails->get($detailId);
+                    $label = trim((string) ($detail->fprdname ?? $detail->fprdcode ?? $detailId));
+                    $refno = trim((string) ($detail->refno ?? ''));
+                    return 'Qty referensi SO untuk item '.$label.($refno !== '' ? ' pada '.$refno : '').' melebihi qty yang masih tersedia.';
+                }
+            }
+        }
+
+        $srjIds = array_values(array_unique(array_merge(array_keys($srjUsageByDetailId), array_keys($oldSrjUsageByDetailId))));
+        if (! empty($srjIds)) {
+            $srjRemainMap = $this->getSrjRemainByIds($srjIds);
+            $srjDetails = DB::table('trstockdt as d')
+                ->leftJoin('trstockmt as h', 'h.fstockmtno', '=', 'd.fstockmtno')
+                ->leftJoin('msprd as p', 'p.fprdcode', '=', 'd.fprdcode')
+                ->whereIn('d.fstockdtid', $srjIds)
+                ->select('d.fstockdtid', 'h.fstockmtno as refno', 'p.fprdname', 'd.fprdcode')
+                ->get()
+                ->keyBy('fstockdtid');
+
+            foreach ($srjUsageByDetailId as $detailId => $qtyKecil) {
+                $available = max(0, (float) ($srjRemainMap[$detailId] ?? 0) + (float) ($oldSrjUsageByDetailId[$detailId] ?? 0));
+                if ((float) $qtyKecil - $available > 0.000001) {
+                    $detail = $srjDetails->get($detailId);
+                    $label = trim((string) ($detail->fprdname ?? $detail->fprdcode ?? $detailId));
+                    $refno = trim((string) ($detail->refno ?? ''));
+                    return 'Qty referensi SRJ untuk item '.$label.($refno !== '' ? ' pada '.$refno : '').' melebihi qty yang masih tersedia.';
+                }
+            }
+        }
+
+        return null;
     }
 
     public function edit(Request $request, $ftranmtid)
@@ -1302,7 +1343,14 @@ class InvoiceController extends Controller
             }
         }
 
-        // Validasi sisa SO/SRJ berdasarkan fqtykecil dinonaktifkan.
+        if ($validationMessage = $this->validateReferenceUsage(
+            $soUsageByDetailId,
+            $srjUsageByDetailId,
+            $oldSoUsageByDetailId,
+            $oldSrjUsageByDetailId
+        )) {
+            return back()->withInput()->with('error', $validationMessage);
+        }
 
         // 5. KALKULASI TOTAL AKHIR
         $amountNet = $totalGross - $totalDisc;
@@ -1371,16 +1419,6 @@ class InvoiceController extends Controller
                     DB::table('trstockdt')->where('fstockdtid', $detailId)->update([
                         'fqtyremain' => DB::raw('COALESCE(fqtyremain,0) + '.(float) $oldQty),
                     ]);
-                }
-
-                // UPDATE STOK - gunakan qtyKecil hasil konversi, bukan qty mentah
-                foreach ($detailRows as $row) {
-                    DB::table('msprd')
-                        ->where('fprdcode', $row['fprdcode'])
-                        ->update([
-                            'fminstock' => DB::raw('CAST(fminstock AS NUMERIC) - '.$row['fqtyremain']),
-                            'fupdatedat' => now(),
-                        ]);
                 }
 
                 // Insert detail baru

@@ -692,16 +692,6 @@ class SuratJalanController extends Controller
 
                 DB::table('trstockdt')->insert($rowsDt);
 
-                // UPDATE STOK - gunakan qtyKecil hasil konversi, bukan qty mentah
-                foreach ($rowsDt as $row) {
-                    DB::table('msprd')
-                        ->where('fprdcode', $row['fprdcode'])
-                        ->update([
-                            'fminstock' => DB::raw('CAST(fminstock AS NUMERIC) - '.$row['fqtyremain']),
-                            'fupdatedat' => now(),
-                        ]);
-                }
-
                 // ---- 7.5. JURNAL ----
                 $INVENTORY_ACCOUNT_CODE = '11400';
                 $PPN_IN_ACCOUNT_CODE = '11500';
@@ -1389,16 +1379,6 @@ class SuratJalanController extends Controller
                 }
 
                 DB::table('trstockdt')->insert($rowsDt);
-
-                // UPDATE STOK - gunakan qtyKecil hasil konversi, bukan qty mentah
-                foreach ($rowsDt as $row) {
-                    DB::table('msprd')
-                        ->where('fprdcode', $row['fprdcode'])
-                        ->update([
-                            'fminstock' => DB::raw('CAST(fminstock AS NUMERIC) - '.$row['fqtyremain']),
-                            'fupdatedat' => now(),
-                        ]);
-                }
 
                 // ---- 6.4. JURNAL ----
                 $INVENTORY_ACCOUNT_CODE = '11400';

@@ -2603,6 +2603,30 @@
                 return '';
             },
 
+            getRowQtyLimit(row) {
+                return Math.max(0, Number(row?.maxqty ?? 0) || 0);
+            },
+
+            validateReferenceQty(row, showToast = true) {
+                const hasRef = Number(row?.frefsoid ?? 0) > 0 || Number(row?.frefsrjid ?? 0) > 0;
+                if (!hasRef) return true;
+
+                const limit = this.getRowQtyLimit(row);
+                if (limit <= 0) {
+                    row.fqty = 0;
+                    if (showToast) window.toast?.error('Qty referensi sudah habis atau sudah digunakan.');
+                    return false;
+                }
+
+                const qty = Number(row?.fqty ?? 0);
+                if (qty > limit) {
+                    row.fqty = limit;
+                    if (showToast) window.toast?.error(`Qty melebihi sisa referensi. Maksimal ${limit} ${row.fsatuan || ''}`.trim());
+                }
+
+                return Number(row?.fqty ?? 0) > 0;
+            },
+
             enforceQtyRow(row) {
                 const n = +row.fqty;
 
@@ -2611,6 +2635,7 @@
                     return;
                 }
                 if (n < 1) row.fqty = 1;
+                this.validateReferenceQty(row, false);
 
             },
 
@@ -2756,8 +2781,13 @@
                         maxqty: Math.max(0, Number(src.maxqty ?? src.fqtyremain ?? src.fqty ?? 0)),
                     };
 
+                    if ((Number(row.frefsoid ?? 0) > 0 || Number(row.frefsrjid ?? 0) > 0) && this.getRowQtyLimit(row) <= 0) {
+                        return;
+                    }
+
                     row.ftotal = Number((row.fqty * row.fprice).toFixed(2));
 
+                    this.validateReferenceQty(row, false);
                     this.recalc(row);
                     this.savedItems.push(row);
                     added++;
@@ -2821,6 +2851,10 @@
                 if (dupe) {
                     this.showToast('Item sama sudah ada di daftar', 'warning');
                     return;
+                }
+
+                if (!this.validateReferenceQty(r, true)) {
+                    return this.$refs.draftQty?.focus();
                 }
 
                 this.savedItems.push({

@@ -623,15 +623,6 @@ class SalesOrderController extends Controller
                 }
                 DB::table('trsodt')->insert($rowsSodt);
 
-                // UPDATE STOK - gunakan qtyKecil hasil konversi, bukan qty mentah
-                foreach ($rowsSodt as $row) {
-                    DB::table('msprd')
-                        ->where('fprdcode', $row['fprdcode'])
-                        ->update([
-                            'fminstock' => DB::raw('CAST(fminstock AS NUMERIC) - '.$row['fqtyremain']),
-                            'fupdatedat' => now(),
-                        ]);
-                }
                 // E. Final Total Update
                 $totalAmountSo = DB::table('trsodt')->where('fsono', $fsono)->sum('famount');
                 DB::table('trsomt')->where('ftrsomtid', $ftrsomtid)->update([
@@ -1134,15 +1125,6 @@ class SalesOrderController extends Controller
 
             // Delete old details and insert new ones
             DB::table('trsodt')->where('fsono', $header->fsono)->delete();
-            // UPDATE STOK - gunakan qtyKecil hasil konversi, bukan qty mentah
-            foreach ($rowsSodt as $row) {
-                DB::table('msprd')
-                    ->where('fprdcode', $row['fprdcode'])
-                    ->update([
-                        'fminstock' => DB::raw('CAST(fminstock AS NUMERIC) - '.$row['fqtyremain']),
-                        'fupdatedat' => now(),
-                    ]);
-            }
             if (! empty($rowsSodt)) {
                 DB::table('trsodt')->insert($rowsSodt);
             }
