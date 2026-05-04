@@ -852,9 +852,22 @@ class PenerimaanBarangController extends Controller
                 // E. Jurnal
                 $fjurnaltype = 'JTB';
                 $jurnalPrefix = sprintf('%s.%s.%s.%s.', $fjurnaltype, $kodeCabang, $yy, $mm);
-                $lastJ = DB::table('jurnalmt')->where('fjurnalno', 'like', $jurnalPrefix.'%')
-                    ->selectRaw("MAX(CAST(split_part(fjurnalno, '.', 5) AS int)) AS lastno")->value('lastno');
-                $fjurnalno = $jurnalPrefix.str_pad((string) ((int) $lastJ + 1), 4, '0', STR_PAD_LEFT);
+                if (DB::getDriverName() === 'pgsql') {
+                    $lastJ = DB::table('jurnalmt')->where('fjurnalno', 'like', $jurnalPrefix.'%')
+                        ->selectRaw("MAX(CAST(split_part(fjurnalno, '.', 5) AS int)) AS lastno")->value('lastno');
+                    $nextJ = (int) $lastJ + 1;
+                } else {
+                    $lastJurnalNo = DB::table('jurnalmt')
+                        ->where('fjurnalno', 'like', $jurnalPrefix.'%')
+                        ->orderByDesc('fjurnalno')
+                        ->value('fjurnalno');
+
+                    $nextJ = 1;
+                    if ($lastJurnalNo && ($pos = strrpos($lastJurnalNo, '.')) !== false) {
+                        $nextJ = ((int) substr($lastJurnalNo, $pos + 1)) + 1;
+                    }
+                }
+                $fjurnalno = $jurnalPrefix.str_pad((string) $nextJ, 4, '0', STR_PAD_LEFT);
 
                 $jurnalId = DB::table('jurnalmt')->insertGetId([
                     'fbranchcode' => $kodeCabang,

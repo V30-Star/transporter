@@ -749,14 +749,26 @@ class FakturPembelianController extends Controller
 
         // kunci per (branch, tahun-bulan) — TANPA bikin tabel baru
         $lockKey = crc32('PO|'.$kodeCabang.'|'.$date->format('Y-m'));
-        DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
+        if (DB::getDriverName() === 'pgsql') {
+            DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
-        $last = DB::table('tr_poh')
-            ->where('fpono', 'like', $prefix.'%')
-            ->selectRaw("MAX(CAST(split_part(fpono, '.', 5) AS int)) AS lastno")
-            ->value('lastno');
+            $last = DB::table('tr_poh')
+                ->where('fpono', 'like', $prefix.'%')
+                ->selectRaw("MAX(CAST(split_part(fpono, '.', 5) AS int)) AS lastno")
+                ->value('lastno');
 
-        $next = (int) $last + 1;
+            $next = (int) $last + 1;
+        } else {
+            $lastCode = DB::table('tr_poh')
+                ->where('fpono', 'like', $prefix.'%')
+                ->orderByDesc('fpono')
+                ->value('fpono');
+
+            $next = 1;
+            if ($lastCode && ($pos = strrpos($lastCode, '.')) !== false) {
+                $next = ((int) substr($lastCode, $pos + 1)) + 1;
+            }
+        }
 
         return $prefix.str_pad((string) $next, 4, '0', STR_PAD_LEFT);
     }
