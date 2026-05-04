@@ -225,7 +225,7 @@
                                             </td>
                                             <td class="p-2" x-text="it.frefno_display || it.frefso || '-'"></td>
                                             <td class="p-2 text-right" x-text="it.fsatuan"></td>
-                                            <td class="p-2 text-right" x-text="fmt(it.fqty)"></td>
+                                            <td class="p-2 text-right" x-text="formatQtyValue(it.fqty)"></td>
                                             <td class="hidden">
                                                 <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
                                                 <input type="hidden" name="fitemname[]" :value="it.fitemname">
@@ -714,6 +714,17 @@
                             maximumFractionDigits: 2
                         });
                     }
+                },
+
+                formatQtyValue(value) {
+                    const num = Number(value);
+                    if (!Number.isFinite(num)) return '0,00';
+                    const hasMoreThanTwoDecimals = Math.abs((num * 100) - Math.round(num * 100)) > 0.000001;
+                    const digits = hasMoreThanTwoDecimals ? 4 : 2;
+                    return num.toLocaleString('id-ID', {
+                        minimumFractionDigits: digits,
+                        maximumFractionDigits: digits
+                    });
                 },
 
                 rupiah(n) {

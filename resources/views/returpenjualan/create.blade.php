@@ -1773,10 +1773,10 @@
                 return total + this.ppnAdded;
             },
 
-            fmt(n) {
-                if (n === null || n === undefined || n === '') return '-';
-                const v = Number(n);
-                if (!isFinite(v)) return '-';
+                    fmt(n) {
+                        if (n === null || n === undefined || n === '') return '-';
+                        const v = Number(n);
+                        if (!isFinite(v)) return '-';
 
                 if (Number.isInteger(v)) {
                     return v.toLocaleString('id-ID');
@@ -1785,12 +1785,23 @@
                         style: 'currency',
                         currency: 'IDR'
                     });
-                }
-            },
+                        }
+                    },
 
-            rupiah(n) {
-                const v = Number(n || 0);
-                if (!isFinite(v)) return 'Rp -';
+                    formatQtyValue(value) {
+                        const num = Number(value);
+                        if (!Number.isFinite(num)) return '0,00';
+                        const hasMoreThanTwoDecimals = Math.abs((num * 100) - Math.round(num * 100)) > 0.000001;
+                        const digits = hasMoreThanTwoDecimals ? 4 : 2;
+                        return num.toLocaleString('id-ID', {
+                            minimumFractionDigits: digits,
+                            maximumFractionDigits: digits
+                        });
+                    },
+
+                    rupiah(n) {
+                        const v = Number(n || 0);
+                        if (!isFinite(v)) return 'Rp -';
                 return 'Rp ' + v.toLocaleString('id-ID', {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2

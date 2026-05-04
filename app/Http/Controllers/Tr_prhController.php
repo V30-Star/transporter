@@ -548,8 +548,37 @@ class Tr_prhController extends Controller
         // ===== 1) AMBIL HEADER DULU =====
         $header = Tr_prh::where('fprhid', $fprhid)->firstOrFail();
 
+        $isCloseOnly = $request->boolean('close_only');
+        $hasReference = DB::table('tr_pod')->where('frefdtno', $header->fprno)->exists();
+        $canCloseReferencedPr = $isCloseOnly
+            && $request->has('fclose')
+            && $hasReference
+            && trim((string) ($header->fprdin ?? '')) === '0';
+
         if ($message = $this->getUsageLockMessage($header)) {
+            if ($canCloseReferencedPr) {
+                $message = null;
+            }
+        }
+
+        if (! empty($message)) {
             return redirect()->route('tr_prh.index')->with('error', $message);
+        }
+
+        if ($isCloseOnly) {
+            if (! $canCloseReferencedPr) {
+                return back()->withInput()->with('error', 'Status close PR hanya bisa diubah jika PR memiliki referensi PO dan fprdin = 0.');
+            }
+
+            Tr_prh::where('fprhid', $header->fprhid)->update([
+                'fclose' => '1',
+                'fuserupdate' => (auth('sysuser')->user()->fname ?? Auth::user()->fname ?? 'system'),
+                'fupdatedat' => now(),
+            ]);
+
+            return redirect()
+                ->route('tr_prh.index')
+                ->with('success', "Status close PR {$header->fprno} berhasil diperbarui.");
         }
 
         $fprhid = (int) $header->fprhid;
@@ -708,7 +737,7 @@ class Tr_prhController extends Controller
                 'fduedate' => $fduedate,
                 'fuserupdate' => $userName,
                 'fupdatedat' => $now,
-                'fclose' => $request->has('fclose') ? '1' : '0',
+                'fclose' => $request->has('fclose') ? '1' : (string) ($header->fclose ?? '0'),
             ];
             if ($approveNow && (empty($header->fuserapproved) && (int) $header->fapproval !== 1)) {
                 $headerUpdate['fapproval'] = 1;

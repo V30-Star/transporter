@@ -213,9 +213,9 @@
                                         </td>
                                         <td class="p-2" x-text="it.fsatuan"></td>
                                         <td class="p-2 text-right">
-                                            <div x-text="it.fqty"></div>
+                                            <div x-text="formatQtyValue(it.fqty)"></div>
                                         </td>
-                                        <td class="p-2 text-right" x-text="it.fqtypo"></td>
+                                        <td class="p-2 text-right" x-text="formatQtyValue(it.fqtypo)"></td>
                                         <td class="p-2" x-text="it.fketdt || '-'"></td>
 
                                         <!-- hidden inputs -->
@@ -299,7 +299,7 @@
                                                 </div>
                                     </td>
 
-                                    <td class="p-2 text-right" x-text="it.fqtypo > 0 ? it.fqtypo : '-'"></td>
+                                    <td class="p-2 text-right" x-text="it.fqtypo > 0 ? formatQtyValue(it.fqtypo) : '-'"></td>
 
                                     <td class="p-2">
                                         <input type="text" class="border rounded px-2 py-1 w-full"
@@ -889,6 +889,16 @@
                     sanitizeNumber(v, d = 0) {
                         const n = +v;
                         return Number.isFinite(n) ? n : d;
+                    },
+                    formatQtyValue(value) {
+                        const num = Number(value);
+                        if (!Number.isFinite(num)) return '0,00';
+                        const hasMoreThanTwoDecimals = Math.abs((num * 100) - Math.round(num * 100)) > 0.000001;
+                        const digits = hasMoreThanTwoDecimals ? 4 : 2;
+                        return new Intl.NumberFormat('id-ID', {
+                            minimumFractionDigits: digits,
+                            maximumFractionDigits: digits
+                        }).format(num);
                     },
                     enforceQtyRow(row) {
                         // max qty validation dihapus: qty tidak lagi dibatasi mengikuti stok maksimum.

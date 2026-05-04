@@ -308,6 +308,7 @@
                                 <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
                                 <th class="p-2 text-right w-24 whitespace-nowrap">Disc. %</th>
                                 <th class="p-2 text-right w-36 whitespace-nowrap">Total Harga</th>
+                                <th class="p-2 text-right w-36 whitespace-nowrap">Total Rp.</th>
                                 <th class="p-2 text-center w-20">Aksi</th>
                             </tr>
                         </thead>
@@ -417,7 +418,8 @@
                                     </td>
 
                                     {{-- Total Harga --}}
-                                    <td class="p-2 text-right text-sm font-medium" x-text="rupiah(it.ftotal)"></td>
+                                    <td class="p-2 text-right text-sm font-medium" x-text="fmtCurr(it.ftotal)"></td>
+                                    <td class="p-2 text-right text-sm font-medium" x-text="rupiah(itemTotalRp(it.ftotal))"></td>
 
                                     {{-- Aksi --}}
                                     <td class="p-2 text-center">
@@ -514,7 +516,8 @@
                                         @keydown.enter.prevent="addIfComplete()">
                                 </td>
 
-                                <td class="p-2 text-right text-sm font-medium" x-text="rupiah(draft.ftotal)"></td>
+                                <td class="p-2 text-right text-sm font-medium" x-text="fmtCurr(draft.ftotal)"></td>
+                                <td class="p-2 text-right text-sm font-medium" x-text="rupiah(itemTotalRp(draft.ftotal))"></td>
 
                                 <td class="p-2 text-center">
                                     <button type="button" @click="addIfComplete()"
@@ -1044,6 +1047,12 @@
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
                 });
+            },
+            itemTotalRp(value) {
+                const total = Number(value || 0);
+                if (!Number.isFinite(total)) return 0;
+                if (!this.selectedCurrCode || this.selectedCurrCode === 'IDR') return total;
+                return +(total * (+this.rateValue || 1)).toFixed(2);
             },
 
             onCurrencyChange() {

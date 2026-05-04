@@ -674,22 +674,6 @@ class SuratJalanController extends Controller
                 }
                 unset($r);
 
-                // Kurangi sisa qty SO (trsodt.fqtykecil) untuk item hasil Add SO
-                if (! empty($soUsageByDetailId)) {
-                    DB::table('trsodt')
-                        ->whereIn('ftrsodtid', array_keys($soUsageByDetailId))
-                        ->lockForUpdate()
-                        ->get();
-
-                    foreach ($soUsageByDetailId as $soDetailId => $usedQtyKecil) {
-                        DB::table('trsodt')
-                            ->where('ftrsodtid', $soDetailId)
-                            ->update([
-                                'fqtykecil' => DB::raw('GREATEST(COALESCE(fqtykecil,0) - '.(float) $usedQtyKecil.', 0)'),
-                            ]);
-                    }
-                }
-
                 DB::table('trstockdt')->insert($rowsDt);
 
                 // ---- 7.5. JURNAL ----
@@ -1352,31 +1336,6 @@ class SuratJalanController extends Controller
                     $r['fstockmtno'] = $fstockmtno;
                 }
                 unset($r);
-
-                // Kembalikan dulu pemakaian SO lama saat edit
-                foreach ($oldSoUsageByDetailId as $soDetailId => $oldQtyKecil) {
-                    DB::table('trsodt')
-                        ->where('ftrsodtid', $soDetailId)
-                        ->update([
-                            'fqtykecil' => DB::raw('COALESCE(fqtykecil,0) + '.(float) $oldQtyKecil),
-                        ]);
-                }
-
-                // Kurangi kembali sesuai detail terbaru
-                if (! empty($soUsageByDetailId)) {
-                    DB::table('trsodt')
-                        ->whereIn('ftrsodtid', array_keys($soUsageByDetailId))
-                        ->lockForUpdate()
-                        ->get();
-
-                    foreach ($soUsageByDetailId as $soDetailId => $usedQtyKecil) {
-                        DB::table('trsodt')
-                            ->where('ftrsodtid', $soDetailId)
-                            ->update([
-                                'fqtykecil' => DB::raw('GREATEST(COALESCE(fqtykecil,0) - '.(float) $usedQtyKecil.', 0)'),
-                            ]);
-                    }
-                }
 
                 DB::table('trstockdt')->insert($rowsDt);
 

@@ -1420,6 +1420,17 @@
                 }
             },
 
+            formatQtyValue(value) {
+                const num = Number(value);
+                if (!Number.isFinite(num)) return '0,00';
+                const hasMoreThanTwoDecimals = Math.abs((num * 100) - Math.round(num * 100)) > 0.000001;
+                const digits = hasMoreThanTwoDecimals ? 4 : 2;
+                return num.toLocaleString('id-ID', {
+                    minimumFractionDigits: digits,
+                    maximumFractionDigits: digits
+                });
+            },
+
             rupiah(n) {
                 const v = Number(n || 0);
                 if (!isFinite(v)) return 'Rp -';

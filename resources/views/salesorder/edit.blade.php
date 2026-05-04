@@ -411,11 +411,11 @@
                                                         <span x-text="it.fsatuan"></span>
                                                     </template>
                                                 </td>
-                                                <td class="p-2 text-right font-medium" x-text="fmt(it.fqty)"></td>
+                                                <td class="p-2 text-right font-medium" x-text="formatQtyValue(it.fqty)"></td>
                                                 <td class="p-2 text-right">
-                                                    <input type="number"
+                                                    <input type="text"
                                                         class="w-full border rounded px-2 py-1 text-right bg-gray-100 text-gray-600"
-                                                        x-model.number="it.fqtysrj" disabled>
+                                                        :value="formatQtyValue(it.fqtysrj)" disabled>
                                                 </td>
                                                 <td class="p-2 text-right">
                                                     <input type="number"
@@ -1050,7 +1050,7 @@
                                                                 ">
                                                         </td>
                                                         <td class="p-2 text-right font-medium"
-                                                            x-text="fmt(it.fqtysrj)"></td>
+                                                            x-text="formatQtyValue(it.fqtysrj)"></td>
                                                         <td class="p-2 text-right">
                                                             <input type="number"
                                                                 class="w-full border rounded px-2 py-1 text-right"
@@ -1164,7 +1164,7 @@
                                                             limit
                                                         </div>
                                                     </td>
-                                                    <td class="p-2 text-right font-medium" x-text="fmt(0)"></td>
+                                                    <td class="p-2 text-right font-medium" x-text="formatQtyValue(0)"></td>
                                                     <!-- @ Harga -->
                                                     <td class="p-2 text-right">
                                                         <input type="number"
@@ -2233,6 +2233,17 @@
                         currency: 'IDR'
                     });
                 }
+            },
+
+            formatQtyValue(value) {
+                const num = Number(value);
+                if (!Number.isFinite(num)) return '0,00';
+                const hasMoreThanTwoDecimals = Math.abs((num * 100) - Math.round(num * 100)) > 0.000001;
+                const digits = hasMoreThanTwoDecimals ? 4 : 2;
+                return num.toLocaleString('id-ID', {
+                    minimumFractionDigits: digits,
+                    maximumFractionDigits: digits
+                });
             },
 
             rupiah(n) {

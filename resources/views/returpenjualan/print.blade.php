@@ -216,6 +216,14 @@
 </head>
 
 <body>
+    @php
+        $fmtQty = function ($value) {
+            $num = (float) $value;
+            $hasMoreThanTwoDecimals = abs(($num * 100) - round($num * 100)) > 0.000001;
+            $digits = $hasMoreThanTwoDecimals ? 4 : 2;
+            return number_format($num, $digits, ',', '.');
+        };
+    @endphp
     <div class="print-hide" style="position:fixed; top:10px; left:10px; z-index:999;">
         <button onclick="window.print()" style="padding:10px 20px; cursor:pointer;">PRINT</button>
     </div>
@@ -284,7 +292,7 @@
                     <tr>
                         <td class="text-center">{{ $i + 1 }}</td>
                         <td>{{ $r->product_name ?? 'CANGKANG SAWIT' }}</td>
-                        <td class="text-right">{{ number_format($r->fqty ?? 100000, 0, ',', '.') }}
+                        <td class="text-right">{{ $fmtQty($r->fqty ?? 100000) }}
                             {{ $r->funit ?? 'KG' }}</td>
                         <td class="text-right">{{ number_format($r->fprice ?? 1115, 2, '.', ',') }}</td>
                         <td class="text-center">{{ $r->fdiscpersen ?? 0 }}</td>

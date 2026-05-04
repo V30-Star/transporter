@@ -267,6 +267,14 @@
 </head>
 
 <body>
+    @php
+        $fmtQty = function ($value) {
+            $num = (float) $value;
+            $hasMoreThanTwoDecimals = abs(($num * 100) - round($num * 100)) > 0.000001;
+            $digits = $hasMoreThanTwoDecimals ? 4 : 2;
+            return number_format($num, $digits, ',', '.');
+        };
+    @endphp
     {{-- ===================== TOOLBAR ===================== --}}
     <div class="no-print">
         <button class="btn-print" onclick="window.print()">🖨️ CETAK LAPORAN PENJUALAN</button>
@@ -362,8 +370,8 @@
                                     <div class="truncate">{{ $d->fprdcode }}</div>
                                     <div class="truncate">{{ $d->fprdname }}</div>
                                     <div class="truncate">{{ $d->frefso ?? '-' }}</div>
-                                    <div class="text-right">{{ number_format($d->fqtydeliver, 2, ',', '.') }}</div>
-                                    <div class="text-right">{{ number_format($d->fqty, 2, ',', '.') }}</div>
+                                    <div class="text-right">{{ $fmtQty($d->fqtydeliver) }}</div>
+                                    <div class="text-right">{{ $fmtQty($d->fqty) }}</div>
                                     <div class="text-right">{{ number_format($d->fprice, 0, ',', '.') }}</div>
                                     <div class="text-center">{{ $d->fdisc }}</div>
                                     <div class="text-right">{{ number_format($d->famount, 0, ',', '.') }}</div>

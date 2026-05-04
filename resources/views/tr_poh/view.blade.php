@@ -120,6 +120,7 @@
                             <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
                             <th class="p-2 text-right w-24 whitespace-nowrap">Disc. %</th>
                             <th class="p-2 text-right w-36 whitespace-nowrap">Total Harga</th>
+                            <th class="p-2 text-right w-36 whitespace-nowrap">Total Rp.</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -138,21 +139,22 @@
                                 <td class="p-2 text-sm" x-text="it.fsatuan || '-'"></td>
                                 <td class="p-2 text-sm text-gray-600" x-text="it.fprno || it.frefdtno || '-'"></td>
                                 <td class="p-2 text-right text-sm">
-                                    <div x-text="it.fqty"></div>
+                                    <div x-text="formatQtyValue(it.fqty)"></div>
                                 </td>
                                 <td class="p-2 text-right text-sm">
-                                    <div x-text="it.fqtyterima ?? 0"></div>
+                                    <div x-text="formatQtyValue(it.fqtyterima ?? 0)"></div>
                                 </td>
                                 <td class="p-2 text-right text-sm" x-text="fmtCurr(it.fprice)"></td>
                                 <td class="p-2 text-right text-sm" x-text="it.fdisc"></td>
                                 <td class="p-2 text-right text-sm font-medium" x-text="fmtCurr(it.ftotal)"></td>
+                                <td class="p-2 text-right text-sm font-medium" x-text="rupiah(itemTotalRp(it.ftotal))"></td>
                             </tr>
                         </template>
 
                         {{-- Empty state --}}
                         <template x-if="savedItems.length === 0">
                             <tr>
-                                <td colspan="10" class="p-6 text-center text-gray-400 text-sm">Tidak ada item</td>
+                                <td colspan="11" class="p-6 text-center text-gray-400 text-sm">Tidak ada item</td>
                             </tr>
                         </template>
                     </tbody>
@@ -345,6 +347,22 @@
                 return 'Rp ' + v.toLocaleString('id-ID', {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
+                });
+            },
+            itemTotalRp(value) {
+                const total = Number(value || 0);
+                if (!Number.isFinite(total)) return 0;
+                if (!this.selectedCurrCode || this.selectedCurrCode === 'IDR') return total;
+                return +(total * (+this.rateValue || 1)).toFixed(2);
+            },
+            formatQtyValue(value) {
+                const num = Number(value);
+                if (!Number.isFinite(num)) return '0,00';
+                const hasMoreThanTwoDecimals = Math.abs((num * 100) - Math.round(num * 100)) > 0.000001;
+                const digits = hasMoreThanTwoDecimals ? 4 : 2;
+                return num.toLocaleString('id-ID', {
+                    minimumFractionDigits: digits,
+                    maximumFractionDigits: digits
                 });
             },
 

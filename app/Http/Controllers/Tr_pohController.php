@@ -1347,6 +1347,34 @@ class Tr_pohController extends Controller
 
     public function update(Request $request, $fpohid)
     {
+        $header = Tr_poh::where('fpohid', $fpohid)->firstOrFail();
+        $isCloseOnly = $request->boolean('close_only');
+        $canClosePo = $isCloseOnly
+            && $request->has('fclose')
+            && trim((string) ($header->fprdin ?? '')) !== '1';
+
+        if ($message = $this->getUsageLockMessage($header)) {
+            if (! $canClosePo) {
+                return redirect()->route('tr_poh.index')->with('error', $message);
+            }
+        }
+
+        if ($isCloseOnly) {
+            if (! $canClosePo) {
+                return back()->withInput()->with('error', 'Status close PO hanya bisa diubah jika fprdin tidak sama dengan 1.');
+            }
+
+            Tr_poh::where('fpohid', $header->fpohid)->update([
+                'fclose' => '1',
+                'fuserupdate' => (Auth::guard('sysuser')->user()?->fname ?? Auth::user()?->fname ?? 'system'),
+                'fupdatedat' => now(),
+            ]);
+
+            return redirect()
+                ->route('tr_poh.index')
+                ->with('success', "Status close PO {$header->fpono} berhasil diperbarui.");
+        }
+
         $validator = Validator::make($request->all(), [
             'fpodate' => ['required', 'date'],
             'fkirimdate' => ['nullable', 'date'],
@@ -1388,12 +1416,6 @@ class Tr_pohController extends Controller
             return back()
                 ->withErrors($validator)
                 ->withInput();
-        }
-
-        $header = Tr_poh::where('fpohid', $fpohid)->firstOrFail();
-
-        if ($message = $this->getUsageLockMessage($header)) {
-            return redirect()->route('tr_poh.index')->with('error', $message);
         }
 
         $fponoId = (int) $header->fpohid;
@@ -1592,8 +1614,8 @@ class Tr_pohController extends Controller
                         'famountpo' => $grandTotal,
                         'fapplyppn' => $fapplyppn,
                         'fppnpersen' => $request->input('ppn_rate', 0),
-                        'fclose' => '0',
-                        'fprdin' => '0',
+                        'fclose' => $request->has('fclose') ? '1' : (string) ($header->fclose ?? '0'),
+                        'fprdin' => (string) ($header->fprdin ?? '0'),
                     ]);
                 $fpono = DB::table('tr_poh')->where('fpohid', $fpohid)->value('fpono');
 

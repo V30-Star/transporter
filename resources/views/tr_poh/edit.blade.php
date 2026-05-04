@@ -149,7 +149,7 @@
                                             {{ $terima->fdatetime ? \Carbon\Carbon::parse($terima->fdatetime)->format('d/m/Y') : '-' }}
                                         </td>
                                         <td class="px-3 py-2 text-right text-gray-600">
-                                            {{ number_format($terima->total_qty, 2, ',', '.') }}
+                                            {{ $fmtQty($terima->total_qty) }}
                                         </td>
                                     </tr>
                                 @endforeach
@@ -182,6 +182,13 @@
         $disabled = $isDelete ? 'disabled' : '';
         $readonly = $isDelete ? 'readonly' : '';
         $bgDisabled = $isDelete ? 'bg-gray-100 cursor-not-allowed text-gray-500' : '';
+        $canClosePo = $isEdit && $tr_poh->fclose != '1' && (string) ($tr_poh->fprdin ?? '') !== '1';
+        $fmtQty = function ($value) {
+            $num = (float) ($value ?? 0);
+            $hasMoreThanTwoDecimals = abs(($num * 100) - round($num * 100)) > 0.000001;
+            $digits = $hasMoreThanTwoDecimals ? 4 : 2;
+            return number_format($num, $digits, ',', '.');
+        };
     @endphp
 
     <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto" x-data="mainForm()"
@@ -376,6 +383,7 @@
                             <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
                             <th class="p-2 text-right w-24 whitespace-nowrap">Disc. %</th>
                             <th class="p-2 text-right w-36 whitespace-nowrap">Total Harga</th>
+                            <th class="p-2 text-right w-36 whitespace-nowrap">Total Rp.</th>
                             @if ($isEdit && (empty($blockedByTerima) || !$blockedByTerima))
                                 <th class="p-2 text-center w-20">Aksi</th>
                             @endif
@@ -487,14 +495,14 @@
                                             x-html="formatPrRemainHint(it)">
                                         </div>
                                     @else
-                                        <span class="text-sm" x-text="it.fqty"></span>
+                                        <span class="text-sm" x-text="formatQtyValue(it.fqty)"></span>
                                     @endif
                                 </td>
 
                                 <td class="p-2 text-right">
-                                    <input type="number"
+                                    <input type="text"
                                         class="w-20 border rounded px-2 py-1 bg-gray-100 text-right text-sm text-gray-500"
-                                        :value="it.fqtyterima" disabled>
+                                        :value="formatQtyValue(it.fqtyterima)" disabled>
                                 </td>
 
                                 {{-- @ Harga --}}
@@ -525,6 +533,7 @@
 
                                 {{-- Total Harga --}}
                                 <td class="p-2 text-right text-sm font-medium" x-text="fmtCurr(it.ftotal)"></td>
+                                <td class="p-2 text-right text-sm font-medium" x-text="rupiah(itemTotalRp(it.ftotal))"></td>
 
                                 @if ($isEdit && (empty($blockedByTerima) || !$blockedByTerima))
                                     <td class="p-2 text-center">
@@ -632,6 +641,7 @@
                                 </td>
 
                                 <td class="p-2 text-right text-sm font-medium" x-text="fmtCurr(draft.ftotal)"></td>
+                                <td class="p-2 text-right text-sm font-medium" x-text="rupiah(itemTotalRp(draft.ftotal))"></td>
 
                                 @if (empty($blockedByTerima) || !$blockedByTerima)
                                     <td class="p-2 text-center">
@@ -963,6 +973,12 @@
                         <x-heroicon-o-check class="w-5 h-5 mr-2" /> Simpan
                     </button>
                 @endif
+                @if ($canClosePo)
+                    <button type="button" onclick="showClosePoModal()"
+                        class="bg-amber-500 text-white px-6 py-2 rounded hover:bg-amber-600 flex items-center">
+                        <x-heroicon-o-lock-closed class="w-5 h-5 mr-2" /> Close
+                    </button>
+                @endif
             @else
                 @if (!empty($blockedByTerima) && $blockedByTerima)
                     {{-- Hapus di-disable karena ada penerimaan barang --}}
@@ -986,6 +1002,38 @@
 
         @if ($isEdit)
             </form>
+            @if ($canClosePo)
+                <form id="closePoForm" action="{{ route('tr_poh.update', $tr_poh->fpohid) }}" method="POST" class="hidden">
+                    @csrf
+                    @method('PATCH')
+                    <input type="hidden" name="close_only" value="1">
+                    <input type="hidden" name="fclose" value="1">
+                </form>
+                <div id="closePoModal"
+                    class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
+                        <h3 class="text-lg font-semibold mb-2">Konfirmasi Close</h3>
+                        <p class="text-sm text-gray-600 mb-4">Apakah anda yakin mau close PO
+                            <strong>{{ $tr_poh->fpono }}</strong>?
+                        </p>
+                        <div class="flex justify-end gap-2">
+                            <button type="button" onclick="closeClosePoModal()"
+                                class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm font-medium">No</button>
+                            <button type="submit" form="closePoForm"
+                                class="px-4 py-2 bg-amber-500 text-white rounded hover:bg-amber-600 text-sm font-medium">Yes</button>
+                        </div>
+                    </div>
+                </div>
+                <script>
+                    function showClosePoModal() {
+                        document.getElementById('closePoModal')?.classList.remove('hidden');
+                    }
+
+                    function closeClosePoModal() {
+                        document.getElementById('closePoModal')?.classList.add('hidden');
+                    }
+                </script>
+            @endif
         @else
     </div>
     @endif
@@ -1235,6 +1283,22 @@
                 return 'Rp ' + v.toLocaleString('id-ID', {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
+                });
+            },
+            itemTotalRp(value) {
+                const total = Number(value || 0);
+                if (!Number.isFinite(total)) return 0;
+                if (!this.selectedCurrCode || this.selectedCurrCode === 'IDR') return total;
+                return +(total * (+this.rateValue || 1)).toFixed(2);
+            },
+            formatQtyValue(value) {
+                const num = Number(value);
+                if (!Number.isFinite(num)) return '0,00';
+                const hasMoreThanTwoDecimals = Math.abs((num * 100) - Math.round(num * 100)) > 0.000001;
+                const digits = hasMoreThanTwoDecimals ? 4 : 2;
+                return num.toLocaleString('id-ID', {
+                    minimumFractionDigits: digits,
+                    maximumFractionDigits: digits
                 });
             },
 

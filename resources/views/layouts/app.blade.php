@@ -11,6 +11,14 @@
             display: none !important
         }
     </style>
+    @if (session('error') || $errors->any())
+        <style>
+            .alert.alert-danger[role="alert"],
+            .border-red-200.bg-red-50[role="alert"] {
+                display: none !important;
+            }
+        </style>
+    @endif
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
@@ -160,20 +168,183 @@
                 </div>
             @endif
 
-            @if (session('error'))
-                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
-                    role="alert">
-                    <span class="block sm:inline">{{ session('error') }}</span>
-                </div>
-            @endif
-
             <!-- Page Content -->
             <main class="p-6 flex-1">
                 @yield('content')
             </main>
         </div>
     </div>
+    @php
+        $transactionErrorMessages = collect();
+
+        if (session('error')) {
+            $transactionErrorMessages->push((string) session('error'));
+        }
+
+        if ($errors->any()) {
+            $transactionErrorMessages = $transactionErrorMessages->merge($errors->all());
+        }
+
+        $transactionErrorMessages = $transactionErrorMessages
+            ->map(fn ($message) => trim((string) $message))
+            ->filter()
+            ->unique()
+            ->values();
+    @endphp
     @stack('scripts')
+    @if ($transactionErrorMessages->isNotEmpty())
+        <script>
+            (() => {
+                const messages = @json($transactionErrorMessages);
+
+                function escapeHtml(value) {
+                    return String(value ?? '').replace(/[&<>"']/g, (char) => ({
+                        '&': '&amp;',
+                        '<': '&lt;',
+                        '>': '&gt;',
+                        '"': '&quot;',
+                        "'": '&#39;'
+                    }[char]));
+                }
+
+                function inferReason(items) {
+                    const text = items.join(' ').toLowerCase();
+
+                    if (text.includes('minimal satu item') || text.includes('data items') || text.includes('detail')) {
+                        return 'Detail item transaksi masih belum lengkap atau belum valid.';
+                    }
+
+                    if (text.includes('qty') || text.includes('quantity')) {
+                        return 'Qty yang diinput belum sesuai batas atau format yang diperbolehkan.';
+                    }
+
+                    if (text.includes('supplier') || text.includes('customer') || text.includes('salesman') || text.includes('gudang')) {
+                        return 'Data referensi transaksi masih ada yang kosong atau tidak cocok.';
+                    }
+
+                    if (text.includes('close') || text.includes('referensi')) {
+                        return 'Status transaksi belum bisa diproses karena syarat referensinya belum terpenuhi.';
+                    }
+
+                    return 'Masih ada data yang belum valid, jadi sistem menolak proses simpan.';
+                }
+
+                document.addEventListener('DOMContentLoaded', () => {
+                    document.querySelectorAll('.alert.alert-danger[role="alert"], .border-red-200.bg-red-50[role="alert"]')
+                        .forEach((element) => element.remove());
+
+                    const listHtml = messages.map((message) =>
+                        `<li style="margin-bottom:8px;">${escapeHtml(message)}</li>`
+                    ).join('');
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Transaksi Belum Bisa Disimpan',
+                        html: `
+                            <div style="text-align:left; font-size:14px; line-height:1.6;">
+                                <p style="margin:0 0 10px 0;"><strong>Alasan:</strong> ${escapeHtml(inferReason(messages))}</p>
+                                <p style="margin:0 0 8px 0;">Sistem menemukan masalah berikut:</p>
+                                <ul style="margin:0 0 12px 18px; padding:0;">${listHtml}</ul>
+                                <p style="margin:0; color:#6b7280;">Silakan perbaiki data di atas, lalu coba simpan kembali.</p>
+                            </div>
+                        `,
+                        confirmButtonText: 'Tutup',
+                        confirmButtonColor: '#dc2626',
+                        width: 640
+                    });
+                });
+            })();
+        </script>
+    @endif
+    <script>
+        (() => {
+            const blockedQtyKeys = new Set([',', '.', 'e', 'E', '+', '-']);
+
+            function isWholeQtyInput(element) {
+                if (!(element instanceof HTMLInputElement)) {
+                    return false;
+                }
+
+                if (element.type !== 'number' || element.disabled || element.readOnly) {
+                    return false;
+                }
+
+                const alpineModel = element.getAttribute('x-model.number') || element.getAttribute('x-model') || '';
+                return alpineModel.endsWith('.fqty');
+            }
+
+            function bindWholeQtyInput(input) {
+                if (!isWholeQtyInput(input) || input.dataset.wholeQtyBound === '1') {
+                    return;
+                }
+
+                input.dataset.wholeQtyBound = '1';
+                input.setAttribute('step', '1');
+                input.setAttribute('inputmode', 'numeric');
+
+                input.addEventListener('keydown', (event) => {
+                    if (blockedQtyKeys.has(event.key)) {
+                        event.preventDefault();
+                    }
+                }, true);
+
+                input.addEventListener('paste', (event) => {
+                    const pastedText = event.clipboardData?.getData('text') ?? '';
+                    if (!pastedText) {
+                        return;
+                    }
+
+                    const digitsOnly = pastedText.replace(/\D/g, '');
+                    if (digitsOnly === pastedText) {
+                        return;
+                    }
+
+                    event.preventDefault();
+                    document.execCommand('insertText', false, digitsOnly);
+                }, true);
+
+                input.addEventListener('input', () => {
+                    if (input.value === '') {
+                        return;
+                    }
+
+                    const digitsOnly = input.value.replace(/\D/g, '');
+                    if (digitsOnly !== input.value) {
+                        input.value = digitsOnly;
+                    }
+                }, true);
+            }
+
+            function bindWholeQtyInputs(root = document) {
+                root.querySelectorAll('input[type="number"]').forEach(bindWholeQtyInput);
+            }
+
+            document.addEventListener('DOMContentLoaded', () => {
+                bindWholeQtyInputs();
+
+                const observer = new MutationObserver((mutations) => {
+                    mutations.forEach((mutation) => {
+                        mutation.addedNodes.forEach((node) => {
+                            if (!(node instanceof HTMLElement)) {
+                                return;
+                            }
+
+                            if (node.matches?.('input[type="number"]')) {
+                                bindWholeQtyInput(node);
+                            }
+
+                            bindWholeQtyInputs(node);
+                        });
+                    });
+                });
+
+                observer.observe(document.body, {
+                    childList: true,
+                    subtree: true
+                });
+            });
+        })();
+    </script>
     <script>
         (() => {
             const shouldRestoreFormState = @json($errors->any() || session()->hasOldInput() || session()->has('error'));

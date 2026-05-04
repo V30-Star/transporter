@@ -110,6 +110,7 @@
     @endif
     @php
         $isUsageLocked = !empty($blockedByPO) && $blockedByPO;
+        $canClosePr = $action === 'edit' && $tr_prh->fclose != '1' && $isUsageLocked && (string) ($tr_prh->fprdin ?? '') === '0';
     @endphp
     {{-- ═══════════════════════════════════════════════════════════════════
      MODAL BLOCKED BY PO
@@ -275,8 +276,8 @@
                                                 </div>
                                             </td>
                                             <td class="p-2" x-text="it.fsatuan"></td>
-                                            <td class="p-2 text-right" x-text="it.fqty"></td>
-                                            <td class="p-2 text-right" x-text="it.fqtypo"></td>
+                                            <td class="p-2 text-right" x-text="formatQtyValue(it.fqty)"></td>
+                                            <td class="p-2 text-right" x-text="formatQtyValue(it.fqtypo)"></td>
                                             <td class="p-2" x-text="it.fketdt || '-'"></td>
                                         </tr>
                                     </template>
@@ -492,9 +493,9 @@
                                                     @blur="activeRow = null">
                                             </td>
                                             <td class="p-2 text-right">
-                                                <input type="number"
+                                                <input type="text"
                                                     class="w-full border rounded px-2 py-1 text-right bg-gray-100 text-gray-500"
-                                                    :value="it.fqtypo" disabled>
+                                                    :value="formatQtyValue(it.fqtypo)" disabled>
                                             </td>
                                             <td class="p-2">
                                                 <input type="text" class="w-full border rounded px-2 py-1"
@@ -597,6 +598,12 @@
                                 <x-heroicon-o-check class="w-5 h-5 mr-2" /> Simpan Perubahan
                             </button>
                         @endif
+                        @if ($canClosePr)
+                            <button type="button" onclick="showClosePrModal()"
+                                class="bg-amber-500 text-white px-8 py-2.5 rounded shadow hover:bg-amber-600 flex items-center transition">
+                                <x-heroicon-o-lock-closed class="w-5 h-5 mr-2" /> Close
+                            </button>
+                        @endif
                         <button type="button" @click="window.location.href='{{ route('tr_prh.index') }}'"
                             class="bg-gray-500 text-white px-8 py-2.5 rounded shadow hover:bg-gray-600 flex items-center transition">
                             <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" /> Kembali
@@ -614,6 +621,38 @@
                         </div>
                     </div>
                 </form>
+                @if ($canClosePr)
+                    <form id="closePrForm" action="{{ route('tr_prh.update', $tr_prh->fprhid) }}" method="POST" class="hidden">
+                        @csrf
+                        @method('PATCH')
+                        <input type="hidden" name="close_only" value="1">
+                        <input type="hidden" name="fclose" value="1">
+                    </form>
+                    <div id="closePrModal"
+                        class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                        <div class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
+                            <h3 class="text-lg font-semibold mb-2">Konfirmasi Close</h3>
+                            <p class="text-sm text-gray-600 mb-4">Apakah anda yakin mau close PR
+                                <strong>{{ $tr_prh->fprno }}</strong>?
+                            </p>
+                            <div class="flex justify-end gap-2">
+                                <button type="button" onclick="closeClosePrModal()"
+                                    class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm font-medium">No</button>
+                                <button type="submit" form="closePrForm"
+                                    class="px-4 py-2 bg-amber-500 text-white rounded hover:bg-amber-600 text-sm font-medium">Yes</button>
+                            </div>
+                        </div>
+                    </div>
+                    <script>
+                        function showClosePrModal() {
+                            document.getElementById('closePrModal')?.classList.remove('hidden');
+                        }
+
+                        function closeClosePrModal() {
+                            document.getElementById('closePrModal')?.classList.add('hidden');
+                        }
+                    </script>
+                @endif
             @endif
         </div>
     </div>
@@ -1091,6 +1130,16 @@
                 },
                 normalizeNoAcak(value) {
                     return (value || '').toString().replace(/\D/g, '').slice(0, 3);
+                },
+                formatQtyValue(value) {
+                    const num = Number(value);
+                    if (!Number.isFinite(num)) return '0,00';
+                    const hasMoreThanTwoDecimals = Math.abs((num * 100) - Math.round(num * 100)) > 0.000001;
+                    const digits = hasMoreThanTwoDecimals ? 4 : 2;
+                    return new Intl.NumberFormat('id-ID', {
+                        minimumFractionDigits: digits,
+                        maximumFractionDigits: digits
+                    }).format(num);
                 },
                 generateUniqueNoAcak() {
                     const used = new Set(this.savedItems.map(item => this.normalizeNoAcak(item.fnoacak)).filter(Boolean));
