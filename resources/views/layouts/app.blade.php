@@ -180,7 +180,7 @@
             const formSelector = 'form:not([method="GET"]):not([data-disable-form-persist="true"])';
 
             const hasSuccessFlash = @json(session()->has('success'));
-            const formSelector = 'form[data-form-draft="true"]';
+            const draftFormSelector = 'form[data-form-draft="true"]';
             const draftPrefix = 'transaction-form-draft:';
             const pendingSubmitKey = 'transaction-form-draft:pending-submit-keys';
             const draftTtlMs = 1000 * 60 * 60 * 24 * 7;
@@ -453,7 +453,7 @@
                     clearDraftKeys(clearOnLoadKeys);
                 }
 
-                document.querySelectorAll(formSelector).forEach((form) => {
+                document.querySelectorAll(draftFormSelector).forEach((form) => {
                     const storageKey = formStorageKey(form);
                     let saveTimer = null;
 

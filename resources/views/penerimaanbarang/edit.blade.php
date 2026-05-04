@@ -1620,6 +1620,7 @@
                                     '<button type="button" class="btn-pick px-4 py-1.5 rounded-md text-sm font-medium bg-teal-600 hover:bg-teal-700 text-white transition-colors duration-150">Pilih</button>'
                             }
                         ],
+                        dom: '<"flex flex-col gap-3 md:flex-row md:items-center mb-4"<"w-full md:w-auto"f><"w-full md:w-auto md:ml-auto md:text-right"l>>rt<"flex flex-col gap-3 md:flex-row md:items-center md:justify-between mt-4"i p>',
                         pageLength: 10,
                         lengthMenu: [
                             [10, 25, 50, 100],
@@ -1647,6 +1648,20 @@
                         autoWidth: false,
                         initComplete: function() {
                             const $c = $(this.api().table().container());
+                            $c.children().first().css({
+                                display: 'flex',
+                                width: '100%',
+                                gap: '12px',
+                                alignItems: 'center',
+                                justifyContent: 'space-between'
+                            });
+                            $c.find('.dt-search, .dataTables_filter').css({
+                                marginRight: '12px'
+                            });
+                            $c.find('.dt-length, .dataTables_length').css({
+                                marginLeft: 'auto',
+                                textAlign: 'right'
+                            });
                             $c.find('.dt-search .dt-input, .dataTables_filter input').css({
                                 width: '280px',
                                 padding: '8px 12px',
@@ -1696,6 +1711,36 @@
                     this.pendingHeader = null;
                     this.pendingUniques = [];
                 },
+                applySupplierFromPo(header, row) {
+                    const supplierCode = (header?.fsupplier || row?.fsuppliercode || '').toString().trim();
+                    if (!supplierCode) return;
+
+                    const supplierName = (row?.fsuppliername || '').toString().trim();
+                    const label = supplierName ? `${supplierName} (${supplierCode})` : supplierCode;
+                    const sel = document.getElementById('modal_filter_supplier_id');
+                    const hid = document.getElementById('supplierCodeHidden');
+
+                    if (hid) {
+                        hid.value = supplierCode;
+                        hid.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+
+                    if (!sel) return;
+
+                    let opt = Array.from(sel.options).find(o => String(o.value) === supplierCode);
+                    if (!opt) {
+                        opt = new Option(label, supplierCode, true, true);
+                        sel.add(opt);
+                    } else {
+                        opt.text = label;
+                    }
+
+                    sel.value = supplierCode;
+                    Array.from(sel.options).forEach(option => {
+                        option.selected = String(option.value) === supplierCode;
+                    });
+                    sel.dispatchEvent(new Event('change', { bubbles: true }));
+                },
                 confirmAddUniques() {
                     window.dispatchEvent(new CustomEvent('pr-picked', {
                         detail: {
@@ -1717,6 +1762,7 @@
                             }
                         });
                         const json = await res.json();
+                        this.applySupplierFromPo(json.header, row);
                         const items = json.items || [];
 
                         const currentKeys = new Set((window.getCurrentItemKeys?.() || []).map(String));
