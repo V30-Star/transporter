@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-class FakturPembelianController extends Controller
+class FakturpembelianController extends Controller
 {
     use ProductBrowseHelper;
     public function index(Request $request)
@@ -893,6 +893,21 @@ class FakturPembelianController extends Controller
             $discs = $request->input('fdiscpersen', []);
             $descs = $request->input('fdesc', []);
 
+            if ((string) $ftypebuy === '2') {
+                $invalidAdvanceCodes = collect($codes)
+                    ->map(fn ($code) => trim((string) $code))
+                    ->filter(fn ($code) => $code !== '' && strtoupper($code) !== 'UM')
+                    ->unique()
+                    ->values()
+                    ->all();
+
+                if (! empty($invalidAdvanceCodes)) {
+                    return back()->withInput()->withErrors([
+                        'detail' => 'Untuk tipe pembelian Uang Muka, hanya produk dengan kode UM yang diperbolehkan. Kode tidak valid: ' . implode(', ', $invalidAdvanceCodes) . '.',
+                    ]);
+                }
+            }
+
             // 4) BUILD ROWS
             $uniqueCodes = array_values(array_unique(array_filter(array_map(fn($c) => trim((string) $c), $codes))));
             $prodMeta = DB::table('msprd')->whereIn('fprdcode', $uniqueCodes)->get()->keyBy('fprdcode');
@@ -953,6 +968,7 @@ class FakturPembelianController extends Controller
                     'fprdcodeid' => $meta->fprdid,
                     'fnoacak' => $this->normalizeRandomNumber(null, $usedNoAcaks),
                     'frefdtno' => trim((string) ($refdtnos[$i] ?? '')) ?: null,
+                    'frefso' => $sourceType === 'PO' ? (trim((string) ($refdtnos[$i] ?? '')) ?: null) : null,
                     'frefdtid' => isset($refdtids[$i]) ? (int) $refdtids[$i] : null,
                     'frefnoacak' => $this->normalizeReferenceRandomNumberSingle($frefnoacaks[$i] ?? null),
                     'fqty' => $qty,
@@ -1465,6 +1481,21 @@ class FakturPembelianController extends Controller
             $discs = $request->input('fdiscpersen', []);
             $descs = $request->input('fdesc', []);
 
+            if ((string) $ftypebuy === '2') {
+                $invalidAdvanceCodes = collect($codes)
+                    ->map(fn ($code) => trim((string) $code))
+                    ->filter(fn ($code) => $code !== '' && strtoupper($code) !== 'UM')
+                    ->unique()
+                    ->values()
+                    ->all();
+
+                if (! empty($invalidAdvanceCodes)) {
+                    return back()->withInput()->withErrors([
+                        'detail' => 'Untuk tipe pembelian Uang Muka, hanya produk dengan kode UM yang diperbolehkan. Kode tidak valid: ' . implode(', ', $invalidAdvanceCodes) . '.',
+                    ]);
+                }
+            }
+
             // LOAD PRODUCT METADATA
             $uniqueCodes = array_values(array_unique(array_filter(array_map(fn($c) => trim((string) $c), $codes))));
             $prodMeta = DB::table('msprd')
@@ -1551,6 +1582,7 @@ class FakturPembelianController extends Controller
                     'fprdcodeid' => $meta->fprdid,
                     'fnoacak' => $this->normalizeRandomNumber(null, $usedNoAcaks),
                     'frefdtno' => ! empty($refdtno[$i]) ? $refdtno[$i] : null,
+                    'frefso' => $sourceType === 'PO' ? (! empty($refdtno[$i]) ? $refdtno[$i] : null) : null,
                     'frefdtid' => isset($refdtids[$i]) ? (int) $refdtids[$i] : null,
                     'frefnoacak' => $this->normalizeReferenceRandomNumberSingle($frefnoacaks[$i] ?? null),
                     'fqty' => $qty,

@@ -94,7 +94,7 @@ class PenerimaanBarangController extends Controller
                 ->get()
                 ->pluck('frefpo', 'fstockmtno');
 
-            $data = $records->map(fn ($row) => [
+            $data = $records->map(fn($row) => [
                 'fstockmtid' => $row->fstockmtid,
                 'fstockmtno' => $row->fstockmtno,
                 'fstockmtdate' => Carbon::parse($row->fstockmtdate)->format('d/m/Y'),
@@ -102,7 +102,7 @@ class PenerimaanBarangController extends Controller
                 'fsuppliername' => $suppliers[$row->fsupplier] ?? '-',
                 'fket' => $row->fket ?? '-',
                 'frefpo' => $trstockdts[$row->fstockmtno] ?? '-',
-                'famountmt' => 'Rp '.number_format((float) $row->famountmt, 0, ',', '.'),
+                'famountmt' => 'Rp ' . number_format((float) $row->famountmt, 0, ',', '.'),
             ]);
 
             return response()->json([
@@ -156,7 +156,7 @@ class PenerimaanBarangController extends Controller
 
         if (in_array($orderColumn, $allowedCols)) {
             if (in_array($orderColumn, ['fpono', 'fpodate'])) {
-                $query->orderBy('tr_poh.'.$orderColumn, $orderDir);
+                $query->orderBy('tr_poh.' . $orderColumn, $orderDir);
             } else {
                 $query->orderBy('mssupplier.fsuppliername', $orderDir);
             }
@@ -314,7 +314,7 @@ class PenerimaanBarangController extends Controller
         }
 
         do {
-            $candidate = (string) random_int(1, 9).random_int(1, 9).random_int(1, 9);
+            $candidate = (string) random_int(1, 9) . random_int(1, 9) . random_int(1, 9);
         } while (in_array($candidate, $usedNumbers, true));
 
         $usedNumbers[] = $candidate;
@@ -356,8 +356,8 @@ class PenerimaanBarangController extends Controller
     private function getPodRemainByIds(array $podIds): array
     {
         $ids = collect($podIds)
-            ->map(fn ($id) => (int) $id)
-            ->filter(fn ($id) => $id > 0)
+            ->map(fn($id) => (int) $id)
+            ->filter(fn($id) => $id > 0)
             ->unique()
             ->values()
             ->all();
@@ -379,7 +379,7 @@ class PenerimaanBarangController extends Controller
             ->whereIn('d.fpodid', $ids)
             ->selectRaw('d.fpodid, GREATEST(COALESCE(d.fqtykecil, 0) - COALESCE(st.fqtykecilterima, 0), 0) AS remain_kecil')
             ->pluck('remain_kecil', 'd.fpodid')
-            ->map(fn ($value) => (float) $value)
+            ->map(fn($value) => (float) $value)
             ->all();
     }
 
@@ -392,8 +392,8 @@ class PenerimaanBarangController extends Controller
     private function getPoReferenceMetricsByPodIds(array $podIds): array
     {
         $ids = collect($podIds)
-            ->map(fn ($id) => (int) $id)
-            ->filter(fn ($id) => $id > 0)
+            ->map(fn($id) => (int) $id)
+            ->filter(fn($id) => $id > 0)
             ->unique()
             ->values()
             ->all();
@@ -436,7 +436,7 @@ class PenerimaanBarangController extends Controller
                     END, 0) AS fqtyditer"),
             ])
             ->get()
-            ->mapWithKeys(fn ($row) => [
+            ->mapWithKeys(fn($row) => [
                 (int) $row->fpodid => [
                     'fqtysisapo' => (float) ($row->fqtysisapo ?? 0),
                     'fqtyditer' => (float) ($row->fqtyditer ?? 0),
@@ -445,9 +445,7 @@ class PenerimaanBarangController extends Controller
             ->all();
     }
 
-    private function adjustPoReferenceQtyKecil(array $usageByPod, int $direction): void
-    {
-    }
+    private function adjustPoReferenceQtyKecil(array $usageByPod, int $direction): void {}
 
     private function validateTrPodRemain(array $aggregateByPod, array $extraAvailableByPod = []): void
     {
@@ -511,8 +509,8 @@ class PenerimaanBarangController extends Controller
 
                 throw new \RuntimeException(
                     "Qty PO melebihi batas pada {$label}. Maksimal {$availableKecilText} dalam satuan kecil"
-                    .($satuan !== '' ? " atau {$availableInPoUnitText} {$satuan}" : '')
-                    .", berdasarkan total penerimaan barang."
+                        . ($satuan !== '' ? " atau {$availableInPoUnitText} {$satuan}" : '')
+                        . ", berdasarkan total penerimaan barang."
                 );
             }
         }
@@ -523,9 +521,9 @@ class PenerimaanBarangController extends Controller
         $date = $onDate ?: now();
 
         $branch = $branch
-          ?? Auth::guard('sysuser')->user()?->fcabang
-          ?? Auth::user()?->fcabang
-          ?? null;
+            ?? Auth::guard('sysuser')->user()?->fcabang
+            ?? Auth::user()?->fcabang
+            ?? null;
 
         $kodeCabang = null;
         if ($branch !== null) {
@@ -534,26 +532,26 @@ class PenerimaanBarangController extends Controller
                 $kodeCabang = DB::table('mscabang')->where('fcabangid', (int) $needle)->value('fcabangkode');
             } else {
                 $kodeCabang = DB::table('mscabang')->whereRaw('LOWER(fcabangkode)=LOWER(?)', [$needle])->value('fcabangkode')
-                  ?: DB::table('mscabang')->whereRaw('LOWER(fcabangname)=LOWER(?)', [$needle])->value('fcabangkode');
+                    ?: DB::table('mscabang')->whereRaw('LOWER(fcabangname)=LOWER(?)', [$needle])->value('fcabangkode');
             }
         }
         if (! $kodeCabang) {
             $kodeCabang = 'NA';
         }
 
-        $lockKey = crc32("STOCKMT|{$prefix}|{$kodeCabang}|".$date->format('Y-m'));
+        $lockKey = crc32("STOCKMT|{$prefix}|{$kodeCabang}|" . $date->format('Y-m'));
         DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
         $noPrefix = sprintf('%s.%s.%s.%s.', $prefix, $kodeCabang, $date->format('y'), $date->format('m'));
 
         $last = DB::table('trstockmt')
-            ->where('fstockmtno', 'like', $noPrefix.'%')
+            ->where('fstockmtno', 'like', $noPrefix . '%')
             ->selectRaw("MAX(CAST(split_part(fstockmtno, '.', 5) AS int)) AS lastno")
             ->value('lastno');
 
         $next = (int) $last + 1;
 
-        return $noPrefix.str_pad((string) $next, 4, '0', STR_PAD_LEFT);
+        return $noPrefix . str_pad((string) $next, 4, '0', STR_PAD_LEFT);
     }
 
     public function print(string $fstockmtno)
@@ -561,7 +559,7 @@ class PenerimaanBarangController extends Controller
         $supplierSub = Supplier::select('fsuppliercode', 'fsuppliername');
 
         $hdr = PenerimaanPembelianHeader::query()
-            ->leftJoinSub($supplierSub, 's', fn ($j) => $j->on('s.fsuppliercode', '=', 'trstockmt.fsupplier'))
+            ->leftJoinSub($supplierSub, 's', fn($j) => $j->on('s.fsuppliercode', '=', 'trstockmt.fsupplier'))
             ->leftJoin('mscabang as c', 'c.fcabangkode', '=', 'trstockmt.fbranchcode')
             ->leftJoin('mswh as w', 'w.fwhcode', '=', 'trstockmt.ffrom')
             ->where('trstockmt.fstockmtno', $fstockmtno)
@@ -588,7 +586,7 @@ class PenerimaanBarangController extends Controller
                 'trstockdt.fqtykecil',
             ]);
 
-        $fmt = fn ($d) => $d ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y') : '-';
+        $fmt = fn($d) => $d ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y') : '-';
 
         return view('penerimaanbarang.print', [
             'hdr' => $hdr,
@@ -611,8 +609,8 @@ class PenerimaanBarangController extends Controller
 
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
         $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn ($q) => $q->where('fcabangkode', $raw)->orWhere('fcabangname', $raw))
+            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
+            ->when(! is_numeric($raw), fn($q) => $q->where('fcabangkode', $raw)->orWhere('fcabangname', $raw))
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
 
         $canApproval = in_array('approvalpr', explode(',', session('user_restricted_permissions', '')));
@@ -682,7 +680,7 @@ class PenerimaanBarangController extends Controller
         $descs = $request->input('fdesc', []);
 
         // 4) BUILD ROWS
-        $uniqueCodes = array_values(array_unique(array_filter(array_map(fn ($c) => trim((string) $c), $codes))));
+        $uniqueCodes = array_values(array_unique(array_filter(array_map(fn($c) => trim((string) $c), $codes))));
         $prodMeta = DB::table('msprd')->whereIn('fprdcode', $uniqueCodes)->get()->keyBy('fprdcode');
 
         $rowsDt = [];
@@ -719,6 +717,7 @@ class PenerimaanBarangController extends Controller
                 'fprdcode' => $code,
                 'fprdcodeid' => isset($prdIds[$i]) ? (int) $prdIds[$i] : (int) $meta->fprdid,
                 'frefdtno' => trim((string) ($fponos[$i] ?? '')),
+                'frefso' => trim((string) ($fponos[$i] ?? '')),
                 'frefdtid' => $frefdtid,
                 'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
                 'frefnoacak' => $frefdtid ? $this->normalizeReferenceRandomNumber($frefnoacaks[$i] ?? null) : null,
@@ -781,15 +780,15 @@ class PenerimaanBarangController extends Controller
                 // B. Penomoran Otomatis
                 if (empty($fstockmtno)) {
                     $prefix = sprintf('%s.%s.%s.%s.', $fstockmtcode, $kodeCabang, $yy, $mm);
-                    $lockKey = crc32("STOCKMT|{$fstockmtcode}|{$kodeCabang}|".$fstockmtdate->format('Y-m'));
+                    $lockKey = crc32("STOCKMT|{$fstockmtcode}|{$kodeCabang}|" . $fstockmtdate->format('Y-m'));
                     DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
                     $last = DB::table('trstockmt')
-                        ->where('fstockmtno', 'like', $prefix.'%')
+                        ->where('fstockmtno', 'like', $prefix . '%')
                         ->selectRaw("MAX(CAST(split_part(fstockmtno, '.', 5) AS int)) AS lastno")
                         ->value('lastno');
 
-                    $fstockmtno = $prefix.str_pad((string) ((int) $last + 1), 4, '0', STR_PAD_LEFT);
+                    $fstockmtno = $prefix . str_pad((string) ((int) $last + 1), 4, '0', STR_PAD_LEFT);
                 }
 
                 // C. Insert Header
@@ -830,12 +829,12 @@ class PenerimaanBarangController extends Controller
                 $fjurnaltype = 'JTB';
                 $jurnalPrefix = sprintf('%s.%s.%s.%s.', $fjurnaltype, $kodeCabang, $yy, $mm);
                 if (DB::getDriverName() === 'pgsql') {
-                    $lastJ = DB::table('jurnalmt')->where('fjurnalno', 'like', $jurnalPrefix.'%')
+                    $lastJ = DB::table('jurnalmt')->where('fjurnalno', 'like', $jurnalPrefix . '%')
                         ->selectRaw("MAX(CAST(split_part(fjurnalno, '.', 5) AS int)) AS lastno")->value('lastno');
                     $nextJ = (int) $lastJ + 1;
                 } else {
                     $lastJurnalNo = DB::table('jurnalmt')
-                        ->where('fjurnalno', 'like', $jurnalPrefix.'%')
+                        ->where('fjurnalno', 'like', $jurnalPrefix . '%')
                         ->orderByDesc('fjurnalno')
                         ->value('fjurnalno');
 
@@ -844,7 +843,7 @@ class PenerimaanBarangController extends Controller
                         $nextJ = ((int) substr($lastJurnalNo, $pos + 1)) + 1;
                     }
                 }
-                $fjurnalno = $jurnalPrefix.str_pad((string) $nextJ, 4, '0', STR_PAD_LEFT);
+                $fjurnalno = $jurnalPrefix . str_pad((string) $nextJ, 4, '0', STR_PAD_LEFT);
 
                 $jurnalId = DB::table('jurnalmt')->insertGetId([
                     'fbranchcode' => $kodeCabang,
@@ -871,7 +870,7 @@ class PenerimaanBarangController extends Controller
         } catch (\RuntimeException $e) {
             return back()->withInput()->withErrors(['detail' => $e->getMessage()]);
         } catch (Exception $e) {
-            return back()->withInput()->withErrors(['detail' => 'Gagal simpan: '.$e->getMessage()]);
+            return back()->withInput()->withErrors(['detail' => 'Gagal simpan: ' . $e->getMessage()]);
         }
 
         return redirect()->route('penerimaanbarang.create')->with('success', "Transaksi {$fstockmtno} berhasil disimpan.");
@@ -901,8 +900,8 @@ class PenerimaanBarangController extends Controller
 
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
         $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn ($q) => $q->where('fcabangkode', $raw)->orWhere('fcabangname', $raw))
+            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
+            ->when(! is_numeric($raw), fn($q) => $q->where('fcabangkode', $raw)->orWhere('fcabangname', $raw))
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
 
         $warehouses = DB::table('mswh')
@@ -937,13 +936,13 @@ class PenerimaanBarangController extends Controller
 
         $selectedBranchCode = trim((string) ($penerimaanbarang->fbranchcode ?? ''));
         $selectedBranchName = $selectedBranchCode !== ''
-          ? DB::table('mscabang')->where('fcabangkode', $selectedBranchCode)->value('fcabangname')
-          : null;
+            ? DB::table('mscabang')->where('fcabangkode', $selectedBranchCode)->value('fcabangname')
+            : null;
         $usageLockMessage = $action === 'view' ? null : $this->getUsageLockMessage($penerimaanbarang);
 
         $oldUsageByPod = $penerimaanbarang->details
-            ->groupBy(fn ($d) => (int) ($d->frefdtid ?? 0))
-            ->map(fn ($rows) => (float) $rows->sum(fn ($r) => (float) ($r->fqtykecil ?? 0)))
+            ->groupBy(fn($d) => (int) ($d->frefdtid ?? 0))
+            ->map(fn($rows) => (float) $rows->sum(fn($r) => (float) ($r->fqtykecil ?? 0)))
             ->all();
 
         $refPodIds = $penerimaanbarang->details->pluck('frefdtid')->all();
@@ -1076,7 +1075,7 @@ class PenerimaanBarangController extends Controller
         $prices = $request->input('fprice', []);
         $descs = $request->input('fdesc', []);
 
-        $uniqueCodes = array_values(array_unique(array_filter(array_map(fn ($c) => trim((string) $c), $codes))));
+        $uniqueCodes = array_values(array_unique(array_filter(array_map(fn($c) => trim((string) $c), $codes))));
         $prodMeta = DB::table('msprd')
             ->whereIn('fprdcode', $uniqueCodes)
             ->get()
@@ -1136,10 +1135,10 @@ class PenerimaanBarangController extends Controller
                 'fprdcode' => $code,
                 'fprdcodeid' => $prdCodeId,
                 'frefdtno' => $rno ?: null,
+                'frefso' => $rno ?: null,
                 'frefdtid' => $rid,
                 'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
                 'frefnoacak' => $rid ? $this->normalizeReferenceRandomNumber($frefnoacaks[$i] ?? null) : null,
-                'frefso' => null,
                 'frefsoid' => null,
                 'fqty' => $qty,
                 'fqtykecil' => $qtyKecil,
@@ -1255,8 +1254,8 @@ class PenerimaanBarangController extends Controller
                 $oldUsageByPod = DB::table('trstockdt')
                     ->where('fstockmtno', $penerimaanbarang->fstockmtno)
                     ->get(['frefdtid', 'fqtykecil'])
-                    ->groupBy(fn ($row) => (int) ($row->frefdtid ?? 0))
-                    ->map(fn ($rows) => (float) $rows->sum(fn ($row) => (float) ($row->fqtykecil ?? 0)))
+                    ->groupBy(fn($row) => (int) ($row->frefdtid ?? 0))
+                    ->map(fn($rows) => (float) $rows->sum(fn($row) => (float) ($row->fqtykecil ?? 0)))
                     ->all();
 
                 $this->adjustPoReferenceQtyKecil($oldUsageByPod, 1);
@@ -1267,7 +1266,7 @@ class PenerimaanBarangController extends Controller
                 $jurnalIds = DB::table('jurnaldt')
                     ->where('frefno', $penerimaanbarang->fstockmtno)
                     ->pluck('fjurnalmtid')
-                    ->filter(fn ($id) => ! is_null($id))
+                    ->filter(fn($id) => ! is_null($id))
                     ->unique()
                     ->values();
 
@@ -1280,10 +1279,10 @@ class PenerimaanBarangController extends Controller
             });
 
             return redirect()->route('penerimaanbarang.index')
-                ->with('success', 'Data Penerimaan Barang '.$penerimaanbarang->fstockmtno.' berhasil dihapus.');
+                ->with('success', 'Data Penerimaan Barang ' . $penerimaanbarang->fstockmtno . ' berhasil dihapus.');
         } catch (\Exception $e) {
             return redirect()->route('penerimaanbarang.delete', $fstockmtid)
-                ->with('error', 'Gagal menghapus data: '.$e->getMessage());
+                ->with('error', 'Gagal menghapus data: ' . $e->getMessage());
         }
     }
 
@@ -1299,7 +1298,7 @@ class PenerimaanBarangController extends Controller
                     $kodeCabang = DB::table('mscabang')->where('fcabangid', (int) $needle)->value('fcabangkode');
                 } else {
                     $kodeCabang = DB::table('mscabang')->whereRaw('LOWER(fcabangkode)=LOWER(?)', [$needle])->value('fcabangkode')
-                      ?: DB::table('mscabang')->whereRaw('LOWER(fcabangname)=LOWER(?)', [$needle])->value('fcabangkode');
+                        ?: DB::table('mscabang')->whereRaw('LOWER(fcabangname)=LOWER(?)', [$needle])->value('fcabangkode');
                 }
             }
         }
@@ -1312,8 +1311,8 @@ class PenerimaanBarangController extends Controller
         $detailIds = DB::table('trstockdt')
             ->where('fstockmtno', $header->fstockmtno)
             ->pluck('fstockdtid')
-            ->map(fn ($id) => (int) $id)
-            ->filter(fn ($id) => $id > 0)
+            ->map(fn($id) => (int) $id)
+            ->filter(fn($id) => $id > 0)
             ->values();
 
         if ($detailIds->isEmpty()) {
@@ -1332,6 +1331,6 @@ class PenerimaanBarangController extends Controller
             return null;
         }
 
-        return 'Penerimaan Barang '.$header->fstockmtno.' tidak dapat diubah atau dihapus karena sudah digunakan pada Faktur Pembelian: '.$usedBy->implode(', ').'.';
+        return 'Penerimaan Barang ' . $header->fstockmtno . ' tidak dapat diubah atau dihapus karena sudah digunakan pada Faktur Pembelian: ' . $usedBy->implode(', ') . '.';
     }
 }

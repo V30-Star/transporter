@@ -1682,7 +1682,8 @@
                 this.browseTarget = (where === 'edit' ? 'edit' : 'draft');
                 window.dispatchEvent(new CustomEvent('browse-open', {
                     detail: {
-                        forEdit: this.browseTarget === 'edit'
+                        forEdit: this.browseTarget === 'edit',
+                        productCodeFilter: document.querySelector('select[name="ftypebuy"]')?.value === '2' ? 'UM' : ''
                     }
                 }));
             },

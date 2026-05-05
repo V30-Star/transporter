@@ -2630,7 +2630,12 @@
                 openBrowseFor(where, index = null) {
                     this.browseTarget = where;
                     this.browseIndex = index;
-                    window.dispatchEvent(new CustomEvent('browse-open', {}));
+                    window.dispatchEvent(new CustomEvent('browse-open', {
+                        detail: {
+                            forEdit: where !== 'draft',
+                            productCodeFilter: document.querySelector('select[name="ftypebuy"]')?.value === '2' ? 'UM' : ''
+                        }
+                    }));
                 },
             };
 

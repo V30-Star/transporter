@@ -12,6 +12,7 @@ class ProductBrowseController extends Controller
         $draw = (int) $request->input('draw', 1);
         $start = (int) $request->input('start', 0);
         $length = (int) $request->input('length', 10);
+        $exactCode = trim((string) $request->input('fprdcode_exact', ''));
         $searchParam = $request->input('search');
         $searchValue = trim(is_array($searchParam) ? ($searchParam['value'] ?? '') : (string) $searchParam);
         $orderColumn = $request->input('order_column', 'fprdname');
@@ -23,6 +24,9 @@ class ProductBrowseController extends Controller
         // Total tanpa search
         $recordsTotal = DB::table('msprd')
             ->where('fdiscontinue', '!=', 1)
+            ->when($exactCode !== '', function ($q) use ($exactCode) {
+                $q->whereRaw('TRIM(fprdcode) = ?', [$exactCode]);
+            })
             ->count();
 
         // Base untuk filtered count & data
@@ -31,6 +35,9 @@ class ProductBrowseController extends Controller
             ->where(function ($q) {
                 $q->where('msprd.fdiscontinue', '!=', 1)
                     ->orWhereNull('msprd.fdiscontinue');
+            })
+            ->when($exactCode !== '', function ($q) use ($exactCode) {
+                $q->whereRaw('TRIM(msprd.fprdcode) = ?', [$exactCode]);
             })
             ->when($searchValue !== '', function ($q) use ($searchValue) {
                 $q->where(function ($w) use ($searchValue) {

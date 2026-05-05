@@ -15,6 +15,7 @@
             open: false,
             forEdit: false,
             table: null,
+            productCodeFilter: '',
 
             initDataTable() {
                 if (this.table) {
@@ -30,14 +31,15 @@
                     ajax: {
                         url: "{{ route('products.browse') }}",
                         type: 'GET',
-                        data: function(d) {
+                        data: (d) => {
                             return {
                                 draw: d.draw,
                                 start: d.start,
                                 length: d.length,
                                 search: d.search.value,
                                 order_column: d.columns[d.order[0].column].data,
-                                order_dir: d.order[0].dir
+                                order_dir: d.order[0].dir,
+                                fprdcode_exact: this.productCodeFilter || ''
                             };
                         }
                     },
@@ -208,6 +210,9 @@
             init() {
                 window.addEventListener('browse-open', (e) => {
                     this.open = true;
+                    this.productCodeFilter = (e.detail && e.detail.productCodeFilter)
+                        ? String(e.detail.productCodeFilter).trim()
+                        : '';
 
                     if (@json($supportsForEdit)) {
                         this.forEdit = !!(e.detail && e.detail.forEdit);
