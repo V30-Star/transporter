@@ -178,7 +178,6 @@ class FakturPembelianController extends Controller
             ->select([
                 'tr_pod.fpodid as frefdtid',
                 DB::raw('tr_pod.fpono as frefdtno'),
-                'tr_pod.fnou as fnouref',
                 'tr_pod.fprdcode as fitemcode',
                 'm.fprdname as fitemname',
                 'tr_pod.fdesc',
@@ -299,7 +298,6 @@ class FakturPembelianController extends Controller
             ->select([
                 'trstockdt.fstockdtid as frefdtid',
                 'trstockdt.frefdtno',
-                DB::raw('trstockdt.fstockdtid as fnouref'),
                 'trstockdt.fprdcode as fitemcode',
                 'm.fprdname as fitemname',
                 'hdr.fsupplier',
@@ -400,8 +398,8 @@ class FakturPembelianController extends Controller
     private function getSourceRemainMap(string $sourceType, array $detailIds): array
     {
         $ids = collect($detailIds)
-            ->map(fn ($id) => (int) $id)
-            ->filter(fn ($id) => $id > 0)
+            ->map(fn($id) => (int) $id)
+            ->filter(fn($id) => $id > 0)
             ->unique()
             ->values()
             ->all();
@@ -484,8 +482,8 @@ class FakturPembelianController extends Controller
     private function getSourceRemainKecilMap(string $sourceType, array $detailIds): array
     {
         $ids = collect($detailIds)
-            ->map(fn ($id) => (int) $id)
-            ->filter(fn ($id) => $id > 0)
+            ->map(fn($id) => (int) $id)
+            ->filter(fn($id) => $id > 0)
             ->unique()
             ->values()
             ->all();
@@ -514,7 +512,7 @@ class FakturPembelianController extends Controller
                 ->whereIn('d.fpodid', $ids)
                 ->selectRaw('d.fpodid as detail_id, COALESCE(d.fqtykecil, 0) - COALESCE(u.qty_used, 0) as remain_kecil')
                 ->pluck('remain_kecil', 'detail_id')
-                ->map(fn ($value) => (float) $value)
+                ->map(fn($value) => (float) $value)
                 ->all();
         }
 
@@ -532,7 +530,7 @@ class FakturPembelianController extends Controller
                 ->whereIn('d.fstockdtid', $ids)
                 ->selectRaw('d.fstockdtid as detail_id, COALESCE(d.fqtykecil, 0) - COALESCE(u.qty_used, 0) as remain_kecil')
                 ->pluck('remain_kecil', 'detail_id')
-                ->map(fn ($value) => (float) $value)
+                ->map(fn($value) => (float) $value)
                 ->all();
         }
 
@@ -604,9 +602,7 @@ class FakturPembelianController extends Controller
         return (string) end($normalized);
     }
 
-    private function adjustSourceQtyKecil(array $usageBySourceRef, int $direction): void
-    {
-    }
+    private function adjustSourceQtyKecil(array $usageBySourceRef, int $direction): void {}
 
     private function validateSourceRemainForRows(array $codes, array $qtys, array $sources, array $refdtids, array $satuans, array $extraAvailableBySourceRef = []): \Illuminate\Support\MessageBag
     {
@@ -614,7 +610,7 @@ class FakturPembelianController extends Controller
         $tolerance = 0.00001;
 
         $products = DB::table('msprd')
-            ->whereIn('fprdcode', array_values(array_unique(array_filter(array_map(fn ($code) => trim((string) $code), $codes)))))
+            ->whereIn('fprdcode', array_values(array_unique(array_filter(array_map(fn($code) => trim((string) $code), $codes)))))
             ->get([
                 'fprdcode',
                 'fsatuankecil',
@@ -681,7 +677,7 @@ class FakturPembelianController extends Controller
             $product = $products->get($code);
             $sat = trim((string) ($satuans[$i] ?? ''));
             $needKecil = $this->qtySourceUnitToKecil($product, $sat, $qty);
-            $sourceKey = $sourceType.':'.$detailId;
+            $sourceKey = $sourceType . ':' . $detailId;
             $availableKecil = $remainKecil + (float) ($extraAvailableBySourceRef[$sourceKey] ?? 0);
             if ($needKecil > $availableKecil + $tolerance) {
                 $available = $this->qtyKecilToSourceUnit((object) [
@@ -703,9 +699,9 @@ class FakturPembelianController extends Controller
         $date = $onDate ?: now();
 
         $branch = $branch
-          ?? Auth::guard('sysuser')->user()?->fcabang
-          ?? Auth::user()?->fcabang
-          ?? null;
+            ?? Auth::guard('sysuser')->user()?->fcabang
+            ?? Auth::user()?->fcabang
+            ?? null;
 
         $kodeCabang = null;
         if ($branch !== null) {
@@ -714,7 +710,7 @@ class FakturPembelianController extends Controller
                 $kodeCabang = DB::table('mscabang')->where('fcabangid', (int) $needle)->value('fcabangkode');
             } else {
                 $kodeCabang = DB::table('mscabang')->whereRaw('LOWER(fcabangkode)=LOWER(?)', [$needle])->value('fcabangkode')
-                  ?: DB::table('mscabang')->whereRaw('LOWER(fcabangname)=LOWER(?)', [$needle])->value('fcabangkode');
+                    ?: DB::table('mscabang')->whereRaw('LOWER(fcabangname)=LOWER(?)', [$needle])->value('fcabangkode');
             }
         }
         if (! $kodeCabang) {
@@ -723,19 +719,19 @@ class FakturPembelianController extends Controller
 
         $prefix = sprintf('PO.%s.%s.%s.', $kodeCabang, $date->format('y'), $date->format('m'));
 
-        $lockKey = crc32('PO|'.$kodeCabang.'|'.$date->format('Y-m'));
+        $lockKey = crc32('PO|' . $kodeCabang . '|' . $date->format('Y-m'));
         if (DB::getDriverName() === 'pgsql') {
             DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
             $last = DB::table('tr_poh')
-                ->where('fpono', 'like', $prefix.'%')
+                ->where('fpono', 'like', $prefix . '%')
                 ->selectRaw("MAX(CAST(split_part(fpono, '.', 5) AS int)) AS lastno")
                 ->value('lastno');
 
             $next = (int) $last + 1;
         } else {
             $lastCode = DB::table('tr_poh')
-                ->where('fpono', 'like', $prefix.'%')
+                ->where('fpono', 'like', $prefix . '%')
                 ->orderByDesc('fpono')
                 ->value('fpono');
 
@@ -745,7 +741,7 @@ class FakturPembelianController extends Controller
             }
         }
 
-        return $prefix.str_pad((string) $next, 4, '0', STR_PAD_LEFT);
+        return $prefix . str_pad((string) $next, 4, '0', STR_PAD_LEFT);
     }
 
     public function print(string $fstockmtno)
@@ -782,9 +778,9 @@ class FakturPembelianController extends Controller
                 'trstockdt.fqtykecil',
             ]);
 
-        $fmt = fn ($d) => $d
-          ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y')
-          : '-';
+        $fmt = fn($d) => $d
+            ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y')
+            : '-';
 
         return view('fakturpembelian.print', [
             'hdr' => $hdr,
@@ -815,10 +811,10 @@ class FakturPembelianController extends Controller
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
         $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
+            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
             ->when(
                 ! is_numeric($raw),
-                fn ($q) => $q->where('fcabangkode', $raw)->orWhere('fcabangname', $raw)
+                fn($q) => $q->where('fcabangkode', $raw)->orWhere('fcabangname', $raw)
             )
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
 
@@ -859,8 +855,6 @@ class FakturPembelianController extends Controller
                 'fqty.*' => ['numeric', 'min:0.001'],
                 'fprice' => ['required', 'array'],
                 'fprice.*' => ['numeric', 'min:0'],
-                'fnouref' => ['nullable', 'array'],
-                'fnouref.*' => ['nullable', 'integer'],
                 'frefnoacak' => ['nullable', 'array'],
                 'frefnoacak.*' => ['nullable', 'regex:/^\d{3}(,\s*\d{3})*$/'],
             ], [
@@ -893,7 +887,6 @@ class FakturPembelianController extends Controller
             $refdtids = $request->input('frefdtid', []);
             $sources = $request->input('fsource', []);
             $frefnoacaks = $request->input('frefnoacak', []);
-            $fnourefs = $request->input('fnouref', []);
             $qtys = $request->input('fqty', []);
             $prices = $request->input('fprice', []);
             $biayas = $request->input('fbiaya', []);
@@ -901,7 +894,7 @@ class FakturPembelianController extends Controller
             $descs = $request->input('fdesc', []);
 
             // 4) BUILD ROWS
-            $uniqueCodes = array_values(array_unique(array_filter(array_map(fn ($c) => trim((string) $c), $codes))));
+            $uniqueCodes = array_values(array_unique(array_filter(array_map(fn($c) => trim((string) $c), $codes))));
             $prodMeta = DB::table('msprd')->whereIn('fprdcode', $uniqueCodes)->get()->keyBy('fprdcode');
 
             $rowsDt = [];
@@ -920,7 +913,7 @@ class FakturPembelianController extends Controller
                 if (! in_array($sourceType, ['PO', 'PB'], true) || $detailId <= 0) {
                     continue;
                 }
-                $extraAvailableBySourceRef[$sourceType.':'.$detailId] = (float) ($oldUsageByRefId[$detailId] ?? 0);
+                $extraAvailableBySourceRef[$sourceType . ':' . $detailId] = (float) ($oldUsageByRefId[$detailId] ?? 0);
             }
 
             $errors = $this->validateSourceRemainForRows($codes, $qtys, $sources, $refdtids, $satuans, $extraAvailableBySourceRef);
@@ -980,10 +973,9 @@ class FakturPembelianController extends Controller
 
                 $detailId = isset($refdtids[$i]) ? (int) $refdtids[$i] : 0;
                 if (in_array($sourceType, ['PO', 'PB'], true) && $detailId > 0) {
-                    $sourceKey = $sourceType.':'.$detailId;
+                    $sourceKey = $sourceType . ':' . $detailId;
                     $sourceUsageByRef[$sourceKey] = ($sourceUsageByRef[$sourceKey] ?? 0) + $qtyKecil;
                 }
-
             }
 
             $ppnAmount = (float) $request->input('famountpopajak', 0);
@@ -1029,7 +1021,7 @@ class FakturPembelianController extends Controller
                 // B. Penomoran
                 if (empty($fstockmtno)) {
                     $prefix = "$fstockmtcode.$kodeCabang.$yy.$mm.";
-                    $lockKey = crc32("STOCKMT|$fstockmtcode|$kodeCabang|".$fstockmtdate->format('Y-m'));
+                    $lockKey = crc32("STOCKMT|$fstockmtcode|$kodeCabang|" . $fstockmtdate->format('Y-m'));
                     DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
 
                     $last = DB::table('trstockmt')
@@ -1037,7 +1029,7 @@ class FakturPembelianController extends Controller
                         ->selectRaw("MAX(CAST(split_part(fstockmtno, '.', 5) AS int)) AS lastno")
                         ->value('lastno');
 
-                    $fstockmtno = $prefix.str_pad((string) ((int) $last + 1), 4, '0', STR_PAD_LEFT);
+                    $fstockmtno = $prefix . str_pad((string) ((int) $last + 1), 4, '0', STR_PAD_LEFT);
                 }
 
                 // C. Insert Header
@@ -1086,9 +1078,9 @@ class FakturPembelianController extends Controller
             return redirect()->route('fakturpembelian.create')
                 ->with('success', "Faktur Pembelian $fstockmtno berhasil disimpan.");
         } catch (\Exception $e) {
-            Log::error('FakturPembelian@store ERROR: '.$e->getMessage());
+            Log::error('FakturPembelian@store ERROR: ' . $e->getMessage());
 
-            return back()->withInput()->withErrors(['error' => 'Gagal simpan: '.$e->getMessage()]);
+            return back()->withInput()->withErrors(['error' => 'Gagal simpan: ' . $e->getMessage()]);
         }
     }
 
@@ -1121,8 +1113,8 @@ class FakturPembelianController extends Controller
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
         $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn ($q) => $q
+            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
+            ->when(! is_numeric($raw), fn($q) => $q
                 ->where('fcabangkode', $raw)
                 ->orWhere('fcabangname', $raw))
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
@@ -1137,8 +1129,8 @@ class FakturPembelianController extends Controller
         $defaultBranchCode = $branch->fcabangkode ?? (string) $raw;
         $savedBranchCode = trim((string) ($fakturpembelian->fbranchcode ?? ''));
         $savedBranchName = $savedBranchCode !== ''
-          ? DB::table('mscabang')->where('fcabangkode', $savedBranchCode)->value('fcabangname')
-          : null;
+            ? DB::table('mscabang')->where('fcabangkode', $savedBranchCode)->value('fcabangname')
+            : null;
 
         $currentAccount = trim($fakturpembelian->fprdjadi ?? '');
         $currentAccountRecord = $accounts->firstWhere('faccount', trim($fakturpembelian->fprdjadi ?? ''));
@@ -1147,8 +1139,8 @@ class FakturPembelianController extends Controller
 
         $detailRefIds = $fakturpembelian->details
             ->pluck('frefdtid')
-            ->filter(fn ($id) => (int) $id > 0)
-            ->map(fn ($id) => (int) $id)
+            ->filter(fn($id) => (int) $id > 0)
+            ->map(fn($id) => (int) $id)
             ->unique()
             ->values()
             ->all();
@@ -1159,14 +1151,14 @@ class FakturPembelianController extends Controller
             $poRefSet = DB::table('tr_pod')
                 ->whereIn('fpodid', $detailRefIds)
                 ->pluck('fpodid')
-                ->map(fn ($id) => (int) $id)
+                ->map(fn($id) => (int) $id)
                 ->flip()
                 ->all();
 
             $pbRefSet = DB::table('trstockdt')
                 ->whereIn('fstockdtid', $detailRefIds)
                 ->pluck('fstockdtid')
-                ->map(fn ($id) => (int) $id)
+                ->map(fn($id) => (int) $id)
                 ->flip()
                 ->all();
         }
@@ -1183,7 +1175,7 @@ class FakturPembelianController extends Controller
                 continue;
             }
 
-            $sourceKey = $sourceType.':'.$detailId;
+            $sourceKey = $sourceType . ':' . $detailId;
             $oldUsageBySourceRef[$sourceKey] = ($oldUsageBySourceRef[$sourceKey] ?? 0) + (float) ($d->fqty ?? 0);
         }
 
@@ -1195,7 +1187,7 @@ class FakturPembelianController extends Controller
 
             $maxFromSource = null;
             if ($sourceType !== '' && $detailId > 0) {
-                $sourceKey = $sourceType.':'.$detailId;
+                $sourceKey = $sourceType . ':' . $detailId;
                 $maxFromSource = max(0, (float) ($sourceRemain ?? 0) + (float) ($oldUsageBySourceRef[$sourceKey] ?? 0));
             }
 
@@ -1212,7 +1204,6 @@ class FakturPembelianController extends Controller
                 'frefdtno' => $d->frefdtno ?? null,
                 'frefdtid' => $detailId > 0 ? $detailId : null,
                 'frefnoacak' => $d->frefnoacak ?? null,
-                'fnouref' => $d->fnouref ?? null,
                 'fsource' => $sourceType,
                 'fqty' => (float) ($d->fqty ?? 0),
                 'fterima' => (float) ($d->fterima ?? 0),
@@ -1289,8 +1280,8 @@ class FakturPembelianController extends Controller
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
         $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn ($q) => $q
+            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
+            ->when(! is_numeric($raw), fn($q) => $q
                 ->where('fcabangkode', $raw)
                 ->orWhere('fcabangname', $raw))
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
@@ -1305,8 +1296,8 @@ class FakturPembelianController extends Controller
         $defaultBranchCode = $branch->fcabangkode ?? (string) $raw;
         $savedBranchCode = trim((string) ($fakturpembelian->fbranchcode ?? ''));
         $savedBranchName = $savedBranchCode !== ''
-          ? DB::table('mscabang')->where('fcabangkode', $savedBranchCode)->value('fcabangname')
-          : null;
+            ? DB::table('mscabang')->where('fcabangkode', $savedBranchCode)->value('fcabangname')
+            : null;
         $currentAccount = trim($fakturpembelian->fprdjadi ?? '');
         $currentAccountRecord = $accounts->firstWhere('faccount', trim($fakturpembelian->fprdjadi ?? ''));
         $currentAccountId = $currentAccountRecord?->faccid ?? '';
@@ -1324,7 +1315,6 @@ class FakturPembelianController extends Controller
                 'famountpo' => $d->famountpo ?? null,
                 'frefdtno' => $d->frefdtno ?? null,
                 'frefnoacak' => $d->frefnoacak ?? null,
-                'fnouref' => $d->fnouref ?? null,
                 'fqty' => (float) ($d->fqty ?? 0),
                 'fterima' => (float) ($d->fterima ?? 0),
                 'fprice' => (float) ($d->fprice ?? 0),
@@ -1410,8 +1400,6 @@ class FakturPembelianController extends Controller
                 'frefpo' => ['nullable', 'string'],
                 'frefnoacak' => ['nullable', 'array'],
                 'frefnoacak.*' => ['nullable', 'regex:/^\d{3}(,\s*\d{3})*$/'],
-                'fnouref' => ['nullable', 'array'],
-                'fnouref.*' => ['nullable', 'integer'],
                 'fprdjadi' => ['required_if:ftypebuy,1'],
             ], [
                 'fstockmtdate.required' => 'Tanggal transaksi wajib diisi.',
@@ -1458,7 +1446,6 @@ class FakturPembelianController extends Controller
             $refdtids = $request->input('frefdtid', []);
             $sources = $request->input('fsource', []);
             $frefnoacaks = $request->input('frefnoacak', []);
-            $fnourefs = $request->input('fnouref', []);
             $qtys = $request->input('fqty', []);
             $prices = $request->input('fprice', []);
             $biayas = $request->input('fbiaya', []);
@@ -1466,7 +1453,7 @@ class FakturPembelianController extends Controller
             $descs = $request->input('fdesc', []);
 
             // LOAD PRODUCT METADATA
-            $uniqueCodes = array_values(array_unique(array_filter(array_map(fn ($c) => trim((string) $c), $codes))));
+            $uniqueCodes = array_values(array_unique(array_filter(array_map(fn($c) => trim((string) $c), $codes))));
             $prodMeta = DB::table('msprd')
                 ->whereIn('fprdcode', $uniqueCodes)
                 ->get(['fprdid', 'fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2', 'fqtykecil'])
@@ -1506,7 +1493,7 @@ class FakturPembelianController extends Controller
                     continue;
                 }
 
-                $sourceKey = $sourceType.':'.$detailId;
+                $sourceKey = $sourceType . ':' . $detailId;
                 $oldUsageBySourceRef[$sourceKey] = ($oldUsageBySourceRef[$sourceKey] ?? 0) + $qtyUsed;
             }
 
@@ -1573,10 +1560,9 @@ class FakturPembelianController extends Controller
 
                 $detailId = isset($refdtids[$i]) ? (int) $refdtids[$i] : 0;
                 if (in_array($sourceType, ['PO', 'PB'], true) && $detailId > 0) {
-                    $sourceKey = $sourceType.':'.$detailId;
+                    $sourceKey = $sourceType . ':' . $detailId;
                     $sourceUsageByRef[$sourceKey] = ($sourceUsageByRef[$sourceKey] ?? 0) + $qtyKecil;
                 }
-
             }
 
             if (empty($rowsDt)) {
@@ -1683,7 +1669,7 @@ class FakturPembelianController extends Controller
 
             return back()
                 ->withInput()
-                ->withErrors(['error' => 'Terjadi kesalahan sistem: '.$e->getMessage()]);
+                ->withErrors(['error' => 'Terjadi kesalahan sistem: ' . $e->getMessage()]);
         }
     }
 
@@ -1719,8 +1705,8 @@ class FakturPembelianController extends Controller
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
         $branch = DB::table('mscabang')
-            ->when(is_numeric($raw), fn ($q) => $q->where('fcabangid', (int) $raw))
-            ->when(! is_numeric($raw), fn ($q) => $q
+            ->when(is_numeric($raw), fn($q) => $q->where('fcabangid', (int) $raw))
+            ->when(! is_numeric($raw), fn($q) => $q
                 ->where('fcabangkode', $raw)
                 ->orWhere('fcabangname', $raw))
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
@@ -1735,8 +1721,8 @@ class FakturPembelianController extends Controller
         $defaultBranchCode = $branch->fcabangkode ?? (string) $raw;
         $savedBranchCode = trim((string) ($fakturpembelian->fbranchcode ?? ''));
         $savedBranchName = $savedBranchCode !== ''
-          ? DB::table('mscabang')->where('fcabangkode', $savedBranchCode)->value('fcabangname')
-          : null;
+            ? DB::table('mscabang')->where('fcabangkode', $savedBranchCode)->value('fcabangname')
+            : null;
         $currentAccount = trim($fakturpembelian->fprdjadi ?? '');
         $currentAccountRecord = $accounts->firstWhere('faccount', trim($fakturpembelian->fprdjadi ?? ''));
         $currentAccountId = $currentAccountRecord?->faccid ?? '';
@@ -1754,7 +1740,6 @@ class FakturPembelianController extends Controller
                 'famountpo' => $d->famountpo ?? null,
                 'frefdtno' => $d->frefdtno ?? null,
                 'frefnoacak' => $d->frefnoacak ?? null,
-                'fnouref' => $d->fnouref ?? null,
                 'fqty' => (float) ($d->fqty ?? 0),
                 'fterima' => (float) ($d->fterima ?? 0),
                 'fprice' => (float) ($d->fprice ?? 0),
@@ -1826,7 +1811,7 @@ class FakturPembelianController extends Controller
                         continue;
                     }
 
-                    $sourceKey = $sourceType.':'.$detailId;
+                    $sourceKey = $sourceType . ':' . $detailId;
                     $oldUsageBySourceRef[$sourceKey] = ($oldUsageBySourceRef[$sourceKey] ?? 0) + $qtyUsed;
                 }
 
@@ -1838,10 +1823,10 @@ class FakturPembelianController extends Controller
                 $fakturpembelian->delete();
             });
 
-            return redirect()->route('fakturpembelian.index')->with('success', 'Data Faktur Pembelian '.$fakturpembelian->fstockmtno.' berhasil dihapus.');
+            return redirect()->route('fakturpembelian.index')->with('success', 'Data Faktur Pembelian ' . $fakturpembelian->fstockmtno . ' berhasil dihapus.');
         } catch (\Exception $e) {
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
-            return redirect()->route('fakturpembelian.delete', $fstockmtid)->with('error', 'Gagal menghapus data: '.$e->getMessage());
+            return redirect()->route('fakturpembelian.delete', $fstockmtid)->with('error', 'Gagal menghapus data: ' . $e->getMessage());
         }
     }
 
@@ -1862,7 +1847,7 @@ class FakturPembelianController extends Controller
             return null;
         }
 
-        return 'Faktur Pembelian '.$header->fstockmtno.' tidak dapat diubah atau dihapus karena sudah digunakan pada Retur Pembelian: '.$usedBy->implode(', ').'.';
+        return 'Faktur Pembelian ' . $header->fstockmtno . ' tidak dapat diubah atau dihapus karena sudah digunakan pada Retur Pembelian: ' . $usedBy->implode(', ') . '.';
     }
 
     private function normalizeRandomNumber($value, array &$usedNumbers): string
@@ -1877,7 +1862,7 @@ class FakturPembelianController extends Controller
         }
 
         do {
-            $candidate = (string) random_int(1, 9).random_int(1, 9).random_int(1, 9);
+            $candidate = (string) random_int(1, 9) . random_int(1, 9) . random_int(1, 9);
         } while (in_array($candidate, $usedNumbers, true));
 
         $usedNumbers[] = $candidate;
