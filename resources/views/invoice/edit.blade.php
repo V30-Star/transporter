@@ -3299,7 +3299,7 @@
                             [10, 25, 50, 100],
                             [10, 25, 50, 100]
                         ],
-                        dom: '<"#poTableControls"fl>rt<"#poTablePagination"ip>',
+                    dom: '<"#poTableControls"lf>rt<"#poTablePagination"ip>',
                         language: {
                             processing: "Memuat data...",
                             search: "Cari:",
