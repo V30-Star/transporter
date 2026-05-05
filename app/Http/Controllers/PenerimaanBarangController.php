@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\ProductBrowseHelper;
 use App\Models\PenerimaanPembelianDetail;
 use App\Models\PenerimaanPembelianHeader;
 use App\Models\Product;
@@ -14,6 +15,7 @@ use Illuminate\Support\Facades\DB;
 
 class PenerimaanBarangController extends Controller
 {
+    use ProductBrowseHelper;
     public function index(Request $request)
     {
         $canCreate = in_array('createPenerimaanBarang', explode(',', session('user_restricted_permissions', '')));
@@ -617,26 +619,8 @@ class PenerimaanBarangController extends Controller
         $fcabang = $branch->fcabangname ?? (string) $raw;
         $fbranchcode = $branch->fcabangkode ?? (string) $raw;
 
-        $products = Product::select(
-            'fprdid',
-            'fprdcode',
-            'fprdname',
-            'fsatuankecil',
-            'fsatuanbesar',
-            'fsatuanbesar2',
-            'fqtykecil',
-            'fqtykecil2',
-            'fminstock'
-        )->orderBy('fprdname')->get();
-
-        $productMap = $products->mapWithKeys(fn ($p) => [
-            trim($p->fprdcode) => [
-                'id' => $p->fprdid,
-                'name' => $p->fprdname,
-                'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
-                'stock' => $p->fminstock ?? 0,
-            ],
-        ])->toArray();
+        $products = $this->browseProducts();
+        $productMap = $this->browseProductMap($products);
 
         return view('penerimaanbarang.create', [
             'warehouses' => $warehouses,
@@ -1008,26 +992,8 @@ class PenerimaanBarangController extends Controller
             ];
         })->values();
 
-        $products = Product::select(
-            'fprdid',
-            'fprdcode',
-            'fprdname',
-            'fsatuankecil',
-            'fsatuanbesar',
-            'fsatuanbesar2',
-            'fqtykecil',
-            'fqtykecil2',
-            'fminstock'
-        )->orderBy('fprdname')->get();
-
-        $productMap = $products->mapWithKeys(fn ($p) => [
-            $p->fprdcode => [
-                'id' => $p->fprdid,
-                'name' => $p->fprdname,
-                'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
-                'stock' => $p->fminstock ?? 0,
-            ],
-        ])->toArray();
+        $products = $this->browseProducts();
+        $productMap = $this->browseProductMap($products);
 
         return view($viewName, [
             'suppliers' => $suppliers,

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Mail\ApprovalEmailPo;
+use App\Http\Controllers\Concerns\ProductBrowseHelper;
 use App\Models\Product;
 use App\Models\Supplier;
 use App\Models\Tr_pod;
@@ -18,6 +19,7 @@ use Illuminate\Support\Facades\Validator;
 
 class Tr_pohController extends Controller
 {
+    use ProductBrowseHelper;
     public function index(Request $request)
     {
         // Ambil izin (permissions)
@@ -682,17 +684,7 @@ class Tr_pohController extends Controller
             ->orderBy('fcurrname')
             ->get(['fcurrid', 'fcurrcode', 'fcurrname', 'frate']);
 
-        $products = Product::select(
-            'fprdid',
-            'fprdcode',
-            'fprdname',
-            'fsatuankecil',
-            'fsatuanbesar',
-            'fsatuanbesar2',
-            'fqtykecil',
-            'fqtykecil2',
-            'fminstock'
-        )->orderBy('fprdname')->get();
+        $products = $this->browseProducts();
 
         return view('tr_poh.create', [
             'newtr_prh_code' => $newtr_prh_code,
@@ -1101,32 +1093,8 @@ class Tr_pohController extends Controller
             ->where('fcurrid', $tr_poh->fcurrency)
             ->first(['fcurrid', 'fcurrcode', 'fcurrname', 'frate']);
 
-        $products = Product::select(
-            'fprdid',
-            'fprdcode',
-            'fprdname',
-            'fsatuankecil',
-            'fsatuanbesar',
-            'fsatuanbesar2',
-            'fqtykecil',
-            'fqtykecil2',
-            'fminstock'
-        )->orderBy('fprdname')->get();
-
-        $productMap = $products->mapWithKeys(function ($p) {
-            return [
-                $p->fprdid => [
-                    'id' => $p->fprdid,
-                    'name' => $p->fprdname,
-                    'units' => array_values(array_filter([
-                        $p->fsatuankecil,
-                        $p->fsatuanbesar,
-                        $p->fsatuanbesar2,
-                    ])),
-                    'stock' => $p->fminstock ?? 0,
-                ],
-            ];
-        })->toArray();
+        $products = $this->browseProducts();
+        $productMap = $this->browseProductMap($products, 'fprdid');
 
         $oldUsageByRef = $details
             ->groupBy(fn($d) => (int) ($d->frefdtid ?? 0))
@@ -1284,30 +1252,8 @@ class Tr_pohController extends Controller
             ->where('fcurrid', $tr_poh->fcurrency)
             ->first(['fcurrid', 'fcurrcode', 'fcurrname', 'frate']);
 
-        $products = Product::select(
-            'fprdid',
-            'fprdcode',
-            'fprdname',
-            'fsatuankecil',
-            'fsatuanbesar',
-            'fsatuanbesar2',
-            'fminstock'
-        )->orderBy('fprdname')->get();
-
-        $productMap = $products->mapWithKeys(function ($p) {
-            return [
-                (string) $p->fprdcode => [
-                    'id' => $p->fprdid,
-                    'name' => $p->fprdname,
-                    'units' => array_values(array_filter([
-                        $p->fsatuankecil,
-                        $p->fsatuanbesar,
-                        $p->fsatuanbesar2,
-                    ])),
-                    'stock' => $p->fminstock ?? 0,
-                ],
-            ];
-        })->toArray();
+        $products = $this->browseProducts();
+        $productMap = $this->browseProductMap($products);
 
         $savedItems = $details->map(function ($d) {
             $satKecil = trim((string) ($d->fsatuankecil ?? ''));
@@ -1727,26 +1673,8 @@ class Tr_pohController extends Controller
             ->where('fcurrid', $tr_poh->fcurrency)
             ->first(['fcurrid', 'fcurrcode', 'fcurrname', 'frate']);
 
-        $products = Product::select(
-            'fprdid',
-            'fprdcode',
-            'fprdname',
-            'fsatuankecil',
-            'fsatuanbesar',
-            'fsatuanbesar2',
-            'fminstock'
-        )->orderBy('fprdname')->get();
-
-        // Prepare the product map for frontend
-        $productMap = $products->mapWithKeys(function ($p) {
-            return [
-                $p->fprdid => [
-                    'name' => $p->fprdname,
-                    'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
-                    'stock' => $p->fminstock ?? 0,
-                ],
-            ];
-        })->toArray();
+        $products = $this->browseProducts();
+        $productMap = $this->browseProductMap($products, 'fprdid');
 
         $savedItems = $details->map(function ($d) use ($products) {
             $prod = $products->firstWhere('fprdcode', $d->fitemcode);

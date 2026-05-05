@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\ProductBrowseHelper;
 use App\Models\PenerimaanPembelianDetail;
 use App\Models\PenerimaanPembelianHeader;
 use App\Models\Product;
@@ -16,6 +17,7 @@ use Illuminate\Support\Facades\Log;
 
 class FakturPembelianController extends Controller
 {
+    use ProductBrowseHelper;
     public function index(Request $request)
     {
         $canCreate = in_array('createFakturPembelian', explode(',', session('user_restricted_permissions', '')));
@@ -827,17 +829,7 @@ class FakturPembelianController extends Controller
 
         $newtr_prh_code = $this->generatetr_poh_Code(now(), $fbranchcode);
 
-        $products = Product::select(
-            'fprdid',
-            'fprdcode',
-            'fprdname',
-            'fsatuankecil',
-            'fsatuanbesar',
-            'fsatuanbesar2',
-            'fqtykecil',
-            'fqtykecil2',
-            'fminstock'
-        )->orderBy('fprdname')->get();
+        $products = $this->browseProducts();
 
         return view('fakturpembelian.create', [
             'newtr_prh_code' => $newtr_prh_code,
@@ -1240,27 +1232,8 @@ class FakturPembelianController extends Controller
 
         $selectedSupplierCode = $fakturpembelian->fsupplier;
 
-        $products = Product::select(
-            'fprdid',
-            'fprdcode',
-            'fprdname',
-            'fsatuankecil',
-            'fsatuanbesar',
-            'fsatuanbesar2',
-            'fqtykecil',
-            'fqtykecil2',
-            'fminstock'
-        )->orderBy('fprdname')->get();
-
-        $productMap = $products->mapWithKeys(function ($p) {
-            return [
-                $p->fprdcode => [
-                    'name' => $p->fprdname,
-                    'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
-                    'stock' => $p->fminstock ?? 0,
-                ],
-            ];
-        })->toArray();
+        $products = $this->browseProducts();
+        $productMap = $this->browseProductMap($products);
 
         return view('fakturpembelian.edit', [
             'suppliers' => $suppliers,
@@ -1369,25 +1342,8 @@ class FakturPembelianController extends Controller
 
         $selectedSupplierCode = $fakturpembelian->fsupplier;
 
-        $products = Product::select(
-            'fprdid',
-            'fprdcode',
-            'fprdname',
-            'fsatuankecil',
-            'fsatuanbesar',
-            'fsatuanbesar2',
-            'fminstock'
-        )->orderBy('fprdname')->get();
-
-        $productMap = $products->mapWithKeys(function ($p) {
-            return [
-                $p->fprdcode => [
-                    'name' => $p->fprdname,
-                    'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
-                    'stock' => $p->fminstock ?? 0,
-                ],
-            ];
-        })->toArray();
+        $products = $this->browseProducts();
+        $productMap = $this->browseProductMap($products);
 
         return view('fakturpembelian.view', [
             'suppliers' => $suppliers,
@@ -1816,25 +1772,8 @@ class FakturPembelianController extends Controller
 
         $selectedSupplierCode = $fakturpembelian->fsupplier;
 
-        $products = Product::select(
-            'fprdid',
-            'fprdcode',
-            'fprdname',
-            'fsatuankecil',
-            'fsatuanbesar',
-            'fsatuanbesar2',
-            'fminstock'
-        )->orderBy('fprdname')->get();
-
-        $productMap = $products->mapWithKeys(function ($p) {
-            return [
-                $p->fprdcode => [
-                    'name' => $p->fprdname,
-                    'units' => array_values(array_filter([$p->fsatuankecil, $p->fsatuanbesar, $p->fsatuanbesar2])),
-                    'stock' => $p->fminstock ?? 0,
-                ],
-            ];
-        })->toArray();
+        $products = $this->browseProducts();
+        $productMap = $this->browseProductMap($products);
 
         return view('fakturpembelian.edit', [
             'suppliers' => $suppliers,
