@@ -60,13 +60,11 @@ class SubaccountController extends Controller
         $validated['fsubaccountcode'] = strtoupper($validated['fsubaccountcode']);
         $validated['fsubaccountname'] = strtoupper($validated['fsubaccountname']);
 
-        // Add default values for the required fields
-        $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null; // Use the authenticated user's name or 'system' as default
-        $validated['fcreatedat'] = now(); // Use the current time
+        $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null;
+        $validated['fcreatedat'] = now();
 
         $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
 
-        // Create the new Subaccount
         Subaccount::create($validated);
 
         return redirect()
@@ -76,7 +74,6 @@ class SubaccountController extends Controller
 
     public function edit($fsubaccountid)
     {
-        // Ambil data berdasarkan PK fsubaccountid
         $subaccount = Subaccount::findOrFail($fsubaccountid);
 
         return view('subaccount.edit', [
@@ -87,7 +84,6 @@ class SubaccountController extends Controller
 
     public function view($fsubaccountid)
     {
-        // Ambil data berdasarkan PK fsubaccountid
         $subaccount = Subaccount::findOrFail($fsubaccountid);
 
         return view('subaccount.view', [
@@ -95,16 +91,8 @@ class SubaccountController extends Controller
         ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, $fsubaccountid)
     {
-        $request->merge([
-            'fsubaccountcode' => strtoupper($request->fsubaccountcode),
-        ]);
-
-        // Validasi
         $validated = $request->validate(
             [
                 'fsubaccountcode' => "required|string|unique:mssubaccount,fsubaccountcode,{$fsubaccountid},fsubaccountid",
@@ -121,8 +109,8 @@ class SubaccountController extends Controller
         $validated['fsubaccountname'] = strtoupper($validated['fsubaccountname']);
 
         $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
-        $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null; // Use the authenticated user's name or 'system' as default
-        $validated['fupdatedat'] = now(); // Use the current time
+        $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
+        $validated['fupdatedat'] = now();
 
         $subaccount = Subaccount::findOrFail($fsubaccountid);
         $subaccount->update($validated);

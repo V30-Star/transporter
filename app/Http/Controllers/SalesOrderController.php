@@ -7,19 +7,15 @@ use App\Models\Product;
 use App\Models\Salesman;
 use App\Models\SalesOrderDetail;
 use App\Models\SalesOrderHeader;
-use App\Models\Supplier;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB; // sekalian biar aman untuk tanggal
-
-// sekalian biar aman untuk tanggal
+use Illuminate\Support\Facades\DB;
 
 class SalesOrderController extends Controller
 {
     public function index(Request $request)
     {
-        // Ambil izin (permissions)
         $canCreate = in_array('createTr_poh', explode(',', session('user_restricted_permissions', '')));
         $canEdit = in_array('updateTr_poh', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deleteTr_poh', explode(',', session('user_restricted_permissions', '')));
@@ -29,23 +25,19 @@ class SalesOrderController extends Controller
         $year = $request->query('year');
         $month = $request->query('month');
 
-        // Ambil tahun-tahun yang tersedia dari data
         $availableYears = SalesOrderHeader::selectRaw('DISTINCT EXTRACT(YEAR FROM fdatetime) as year')
             ->whereNotNull('fdatetime')
             ->orderByRaw('EXTRACT(YEAR FROM fdatetime) DESC')
             ->pluck('year');
 
-        // --- Handle Request AJAX dari DataTables ---
         if ($request->ajax()) {
 
             $query = SalesOrderHeader::query()
                 ->leftJoin('mscustomer', 'trsomt.fcustno', '=', 'mscustomer.fcustomercode')
                 ->select('trsomt.*', 'mscustomer.fcustomername');
 
-            // DEBUG: Cek total data di tabel
             $totalRecords = SalesOrderHeader::count();
 
-            // Handle Search
             if ($search = $request->input('search.value')) {
                 $query->where(function ($q) use ($search) {
                     $q->where('trsomt.fsono', 'like', "%{$search}%")
@@ -53,7 +45,6 @@ class SalesOrderController extends Controller
                 });
             }
 
-            // Filter status - DEFAULT ke 'active' jika tidak ada
             $statusFilter = $request->query('status', 'active');
 
             if ($statusFilter === 'active') {
@@ -61,21 +52,16 @@ class SalesOrderController extends Controller
             } elseif ($statusFilter === 'nonactive') {
                 $query->where('fclose', '1');
             }
-            // Jika 'all', tidak ada filter fclose
-
-            // Filter tahun
             if ($year) {
                 $query->whereRaw('EXTRACT(YEAR FROM fdatetime) = ?', [$year]);
             }
 
-            // Filter bulan
             if ($month) {
                 $query->whereRaw('EXTRACT(MONTH FROM fdatetime) = ?', [$month]);
             }
 
             $filteredRecords = (clone $query)->count();
 
-            // Sorting
             $orderColIdx = $request->input('order.0.column', 0);
             $orderDir = $request->input('order.0.dir', 'asc');
 
@@ -85,14 +71,12 @@ class SalesOrderController extends Controller
                 $query->orderBy($sortableColumns[$orderColIdx], $orderDir);
             }
 
-            // Paginasi
             $start = $request->input('start', 0);
             $length = $request->input('length', 10);
             $records = $query->skip($start)
                 ->take($length)
                 ->get();
 
-            // Format Data
             $data = $records->map(function ($row) {
                 return [
                     'ftrsomtid' => $row->ftrsomtid,
@@ -134,7 +118,6 @@ class SalesOrderController extends Controller
             ]);
         }
 
-        // --- Handle Request non-AJAX ---
         return view('salesorder.index', compact(
             'canCreate',
             'canEdit',
@@ -149,7 +132,6 @@ class SalesOrderController extends Controller
 
     public function pickable(Request $request)
     {
-        // Base query dari SalesOrderHeader (trsomt) TANPA join ke detail
         $query = SalesOrderHeader::leftJoin('mscustomer', 'trsomt.fcustno', '=', 'mscustomer.fcustomercode')
             ->select(
                 'trsomt.ftrsomtid',
@@ -160,10 +142,8 @@ class SalesOrderController extends Controller
                 'mscustomer.fcustomername'
             );
 
-        // Total records tanpa filter
         $recordsTotal = SalesOrderHeader::count();
 
-        // Search
         if ($request->filled('search') && $request->search != '') {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
@@ -172,14 +152,11 @@ class SalesOrderController extends Controller
             });
         }
 
-        // Total records setelah filter
         $recordsFiltered = $query->count();
 
-        // Sorting
         $orderColumn = $request->input('order_column', 'fsodate');
         $orderDir = $request->input('order_dir', 'desc');
 
-        // Mapping kolom yang bisa di-sort
         $allowedColumns = ['fsono', 'fsodate', 'fcustomername'];
 
         if (in_array($orderColumn, $allowedColumns)) {
@@ -192,7 +169,6 @@ class SalesOrderController extends Controller
             $query->orderBy('trsomt.fsodate', 'desc');
         }
 
-        // Pagination
         $start = (int) $request->input('start', 0);
         $length = (int) $request->input('length', 10);
 
@@ -210,25 +186,23 @@ class SalesOrderController extends Controller
 
     public function items($id)
     {
-        // 1. Ambil data header SO berdasarkan ftrsomtid (Primary Key dari trsomt)
         $header = SalesOrderHeader::where('ftrsomtid', $id)->firstOrFail();
         $remainMap = $this->getSoRemainByIds(
             DB::table('trsodt')->where('fsono', $header->fsono)->pluck('ftrsodtid')->all()
         );
 
-        // 2. Ambil data detail dari trsodt menggunakan nomor SO
         $items = SalesOrderDetail::where('trsodt.fsono', $header->fsono)
-            ->leftJoin('msprd as m', 'm.fprdcode', '=', 'trsodt.fprdcode') // Join ke Master Produk
+            ->leftJoin('msprd as m', 'm.fprdcode', '=', 'trsodt.fprdcode')
             ->select([
-                'trsodt.ftrsodtid as frefdtno',  // ID Detail sebagai referensi unik
-                'trsodt.fsono as fnouref',       // Nomor Header
+                'trsodt.ftrsodtid as frefdtno',
+                'trsodt.fsono as fnouref',
                 DB::raw("COALESCE(trsodt.fnoacak::text, '') as frefnoacak"),
-                'trsodt.fprdcode as fitemcode',  // Kode Produk (pake alias fitemcode buat frontend)
-                'm.fprdname as fitemname',       // Nama Produk dari master
-                'trsodt.fsatuan',                // Satuan
+                'trsodt.fprdcode as fitemcode',
+                'm.fprdname as fitemname',
+                'trsodt.fsatuan',
                 'trsodt.fqty',
-                'trsodt.fprice as fprice',       // Harga jual (alias fprice)
-                'trsodt.fprice as fharga',       // Legacy alias fharga
+                'trsodt.fprice as fprice',
+                'trsodt.fprice as fharga',
             ])
             ->orderBy('trsodt.ftrsodtid')
             ->get()
@@ -405,7 +379,7 @@ class SalesOrderController extends Controller
                         $p->fsatuanbesar2,
                     ])),
                     'stock' => $p->fminstock ?? 0,
-                    'unit_ratios' => [           // ← TAMBAH INI
+                    'unit_ratios' => [
                         'satuankecil' => 1,
                         'satuanbesar' => (float) ($p->fqtykecil ?? 1),
                         'satuanbesar2' => (float) ($p->fqtykecil2 ?? 1),
@@ -774,7 +748,7 @@ class SalesOrderController extends Controller
                         $p->fsatuanbesar2,
                     ])),
                     'stock' => $p->fminstock ?? 0,
-                    'unit_ratios' => [           // ← TAMBAH INI
+                    'unit_ratios' => [
                         'satuankecil' => 1,
                         'satuanbesar' => (float) ($p->fqtykecil ?? 1),
                         'satuanbesar2' => (float) ($p->fqtykecil2 ?? 1),

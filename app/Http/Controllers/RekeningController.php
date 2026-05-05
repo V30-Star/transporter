@@ -30,7 +30,6 @@ class RekeningController extends Controller
             'frekeningname' => strtoupper($request->frekeningname),
         ]);
 
-        // Validate incoming request data
         $validated = $request->validate(
             [
                 'frekeningname' => 'required|string|unique:msrekening,frekeningname',
@@ -43,13 +42,11 @@ class RekeningController extends Controller
 
         $validated['frekeningname'] = strtoupper($validated['frekeningname']);
 
-        // Add default values for created and updated fields
-        $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null; // Or use the authenticated user's name
-        $validated['fcreatedat'] = now(); // Set current time
+        $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null;
+        $validated['fcreatedat'] = now();
 
         $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
 
-        // Create new Rekening record
         Rekening::create($validated);
 
         return redirect()
@@ -59,7 +56,6 @@ class RekeningController extends Controller
 
     public function edit($frekeningid)
     {
-        // Find Rekening by primary key
         $rekening = Rekening::findOrFail($frekeningid);
 
         return view('rekening.edit', [
@@ -70,7 +66,6 @@ class RekeningController extends Controller
 
     public function view($frekeningid)
     {
-        // Find Rekening by primary key
         $rekening = Rekening::findOrFail($frekeningid);
 
         return view('rekening.view', [
@@ -98,10 +93,9 @@ class RekeningController extends Controller
 
         $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
         $validated['frekeningcode'] = '0';
-        $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null; // Or use the authenticated user's name
-        $validated['fupdatedat'] = now(); // Set current time
+        $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
+        $validated['fupdatedat'] = now();
 
-        // Find Rekening and update
         $rekening = Rekening::findOrFail($frekeningid);
         $rekening->update($validated);
 

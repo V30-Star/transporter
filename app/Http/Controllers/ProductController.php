@@ -19,30 +19,22 @@ class ProductController extends Controller
                 ->from('msprd')
                 ->leftJoin('msmerek', 'msmerek.fmerekid', '=', 'msprd.fmerek');
 
-            // Filter Status
-            $status = $request->input('status', 'active'); // default active
+            $status = $request->input('status', 'active');
             if ($status === 'active') {
                 $query->where('msprd.fnonactive', '0');
             } elseif ($status === 'nonactive') {
                 $query->where('msprd.fnonactive', '1');
             }
-            // 'all' = tidak ada filter
-
-            // Total records
             $totalRecords = Product::count();
-            $totalAfterStatusFilter = (clone $query)->count();
-
-            // Pencarian global
             $searchableColumns = ['msprd.fprdcode', 'msprd.fprdname', 'msprd.fsatuankecil', 'msprd.fminstock', 'msmerek.fmerekname'];
             if ($search = $request->input('search.value')) {
                 $query->where(function ($q) use ($search, $searchableColumns) {
                     foreach ($searchableColumns as $column) {
-                        $q->orWhere($column, 'ilike', "%{$search}%"); // PostgreSQL: ilike (case-insensitive)
+                        $q->orWhere($column, 'ilike', "%{$search}%");
                     }
                 });
             }
 
-            // Pencarian per kolom
             $columnFields = [
                 'msprd.fprdcode',
                 'msprd.fprdname',
@@ -59,7 +51,6 @@ class ProductController extends Controller
 
             $filteredRecords = (clone $query)->count();
 
-            // Sorting
             $orderColumnIndex = $request->input('order.0.column', 0);
             $orderDir = $request->input('order.0.dir', 'asc');
             $columns = [
@@ -74,7 +65,6 @@ class ProductController extends Controller
                 $query->orderBy($columns[$orderColumnIndex], $orderDir);
             }
 
-            // Pagination
             $start = $request->input('start', 0);
             $length = $request->input('length', 10);
 
@@ -90,7 +80,6 @@ class ProductController extends Controller
                 'msmerek.fmerekname AS merek_name',
             ]);
 
-            // Format data untuk DataTables
             $data = $products->map(function ($item) {
                 $isActive = (string) $item->fnonactive === '0';
                 $statusBadge = $isActive
@@ -117,7 +106,6 @@ class ProductController extends Controller
             ]);
         }
 
-        // Non-AJAX: render view
         $canCreate = in_array('createProduct', explode(',', session('user_restricted_permissions', '')));
         $canEdit = in_array('updateProduct', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deleteProduct', explode(',', session('user_restricted_permissions', '')));
@@ -163,39 +151,28 @@ class ProductController extends Controller
 
     private function generateProductCode($groupId, $merekId): string
     {
-        // 1. Pad ID grup dan merek (ggg.mmm)
         $paddedGroupId = str_pad($groupId, 3, '0', STR_PAD_LEFT);
         $paddedMerekId = str_pad($merekId, 3, '0', STR_PAD_LEFT);
 
-        // 2. Buat prefix untuk pencarian (e.g., "001.002.")
         $prefix = $paddedGroupId.'.'.$paddedMerekId.'.';
         $prefixLength = strlen($prefix);
 
-        // 3. Cari kode terakhir dengan prefix yang sama
         $lastCode = Product::where('fprdcode', 'like', $prefix.'%')
-            // Urutkan berdasarkan angka di belakang prefix
             ->orderByRaw('CAST(SUBSTRING(fprdcode FROM '.($prefixLength + 1).') AS INTEGER) DESC')
             ->value('fprdcode');
 
-        // 4. Jika tidak ditemukan, mulai dari 1
         if (! $lastCode) {
             $newNumber = 1;
         } else {
-            // 5. Jika ditemukan, ambil nomornya dan tambahkan 1
-            // e.g., $lastCode = "001.002.000005"
-            // substr($lastCode, $prefixLength) akan mengambil "000005"
             $number = (int) substr($lastCode, $prefixLength);
             $newNumber = $number + 1;
         }
 
-        // 6. Kembalikan kode baru dengan padding 6 digit untuk sequence
-        // e.g., "001.002.000006"
         return $prefix.str_pad($newNumber, 6, '0', STR_PAD_LEFT);
     }
 
     public function create()
     {
-        // Get the group products and brands to pass to the view
         $groups = Groupproduct::where('fnonactive', 0)->get();
         $merks = Merek::where('fnonactive', 0)->get();
         $satuan = Satuan::where('fnonactive', 0)->get();
@@ -264,7 +241,6 @@ class ProductController extends Controller
                 $validated['fprdcode'] = $request->fprdcode;
             }
 
-            // Sanitasi Numeric: Pastikan mengembalikan 0 jika input kosong (Penting untuk PostgreSQL)
             $sanitizeNumeric = function ($value) {
                 if ($value === null || $value === '') {
                     return 0;
@@ -308,7 +284,6 @@ class ProductController extends Controller
                             $validated[$imageField] = $fileId;
                         }
                     } catch (\Exception $e) {
-                        // Hanya mencatat error upload saja agar tidak membingungkan
                         \Log::error("Upload $imageField Failed: ".$e->getMessage());
                     }
                 }
@@ -359,7 +334,6 @@ class ProductController extends Controller
 
     public function update(Request $request, $fprdid)
     {
-        // Validate the incoming data
         $validated = $request->validate(
             [
                 'fprdcode' => "required|string|unique:msprd,fprdcode,{$fprdid},fprdid",
@@ -427,7 +401,6 @@ class ProductController extends Controller
             $validated['fapproval'] = null;
         }
 
-        // Fungsi pembantu untuk mencegah string kosong pada PostgreSQL Numeric
         $sanitizeNumeric = function ($value) {
             if ($value === null || $value === '') {
                 return 0;
@@ -437,7 +410,6 @@ class ProductController extends Controller
             return (is_numeric($clean)) ? (float) $clean : 0;
         };
 
-        // Daftar field yang harus disanitasi
         $numericFields = [
             'fhpp',
             'fhpp2',
@@ -466,7 +438,6 @@ class ProductController extends Controller
 
         $product = Product::findOrFail($fprdid);
 
-        // Handle Google Drive Images
         $googleDriveService = new GoogleDriveService;
         foreach (['fimage1', 'fimage2', 'fimage3'] as $imageField) {
             if ($request->hasFile($imageField) && $request->file($imageField)->isValid()) {
@@ -609,7 +580,6 @@ class ProductController extends Controller
     {
         $product = Product::findOrFail($fprdid);
 
-        // Fetching data manually based on user's query
         $stokData = DB::select('
             SELECT 
                 v.fwhcode AS fwhcode, 
@@ -672,7 +642,7 @@ class ProductController extends Controller
         return response()->json([
             'product' => [
                 'fprdcode' => $product->fprdcode,
-                'fprdname' => $product->fprdname, // sesuaikan dengan nama kolom di tabel
+                'fprdname' => $product->fprdname,
             ],
             'stok' => $stokData,
             'customer' => $customerData,

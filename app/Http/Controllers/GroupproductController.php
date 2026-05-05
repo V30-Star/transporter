@@ -45,18 +45,16 @@ class GroupproductController extends Controller
         $validated['fgroupcode'] = strtoupper($validated['fgroupcode']);
         $validated['fgroupname'] = strtoupper($validated['fgroupname']);
 
-        // Add default values for the required fields
-        $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null; // Use the authenticated user's name or 'system' as default
-        $validated['fcreatedat'] = now(); // Use the current time
+        $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null;
+        $validated['fcreatedat'] = now();
 
         $validated['fnonactive'] = $request->input('fnonactive', 0) == 1 ? '1' : '0';
 
-        // Create the new Groupproduct
         $group = Groupproduct::create($validated);
 
         if ($request->ajax()) {
             return response()->json([
-                'id' => $group->fgroupid,   // Pastikan ini nama Primary Key di tabel Anda
+                'id' => $group->fgroupid,
                 'name' => $group->fgroupname,
                 'code' => $group->fgroupcode,
             ]);
@@ -69,7 +67,6 @@ class GroupproductController extends Controller
 
     public function edit($fgroupid)
     {
-        // Fetch the Groupproduct data by its primary key
         $groupproduct = Groupproduct::findOrFail($fgroupid);
 
         return view('groupproduct.edit', [
@@ -83,7 +80,6 @@ class GroupproductController extends Controller
         $request->merge([
             'fgroupcode' => strtoupper($request->fgroupcode),
         ]);
-        // Validate the incoming data
         $validated = $request->validate(
             [
                 'fgroupcode' => "required|string|unique:ms_groupprd,fgroupcode,{$fgroupid},fgroupid",
@@ -100,10 +96,9 @@ class GroupproductController extends Controller
         $validated['fgroupname'] = strtoupper($validated['fgroupname']);
 
         $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
-        $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null; // Use the authenticated user's name or 'system' as default
-        $validated['fupdatedat'] = now(); // Use the current time
+        $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
+        $validated['fupdatedat'] = now();
 
-        // Find and update the Groupproduct
         $groupproduct = Groupproduct::findOrFail($fgroupid);
         $groupproduct->update($validated);
 
@@ -150,9 +145,8 @@ class GroupproductController extends Controller
 
     public function browse(Request $request)
     {
-        $query = Groupproduct::query(); // Atau ProductGroup::query() sesuai model Anda
+        $query = Groupproduct::query();
 
-        // Search
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
@@ -161,11 +155,9 @@ class GroupproductController extends Controller
             });
         }
 
-        // Get totals
         $recordsTotal = Groupproduct::count();
         $recordsFiltered = $query->count();
 
-        // Pagination
         $perPage = $request->input('per_page', 10);
         $page = $request->input('page', 1);
 

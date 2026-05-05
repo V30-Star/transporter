@@ -38,7 +38,6 @@
                         @enderror
                     </div>
 
-                    <!-- New Currency (fcurr) Field -->
                     <div>
                         <label class="block text-sm font-medium">Mata Uang</label>
                         <select name="fcurr"

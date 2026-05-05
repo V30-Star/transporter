@@ -1205,7 +1205,7 @@ class JurnalTransaksiController extends Controller
             // 2. Baru hapus header
             $jurnaltransaksi->delete();
 
-            return redirect()->route('jurnaltransaksi.index')->with('success', 'Data jurnaltransaksi '.$jurnaltransaksi->fpono.' berhasil dihapus.');
+            return redirect()->route('jurnaltransaksi.index')->with('success', 'Data jurnal transaksi '.$jurnaltransaksi->fstockmtno.' berhasil dihapus.');
         } catch (\Exception $e) {
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
             return redirect()->route('jurnaltransaksi.delete', $fstockmtid)->with('error', 'Gagal menghapus data: '.$e->getMessage());

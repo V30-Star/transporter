@@ -30,7 +30,6 @@ class CurrencyController extends Controller
             'fcurrcode' => strtoupper($request->fcurrcode),
             'fcurrname' => strtoupper($request->fcurrname),
         ]);
-        // 1. Validasi semua data yang masuk
         $validated = $request->validate(
             [
                 'fcurrcode' => 'required|string|max:10|unique:mscurrency,fcurrcode',
@@ -46,24 +45,20 @@ class CurrencyController extends Controller
             ]
         );
 
-        // 2. Format data sebelum disimpan
-        // Note: Jangan gunakan strtoupper pada 'frate' karena itu adalah angka (numeric)
         $validated['fcurrcode'] = strtoupper($request->fcurrcode);
         $validated['fcurrname'] = strtoupper($request->fcurrname);
         $validated['frate'] = $request->frate;
         $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
 
-        // 3. Simpan ke database
         Currency::create($validated);
 
         return redirect()
-            ->route('currency.index') // Biasanya redirect ke index setelah simpan
+            ->route('currency.index')
             ->with('success', 'Currency berhasil ditambahkan.');
     }
 
     public function edit($fcurrid)
     {
-        // Find Currency by primary key
         $currency = Currency::findOrFail($fcurrid);
 
         return view('currency.edit', [
@@ -74,7 +69,6 @@ class CurrencyController extends Controller
 
     public function view($fcurrid)
     {
-        // Find Currency by primary key
         $currency = Currency::findOrFail($fcurrid);
 
         return view('currency.view', [
@@ -110,7 +104,6 @@ class CurrencyController extends Controller
 
         $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
 
-        // Find Currency and update
         $currency = Currency::findOrFail($fcurrid);
         $currency->update($validated);
 

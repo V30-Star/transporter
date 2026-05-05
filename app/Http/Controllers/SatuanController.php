@@ -45,13 +45,11 @@ class SatuanController extends Controller
             ]
         );
 
-        // Add default values for the required fields
         $validated['fsatuancode'] = strtoupper($validated['fsatuancode']);
         $validated['fsatuanname'] = strtoupper($validated['fsatuanname']);
 
-        // Add default values for the required fields
-        $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null; // Use the authenticated user's name or 'system' as default
-        $validated['fcreatedat'] = now(); // Use the current time
+        $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null;
+        $validated['fcreatedat'] = now();
 
         $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
 
@@ -65,7 +63,6 @@ class SatuanController extends Controller
 
     public function edit($fsatuanid)
     {
-        // Ambil data berdasarkan PK fsatuanid
         $satuan = Satuan::findOrFail($fsatuanid);
 
         return view('satuan.edit', [
@@ -74,16 +71,8 @@ class SatuanController extends Controller
         ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, $fsatuanid)
     {
-        $request->merge([
-            'fsalesmancode' => strtoupper($request->fsalesmancode),
-        ]);
-
-        // Validasi
         $validated = $request->validate(
             [
                 'fsatuancode' => "required|string|unique:mssatuan,fsatuancode,{$fsatuanid},fsatuanid",
@@ -91,12 +80,10 @@ class SatuanController extends Controller
             ],
             [
                 'fsatuancode.unique' => 'Kode Satuan sudah ada.',
-                'fsalesmanname.unique' => 'Nama Salesman sudah ada.',
                 'fsatuancode.required' => 'Kode Satuan harus diisi.',
             ]
         );
 
-        // Add default values for the required fields
         $validated['fsatuancode'] = strtoupper($validated['fsatuancode']);
         $validated['fsatuanname'] = strtoupper($validated['fsatuanname']);
 
@@ -105,7 +92,6 @@ class SatuanController extends Controller
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
         $validated['fupdatedat'] = now();
 
-        // Cari dan update
         $satuan = Satuan::findOrFail($fsatuanid);
         $satuan->update($validated);
 

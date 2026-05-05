@@ -145,7 +145,7 @@
                                             @foreach ($warehouses as $wh)
                                                 <option value="{{ $wh->fwhid }}" data-id="{{ $wh->fwhid }}"
                                                     data-branch="{{ $wh->fbranchcode }}"
-                                                    {{ old('ffrom', $pemakaianbarang->ffrom) == $wh->fwhid ? 'selected' : '' }}>
+                                                    {{ old('ffrom', $jurnaltransaksi->ffrom) == $wh->fwhid ? 'selected' : '' }}>
                                                     {{ $wh->fwhcode }} - {{ $wh->fwhname }}
                                                 </option>
                                             @endforeach
@@ -156,7 +156,7 @@
                                             @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"></div>
                                     </div>
                                     <input type="hidden" name="ffrom" id="warehouseCodeHiddenFrom"
-                                        value="{{ old('ffrom', $pemakaianbarang->ffrom) }}">
+                                        value="{{ old('ffrom', $jurnaltransaksi->ffrom) }}">
 
                                     {{-- Tombol-tombol Anda --}}
                                     <button type="button" disabled
@@ -177,7 +177,7 @@
                                 <label class="block text-sm font-medium">Keterangan</label>
                                 <textarea readonly name="fket" rows="3"
                                     class="w-full border rounded px-3 py-2 bg-gray-100 @error('fket') border-red-500 @enderror"
-                                    placeholder="Tulis keterangan tambahan di sini...">{{ old('fket', $pemakaianbarang->fket) }}</textarea>
+                                    placeholder="Tulis keterangan tambahan di sini...">{{ old('fket', $jurnaltransaksi->fket) }}</textarea>
                                 @error('fket')
                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                 @enderror
@@ -286,7 +286,7 @@
                             <x-heroicon-o-trash class="w-5 h-5 mr-2" />
                             Hapus
                         </button>
-                        <button type="button" onclick="window.location.href='{{ route('pemakaianbarang.index') }}'"
+                        <button type="button" onclick="window.location.href='{{ route('jurnaltransaksi.index') }}'"
                             class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
                             <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" />
                             Kembali
@@ -297,7 +297,7 @@
                     {{-- MODE EDIT: FORM EDITABLE                    --}}
                     {{-- ============================================ --}}
                 @else
-                    <form action="{{ route('pemakaianbarang.update', $pemakaianbarang->fstockmtid) }}" method="POST"
+                    <form action="{{ route('jurnaltransaksi.update', $jurnaltransaksi->fstockmtid) }}" method="POST"
                         class="mt-6" @submit="onSubmit($event)" x-data="{ showNoItems: false }">
                         @csrf
                         @method('PATCH')
@@ -324,7 +324,7 @@
                                 </div>
                             </div>
 
-                            <input type="hidden" name="fstockmtid" value="fstockmtid">
+                            <input type="hidden" name="fstockmtid" value="{{ $jurnaltransaksi->fstockmtid }}">
 
                             <div class="lg:col-span-4">
                                 <label class="block text-sm font-medium">Tanggal</label>
@@ -349,7 +349,7 @@
                                             @foreach ($warehouses as $wh)
                                                 <option value="{{ $wh->fwhid }}" data-id="{{ $wh->fwhid }}"
                                                     data-branch="{{ $wh->fbranchcode }}"
-                                                    {{ old('ffrom', $pemakaianbarang->ffrom) == $wh->fwhid ? 'selected' : '' }}>
+                                                    {{ old('ffrom', $jurnaltransaksi->ffrom) == $wh->fwhid ? 'selected' : '' }}>
                                                     {{ $wh->fwhcode }} - {{ $wh->fwhname }}
                                                 </option>
                                             @endforeach
@@ -360,7 +360,7 @@
                                             @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"></div>
                                     </div>
                                     <input type="hidden" name="ffrom" id="warehouseCodeHiddenFrom"
-                                        value="{{ old('ffrom', $pemakaianbarang->ffrom) }}">
+                                        value="{{ old('ffrom', $jurnaltransaksi->ffrom) }}">
 
                                     {{-- Tombol-tombol Anda --}}
                                     <button type="button"
@@ -381,7 +381,7 @@
                                 <label class="block text-sm font-medium">Keterangan</label>
                                 <textarea name="fket" rows="3"
                                     class="w-full border rounded px-3 py-2 @error('fket') border-red-500 @enderror"
-                                    placeholder="Tulis keterangan tambahan di sini...">{{ old('fket', $pemakaianbarang->fket) }}</textarea>
+                                    placeholder="Tulis keterangan tambahan di sini...">{{ old('fket', $jurnaltransaksi->fket) }}</textarea>
                                 @error('fket')
                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                 @enderror
@@ -844,7 +844,7 @@
                                 class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
                                 <x-heroicon-o-check class="w-5 h-5 mr-2" /> Simpan
                             </button>
-                            <button type="button" @click="window.location.href='{{ route('pemakaianbarang.index') }}'"
+                            <button type="button" @click="window.location.href='{{ route('jurnaltransaksi.index') }}'"
                                 class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
                                 <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" /> Keluar
                             </button>
@@ -861,18 +861,19 @@
         {{-- Modal Delete --}}
         <div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
-                <h3 class="text-lg font-semibold mb-4">Konfirmasi Hapus pemakaianbarang ini?</h3>
-                <form id="deleteForm" action="{{ route('pemakaianbarang.destroy', $pemakaianbarang->fstockmtid) }}"
+                <h3 class="text-lg font-semibold mb-4">Konfirmasi Hapus Jurnal Transaksi ini?</h3>
+                <form id="deleteForm" action="{{ route('jurnaltransaksi.destroy', $jurnaltransaksi->fstockmtid) }}"
                     method="POST">
                     @csrf
                     @method('DELETE')
                     <div class="flex justify-end space-x-2">
-                        <button onclick="closeDeleteModal()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                        <button type="button" onclick="closeDeleteModal()"
+                            class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
                             id="btnTidak">
                             Tidak
                         </button>
-                        </button>
-                        <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+                        <button type="button" id="btnYa" onclick="confirmDelete()"
+                            class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
                             Ya, Hapus
                         </button>
                     </div>
@@ -881,22 +882,18 @@
         </div>
 
         <script>
-            // Tampilkan Modal
             function showDeleteModal() {
                 document.getElementById('deleteModal').classList.remove('hidden');
             }
 
-            // Tutup Modal
             function closeDeleteModal() {
                 document.getElementById('deleteModal').classList.add('hidden');
             }
 
-            // Tutup Toast
             function closeToast() {
                 document.getElementById('toast').classList.add('hidden');
             }
 
-            // Tampilkan Toast
             function showToast(message, isSuccess = true) {
                 const toast = document.getElementById('toast');
                 const toastContent = document.getElementById('toastContent');
@@ -910,18 +907,15 @@
                 toast.classList.remove('hidden');
             }
 
-            // Konfirmasi Delete
             function confirmDelete() {
                 const btnYa = document.getElementById('btnYa');
                 const btnTidak = document.getElementById('btnTidak');
 
-                // Disable buttons
                 btnYa.disabled = true;
                 btnTidak.disabled = true;
                 btnYa.textContent = 'Menghapus...';
 
-                // Kirim request delete
-                fetch('{{ route('pemakaianbarang.destroy', $pemakaianbarang->fstockmtid) }}', {
+                fetch('{{ route('jurnaltransaksi.destroy', $jurnaltransaksi->fstockmtid) }}', {
                         method: 'POST',
                         headers: {
                             'X-CSRF-TOKEN': '{{ csrf_token() }}',
@@ -937,9 +931,8 @@
                         closeDeleteModal();
                         showToast(data.message || 'Data berhasil dihapus', true);
 
-                        // Redirect ke index setelah 0.5 detik
                         setTimeout(() => {
-                            window.location.href = '{{ route('pemakaianbarang.index') }}';
+                            window.location.href = '{{ route('jurnaltransaksi.index') }}';
                         }, 500);
                     })
                     .catch(error => {

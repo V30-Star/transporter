@@ -141,22 +141,18 @@
         </div>
 
         <script>
-            // Tampilkan Modal
             function showDeleteModal() {
                 document.getElementById('deleteModal').classList.remove('hidden');
             }
 
-            // Tutup Modal
             function closeDeleteModal() {
                 document.getElementById('deleteModal').classList.add('hidden');
             }
 
-            // Tutup Toast
             function closeToast() {
                 document.getElementById('toast').classList.add('hidden');
             }
 
-            // Tampilkan Toast
             function showToast(message, isSuccess = true) {
                 const toast = document.getElementById('toast');
                 const toastContent = document.getElementById('toastContent');
@@ -170,17 +166,14 @@
                 toast.classList.remove('hidden');
             }
 
-            // Konfirmasi Delete
             function confirmDelete() {
                 const btnYa = document.getElementById('btnYa');
                 const btnTidak = document.getElementById('btnTidak');
 
-                // Disable buttons
                 btnYa.disabled = true;
                 btnTidak.disabled = true;
                 btnYa.textContent = 'Menghapus...';
 
-                // Kirim request delete
                 fetch('{{ route('groupproduct.destroy', $groupproduct->fgroupid) }}', {
                         method: 'POST',
                         headers: {
@@ -197,7 +190,6 @@
                         closeDeleteModal();
                         showToast(data.message || 'Data berhasil dihapus', true);
 
-                        // Redirect ke index setelah 0.5 detik
                         setTimeout(() => {
                             window.location.href = '{{ route('groupproduct.index') }}';
                         }, 500);

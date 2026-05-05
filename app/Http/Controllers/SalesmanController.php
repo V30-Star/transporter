@@ -44,16 +44,14 @@ class SalesmanController extends Controller
             ]
         );
 
-        // Add default values for the required fields
         $validated['fsalesmancode'] = strtoupper($validated['fsalesmancode']);
         $validated['fsalesmanname'] = strtoupper($validated['fsalesmanname']);
 
-        $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null; // Use the authenticated user's name or 'system' as default
-        $validated['fcreatedat'] = now(); // Use the current time
+        $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null;
+        $validated['fcreatedat'] = now();
 
         $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
 
-        // Create the new Salesman
         Salesman::create($validated);
 
         return redirect()
@@ -63,7 +61,6 @@ class SalesmanController extends Controller
 
     public function edit($fsalesmanid)
     {
-        // Ambil data berdasarkan PK fsalesmanid
         $salesman = Salesman::findOrFail($fsalesmanid);
 
         return view('salesman.edit', [
@@ -74,7 +71,6 @@ class SalesmanController extends Controller
 
     public function view($fsalesmanid)
     {
-        // Ambil data berdasarkan PK fsalesmanid
         $salesman = Salesman::findOrFail($fsalesmanid);
 
         return view('salesman.view', [
@@ -82,9 +78,6 @@ class SalesmanController extends Controller
         ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, $fsalesmanid)
     {
         $request->merge([
@@ -107,10 +100,9 @@ class SalesmanController extends Controller
         $validated['fsalesmanname'] = strtoupper($validated['fsalesmanname']);
 
         $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
-        $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null; // Use the authenticated user's name or 'system' as default
-        $validated['fupdatedat'] = now(); // Use the current time
+        $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
+        $validated['fupdatedat'] = now();
 
-        // Cari dan update
         $salesman = Salesman::findOrFail($fsalesmanid);
         $salesman->update($validated);
 
@@ -157,13 +149,10 @@ class SalesmanController extends Controller
 
     public function browse(Request $request)
     {
-        // Base query
         $query = Salesman::query();
 
-        // Total records tanpa filter
         $recordsTotal = Salesman::count();
 
-        // Search
         if ($request->filled('search') && $request->search != '') {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
@@ -172,10 +161,8 @@ class SalesmanController extends Controller
             });
         }
 
-        // Total records setelah filter
         $recordsFiltered = $query->count();
 
-        // Sorting
         $orderColumn = $request->input('order_column', 'fsalesmanname');
         $orderDir = $request->input('order_dir', 'asc');
 
@@ -186,7 +173,6 @@ class SalesmanController extends Controller
             $query->orderBy('fsalesmanname', 'asc');
         }
 
-        // Pagination
         $start = (int) $request->input('start', 0);
         $length = (int) $request->input('length', 10);
 
@@ -194,7 +180,6 @@ class SalesmanController extends Controller
             ->take($length)
             ->get();
 
-        // Response format untuk DataTables
         return response()->json([
             'draw' => (int) $request->input('draw', 1),
             'recordsTotal' => (int) $recordsTotal,

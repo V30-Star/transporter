@@ -30,8 +30,6 @@
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/js/select2.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <!-- DataTables CSS -->
-    <!-- Select2 CSS -->
     <style>
         body {
             font-family: 'Lato', sans-serif;
@@ -54,7 +52,6 @@
         }
     }" x-init="updateSidebarState();
     
-    // Jika halaman ini datang dari klik menu, kecilkan sekali (persist satu kali)
     if (sessionStorage.getItem('collapseSidebarOnce') === '1') {
         openSidebar = false;
         sessionStorage.removeItem('collapseSidebarOnce');
@@ -72,45 +69,25 @@
     window.addEventListener('pageshow', () => updateSidebarState());" @resize.window="updateSidebarState()"
         class="flex min-h-screen">
 
-        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-        <!-- 2. Chart.js -->
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-        <!-- 3. DataTables JS Core (TAMBAHKAN INI) -->
         <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
-
-        <!-- 4. DataTables Bootstrap 4 Integration (TAMBAHKAN INI) -->
         <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap4.min.js"></script>
-
-        <!-- 5. Select2 JS -->
-        <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/js/select2.full.min.js"></script>
-
 
         <div :class="openSidebar ? 'w-64' : 'w-16'"
             class="flex-shrink-0 bg-black text-white shadow-md overflow-y-auto transition-all duration-300">
             <x-sidebar />
         </div>
 
-        <!-- Main Content -->
         <div class="flex-1 min-w-0 overflow-auto flex flex-col">
-
-            <!-- Header -->
             <header class="bg-white shadow-sm p-4 flex justify-between items-center">
-                <!-- Left: Page Title -->
                 <h2 class="text-xl font-semibold text-gray-800">@yield('title', 'Dashboard')</h2>
 
-                <!-- Right: Clock + User -->
-                <div class="flex flex-col items-end gap-1 ml-auto"> <!-- Added ml-auto to align right -->
-                    <!-- User Info Above the Date -->
+                <div class="flex flex-col items-end gap-1 ml-auto">
                     @auth
                         <div class="text-sm text-gray-600 font-medium mr-4">
-                            <!-- Added margin-right (mr-4) to create space -->
                             <span>{{ Auth::user()->fname }} | {{ Auth::user()->fsysuserid }}</span>
                         </div>
                     @endauth
 
-                    <!-- Jakarta Clock -->
                     <div x-data="{
                         display: '',
                         update() {
@@ -132,13 +109,12 @@
                         },
                         init() {
                             this.update();
-                            setInterval(() => this.update(), 1000); // update every second
+                            setInterval(() => this.update(), 1000);
                         }
                     }" x-init="init()" class="text-sm text-gray-600 font-medium mr-4"
                         x-text="display"></div>
                 </div>
 
-                <!-- User Dropdown -->
                 @auth
                     <div x-data="{ open: false }" class="relative">
                         <button @click="open = !open" class="flex items-center space-x-2 focus:outline-none">
@@ -168,7 +144,6 @@
                 </div>
             @endif
 
-            <!-- Page Content -->
             <main class="p-6 flex-1">
                 @yield('content')
             </main>

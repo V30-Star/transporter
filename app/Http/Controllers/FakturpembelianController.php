@@ -18,7 +18,6 @@ class FakturPembelianController extends Controller
 {
     public function index(Request $request)
     {
-        // --- 1. PERMISSIONS ---
         $canCreate = in_array('createFakturPembelian', explode(',', session('user_restricted_permissions', '')));
         $canEdit = in_array('updateFakturPembelian', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deleteFakturPembelian', explode(',', session('user_restricted_permissions', '')));
@@ -28,41 +27,25 @@ class FakturPembelianController extends Controller
         $year = $request->query('year');
         $month = $request->query('month');
 
-        // Ambil tahun-tahun yang tersedia dari data
         $availableYears = PenerimaanPembelianHeader::selectRaw('DISTINCT EXTRACT(YEAR FROM fdatetime) as year')
             ->where('fstockmtcode', 'BUY')
             ->whereNotNull('fdatetime')
             ->orderByRaw('EXTRACT(YEAR FROM fdatetime) DESC')
             ->pluck('year');
 
-        // --- 2. Handle Request AJAX dari DataTables ---
         if ($request->ajax()) {
-
-            // Query dasar HANYA untuk 'BUY' (Faktur)
             $query = PenerimaanPembelianHeader::where('fstockmtcode', 'BUY');
-
-            // Total records (dengan filter 'BUY')
             $totalRecords = PenerimaanPembelianHeader::where('fstockmtcode', 'BUY')->count();
-
-            // Handle Search (cari di No. Faktur)
             if ($search = $request->input('search.value')) {
                 $query->where('fstockmtno', 'like', "%{$search}%");
             }
-
-            // Filter tahun
             if ($year) {
                 $query->whereRaw('EXTRACT(YEAR FROM fdatetime) = ?', [$year]);
             }
-
-            // Filter bulan
             if ($month) {
                 $query->whereRaw('EXTRACT(MONTH FROM fdatetime) = ?', [$month]);
             }
-
-            // Total records setelah filter search
             $filteredRecords = (clone $query)->count();
-
-            // Handle Sorting
             $orderColIdx = $request->input('order.0.column', 0);
             $orderDir = $request->input('order.0.dir', 'desc');
 
@@ -71,17 +54,14 @@ class FakturPembelianController extends Controller
             if (isset($sortableColumns[$orderColIdx])) {
                 $query->orderBy($sortableColumns[$orderColIdx], $orderDir);
             } else {
-                $query->orderBy('fstockmtid', 'desc'); // Default sort
+                $query->orderBy('fstockmtid', 'desc');
             }
-
-            // Handle Paginasi
             $start = $request->input('start', 0);
             $length = $request->input('length', 10);
             $records = $query->skip($start)
                 ->take($length)
                 ->get(['fstockmtid', 'fstockmtno', 'fstockmtdate', 'ftypebuy']);
 
-            // Format Data - HANYA RETURN DATA MENTAH
             $data = $records->map(function ($row) {
                 return [
                     'fstockmtid' => $row->fstockmtid,
@@ -99,7 +79,6 @@ class FakturPembelianController extends Controller
             ]);
         }
 
-        // --- 3. Handle Request non-AJAX ---
         return view('fakturpembelian.index', compact(
             'canCreate',
             'canEdit',
@@ -623,12 +602,8 @@ class FakturPembelianController extends Controller
         return (string) end($normalized);
     }
 
-    /**
-     * @param  array<string, float|int>  $usageBySourceRef
-     */
     private function adjustSourceQtyKecil(array $usageBySourceRef, int $direction): void
     {
-        // Faktur Pembelian tidak lagi mengurangi / mengembalikan fqtykecil pada referensi PO/PB.
     }
 
     private function validateSourceRemainForRows(array $codes, array $qtys, array $sources, array $refdtids, array $satuans, array $extraAvailableBySourceRef = []): \Illuminate\Support\MessageBag
@@ -730,7 +705,6 @@ class FakturPembelianController extends Controller
           ?? Auth::user()?->fcabang
           ?? null;
 
-        // resolve kode cabang
         $kodeCabang = null;
         if ($branch !== null) {
             $needle = trim((string) $branch);
@@ -747,7 +721,6 @@ class FakturPembelianController extends Controller
 
         $prefix = sprintf('PO.%s.%s.%s.', $kodeCabang, $date->format('y'), $date->format('m'));
 
-        // kunci per (branch, tahun-bulan) — TANPA bikin tabel baru
         $lockKey = crc32('PO|'.$kodeCabang.'|'.$date->format('Y-m'));
         if (DB::getDriverName() === 'pgsql') {
             DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
@@ -1134,8 +1107,6 @@ class FakturPembelianController extends Controller
         $suppliers = Supplier::orderBy('fsuppliername', 'asc')
             ->get(['fsuppliercode', 'fsuppliername']);
 
-        // 1. PINDAHKAN INI KE ATAS
-        // Ambil data Header (trstockmt) DULU
         $fakturpembelian = PenerimaanPembelianHeader::with([
             'details' => function ($query) {
                 $query
@@ -1148,18 +1119,15 @@ class FakturPembelianController extends Controller
                     ->orderBy('trstockdt.fstockdtid', 'asc');
             },
         ])
-            ->findOrFail($fstockmtid); // Temukan header berdasarkan $fstockmtid
+            ->findOrFail($fstockmtid);
 
-        // 2. Ambil kode akun yang tersimpan dari faktur
         $savedAccountCode = $fakturpembelian->fprdjadi;
 
-        // 3. UBAH QUERY INI: Gunakan $savedAccountCode
         $accounts = DB::table('account')
             ->select('faccid', 'faccount', 'faccname', 'fnonactive')
-            ->orderBy('faccount') // <-- Perbaikan nama kolom
+            ->orderBy('faccount')
             ->get();
 
-        // --- Sisa kode Anda ---
         $raw = (Auth::guard('sysuser')->user() ?? Auth::user())?->fcabang;
 
         $branch = DB::table('mscabang')
@@ -1171,7 +1139,7 @@ class FakturPembelianController extends Controller
 
         $warehouses = DB::table('mswh')
             ->select('fwhid', 'fwhcode', 'fwhname', 'fbranchcode', 'fnonactive')
-            ->where('fnonactive', '0') // hanya yang aktif
+            ->where('fnonactive', '0')
             ->orderBy('fwhcode')
             ->get();
 
@@ -1182,11 +1150,10 @@ class FakturPembelianController extends Controller
           ? DB::table('mscabang')->where('fcabangkode', $savedBranchCode)->value('fcabangname')
           : null;
 
-        // (Query $fakturpembelian sudah dipindah ke atas)
         $currentAccount = trim($fakturpembelian->fprdjadi ?? '');
         $currentAccountRecord = $accounts->firstWhere('faccount', trim($fakturpembelian->fprdjadi ?? ''));
         $currentAccountId = $currentAccountRecord?->faccid ?? '';
-        $currentAccountName = $currentAccountRecord?->faccname ?? ''; // ← TAMBAH INI
+        $currentAccountName = $currentAccountRecord?->faccname ?? '';
 
         $detailRefIds = $fakturpembelian->details
             ->pluck('frefdtid')
@@ -1324,8 +1291,6 @@ class FakturPembelianController extends Controller
         $suppliers = Supplier::orderBy('fsuppliername', 'asc')
             ->get(['fsuppliercode', 'fsuppliername']);
 
-        // 1. PINDAHKAN INI KE ATAS
-        // Ambil data Header (trstockmt) DULU
         $fakturpembelian = PenerimaanPembelianHeader::with([
             'details' => function ($query) {
                 $query
@@ -1371,15 +1336,10 @@ class FakturPembelianController extends Controller
         $savedBranchName = $savedBranchCode !== ''
           ? DB::table('mscabang')->where('fcabangkode', $savedBranchCode)->value('fcabangname')
           : null;
-        // (Query $fakturpembelian sudah dipindah ke atas)
         $currentAccount = trim($fakturpembelian->fprdjadi ?? '');
         $currentAccountRecord = $accounts->firstWhere('faccount', trim($fakturpembelian->fprdjadi ?? ''));
         $currentAccountId = $currentAccountRecord?->faccid ?? '';
-        $currentAccountName = $currentAccountRecord?->faccname ?? ''; // ← TAMBAH INI
-
-        // (Query $fakturpembelian sudah dipindah ke atas)
-
-        // 4. Map the data for savedItems
+        $currentAccountName = $currentAccountRecord?->faccname ?? '';
         $savedItems = $fakturpembelian->details->map(function ($d) {
             return [
                 'uid' => $d->fstockdtid,
@@ -1778,8 +1738,6 @@ class FakturPembelianController extends Controller
         $suppliers = Supplier::orderBy('fsuppliername', 'asc')
             ->get(['fsuppliercode', 'fsuppliername']);
 
-        // 1. PINDAHKAN INI KE ATAS
-        // Ambil data Header (trstockmt) DULU
         $fakturpembelian = PenerimaanPembelianHeader::with([
             'details' => function ($query) {
                 $query
@@ -1828,10 +1786,7 @@ class FakturPembelianController extends Controller
         $currentAccount = trim($fakturpembelian->fprdjadi ?? '');
         $currentAccountRecord = $accounts->firstWhere('faccount', trim($fakturpembelian->fprdjadi ?? ''));
         $currentAccountId = $currentAccountRecord?->faccid ?? '';
-        $currentAccountName = $currentAccountRecord?->faccname ?? ''; // ← TAMBAH INI
-        // (Query $fakturpembelian sudah dipindah ke atas)
-
-        // 4. Map the data for savedItems
+        $currentAccountName = $currentAccountRecord?->faccname ?? '';
         $savedItems = $fakturpembelian->details->map(function ($d) {
             return [
                 'uid' => $d->fstockdtid,

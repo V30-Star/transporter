@@ -6,7 +6,6 @@ use App\Models\PenerimaanPembelianDetail;
 use App\Models\PenerimaanPembelianHeader;
 use App\Models\Product;
 use App\Models\Supplier;
-use App\Models\Tr_pod;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
@@ -36,8 +35,6 @@ class PenerimaanBarangController extends Controller
 
             $totalRecords = PenerimaanPembelianHeader::where('fstockmtcode', 'TER')->count();
 
-            // For searching, handle it on the header level (like fstockmtno) or if you want supplier name,
-            // you could do a subquery but for now keep it simple to fix the 500 error.
             if ($search = $request->input('search.value')) {
                 $query->where(function ($q) use ($search) {
                     $q->where('fstockmtno', 'like', "%{$search}%")
@@ -61,14 +58,13 @@ class PenerimaanBarangController extends Controller
             $orderColIdx = $request->input('order.0.column', 0);
             $orderDir = $request->input('order.0.dir', 'desc');
 
-            // Match exactly with the blade columns array
             $sortableColumns = [
                 'fstockmtno',
                 'fstockmtdate',
-                'fstockmtdate', // dummy for fwhname
-                'fstockmtdate', // dummy for fsuppliername
+                'fstockmtdate',
+                'fstockmtdate',
                 'fket',
-                'fstockmtdate', // dummy for frefpo
+                'fstockmtdate',
                 'famountmt',
             ];
 
@@ -82,7 +78,6 @@ class PenerimaanBarangController extends Controller
             $length = $request->input('length', 10);
             $records = $query->skip($start)->take($length)->get(['fstockmtid', 'fstockmtno', 'fstockmtdate', 'ffrom', 'fsupplier', 'fket', 'famountmt']);
 
-            // Collect related data efficiently without breaking Postgres Types
             $warehouseCodes = $records->pluck('ffrom')->filter()->unique();
             $warehouses = DB::table('mswh')->whereIn('fwhcode', $warehouseCodes)->pluck('fwhname', 'fwhcode');
 
@@ -263,9 +258,6 @@ class PenerimaanBarangController extends Controller
         ]);
     }
 
-    /**
-     * Qty baris penerimaan ke satuan kecil (sama seperti PO).
-     */
     private function qtyPoToKecil(?object $product, string $sat, float $qty): float
     {
         if (! $product) {
@@ -286,9 +278,6 @@ class PenerimaanBarangController extends Controller
         return $qty;
     }
 
-    /**
-     * Qty satuan kecil PO ke satuan tampilan baris.
-     */
     private function qtyKecilToUnit(?object $product, string $sat, float $qtyKecil): float
     {
         if (! $product) {
@@ -454,12 +443,8 @@ class PenerimaanBarangController extends Controller
             ->all();
     }
 
-    /**
-     * @param  array<int, float|int>  $usageByPod
-     */
     private function adjustPoReferenceQtyKecil(array $usageByPod, int $direction): void
     {
-        // Pemakaian PO dari Penerimaan Barang tidak lagi mengurangi / mengembalikan tr_pod.fqtykecil.
     }
 
     private function validateTrPodRemain(array $aggregateByPod, array $extraAvailableByPod = []): void
@@ -1148,10 +1133,6 @@ class PenerimaanBarangController extends Controller
         $rowsDt = [];
         $subtotal = 0.0;
         $usedNoAcaks = [];
-        // NOTE:
-        // Pada edit penerimaan barang berbasis PO, batas qty mengikuti sisa referensi PO (tr_pod.fqtykecil),
-        // bukan berdasarkan nilai stok master msprd.fminstock.
-
         for ($i = 0, $cnt = count($codes); $i < $cnt; $i++) {
             $code = trim((string) ($codes[$i] ?? ''));
             $sat = trim((string) ($satuans[$i] ?? ''));

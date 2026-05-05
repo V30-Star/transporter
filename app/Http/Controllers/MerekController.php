@@ -47,19 +47,17 @@ class MerekController extends Controller
         $validated['fmerekcode'] = strtoupper($validated['fmerekcode']);
         $validated['fmerekname'] = strtoupper($validated['fmerekname']);
 
-        // Add default values for the required fields
-        $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null; // Use the authenticated user's name or 'system' as default
-        $validated['fcreatedat'] = now(); // Use the current time
+        $validated['fcreatedby'] = auth('sysuser')->user()->fname ?? null;
+        $validated['fcreatedat'] = now();
 
         $validated['fnonactive'] = $request->input('fnonactive', 0) == 1 ? '1' : '0';
 
-        // Create the new Merek
         $merek = Merek::create($validated);
 
         if ($request->ajax()) {
             return response()->json([
-                'id' => $merek->fmerekid, // Pastikan ini nama Primary Key di tabel ms_merek
-                'code' => $merek->fmerekcode, // Pastikan ini nama Primary Key di tabel ms_merek
+                'id' => $merek->fmerekid,
+                'code' => $merek->fmerekcode,
                 'name' => $merek->fmerekname,
             ]);
         }
@@ -71,7 +69,6 @@ class MerekController extends Controller
 
     public function edit($fmerekid)
     {
-        // Ambil data berdasarkan PK fmerekid
         $merek = Merek::findOrFail($fmerekid);
 
         return view('merek.edit', [
@@ -80,9 +77,6 @@ class MerekController extends Controller
         ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, $fmerekid)
     {
         $request->merge([
@@ -105,8 +99,8 @@ class MerekController extends Controller
         $validated['fmerekname'] = strtoupper($validated['fmerekname']);
 
         $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
-        $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null; // Use the authenticated user's name or 'system' as default
-        $validated['fupdatedat'] = now(); // Use the current time
+        $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
+        $validated['fupdatedat'] = now();
 
         $merek = Merek::findOrFail($fmerekid);
         $merek->update($validated);
@@ -154,40 +148,31 @@ class MerekController extends Controller
 
     public function browse(Request $request)
     {
-        // Base query
         $query = Merek::query();
 
-        // Total records tanpa filter
         $recordsTotal = Merek::count();
 
-        // Search
         if ($request->filled('search') && $request->search != '') {
             $search = $request->search;
-            // Parameter search dari DataTables dikirim di $request->search
             $query->where(function ($q) use ($search) {
                 $q->where('fmerekcode', 'ilike', "%{$search}%")
                     ->orWhere('fmerekname', 'ilike', "%{$search}%");
             });
         }
 
-        // Total records setelah filter
         $recordsFiltered = $query->count();
 
-        // Sorting
         $orderColumn = $request->input('order_column', 'fmerekname');
         $orderDir = $request->input('order_dir', 'asc');
 
-        // Kolom yang diizinkan untuk di-sorting
         $allowedColumns = ['fmerekcode', 'fmerekname'];
 
         if (in_array($orderColumn, $allowedColumns)) {
             $query->orderBy($orderColumn, $orderDir);
         } else {
-            // Default order
             $query->orderBy('fmerekname', 'asc');
         }
 
-        // Pagination (Menggunakan start dan length dari DataTables)
         $start = (int) $request->input('start', 0);
         $length = (int) $request->input('length', 10);
 
@@ -195,7 +180,6 @@ class MerekController extends Controller
             ->take($length)
             ->get();
 
-        // Response format untuk DataTables
         return response()->json([
             'draw' => (int) $request->input('draw', 1),
             'recordsTotal' => (int) $recordsTotal,

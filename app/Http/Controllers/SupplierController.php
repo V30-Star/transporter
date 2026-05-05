@@ -15,14 +15,6 @@ class SupplierController extends Controller
 
         $status = $request->query('status');
 
-        $query = Supplier::query();
-
-        if ($status === 'active') {
-            $query->where('fnonactive', '0');
-        } elseif ($status === 'nonactive') {
-            $query->where('fnonactive', '1');
-        }
-
         $suppliers = Supplier::orderBy($sortBy, $sortDir)->get(['fsuppliercode', 'fsuppliername', 'fsupplierid',  'fkontakperson', 'faddress', 'fnonactive']);
 
         $canCreate = in_array('createSupplier', explode(',', session('user_restricted_permissions', '')));
@@ -89,10 +81,8 @@ class SupplierController extends Controller
 
     public function edit($fsupplierid)
     {
-        // Fetch the Supplier data by its primary key
         $supplier = Supplier::findOrFail($fsupplierid);
 
-        // Pass the supplier data to the edit view
         return view('supplier.edit', [
             'supplier' => $supplier,
             'action' => 'edit',
@@ -101,10 +91,8 @@ class SupplierController extends Controller
 
     public function view($fsupplierid)
     {
-        // Fetch the Supplier data by its primary key
         $supplier = Supplier::findOrFail($fsupplierid);
 
-        // Pass the supplier data to the view view
         return view('supplier.view', [
             'supplier' => $supplier,
         ]);
@@ -128,8 +116,8 @@ class SupplierController extends Controller
                 'faddress' => 'required|string',
                 'ftelp' => 'required|string',
                 'ffax' => 'required|string',
-                'fcurr' => 'required|string', // Validate the currency field (fcurr)
-                'fcity' => '', // Validate the currency field (fcurr)
+                'fcurr' => 'required|string',
+                'fcity' => '',
             ],
             [
                 'fsuppliercode.unique' => 'Kode Supplier sudah ada.',
@@ -150,11 +138,9 @@ class SupplierController extends Controller
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null; // Use the authenticated user's name or 'system' as default
         $validated['fupdatedat'] = now(); // Use the current time
 
-        // Find and update the Supplier
         $supplier = Supplier::findOrFail($fsupplierid);
         $supplier->update($validated);
 
-        // Redirect to the supplier index page with a success message
         return redirect()
             ->route('supplier.index')
             ->with('success', 'Supplier berhasil di-update.');
@@ -198,13 +184,10 @@ class SupplierController extends Controller
 
     public function browse(Request $request)
     {
-        // Base query
         $query = Supplier::query();
 
-        // Total records tanpa filter
         $recordsTotal = Supplier::count();
 
-        // Search
         if ($request->filled('search') && $request->search != '') {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
@@ -215,10 +198,8 @@ class SupplierController extends Controller
             });
         }
 
-        // Total records setelah filter
         $recordsFiltered = $query->count();
 
-        // Sorting
         $orderColumn = $request->input('order_column', 'fsuppliername');
         $orderDir = $request->input('order_dir', 'asc');
 
@@ -229,7 +210,6 @@ class SupplierController extends Controller
             $query->orderBy('fsuppliername', 'asc');
         }
 
-        // Pagination
         $start = (int) $request->input('start', 0);
         $length = (int) $request->input('length', 10);
 
@@ -237,7 +217,6 @@ class SupplierController extends Controller
             ->take($length)
             ->get();
 
-        // Response format untuk DataTables
         return response()->json([
             'draw' => (int) $request->input('draw', 1),
             'recordsTotal' => (int) $recordsTotal,

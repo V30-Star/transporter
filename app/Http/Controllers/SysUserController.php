@@ -16,7 +16,6 @@ class SysUserController extends Controller
         $sortBy = in_array($request->sort_by, $allowedSorts, true) ? $request->sort_by : 'fsysuserid';
         $sortDir = $request->sort_dir === 'asc' ? 'asc' : 'desc';
 
-        // Mendefinisikan kolom yang akan dipilih
         $selectColumns = [
             'sysuser.fuid',
             'sysuser.fsysuserid',
@@ -25,22 +24,16 @@ class SysUserController extends Controller
             'sysuser.fusercreate',
             'sysuser.fcabang',
             'sysuser.fsalesman',
-            // Mengambil nama salesman, dan memberikan alias 'fsalesmanname' atau 'salesman_name'
             'mssalesman.fsalesmanname AS salesman_name',
         ];
 
         $sysusers = Sysuser::query()
-            // Melakukan LEFT JOIN ke tabel mssalesman
-            // Kunci join: sysuser.fsalesman = mssalesman.fsalesmanid
             ->leftJoin('mssalesman', 'sysuser.fsalesman', '=', 'mssalesman.fsalesmanid')
 
-            // Memilih kolom secara spesifik
             ->select($selectColumns)
 
-            // Menangani sorting
             ->orderBy($sortBy, $sortDir)
 
-            // Mengambil hasilnya
             ->get();
 
         $perms = explode(',', (string) session('user_restricted_permissions', ''));
@@ -54,7 +47,6 @@ class SysUserController extends Controller
 
     public function create()
     {
-
         $salesman = Salesman::where('fnonactive', 0)->get();
         $cabangs = DB::table('mscabang')
             ->select('fcabangkode', 'fcabangname')
@@ -122,7 +114,6 @@ class SysUserController extends Controller
 
     public function edit($fuid)
     {
-        // Find the sysuser by fuid (primary key)
         $sysuser = Sysuser::findOrFail($fuid);
         $salesman = Salesman::where('fnonactive', 0)->get();
 
@@ -131,7 +122,6 @@ class SysUserController extends Controller
             ->orderBy('fcabangkode')
             ->get();
 
-        // Pass the sysuser to the edit view
         return view('sysuser.edit', compact('sysuser', 'salesman', 'cabangs'));
     }
 
@@ -157,18 +147,15 @@ class SysUserController extends Controller
             'fcabang.required' => 'Cabang harus diisi.',
         ]);
 
-        // --- Pemrosesan Data ---
         $validated['fsysuserid'] = strtoupper($validated['fsysuserid']);
         $validated['fname'] = strtoupper($validated['fname']);
 
-        // Find and update the sysuser
         $sysuser = Sysuser::findOrFail($fuid);
 
-        // Only hash the password if it is filled
         if ($request->filled('password')) {
             $validated['password'] = Hash::make($validated['password']);
         } else {
-            unset($validated['password']); // Remove password if not filled
+            unset($validated['password']);
         }
 
         $validated['fname'] = mb_strtoupper($validated['fname']);
@@ -178,17 +165,13 @@ class SysUserController extends Controller
         $validated['fuserlevel'] = $validated['fuserlevel'] == 'Admin' ? '2' : '1';
         $validated['fusercreate'] = auth('sysuser')->user()->fname ?? null;
         $validated['updated_at'] = now();
-        // Pastikan ini menangani kasus jika fsalesman tidak dikirim sama sekali
-        // CATATAN: Karena Anda mengubah default menjadi '0', ini akan menghindari error INTEGER jika 0 adalah ID Salesman yang valid.
         $fsalesmanValue = $request->fsalesman;
 
         if (empty($fsalesmanValue) || $fsalesmanValue === '-') {
-            $validated['fsalesman'] = 0; // Menyimpan 0 ke kolom INTEGER
+            $validated['fsalesman'] = 0;
         } else {
-            // Memastikan nilai yang ada adalah integer
             $validated['fsalesman'] = (int) $fsalesmanValue;
         }
-        // Update the sysuser with the validated data
         $sysuser->update($validated);
 
         return redirect()
