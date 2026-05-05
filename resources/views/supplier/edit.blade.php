@@ -154,7 +154,8 @@
             {{-- MODE EDIT: FORM EDITABLE                    --}}
             {{-- ============================================ --}}
         @else
-            <form action="{{ route('supplier.update', $supplier->fsupplierid) }}" method="POST">
+            <form action="{{ route('supplier.update', $supplier->fsupplierid) }}" method="POST"
+                data-form-draft="true" data-draft-key="supplier:edit">
                 @csrf
                 @method('PATCH')
 

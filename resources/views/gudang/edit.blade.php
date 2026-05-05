@@ -80,7 +80,8 @@
             {{-- MODE EDIT: FORM EDITABLE                    --}}
             {{-- ============================================ --}}
         @else
-            <form action="{{ route('gudang.update', $gudang->fwhid) }}" method="POST">
+            <form action="{{ route('gudang.update', $gudang->fwhid) }}" method="POST"
+                data-form-draft="true" data-draft-key="gudang:edit">
                 @csrf
                 @method('PATCH')
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">

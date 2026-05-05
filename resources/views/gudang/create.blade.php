@@ -15,7 +15,8 @@
 
     <div x-data="{ open: true, selected: 'surat' }">
         <div class="bg-white rounded shadow p-6 md:p-8 max-w-[700px] mx-auto">
-            <form action="{{ route('gudang.store') }}" method="POST">
+            <form action="{{ route('gudang.store') }}" method="POST" data-form-draft="true"
+                data-draft-key="gudang:create">
                 @csrf
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">

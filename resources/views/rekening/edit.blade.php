@@ -41,7 +41,8 @@
             {{-- MODE EDIT: FORM EDITABLE                    --}}
             {{-- ============================================ --}}
         @else
-            <form action="{{ route('rekening.update', $rekening->frekeningid) }}" method="POST">
+            <form action="{{ route('rekening.update', $rekening->frekeningid) }}" method="POST"
+                data-form-draft="true" data-draft-key="rekening:edit">
                 @csrf
                 @method('PATCH')
                 <div class="space-y-4 mt-4">

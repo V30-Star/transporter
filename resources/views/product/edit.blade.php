@@ -698,7 +698,8 @@
                 {{-- MODE EDIT: FORM EDITABLE                    --}}
                 {{-- ============================================ --}}
             @else
-                <form action="{{ route('product.update', $product->fprdid) }}" method="POST" enctype="multipart/form-data">
+                <form action="{{ route('product.update', $product->fprdid) }}" method="POST"
+                    enctype="multipart/form-data" data-form-draft="true" data-draft-key="product:edit">
                     @csrf
                     @method('PATCH')
                     @php

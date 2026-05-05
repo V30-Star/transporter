@@ -43,7 +43,8 @@
             {{-- MODE EDIT: FORM EDITABLE                    --}}
             {{-- ============================================ --}}
         @else
-            <form action="{{ route('groupproduct.update', $groupproduct->fgroupid) }}" method="POST">
+            <form action="{{ route('groupproduct.update', $groupproduct->fgroupid) }}" method="POST"
+                data-form-draft="true" data-draft-key="groupproduct:edit">
                 @csrf
                 @method('PATCH')
 

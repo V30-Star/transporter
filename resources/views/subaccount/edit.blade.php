@@ -43,7 +43,8 @@
             {{-- MODE EDIT: FORM EDITABLE                    --}}
             {{-- ============================================ --}}
         @else
-            <form action="{{ route('subaccount.update', $subaccount->fsubaccountid) }}" method="POST">
+            <form action="{{ route('subaccount.update', $subaccount->fsubaccountid) }}" method="POST"
+                data-form-draft="true" data-draft-key="subaccount:edit">
                 @csrf
                 @method('PATCH')
 

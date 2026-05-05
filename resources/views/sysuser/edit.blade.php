@@ -15,7 +15,8 @@
 
     <div x-data="{ open: true, selected: 'surat' }">
         <div class="bg-white rounded shadow p-6 md:p-8 max-w-lg mx-auto">
-            <form action="{{ route('sysuser.update', $sysuser->fuid) }}" method="POST">
+            <form action="{{ route('sysuser.update', $sysuser->fuid) }}" method="POST"
+                data-form-draft="true" data-draft-key="sysuser:edit">
                 @csrf
                 @method('PATCH')
 

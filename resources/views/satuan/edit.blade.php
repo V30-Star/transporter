@@ -42,7 +42,8 @@
             {{-- MODE EDIT: FORM EDITABLE                    --}}
             {{-- ============================================ --}}
         @else
-            <form action="{{ route('satuan.update', $satuan->fsatuanid) }}" method="POST">
+            <form action="{{ route('satuan.update', $satuan->fsatuanid) }}" method="POST"
+                data-form-draft="true" data-draft-key="satuan:edit">
                 @csrf
                 @method('PATCH')
                 <div class="space-y-4 mt-4">

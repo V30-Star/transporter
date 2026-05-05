@@ -15,7 +15,8 @@
 
     <div x-data="{ open: true, selected: 'surat' }">
         <div class="bg-white rounded shadow p-6 md:p-8 max-w-5xl mx-auto">
-            <form action="{{ route('supplier.store') }}" method="POST">
+            <form action="{{ route('supplier.store') }}" method="POST" data-form-draft="true"
+                data-draft-key="supplier:create">
                 @csrf
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">

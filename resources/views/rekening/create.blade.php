@@ -15,7 +15,8 @@
 
     <div x-data="{ open: true, selected: 'rekening' }">
         <div class="bg-white rounded shadow p-6 md:p-8 max-w-[700px] mx-auto">
-            <form action="{{ route('rekening.store') }}" method="POST">
+            <form action="{{ route('rekening.store') }}" method="POST" data-form-draft="true"
+                data-draft-key="rekening:create">
                 @csrf
 
                 <div class="space-y-4 mt-4">

@@ -60,7 +60,8 @@
             {{-- MODE EDIT: FORM EDITABLE                    --}}
             {{-- ============================================ --}}
         @else
-            <form action="{{ route('currency.update', $currency->fcurrid) }}" method="POST">
+            <form action="{{ route('currency.update', $currency->fcurrid) }}" method="POST"
+                data-form-draft="true" data-draft-key="currency:edit">
                 @csrf
                 @method('PATCH')
                 <div class="space-y-4 mt-4">

@@ -711,9 +711,20 @@
                     form.addEventListener('input', persist);
                     form.addEventListener('change', persist);
                     form.addEventListener('submit', () => {
+                        form.dataset.formDraftSubmitted = '1';
                         localStorage.setItem(storageKey, JSON.stringify(serializeForm(form)));
                         addPendingKey(storageKey);
                     });
+                });
+
+                window.addEventListener('pagehide', () => {
+                    const keysToClear = Array.from(document.querySelectorAll(draftFormSelector))
+                        .filter((form) => form.dataset.formDraftSubmitted !== '1')
+                        .map((form) => formStorageKey(form));
+
+                    if (keysToClear.length > 0) {
+                        clearDraftKeys(keysToClear);
+                    }
                 });
             });
         })();

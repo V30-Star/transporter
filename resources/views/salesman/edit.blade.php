@@ -43,7 +43,8 @@
             {{-- MODE EDIT: FORM EDITABLE                    --}}
             {{-- ============================================ --}}
         @else
-            <form action="{{ route('salesman.update', $salesman->fsalesmanid) }}" method="POST">
+            <form action="{{ route('salesman.update', $salesman->fsalesmanid) }}" method="POST"
+                data-form-draft="true" data-draft-key="salesman:edit">
                 @csrf
                 @method('PATCH')
 

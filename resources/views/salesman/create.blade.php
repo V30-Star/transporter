@@ -70,7 +70,8 @@
 
     <div x-data="{ open: true, selected: 'surat' }">
         <div class="bg-white rounded shadow p-6 md:p-8 max-w-[700px] mx-auto">
-            <form action="{{ route('salesman.store') }}" method="POST">
+            <form action="{{ route('salesman.store') }}" method="POST" data-form-draft="true"
+                data-draft-key="salesman:create">
                 @csrf
 
                 <div class="space-y-4 mt-4">

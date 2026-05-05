@@ -98,7 +98,8 @@
             {{-- MODE EDIT: FORM EDITABLE                    --}}
             {{-- ============================================ --}}
         @else
-            <form action="{{ route('merek.update', $merek->fmerekid) }}" method="POST">
+            <form action="{{ route('merek.update', $merek->fmerekid) }}" method="POST"
+                data-form-draft="true" data-draft-key="merek:edit">
                 @csrf
                 @method('PATCH')
 
