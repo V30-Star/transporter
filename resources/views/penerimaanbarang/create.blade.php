@@ -230,11 +230,11 @@
                                 @endforeach
                             </select>
                             <div class="absolute inset-0" role="button" aria-label="Browse warehouse"
-                                @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"></div>
+                                @click="window.dispatchEvent(new CustomEvent('penerimaanbarang-warehouse-browse-open'))"></div>
                         </div>
 
                         <input type="hidden" name="ffrom" id="warehouseCodeHidden" value="{{ old('ffrom') }}">
-                        <button type="button" @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"
+                        <button type="button" @click="window.dispatchEvent(new CustomEvent('penerimaanbarang-warehouse-browse-open'))"
                             class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
                             title="Browse Gudang">
                             <x-heroicon-o-magnifying-glass class="w-5 h-5" />
@@ -364,10 +364,6 @@
                                                 calcMaxQty(it);
                                             "
                                             @keydown.enter.prevent="focusSavedPrice(i)">
-                                        <div class="text-[10px] text-orange-600 font-medium text-right mt-0.5"
-                                            x-show="it.frefdtid && calcMaxQty(it) > 0"
-                                            x-html="formatPoRemainHint(it)">
-                                        </div>
                                     </td>
 
                                     {{-- @ Harga --}}
@@ -703,8 +699,8 @@
                 </div>
             </div>
 
-            <x-transaction.browse-supplier-modal />
-            <x-transaction.browse-warehouse-modal />
+            <x-transaction.browse-supplier-modal :open-delay="50" :destroy-on-close="true" />
+            <x-transaction.browse-warehouse-modal event-name="penerimaanbarang-warehouse-browse-open" />
 
             <x-transaction.browse-product-modal />
 
@@ -741,6 +737,591 @@
 
 @push('styles')
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+@endpush
+
+@push('scripts')
+    <script>
+        function mainForm() {
+            function cryptoRandom() {
+                if (window.crypto && window.crypto.randomUUID) return window.crypto.randomUUID();
+                return `uid-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+            }
+
+            function newRow() {
+                return {
+                    uid: null,
+                    fitemcode: '',
+                    fitemname: '',
+                    units: [],
+                    fsatuan: '',
+                    frefdtno: '',
+                    fnoacak: '',
+                    frefnoacak: '',
+                    fnouref: '',
+                    frefpr: '',
+                    fprhid: '',
+                    fprno: '',
+                    fpono: '',
+                    fqty: 0,
+                    fprice: 0,
+                    ftotal: 0,
+                    fdesc: '',
+                    fketdt: '',
+                    maxqty: 0,
+                    fqtypr: 0,
+                    fqtypr_satuan: '',
+                    fsatuankecil: '',
+                    fsatuanbesar: '',
+                    fsatuanbesar2: '',
+                    fqtykecil: 0,
+                    fqtykecil2: 0,
+                    maxqty_satuan: '',
+                    unit_ratios: { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 },
+                    frefdtid: '',
+                    fqtykecil_ref: 0,
+                    fqtypo: 0,
+                    fqtysisapo: 0,
+                    fqtyditer: 0,
+                    fqtymaxedit: 0,
+                };
+            }
+
+            return {
+                autoCode: true,
+                selectedCurrId: '',
+                selectedCurrCode: 'IDR',
+                rateValue: 1,
+                savedItems: [],
+                draft: newRow(),
+                activeRow: null,
+                browseTarget: 'draft',
+                showNoItems: false,
+                showNoSupplier: false,
+                showDupItemModal: false,
+                dupItemName: '',
+                dupItemSatuan: '',
+                get totalHarga() {
+                    return this.savedItems.reduce((sum, item) => sum + Number(item.ftotal || 0), 0);
+                },
+
+                fmtCurr(n) {
+                    const value = Number(n || 0);
+                    if (!Number.isFinite(value)) return '0,00';
+                    return value.toLocaleString('id-ID', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
+                },
+                rupiah(n) {
+                    return `Rp ${this.fmtCurr(n)}`;
+                },
+                formatStockLimit(itemCode, qty, satuan) {
+                    const code = String(itemCode || '').trim();
+                    const unit = String(satuan || '').trim();
+                    if (!code || !unit) return '';
+
+                    const meta = window.PRODUCT_MAP?.[code];
+                    if (!meta) return '';
+
+                    const stock = Number(meta.stock ?? 0);
+                    const qtyValue = Number(qty || 0);
+                    const stockText = `${this.fmtCurr(stock)} ${unit}`;
+
+                    if (!(qtyValue > 0)) {
+                        return `Stok: ${stockText}`;
+                    }
+
+                    const statusClass = qtyValue > stock ? 'text-red-600' : 'text-gray-500';
+                    return `<span class="${statusClass}">Stok: ${stockText}</span>`;
+                },
+
+                recalc(row) {
+                    const qty = Math.max(0, Number(row.fqty || 0));
+                    const price = Math.max(0, Number(row.fprice || 0));
+                    row.fqty = qty;
+                    row.fprice = price;
+                    row.ftotal = +(qty * price).toFixed(2);
+                },
+                enforceQtyRow(row) {
+                    const n = Number(row.fqty || 0);
+                    if (!Number.isFinite(n) || n < 0.001) {
+                        row.fqty = 0.001;
+                    }
+                },
+                enforcePoQtyRow(row) {
+                    this.enforceQtyRow(row);
+                },
+                formatPoRemainHint(row) {
+                    const maxQty = Number(this.calcMaxQty(row) || 0);
+                    if (!(maxQty > 0)) return '';
+                    const used = Number(row.fqty || 0);
+                    const remain = Math.max(0, maxQty - used);
+                    return `Sisa PO: ${this.fmtCurr(remain)} ${row.fsatuan || ''}`.trim();
+                },
+
+                productMeta(code) {
+                    const key = (code || '').trim();
+                    const meta = window.PRODUCT_MAP?.[key];
+                    if (!meta) {
+                        return {
+                            name: '',
+                            units: [],
+                            stock: 0,
+                            unit_ratios: { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 }
+                        };
+                    }
+                    return meta;
+                },
+                normalizeNoAcak(value) {
+                    const normalized = String(value ?? '').trim();
+                    return /^\d{3}$/.test(normalized) ? normalized : '';
+                },
+                generateUniqueNoAcak() {
+                    const used = new Set(this.savedItems.map(item => this.normalizeNoAcak(item.fnoacak)).filter(Boolean));
+                    let candidate = '';
+                    do {
+                        candidate = Array.from({ length: 3 }, () => '123456789'[Math.floor(Math.random() * 9)]).join('');
+                    } while (used.has(candidate));
+                    return candidate;
+                },
+                calcMaxQty(row) {
+                    const eq = (a, b) => (a || '').trim().toLowerCase() === (b || '').trim().toLowerCase();
+                    const editMax = Number(row.fqtymaxedit ?? 0);
+                    if (Number.isFinite(editMax) && editMax > 0) return editMax;
+
+                    const satuanPO = (row.fsatuan || '').trim();
+                    const satKecil = (row.fsatuankecil || '').trim();
+                    const satBesar = (row.fsatuanbesar || '').trim();
+                    const satBesar2 = (row.fsatuanbesar2 || '').trim();
+                    const rasio = Number(row.fqtykecil || 0);
+                    const rasio2 = Number(row.fqtykecil2 || 0);
+
+                    const hasRemainField = row.fqtykecil_ref !== undefined && row.fqtykecil_ref !== null && row.fqtykecil_ref !== '';
+                    if (!hasRemainField) return 0;
+                    const sisaKecil = Math.max(0, Number(row.fqtykecil_ref) || 0);
+
+                    if (!satuanPO || eq(satuanPO, satKecil)) return sisaKecil;
+                    if (eq(satuanPO, satBesar) && rasio > 0) return Math.floor(sisaKecil / rasio);
+                    if (eq(satuanPO, satBesar2) && rasio2 > 0) return Math.floor(sisaKecil / rasio2);
+                    return sisaKecil;
+                },
+                async applyLastPrice(row) {
+                    const supplier = this.getSupplier();
+                    const code = (row.fitemcode || '').trim();
+                    const satuan = (row.fsatuan || '').trim();
+                    if (!code || !supplier || !satuan || typeof window.fetchLastPrice !== 'function') return;
+                    const hist = await window.fetchLastPrice(code, supplier, satuan);
+                    if (!hist) return;
+                    if (!row.fprice || row.fprice === 0) {
+                        row.fprice = hist.fprice;
+                        this.recalc(row);
+                    }
+                },
+                hydrateRowFromMeta(row, meta) {
+                    if (!meta) return;
+                    row.fitemname = meta.name || row.fitemname || '';
+                    const units = [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))];
+                    const currentSatuan = (row.fsatuan || '').trim();
+                    if (currentSatuan && !units.includes(currentSatuan)) units.unshift(currentSatuan);
+                    row.units = units;
+                    if (!currentSatuan) row.fsatuan = units[0] || '';
+                },
+                onCodeTypedRow(row) {
+                    this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                },
+                onCodeTypedSaved(item) {
+                    this.hydrateRowFromMeta(item, this.productMeta(item.fitemcode));
+                },
+
+                getSupplier() { return (document.getElementById('supplierCodeHidden')?.value || '').trim(); },
+                syncSupplierDisplay(code) {
+                    const supplierCode = (code || '').toString().trim();
+                    const sel = document.getElementById('modal_filter_supplier_id');
+                    const hid = document.getElementById('supplierCodeHidden');
+                    if (hid) hid.value = supplierCode;
+                    if (!sel) return;
+                    let found = false;
+                    Array.from(sel.options).forEach((option) => {
+                        const selected = String(option.value) === supplierCode;
+                        option.selected = selected;
+                        if (selected) found = true;
+                    });
+                    if (!found && supplierCode) sel.add(new Option(supplierCode, supplierCode, true, true));
+                    sel.dispatchEvent(new Event('change', { bubbles: true }));
+                },
+                restoreSavedItems(items = []) {
+                    this.savedItems = Array.isArray(items) ? items.filter(i => (i?.fitemcode || '').toString().trim() !== '').map(i => ({ ...newRow(), ...i, uid: i.uid || cryptoRandom() })) : [];
+                    this.showNoItems = false;
+                },
+                isDupeItem(candidate) {
+                    const cPod = String(candidate.frefdtid ?? '').trim();
+                    if (cPod) return this.savedItems.some(it => String(it.frefdtid ?? '').trim() === cPod);
+                    const cCode = (candidate.fitemcode || '').trim().toLowerCase();
+                    const cSatuan = (candidate.fsatuan || '').trim().toLowerCase();
+                    return this.savedItems.some(it => (it.fitemcode || '').trim().toLowerCase() === cCode && (it.fsatuan || '').trim().toLowerCase() === cSatuan);
+                },
+                addIfComplete() {
+                    if (!this.getSupplier()) { this.showNoSupplier = true; return; }
+                    if (!this.draft.fitemcode || !this.draft.fsatuan || !(Number(this.draft.fqty) > 0)) return;
+                    if (this.isDupeItem(this.draft)) {
+                        this.showDupItemModal = true;
+                        this.dupItemName = this.draft.fitemname || this.draft.fitemcode;
+                        this.dupItemSatuan = this.draft.fsatuan;
+                        return;
+                    }
+                    this.savedItems.push({ ...this.draft, uid: cryptoRandom() });
+                    this.draft = newRow();
+                    this.draft.fnoacak = this.generateUniqueNoAcak();
+                },
+                onPrPicked(e) {
+                    const { header, items } = e.detail || {};
+                    if (!items || !Array.isArray(items)) return;
+                    const skipped = [];
+                    items.forEach(src => {
+                        const fsatuan = (src.fsatuan ?? '').trim();
+                        const meta = this.productMeta(src.fitemcode ?? '');
+                        const fitemname = meta ? (meta.name || src.fitemname || '') : (src.fitemname ?? '');
+                        const candidate = {
+                            fitemcode: (src.fitemcode ?? '').trim(),
+                            fitemname,
+                            fsatuan,
+                            frefdtid: src.frefdtid ?? '',
+                        };
+                        if (this.isDupeItem(candidate)) {
+                            skipped.push(src);
+                            return;
+                        }
+
+                        const units = meta
+                            ? [...new Set((meta.units || []).map(u => (u ?? '').toString().trim()).filter(Boolean))]
+                            : (Array.isArray(src.units) && src.units.length ? src.units : [fsatuan].filter(Boolean));
+                        if (fsatuan && !units.includes(fsatuan)) units.unshift(fsatuan);
+
+                        const row = {
+                            uid: cryptoRandom(),
+                            fitemcode: src.fitemcode ?? '',
+                            fitemname,
+                            units,
+                            fsatuan: fsatuan || units[0] || '',
+                            frefdtno: src.fpono || header?.fpono || '',
+                            fnoacak: this.generateUniqueNoAcak(),
+                            frefnoacak: this.normalizeNoAcak(src.frefnoacak ?? src.fnoacak ?? ''),
+                            fnouref: src.fnouref ?? '',
+                            frefpr: String(header?.fprhid ?? src.fprhid ?? ''),
+                            fprhid: String(src.fprhid ?? header?.fprhid ?? ''),
+                            fprno: String(header?.fpono ?? src.fpono ?? ''),
+                            fpono: String(header?.fpono ?? src.fpono ?? ''),
+                            fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ? Number(src.fqty) : 1,
+                            fqtypo: 0,
+                            fqtysisapo: Number(src.fqtysisapo ?? 0),
+                            fqtyditer: Number(src.fqtyditer ?? 0),
+                            fqtymaxedit: Number(src.fqtymaxedit ?? src.maxqty ?? 0),
+                            fqtykecil_ref: Number(src.fqtykecil_ref ?? src.fqtyremain ?? src.fqtykecil_sisa ?? 0),
+                            frefdtid: src.frefdtid ?? '',
+                            fsatuankecil: src.fsatuankecil || meta?.fsatuankecil || '',
+                            fsatuanbesar: src.fsatuanbesar || meta?.fsatuanbesar || '',
+                            fsatuanbesar2: src.fsatuanbesar2 || meta?.fsatuanbesar2 || '',
+                            fqtykecil: Number(src.fqtykecil ?? meta?.fqtykecil ?? 0),
+                            fqtykecil2: Number(src.fqtykecil2 ?? meta?.fqtykecil2 ?? 0),
+                            maxqty_satuan: src.maxqty_satuan ?? '',
+                            fprice: Number(src.fprice ?? 0),
+                            ftotal: Number(src.ftotal ?? 0),
+                            fdesc: src.fdesc ?? src.fketdt ?? '',
+                            fketdt: src.fketdt ?? '',
+                        };
+                        row.maxqty = this.calcMaxQty(row);
+                        if (!(Number(row.maxqty) > 0)) return;
+                        if (Number(row.maxqty) > 0) row.fqty = Number(row.maxqty);
+                        if (!row.ftotal && row.fqty && row.fprice) row.ftotal = +(row.fqty * row.fprice).toFixed(2);
+                        this.savedItems.push(row);
+                        if (!row.fprice || row.fprice === 0) this.$nextTick(() => this.applyLastPrice(row));
+                    });
+
+                    if (skipped.length > 0 && this.savedItems.length === 0) {
+                        this.showDupItemModal = true;
+                        this.dupItemName = skipped.map(s => s.fitemname || s.fitemcode).join(', ');
+                        this.dupItemSatuan = '';
+                    }
+                    if (this.savedItems.length > 0) this.showNoItems = false;
+                },
+                getCurrentItemKeys() {
+                    return this.savedItems.map(it => {
+                        const id = (it.frefdtid ?? '').toString().trim();
+                        if (id) return `pod:${id}`;
+                        return `manual:${(it.fitemcode ?? '').toString().trim()}::${(it.fsatuan ?? '').toString().trim()}`;
+                    });
+                },
+                openBrowseFor(where, idx = null) {
+                    if (!this.getSupplier()) {
+                        this.showNoSupplier = true;
+                        return;
+                    }
+                    this.browseTarget = (where === 'saved' && idx !== null) ? idx : 'draft';
+                    window.dispatchEvent(new CustomEvent('browse-open', {
+                        detail: { forEdit: false }
+                    }));
+                },
+                submitForm(form) {
+                    if (this.savedItems.length < 1) { this.showNoItems = true; return; }
+                    form.submit();
+                },
+                init() {
+                    this.draft.fnoacak = this.generateUniqueNoAcak();
+                    this.syncSupplierDisplay(@js(old('fsupplier', '')));
+                    this.restoreSavedItems(@js($initialPenerimaanItems));
+                    window.penerimaanBarangCreateForm = this;
+                    window.getCurrentItemKeys = () => this.getCurrentItemKeys();
+                    window.isDupeItem = (candidate) => this.isDupeItem(candidate);
+                    window.addEventListener('show-no-supplier', () => {
+                        this.showNoSupplier = true;
+                    }, { passive: true });
+                    window.addEventListener('pr-picked', (e) => this.onPrPicked(e), { passive: true });
+                }
+            };
+        }
+
+        window.pohFormModal = function() {
+            return {
+                show: false,
+                table: null,
+                showDupModal: false,
+                dupCount: 0,
+                dupSample: [],
+                pendingHeader: null,
+                pendingUniques: [],
+
+                initDataTable() {
+                    if (this.table) {
+                        this.table.destroy();
+                        this.table = null;
+                    }
+                    if (!document.getElementById('poTable')) return;
+
+                    this.table = $('#poTable').DataTable({
+                        processing: true,
+                        serverSide: true,
+                        ajax: {
+                            url: "{{ route('penerimaanbarang.pickable') }}",
+                            type: 'GET',
+                            data: function(d) {
+                                return {
+                                    draw: d.draw,
+                                    start: d.start,
+                                    length: d.length,
+                                    supplier: document.getElementById('supplierCodeHidden')?.value || '',
+                                    search: d.search.value,
+                                    order_column: d.columns[d.order[0].column].data,
+                                    order_dir: d.order[0].dir
+                                };
+                            }
+                        },
+                        columns: [{
+                                data: 'fpono',
+                                name: 'fpono',
+                                className: 'font-mono text-sm'
+                            },
+                            {
+                                data: 'fpono',
+                                name: 'fpono',
+                                className: 'font-mono text-sm'
+                            },
+                            {
+                                data: 'fsuppliername',
+                                name: 'fsuppliername',
+                                className: 'text-sm',
+                                render: d => d || '<span class="text-gray-400">-</span>'
+                            },
+                            {
+                                data: 'fpodate',
+                                name: 'fpodate',
+                                className: 'text-sm',
+                                render: d => {
+                                    if (!d || d === 'No Date') return '-';
+                                    const date = new Date(d);
+                                    if (isNaN(date.getTime())) return '-';
+                                    const pad = n => n.toString().padStart(2, '0');
+                                    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+                                }
+                            },
+                            {
+                                data: null,
+                                orderable: false,
+                                searchable: false,
+                                className: 'text-center',
+                                width: '100px',
+                                render: () => '<button type="button" class="btn-pick px-4 py-1.5 rounded-md text-sm font-medium bg-teal-600 hover:bg-teal-700 text-white transition-colors duration-150">Pilih</button>'
+                            }
+                        ],
+                        dom: '<"flex flex-col gap-3 md:flex-row md:items-center mb-4"<"w-full md:w-auto"f><"w-full md:w-auto md:ml-auto md:text-right"l>>rt<"flex flex-col gap-3 md:flex-row md:items-center md:justify-between mt-4"i p>',
+                        pageLength: 10,
+                        lengthMenu: [
+                            [10, 25, 50, 100],
+                            [10, 25, 50, 100]
+                        ],
+                        language: {
+                            processing: "Memuat data...",
+                            search: "Cari:",
+                            lengthMenu: "Tampilkan _MENU_",
+                            info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
+                            infoEmpty: "Tidak ada data",
+                            infoFiltered: "(disaring dari _MAX_ total data)",
+                            zeroRecords: "Tidak ada data yang ditemukan",
+                            emptyTable: "Tidak ada data tersedia",
+                            paginate: {
+                                first: "Pertama",
+                                last: "Terakhir",
+                                next: "Selanjutnya",
+                                previous: "Sebelumnya"
+                            }
+                        },
+                        order: [
+                            [3, 'desc']
+                        ],
+                        autoWidth: false,
+                        initComplete: function() {
+                            const $c = $(this.api().table().container());
+                            $c.children().first().css({
+                                display: 'flex',
+                                width: '100%',
+                                gap: '12px',
+                                alignItems: 'center',
+                                justifyContent: 'space-between'
+                            });
+                            $c.find('.dt-search, .dataTables_filter').css({
+                                marginRight: '12px'
+                            });
+                            $c.find('.dt-length, .dataTables_length').css({
+                                marginLeft: 'auto',
+                                textAlign: 'right'
+                            });
+                            $c.find('.dt-search .dt-input, .dataTables_filter input').css({
+                                width: '280px',
+                                padding: '8px 12px',
+                                border: '2px solid #e5e7eb',
+                                borderRadius: '8px',
+                                fontSize: '14px'
+                            }).focus();
+                            $c.find('.dt-length select, .dataTables_length select').css({
+                                padding: '6px 32px 6px 10px',
+                                border: '2px solid #e5e7eb',
+                                borderRadius: '8px',
+                                fontSize: '14px'
+                            });
+                        }
+                    });
+
+                    const self = this;
+                    $('#poTable').off('click.pohpick').on('click.pohpick', '.btn-pick', function() {
+                        const data = self.table.row($(this).closest('tr')).data();
+                        if (data) self.pick(data);
+                    });
+                },
+
+                openModal() {
+                    this.show = true;
+                    this.$nextTick(() => setTimeout(() => this.initDataTable(), 50));
+                },
+                closeModal() {
+                    this.show = false;
+                    if (this.table) {
+                        this.table.destroy();
+                        this.table = null;
+                    }
+                },
+                openDupModal(header, duplicates, uniques) {
+                    window.transactionReferenceModalHelper.openDupModal(this, header, duplicates, uniques);
+                },
+                closeDupModal() {
+                    window.transactionReferenceModalHelper.closeDupModal(this);
+                },
+                confirmAddUniques() {
+                    window.transactionReferenceModalHelper.confirmAddUniques(this, 'pr-picked');
+                },
+                applySupplierFromPo(header, row) {
+                    const supplierCode = (header?.fsupplier || row?.fsuppliercode || '').toString().trim();
+                    if (!supplierCode) return;
+
+                    const supplierName = (row?.fsuppliername || '').toString().trim();
+                    const label = supplierName ? `${supplierName} (${supplierCode})` : supplierCode;
+                    const sel = document.getElementById('modal_filter_supplier_id');
+                    const hid = document.getElementById('supplierCodeHidden');
+
+                    if (hid) {
+                        hid.value = supplierCode;
+                        hid.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+
+                    if (!sel) return;
+
+                    let opt = Array.from(sel.options).find(o => String(o.value) === supplierCode);
+                    if (!opt) {
+                        opt = new Option(label, supplierCode, true, true);
+                        sel.add(opt);
+                    } else {
+                        opt.text = label;
+                    }
+
+                    sel.value = supplierCode;
+                    Array.from(sel.options).forEach(option => {
+                        option.selected = String(option.value) === supplierCode;
+                    });
+                    sel.dispatchEvent(new Event('change', { bubbles: true }));
+                },
+                async pick(row) {
+                    try {
+                        const url = `{{ route('penerimaanbarang.items', ['id' => 'PO_ID_PLACEHOLDER']) }}`
+                            .replace('PO_ID_PLACEHOLDER', row.fpohid);
+                        const res = await fetch(url, {
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        });
+                        const json = await res.json();
+                        this.applySupplierFromPo(json.header, row);
+                        const items = json.items || [];
+
+                        const currentKeys = new Set((window.getCurrentItemKeys?.() || []).map(String));
+                        const keyOf = src =>
+                            `${(src.fprdcode ?? '').toString().trim()}::${(src.frefdtno ?? '').toString().trim()}`;
+
+                        const duplicates = items.filter(src => currentKeys.has(keyOf(src)));
+                        const uniques = items.filter(src => !currentKeys.has(keyOf(src)));
+
+                        if (duplicates.length > 0) {
+                            this.openDupModal(row, duplicates, uniques);
+                            return;
+                        }
+
+                        const formEl = document.querySelector('form[data-draft-key="penerimaanbarang:create"]');
+                        const formState = window.penerimaanBarangCreateForm
+                            || (window.Alpine?.$data ? window.Alpine.$data(formEl) : null)
+                            || (Array.isArray(formEl?._x_dataStack) && formEl._x_dataStack.length > 0 ? formEl._x_dataStack[0] : null)
+                            || formEl?.__x?.$data;
+
+                        if (formState && typeof formState.onPrPicked === 'function') {
+                            formState.onPrPicked({
+                                detail: {
+                                    header: row,
+                                    items
+                                }
+                            });
+                        } else {
+                            window.dispatchEvent(new CustomEvent('pr-picked', {
+                                detail: {
+                                    header: row,
+                                    items
+                                }
+                            }));
+                        }
+                        this.closeModal();
+                    } catch (e) {
+                        console.error(e);
+                        alert('Gagal mengambil detail PO');
+                    }
+                }
+            };
+        };
+    </script>
 @endpush
 
 @push('scripts')
@@ -805,8 +1386,6 @@
                 if (hid) hid.value = fwhcode || '';
             });
         });
-        @include('components.transaction.browse-supplier-script', ['openDelay' => 50, 'destroyOnClose' => true])
-        @include('components.transaction.browse-warehouse-script', ['openDelay' => 50])
 
         // â”€â”€â”€ PRODUCT BROWSER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     </script>
@@ -825,4 +1404,3 @@
         });
     </script>
 @endpush
-

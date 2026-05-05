@@ -230,13 +230,13 @@
                             </select>
                             @if ($action !== 'delete')
                                 <div class="absolute inset-0" role="button" aria-label="Browse warehouse"
-                                    @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"></div>
+                                    @click="window.dispatchEvent(new CustomEvent('penerimaanbarang-warehouse-browse-open'))"></div>
                             @endif
                         </div>
                         <input type="hidden" name="ffrom" id="warehouseCodeHidden"
                             value="{{ old('ffrom', $penerimaanbarang->ffrom) }}">
                         @if ($action !== 'delete')
-                            <button type="button" @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"
+                            <button type="button" @click="window.dispatchEvent(new CustomEvent('penerimaanbarang-warehouse-browse-open'))"
                                 class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
                                 title="Browse Gudang">
                                 <x-heroicon-o-magnifying-glass class="w-5 h-5" />
@@ -762,8 +762,8 @@
                         </div>
                     </div>
                 </div>
-            <x-transaction.browse-supplier-modal />
-            <x-transaction.browse-warehouse-modal />
+            <x-transaction.browse-supplier-modal :open-delay="50" :destroy-on-close="true" />
+            <x-transaction.browse-warehouse-modal event-name="penerimaanbarang-warehouse-browse-open" />
             <x-transaction.browse-product-modal />
             @endif
 
@@ -1681,8 +1681,6 @@
             if (sel) sel.value = fwhcode || '';
             if (hidFrom) hidFrom.value = fwhcode || '';
         });
-        @include('components.transaction.browse-supplier-script', ['openDelay' => 50, 'destroyOnClose' => true])
-        @include('components.transaction.browse-warehouse-script', ['openDelay' => 50])
 
         // â”€â”€â”€ productBrowser â€” identik create â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     </script>
@@ -1701,6 +1699,3 @@
         });
     </script>
 @endpush
-
-
-

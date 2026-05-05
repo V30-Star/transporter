@@ -846,8 +846,6 @@ class FakturPembelianController extends Controller
 
     public function store(Request $request)
     {
-        Log::info('FakturPembelian@store: Memulai proses simpan.', ['payload' => $request->all()]);
-
         try {
             // 1) VALIDASI
             $request->validate([
@@ -973,7 +971,7 @@ class FakturPembelianController extends Controller
                     'ftotprice_rp' => $amount * $frate,
                     'fusercreate' => $userid,
                     'fdatetime' => $now,
-                    'fcode' => $sourceType === 'PO' ? 'P' : '0',
+                    'fcode' => $sourceType === 'PO' ? 'P' : 'T',
                     'fdesc' => trim((string) ($descs[$i] ?? '')) ?: null,
                     'fdiscpersen' => (string) $discP,
                     'fsatuan' => $sat,
@@ -1567,7 +1565,7 @@ class FakturPembelianController extends Controller
                     'fuserupdate' => (Auth::user()->fname ?? 'system'),
                     'fdatetime' => $now,
                     'fketdt' => $desc ?: null,
-                    'fcode' => $sourceType === 'PO' ? 'P' : '0',
+                    'fcode' => $sourceType === 'PO' ? 'P' : 'T',
                     'fdiscpersen' => (string) $discP,
                     'fsatuan' => $sat,
                     'fclosedt' => '0',

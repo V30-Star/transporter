@@ -3,6 +3,7 @@
     $controlsId = $controlsId ?? 'supplierTableControls';
     $paginationId = $paginationId ?? 'supplierTablePagination';
     $routeName = $routeName ?? 'suppliers.browse';
+    $eventName = $eventName ?? 'supplier-browse-open';
     $openDelay = $openDelay ?? 0;
     $destroyOnClose = $destroyOnClose ?? false;
 @endphp
@@ -187,7 +188,7 @@
             },
 
             init() {
-                window.addEventListener('supplier-browse-open', () => this.openBrowse(), {
+                window.addEventListener(@js($eventName), () => this.openBrowse(), {
                     passive: true
                 });
             }

@@ -3,6 +3,7 @@
     $controlsId = $controlsId ?? 'warehouseTableControls';
     $paginationId = $paginationId ?? 'warehouseTablePagination';
     $routeName = $routeName ?? 'gudang.browse';
+    $eventName = $eventName ?? 'warehouse-browse-open';
     $openDelay = $openDelay ?? 0;
 @endphp
 
@@ -142,7 +143,7 @@
             },
 
             init() {
-                window.addEventListener('warehouse-browse-open', () => this.openModal());
+                window.addEventListener(@js($eventName), () => this.openModal());
             }
         };
     };

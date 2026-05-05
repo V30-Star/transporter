@@ -246,12 +246,12 @@
 
                                     {{-- Overlay untuk buka browser gudang --}}
                                     <div class="absolute inset-0" role="button" aria-label="Browse warehouse"
-                                        @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"></div>
+                                    @click="window.dispatchEvent(new CustomEvent('faktur-pembelian-warehouse-browse-open'))"></div>
                                 </div>
 
                                 <input type="hidden" name="ffrom" id="warehouseCodeHidden" value="{{ old('ffrom') }}">
                                 <button type="button"
-                                    @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"
+                                    @click="window.dispatchEvent(new CustomEvent('faktur-pembelian-warehouse-browse-open'))"
                                     class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
                                     title="Browse Gudang">
                                     <x-heroicon-o-magnifying-glass class="w-5 h-5" />
@@ -959,7 +959,7 @@
 
                     <x-transaction.browse-supplier-modal />
                     <x-transaction.browse-product-modal show-controls="true" show-pagination="true" />
-                    <x-transaction.browse-warehouse-modal />
+                    <x-transaction.browse-warehouse-modal event-name="faktur-pembelian-warehouse-browse-open" />
                     <x-transaction.browse-account-modal />
 
                     @php
@@ -2288,9 +2288,5 @@
                 if (hidCode) hidCode.value = faccount || '';
             });
         });
-        @include('components.transaction.browse-supplier-script')
-        @include('components.transaction.browse-warehouse-script')
-        @include('components.transaction.browse-account-script')
     </script>
 @endpush
-

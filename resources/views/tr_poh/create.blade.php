@@ -199,10 +199,10 @@
                                 @endforeach
                             </select>
                             <div class="absolute inset-0" role="button"
-                                @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"></div>
+                                @click="window.dispatchEvent(new CustomEvent('tr-poh-supplier-browse-open'))"></div>
                         </div>
                         <input type="hidden" name="fsupplier" id="supplierCodeHidden" value="{{ old('fsupplier') }}">
-                        <button type="button" @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"
+                        <button type="button" @click="window.dispatchEvent(new CustomEvent('tr-poh-supplier-browse-open'))"
                             class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
                             title="Browse Supplier">
                             <x-heroicon-o-magnifying-glass class="w-5 h-5" />
@@ -308,7 +308,7 @@
                                 <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
                                 <th class="p-2 text-right w-24 whitespace-nowrap">Disc. %</th>
                                 <th class="p-2 text-right w-36 whitespace-nowrap">Total Harga</th>
-                                <th class="p-2 text-right w-36 whitespace-nowrap">Total Rp.</th>
+                                <th class="p-2 text-right w-36 whitespace-nowrap">Total Harga (Rp.)</th>
                                 <th class="p-2 text-center w-20">Aksi</th>
                             </tr>
                         </thead>
@@ -692,7 +692,7 @@
                         <button type="button" @click="showNoSupplier=false"
                             class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">Tutup</button>
                         <button type="button"
-                            @click="showNoSupplier=false; window.dispatchEvent(new CustomEvent('supplier-browse-open'))"
+                            @click="showNoSupplier=false; window.dispatchEvent(new CustomEvent('tr-poh-supplier-browse-open'))"
                             class="h-9 px-4 rounded-lg bg-amber-500 text-white text-sm font-medium hover:bg-amber-600">
                             Pilih Supplier
                         </button>
@@ -728,7 +728,7 @@
             </div>
 
             {{-- MODAL SUPPLIER --}}
-            <x-transaction.browse-supplier-modal />
+            <x-transaction.browse-supplier-modal event-name="tr-poh-supplier-browse-open" />
 
             <x-transaction.browse-product-modal />
 
@@ -1510,8 +1510,6 @@
         const sel = getDraftUnitSelect();
         if (sel) sel.innerHTML = '';
     }
-
-    @include('components.transaction.browse-supplier-script')
 
     document.addEventListener('alpine:init', () => {
         Alpine.store('prh', {

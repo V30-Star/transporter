@@ -383,7 +383,7 @@
                             <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
                             <th class="p-2 text-right w-24 whitespace-nowrap">Disc. %</th>
                             <th class="p-2 text-right w-36 whitespace-nowrap">Total Harga</th>
-                            <th class="p-2 text-right w-36 whitespace-nowrap">Total Rp.</th>
+                            <th class="p-2 text-right w-36 whitespace-nowrap">Total Harga (Rp)</th>
                             @if ($isEdit && (empty($blockedByTerima) || !$blockedByTerima))
                                 <th class="p-2 text-center w-20">Aksi</th>
                             @endif
@@ -1697,8 +1697,6 @@
     }
 
     @if ($isEdit)
-        @include('components.transaction.browse-supplier-script')
-
         window.prhFormModal = function() {
             return {
                 show: false,
