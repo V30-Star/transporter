@@ -127,6 +127,55 @@
         $currentType = old('ftypebuy', '0');
         $currentAccount = old('fprdjadi', '');
         $currentAccountId = old('faccid', '');
+
+        $oldCodes = old('fitemcode', []);
+        $oldSatuans = old('fsatuan', []);
+        $oldRefDtnos = old('frefdtno', []);
+        $oldRefDtids = old('frefdtid', []);
+        $oldRefNoAcaks = old('frefnoacak', []);
+        $oldSources = old('fsource', []);
+        $oldFnourefs = old('fnouref', []);
+        $oldRefprs = old('frefpr', []);
+        $oldQtys = old('fqty', []);
+        $oldPrices = old('fprice', []);
+        $oldBiayas = old('fbiaya', []);
+        $oldDiscs = old('fdiscpersen', []);
+        $oldTotals = old('ftotal', []);
+        $oldDescs = old('fdesc', []);
+        $oldKetdts = old('fketdt', []);
+
+        $initialFakturItems = [];
+        $oldRowCount = count($oldCodes);
+        for ($i = 0; $i < $oldRowCount; $i++) {
+            $code = trim((string) ($oldCodes[$i] ?? ''));
+            if ($code === '') {
+                continue;
+            }
+
+            $initialFakturItems[] = [
+                'uid' => 'old-'.$i,
+                'fitemcode' => $code,
+                'fitemname' => '',
+                'fsatuan' => (string) ($oldSatuans[$i] ?? ''),
+                'frefdtno' => (string) ($oldRefDtnos[$i] ?? ''),
+                'frefdtid' => $oldRefDtids[$i] ?? null,
+                'frefnoacak' => (string) ($oldRefNoAcaks[$i] ?? ''),
+                'fsource' => (string) ($oldSources[$i] ?? ''),
+                'fnouref' => (string) ($oldFnourefs[$i] ?? ''),
+                'frefpr' => (string) ($oldRefprs[$i] ?? ''),
+                'fqty' => (float) ($oldQtys[$i] ?? 0),
+                'fprice' => (float) ($oldPrices[$i] ?? 0),
+                'fbiaya' => (float) ($oldBiayas[$i] ?? 0),
+                'fdiscpersen' => (float) ($oldDiscs[$i] ?? 0),
+                'ftotprice' => (float) ($oldTotals[$i] ?? 0),
+                'fdesc' => (string) ($oldDescs[$i] ?? ''),
+                'fketdt' => (string) ($oldKetdts[$i] ?? ''),
+                'units' => [],
+                'maxqty' => 0,
+                'lockQty' => false,
+                'hideQtyLimitHint' => false,
+            ];
+        }
     @endphp
 
     <div x-data="{ 
@@ -1192,7 +1241,7 @@
     function itemsTable() {
         return {
             showNoItems: false,
-            savedItems: [],
+            savedItems: @js($initialFakturItems),
             draft: newRow(),
             activeRow: null,
 
@@ -1636,6 +1685,18 @@
                 this.$watch('includePPN', () => this.recalcTotals());
                 this.$watch('fapplyppn', () => this.recalcTotals());
                 this.$watch('ppnRate', () => this.recalcTotals());
+
+                this.savedItems = (this.savedItems || []).map((item, index) => {
+                    const row = {
+                        ...newRow(),
+                        ...item,
+                        uid: item.uid || `old-${index}`
+                    };
+                    this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+                    this.recalc(row);
+                    return row;
+                });
+                this.recalcTotals();
 
                 // Listen for PO and PB picked
                 window.getCurrentItemKeys = () => this.getCurrentItemKeys();
