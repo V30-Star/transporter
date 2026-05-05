@@ -39,7 +39,15 @@ class PenerimaanBarangController extends Controller
             // For searching, handle it on the header level (like fstockmtno) or if you want supplier name,
             // you could do a subquery but for now keep it simple to fix the 500 error.
             if ($search = $request->input('search.value')) {
-                $query->where('fstockmtno', 'like', "%{$search}%");
+                $query->where(function ($q) use ($search) {
+                    $q->where('fstockmtno', 'like', "%{$search}%")
+                        ->orWhereExists(function ($sub) use ($search) {
+                            $sub->select(DB::raw(1))
+                                ->from('trstockdt')
+                                ->whereColumn('trstockdt.fstockmtno', 'trstockmt.fstockmtno')
+                                ->where('trstockdt.frefdtno', 'ilike', "%{$search}%");
+                        });
+                });
             }
             if ($year) {
                 $query->whereRaw('EXTRACT(YEAR FROM fdatetime) = ?', [$year]);
