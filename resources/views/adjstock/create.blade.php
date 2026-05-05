@@ -754,22 +754,22 @@
                                         <div class="flex items-center justify-between">
                                             <div class="text-sm text-gray-600">
                                                 <span x-text="`Page ${currentPage} / ${lastPage}`"></span>
-                                                <span x-text="` • Total: ${total}`"></span>
+                                                <span x-text="` â€¢ Total: ${total}`"></span>
                                             </div>
                                             <div class="flex items-center gap-2">
                                                 <button @click="goToPage(1)" :disabled="currentPage <= 1"
-                                                    class="rounded border px-2 py-1 disabled:opacity-50">«
+                                                    class="rounded border px-2 py-1 disabled:opacity-50">Â«
                                                     First</button>
                                                 <button @click="goToPage(currentPage-1)" :disabled="currentPage <= 1"
-                                                    class="rounded border px-2 py-1 disabled:opacity-50">‹
+                                                    class="rounded border px-2 py-1 disabled:opacity-50">â€¹
                                                     Prev</button>
                                                 <button @click="goToPage(currentPage+1)"
                                                     :disabled="currentPage >= lastPage"
                                                     class="rounded border px-2 py-1 disabled:opacity-50">Next
-                                                    ›</button>
+                                                    â€º</button>
                                                 <button @click="goToPage(lastPage)" :disabled="currentPage >= lastPage"
                                                     class="rounded border px-2 py-1 disabled:opacity-50">Last
-                                                    »</button>
+                                                    Â»</button>
                                             </div>
                                         </div>
                                         <div class="flex justify-end gap-2 border-t pt-3">
@@ -855,7 +855,7 @@
 
                             <div class="px-5 py-4">
                                 <p class="text-sm text-gray-700">
-                                    Anda belum menambahkan item apa pun pada tabel. Silakan isi baris “Detail Item”
+                                    Anda belum menambahkan item apa pun pada tabel. Silakan isi baris â€œDetail Itemâ€
                                     terlebih
                                     dahulu.
                                 </p>
@@ -1861,29 +1861,13 @@
             pendingUniques: [],
 
             openDupModal(header, duplicates, uniques) {
-                this.dupCount = duplicates.length;
-                this.dupSample = duplicates.slice(0, 6); // simple preview (max 6 baris)
-                this.pendingHeader = header;
-                this.pendingUniques = uniques;
-                this.showDupModal = true;
+                window.transactionReferenceModalHelper.openDupModal(this, header, duplicates, uniques);
             },
             closeDupModal() {
-                this.showDupModal = false;
-                this.dupCount = 0;
-                this.dupSample = [];
-                this.pendingHeader = null;
-                this.pendingUniques = [];
+                window.transactionReferenceModalHelper.closeDupModal(this);
             },
             confirmAddUniques() {
-                // kirim hanya item unik
-                window.dispatchEvent(new CustomEvent('pr-picked', {
-                    detail: {
-                        header: this.pendingHeader,
-                        items: this.pendingUniques
-                    }
-                }));
-                this.closeDupModal();
-                this.closeModal?.();
+                window.transactionReferenceModalHelper.confirmAddUniques(this, 'pr-picked');
             },
 
             openModal() {
@@ -1962,12 +1946,12 @@
                         return; // tunggu aksi user di modal
                     }
 
-                    // tidak ada duplikat → langsung kirim semua item yang unik (atau 'items' kalau mau semua)
+                    // tidak ada duplikat â†’ langsung kirim semua item yang unik (atau 'items' kalau mau semua)
                     window.dispatchEvent(new CustomEvent('pr-picked', {
                         detail: {
                             header: row,
                             items
-                        } // jika ingin hanya unik, ganti 'items' → 'uniques'
+                        } // jika ingin hanya unik, ganti 'items' â†’ 'uniques'
                     }));
                     this.closeModal();
 

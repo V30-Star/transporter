@@ -476,7 +476,7 @@
                                                         class="inline-flex w-5 h-5 items-center justify-center rounded-full bg-amber-200 text-amber-800 text-xs font-bold">!</span>
                                                     <span class="font-mono font-medium text-gray-700"
                                                         x-text="d.fitemcode || '-'"></span>
-                                                    <span class="text-gray-400">•</span>
+                                                    <span class="text-gray-400">â€¢</span>
                                                     <span class="text-gray-600 truncate"
                                                         x-text="d.fitemname || '-'"></span>
                                                 </li>
@@ -555,7 +555,7 @@
 
                             <div class="px-5 py-4">
                                 <p class="text-sm text-gray-700">
-                                    Anda belum menambahkan item apa pun pada tabel. Silakan isi baris “Detail Item”
+                                    Anda belum menambahkan item apa pun pada tabel. Silakan isi baris â€œDetail Itemâ€
                                     terlebih
                                     dahulu.
                                 </p>
@@ -1336,30 +1336,15 @@
 
             // Duplikasi handlers
             openDupModal(header, duplicates, uniques) {
-                this.dupCount = duplicates.length;
-                this.dupSample = duplicates.slice(0, 6);
-                this.pendingHeader = header;
-                this.pendingUniques = uniques;
-                this.showDupModal = true;
+                window.transactionReferenceModalHelper.openDupModal(this, header, duplicates, uniques);
             },
 
             closeDupModal() {
-                this.showDupModal = false;
-                this.dupCount = 0;
-                this.dupSample = [];
-                this.pendingHeader = null;
-                this.pendingUniques = [];
+                window.transactionReferenceModalHelper.closeDupModal(this);
             },
 
             confirmAddUniques() {
-                window.dispatchEvent(new CustomEvent('pr-picked', {
-                    detail: {
-                        header: this.pendingHeader,
-                        items: this.pendingUniques
-                    }
-                }));
-                this.closeDupModal();
-                this.closeModal();
+                window.transactionReferenceModalHelper.confirmAddUniques(this, 'pr-picked');
             },
 
             async pick(row) {

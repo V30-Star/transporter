@@ -159,7 +159,7 @@
                     <input type="hidden" name="fbranchcode" value="{{ old('fbranchcode', $fbranchcode) }}">
                 </div>
                 
-                {{-- Transaksi# — selalu disabled (nomor tidak bisa diubah) --}}
+                {{-- Transaksi# â€” selalu disabled (nomor tidak bisa diubah) --}}
                 <div class="lg:col-span-4">
                     <label class="block text-sm font-medium mb-1">Transaksi#</label>
                     <div class="flex items-center gap-3">
@@ -327,7 +327,7 @@
                                                 </button>
                                             @else
                                                 <span
-                                                    class="border border-l-0 rounded-r px-2 py-1 bg-gray-100 text-gray-400 text-xs flex items-center">—</span>
+                                                    class="border border-l-0 rounded-r px-2 py-1 bg-gray-100 text-gray-400 text-xs flex items-center">â€”</span>
                                             @endif
                                         </div>
                                     </td>
@@ -421,7 +421,7 @@
                                                 Hapus
                                             </button>
                                         @else
-                                            <span class="text-gray-300 text-xs">—</span>
+                                            <span class="text-gray-300 text-xs">â€”</span>
                                         @endif
                                     </td>
 
@@ -446,7 +446,7 @@
                                 </tr>
                             </template>
 
-                            {{-- BARIS DRAFT — hanya tampil saat mode edit --}}
+                            {{-- BARIS DRAFT â€” hanya tampil saat mode edit --}}
                             @if ($action !== 'delete')
                                 <tr class="border-t bg-green-50 align-top">
                                     <td class="p-2 text-gray-400" x-text="savedItems.length + 1"></td>
@@ -554,7 +554,7 @@
                         </div>
                     </div>
 
-                    {{-- MODAL PO — hanya mode edit --}}
+                    {{-- MODAL PO â€” hanya mode edit --}}
                     @if ($action !== 'delete')
                         <div x-show="show" x-cloak x-transition.opacity
                             class="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8" aria-modal="true"
@@ -636,7 +636,7 @@
                                                         class="inline-flex w-5 h-5 items-center justify-center rounded-full bg-amber-200 text-amber-800 text-xs font-bold">!</span>
                                                     <span class="font-mono font-medium text-gray-700"
                                                         x-text="d.fitemcode || '-'"></span>
-                                                    <span class="text-gray-400">•</span>
+                                                    <span class="text-gray-400">â€¢</span>
                                                     <span class="text-gray-600 truncate"
                                                         x-text="d.fitemname || '-'"></span>
                                                 </li>
@@ -958,7 +958,7 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
     <script>
-        {{-- ── Identik dengan create.blade.php ── --}}
+        {{-- â”€â”€ Identik dengan create.blade.php â”€â”€ --}}
         window.CURRENCY_MAP = window.CURRENCY_MAP || {};
 
         window.PRODUCT_MAP = {
@@ -1007,7 +1007,7 @@
             }
         };
 
-        // ─── mainForm() — sama persis dengan create, satu-satunya beda:
+        // â”€â”€â”€ mainForm() â€” sama persis dengan create, satu-satunya beda:
         //     savedItems diisi dari $savedItems (data existing dari DB)
         function mainForm() {
             function newRow() {
@@ -1057,7 +1057,7 @@
                 includePPN: false,
                 ppnMode: 0,
                 ppnRate: 11,
-                // ── Diisi dari DB (perbedaan utama vs create) ──────────────────
+                // â”€â”€ Diisi dari DB (perbedaan utama vs create) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                 savedItems: @json($savedItems),
                 draft: newRow(),
                 activeRow: null,
@@ -1470,7 +1470,7 @@
                         return row;
                     });
 
-                    // ── Guard CURRENCY_MAP ──────────────────────────────────────
+                    // â”€â”€ Guard CURRENCY_MAP â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                     if (window.CURRENCY_MAP && typeof window.CURRENCY_MAP === 'object') {
                         const idrEntry = Object.values(window.CURRENCY_MAP).find(c => c.code === 'IDR');
                         if (idrEntry && !this.selectedCurrId) {
@@ -1552,7 +1552,7 @@
             if (sel) sel.innerHTML = '';
         }
 
-        // ─── pohFormModal — identik create ───────────────────────────────────────
+        // â”€â”€â”€ pohFormModal â€” identik create â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         window.pohFormModal = function() {
             return {
                 show: false,
@@ -1698,19 +1698,11 @@
                 },
 
                 openDupModal(header, duplicates, uniques) {
-                    this.dupCount = duplicates.length;
-                    this.dupSample = duplicates.slice(0, 6);
-                    this.pendingHeader = header;
-                    this.pendingUniques = uniques;
-                    this.showDupModal = true;
-                },
+                window.transactionReferenceModalHelper.openDupModal(this, header, duplicates, uniques);
+            },
                 closeDupModal() {
-                    this.showDupModal = false;
-                    this.dupCount = 0;
-                    this.dupSample = [];
-                    this.pendingHeader = null;
-                    this.pendingUniques = [];
-                },
+                window.transactionReferenceModalHelper.closeDupModal(this);
+            },
                 applySupplierFromPo(header, row) {
                     const supplierCode = (header?.fsupplier || row?.fsuppliercode || '').toString().trim();
                     if (!supplierCode) return;
@@ -1742,15 +1734,8 @@
                     sel.dispatchEvent(new Event('change', { bubbles: true }));
                 },
                 confirmAddUniques() {
-                    window.dispatchEvent(new CustomEvent('pr-picked', {
-                        detail: {
-                            header: this.pendingHeader,
-                            items: this.pendingUniques
-                        }
-                    }));
-                    this.closeDupModal();
-                    this.closeModal();
-                },
+                window.transactionReferenceModalHelper.confirmAddUniques(this, 'pr-picked');
+            },
 
                 async pick(row) {
                     try {
@@ -1800,7 +1785,7 @@
             return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
         }
 
-        // ─── supplierBrowser — identik create ────────────────────────────────────
+        // â”€â”€â”€ supplierBrowser â€” identik create â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         function supplierBrowser() {
             return {
                 open: false,
@@ -1950,7 +1935,7 @@
             };
         }
 
-        // ─── warehouseBrowser — identik create ───────────────────────────────────
+        // â”€â”€â”€ warehouseBrowser â€” identik create â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         window.warehouseBrowser = function() {
             return {
                 open: false,
@@ -2084,7 +2069,7 @@
             if (hidFrom) hidFrom.value = fwhcode || '';
         });
 
-        // ─── productBrowser — identik create ─────────────────────────────────────
+        // â”€â”€â”€ productBrowser â€” identik create â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         function productBrowser() {
             return {
                 open: false,

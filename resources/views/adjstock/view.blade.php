@@ -1255,29 +1255,13 @@
             pendingUniques: [],
 
             openDupModal(header, duplicates, uniques) {
-                this.dupCount = duplicates.length;
-                this.dupSample = duplicates.slice(0, 6); // simple preview (max 6 baris)
-                this.pendingHeader = header;
-                this.pendingUniques = uniques;
-                this.showDupModal = true;
+                window.transactionReferenceModalHelper.openDupModal(this, header, duplicates, uniques);
             },
             closeDupModal() {
-                this.showDupModal = false;
-                this.dupCount = 0;
-                this.dupSample = [];
-                this.pendingHeader = null;
-                this.pendingUniques = [];
+                window.transactionReferenceModalHelper.closeDupModal(this);
             },
             confirmAddUniques() {
-                // kirim hanya item unik
-                window.dispatchEvent(new CustomEvent('pr-picked', {
-                    detail: {
-                        header: this.pendingHeader,
-                        items: this.pendingUniques
-                    }
-                }));
-                this.closeDupModal();
-                this.closeModal?.();
+                window.transactionReferenceModalHelper.confirmAddUniques(this, 'pr-picked');
             },
 
             openModal() {
@@ -1356,12 +1340,12 @@
                         return; // tunggu aksi user di modal
                     }
 
-                    // tidak ada duplikat → langsung kirim semua item yang unik (atau 'items' kalau mau semua)
+                    // tidak ada duplikat â†’ langsung kirim semua item yang unik (atau 'items' kalau mau semua)
                     window.dispatchEvent(new CustomEvent('pr-picked', {
                         detail: {
                             header: row,
                             items
-                        } // jika ingin hanya unik, ganti 'items' → 'uniques'
+                        } // jika ingin hanya unik, ganti 'items' â†’ 'uniques'
                     }));
                     this.closeModal();
 

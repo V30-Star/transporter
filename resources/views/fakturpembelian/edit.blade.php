@@ -1763,7 +1763,7 @@
 
                                 <div class="px-5 py-4">
                                     <p class="text-sm text-gray-700">
-                                        Anda belum menambahkan item apa pun pada tabel. Silakan isi baris “Detail Item”
+                                        Anda belum menambahkan item apa pun pada tabel. Silakan isi baris â€œDetail Itemâ€
                                         terlebih
                                         dahulu.
                                     </p>
@@ -2478,7 +2478,7 @@
                     const terimaPreview = baseTerimaKecil + currentQtyKecil;
                     const remainPreviewKecil = Math.max(0, baseRemainKecil - currentQtyKecil);
                     const sisaPreview = this.kecilToUnit(row?.fitemcode, remainPreviewKecil, row?.fsatuan);
-                    return `Terima: ${this.fmt(terimaPreview)} | Sisa: ${this.fmt(sisaPreview)} | Remain: ${this.fmt(remainPreviewKecil)}`;
+                    return '';
                 },
 
                 enforceQtyRow(row) {
@@ -3028,28 +3028,13 @@
                     if (this.table) this.table.search('').draw();
                 },
                 openDupModal(header, duplicates, uniques) {
-                    this.dupCount = duplicates.length;
-                    this.dupSample = duplicates.slice(0, 6);
-                    this.pendingHeader = header;
-                    this.pendingUniques = uniques;
-                    this.showDupModal = true;
-                },
+                window.transactionReferenceModalHelper.openDupModal(this, header, duplicates, uniques);
+            },
                 closeDupModal() {
-                    this.showDupModal = false;
-                    this.dupCount = 0;
-                    this.dupSample = [];
-                    this.pendingHeader = null;
-                    this.pendingUniques = [];
-                },
+                window.transactionReferenceModalHelper.closeDupModal(this);
+            },
                 confirmAddUniques() {
-                    window.dispatchEvent(new CustomEvent('po-picked', {
-                        detail: {
-                            header: this.pendingHeader,
-                            items: this.pendingUniques
-                        }
-                    }));
-                    this.closeDupModal();
-                    this.closeModal();
+                    window.transactionReferenceModalHelper.confirmAddUniques(this, 'po-picked');
                 },
                 async pick(row) {
                     try {
@@ -3157,7 +3142,7 @@
                                 orderable: false,
                                 searchable: false,
                                 className: 'text-center',
-                                render: function(data, type, row) {
+                                render: function() {
                                     return '<button type="button" class="btn-pick px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>';
                                 }
                             }
@@ -3192,28 +3177,13 @@
                     if (this.table) this.table.search('').draw();
                 },
                 openDupModal(header, duplicates, uniques) {
-                    this.dupCount = duplicates.length;
-                    this.dupSample = duplicates.slice(0, 6);
-                    this.pendingHeader = header;
-                    this.pendingUniques = uniques;
-                    this.showDupModal = true;
+                    window.transactionReferenceModalHelper.openDupModal(this, header, duplicates, uniques);
                 },
                 closeDupModal() {
-                    this.showDupModal = false;
-                    this.dupCount = 0;
-                    this.dupSample = [];
-                    this.pendingHeader = null;
-                    this.pendingUniques = [];
+                    window.transactionReferenceModalHelper.closeDupModal(this);
                 },
                 confirmAddUniques() {
-                    window.dispatchEvent(new CustomEvent('pb-picked', {
-                        detail: {
-                            header: this.pendingHeader,
-                            items: this.pendingUniques
-                        }
-                    }));
-                    this.closeDupModal();
-                    this.closeModal();
+                    window.transactionReferenceModalHelper.confirmAddUniques(this, 'pb-picked');
                 },
                 async pick(row) {
                     try {

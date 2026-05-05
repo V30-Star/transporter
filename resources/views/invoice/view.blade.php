@@ -553,8 +553,8 @@
 
                                 <div class="px-5 py-4">
                                     <p class="text-sm text-gray-700">
-                                        Anda belum menambahkan item apa pun pada tabel. Silakan isi baris “Detail
-                                        Item”
+                                        Anda belum menambahkan item apa pun pada tabel. Silakan isi baris â€œDetail
+                                        Itemâ€
                                         terlebih
                                         dahulu.
                                     </p>
@@ -1171,7 +1171,7 @@
                         return this.fmt(value);
                     },
 
-                    // ✅ FUNGSI BARU: Parse diskon dengan format "10+2"
+                    // âœ… FUNGSI BARU: Parse diskon dengan format "10+2"
                     parseDiscount(discStr) {
                         if (!discStr && discStr !== 0) return 0;
 
@@ -1209,7 +1209,7 @@
                         }
                     },
 
-                    // ✅ UPDATE FUNGSI recalc untuk menggunakan parseDiscount
+                    // âœ… UPDATE FUNGSI recalc untuk menggunakan parseDiscount
                     recalc(row) {
                         row.fqty = Math.max(0, +row.fqty || 0);
                         row.fterima = Math.max(0, +row.fterima || 0);
@@ -1310,8 +1310,8 @@
                                 fsatuan: satuan,
                                 frefcode: frefcode,
                                 frefpr: (src.frefpr ?? header?.fpono ?? header?.fsono ?? '').toString().trim(),
-                                fqty: Math.max(1, Number(src.fqty ?? 0)), // ← Minimal qty = 1
-                                fprice: Number(src.fprice ?? src.fharga ?? 0), // ← Boleh 0
+                                fqty: Math.max(1, Number(src.fqty ?? 0)), // â† Minimal qty = 1
+                                fprice: Number(src.fprice ?? src.fharga ?? 0), // â† Boleh 0
                                 fterima: Number(src.fterima ?? 0),
                                 ftotal: 0,
                                 fdesc: src.fdesc ? src.fdesc.toString().trim() : '',
@@ -1346,7 +1346,7 @@
 
                         // Tampilkan notifikasi
                         if (added > 0) {
-                            window.toast?.success(`✓ Berhasil menambahkan ${added} item ke detail`);
+                            window.toast?.success(`âœ“ Berhasil menambahkan ${added} item ke detail`);
                         }
 
                         if (duplicates.length > 0) {
@@ -1721,31 +1721,16 @@
 
                     // --- Duplikasi Handlers (Tetap sama, logic sudah baik) ---
                     openDupModal(header, duplicates, uniques) {
-                        this.dupCount = duplicates.length;
-                        this.dupSample = duplicates.slice(0, 6);
-                        this.pendingHeader = header;
-                        this.pendingUniques = uniques;
-                        this.showDupModal = true;
-                    },
+                window.transactionReferenceModalHelper.openDupModal(this, header, duplicates, uniques);
+            },
 
                     closeDupModal() {
-                        this.showDupModal = false;
-                        this.dupCount = 0;
-                        this.dupSample = [];
-                        this.pendingHeader = null;
-                        this.pendingUniques = [];
-                    },
+                window.transactionReferenceModalHelper.closeDupModal(this);
+            },
 
                     confirmAddUniques() {
-                        window.dispatchEvent(new CustomEvent('pr-picked', {
-                            detail: {
-                                header: this.pendingHeader,
-                                items: this.pendingUniques
-                            }
-                        }));
-                        this.closeDupModal();
-                        this.closeModal();
-                    },
+                window.transactionReferenceModalHelper.confirmAddUniques(this, 'pr-picked');
+            },
 
                     async pick(row) {
                         try {

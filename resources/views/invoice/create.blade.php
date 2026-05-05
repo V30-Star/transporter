@@ -786,7 +786,7 @@
                                                                 class="inline-flex w-5 h-5 items-center justify-center rounded-full bg-amber-200 text-amber-800 text-xs font-bold">!</span>
                                                             <span class="font-mono font-bold text-gray-700"
                                                                 x-text="d.fitemcode || '-'"></span>
-                                                            <span class="text-gray-400">•</span>
+                                                            <span class="text-gray-400">â€¢</span>
                                                             <span class="text-gray-600 truncate"
                                                                 x-text="d.fitemname || '-'"></span>
                                                         </li>
@@ -952,7 +952,7 @@
                                             <p class="text-sm font-medium mb-2">Contoh item duplikat:</p>
                                             <template x-for="(item, idx) in dupSample" :key="idx">
                                                 <div class="text-xs py-1">
-                                                    • <span x-text="item.fitemcode"></span> - <span
+                                                    â€¢ <span x-text="item.fitemcode"></span> - <span
                                                         x-text="item.frefdtno"></span>
                                                 </div>
                                             </template>
@@ -1022,7 +1022,7 @@
 
                         <div class="px-5 py-4">
                             <p class="text-sm text-gray-700">
-                                Anda belum menambahkan item apa pun pada tabel. Silakan isi baris “Detail Item”
+                                Anda belum menambahkan item apa pun pada tabel. Silakan isi baris â€œDetail Itemâ€
                                 terlebih
                                 dahulu.
                             </p>
@@ -1879,7 +1879,7 @@
                 return this.fmt(value);
             },
 
-            // ✅ FUNGSI BARU: Parse diskon dengan format "10+2"
+            // âœ… FUNGSI BARU: Parse diskon dengan format "10+2"
             parseDiscount(discStr) {
                 if (!discStr && discStr !== 0) return 0;
 
@@ -1917,7 +1917,7 @@
                 }
             },
 
-            // ✅ UPDATE FUNGSI recalc untuk menggunakan parseDiscount
+            // âœ… UPDATE FUNGSI recalc untuk menggunakan parseDiscount
             recalc(row) {
                 row.fqty = Math.max(1, +row.fqty || 1);
                 row.fterima = Math.max(0, +row.fterima || 0);
@@ -2492,29 +2492,13 @@
             pendingUniques: [],
 
             openDupModal(header, duplicates, uniques) {
-                this.dupCount = duplicates.length;
-                this.dupSample = duplicates.slice(0, 6); // simple preview (max 6 baris)
-                this.pendingHeader = header;
-                this.pendingUniques = uniques;
-                this.showDupModal = true;
+                window.transactionReferenceModalHelper.openDupModal(this, header, duplicates, uniques);
             },
             closeDupModal() {
-                this.showDupModal = false;
-                this.dupCount = 0;
-                this.dupSample = [];
-                this.pendingHeader = null;
-                this.pendingUniques = [];
+                window.transactionReferenceModalHelper.closeDupModal(this);
             },
             confirmAddUniques() {
-                // kirim hanya item unik
-                window.dispatchEvent(new CustomEvent('pr-picked', {
-                    detail: {
-                        header: this.pendingHeader,
-                        items: this.pendingUniques
-                    }
-                }));
-                this.closeDupModal();
-                this.closeModal?.();
+                window.transactionReferenceModalHelper.confirmAddUniques(this, 'pr-picked');
             },
 
             openModal() {
@@ -2603,12 +2587,12 @@
                         return; // tunggu aksi user di modal
                     }
 
-                    // tidak ada duplikat → langsung kirim semua item yang unik (atau 'items' kalau mau semua)
+                    // tidak ada duplikat â†’ langsung kirim semua item yang unik (atau 'items' kalau mau semua)
                     window.dispatchEvent(new CustomEvent('pr-picked', {
                         detail: {
                             header: row,
                             items
-                        } // jika ingin hanya unik, ganti 'items' → 'uniques'
+                        } // jika ingin hanya unik, ganti 'items' â†’ 'uniques'
                     }));
                     this.closeModal();
 
@@ -2770,30 +2754,15 @@
 
             // Duplikasi handlers
             openDupModal(header, duplicates, uniques) {
-                this.dupCount = duplicates.length;
-                this.dupSample = duplicates.slice(0, 6);
-                this.pendingHeader = header;
-                this.pendingUniques = uniques;
-                this.showDupModal = true;
+                window.transactionReferenceModalHelper.openDupModal(this, header, duplicates, uniques);
             },
 
             closeDupModal() {
-                this.showDupModal = false;
-                this.dupCount = 0;
-                this.dupSample = [];
-                this.pendingHeader = null;
-                this.pendingUniques = [];
+                window.transactionReferenceModalHelper.closeDupModal(this);
             },
 
             confirmAddUniques() {
-                window.dispatchEvent(new CustomEvent('pr-picked', {
-                    detail: {
-                        header: this.pendingHeader,
-                        items: this.pendingUniques
-                    }
-                }));
-                this.closeDupModal();
-                this.closeModal();
+                window.transactionReferenceModalHelper.confirmAddUniques(this, 'pr-picked');
             },
 
             async pick(row) {
@@ -3002,15 +2971,11 @@
 
             // Fitur Duplikasi SRJ
             openDupModal(header, duplicates, uniques) {
-                this.dupCount = duplicates.length;
-                this.dupSample = duplicates.slice(0, 6);
-                this.pendingHeader = header;
-                this.pendingUniques = uniques;
-                this.showDupModal = true;
+                window.transactionReferenceModalHelper.openDupModal(this, header, duplicates, uniques);
             },
 
             closeDupModal() {
-                this.showDupModal = false;
+                window.transactionReferenceModalHelper.closeDupModal(this);
             },
 
             confirmAddUniques() {

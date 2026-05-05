@@ -2430,32 +2430,17 @@
             },
 
             // Duplikasi handlers
-            openDupModal(header, duplicates, uniques) {
-                this.dupCount = duplicates.length;
-                this.dupSample = duplicates.slice(0, 6);
-                this.pendingHeader = header;
-                this.pendingUniques = uniques;
-                this.showDupModal = true;
-            },
+                openDupModal(header, duplicates, uniques) {
+                    window.transactionReferenceModalHelper.openDupModal(this, header, duplicates, uniques);
+                },
 
-            closeDupModal() {
-                this.showDupModal = false;
-                this.dupCount = 0;
-                this.dupSample = [];
-                this.pendingHeader = null;
-                this.pendingUniques = [];
-            },
+                closeDupModal() {
+                    window.transactionReferenceModalHelper.closeDupModal(this);
+                },
 
-            confirmAddUniques() {
-                window.dispatchEvent(new CustomEvent('pr-picked', {
-                    detail: {
-                        header: this.pendingHeader,
-                        items: this.pendingUniques
-                    }
-                }));
-                this.closeDupModal();
-                this.closeModal();
-            },
+                confirmAddUniques() {
+                    window.transactionReferenceModalHelper.confirmAddUniques(this, 'pr-picked');
+                },
 
             async pick(row) {
                 try {

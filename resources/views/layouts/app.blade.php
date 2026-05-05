@@ -192,6 +192,65 @@
             ->values();
     @endphp
     @stack('scripts')
+    <script>
+        (() => {
+            if (window.transactionReferenceModalHelper) {
+                return;
+            }
+
+            window.transactionReferenceModalHelper = {
+                dispatchPick(eventName, header, items) {
+                    window.dispatchEvent(new CustomEvent(eventName, {
+                        detail: {
+                            header,
+                            items
+                        }
+                    }));
+                },
+
+                openDupModal(state, header, duplicates, uniques) {
+                    state.dupCount = duplicates.length;
+                    state.dupSample = duplicates.slice(0, 6);
+                    state.pendingHeader = header;
+                    state.pendingUniques = uniques;
+                    state.showDupModal = true;
+                },
+
+                closeDupModal(state) {
+                    state.showDupModal = false;
+                    state.dupCount = 0;
+                    state.dupSample = [];
+                    state.pendingHeader = null;
+                    state.pendingUniques = [];
+                },
+
+                confirmAddUniques(state, eventName, options = {}) {
+                    const detailBuilder = typeof options.detailBuilder === 'function'
+                        ? options.detailBuilder
+                        : (header, items) => ({
+                            header,
+                            items
+                        });
+
+                    const detail = detailBuilder(state.pendingHeader, state.pendingUniques);
+
+                    window.dispatchEvent(new CustomEvent(eventName, {
+                        detail
+                    }));
+
+                    this.closeDupModal(state);
+
+                    if (options.skipCloseModal === true) {
+                        return;
+                    }
+
+                    if (typeof state.closeModal === 'function') {
+                        state.closeModal();
+                    }
+                }
+            };
+        })();
+    </script>
     @if ($transactionErrorMessages->isNotEmpty())
         <script>
             (() => {

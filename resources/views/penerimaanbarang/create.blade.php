@@ -519,7 +519,7 @@
                         @keydown.escape.window="closeModal()"></div>
 
                     {{-- ============================================================
-                         MODAL PO — SATU MODAL SAJA (hapus duplikat sebelumnya)
+                         MODAL PO â€” SATU MODAL SAJA (hapus duplikat sebelumnya)
                          ============================================================ --}}
                     <div x-show="show" x-cloak x-transition.opacity
                         class="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8" aria-modal="true"
@@ -606,7 +606,7 @@
                                                     class="inline-flex w-5 h-5 items-center justify-center rounded-full bg-amber-200 text-amber-800 text-xs font-bold">!</span>
                                                 <span class="font-mono font-medium text-gray-700"
                                                     x-text="d.fitemcode || '-'"></span>
-                                                <span class="text-gray-400">•</span>
+                                                <span class="text-gray-400">â€¢</span>
                                                 <span class="text-gray-600 truncate" x-text="d.fitemname || '-'"></span>
                                             </li>
                                         </template>
@@ -902,7 +902,7 @@
                 ];
             }
         @endphp
-        // ─── FIX 1: Definisikan CURRENCY_MAP supaya init() tidak crash ─────────────
+        // â”€â”€â”€ FIX 1: Definisikan CURRENCY_MAP supaya init() tidak crash â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         window.CURRENCY_MAP = window.CURRENCY_MAP || {};
 
         window.PRODUCT_MAP = {
@@ -961,7 +961,7 @@
             }
         };
 
-        // ─── MAIN FORM ────────────────────────────────────────────────────────────
+        // â”€â”€â”€ MAIN FORM â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         function mainForm() {
             function newRow() {
                 return {
@@ -1013,7 +1013,7 @@
                 showDupItemModal: false,
                 dupItemName: '',
                 dupItemSatuan: '',
-                // ─── FIX 2: tambahkan showDescModal & descValue ──────────────────
+                // â”€â”€â”€ FIX 2: tambahkan showDescModal & descValue â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                 showDescModal: false,
                 descValue: '',
                 _descTarget: null,
@@ -1381,7 +1381,7 @@
                     });
                 },
 
-                // ─── FIX 2 lanjutan: handler modal desc ─────────────────────────
+                // â”€â”€â”€ FIX 2 lanjutan: handler modal desc â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                 openDesc(targetRow) {
                     this._descTarget = targetRow;
                     this.descValue = targetRow.fdesc || '';
@@ -1572,7 +1572,7 @@
                 },
 
                 init() {
-                    // ─── FIX 1: guard CURRENCY_MAP sebelum Object.values ─────────
+                    // â”€â”€â”€ FIX 1: guard CURRENCY_MAP sebelum Object.values â”€â”€â”€â”€â”€â”€â”€â”€â”€
                     if (window.CURRENCY_MAP && typeof window.CURRENCY_MAP === 'object') {
                         const idrEntry = Object.values(window.CURRENCY_MAP).find(c => c.code === 'IDR');
                         if (idrEntry && !this.selectedCurrId) {
@@ -1671,7 +1671,7 @@
             if (sel) sel.innerHTML = '';
         }
 
-        // ─── MODAL PO ─────────────────────────────────────────────────────────────
+        // â”€â”€â”€ MODAL PO â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         window.pohFormModal = function() {
             return {
                 show: false,
@@ -1682,7 +1682,7 @@
                 pendingHeader: null,
                 pendingUniques: [],
 
-                // ─── FIX 3: DataTable menggunakan ID #poTable satu saja ───────────
+                // â”€â”€â”€ FIX 3: DataTable menggunakan ID #poTable satu saja â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                 initDataTable() {
                     if (this.table) {
                         this.table.destroy();
@@ -1797,7 +1797,7 @@
                         }
                     });
 
-                    // ─── FIX 3: event click tombol Pilih ────────────────────────
+                    // â”€â”€â”€ FIX 3: event click tombol Pilih â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                     const self = this;
                     $('#poTable').off('click', '.btn-pick').on('click', '.btn-pick', function() {
                         const data = self.table.row($(this).closest('tr')).data();
@@ -1821,20 +1821,12 @@
                 },
 
                 openDupModal(header, duplicates, uniques) {
-                    this.dupCount = duplicates.length;
-                    this.dupSample = duplicates.slice(0, 6);
-                    this.pendingHeader = header;
-                    this.pendingUniques = uniques;
-                    this.showDupModal = true;
-                },
+                window.transactionReferenceModalHelper.openDupModal(this, header, duplicates, uniques);
+            },
 
                 closeDupModal() {
-                    this.showDupModal = false;
-                    this.dupCount = 0;
-                    this.dupSample = [];
-                    this.pendingHeader = null;
-                    this.pendingUniques = [];
-                },
+                window.transactionReferenceModalHelper.closeDupModal(this);
+            },
 
                 applySupplierFromPo(header, row) {
                     const supplierCode = (header?.fsupplier || row?.fsuppliercode || '').toString().trim();
@@ -1868,15 +1860,8 @@
                 },
 
                 confirmAddUniques() {
-                    window.dispatchEvent(new CustomEvent('pr-picked', {
-                        detail: {
-                            header: this.pendingHeader,
-                            items: this.pendingUniques
-                        }
-                    }));
-                    this.closeDupModal();
-                    this.closeModal();
-                },
+                window.transactionReferenceModalHelper.confirmAddUniques(this, 'pr-picked');
+            },
 
                 async pick(row) {
                     try {
@@ -1920,7 +1905,7 @@
             };
         };
 
-        // ─── Helper tanggal ───────────────────────────────────────────────────────
+        // â”€â”€â”€ Helper tanggal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         function formatDate(s) {
             if (!s || s === 'No Date') return '-';
             const d = new Date(s);
@@ -1929,7 +1914,7 @@
             return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
         }
 
-        // ─── SUPPLIER BROWSER ─────────────────────────────────────────────────────
+        // â”€â”€â”€ SUPPLIER BROWSER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         function supplierBrowser() {
             return {
                 open: false,
@@ -2075,7 +2060,7 @@
             }
         }
 
-        // ─── WAREHOUSE BROWSER ────────────────────────────────────────────────────
+        // â”€â”€â”€ WAREHOUSE BROWSER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         window.warehouseBrowser = function() {
             return {
                 open: false,
@@ -2211,7 +2196,7 @@
             });
         });
 
-        // ─── PRODUCT BROWSER ──────────────────────────────────────────────────────
+        // â”€â”€â”€ PRODUCT BROWSER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         function productBrowser() {
             return {
                 open: false,

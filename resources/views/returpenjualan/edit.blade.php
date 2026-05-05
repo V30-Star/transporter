@@ -3217,36 +3217,23 @@
 
             // Duplikasi handlers
             openDupModal(header, duplicates, uniques) {
-                this.dupCount = duplicates.length;
-                this.dupSample = duplicates.slice(0, 6);
-                this.pendingHeader = header;
-                this.pendingUniques = uniques;
-                this.showDupModal = true;
+                window.transactionReferenceModalHelper.openDupModal(this, header, duplicates, uniques);
             },
 
             closeDupModal() {
-                this.showDupModal = false;
-                this.dupCount = 0;
-                this.dupSample = [];
-                this.pendingHeader = null;
-                this.pendingUniques = [];
+                window.transactionReferenceModalHelper.closeDupModal(this);
             },
 
             confirmAddUniques() {
                 const currentKeys = new Set((window.getCurrentItemKeys?.() || []).map(String));
                 const keyOf = (src) => `${(src.fitemcode ?? '').toString().trim()}::${(src.frefdtno ?? '').toString().trim()}`;
-                
                 const safeUniques = this.pendingUniques.filter(src => !currentKeys.has(keyOf(src)));
-                
+
                 if (safeUniques.length > 0) {
-                    window.dispatchEvent(new CustomEvent('pr-picked', {
-                        detail: {
-                            header: this.pendingHeader,
-                            items: safeUniques
-                        }
-                    }));
+                    window.transactionReferenceModalHelper.dispatchPick('pr-picked', this.pendingHeader, safeUniques);
                 }
-                this.closeDupModal();
+
+                window.transactionReferenceModalHelper.closeDupModal(this);
                 this.closeModal();
             },
 
