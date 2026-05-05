@@ -901,6 +901,7 @@ class FakturPembelianController extends Controller
             $usedNoAcaks = [];
             $subtotal = 0.0;
             $sourceUsageByRef = [];
+            $skippedDetailCodes = [];
 
             $lineCounter = 1;
 
@@ -931,6 +932,7 @@ class FakturPembelianController extends Controller
 
                 $meta = $prodMeta[$code] ?? null;
                 if (! $meta) {
+                    $skippedDetailCodes[] = $code;
                     continue;
                 }
 
@@ -976,6 +978,17 @@ class FakturPembelianController extends Controller
                     $sourceKey = $sourceType . ':' . $detailId;
                     $sourceUsageByRef[$sourceKey] = ($sourceUsageByRef[$sourceKey] ?? 0) + $qtyKecil;
                 }
+            }
+
+            if (empty($rowsDt)) {
+                $message = 'Detail item transaksi pembelian tidak berhasil dibentuk, sehingga data detail tidak tersimpan.';
+                if (! empty($skippedDetailCodes)) {
+                    $message .= ' Kode item yang tidak dikenali: '.implode(', ', array_values(array_unique($skippedDetailCodes))).'.';
+                }
+
+                return back()->withInput()->withErrors([
+                    'detail' => $message,
+                ]);
             }
 
             $ppnAmount = (float) $request->input('famountpopajak', 0);
