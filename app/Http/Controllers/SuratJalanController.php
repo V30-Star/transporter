@@ -414,6 +414,8 @@ class SuratJalanController extends Controller
             'frefso.*' => ['nullable', 'string', 'max:100'],
             'frefsoid' => ['nullable', 'array'],
             'frefsoid.*' => ['nullable', 'integer'],
+            'frefpr' => ['nullable', 'array'],
+            'frefpr.*' => ['nullable', 'string', 'max:100'],
             'fnoacak' => ['nullable', 'array'],
             'fnoacak.*' => ['nullable', 'regex:/^[1-9]{3}$/'],
             'frefnoacak' => ['nullable', 'array'],
@@ -448,6 +450,7 @@ class SuratJalanController extends Controller
         $qtys = $request->input('fqty', []);
         $prices = $request->input('fprice', []);
         $descs = $request->input('fdesc', []);
+        $frefpr = $request->input('frefpr', []);
         $frefso = $request->input('frefso', []);
         $frefsoid = $request->input('frefsoid', []);
         $fnoacaks = $request->input('fnoacak', []);
@@ -526,7 +529,12 @@ class SuratJalanController extends Controller
                 'fusercreate' => Auth::user()->fname ?? 'system',
                 'fdatetime' => $now,
                 'fketdt' => '',
-                'fcode' => '0',
+                'fcode' => $this->resolveSuratJalanFcode([
+                    'frefso' => $frefso[$i] ?? null,
+                    'frefsoid' => $frefsoid[$i] ?? null,
+                    'frefpr' => $frefpr[$i] ?? null,
+                ]),
+                'frefpr' => $frefpr[$i] ?? null,
                 'frefso' => $frefso[$i] ?? null,
                 'frefsoid' => isset($frefsoid[$i]) ? (int) $frefsoid[$i] : null,
                 'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
@@ -1074,6 +1082,8 @@ class SuratJalanController extends Controller
             'frefso.*' => ['nullable', 'string', 'max:100'],
             'frefsoid' => ['nullable', 'array'],
             'frefsoid.*' => ['nullable', 'integer'],
+            'frefpr' => ['nullable', 'array'],
+            'frefpr.*' => ['nullable', 'string', 'max:100'],
             'fnoacak' => ['nullable', 'array'],
             'fnoacak.*' => ['nullable', 'regex:/^[1-9]{3}$/'],
             'frefnoacak' => ['nullable', 'array'],
@@ -1114,6 +1124,7 @@ class SuratJalanController extends Controller
         $qtys = $request->input('fqty', []);
         $prices = $request->input('fprice', []);
         $descs = $request->input('fdesc', []);
+        $frefpr = $request->input('frefpr', []);
         $frefso = $request->input('frefso', []);
         $frefsoid = $request->input('frefsoid', []);
         $fnoacaks = $request->input('fnoacak', []);
@@ -1208,7 +1219,12 @@ class SuratJalanController extends Controller
                 'fuserupdate' => Auth::user()->fname ?? 'system',
                 'fdatetime' => $now,
                 'fketdt' => '',
-                'fcode' => '0',
+                'fcode' => $this->resolveSuratJalanFcode([
+                    'frefso' => $frefso[$i] ?? null,
+                    'frefsoid' => $frefsoid[$i] ?? null,
+                    'frefpr' => $frefpr[$i] ?? null,
+                ]),
+                'frefpr' => $frefpr[$i] ?? null,
                 'frefso' => $frefso[$i] ?? null,
                 'frefsoid' => isset($frefsoid[$i]) ? (int) $frefsoid[$i] : null,
                 'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
@@ -1800,5 +1816,17 @@ class SuratJalanController extends Controller
         }
 
         return 'Surat Jalan '.$fstockmtno.' tidak dapat diubah atau dihapus karena sudah digunakan pada '.implode('; ', $parts).'.';
+    }
+
+    private function resolveSuratJalanFcode(array $row): string
+    {
+        $soRef = trim((string) ($row['frefso'] ?? ''));
+        $soDetailId = (int) ($row['frefsoid'] ?? 0);
+
+        if ($soRef !== '' || $soDetailId > 0) {
+            return 'S';
+        }
+
+        return trim((string) ($row['frefpr'] ?? '')) !== '' ? 'F' : '0';
     }
 }
