@@ -554,6 +554,12 @@ class SuratJalanController extends Controller
             ]);
         }
 
+        if ($validationMessage = $this->validateUniqueReferenceUsage($rowsDt)) {
+            return back()->withInput()->withErrors([
+                'detail' => $validationMessage,
+            ]);
+        }
+
         // =========================
         // 6.5) VALIDASI QTY REMAIN SO
         // =========================
@@ -1235,6 +1241,12 @@ class SuratJalanController extends Controller
             ]);
         }
 
+        if ($validationMessage = $this->validateUniqueReferenceUsage($rowsDt, $header->fstockmtno)) {
+            return back()->withInput()->withErrors([
+                'detail' => $validationMessage,
+            ]);
+        }
+
         // =========================
         // 5.5) VALIDASI QTY REMAIN SO
         // =========================
@@ -1733,6 +1745,53 @@ class SuratJalanController extends Controller
         }
 
         return null;
+    }
+
+    private function validateUniqueReferenceUsage(array $rowsDt, ?string $exceptStockMtNo = null): ?string
+    {
+        $soDetailIds = collect($rowsDt)
+            ->pluck('frefsoid')
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn ($id) => $id > 0)
+            ->unique()
+            ->values()
+            ->all();
+
+        if (empty($soDetailIds)) {
+            return null;
+        }
+
+        $query = DB::table('trstockdt as d')
+            ->join('trstockmt as h', 'h.fstockmtno', '=', 'd.fstockmtno')
+            ->leftJoin('trsodt as so_d', 'so_d.ftrsodtid', '=', 'd.frefsoid')
+            ->leftJoin('trsomt as so_h', 'so_h.fsono', '=', 'so_d.fsono')
+            ->where('h.fstockmtcode', 'SRJ')
+            ->whereIn('d.frefsoid', $soDetailIds);
+
+        if (! empty($exceptStockMtNo)) {
+            $query->where('h.fstockmtno', '<>', $exceptStockMtNo);
+        }
+
+        $existing = $query
+            ->orderBy('h.fstockmtno')
+            ->select(
+                'h.fstockmtno as transaction_no',
+                DB::raw("COALESCE(NULLIF(TRIM(so_h.fsono), ''), NULLIF(TRIM(d.frefso), '')) as ref_no")
+            )
+            ->first();
+
+        if (! $existing) {
+            return null;
+        }
+
+        $refNo = trim((string) ($existing->ref_no ?? ''));
+        $transactionNo = trim((string) ($existing->transaction_no ?? ''));
+
+        if ($refNo === '' || $transactionNo === '') {
+            return 'Nomor referensi ini sudah pernah dibuat di transaksi lain.';
+        }
+
+        return 'Nomor referensi '.$refNo.' sudah pernah dibuat di transaksi nomor '.$transactionNo.'.';
     }
 
     /**

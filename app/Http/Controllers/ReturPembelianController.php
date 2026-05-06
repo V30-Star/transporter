@@ -473,6 +473,12 @@ class ReturPembelianController extends Controller
                 return '';
             };
 
+            if ($validationMessage = $this->validateUniqueHeaderReference($frefno, $frefpo)) {
+                return back()->withInput()->withErrors([
+                    'detail' => $validationMessage,
+                ]);
+            }
+
             // BUILD DETAIL ROWS
             $rowsDt = [];
             $usedNoAcaks = [];
@@ -983,6 +989,12 @@ class ReturPembelianController extends Controller
                 return '';
             };
 
+            if ($validationMessage = $this->validateUniqueHeaderReference($frefno, $frefpo, $header->fstockmtno)) {
+                return back()->withInput()->withErrors([
+                    'detail' => $validationMessage,
+                ]);
+            }
+
             // BUILD DETAIL ROWS
             $rowsDt = [];
             $usedNoAcaks = [];
@@ -1318,6 +1330,43 @@ class ReturPembelianController extends Controller
         }
 
         return 'Retur Pembelian '.$header->fstockmtno.' tidak dapat diubah atau dihapus karena sudah digunakan pada transaksi lain: '.$usedBy->implode(', ').'.';
+    }
+
+    private function validateUniqueHeaderReference($frefno, $frefpo, ?string $exceptStockMtNo = null): ?string
+    {
+        $references = collect([$frefno, $frefpo])
+            ->map(fn ($value) => trim((string) ($value ?? '')))
+            ->filter(fn ($value) => $value !== '')
+            ->unique()
+            ->values();
+
+        if ($references->isEmpty()) {
+            return null;
+        }
+
+        foreach ($references as $referenceNo) {
+            $query = DB::table('trstockmt')
+                ->where('fstockmtcode', 'REB')
+                ->where(function ($inner) use ($referenceNo) {
+                    $inner->whereRaw('TRIM(COALESCE(frefno, \'\')) = ?', [$referenceNo])
+                        ->orWhereRaw('TRIM(COALESCE(frefpo, \'\')) = ?', [$referenceNo]);
+                });
+
+            if (! empty($exceptStockMtNo)) {
+                $query->where('fstockmtno', '<>', $exceptStockMtNo);
+            }
+
+            $existing = $query
+                ->orderBy('fstockmtno')
+                ->select('fstockmtno')
+                ->first();
+
+            if ($existing) {
+                return 'Nomor referensi '.$referenceNo.' sudah pernah dibuat di transaksi nomor '.trim((string) ($existing->fstockmtno ?? '')).'.';
+            }
+        }
+
+        return null;
     }
 
     private function normalizeRandomNumber($value, array &$usedNumbers): string

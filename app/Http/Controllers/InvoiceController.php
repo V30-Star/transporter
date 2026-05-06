@@ -576,6 +576,10 @@ class InvoiceController extends Controller
             }
         }
 
+        if ($validationMessage = $this->validateUniqueReferenceTransaction($soUsageByDetailId, $srjUsageByDetailId)) {
+            return back()->withInput()->with('error', $validationMessage);
+        }
+
         if ($validationMessage = $this->validateReferenceUsage($soUsageByDetailId, $srjUsageByDetailId)) {
             return back()->withInput()->with('error', $validationMessage);
         }
@@ -852,6 +856,63 @@ class InvoiceController extends Controller
                     $refno = trim((string) ($detail->refno ?? ''));
                     return 'Qty referensi SRJ untuk item '.$label.($refno !== '' ? ' pada '.$refno : '').' melebihi qty yang masih tersedia.';
                 }
+            }
+        }
+
+        return null;
+    }
+
+    private function validateUniqueReferenceTransaction(array $soUsageByDetailId, array $srjUsageByDetailId, ?string $exceptFsono = null): ?string
+    {
+        $soIds = array_values(array_filter(array_map('intval', array_keys($soUsageByDetailId))));
+        if (! empty($soIds)) {
+            $query = DB::table('trandt as d')
+                ->join('tranmt as h', 'h.fsono', '=', 'd.fsono')
+                ->leftJoin('trsodt as so_d', 'so_d.ftrsodtid', '=', 'd.frefsoid')
+                ->leftJoin('trsomt as so_h', 'so_h.fsono', '=', 'so_d.fsono')
+                ->where('h.fsono', 'like', 'INV.%')
+                ->whereIn('d.frefsoid', $soIds);
+
+            if (! empty($exceptFsono)) {
+                $query->where('h.fsono', '<>', $exceptFsono);
+            }
+
+            $existing = $query
+                ->orderBy('h.fsono')
+                ->select(
+                    'h.fsono as transaction_no',
+                    DB::raw("COALESCE(NULLIF(TRIM(so_h.fsono), ''), NULLIF(TRIM(d.frefso), '')) as ref_no")
+                )
+                ->first();
+
+            if ($existing) {
+                return 'Nomor referensi '.trim((string) ($existing->ref_no ?? '')).' sudah pernah dibuat di transaksi nomor '.trim((string) ($existing->transaction_no ?? '')).'.';
+            }
+        }
+
+        $srjIds = array_values(array_filter(array_map('intval', array_keys($srjUsageByDetailId))));
+        if (! empty($srjIds)) {
+            $query = DB::table('trandt as d')
+                ->join('tranmt as h', 'h.fsono', '=', 'd.fsono')
+                ->leftJoin('trstockdt as sj_d', 'sj_d.fstockdtid', '=', 'd.frefsrjid')
+                ->leftJoin('trstockmt as sj_h', 'sj_h.fstockmtno', '=', 'sj_d.fstockmtno')
+                ->where('h.fsono', 'like', 'INV.%')
+                ->whereIn('d.frefsrjid', $srjIds);
+
+            if (! empty($exceptFsono)) {
+                $query->where('h.fsono', '<>', $exceptFsono);
+            }
+
+            $existing = $query
+                ->orderBy('h.fsono')
+                ->select(
+                    'h.fsono as transaction_no',
+                    DB::raw("COALESCE(NULLIF(TRIM(sj_h.fstockmtno), ''), NULLIF(TRIM(d.frefsrj), '')) as ref_no")
+                )
+                ->first();
+
+            if ($existing) {
+                return 'Nomor referensi '.trim((string) ($existing->ref_no ?? '')).' sudah pernah dibuat di transaksi nomor '.trim((string) ($existing->transaction_no ?? '')).'.';
             }
         }
 
@@ -1339,6 +1400,14 @@ class InvoiceController extends Controller
             if ($srjDetailId > 0) {
                 $srjUsageByDetailId[$srjDetailId] = ($srjUsageByDetailId[$srjDetailId] ?? 0) + $qtyKecil;
             }
+        }
+
+        if ($validationMessage = $this->validateUniqueReferenceTransaction(
+            $soUsageByDetailId,
+            $srjUsageByDetailId,
+            $header->fsono
+        )) {
+            return back()->withInput()->with('error', $validationMessage);
         }
 
         if ($validationMessage = $this->validateReferenceUsage(
