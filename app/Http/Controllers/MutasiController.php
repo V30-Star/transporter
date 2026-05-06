@@ -503,6 +503,10 @@ class MutasiController extends Controller
                 return back()->withInput()->withErrors(['fitemcode' => 'Tidak ada baris item valid.']);
             }
 
+            if ($validationMessage = $this->validateUniqueReferenceUsage($rowsDt)) {
+                return back()->withInput()->withErrors(['detail' => $validationMessage]);
+            }
+
             // =========================
             // TAHAP 4: PERSIAPAN HEADER
             // =========================
@@ -946,6 +950,10 @@ class MutasiController extends Controller
                 return back()->withInput()->withErrors(['fitemcode' => 'Tidak ada baris item valid.']);
             }
 
+            if ($validationMessage = $this->validateUniqueReferenceUsage($rowsDt, $header->fstockmtno)) {
+                return back()->withInput()->withErrors(['detail' => $validationMessage]);
+            }
+
             // =========================
             // 4) TAHAP UPDATE DB
             // =========================
@@ -1180,6 +1188,76 @@ class MutasiController extends Controller
         }
 
         return 'Mutasi Stock '.$header->fstockmtno.' tidak dapat diubah atau dihapus karena sudah digunakan pada transaksi lain: '.$usedBy->implode(', ').'.';
+    }
+
+    private function validateUniqueReferenceUsage(array $rowsDt, ?string $exceptStockMtNo = null): ?string
+    {
+        $soDetailIds = collect($rowsDt)
+            ->pluck('frefsoid')
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn ($id) => $id > 0)
+            ->unique()
+            ->values()
+            ->all();
+
+        if (! empty($soDetailIds)) {
+            $query = DB::table('trstockdt as d')
+                ->join('trstockmt as h', 'h.fstockmtno', '=', 'd.fstockmtno')
+                ->leftJoin('trsodt as so_d', 'so_d.ftrsodtid', '=', 'd.frefsoid')
+                ->leftJoin('trsomt as so_h', 'so_h.fsono', '=', 'so_d.fsono')
+                ->where('h.fstockmtcode', 'MUT')
+                ->whereIn('d.frefsoid', $soDetailIds);
+
+            if (! empty($exceptStockMtNo)) {
+                $query->where('h.fstockmtno', '<>', $exceptStockMtNo);
+            }
+
+            $existing = $query
+                ->orderBy('h.fstockmtno')
+                ->select(
+                    'h.fstockmtno as transaction_no',
+                    DB::raw("COALESCE(NULLIF(TRIM(so_h.fsono), ''), NULLIF(TRIM(d.frefso), '')) as ref_no")
+                )
+                ->first();
+
+            if ($existing) {
+                return 'Nomor referensi '.trim((string) ($existing->ref_no ?? '')).' sudah pernah dibuat di transaksi nomor '.trim((string) ($existing->transaction_no ?? '')).'.';
+            }
+        }
+
+        $referenceNos = collect($rowsDt)
+            ->pluck('frefdtno')
+            ->map(fn ($value) => trim((string) ($value ?? '')))
+            ->filter(fn ($value) => $value !== '' && $value !== '0')
+            ->unique()
+            ->values()
+            ->all();
+
+        if (empty($referenceNos)) {
+            return null;
+        }
+
+        foreach ($referenceNos as $referenceNo) {
+            $query = DB::table('trstockdt as d')
+                ->join('trstockmt as h', 'h.fstockmtno', '=', 'd.fstockmtno')
+                ->where('h.fstockmtcode', 'MUT')
+                ->whereRaw('TRIM(COALESCE(d.frefdtno, \'\')) = ?', [$referenceNo]);
+
+            if (! empty($exceptStockMtNo)) {
+                $query->where('h.fstockmtno', '<>', $exceptStockMtNo);
+            }
+
+            $existing = $query
+                ->orderBy('h.fstockmtno')
+                ->select('h.fstockmtno as transaction_no')
+                ->first();
+
+            if ($existing) {
+                return 'Nomor referensi '.$referenceNo.' sudah pernah dibuat di transaksi nomor '.trim((string) ($existing->transaction_no ?? '')).'.';
+            }
+        }
+
+        return null;
     }
 
     private function normalizeRandomNumber($value, array &$usedNumbers): string

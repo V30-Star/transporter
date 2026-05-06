@@ -500,6 +500,12 @@ class JurnalTransaksiController extends Controller
         }
 
         // ── Validasi balance debit = kredit ──
+        if ($validationMessage = $this->validateUniqueJournalReferenceUsage($rowsDt)) {
+            return back()->withInput()->withErrors([
+                'detail' => $validationMessage,
+            ]);
+        }
+
         if (round($totalDebit, 2) !== round($totalKredit, 2)) {
             return back()->withInput()->withErrors([
                 'detail' => sprintf(
@@ -1210,6 +1216,42 @@ class JurnalTransaksiController extends Controller
             // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
             return redirect()->route('jurnaltransaksi.delete', $fstockmtid)->with('error', 'Gagal menghapus data: '.$e->getMessage());
         }
+    }
+
+    private function validateUniqueJournalReferenceUsage(array $rowsDt, ?string $exceptJurnalNo = null): ?string
+    {
+        $referenceNos = collect($rowsDt)
+            ->pluck('frefno')
+            ->map(fn ($value) => trim((string) ($value ?? '')))
+            ->filter(fn ($value) => $value !== '')
+            ->unique()
+            ->values()
+            ->all();
+
+        if (empty($referenceNos)) {
+            return null;
+        }
+
+        foreach ($referenceNos as $referenceNo) {
+            $query = DB::table('jurnaldt as d')
+                ->join('jurnalmt as h', 'h.fjurnalmtid', '=', 'd.fjurnalmtid')
+                ->whereRaw('TRIM(COALESCE(d.frefno, \'\')) = ?', [$referenceNo]);
+
+            if (! empty($exceptJurnalNo)) {
+                $query->where('h.fjurnalno', '<>', $exceptJurnalNo);
+            }
+
+            $existing = $query
+                ->orderBy('h.fjurnalno')
+                ->select('h.fjurnalno as transaction_no')
+                ->first();
+
+            if ($existing) {
+                return 'Nomor referensi '.$referenceNo.' sudah pernah dibuat di transaksi nomor '.trim((string) ($existing->transaction_no ?? '')).'.';
+            }
+        }
+
+        return null;
     }
 
     private function normalizeRandomNumber($value, array &$usedNumbers): string
