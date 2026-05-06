@@ -370,6 +370,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/salesorder', [SalesOrderController::class, 'index'])->name('salesorder.index');
         Route::post('/salesorder', [SalesOrderController::class, 'store'])->name('salesorder.store');
         Route::get('/salesorder/create', [SalesOrderController::class, 'create'])->name('salesorder.create');
+        Route::post('/salesorder/credit-check', [SalesOrderController::class, 'creditCheck'])->name('salesorder.credit-check');
         Route::get('/salesorder/{ftrsomtid}/view', [SalesOrderController::class, 'view'])->name('salesorder.view');
         Route::get('/salesorder/{ftrsomtid}/edit', [SalesOrderController::class, 'edit'])->name('salesorder.edit');
         Route::get('/salesorder/{ftrsomtid}/delete', [SalesOrderController::class, 'delete'])->name('salesorder.delete');
@@ -400,6 +401,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/invoice', [InvoiceController::class, 'index'])->name('invoice.index');
         Route::post('/invoice', [InvoiceController::class, 'store'])->name('invoice.store');
         Route::get('/invoice/create', [InvoiceController::class, 'create'])->name('invoice.create');
+        Route::post('/invoice/credit-check', [InvoiceController::class, 'creditCheck'])->name('invoice.credit-check');
         Route::get('/invoice/{ftranmtid}/view', [InvoiceController::class, 'view'])->name('invoice.view');
         Route::get('/invoice/{ftranmtid}/edit', [InvoiceController::class, 'edit'])->name('invoice.edit');
         Route::get('/invoice/{ftranmtid}/delete', [InvoiceController::class, 'delete'])->name('invoice.delete');

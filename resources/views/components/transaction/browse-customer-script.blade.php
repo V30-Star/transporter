@@ -128,14 +128,6 @@
                             fontSize: '14px'
                         });
 
-                        const $filter = $container.find('.dataTables_filter, .dt-search');
-                        const $length = $container.find('.dataTables_length, .dt-length');
-                        const controls = document.getElementById(@js($controlsId));
-                        if (controls) {
-                            controls.innerHTML = '';
-                            if ($filter.length) $filter.appendTo(controls);
-                            if ($length.length) $length.appendTo(controls);
-                        }
                     }
                 });
 
@@ -193,6 +185,7 @@
                     opt.text = label;
                     opt.selected = true;
                 }
+                opt.dataset.fkodefp = customer.fkodefp || '';
 
                 sel.value = customer.fcustomercode;
                 if (hid) hid.value = customer.fcustomercode;
@@ -201,7 +194,8 @@
                     detail: {
                         f1: customer.fkirimaddress1 || '',
                         f2: customer.fkirimaddress2 || '',
-                        f3: customer.fkirimaddress3 || ''
+                        f3: customer.fkirimaddress3 || '',
+                        fkodefp: customer.fkodefp || ''
                     }
                 }));
 

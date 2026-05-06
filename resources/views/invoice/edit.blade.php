@@ -685,14 +685,18 @@
                     {{-- MODE EDIT: FORM EDITABLE                    --}}
                     {{-- ============================================ --}}
                 @else
-                    <form action="{{ route('invoice.update', parameters: $invoice->ftranmtid) }}" method="POST"
-                        class="mt-6" x-data="{ showNoItems: false }"
+                    <form id="invoiceForm" action="{{ route('invoice.update', parameters: $invoice->ftranmtid) }}" method="POST"
+                        class="mt-6" data-tranmtid="{{ $invoice->ftranmtid }}" x-data="{ showNoItems: false }"
                         @submit.prevent="
         const n = Number(document.getElementById('itemsCount')?.value || 0);
-        if (n < 1) { showNoItems = true } else { $el.submit() }
+        if (n < 1) { showNoItems = true } else { window.invoiceCreditApprovalGuard($el).then(ok => { if (ok) $el.submit() }) }
       ">
                         @csrf
                         @method('PATCH')
+                        <input type="hidden" name="fneedacc" id="invoiceNeedAcc"
+                            value="{{ old('fneedacc', $invoice->fneedacc ?? '0') }}">
+                        <input type="hidden" name="fuseracc" id="invoiceUserAcc"
+                            value="{{ old('fuseracc', $invoice->fuseracc ?? '') }}">
 
                         {{-- HEADER FORM --}}
                         <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
@@ -767,6 +771,7 @@
                                             <option value=""></option>
                                             @foreach ($customers as $customer)
                                                 <option value="{{ $customer->fcustomercode }}"
+                                                    data-fkodefp="{{ $customer->fkodefp }}"
                                                     {{ old('fcustno', $invoice->fcustno) == $customer->fcustomercode ? 'selected' : '' }}>
                                                     {{ $customer->fcustomername }} ({{ $customer->fcustomercode }})
                                                 </option>
@@ -791,6 +796,17 @@
                                     </a>
                                 </div>
                                 @error('fcustno')
+                                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div class="lg:col-span-4">
+                                <label class="block text-sm font-medium">Kode FP</label>
+                                <input type="text" name="fkodefp" id="invoiceFkodefp"
+                                    value="{{ old('fkodefp', $invoice->fkodefp ?? optional($invoice->customer)->fkodefp) }}"
+                                    readonly
+                                    class="w-full border rounded px-3 py-2 bg-gray-100 @error('fkodefp') border-red-500 @enderror">
+                                @error('fkodefp')
                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                 @enderror
                             </div>
@@ -1763,6 +1779,179 @@
             }
         };
     }
+
+    window.INVOICE_CUSTOMER_FP_MAP = @json(collect($customers)->mapWithKeys(fn ($customer) => [
+        (string) $customer->fcustomercode => (string) ($customer->fkodefp ?? ''),
+    ]));
+
+    window.syncInvoiceCustomerTaxCode = function(explicitValue = null) {
+        const kodeFpInput = document.getElementById('invoiceFkodefp');
+        if (!kodeFpInput) {
+            return;
+        }
+
+        if (explicitValue !== null) {
+            kodeFpInput.value = explicitValue || '';
+            return;
+        }
+
+        const select = document.getElementById('modal_filter_customer_id');
+        const hidden = document.getElementById('customerCodeHidden');
+        const customerCode = hidden?.value?.trim() || select?.value?.trim() || '';
+        const selectedOption = select?.selectedOptions?.[0];
+        const optionValue = selectedOption?.dataset?.fkodefp || '';
+        const mappedValue = customerCode ? (window.INVOICE_CUSTOMER_FP_MAP?.[customerCode] || '') : '';
+
+        kodeFpInput.value = optionValue || mappedValue || '';
+    };
+
+    document.addEventListener('customer-selected', function(event) {
+        window.syncInvoiceCustomerTaxCode(event.detail?.fkodefp || '');
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const select = document.getElementById('modal_filter_customer_id');
+        if (select) {
+            select.addEventListener('change', function() {
+                window.syncInvoiceCustomerTaxCode();
+            });
+        }
+
+        window.syncInvoiceCustomerTaxCode();
+    });
+
+    window.invoiceCreditApprovalGuard = async function(form) {
+        const customerCode = form.querySelector('[name="fcustno"]')?.value?.trim() || '';
+        const amountValue = parseFloat(form.querySelector('[name="famountso"]')?.value || '0') || 0;
+        const tranmtId = form.dataset.tranmtid || '';
+        const needAccInput = form.querySelector('#invoiceNeedAcc');
+        const userAccInput = form.querySelector('#invoiceUserAcc');
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+        if (needAccInput) needAccInput.value = '0';
+        if (userAccInput) userAccInput.value = '';
+
+        if (!customerCode) {
+            return true;
+        }
+
+        try {
+            const response = await fetch('{{ route('invoice.credit-check') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: JSON.stringify({
+                    fcustno: customerCode,
+                    famountso: amountValue,
+                    ftranmtid: tranmtId || null
+                })
+            });
+
+            const payload = await response.json();
+            if (!response.ok) {
+                const message = payload?.message || Object.values(payload?.errors || {}).flat().join('\n') || 'Gagal cek limit customer.';
+                await Swal.fire({
+                    icon: 'error',
+                    title: 'Cek Customer Gagal',
+                    text: message
+                });
+                return false;
+            }
+
+            const checks = payload.checks || {};
+            const limitCheck = checks.limit_check || {};
+            const overdueCheck = checks.overdue_check || {};
+            const canApprove = !!payload.can_approve;
+            const currentUser = payload.current_user || '';
+
+            if (limitCheck.enabled && limitCheck.exceeded) {
+                const confirmed = await Swal.fire({
+                    icon: 'warning',
+                    title: 'Limit Piutang Terlampaui',
+                    html: `
+                        <div class="text-left text-sm">
+                            <div>Total piutang berjalan: <strong>${Number(limitCheck.outstanding_total || 0).toLocaleString('id-ID')}</strong></div>
+                            <div>Nilai transaksi ini: <strong>${Number(limitCheck.transaction_amount || 0).toLocaleString('id-ID')}</strong></div>
+                            <div>Limit customer: <strong>${Number(limitCheck.limit || 0).toLocaleString('id-ID')}</strong></div>
+                            <div>Total setelah transaksi: <strong>${Number(limitCheck.projected_total || 0).toLocaleString('id-ID')}</strong></div>
+                            <div class="mt-3">Transaksi ini butuh ACC. Lanjutkan?</div>
+                        </div>
+                    `,
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes',
+                    cancelButtonText: 'No'
+                });
+
+                if (!confirmed.isConfirmed) {
+                    if (userAccInput) userAccInput.value = '';
+                    return false;
+                }
+
+                if (!canApprove) {
+                    await Swal.fire({
+                        icon: 'error',
+                        title: 'ACC Ditolak',
+                        text: 'User login tidak punya wewenang ACC untuk limit piutang.'
+                    });
+                    return false;
+                }
+
+                if (needAccInput) needAccInput.value = '1';
+                if (userAccInput) userAccInput.value = currentUser;
+                return true;
+            }
+
+            if (overdueCheck.enabled && overdueCheck.has_overdue) {
+                const overdueHtml = (overdueCheck.items || []).slice(0, 5).map((item) => `
+                    <li>${item.fsono} - JT ${item.fjatuhtempo ?? '-'} - Sisa ${Number(item.famountremain || 0).toLocaleString('id-ID')}</li>
+                `).join('');
+
+                const confirmed = await Swal.fire({
+                    icon: 'warning',
+                    title: 'Ada Nota Lewat Jatuh Tempo',
+                    html: `
+                        <div class="text-left text-sm">
+                            <div>Customer punya nota yang lewat jatuh tempo lebih dari <strong>${overdueCheck.max_tempo || 0}</strong> hari.</div>
+                            <ul class="mt-3 list-disc pl-5">${overdueHtml}</ul>
+                            <div class="mt-3">Transaksi ini butuh ACC. Lanjutkan?</div>
+                        </div>
+                    `,
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes',
+                    cancelButtonText: 'No'
+                });
+
+                if (!confirmed.isConfirmed) {
+                    if (userAccInput) userAccInput.value = '';
+                    return false;
+                }
+
+                if (!canApprove) {
+                    await Swal.fire({
+                        icon: 'error',
+                        title: 'ACC Ditolak',
+                        text: 'User login tidak punya wewenang ACC untuk nota lewat jatuh tempo.'
+                    });
+                    return false;
+                }
+
+                if (needAccInput) needAccInput.value = '1';
+                if (userAccInput) userAccInput.value = currentUser;
+            }
+
+            return true;
+        } catch (error) {
+            await Swal.fire({
+                icon: 'error',
+                title: 'Cek Customer Gagal',
+                text: 'Terjadi kesalahan saat mengecek limit piutang customer.'
+            });
+            return false;
+        }
+    };
 
     // Map produk untuk auto-fill tabel
     window.PRODUCT_MAP = {

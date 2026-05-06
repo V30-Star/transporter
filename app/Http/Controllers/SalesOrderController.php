@@ -11,9 +11,155 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class SalesOrderController extends Controller
 {
+    private function canApproveCreditLimit(): bool
+    {
+        return in_array('approvalpr', explode(',', session('user_restricted_permissions', '')));
+    }
+
+    private function getCustomerCreditChecks(string $customerCode, float $currentTransactionAmount = 0): array
+    {
+        $customerCode = trim($customerCode);
+        $customer = Customer::query()
+            ->where('fcustomercode', $customerCode)
+            ->first(['fcustomercode', 'fcustomername', 'flimit', 'fmaxtempo']);
+
+        if (! $customer) {
+            return [
+                'customer' => null,
+                'limit_check' => [
+                    'enabled' => false,
+                    'exceeded' => false,
+                    'limit' => 0,
+                    'outstanding_total' => 0,
+                    'transaction_amount' => $currentTransactionAmount,
+                    'projected_total' => 0,
+                ],
+                'overdue_check' => [
+                    'enabled' => false,
+                    'has_overdue' => false,
+                    'max_tempo' => 0,
+                    'items' => [],
+                ],
+            ];
+        }
+
+        $outstandingTotal = (float) DB::table('tranmt')
+            ->where('fcustno', $customerCode)
+            ->whereRaw('COALESCE(famountremain, 0) > 0')
+            ->sum('famountremain');
+
+        $transactionAmount = max(0, $currentTransactionAmount);
+        $projectedTotal = $outstandingTotal + $transactionAmount;
+        $limit = (float) ($customer->flimit ?? 0);
+        $maxTempo = (int) ($customer->fmaxtempo ?? 0);
+
+        $overdueItems = collect();
+        if ($maxTempo > 0) {
+            $overdueItems = DB::table('tranmt')
+                ->where('fcustno', $customerCode)
+                ->whereRaw('COALESCE(famountremain, 0) > 0')
+                ->whereNotNull('fjatuhtempo')
+                ->whereRaw('CAST(NOW() AS DATE) - CAST(fjatuhtempo AS DATE) > ?', [$maxTempo])
+                ->orderBy('fjatuhtempo')
+                ->limit(10)
+                ->get([
+                    'ftranmtid',
+                    'fsono',
+                    'fjatuhtempo',
+                    'famountremain',
+                ]);
+        }
+
+        return [
+            'customer' => [
+                'code' => $customer->fcustomercode,
+                'name' => $customer->fcustomername,
+            ],
+            'limit_check' => [
+                'enabled' => $limit > 0,
+                'exceeded' => $limit > 0 && $projectedTotal > $limit,
+                'limit' => $limit,
+                'outstanding_total' => $outstandingTotal,
+                'transaction_amount' => $transactionAmount,
+                'projected_total' => $projectedTotal,
+            ],
+            'overdue_check' => [
+                'enabled' => $maxTempo > 0,
+                'has_overdue' => $overdueItems->isNotEmpty(),
+                'max_tempo' => $maxTempo,
+                'items' => $overdueItems->map(fn ($row) => [
+                    'ftranmtid' => (int) ($row->ftranmtid ?? 0),
+                    'fsono' => (string) ($row->fsono ?? ''),
+                    'fjatuhtempo' => ! empty($row->fjatuhtempo)
+                        ? Carbon::parse($row->fjatuhtempo)->format('Y-m-d')
+                        : null,
+                    'famountremain' => (float) ($row->famountremain ?? 0),
+                ])->values()->all(),
+            ],
+        ];
+    }
+
+    private function resolveSalesOrderCreditApproval(Request $request, float $grandTotal): array
+    {
+        $checks = $this->getCustomerCreditChecks(
+            (string) $request->input('fcustno', ''),
+            $grandTotal
+        );
+
+        $needsApproval = (bool) ($checks['limit_check']['exceeded'] ?? false)
+            || (bool) ($checks['overdue_check']['has_overdue'] ?? false);
+
+        if (! $needsApproval) {
+            return [
+                'fneedacc' => '0',
+                'fuseracc' => null,
+                'checks' => $checks,
+            ];
+        }
+
+        if (! $this->canApproveCreditLimit()) {
+            throw ValidationException::withMessages([
+                'fcustno' => 'Sales Order customer ini melebihi batas piutang atau memiliki nota jatuh tempo. User tidak punya wewenang ACC.',
+            ]);
+        }
+
+        $approvedBy = trim((string) $request->input('fuseracc', ''));
+        if ($approvedBy === '') {
+            throw ValidationException::withMessages([
+                'fcustno' => 'Sales Order customer ini membutuhkan ACC. Silakan pilih Yes pada konfirmasi untuk melanjutkan.',
+            ]);
+        }
+
+        return [
+            'fneedacc' => '1',
+            'fuseracc' => mb_substr($approvedBy, 0, 30),
+            'checks' => $checks,
+        ];
+    }
+
+    public function creditCheck(Request $request)
+    {
+        $validated = $request->validate([
+            'fcustno' => ['required', 'string', 'max:20'],
+            'famountso' => ['nullable', 'numeric', 'min:0'],
+        ]);
+
+        $checks = $this->getCustomerCreditChecks(
+            (string) $validated['fcustno'],
+            (float) ($validated['famountso'] ?? 0)
+        );
+
+        return response()->json([
+            'can_approve' => $this->canApproveCreditLimit(),
+            'current_user' => auth('sysuser')->user()->fname ?? auth()->user()->name ?? 'system',
+            'checks' => $checks,
+        ]);
+    }
+
     public function index(Request $request)
     {
         $canCreate = in_array('createTr_poh', explode(',', session('user_restricted_permissions', '')));
@@ -196,7 +342,7 @@ class SalesOrderController extends Controller
             ->select([
                 'trsodt.ftrsodtid as frefdtno',
                 'trsodt.fsono as fnouref',
-                DB::raw("COALESCE(trsodt.frefnoacak::text, trsodt.fnoacak::text, '') as frefnoacak"),
+                DB::raw("COALESCE(trsodt.frefnosoacak::text, trsodt.fnoacak::text, '') as frefnoacak"),
                 'trsodt.fprdcode as fitemcode',
                 'm.fprdname as fitemname',
                 'trsodt.fsatuan',
@@ -507,7 +653,7 @@ class SalesOrderController extends Controller
                 'fprdcodeid' => $itemeId,
                 'fprdcode' => mb_substr($itemCode, 0, 20),
                 'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
-                'frefnoacak' => $this->normalizeReferenceRandomNumber($frefnoacaks[$i] ?? null),
+                'frefnosoacak' => $this->normalizeReferenceRandomNumber($frefnoacaks[$i] ?? null),
                 'fsatuan' => mb_substr($satuan, 0, 20),
                 'fdesc' => $descs[$i] ?? '',
                 'fqty' => $qty,
@@ -525,6 +671,7 @@ class SalesOrderController extends Controller
         $fppnpersen = $fppn === '1' ? (float) $request->input('fppnpersen', 11) : 0;
         $ppnAmount = $amountNet * ($fppnpersen / 100);
         $grandTotal = $amountNet + $ppnAmount;
+        $creditApproval = $this->resolveSalesOrderCreditApproval($request, $grandTotal);
 
         // TRANSACTION
         try {
@@ -540,7 +687,8 @@ class SalesOrderController extends Controller
                 $totalGross,
                 $totalDisc,
                 $amountNet,
-                $ppnAmount
+                $ppnAmount,
+                $creditApproval
 
             ) {
                 // A. Generate fsono (Auto Numbering)
@@ -600,6 +748,8 @@ class SalesOrderController extends Controller
                     'fclose' => '0',
                     'fprint' => 0,
                     'fketinternal' => mb_substr($request->input('fketinternal', ''), 0, 300),
+                    'fneedacc' => $creditApproval['fneedacc'],
+                    'fuseracc' => $creditApproval['fuseracc'],
                 ], 'ftrsomtid');
 
                 // D. Insert Details
@@ -1035,7 +1185,7 @@ class SalesOrderController extends Controller
                 'fprdcodeid' => ! empty($itemeId) && is_numeric($itemeId) ? (int) $itemeId : null,
                 'fprdcode' => $itemCode,
                 'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
-                'frefnoacak' => $this->normalizeReferenceRandomNumber($frefnoacaks[$i] ?? null),
+                'frefnosoacak' => $this->normalizeReferenceRandomNumber($frefnoacaks[$i] ?? null),
                 'fsatuan' => mb_substr($satuan, 0, 20),
                 'fdesc' => $desc,
                 'fqty' => $qty,
@@ -1068,6 +1218,7 @@ class SalesOrderController extends Controller
             $fppnpersen = 0;
             $grandTotal = $amountNet;
         }
+        $creditApproval = $this->resolveSalesOrderCreditApproval($request, $grandTotal);
 
         // 7. TRANSACTION
         DB::transaction(function () use (
@@ -1086,7 +1237,8 @@ class SalesOrderController extends Controller
             $grandTotal,
             $ppnAmount,
             $fapplyppn,
-            $fppnpersen
+            $fppnpersen,
+            $creditApproval
         ) {
             // Update Header
             DB::table('trsomt')->where('ftrsomtid', $ftrsomtid)->update([
@@ -1110,6 +1262,8 @@ class SalesOrderController extends Controller
                 'famountsonet' => round($amountNet, 2),
                 'famountpajak' => round($ppnAmount, 2),
                 'famountso' => round($grandTotal, 2),
+                'fneedacc' => $creditApproval['fneedacc'],
+                'fuseracc' => $creditApproval['fuseracc'],
             ]);
 
             // Delete old details and insert new ones

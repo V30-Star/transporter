@@ -719,7 +719,7 @@
                             {{-- MODE EDIT: FORM EDITABLE                    --}}
                             {{-- ============================================ --}}
                         @else
-                            <form action="{{ route('salesorder.update', $salesorder->ftrsomtid) }}" method="POST"
+                            <form id="salesOrderForm" action="{{ route('salesorder.update', $salesorder->ftrsomtid) }}" method="POST"
                                 class="mt-6"
                                 @submit.prevent="
         const n = Number($el.querySelector('input[name=itemsCount]')?.value || 0);
@@ -734,11 +734,15 @@
                 }
             });
         } else { 
-            $el.submit();
+            window.salesOrderCreditApprovalGuard($el).then(ok => { if (ok) $el.submit() });
         }
       ">
                                 @csrf
                                 @method('PATCH')
+                                <input type="hidden" name="fneedacc" id="salesOrderNeedAcc"
+                                    value="{{ old('fneedacc', $salesorder->fneedacc ?? '0') }}">
+                                <input type="hidden" name="fuseracc" id="salesOrderUserAcc"
+                                    value="{{ old('fuseracc', $salesorder->fuseracc ?? '') }}">
 
                                 {{-- HEADER FORM --}}
                                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
@@ -2091,6 +2095,139 @@
             if (sel) sel.innerHTML = '';
         }
     }
+</script>
+
+<script>
+    window.salesOrderCreditApprovalGuard = async function(form) {
+        const customerCode = form.querySelector('[name="fcustno"]')?.value?.trim() || '';
+        const amountValue = parseFloat(form.querySelector('[name="famountso"]')?.value || '0') || 0;
+        const needAccInput = form.querySelector('#salesOrderNeedAcc');
+        const userAccInput = form.querySelector('#salesOrderUserAcc');
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+        if (needAccInput) needAccInput.value = '0';
+        if (userAccInput) userAccInput.value = '';
+
+        if (!customerCode) {
+            return true;
+        }
+
+        try {
+            const response = await fetch('{{ route('salesorder.credit-check') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: JSON.stringify({
+                    fcustno: customerCode,
+                    famountso: amountValue
+                })
+            });
+
+            const payload = await response.json();
+            if (!response.ok) {
+                const message = payload?.message || Object.values(payload?.errors || {}).flat().join('\n') || 'Gagal cek limit customer.';
+                await Swal.fire({
+                    icon: 'error',
+                    title: 'Cek Customer Gagal',
+                    text: message
+                });
+                return false;
+            }
+
+            const checks = payload.checks || {};
+            const limitCheck = checks.limit_check || {};
+            const overdueCheck = checks.overdue_check || {};
+            const canApprove = !!payload.can_approve;
+            const currentUser = payload.current_user || '';
+
+            if (limitCheck.enabled && limitCheck.exceeded) {
+                const confirmed = await Swal.fire({
+                    icon: 'warning',
+                    title: 'Limit Piutang Terlampaui',
+                    html: `
+                        <div class="text-left text-sm">
+                            <div>Total piutang berjalan: <strong>${Number(limitCheck.outstanding_total || 0).toLocaleString('id-ID')}</strong></div>
+                            <div>Nilai transaksi ini: <strong>${Number(limitCheck.transaction_amount || 0).toLocaleString('id-ID')}</strong></div>
+                            <div>Limit customer: <strong>${Number(limitCheck.limit || 0).toLocaleString('id-ID')}</strong></div>
+                            <div>Total setelah transaksi: <strong>${Number(limitCheck.projected_total || 0).toLocaleString('id-ID')}</strong></div>
+                            <div class="mt-3">Sales Order ini butuh ACC. Lanjutkan?</div>
+                        </div>
+                    `,
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes',
+                    cancelButtonText: 'No'
+                });
+
+                if (!confirmed.isConfirmed) {
+                    if (userAccInput) userAccInput.value = '';
+                    return false;
+                }
+
+                if (!canApprove) {
+                    await Swal.fire({
+                        icon: 'error',
+                        title: 'ACC Ditolak',
+                        text: 'User login tidak punya wewenang ACC untuk limit piutang.'
+                    });
+                    return false;
+                }
+
+                if (needAccInput) needAccInput.value = '1';
+                if (userAccInput) userAccInput.value = currentUser;
+                return true;
+            }
+
+            if (overdueCheck.enabled && overdueCheck.has_overdue) {
+                const overdueHtml = (overdueCheck.items || []).slice(0, 5).map((item) => `
+                    <li>${item.fsono} - JT ${item.fjatuhtempo ?? '-'} - Sisa ${Number(item.famountremain || 0).toLocaleString('id-ID')}</li>
+                `).join('');
+
+                const confirmed = await Swal.fire({
+                    icon: 'warning',
+                    title: 'Ada Nota Lewat Jatuh Tempo',
+                    html: `
+                        <div class="text-left text-sm">
+                            <div>Customer punya nota yang lewat jatuh tempo lebih dari <strong>${overdueCheck.max_tempo || 0}</strong> hari.</div>
+                            <ul class="mt-3 list-disc pl-5">${overdueHtml}</ul>
+                            <div class="mt-3">Sales Order ini butuh ACC. Lanjutkan?</div>
+                        </div>
+                    `,
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes',
+                    cancelButtonText: 'No'
+                });
+
+                if (!confirmed.isConfirmed) {
+                    if (userAccInput) userAccInput.value = '';
+                    return false;
+                }
+
+                if (!canApprove) {
+                    await Swal.fire({
+                        icon: 'error',
+                        title: 'ACC Ditolak',
+                        text: 'User login tidak punya wewenang ACC untuk nota lewat jatuh tempo.'
+                    });
+                    return false;
+                }
+
+                if (needAccInput) needAccInput.value = '1';
+                if (userAccInput) userAccInput.value = currentUser;
+            }
+
+            return true;
+        } catch (error) {
+            await Swal.fire({
+                icon: 'error',
+                title: 'Cek Customer Gagal',
+                text: 'Terjadi kesalahan saat mengecek limit piutang customer.'
+            });
+            return false;
+        }
+    };
 </script>
 
 @include('components.transaction.salesorder-pr-modal-script')
