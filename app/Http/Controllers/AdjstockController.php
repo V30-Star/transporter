@@ -318,6 +318,7 @@ class AdjstockController extends Controller
     public function store(Request $request)
     {
         try {
+            $allowNegativeStockQty = (string) env('STOCKBOLEHMINUS', '0') === '1';
             // =========================
             // TAHAP 1: VALIDASI INPUT
             // =========================
@@ -334,7 +335,15 @@ class AdjstockController extends Controller
                 'fsatuan.*' => ['nullable', 'string', 'max:20'],
                 'fprdjadi' => ['nullable', 'string', 'max:20'],
                 'fqty' => ['required', 'array'],
-                'fqty.*' => ['required', 'numeric', 'min:0.01'],
+                'fqty.*' => [
+                    'required',
+                    'numeric',
+                    function ($attribute, $value, $fail) use ($allowNegativeStockQty) {
+                        if ($allowNegativeStockQty ? (float) $value == 0.0 : (float) $value <= 0) {
+                            $fail($allowNegativeStockQty ? 'Qty tidak boleh 0.' : 'Qty harus lebih besar dari 0.');
+                        }
+                    },
+                ],
                 'fprice' => ['required', 'array'],
                 'fprice.*' => ['numeric', 'min:0'],
                 'fdesc' => ['nullable', 'array'],
@@ -398,7 +407,7 @@ class AdjstockController extends Controller
                 $code = trim((string) ($codes[$i] ?? ''));
                 $qty = (float) ($qtys[$i] ?? 0);
 
-                if ($code === '' || $qty <= 0) {
+                if ($code === '' || ($allowNegativeStockQty ? abs($qty) < 0.000001 : $qty <= 0)) {
                     continue;
                 }
 
@@ -445,7 +454,11 @@ class AdjstockController extends Controller
             }
 
             if (empty($rowsDt)) {
-                return back()->withInput()->withErrors(['detail' => 'Minimal satu item valid harus diisi.']);
+                return back()->withInput()->withErrors([
+                    'detail' => $allowNegativeStockQty
+                        ? 'Minimal satu item valid harus diisi dengan qty tidak sama dengan 0.'
+                        : 'Minimal satu item valid harus diisi.',
+                ]);
             }
 
             if ($validationMessage = $this->validateUniqueReferenceUsage($rowsDt)) {
@@ -772,6 +785,7 @@ class AdjstockController extends Controller
 
     public function update(Request $request, $fstockmtid)
     {
+        $allowNegativeStockQty = (string) env('STOCKBOLEHMINUS', '0') === '1';
         // =========================
         // 1) VALIDASI INPUT
         // =========================
@@ -788,7 +802,15 @@ class AdjstockController extends Controller
             'fsatuan.*' => ['nullable', 'string', 'max:20'],
             'fprdjadi' => ['nullable', 'string'],
             'fqty' => ['required', 'array'],
-            'fqty.*' => ['required', 'numeric', 'min:0.01'], // Minimal 0.01
+            'fqty.*' => [
+                'required',
+                'numeric',
+                function ($attribute, $value, $fail) use ($allowNegativeStockQty) {
+                    if ($allowNegativeStockQty ? (float) $value == 0.0 : (float) $value <= 0) {
+                        $fail($allowNegativeStockQty ? 'Qty tidak boleh 0.' : 'Qty harus lebih besar dari 0.');
+                    }
+                },
+            ],
             'fprice' => ['required', 'array'],
             'fprice.*' => ['numeric', 'min:0'],
             'fdesc' => ['nullable', 'array'],
@@ -867,7 +889,7 @@ class AdjstockController extends Controller
             $price = (float) ($prices[$i] ?? 0);
             $desc = (string) ($descs[$i] ?? '');
 
-            if ($code === '' || $qty <= 0) {
+            if ($code === '' || ($allowNegativeStockQty ? abs($qty) < 0.000001 : $qty <= 0)) {
                 continue;
             }
 
@@ -918,7 +940,9 @@ class AdjstockController extends Controller
 
         if (empty($rowsDt)) {
             return back()->withInput()->withErrors([
-                'detail' => 'Minimal satu item valid (Kode, Satuan, Qty > 0).',
+                'detail' => $allowNegativeStockQty
+                    ? 'Minimal satu item valid (Kode, Satuan, Qty tidak boleh 0).'
+                    : 'Minimal satu item valid (Kode, Satuan, Qty > 0).',
             ]);
         }
 

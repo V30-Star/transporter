@@ -378,6 +378,7 @@ class MutasiController extends Controller
     public function store(Request $request)
     {
         try {
+            $allowNegativeStockQty = (string) env('STOCKBOLEHMINUS', '0') === '1';
             // =========================
             // TAHAP 1: VALIDASI INPUT
             // =========================
@@ -395,7 +396,15 @@ class MutasiController extends Controller
                 'fsatuan.*' => ['nullable', 'string', 'max:20'],
                 'frefno' => ['nullable', 'string', 'max:20'],
                 'fqty' => ['required', 'array'],
-                'fqty.*' => ['required', 'numeric', 'min:0.01'],
+                'fqty.*' => [
+                    'required',
+                    'numeric',
+                    function ($attribute, $value, $fail) use ($allowNegativeStockQty) {
+                        if ($allowNegativeStockQty ? (float) $value == 0.0 : (float) $value <= 0) {
+                            $fail($allowNegativeStockQty ? 'Qty tidak boleh 0.' : 'Qty harus lebih besar dari 0.');
+                        }
+                    },
+                ],
                 'fprice.*' => ['numeric', 'min:0'],
                 'fdesc' => ['nullable', 'array'],
                 'fdesc.*' => ['nullable', 'string', 'max:500'],
@@ -450,7 +459,7 @@ class MutasiController extends Controller
                 $code = trim((string) ($codes[$i] ?? ''));
                 $qty = (float) ($qtys[$i] ?? 0);
 
-                if ($code === '' || $qty <= 0) {
+                if ($code === '' || ($allowNegativeStockQty ? abs($qty) < 0.000001 : $qty <= 0)) {
                     continue;
                 }
 
@@ -810,6 +819,7 @@ class MutasiController extends Controller
     public function update(Request $request, $fstockmtid)
     {
         try {
+            $allowNegativeStockQty = (string) env('STOCKBOLEHMINUS', '0') === '1';
             // =========================
             // 1) VALIDASI (Disamakan dengan store)
             // =========================
@@ -826,7 +836,15 @@ class MutasiController extends Controller
                 'fsatuan' => ['nullable', 'array'],
                 'fsatuan.*' => ['nullable', 'string', 'max:20'],
                 'fqty' => ['required', 'array'],
-                'fqty.*' => ['required', 'numeric', 'min:0.01'],
+                'fqty.*' => [
+                    'required',
+                    'numeric',
+                    function ($attribute, $value, $fail) use ($allowNegativeStockQty) {
+                        if ($allowNegativeStockQty ? (float) $value == 0.0 : (float) $value <= 0) {
+                            $fail($allowNegativeStockQty ? 'Qty tidak boleh 0.' : 'Qty harus lebih besar dari 0.');
+                        }
+                    },
+                ],
                 'fprice.*' => ['numeric', 'min:0'],
                 'fdesc' => ['nullable', 'array'],
                 'fdesc.*' => ['nullable', 'string', 'max:500'],
@@ -891,7 +909,7 @@ class MutasiController extends Controller
                 $price = (float) ($prices[$i] ?? 0);
                 $desc = (string) ($descs[$i] ?? '');
 
-                if ($code === '' || $qty <= 0) {
+                if ($code === '' || ($allowNegativeStockQty ? abs($qty) < 0.000001 : $qty <= 0)) {
                     continue;
                 }
 

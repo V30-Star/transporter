@@ -353,6 +353,7 @@ class AssemblingController extends Controller
 
     public function store(Request $request)
     {
+        $allowNegativeStockQty = (string) env('STOCKBOLEHMINUS', '0') === '1';
         // =========================
         // 1) VALIDASI INPUT
         // =========================
@@ -370,7 +371,15 @@ class AssemblingController extends Controller
             'fsatuan.*' => ['nullable', 'string', 'max:20'],
 
             'fqty' => ['required', 'array'],
-            'fqty.*' => ['numeric', 'min:0'],
+            'fqty.*' => [
+                'required',
+                'numeric',
+                function ($attribute, $value, $fail) use ($allowNegativeStockQty) {
+                    if ($allowNegativeStockQty ? (float) $value == 0.0 : (float) $value <= 0) {
+                        $fail($allowNegativeStockQty ? 'Qty tidak boleh 0.' : 'Qty harus lebih besar dari 0.');
+                    }
+                },
+            ],
 
             'fdesc' => ['nullable', 'array'],
             'fdesc.*' => ['nullable', 'string', 'max:500'],
@@ -448,7 +457,7 @@ class AssemblingController extends Controller
             $desc = (string) ($descs[$i] ?? '');
             $itemtype = trim((string) ($itemtypes[$i] ?? '')); // AMBIL TYPE
 
-            if ($code === '' || $qty <= 0) {
+            if ($code === '' || ($allowNegativeStockQty ? abs($qty) < 0.000001 : $qty <= 0)) {
                 continue;
             }
 
@@ -513,7 +522,9 @@ class AssemblingController extends Controller
 
         if (empty($rowsDt)) {
             return back()->withInput()->withErrors([
-                'detail' => 'Minimal satu item valid (Kode, Satuan, Qty > 0).',
+                'detail' => $allowNegativeStockQty
+                    ? 'Minimal satu item valid (Kode, Satuan, Qty tidak boleh 0).'
+                    : 'Minimal satu item valid (Kode, Satuan, Qty > 0).',
             ]);
         }
 
@@ -872,6 +883,7 @@ class AssemblingController extends Controller
 
     public function update(Request $request, $fstockmtid)
     {
+        $allowNegativeStockQty = (string) env('STOCKBOLEHMINUS', '0') === '1';
         // =========================
         // 1) VALIDASI INPUT
         // =========================
@@ -885,6 +897,16 @@ class AssemblingController extends Controller
             'fitemcode.*' => ['required', 'string', 'max:50'],
             'fsatuan' => ['nullable', 'array'],
             'fsatuan.*' => ['nullable', 'string', 'max:20'],
+            'fqty' => ['required', 'array'],
+            'fqty.*' => [
+                'required',
+                'numeric',
+                function ($attribute, $value, $fail) use ($allowNegativeStockQty) {
+                    if ($allowNegativeStockQty ? (float) $value == 0.0 : (float) $value <= 0) {
+                        $fail($allowNegativeStockQty ? 'Qty tidak boleh 0.' : 'Qty harus lebih besar dari 0.');
+                    }
+                },
+            ],
             'fdesc' => ['nullable', 'array'],
             'fdesc.*' => ['nullable', 'string', 'max:500'],
             'fitemtype' => ['nullable', 'array'],
@@ -957,7 +979,7 @@ class AssemblingController extends Controller
             $desc = (string) ($descs[$i] ?? '');
             $itemtype = trim((string) ($itemtypes[$i] ?? '')); // AMBIL TYPE
 
-            if ($code === '' || $qty <= 0) {
+            if ($code === '' || ($allowNegativeStockQty ? abs($qty) < 0.000001 : $qty <= 0)) {
                 continue;
             }
 
@@ -1021,7 +1043,9 @@ class AssemblingController extends Controller
 
         if (empty($rowsDt)) {
             return back()->withInput()->withErrors([
-                'detail' => 'Minimal satu item valid (Kode, Satuan, Qty > 0).',
+                'detail' => $allowNegativeStockQty
+                    ? 'Minimal satu item valid (Kode, Satuan, Qty tidak boleh 0).'
+                    : 'Minimal satu item valid (Kode, Satuan, Qty > 0).',
             ]);
         }
 

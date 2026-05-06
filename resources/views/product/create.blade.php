@@ -691,12 +691,13 @@
                     @enderror
                 </div>
 
-                {{-- Upload Foto --}}
-                <div class="mt-4 w-1/2">
-                    <label class="block text-sm font-medium">Upload Foto Design (2 Foto)</label>
+                @if (!empty($enabledImageNumbers))
+                    {{-- Upload Foto --}}
+                    <div class="mt-4 w-1/2">
+                        <label class="block text-sm font-medium">Upload Foto Design ({{ count($enabledImageNumbers) }} Foto)</label>
 
-                    <div class="space-y-4">
-                        @foreach ([1, 2] as $imgNo)
+                        <div class="space-y-4">
+                            @foreach ($enabledImageNumbers as $imgNo)
                             <div>
                                 <label class="block text-xs font-semibold text-gray-600 mb-1">Foto {{ $imgNo }}</label>
                                 <div class="flex items-center gap-4">
@@ -725,15 +726,16 @@
                                         onclick="openModal({{ $imgNo }})">
                                 </div>
                             </div>
-                        @endforeach
-                    </div>
-                    <p class="text-xs text-gray-500 mt-1">Format: JPG, PNG. Maks 2MB</p>
+                            @endforeach
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">Format: JPG, PNG. Maks 2MB</p>
 
-                    <div id="imageModal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-90 flex items-center justify-center p-4" onclick="closeModal()">
-                        <span class="absolute top-5 right-10 text-white text-40px font-bold cursor-pointer">&times;</span>
-                        <img id="modalContent" class="max-w-full max-h-full rounded shadow-2xl">
+                        <div id="imageModal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-90 flex items-center justify-center p-4" onclick="closeModal()">
+                            <span class="absolute top-5 right-10 text-white text-40px font-bold cursor-pointer">&times;</span>
+                            <img id="modalContent" class="max-w-full max-h-full rounded shadow-2xl">
+                        </div>
                     </div>
-                </div>
+                @endif
 
                 <div class="md:col-span-2 flex justify-center items-center space-x-2">
                     <label class="block text-sm font-medium">Approval</label>

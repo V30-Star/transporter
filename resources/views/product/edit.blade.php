@@ -704,8 +704,24 @@
                     @method('PATCH')
                     @php
                         $isApproved = !empty($product->fapproval);
+                        $isUsedProduct = $usageInfo['is_used'] ?? false;
+                        $usedByLabels = $usageInfo['used_by'] ?? [];
+                        $allowedNewUnitField = $usageInfo['allowed_new_unit_field'] ?? null;
+                        $lockSatuan1 = $isUsedProduct;
+                        $lockSatuan2 = $isUsedProduct && !empty($product->fsatuanbesar);
+                        $lockSatuan3 = $isUsedProduct && !empty($product->fsatuanbesar2);
+                        $lockQty2 = $lockSatuan2;
+                        $lockQty3 = $lockSatuan3;
                     @endphp
                     <div>
+                        @if ($isUsedProduct)
+                            <div class="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                                Produk ini sudah dipakai di transaksi {{ implode(', ', $usedByLabels) }}. Kode produk,
+                                qty konversi, dan satuan yang sudah terpakai dikunci. Anda masih bisa ubah field lain,
+                                dan hanya boleh menambah 1 satuan baru pada slot yang masih kosong.
+                            </div>
+                        @endif
+
                         <!-- Group Produk Dropdown -->
                         <div class="mt-2 w-1/2" x-data="{ isEditable: false }">
                             <label class="block text-sm font-medium text-gray-700">Group Produk</label>
@@ -853,7 +869,9 @@
                                     <label class="block text-sm font-medium">Satuan 1</label>
                                     <select
                                         class="w-full border rounded px-3 py-2 bg-blue-50 border-blue-300 focus:ring-blue-500 @error('fsatuankecil') border-red-500 @enderror"
-                                        name="fsatuankecil" id="fsatuankecil" onchange="updateSatuanLogic();">
+                                        name="fsatuankecil" id="fsatuankecil" onchange="updateSatuanLogic();"
+                                        data-usage-locked="{{ $lockSatuan1 ? '1' : '0' }}"
+                                        {{ $lockSatuan1 ? 'disabled' : '' }}>
                                         <option value="" selected> Pilih Satuan 1</option>
                                         @foreach ($satuan as $satu)
                                             <option value="{{ $satu->fsatuancode }}"
@@ -862,6 +880,10 @@
                                             </option>
                                         @endforeach
                                     </select>
+                                    @if ($lockSatuan1)
+                                        <input type="hidden" name="fsatuankecil"
+                                            value="{{ old('fsatuankecil', $product->fsatuankecil) }}">
+                                    @endif
                                 </div>
 
                                 <div class="w-1/4 invisible"></div>
@@ -887,6 +909,7 @@
                                         <select
                                             class="w-full border rounded px-3 py-2 bg-yellow-50 @error('fsatuanbesar') border-red-500 @enderror"
                                             name="fsatuanbesar" id="fsatuanbesar" disabled
+                                            data-usage-locked="{{ $lockSatuan2 ? '1' : '0' }}"
                                             onchange="updateSatuanLogic();">
                                             <option value="" selected>Pilih Satuan 2</option>
                                             @foreach ($satuan as $satu)
@@ -894,9 +917,13 @@
                                                     data-name="{{ $satu->fsatuanname }}"
                                                     {{ old('fsatuanbesar', $product->fsatuanbesar) == $satu->fsatuancode ? 'selected' : '' }}>
                                                     {{ $satu->fsatuancode }}
-                                                </option>
-                                            @endforeach
+                                            </option>
+                                        @endforeach
                                         </select>
+                                        @if ($lockSatuan2)
+                                            <input type="hidden" name="fsatuanbesar"
+                                                value="{{ old('fsatuanbesar', $product->fsatuanbesar) }}">
+                                        @endif
                                         @error('fsatuanbesar')
                                             <div class="text-red-600 text-sm mt-1">
                                                 {{ $message }}
@@ -912,7 +939,12 @@
                                             <input type="text" name="fqtykecil" id="fqtykecil"
                                                 value={{ old('fqtykecil', $product->fqtykecil) }}
                                                 class="autonumeric flex-1 bg-transparent border-none focus:ring-0 px-3 py-2 text-right"
+                                                data-usage-locked="{{ $lockQty2 ? '1' : '0' }}"
                                                 disabled>
+                                            @if ($lockQty2)
+                                                <input type="hidden" name="fqtykecil"
+                                                    value="{{ old('fqtykecil', $product->fqtykecil) }}">
+                                            @endif
 
                                             {{-- Span sebagai prefix/suffix di dalam kotak --}}
                                             <span
@@ -941,17 +973,22 @@
                                         <select
                                             class="w-full border rounded px-3 py-2 bg-purple-50 @error('fsatuanbesar2') border-red-500 @enderror"
                                             name="fsatuanbesar2" id="fsatuanbesar2"
+                                            data-usage-locked="{{ $lockSatuan3 ? '1' : '0' }}"
                                             data-select2-id="select2-data-fsatuanbesar2" tabindex="-1"
-                                            aria-hidden="true">
+                                            aria-hidden="true" {{ $lockSatuan3 ? 'disabled' : '' }}>
                                             <option value="" selected>Pilih Satuan 3</option>
                                             @foreach ($satuan as $satu)
                                                 <option value="{{ $satu->fsatuancode }}"
                                                     data-name="{{ $satu->fsatuanname }}"
                                                     {{ old('fsatuanbesar2', $product->fsatuanbesar2) == $satu->fsatuancode ? 'selected' : '' }}>
                                                     {{ $satu->fsatuancode }}
-                                                </option>
-                                            @endforeach
+                                            </option>
+                                        @endforeach
                                         </select>
+                                        @if ($lockSatuan3)
+                                            <input type="hidden" name="fsatuanbesar2"
+                                                value="{{ old('fsatuanbesar2', $product->fsatuanbesar2) }}">
+                                        @endif
                                         @error('fsatuanbesar2')
                                             <div class="text-red-600 text-sm mt-1">
                                                 {{ $message }}
@@ -967,7 +1004,12 @@
                                             <input type="text" name="fqtykecil2" id="fqtykecil2"
                                                 value={{ old('fqtykecil2', $product->fqtykecil2) }}
                                                 class="autonumeric flex-1 bg-transparent border-none focus:ring-0 px-3 py-2 text-right"
+                                                data-usage-locked="{{ $lockQty3 ? '1' : '0' }}"
                                                 disabled>
+                                            @if ($lockQty3)
+                                                <input type="hidden" name="fqtykecil2"
+                                                    value="{{ old('fqtykecil2', $product->fqtykecil2) }}">
+                                            @endif
 
                                             {{-- Span sebagai teks di dalam kotak --}}
                                             <span
@@ -1278,11 +1320,12 @@
                             @enderror
                         </div>
 
-                        {{-- Upload Foto --}}
-                        <div class="mt-4 w-1/2">
-                            <label class="block text-sm font-medium">Upload Foto Design (2 Foto)</label>
-                            <div class="space-y-4">
-                                @foreach ([1, 2] as $imgNo)
+                        @if (!empty($enabledImageNumbers))
+                            {{-- Upload Foto --}}
+                            <div class="mt-4 w-1/2">
+                                <label class="block text-sm font-medium">Upload Foto Design ({{ count($enabledImageNumbers) }} Foto)</label>
+                                <div class="space-y-4">
+                                    @foreach ($enabledImageNumbers as $imgNo)
                                     @php
                                         $field = 'fimage' . $imgNo;
                                         $imageRaw = (string) ($product->{$field} ?? '');
@@ -1343,14 +1386,15 @@
                                             </div>
                                         @endif
                                     </div>
-                                @endforeach
+                                    @endforeach
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">Format: JPG, PNG, GIF, WEBP. Maks 2MB</p>
+                                <div id="imageModal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-90 flex items-center justify-center p-4" onclick="closeModal()">
+                                    <span class="absolute top-5 right-10 text-white text-40px font-bold cursor-pointer">&times;</span>
+                                    <img id="modalContent" class="max-w-full max-h-full rounded shadow-2xl">
+                                </div>
                             </div>
-                            <p class="text-xs text-gray-500 mt-1">Format: JPG, PNG, GIF, WEBP. Maks 2MB</p>
-                            <div id="imageModal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-90 flex items-center justify-center p-4" onclick="closeModal()">
-                                <span class="absolute top-5 right-10 text-white text-40px font-bold cursor-pointer">&times;</span>
-                                <img id="modalContent" class="max-w-full max-h-full rounded shadow-2xl">
-                            </div>
-                        </div>
+                        @endif
 
                         <div class="md:col-span-2 flex justify-center items-center space-x-2">
                             <fieldset {{ $isApproved ? 'disabled' : '' }}>
@@ -2010,18 +2054,19 @@
         const fsatuanbesar2 = document.getElementById('fsatuanbesar2');
         const fqtykecil = document.getElementById('fqtykecil');
         const fqtykecil2 = document.getElementById('fqtykecil2');
+        const isLocked = (field) => field?.dataset?.usageLocked === '1';
 
         function toggleFields() {
             if (fsatuankecil.value !== "") {
-                fsatuanbesar.disabled = false;
-                fsatuanbesar2.disabled = false;
-                fqtykecil.disabled = false;
-                fqtykecil2.disabled = false;
+                if (!isLocked(fsatuanbesar)) fsatuanbesar.disabled = false;
+                if (!isLocked(fsatuanbesar2)) fsatuanbesar2.disabled = false;
+                if (!isLocked(fqtykecil)) fqtykecil.disabled = false;
+                if (!isLocked(fqtykecil2)) fqtykecil2.disabled = false;
             } else {
-                fsatuanbesar.disabled = true;
-                fsatuanbesar2.disabled = true;
-                fqtykecil.disabled = true;
-                fqtykecil2.disabled = true;
+                if (!isLocked(fsatuanbesar)) fsatuanbesar.disabled = true;
+                if (!isLocked(fsatuanbesar2)) fsatuanbesar2.disabled = true;
+                if (!isLocked(fqtykecil)) fqtykecil.disabled = true;
+                if (!isLocked(fqtykecil2)) fqtykecil2.disabled = true;
             }
         }
 
@@ -2387,6 +2432,10 @@
      */
     let isUpdating = false;
 
+    function isUsageLockedField(field) {
+        return field?.dataset?.usageLocked === '1';
+    }
+
     function updateSatuanLogic() {
         if (isUpdating) return;
 
@@ -2440,8 +2489,8 @@
             if (br2) br2.style.display = 'block';
 
             // Aktifkan field Satuan 2 (Select dan Input Isi)
-            if (largeSatuan1) largeSatuan1.disabled = false;
-            if (qty1) qty1.disabled = false;
+            if (largeSatuan1 && !isUsageLockedField(largeSatuan1)) largeSatuan1.disabled = false;
+            if (qty1 && !isUsageLockedField(qty1)) qty1.disabled = false;
 
             // Aktifkan HJ Satuan Kecil input
             if (hjSatuanKecilInput) hjSatuanKecilInput.disabled = false;
@@ -2451,11 +2500,11 @@
             if (block2) block2.style.display = 'none';
             if (br2) br2.style.display = 'none';
 
-            if (largeSatuan1) {
+            if (largeSatuan1 && !isUsageLockedField(largeSatuan1)) {
                 largeSatuan1.disabled = true;
                 largeSatuan1.value = "";
             }
-            if (qty1) {
+            if (qty1 && !isUsageLockedField(qty1)) {
                 qty1.disabled = true;
                 qty1.value = 0;
             }
@@ -2513,8 +2562,8 @@
             if (block3) block3.style.display = 'block';
 
             // Aktifkan field Satuan 3
-            if (largeSatuan2) largeSatuan2.disabled = false;
-            if (qty2) qty2.disabled = false;
+            if (largeSatuan2 && !isUsageLockedField(largeSatuan2)) largeSatuan2.disabled = false;
+            if (qty2 && !isUsageLockedField(qty2)) qty2.disabled = false;
 
             // Aktifkan HJ Satuan Besar input
             if (hjSatuanBesarInput) hjSatuanBesarInput.disabled = false;
@@ -2523,11 +2572,11 @@
             // Sembunyikan block Satuan 3, nonaktifkan, dan reset nilai
             if (block3) block3.style.display = 'none';
 
-            if (largeSatuan2) {
+            if (largeSatuan2 && !isUsageLockedField(largeSatuan2)) {
                 largeSatuan2.disabled = true;
                 largeSatuan2.value = "";
             }
-            if (qty2) {
+            if (qty2 && !isUsageLockedField(qty2)) {
                 qty2.disabled = true;
                 qty2.value = 0;
             }
@@ -2556,7 +2605,9 @@
         if (satuanKecil !== "" && satuanKecil !== null) {
             $('#satuan2-block').show();
             $('#hj-level1-block').show();
-            $('#fsatuanbesar').prop('disabled', false);
+            if (!isUsageLockedField(document.getElementById('fsatuanbesar'))) {
+                $('#fsatuanbesar').prop('disabled', false);
+            }
 
             $('.satuan-kecil-display').text(satuanKecil);
             $('#hj-satuan-kecil-level1-label, #hj-satuan-kecil-level2-label, #hj-satuan-kecil-level3-label').text(
@@ -2565,36 +2616,50 @@
             $('#satuan2-block').hide();
             $('#hj-level1-block').hide();
             // Reset tanpa memicu loop yang parah
-            if ($('#fsatuanbesar').val() !== "") {
+            if (!isUsageLockedField(document.getElementById('fsatuanbesar')) && $('#fsatuanbesar').val() !== "") {
                 $('#fsatuanbesar').val('').trigger('change.select2'); // Gunakan namespace select2 agar lebih spesifik
             }
-            $('#fsatuanbesar').prop('disabled', true);
+            if (!isUsageLockedField(document.getElementById('fsatuanbesar'))) {
+                $('#fsatuanbesar').prop('disabled', true);
+            }
         }
 
         // --- LOGIKA SATUAN 2 ---
         if (satuan2 !== "" && satuan2 !== null && satuanKecil !== "") {
             $('#satuan3-block').show();
             $('#hj-level2-block').show();
-            $('#fsatuanbesar2').prop('disabled', false);
-            $('#fqtykecil').prop('disabled', false);
+            if (!isUsageLockedField(document.getElementById('fsatuanbesar2'))) {
+                $('#fsatuanbesar2').prop('disabled', false);
+            }
+            if (!isUsageLockedField(document.getElementById('fqtykecil'))) {
+                $('#fqtykecil').prop('disabled', false);
+            }
 
             $('#hj-satuan-besar-level1-label, #hj-satuan-besar-level2-label, #hj-satuan-besar-level3-label').text(
                 satuan2);
         } else {
             $('#satuan3-block').hide();
             $('#hj-level2-block').hide();
-            if ($('#fsatuanbesar2').val() !== "") {
+            if (!isUsageLockedField(document.getElementById('fsatuanbesar2')) && $('#fsatuanbesar2').val() !== "") {
                 $('#fsatuanbesar2').val('').trigger('change.select2');
             }
-            $('#fsatuanbesar2').prop('disabled', true);
-            $('#fqtykecil').prop('disabled', true);
+            if (!isUsageLockedField(document.getElementById('fsatuanbesar2'))) {
+                $('#fsatuanbesar2').prop('disabled', true);
+            }
+            if (!isUsageLockedField(document.getElementById('fqtykecil'))) {
+                $('#fqtykecil').prop('disabled', true);
+            }
         }
 
         // --- LOGIKA SATUAN 3 ---
         if (satuan3 !== "" && satuan3 !== null) {
-            $('#fqtykecil2').prop('disabled', false);
+            if (!isUsageLockedField(document.getElementById('fqtykecil2'))) {
+                $('#fqtykecil2').prop('disabled', false);
+            }
         } else {
-            $('#fqtykecil2').prop('disabled', true);
+            if (!isUsageLockedField(document.getElementById('fqtykecil2'))) {
+                $('#fqtykecil2').prop('disabled', true);
+            }
         }
 
         isUpdating = false;
