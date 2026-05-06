@@ -475,21 +475,21 @@
                         {{-- DETAIL ITEM (tabel input) --}}
                         <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
 
-                        <div class="overflow-auto border rounded">
-                            <table class="min-w-full text-sm">
+                        <div class="overflow-x-auto border rounded">
+                            <table class="min-w-full text-sm balanced-detail-table" data-skip-auto-detail-style="true">
                                 <thead class="bg-gray-100">
                                     <tr>
                                         <th class="p-2 text-left w-10">#</th>
-                                        <th class="p-2 text-left w-40">Kode Produk</th>
-                                        <th class="p-2 text-left w-72">Nama Produk</th>
-                                        <th class="p-2 text-left w-72">No Refrensi</th>
+                                        <th class="p-2 text-left w-48">Kode Produk</th>
+                                        <th class="p-2 text-left w-[26rem]">Nama Produk</th>
+                                        <th class="p-2 text-left w-56">No Refrensi</th>
                                         <th class="p-2 text-left w-28">Satuan</th>
                                         <th class="p-2 text-right w-24 whitespace-nowrap">Qty.</th>
-                                        <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
-                                        <th class="p-2 text-right w-32 whitespace-nowrap">@ Biaya</th>
-                                        <th class="p-2 text-right w-24 whitespace-nowrap">Disc. %</th>
-                                        <th class="p-2 text-right w-36 whitespace-nowrap">Total Harga</th>
-                                        <th class="p-2 text-center w-28">Aksi</th>
+                                        <th class="p-2 text-right w-28 whitespace-nowrap">@ Harga</th>
+                                        <th class="p-2 text-right w-28 whitespace-nowrap">@ Biaya</th>
+                                        <th class="p-2 text-right w-20 whitespace-nowrap">Disc. %</th>
+                                        <th class="p-2 text-right w-32 whitespace-nowrap">Total Harga</th>
+                                        <th class="p-2 text-center w-24">Aksi</th>
                                     </tr>
                                 </thead>
 
@@ -596,7 +596,7 @@
                                             </td>
 
                                             <!-- Total Harga -->
-                                            <td class="p-2 text-right text-sm font-medium" x-text="rupiah(it.ftotprice)"></td>
+                                            <td class="p-2 text-right text-sm font-medium" x-text="formatTransactionAmount(it.ftotprice)"></td>
 
                                             <!-- Aksi -->
                                             <td class="p-2 text-center">
@@ -866,7 +866,7 @@
                                         <div class="flex items-center justify-between">
                                             <span class="text-sm text-gray-700">Total Harga</span>
                                             <span class="min-w-[140px] text-right font-medium"
-                                                x-text="rupiah(totalHarga)"></span>
+                                                x-text="formatTransactionAmount(totalHarga)"></span>
                                         </div>
 
                                         <div class="flex items-center justify-between">

@@ -821,7 +821,7 @@
                             <div class="rounded-lg border bg-gray-50 p-3 space-y-2">
                                 <div class="flex items-center justify-between">
                                     <span class="text-sm text-gray-700">Total Harga (Net)</span>
-                                    <span class="min-w-[140px] text-right font-medium" x-text="rupiah(netTotal)"></span>
+                                    <span class="min-w-[140px] text-right font-medium" x-text="formatTransactionAmount(netTotal)"></span>
                                 </div>
                                 <div class="flex items-center justify-between gap-6">
                                     <!-- Checkbox -->

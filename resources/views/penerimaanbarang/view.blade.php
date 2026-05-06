@@ -212,17 +212,17 @@
                         <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
 
                         <div class="overflow-auto border rounded">
-                            <table class="min-w-full text-sm">
+                            <table class="min-w-full text-sm balanced-detail-table" data-skip-auto-detail-style="true">
                                 <thead class="bg-gray-100">
                                     <tr>
                                         <th class="p-2 text-left w-10">#</th>
-                                        <th class="p-2 text-left w-40">Kode Produk</th>
-                                        <th class="p-2 text-left w-102">Nama Produk</th>
-                                        <th class="p-2 text-left w-36">Ref.PO#</th>
+                                        <th class="p-2 text-left w-48">Kode Produk</th>
+                                        <th class="p-2 text-left w-[26rem]">Nama Produk</th>
+                                        <th class="p-2 text-left w-32">Ref.PO#</th>
                                         <th class="p-2 text-right w-24">Sat</th>
-                                        <th class="p-2 text-right w-28">Qty</th>
-                                        <th class="p-2 text-right w-32">@ Harga</th>
-                                        <th class="p-2 text-right w-36">Total Harga</th>
+                                        <th class="p-2 text-right w-24">Qty</th>
+                                        <th class="p-2 text-right w-28">@ Harga</th>
+                                        <th class="p-2 text-right w-32">Total Harga</th>
                                     </tr>
                                 </thead>
 
@@ -326,7 +326,7 @@
                                                 @keydown.enter.prevent="handleEnterOnPrice('edit')">
                                         </td>
 
-                                        <td class="p-2 text-right font-semibold" x-text="rupiah(editRow.ftotal)"></td>
+                                        <td class="p-2 text-right font-semibold" x-text="formatTransactionAmount(editRow.ftotal)"></td>
                                     </tr>
 
                                     <tr x-show="editingIndex !== null" class="border-b" x-cloak>

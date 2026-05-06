@@ -373,20 +373,20 @@
                             {{-- DETAIL ITEM (tabel input) --}}
                             <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
 
-                            <div class="overflow-auto border rounded">
-                                <table class="min-w-full text-sm">
+                            <div class="overflow-x-auto border rounded">
+                                <table class="min-w-full text-sm balanced-detail-table" data-skip-auto-detail-style="true">
                                     <thead class="bg-gray-100">
                                         <tr>
                                             <th class="p-2 text-left w-10">#</th>
-                                            <th class="p-2 text-left w-42">Kode Produk</th>
-                                            <th class="p-2 text-left w-96">Nama Produk</th>
-                                            <th class="p-2 text-left w-36">Satuan</th>
-                                            <th class="p-2 text-right w-36 whitespace-nowrap">Qty</th>
-                                            <th class="p-2 text-right w-36 whitespace-nowrap">Qty.SRJ</th>
-                                            <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
-                                            <th class="p-2 text-right w-36 whitespace-nowrap">Disc. %</th>
-                                            <th class="p-2 text-right w-36 whitespace-nowrap">Total Harga</th>
-                                            <th class="p-2 text-center w-28">Aksi</th>
+                                            <th class="p-2 text-left w-52">Kode Produk</th>
+                                            <th class="p-2 text-left w-[28rem]">Nama Produk</th>
+                                            <th class="p-2 text-left w-32">Satuan</th>
+                                            <th class="p-2 text-right w-28 whitespace-nowrap">Qty</th>
+                                            <th class="p-2 text-right w-28 whitespace-nowrap">Qty.SRJ</th>
+                                            <th class="p-2 text-right w-28 whitespace-nowrap">@ Harga</th>
+                                            <th class="p-2 text-right w-28 whitespace-nowrap">Disc. %</th>
+                                            <th class="p-2 text-right w-32 whitespace-nowrap">Total Harga</th>
+                                            <th class="p-2 text-center w-24">Aksi</th>
                                         </tr>
                                     </thead>
 
@@ -577,7 +577,7 @@
                                             <div class="flex items-center justify-between">
                                                 <span class="text-sm text-gray-700">Total Harga</span>
                                                 <span class="min-w-[140px] text-right font-medium"
-                                                    x-text="rupiah(totalHarga)"></span>
+                                                    x-text="formatTransactionAmount(totalHarga)"></span>
                                             </div>
                                             <div class="flex items-center justify-between gap-6">
                                                 <!-- Checkbox -->
@@ -1002,19 +1002,19 @@
                                     <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
 
                                     <div class="overflow-auto border rounded">
-                                        <table class="min-w-full text-sm">
+                                        <table class="min-w-full text-sm balanced-detail-table" data-skip-auto-detail-style="true">
                                             <thead class="bg-gray-100">
                                                 <tr>
                                                     <th class="p-2 text-left w-10">#</th>
-                                                    <th class="p-2 text-left w-42">Kode Produk</th>
-                                                    <th class="p-2 text-left w-96">Nama Produk</th>
-                                                    <th class="p-2 text-left w-36">Satuan</th>
+                                                    <th class="p-2 text-left w-52">Kode Produk</th>
+                                                    <th class="p-2 text-left w-[28rem]">Nama Produk</th>
+                                                    <th class="p-2 text-left w-32">Satuan</th>
                                                     <th class="p-2 text-right w-28 whitespace-nowrap">Qty</th>
                                                     <th class="p-2 text-right w-28 whitespace-nowrap">Qty.SRJ</th>
-                                                    <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
-                                                    <th class="p-2 text-right w-36 whitespace-nowrap">Disc. %</th>
-                                                    <th class="p-2 text-right w-36 whitespace-nowrap">Total Harga</th>
-                                                    <th class="p-2 text-center w-28">Aksi</th>
+                                                    <th class="p-2 text-right w-28 whitespace-nowrap">@ Harga</th>
+                                                    <th class="p-2 text-right w-28 whitespace-nowrap">Disc. %</th>
+                                                    <th class="p-2 text-right w-32 whitespace-nowrap">Total Harga</th>
+                                                    <th class="p-2 text-center w-24">Aksi</th>
                                                 </tr>
                                             </thead>
                                             <!-- Loop untuk setiap item yang sudah disimpan -->
@@ -1218,7 +1218,7 @@
                                                 <div class="flex items-center justify-between">
                                                     <span class="text-sm text-gray-700">Total Harga</span>
                                                     <span class="min-w-[140px] text-right font-medium"
-                                                        x-text="rupiah(totalHarga)"></span>
+                                                        x-text="formatTransactionAmount(totalHarga)"></span>
                                                 </div>
 
                                                 <div class="flex items-center justify-between">

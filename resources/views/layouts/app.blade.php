@@ -34,6 +34,177 @@
         body {
             font-family: 'Lato', sans-serif;
         }
+
+        .transaction-detail-table {
+            width: 100%;
+            min-width: 0;
+            max-width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            table-layout: fixed;
+        }
+
+        .transaction-detail-table thead tr {
+            background: #f3f4f6;
+        }
+
+        .transaction-detail-table thead th {
+            padding: 10px 12px;
+            color: #374151;
+            font-weight: 600;
+            border-bottom: 1px solid #d1d5db;
+            white-space: nowrap;
+            vertical-align: top;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .transaction-detail-table tbody td {
+            padding: 10px 12px;
+            border-top: 1px solid #e5e7eb;
+            vertical-align: top;
+            color: #111827;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .transaction-detail-table thead th>*,
+        .transaction-detail-table tbody td>* {
+            white-space: inherit;
+            overflow: hidden;
+            text-overflow: inherit;
+        }
+
+        .transaction-detail-table th[title],
+        .transaction-detail-table td[title] {
+            cursor: help;
+        }
+
+        .transaction-detail-table tbody tr:hover {
+            background: #f9fafb;
+        }
+
+        .transaction-detail-table .transaction-product-column {
+            min-width: 0;
+            width: 36%;
+            white-space: nowrap;
+            vertical-align: top !important;
+        }
+
+        .transaction-detail-table .transaction-code-column {
+            min-width: 0;
+            width: 18%;
+            white-space: nowrap;
+        }
+
+        .transaction-detail-table .transaction-unit-column {
+            min-width: 0;
+            width: 9%;
+            white-space: nowrap;
+        }
+
+        .transaction-detail-table .transaction-reference-column {
+            min-width: 0;
+            width: 10%;
+            white-space: nowrap;
+        }
+
+        .transaction-detail-table .transaction-action-column {
+            min-width: 0;
+            width: 7%;
+            white-space: nowrap;
+        }
+
+        .transaction-detail-table .transaction-code-column,
+        .transaction-detail-table .transaction-product-column {
+            vertical-align: top;
+        }
+
+        .transaction-detail-table .transaction-code-column .flex,
+        .transaction-detail-table .transaction-product-column .flex {
+            min-width: 0;
+        }
+
+        .transaction-detail-table .transaction-product-column > * {
+            width: 100%;
+        }
+
+        .transaction-detail-table .transaction-code-column input[type="text"],
+        .transaction-detail-table .transaction-product-column input[type="text"],
+        .transaction-detail-table .transaction-product-column select,
+        .transaction-detail-table .transaction-product-column textarea {
+            min-width: 0;
+            width: 100%;
+        }
+
+        .transaction-detail-table .transaction-product-column input[type="text"],
+        .transaction-detail-table .transaction-product-column select,
+        .transaction-detail-table .transaction-product-column textarea,
+        .transaction-detail-table .transaction-product-column .border {
+            display: block;
+            line-height: 1.25rem;
+        }
+
+        .transaction-detail-table .transaction-product-column textarea {
+            margin-top: 0.25rem;
+        }
+
+        .transaction-detail-table .transaction-code-column .font-mono,
+        .transaction-detail-table .transaction-product-column > div,
+        .transaction-detail-table .transaction-product-column > span,
+        .transaction-detail-table .transaction-product-column .align-middle {
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .transaction-detail-table thead .transaction-reference-column {
+            white-space: nowrap;
+            word-break: normal;
+            overflow-wrap: normal;
+        }
+
+        .transaction-detail-wrapper {
+            width: 100%;
+            max-width: 100%;
+            overflow-x: hidden !important;
+        }
+
+        .po-detail-table {
+            width: 100%;
+            table-layout: auto !important;
+        }
+
+        .po-detail-table th,
+        .po-detail-table td {
+            overflow: visible !important;
+            text-overflow: clip !important;
+        }
+
+        .po-detail-table input,
+        .po-detail-table select,
+        .po-detail-table textarea {
+            max-width: 100%;
+        }
+
+        .balanced-detail-table {
+            width: 100%;
+            table-layout: auto !important;
+        }
+
+        .balanced-detail-table th,
+        .balanced-detail-table td {
+            overflow: visible !important;
+            text-overflow: clip !important;
+        }
+
+        .balanced-detail-table input,
+        .balanced-detail-table select,
+        .balanced-detail-table textarea {
+            max-width: 100%;
+        }
     </style>
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
@@ -292,6 +463,18 @@
     @endif
     <script>
         (() => {
+            window.formatTransactionAmount = function(value) {
+                const amount = Number(value || 0);
+                if (!isFinite(amount)) {
+                    return '-';
+                }
+
+                return amount.toLocaleString('id-ID', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            };
+
             const blockedQtyKeys = new Set([',', '.', 'e', 'E', '+', '-']);
 
             function isWholeQtyInput(element) {
@@ -368,6 +551,143 @@
                             }
 
                             bindWholeQtyInputs(node);
+                        });
+                    });
+                });
+
+                observer.observe(document.body, {
+                    childList: true,
+                    subtree: true
+                });
+            });
+        })();
+    </script>
+    <script>
+        (() => {
+            function isDetailHeadingText(text) {
+                return (text || '').toLowerCase().includes('detail item');
+            }
+
+            function findNearestDetailHeading(table) {
+                let current = table;
+
+                while (current && current !== document.body) {
+                    let sibling = current.previousElementSibling;
+
+                    while (sibling) {
+                        if (/^H[1-6]$/.test(sibling.tagName) && isDetailHeadingText(sibling.textContent)) {
+                            return sibling;
+                        }
+
+                        const nestedHeading = sibling.querySelector?.('h1, h2, h3, h4, h5, h6');
+                        if (nestedHeading && isDetailHeadingText(nestedHeading.textContent)) {
+                            return nestedHeading;
+                        }
+
+                        sibling = sibling.previousElementSibling;
+                    }
+
+                    current = current.parentElement;
+                }
+
+                return null;
+            }
+
+            function applyDetailTableStyles(root = document) {
+                root.querySelectorAll('table').forEach((table) => {
+                    if (table.dataset.skipAutoDetailStyle === 'true') {
+                        return;
+                    }
+
+                    const headerCells = Array.from(table.querySelectorAll('thead th'));
+                    const normalizedHeaders = headerCells.map((th) =>
+                        th.textContent.replace(/\s+/g, ' ').trim().toLowerCase()
+                    );
+
+                    const productHeaderIndex = normalizedHeaders.findIndex((text) => text === 'nama produk');
+                    const codeHeaderIndex = normalizedHeaders.findIndex((text) => text === 'kode produk');
+                    const unitHeaderIndex = normalizedHeaders.findIndex((text) => text === 'satuan');
+                    const actionHeaderIndex = normalizedHeaders.findIndex((text) => text === 'aksi');
+
+                    const referenceHeaderIndexes = normalizedHeaders
+                        .map((text, index) => ({
+                            index,
+                            text
+                        }))
+                        .filter((item) => item.text.includes('ref'))
+                        .map((item) => item.index);
+
+                    if (productHeaderIndex === -1) {
+                        return;
+                    }
+
+                    const detailHeading = findNearestDetailHeading(table);
+                    if (!detailHeading) {
+                        return;
+                    }
+
+                    table.classList.add('transaction-detail-table');
+
+                    const wrapper = table.closest('.overflow-auto, .overflow-x-auto, .overflow-scroll');
+                    if (wrapper) {
+                        wrapper.classList.add('transaction-detail-wrapper');
+                    }
+
+                    const rows = table.querySelectorAll('tr');
+                    rows.forEach((row) => {
+                        const cells = row.children;
+                        if (cells[codeHeaderIndex]) {
+                            cells[codeHeaderIndex].classList.add('transaction-code-column');
+                        }
+
+                        if (cells[productHeaderIndex]) {
+                            cells[productHeaderIndex].classList.add('transaction-product-column');
+                        }
+
+                        if (cells[unitHeaderIndex]) {
+                            cells[unitHeaderIndex].classList.add('transaction-unit-column');
+                        }
+
+                        referenceHeaderIndexes.forEach((index) => {
+                            if (cells[index]) {
+                                cells[index].classList.add('transaction-reference-column');
+                            }
+                        });
+
+                        if (cells[actionHeaderIndex]) {
+                            cells[actionHeaderIndex].classList.add('transaction-action-column');
+                        }
+                    });
+
+                    table.querySelectorAll('th, td').forEach((cell) => {
+                        const text = cell.textContent.replace(/\s+/g, ' ').trim();
+
+                        if (!text) {
+                            cell.removeAttribute('title');
+                            return;
+                        }
+
+                        cell.setAttribute('title', text);
+                    });
+                });
+            }
+
+            document.addEventListener('DOMContentLoaded', () => {
+                applyDetailTableStyles();
+
+                const observer = new MutationObserver((mutations) => {
+                    mutations.forEach((mutation) => {
+                        mutation.addedNodes.forEach((node) => {
+                            if (!(node instanceof HTMLElement)) {
+                                return;
+                            }
+
+                            if (node.matches?.('table')) {
+                                applyDetailTableStyles(node.parentElement || document);
+                                return;
+                            }
+
+                            applyDetailTableStyles(node);
                         });
                     });
                 });

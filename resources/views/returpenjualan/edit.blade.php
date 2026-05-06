@@ -481,7 +481,7 @@
                                             <div class="flex items-center justify-between">
                                                 <span class="text-sm text-gray-700">Total Harga</span>
                                                 <span class="min-w-[140px] text-right font-medium"
-                                                    x-text="rupiah(totalHarga)"></span>
+                                                    x-text="formatTransactionAmount(totalHarga)"></span>
                                             </div>
                                             <div class="flex items-center justify-between gap-6">
                                                 <!-- Checkbox -->
@@ -1325,7 +1325,7 @@
                                             <div class="flex items-center justify-between">
                                                 <span class="text-sm text-gray-700">Total Harga (Net)</span>
                                                 <span class="min-w-[140px] text-right font-medium"
-                                                    x-text="rupiah(netTotal)"></span>
+                                                    x-text="formatTransactionAmount(netTotal)"></span>
                                             </div>
                                             <div class="flex items-center justify-between gap-6">
                                                 <!-- Checkbox -->

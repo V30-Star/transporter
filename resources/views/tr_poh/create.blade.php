@@ -295,21 +295,34 @@
             <div class="mt-6 space-y-2">
                 <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
 
-                <div class="overflow-auto border rounded">
-                    <table class="min-w-full text-sm">
+                <div class="overflow-x-auto border rounded">
+                    <table class="min-w-full text-sm po-detail-table" data-skip-auto-detail-style="true">
+                        <colgroup>
+                            <col class="w-10">
+                            <col class="w-16">
+                            <col class="w-[42rem]">
+                            <col class="w-16">
+                            <col class="w-16">
+                            <col class="w-20">
+                            <col class="w-24">
+                            <col class="w-16">
+                            <col class="w-20">
+                            <col class="w-16">
+                            <col class="w-16">
+                        </colgroup>
                         <thead class="bg-gray-100">
                             <tr>
                                 <th class="p-2 text-left w-10">#</th>
-                                <th class="p-2 text-left w-44">Kode Produk</th>
-                                <th class="p-2 text-left">Nama Produk</th>
-                                <th class="p-2 text-left w-28">Satuan</th>
-                                <th class="p-2 text-left w-36">Ref.PR#</th>
+                                <th class="p-2 text-left w-20">Kode Produk</th>
+                                <th class="p-2 text-left w-[31rem]">Nama Produk</th>
+                                <th class="p-2 text-left w-24">Satuan</th>
+                                <th class="p-2 text-left w-24">Ref.PR#</th>
                                 <th class="p-2 text-right w-24 whitespace-nowrap">Qty</th>
-                                <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
-                                <th class="p-2 text-right w-24 whitespace-nowrap">Disc. %</th>
-                                <th class="p-2 text-right w-36 whitespace-nowrap">Total Harga</th>
-                                <th class="p-2 text-right w-36 whitespace-nowrap">Total Harga (Rp.)</th>
-                                <th class="p-2 text-center w-20">Aksi</th>
+                                <th class="p-2 text-right w-24 whitespace-nowrap">@ Harga</th>
+                                <th class="p-2 text-right w-20 whitespace-nowrap">Disc. %</th>
+                                <th class="p-2 text-right w-24 whitespace-nowrap">Total Harga</th>
+                                <th class="p-2 text-right w-20 whitespace-nowrap">Total Harga (Rp.)</th>
+                                <th class="p-2 text-center w-16">Aksi</th>
                             </tr>
                         </thead>
 
@@ -323,9 +336,9 @@
 
                                     {{-- Kode Produk --}}
                                     <td class="p-2">
-                                        <div class="flex">
+                                        <div class="flex w-40">
                                             <input type="text"
-                                                class="flex-1 border rounded-l px-2 py-1 font-mono text-sm min-w-0"
+                                                class="w-32 border rounded-l px-2 py-1 font-mono text-sm min-w-0"
                                                 x-model.trim="it.fitemcode" @focus="activeRow = it.uid"
                                                 @blur="activeRow = null" @input="onCodeTypedSaved(it)"
                                                 @keydown.enter.prevent="focusSavedUnit(it, i)">
@@ -338,38 +351,41 @@
                                     </td>
 
                                     {{-- Nama Produk + Deskripsi --}}
-                                    <td class="p-2 relative overflow-visible">
-                                        <input type="text"
-                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
-                                            :value="it.fitemname" disabled>
-                                        <textarea x-model="it.fdesc" rows="2" class="border rounded px-2 py-1 text-xs text-gray-600 mt-1 relative z-10"
-                                            style="width: calc(100% + 8rem);" placeholder="Deskripsi (opsional)" @focus="activeRow = it.uid"
-                                            @blur="activeRow = null"></textarea>
-                                    </td>
-
-                                    {{-- Satuan --}}
-                                    <td class="p-2 align-top">
-                                        <select class="w-full border rounded px-2 py-1 text-sm"
-                                            x-show="it.units.length > 1" :id="'unit_saved_' + i"
-                                            @focus="activeRow = it.uid" @blur="activeRow = null"
-                                            @keydown.enter.prevent="focusSavedQty(i)"
-                                            @change="it.fsatuan = $event.target.value; it.maxqty = calcMaxQty(it);"
-                                            x-effect="
-                                                const sel = $el;
-                                                sel.innerHTML = '';
-                                                it.units.forEach(u => {
-                                                    const opt = document.createElement('option');
-                                                    opt.value = u;
-                                                    opt.textContent = u;
-                                                    if (u === it.fsatuan) opt.selected = true;
-                                                    sel.appendChild(opt);
-                                                });
-                                                it.maxqty = calcMaxQty(it);
-                                            ">
-                                        </select>
-                                        <input type="text" x-show="it.units.length <= 1"
-                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
-                                            :value="it.fsatuan || '-'" disabled>
+                                    <td class="p-2 align-top overflow-visible" colspan="2">
+                                        <div class="flex min-w-0 flex-col gap-1 overflow-visible">
+                                            <div class="flex items-start gap-2">
+                                                <input type="text"
+                                                    class="min-w-0 flex-1 border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
+                                                    :value="it.fitemname" disabled>
+                                                <div class="w-20 shrink-0">
+                                                    <select class="w-full border rounded px-2 py-1 text-sm"
+                                                        x-show="it.units.length > 1" :id="'unit_saved_' + i"
+                                                        @focus="activeRow = it.uid" @blur="activeRow = null"
+                                                        @keydown.enter.prevent="focusSavedQty(i)"
+                                                        @change="it.fsatuan = $event.target.value; it.maxqty = calcMaxQty(it);"
+                                                        x-effect="
+                                                            const sel = $el;
+                                                            sel.innerHTML = '';
+                                                            it.units.forEach(u => {
+                                                                const opt = document.createElement('option');
+                                                                opt.value = u;
+                                                                opt.textContent = u;
+                                                                if (u === it.fsatuan) opt.selected = true;
+                                                                sel.appendChild(opt);
+                                                            });
+                                                            it.maxqty = calcMaxQty(it);
+                                                        ">
+                                                    </select>
+                                                    <input type="text" x-show="it.units.length <= 1"
+                                                        class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
+                                                        :value="it.fsatuan || '-'" disabled>
+                                                </div>
+                                            </div>
+                                            <textarea x-model="it.fdesc" rows="2"
+                                                class="w-full border rounded px-2 py-1 text-xs text-gray-600 resize-none"
+                                                placeholder="Deskripsi (opsional)" @focus="activeRow = it.uid"
+                                                @blur="activeRow = null"></textarea>
+                                        </div>
                                     </td>
 
                                     {{-- Ref.PR# --}}
@@ -401,7 +417,7 @@
 
                                     {{-- @ Harga --}}
                                     <td class="p-2 text-right">
-                                        <input type="number" class="border rounded px-2 py-1 w-28 text-right text-sm"
+                                        <input type="number" class="border rounded px-2 py-1 w-24 text-right text-sm"
                                             min="0" step="0.01" x-model.number="it.fprice"
                                             :id="'price_saved_' + i" @focus="activeRow = it.uid; $event.target.select()"
                                             @blur="activeRow = null" @input="recalc(it)" @change="recalc(it)"
@@ -456,9 +472,9 @@
                                 <td class="p-2 text-gray-400" x-text="savedItems.length + 1"></td>
 
                                 <td class="p-2">
-                                    <div class="flex">
+                                    <div class="flex w-40">
                                         <input type="text"
-                                            class="flex-1 border rounded-l px-2 py-1 font-mono text-sm min-w-0"
+                                            class="w-32 border rounded-l px-2 py-1 font-mono text-sm min-w-0"
                                             x-ref="draftCode" x-model.trim="draft.fitemcode"
                                             @input="onCodeTypedRow(draft)" @keydown.enter.prevent="handleEnterOnCode()">
                                         <button type="button" @click="openBrowseFor('draft')"
@@ -469,23 +485,25 @@
                                     </div>
                                 </td>
 
-                                <td class="p-2 relative overflow-visible">
-                                    <input type="text"
-                                        class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
-                                        :value="draft.fitemname" disabled>
-                                    <textarea x-model="draft.fdesc" rows="2"
-                                        class="border rounded px-2 py-1 text-xs text-gray-600 mt-1 relative z-10" style="width: calc(100% + 8rem);"
-                                        placeholder="Deskripsi (opsional)"></textarea>
-                                </td>
-
-                                {{-- Satuan Draft --}}
-                                <td class="p-2 align-top">
-                                    <select id="draftUnitSelect" class="w-full border rounded px-2 py-1 text-sm"
-                                        x-show="draft.units.length > 1" @keydown.enter.prevent="$refs.draftQty?.focus()">
-                                    </select>
-                                    <input type="text" x-show="draft.units.length <= 1"
-                                        class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
-                                        :value="draft.fsatuan || '-'" disabled>
+                                <td class="p-2 align-top overflow-visible" colspan="2">
+                                    <div class="flex min-w-0 flex-col gap-1 overflow-visible">
+                                        <div class="flex items-start gap-2">
+                                            <input type="text"
+                                                class="min-w-0 flex-1 border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
+                                                :value="draft.fitemname" disabled>
+                                            <div class="w-20 shrink-0">
+                                                <select id="draftUnitSelect" class="w-full border rounded px-2 py-1 text-sm"
+                                                    x-show="draft.units.length > 1" @keydown.enter.prevent="$refs.draftQty?.focus()">
+                                                </select>
+                                                <input type="text" x-show="draft.units.length <= 1"
+                                                    class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
+                                                    :value="draft.fsatuan || '-'" disabled>
+                                            </div>
+                                        </div>
+                                        <textarea x-model="draft.fdesc" rows="2"
+                                            class="w-full border rounded px-2 py-1 text-xs text-gray-600 resize-none"
+                                            placeholder="Deskripsi (opsional)"></textarea>
+                                    </div>
                                 </td>
 
                                 <td class="p-2">
@@ -504,7 +522,7 @@
                                 </td>
 
                                 <td class="p-2 text-right">
-                                    <input type="number" class="border rounded px-2 py-1 w-28 text-right text-sm"
+                                    <input type="number" class="border rounded px-2 py-1 w-24 text-right text-sm"
                                         min="0" step="0.01" x-ref="draftPrice" x-model.number="draft.fprice"
                                         @input="recalc(draft)" @keydown.enter.prevent="$refs.draftDisc?.focus()">
                                 </td>

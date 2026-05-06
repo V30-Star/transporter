@@ -284,19 +284,19 @@
             <div class="mt-6 space-y-2">
                 <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
 
-                <div class="overflow-auto border rounded">
-                    <table class="min-w-full text-sm">
+            <div class="overflow-x-auto border rounded">
+                <table class="min-w-full text-sm balanced-detail-table" data-skip-auto-detail-style="true">
                         <thead class="bg-gray-100">
                             <tr>
                                 <th class="p-2 text-left w-10">#</th>
-                                <th class="p-2 text-left w-44">Kode Produk</th>
-                                <th class="p-2 text-left">Nama Produk</th>
-                                <th class="p-2 text-left w-28">Satuan</th>
-                                <th class="p-2 text-left w-36">Ref.PO#</th>
-                                <th class="p-2 text-right w-24 whitespace-nowrap">Qty</th>
-                                <th class="p-2 text-right w-32 whitespace-nowrap">@ Harga</th>
-                                <th class="p-2 text-right w-36 whitespace-nowrap">Total Harga</th>
-                                <th class="p-2 text-center w-20 {{ $action === 'delete' ? 'hidden' : '' }}">Aksi</th>
+                            <th class="p-2 text-left w-48">Kode Produk</th>
+                            <th class="p-2 text-left w-[26rem]">Nama Produk</th>
+                            <th class="p-2 text-left w-28">Satuan</th>
+                            <th class="p-2 text-left w-32">Ref.PO#</th>
+                            <th class="p-2 text-right w-24 whitespace-nowrap">Qty</th>
+                            <th class="p-2 text-right w-28 whitespace-nowrap">@ Harga</th>
+                            <th class="p-2 text-right w-32 whitespace-nowrap">Total Harga</th>
+                            <th class="p-2 text-center w-20 {{ $action === 'delete' ? 'hidden' : '' }}">Aksi</th>
                             </tr>
                         </thead>
 
@@ -411,7 +411,7 @@
                                     </td>
 
                                     {{-- Total Harga --}}
-                                    <td class="p-2 text-right text-sm font-medium" x-text="rupiah(it.ftotal)"></td>
+                                    <td class="p-2 text-right text-sm font-medium" x-text="formatTransactionAmount(it.ftotal)"></td>
 
                                     {{-- Aksi --}}
                                     <td class="p-2 text-center {{ $action === 'delete' ? 'hidden' : '' }}">
@@ -511,7 +511,7 @@
                                             @keydown.enter.prevent="$refs.draftDisc?.focus()">
                                     </td>
 
-                                    <td class="p-2 text-right text-sm font-medium" x-text="rupiah(draft.ftotal)"></td>
+                                    <td class="p-2 text-right text-sm font-medium" x-text="formatTransactionAmount(draft.ftotal)"></td>
 
                                     <td class="p-2 text-center">
                                         <button type="button" @click="addIfComplete()"
