@@ -2303,6 +2303,7 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
 
+    @include('components.transaction.browse-warehouse-script', ['eventName' => 'faktur-pembelian-warehouse-browse-open'])
     @include('components.transaction.browse-product-script', ['showControls' => true, 'showPagination' => true, 'supportsForEdit' => true])
     <script>
         document.addEventListener('alpine:init', () => {

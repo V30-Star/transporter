@@ -1684,6 +1684,7 @@
 
         // â”€â”€â”€ productBrowser â€” identik create â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     </script>
+        @include('components.transaction.browse-warehouse-script', ['eventName' => 'penerimaanbarang-warehouse-browse-open'])
         @include('components.transaction.browse-product-script', ['destroyOnClose' => true, 'openDelay' => 50])
     <script>
         document.addEventListener('alpine:init', () => {

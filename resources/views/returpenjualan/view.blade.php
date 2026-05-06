@@ -520,7 +520,9 @@
                         </div>
 
                         {{-- MODAL ERROR: belum ada item --}}
-                        <div x-show="showNoItems && savedItems.length === 0" x-cloak
+                        <div x-data="{ showNoItems: false }"
+                            x-init="window.addEventListener('returpenjualan-show-no-items', () => { showNoItems = true })"
+                            x-show="showNoItems && Number(document.getElementById('itemsCount')?.value || 0) === 0" x-cloak
                             class="fixed inset-0 z-[90] flex items-center justify-center" x-transition.opacity>
                             <div class="absolute inset-0 bg-black/50" @click="showNoItems=false"></div>
 
