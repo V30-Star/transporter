@@ -196,7 +196,7 @@ class SalesOrderController extends Controller
             ->select([
                 'trsodt.ftrsodtid as frefdtno',
                 'trsodt.fsono as fnouref',
-                DB::raw("COALESCE(trsodt.fnoacak::text, '') as frefnoacak"),
+                DB::raw("COALESCE(trsodt.frefnoacak::text, trsodt.fnoacak::text, '') as frefnoacak"),
                 'trsodt.fprdcode as fitemcode',
                 'm.fprdname as fitemname',
                 'trsodt.fsatuan',
@@ -243,6 +243,13 @@ class SalesOrderController extends Controller
         $usedNumbers[] = $candidate;
 
         return $candidate;
+    }
+
+    private function normalizeReferenceRandomNumber($value): ?string
+    {
+        $value = trim((string) ($value ?? ''));
+
+        return preg_match('/^\d{3}$/', $value) ? $value : null;
     }
 
     private function generatetr_poh_Code(?Carbon $onDate = null, $branch = null): string
@@ -427,6 +434,8 @@ class SalesOrderController extends Controller
             'fdisc' => ['nullable', 'array'],
             'fnoacak' => ['nullable', 'array'],
             'fnoacak.*' => ['nullable', 'regex:/^[1-9]{3}$/'],
+            'frefnoacak' => ['nullable', 'array'],
+            'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
         ], [
             'fsodate.required' => 'Tanggal SO wajib diisi.',
             'fcustno.required' => 'Customer wajib diisi.',
@@ -451,6 +460,7 @@ class SalesOrderController extends Controller
         $discs = $request->input('fdisc', []);
         $descs = $request->input('fdesc', []);
         $fnoacaks = $request->input('fnoacak', []);
+        $frefnoacaks = $request->input('frefnoacak', []);
 
         // BUILD DETAIL ROWS
         $rowsSodt = [];
@@ -497,6 +507,7 @@ class SalesOrderController extends Controller
                 'fprdcodeid' => $itemeId,
                 'fprdcode' => mb_substr($itemCode, 0, 20),
                 'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
+                'frefnoacak' => $this->normalizeReferenceRandomNumber($frefnoacaks[$i] ?? null),
                 'fsatuan' => mb_substr($satuan, 0, 20),
                 'fdesc' => $descs[$i] ?? '',
                 'fqty' => $qty,
@@ -925,6 +936,8 @@ class SalesOrderController extends Controller
             'fdisc.*' => ['nullable'], // Support "10+2"
             'fnoacak' => ['nullable', 'array'],
             'fnoacak.*' => ['nullable', 'regex:/^[1-9]{3}$/'],
+            'frefnoacak' => ['nullable', 'array'],
+            'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
         ], [
             'fsodate.required' => 'Tanggal SO wajib diisi.',
             'fcustno.required' => 'Customer wajib diisi.',
@@ -960,6 +973,7 @@ class SalesOrderController extends Controller
         $discs = $request->input('fdisc', []);
         $descs = $request->input('fdesc', []);
         $fnoacaks = $request->input('fnoacak', []);
+        $frefnoacaks = $request->input('frefnoacak', []);
 
         // 5. BUILD DETAIL ROWS (Logika sama dengan store)
         $rowsSodt = [];
@@ -1021,6 +1035,7 @@ class SalesOrderController extends Controller
                 'fprdcodeid' => ! empty($itemeId) && is_numeric($itemeId) ? (int) $itemeId : null,
                 'fprdcode' => $itemCode,
                 'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
+                'frefnoacak' => $this->normalizeReferenceRandomNumber($frefnoacaks[$i] ?? null),
                 'fsatuan' => mb_substr($satuan, 0, 20),
                 'fdesc' => $desc,
                 'fqty' => $qty,

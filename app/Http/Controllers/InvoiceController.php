@@ -268,11 +268,9 @@ class InvoiceController extends Controller
     private function buildReferenceRandomNumberColumns(?string $sourceCode, $value): array
     {
         $normalized = $this->normalizeReferenceRandomNumbers($value);
-        $sourceCode = strtoupper(trim((string) ($sourceCode ?? '')));
 
         return [
-            'frefnosoacak' => $sourceCode === 'S' ? $normalized : null,
-            'frefnosrjacak' => $sourceCode === 'R' ? $normalized : null,
+            'frefnoacak' => $normalized,
         ];
     }
 
@@ -748,26 +746,26 @@ class InvoiceController extends Controller
             ->leftJoin('trstockmt as sj_h', 'sj_h.fstockmtno', '=', 'd.frefsrj')
             ->leftJoinSub(
                 DB::table('trandt as dt')
-                    ->selectRaw('dt.frefsoid, dt.fprdcode, dt.frefnosoacak, SUM(COALESCE(dt.fqtykecil, 0)) as fqtykecilinv')
+                    ->selectRaw('dt.frefsoid, dt.fprdcode, dt.frefnoacak, SUM(COALESCE(dt.fqtykecil, 0)) as fqtykecilinv')
                     ->whereNotNull('dt.frefsoid')
-                    ->groupBy('dt.frefsoid', 'dt.fprdcode', 'dt.frefnosoacak'),
+                    ->groupBy('dt.frefsoid', 'dt.fprdcode', 'dt.frefnoacak'),
                 'inv_so',
                 function ($join) {
                     $join->on('inv_so.frefsoid', '=', 'd.frefsoid')
                         ->on('inv_so.fprdcode', '=', 'd.fprdcode')
-                        ->whereRaw('COALESCE(inv_so.frefnosoacak, 0) = COALESCE(d.frefnosoacak, 0)');
+                        ->whereRaw('COALESCE(inv_so.frefnoacak, \'\') = COALESCE(d.frefnoacak, \'\')');
                 }
             )
             ->leftJoinSub(
                 DB::table('trandt as dt')
-                    ->selectRaw('dt.frefsrjid, dt.fprdcode, dt.frefnosrjacak, SUM(COALESCE(dt.fqtykecil, 0)) as fqtykecilinv')
+                    ->selectRaw('dt.frefsrjid, dt.fprdcode, dt.frefnoacak, SUM(COALESCE(dt.fqtykecil, 0)) as fqtykecilinv')
                     ->whereNotNull('dt.frefsrjid')
-                    ->groupBy('dt.frefsrjid', 'dt.fprdcode', 'dt.frefnosrjacak'),
+                    ->groupBy('dt.frefsrjid', 'dt.fprdcode', 'dt.frefnoacak'),
                 'inv_srj',
                 function ($join) {
                     $join->on('inv_srj.frefsrjid', '=', 'd.frefsrjid')
                         ->on('inv_srj.fprdcode', '=', 'd.fprdcode')
-                        ->whereRaw('COALESCE(inv_srj.frefnosrjacak, 0) = COALESCE(d.frefnosrjacak, 0)');
+                        ->whereRaw('COALESCE(inv_srj.frefnoacak, \'\') = COALESCE(d.frefnoacak, \'\')');
                 }
             )
             ->leftJoin('msprd as p', 'p.fprdcode', '=', 'd.fprdcode')
@@ -964,7 +962,7 @@ class InvoiceController extends Controller
                 'frefsrj' => trim($d->frefsrj ?? ''),
                 'frefsrjid' => (string) ($d->frefsrjid ?? ''),
                 'fnoacak' => (string) ($d->fnoacak ?? ''),
-                'frefnoacak' => (string) ($d->frefnosoacak ?? $d->frefnosrjacak ?? ''),
+                'frefnoacak' => (string) ($d->frefnoacak ?? ''),
                 'frefno_display' => $refNoDisplay,
                 'fqty' => (float) ($d->fqty ?? 0),
                 'fterima' => (float) ($d->fterima ?? 0),
@@ -1100,7 +1098,7 @@ class InvoiceController extends Controller
                 'fdesc' => (string) ($d->fdesc ?? ''),
                 'frefcode' => (string) ($d->frefcode ?? ''),
                 'fnoacak' => (string) ($d->fnoacak ?? ''),
-                'frefnoacak' => (string) ($d->frefnosoacak ?? $d->frefnosrjacak ?? ''),
+                'frefnoacak' => (string) ($d->frefnoacak ?? ''),
                 'frefno_display' => $refNoDisplay,
                 'fketdt' => (string) ($d->fketdt ?? ''),
                 'fqtyterinvoice' => (float) ($summary['fqtyterinvoice'] ?? 0),
@@ -1498,7 +1496,7 @@ class InvoiceController extends Controller
                 'fdesc' => (string) ($d->fdesc ?? ''),
                 'frefcode' => (string) ($d->frefcode ?? ''),
                 'fnoacak' => (string) ($d->fnoacak ?? ''),
-                'frefnoacak' => (string) ($d->frefnosoacak ?? $d->frefnosrjacak ?? ''),
+                'frefnoacak' => (string) ($d->frefnoacak ?? ''),
                 'frefno_display' => $refNoDisplay,
                 'fketdt' => (string) ($d->fketdt ?? ''),
                 'fqtyterinvoice' => (float) ($summary['fqtyterinvoice'] ?? 0),

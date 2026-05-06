@@ -414,8 +414,6 @@ class SuratJalanController extends Controller
             'frefso.*' => ['nullable', 'string', 'max:100'],
             'frefsoid' => ['nullable', 'array'],
             'frefsoid.*' => ['nullable', 'integer'],
-            'frefpr' => ['nullable', 'array'],
-            'frefpr.*' => ['nullable', 'string', 'max:100'],
             'fnoacak' => ['nullable', 'array'],
             'fnoacak.*' => ['nullable', 'regex:/^[1-9]{3}$/'],
             'frefnoacak' => ['nullable', 'array'],
@@ -450,7 +448,6 @@ class SuratJalanController extends Controller
         $qtys = $request->input('fqty', []);
         $prices = $request->input('fprice', []);
         $descs = $request->input('fdesc', []);
-        $frefpr = $request->input('frefpr', []);
         $frefso = $request->input('frefso', []);
         $frefsoid = $request->input('frefsoid', []);
         $fnoacaks = $request->input('fnoacak', []);
@@ -532,9 +529,7 @@ class SuratJalanController extends Controller
                 'fcode' => $this->resolveSuratJalanFcode([
                     'frefso' => $frefso[$i] ?? null,
                     'frefsoid' => $frefsoid[$i] ?? null,
-                    'frefpr' => $frefpr[$i] ?? null,
                 ]),
-                'frefpr' => $frefpr[$i] ?? null,
                 'frefso' => $frefso[$i] ?? null,
                 'frefsoid' => isset($frefsoid[$i]) ? (int) $frefsoid[$i] : null,
                 'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
@@ -852,8 +847,6 @@ class SuratJalanController extends Controller
                 'fitemcode' => $d->fitemcode_text ?? '',
                 'fitemname' => $d->fprdname ?? '',
                 'fsatuan' => $d->fsatuan ?? '',
-                'fprno' => $d->frefpr ?? '-',
-                'frefpr' => $d->frefpr ?? null,
                 'fpono' => $d->fpono ?? null,
                 'famountponet' => $d->famountponet ?? null,
                 'famountpo' => $d->famountpo ?? null,
@@ -864,7 +857,7 @@ class SuratJalanController extends Controller
                 'fdisc' => (float) ($d->fdiscpersen ?? 0),
                 'ftotal' => (float) ($d->ftotprice ?? 0),
                 'fdesc' => is_array($d->fdesc) ? implode(', ', $d->fdesc) : ($d->fdesc ?? ''),
-                'frefno_display' => $d->frefso ?? $d->frefpr ?? $d->fpono ?? '-',
+                'frefno_display' => $d->frefso ?? $d->fpono ?? '-',
                 'frefso' => $d->frefso ?? null,
                 'frefsoid' => $d->frefsoid ?? null,
                 'fnoacak' => (string) ($d->fnoacak ?? ''),
@@ -986,8 +979,6 @@ class SuratJalanController extends Controller
                 'fitemcode' => $d->fitemcode_text ?? '',
                 'fitemname' => $d->fprdname ?? '',
                 'fsatuan' => $d->fsatuan ?? '',
-                'fprno' => $d->frefpr ?? '-',
-                'frefpr' => $d->frefpr ?? null,
                 'fpono' => $d->fpono ?? null,
                 'famountponet' => $d->famountponet ?? null,
                 'famountpo' => $d->famountpo ?? null,
@@ -998,7 +989,7 @@ class SuratJalanController extends Controller
                 'fdisc' => (float) ($d->fdiscpersen ?? 0),
                 'ftotal' => (float) ($d->ftotprice ?? 0),
                 'fdesc' => is_array($d->fdesc) ? implode(', ', $d->fdesc) : ($d->fdesc ?? ''),
-                'frefno_display' => $d->frefso ?? $d->frefpr ?? $d->fpono ?? '-',
+                'frefno_display' => $d->frefso ?? $d->fpono ?? '-',
                 'frefso' => $d->frefso ?? null,
                 'frefsoid' => $d->frefsoid ?? null,
                 'fnoacak' => (string) ($d->fnoacak ?? ''),
@@ -1082,8 +1073,6 @@ class SuratJalanController extends Controller
             'frefso.*' => ['nullable', 'string', 'max:100'],
             'frefsoid' => ['nullable', 'array'],
             'frefsoid.*' => ['nullable', 'integer'],
-            'frefpr' => ['nullable', 'array'],
-            'frefpr.*' => ['nullable', 'string', 'max:100'],
             'fnoacak' => ['nullable', 'array'],
             'fnoacak.*' => ['nullable', 'regex:/^[1-9]{3}$/'],
             'frefnoacak' => ['nullable', 'array'],
@@ -1124,7 +1113,6 @@ class SuratJalanController extends Controller
         $qtys = $request->input('fqty', []);
         $prices = $request->input('fprice', []);
         $descs = $request->input('fdesc', []);
-        $frefpr = $request->input('frefpr', []);
         $frefso = $request->input('frefso', []);
         $frefsoid = $request->input('frefsoid', []);
         $fnoacaks = $request->input('fnoacak', []);
@@ -1222,9 +1210,7 @@ class SuratJalanController extends Controller
                 'fcode' => $this->resolveSuratJalanFcode([
                     'frefso' => $frefso[$i] ?? null,
                     'frefsoid' => $frefsoid[$i] ?? null,
-                    'frefpr' => $frefpr[$i] ?? null,
                 ]),
-                'frefpr' => $frefpr[$i] ?? null,
                 'frefso' => $frefso[$i] ?? null,
                 'frefsoid' => isset($frefsoid[$i]) ? (int) $frefsoid[$i] : null,
                 'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
@@ -1545,8 +1531,6 @@ class SuratJalanController extends Controller
                 'fitemcode' => $d->fitemcode_text ?? '',
                 'fitemname' => $d->fprdname ?? '',
                 'fsatuan' => $d->fsatuan ?? '',
-                'fprno' => $d->frefpr ?? '-',
-                'frefpr' => $d->frefpr ?? null,
                 'fpono' => $d->fpono ?? null,
                 'famountponet' => $d->famountponet ?? null,
                 'famountpo' => $d->famountpo ?? null,
@@ -1557,7 +1541,7 @@ class SuratJalanController extends Controller
                 'fdisc' => (float) ($d->fdiscpersen ?? 0),
                 'ftotal' => (float) ($d->ftotprice ?? 0),
                 'fdesc' => is_array($d->fdesc) ? implode(', ', $d->fdesc) : ($d->fdesc ?? ''),
-                'frefno_display' => $d->frefso ?? $d->frefpr ?? $d->fpono ?? '-',
+                'frefno_display' => $d->frefso ?? $d->fpono ?? '-',
                 'frefso' => $d->frefso ?? null,
                 'frefsoid' => $d->frefsoid ?? null,
                 'fnoacak' => (string) ($d->fnoacak ?? ''),
@@ -1827,6 +1811,6 @@ class SuratJalanController extends Controller
             return 'S';
         }
 
-        return trim((string) ($row['frefpr'] ?? '')) !== '' ? 'F' : '0';
+        return trim((string) ($row['frefso'] ?? '')) !== '' ? 'S' : '0';
     }
 }
