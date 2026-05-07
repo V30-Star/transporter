@@ -101,8 +101,8 @@
     <div>
         <div x-data="{ includePPN: false, ppnRate: 11, ppnAmount: 0, selected: 'alamatsurat', totalHarga: 0 }" class="lg:col-span-5">
             <div class="bg-white rounded shadow p-6 md:p-8 max-w-[1600px] w-full mx-auto">
-                <form id="salesOrderForm" action="{{ route('salesorder.store') }}" method="POST" class="mt-6" data-form-draft="true"
-                    data-draft-key="salesorder:create" x-data="{ showNoItems: false }"
+                <form id="salesOrderForm" action="{{ route('salesorder.store') }}" method="POST" class="mt-6"
+                    data-form-draft="true" data-draft-key="salesorder:create" x-data="{ showNoItems: false }"
                     @submit.prevent="
                         const count = Number($el.querySelector('input[name=itemsCount]')?.value || 0);
                         if (count < 1) {
@@ -117,7 +117,7 @@
                             });
                             return;
                         }
-                        window.salesOrderCreditApprovalGuard($el).then(ok => { if (ok) $el.submit() });
+                        window.salesOrderCreditApprovalGuard($el).then(ok =&gt; { if (ok) $el.submit() });
                     ">
                     @csrf
                     <input type="hidden" name="fneedacc" id="salesOrderNeedAcc" value="{{ old('fneedacc', '0') }}">
@@ -266,7 +266,8 @@
                                         value="{{ old('falamatkirim') }}">
 
                                     <div class="flex items-center gap-2">
-                                        <label class="text-sm font-bold text-gray-700 mr-2">{{ __('ui.ship_to') }} :</label>
+                                        <label class="text-sm font-bold text-gray-700 mr-2">{{ __('ui.ship_to') }}
+                                            :</label>
 
                                         <div class="inline-flex rounded-md shadow-sm" role="group">
                                             <button type="button" @click="tab = 1"
@@ -309,7 +310,8 @@
                                 </div>
 
                                 <div class="flex flex-col">
-                                    <label class="block text-sm font-bold text-gray-700 mb-2">{{ __('ui.description') }}</label>
+                                    <label
+                                        class="block text-sm font-bold text-gray-700 mb-2">{{ __('ui.description') }}</label>
                                     <div
                                         class="flex-1 border-2 border-gray-200 rounded-xl p-3 bg-white min-h-[150px] focus-within:border-blue-400">
                                         <textarea name="fket" class="w-full h-full border-none focus:ring-0 p-0 text-sm resize-none"
@@ -378,8 +380,7 @@
                                             </td>
                                             <td class="p-2 text-right">
                                                 <input type="number" class="w-full border rounded px-2 py-1 text-right"
-                                                    x-model.number="it.fqty"
-                                                    @input="recalc(it);">
+                                                    x-model.number="it.fqty" @input="recalc(it);">
                                             </td>
                                             <td class="p-2 text-right">
                                                 <input type="number" class="w-full border rounded px-2 py-1 text-right"
@@ -961,7 +962,9 @@
                 const used = new Set(this.savedItems.map(item => this.normalizeNoAcak(item.fnoacak)).filter(Boolean));
                 let candidate = '';
                 do {
-                    candidate = Array.from({ length: 3 }, () => '123456789'[Math.floor(Math.random() * 9)]).join('');
+                    candidate = Array.from({
+                        length: 3
+                    }, () => '123456789' [Math.floor(Math.random() * 9)]).join('');
                 } while (used.has(candidate));
 
                 return candidate;
@@ -1195,7 +1198,8 @@
 
             const payload = await response.json();
             if (!response.ok) {
-                const message = payload?.message || Object.values(payload?.errors || {}).flat().join('\n') || @json(__('ui.customer_check_failed_message'));
+                const message = payload?.message || Object.values(payload?.errors || {}).flat().join('\n') ||
+                    @json(__('ui.customer_check_failed_message'));
                 await Swal.fire({
                     icon: 'error',
                     title: @json(__('ui.check_customer_failed')),
@@ -1320,7 +1324,11 @@
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
     @include('components.transaction.browse-customer-script')
     @include('components.transaction.browse-salesman-script')
-    @include('components.transaction.browse-product-script', ['showControls' => true, 'showPagination' => true, 'supportsForEdit' => true])
+    @include('components.transaction.browse-product-script', [
+        'showControls' => true,
+        'showPagination' => true,
+        'supportsForEdit' => true,
+    ])
 
     <script>
         window.PRODUCT_MAP = @json($productMap ?? []);
@@ -1338,4 +1346,3 @@
         });
     </script>
 @endpush
-

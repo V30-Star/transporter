@@ -719,22 +719,22 @@
                         @else
                             <form id="salesOrderForm" action="{{ route('salesorder.update', $salesorder->ftrsomtid) }}" method="POST"
                                 class="mt-6"
-                                @submit.prevent="
-        const n = Number($el.querySelector('input[name=itemsCount]')?.value || 0);
-        if (n < 1) { 
-            Swal.fire({
-                icon: 'warning',
-                title: @json(__('ui.no_items_title')),
-                    text: @json(__('ui.add_min_one_item')),
-                confirmButtonText: @json(__('ui.ok')),
-                customClass: {
-                    confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700'
-                }
-            });
-        } else { 
-            window.salesOrderCreditApprovalGuard($el).then(ok => { if (ok) $el.submit() });
-        }
-      ">
+                               @submit.prevent="
+    const count = Number($el.querySelector('input[name=itemsCount]')?.value || 0);
+    if (count < 1) {
+        Swal.fire({
+            icon: 'warning',
+            title: @json(__('ui.no_items_title')),
+            text: @json(__('ui.add_min_one_item')),
+            confirmButtonText: @json(__('ui.ok')),
+            customClass: {
+                confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700'
+            }
+        });
+        return;
+    }
+    window.salesOrderCreditApprovalGuard($el).then(ok =&gt; { if (ok) $el.submit() });
+">
                                 @csrf
                                 @method('PATCH')
                                 <input type="hidden" name="fneedacc" id="salesOrderNeedAcc"
