@@ -216,6 +216,8 @@
             overflow: hidden !important;
             text-overflow: ellipsis !important;
             vertical-align: top;
+            padding-top: 0.2rem !important;
+            padding-bottom: 0.2rem !important;
         }
 
         .fpb-detail-table th:nth-child(2),
@@ -246,14 +248,14 @@
 
         .fpb-detail-table th:nth-child(n+6):nth-child(-n+11),
         .fpb-detail-table td:nth-child(n+6):nth-child(-n+11) {
-            padding-left: 0.35rem !important;
-            padding-right: 0.35rem !important;
+            padding-left: 0.3rem !important;
+            padding-right: 0.3rem !important;
         }
 
         .fpb-detail-table th:nth-child(n+2):nth-child(-n+5),
         .fpb-detail-table td:nth-child(n+2):nth-child(-n+5) {
-            padding-left: 0.45rem !important;
-            padding-right: 0.45rem !important;
+            padding-left: 0.4rem !important;
+            padding-right: 0.4rem !important;
         }
     </style>
     <meta name="csrf-token" content="{{ csrf_token() }}">
