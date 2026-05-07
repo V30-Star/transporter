@@ -77,7 +77,7 @@
                                 <tr class="border-t border-gray-100">
                                     <td class="whitespace-nowrap">{{ $item->fprdcode }}</td>
                                     <td class="whitespace-nowrap">{{ $item->product_name ?? '-' }}</td>
-                                    <td>{{ number_format((float) ($item->fqty ?? 0), 0, ',', '.') }}</td>
+                                    <td>{{ number_format((float) ($item->fqty ?? 0), 2, ',', '.') }}</td>
                                     <td>{{ $item->fprice ?? '-' }}</td>
                                     <td>{{ $item->fdisc ?? '-' }}</td>
                                     <td>{{ $item->famount ?? '-' }}</td>
@@ -129,3 +129,4 @@
 </body>
 
 </html>
+

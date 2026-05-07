@@ -62,14 +62,14 @@
             <div class="grid grid-cols-3 gap-4">
                 <div class="text-sm font-medium text-gray-500">Harga Beli</div>
                 <div class="col-span-2 text-sm font-semibold text-gray-900">
-                    Rp {{ number_format($product->fhargabeli ?? 0, 0, ',', '.') }}
+                    Rp {{ number_format($product->fhargabeli ?? 0, 2, ',', '.') }}
                 </div>
             </div>
 
             <div class="grid grid-cols-3 gap-4">
                 <div class="text-sm font-medium text-gray-500">Harga Jual</div>
                 <div class="col-span-2 text-sm font-semibold text-gray-900">
-                    Rp {{ number_format($product->fhargajual ?? 0, 0, ',', '.') }}
+                    Rp {{ number_format($product->fhargajual ?? 0, 2, ',', '.') }}
                 </div>
             </div>
 
@@ -360,3 +360,4 @@
         </script>
     @endif
 @endsection
+

@@ -182,7 +182,7 @@
                                 <div class="muted">({{ $item->fdesc }})</div>
                             @endif
                         </td>
-                        <td>{{ number_format((float) ($item->fqty ?? 0), 0, ',', '.') }}</td>
+                        <td>{{ number_format((float) ($item->fqty ?? 0), 2, ',', '.') }}</td>
                         <td>{{ $item->fprice ?? '-' }}</td>
                         <td>{{ $item->fdisc ?? '-' }}</td>
                         <td>{{ $item->famount ?? '-' }}</td>
@@ -223,3 +223,4 @@
 </body>
 
 </html>
+

@@ -228,7 +228,7 @@
                     <small style="color: #666;">{{ $row->femail }}</small>
                 </div>
                 <div class="text-right">
-                    L: {{ number_format($row->flimit, 0, ',', '.') }}<br>
+                    L: {{ number_format($row->flimit, 2, ',', '.') }}<br>
                     T: {{ $row->ftempo }} Hr
                 </div>
             </div>
@@ -259,3 +259,4 @@
         document.getElementById('zoomLabel').textContent = Math.round(currentZoom * 100) + '%';
     }
 </script>
+

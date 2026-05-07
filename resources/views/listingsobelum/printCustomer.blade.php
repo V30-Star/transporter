@@ -305,7 +305,7 @@
                                 <div>{{ date('d/m/Y', strtotime($row->fsodate)) }}</div>
                                 <div class="truncate" style="font-size:8.5px;">{{ $row->fprdname }}</div>
                                 <div class="text-center">{{ $row->fsatuan }}</div>
-                                <div class="text-right">{{ number_format($row->fpricenet, 0, ',', '.') }}</div>
+                                <div class="text-right">{{ number_format($row->fpricenet, 2, ',', '.') }}</div>
                                 <div class="text-right text-red">{{ number_format($row->fqty, 2, ',', '.') }}</div>
                                 <div class="text-right text-blue">{{ number_format($row->fstock, 2, ',', '.') }}</div>
                             </div>
@@ -353,3 +353,4 @@
 </body>
 
 </html>
+

@@ -356,11 +356,11 @@
                             <div>{{ date('d/m/y', strtotime($h->fsodate)) }}</div>
                             <div class="truncate">{{ $h->fcustomername }}</div>
                             <div class="truncate">{{ $h->fsalesmanname ?? '-' }}</div>
-                            <div class="text-right">{{ number_format($h->famountgross, 0, ',', '.') }}</div>
-                            <div class="text-right">{{ number_format($h->famountsonet, 0, ',', '.') }}</div>
-                            <div class="text-right">{{ number_format($h->famountpajak, 0, ',', '.') }}</div>
-                            <div class="text-right">{{ number_format($h->fongkosangkut, 0, ',', '.') }}</div>
-                            <div class="text-right">{{ number_format($h->famountso, 0, ',', '.') }}</div>
+                            <div class="text-right">{{ number_format($h->famountgross, 2, ',', '.') }}</div>
+                            <div class="text-right">{{ number_format($h->famountsonet, 2, ',', '.') }}</div>
+                            <div class="text-right">{{ number_format($h->famountpajak, 2, ',', '.') }}</div>
+                            <div class="text-right">{{ number_format($h->fongkosangkut, 2, ',', '.') }}</div>
+                            <div class="text-right">{{ number_format($h->famountso, 2, ',', '.') }}</div>
                         </div>
 
                         {{-- Baris Detail --}}
@@ -372,9 +372,9 @@
                                     <div class="truncate">{{ $d->frefso ?? '-' }}</div>
                                     <div class="text-right">{{ $fmtQty($d->fqtydeliver) }}</div>
                                     <div class="text-right">{{ $fmtQty($d->fqty) }}</div>
-                                    <div class="text-right">{{ number_format($d->fprice, 0, ',', '.') }}</div>
+                                    <div class="text-right">{{ number_format($d->fprice, 2, ',', '.') }}</div>
                                     <div class="text-center">{{ $d->fdisc }}</div>
-                                    <div class="text-right">{{ number_format($d->famount, 0, ',', '.') }}</div>
+                                    <div class="text-right">{{ number_format($d->famount, 2, ',', '.') }}</div>
                                 </div>
                             @endforeach
                         @endif
@@ -447,3 +447,4 @@
 </body>
 
 </html>
+

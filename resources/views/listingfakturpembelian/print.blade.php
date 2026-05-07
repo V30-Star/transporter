@@ -274,9 +274,9 @@
                         <div>{{ \Carbon\Carbon::parse($h->fstockmtdate)->format('d/m/Y') }}</div>
                         <div>{{ $h->ftype }}</div>
                         <div class="truncate">{{ $h->fsuppliername }}</div>
-                        <div class="text-right">{{ number_format($h->famount, 0, ',', '.') }}</div>
-                        <div class="text-right">{{ number_format($h->famountpajak, 0, ',', '.') }}</div>
-                        <div class="text-right" style="color: blue;">{{ number_format($h->famountmt, 0, ',', '.') }}
+                        <div class="text-right">{{ number_format($h->famount, 2, ',', '.') }}</div>
+                        <div class="text-right">{{ number_format($h->famountpajak, 2, ',', '.') }}</div>
+                        <div class="text-right" style="color: blue;">{{ number_format($h->famountmt, 2, ',', '.') }}
                         </div>
                     </div>
 
@@ -287,9 +287,9 @@
                             <div class="truncate">{{ $d->frefdtno }}</div>
                             <div class="text-right">{{ number_format($d->fqty, 2, ',', '.') }}</div>
                             <div class="text-center">{{ number_format($d->fqtyremain, 0) }}</div>
-                            <div class="text-right">{{ number_format($d->fprice, 0, ',', '.') }}</div>
-                            <div class="text-right">{{ number_format($d->fbiaya, 0, ',', '.') }}</div>
-                            <div class="text-right">{{ number_format($d->ftotprice, 0, ',', '.') }}</div>
+                            <div class="text-right">{{ number_format($d->fprice, 2, ',', '.') }}</div>
+                            <div class="text-right">{{ number_format($d->fbiaya, 2, ',', '.') }}</div>
+                            <div class="text-right">{{ number_format($d->ftotprice, 2, ',', '.') }}</div>
                         </div>
                     @endforeach
                     <div class="separator"></div>
@@ -298,7 +298,7 @@
                 @if ($loop->last)
                     <div class="grand-total">
                         <span>TOTAL KESELURUHAN FAKTUR PEMBELIAN</span>
-                        <span>Rp {{ number_format($totalLaporan, 0, ',', '.') }}</span>
+                        <span>Rp {{ number_format($totalLaporan, 2, ',', '.') }}</span>
                     </div>
                 @endif
                 @if ($loop->last)
@@ -323,3 +323,4 @@
         document.getElementById('zoomLabel').textContent = Math.round(currentZoom * 100) + '%';
     }
 </script>
+

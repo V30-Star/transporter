@@ -321,10 +321,10 @@
                             <div>{{ \Carbon\Carbon::parse($mt->fsodate)->format('d/m/Y') }}</div>
                             <div class="truncate">{{ $mt->fcustomername }}</div>
                             <div class="truncate">{{ $mt->fsalesmanname }}</div>
-                            <div>{{ number_format($mt->famountgross, 0, ',', '.') }}</div>
-                            <div>{{ number_format($mt->fdiscount, 0, ',', '.') }}</div>
-                            <div>{{ number_format($mt->famountpajak, 0, ',', '.') }}</div>
-                            <div style="color: blue;">{{ number_format($mt->famountso, 0, ',', '.') }}</div>
+                            <div>{{ number_format($mt->famountgross, 2, ',', '.') }}</div>
+                            <div>{{ number_format($mt->fdiscount, 2, ',', '.') }}</div>
+                            <div>{{ number_format($mt->famountpajak, 2, ',', '.') }}</div>
+                            <div style="color: blue;">{{ number_format($mt->famountso, 2, ',', '.') }}</div>
                             <div>{{ $mt->fclose == '1' ? 'Y' : 'N' }}</div>
                         </div>
 
@@ -334,8 +334,8 @@
                                 <div class="truncate">{{ $dt->fprdcode }}</div>
                                 <div>{{ number_format($dt->fqty, 2, ',', '.') }}</div>
                                 <div>0.00</div>
-                                <div>{{ number_format($dt->fprice, 0, ',', '.') }}</div>
-                                <div>{{ number_format($dt->fqty * $dt->fprice, 0, ',', '.') }}</div>
+                                <div>{{ number_format($dt->fprice, 2, ',', '.') }}</div>
+                                <div>{{ number_format($dt->fqty * $dt->fprice, 2, ',', '.') }}</div>
                             </div>
                         @endforeach
 
@@ -348,7 +348,7 @@
                         <div class="grand-total-section">
                             <div class="grand-total-header">
                                 <span>GRAND TOTAL LISTING SALES ORDER</span>
-                                <span>Rp {{ number_format($totalFaktur, 0, ',', '.') }}</span>
+                                <span>Rp {{ number_format($totalFaktur, 2, ',', '.') }}</span>
                             </div>
                         </div>
                     @endif
@@ -370,3 +370,4 @@
         document.getElementById('zoomLabel').textContent = Math.round(currentZoom * 100) + '%';
     }
 </script>
+

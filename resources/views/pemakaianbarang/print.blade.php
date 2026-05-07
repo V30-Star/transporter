@@ -275,7 +275,7 @@
                                 <div style="font-size: 10px; color: #555;">({{ $r->fdesc }})</div>
                             @endif
                         </td>
-                        <td class="text-center">{{ number_format((float) ($r->fqty ?? 0), 0, ',', '.') }}</td>
+                        <td class="text-center">{{ number_format((float) ($r->fqty ?? 0), 2, ',', '.') }}</td>
                         <td class="text-center">{{ $r->fsatuan ?? '-' }}</td>
                     </tr>
                 @endforeach
@@ -317,3 +317,4 @@
 </body>
 
 </html>
+

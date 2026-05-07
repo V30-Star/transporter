@@ -1309,15 +1309,10 @@
                 const v = Number(n);
                 if (!isFinite(v)) return '-';
 
-                // Jika angka adalah bulat, hilangkan desimal
-                if (Number.isInteger(v)) {
-                    return v.toLocaleString('id-ID'); // Format sebagai angka bulat
-                } else {
-                    return v.toLocaleString('id-ID', {
-                        style: 'currency',
-                        currency: 'IDR'
-                    }); // Jika angka desimal, tampilkan dalam format mata uang
-                }
+                return v.toLocaleString('id-ID', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
             },
 
             rupiah(n) {

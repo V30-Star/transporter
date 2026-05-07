@@ -1974,14 +1974,10 @@
                 const v = Number(n);
                 if (!isFinite(v)) return '-';
 
-                if (Number.isInteger(v)) {
-                    return v.toLocaleString('id-ID');
-                } else {
-                    return v.toLocaleString('id-ID', {
-                        style: 'currency',
-                        currency: 'IDR'
-                    });
-                }
+                return v.toLocaleString('id-ID', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
             },
 
             rupiah(n) {
@@ -2863,3 +2859,4 @@
         }
     </script>
 @endpush
+

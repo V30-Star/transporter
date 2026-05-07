@@ -710,14 +710,10 @@
                     if (!isFinite(v)) return '-';
 
                     // Jika angka adalah bulat, hilangkan desimal
-                    if (Number.isInteger(v)) {
-                        return v.toLocaleString('id-ID');
-                    } else {
-                        return v.toLocaleString('id-ID', {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                        });
-                    }
+                    return v.toLocaleString('id-ID', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
                 },
 
                 rupiah(n) {
@@ -1345,3 +1341,4 @@
         });
     </script>
 @endpush
+

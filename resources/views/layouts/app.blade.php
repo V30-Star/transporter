@@ -936,16 +936,29 @@
     @endif
     <script>
         (() => {
-            window.formatTransactionAmount = function(value) {
-                const amount = Number(value || 0);
+            window.formatNumber2 = function(value, fallback = '-') {
+                if (value === null || value === undefined || value === '') {
+                    return fallback;
+                }
+
+                const amount = Number(value);
                 if (!isFinite(amount)) {
-                    return '-';
+                    return fallback;
                 }
 
                 return amount.toLocaleString('id-ID', {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
                 });
+            };
+
+            window.formatCurrency2 = function(value, prefix = 'Rp ', fallback = '-') {
+                const formatted = window.formatNumber2(value, fallback);
+                return formatted === fallback ? `${prefix}${fallback}` : `${prefix}${formatted}`;
+            };
+
+            window.formatTransactionAmount = function(value) {
+                return window.formatNumber2(value, '-');
             };
 
             const blockedQtyKeys = new Set([',', '.', 'e', 'E', '+', '-']);

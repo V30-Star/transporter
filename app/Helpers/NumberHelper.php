@@ -1,5 +1,23 @@
 <?php
 
+if (!function_exists('format_number')) {
+  function format_number($value, int $decimals = 2, string $decimalSeparator = ',', string $thousandsSeparator = '.')
+  {
+    if ($value === null || $value === '') {
+      $value = 0;
+    }
+
+    return number_format((float) $value, $decimals, $decimalSeparator, $thousandsSeparator);
+  }
+}
+
+if (!function_exists('format_currency')) {
+  function format_currency($value, string $prefix = 'Rp ')
+  {
+    return $prefix . format_number($value, 2, ',', '.');
+  }
+}
+
 if (!function_exists('terbilang')) {
   function terbilang($number)
   {

@@ -360,7 +360,7 @@
                     name: 'famountso',
                     render: function(data) {
                         // Format currency jika perlu
-                        return new Intl.NumberFormat('id-ID').format(data);
+                        return new Intl.NumberFormat('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(data);
                     }
                 },
                 {
@@ -562,3 +562,4 @@
         });
     </script>
 @endpush
+

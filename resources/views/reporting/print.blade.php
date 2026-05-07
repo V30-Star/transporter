@@ -493,9 +493,9 @@
                                     <div class="text-right">{{ number_format($detail->fqty ?? 0, 2, ',', '.') }}</div>
                                     <div class="text-right">
                                         {{ number_format($detail->fqty_receive ?? 0, 2, ',', '.') }}</div>
-                                    <div class="text-right">{{ number_format($detail->fprice ?? 0, 0, ',', '.') }}
+                                    <div class="text-right">{{ number_format($detail->fprice ?? 0, 2, ',', '.') }}
                                     </div>
-                                    <div class="text-right">{{ number_format($detail->famount ?? 0, 0, ',', '.') }}
+                                    <div class="text-right">{{ number_format($detail->famount ?? 0, 2, ',', '.') }}
                                     </div>
                                 </div>
                             @endforeach
@@ -527,8 +527,8 @@
                                 <div class="text-right">{{ number_format($grandTotal['qty'], 2, ',', '.') }}</div>
                                 <div class="text-right">{{ number_format($grandTotal['qty_receive'], 2, ',', '.') }}
                                 </div>
-                                <div class="text-right">{{ number_format($grandTotal['price'], 0, ',', '.') }}</div>
-                                <div class="text-right">{{ number_format($grandTotal['harga'], 0, ',', '.') }}</div>
+                                <div class="text-right">{{ number_format($grandTotal['price'], 2, ',', '.') }}</div>
+                                <div class="text-right">{{ number_format($grandTotal['harga'], 2, ',', '.') }}</div>
                             </div>
                         </div>
                     @endif
@@ -590,3 +590,4 @@
 </body>
 
 </html>
+

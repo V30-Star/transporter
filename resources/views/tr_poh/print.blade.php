@@ -284,7 +284,7 @@
                     <tr>
                         <td class="text-center">{{ $i + 1 }}</td>
                         <td>{{ $r->product_name ?? 'CANGKANG SAWIT' }}</td>
-                        <td class="text-right">{{ number_format($r->fqty ?? 100000, 0, ',', '.') }}
+                        <td class="text-right">{{ number_format($r->fqty ?? 100000, 2, ',', '.') }}
                             {{ $r->funit ?? 'KG' }}</td>
                         <td class="text-right">{{ number_format($r->fprice ?? 1115, 2, '.', ',') }}</td>
                         <td class="text-center">{{ $r->fdiscpersen ?? 0 }}</td>
@@ -341,3 +341,4 @@
 </body>
 
 </html>
+

@@ -259,7 +259,7 @@
                         <div>{{ \Carbon\Carbon::parse($h->fstockmtdate)->format('d/m/Y') }}</div>
                         <div class="truncate">{{ $h->fwhname }}</div>
                         <div class="truncate">{{ $h->fsuppliername }}</div>
-                        <div class="text-right">{{ number_format($h->famountmt, 0, ',', '.') }}</div>
+                        <div class="text-right">{{ number_format($h->famountmt, 2, ',', '.') }}</div>
                         <div class="text-right">{{ trim($h->fusercreate) }}</div>
                     </div>
 
@@ -269,8 +269,8 @@
                             <div class="truncate">{{ $d->fprdname }}</div>
                             <div class="truncate">{{ $d->frefpo }}</div>
                             <div class="text-right">{{ number_format($d->fqty, 2, ',', '.') }}</div>
-                            <div class="text-right">{{ number_format($d->fprice, 0, ',', '.') }}</div>
-                            <div class="text-right">{{ number_format($d->ftotprice, 0, ',', '.') }}</div>
+                            <div class="text-right">{{ number_format($d->fprice, 2, ',', '.') }}</div>
+                            <div class="text-right">{{ number_format($d->ftotprice, 2, ',', '.') }}</div>
                         </div>
                     @endforeach
                     <div class="separator"></div>
@@ -279,7 +279,7 @@
                 @if ($loop->last)
                     <div class="grand-total">
                         <span>TOTAL KESELURUHAN PENERIMAAN</span>
-                        <span>Rp {{ number_format($totalLaporan, 0, ',', '.') }}</span>
+                        <span>Rp {{ number_format($totalLaporan, 2, ',', '.') }}</span>
                     </div>
                 @endif
                 @if ($loop->last)
@@ -294,3 +294,4 @@
 </body>
 
 </html>
+

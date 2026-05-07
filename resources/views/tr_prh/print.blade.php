@@ -285,7 +285,7 @@
                                 <div class="muted">{{ $r->fdesc }}</div>
                             @endif
                         </td>
-                        <td class="text-right">{{ number_format((float) $r->fqty, 0, ',', '.') }} {{ $r->fsatuan }}</td>
+                        <td class="text-right">{{ number_format((float) $r->fqty, 2, ',', '.') }} {{ $r->fsatuan }}</td>
                         <td>{{ $r->fketdt ?: '-' }}</td>
                     </tr>
                 @empty
@@ -326,3 +326,4 @@
 </body>
 
 </html>
+
