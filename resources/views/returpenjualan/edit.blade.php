@@ -296,7 +296,19 @@
                             <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
 
                             <div class="overflow-auto border rounded">
-                                <table class="min-w-full text-sm">
+                                <table class="min-w-full text-sm balanced-detail-table" data-skip-auto-detail-style="true">
+                                    <colgroup>
+                                        <col style="width:2%;">
+                                        <col style="width:16%;">
+                                        <col style="width:25%;">
+                                        <col style="width:9%;">
+                                        <col style="width:16%;">
+                                        <col style="width:8%;">
+                                        <col style="width:8%;">
+                                        <col style="width:6%;">
+                                        <col style="width:7%;">
+                                        <col style="width:3%;">
+                                    </colgroup>
                                     <thead class="bg-gray-100">
                                         <tr>
                                             <th class="p-2 text-left w-10">#</th>
@@ -824,7 +836,19 @@
                                 <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
 
                                 <div class="overflow-auto border rounded">
-                                    <table class="min-w-full text-sm">
+                                    <table class="min-w-full text-sm balanced-detail-table" data-skip-auto-detail-style="true">
+                                        <colgroup>
+                                            <col style="width:2%;">
+                                            <col style="width:16%;">
+                                            <col style="width:25%;">
+                                            <col style="width:9%;">
+                                            <col style="width:16%;">
+                                            <col style="width:8%;">
+                                            <col style="width:8%;">
+                                            <col style="width:6%;">
+                                            <col style="width:7%;">
+                                            <col style="width:3%;">
+                                        </colgroup>
                                         <thead class="bg-gray-100">
                                             <tr>
                                                 <th class="p-2 text-left w-10">#</th>
