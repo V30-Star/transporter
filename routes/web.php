@@ -58,6 +58,24 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::post('/language', function (\Illuminate\Http\Request $request) {
+    $locale = $request->input('locale');
+    $supportedLocales = ['id', 'en'];
+
+    if (in_array($locale, $supportedLocales, true)) {
+        session(['app_locale' => $locale]);
+    }
+
+    if ($request->expectsJson()) {
+        return response()->json([
+            'success' => true,
+            'locale' => session('app_locale', config('app.locale')),
+        ]);
+    }
+
+    return back();
+})->name('language.set');
+
 // Semua route di bawah hanya untuk user yang sudah login
 Route::middleware('auth')->group(function () {
 

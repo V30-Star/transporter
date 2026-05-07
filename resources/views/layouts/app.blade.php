@@ -4,7 +4,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Dashboard')</title>
+    <title>@yield('title', __('ui.dashboard'))</title>
+    <script>
+        (() => {
+            const savedTheme = localStorage.getItem('app-theme');
+            const preferredTheme = savedTheme === 'dark' ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', preferredTheme);
+            document.documentElement.style.colorScheme = preferredTheme;
+        })();
+    </script>
 
     <style>
         [x-cloak] {
@@ -33,6 +41,241 @@
     <style>
         body {
             font-family: 'Lato', sans-serif;
+        }
+
+        :root {
+            --app-bg: #f3f4f6;
+            --app-surface: #ffffff;
+            --app-surface-soft: #f9fafb;
+            --app-surface-muted: #f3f4f6;
+            --app-text: #111827;
+            --app-text-soft: #374151;
+            --app-text-muted: #6b7280;
+            --app-border: #d1d5db;
+            --app-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+            --app-sidebar-bg: #000000;
+            --app-sidebar-hover: rgba(255, 255, 255, 0.1);
+        }
+
+        html[data-theme="dark"] {
+            --app-bg: #030712;
+            --app-surface: #111827;
+            --app-surface-soft: #1f2937;
+            --app-surface-muted: #0f172a;
+            --app-text: #f9fafb;
+            --app-text-soft: #e5e7eb;
+            --app-text-muted: #cbd5e1;
+            --app-border: #374151;
+            --app-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+            --app-sidebar-bg: #020617;
+            --app-sidebar-hover: rgba(148, 163, 184, 0.18);
+        }
+
+        html,
+        body {
+            background: var(--app-bg);
+            color: var(--app-text);
+        }
+
+        body {
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        html[data-theme="dark"] .bg-gray-100,
+        html[data-theme="dark"] body.bg-gray-100 {
+            background-color: var(--app-bg) !important;
+        }
+
+        html[data-theme="dark"] .bg-white,
+        html[data-theme="dark"] header.bg-white,
+        html[data-theme="dark"] .rounded.bg-white,
+        html[data-theme="dark"] .shadow.bg-white {
+            background-color: var(--app-surface) !important;
+            color: var(--app-text) !important;
+        }
+
+        html[data-theme="dark"] .bg-gray-50,
+        html[data-theme="dark"] .bg-gray-100 {
+            background-color: var(--app-surface-soft) !important;
+            color: var(--app-text) !important;
+        }
+
+        html[data-theme="dark"] .text-gray-800,
+        html[data-theme="dark"] .text-gray-700,
+        html[data-theme="dark"] .text-gray-600,
+        html[data-theme="dark"] .text-gray-500,
+        html[data-theme="dark"] .text-gray-400 {
+            color: var(--app-text-soft) !important;
+        }
+
+        html[data-theme="dark"] .border,
+        html[data-theme="dark"] .border-gray-100,
+        html[data-theme="dark"] .border-gray-200,
+        html[data-theme="dark"] .border-gray-300,
+        html[data-theme="dark"] .border-gray-400,
+        html[data-theme="dark"] .shadow,
+        html[data-theme="dark"] .shadow-sm,
+        html[data-theme="dark"] .shadow-md,
+        html[data-theme="dark"] .shadow-lg {
+            border-color: var(--app-border) !important;
+            box-shadow: var(--app-shadow) !important;
+        }
+
+        html[data-theme="dark"] input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+        html[data-theme="dark"] select,
+        html[data-theme="dark"] textarea {
+            background-color: #0f172a !important;
+            color: var(--app-text) !important;
+            border-color: var(--app-border) !important;
+        }
+
+        html[data-theme="dark"] input::placeholder,
+        html[data-theme="dark"] textarea::placeholder {
+            color: #94a3b8 !important;
+        }
+
+        html[data-theme="dark"] input[readonly],
+        html[data-theme="dark"] input:disabled,
+        html[data-theme="dark"] textarea[readonly],
+        html[data-theme="dark"] textarea:disabled,
+        html[data-theme="dark"] select:disabled {
+            background-color: #111827 !important;
+            color: #cbd5e1 !important;
+        }
+
+        html[data-theme="dark"] table thead,
+        html[data-theme="dark"] table thead tr,
+        html[data-theme="dark"] table thead th {
+            background-color: var(--app-surface-soft) !important;
+            color: var(--app-text) !important;
+            border-color: var(--app-border) !important;
+        }
+
+        html[data-theme="dark"] table tbody td,
+        html[data-theme="dark"] table tfoot td,
+        html[data-theme="dark"] table th {
+            border-color: var(--app-border) !important;
+            color: var(--app-text-soft) !important;
+        }
+
+        html[data-theme="dark"] .hover\:bg-gray-50:hover,
+        html[data-theme="dark"] tr.hover\:bg-gray-50:hover,
+        html[data-theme="dark"] .transaction-detail-table tbody tr:hover {
+            background-color: #172033 !important;
+        }
+
+        html[data-theme="dark"] .bg-black {
+            background-color: var(--app-sidebar-bg) !important;
+        }
+
+        html[data-theme="dark"] .hover\:bg-gray-700:hover,
+        html[data-theme="dark"] .hover\:bg-white\/10:hover {
+            background-color: var(--app-sidebar-hover) !important;
+        }
+
+        html[data-theme="dark"] .dt-container .dt-search .dt-input,
+        html[data-theme="dark"] .dataTables_wrapper .dt-search .dt-input,
+        html[data-theme="dark"] .dt-container .dt-length select.dt-input,
+        html[data-theme="dark"] .dataTables_wrapper .dataTables_length select {
+            background-color: #0f172a !important;
+            color: var(--app-text) !important;
+            border-color: var(--app-border) !important;
+        }
+
+        .theme-toggle-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            border: 1px solid var(--app-border);
+            background: var(--app-surface);
+            color: var(--app-text-soft);
+            border-radius: 0.5rem;
+            padding: 0.5rem 0.85rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+        }
+
+        .theme-toggle-button:hover {
+            background: var(--app-surface-soft);
+        }
+
+        html[data-theme="dark"] .theme-toggle-button {
+            background: #0f172a;
+            color: var(--app-text-soft);
+            border-color: var(--app-border);
+        }
+
+        html[data-theme="dark"] .bg-green-100.border-green-400.text-green-700 {
+            background-color: #052e16 !important;
+            border-color: #166534 !important;
+            color: #dcfce7 !important;
+        }
+
+        html[data-theme="dark"] .bg-red-100,
+        html[data-theme="dark"] .bg-red-50 {
+            background-color: #3f0d12 !important;
+            color: #fecaca !important;
+        }
+
+        html[data-theme="dark"] .border-red-200,
+        html[data-theme="dark"] .border-red-400 {
+            border-color: #7f1d1d !important;
+        }
+
+        html[data-theme="dark"] .bg-blue-50 {
+            background-color: #172554 !important;
+            color: #dbeafe !important;
+        }
+
+        html[data-theme="dark"] .dt-container .dt-info,
+        html[data-theme="dark"] .dt-container .dt-paging,
+        html[data-theme="dark"] .dt-container .dt-search label,
+        html[data-theme="dark"] .dt-container .dt-length label,
+        html[data-theme="dark"] .dataTables_wrapper .dataTables_info,
+        html[data-theme="dark"] .dataTables_wrapper .dataTables_paginate,
+        html[data-theme="dark"] .dataTables_wrapper .dataTables_filter label,
+        html[data-theme="dark"] .dataTables_wrapper .dataTables_length label {
+            color: var(--app-text-soft) !important;
+        }
+
+        html[data-theme="dark"] .dt-container .dt-paging .dt-paging-button,
+        html[data-theme="dark"] .dataTables_wrapper .paginate_button {
+            background: #0f172a !important;
+            color: var(--app-text-soft) !important;
+            border: 1px solid var(--app-border) !important;
+        }
+
+        html[data-theme="dark"] .dt-container .dt-paging .dt-paging-button.current,
+        html[data-theme="dark"] .dataTables_wrapper .paginate_button.current {
+            background: #1d4ed8 !important;
+            color: #fff !important;
+            border-color: #1d4ed8 !important;
+        }
+
+        html[data-theme="dark"] .dt-container .dt-paging .dt-paging-button:hover,
+        html[data-theme="dark"] .dataTables_wrapper .paginate_button:hover {
+            background: #1f2937 !important;
+            color: #fff !important;
+        }
+
+        html[data-theme="dark"] .swal2-popup {
+            background: #111827 !important;
+            color: #f9fafb !important;
+        }
+
+        html[data-theme="dark"] .swal2-title,
+        html[data-theme="dark"] .swal2-html-container {
+            color: #f9fafb !important;
+        }
+
+        html[data-theme="dark"] .user-dropdown-panel {
+            background-color: var(--app-surface) !important;
+            border: 1px solid var(--app-border) !important;
+        }
+
+        html[data-theme="dark"] .user-dropdown-link:hover {
+            background-color: var(--app-surface-soft) !important;
         }
 
         .transaction-detail-table {
@@ -342,7 +585,8 @@
             <header class="bg-white shadow-sm p-4 flex justify-between items-center">
                 <h2 class="text-xl font-semibold text-gray-800">@yield('title', 'Dashboard')</h2>
 
-                <div class="flex flex-col items-end gap-1 ml-auto">
+                <div class="flex items-center gap-3 ml-auto">
+                    <div class="flex flex-col items-end gap-1">
                     @auth
                         <div class="text-sm text-gray-600 font-medium mr-4">
                             <span>{{ Auth::user()->fname }} | {{ Auth::user()->fsysuserid }}</span>
@@ -374,6 +618,7 @@
                         }
                     }" x-init="init()" class="text-sm text-gray-600 font-medium mr-4"
                         x-text="display"></div>
+                    </div>
                 </div>
 
                 @auth
@@ -385,12 +630,50 @@
                         </button>
 
                         <div x-show="open" @click.outside="open = false"
-                            class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-20" x-cloak>
+                            class="user-dropdown-panel absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg z-20" x-cloak>
+                            <div class="px-4 py-3 border-b border-gray-200">
+                                <div class="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">
+                                    {{ __('ui.theme') }}
+                                </div>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <button type="button" onclick="window.appTheme.set('light')"
+                                        class="theme-toggle-button justify-center w-full !px-3 !py-2 !text-xs"
+                                        id="theme-light-option">
+                                        {{ __('ui.light') }}
+                                    </button>
+                                    <button type="button" onclick="window.appTheme.set('dark')"
+                                        class="theme-toggle-button justify-center w-full !px-3 !py-2 !text-xs"
+                                        id="theme-dark-option">
+                                        {{ __('ui.dark') }}
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="px-4 py-3 border-b border-gray-200">
+                                <div class="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">
+                                    {{ __('ui.language') }}
+                                </div>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <button type="button" onclick="window.appLanguage.set('id')"
+                                        class="theme-toggle-button justify-center w-full !px-3 !py-2 !text-xs"
+                                        id="language-id-option">
+                                        {{ __('ui.indonesian') }}
+                                    </button>
+                                    <button type="button" onclick="window.appLanguage.set('en')"
+                                        class="theme-toggle-button justify-center w-full !px-3 !py-2 !text-xs"
+                                        id="language-en-option">
+                                        {{ __('ui.english') }}
+                                    </button>
+                                </div>
+                            </div>
+                            <a href="{{ route('settings') }}"
+                                class="user-dropdown-link block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                {{ __('ui.settings') }}
+                            </a>
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
                                 <button type="submit"
-                                    class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                    Logout
+                                    class="user-dropdown-link w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    {{ __('ui.logout') }}
                                 </button>
                             </form>
                         </div>
@@ -428,6 +711,106 @@
             ->values();
     @endphp
     @stack('scripts')
+    <script>
+        (() => {
+            function resolveTheme(theme) {
+                return theme === 'dark' ? 'dark' : 'light';
+            }
+
+            function applyTheme(theme) {
+                const nextTheme = resolveTheme(theme);
+                document.documentElement.setAttribute('data-theme', nextTheme);
+                document.documentElement.style.colorScheme = nextTheme;
+                localStorage.setItem('app-theme', nextTheme);
+
+                const lightOption = document.getElementById('theme-light-option');
+                const darkOption = document.getElementById('theme-dark-option');
+
+                if (lightOption) {
+                    lightOption.classList.toggle('ring-2', nextTheme === 'light');
+                    lightOption.classList.toggle('ring-blue-300', nextTheme === 'light');
+                    lightOption.classList.toggle('border-blue-500', nextTheme === 'light');
+                }
+
+                if (darkOption) {
+                    darkOption.classList.toggle('ring-2', nextTheme === 'dark');
+                    darkOption.classList.toggle('ring-blue-300', nextTheme === 'dark');
+                    darkOption.classList.toggle('border-blue-500', nextTheme === 'dark');
+                }
+
+                window.dispatchEvent(new CustomEvent('theme-changed', {
+                    detail: {
+                        theme: nextTheme
+                    }
+                }));
+            }
+
+            window.appTheme = {
+                get() {
+                    return resolveTheme(localStorage.getItem('app-theme'));
+                },
+                set(theme) {
+                    applyTheme(theme);
+                },
+                toggle() {
+                    applyTheme(this.get() === 'dark' ? 'light' : 'dark');
+                }
+            };
+
+            document.addEventListener('DOMContentLoaded', () => {
+                applyTheme(window.appTheme.get());
+            });
+        })();
+    </script>
+    <script>
+        (() => {
+            function applyLanguageSelection(locale) {
+                const idOption = document.getElementById('language-id-option');
+                const enOption = document.getElementById('language-en-option');
+
+                if (idOption) {
+                    idOption.classList.toggle('ring-2', locale === 'id');
+                    idOption.classList.toggle('ring-blue-300', locale === 'id');
+                    idOption.classList.toggle('border-blue-500', locale === 'id');
+                }
+
+                if (enOption) {
+                    enOption.classList.toggle('ring-2', locale === 'en');
+                    enOption.classList.toggle('ring-blue-300', locale === 'en');
+                    enOption.classList.toggle('border-blue-500', locale === 'en');
+                }
+            }
+
+            window.appLanguage = {
+                current: @json(app()->getLocale()),
+                async set(locale) {
+                    const response = await fetch(@json(route('language.set')), {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        },
+                        body: JSON.stringify({
+                            locale
+                        }),
+                    });
+
+                    if (!response.ok) {
+                        return;
+                    }
+
+                    this.current = locale;
+                    applyLanguageSelection(locale);
+                    window.location.reload();
+                }
+            };
+
+            document.addEventListener('DOMContentLoaded', () => {
+                applyLanguageSelection(window.appLanguage.current);
+            });
+        })();
+    </script>
     <script>
         (() => {
             if (window.transactionReferenceModalHelper) {
