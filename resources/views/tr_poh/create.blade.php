@@ -298,17 +298,17 @@
                 <div class="overflow-x-auto border rounded">
                     <table class="min-w-full text-sm po-detail-table" data-skip-auto-detail-style="true">
                         <colgroup>
-                            <col class="w-10">
-                            <col class="w-16">
-                            <col class="w-[42rem]">
-                            <col class="w-16">
-                            <col class="w-16">
-                            <col class="w-20">
-                            <col class="w-24">
-                            <col class="w-16">
-                            <col class="w-20">
-                            <col class="w-16">
-                            <col class="w-16">
+                            <col style="width:2%;">
+                            <col style="width:12%;">
+                            <col style="width:27%;">
+                            <col style="width:7%;">
+                            <col style="width:10%;">
+                            <col style="width:8%;">
+                            <col style="width:8%;">
+                            <col style="width:6%;">
+                            <col style="width:8%;">
+                            <col style="width:8%;">
+                            <col style="width:4%;">
                         </colgroup>
                         <thead class="bg-gray-100">
                             <tr>
