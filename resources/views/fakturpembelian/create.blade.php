@@ -476,20 +476,33 @@
                         <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
 
                         <div class="overflow-x-auto border rounded">
-                            <table class="min-w-full text-sm balanced-detail-table" data-skip-auto-detail-style="true">
+                            <table class="min-w-full text-sm balanced-detail-table fpb-detail-table" data-skip-auto-detail-style="true">
+                                    <colgroup>
+                                        <col style="width:3%;">
+                                        <col style="width:21%;">
+                                        <col style="width:18%;">
+                                        <col style="width:16%;">
+                                        <col style="width:7%;">
+                                        <col style="width:7%;">
+                                        <col style="width:7%;">
+                                        <col style="width:7%;">
+                                        <col style="width:5%;">
+                                        <col style="width:5%;">
+                                        <col style="width:6%;">
+                                    </colgroup>
                                 <thead class="bg-gray-100">
                                     <tr>
                                         <th class="p-2 text-left w-10">#</th>
-                                        <th class="p-2 text-left w-48">Kode Produk</th>
-                                        <th class="p-2 text-left w-[26rem]">Nama Produk</th>
-                                        <th class="p-2 text-left w-56">No Refrensi</th>
-                                        <th class="p-2 text-left w-28">Satuan</th>
-                                        <th class="p-2 text-right w-24 whitespace-nowrap">Qty.</th>
-                                        <th class="p-2 text-right w-28 whitespace-nowrap">@ Harga</th>
-                                        <th class="p-2 text-right w-28 whitespace-nowrap">@ Biaya</th>
-                                        <th class="p-2 text-right w-20 whitespace-nowrap">Disc. %</th>
-                                        <th class="p-2 text-right w-32 whitespace-nowrap">Total Harga</th>
-                                        <th class="p-2 text-center w-24">Aksi</th>
+                                        <th class="p-2 text-left">Kode Produk</th>
+                                        <th class="p-2 text-left">Nama Produk</th>
+                                        <th class="p-2 text-left">No Refrensi</th>
+                                        <th class="p-2 text-left">Satuan</th>
+                                        <th class="p-2 text-right whitespace-nowrap">Qty.</th>
+                                        <th class="p-2 text-right whitespace-nowrap">@ Harga</th>
+                                        <th class="p-2 text-right whitespace-nowrap">@ Biaya</th>
+                                        <th class="p-2 text-right whitespace-nowrap">Disc. %</th>
+                                        <th class="p-2 text-right whitespace-nowrap">Total Harga</th>
+                                        <th class="p-2 text-center">Aksi</th>
                                     </tr>
                                 </thead>
 
@@ -501,14 +514,14 @@
                                             
                                             <!-- Kode Produk -->
                                             <td class="p-2">
-                                                <div class="flex">
+                                                <div class="flex w-full max-w-full">
                                                     <input type="text"
-                                                        class="flex-1 border rounded-l px-2 py-1 font-mono text-sm min-w-0"
+                                                        class="min-w-0 flex-1 border rounded-l px-2 py-1 font-mono text-sm"
                                                         x-model.trim="it.fitemcode" @focus="activeRow = it.uid"
                                                         @blur="activeRow = null" @input="onCodeTypedRow(it)"
                                                         @keydown.enter.prevent="$refs['qty_saved_' + i]?.focus()">
                                                     <button type="button" @click="openBrowseFor('saved', i)"
-                                                        class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
+                                                        class="shrink-0 border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
                                                         title="Cari Produk">
                                                         <x-heroicon-o-magnifying-glass class="w-4 h-4" />
                                                     </button>
@@ -516,12 +529,12 @@
                                             </td>
 
                                             <!-- Nama Produk + Deskripsi -->
-                                            <td class="p-2 relative overflow-visible">
+                                            <td class="p-2">
                                                 <input type="text"
                                                     class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
                                                     :value="it.fitemname" disabled>
-                                                <textarea x-model="it.fdesc" rows="2" class="border rounded px-2 py-1 text-xs text-gray-600 mt-1 relative z-10"
-                                                    style="width: calc(100% + 8rem);" placeholder="Deskripsi (opsional)" @focus="activeRow = it.uid"
+                                                <textarea x-model="it.fdesc" rows="2" class="w-full border rounded px-2 py-1 text-xs text-gray-600 mt-1"
+                                                    placeholder="Deskripsi (opsional)" @focus="activeRow = it.uid"
                                                     @blur="activeRow = null"></textarea>
                                             </td>
 
@@ -571,7 +584,7 @@
 
                                             <!-- @ Harga -->
                                             <td class="p-2 text-right">
-                                                <input type="number" class="border rounded px-2 py-1 w-24 text-right text-sm"
+                                                <input type="number" class="border rounded px-2 py-1 w-20 text-right text-sm"
                                                     min="0" step="0.01" x-model.number="it.fprice"
                                                     :id="'price_saved_' + i" @focus="activeRow = it.uid; $event.target.select()"
                                                     @blur="activeRow = null" @input="recalc(it)" @change="recalc(it)"
@@ -580,7 +593,7 @@
 
                                             <!-- @ Biaya -->
                                             <td class="p-2 text-right">
-                                                <input type="number" class="border rounded px-2 py-1 w-24 text-right text-sm"
+                                                <input type="number" class="border rounded px-2 py-1 w-20 text-right text-sm"
                                                     min="0" step="0.01" x-model.number="it.fbiaya"
                                                     :id="'biaya_saved_' + i" @focus="activeRow = it.uid; $event.target.select()"
                                                     @blur="activeRow = null" @input="recalc(it)" @change="recalc(it)"
@@ -589,7 +602,7 @@
 
                                             <!-- Disc.% -->
                                             <td class="p-2 text-right">
-                                                <input type="number" class="border rounded px-2 py-1 w-20 text-right text-sm"
+                                                <input type="number" class="border rounded px-2 py-1 w-16 text-right text-sm"
                                                     min="0" max="100" step="0.01" x-model.number="it.fdiscpersen"
                                                     :id="'disc_saved_' + i" @focus="activeRow = it.uid; $event.target.select()"
                                                     @blur="activeRow = null" @input="recalc(it)" @change="recalc(it)">
@@ -635,13 +648,13 @@
 
                                         <!-- Kode Produk -->
                                         <td class="p-2">
-                                            <div class="flex">
-                                                <input type="text" class="flex-1 border rounded-l px-2 py-1 font-mono"
+                                            <div class="flex w-full max-w-full">
+                                                <input type="text" class="min-w-0 flex-1 border rounded-l px-2 py-1 font-mono"
                                                     x-ref="draftCode" x-model.trim="draft.fitemcode"
                                                     @input="onCodeTypedRow(draft)"
                                                     @keydown.enter.prevent="handleEnterOnCode('draft')">
                                                 <button type="button" @click="openBrowseFor('draft')"
-                                                    class="border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
+                                                    class="shrink-0 border border-l-0 px-2 py-1 bg-white hover:bg-gray-50"
                                                     title="Cari Produk">
                                                     <x-heroicon-o-magnifying-glass class="w-4 h-4" />
                                                 </button>
@@ -682,7 +695,7 @@
 
                                         <!-- Qty -->
                                         <td class="p-2 text-right">
-                                            <input type="number" class="border rounded px-2 py-1 w-24 text-right"
+                                            <input type="number" class="border rounded px-2 py-1 w-20 text-right"
                                                 type="number"
                                                 x-ref="draftQty"
                                                 x-model.number="draft.fqty" @input="
@@ -698,7 +711,7 @@
 
                                         <!-- @ Harga -->
                                         <td class="p-2 text-right">
-                                            <input type="number" class="border rounded px-2 py-1 w-28 text-right"
+                                            <input type="number" class="border rounded px-2 py-1 w-[4rem] text-right"
                                                 min="0" step="0.01" x-ref="draftPrice"
                                                 x-model.number="draft.fprice" @input="recalc(draft)"
                                                 @keydown.enter.prevent="$refs.draftDisc?.focus()">
@@ -706,7 +719,7 @@
 
                                         <!-- @ Biaya -->
                                         <td class="p-2 text-right">
-                                            <input type="number" class="border rounded px-2 py-1 w-28 text-right"
+                                            <input type="number" class="border rounded px-2 py-1 w-[4rem] text-right"
                                                 min="0" step="0.01" x-ref="draftBiaya"
                                                 x-model.number="draft.fbiaya" @input="recalc(draft)" default="0"
                                                 @keydown.enter.prevent="$refs.draftBiaya?.focus()">
@@ -714,7 +727,7 @@
 
                                         <!-- Disc.% -->
                                         <td class="p-2 text-right">
-                                            <input type="number" class="border rounded px-2 py-1 w-24 text-right"
+                                            <input type="number" class="border rounded px-2 py-1 w-[3.25rem] text-right"
                                                 min="0" max="100" step="0.01" x-ref="draftDisc"
                                                 x-model.number="draft.fdiscpersen" @input="recalc(draft)"
                                                 @keydown.enter.prevent="addIfComplete()">

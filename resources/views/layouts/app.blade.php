@@ -205,6 +205,56 @@
         .balanced-detail-table textarea {
             max-width: 100%;
         }
+
+        .fpb-detail-table {
+            width: 100%;
+            table-layout: fixed !important;
+        }
+
+        .fpb-detail-table th,
+        .fpb-detail-table td {
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            vertical-align: top;
+        }
+
+        .fpb-detail-table th:nth-child(2),
+        .fpb-detail-table td:nth-child(2) {
+            overflow: visible !important;
+        }
+
+        .fpb-detail-table td:nth-child(2) .flex {
+            width: 100%;
+            max-width: 100%;
+            min-width: 0 !important;
+        }
+
+        .fpb-detail-table td:nth-child(2) .flex > input {
+            min-width: 0 !important;
+            flex: 1 1 auto !important;
+        }
+
+        .fpb-detail-table td:nth-child(2) .flex > button {
+            flex: 0 0 auto !important;
+        }
+
+        .fpb-detail-table input,
+        .fpb-detail-table select,
+        .fpb-detail-table textarea {
+            max-width: 100%;
+        }
+
+        .fpb-detail-table th:nth-child(n+6):nth-child(-n+11),
+        .fpb-detail-table td:nth-child(n+6):nth-child(-n+11) {
+            padding-left: 0.35rem !important;
+            padding-right: 0.35rem !important;
+        }
+
+        .fpb-detail-table th:nth-child(n+2):nth-child(-n+5),
+        .fpb-detail-table td:nth-child(n+2):nth-child(-n+5) {
+            padding-left: 0.45rem !important;
+            padding-right: 0.45rem !important;
+        }
     </style>
     <meta name="csrf-token" content="{{ csrf_token() }}">
 

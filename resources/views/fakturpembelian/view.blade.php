@@ -425,19 +425,31 @@
                     <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
 
                     <div class="overflow-x-auto border rounded">
-                        <table class="min-w-full text-sm balanced-detail-table" data-skip-auto-detail-style="true">
+                        <table class="min-w-full text-sm balanced-detail-table fpb-detail-table" data-skip-auto-detail-style="true">
+                            <colgroup>
+                                <col style="width:1%;">
+                                <col style="width:23%;">
+                                <col style="width:23%;">
+                                <col style="width:23%;">
+                                <col style="width:6%;">
+                                <col style="width:5%;">
+                                <col style="width:5%;">
+                                <col style="width:5%;">
+                                <col style="width:3%;">
+                                <col style="width:6%;">
+                            </colgroup>
                             <thead class="bg-gray-100">
                                 <tr>
                                     <th class="p-2 text-left w-10">#</th>
-                                    <th class="p-2 text-left w-48">Kode Produk</th>
-                                    <th class="p-2 text-left w-[26rem]">Nama Produk</th>
-                                    <th class="p-2 text-left w-56">No Refrensi</th>
-                                    <th class="p-2 text-left w-24">Satuan</th>
-                                    <th class="p-2 text-right w-24 whitespace-nowrap">Qty.</th>
-                                    <th class="p-2 text-right w-28 whitespace-nowrap">@ Harga</th>
-                                    <th class="p-2 text-right w-28 whitespace-nowrap">@ Biaya</th>
-                                    <th class="p-2 text-right w-20 whitespace-nowrap">Disc. %</th>
-                                    <th class="p-2 text-right w-32 whitespace-nowrap">Total Harga</th>
+                                    <th class="p-2 text-left">Kode Produk</th>
+                                    <th class="p-2 text-left">Nama Produk</th>
+                                    <th class="p-2 text-left">No Refrensi</th>
+                                    <th class="p-2 text-left">Satuan</th>
+                                    <th class="p-2 text-right whitespace-nowrap">Qty.</th>
+                                    <th class="p-2 text-right whitespace-nowrap">@ Harga</th>
+                                    <th class="p-2 text-right whitespace-nowrap">@ Biaya</th>
+                                    <th class="p-2 text-right whitespace-nowrap">Disc. %</th>
+                                    <th class="p-2 text-right whitespace-nowrap">Total Harga</th>
                                 </tr>
                             </thead>
 
