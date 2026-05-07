@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Sales Order')
+@section('title', __('ui.sales_order'))
 
 @section('content')
     <div x-data class="bg-white rounded shadow p-4">
@@ -33,16 +33,16 @@
             {{-- @if ($canCreate) --}}
             <a href="{{ route('salesorder.create') }}"
                 class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                <x-heroicon-o-plus class="w-4 h-4 mr-1" /> Tambah Baru
+                <x-heroicon-o-plus class="w-4 h-4 mr-1" /> {{ __('ui.add_new') }}
             </a>
             {{-- @endif --}}
         </div>
 
         <div id="yearFilterTemplate" class="hidden">
             <div class="flex items-center gap-2" id="yearFilterWrap">
-                <span class="text-sm text-gray-700">Tahun</span>
+                <span class="text-sm text-gray-700">{{ __('ui.year') }}</span>
                 <select data-role="year-filter" class="border rounded px-2 py-1 w-24">
-                    <option value="">Semua</option>
+                    <option value="">{{ __('ui.all') }}</option>
                     @foreach ($availableYears as $yr)
                         <option value="{{ $yr }}" {{ $year == $yr ? 'selected' : '' }}>{{ $yr }}
                         </option>
@@ -54,21 +54,21 @@
         {{-- Template untuk filter Bulan --}}
         <div id="monthFilterTemplate" class="hidden">
             <div class="flex items-center gap-2" id="monthFilterWrap">
-                <span class="text-sm text-gray-700">Bulan</span>
+                <span class="text-sm text-gray-700">{{ __('ui.month') }}</span>
                 <select data-role="month-filter" class="border rounded px-2 py-1">
-                    <option value="">Semua</option>
-                    <option value="1" {{ $month == '1' ? 'selected' : '' }}>Januari</option>
-                    <option value="2" {{ $month == '2' ? 'selected' : '' }}>Februari</option>
-                    <option value="3" {{ $month == '3' ? 'selected' : '' }}>Maret</option>
-                    <option value="4" {{ $month == '4' ? 'selected' : '' }}>April</option>
-                    <option value="5" {{ $month == '5' ? 'selected' : '' }}>Mei</option>
-                    <option value="6" {{ $month == '6' ? 'selected' : '' }}>Juni</option>
-                    <option value="7" {{ $month == '7' ? 'selected' : '' }}>Juli</option>
-                    <option value="8" {{ $month == '8' ? 'selected' : '' }}>Agustus</option>
-                    <option value="9" {{ $month == '9' ? 'selected' : '' }}>September</option>
-                    <option value="10" {{ $month == '10' ? 'selected' : '' }}>Oktober</option>
-                    <option value="11" {{ $month == '11' ? 'selected' : '' }}>November</option>
-                    <option value="12" {{ $month == '12' ? 'selected' : '' }}>Desember</option>
+                    <option value="">{{ __('ui.all') }}</option>
+                    <option value="1" {{ $month == '1' ? 'selected' : '' }}>{{ __('ui.january') }}</option>
+                    <option value="2" {{ $month == '2' ? 'selected' : '' }}>{{ __('ui.february') }}</option>
+                    <option value="3" {{ $month == '3' ? 'selected' : '' }}>{{ __('ui.march') }}</option>
+                    <option value="4" {{ $month == '4' ? 'selected' : '' }}>{{ __('ui.april') }}</option>
+                    <option value="5" {{ $month == '5' ? 'selected' : '' }}>{{ __('ui.may') }}</option>
+                    <option value="6" {{ $month == '6' ? 'selected' : '' }}>{{ __('ui.june') }}</option>
+                    <option value="7" {{ $month == '7' ? 'selected' : '' }}>{{ __('ui.july') }}</option>
+                    <option value="8" {{ $month == '8' ? 'selected' : '' }}>{{ __('ui.august') }}</option>
+                    <option value="9" {{ $month == '9' ? 'selected' : '' }}>{{ __('ui.september') }}</option>
+                    <option value="10" {{ $month == '10' ? 'selected' : '' }}>{{ __('ui.october') }}</option>
+                    <option value="11" {{ $month == '11' ? 'selected' : '' }}>{{ __('ui.november') }}</option>
+                    <option value="12" {{ $month == '12' ? 'selected' : '' }}>{{ __('ui.december') }}</option>
                 </select>
             </div>
         </div>
@@ -76,14 +76,14 @@
         <table id="salesorderTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
-                    <th class="border px-2 py-1">Cab.</th>
-                    <th class="border px-2 py-1">No.SO</th> {{-- Sesuai data simpel (bukan nama) --}}
-                    <th class="border px-2 py-1">Tanggal</th>
-                    <th class="border px-2 py-1">No.Ref</th>
-                    <th class="border px-2 py-1">Nama Customer</th>
-                    <th class="border px-2 py-1">Nilai SO</th>
-                    <th class="border px-2 py-1">User Create</th>
-                    <th class="border px-2 py-1 col-aksi">Aksi</th>
+                    <th class="border px-2 py-1">{{ __('ui.branch_short') }}</th>
+                    <th class="border px-2 py-1">{{ __('ui.sales_order_no') }}</th>
+                    <th class="border px-2 py-1">{{ __('ui.date') }}</th>
+                    <th class="border px-2 py-1">{{ __('ui.reference_no') }}</th>
+                    <th class="border px-2 py-1">{{ __('ui.customer_name') }}</th>
+                    <th class="border px-2 py-1">{{ __('ui.sales_order_value') }}</th>
+                    <th class="border px-2 py-1">{{ __('ui.created_by') }}</th>
+                    <th class="border px-2 py-1 col-aksi">{{ __('ui.action') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -97,18 +97,18 @@
             class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" x-transition>
             <div @click.away="!$store.trsomtStore.isDeleting && $store.trsomtStore.closeDelete()"
                 class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
-                <h3 class="text-lg font-semibold mb-4">Konfirmasi Hapus</h3>
-                <p class="mb-6">Apakah Anda yakin ingin menghapus data ini?</p>
+                <h3 class="text-lg font-semibold mb-4">{{ __('ui.confirm_delete') }}</h3>
+                <p class="mb-6">{{ __('ui.delete_question') }}</p>
                 <div class="flex justify-end space-x-2">
                     <button @click="$store.trsomtStore.closeDelete()"
                         class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400" :disabled="$store.trsomtStore.isDeleting">
-                        Batal
+                        {{ __('ui.cancel') }}
                     </button>
                     <button @click="$store.trsomtStore.confirmDelete()"
                         class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
                         :disabled="$store.trsomtStore.isDeleting">
-                        <span x-show="!$store.trsomtStore.isDeleting">Hapus</span>
-                        <span x-show="$store.trsomtStore.isDeleting">Menghapus...</span>
+                        <span x-show="!$store.trsomtStore.isDeleting">{{ __('ui.delete') }}</span>
+                        <span x-show="$store.trsomtStore.isDeleting">{{ __('ui.deleting') }}</span>
                     </button>
                 </div>
             </div>
@@ -298,10 +298,10 @@
                                     table.row($(rowToDelete)).remove().draw(false);
                                 }
                                 this.showNotificationMsg('success', result.data.message ||
-                                    'Data berhasil dihapus');
+                                    @json(__('ui.delete_success')));
                             } else {
                                 this.showNotificationMsg('error', result.data.message ||
-                                    'Gagal menghapus data');
+                                    @json(__('ui.delete_failed')));
                             }
 
                             this.currentRow = null;
@@ -310,7 +310,7 @@
                             console.error('Error:', error);
                             this.showDeleteModal = false;
                             this.isDeleting = false;
-                            this.showNotificationMsg('error', 'Terjadi kesalahan. Silakan coba lagi.');
+                            this.showNotificationMsg('error', @json(__('ui.generic_error_retry')));
                             this.currentRow = null;
                         });
                 },
@@ -385,7 +385,7 @@
                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                             </svg>
-                            View
+                            {{ __('ui.view') }}
                         </button>
                     </a>`;
                     // }
@@ -396,7 +396,7 @@
                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                             </svg>
-                            Edit
+                            {{ __('ui.edit') }}
                         </a>`;
                     // }
 
@@ -408,7 +408,7 @@
                                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                     </svg>
-                                    Hapus
+                                    {{ __('ui.delete') }}
                                 </button>
                             </a>`;
                     // }
@@ -470,10 +470,10 @@
                         'monthFilterDT');
 
                     $toolbarSearch.append($(
-                        '<div class="flex items-center gap-2"><span>Tahun</span></div>').append(
+                        '<div class="flex items-center gap-2"><span>{{ __('ui.year') }}</span></div>').append(
                         $yearSelect));
                     $toolbarSearch.append($(
-                        '<div class="flex items-center gap-2"><span>Bulan</span></div>').append(
+                        '<div class="flex items-center gap-2"><span>{{ __('ui.month') }}</span></div>').append(
                         $monthSelect));
 
                     $topRow.css({
@@ -501,7 +501,7 @@
                     });
 
                     if ($toolbarSearch.find('.so-search-group').length === 0 && $searchLabel.length && $searchInput.length) {
-                        const rawLabelText = ($searchLabel.text() || 'Search:').trim();
+                        const rawLabelText = ($searchLabel.text() || @json(__('ui.search').':')).trim();
                         const $searchGroup = $('<div class="so-search-group"></div>');
                         const $labelText = $('<span class="dt-search-label"></span>').text(rawLabelText);
 

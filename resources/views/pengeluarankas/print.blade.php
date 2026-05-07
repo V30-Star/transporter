@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="id">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
 <head>
     <meta charset="utf-8">
-    <title>Pengeluaran Kas - {{ $hdr->fkasmtno ?? '-' }}</title>
+    <title>{{ __('ui.cash_disbursement') }} - {{ $hdr->fkasmtno ?? '-' }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         :root {
@@ -232,8 +232,8 @@
 
 <body>
     <div class="print-hide">
-        <button onclick="window.print()">PRINT</button>
-        <button onclick="window.close()">CLOSE</button>
+        <button onclick="window.print()">{{ __('ui.print') }}</button>
+        <button onclick="window.close()">{{ __('ui.close') }}</button>
     </div>
 
     <div class="sheet">
@@ -243,39 +243,39 @@
                 <div>{{ $company_city ?? 'Tangerang' }}</div>
             </div>
             <div>
-                <div class="doc-title">Pengeluaran Kas</div>
-                <div class="doc-no">No. {{ $hdr->fkasmtno ?? '-' }}</div>
+                <div class="doc-title">{{ __('ui.cash_disbursement') }}</div>
+                <div class="doc-no">{{ __('ui.number') }}. {{ $hdr->fkasmtno ?? '-' }}</div>
             </div>
         </div>
 
         <div class="info-wrap">
             <div class="party-box">
-                <span class="party-label">Informasi</span>
-                <div><strong>Penerima:</strong> {{ $hdr->fwhom ?: '-' }}</div>
-                <div style="margin-top: 4px;"><strong>Cash / Bank:</strong>
+                <span class="party-label">{{ __('ui.information') }}</span>
+                <div><strong>{{ __('ui.recipient') }}:</strong> {{ $hdr->fwhom ?: '-' }}</div>
+                <div style="margin-top: 4px;"><strong>{{ __('ui.cash_bank') }}:</strong>
                     {{ trim(($hdr->faccountheader ?? '') . ' - ' . ($hdr->header_account_name ?? ''), ' -') ?: '-' }}
                 </div>
-                <div style="margin-top: 4px;"><strong>Keterangan:</strong> {{ $hdr->fket ?: '-' }}</div>
+                <div style="margin-top: 4px;"><strong>{{ __('ui.description') }}:</strong> {{ $hdr->fket ?: '-' }}</div>
             </div>
 
             <table class="info-table">
                 <tr>
-                    <td>Date</td>
+                    <td>{{ __('ui.date') }}</td>
                     <td>:</td>
                     <td>{{ $fmt($hdr->fkasmtdate) }}</td>
                 </tr>
                 <tr>
-                    <td>No.Giro/Cek</td>
+                    <td>{{ __('ui.check_no') }}</td>
                     <td>:</td>
                     <td>{{ $hdr->fnogiro ?: '-' }}</td>
                 </tr>
                 <tr>
-                    <td>Tipe Header</td>
+                    <td>{{ __('ui.header_type') }}</td>
                     <td>:</td>
                     <td>{{ $hdr->fdkheader ?: '-' }}</td>
                 </tr>
                 <tr>
-                    <td colspan="3" style="text-align: right; font-size: 10px; padding-top: 12px;">Hal : 1 / 1</td>
+                    <td colspan="3" style="text-align: right; font-size: 10px; padding-top: 12px;">{{ __('ui.page') }} : 1 / 1</td>
                 </tr>
             </table>
         </div>
@@ -283,12 +283,12 @@
         <table class="tb">
             <thead>
                 <tr>
-                    <th style="width: 5%;">No.</th>
-                    <th style="width: 28%;">Account</th>
-                    <th style="width: 23%;">Sub Account</th>
-                    <th style="width: 24%;">Description</th>
+                    <th style="width: 5%;">{{ __('ui.number') }}.</th>
+                    <th style="width: 28%;">{{ __('ui.account') }}</th>
+                    <th style="width: 23%;">{{ __('ui.sub_account') }}</th>
+                    <th style="width: 24%;">{{ __('ui.description') }}</th>
                     <th style="width: 8%;" class="text-center">D/K</th>
-                    <th style="width: 12%;" class="text-right">Payment Amount</th>
+                    <th style="width: 12%;" class="text-right">{{ __('ui.payment_amount') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -309,7 +309,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6" class="text-center">Tidak ada detail item.</td>
+                        <td colspan="6" class="text-center">{{ __('ui.no_detail_items') }}</td>
                     </tr>
                 @endforelse
             </tbody>
@@ -318,11 +318,11 @@
         <div class="summary">
             <div class="summary-box">
                 <div class="summary-row">
-                    <span>Total Payment</span>
+                    <span>{{ __('ui.total_payment') }}</span>
                     <span>{{ number_format($totalAmount, 2, ',', '.') }}</span>
                 </div>
                 <div class="summary-row grand-total">
-                    <span>Grand Total</span>
+                    <span>{{ __('ui.grand_total') }}</span>
                     <span>{{ number_format($totalAmount, 2, ',', '.') }}</span>
                 </div>
             </div>
@@ -333,8 +333,8 @@
         <div class="sign-container">
             <table class="sign-table">
                 <tr>
-                    <td>Dibuat</td>
-                    <td>Disetujui</td>
+                    <td>{{ __('ui.created_by') }}</td>
+                    <td>{{ __('ui.approved') }}</td>
                 </tr>
                 <tr>
                     <td class="box-content">{{ strtoupper(trim((string) ($hdr->fuserid ?? '-'))) }}</td>
@@ -343,8 +343,8 @@
             </table>
 
             <div class="meta-right">
-                <div>Dicetak: {{ now()->format('d-m-Y H:i') }}</div>
-                <div>User: {{ strtoupper(auth('sysuser')->user()->fname ?? auth()->user()->fname ?? auth()->user()->name ?? 'SYSTEM') }}</div>
+                <div>{{ __('ui.printed_at') }}: {{ now()->format('d-m-Y H:i') }}</div>
+                <div>{{ __('ui.user') }}: {{ strtoupper(auth('sysuser')->user()->fname ?? auth()->user()->fname ?? auth()->user()->name ?? 'SYSTEM') }}</div>
             </div>
         </div>
     </div>

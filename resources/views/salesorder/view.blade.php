@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Sales Order')
+@section('title', __('ui.sales_order'))
 
 @section('content')
     <style>
@@ -528,7 +528,7 @@
                                 x-transition.scale>
                                 <div class="px-5 py-4 border-b flex items-center">
                                     <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-red-500 mr-2" />
-                                    <h3 class="text-lg font-semibold text-gray-800">Tidak Ada Item</h3>
+                                    <h3 class="text-lg font-semibold text-gray-800">{{ __('ui.no_items_title') }}</h3>
                                 </div>
 
                                 <div class="px-5 py-4">
@@ -543,7 +543,7 @@
                                 <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
                                     <button type="button" @click="showNoItems=false"
                                         class="h-9 px-4 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
-                                        OK
+                                        {{ __('ui.ok') }}
                                     </button>
                                 </div>
                             </div>
@@ -871,7 +871,7 @@
                             );
 
                             if (dupe) {
-                                this.showToast('Item sama sudah ada di daftar', 'warning');
+                                this.showToast(@json(__('ui.same_item_exists')), 'warning');
                                 return;
                             }
 

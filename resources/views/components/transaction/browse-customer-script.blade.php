@@ -8,6 +8,23 @@
 
 <script>
     function customerBrowser() {
+        const dataTableLanguage = {
+            processing: @json(__('ui.load_data')),
+            search: @json(__('ui.search') . ':'),
+            lengthMenu: @json(__('ui.show_menu')),
+            info: @json(__('ui.showing_data')),
+            infoEmpty: @json(__('ui.no_data')),
+            infoFiltered: @json(__('ui.filtered_from_total')),
+            zeroRecords: @json(__('ui.no_data_found')),
+            emptyTable: @json(__('ui.no_data_available')),
+            paginate: {
+                first: @json(__('ui.first')),
+                last: @json(__('ui.last')),
+                next: @json(__('ui.next')),
+                previous: @json(__('ui.previous'))
+            }
+        };
+
         return {
             open: false,
             dataTable: null,
@@ -77,9 +94,9 @@
                             width: '15%',
                             render: function(data, type, row) {
                                 if (row.fblokir == 1) {
-                                    return '<span class="text-xs font-bold text-red-500">BLOKIR</span>';
+                                    return '<span class="text-xs font-bold text-red-500">' + @json(__('ui.blocked')) + '</span>';
                                 }
-                                return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>';
+                                return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">' + @json(__('ui.choose')) + '</button>';
                             }
                         }
                     ],
@@ -89,22 +106,7 @@
                         [10, 25, 50, 100]
                     ],
                     dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
-                    language: {
-                        processing: "Memuat data...",
-                        search: "Cari:",
-                        lengthMenu: "Tampilkan _MENU_",
-                        info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
-                        infoEmpty: "Tidak ada data",
-                        infoFiltered: "(disaring dari _MAX_ total data)",
-                        zeroRecords: "Tidak ada data yang ditemukan",
-                        emptyTable: "Tidak ada data tersedia",
-                        paginate: {
-                            first: "Pertama",
-                            last: "Terakhir",
-                            next: "Selanjutnya",
-                            previous: "Sebelumnya"
-                        }
-                    },
+                    language: dataTableLanguage,
                     order: [
                         [1, 'asc']
                     ],

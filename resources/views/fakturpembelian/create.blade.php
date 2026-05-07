@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Faktur Pembelian')
+@section('title', __('ui.faktur_pembelian'))
 
 @section('content')
     <style>
@@ -98,7 +98,7 @@
             {{-- Header Strip --}}
             <div class="d-flex align-items-center px-4 py-3" style="background-color: #c0392b;">
                 <i class="bi bi-exclamation-triangle-fill text-white me-2 fs-5"></i>
-                <strong class="text-white fs-6">Gagal Menyimpan Data!</strong>
+                <strong class="text-white fs-6">{{ __('ui.save_failed') }}</strong>
                 <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="alert"
                     aria-label="Close"></button>
             </div>
@@ -107,7 +107,7 @@
             <div class="px-4 py-3" style="background-color: #fdeded; border-left: 5px solid #c0392b;">
                 <p class="mb-2 text-danger fw-semibold">
                     <i class="bi bi-info-circle me-1"></i>
-                    Periksa kembali data berikut sebelum menyimpan:
+                    {{ __('ui.review_before_save') }}
                 </p>
                 <ul class="mb-0 ps-3">
                     @foreach ($errors->all() as $error)
@@ -197,32 +197,32 @@
                     {{-- HEADER FORM --}}
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium">Cabang</label>
+                            <label class="block text-sm font-medium">{{ __('ui.branch') }}</label>
                             <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
                                 value="{{ $fcabang }}" disabled>
                             <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
                         </div>
 
                         <div class="lg:col-span-4" x-data="{ autoCode: true }">
-                            <label class="block text-sm font-medium mb-1">Transaksi#</label>
+                            <label class="block text-sm font-medium mb-1">{{ __('ui.transaction_no') }}#</label>
                             <div class="flex items-center gap-3">
                                 <input type="text" name="fstockmtno" class="w-full border rounded px-3 py-2"
                                     :disabled="autoCode"
                                     :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
                                 <label class="inline-flex items-center select-none">
                                     <input type="checkbox" x-model="autoCode" checked>
-                                    <span class="ml-2 text-sm text-gray-700">Auto</span>
+                                    <span class="ml-2 text-sm text-gray-700">{{ __('ui.auto') }}</span>
                                 </label>
                             </div>
                         </div>
 
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium">Type</label>
+                            <label class="block text-sm font-medium">{{ __('ui.type') }}</label>
                             <select name="ftypebuy" x-model="selectedType"
                                 class="w-full border rounded px-3 py-2 @error('ftypebuy') border-red-500 @enderror">
-                                <option value="0" {{ old('ftypebuy') == '0' ? 'selected' : '' }}>Stok</option>
-                                <option value="1" {{ old('ftypebuy') == '1' ? 'selected' : '' }}>Non Stok</option>
-                                <option value="2" {{ old('ftypebuy') == '2' ? 'selected' : '' }}>Uang Muka</option>
+                                <option value="0" {{ old('ftypebuy') == '0' ? 'selected' : '' }}>{{ __('ui.stock') }}</option>
+                                <option value="1" {{ old('ftypebuy') == '1' ? 'selected' : '' }}>{{ __('ui.non_stock') }}</option>
+                                <option value="2" {{ old('ftypebuy') == '2' ? 'selected' : '' }}>{{ __('ui.advance_payment') }}</option>
                             </select>
                             @error('ftypebuy')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -230,7 +230,7 @@
                         </div>
 
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium">Tanggal</label>
+                            <label class="block text-sm font-medium">{{ __('ui.date') }}</label>
                             <input type="date" id="fstockmtdate" name="fstockmtdate"
                                 value="{{ old('fstockmtdate') ?? date('Y-m-d') }}"
                                 class="w-full border rounded px-3 py-2 @error('fstockmtdate') border-red-500 @enderror">
@@ -240,7 +240,7 @@
                         </div>
 
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium mb-1">Supplier</label>
+                            <label class="block text-sm font-medium mb-1">{{ __('ui.supplier') }}</label>
                             <div class="flex">
                                 <div class="relative flex-1" for="modal_filter_supplier_id">
                                     <select id="modal_filter_supplier_id" name="filter_supplier_id"
@@ -277,7 +277,7 @@
                         </div>
 
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium mb-1">Gudang</label>
+                            <label class="block text-sm font-medium mb-1">{{ __('ui.warehouse') }}</label>
                             <div class="flex">
                                 <div class="relative flex-1">
                                     <select id="warehouseSelect"
@@ -319,7 +319,7 @@
                         </div>
 
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium mb-1">Account</label>
+                            <label class="block text-sm font-medium mb-1">{{ __('ui.account') }}</label>
                             <div class="flex">
                                 <div class="relative flex-1">
                                     <select id="accountSelect" class="w-full border rounded-l px-3 py-2"
@@ -380,7 +380,7 @@
                         </div>
 
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium mb-1">Faktur Pajak#</label>
+                            <label class="block text-sm font-medium mb-1">{{ __('ui.tax_invoice_no') }}</label>
                             <div class="flex items-center">
                                 <input type="text" id="frefpo" name="frefpo"
                                     class="w-full border rounded px-3 py-2 @error('frefpo') border-red-500 @enderror">
@@ -798,17 +798,17 @@
                                             <div x-show="show" x-cloak x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8" aria-modal="true" role="dialog">
                                                 <div class="relative w-full max-w-5xl rounded-xl bg-white shadow-2xl flex flex-col" style="height: 600px;">
                                                     <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-emerald-50 to-white">
-                                                        <h3 class="text-xl font-bold text-gray-800">Pilih Purchase Order (PO)</h3>
-                                                        <button type="button" @click="closeModal()" class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">Tutup</button>
+                                                        <h3 class="text-xl font-bold text-gray-800">{{ __('ui.select_purchase_order') }}</h3>
+                                                        <button type="button" @click="closeModal()" class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">{{ __('ui.close') }}</button>
                                                     </div>
                                                     <div class="flex-1 overflow-auto p-6" style="min-height: 0;">
                                                         <table id="poTable" class="min-w-full text-sm display nowrap stripe hover" style="width:100%">
                                                             <thead class="sticky top-0 z-10">
                                                                 <tr class="bg-gray-50 border-b-2 border-gray-200">
-                                                                    <th class="p-3 text-left font-semibold text-gray-700">PO No</th>
-                                                                    <th class="p-3 text-left font-semibold text-gray-700">Supplier</th>
-                                                                    <th class="p-3 text-left font-semibold text-gray-700">Tanggal</th>
-                                                                    <th class="p-3 text-center font-semibold text-gray-700">Aksi</th>
+                                                                    <th class="p-3 text-left font-semibold text-gray-700">{{ __('ui.purchase_order_no') }}</th>
+                                                                    <th class="p-3 text-left font-semibold text-gray-700">{{ __('ui.supplier') }}</th>
+                                                                    <th class="p-3 text-left font-semibold text-gray-700">{{ __('ui.date') }}</th>
+                                                                    <th class="p-3 text-center font-semibold text-gray-700">{{ __('ui.action') }}</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody></tbody>
@@ -821,11 +821,13 @@
                                             <div x-show="showDupModal" x-cloak x-transition.opacity class="fixed inset-0 z-[60] flex items-center justify-center p-4">
                                                 <div class="absolute inset-0 bg-black/40" @click="closeDupModal()"></div>
                                                 <div class="relative bg-white rounded-xl shadow-xl max-w-2xl w-full p-6">
-                                                    <h3 class="text-lg font-semibold mb-4">Peringatan Duplikasi</h3>
-                                                    <p class="mb-4">Ditemukan <strong x-text="dupCount"></strong> item yang sudah ada dalam daftar. Hanya item unik yang akan ditambahkan.</p>
+                                                    <h3 class="text-lg font-semibold mb-4">{{ __('ui.duplicate_warning') }}</h3>
+                                                    <p class="mb-4">
+                                                        {{ Str::before(__('ui.duplicate_item_found', ['count' => '__COUNT__']), '__COUNT__') }}<strong x-text="dupCount"></strong>{{ Str::after(__('ui.duplicate_item_found', ['count' => '__COUNT__']), '__COUNT__') }}
+                                                    </p>
                                                     <div class="flex justify-end gap-2">
-                                                        <button type="button" @click="closeDupModal()" class="rounded bg-gray-200 px-4 py-2 text-sm font-medium hover:bg-gray-300">Batal</button>
-                                                        <button type="button" @click="confirmAddUniques()" class="rounded bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700">Tambahkan Item Unik</button>
+                                                        <button type="button" @click="closeDupModal()" class="rounded bg-gray-200 px-4 py-2 text-sm font-medium hover:bg-gray-300">{{ __('ui.cancel') }}</button>
+                                                        <button type="button" @click="confirmAddUniques()" class="rounded bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700">{{ __('ui.add_unique_items') }}</button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -850,17 +852,17 @@
                                             <div x-show="show" x-cloak x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8" aria-modal="true" role="dialog">
                                                 <div class="relative w-full max-w-5xl rounded-xl bg-white shadow-2xl flex flex-col" style="height: 600px;">
                                                     <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
-                                                        <h3 class="text-xl font-bold text-gray-800">Pilih Penerimaan Barang</h3>
-                                                        <button type="button" @click="closeModal()" class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">Tutup</button>
+                                                        <h3 class="text-xl font-bold text-gray-800">{{ __('ui.select_goods_receipt') }}</h3>
+                                                        <button type="button" @click="closeModal()" class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">{{ __('ui.close') }}</button>
                                                     </div>
                                                     <div class="flex-1 overflow-auto p-6" style="min-height: 0;">
                                                         <table id="pbTable" class="min-w-full text-sm display nowrap stripe hover" style="width:100%">
                                                             <thead class="sticky top-0 z-10">
                                                                 <tr class="bg-gray-50 border-b-2 border-gray-200">
-                                                                    <th class="p-3 text-left font-semibold text-gray-700">No. Transaksi</th>
-                                                                    <th class="p-3 text-left font-semibold text-gray-700">Supplier</th>
-                                                                    <th class="p-3 text-left font-semibold text-gray-700">Tanggal</th>
-                                                                    <th class="p-3 text-center font-semibold text-gray-700">Aksi</th>
+                                                                    <th class="p-3 text-left font-semibold text-gray-700">{{ __('ui.transaction_no') }}</th>
+                                                                    <th class="p-3 text-left font-semibold text-gray-700">{{ __('ui.supplier') }}</th>
+                                                                    <th class="p-3 text-left font-semibold text-gray-700">{{ __('ui.date') }}</th>
+                                                                    <th class="p-3 text-center font-semibold text-gray-700">{{ __('ui.action') }}</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody></tbody>
@@ -873,11 +875,13 @@
                                             <div x-show="showDupModal" x-cloak x-transition.opacity class="fixed inset-0 z-[60] flex items-center justify-center p-4">
                                                 <div class="absolute inset-0 bg-black/40" @click="closeDupModal()"></div>
                                                 <div class="relative bg-white rounded-xl shadow-xl max-w-2xl w-full p-6">
-                                                    <h3 class="text-lg font-semibold mb-4">Peringatan Duplikasi</h3>
-                                                    <p class="mb-4">Ditemukan <strong x-text="dupCount"></strong> item yang sudah ada dalam daftar. Hanya item unik yang akan ditambahkan.</p>
+                                                    <h3 class="text-lg font-semibold mb-4">{{ __('ui.duplicate_warning') }}</h3>
+                                                    <p class="mb-4">
+                                                        {{ Str::before(__('ui.duplicate_item_found', ['count' => '__COUNT__']), '__COUNT__') }}<strong x-text="dupCount"></strong>{{ Str::after(__('ui.duplicate_item_found', ['count' => '__COUNT__']), '__COUNT__') }}
+                                                    </p>
                                                     <div class="flex justify-end gap-2">
-                                                        <button type="button" @click="closeDupModal()" class="rounded bg-gray-200 px-4 py-2 text-sm font-medium hover:bg-gray-300">Batal</button>
-                                                        <button type="button" @click="confirmAddUniques()" class="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">Tambahkan Item Unik</button>
+                                                        <button type="button" @click="closeDupModal()" class="rounded bg-gray-200 px-4 py-2 text-sm font-medium hover:bg-gray-300">{{ __('ui.cancel') }}</button>
+                                                        <button type="button" @click="confirmAddUniques()" class="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">{{ __('ui.add_unique_items') }}</button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -1893,7 +1897,7 @@
                             searchable: false,
                             className: 'text-center',
                             render: function(data, type, row) {
-                                return '<button type="button" class="btn-pick px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>';
+                                return '<button type="button" class="btn-pick px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">{{ __('ui.choose') }}</button>';
                             }
                         }
                     ],
@@ -1960,7 +1964,7 @@
                     this.closeModal();
                 } catch (e) {
                     console.error(e);
-                    console.log('Gagal mengambil detail PO. Lihat konsol untuk detail.');
+                    console.log(@json(__('ui.failed_fetch_po_detail')));
                 }
             }
         };
@@ -2029,7 +2033,7 @@
                             searchable: false,
                             className: 'text-center',
                             render: function() {
-                                return '<button type="button" class="btn-pick px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>';
+                                return '<button type="button" class="btn-pick px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">{{ __('ui.choose') }}</button>';
                             }
                         }
                     ],
@@ -2096,7 +2100,7 @@
                     this.closeModal();
                 } catch (e) {
                     console.error(e);
-                    console.log('Gagal mengambil detail PB. Lihat konsol untuk detail.');
+                    console.log(@json(__('ui.failed_fetch_pb_detail')));
                 }
             }
         };
@@ -2169,7 +2173,7 @@
                             width: '15%',
                             render: function(data, type, row) {
                                 // Menggunakan styling yang mirip dengan button 'Pilih' di Supplier
-                                return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>';
+                                return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">{{ __('ui.choose') }}</button>';
                             }
                         }
                     ],
@@ -2181,19 +2185,19 @@
                     // Menggunakan DOM custom untuk kontrol DataTables (sama seperti Supplier)
                     dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
                     language: {
-                        processing: "Memuat data...",
-                        search: "Cari:",
-                        lengthMenu: "Tampilkan _MENU_",
-                        info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
-                        infoEmpty: "Tidak ada data",
-                        infoFiltered: "(disaring dari _MAX_ total data)",
-                        zeroRecords: "Tidak ada data yang ditemukan",
-                        emptyTable: "Tidak ada data tersedia",
+                        processing: @json(__('ui.load_data')),
+                        search: @json(__('ui.search') . ':'),
+                        lengthMenu: @json(__('ui.show_menu')),
+                        info: @json(__('ui.showing_data')),
+                        infoEmpty: @json(__('ui.no_data')),
+                        infoFiltered: @json(__('ui.filtered_from_total')),
+                        zeroRecords: @json(__('ui.no_data_found')),
+                        emptyTable: @json(__('ui.no_data_available')),
                         paginate: {
-                            first: "Pertama",
-                            last: "Terakhir",
-                            next: "Selanjutnya",
-                            previous: "Sebelumnya"
+                            first: @json(__('ui.first')),
+                            last: @json(__('ui.last')),
+                            next: @json(__('ui.next')),
+                            previous: @json(__('ui.previous'))
                         }
                     },
                     order: [

@@ -10,6 +10,23 @@
 
 <script>
     function supplierBrowser() {
+        const dataTableLanguage = {
+            processing: @json(__('ui.load_data')),
+            search: @json(__('ui.search') . ':'),
+            lengthMenu: @json(__('ui.show_menu')),
+            info: @json(__('ui.showing_data')),
+            infoEmpty: @json(__('ui.no_data')),
+            infoFiltered: @json(__('ui.filtered_from_total')),
+            zeroRecords: @json(__('ui.no_data_found')),
+            emptyTable: @json(__('ui.no_data_available')),
+            paginate: {
+                first: @json(__('ui.first')),
+                last: @json(__('ui.last')),
+                next: @json(__('ui.next')),
+                previous: @json(__('ui.previous'))
+            }
+        };
+
         return {
             open: false,
             dataTable: null,
@@ -73,7 +90,7 @@
                             className: 'text-center',
                             width: '15%',
                             render: function() {
-                                return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>';
+                                return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">' + @json(__('ui.choose')) + '</button>';
                             }
                         }
                     ],
@@ -83,22 +100,7 @@
                         [10, 25, 50, 100]
                     ],
                     dom: '<"supplier-table-toolbar mb-4"f<"supplier-table-length ml-auto"l>>rtip',
-                    language: {
-                        processing: "Memuat data...",
-                        search: "Cari:",
-                        lengthMenu: "Tampilkan _MENU_",
-                        info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
-                        infoEmpty: "Tidak ada data",
-                        infoFiltered: "(disaring dari _MAX_ total data)",
-                        zeroRecords: "Tidak ada data yang ditemukan",
-                        emptyTable: "Tidak ada data tersedia",
-                        paginate: {
-                            first: "Pertama",
-                            last: "Terakhir",
-                            next: "Selanjutnya",
-                            previous: "Sebelumnya"
-                        }
-                    },
+                    language: dataTableLanguage,
                     order: [
                         [1, 'asc']
                     ],
@@ -222,12 +224,12 @@
         <div
             class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
             <div>
-                <h3 class="text-xl font-bold text-gray-800">Browse Supplier</h3>
-                <p class="text-sm text-gray-500 mt-0.5">Pilih supplier yang diinginkan</p>
+                <h3 class="text-xl font-bold text-gray-800">{{ __('ui.browse_supplier') }}</h3>
+                <p class="text-sm text-gray-500 mt-0.5">{{ __('ui.select_supplier_prompt') }}</p>
             </div>
             <button type="button" @click="close()"
                 class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">
-                Tutup
+                {{ __('ui.close') }}
             </button>
         </div>
 
@@ -241,12 +243,11 @@
                     style="width:100%">
                     <thead class="sticky top-0 z-10">
                         <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
-                            <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Kode</th>
-                            <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Nama
-                                Supplier</th>
-                            <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Alamat</th>
-                            <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Telepon</th>
-                            <th class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">Aksi</th>
+                            <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">{{ __('ui.code') }}</th>
+                            <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">{{ __('ui.supplier_name') }}</th>
+                            <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">{{ __('ui.address') }}</th>
+                            <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">{{ __('ui.phone') }}</th>
+                            <th class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">{{ __('ui.action') }}</th>
                         </tr>
                     </thead>
                     <tbody></tbody>

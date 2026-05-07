@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="id">
+<html lang="{{ app()->getLocale() }}">
 
 <head>
     <meta charset="utf-8">
-    <title>Surat Jalan - {{ $hdr->fstockmtno ?? '-' }}</title>
+    <title>{{ __('ui.surat_jalan') }} - {{ $hdr->fstockmtno ?? '-' }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         :root {
@@ -179,7 +179,7 @@
 
 <body>
     <div class="print-hide" style="position:fixed; top:10px; left:10px; z-index:999;">
-        <button onclick="window.print()" style="padding:10px 20px; cursor:pointer;">PRINT</button>
+        <button onclick="window.print()" style="padding:10px 20px; cursor:pointer;">{{ strtoupper(__('ui.print')) }}</button>
     </div>
 
     <div class="sheet">
@@ -189,14 +189,14 @@
                 <div>{{ $company_city ?? 'Lampung' }}</div>
             </div>
             <div>
-                <div class="title-so">Surat Jalan</div>
-                <div class="so-no">No. {{ $hdr->fstockmtno ?? '-' }}</div>
+                <div class="title-so">{{ __('ui.surat_jalan') }}</div>
+                <div class="so-no">{{ __('ui.number') }}. {{ $hdr->fstockmtno ?? '-' }}</div>
             </div>
         </div>
 
         <div style="overflow: hidden; margin-top: 10px;">
             <div class="customer-container">
-                <span class="customer-label">Customer</span>
+                <span class="customer-label">{{ __('ui.customer') }}</span>
                 <div style="font-weight: bold;">{{ $hdr->customer_name ?? 'PT. DWIBROS MULTI ENERGI' }}</div>
                 <div style="font-size: 11px; width: 350px;">
                     {{ $hdr->customer_address ?? 'MENARA CAKRAWALA LT 12, UNIT 1205A, JL. M. H. THAMRIN NO. 1 KOTA ADM. JAKARTA PUSAT' }}
@@ -205,17 +205,17 @@
 
             <table class="info-table">
                 <tr>
-                    <td>Tanggal</td>
+                    <td>{{ __('ui.date') }}</td>
                     <td>:</td>
                     <td>{{ $fmt($hdr->fstockmtdate) ?? '-' }}</td>
                 </tr>
                 <tr>
-                    <td>Tempo</td>
+                    <td>{{ __('ui.tempo') }}</td>
                     <td>:</td>
-                    <td>{{ $hdr->ftempohr ?? '0' }} Hari</td>
+                    <td>{{ $hdr->ftempohr ?? '0' }} {{ __('ui.days') }}</td>
                 </tr>
                 <tr>
-                    <td>Ref.PO</td>
+                    <td>{{ __('ui.reference_no') }}</td>
                     <td>:</td>
                     <td>{{ $hdr->frefno ?? '001/SRI/-DME-PKS/I/' }}</td>
                 </tr>

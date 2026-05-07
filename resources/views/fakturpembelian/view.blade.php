@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Faktur Pembelian')
+@section('title', __('ui.faktur_pembelian'))
 
 @section('content')
     <style>
@@ -734,12 +734,12 @@
                             <div
                                 class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
                                 <div>
-                                    <h3 class="text-xl font-bold text-gray-800">Browse Account</h3>
-                                    <p class="text-sm text-gray-500 mt-0.5">Pilih account yang diinginkan</p>
+                                    <h3 class="text-xl font-bold text-gray-800">{{ __('ui.browse_account') }}</h3>
+                                    <p class="text-sm text-gray-500 mt-0.5">{{ __('ui.select_account_prompt') }}</p>
                                 </div>
                                 <button type="button" @click="close()"
                                     class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">
-                                    Tutup
+                                    {{ __('ui.close') }}
                                 </button>
                             </div>
 
@@ -754,13 +754,13 @@
                                             <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
                                                 <th
                                                     class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                    Account Kode</th>
+                                                    {{ __('ui.account_code') }}</th>
                                                 <th
                                                     class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                    Account Nama</th>
+                                                    {{ __('ui.account_name') }}</th>
                                                 <th
                                                     class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                    Aksi</th>
+                                                    {{ __('ui.action') }}</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -1467,7 +1467,7 @@
                                     width: '15%',
                                     render: function(data, type, row) {
                                         // Menggunakan styling yang mirip dengan button 'Pilih' di Supplier
-                                        return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>';
+                                        return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">{{ __('ui.choose') }}</button>';
                                     }
                                 }
                             ],
@@ -1479,19 +1479,19 @@
                             // Menggunakan DOM custom untuk kontrol DataTables (sama seperti Supplier)
                             dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
                             language: {
-                                processing: "Memuat data...",
-                                search: "Cari:",
-                                lengthMenu: "Tampilkan _MENU_",
-                                info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
-                                infoEmpty: "Tidak ada data",
-                                infoFiltered: "(disaring dari _MAX_ total data)",
-                                zeroRecords: "Tidak ada data yang ditemukan",
-                                emptyTable: "Tidak ada data tersedia",
+                                processing: @json(__('ui.load_data')),
+                                search: @json(__('ui.search') . ':'),
+                                lengthMenu: @json(__('ui.show_menu')),
+                                info: @json(__('ui.showing_data')),
+                                infoEmpty: @json(__('ui.no_data')),
+                                infoFiltered: @json(__('ui.filtered_from_total')),
+                                zeroRecords: @json(__('ui.no_data_found')),
+                                emptyTable: @json(__('ui.no_data_available')),
                                 paginate: {
-                                    first: "Pertama",
-                                    last: "Terakhir",
-                                    next: "Selanjutnya",
-                                    previous: "Sebelumnya"
+                                    first: @json(__('ui.first')),
+                                    last: @json(__('ui.last')),
+                                    next: @json(__('ui.next')),
+                                    previous: @json(__('ui.previous'))
                                 }
                             },
                             order: [
@@ -1655,7 +1655,7 @@
                                     className: 'text-center',
                                     width: '100px',
                                     render: function(data, type, row) {
-                                        return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>';
+                                        return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">{{ __('ui.choose') }}</button>';
                                     }
                                 }
                             ],
@@ -1666,19 +1666,19 @@
                             ],
                             dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
                             language: {
-                                processing: "Memuat data...",
-                                search: "Cari:",
-                                lengthMenu: "Tampilkan _MENU_",
-                                info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
-                                infoEmpty: "Tidak ada data",
-                                infoFiltered: "(disaring dari _MAX_ total data)",
-                                zeroRecords: "Tidak ada data yang ditemukan",
-                                emptyTable: "Tidak ada data tersedia",
+                                processing: @json(__('ui.load_data')),
+                                search: @json(__('ui.search') . ':'),
+                                lengthMenu: @json(__('ui.show_menu')),
+                                info: @json(__('ui.showing_data')),
+                                infoEmpty: @json(__('ui.no_data')),
+                                infoFiltered: @json(__('ui.filtered_from_total')),
+                                zeroRecords: @json(__('ui.no_data_found')),
+                                emptyTable: @json(__('ui.no_data_available')),
                                 paginate: {
-                                    first: "Pertama",
-                                    last: "Terakhir",
-                                    next: "Selanjutnya",
-                                    previous: "Sebelumnya"
+                                    first: @json(__('ui.first')),
+                                    last: @json(__('ui.last')),
+                                    next: @json(__('ui.next')),
+                                    previous: @json(__('ui.previous'))
                                 }
                             },
                             order: [
@@ -1843,7 +1843,7 @@
                                         className: 'text-center',
                                         width: '100px',
                                         render: function(data, type, row) {
-                                            return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>';
+                                            return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">{{ __('ui.choose') }}</button>';
                                         }
                                     }
                                 ],
@@ -1854,19 +1854,19 @@
                                 ],
                                 dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
                                 language: {
-                                    processing: "Memuat data...",
-                                    search: "Cari:",
-                                    lengthMenu: "Tampilkan _MENU_",
-                                    info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
-                                    infoEmpty: "Tidak ada data",
-                                    infoFiltered: "(disaring dari _MAX_ total data)",
-                                    zeroRecords: "Tidak ada data yang ditemukan",
-                                    emptyTable: "Tidak ada data tersedia",
+                                    processing: @json(__('ui.load_data')),
+                                    search: @json(__('ui.search') . ':'),
+                                    lengthMenu: @json(__('ui.show_menu')),
+                                    info: @json(__('ui.showing_data')),
+                                    infoEmpty: @json(__('ui.no_data')),
+                                    infoFiltered: @json(__('ui.filtered_from_total')),
+                                    zeroRecords: @json(__('ui.no_data_found')),
+                                    emptyTable: @json(__('ui.no_data_available')),
                                     paginate: {
-                                        first: "Pertama",
-                                        last: "Terakhir",
-                                        next: "Selanjutnya",
-                                        previous: "Sebelumnya"
+                                        first: @json(__('ui.first')),
+                                        last: @json(__('ui.last')),
+                                        next: @json(__('ui.next')),
+                                        previous: @json(__('ui.previous'))
                                     }
                                 },
                                 order: [
@@ -2017,7 +2017,7 @@
                                         className: 'text-center',
                                         width: '15%',
                                         render: function(data, type, row) {
-                                            return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>';
+                                            return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">{{ __('ui.choose') }}</button>';
                                         }
                                     }
                                 ],
@@ -2028,19 +2028,19 @@
                                 ],
                                 dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
                                 language: {
-                                    processing: "Memuat data...",
-                                    search: "Cari:",
-                                    lengthMenu: "Tampilkan _MENU_",
-                                    info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
-                                    infoEmpty: "Tidak ada data",
-                                    infoFiltered: "(disaring dari _MAX_ total data)",
-                                    zeroRecords: "Tidak ada data yang ditemukan",
-                                    emptyTable: "Tidak ada data tersedia",
+                                    processing: @json(__('ui.load_data')),
+                                    search: @json(__('ui.search') . ':'),
+                                    lengthMenu: @json(__('ui.show_menu')),
+                                    info: @json(__('ui.showing_data')),
+                                    infoEmpty: @json(__('ui.no_data')),
+                                    infoFiltered: @json(__('ui.filtered_from_total')),
+                                    zeroRecords: @json(__('ui.no_data_found')),
+                                    emptyTable: @json(__('ui.no_data_available')),
                                     paginate: {
-                                        first: "Pertama",
-                                        last: "Terakhir",
-                                        next: "Selanjutnya",
-                                        previous: "Sebelumnya"
+                                        first: @json(__('ui.first')),
+                                        last: @json(__('ui.last')),
+                                        next: @json(__('ui.next')),
+                                        previous: @json(__('ui.previous'))
                                     }
                                 },
                                 order: [

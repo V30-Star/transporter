@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', $action === 'delete' ? 'Hapus Retur Penjualan' : 'Edit Retur Penjualan')
+@section('title', $action === 'delete' ? __('ui.delete') . ' ' . __('ui.retur_penjualan') : __('ui.edit') . ' ' . __('ui.retur_penjualan'))
 
 @section('content')
     <style>
@@ -97,13 +97,13 @@
                     </div>
                     <div class="flex-1">
                         <h3 class="text-base font-bold text-orange-700">
-                            {{ $action === 'delete' ? 'Retur Penjualan Tidak Dapat Dihapus' : 'Retur Penjualan Tidak Dapat Diedit' }}
+                            {{ __('ui.retur_penjualan') }} {{ $action === 'delete' ? __('ui.cannot_delete') : __('ui.cannot_edit') }}
                         </h3>
                         <p class="text-sm text-orange-500 mt-0.5">{{ $usageLockMessage }}</p>
                     </div>
                     <button type="button" @click="open = false"
                         class="flex-shrink-0 w-8 h-8 rounded-full bg-orange-100 hover:bg-orange-200 flex items-center justify-center transition-colors"
-                        title="Tutup">
+                        title="{{ __('ui.close') }}">
                         <x-heroicon-o-x-mark class="w-4 h-4 text-orange-600" />
                     </button>
                 </div>
@@ -111,7 +111,7 @@
                     <button type="button" @click="open = false"
                         class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center gap-2">
                         <x-heroicon-o-arrow-left class="w-5 h-5" />
-                        Tutup
+                        {{ __('ui.close') }}
                     </button>
                 </div>
             </div>
@@ -199,7 +199,7 @@
                                                 </option>
                                             @endforeach
                                         </select>
-                                        <div class="absolute inset-0" role="button" aria-label="Browse Customer"
+                                        <div class="absolute inset-0" role="button" aria-label="{{ __('ui.browse_customer') }}"
                                             @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))">
                                         </div>
                                     </div>
@@ -227,7 +227,7 @@
                                                 </option>
                                             @endforeach
                                         </select>
-                                        <div class="absolute inset-0" role="button" aria-label="Browse Salesman"
+                                        <div class="absolute inset-0" role="button" aria-label="{{ __('ui.browse_salesman') }}"
                                             @click="window.dispatchEvent(new CustomEvent('salesman-browse-open'))">
                                         </div>
                                     </div>
@@ -580,7 +580,7 @@
                                         <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
                                             <button type="button" @click="closeDesc()"
                                                 class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
-                                                Batal
+                                                {{ __('ui.cancel') }}
                                             </button>
                                             <button type="button" @click="applyDesc()"
                                                 class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
@@ -604,7 +604,7 @@
                                     x-transition.scale>
                                     <div class="px-5 py-4 border-b flex items-center">
                                         <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-red-500 mr-2" />
-                                        <h3 class="text-lg font-semibold text-gray-800">Tidak Ada Item</h3>
+                                        <h3 class="text-lg font-semibold text-gray-800">{{ __('ui.no_items_title') }}</h3>
                                     </div>
 
                                     <div class="px-5 py-4">
@@ -757,7 +757,7 @@
                                                     </option>
                                                 @endforeach
                                             </select>
-                                            <div class="absolute inset-0" role="button" aria-label="Browse Customer"
+                                            <div class="absolute inset-0" role="button" aria-label="{{ __('ui.browse_customer') }}"
                                                 @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))">
                                             </div>
                                         </div>
@@ -766,7 +766,7 @@
                                         <button type="button"
                                             @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))"
                                             class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
-                                            title="Browse Customer">
+                                            title="{{ __('ui.browse_customer') }}">
                                             <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                                         </button>
                                         <a href="{{ route('customer.create') }}" target="_blank" rel="noopener"
@@ -796,7 +796,7 @@
                                                     </option>
                                                 @endforeach
                                             </select>
-                                            <div class="absolute inset-0" role="button" aria-label="Browse Salesman"
+                                            <div class="absolute inset-0" role="button" aria-label="{{ __('ui.browse_salesman') }}"
                                                 @click="window.dispatchEvent(new CustomEvent('salesman-browse-open'))">
                                             </div>
                                         </div>
@@ -805,7 +805,7 @@
                                         <button type="button"
                                             @click="window.dispatchEvent(new CustomEvent('salesman-browse-open'))"
                                             class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
-                                            title="Browse Salesman">
+                                            title="{{ __('ui.browse_salesman') }}">
                                             <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                                         </button>
                                         <a href="{{ route('salesman.create') }}" target="_blank" rel="noopener"
@@ -1099,7 +1099,7 @@
                                                         </div>
                                                         <button type="button" @click="closeSrjModal()"
                                                             class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-bold text-gray-700 text-sm">
-                                                            Tutup
+                                                            {{ __('ui.close') }}
                                                         </button>
                                                     </div>
 
@@ -1172,7 +1172,7 @@
                                                     </div>
                                                     <div class="px-5 py-3 border-t bg-gray-50 flex justify-end gap-2">
                                                         <button type="button" @click="closeDupModal()"
-                                                            class="px-4 py-2 border rounded-lg">Batal</button>
+                                                            class="px-4 py-2 border rounded-lg">{{ __('ui.cancel') }}</button>
                                                         <button type="button" @click="confirmAddUniques()"
                                                             class="px-4 py-2 bg-indigo-600 text-white rounded-lg">Tambahkan
                                                             Sisa
@@ -1219,7 +1219,7 @@
                                                         </div>
                                                         <button type="button" @click="closeModal()"
                                                             class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-bold text-gray-700 text-sm">
-                                                            Tutup
+                                                            {{ __('ui.close') }}
                                                         </button>
                                                     </div>
 
@@ -1335,7 +1335,7 @@
                                                         class="px-5 py-3 border-t bg-gray-50 flex items-center justify-end gap-2">
                                                         <button type="button" @click="closeDupModal()"
                                                             class="h-9 px-4 rounded-lg border-2 border-gray-300 text-gray-700 text-sm font-bold hover:bg-gray-100 transition-colors">
-                                                            Batal
+                                                            {{ __('ui.cancel') }}
                                                         </button>
                                                     </div>
                                                 </div>
@@ -1422,12 +1422,10 @@
                                                     <!-- Header -->
                                                     <div
                                                         class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
-                                                        <h3 class="text-xl font-bold text-gray-800">Pilih Purchase Request
-                                                            (PR)
-                                                        </h3>
+                                                        <h3 class="text-xl font-bold text-gray-800">{{ __('ui.select_purchase_order') }}</h3>
                                                         <button type="button" @click="closeModal()"
                                                             class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">
-                                                            Tutup
+                                                            {{ __('ui.close') }}
                                                         </button>
                                                     </div>
 
@@ -1492,7 +1490,7 @@
                                                     <div class="flex justify-end gap-2">
                                                         <button type="button" @click="closeDupModal()"
                                                             class="rounded bg-gray-200 px-4 py-2 text-sm font-medium hover:bg-gray-300">
-                                                            Batal
+                                                            {{ __('ui.cancel') }}
                                                         </button>
                                                         <button type="button" @click="confirmAddUniques()"
                                                             class="rounded bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700">
@@ -1526,7 +1524,7 @@
                                         <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
                                             <button type="button" @click="closeDesc()"
                                                 class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
-                                                Batal
+                                                {{ __('ui.cancel') }}
                                             </button>
                                             <button type="button" @click="applyDesc()"
                                                 class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
@@ -1550,7 +1548,7 @@
                                     x-transition.scale>
                                     <div class="px-5 py-4 border-b flex items-center">
                                         <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-red-500 mr-2" />
-                                        <h3 class="text-lg font-semibold text-gray-800">Tidak Ada Item</h3>
+                                        <h3 class="text-lg font-semibold text-gray-800">{{ __('ui.no_items_title') }}</h3>
                                     </div>
 
                                     <div class="px-5 py-4">
@@ -1581,12 +1579,12 @@
                                     <div
                                         class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
                                         <div>
-                                            <h3 class="text-xl font-bold text-gray-800">Browse Customer</h3>
-                                            <p class="text-sm text-gray-500 mt-0.5">Pilih customer yang diinginkan</p>
+                                            <h3 class="text-xl font-bold text-gray-800">{{ __('ui.browse_customer') }}</h3>
+                                            <p class="text-sm text-gray-500 mt-0.5">{{ __('ui.select_customer_prompt') }}</p>
                                         </div>
                                         <button type="button" @click="close()"
                                             class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">
-                                            Tutup
+                                            {{ __('ui.close') }}
                                         </button>
                                     </div>
 
@@ -1645,12 +1643,12 @@
                                     <div
                                         class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
                                         <div>
-                                            <h3 class="text-xl font-bold text-gray-800">Browse Salesman</h3>
-                                            <p class="text-sm text-gray-500 mt-0.5">Pilih salesman yang diinginkan</p>
+                                            <h3 class="text-xl font-bold text-gray-800">{{ __('ui.browse_salesman') }}</h3>
+                                            <p class="text-sm text-gray-500 mt-0.5">{{ __('ui.select_salesman_prompt') }}</p>
                                         </div>
                                         <button type="button" @click="close()"
                                             class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">
-                                            Tutup
+                                            {{ __('ui.close') }}
                                         </button>
                                     </div>
 
@@ -1703,12 +1701,12 @@
                                     <div
                                         class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
                                         <div>
-                                            <h3 class="text-xl font-bold text-gray-800">Browse Produk</h3>
-                                            <p class="text-sm text-gray-500 mt-0.5">Pilih produk yang diinginkan</p>
+                                            <h3 class="text-xl font-bold text-gray-800">{{ __('ui.browse_product') }}</h3>
+                                            <p class="text-sm text-gray-500 mt-0.5">{{ __('ui.select_product_prompt') }}</p>
                                         </div>
                                         <button type="button" @click="close()"
                                             class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">
-                                            Tutup
+                                            {{ __('ui.close') }}
                                         </button>
                                     </div>
 
@@ -2129,7 +2127,7 @@
                                 if (row.fblokir == 1) {
                                     return '<span class="text-xs font-bold text-red-500">BLOKIR</span>';
                                 }
-                                return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>';
+                                return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">{{ __('ui.choose') }}</button>';
                             }
                         }
                     ],
@@ -2140,14 +2138,14 @@
                     ],
                     dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
                     language: {
-                        processing: "Memuat data...",
-                        search: "Cari:",
-                        lengthMenu: "Tampilkan _MENU_",
-                        info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
-                        infoEmpty: "Tidak ada data",
+                        processing: @json(__('ui.load_data')),
+                        search: @json(__('ui.search') . ':'),
+                        lengthMenu: @json(__('ui.show_menu')),
+                        info: @json(__('ui.showing_data')),
+                        infoEmpty: @json(__('ui.no_data')),
                         infoFiltered: "(disaring dari _MAX_ total data)",
-                        zeroRecords: "Tidak ada data yang ditemukan",
-                        emptyTable: "Tidak ada data tersedia",
+                        zeroRecords: @json(__('ui.no_data_found')),
+                        emptyTable: @json(__('ui.no_data_available')),
                         paginate: {
                             first: "Pertama",
                             last: "Terakhir",
@@ -2306,7 +2304,7 @@
                             className: 'text-center',
                             width: '15%',
                             render: function(data, type, row) {
-                                return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>';
+                                return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">{{ __('ui.choose') }}</button>';
                             }
                         }
                     ],
@@ -2317,14 +2315,14 @@
                     ],
                     dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
                     language: {
-                        processing: "Memuat data...",
-                        search: "Cari:",
-                        lengthMenu: "Tampilkan _MENU_",
-                        info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
-                        infoEmpty: "Tidak ada data",
+                        processing: @json(__('ui.load_data')),
+                        search: @json(__('ui.search') . ':'),
+                        lengthMenu: @json(__('ui.show_menu')),
+                        info: @json(__('ui.showing_data')),
+                        infoEmpty: @json(__('ui.no_data')),
                         infoFiltered: "(disaring dari _MAX_ total data)",
-                        zeroRecords: "Tidak ada data yang ditemukan",
-                        emptyTable: "Tidak ada data tersedia",
+                        zeroRecords: @json(__('ui.no_data_found')),
+                        emptyTable: @json(__('ui.no_data_available')),
                         paginate: {
                             first: "Pertama",
                             last: "Terakhir",
@@ -3154,7 +3152,7 @@
                             className: 'text-center',
                             width: '100px',
                             render: function(data, type, row) {
-                                return '<button type="button" class="btn-pick px-4 py-1.5 rounded-md text-sm font-bold bg-teal-600 hover:bg-teal-700 text-white transition-colors duration-150">Pilih</button>';
+                                return '<button type="button" class="btn-pick px-4 py-1.5 rounded-md text-sm font-bold bg-teal-600 hover:bg-teal-700 text-white transition-colors duration-150">{{ __('ui.choose') }}</button>';
                             }
                         }
                     ],
@@ -3165,14 +3163,14 @@
                     ],
                     dom: '<"#poTableControls"lf>rt<"#poTablePagination"ip>',
                     language: {
-                        processing: "Memuat data...",
-                        search: "Cari:",
-                        lengthMenu: "Tampilkan _MENU_",
-                        info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
-                        infoEmpty: "Tidak ada data",
+                        processing: @json(__('ui.load_data')),
+                        search: @json(__('ui.search') . ':'),
+                        lengthMenu: @json(__('ui.show_menu')),
+                        info: @json(__('ui.showing_data')),
+                        infoEmpty: @json(__('ui.no_data')),
                         infoFiltered: "(disaring dari _MAX_ total data)",
-                        zeroRecords: "Tidak ada data yang ditemukan",
-                        emptyTable: "Tidak ada data tersedia",
+                        zeroRecords: @json(__('ui.no_data_found')),
+                        emptyTable: @json(__('ui.no_data_available')),
                         paginate: {
                             first: "Pertama",
                             last: "Terakhir",
@@ -3262,8 +3260,8 @@
                     if (row.fdiscontinue == '1') {
                         Swal.fire({
                             icon: 'warning',
-                            title: 'Produk Discontinue',
-                            html: `Produk <b>${row.fprdname}</b> sudah tidak diproduksi lagi.<br><br>Penyimpanan Batal.`,
+                            title: @json(__('ui.discontinued_product')),
+                            html: `${@json(__('ui.product_discontinued_message', ['name' => '__NAME__'])).replace('__NAME__', `<b>${row.fprdname}</b>`)}<br><br>${@json(__('ui.save_cancelled'))}.`,
                             confirmButtonColor: '#f59e0b', // Warna orange amber
                             confirmButtonText: 'Kembali'
                         });
@@ -3309,7 +3307,7 @@
                     this.closeModal();
                 } catch (e) {
                     console.error('Error:', e);
-                    window.toast?.error(`Gagal mengambil detail Sales Order: ${e.message}`);
+                    window.toast?.error(`${@json(__('ui.failed_fetch_sales_order_detail'))} ${e.message}`);
                 }
             }
         };
@@ -3377,16 +3375,16 @@
                             className: 'text-center',
                             width: '100px',
                             render: function() {
-                                return '<button type="button" class="btn-pick-srj px-4 py-1.5 rounded-md text-sm font-bold bg-indigo-600 hover:bg-indigo-700 text-white transition-colors duration-150">Pilih</button>';
+                                return '<button type="button" class="btn-pick-srj px-4 py-1.5 rounded-md text-sm font-bold bg-indigo-600 hover:bg-indigo-700 text-white transition-colors duration-150">{{ __('ui.choose') }}</button>';
                             }
                         }
                     ],
                     pageLength: 10,
                     dom: '<"#srjHeader"fl>rt<"#srjFooter"ip>',
                     language: {
-                        processing: "Memuat data...",
-                        search: "Cari:",
-                        lengthMenu: "Tampilkan _MENU_",
+                        processing: @json(__('ui.load_data')),
+                        search: @json(__('ui.search') . ':'),
+                        lengthMenu: @json(__('ui.show_menu')),
                         paginate: {
                             next: "Selanjutnya",
                             previous: "Sebelumnya"
@@ -3488,8 +3486,8 @@
                     if (row.fdiscontinue == '1') {
                         Swal.fire({
                             icon: 'warning',
-                            title: 'Produk Discontinue',
-                            html: `Produk <b>${row.fprdname}</b> sudah tidak diproduksi lagi.<br><br>Penyimpanan Batal.`,
+                            title: @json(__('ui.discontinued_product')),
+                            html: `${@json(__('ui.product_discontinued_message', ['name' => '__NAME__'])).replace('__NAME__', `<b>${row.fprdname}</b>`)}<br><br>${@json(__('ui.save_cancelled'))}.`,
                             confirmButtonColor: '#f59e0b', // Warna orange amber
                             confirmButtonText: 'Kembali'
                         });
@@ -3535,7 +3533,7 @@
                     this.closeSrjModal();
                 } catch (e) {
                     console.error('Error SRJ:', e);
-                    window.toast?.error(`Gagal mengambil detail SRJ: ${e.message}`);
+                    window.toast?.error(`${@json(__('ui.failed_fetch_delivery_order_detail'))} ${e.message}`);
                 }
             }
         };
@@ -3610,7 +3608,7 @@
                             className: 'text-center',
                             render: function(data, type, row) {
                                 // Menggunakan styling yang lebih seragam
-                                return '<button type="button" class="btn-pick px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>';
+                                return '<button type="button" class="btn-pick px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">{{ __('ui.choose') }}</button>';
                             }
                         }
                     ],
@@ -3623,19 +3621,19 @@
                     dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
 
                     language: {
-                        processing: "Memuat data...", // Diseragamkan
-                        search: "Cari:", // Diseragamkan
-                        lengthMenu: "Tampilkan _MENU_", // Diseragamkan
-                        info: "Menampilkan _START_ - _END_ dari _TOTAL_ data", // Diseragamkan
-                        infoEmpty: "Tidak ada data", // Diseragamkan
-                        infoFiltered: "(disaring dari _MAX_ total data)", // Diseragamkan
-                        zeroRecords: "Tidak ada data yang ditemukan", // Diseragamkan
-                        emptyTable: "Tidak ada data tersedia", // Diseragamkan
+                        processing: @json(__('ui.load_data')),
+                        search: @json(__('ui.search') . ':'),
+                        lengthMenu: @json(__('ui.show_menu')),
+                        info: @json(__('ui.showing_data')),
+                        infoEmpty: @json(__('ui.no_data')),
+                        infoFiltered: @json(__('ui.filtered_from_total')),
+                        zeroRecords: @json(__('ui.no_data_found')),
+                        emptyTable: @json(__('ui.no_data_available')),
                         paginate: {
-                            first: "Pertama",
-                            last: "Terakhir",
-                            next: "Selanjutnya",
-                            previous: "Sebelumnya"
+                            first: @json(__('ui.first')),
+                            last: @json(__('ui.last')),
+                            next: @json(__('ui.next')),
+                            previous: @json(__('ui.previous'))
                         }
                     },
                     order: [
@@ -3757,7 +3755,7 @@
                     console.error(e);
                     // Menggunakan custom alert/modal, bukan alert() bawaan browser
                     // Idealnya: tampilkan notifikasi di UI
-                    console.log('Gagal mengambil detail PR. Lihat konsol untuk detail.');
+                    console.log(@json(__('ui.failed_fetch_pr_detail')));
                 }
             }
         };
@@ -3848,7 +3846,7 @@
                                 className: 'text-center',
                                 width: '100px',
                                 render: function(data, type, row) {
-                                    return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">Pilih</button>';
+                                    return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">{{ __('ui.choose') }}</button>';
                                 }
                             }
                         ],
@@ -3859,14 +3857,14 @@
                         ],
                         dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
                         language: {
-                            processing: "Memuat data...",
-                            search: "Cari:",
-                            lengthMenu: "Tampilkan _MENU_",
-                            info: "Menampilkan _START_ - _END_ dari _TOTAL_ data",
-                            infoEmpty: "Tidak ada data",
+                            processing: @json(__('ui.load_data')),
+                            search: @json(__('ui.search') . ':'),
+                            lengthMenu: @json(__('ui.show_menu')),
+                            info: @json(__('ui.showing_data')),
+                            infoEmpty: @json(__('ui.no_data')),
                             infoFiltered: "(disaring dari _MAX_ total data)",
-                            zeroRecords: "Tidak ada data yang ditemukan",
-                            emptyTable: "Tidak ada data tersedia",
+                            zeroRecords: @json(__('ui.no_data_found')),
+                            emptyTable: @json(__('ui.no_data_available')),
                             paginate: {
                                 first: "Pertama",
                                 last: "Terakhir",

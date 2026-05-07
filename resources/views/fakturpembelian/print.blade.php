@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="id">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
 <head>
     <meta charset="utf-8">
-    <title>Faktur Pembelian - {{ $hdr->fstockmtno ?? '-' }}</title>
+    <title>{{ __('ui.purchase_invoice') }} - {{ $hdr->fstockmtno ?? '-' }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         :root {
@@ -218,7 +218,7 @@
 
 <body>
     <div class="print-hide" style="position:fixed; top:10px; left:10px; z-index:999;">
-        <button onclick="window.print()" style="padding:10px 20px; cursor:pointer;">PRINT</button>
+        <button onclick="window.print()" style="padding:10px 20px; cursor:pointer;">{{ __('ui.print') }}</button>
     </div>
 
     <div class="sheet">
@@ -228,28 +228,28 @@
                 <div>{{ $company_city }}</div>
             </div>
             <div>
-                <div class="title-so">Faktur Pembelian</div>
-                <div class="so-no">No. {{ $hdr->fstockmtno ?? '-' }}</div>
+                <div class="title-so">{{ __('ui.purchase_invoice') }}</div>
+                <div class="so-no">{{ __('ui.number') }}. {{ $hdr->fstockmtno ?? '-' }}</div>
             </div>
         </div>
 
         <div style="overflow: hidden; margin-top: 10px;">
             <div class="customer-container">
-                <span class="customer-label">Supplier</span>
+                <span class="customer-label">{{ __('ui.supplier') }}</span>
                 <div style="font-weight: bold;">{{ $hdr->supplier_name ?? '-' }}</div>
                 <div style="font-size: 11px;">
-                    Gudang : {{ $hdr->fwhnamen ?? '-' }}
+                    {{ __('ui.warehouse') }} : {{ $hdr->fwhnamen ?? '-' }}
                 </div>
             </div>
 
             <table class="info-table">
                 <tr>
-                    <td>Tanggal</td>
+                    <td>{{ __('ui.date') }}</td>
                     <td>:</td>
                     <td>{{ $fmt($hdr->fstockmtdate) }}</td>
                 </tr>
                 <tr>
-                    <td colspan="3" style="text-align: right; font-size: 10px; padding-top: 20px;">Hal : 1 / 1</td>
+                    <td colspan="3" style="text-align: right; font-size: 10px; padding-top: 20px;">{{ __('ui.page') }} : 1 / 1</td>
                 </tr>
             </table>
         </div>
@@ -257,11 +257,11 @@
         <table class="tb">
             <thead>
                 <tr>
-                    <th style="width: 5%;">No.</th>
-                    <th style="width: 20%;">Kode Barang</th>
-                    <th style="width: 50%;">Nama Barang</th>
-                    <th style="width: 10%; text-align: center;">Qty.</th>
-                    <th style="width: 15%; text-align: center;">Satuan</th>
+                    <th style="width: 5%;">{{ __('ui.number') }}.</th>
+                    <th style="width: 20%;">{{ __('ui.item_code') }}</th>
+                    <th style="width: 50%;">{{ __('ui.item_name') }}</th>
+                    <th style="width: 10%; text-align: center;">{{ __('ui.qty') }}</th>
+                    <th style="width: 15%; text-align: center;">{{ __('ui.unit') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -285,23 +285,23 @@
         <div class="footer-line"></div>
 
         <div class="terbilang-box">
-            Note : <br>
+            {{ __('ui.note') }} : <br>
             <span
                 style="font-weight: normal; text-decoration: none; font-style: normal;">{{ $hdr->fket ?? '-' }}</span>
         </div>
 
         <div class="summary-box">
             <div style="text-align: right; font-style: italic; font-size: 10px; color: #555;">
-                * Dokumen ini sah sebagai bukti penerimaan stok.
+                * {{ __('ui.stock_receipt_proof_note') }}
             </div>
         </div>
 
         <div class="sign-container">
             <table class="sign-table">
                 <tr>
-                    <td>Dibuat</td>
-                    <td>User</td>
-                    <td>Plant Manager</td>
+                    <td>{{ __('ui.created_by') }}</td>
+                    <td>{{ __('ui.user') }}</td>
+                    <td>{{ __('ui.plant_manager') }}</td>
                 </tr>
                 <tr>
                     <td class="box-content">{{ strtoupper($hdr->fusercreate ?? '') }}</td>
