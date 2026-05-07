@@ -220,6 +220,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/pengeluarankas/create', [PengeluaranKasController::class, 'create'])->name('pengeluarankas.create');
         Route::get('/pengeluarankas/{fkasmtno}/view', [PengeluaranKasController::class, 'view'])->name('pengeluarankas.view');
         Route::get('/pengeluarankas/{fkasmtno}/edit', [PengeluaranKasController::class, 'edit'])->name('pengeluarankas.edit');
+        Route::get('/pengeluarankas/{fkasmtno}/delete', [PengeluaranKasController::class, 'delete'])->name('pengeluarankas.delete');
+        Route::get('/pengeluarankas/{fkasmtno}/print', [PengeluaranKasController::class, 'print'])->name('pengeluarankas.print');
         Route::patch('/pengeluarankas/{fkasmtno}', [PengeluaranKasController::class, 'update'])->name('pengeluarankas.update');
         Route::delete('/pengeluarankas/{fkasmtno}', [PengeluaranKasController::class, 'destroy'])->name('pengeluarankas.destroy');
 

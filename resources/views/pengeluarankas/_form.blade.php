@@ -1,12 +1,22 @@
 @php
     $isReadOnly = $isReadOnly ?? false;
     $formMethod = $formMethod ?? 'POST';
+    $formAction = $formAction ?? '#';
+    $isEditMode = strtoupper($formMethod) === 'PATCH';
+    $isDeleteMode = strtoupper($formMethod) === 'DELETE';
+    $submitLabel = $isEditMode ? 'Update' : 'Simpan';
     $detailsOld = old('details');
     $detailRows = is_array($detailsOld)
         ? collect($detailsOld)->map(fn ($row) => (object) $row)
         : $details;
     $selectedHeader = old('faccountheader', $pengeluaranKas->faccountheader);
     $totalAmount = $detailRows->sum(fn ($row) => (float) ($row->fkasdtvalue ?? 0));
+    $accountOptions = collect($accounts ?? []);
+    $subaccountOptions = collect($subaccounts ?? []);
+    $selectedHeaderLabel = $accountOptions->firstWhere('faccount', (string) $selectedHeader);
+    $selectedHeaderLabel = $selectedHeaderLabel
+        ? trim($selectedHeaderLabel->faccount.' - '.$selectedHeaderLabel->faccname)
+        : (string) $selectedHeader;
 @endphp
 
 <style>
@@ -19,7 +29,20 @@
     }
 </style>
 
-<div x-data="pengeluaranKasForm(@js($isReadOnly))" class="bg-white rounded shadow p-6 md:p-8 max-w-7xl mx-auto">
+<div x-data="pengeluaranKasForm(@js($isReadOnly), @js(old('fkasmtno', $pengeluaranKas->fkasmtno ?? '')))" x-init="init()" class="bg-white rounded shadow p-6 md:p-8 max-w-7xl mx-auto">
+    @if (!empty($pageTitle))
+        <div class="mb-6">
+            <h1 class="text-xl font-semibold text-gray-800">{{ $pageTitle }}</h1>
+        </div>
+    @endif
+
+    @if ($isDeleteMode)
+        <div class="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-700">
+            <p class="font-semibold">Konfirmasi Hapus Pengeluaran Kas</p>
+            <p class="mt-1 text-sm">Data akan dihapus permanen. Pastikan data yang ditampilkan sudah benar sebelum melanjutkan.</p>
+        </div>
+    @endif
+
     <form action="{{ $formAction }}" method="POST">
         @csrf
         @if (strtoupper($formMethod) !== 'POST')
@@ -29,16 +52,28 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
                 <label class="block text-sm font-medium mb-1">Voucher No.</label>
-                <input type="text" name="fkasmtno" value="{{ old('fkasmtno', $pengeluaranKas->fkasmtno) }}"
-                    class="w-full border rounded px-3 py-2 {{ $isReadOnly ? 'bg-gray-100' : '' }}"
-                    placeholder="Kosongkan untuk auto number" {{ $isReadOnly ? 'readonly' : '' }}>
+                @if ($isReadOnly)
+                    <input type="text" name="fkasmtno" value="{{ old('fkasmtno', $pengeluaranKas->fkasmtno ?? '') }}"
+                        class="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed" readonly>
+                @else
+                    <div class="flex items-center gap-3">
+                        <input type="text" name="fkasmtno" x-model="voucherNo" :disabled="autoCode"
+                            class="w-full border rounded px-3 py-2"
+                            :class="autoCode ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'"
+                            placeholder="Kosongkan untuk auto number">
+                        <label class="inline-flex items-center select-none">
+                            <input type="checkbox" x-model="autoCode">
+                            <span class="ml-2 text-sm text-gray-700">Auto</span>
+                        </label>
+                    </div>
+                @endif
                 @error('fkasmtno')
                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                 @enderror
             </div>
 
             <div>
-                <label class="block text-sm font-medium mb-1">Date</label>
+                <label class="block text-sm font-medium mb-1">Tanggal</label>
                 <input type="date" name="fkasmtdate"
                     value="{{ old('fkasmtdate', optional($pengeluaranKas->fkasmtdate)->format('Y-m-d') ?? $pengeluaranKas->fkasmtdate) }}"
                     class="w-full border rounded px-3 py-2 {{ $isReadOnly ? 'bg-gray-100' : '' }}"
@@ -49,7 +84,7 @@
             </div>
 
             <div>
-                <label class="block text-sm font-medium mb-1">Check No.</label>
+                <label class="block text-sm font-medium mb-1">No.Giro/Cek</label>
                 <input type="text" name="fnogiro" value="{{ old('fnogiro', $pengeluaranKas->fnogiro) }}"
                     class="w-full border rounded px-3 py-2 {{ $isReadOnly ? 'bg-gray-100' : '' }}"
                     {{ $isReadOnly ? 'readonly' : '' }}>
@@ -60,25 +95,26 @@
 
             <div>
                 <label class="block text-sm font-medium mb-1">Cash / Bank Account</label>
-                <div class="flex">
-                    <select name="faccountheader"
-                        class="w-full border rounded-l px-3 py-2 {{ $isReadOnly ? 'bg-gray-100' : '' }}"
-                        {{ $isReadOnly ? 'disabled' : '' }}>
-                        <option value="">Pilih account</option>
-                        @foreach ($accounts as $account)
-                            <option value="{{ $account->faccount }}" {{ (string) $selectedHeader === (string) $account->faccount ? 'selected' : '' }}>
-                                {{ $account->faccount }} - {{ $account->faccname }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @unless ($isReadOnly)
+                @if ($isReadOnly)
+                    <input type="text" value="{{ $selectedHeaderLabel }}"
+                        class="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed" readonly>
+                @else
+                    <div class="flex">
+                        <select name="faccountheader" class="w-full border rounded-l px-3 py-2">
+                            <option value="">Pilih account</option>
+                            @foreach ($accounts as $account)
+                                <option value="{{ $account->faccount }}" {{ (string) $selectedHeader === (string) $account->faccount ? 'selected' : '' }}>
+                                    {{ $account->faccount }} - {{ $account->faccname }}
+                                </option>
+                            @endforeach
+                        </select>
                         <a href="{{ route('account.create') }}" target="_blank" rel="noopener"
                             class="border border-l-0 rounded-r px-3 py-2 bg-white hover:bg-gray-50 inline-flex items-center"
                             title="Tambah Account">
                             <x-heroicon-o-plus class="w-5 h-5" />
                         </a>
-                    @endunless
-                </div>
+                    </div>
+                @endif
                 @if ($isReadOnly)
                     <input type="hidden" name="faccountheader" value="{{ $selectedHeader }}">
                 @endif
@@ -88,7 +124,7 @@
             </div>
 
             <div class="md:col-span-2">
-                <label class="block text-sm font-medium mb-1">Pay To</label>
+                <label class="block text-sm font-medium mb-1">Penerima</label>
                 <input type="text" name="fwhom" value="{{ old('fwhom', $pengeluaranKas->fwhom) }}"
                     class="w-full border rounded px-3 py-2 {{ $isReadOnly ? 'bg-gray-100' : '' }}"
                     {{ $isReadOnly ? 'readonly' : '' }}>
@@ -98,7 +134,7 @@
             </div>
 
             <div class="md:col-span-2">
-                <label class="block text-sm font-medium mb-1">Header Description</label>
+                <label class="block text-sm font-medium mb-1">Keterangan</label>
                 <textarea name="fket" rows="3" class="w-full border rounded px-3 py-2 {{ $isReadOnly ? 'bg-gray-100' : '' }}"
                     {{ $isReadOnly ? 'readonly' : '' }}>{{ old('fket', $pengeluaranKas->fket) }}</textarea>
                 @error('fket')
@@ -117,100 +153,122 @@
                     <colgroup>
                         @if ($isReadOnly)
                             <col style="width:4%;">
+                            <col style="width:25%;">
+                            <col style="width:25%;">
                             <col style="width:24%;">
-                            <col style="width:24%;">
-                            <col style="width:30%;">
-                            <col style="width:18%;">
+                            <col style="width:22%;">
                         @else
                             <col style="width:4%;">
+                            <col style="width:23%;">
+                            <col style="width:23%;">
+                            <col style="width:20%;">
                             <col style="width:22%;">
-                            <col style="width:22%;">
-                            <col style="width:26%;">
-                            <col style="width:18%;">
                             <col style="width:8%;">
                         @endif
                     </colgroup>
                     <thead class="bg-gray-100">
                         <tr>
-                            <th class="border px-3 py-2 whitespace-nowrap">No</th>
-                            <th class="border px-3 py-2 whitespace-nowrap">Account</th>
-                            <th class="border px-3 py-2 whitespace-nowrap">Sub Account</th>
-                            <th class="border px-3 py-2 whitespace-nowrap">Description</th>
-                            <th class="border px-3 py-2 text-right whitespace-nowrap">Payment Amount</th>
+                            <th class="border px-1.5 py-1 whitespace-nowrap">No</th>
+                            <th class="border px-1.5 py-1 whitespace-nowrap">Account</th>
+                            <th class="border px-1.5 py-1 whitespace-nowrap">Sub Account</th>
+                            <th class="border px-1.5 py-1 whitespace-nowrap">Uraian</th>
+                            <th class="border px-1.5 py-1 text-right whitespace-nowrap">Nilai Bayar</th>
                             @unless ($isReadOnly)
-                                <th class="border px-3 py-2 text-center whitespace-nowrap">Aksi</th>
+                                <th class="border px-1.5 py-1 text-center whitespace-nowrap">Aksi</th>
                             @endunless
                         </tr>
                     </thead>
                     <tbody id="detailRows">
                         @foreach ($detailRows as $index => $detail)
                             <tr class="detail-row">
-                                <td class="border px-3 py-2 text-center align-top">{{ $index + 1 }}</td>
-                                <td class="border px-3 py-2 align-top">
-                                    <select name="details[{{ $index }}][faccount]"
-                                        class="w-full border rounded px-3 py-2 {{ $isReadOnly ? 'bg-gray-100' : '' }}"
-                                        {{ $isReadOnly ? 'disabled' : '' }}>
-                                        <option value="">Pilih account</option>
-                                        @foreach ($accounts as $account)
-                                            <option value="{{ $account->faccount }}"
-                                                {{ (string) old("details.$index.faccount", $detail->faccount ?? '') === (string) $account->faccount ? 'selected' : '' }}>
-                                                {{ $account->faccount }} - {{ $account->faccname }}
-                                            </option>
-                                        @endforeach
-                                    </select>
+                                <td class="border px-1.5 py-1 text-center align-top">{{ $index + 1 }}</td>
+                                <td class="border px-1.5 py-1 align-top">
+                                    @php
+                                        $detailAccountCode = (string) old("details.$index.faccount", $detail->faccount ?? '');
+                                        $detailAccount = $accountOptions->firstWhere('faccount', $detailAccountCode);
+                                        $detailAccountLabel = $detailAccount
+                                            ? trim($detailAccount->faccount.' - '.$detailAccount->faccname)
+                                            : $detailAccountCode;
+                                    @endphp
                                     @if ($isReadOnly)
-                                        <input type="hidden" name="details[{{ $index }}][faccount]"
-                                            value="{{ old("details.$index.faccount", $detail->faccount ?? '') }}">
+                                        <input type="text" value="{{ $detailAccountLabel }}"
+                                            class="w-full border rounded px-1.5 py-1 bg-gray-100 cursor-not-allowed"
+                                            readonly>
+                                    @else
+                                        <select name="details[{{ $index }}][faccount]"
+                                            class="w-full border rounded px-1.5 py-1">
+                                            <option value="">Pilih account</option>
+                                            @foreach ($accounts as $account)
+                                                <option value="{{ $account->faccount }}"
+                                                    {{ $detailAccountCode === (string) $account->faccount ? 'selected' : '' }}>
+                                                    {{ $account->faccount }} - {{ $account->faccname }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    @endif
+                                    @if ($isReadOnly)
+                                        <input type="hidden" name="details[{{ $index }}][faccount]" value="{{ $detailAccountCode }}">
                                     @endif
                                     @error("details.$index.faccount")
                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                     @enderror
                                 </td>
-                                <td class="border px-3 py-2 align-top">
-                                    <select name="details[{{ $index }}][fsubaccount]"
-                                        class="w-full border rounded px-3 py-2 {{ $isReadOnly ? 'bg-gray-100' : '' }}"
-                                        {{ $isReadOnly ? 'disabled' : '' }}>
-                                        <option value="">Pilih sub account</option>
-                                        @foreach ($subaccounts as $subaccount)
-                                            <option value="{{ $subaccount->fsubaccountcode }}"
-                                                {{ (string) old("details.$index.fsubaccount", $detail->fsubaccount ?? '') === (string) $subaccount->fsubaccountcode ? 'selected' : '' }}>
-                                                {{ $subaccount->fsubaccountcode }} - {{ $subaccount->fsubaccountname }}
-                                            </option>
-                                        @endforeach
-                                    </select>
+                                <td class="border px-1.5 py-1 align-top">
+                                    @php
+                                        $detailSubaccountCode = (string) old("details.$index.fsubaccount", $detail->fsubaccount ?? '');
+                                        $detailSubaccount = $subaccountOptions->firstWhere('fsubaccountcode', $detailSubaccountCode);
+                                        $detailSubaccountLabel = $detailSubaccount
+                                            ? trim($detailSubaccount->fsubaccountcode.' - '.$detailSubaccount->fsubaccountname)
+                                            : $detailSubaccountCode;
+                                    @endphp
                                     @if ($isReadOnly)
-                                        <input type="hidden" name="details[{{ $index }}][fsubaccount]"
-                                            value="{{ old("details.$index.fsubaccount", $detail->fsubaccount ?? '') }}">
+                                        <input type="text" value="{{ $detailSubaccountLabel }}"
+                                            class="w-full border rounded px-1.5 py-1 bg-gray-100 cursor-not-allowed"
+                                            readonly>
+                                    @else
+                                        <select name="details[{{ $index }}][fsubaccount]"
+                                            class="w-full border rounded px-1.5 py-1">
+                                            <option value="">Pilih sub account</option>
+                                            @foreach ($subaccounts as $subaccount)
+                                                <option value="{{ $subaccount->fsubaccountcode }}"
+                                                    {{ $detailSubaccountCode === (string) $subaccount->fsubaccountcode ? 'selected' : '' }}>
+                                                    {{ $subaccount->fsubaccountcode }} - {{ $subaccount->fsubaccountname }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    @endif
+                                    @if ($isReadOnly)
+                                        <input type="hidden" name="details[{{ $index }}][fsubaccount]" value="{{ $detailSubaccountCode }}">
                                     @endif
                                     @error("details.$index.fsubaccount")
                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                     @enderror
                                 </td>
-                                <td class="border px-3 py-2 align-top">
+                                <td class="border px-1.5 py-1 align-top">
                                     <textarea name="details[{{ $index }}][fnote]" rows="2"
-                                        class="w-full border rounded px-3 py-2 {{ $isReadOnly ? 'bg-gray-100' : '' }}"
+                                        class="w-full border rounded px-1.5 py-1 {{ $isReadOnly ? 'bg-gray-100' : '' }}"
                                         {{ $isReadOnly ? 'readonly' : '' }}>{{ old("details.$index.fnote", $detail->fnote ?? '') }}</textarea>
                                     @error("details.$index.fnote")
                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                     @enderror
                                 </td>
-                                <td class="border px-3 py-2 align-top">
+                                <td class="border px-1.5 py-1 align-top">
                                     <input type="number" name="details[{{ $index }}][fkasdtvalue]"
                                         step="0.01" value="{{ old("details.$index.fkasdtvalue", $detail->fkasdtvalue ?? '') }}"
-                                        class="detail-amount w-full border rounded px-3 py-2 text-right {{ $isReadOnly ? 'bg-gray-100' : '' }}"
+                                        class="detail-amount w-full border rounded px-1.5 py-1 text-right {{ $isReadOnly ? 'bg-gray-100' : '' }}"
                                         {{ $isReadOnly ? 'readonly' : '' }}>
                                     @error("details.$index.fkasdtvalue")
                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                     @enderror
                                 </td>
                                 @unless ($isReadOnly)
-                                    <td class="detail-action-cell border px-3 py-2 text-center align-top">
+                                    <td class="detail-action-cell border px-1.5 py-1 text-center align-top">
                                         <button type="button" @click="addRow()"
-                                            class="detail-add-btn inline-flex items-center bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700 whitespace-nowrap">
+                                            class="detail-add-btn inline-flex items-center bg-blue-600 text-white px-2.5 py-1 rounded hover:bg-blue-700 whitespace-nowrap">
                                             <x-heroicon-o-plus class="w-4 h-4 mr-1" /> Tambah Detail
                                         </button>
                                         <button type="button" @click="removeRow($event)"
-                                            class="detail-delete-btn inline-flex items-center bg-red-600 text-white px-3 py-2 rounded hover:bg-red-700 whitespace-nowrap">
+                                            class="detail-delete-btn inline-flex items-center bg-red-600 text-white px-2.5 py-1 rounded hover:bg-red-700 whitespace-nowrap">
                                             <x-heroicon-o-trash class="w-4 h-4 mr-1" /> Delete
                                         </button>
                                     </td>
@@ -220,9 +278,9 @@
                     </tbody>
                     <tfoot class="bg-gray-50">
                         <tr>
-                            <td colspan="{{ $isReadOnly ? 5 : 5 }}" class="border px-3 py-2"></td>
+                            <td colspan="{{ $isReadOnly ? 5 : 5 }}" class="border px-1.5 py-1"></td>
                             @unless ($isReadOnly)
-                                <td class="border px-3 py-2"></td>
+                                <td class="border px-1.5 py-1"></td>
                             @endunless
                         </tr>
                     </tfoot>
@@ -236,7 +294,7 @@
                             <span class="text-sm font-semibold text-gray-800">Total</span>
                             <input type="text" id="detailTotal"
                                 value="{{ number_format($totalAmount, 2, '.', ',') }}"
-                                class="w-48 border rounded px-3 py-2 text-right bg-gray-100 font-semibold" readonly>
+                                class="w-48 border rounded px-1.5 py-1 text-right bg-gray-100 font-semibold" readonly>
                         </div>
                     </div>
                 </div>
@@ -244,12 +302,29 @@
         </div>
 
         <div class="mt-6 flex justify-center gap-4">
-            @unless ($isReadOnly)
+            @if ($isReadOnly && ! $isDeleteMode && !empty($printRoute))
+                <a href="{{ $printRoute }}" target="_blank"
+                    class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 inline-flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m10 0v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5m10 0v5H7v-5">
+                        </path>
+                    </svg>
+                    Print
+                </a>
+            @endif
+
+            @if ($isDeleteMode)
+                <button type="submit"
+                    class="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700 inline-flex items-center">
+                    <x-heroicon-o-trash class="w-5 h-5 mr-2" /> Hapus
+                </button>
+            @elseif (! $isReadOnly)
                 <button type="submit"
                     class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 inline-flex items-center">
-                    <x-heroicon-o-check class="w-5 h-5 mr-2" /> Simpan
+                    <x-heroicon-o-check class="w-5 h-5 mr-2" /> {{ $submitLabel }}
                 </button>
-            @endunless
+            @endif
 
             <a href="{{ route('pengeluarankas.index') }}"
                 class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 inline-flex items-center">
@@ -262,9 +337,17 @@
 @unless ($isReadOnly)
     @push('scripts')
         <script>
-            function pengeluaranKasForm(isReadOnly) {
+            function pengeluaranKasForm(isReadOnly, initialVoucherNo) {
                 return {
                     isReadOnly,
+                    voucherNo: initialVoucherNo || '',
+                    autoCode: !initialVoucherNo,
+
+                    init() {
+                        if (this.isReadOnly && this.voucherNo) {
+                            this.autoCode = false;
+                        }
+                    },
 
                     addRow() {
                         if (this.isReadOnly) return;

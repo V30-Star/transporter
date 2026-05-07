@@ -81,9 +81,12 @@ class PengeluaranKasController extends Controller
             $now = now();
             $details = $this->normalizeDetails($payload['details']);
             $totalAmount = $details->sum(fn (array $detail) => (float) $detail['fkasdtvalue']);
+            $voucherNoInput = trim((string) ($payload['fkasmtno'] ?? ''));
 
             $headerAccount = $this->resolveHeaderAccount($payload['faccountheader'] ?? null);
-            $voucherNo = $payload['fkasmtno'] ?: $this->generateVoucherNo(Carbon::parse($payload['fkasmtdate']));
+            $voucherNo = $voucherNoInput !== ''
+                ? $voucherNoInput
+                : $this->generateVoucherNo(Carbon::parse($payload['fkasmtdate']));
             $headerId = $this->nextIntegerId('trkasmt', 'fkasmtid');
             $savedHeaderId = $headerId;
 
@@ -141,7 +144,7 @@ class PengeluaranKasController extends Controller
         });
 
         return redirect()
-            ->route('pengeluarankas.view', ['fkasmtno' => $header->fkasmtno])
+            ->route('pengeluarankas.create')
             ->with('success', 'Data Pengeluaran Kas '.$header->fkasmtno.' berhasil disimpan.');
     }
 
@@ -152,6 +155,7 @@ class PengeluaranKasController extends Controller
         return view('pengeluarankas.view', $this->formViewData($header, $header->details, [
             'pageTitle' => 'View Pengeluaran Kas',
             'isReadOnly' => true,
+            'printRoute' => route('pengeluarankas.print', $header->fkasmtno),
         ]));
     }
 
@@ -167,6 +171,18 @@ class PengeluaranKasController extends Controller
         ]));
     }
 
+    public function delete($fkasmtno)
+    {
+        $header = $this->findHeader($fkasmtno);
+
+        return view('pengeluarankas.delete', $this->formViewData($header, $header->details, [
+            'pageTitle' => 'Hapus Pengeluaran Kas',
+            'formAction' => route('pengeluarankas.destroy', $header->fkasmtno),
+            'formMethod' => 'DELETE',
+            'isReadOnly' => true,
+        ]));
+    }
+
     public function update(Request $request, $fkasmtno)
     {
         $header = $this->findHeader($fkasmtno);
@@ -177,9 +193,10 @@ class PengeluaranKasController extends Controller
             $details = $this->normalizeDetails($payload['details']);
             $totalAmount = $details->sum(fn (array $detail) => (float) $detail['fkasdtvalue']);
             $headerAccount = $this->resolveHeaderAccount($payload['faccountheader'] ?? null);
+            $voucherNoInput = trim((string) ($payload['fkasmtno'] ?? ''));
 
             $header->update([
-                'fkasmtno' => $payload['fkasmtno'] ?: $header->fkasmtno,
+                'fkasmtno' => $voucherNoInput !== '' ? $voucherNoInput : $header->fkasmtno,
                 'fkasmtdate' => $payload['fkasmtdate'],
                 'fwhom' => $payload['fwhom'] ?? null,
                 'faccountheader' => $headerAccount?->faccount,
@@ -227,22 +244,67 @@ class PengeluaranKasController extends Controller
         });
 
         return redirect()
-            ->route('pengeluarankas.index')
+            ->route('pengeluarankas.edit', ['fkasmtno' => $header->fkasmtno])
             ->with('success', 'Data Pengeluaran Kas '.$header->fkasmtno.' berhasil diperbarui.');
     }
 
     public function destroy($fkasmtno)
     {
         $header = $this->findHeader($fkasmtno);
+        $deletedNo = $header->fkasmtno;
 
         DB::transaction(function () use ($header) {
             Trkasdt::where('fkasmtid', $header->fkasmtid)->delete();
             $header->delete();
         });
 
+        if (! request()->expectsJson()) {
+            return redirect()
+                ->route('pengeluarankas.index')
+                ->with('success', 'Data Pengeluaran Kas '.$deletedNo.' berhasil dihapus.');
+        }
+
         return response()->json([
             'success' => true,
-            'message' => 'Data Pengeluaran Kas '.$header->fkasmtno.' berhasil dihapus.',
+            'message' => 'Data Pengeluaran Kas '.$deletedNo.' berhasil dihapus.',
+        ]);
+    }
+
+    public function print(string $fkasmtno)
+    {
+        $header = Trkasmt::query()
+            ->leftJoin('account as acc', 'acc.faccount', '=', 'trkasmt.faccountheader')
+            ->where('trkasmt.fkasmtno', $fkasmtno)
+            ->first([
+                'trkasmt.*',
+                'acc.faccname as header_account_name',
+            ]);
+
+        if (! $header) {
+            return redirect()->back()->with('error', 'Data Pengeluaran Kas tidak ditemukan.');
+        }
+
+        $details = DB::table('trkasdt as dt')
+            ->leftJoin('account as acc', 'acc.faccount', '=', 'dt.faccount')
+            ->leftJoin('mssubaccount as sub', 'sub.fsubaccountcode', '=', 'dt.fsubaccount')
+            ->where('dt.fkasmtid', $header->fkasmtid)
+            ->orderBy('dt.fnou')
+            ->get([
+                'dt.*',
+                'acc.faccname as account_name',
+                'sub.fsubaccountname as subaccount_name',
+            ]);
+
+        $totalAmount = (float) $details->sum(fn ($detail) => (float) ($detail->fkasdtvalue ?? 0));
+        $fmt = fn ($date) => $date ? Carbon::parse($date)->translatedFormat('d F Y') : '-';
+
+        return view('pengeluarankas.print', [
+            'hdr' => $header,
+            'dt' => $details,
+            'fmt' => $fmt,
+            'totalAmount' => $totalAmount,
+            'company_name' => config('app.company_name', 'PT. DEMO VERSION'),
+            'company_city' => config('app.company_city', 'Tangerang'),
         ]);
     }
 
@@ -265,6 +327,10 @@ class PengeluaranKasController extends Controller
 
     private function validatePayload(Request $request, ?Trkasmt $header = null): array
     {
+        $request->merge([
+            'details' => $this->filterEmptyDetailRows($request->input('details', [])),
+        ]);
+
         $payload = $request->validate([
             'fkasmtno' => [
                 'nullable',
@@ -291,6 +357,25 @@ class PengeluaranKasController extends Controller
         ]);
 
         return $payload;
+    }
+
+    private function filterEmptyDetailRows(array $details): array
+    {
+        return collect($details)
+            ->filter(function ($detail) {
+                if (!is_array($detail)) {
+                    return false;
+                }
+
+                $account = trim((string) ($detail['faccount'] ?? ''));
+                $subaccount = trim((string) ($detail['fsubaccount'] ?? ''));
+                $note = trim((string) ($detail['fnote'] ?? ''));
+                $amount = trim((string) ($detail['fkasdtvalue'] ?? ''));
+
+                return $account !== '' || $subaccount !== '' || $note !== '' || $amount !== '';
+            })
+            ->values()
+            ->all();
     }
 
     private function normalizeDetails(array $details): Collection

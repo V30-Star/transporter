@@ -3,7 +3,7 @@
 @section('title', 'Pengeluaran Kas')
 
 @section('content')
-    <div x-data="pengeluaranKasIndex()" class="bg-white rounded shadow p-4">
+        <div class="bg-white rounded shadow p-4">
         <div class="flex justify-end items-center mb-4">
             <div></div>
             <a href="{{ route('pengeluarankas.create') }}"
@@ -17,7 +17,7 @@
                 <tr>
                     <th class="border px-2 py-2">Voucher No.</th>
                     <th class="border px-2 py-2">Date</th>
-                    <th class="border px-2 py-2">Check No.</th>
+                    <th class="border px-2 py-2">No.Giro/Cek</th>
                     <th class="border px-2 py-2">Account</th>
                     <th class="border px-2 py-2">Description</th>
                     <th class="border px-2 py-2 text-right">Payment Amount</th>
@@ -36,44 +36,25 @@
                         <td class="border px-2 py-2">{{ $record->description_summary }}</td>
                         <td class="border px-2 py-2 text-right">{{ number_format((float) $record->payment_amount, 2, ',', '.') }}</td>
                         <td class="border px-2 py-2 text-center whitespace-nowrap">
-                            <a href="{{ route('pengeluarankas.view', $record->fkasmtno) }}"
-                                class="inline-flex items-center bg-slate-500 text-white px-4 py-2 rounded hover:bg-slate-600">
-                                <x-heroicon-o-eye class="w-4 h-4 mr-1" /> View
-                            </a>
-                            @if ($canEdit)
+                            <div class="flex items-center justify-center gap-2 flex-wrap">
+                                <a href="{{ route('pengeluarankas.view', $record->fkasmtno) }}"
+                                    class="inline-flex items-center bg-slate-500 text-white px-4 py-2 rounded hover:bg-slate-600">
+                                    <x-heroicon-o-eye class="w-4 h-4 mr-1" /> View
+                                </a>
                                 <a href="{{ route('pengeluarankas.edit', $record->fkasmtno) }}"
                                     class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
                                     <x-heroicon-o-pencil-square class="w-4 h-4 mr-1" /> Edit
                                 </a>
-                            @endif
-                            @if ($canDelete)
-                                <button type="button"
-                                    @click="openDelete('{{ route('pengeluarankas.destroy', $record->fkasmtno) }}')"
+                                <a href="{{ route('pengeluarankas.delete', $record->fkasmtno) }}"
                                     class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
                                     <x-heroicon-o-trash class="w-4 h-4 mr-1" /> Hapus
-                                </button>
-                            @endif
+                                </a>
+                            </div>
                         </td>
                     </tr>
                 @endforeach
             </tbody>
         </table>
-
-        <div x-show="showDeleteModal" x-cloak class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div @click.away="closeDelete()" class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
-                <h3 class="text-lg font-semibold mb-4">Konfirmasi Hapus</h3>
-                <p class="mb-6">Apakah Anda yakin ingin menghapus data ini?</p>
-                <div class="flex justify-end gap-2">
-                    <button @click="closeDelete()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Batal</button>
-                    <button @click="confirmDelete()"
-                        class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
-                        :disabled="isDeleting">
-                        <span x-show="!isDeleting">Hapus</span>
-                        <span x-show="isDeleting">Menghapus...</span>
-                    </button>
-                </div>
-            </div>
-        </div>
     </div>
 @endsection
 
@@ -89,11 +70,24 @@
             vertical-align: middle;
         }
 
+        #pengeluaranKasTable th:last-child,
+        #pengeluaranKasTable td:last-child {
+            text-align: center;
+            white-space: nowrap;
+        }
+
         .dt-container .dt-search,
         .dt-container .dt-length {
             display: flex;
             align-items: center;
             gap: .5rem;
+        }
+
+        .dt-container .dt-search .dt-input,
+        .dataTables_wrapper .dt-search .dt-input {
+            width: 28rem !important;
+            min-width: 28rem !important;
+            max-width: 100%;
         }
     </style>
 @endpush
@@ -102,49 +96,6 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.datatables.net/2.1.6/js/dataTables.min.js"></script>
     <script>
-        function pengeluaranKasIndex() {
-            return {
-                showDeleteModal: false,
-                deleteUrl: '',
-                isDeleting: false,
-
-                openDelete(url) {
-                    this.deleteUrl = url;
-                    this.showDeleteModal = true;
-                },
-
-                closeDelete() {
-                    if (!this.isDeleting) {
-                        this.showDeleteModal = false;
-                        this.deleteUrl = '';
-                    }
-                },
-
-                async confirmDelete() {
-                    this.isDeleting = true;
-
-                    try {
-                        const response = await fetch(this.deleteUrl, {
-                            method: 'DELETE',
-                            headers: {
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                                'Accept': 'application/json',
-                            },
-                        });
-
-                        if (!response.ok) {
-                            throw new Error('Gagal menghapus data.');
-                        }
-
-                        window.location.reload();
-                    } catch (error) {
-                        alert(error.message);
-                        this.isDeleting = false;
-                    }
-                }
-            }
-        }
-
         $(function() {
             $('#pengeluaranKasTable').DataTable({
                 pageLength: 10,

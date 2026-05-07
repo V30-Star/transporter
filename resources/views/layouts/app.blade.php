@@ -257,6 +257,44 @@
             padding-left: 0.4rem !important;
             padding-right: 0.4rem !important;
         }
+
+        .dt-container .dt-length,
+        .dataTables_wrapper .dataTables_length {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .dt-container .dt-length label,
+        .dataTables_wrapper .dataTables_length label {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            white-space: nowrap;
+        }
+
+        .dt-container .dt-length select.dt-input,
+        .dataTables_wrapper .dataTables_length select {
+            min-width: 5rem !important;
+            width: auto !important;
+            padding: 0.35rem 2rem 0.35rem 0.65rem !important;
+            line-height: 1.25rem !important;
+            border: 1px solid #d1d5db !important;
+            border-radius: 0.375rem !important;
+            background-color: #fff !important;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%236b7280' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 8 4 4 4-4'/%3E%3C/svg%3E") !important;
+            background-repeat: no-repeat !important;
+            background-position: right 0.55rem center !important;
+            background-size: 0.9rem 0.9rem !important;
+            -webkit-appearance: none !important;
+            -moz-appearance: none !important;
+            appearance: none !important;
+        }
+
+        .dt-container .dt-length select.dt-input::-ms-expand,
+        .dataTables_wrapper .dataTables_length select::-ms-expand {
+            display: none;
+        }
     </style>
     <meta name="csrf-token" content="{{ csrf_token() }}">
 

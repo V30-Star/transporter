@@ -167,7 +167,6 @@ class SalesOrderController extends Controller
         $canDelete = in_array('deleteTr_poh', explode(',', session('user_restricted_permissions', '')));
         $showActionsColumn = $canEdit || $canDelete;
 
-        $status = $request->query('status');
         $year = $request->query('year');
         $month = $request->query('month');
 
@@ -191,13 +190,6 @@ class SalesOrderController extends Controller
                 });
             }
 
-            $statusFilter = $request->query('status', 'active');
-
-            if ($statusFilter === 'active') {
-                $query->where('fclose', '0');
-            } elseif ($statusFilter === 'nonactive') {
-                $query->where('fclose', '1');
-            }
             if ($year) {
                 $query->whereRaw('EXTRACT(YEAR FROM fdatetime) = ?', [$year]);
             }
@@ -211,7 +203,7 @@ class SalesOrderController extends Controller
             $orderColIdx = $request->input('order.0.column', 0);
             $orderDir = $request->input('order.0.dir', 'asc');
 
-            $sortableColumns = ['fsono', 'fsodate', 'fclose'];
+            $sortableColumns = ['fbranchcode', 'fsono', 'fsodate', 'frefno', 'fcustomername', 'famountso', 'fusercreate'];
 
             if (isset($sortableColumns[$orderColIdx])) {
                 $query->orderBy($sortableColumns[$orderColIdx], $orderDir);
@@ -269,7 +261,6 @@ class SalesOrderController extends Controller
             'canEdit',
             'canDelete',
             'showActionsColumn',
-            'status',
             'availableYears',
             'year',
             'month'

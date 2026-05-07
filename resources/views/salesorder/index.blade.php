@@ -38,17 +38,6 @@
             {{-- @endif --}}
         </div>
 
-        <div id="statusFilterTemplate" class="hidden">
-            <div class="flex items-center gap-2" id="statusFilterWrap">
-                <span class="text-sm text-gray-700">Status</span>
-                <select data-role="status-filter" class="border rounded px-2 py-1">
-                    <option value="all">All</option>
-                    <option value="active" selected>Active</option>
-                    <option value="nonactive">Non Active</option>
-                </select>
-            </div>
-        </div>
-
         <div id="yearFilterTemplate" class="hidden">
             <div class="flex items-center gap-2" id="yearFilterWrap">
                 <span class="text-sm text-gray-700">Tahun</span>
@@ -94,7 +83,6 @@
                     <th class="border px-2 py-1">Nama Customer</th>
                     <th class="border px-2 py-1">Nilai SO</th>
                     <th class="border px-2 py-1">User Create</th>
-                    <th class="border px-2 py-1">Status</th>
                     <th class="border px-2 py-1 col-aksi">Aksi</th>
                 </tr>
             </thead>
@@ -202,11 +190,50 @@
             display: flex;
             align-items: center;
             gap: .75rem;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
+            width: 100%;
         }
 
-        #statusFilterWrap {
-            margin-right: .25rem;
+        .dataTables_wrapper .dt-layout-row:first-child {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .dataTables_wrapper .dt-layout-row:first-child .dt-layout-cell.dt-layout-start {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+
+        .dataTables_wrapper .dt-layout-row:first-child .dt-layout-cell.dt-layout-end {
+            flex: 0 0 auto;
+        }
+
+        .dataTables_wrapper .dt-search .so-search-group {
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: .2rem !important;
+            flex-wrap: nowrap !important;
+            flex: 0 0 auto;
+            min-width: 0;
+            white-space: nowrap !important;
+        }
+
+        .dataTables_wrapper .dt-search .dt-search-label {
+            display: inline-block !important;
+            white-space: nowrap !important;
+            flex: 0 0 auto !important;
+            line-height: 1 !important;
+            margin: 0;
+        }
+
+        .dataTables_wrapper .dt-search .dt-input {
+            display: inline-block !important;
+            width: 28rem !important;
+            min-width: 28rem !important;
+            max-width: none !important;
+            vertical-align: middle !important;
         }
     </style>
 @endpush
@@ -339,20 +366,6 @@
                 {
                     data: 'fusercreate',
                     name: 'fusercreate'
-                },
-                {
-                    data: 'fclose',
-                    name: 'fclose',
-                    visible: false,
-                    searchable: true,
-                    render: function(data) {
-                        // Render status sebagai badge
-                        if (data == '0') {
-                            return '<span class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">Active</span>';
-                        } else {
-                            return '<span class="px-2 py-1 bg-red-100 text-red-800 rounded text-xs">Closed</span>';
-                        }
-                    }
                 }
             ];
 
@@ -428,7 +441,6 @@
                         const urlParams = new URLSearchParams(window.location.search);
                         d.year = urlParams.get('year') || '';
                         d.month = urlParams.get('month') || '';
-                        d.status = urlParams.get('status') || 'active';
                     }
                 },
                 columns: columns,
@@ -445,18 +457,18 @@
                 initComplete: function() {
                     const api = this.api();
                     const $toolbarSearch = $(api.table().container()).find('.dt-search');
+                    const $topRow = $(api.table().container()).find('.dt-layout-row').first();
+                    const $topStart = $topRow.find('.dt-layout-cell.dt-layout-start').first();
+                    const $topEnd = $topRow.find('.dt-layout-cell.dt-layout-end').first();
+                    const $searchLabel = $toolbarSearch.find('label').first();
+                    const $searchInput = $toolbarSearch.find('.dt-input').first();
 
-                    // Clone & Append Filters (Status, Year, Month)
-                    const $statusSelect = $('#statusFilterTemplate select').clone().attr('id',
-                        'statusFilterDT');
+                    // Clone & Append Filters (Year, Month)
                     const $yearSelect = $('#yearFilterTemplate select').clone().attr('id',
                         'yearFilterDT');
                     const $monthSelect = $('#monthFilterTemplate select').clone().attr('id',
                         'monthFilterDT');
 
-                    $toolbarSearch.append($(
-                            '<div class="flex items-center gap-2"><span>Status</span></div>')
-                        .append($statusSelect));
                     $toolbarSearch.append($(
                         '<div class="flex items-center gap-2"><span>Tahun</span></div>').append(
                         $yearSelect));
@@ -464,9 +476,62 @@
                         '<div class="flex items-center gap-2"><span>Bulan</span></div>').append(
                         $monthSelect));
 
+                    $topRow.css({
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '1rem'
+                    });
+
+                    $topStart.css({
+                        flex: '1 1 auto',
+                        minWidth: '0'
+                    });
+
+                    $topEnd.css({
+                        flex: '0 0 auto'
+                    });
+
+                    $toolbarSearch.css({
+                        width: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '.75rem',
+                        flexWrap: 'nowrap'
+                    });
+
+                    if ($toolbarSearch.find('.so-search-group').length === 0 && $searchLabel.length && $searchInput.length) {
+                        const rawLabelText = ($searchLabel.text() || 'Search:').trim();
+                        const $searchGroup = $('<div class="so-search-group"></div>');
+                        const $labelText = $('<span class="dt-search-label"></span>').text(rawLabelText);
+
+                        $searchLabel.remove();
+                        $searchInput.detach();
+
+                        $searchGroup.append($labelText).append($searchInput);
+                        $toolbarSearch.prepend($searchGroup);
+                    }
+
+                    const $searchGroup = $toolbarSearch.find('.so-search-group').first();
+
+                    $searchGroup.css({
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '.2rem',
+                        flexWrap: 'nowrap',
+                        whiteSpace: 'nowrap'
+                    });
+
+                    $searchInput.css({
+                        display: 'inline-block',
+                        width: '28rem',
+                        minWidth: '28rem',
+                        maxWidth: 'none',
+                        verticalAlign: 'middle'
+                    });
+
                     // Set nilai awal dari URL agar tampilan Select Box sinkron
                     const urlParams = new URLSearchParams(window.location.search);
-                    $statusSelect.val(urlParams.get('status') || 'active');
                     $yearSelect.val(urlParams.get('year') || '');
                     $monthSelect.val(urlParams.get('month') || '');
 
@@ -475,12 +540,9 @@
                         const url = new URL(window.location.href);
 
                         // Update URL Params agar saat di-refresh posisi filter tidak hilang
-                        const s = $statusSelect.val();
                         const y = $yearSelect.val();
                         const m = $monthSelect.val();
 
-                        if (s) url.searchParams.set('status', s);
-                        else url.searchParams.delete('status');
                         if (y) url.searchParams.set('year', y);
                         else url.searchParams.delete('year');
                         if (m) url.searchParams.set('month', m);
@@ -493,7 +555,6 @@
                     };
 
                     // Event listeners
-                    $statusSelect.on('change', refreshTable);
                     $yearSelect.on('change', refreshTable);
                     $monthSelect.on('change', refreshTable);
                 }
