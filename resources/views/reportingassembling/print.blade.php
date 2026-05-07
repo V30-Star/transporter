@@ -483,7 +483,7 @@
                                         <div>{{ $detail->product_name ?? $detail->fprdcode }}</div>
                                         <div class="text-right">{{ number_format($detail->fqty ?? 0, 2, ',', '.') }}
                                         </div>
-                                        <div class="text-right">{{ $detail->fqtyremain ?? '-' }}</div>
+                                        <div class="text-right">{{ isset($detail->fqtyremain) ? format_number($detail->fqtyremain) : '-' }}</div>
                                         <div class="text-right">
                                             {{ number_format((float) ($detail->fhpp ?? 0), 2, ',', '.') }}
                                         </div>
@@ -505,7 +505,7 @@
                                         <div>{{ $detail->product_name ?? $detail->fprdcode }}</div>
                                         <div class="text-right">{{ number_format($detail->fqty ?? 0, 2, ',', '.') }}
                                         </div>
-                                        <div class="text-right">{{ $detail->fqtyremain ?? '-' }}</div>
+                                        <div class="text-right">{{ isset($detail->fqtyremain) ? format_number($detail->fqtyremain) : '-' }}</div>
                                         <div class="text-right">
                                             {{ number_format((float) ($detail->fhpp ?? 0), 2, ',', '.') }}
                                         </div>

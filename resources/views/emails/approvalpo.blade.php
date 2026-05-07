@@ -183,9 +183,9 @@
                             @endif
                         </td>
                         <td>{{ number_format((float) ($item->fqty ?? 0), 2, ',', '.') }}</td>
-                        <td>{{ $item->fprice ?? '-' }}</td>
-                        <td>{{ $item->fdisc ?? '-' }}</td>
-                        <td>{{ $item->famount ?? '-' }}</td>
+                        <td>{{ isset($item->fprice) ? format_number($item->fprice) : '-' }}</td>
+                        <td>{{ isset($item->fdisc) ? format_number($item->fdisc) : '-' }}</td>
+                        <td>{{ isset($item->famount) ? format_number($item->famount) : '-' }}</td>
                     </tr>
                 @empty
                     <tr>
