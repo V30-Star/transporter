@@ -36,22 +36,41 @@ class FakturpembelianController extends Controller
             ->pluck('year');
 
         if ($request->ajax()) {
-            $query = PenerimaanPembelianHeader::where('fstockmtcode', 'BUY');
+            $query = PenerimaanPembelianHeader::query()
+                ->where('trstockmt.fstockmtcode', 'BUY')
+                ->leftJoin('mssupplier', 'trstockmt.fsupplier', '=', 'mssupplier.fsuppliercode')
+                ->leftJoin('mswh', 'trstockmt.ffrom', '=', 'mswh.fwhcode');
             $totalRecords = PenerimaanPembelianHeader::where('fstockmtcode', 'BUY')->count();
             if ($search = $request->input('search.value')) {
-                $query->where('fstockmtno', 'like', "%{$search}%");
+                $likeOp = DB::getDriverName() === 'pgsql' ? 'ILIKE' : 'LIKE';
+                $query->where(function ($q) use ($search, $likeOp) {
+                    $q->where('trstockmt.fstockmtno', $likeOp, "%{$search}%")
+                        ->orWhere('trstockmt.frefno', $likeOp, "%{$search}%")
+                        ->orWhere('trstockmt.frefpo', $likeOp, "%{$search}%")
+                        ->orWhere('mssupplier.fsuppliername', $likeOp, "%{$search}%")
+                        ->orWhere('mswh.fwhname', $likeOp, "%{$search}%")
+                        ->orWhere('mswh.fwhcode', $likeOp, "%{$search}%");
+                });
             }
             if ($year) {
-                $query->whereRaw('EXTRACT(YEAR FROM fdatetime) = ?', [$year]);
+                $query->whereRaw('EXTRACT(YEAR FROM trstockmt.fdatetime) = ?', [$year]);
             }
             if ($month) {
-                $query->whereRaw('EXTRACT(MONTH FROM fdatetime) = ?', [$month]);
+                $query->whereRaw('EXTRACT(MONTH FROM trstockmt.fdatetime) = ?', [$month]);
             }
             $filteredRecords = (clone $query)->count();
             $orderColIdx = $request->input('order.0.column', 0);
             $orderDir = $request->input('order.0.dir', 'desc');
 
-            $sortableColumns = ['fstockmtno', 'fstockmtdate', 'ftypebuy'];
+            $sortableColumns = [
+                'trstockmt.fstockmtno',
+                'trstockmt.fstockmtdate',
+                'trstockmt.frefno',
+                'mswh.fwhname',
+                'mssupplier.fsuppliername',
+                'trstockmt.frefpo',
+                'trstockmt.famountmt',
+            ];
 
             if (isset($sortableColumns[$orderColIdx])) {
                 $query->orderBy($sortableColumns[$orderColIdx], $orderDir);
@@ -62,14 +81,32 @@ class FakturpembelianController extends Controller
             $length = $request->input('length', 10);
             $records = $query->skip($start)
                 ->take($length)
-                ->get(['fstockmtid', 'fstockmtno', 'fstockmtdate', 'ftypebuy']);
+                ->get([
+                    'trstockmt.fstockmtid',
+                    'trstockmt.fstockmtno',
+                    'trstockmt.fstockmtdate',
+                    'trstockmt.frefno',
+                    'trstockmt.frefpo',
+                    'trstockmt.famountmt',
+                    'trstockmt.ffrom',
+                    'mswh.fwhname',
+                    'mssupplier.fsuppliername',
+                ]);
 
             $data = $records->map(function ($row) {
+                $warehouse = trim((string) ($row->fwhname ?? ''));
+                $warehouseCode = trim((string) ($row->ffrom ?? ''));
+                $reference = trim((string) ($row->frefpo ?? '')) ?: trim((string) ($row->frefno ?? ''));
+
                 return [
                     'fstockmtid' => $row->fstockmtid,
                     'fstockmtno' => $row->fstockmtno,
                     'fstockmtdate' => Carbon::parse($row->fstockmtdate)->format('d/m/Y'),
-                    'ftypebuy' => $row->ftypebuy,
+                    'ffakturno' => trim((string) ($row->frefno ?? '')),
+                    'fgudang' => $warehouse !== '' ? trim($warehouseCode.' - '.$warehouse) : $warehouseCode,
+                    'fsuppliername' => trim((string) ($row->fsuppliername ?? '')),
+                    'freferensi' => $reference,
+                    'famountmt' => (float) ($row->famountmt ?? 0),
                 ];
             });
 

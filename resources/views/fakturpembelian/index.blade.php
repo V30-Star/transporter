@@ -75,9 +75,13 @@
         <table id="fakturpembelianTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
-                    <th class="border px-2 py-1">No. Faktur</th>
+                    <th class="border px-2 py-1">No.Transaksi</th>
                     <th class="border px-2 py-1">Tanggal</th>
-                    <th class="border px-2 py-1">Tipe Beli</th>
+                    <th class="border px-2 py-1">Faktur#</th>
+                    <th class="border px-2 py-1">Gudang</th>
+                    <th class="border px-2 py-1">Nama Supplier</th>
+                    <th class="border px-2 py-1">Refrensi#</th>
+                    <th class="border px-2 py-1">Total Harga</th>
 
                     {{-- @if ($showActionsColumn) --}}
                     <th class="border px-2 py-1 col-aksi">Aksi</th>
@@ -294,7 +298,7 @@
             // const canDelete = {{ $canDelete ? 'true' : 'false' }};
             // const canPrint = {{ $canPrint ? 'true' : 'false' }};
 
-            // 1. Definisi Kolom - HARUS SELALU ADA 4 KOLOM (sesuai dengan <th> di HTML)
+            // 1. Definisi Kolom
             const columns = [{
                     data: 'fstockmtno',
                     name: 'fstockmtno'
@@ -304,8 +308,39 @@
                     name: 'fstockmtdate'
                 },
                 {
-                    data: 'ftypebuy',
-                    name: 'ftypebuy'
+                    data: 'ffakturno',
+                    name: 'ffakturno',
+                    defaultContent: '-'
+                },
+                {
+                    data: 'fgudang',
+                    name: 'fgudang',
+                    defaultContent: '-'
+                },
+                {
+                    data: 'fsuppliername',
+                    name: 'fsuppliername',
+                    defaultContent: '-'
+                },
+                {
+                    data: 'freferensi',
+                    name: 'freferensi',
+                    defaultContent: '-'
+                },
+                {
+                    data: 'famountmt',
+                    name: 'famountmt',
+                    className: 'text-right',
+                    render: function(data, type) {
+                        if (type === 'display' || type === 'filter') {
+                            return Number(data || 0).toLocaleString('id-ID', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            });
+                        }
+
+                        return data;
+                    }
                 },
                 {
                     data: 'fstockmtid',
