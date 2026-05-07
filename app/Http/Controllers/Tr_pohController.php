@@ -883,6 +883,10 @@ class Tr_pohController extends Controller
             return back()->withInput()->withErrors(['detail' => 'Minimal satu item valid (Kode, Satuan, Qty > 0).']);
         }
 
+        if ($validationMessage = $this->validateUniqueReferenceUsage($rowsPod)) {
+            return back()->withInput()->withErrors(['detail' => $validationMessage]);
+        }
+
         $prdAgg = $this->aggregatePrdUsageByPrd($rowsPod);
 
         // TRANSACTION
@@ -1520,6 +1524,12 @@ class Tr_pohController extends Controller
             ]);
         }
 
+        if ($validationMessage = $this->validateUniqueReferenceUsage($rowsPod, $header->fpono)) {
+            return back()->withInput()->withErrors([
+                'detail' => $validationMessage,
+            ]);
+        }
+
         $oldUsageByRef = DB::table('tr_pod')
             ->where('fpono', $header->fpono)
             ->whereNotNull('frefdtid')
@@ -1836,5 +1846,49 @@ class Tr_pohController extends Controller
         }
 
         return 'Order Pembelian ' . $header->fpono . ' tidak dapat diubah atau dihapus karena sudah digunakan pada Penerimaan Barang / Faktur Pembelian: ' . $usedBy->implode(', ') . '.';
+    }
+
+    private function validateUniqueReferenceUsage(array $rowsPod, ?string $exceptPono = null): ?string
+    {
+        $referenceDetailIds = collect($rowsPod)
+            ->pluck('frefdtid')
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn ($id) => $id > 0)
+            ->unique()
+            ->values()
+            ->all();
+
+        if (empty($referenceDetailIds)) {
+            return null;
+        }
+
+        $query = DB::table('tr_pod as d')
+            ->join('tr_poh as h', 'h.fpono', '=', 'd.fpono')
+            ->whereIn(DB::raw('CAST(d.frefdtid AS INTEGER)'), $referenceDetailIds);
+
+        if (! empty($exceptPono)) {
+            $query->where('h.fpono', '<>', $exceptPono);
+        }
+
+        $existing = $query
+            ->orderBy('h.fpono')
+            ->select(
+                'h.fpono as transaction_no',
+                DB::raw("COALESCE(NULLIF(TRIM(d.frefdtno), ''), CAST(d.frefdtid AS TEXT)) as ref_no")
+            )
+            ->first();
+
+        if (! $existing) {
+            return null;
+        }
+
+        $refNo = trim((string) ($existing->ref_no ?? ''));
+        $transactionNo = trim((string) ($existing->transaction_no ?? ''));
+
+        if ($refNo === '' || $transactionNo === '') {
+            return 'Nomor referensi ini sudah pernah dibuat di transaksi lain.';
+        }
+
+        return 'Nomor referensi '.$refNo.' sudah pernah dibuat di transaksi nomor '.$transactionNo.'.';
     }
 }

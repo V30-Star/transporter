@@ -741,6 +741,10 @@ class PenerimaanBarangController extends Controller
             return back()->withInput()->withErrors(['detail' => 'Minimal satu item valid diperlukan.']);
         }
 
+        if ($validationMessage = $this->validateUniqueReferenceUsage($rowsDt)) {
+            return back()->withInput()->withErrors(['detail' => $validationMessage]);
+        }
+
         $podAgg = $this->aggregatePodReceiptByPod($rowsDt);
 
         $grandTotal = $subtotal + $ppnAmount;
@@ -1163,6 +1167,10 @@ class PenerimaanBarangController extends Controller
             return back()->withInput()->withErrors(['detail' => 'Minimal satu item valid (Kode, Satuan, Qty > 0).']);
         }
 
+        if ($validationMessage = $this->validateUniqueReferenceUsage($rowsDt, $header->fstockmtno)) {
+            return back()->withInput()->withErrors(['detail' => $validationMessage]);
+        }
+
         $podAgg = $this->aggregatePodReceiptByPod($rowsDt);
         $oldReceiptLines = DB::table('trstockdt')->where('fstockmtno', $header->fstockmtno)->get(['frefdtid', 'fqtykecil']);
 
@@ -1304,6 +1312,51 @@ class PenerimaanBarangController extends Controller
         }
 
         return $kodeCabang ?: 'NA';
+    }
+
+    private function validateUniqueReferenceUsage(array $rowsDt, ?string $exceptStockMtNo = null): ?string
+    {
+        $referenceDetailIds = collect($rowsDt)
+            ->pluck('frefdtid')
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn ($id) => $id > 0)
+            ->unique()
+            ->values()
+            ->all();
+
+        if (empty($referenceDetailIds)) {
+            return null;
+        }
+
+        $query = DB::table('trstockdt as d')
+            ->join('trstockmt as h', 'h.fstockmtno', '=', 'd.fstockmtno')
+            ->where('h.fstockmtcode', 'TER')
+            ->whereIn('d.frefdtid', $referenceDetailIds);
+
+        if (! empty($exceptStockMtNo)) {
+            $query->where('h.fstockmtno', '<>', $exceptStockMtNo);
+        }
+
+        $existing = $query
+            ->orderBy('h.fstockmtno')
+            ->select(
+                'h.fstockmtno as transaction_no',
+                DB::raw("COALESCE(NULLIF(TRIM(d.frefdtno), ''), NULLIF(TRIM(d.frefso), '')) as ref_no")
+            )
+            ->first();
+
+        if (! $existing) {
+            return null;
+        }
+
+        $refNo = trim((string) ($existing->ref_no ?? ''));
+        $transactionNo = trim((string) ($existing->transaction_no ?? ''));
+
+        if ($refNo === '' || $transactionNo === '') {
+            return 'Nomor referensi ini sudah pernah dibuat di transaksi lain.';
+        }
+
+        return 'Nomor referensi '.$refNo.' sudah pernah dibuat di transaksi nomor '.$transactionNo.'.';
     }
 
     private function getUsageLockMessage(PenerimaanPembelianHeader $header): ?string

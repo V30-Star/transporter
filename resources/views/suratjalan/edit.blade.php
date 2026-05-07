@@ -343,7 +343,7 @@
                                             </td>
 
                                             <td class="p-2">
-                                                <template x-if="editRow.units.length > 1">
+                                                <template x-if="editRow.fsatuan && editRow.units.length > 1">
                                                     <select class="w-full border rounded px-2 py-1" x-ref="editUnit"
                                                         x-model="editRow.fsatuan"
                                                         @keydown.enter.prevent="$refs.editRefPr?.focus()">
@@ -352,7 +352,7 @@
                                                         </template>
                                                     </select>
                                                 </template>
-                                                <template x-if="editRow.units.length <= 1">
+                                                <template x-if="!editRow.fsatuan || editRow.units.length <= 1">
                                                     <input type="text"
                                                         class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
                                                         :value="editRow.fsatuan || '-'" disabled>
@@ -604,7 +604,7 @@
                                                             class="text-xs text-gray-500 italic"></div>
                                                     </td>
                                                     <td class="p-2 text-right">
-                                                        <template x-if="it.units && it.units.length > 1">
+                                                        <template x-if="it.fsatuan && it.units && it.units.length > 1">
                                                             <select class="border rounded px-1 py-0.5 text-xs w-20"
                                                                 x-model="it.fsatuan">
                                                                 <template x-for="u in it.units" :key="u">
@@ -613,7 +613,7 @@
                                                                 </template>
                                                             </select>
                                                         </template>
-                                                        <template x-if="!(it.units && it.units.length > 1)">
+                                                        <template x-if="!it.fsatuan || !(it.units && it.units.length > 1)">
                                                             <span x-text="it.fsatuan || '-'"></span>
                                                         </template>
                                                     </td>
@@ -703,7 +703,7 @@
                                                 </td>
 
                                                 <td class="p-2">
-                                                    <template x-if="draft.units.length > 1">
+                                                    <template x-if="draft.fsatuan && draft.units.length > 1">
                                                         <select id="draftUnitSelect"
                                                             class="w-full border rounded px-2 py-1 text-sm"
                                                             x-model="draft.fsatuan"
@@ -713,7 +713,7 @@
                                                             </template>
                                                         </select>
                                                     </template>
-                                                    <template x-if="draft.units.length <= 1">
+                                                    <template x-if="!draft.fsatuan || draft.units.length <= 1">
                                                         <input type="text"
                                                             class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
                                                             :value="draft.fsatuan || '-'" disabled>

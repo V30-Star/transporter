@@ -18,6 +18,180 @@ use Illuminate\Validation\ValidationException;
 
 class InvoiceController extends Controller
 {
+    private function getCustomerTaxCode(string $customerCode): ?string
+    {
+        $customerCode = trim($customerCode);
+        if ($customerCode === '') {
+            return null;
+        }
+
+        $taxCode = Customer::query()
+            ->where('fcustomercode', $customerCode)
+            ->value('fkodefp');
+
+        if ($taxCode === null) {
+            return null;
+        }
+
+        return mb_substr((string) $taxCode, 0, 50);
+    }
+
+    private function canApproveCreditLimit(): bool
+    {
+        return in_array('approvalpr', explode(',', session('user_restricted_permissions', '')));
+    }
+
+    private function getCustomerCreditChecks(string $customerCode, float $currentTransactionAmount = 0, ?int $exceptTranmtId = null): array
+    {
+        $customerCode = trim($customerCode);
+        $customer = Customer::query()
+            ->where('fcustomercode', $customerCode)
+            ->first(['fcustomercode', 'fcustomername', 'flimit', 'fmaxtempo']);
+
+        if (! $customer) {
+            return [
+                'customer' => null,
+                'limit_check' => [
+                    'enabled' => false,
+                    'exceeded' => false,
+                    'limit' => 0,
+                    'outstanding_total' => 0,
+                    'transaction_amount' => $currentTransactionAmount,
+                    'projected_total' => 0,
+                ],
+                'overdue_check' => [
+                    'enabled' => false,
+                    'has_overdue' => false,
+                    'max_tempo' => 0,
+                    'items' => [],
+                ],
+            ];
+        }
+
+        $outstandingQuery = DB::table('tranmt')
+            ->where('fcustno', $customerCode)
+            ->whereRaw('COALESCE(famountremain, 0) > 0');
+
+        if ($exceptTranmtId) {
+            $outstandingQuery->where('ftranmtid', '<>', $exceptTranmtId);
+        }
+
+        $outstandingTotal = (float) $outstandingQuery->sum('famountremain');
+        $transactionAmount = max(0, $currentTransactionAmount);
+        $projectedTotal = $outstandingTotal + $transactionAmount;
+        $limit = (float) ($customer->flimit ?? 0);
+        $maxTempo = (int) ($customer->fmaxtempo ?? 0);
+
+        $overdueItems = collect();
+        if ($maxTempo > 0) {
+            $overdueQuery = DB::table('tranmt')
+                ->where('fcustno', $customerCode)
+                ->whereRaw('COALESCE(famountremain, 0) > 0')
+                ->whereNotNull('fjatuhtempo')
+                ->whereRaw('CAST(NOW() AS DATE) - CAST(fjatuhtempo AS DATE) > ?', [$maxTempo]);
+
+            if ($exceptTranmtId) {
+                $overdueQuery->where('ftranmtid', '<>', $exceptTranmtId);
+            }
+
+            $overdueItems = $overdueQuery
+                ->orderBy('fjatuhtempo')
+                ->limit(10)
+                ->get([
+                    'ftranmtid',
+                    'fsono',
+                    'fjatuhtempo',
+                    'famountremain',
+                ]);
+        }
+
+        return [
+            'customer' => [
+                'code' => $customer->fcustomercode,
+                'name' => $customer->fcustomername,
+            ],
+            'limit_check' => [
+                'enabled' => $limit > 0,
+                'exceeded' => $limit > 0 && $projectedTotal > $limit,
+                'limit' => $limit,
+                'outstanding_total' => $outstandingTotal,
+                'transaction_amount' => $transactionAmount,
+                'projected_total' => $projectedTotal,
+            ],
+            'overdue_check' => [
+                'enabled' => $maxTempo > 0,
+                'has_overdue' => $overdueItems->isNotEmpty(),
+                'max_tempo' => $maxTempo,
+                'items' => $overdueItems->map(fn ($row) => [
+                    'ftranmtid' => (int) ($row->ftranmtid ?? 0),
+                    'fsono' => (string) ($row->fsono ?? ''),
+                    'fjatuhtempo' => ! empty($row->fjatuhtempo)
+                        ? Carbon::parse($row->fjatuhtempo)->format('Y-m-d')
+                        : null,
+                    'famountremain' => (float) ($row->famountremain ?? 0),
+                ])->values()->all(),
+            ],
+        ];
+    }
+
+    private function resolveInvoiceCreditApproval(Request $request, float $grandTotal, ?int $exceptTranmtId = null): array
+    {
+        $checks = $this->getCustomerCreditChecks(
+            (string) $request->input('fcustno', ''),
+            $grandTotal,
+            $exceptTranmtId
+        );
+
+        $needsApproval = (bool) ($checks['limit_check']['exceeded'] ?? false)
+            || (bool) ($checks['overdue_check']['has_overdue'] ?? false);
+
+        if (! $needsApproval) {
+            return [
+                'fuseracc' => '0',
+                'checks' => $checks,
+            ];
+        }
+
+        if (! $this->canApproveCreditLimit()) {
+            throw ValidationException::withMessages([
+                'fcustno' => 'Transaksi customer ini melebihi batas piutang atau memiliki nota jatuh tempo. User tidak punya wewenang ACC.',
+            ]);
+        }
+
+        $approvedBy = trim((string) $request->input('fuseracc', ''));
+        if ($approvedBy === '') {
+            throw ValidationException::withMessages([
+                'fcustno' => 'Transaksi customer ini membutuhkan ACC. Silakan pilih Yes pada konfirmasi untuk melanjutkan.',
+            ]);
+        }
+
+        return [
+            'fuseracc' => mb_substr($approvedBy, 0, 30),
+            'checks' => $checks,
+        ];
+    }
+
+    public function creditCheck(Request $request)
+    {
+        $validated = $request->validate([
+            'fcustno' => ['required', 'string', 'max:10'],
+            'famountso' => ['nullable', 'numeric', 'min:0'],
+            'ftranmtid' => ['nullable', 'integer'],
+        ]);
+
+        $checks = $this->getCustomerCreditChecks(
+            (string) $validated['fcustno'],
+            (float) ($validated['famountso'] ?? 0),
+            isset($validated['ftranmtid']) ? (int) $validated['ftranmtid'] : null
+        );
+
+        return response()->json([
+            'can_approve' => $this->canApproveCreditLimit(),
+            'current_user' => auth('sysuser')->user()->fname ?? auth()->user()->name ?? 'system',
+            'checks' => $checks,
+        ]);
+    }
+
     public function index(Request $request)
     {
         // Ambil izin (permissions)
@@ -114,7 +288,6 @@ class InvoiceController extends Controller
                     'fclose' => $row->fclose,
                     'fincludeppn' => $row->fincludeppn,
                     'fuseracc' => $row->fuseracc,
-                    'fneedacc' => $row->fneedacc,
                     'ftempohr' => $row->ftempohr,
                     'fprint' => $row->fprint,
                 ];
@@ -269,8 +442,25 @@ class InvoiceController extends Controller
     {
         $normalized = $this->normalizeReferenceRandomNumbers($value);
 
+        $sourceCode = strtoupper(trim((string) ($sourceCode ?? '')));
+
+        if (in_array($sourceCode, ['S', 'SO'], true)) {
+            return [
+                'frefnosoacak' => $normalized,
+                'frefnosrjacak' => null,
+            ];
+        }
+
+        if (in_array($sourceCode, ['R', 'SRJ'], true)) {
+            return [
+                'frefnosoacak' => null,
+                'frefnosrjacak' => $normalized,
+            ];
+        }
+
         return [
-            'frefnoacak' => $normalized,
+            'frefnosoacak' => null,
+            'frefnosrjacak' => null,
         ];
     }
 
@@ -363,7 +553,7 @@ class InvoiceController extends Controller
     public function create(Request $request)
     {
         $customers = Customer::orderBy('fcustomername', 'asc')
-            ->get(['fcustomerid', 'fcustomercode', 'fcustomername']);
+            ->get(['fcustomerid', 'fcustomercode', 'fcustomername', 'fkodefp']);
 
         $salesmans = Salesman::orderBy('fsalesmanname', 'asc')
             ->get(['fsalesmanid', 'fsalesmancode', 'fsalesmanname']);
@@ -465,6 +655,7 @@ class InvoiceController extends Controller
         $now = now();
         $fcurrency = $request->input('fcurrency', 'IDR');
         $frate = (float) $request->input('frate', 1);
+        $fkodefp = $this->getCustomerTaxCode((string) $request->input('fcustno', ''));
 
         // 3. PROSES DETAIL (ARRAY)
         $itemCodes = $request->input('fitemcode', []);
@@ -555,7 +746,6 @@ class InvoiceController extends Controller
                 'frefsoid' => ! empty($frefso_ids[$i]) ? (int) $frefso_ids[$i] : null,
                 'frefsrj' => ! empty($frefsrjid_ids[$i]) ? ($frefpr_codes[$i] ?? '') : '',
                 'frefsrjid' => ! empty($frefsrjid_ids[$i]) ? (int) $frefsrjid_ids[$i] : null,
-                'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
             ], $this->buildReferenceRandomNumberColumns($refCode, $frefnoacaks[$i] ?? null));
         }
 
@@ -576,6 +766,10 @@ class InvoiceController extends Controller
             }
         }
 
+        if ($validationMessage = $this->validateUniqueReferenceTransaction($soUsageByDetailId, $srjUsageByDetailId)) {
+            return back()->withInput()->with('error', $validationMessage);
+        }
+
         if ($validationMessage = $this->validateReferenceUsage($soUsageByDetailId, $srjUsageByDetailId)) {
             return back()->withInput()->with('error', $validationMessage);
         }
@@ -584,10 +778,11 @@ class InvoiceController extends Controller
         $ppnPersen = (float) $request->input('fppnpersen', 11);
         $ppnAmount = ($fincludeppn === '1') ? ($amountNet * ($ppnPersen / 100)) : 0;
         $grandTotal = $amountNet + $ppnAmount;
+        $creditApproval = $this->resolveInvoiceCreditApproval($request, $grandTotal);
 
         // 5. DATABASE TRANSACTION
         try {
-            DB::transaction(function () use ($fapplyppn, $request, $fsodate, $fincludeppn, $userid, $now, $detailRows, $totalGross, $totalDisc, $amountNet, $ppnAmount, $grandTotal, $fcurrency, $frate, $ppnPersen, $soUsageByDetailId, $srjUsageByDetailId) {
+            DB::transaction(function () use ($fapplyppn, $request, $fsodate, $fincludeppn, $userid, $now, $detailRows, $totalGross, $totalDisc, $amountNet, $ppnAmount, $grandTotal, $fcurrency, $frate, $ppnPersen, $soUsageByDetailId, $srjUsageByDetailId, $creditApproval, $fkodefp) {
 
                 // Penomoran Otomatis (Tetap sama)
                 $fsono = $request->input('fsono');
@@ -604,6 +799,7 @@ class InvoiceController extends Controller
                     'fsono' => $fsono,
                     'fsodate' => $fsodate,
                     'fcustno' => mb_substr($request->fcustno, 0, 10),
+                    'fkodefp' => $fkodefp,
                     'fsalesman' => mb_substr((string) $request->input('fsalesman', ''), 0, 30),
                     'fcurrency' => $fcurrency,
                     'frate' => $frate,
@@ -628,6 +824,7 @@ class InvoiceController extends Controller
                     'ftypesales' => $request->input('ftypesales', 0),
                     'ftrcode' => 'I',
                     'fprdout' => '0',
+                    'fuseracc' => $creditApproval['fuseracc'],
                 ], 'ftranmtid');
 
                 // --- UPDATE DETAIL ROWS DENGAN ID HEADER DAN NOMOR SONO ---
@@ -746,26 +943,26 @@ class InvoiceController extends Controller
             ->leftJoin('trstockmt as sj_h', 'sj_h.fstockmtno', '=', 'd.frefsrj')
             ->leftJoinSub(
                 DB::table('trandt as dt')
-                    ->selectRaw('dt.frefsoid, dt.fprdcode, dt.frefnoacak, SUM(COALESCE(dt.fqtykecil, 0)) as fqtykecilinv')
+                    ->selectRaw('dt.frefsoid, dt.fprdcode, dt.frefnosoacak, SUM(COALESCE(dt.fqtykecil, 0)) as fqtykecilinv')
                     ->whereNotNull('dt.frefsoid')
-                    ->groupBy('dt.frefsoid', 'dt.fprdcode', 'dt.frefnoacak'),
+                    ->groupBy('dt.frefsoid', 'dt.fprdcode', 'dt.frefnosoacak'),
                 'inv_so',
                 function ($join) {
                     $join->on('inv_so.frefsoid', '=', 'd.frefsoid')
                         ->on('inv_so.fprdcode', '=', 'd.fprdcode')
-                        ->whereRaw('COALESCE(inv_so.frefnoacak, \'\') = COALESCE(d.frefnoacak, \'\')');
+                        ->whereRaw('COALESCE(inv_so.frefnosoacak, \'\') = COALESCE(d.frefnosoacak, \'\')');
                 }
             )
             ->leftJoinSub(
                 DB::table('trandt as dt')
-                    ->selectRaw('dt.frefsrjid, dt.fprdcode, dt.frefnoacak, SUM(COALESCE(dt.fqtykecil, 0)) as fqtykecilinv')
+                    ->selectRaw('dt.frefsrjid, dt.fprdcode, dt.frefnosrjacak, SUM(COALESCE(dt.fqtykecil, 0)) as fqtykecilinv')
                     ->whereNotNull('dt.frefsrjid')
-                    ->groupBy('dt.frefsrjid', 'dt.fprdcode', 'dt.frefnoacak'),
+                    ->groupBy('dt.frefsrjid', 'dt.fprdcode', 'dt.frefnosrjacak'),
                 'inv_srj',
                 function ($join) {
                     $join->on('inv_srj.frefsrjid', '=', 'd.frefsrjid')
                         ->on('inv_srj.fprdcode', '=', 'd.fprdcode')
-                        ->whereRaw('COALESCE(inv_srj.frefnoacak, \'\') = COALESCE(d.frefnoacak, \'\')');
+                        ->whereRaw('COALESCE(inv_srj.frefnosrjacak, \'\') = COALESCE(d.frefnosrjacak, \'\')');
                 }
             )
             ->leftJoin('msprd as p', 'p.fprdcode', '=', 'd.fprdcode')
@@ -858,10 +1055,67 @@ class InvoiceController extends Controller
         return null;
     }
 
+    private function validateUniqueReferenceTransaction(array $soUsageByDetailId, array $srjUsageByDetailId, ?string $exceptFsono = null): ?string
+    {
+        $soIds = array_values(array_filter(array_map('intval', array_keys($soUsageByDetailId))));
+        if (! empty($soIds)) {
+            $query = DB::table('trandt as d')
+                ->join('tranmt as h', 'h.fsono', '=', 'd.fsono')
+                ->leftJoin('trsodt as so_d', 'so_d.ftrsodtid', '=', 'd.frefsoid')
+                ->leftJoin('trsomt as so_h', 'so_h.fsono', '=', 'so_d.fsono')
+                ->where('h.fsono', 'like', 'INV.%')
+                ->whereIn('d.frefsoid', $soIds);
+
+            if (! empty($exceptFsono)) {
+                $query->where('h.fsono', '<>', $exceptFsono);
+            }
+
+            $existing = $query
+                ->orderBy('h.fsono')
+                ->select(
+                    'h.fsono as transaction_no',
+                    DB::raw("COALESCE(NULLIF(TRIM(so_h.fsono), ''), NULLIF(TRIM(d.frefso), '')) as ref_no")
+                )
+                ->first();
+
+            if ($existing) {
+                return 'Nomor referensi '.trim((string) ($existing->ref_no ?? '')).' sudah pernah dibuat di transaksi nomor '.trim((string) ($existing->transaction_no ?? '')).'.';
+            }
+        }
+
+        $srjIds = array_values(array_filter(array_map('intval', array_keys($srjUsageByDetailId))));
+        if (! empty($srjIds)) {
+            $query = DB::table('trandt as d')
+                ->join('tranmt as h', 'h.fsono', '=', 'd.fsono')
+                ->leftJoin('trstockdt as sj_d', 'sj_d.fstockdtid', '=', 'd.frefsrjid')
+                ->leftJoin('trstockmt as sj_h', 'sj_h.fstockmtno', '=', 'sj_d.fstockmtno')
+                ->where('h.fsono', 'like', 'INV.%')
+                ->whereIn('d.frefsrjid', $srjIds);
+
+            if (! empty($exceptFsono)) {
+                $query->where('h.fsono', '<>', $exceptFsono);
+            }
+
+            $existing = $query
+                ->orderBy('h.fsono')
+                ->select(
+                    'h.fsono as transaction_no',
+                    DB::raw("COALESCE(NULLIF(TRIM(sj_h.fstockmtno), ''), NULLIF(TRIM(d.frefsrj), '')) as ref_no")
+                )
+                ->first();
+
+            if ($existing) {
+                return 'Nomor referensi '.trim((string) ($existing->ref_no ?? '')).' sudah pernah dibuat di transaksi nomor '.trim((string) ($existing->transaction_no ?? '')).'.';
+            }
+        }
+
+        return null;
+    }
+
     public function edit(Request $request, $ftranmtid)
     {
         $customers = Customer::orderBy('fcustomername', 'asc')
-            ->get(['fcustomerid', 'fcustomercode', 'fcustomername']);
+            ->get(['fcustomerid', 'fcustomercode', 'fcustomername', 'fkodefp']);
 
         $salesmans = Salesman::orderBy('fsalesmanname', 'asc')
             ->get(['fsalesmanid', 'fsalesmancode', 'fsalesmanname']);
@@ -961,8 +1215,8 @@ class InvoiceController extends Controller
                 'frefsoid' => (string) ($d->frefsoid ?? ''),
                 'frefsrj' => trim($d->frefsrj ?? ''),
                 'frefsrjid' => (string) ($d->frefsrjid ?? ''),
-                'fnoacak' => (string) ($d->fnoacak ?? ''),
-                'frefnoacak' => (string) ($d->frefnoacak ?? ''),
+                'fnoacak' => '',
+                'frefnoacak' => (string) ($d->frefnosoacak ?? $d->frefnosrjacak ?? ''),
                 'frefno_display' => $refNoDisplay,
                 'fqty' => (float) ($d->fqty ?? 0),
                 'fterima' => (float) ($d->fterima ?? 0),
@@ -1097,8 +1351,8 @@ class InvoiceController extends Controller
                 'ftotal' => (float) ($d->famount ?? 0),
                 'fdesc' => (string) ($d->fdesc ?? ''),
                 'frefcode' => (string) ($d->frefcode ?? ''),
-                'fnoacak' => (string) ($d->fnoacak ?? ''),
-                'frefnoacak' => (string) ($d->frefnoacak ?? ''),
+                'fnoacak' => '',
+                'frefnoacak' => (string) ($d->frefnosoacak ?? $d->frefnosrjacak ?? ''),
                 'frefno_display' => $refNoDisplay,
                 'fketdt' => (string) ($d->fketdt ?? ''),
                 'fqtyterinvoice' => (float) ($summary['fqtyterinvoice'] ?? 0),
@@ -1186,6 +1440,7 @@ class InvoiceController extends Controller
         $userid = mb_substr(auth('sysuser')->user()->fname ?? 'admin', 0, 10);
         $now = now();
         $frate = (float) $request->input('frate', $header->frate ?? 1);
+        $fkodefp = $this->getCustomerTaxCode((string) $request->input('fcustno', ''));
 
         $itemCodes = $request->input('fitemcode', []);
         $typeSales = (int) $request->input('ftypesales');
@@ -1289,7 +1544,6 @@ class InvoiceController extends Controller
                 'frefsoid' => ! empty($frefso_ids[$i]) ? (int) $frefso_ids[$i] : null,
                 'frefsrj' => ! empty($frefsrjid_ids[$i]) ? $refPr : '',
                 'frefsrjid' => ! empty($frefsrjid_ids[$i]) ? (int) $frefsrjid_ids[$i] : null,
-                'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
             ], $this->buildReferenceRandomNumberColumns($refCode, $frefnoacaks[$i] ?? null));
 
             $detailRows[] = $rowData;
@@ -1341,6 +1595,14 @@ class InvoiceController extends Controller
             }
         }
 
+        if ($validationMessage = $this->validateUniqueReferenceTransaction(
+            $soUsageByDetailId,
+            $srjUsageByDetailId,
+            $header->fsono
+        )) {
+            return back()->withInput()->with('error', $validationMessage);
+        }
+
         if ($validationMessage = $this->validateReferenceUsage(
             $soUsageByDetailId,
             $srjUsageByDetailId,
@@ -1355,6 +1617,7 @@ class InvoiceController extends Controller
         $ppnPersen = (float) $request->input('fppnpersen', 11);
         $ppnAmount = ($fincludeppn === '1') ? ($amountNet * ($ppnPersen / 100)) : 0;
         $grandTotal = $amountNet + $ppnAmount;
+        $creditApproval = $this->resolveInvoiceCreditApproval($request, $grandTotal, (int) $ftranmtid);
 
         // 6. TRANSACTION
         try {
@@ -1378,13 +1641,16 @@ class InvoiceController extends Controller
                 $ppnAmount,
                 $grandTotal,
                 $frate,
-                $ppnPersen
+                $ppnPersen,
+                $creditApproval,
+                $fkodefp
             ) {
                 // Update Header
                 DB::table('tranmt')->where('ftranmtid', $ftranmtid)->update([
                     'ftaxno' => mb_substr($request->ftaxno ?? '', 0, 50),
                     'fsodate' => $fsodate,
                     'fcustno' => mb_substr((string) $request->fcustno, 0, 10),
+                    'fkodefp' => $fkodefp,
                     'fsalesman' => mb_substr((string) $request->input('fsalesman', ''), 0, 30),
                     'fdiscount' => $totalDisc,
                     'fdiscount_rp' => $totalDisc * $frate,
@@ -1403,6 +1669,7 @@ class InvoiceController extends Controller
                     'fapplyppn' => $fapplyppn,
                     'fppnpersen' => $ppnPersen,
                     'ftypesales' => (int) $request->input('ftypesales', 0),
+                    'fuseracc' => $creditApproval['fuseracc'],
                 ]);
 
                 // Hapus detail lama
@@ -1495,8 +1762,8 @@ class InvoiceController extends Controller
                 'ftotal' => (float) ($d->famount ?? 0),
                 'fdesc' => (string) ($d->fdesc ?? ''),
                 'frefcode' => (string) ($d->frefcode ?? ''),
-                'fnoacak' => (string) ($d->fnoacak ?? ''),
-                'frefnoacak' => (string) ($d->frefnoacak ?? ''),
+                'fnoacak' => '',
+                'frefnoacak' => (string) ($d->frefnosoacak ?? $d->frefnosrjacak ?? ''),
                 'frefno_display' => $refNoDisplay,
                 'fketdt' => (string) ($d->fketdt ?? ''),
                 'fqtyterinvoice' => (float) ($summary['fqtyterinvoice'] ?? 0),

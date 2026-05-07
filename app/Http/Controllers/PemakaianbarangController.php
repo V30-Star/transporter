@@ -367,6 +367,7 @@ class PemakaianbarangController extends Controller
 
     public function store(Request $request)
     {
+        $allowNegativeStockQty = (string) env('STOCKBOLEHMINUS', '0') === '1';
         // =========================
         // 1) VALIDASI INPUT
         // =========================
@@ -390,7 +391,15 @@ class PemakaianbarangController extends Controller
             'frefso.*' => ['nullable', 'string', 'max:20'],
 
             'fqty' => ['required', 'array'],
-            'fqty.*' => ['numeric', 'min:0'],
+            'fqty.*' => [
+                'required',
+                'numeric',
+                function ($attribute, $value, $fail) use ($allowNegativeStockQty) {
+                    if ($allowNegativeStockQty ? (float) $value == 0.0 : (float) $value <= 0) {
+                        $fail($allowNegativeStockQty ? 'Qty tidak boleh 0.' : 'Qty harus lebih besar dari 0.');
+                    }
+                },
+            ],
 
             'fdesc' => ['nullable', 'array'],
             'fdesc.*' => ['nullable', 'string', 'max:500'],
@@ -462,7 +471,7 @@ class PemakaianbarangController extends Controller
             $qty = (float) ($qtys[$i] ?? 0);
             $desc = (string) ($descs[$i] ?? '');
 
-            if ($code === '' || $qty <= 0) {
+            if ($code === '' || ($allowNegativeStockQty ? abs($qty) < 0.000001 : $qty <= 0)) {
                 continue;
             }
 
@@ -516,7 +525,9 @@ class PemakaianbarangController extends Controller
 
         if (empty($rowsDt)) {
             return back()->withInput()->withErrors([
-                'detail' => 'Minimal satu item valid (Kode, Satuan, Qty > 0).',
+                'detail' => $allowNegativeStockQty
+                    ? 'Minimal satu item valid (Kode, Satuan, Qty tidak boleh 0).'
+                    : 'Minimal satu item valid (Kode, Satuan, Qty > 0).',
             ]);
         }
 
@@ -960,6 +971,7 @@ class PemakaianbarangController extends Controller
 
     public function update(Request $request, $fstockmtid)
     {
+        $allowNegativeStockQty = (string) env('STOCKBOLEHMINUS', '0') === '1';
         // =========================
         // 1) VALIDASI INPUT
         // =========================
@@ -977,6 +989,16 @@ class PemakaianbarangController extends Controller
             'frefdtno.*' => ['nullable', 'string', 'max:20'],
             'frefso' => ['nullable', 'array'],
             'frefso.*' => ['nullable', 'string', 'max:20'],
+            'fqty' => ['required', 'array'],
+            'fqty.*' => [
+                'required',
+                'numeric',
+                function ($attribute, $value, $fail) use ($allowNegativeStockQty) {
+                    if ($allowNegativeStockQty ? (float) $value == 0.0 : (float) $value <= 0) {
+                        $fail($allowNegativeStockQty ? 'Qty tidak boleh 0.' : 'Qty harus lebih besar dari 0.');
+                    }
+                },
+            ],
             'fdesc' => ['nullable', 'array'],
             'fdesc.*' => ['nullable', 'string', 'max:500'],
         ], [
@@ -1050,7 +1072,7 @@ class PemakaianbarangController extends Controller
             $price = (float) ($prices[$i] ?? 0);
             $desc = (string) ($descs[$i] ?? '');
 
-            if ($code === '' || $qty <= 0) {
+            if ($code === '' || ($allowNegativeStockQty ? abs($qty) < 0.000001 : $qty <= 0)) {
                 continue;
             }
 
@@ -1107,7 +1129,9 @@ class PemakaianbarangController extends Controller
 
         if (empty($rowsDt)) {
             return back()->withInput()->withErrors([
-                'detail' => 'Minimal satu item valid (Kode, Satuan, Qty > 0).',
+                'detail' => $allowNegativeStockQty
+                    ? 'Minimal satu item valid (Kode, Satuan, Qty tidak boleh 0).'
+                    : 'Minimal satu item valid (Kode, Satuan, Qty > 0).',
             ]);
         }
 

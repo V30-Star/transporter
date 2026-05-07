@@ -378,6 +378,7 @@ class MutasiController extends Controller
     public function store(Request $request)
     {
         try {
+            $allowNegativeStockQty = (string) env('STOCKBOLEHMINUS', '0') === '1';
             // =========================
             // TAHAP 1: VALIDASI INPUT
             // =========================
@@ -395,7 +396,15 @@ class MutasiController extends Controller
                 'fsatuan.*' => ['nullable', 'string', 'max:20'],
                 'frefno' => ['nullable', 'string', 'max:20'],
                 'fqty' => ['required', 'array'],
-                'fqty.*' => ['required', 'numeric', 'min:0.01'],
+                'fqty.*' => [
+                    'required',
+                    'numeric',
+                    function ($attribute, $value, $fail) use ($allowNegativeStockQty) {
+                        if ($allowNegativeStockQty ? (float) $value == 0.0 : (float) $value <= 0) {
+                            $fail($allowNegativeStockQty ? 'Qty tidak boleh 0.' : 'Qty harus lebih besar dari 0.');
+                        }
+                    },
+                ],
                 'fprice.*' => ['numeric', 'min:0'],
                 'fdesc' => ['nullable', 'array'],
                 'fdesc.*' => ['nullable', 'string', 'max:500'],
@@ -450,7 +459,7 @@ class MutasiController extends Controller
                 $code = trim((string) ($codes[$i] ?? ''));
                 $qty = (float) ($qtys[$i] ?? 0);
 
-                if ($code === '' || $qty <= 0) {
+                if ($code === '' || ($allowNegativeStockQty ? abs($qty) < 0.000001 : $qty <= 0)) {
                     continue;
                 }
 
@@ -501,6 +510,10 @@ class MutasiController extends Controller
 
             if (empty($rowsDt)) {
                 return back()->withInput()->withErrors(['fitemcode' => 'Tidak ada baris item valid.']);
+            }
+
+            if ($validationMessage = $this->validateUniqueReferenceUsage($rowsDt)) {
+                return back()->withInput()->withErrors(['detail' => $validationMessage]);
             }
 
             // =========================
@@ -806,6 +819,7 @@ class MutasiController extends Controller
     public function update(Request $request, $fstockmtid)
     {
         try {
+            $allowNegativeStockQty = (string) env('STOCKBOLEHMINUS', '0') === '1';
             // =========================
             // 1) VALIDASI (Disamakan dengan store)
             // =========================
@@ -822,7 +836,15 @@ class MutasiController extends Controller
                 'fsatuan' => ['nullable', 'array'],
                 'fsatuan.*' => ['nullable', 'string', 'max:20'],
                 'fqty' => ['required', 'array'],
-                'fqty.*' => ['required', 'numeric', 'min:0.01'],
+                'fqty.*' => [
+                    'required',
+                    'numeric',
+                    function ($attribute, $value, $fail) use ($allowNegativeStockQty) {
+                        if ($allowNegativeStockQty ? (float) $value == 0.0 : (float) $value <= 0) {
+                            $fail($allowNegativeStockQty ? 'Qty tidak boleh 0.' : 'Qty harus lebih besar dari 0.');
+                        }
+                    },
+                ],
                 'fprice.*' => ['numeric', 'min:0'],
                 'fdesc' => ['nullable', 'array'],
                 'fdesc.*' => ['nullable', 'string', 'max:500'],
@@ -887,7 +909,7 @@ class MutasiController extends Controller
                 $price = (float) ($prices[$i] ?? 0);
                 $desc = (string) ($descs[$i] ?? '');
 
-                if ($code === '' || $qty <= 0) {
+                if ($code === '' || ($allowNegativeStockQty ? abs($qty) < 0.000001 : $qty <= 0)) {
                     continue;
                 }
 
@@ -944,6 +966,10 @@ class MutasiController extends Controller
 
             if (empty($rowsDt)) {
                 return back()->withInput()->withErrors(['fitemcode' => 'Tidak ada baris item valid.']);
+            }
+
+            if ($validationMessage = $this->validateUniqueReferenceUsage($rowsDt, $header->fstockmtno)) {
+                return back()->withInput()->withErrors(['detail' => $validationMessage]);
             }
 
             // =========================
@@ -1180,6 +1206,76 @@ class MutasiController extends Controller
         }
 
         return 'Mutasi Stock '.$header->fstockmtno.' tidak dapat diubah atau dihapus karena sudah digunakan pada transaksi lain: '.$usedBy->implode(', ').'.';
+    }
+
+    private function validateUniqueReferenceUsage(array $rowsDt, ?string $exceptStockMtNo = null): ?string
+    {
+        $soDetailIds = collect($rowsDt)
+            ->pluck('frefsoid')
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn ($id) => $id > 0)
+            ->unique()
+            ->values()
+            ->all();
+
+        if (! empty($soDetailIds)) {
+            $query = DB::table('trstockdt as d')
+                ->join('trstockmt as h', 'h.fstockmtno', '=', 'd.fstockmtno')
+                ->leftJoin('trsodt as so_d', 'so_d.ftrsodtid', '=', 'd.frefsoid')
+                ->leftJoin('trsomt as so_h', 'so_h.fsono', '=', 'so_d.fsono')
+                ->where('h.fstockmtcode', 'MUT')
+                ->whereIn('d.frefsoid', $soDetailIds);
+
+            if (! empty($exceptStockMtNo)) {
+                $query->where('h.fstockmtno', '<>', $exceptStockMtNo);
+            }
+
+            $existing = $query
+                ->orderBy('h.fstockmtno')
+                ->select(
+                    'h.fstockmtno as transaction_no',
+                    DB::raw("COALESCE(NULLIF(TRIM(so_h.fsono), ''), NULLIF(TRIM(d.frefso), '')) as ref_no")
+                )
+                ->first();
+
+            if ($existing) {
+                return 'Nomor referensi '.trim((string) ($existing->ref_no ?? '')).' sudah pernah dibuat di transaksi nomor '.trim((string) ($existing->transaction_no ?? '')).'.';
+            }
+        }
+
+        $referenceNos = collect($rowsDt)
+            ->pluck('frefdtno')
+            ->map(fn ($value) => trim((string) ($value ?? '')))
+            ->filter(fn ($value) => $value !== '' && $value !== '0')
+            ->unique()
+            ->values()
+            ->all();
+
+        if (empty($referenceNos)) {
+            return null;
+        }
+
+        foreach ($referenceNos as $referenceNo) {
+            $query = DB::table('trstockdt as d')
+                ->join('trstockmt as h', 'h.fstockmtno', '=', 'd.fstockmtno')
+                ->where('h.fstockmtcode', 'MUT')
+                ->whereRaw('TRIM(COALESCE(d.frefdtno, \'\')) = ?', [$referenceNo]);
+
+            if (! empty($exceptStockMtNo)) {
+                $query->where('h.fstockmtno', '<>', $exceptStockMtNo);
+            }
+
+            $existing = $query
+                ->orderBy('h.fstockmtno')
+                ->select('h.fstockmtno as transaction_no')
+                ->first();
+
+            if ($existing) {
+                return 'Nomor referensi '.$referenceNo.' sudah pernah dibuat di transaksi nomor '.trim((string) ($existing->transaction_no ?? '')).'.';
+            }
+        }
+
+        return null;
     }
 
     private function normalizeRandomNumber($value, array &$usedNumbers): string

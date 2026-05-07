@@ -157,10 +157,8 @@
         </div>
 
         @php
-            $hasPOData = $product->trPods()->exists();
-            $hasPRData = $product->trPrds()->exists();
-            $hasStokData = $product->trstockdts()->exists();
-            $hasRelatedData = $hasPOData || $hasPRData || $hasStokData;
+            $usedByLabels = $usageInfo['used_by'] ?? [];
+            $hasRelatedData = $usageInfo['is_used'] ?? false;
         @endphp
 
         @if ($hasRelatedData)
@@ -170,15 +168,9 @@
                     <div>
                         <h4 class="text-sm font-semibold text-red-700">Produk Tidak Dapat Dihapus</h4>
                         <ul class="mt-2 text-sm text-red-600 list-disc list-inside space-y-1">
-                            @if ($hasPOData)
-                                <li>Produk sudah digunakan di data PO (Purchase Order)</li>
-                            @endif
-                            @if ($hasPRData)
-                                <li>Produk sudah digunakan di data PR (Purchase Request)</li>
-                            @endif
-                            @if ($hasStokData)
-                                <li>Produk sudah digunakan di Transaksi Stok</li>
-                            @endif
+                            @foreach ($usedByLabels as $usedBy)
+                                <li>Produk sudah digunakan di {{ $usedBy }}</li>
+                            @endforeach
                         </ul>
                     </div>
                 </div>

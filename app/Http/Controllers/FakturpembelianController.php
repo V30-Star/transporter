@@ -938,6 +938,12 @@ class FakturpembelianController extends Controller
                 return back()->withErrors($errors)->withInput();
             }
 
+            if ($validationMessage = $this->validateUniqueHeaderReference($frefno, $frefpo)) {
+                return back()->withInput()->withErrors([
+                    'detail' => $validationMessage,
+                ]);
+            }
+
             for ($i = 0; $i < count($codes); $i++) {
                 $code = trim((string) ($codes[$i] ?? ''));
                 $qty = (float) ($qtys[$i] ?? 0);
@@ -1464,6 +1470,8 @@ class FakturpembelianController extends Controller
             $fincludeppn = $request->boolean('fincludeppn') ? 1 : 0;
             $fapplyppn = $request->boolean('fapplyppn') ? 1 : 0;
             $fppnpersen = (float) $request->input('ppn_rate', 0);
+            $frefno = $request->input('frefno');
+            $frefpo = $request->input('frefpo');
 
             $ppnAmount = (float) $request->input('famountpajak', 0);
             $now = now();
@@ -1545,6 +1553,12 @@ class FakturpembelianController extends Controller
 
             if ($errors->isNotEmpty()) {
                 return back()->withErrors($errors)->withInput();
+            }
+
+            if ($validationMessage = $this->validateUniqueHeaderReference($frefno, $frefpo, $header->fstockmtno)) {
+                return back()->withInput()->withErrors([
+                    'detail' => $validationMessage,
+                ]);
             }
 
             for ($i = 0; $i < $rowCount; $i++) {
@@ -1893,6 +1907,43 @@ class FakturpembelianController extends Controller
         }
 
         return 'Faktur Pembelian ' . $header->fstockmtno . ' tidak dapat diubah atau dihapus karena sudah digunakan pada Retur Pembelian: ' . $usedBy->implode(', ') . '.';
+    }
+
+    private function validateUniqueHeaderReference($frefno, $frefpo, ?string $exceptStockMtNo = null): ?string
+    {
+        $references = collect([$frefno, $frefpo])
+            ->map(fn ($value) => trim((string) ($value ?? '')))
+            ->filter(fn ($value) => $value !== '')
+            ->unique()
+            ->values();
+
+        if ($references->isEmpty()) {
+            return null;
+        }
+
+        foreach ($references as $referenceNo) {
+            $query = DB::table('trstockmt')
+                ->where('fstockmtcode', 'BUY')
+                ->where(function ($inner) use ($referenceNo) {
+                    $inner->whereRaw('TRIM(COALESCE(frefno, \'\')) = ?', [$referenceNo])
+                        ->orWhereRaw('TRIM(COALESCE(frefpo, \'\')) = ?', [$referenceNo]);
+                });
+
+            if (! empty($exceptStockMtNo)) {
+                $query->where('fstockmtno', '<>', $exceptStockMtNo);
+            }
+
+            $existing = $query
+                ->orderBy('fstockmtno')
+                ->select('fstockmtno')
+                ->first();
+
+            if ($existing) {
+                return 'Nomor referensi '.$referenceNo.' sudah pernah dibuat di transaksi nomor '.trim((string) ($existing->fstockmtno ?? '')).'.';
+            }
+        }
+
+        return null;
     }
 
     private function normalizeRandomNumber($value, array &$usedNumbers): string

@@ -104,14 +104,6 @@
                             fontSize: '14px'
                         });
 
-                        const $filter = $container.find('.dataTables_filter, .dt-search');
-                        const $length = $container.find('.dataTables_length, .dt-length');
-                        const controls = document.getElementById(@js($controlsId));
-                        if (controls) {
-                            controls.innerHTML = '';
-                            if ($filter.length) $filter.appendTo(controls);
-                            if ($length.length) $length.appendTo(controls);
-                        }
                     }
                 });
 

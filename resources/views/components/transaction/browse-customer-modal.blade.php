@@ -22,10 +22,6 @@
             </button>
         </div>
 
-        <div class="px-6 pt-4 pb-2 flex-shrink-0 border-b border-gray-100">
-            <div id="{{ $controlsId }}"></div>
-        </div>
-
         <div class="flex-1 overflow-y-auto px-6" style="min-height: 0;">
             <div class="bg-white">
                 <table id="{{ $tableId }}" class="min-w-full text-sm display nowrap stripe hover" style="width:100%">

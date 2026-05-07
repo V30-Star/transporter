@@ -9,9 +9,70 @@ use App\Models\Satuan;
 use App\Services\GoogleDriveService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class ProductController extends Controller
 {
+    protected function getEnabledProductImageNumbers(): array
+    {
+        return collect([1, 2, 3])
+            ->filter(fn ($number) => (string) env('UPLOADFOTO'.$number, '1') === '1')
+            ->values()
+            ->all();
+    }
+
+    protected function getEnabledProductImageFields(): array
+    {
+        return array_map(
+            fn ($number) => 'fimage'.$number,
+            $this->getEnabledProductImageNumbers()
+        );
+    }
+
+    protected function getProductUsageInfo(Product $product): array
+    {
+        $usageMap = [
+            'po' => [
+                'used' => $product->trPods()->exists(),
+                'label' => 'PO',
+            ],
+            'pr' => [
+                'used' => $product->trPrds()->exists(),
+                'label' => 'PR',
+            ],
+            'stok' => [
+                'used' => $product->trstockdts()->exists(),
+                'label' => 'Transaksi Stok',
+            ],
+        ];
+
+        $usedBy = collect($usageMap)
+            ->filter(fn ($item) => $item['used'])
+            ->pluck('label')
+            ->values()
+            ->all();
+
+        $allowedNewUnitField = null;
+        if (! empty($product->fsatuankecil)) {
+            if (empty($product->fsatuanbesar)) {
+                $allowedNewUnitField = 'fsatuanbesar';
+            } elseif (empty($product->fsatuanbesar2)) {
+                $allowedNewUnitField = 'fsatuanbesar2';
+            }
+        }
+
+        return [
+            'is_used' => ! empty($usedBy),
+            'used_by' => $usedBy,
+            'allowed_new_unit_field' => $allowedNewUnitField,
+            'allowed_new_qty_field' => match ($allowedNewUnitField) {
+                'fsatuanbesar' => 'fqtykecil',
+                'fsatuanbesar2' => 'fqtykecil2',
+                default => null,
+            },
+        ];
+    }
+
     public function index(Request $request)
     {
         if ($request->ajax()) {
@@ -177,14 +238,16 @@ class ProductController extends Controller
         $merks = Merek::where('fnonactive', 0)->get();
         $satuan = Satuan::where('fnonactive', 0)->get();
         $newProductCode = $this->generateProductCode($groups->first()->fgroupcode ?? 1, $merks->first()->fmerekid ?? 1);
+        $enabledImageNumbers = $this->getEnabledProductImageNumbers();
 
-        return view('product.create', compact('groups', 'merks', 'satuan', 'newProductCode'));
+        return view('product.create', compact('groups', 'merks', 'satuan', 'newProductCode', 'enabledImageNumbers'));
     }
 
     public function store(Request $request)
     {
         try {
-            $validated = $request->validate([
+            $enabledImageFields = $this->getEnabledProductImageFields();
+            $validationRules = [
                 'fprdcode' => 'nullable|string|unique:msprd,fprdcode',
                 'fprdname' => 'required|string',
                 'ftype' => 'string',
@@ -217,10 +280,13 @@ class ProductController extends Controller
                 'fhpp' => 'nullable',
                 'fhpp2' => 'nullable',
                 'fhpp3' => 'nullable',
-                'fimage1' => 'nullable|image|max:2048',
-                'fimage2' => 'nullable|image|max:2048',
-                'fimage3' => 'nullable|image|max:2048',
-            ], [
+            ];
+
+            foreach ($enabledImageFields as $imageField) {
+                $validationRules[$imageField] = 'nullable|image|max:2048';
+            }
+
+            $validated = $request->validate($validationRules, [
                 'fgroupcode.required' => 'Group Produk harus diisi.',
                 'fmerek.required' => 'Merek harus diisi.',
                 'fprdname.required' => 'Nama Produk harus di isi',
@@ -276,7 +342,7 @@ class ProductController extends Controller
             $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
 
             $googleDriveService = new \App\Services\GoogleDriveService;
-            foreach (['fimage1', 'fimage2', 'fimage3'] as $imageField) {
+            foreach ($enabledImageFields as $imageField) {
                 if ($request->hasFile($imageField) && $request->file($imageField)->isValid()) {
                     try {
                         $fileId = $googleDriveService->uploadImage($request, $imageField);
@@ -307,6 +373,8 @@ class ProductController extends Controller
         $groups = Groupproduct::where('fnonactive', 0)->get();
         $merks = Merek::where('fnonactive', 0)->get();
         $satuan = Satuan::where('fnonactive', 0)->get();
+        $usageInfo = $this->getProductUsageInfo($product);
+        $enabledImageNumbers = $this->getEnabledProductImageNumbers();
 
         return view('product.edit', [
             'product' => $product,
@@ -314,6 +382,8 @@ class ProductController extends Controller
             'merks' => $merks,
             'satuan' => $satuan,
             'action' => 'edit',
+            'usageInfo' => $usageInfo,
+            'enabledImageNumbers' => $enabledImageNumbers,
         ]);
     }
 
@@ -334,49 +404,56 @@ class ProductController extends Controller
 
     public function update(Request $request, $fprdid)
     {
-        $validated = $request->validate(
-            [
-                'fprdcode' => "required|string|unique:msprd,fprdcode,{$fprdid},fprdid",
-                'fprdname' => 'required|string',
-                'ftype' => 'string',
-                'fbarcode' => 'nullable',
-                'fgroupcode' => 'required',
-                'fmerek' => 'required',
-                'fsatuankecil' => 'required',
-                'fsatuanbesar' => ['nullable', 'string', 'different:fsatuankecil'],
-                'fsatuanbesar2' => [
-                    'nullable',
-                    'string',
-                    'different:fsatuankecil',
-                    'different:fsatuanbesar',
-                ],
-                'fsatuandefault' => 'in:1,2,3',
-                'fqtykecil' => [
-                    'nullable',
-                    'numeric',
-                    function ($attribute, $value, $fail) use ($request) {
-                        if ($request->filled('fsatuanbesar') && (float) $value <= 0) {
-                            $fail('Isi Satuan 2 tidak boleh kosong dan harus > 0.');
-                        }
-                    },
-                ],
-                'fqtykecil2' => [
-                    'nullable',
-                    'numeric',
-                    function ($attribute, $value, $fail) use ($request) {
-                        if ($request->filled('fsatuanbesar2') && (float) $value <= 0) {
-                            $fail('Isi Satuan 3 tidak boleh kosong dan harus > 0.');
-                        }
-                    },
-                ],
-                'fminstock' => 'numeric',
-                'fhpp' => 'nullable',
-                'fhpp2' => 'nullable',
-                'fhpp3' => 'nullable',
-                'fimage1' => 'nullable|image|max:2048',
-                'fimage2' => 'nullable|image|max:2048',
-                'fimage3' => 'nullable|image|max:2048',
+        $product = Product::findOrFail($fprdid);
+        $usageInfo = $this->getProductUsageInfo($product);
+        $enabledImageFields = $this->getEnabledProductImageFields();
+
+        $validationRules = [
+            'fprdcode' => "required|string|unique:msprd,fprdcode,{$fprdid},fprdid",
+            'fprdname' => 'required|string',
+            'ftype' => 'string',
+            'fbarcode' => 'nullable',
+            'fgroupcode' => 'required',
+            'fmerek' => 'required',
+            'fsatuankecil' => 'required',
+            'fsatuanbesar' => ['nullable', 'string', 'different:fsatuankecil'],
+            'fsatuanbesar2' => [
+                'nullable',
+                'string',
+                'different:fsatuankecil',
+                'different:fsatuanbesar',
             ],
+            'fsatuandefault' => 'in:1,2,3',
+            'fqtykecil' => [
+                'nullable',
+                'numeric',
+                function ($attribute, $value, $fail) use ($request) {
+                    if ($request->filled('fsatuanbesar') && (float) $value <= 0) {
+                        $fail('Isi Satuan 2 tidak boleh kosong dan harus > 0.');
+                    }
+                },
+            ],
+            'fqtykecil2' => [
+                'nullable',
+                'numeric',
+                function ($attribute, $value, $fail) use ($request) {
+                    if ($request->filled('fsatuanbesar2') && (float) $value <= 0) {
+                        $fail('Isi Satuan 3 tidak boleh kosong dan harus > 0.');
+                    }
+                },
+            ],
+            'fminstock' => 'numeric',
+            'fhpp' => 'nullable',
+            'fhpp2' => 'nullable',
+            'fhpp3' => 'nullable',
+        ];
+
+        foreach ($enabledImageFields as $imageField) {
+            $validationRules[$imageField] = 'nullable|image|max:2048';
+        }
+
+        $validated = $request->validate(
+            $validationRules,
             [
                 'fprdcode.unique' => 'Kode Produk sudah ada',
                 'fprdname.required' => 'Nama Produk harus di isi',
@@ -432,14 +509,78 @@ class ProductController extends Controller
             $validated[$field] = $sanitizeNumeric($request->input($field));
         }
 
+        if ($usageInfo['is_used']) {
+            $normalizeText = fn ($value) => strtoupper(trim((string) ($value ?? '')));
+            $normalizeNumber = fn ($value) => (float) ($value ?? 0);
+
+            $unitFields = ['fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2'];
+            $qtyFields = [
+                'fsatuanbesar' => 'fqtykecil',
+                'fsatuanbesar2' => 'fqtykecil2',
+            ];
+            $unitLabels = [
+                'fsatuanbesar' => 'Satuan 2',
+                'fsatuanbesar2' => 'Satuan 3',
+            ];
+
+            $addedUnitFields = [];
+            foreach ($unitFields as $field) {
+                $oldValue = $normalizeText($product->{$field});
+                $newValue = $normalizeText($validated[$field] ?? null);
+
+                if ($oldValue === '' && $newValue !== '') {
+                    $addedUnitFields[] = $field;
+                }
+            }
+
+            $errors = [];
+
+            if ($normalizeText($product->fprdcode) !== $normalizeText($validated['fprdcode'] ?? null)) {
+                $errors['fprdcode'] = 'Kode produk tidak bisa diubah karena produk sudah digunakan dalam transaksi.';
+            }
+
+            if ($normalizeText($product->fsatuankecil) !== $normalizeText($validated['fsatuankecil'] ?? null)) {
+                $errors['fsatuankecil'] = 'Satuan 1 tidak bisa diubah karena produk sudah digunakan dalam transaksi.';
+            }
+
+            if (count($addedUnitFields) > 1) {
+                $errors['fsatuanbesar'] = 'Produk yang sudah digunakan hanya boleh menambah 1 satuan baru.';
+            }
+
+            if (count($addedUnitFields) === 1 && $addedUnitFields[0] !== $usageInfo['allowed_new_unit_field']) {
+                $errors[$addedUnitFields[0]] = 'Satuan baru hanya boleh ditambahkan pada slot satuan yang masih kosong.';
+            }
+
+            foreach ($qtyFields as $unitField => $qtyField) {
+                $oldUnit = $normalizeText($product->{$unitField});
+                $newUnit = $normalizeText($validated[$unitField] ?? null);
+                $oldQty = $normalizeNumber($product->{$qtyField});
+                $newQty = $normalizeNumber($validated[$qtyField] ?? null);
+
+                if ($oldUnit !== '' && $oldUnit !== $newUnit) {
+                    $errors[$unitField] = ($unitLabels[$unitField] ?? 'Satuan').' tidak bisa diubah karena produk sudah digunakan dalam transaksi.';
+                }
+
+                if ($oldUnit !== '' && abs($oldQty - $newQty) > 0.000001) {
+                    $errors[$qtyField] = 'Qty konversi untuk '.strtoupper($oldUnit).' tidak bisa diubah karena produk sudah digunakan dalam transaksi.';
+                }
+
+                if ($oldUnit === '' && $newUnit === '' && abs($newQty) > 0.000001) {
+                    $errors[$qtyField] = 'Qty konversi hanya boleh diisi jika satuan baru benar-benar ditambahkan.';
+                }
+            }
+
+            if (! empty($errors)) {
+                throw ValidationException::withMessages($errors);
+            }
+        }
+
         $validated['fupdatedby'] = auth('sysuser')->user()->fname ?? null;
         $validated['fupdatedat'] = now();
         $validated['fnonactive'] = $request->has('fnonactive') ? '1' : '0';
 
-        $product = Product::findOrFail($fprdid);
-
         $googleDriveService = new GoogleDriveService;
-        foreach (['fimage1', 'fimage2', 'fimage3'] as $imageField) {
+        foreach ($enabledImageFields as $imageField) {
             if ($request->hasFile($imageField) && $request->file($imageField)->isValid()) {
                 try {
                     if (! empty($product->{$imageField})) {
@@ -545,9 +686,11 @@ class ProductController extends Controller
     public function delete($fprdid)
     {
         $product = Product::with('merek')->findOrFail($fprdid);
+        $usageInfo = $this->getProductUsageInfo($product);
 
         return view('product.delete', [
             'product' => $product,
+            'usageInfo' => $usageInfo,
         ]);
     }
 
@@ -555,17 +698,12 @@ class ProductController extends Controller
     {
         try {
             $product = Product::findOrFail($fprdid);
+            $usageInfo = $this->getProductUsageInfo($product);
 
-            if ($product->trPods()->exists()) {
-                return response()->json(['message' => 'Gagal hapus: Produk masih digunakan di data PO.'], 422);
-            }
-
-            if ($product->trPrds()->exists()) {
-                return response()->json(['message' => 'Gagal hapus: Produk masih digunakan di data PR.'], 422);
-            }
-
-            if ($product->trstockdts()->exists()) {
-                return response()->json(['message' => 'Gagal hapus: Produk masih digunakan di Transaksi Stok.'], 422);
+            if ($usageInfo['is_used']) {
+                return response()->json([
+                    'message' => 'Gagal hapus: Produk masih digunakan di '.implode(', ', $usageInfo['used_by']).'.',
+                ], 422);
             }
 
             $product->delete();

@@ -1230,7 +1230,7 @@
 
             recalc(row) {
                 this.$nextTick(() => {
-                    row.fqty = Math.max(0, Number(row.fqty) || 0);
+                    row.fqty = @json((string) env('STOCKBOLEHMINUS', '0') === '1') ? (Number(row.fqty) || 0) : Math.max(0, Number(row.fqty) || 0);
                     row.fterima = Math.max(0, Number(row.fterima) || 0);
                     row.fprice = Math.max(0, Number(row.fprice) || 0);
 
@@ -1279,7 +1279,7 @@
             },
 
             isComplete(row) {
-                return row.fitemcode && row.fitemname && row.fsatuan && Number(row.fqty) > 0;
+                return row.fitemcode && row.fitemname && row.fsatuan && (@json((string) env('STOCKBOLEHMINUS', '0') === '1') ? Number(row.fqty) !== 0 : Number(row.fqty) > 0);
             },
 
             onPrPicked(e) {
@@ -1311,7 +1311,7 @@
                         fitemname: src.fitemname ?? '',
                         fsatuan: src.fsatuan ?? '',
                         frefpr: src.frefpr ?? (header?.fpono ?? ''),
-                        fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ? Number(src.fqty) : 1,
+                        fqty: (src.fqty !== null && src.fqty !== undefined && (@json((string) env('STOCKBOLEHMINUS', '0') === '1') ? Number(src.fqty) !== 0 : Number(src.fqty) > 0)) ? Number(src.fqty) : 1,
                         fprice: Number(src.fprice ?? 0),
                         ftotal: Number(src.ftotal ?? 0),
                         fdesc: src.fdesc ?? '',
@@ -1349,7 +1349,7 @@
                     if (!r.fitemname) return this.$refs.draftCode?.focus();
                     if (!r.fsatuan) return (r.units.length > 1 ? this.$refs.draftUnit?.focus() : this.$refs.draftCode
                         ?.focus());
-                    if (!(Number(r.fqty) > 0)) return this.$refs.draftQty?.focus();
+                    if (!(@json((string) env('STOCKBOLEHMINUS', '0') === '1') ? Number(r.fqty) !== 0 : Number(r.fqty) > 0)) return this.$refs.draftQty?.focus();
                     return;
                 }
 
@@ -1558,7 +1558,7 @@
 
             recalc(row) {
                 this.$nextTick(() => {
-                    row.fqty = Math.max(0, Number(row.fqty) || 0);
+                    row.fqty = @json((string) env('STOCKBOLEHMINUS', '0') === '1') ? (Number(row.fqty) || 0) : Math.max(0, Number(row.fqty) || 0);
                     row.fterima = Math.max(0, Number(row.fterima) || 0);
                     row.fprice = Math.max(0, Number(row.fprice) || 0);
 
@@ -1607,7 +1607,7 @@
             },
 
             isComplete(row) {
-                return row.fitemcode && row.fitemname && row.fsatuan && Number(row.fqty) > 0;
+                return row.fitemcode && row.fitemname && row.fsatuan && (@json((string) env('STOCKBOLEHMINUS', '0') === '1') ? Number(row.fqty) !== 0 : Number(row.fqty) > 0);
             },
 
             onPrPicked(e) {
@@ -1639,7 +1639,7 @@
                         fitemname: src.fitemname ?? '',
                         fsatuan: src.fsatuan ?? '',
                         frefpr: src.frefpr ?? (header?.fpono ?? ''),
-                        fqty: (src.fqty !== null && src.fqty !== undefined && Number(src.fqty) > 0) ? Number(src.fqty) : 1,
+                        fqty: (src.fqty !== null && src.fqty !== undefined && (@json((string) env('STOCKBOLEHMINUS', '0') === '1') ? Number(src.fqty) !== 0 : Number(src.fqty) > 0)) ? Number(src.fqty) : 1,
                         fdesc: src.fdesc ?? '',
                         fketdt: src.fketdt ?? '',
                         units: Array.isArray(src.units) && src.units.length ? src.units : [src.fsatuan]
@@ -1675,7 +1675,7 @@
                     if (!r.fitemname) return this.$refs.draftCode?.focus();
                     if (!r.fsatuan) return (r.units.length > 1 ? this.$refs.draftUnit?.focus() : this.$refs.draftCode
                         ?.focus());
-                    if (!(Number(r.fqty) > 0)) return this.$refs.draftQty?.focus();
+                    if (!(@json((string) env('STOCKBOLEHMINUS', '0') === '1') ? Number(r.fqty) !== 0 : Number(r.fqty) > 0)) return this.$refs.draftQty?.focus();
                     return;
                 }
 
