@@ -109,25 +109,36 @@
 
         <div class="mt-6">
             <div class="flex items-center justify-between mb-3">
-                <h3 class="text-lg font-semibold">Detail Pengeluaran</h3>
-                @unless ($isReadOnly)
-                    <button type="button" @click="addRow()"
-                        class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                        <x-heroicon-o-plus class="w-4 h-4 mr-1" /> Tambah Detail
-                    </button>
-                @endunless
+                <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
             </div>
 
-            <div class="overflow-x-auto border rounded-lg">
-                <table class="min-w-full text-sm">
+            <div class="overflow-auto border rounded-lg">
+                <table class="min-w-full text-sm balanced-detail-table" data-skip-auto-detail-style="true">
+                    <colgroup>
+                        @if ($isReadOnly)
+                            <col style="width:4%;">
+                            <col style="width:24%;">
+                            <col style="width:24%;">
+                            <col style="width:30%;">
+                            <col style="width:18%;">
+                        @else
+                            <col style="width:4%;">
+                            <col style="width:22%;">
+                            <col style="width:22%;">
+                            <col style="width:26%;">
+                            <col style="width:18%;">
+                            <col style="width:8%;">
+                        @endif
+                    </colgroup>
                     <thead class="bg-gray-100">
                         <tr>
-                            <th class="border px-3 py-2 w-16">No</th>
-                            <th class="border px-3 py-2">Account</th>
-                            <th class="border px-3 py-2">Description</th>
-                            <th class="border px-3 py-2 text-right">Payment Amount</th>
+                            <th class="border px-3 py-2 whitespace-nowrap">No</th>
+                            <th class="border px-3 py-2 whitespace-nowrap">Account</th>
+                            <th class="border px-3 py-2 whitespace-nowrap">Sub Account</th>
+                            <th class="border px-3 py-2 whitespace-nowrap">Description</th>
+                            <th class="border px-3 py-2 text-right whitespace-nowrap">Payment Amount</th>
                             @unless ($isReadOnly)
-                                <th class="border px-3 py-2 w-20 text-center">Aksi</th>
+                                <th class="border px-3 py-2 text-center whitespace-nowrap">Aksi</th>
                             @endunless
                         </tr>
                     </thead>
@@ -156,6 +167,26 @@
                                     @enderror
                                 </td>
                                 <td class="border px-3 py-2 align-top">
+                                    <select name="details[{{ $index }}][fsubaccount]"
+                                        class="w-full border rounded px-3 py-2 {{ $isReadOnly ? 'bg-gray-100' : '' }}"
+                                        {{ $isReadOnly ? 'disabled' : '' }}>
+                                        <option value="">Pilih sub account</option>
+                                        @foreach ($subaccounts as $subaccount)
+                                            <option value="{{ $subaccount->fsubaccountcode }}"
+                                                {{ (string) old("details.$index.fsubaccount", $detail->fsubaccount ?? '') === (string) $subaccount->fsubaccountcode ? 'selected' : '' }}>
+                                                {{ $subaccount->fsubaccountcode }} - {{ $subaccount->fsubaccountname }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @if ($isReadOnly)
+                                        <input type="hidden" name="details[{{ $index }}][fsubaccount]"
+                                            value="{{ old("details.$index.fsubaccount", $detail->fsubaccount ?? '') }}">
+                                    @endif
+                                    @error("details.$index.fsubaccount")
+                                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                    @enderror
+                                </td>
+                                <td class="border px-3 py-2 align-top">
                                     <textarea name="details[{{ $index }}][fnote]" rows="2"
                                         class="w-full border rounded px-3 py-2 {{ $isReadOnly ? 'bg-gray-100' : '' }}"
                                         {{ $isReadOnly ? 'readonly' : '' }}>{{ old("details.$index.fnote", $detail->fnote ?? '') }}</textarea>
@@ -164,7 +195,7 @@
                                     @enderror
                                 </td>
                                 <td class="border px-3 py-2 align-top">
-                                    <input type="number" name="details[{{ $index }}][fkasdtvalue]" min="0"
+                                    <input type="number" name="details[{{ $index }}][fkasdtvalue]"
                                         step="0.01" value="{{ old("details.$index.fkasdtvalue", $detail->fkasdtvalue ?? '') }}"
                                         class="detail-amount w-full border rounded px-3 py-2 text-right {{ $isReadOnly ? 'bg-gray-100' : '' }}"
                                         {{ $isReadOnly ? 'readonly' : '' }}>
@@ -173,10 +204,14 @@
                                     @enderror
                                 </td>
                                 @unless ($isReadOnly)
-                                    <td class="border px-3 py-2 text-center align-top">
+                                    <td class="detail-action-cell border px-3 py-2 text-center align-top">
+                                        <button type="button" @click="addRow()"
+                                            class="detail-add-btn inline-flex items-center bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700 whitespace-nowrap">
+                                            <x-heroicon-o-plus class="w-4 h-4 mr-1" /> Tambah Detail
+                                        </button>
                                         <button type="button" @click="removeRow($event)"
-                                            class="inline-flex items-center bg-red-600 text-white px-3 py-2 rounded hover:bg-red-700">
-                                            <x-heroicon-o-trash class="w-4 h-4" />
+                                            class="detail-delete-btn inline-flex items-center bg-red-600 text-white px-3 py-2 rounded hover:bg-red-700 whitespace-nowrap">
+                                            <x-heroicon-o-trash class="w-4 h-4 mr-1" /> Delete
                                         </button>
                                     </td>
                                 @endunless
@@ -185,19 +220,26 @@
                     </tbody>
                     <tfoot class="bg-gray-50">
                         <tr>
-                            <td colspan="{{ $isReadOnly ? 3 : 3 }}" class="border px-3 py-2 text-right font-semibold">
-                                Total
-                            </td>
-                            <td class="border px-3 py-2">
-                                <input type="text" id="detailTotal" value="{{ number_format($totalAmount, 2, '.', ',') }}"
-                                    class="w-full border rounded px-3 py-2 text-right bg-gray-100 font-semibold" readonly>
-                            </td>
+                            <td colspan="{{ $isReadOnly ? 5 : 5 }}" class="border px-3 py-2"></td>
                             @unless ($isReadOnly)
                                 <td class="border px-3 py-2"></td>
                             @endunless
                         </tr>
                     </tfoot>
                 </table>
+            </div>
+
+            <div class="mt-4 flex justify-end">
+                <div class="w-full max-w-md">
+                    <div class="rounded-lg border bg-gray-50 p-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-semibold text-gray-800">Total</span>
+                            <input type="text" id="detailTotal"
+                                value="{{ number_format($totalAmount, 2, '.', ',') }}"
+                                class="w-48 border rounded px-3 py-2 text-right bg-gray-100 font-semibold" readonly>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -266,6 +308,8 @@
                                 }
                             });
                         });
+
+                        this.updateActionButtons();
                     },
 
                     updateTotal() {
@@ -273,6 +317,24 @@
                             .reduce((sum, field) => sum + (parseFloat(field.value || 0) || 0), 0);
 
                         refreshPengeluaranKasTotal();
+                    },
+
+                    updateActionButtons() {
+                        const rows = Array.from(document.querySelectorAll('#detailRows tr.detail-row'));
+
+                        rows.forEach((row, index) => {
+                            const addButton = row.querySelector('.detail-add-btn');
+                            const deleteButton = row.querySelector('.detail-delete-btn');
+                            const isLastRow = index === rows.length - 1;
+
+                            if (addButton) {
+                                addButton.style.display = isLastRow ? 'inline-flex' : 'none';
+                            }
+
+                            if (deleteButton) {
+                                deleteButton.style.display = isLastRow ? 'none' : 'inline-flex';
+                            }
+                        });
                     }
                 }
             }
@@ -293,6 +355,27 @@
             document.addEventListener('input', (event) => {
                 if (event.target.classList.contains('detail-amount')) {
                     refreshPengeluaranKasTotal();
+                }
+            });
+
+            document.addEventListener('DOMContentLoaded', () => {
+                if (typeof pengeluaranKasForm === 'function') {
+                    const rows = document.querySelectorAll('#detailRows tr.detail-row');
+                    rows.forEach((row, index) => {
+                        row.querySelector('td').textContent = index + 1;
+                    });
+
+                    const addButtons = document.querySelectorAll('#detailRows .detail-add-btn');
+                    const deleteButtons = document.querySelectorAll('#detailRows .detail-delete-btn');
+                    const totalRows = document.querySelectorAll('#detailRows tr.detail-row').length;
+
+                    addButtons.forEach((button, index) => {
+                        button.style.display = index === totalRows - 1 ? 'inline-flex' : 'none';
+                    });
+
+                    deleteButtons.forEach((button, index) => {
+                        button.style.display = index === totalRows - 1 ? 'none' : 'inline-flex';
+                    });
                 }
             });
         </script>

@@ -517,15 +517,15 @@
                             <table class="min-w-full text-sm balanced-detail-table fpb-detail-table" data-skip-auto-detail-style="true">
                                   <colgroup>
                                         <col style="width:3%;">
-                                        <col style="width:21%;">
                                         <col style="width:18%;">
-                                        <col style="width:16%;">
+                                        <col style="width:18%;">
+                                        <col style="width:14%;">
                                         <col style="width:7%;">
                                         <col style="width:7%;">
                                         <col style="width:7%;">
                                         <col style="width:7%;">
-                                        <col style="width:5%;">
-                                        <col style="width:5%;">
+                                        <col style="width:7%;">
+                                        <col style="width:8%;">
                                         <col style="width:6%;">
                                     </colgroup>
                                 <thead class="bg-gray-100">
@@ -1193,17 +1193,17 @@
 
                             <div class="overflow-x-auto border rounded">
                                 <table class="min-w-full text-sm balanced-detail-table fpb-detail-table" data-skip-auto-detail-style="true">
-                                      <colgroup>
+                                       <colgroup>
                                         <col style="width:3%;">
-                                        <col style="width:21%;">
                                         <col style="width:18%;">
-                                        <col style="width:16%;">
+                                        <col style="width:18%;">
+                                        <col style="width:14%;">
                                         <col style="width:7%;">
                                         <col style="width:7%;">
                                         <col style="width:7%;">
                                         <col style="width:7%;">
-                                        <col style="width:5%;">
-                                        <col style="width:5%;">
+                                        <col style="width:7%;">
+                                        <col style="width:8%;">
                                         <col style="width:6%;">
                                     </colgroup>
                                     <thead class="bg-gray-100">
@@ -1242,10 +1242,8 @@
                                                 </td>
                                                 <td class="p-2">
                                                     <input type="text"
-                                                        class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 mb-1"
+                                                        class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
                                                         :value="it.fitemname" disabled>
-                                                    <textarea x-model="it.fdesc" rows="1" class="w-full border rounded px-2 py-1 text-xs"
-                                                        placeholder="Deskripsi..." @focus="activeRow = it.uid" @blur="activeRow = null"></textarea>
                                                 </td>
                                                 <td class="p-2">
                                                     <input type="text"
@@ -1333,6 +1331,21 @@
                                                     <input type="hidden" name="fdesc[]" :value="it.fdesc">
                                                     <input type="hidden" name="fketdt[]" :value="it.fketdt">
                                                 </td>
+                                            </tr>
+                                            <tr class="border-b">
+                                                <td class="p-0"></td>
+                                                <td class="p-0"></td>
+                                                <td class="p-2" colspan="3">
+                                                    <textarea x-model="it.fdesc" rows="2"
+                                                        class="w-full border rounded px-4 py-1 text-xs"
+                                                        placeholder="Deskripsi..." @focus="activeRow = it.uid" @blur="activeRow = null"></textarea>
+                                                </td>
+                                                <td class="p-0"></td>
+                                                <td class="p-0"></td>
+                                                <td class="p-0"></td>
+                                                <td class="p-0"></td>
+                                                <td class="p-0"></td>
+                                                <td class="p-0"></td>
                                             </tr>
                                         </template>
 

@@ -479,15 +479,15 @@
                             <table class="min-w-full text-sm balanced-detail-table fpb-detail-table" data-skip-auto-detail-style="true">
                                     <colgroup>
                                         <col style="width:3%;">
-                                        <col style="width:21%;">
                                         <col style="width:18%;">
-                                        <col style="width:16%;">
+                                        <col style="width:18%;">
+                                        <col style="width:14%;">
                                         <col style="width:7%;">
                                         <col style="width:7%;">
                                         <col style="width:7%;">
                                         <col style="width:7%;">
-                                        <col style="width:5%;">
-                                        <col style="width:5%;">
+                                        <col style="width:7%;">
+                                        <col style="width:8%;">
                                         <col style="width:6%;">
                                     </colgroup>
                                 <thead class="bg-gray-100">
@@ -528,14 +528,11 @@
                                                 </div>
                                             </td>
 
-                                            <!-- Nama Produk + Deskripsi -->
+                                            <!-- Nama Produk -->
                                             <td class="p-2">
                                                 <input type="text"
                                                     class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
                                                     :value="it.fitemname" disabled>
-                                                <textarea x-model="it.fdesc" rows="2" class="w-full border rounded px-2 py-1 text-xs text-gray-600 mt-1"
-                                                    placeholder="Deskripsi (opsional)" @focus="activeRow = it.uid"
-                                                    @blur="activeRow = null"></textarea>
                                             </td>
 
                                             <!-- No Refrensi -->
@@ -638,6 +635,21 @@
                                                 <input type="hidden" name="fnouref[]" :value="it.fnouref">
                                                 <input type="hidden" name="frefpr[]" :value="it.frefpr">
                                             </td>
+                                        </tr>
+                                        <tr class="border-b">
+                                            <td class="p-0"></td>
+                                            <td class="p-0"></td>
+                                            <td class="p-2" colspan="3">
+                                                <textarea x-model="it.fdesc" rows="2"
+                                                    class="w-full border rounded px-4 py-1 text-xs text-gray-600"
+                                                    placeholder="Deskripsi (opsional)" @focus="activeRow = it.uid"
+                                                    @blur="activeRow = null"></textarea>
+                                            </td>
+                                            <td class="p-0"></td>
+                                            <td class="p-0"></td>
+                                            <td class="p-0"></td>
+                                            <td class="p-0"></td>
+                                            <td class="p-0"></td>
                                         </tr>
                                     </template>
 

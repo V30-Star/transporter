@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Account;
+use App\Models\Subaccount;
 use App\Models\Trkasdt;
 use App\Models\Trkasmt;
 use Carbon\Carbon;
@@ -95,7 +96,7 @@ class PengeluaranKasController extends Controller
                 'fwhom' => $payload['fwhom'] ?? null,
                 'faccountheader' => $headerAccount?->faccount,
                 'faccountheaderid' => $headerAccount?->faccid,
-                'fdkheader' => 'K',
+                'fdkheader' => $this->resolveHeaderDk($totalAmount),
                 'fket' => $payload['fket'] ?? null,
                 'famountpay' => $totalAmount,
                 'famountpay_rp' => $totalAmount,
@@ -123,7 +124,8 @@ class PengeluaranKasController extends Controller
                     'ftrancode' => self::TRAN_CODE,
                     'faccount' => $detail['faccount'],
                     'faccountid' => $account?->faccid,
-                    'fdk' => 'D',
+                    'fsubaccount' => $detail['fsubaccount'] ?? null,
+                    'fdk' => $this->resolveDetailDk($detail['fkasdtvalue']),
                     'fnote' => $detail['fnote'] ?? null,
                     'fkasdtvalue' => $detail['fkasdtvalue'],
                     'fvalue_rp' => $detail['fkasdtvalue'],
@@ -184,6 +186,7 @@ class PengeluaranKasController extends Controller
                 'faccountheaderid' => $headerAccount?->faccid,
                 'faccountno' => $headerAccount?->faccount,
                 'faccountnoid' => $headerAccount?->faccid,
+                'fdkheader' => $this->resolveHeaderDk($totalAmount),
                 'fket' => $payload['fket'] ?? null,
                 'fnogiro' => $payload['fnogiro'] ?? null,
                 'famountpay' => $totalAmount,
@@ -209,7 +212,8 @@ class PengeluaranKasController extends Controller
                     'ftrancode' => self::TRAN_CODE,
                     'faccount' => $detail['faccount'],
                     'faccountid' => $account?->faccid,
-                    'fdk' => 'D',
+                    'fsubaccount' => $detail['fsubaccount'] ?? null,
+                    'fdk' => $this->resolveDetailDk($detail['fkasdtvalue']),
                     'fnote' => $detail['fnote'] ?? null,
                     'fkasdtvalue' => $detail['fkasdtvalue'],
                     'fvalue_rp' => $detail['fkasdtvalue'],
@@ -252,6 +256,10 @@ class PengeluaranKasController extends Controller
                 ->where('fnonactive', '0')
                 ->orderBy('faccount')
                 ->get(['faccid', 'faccount', 'faccname']),
+            'subaccounts' => Subaccount::query()
+                ->where('fnonactive', '0')
+                ->orderBy('fsubaccountcode')
+                ->get(['fsubaccountid', 'fsubaccountcode', 'fsubaccountname']),
         ], $overrides);
     }
 
@@ -271,14 +279,15 @@ class PengeluaranKasController extends Controller
             'fket' => ['nullable', 'string', 'max:50'],
             'details' => ['required', 'array', 'min:1'],
             'details.*.faccount' => ['required', 'string', 'max:10', Rule::exists('account', 'faccount')],
+            'details.*.fsubaccount' => ['nullable', 'string', 'max:50', Rule::exists('mssubaccount', 'fsubaccountcode')],
             'details.*.fnote' => ['nullable', 'string', 'max:100'],
-            'details.*.fkasdtvalue' => ['required', 'numeric', 'gt:0'],
+            'details.*.fkasdtvalue' => ['required', 'numeric', 'not_in:0'],
         ], [
             'fkasmtdate.required' => 'Tanggal wajib diisi.',
             'details.required' => 'Minimal harus ada satu detail pengeluaran.',
             'details.*.faccount.required' => 'Account detail wajib diisi.',
             'details.*.fkasdtvalue.required' => 'Jumlah bayar wajib diisi.',
-            'details.*.fkasdtvalue.gt' => 'Jumlah bayar harus lebih besar dari 0.',
+            'details.*.fkasdtvalue.not_in' => 'Jumlah bayar tidak boleh 0.',
         ]);
 
         return $payload;
@@ -290,6 +299,7 @@ class PengeluaranKasController extends Controller
             ->map(function (array $detail) {
                 return [
                     'faccount' => trim((string) ($detail['faccount'] ?? '')),
+                    'fsubaccount' => trim((string) ($detail['fsubaccount'] ?? '')) ?: null,
                     'fnote' => trim((string) ($detail['fnote'] ?? '')) ?: null,
                     'fkasdtvalue' => round((float) ($detail['fkasdtvalue'] ?? 0), 2),
                 ];
@@ -308,6 +318,16 @@ class PengeluaranKasController extends Controller
         return Account::query()
             ->where('faccount', $accountCode)
             ->first(['faccid', 'faccount', 'faccname']);
+    }
+
+    private function resolveHeaderDk(float $amount): string
+    {
+        return $amount >= 0 ? 'K' : 'D';
+    }
+
+    private function resolveDetailDk(float $amount): string
+    {
+        return $amount >= 0 ? 'D' : 'K';
     }
 
     private function findHeader($fkasmtno): Trkasmt
