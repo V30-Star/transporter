@@ -479,7 +479,7 @@
                             <table class="min-w-full text-sm balanced-detail-table fpb-detail-table" data-skip-auto-detail-style="true">
                                     <colgroup>
                                         <col style="width:3%;">
-                                        <col style="width:18%;">
+                                        <col style="width:17%;">
                                         <col style="width:18%;">
                                         <col style="width:14%;">
                                         <col style="width:7%;">
@@ -487,7 +487,7 @@
                                         <col style="width:7%;">
                                         <col style="width:7%;">
                                         <col style="width:7%;">
-                                        <col style="width:8%;">
+                                        <col style="width:9%;">
                                         <col style="width:6%;">
                                     </colgroup>
                                 <thead class="bg-gray-100">
