@@ -18,80 +18,68 @@ class JurnalTransaksiController extends Controller
 {
     public function index(Request $request)
     {
-        // --- 1. PERBAIKAN PERMISSIONS ---
-        // Saya asumsikan ini nama permission yang benar untuk modul ini
         $canCreate = in_array('createjurnaltransaksi', explode(',', session('user_restricted_permissions', '')));
         $canEdit = in_array('updatejurnaltransaksi', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deletejurnaltransaksi', explode(',', session('user_restricted_permissions', '')));
-        $showActionsColumn = $canEdit || $canDelete; // Anda bisa tambahkan $canPrint jika ada
+        $showActionsColumn = $canEdit || $canDelete;
 
-        // --- 2. Handle Request AJAX dari DataTables ---
         if ($request->ajax()) {
+            $query = DB::table('jurnalmt');
+            $totalRecords = DB::table('jurnalmt')->count();
 
-            // Query dasar HANYA untuk 'PBR' (Receiving)
-            $query = PenerimaanPembelianHeader::where('fstockmtcode', 'PBR');
-
-            // Total records (dengan filter 'PBR')
-            $totalRecords = PenerimaanPembelianHeader::where('fstockmtcode', 'PBR')->count();
-
-            // Handle Search (cari di No. Penerimaan)
-            if ($search = $request->input('search.value')) {
-                $query->where('fstockmtno', 'like', "%{$search}%");
+            if ($search = trim((string) $request->input('search.value', ''))) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('fjurnalno', 'like', "%{$search}%")
+                        ->orWhere('fjurnaltype', 'like', "%{$search}%")
+                        ->orWhere('fjurnalnote', 'like', "%{$search}%")
+                        ->orWhereRaw("TO_CHAR(fjurnaldate, 'DD/MM/YYYY') ILIKE ?", ["%{$search}%"]);
+                });
             }
 
-            // Total records setelah filter search
             $filteredRecords = (clone $query)->count();
 
-            // Handle Sorting
             $orderColIdx = $request->input('order.0.column', 0);
             $orderDir = $request->input('order.0.dir', 'asc');
-            // Kolom di tabel: 0 = fstockmtno, 1 = fstockmtdate
-            $sortableColumns = ['fstockmtno', 'fstockmtdate'];
+            $sortableColumns = ['fjurnalno', 'fjurnaldate', 'fjurnaltype', 'fbalance_rp', 'fjurnalnote'];
 
             if (isset($sortableColumns[$orderColIdx])) {
                 $query->orderBy($sortableColumns[$orderColIdx], $orderDir);
             } else {
-                $query->orderBy('fstockmtid', 'desc'); // Default sort
+                $query->orderBy('fjurnalmtid', 'desc');
             }
 
-            // Handle Paginasi
             $start = $request->input('start', 0);
             $length = $request->input('length', 10);
             $records = $query->skip($start)
                 ->take($length)
-                ->get(['fstockmtid', 'fstockmtno', 'fstockmtdate']); // fstockmtcode tidak perlu, krn sudah pasti RCV
+                ->get([
+                    'fjurnalmtid',
+                    'fjurnalno',
+                    'fjurnaldate',
+                    'fjurnaltype',
+                    'fbalance',
+                    'fbalance_rp',
+                    'fjurnalnote',
+                ]);
 
-            // Format Data (Tombol dibuat di sini)
             $data = $records->map(function ($row) {
-
                 $actions = '';
 
-                // --- Tombol view ---
-                // if ($canView) {
-                // Asumsi route edit Anda: jurnaltransaksi.edit
-                $viewUrl = route('jurnaltransaksi.view', $row->fstockmtid);
+                $viewUrl = route('jurnaltransaksi.view', $row->fjurnalmtid);
                 $actions .= ' <a href="'.$viewUrl.'" class="inline-flex items-center bg-slate-500 text-white px-4 py-2 rounded hover:bg-slate-600">
                                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                                     </svg> View
                                 </a>';
-                // }
 
-                // --- Tombol Edit ---
-                // if ($canEdit) {
-                // Asumsi route edit Anda: jurnaltransaksi.edit
-                $editUrl = route('jurnaltransaksi.edit', $row->fstockmtid);
+                $editUrl = route('jurnaltransaksi.edit', $row->fjurnalmtid);
                 $actions .= ' <a href="'.$editUrl.'" class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
                                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                                     </svg> Edit
                                 </a>';
-                // }
 
-                // --- Tombol Delete ---
-                // if ($canDelete) {
-                // Asumsi route destroy Anda: jurnaltransaksi.destroy
-                $deleteUrl = route('jurnaltransaksi.delete', $row->fstockmtid);
+                $deleteUrl = route('jurnaltransaksi.delete', $row->fjurnalmtid);
                 $actions .= '<a href="'.$deleteUrl.'">
                 <button class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -100,16 +88,17 @@ class JurnalTransaksiController extends Controller
                     Hapus
                 </button>
             </a>';
-                // }
 
                 return [
-                    'fstockmtno' => $row->fstockmtno,
-                    'fstockmtdate' => Carbon::parse($row->fstockmtdate)->format('d/m/Y'),
+                    'fjurnalno' => $row->fjurnalno,
+                    'fjurnaldate' => Carbon::parse($row->fjurnaldate)->format('d/m/Y'),
+                    'fjurnaltype' => $row->fjurnaltype,
+                    'fbalance_rp' => number_format((float) ($row->fbalance_rp ?? $row->fbalance ?? 0), 2, ',', '.'),
+                    'fjurnalnote' => $row->fjurnalnote,
                     'actions' => $actions,
                 ];
             });
 
-            // 9. Kirim Response JSON
             return response()->json([
                 'draw' => intval($request->input('draw')),
                 'recordsTotal' => $totalRecords,
@@ -118,7 +107,6 @@ class JurnalTransaksiController extends Controller
             ]);
         }
 
-        // --- 3. Handle Request non-AJAX (Saat load halaman) ---
         return view('jurnaltransaksi.index', compact(
             'canCreate',
             'canEdit',
@@ -630,64 +618,13 @@ class JurnalTransaksiController extends Controller
                 ->orWhere('fcabangname', $raw))
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
 
-        $warehouses = DB::table('mswh')
-            ->select('fwhid', 'fwhcode', 'fwhname', 'fbranchcode', 'fnonactive')
-            ->where('fnonactive', '0') // hanya yang aktif
-            ->orderBy('fwhcode')
-            ->get();
+        $warehouses = collect();
 
         $fcabang = $branch->fcabangname ?? (string) $raw;
         $fbranchcode = $branch->fcabangkode ?? (string) $raw;
 
-        // 1. Ambil data Header (trstockmt) DAN relasi Details (trstockdt)
-        // Biarkan query ini. Sekarang $fstockmtid di sini adalah integer (misal: 8)
-        $jurnaltransaksi = PenerimaanPembelianHeader::with([
-            'details' => function ($query) {
-                $query
-                    ->join('msprd', 'msprd.fprdid', '=', 'trstockdt.fprdcode')
-                    ->with(['account', 'subaccount']) // Eager load relasi
-                    ->select(
-                        'trstockdt.*',
-                        'msprd.fprdname',
-                        'msprd.fprdcode as fitemcode_text'
-                    )
-                    ->orderBy('trstockdt.fstockdtid', 'asc');
-            },
-        ])->findOrFail($fstockmtid);
-
-        // 4. Map the data for savedItems (sudah menggunakan data yang benar)
-        $savedItems = $jurnaltransaksi->details->map(function ($d) {
-            return [
-                'uid' => $d->fstockdtid,
-                'fitemcode' => $d->fitemcode_text ?? '',
-                'fitemname' => $d->fprdname ?? '',
-                'fsatuan' => $d->fsatuan ?? '',
-                'fprno' => $d->frefpr ?? '-',
-                'frefpr' => $d->frefpr ?? null,
-                'frefso' => $d->frefso ?? null,
-                'fpono' => $d->fpono ?? null,
-                'famountponet' => $d->famountponet ?? null,
-                'famountpo' => $d->famountpo ?? null,
-                'frefdtno' => $d->frefdtno ?? null,
-                'fnouref' => $d->fnouref ?? null,
-                'fqty' => (float) ($d->fqty ?? 0),
-                'fterima' => (float) ($d->fterima ?? 0),
-                'fdisc' => (float) ($d->fdiscpersen ?? 0),
-                'ftotal' => (float) ($d->ftotprice ?? 0),
-                'fdesc' => is_array($d->fdesc) ? implode(', ', $d->fdesc) : ($d->fdesc ?? ''),
-                'fketdt' => $d->fketdt ?? '',
-                'units' => [],
-
-                // TAMBAHKAN INI - untuk JavaScript
-                'faccid' => $d->frefdtno ?? null,
-                'faccname' => $d->account ? $d->account->faccname : null,
-                'fsubaccountid' => $d->frefso ?? null,
-                'fsubaccountname' => $d->subaccount ? $d->subaccount->fsubaccountname : null,
-            ];
-        })->values();
-
-        // Sisa kode Anda sudah benar
-        $selectedSupplierCode = $jurnaltransaksi->fsupplier;
+        [$jurnaltransaksi, $savedItems] = $this->getJournalTransactionFormData($fstockmtid);
+        $selectedSupplierCode = null;
 
         $products = Product::select(
             'fprdid',
@@ -720,10 +657,11 @@ class JurnalTransaksiController extends Controller
             'products' => $products,
             'productMap' => $productMap,
             'jurnaltransaksi' => $jurnaltransaksi,
+            'pemakaianbarang' => $jurnaltransaksi,
             'savedItems' => $savedItems,
-            'ppnAmount' => (float) ($jurnaltransaksi->famountpopajak ?? 0),
-            'famountponet' => (float) ($jurnaltransaksi->famountponet ?? 0),
-            'famountpo' => (float) ($jurnaltransaksi->famountpo ?? 0),
+            'ppnAmount' => 0,
+            'famountponet' => 0,
+            'famountpo' => 0,
             'action' => 'edit',
         ]);
     }
@@ -753,64 +691,13 @@ class JurnalTransaksiController extends Controller
                 ->orWhere('fcabangname', $raw))
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
 
-        $warehouses = DB::table('mswh')
-            ->select('fwhid', 'fwhcode', 'fwhname', 'fbranchcode', 'fnonactive')
-            ->where('fnonactive', '0') // hanya yang aktif
-            ->orderBy('fwhcode')
-            ->get();
+        $warehouses = collect();
 
         $fcabang = $branch->fcabangname ?? (string) $raw;
         $fbranchcode = $branch->fcabangkode ?? (string) $raw;
 
-        // 1. Ambil data Header (trstockmt) DAN relasi Details (trstockdt)
-        // Biarkan query ini. Sekarang $fstockmtid di sini adalah integer (misal: 8)
-        $jurnaltransaksi = PenerimaanPembelianHeader::with([
-            'details' => function ($query) {
-                $query
-                    ->join('msprd', 'msprd.fprdid', '=', 'trstockdt.fprdcode')
-                    ->with(['account', 'subaccount']) // Eager load relasi
-                    ->select(
-                        'trstockdt.*',
-                        'msprd.fprdname',
-                        'msprd.fprdcode as fitemcode_text'
-                    )
-                    ->orderBy('trstockdt.fstockdtid', 'asc');
-            },
-        ])->findOrFail($fstockmtid);
-
-        // 4. Map the data for savedItems (sudah menggunakan data yang benar)
-        $savedItems = $jurnaltransaksi->details->map(function ($d) {
-            return [
-                'uid' => $d->fstockdtid,
-                'fitemcode' => $d->fitemcode_text ?? '',
-                'fitemname' => $d->fprdname ?? '',
-                'fsatuan' => $d->fsatuan ?? '',
-                'fprno' => $d->frefpr ?? '-',
-                'frefpr' => $d->frefpr ?? null,
-                'frefso' => $d->frefso ?? null,
-                'fpono' => $d->fpono ?? null,
-                'famountponet' => $d->famountponet ?? null,
-                'famountpo' => $d->famountpo ?? null,
-                'frefdtno' => $d->frefdtno ?? null,
-                'fnouref' => $d->fnouref ?? null,
-                'fqty' => (float) ($d->fqty ?? 0),
-                'fterima' => (float) ($d->fterima ?? 0),
-                'fdisc' => (float) ($d->fdiscpersen ?? 0),
-                'ftotal' => (float) ($d->ftotprice ?? 0),
-                'fdesc' => is_array($d->fdesc) ? implode(', ', $d->fdesc) : ($d->fdesc ?? ''),
-                'fketdt' => $d->fketdt ?? '',
-                'units' => [],
-
-                // TAMBAHKAN INI - untuk JavaScript
-                'faccid' => $d->frefdtno ?? null,
-                'faccname' => $d->account ? $d->account->faccname : null,
-                'fsubaccountid' => $d->frefso ?? null,
-                'fsubaccountname' => $d->subaccount ? $d->subaccount->fsubaccountname : null,
-            ];
-        })->values();
-
-        // Sisa kode Anda sudah benar
-        $selectedSupplierCode = $jurnaltransaksi->fsupplier;
+        [$jurnaltransaksi, $savedItems] = $this->getJournalTransactionFormData($fstockmtid);
+        $selectedSupplierCode = null;
 
         $products = Product::select(
             'fprdid',
@@ -843,240 +730,208 @@ class JurnalTransaksiController extends Controller
             'products' => $products,
             'productMap' => $productMap,
             'jurnaltransaksi' => $jurnaltransaksi,
+            'pemakaianbarang' => $jurnaltransaksi,
             'savedItems' => $savedItems,
-            'ppnAmount' => (float) ($jurnaltransaksi->famountpopajak ?? 0),
-            'famountponet' => (float) ($jurnaltransaksi->famountponet ?? 0),
-            'famountpo' => (float) ($jurnaltransaksi->famountpo ?? 0),
+            'ppnAmount' => 0,
+            'famountponet' => 0,
+            'famountpo' => 0,
         ]);
     }
 
     public function update(Request $request, $fstockmtid)
     {
-        // =========================
-        // 1) VALIDASI INPUT
-        // =========================
         $request->validate([
-            'fstockmtno' => ['nullable', 'string', 'max:100'],
-            'fstockmtdate' => ['required', 'date'],
-            'ffrom' => ['nullable', 'integer', 'exists:mswh,fwhid'],
-            'fket' => ['nullable', 'string', 'max:50'],
+            'fjurnalno' => ['required', 'string', 'max:100'],
+            'fjurnaltype' => ['required', 'string', 'max:10'],
+            'fjurnaldate' => ['required', 'date'],
+            'fjurnalnote' => ['nullable', 'string', 'max:500'],
             'fbranchcode' => ['nullable', 'string', 'max:20'],
-            'fitemcode' => ['required', 'array', 'min:1'],
-            'fitemcode.*' => ['required', 'string', 'max:50'],
-            'fsatuan' => ['nullable', 'array'],
-            'fsatuan.*' => ['nullable', 'string', 'max:5'],
-            'frefdtno' => ['nullable', 'array'],
-            'frefdtno.*' => ['nullable', 'string', 'max:20'],
-            'frefso' => ['nullable', 'array'],
-            'frefso.*' => ['nullable', 'string', 'max:20'],
-            'fnouref' => ['nullable', 'array'],
-            'fnouref.*' => ['nullable', 'integer'],
-            'fdesc' => ['nullable', 'array'],
-            'fdesc.*' => ['nullable', 'string', 'max:500'],
+
+            'faccount' => ['required', 'array', 'min:1'],
+            'faccount.*' => ['required', 'string', 'max:50'],
+
+            'fsubaccount' => ['nullable', 'array'],
+            'fsubaccount.*' => ['nullable', 'string', 'max:50'],
+
+            'fdk' => ['required', 'array'],
+            'fdk.*' => ['required', 'string', 'in:D,K'],
+
+            'faccountnote' => ['nullable', 'array'],
+            'faccountnote.*' => ['nullable', 'string', 'max:255'],
+
+            'frefno' => ['nullable', 'array'],
+            'frefno.*' => ['nullable', 'string', 'max:100'],
+
+            'famount' => ['required', 'array'],
+            'famount.*' => ['numeric', 'min:0'],
+
+            'frate' => ['nullable', 'array'],
+            'frate.*' => ['nullable', 'numeric', 'min:0'],
         ], [
-            'fstockmtdate.required' => 'Tanggal transaksi wajib diisi.',
-            'fitemcode.required' => 'Minimal 1 item.',
-            'fqty.*.min' => 'Qty tidak boleh 0.',
-            'ffrom.exists' => 'Gudang (ffrom/fwhid) tidak valid.',
-            'ffrom.integer' => 'Gudang (ffrom/fwhid) harus berupa angka ID.',
+            'fjurnaldate.required' => 'Tanggal jurnal wajib diisi.',
+            'fjurnaltype.required' => 'Tipe jurnal wajib diisi.',
+            'faccount.required' => 'Minimal 1 baris jurnal.',
+            'fdk.*.in' => 'Nilai D/K harus Debit (D) atau Kredit (K).',
         ]);
 
-        // =========================
-        // 2) AMBIL DATA MASTER & HEADER
-        // =========================
-        $header = PenerimaanPembelianHeader::findOrFail($fstockmtid);
+        $header = DB::table('jurnalmt')
+            ->where('fjurnalmtid', $fstockmtid)
+            ->first();
 
-        $fstockmtdate = Carbon::parse($request->fstockmtdate)->startOfDay();
-        $ffrom = $request->input('ffrom');
-        $fket = trim((string) $request->input('fket', ''));
+        if (! $header) {
+            abort(404);
+        }
+
+        $fjurnaldate = Carbon::parse($request->fjurnaldate)->startOfDay();
+        $fjurnaltype = $request->input('fjurnaltype', 'JV');
+        $fjurnalnote = trim((string) $request->input('fjurnalnote', ''));
         $fbranchcode = $request->input('fbranchcode');
-
-        $userid = auth('sysuser')->user()->fsysuserid ?? 'admin';
         $now = now();
+        $fuserid = Auth::user()->fname ?? Auth::user()->name ?? 'system';
 
-        // =========================
-        // 3) DETAIL ARRAYS
-        // =========================
-        $codes = $request->input('fitemcode', []);
-        $satuans = $request->input('fsatuan', []);
-        $refdtno = $request->input('frefdtno', []);
-        $refso = $request->input('frefso', []);
-        $nourefs = $request->input('fnouref', []);
-        $qtys = $request->input('fqty', []);
-        $descs = $request->input('fdesc', []);
-
-        // =========================
-        // 4) LOGIC PROD META & RAKIT DETAIL
-        // =========================
-        $uniqueCodes = array_values(array_unique(array_filter(array_map(fn ($c) => trim((string) $c), $codes))));
-        $prodMeta = DB::table('msprd')
-            ->whereIn('fprdcode', $uniqueCodes)
-            ->get(['fprdid', 'fprdcode', 'fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2'])
-            ->keyBy('fprdcode');
-
-        $pickDefaultSat = function (?object $meta): string {
-            if (! $meta) {
-                return '';
-            }
-            foreach (['fsatuankecil', 'fsatuanbesar', 'fsatuanbesar2'] as $k) {
-                $v = trim((string) ($meta->$k ?? ''));
-                if ($v !== '') {
-                    return mb_substr($v, 0, 5);
-                }
-            }
-
-            return '';
-        };
+        $accounts = $request->input('faccount', []);
+        $subaccounts = $request->input('fsubaccount', []);
+        $dks = $request->input('fdk', []);
+        $notes = $request->input('faccountnote', []);
+        $refnos = $request->input('frefno', []);
+        $amounts = $request->input('famount', []);
+        $rates = $request->input('frate', []);
 
         $rowsDt = [];
-        $subtotal = 0.0;
-        $rowCount = count($codes);
-        $usedNoAcaks = [];
+        $totalDebit = 0.0;
+        $totalKredit = 0.0;
+        $rowCount = count($accounts);
 
         for ($i = 0; $i < $rowCount; $i++) {
-            $code = trim((string) ($codes[$i] ?? ''));
-            $sat = trim((string) ($satuans[$i] ?? ''));
-            $rref = trim((string) ($refdtno[$i] ?? ''));
-            $rrso = trim((string) ($refso[$i] ?? ''));
-            $rnour = $nourefs[$i] ?? null;
-            $qty = (float) ($qtys[$i] ?? 0);
-            $price = (float) ($prices[$i] ?? 0);
-            $desc = (string) ($descs[$i] ?? '');
+            $faccount = trim((string) ($accounts[$i] ?? ''));
+            $fsubaccount = trim((string) ($subaccounts[$i] ?? '')) ?: null;
+            $fdk = strtoupper(trim((string) ($dks[$i] ?? '')));
+            $fnote = trim((string) ($notes[$i] ?? '')) ?: null;
+            $frefno = trim((string) ($refnos[$i] ?? '')) ?: null;
+            $famount = round((float) ($amounts[$i] ?? 0), 2);
+            $frate = round((float) ($rates[$i] ?? 1), 4);
+            if ($frate <= 0) {
+                $frate = 1;
+            }
 
-            if ($code === '' || $qty <= 0) {
+            if ($faccount === '' || $famount <= 0 || ! in_array($fdk, ['D', 'K'])) {
                 continue;
             }
 
-            $meta = $prodMeta[$code] ?? null;
-            if (! $meta) {
-                continue;
+            if ($fdk === 'D') {
+                $totalDebit += $famount;
+            } else {
+                $totalKredit += $famount;
             }
-
-            $prdId = $meta->fprdid;
-
-            if ($sat === '') {
-                $sat = $pickDefaultSat($meta);
-            }
-            $sat = mb_substr($sat, 0, 5);
-            if ($sat === '') {
-                continue;
-            }
-
-            $amount = $qty * $price;
-            $subtotal += $amount;
 
             $rowsDt[] = [
-                'fprdcode' => $prdId,
-                'frefdtno' => $rref,
-                'frefso' => $rrso,
-                'fnoacak' => $this->normalizeRandomNumber(null, $usedNoAcaks),
-                'fqty' => $qty,
-                'fuserupdate' => (Auth::user()->fname ?? 'system'),
-                'fdatetime' => $now, // Tetap gunakan fdatetime
-                'fketdt' => '',
-                'fcode' => '0',
-                'fnouref' => $rnour !== null ? (int) $rnour : null,
-                'fdesc' => $desc,
-                'fsatuan' => $sat,
-                'fqtykecil' => $qty,
-                'fclosedt' => '0',
-                'fdiscpersen' => 0,
-                'fbiaya' => 0,
+                'fbranchcode' => $header->fbranchcode,
+                'fjurnaltype' => $fjurnaltype,
+                'faccount' => $faccount,
+                'fsubaccount' => $fsubaccount,
+                'fdk' => $fdk,
+                'faccountnote' => $fnote,
+                'frefno' => $frefno,
+                'famount' => $famount,
+                'famount_rp' => round($famount * $frate, 2),
+                'frate' => $frate,
+                'fusercreate' => $fuserid,
+                'fdatetime' => $now,
             ];
         }
 
         if (empty($rowsDt)) {
             return back()->withInput()->withErrors([
-                'detail' => 'Minimal satu item valid (Kode, Satuan, Qty > 0).',
+                'detail' => 'Minimal satu baris jurnal valid (Akun, D/K, Jumlah > 0).',
             ]);
         }
 
-        // =========================
-        // 5) TRANSAKSI DB
-        // =========================
-        DB::transaction(function () use (
-            $header,
-            $fstockmtdate,
-            $ffrom,
-            $fket,
-            $fbranchcode,
-            &$rowsDt
+        if ($validationMessage = $this->validateUniqueJournalReferenceUsage($rowsDt, $header->fjurnalno)) {
+            return back()->withInput()->withErrors([
+                'detail' => $validationMessage,
+            ]);
+        }
 
-        ) {
+        if (round($totalDebit, 2) !== round($totalKredit, 2)) {
+            return back()->withInput()->withErrors([
+                'detail' => sprintf(
+                    'Jurnal tidak balance. Total Debit: Rp %s | Total Kredit: Rp %s',
+                    number_format($totalDebit, 2, ',', '.'),
+                    number_format($totalKredit, 2, ',', '.')
+                ),
+            ]);
+        }
 
-            // ---- 5.1. Cek Kode Cabang ----
-            $kodeCabang = null;
-            if ($fbranchcode !== null) {
-                $needle = trim((string) $fbranchcode);
-                if ($needle !== '') {
-                    if (is_numeric($needle)) {
-                        $kodeCabang = DB::table('mscabang')->where('fcabangid', (int) $needle)->value('fcabangkode');
-                    } else {
-                        $kodeCabang = DB::table('mscabang')->whereRaw('LOWER(fcabangkode)=LOWER(?)', [$needle])->value('fcabangkode')
-                          ?: DB::table('mscabang')->whereRaw('LOWER(fcabangname)=LOWER(?)', [$needle])->value('fcabangkode');
+        $kodeCabang = null;
+        if ($fbranchcode) {
+            $needle = trim((string) $fbranchcode);
+            if ($needle !== '') {
+                if (is_numeric($needle)) {
+                    $kodeCabang = DB::table('mscabang')
+                        ->where('fcabangid', (int) $needle)
+                        ->value('fcabangkode');
+                } else {
+                    $kodeCabang = DB::table('mscabang')
+                        ->whereRaw('LOWER(fcabangkode) = LOWER(?)', [$needle])
+                        ->value('fcabangkode');
+
+                    if (! $kodeCabang) {
+                        $kodeCabang = DB::table('mscabang')
+                            ->whereRaw('LOWER(fcabangname) = LOWER(?)', [$needle])
+                            ->value('fcabangkode');
                     }
                 }
             }
-            if (! $kodeCabang) {
-                $kodeCabang = 'NA';
+        }
+        if (! $kodeCabang) {
+            $kodeCabang = $header->fbranchcode ?: 'NA';
+        }
+
+        DB::transaction(function () use ($fstockmtid, $header, $kodeCabang, $fjurnaldate, $fjurnaltype, $fjurnalnote, $now, $fuserid, $totalDebit, &$rowsDt) {
+            DB::table('jurnalmt')
+                ->where('fjurnalmtid', $fstockmtid)
+                ->update([
+                    'fbranchcode' => $kodeCabang,
+                    'fjurnaltype' => $fjurnaltype,
+                    'fjurnaldate' => $fjurnaldate,
+                    'fjurnalnote' => $fjurnalnote ?: ('Jurnal '.$header->fjurnalno),
+                    'fbalance' => $totalDebit,
+                    'fbalance_rp' => $totalDebit,
+                    'fdatetime' => $now,
+                    'fuserid' => $fuserid,
+                    'fuserupdate' => $fuserid,
+                ]);
+
+            DB::table('jurnaldt')->where('fjurnalmtid', $fstockmtid)->delete();
+
+            $details = [];
+            $flineno = 1;
+            foreach ($rowsDt as $row) {
+                $details[] = [
+                    'fjurnalmtid' => $fstockmtid,
+                    'fbranchcode' => $kodeCabang,
+                    'fjurnalno' => $header->fjurnalno,
+                    'fjurnaltype' => $fjurnaltype,
+                    'flineno' => $flineno++,
+                    'faccount' => $row['faccount'],
+                    'fsubaccount' => $row['fsubaccount'],
+                    'fdk' => $row['fdk'],
+                    'faccountnote' => $row['faccountnote'],
+                    'frefno' => $row['frefno'],
+                    'famount' => $row['famount'],
+                    'famount_rp' => $row['famount_rp'],
+                    'frate' => $row['frate'],
+                    'fusercreate' => $fuserid,
+                    'fdatetime' => $now,
+                ];
             }
 
-            $yy = $fstockmtdate->format('y');
-            $mm = $fstockmtdate->format('m');
-            $fstockmtcode = 'PBR';
-
-            if (empty($fstockmtno)) {
-                $prefix = sprintf('%s.%s.%s.%s.', $fstockmtcode, $kodeCabang, $yy, $mm);
-
-                $lockKey = crc32('STOCKMT|'.$fstockmtcode.'|'.$kodeCabang.'|'.$fstockmtdate->format('Y-m'));
-                DB::statement('SELECT pg_advisory_xact_lock(?)', [$lockKey]);
-
-                $last = DB::table('trstockmt')
-                    ->where('fstockmtno', 'like', $prefix.'%')
-                    ->selectRaw("MAX(CAST(split_part(fstockmtno, '.', 5) AS int)) AS lastno")
-                    ->value('lastno');
-
-                $next = (int) $last + 1;
-                $fstockmtno = $prefix.str_pad((string) $next, 4, '0', STR_PAD_LEFT);
-            }
-
-            // ---- 5.2. UPDATE HEADER: trstockmt ----
-            $masterData = [
-                'fstockmtno' => $fstockmtno,
-                'fstockmtcode' => $fstockmtcode,
-                'fstockmtdate' => $fstockmtdate,
-                'ffrom' => $ffrom,
-                'fket' => $fket,
-                'fuserupdate' => (Auth::user()->fname ?? 'system'),
-                'fbranchcode' => $kodeCabang,
-            ];
-
-            $header->update($masterData);
-
-            // ---- 5.3. HAPUS DETAIL LAMA ----
-            DB::table('trstockdt')->where('fstockmtno', $header->fstockmtno)->delete();
-
-            // ---- 5.4. INSERT DETAIL BARU ----
-            $fstockmtcode = $header->fstockmtcode;
-            $fstockmtno = $header->fstockmtno;
-            $nextNouRef = 1;
-
-            foreach ($rowsDt as &$r) {
-                $r['fstockmtcode'] = $fstockmtcode;
-                $r['fstockmtno'] = $fstockmtno;
-
-                if (! isset($r['fnouref']) || $r['fnouref'] === null) {
-                    $r['fnouref'] = $nextNouRef++;
-                }
-            }
-            unset($r);
-
-            DB::table('trstockdt')->insert($rowsDt);
+            DB::table('jurnaldt')->insert($details);
         });
 
         return redirect()
-            ->route('jurnaltransaksi.index')
-            ->with('success', "Transaksi {$header->fstockmtno} berhasil diperbarui.");
+            ->route('jurnaltransaksi.view', $fstockmtid)
+            ->with('success', 'Jurnal transaksi '.trim((string) $header->fjurnalno).' berhasil diperbarui.');
     }
 
     public function delete($fstockmtid)
@@ -1104,64 +959,13 @@ class JurnalTransaksiController extends Controller
                 ->orWhere('fcabangname', $raw))
             ->first(['fcabangid', 'fcabangkode', 'fcabangname']);
 
-        $warehouses = DB::table('mswh')
-            ->select('fwhid', 'fwhcode', 'fwhname', 'fbranchcode', 'fnonactive')
-            ->where('fnonactive', '0') // hanya yang aktif
-            ->orderBy('fwhcode')
-            ->get();
+        $warehouses = collect();
 
         $fcabang = $branch->fcabangname ?? (string) $raw;
         $fbranchcode = $branch->fcabangkode ?? (string) $raw;
 
-        // 1. Ambil data Header (trstockmt) DAN relasi Details (trstockdt)
-        // Biarkan query ini. Sekarang $fstockmtid di sini adalah integer (misal: 8)
-        $jurnaltransaksi = PenerimaanPembelianHeader::with([
-            'details' => function ($query) {
-                $query
-                    ->join('msprd', 'msprd.fprdid', '=', 'trstockdt.fprdcode')
-                    ->with(['account', 'subaccount']) // Eager load relasi
-                    ->select(
-                        'trstockdt.*',
-                        'msprd.fprdname',
-                        'msprd.fprdcode as fitemcode_text'
-                    )
-                    ->orderBy('trstockdt.fstockdtid', 'asc');
-            },
-        ])->findOrFail($fstockmtid);
-
-        // 4. Map the data for savedItems (sudah menggunakan data yang benar)
-        $savedItems = $jurnaltransaksi->details->map(function ($d) {
-            return [
-                'uid' => $d->fstockdtid,
-                'fitemcode' => $d->fitemcode_text ?? '',
-                'fitemname' => $d->fprdname ?? '',
-                'fsatuan' => $d->fsatuan ?? '',
-                'fprno' => $d->frefpr ?? '-',
-                'frefpr' => $d->frefpr ?? null,
-                'frefso' => $d->frefso ?? null,
-                'fpono' => $d->fpono ?? null,
-                'famountponet' => $d->famountponet ?? null,
-                'famountpo' => $d->famountpo ?? null,
-                'frefdtno' => $d->frefdtno ?? null,
-                'fnouref' => $d->fnouref ?? null,
-                'fqty' => (float) ($d->fqty ?? 0),
-                'fterima' => (float) ($d->fterima ?? 0),
-                'fdisc' => (float) ($d->fdiscpersen ?? 0),
-                'ftotal' => (float) ($d->ftotprice ?? 0),
-                'fdesc' => is_array($d->fdesc) ? implode(', ', $d->fdesc) : ($d->fdesc ?? ''),
-                'fketdt' => $d->fketdt ?? '',
-                'units' => [],
-
-                // TAMBAHKAN INI - untuk JavaScript
-                'faccid' => $d->frefdtno ?? null,
-                'faccname' => $d->account ? $d->account->faccname : null,
-                'fsubaccountid' => $d->frefso ?? null,
-                'fsubaccountname' => $d->subaccount ? $d->subaccount->fsubaccountname : null,
-            ];
-        })->values();
-
-        // Sisa kode Anda sudah benar
-        $selectedSupplierCode = $jurnaltransaksi->fsupplier;
+        [$jurnaltransaksi, $savedItems] = $this->getJournalTransactionFormData($fstockmtid);
+        $selectedSupplierCode = null;
 
         $products = Product::select(
             'fprdid',
@@ -1194,10 +998,11 @@ class JurnalTransaksiController extends Controller
             'products' => $products,
             'productMap' => $productMap,
             'jurnaltransaksi' => $jurnaltransaksi,
+            'pemakaianbarang' => $jurnaltransaksi,
             'savedItems' => $savedItems,
-            'ppnAmount' => (float) ($jurnaltransaksi->famountpopajak ?? 0),
-            'famountponet' => (float) ($jurnaltransaksi->famountponet ?? 0),
-            'famountpo' => (float) ($jurnaltransaksi->famountpo ?? 0),
+            'ppnAmount' => 0,
+            'famountponet' => 0,
+            'famountpo' => 0,
             'action' => 'delete',
         ]);
     }
@@ -1205,17 +1010,132 @@ class JurnalTransaksiController extends Controller
     public function destroy($fstockmtid)
     {
         try {
-            $jurnaltransaksi = PenerimaanPembelianHeader::findOrFail($fstockmtid);
-            $jurnaltransaksi->details()->delete();
+            $jurnaltransaksi = DB::table('jurnalmt')
+                ->where('fjurnalmtid', $fstockmtid)
+                ->first();
 
-            // 2. Baru hapus header
-            $jurnaltransaksi->delete();
+            if (! $jurnaltransaksi) {
+                abort(404);
+            }
 
-            return redirect()->route('jurnaltransaksi.index')->with('success', 'Data jurnal transaksi '.$jurnaltransaksi->fstockmtno.' berhasil dihapus.');
+            DB::transaction(function () use ($fstockmtid) {
+                DB::table('jurnaldt')->where('fjurnalmtid', $fstockmtid)->delete();
+                DB::table('jurnalmt')->where('fjurnalmtid', $fstockmtid)->delete();
+            });
+
+            $message = 'Data jurnal transaksi '.trim((string) $jurnaltransaksi->fjurnalno).' berhasil dihapus.';
+
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'message' => $message,
+                    'redirect' => route('jurnaltransaksi.index'),
+                ]);
+            }
+
+            return redirect()->route('jurnaltransaksi.index')->with('success', $message);
         } catch (\Exception $e) {
-            // Jika terjadi kesalahan saat menghapus, kembali ke halaman delete dengan pesan error
-            return redirect()->route('jurnaltransaksi.delete', $fstockmtid)->with('error', 'Gagal menghapus data: '.$e->getMessage());
+            $message = 'Gagal menghapus data: '.$e->getMessage();
+
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'message' => $message,
+                ], 500);
+            }
+
+            return redirect()->route('jurnaltransaksi.delete', $fstockmtid)->with('error', $message);
         }
+    }
+
+    private function getJournalTransactionFormData($journalId): array
+    {
+        $header = DB::table('jurnalmt')
+            ->where('fjurnalmtid', $journalId)
+            ->first();
+
+        if (! $header) {
+            abort(404);
+        }
+
+        $details = DB::table('jurnaldt as d')
+            ->leftJoin('account as a', 'a.faccount', '=', 'd.faccount')
+            ->leftJoin('mssubaccount as s', 's.fsubaccountcode', '=', 'd.fsubaccount')
+            ->where('d.fjurnalmtid', $journalId)
+            ->orderBy('d.flineno')
+            ->get([
+                'd.flineno',
+                'd.faccount',
+                'd.fsubaccount',
+                'd.fdk',
+                'd.faccountnote',
+                'd.frefno',
+                'd.famount',
+                'd.famount_rp',
+                'd.frate',
+                'a.faccid',
+                'a.faccname',
+                's.fsubaccountid',
+                's.fsubaccountname',
+            ]);
+
+        $journalViewModel = (object) [
+            'fjurnalmtid' => $header->fjurnalmtid,
+            'fjurnalno' => $header->fjurnalno,
+            'fjurnaldate' => $header->fjurnaldate,
+            'fjurnaltype' => $header->fjurnaltype,
+            'fjurnalnote' => $header->fjurnalnote,
+            'fbalance' => $header->fbalance,
+            'fbalance_rp' => $header->fbalance_rp,
+            'fstockmtid' => $header->fjurnalmtid,
+            'fstockmtno' => $header->fjurnalno,
+            'fstockmtdate' => $header->fjurnaldate ? Carbon::parse($header->fjurnaldate)->format('Y-m-d') : null,
+            'ffrom' => null,
+            'fket' => $header->fjurnalnote,
+            'fsupplier' => null,
+            'famountpopajak' => 0,
+            'famountponet' => 0,
+            'famountpo' => 0,
+        ];
+
+        $savedItems = $details->map(function ($row) {
+            $label = trim((string) ($row->faccount ?? ''));
+            $name = trim((string) ($row->faccname ?? ''));
+            $subName = trim((string) ($row->fsubaccountname ?? ''));
+
+            return [
+                'uid' => (int) ($row->flineno ?? 0),
+                'fitemcode' => trim((string) ($row->faccount ?? '')),
+                'fitemname' => $name !== '' ? $name : trim((string) ($row->faccountnote ?? '')),
+                'fsatuan' => trim((string) ($row->fdk ?? '')),
+                'fprno' => trim((string) ($row->frefno ?? '')),
+                'frefpr' => trim((string) ($row->frefno ?? '')),
+                'frefso' => trim((string) ($row->fsubaccount ?? '')),
+                'fpono' => null,
+                'famountponet' => (float) ($row->famount ?? 0),
+                'famountpo' => (float) ($row->famount_rp ?? 0),
+                'frefdtno' => trim((string) ($row->faccount ?? '')),
+                'fnouref' => (int) ($row->flineno ?? 0),
+                'fqty' => (float) ($row->famount ?? 0),
+                'fterima' => 0,
+                'fdisc' => 0,
+                'ftotal' => (float) ($row->famount_rp ?? $row->famount ?? 0),
+                'fdesc' => trim((string) ($row->faccountnote ?? '')),
+                'fketdt' => trim((string) ($row->frefno ?? '')),
+                'units' => [],
+                'faccid' => $row->faccid,
+                'faccount' => $label,
+                'faccname' => $name !== '' ? $name : $label,
+                'fsubaccountid' => $row->fsubaccountid,
+                'fsubaccountcode' => trim((string) ($row->fsubaccount ?? '')),
+                'fsubaccountname' => $subName,
+                'fdk' => trim((string) ($row->fdk ?? '')),
+                'faccountnote' => trim((string) ($row->faccountnote ?? '')),
+                'frefno' => trim((string) ($row->frefno ?? '')),
+                'famount' => (float) ($row->famount ?? 0),
+                'frate' => (float) ($row->frate ?? 1),
+            ];
+        })->values();
+
+        return [$journalViewModel, $savedItems];
     }
 
     private function validateUniqueJournalReferenceUsage(array $rowsDt, ?string $exceptJurnalNo = null): ?string

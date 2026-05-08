@@ -110,10 +110,6 @@
                         </div>
                     </div>
 
-                    @error('detail')
-                        <p class="text-red-600 text-sm">{{ $message }}</p>
-                    @enderror
-
                     <div class="overflow-auto border rounded">
                         <table class="min-w-full text-sm">
                             <thead class="bg-gray-100">
