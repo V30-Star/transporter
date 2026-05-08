@@ -19,7 +19,7 @@
             <li x-data="{ open: false }">
                 <button @click="open = !open"
                     class="flex items-center w-full p-2 text-gray-600 rounded-lg hover:bg-gray-100 focus:outline-none">
-                    <x-heroicon-o-collection class="w-5 h-5" />
+                    <x-heroicon-o-rectangle-stack class="w-5 h-5" />
                     <span class="ml-3 flex-1 text-left">Master</span>
                     <svg :class="{ 'rotate-180': open }" class="w-4 h-4 transition-transform" fill="none"
                         stroke="currentColor" viewBox="0 0 24 24">
