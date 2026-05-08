@@ -291,7 +291,7 @@
 
                                     <td class="p-2 text-right">
                                         <input type="number" class="border rounded px-2 py-1 w-24 text-right"
-                                            min="1" step="1"
+                                            min="1" step="0.01"
                                             x-model.number="editRow.fqty" x-ref="editQty" @focus="$event.target.select()"
                                             @keydown.enter.prevent="$refs.editKet?.focus()">
                                                 <div class="text-xs text-gray-400 mt-0.5 flex justify-between items-center" x-show="editRow.fitemcode">
@@ -893,11 +893,9 @@
                     formatQtyValue(value) {
                         const num = Number(value);
                         if (!Number.isFinite(num)) return '0,00';
-                        const hasMoreThanTwoDecimals = Math.abs((num * 100) - Math.round(num * 100)) > 0.000001;
-                        const digits = hasMoreThanTwoDecimals ? 4 : 2;
                         return new Intl.NumberFormat('id-ID', {
-                            minimumFractionDigits: digits,
-                            maximumFractionDigits: digits
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
                         }).format(num);
                     },
                     enforceQtyRow(row) {

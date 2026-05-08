@@ -87,7 +87,7 @@
                                 <tr class="border-t border-gray-100">
                                     <td class="whitespace-nowrap">{{ $item->fprdcode }}</td>
                                     <td class="whitespace-nowrap">{{ $item->product_name ?? '-' }}</td>
-                                    <td class="text-right whitespace-nowrap">{{ (int) $item->fqty }}</td>
+                                    <td class="text-right whitespace-nowrap">{{ number_format((float) ($item->fqty ?? 0), 2, ',', '.') }}</td>
                                     <td class="whitespace-nowrap">{{ $item->fsatuan }}</td>
                                     <td class="text-right whitespace-nowrap">{{ $item->stock ?? '-' }}</td>
                                     <td class="max-w-[320px]">{{ $item->fdesc ?? '-' }}</td>

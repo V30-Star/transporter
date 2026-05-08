@@ -804,6 +804,183 @@
             };
         })();
     </script>
+    <script>
+        (() => {
+            function isQtyInput(element) {
+                if (!(element instanceof HTMLInputElement)) {
+                    return false;
+                }
+
+                if (element.type !== 'number' && element.inputMode !== 'decimal') {
+                    return false;
+                }
+
+                const name = (element.name || '').toLowerCase();
+                const id = (element.id || '').toLowerCase();
+
+                return name.includes('qty') || id.includes('qty');
+            }
+
+            function isMinStockInput(element) {
+                if (!(element instanceof HTMLInputElement)) {
+                    return false;
+                }
+
+                const name = (element.name || '').toLowerCase();
+                const id = (element.id || '').toLowerCase();
+
+                return name === 'fminstock' || id === 'fminstock';
+            }
+
+            function formatNumberAsId(value) {
+                const parsedValue = Number(String(value ?? '').replace(/\./g, '').replace(',', '.'));
+                if (!Number.isFinite(parsedValue)) {
+                    return value;
+                }
+
+                return parsedValue.toLocaleString('id-ID', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            }
+
+            function normalizeIdNumber(value) {
+                const parsedValue = Number(String(value ?? '').replace(/\./g, '').replace(',', '.'));
+                if (!Number.isFinite(parsedValue)) {
+                    return value;
+                }
+
+                return String(parsedValue);
+            }
+
+            function applyQtyFormatting(root = document) {
+                root.querySelectorAll('input').forEach((input) => {
+                    if (!isQtyInput(input) || input.dataset.qtyFormatted === '1') {
+                        return;
+                    }
+
+                    input.step = '0.01';
+                    input.inputMode = 'decimal';
+
+                    const formatCurrentValue = () => {
+                        const currentValue = input.value;
+                        if (currentValue === null || currentValue === undefined || currentValue === '') {
+                            return;
+                        }
+
+                        const parsedValue = Number(currentValue);
+                        if (!Number.isFinite(parsedValue)) {
+                            return;
+                        }
+
+                        input.value = parsedValue.toFixed(2);
+                    };
+
+                    formatCurrentValue();
+
+                    input.addEventListener('blur', () => {
+                        formatCurrentValue();
+                        input.dispatchEvent(new Event('input', { bubbles: true }));
+                        input.dispatchEvent(new Event('change', { bubbles: true }));
+                    });
+
+                    input.dataset.qtyFormatted = '1';
+                });
+            }
+
+            function applyMinStockFormatting(root = document) {
+                root.querySelectorAll('input').forEach((input) => {
+                    if (!isMinStockInput(input) || input.dataset.minstockFormatted === '1') {
+                        return;
+                    }
+
+                    const formatCurrentValue = () => {
+                        const currentValue = input.value;
+                        if (currentValue === null || currentValue === undefined || currentValue === '') {
+                            return;
+                        }
+
+                        const formattedValue = formatNumberAsId(currentValue);
+                        if (formattedValue !== currentValue) {
+                            input.value = formattedValue;
+                        }
+                    };
+
+                    formatCurrentValue();
+
+                    input.addEventListener('blur', formatCurrentValue);
+                    input.dataset.minstockFormatted = '1';
+                });
+            }
+
+            function scheduleQtyFormatting() {
+                applyQtyFormatting();
+                applyMinStockFormatting();
+
+                requestAnimationFrame(() => {
+                    applyQtyFormatting();
+                    applyMinStockFormatting();
+                    requestAnimationFrame(() => applyQtyFormatting());
+                });
+
+                window.setTimeout(() => {
+                    applyQtyFormatting();
+                    applyMinStockFormatting();
+                }, 100);
+                window.setTimeout(() => {
+                    applyQtyFormatting();
+                    applyMinStockFormatting();
+                }, 500);
+                window.setTimeout(() => {
+                    applyQtyFormatting();
+                    applyMinStockFormatting();
+                }, 1000);
+            }
+
+            document.addEventListener('DOMContentLoaded', () => {
+                scheduleQtyFormatting();
+
+                const observer = new MutationObserver((mutations) => {
+                    mutations.forEach((mutation) => {
+                        mutation.addedNodes.forEach((node) => {
+                            if (node instanceof HTMLElement) {
+                                if (node.matches && node.matches('input')) {
+                                    applyQtyFormatting(node.parentElement || document);
+                                } else {
+                                    applyQtyFormatting(node);
+                                }
+                            }
+                        });
+                    });
+                });
+
+                observer.observe(document.body, {
+                    childList: true,
+                    subtree: true,
+                });
+            });
+
+            window.addEventListener('load', scheduleQtyFormatting);
+
+            window.addEventListener('submit', (event) => {
+                const form = event.target;
+                if (!(form instanceof HTMLFormElement)) {
+                    return;
+                }
+
+                form.querySelectorAll('input').forEach((input) => {
+                    if (!isMinStockInput(input)) {
+                        return;
+                    }
+
+                    const normalizedValue = normalizeIdNumber(input.value);
+                    if (normalizedValue !== input.value) {
+                        input.value = normalizedValue;
+                    }
+                });
+            }, true);
+        })();
+    </script>
     @if ($transactionErrorMessages->isNotEmpty())
         <script>
             (() => {
@@ -895,9 +1072,9 @@
                 return window.formatNumber2(value, '-');
             };
 
-            const blockedQtyKeys = new Set([',', '.', 'e', 'E', '+', '-']);
+            const blockedQtyKeys = new Set(['e', 'E', '+', '-']);
 
-            function isWholeQtyInput(element) {
+            function isDecimalQtyInput(element) {
                 if (!(element instanceof HTMLInputElement)) {
                     return false;
                 }
@@ -910,54 +1087,28 @@
                 return alpineModel.endsWith('.fqty');
             }
 
-            function bindWholeQtyInput(input) {
-                if (!isWholeQtyInput(input) || input.dataset.wholeQtyBound === '1') {
+            function bindDecimalQtyInput(input) {
+                if (!isDecimalQtyInput(input) || input.dataset.decimalQtyBound === '1') {
                     return;
                 }
 
-                input.dataset.wholeQtyBound = '1';
-                input.setAttribute('step', '1');
-                input.setAttribute('inputmode', 'numeric');
+                input.dataset.decimalQtyBound = '1';
+                input.setAttribute('step', '0.01');
+                input.setAttribute('inputmode', 'decimal');
 
                 input.addEventListener('keydown', (event) => {
                     if (blockedQtyKeys.has(event.key)) {
                         event.preventDefault();
                     }
                 }, true);
-
-                input.addEventListener('paste', (event) => {
-                    const pastedText = event.clipboardData?.getData('text') ?? '';
-                    if (!pastedText) {
-                        return;
-                    }
-
-                    const digitsOnly = pastedText.replace(/\D/g, '');
-                    if (digitsOnly === pastedText) {
-                        return;
-                    }
-
-                    event.preventDefault();
-                    document.execCommand('insertText', false, digitsOnly);
-                }, true);
-
-                input.addEventListener('input', () => {
-                    if (input.value === '') {
-                        return;
-                    }
-
-                    const digitsOnly = input.value.replace(/\D/g, '');
-                    if (digitsOnly !== input.value) {
-                        input.value = digitsOnly;
-                    }
-                }, true);
             }
 
-            function bindWholeQtyInputs(root = document) {
-                root.querySelectorAll('input[type="number"]').forEach(bindWholeQtyInput);
+            function bindDecimalQtyInputs(root = document) {
+                root.querySelectorAll('input[type="number"]').forEach(bindDecimalQtyInput);
             }
 
             document.addEventListener('DOMContentLoaded', () => {
-                bindWholeQtyInputs();
+                bindDecimalQtyInputs();
 
                 const observer = new MutationObserver((mutations) => {
                     mutations.forEach((mutation) => {
@@ -967,10 +1118,10 @@
                             }
 
                             if (node.matches?.('input[type="number"]')) {
-                                bindWholeQtyInput(node);
+                                bindDecimalQtyInput(node);
                             }
 
-                            bindWholeQtyInputs(node);
+                            bindDecimalQtyInputs(node);
                         });
                     });
                 });

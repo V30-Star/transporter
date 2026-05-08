@@ -548,7 +548,15 @@
                     data: 'fminstock',
                     name: 'fminstock',
                     orderable: false,
-                    searchable: true
+                    searchable: true,
+                    render: function(value) {
+                        const num = Number(value ?? 0);
+                        if (!Number.isFinite(num)) return '0,00';
+                        return num.toLocaleString('id-ID', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        });
+                    }
                 },
                 // {
                 //     data: 'fimage1',

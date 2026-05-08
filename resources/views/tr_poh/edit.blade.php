@@ -185,9 +185,7 @@
         $canClosePo = $isEdit && $tr_poh->fclose != '1' && (string) ($tr_poh->fprdin ?? '') !== '1';
         $fmtQty = function ($value) {
             $num = (float) ($value ?? 0);
-            $hasMoreThanTwoDecimals = abs(($num * 100) - round($num * 100)) > 0.000001;
-            $digits = $hasMoreThanTwoDecimals ? 4 : 2;
-            return number_format($num, $digits, ',', '.');
+            return number_format($num, 2, ',', '.');
         };
     @endphp
 
@@ -646,7 +644,7 @@
 
                                 <td class="p-2 text-right">
                                     <input type="number" class="border rounded px-2 py-1 w-20 text-right text-sm"
-                                        min="0" step="1" x-ref="draftQty" x-model.number="draft.fqty"
+                                                min="0" step="0.01" x-ref="draftQty" x-model.number="draft.fqty"
                                         @input="recalc(draft);" @blur="enforcePrQtyRow(draft);" @keydown.enter.prevent="$refs.draftPrice?.focus()">
                                     <div class="text-[10px] text-amber-700 font-medium text-right mt-0.5"
                                         x-show="draft.frefdtid && formatPrRemainHint(draft)"
@@ -1252,11 +1250,9 @@
             formatQtyValue(value) {
                 const num = Number(value);
                 if (!Number.isFinite(num)) return '0,00';
-                const hasMoreThanTwoDecimals = Math.abs((num * 100) - Math.round(num * 100)) > 0.000001;
-                const digits = hasMoreThanTwoDecimals ? 4 : 2;
                 return num.toLocaleString('id-ID', {
-                    minimumFractionDigits: digits,
-                    maximumFractionDigits: digits
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
                 });
             },
 

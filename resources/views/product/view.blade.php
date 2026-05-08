@@ -547,7 +547,7 @@
 
                             {{-- Input tanpa border agar menyatu dengan container --}}
                             <input type="text" name="fminstock" id="fminstock" disabled
-                                value="{{ old('fminstock', $product->fminstock) }}"
+                                value="{{ number_format((float) old('fminstock', $product->fminstock ?? 0), 2, ',', '.') }}"
                                 class="flex-1 bg-transparent border-none focus:ring-0 px-3 py-2 text-right">
 
                             {{-- Garis vertikal (border-l) dan teks satuan --}}

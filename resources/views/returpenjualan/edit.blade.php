@@ -990,7 +990,7 @@
                                                 </td>
                                                 <td class="p-2 text-right">
                                                     <input type="number" class="border rounded px-2 py-1 w-24 text-right"
-                                                        min="0" step="1" x-ref="draftQty"
+                                                min="0" step="0.01" x-ref="draftQty"
                                                         x-model.number="draft.fqty" @input="
                                                             recalc(draft);
                                                             enforceQtyRow(draft);
@@ -2502,11 +2502,9 @@
                     formatQtyValue(value) {
                         const num = Number(value);
                         if (!Number.isFinite(num)) return '0,00';
-                        const hasMoreThanTwoDecimals = Math.abs((num * 100) - Math.round(num * 100)) > 0.000001;
-                        const digits = hasMoreThanTwoDecimals ? 4 : 2;
                         return num.toLocaleString('id-ID', {
-                            minimumFractionDigits: digits,
-                            maximumFractionDigits: digits
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
                         });
                     },
 

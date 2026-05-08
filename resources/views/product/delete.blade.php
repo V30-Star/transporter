@@ -55,7 +55,7 @@
             <div class="grid grid-cols-3 gap-4">
                 <div class="text-sm font-medium text-gray-500">Min. Stok</div>
                 <div class="col-span-2 text-sm font-semibold text-gray-900">
-                    {{ number_format($product->fminstock ?? 0) }}
+                    {{ number_format((float) ($product->fminstock ?? 0), 2, ',', '.') }}
                 </div>
             </div>
 
@@ -360,4 +360,3 @@
         </script>
     @endif
 @endsection
-

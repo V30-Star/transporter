@@ -313,7 +313,7 @@
 
                                         <td class="p-2 text-right">
                                             <input type="number" class="border rounded px-2 py-1 w-24 text-right"
-                                                min="0" step="1" x-ref="editQty"
+                                            min="0" step="0.01" x-ref="editQty"
                                                 x-model.number="editRow.fqty" @change="recalc(editRow)"
                                                 @blur="recalc(editRow)" @keydown.enter.prevent="$refs.editPrice?.focus()">
                                         </td>
@@ -1609,4 +1609,3 @@
             });
         </script>
     @endpush
-

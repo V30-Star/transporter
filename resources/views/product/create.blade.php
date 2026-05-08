@@ -661,7 +661,8 @@
                         class="flex items-center border border-gray-300 rounded bg-gray-50 focus-within:bg-white focus-within:ring-1 focus-within:ring-blue-400 transition-all @error('fminstock') border-red-500 @enderror">
 
                         {{-- Input tanpa border sendiri --}}
-                        <input type="text" name="fminstock" id="fminstock" value="{{ old('fminstock', 0) }}"
+                        <input type="text" name="fminstock" id="fminstock"
+                            value="{{ number_format((float) old('fminstock', 0), 2, ',', '.') }}"
                             class="flex-1 bg-transparent border-none focus:ring-0 px-3 py-2 text-right">
 
                         {{-- Garis vertikal dan teks satuan --}}

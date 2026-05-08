@@ -455,7 +455,7 @@
 
                                 <td class="p-2 text-right">
                                     <input type="number" class="border rounded px-2 py-1 w-20 text-right text-sm"
-                                        min="0" step="1" x-ref="draftQty" x-model.number="draft.fqty"
+                                                min="0" step="0.01" x-ref="draftQty" x-model.number="draft.fqty"
                                         @input="recalc(draft)" @blur="enforceQtyRow(draft);"
                                         @keydown.enter.prevent="$refs.draftPrice?.focus()">
                                     <div class="text-[10px] text-orange-600 font-medium text-right mt-0.5"

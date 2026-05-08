@@ -270,9 +270,7 @@
     @php
         $fmtQty = function ($value) {
             $num = (float) $value;
-            $hasMoreThanTwoDecimals = abs(($num * 100) - round($num * 100)) > 0.000001;
-            $digits = $hasMoreThanTwoDecimals ? 4 : 2;
-            return number_format($num, $digits, ',', '.');
+            return number_format($num, 2, ',', '.');
         };
     @endphp
     {{-- ===================== TOOLBAR ===================== --}}
@@ -447,4 +445,3 @@
 </body>
 
 </html>
-

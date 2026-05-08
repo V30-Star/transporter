@@ -513,7 +513,7 @@
                                 </td>
                                 <td class="p-2 text-right">
                                     <input type="number" class="border rounded px-2 py-1 w-20 text-right text-sm"
-                                        min="0" step="1" x-ref="draftQty" x-model.number="draft.fqty"
+                                                min="0" step="0.01" x-ref="draftQty" x-model.number="draft.fqty"
                                         @input="recalc(draft);" @blur="enforcePrQtyRow(draft);" @keydown.enter.prevent="$refs.draftPrice?.focus()">
                                     <div class="text-[10px] text-amber-700 font-medium text-right mt-0.5"
                                         x-show="draft.frefdtid && formatPrRemainHint(draft)"
