@@ -144,7 +144,7 @@ class CustomerController extends Controller
         // --- Handle Request non-AJAX (Saat load halaman pertama kali) ---
         $status = $request->query('status');
 
-        return view('master.customer.index', compact(
+        return view('customer.index', compact(
             'canCreate',
             'canEdit',
             'canDelete',
@@ -178,7 +178,7 @@ class CustomerController extends Controller
         $rekening = Rekening::where('fnonactive', 0)->get();
         $newCustomerCode = $this->generateCustomerCode();
 
-        return view('master.customer.create', compact('groups', 'salesman', 'wilayah', 'rekening', 'newCustomerCode'));
+        return view('customer.create', compact('groups', 'salesman', 'wilayah', 'rekening', 'newCustomerCode'));
     }
 
     // Store method to save the new customer in the database
@@ -279,7 +279,7 @@ class CustomerController extends Controller
         $rekening = Rekening::where('fnonactive', 0)->get();
         $newCustomerCode = $this->generateCustomerCode();
 
-        return view('master.customer.edit', [
+        return view('customer.edit', [
             'customer' => $customer,
             'groups' => $groups,
             'salesman' => $salesman,
@@ -300,7 +300,7 @@ class CustomerController extends Controller
         $rekening = Rekening::where('fnonactive', 0)->get();
         $newCustomerCode = $this->generateCustomerCode();
 
-        return view('master.customer.view', [
+        return view('customer.view', [
             'customer' => $customer,
             'groups' => $groups,
             'salesman' => $salesman,
@@ -414,7 +414,7 @@ class CustomerController extends Controller
     {
         $customer = Customer::findOrFail($fcustomerid);
 
-        return view('master.customer.delete', [
+        return view('customer.delete', [
             'customer' => $customer,
         ]);
     }

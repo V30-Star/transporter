@@ -16,13 +16,13 @@ class GroupcustomerController extends Controller
         $canEdit = in_array('updateGroupCustomer', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deleteGroupCustomer', explode(',', session('user_restricted_permissions', '')));
 
-        return view('master.groupcustomer.index', compact('groupcustomers', 'canCreate', 'canEdit', 'canDelete'));
+        return view('groupcustomer.index', compact('groupcustomers', 'canCreate', 'canEdit', 'canDelete'));
     }
 
     public function create()
     {
         // Menampilkan form untuk menambah grup customer baru
-        return view('master.groupcustomer.create');
+        return view('groupcustomer.create');
     }
 
     public function store(Request $request)
@@ -62,7 +62,7 @@ class GroupcustomerController extends Controller
         $groupcustomer = Groupcustomer::findOrFail($fgroupid);
 
         // Menampilkan form untuk mengedit grup customer
-        return view('master.groupcustomer.edit', [
+        return view('groupcustomer.edit', [
             'groupcustomer' => $groupcustomer,
             'action' => 'edit',
         ]);
@@ -74,7 +74,7 @@ class GroupcustomerController extends Controller
         $groupcustomer = Groupcustomer::findOrFail($fgroupid);
 
         // Menampilkan form untuk mengedit grup customer
-        return view('master.groupcustomer.view', [
+        return view('groupcustomer.view', [
             'groupcustomer' => $groupcustomer,
         ]);
     }
@@ -114,7 +114,7 @@ class GroupcustomerController extends Controller
     {
         $groupcustomer = Groupcustomer::findOrFail($fgroupid);
 
-        return view('master.groupcustomer.delete', [
+        return view('groupcustomer.delete', [
             'groupcustomer' => $groupcustomer,
         ]);
     }

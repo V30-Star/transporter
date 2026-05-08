@@ -3,7 +3,18 @@
 @section('title', 'View Supplier')
 
 @section('content')
-    <div class="bg-white rounded shadow p-6 md:p-8 max-w-5xl mx-auto">
+    <style>
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+        }
+    </style>
+
+    <div x-data="{ open: true, selected: 'surat' }">
+        <div class="bg-white rounded shadow p-6 md:p-8 max-w-5xl mx-auto">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                 <div>
                     <label class="block text-sm font-medium">Kode Supplier</label>
@@ -22,6 +33,19 @@
                         value="{{ old('fsuppliername', $supplier->fsuppliername) }}"
                         class="w-full border rounded px-3 py-2 bg-gray-100 uppercase @error('fsuppliername') border-red-500 @enderror">
                     @error('fsuppliername')
+                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium">Mata Uang</label>
+                    <select name="fcurr" disabled
+                        class="w-full border rounded px-3 py-2 bg-gray-100 @error('fcurr') border-red-500 @enderror">
+                        <option value="IDR" {{ old('fcurr', $supplier->fcurr) == 'IDR' ? 'selected' : '' }}>IDR (Rupiah)</option>
+                        <option value="USD" {{ old('fcurr', $supplier->fcurr) == 'USD' ? 'selected' : '' }}>USD (Dollar)</option>
+                        <option value="EUR" {{ old('fcurr', $supplier->fcurr) == 'EUR' ? 'selected' : '' }}>EUR (Euro)</option>
+                    </select>
+                    @error('fcurr')
                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                     @enderror
                 </div>
@@ -66,8 +90,7 @@
                     <label class="block text-sm font-medium">Jatuh Tempo</label>
                     <input readonly type="number" name="ftempo" value="{{ old('ftempo', $supplier->ftempo) }}"
                         class="w-full border rounded px-3 py-2 bg-gray-100 @error('ftempo') border-red-500 @enderror"
-                        min="0" max="999" step="1"
-                        oninput="this.value = this.value.replace(/[^0-9]/g,'').slice(0,3)">
+                        min="0" max="999" step="1">
                     @error('ftempo')
                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                     @enderror
@@ -111,24 +134,7 @@
                     @enderror
                 </div>
 
-                <div>
-                    <label class="block text-sm font-medium">Mata Uang</label>
-                    <select name="fcurr" class="bg-gray-100" disabled
-                        class="w-full border rounded px-3 py-2 @error('fcurr') border-red-500 @enderror">
-                        <option value="IDR" {{ old('fcurr', $supplier->fcurr) == 'IDR' ? 'selected' : '' }}>IDR (Rupiah)
-                        </option>
-                        <option value="USD" {{ old('fcurr', $supplier->fcurr) == 'USD' ? 'selected' : '' }}>USD (Dollar)
-                        </option>
-                        <option value="EUR" {{ old('fcurr', $supplier->fcurr) == 'EUR' ? 'selected' : '' }}>EUR (Euro)
-                        </option>
-                        <!-- Add more currencies as needed -->
-                    </select>
-                    @error('fcurr')
-                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
-                <div class="md:col-span-2 flex flex-col items-center space-y-4">
-                    {{-- Checkbox Tetap di Atas --}}
+                <div class="md:col-span-2 flex justify-center items-center space-x-2">
                     <label for="statusToggle"
                         class="flex items-center justify-between w-40 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition">
                         <span class="text-sm font-medium">Non Aktif</span>
@@ -136,24 +142,17 @@
                             class="h-5 w-5 text-green-600 rounded focus:ring-green-500 bg-gray-100"
                             {{ old('fnonactive', $supplier->fnonactive) == '1' ? 'checked' : '' }}>
                     </label>
-
-                    {{-- PEMBUNGKUS TOMBOL: Agar Sejajar Horizontal --}}
-                    <div class="flex flex-row space-x-4">
-                        <button type="button" onclick="window.location.href='{{ route('supplier.index') }}'"
-                            class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
-                            <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" />
-                            Kembali
-                        </button>
-                    </div>
                 </div>
             </div>
-@endsection
+            <br>
 
-<style>
-    hr {
-        border: 0;
-        border-top: 2px dashed #000000;
-        margin-top: 20px;
-        margin-bottom: 20px;
-    }
-</style>
+            <div class="mt-6 flex justify-center space-x-4">
+                <button type="button" onclick="window.location.href='{{ route('supplier.index') }}'"
+                    class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
+                    <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" />
+                    Kembali
+                </button>
+            </div>
+        </div>
+    </div>
+@endsection

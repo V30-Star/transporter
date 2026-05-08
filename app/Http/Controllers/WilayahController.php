@@ -25,12 +25,12 @@ class WilayahController extends Controller
         $canEdit = in_array('updateWilayah', explode(',', session('user_restricted_permissions', '')));
         $canDelete = in_array('deleteWilayah', explode(',', session('user_restricted_permissions', '')));
 
-        return view('master.wilayah.index', compact('wilayahs', 'canCreate', 'canEdit', 'canDelete'));
+        return view('wilayah.index', compact('wilayahs', 'canCreate', 'canEdit', 'canDelete'));
     }
 
     public function create()
     {
-        return view('master.wilayah.create');
+        return view('wilayah.create');
     }
 
     public function store(Request $request)
@@ -68,7 +68,7 @@ class WilayahController extends Controller
     {
         $wilayah = Wilayah::findOrFail($fwilayahid);
 
-        return view('master.wilayah.edit', [
+        return view('wilayah.edit', [
             'wilayah' => $wilayah,
             'action' => 'edit',
         ]);
@@ -78,7 +78,7 @@ class WilayahController extends Controller
     {
         $wilayah = Wilayah::findOrFail($fwilayahid);
 
-        return view('master.wilayah.view', [
+        return view('wilayah.view', [
             'wilayah' => $wilayah,
         ]);
     }
@@ -118,7 +118,7 @@ class WilayahController extends Controller
     {
         $wilayah = Wilayah::findOrFail($fwilayahid);
 
-        return view('master.wilayah.delete', [
+        return view('wilayah.delete', [
             'wilayah' => $wilayah,
         ]);
     }
