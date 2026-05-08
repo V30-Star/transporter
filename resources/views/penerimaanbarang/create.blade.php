@@ -813,7 +813,7 @@
                     });
                 },
                 rupiah(n) {
-                    return `Rp ${this.fmtCurr(n)}`;
+                    return this.fmtCurr(n);
                 },
                 formatStockLimit(itemCode, qty, satuan) {
                     const code = String(itemCode || '').trim();

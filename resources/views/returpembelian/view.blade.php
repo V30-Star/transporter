@@ -983,8 +983,8 @@
 
             rupiah(n) {
                 const v = Number(n || 0);
-                if (!isFinite(v)) return 'Rp -';
-                return 'Rp ' + v.toLocaleString('id-ID', {
+                if (!isFinite(v)) return '-';
+                return v.toLocaleString('id-ID', {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
                 });
@@ -1851,4 +1851,3 @@
         }
     </script>
 @endpush
-

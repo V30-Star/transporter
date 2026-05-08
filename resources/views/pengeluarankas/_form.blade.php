@@ -5,6 +5,8 @@
     $isEditMode = strtoupper($formMethod) === 'PATCH';
     $isDeleteMode = strtoupper($formMethod) === 'DELETE';
     $submitLabel = $isEditMode ? "Update" : "Simpan";
+    $transactionLabel = $transactionLabel ?? 'Pengeluaran Kas';
+    $backRoute = $backRoute ?? route('pengeluarankas.index');
     $detailsOld = old('details');
     $detailRows = is_array($detailsOld)
         ? collect($detailsOld)->map(fn ($row) => (object) $row)
@@ -38,7 +40,7 @@
 
     @if ($isDeleteMode)
         <div class="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-700">
-            <p class="font-semibold">{{ "Konfirmasi Hapus Pengeluaran Kas" }}</p>
+            <p class="font-semibold">{{ "Konfirmasi Hapus ".$transactionLabel }}</p>
             <p class="mt-1 text-sm">{{ "Data akan dihapus permanen. Pastikan data yang ditampilkan sudah benar sebelum melanjutkan." }}</p>
         </div>
     @endif
@@ -326,7 +328,7 @@
                 </button>
             @endif
 
-            <a href="{{ route('pengeluarankas.index') }}"
+            <a href="{{ $backRoute }}"
                 class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 inline-flex items-center">
                 <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" /> {{ "Kembali" }}
             </a>

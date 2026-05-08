@@ -22,6 +22,7 @@ use App\Http\Controllers\MerekController;
 use App\Http\Controllers\MutasiController;
 use App\Http\Controllers\PemakaianbarangController;
 use App\Http\Controllers\PengeluaranKasController;
+use App\Http\Controllers\PenerimaanKasController;
 use App\Http\Controllers\PenerimaanBarangController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
@@ -32,6 +33,7 @@ use App\Http\Controllers\ReportingAssemblingController;
 use App\Http\Controllers\ReportingController;
 use App\Http\Controllers\ReportingCustomerController;
 use App\Http\Controllers\ReportingFakturPembelianController;
+use App\Http\Controllers\ReportingKasController;
 use App\Http\Controllers\ReportingPemakaianBarangController;
 use App\Http\Controllers\ReportingPenerimaanBarangController;
 use App\Http\Controllers\ReportingPrController;
@@ -224,6 +226,16 @@ Route::middleware('auth')->group(function () {
         Route::get('/pengeluarankas/{fkasmtno}/print', [PengeluaranKasController::class, 'print'])->name('pengeluarankas.print');
         Route::patch('/pengeluarankas/{fkasmtno}', [PengeluaranKasController::class, 'update'])->name('pengeluarankas.update');
         Route::delete('/pengeluarankas/{fkasmtno}', [PengeluaranKasController::class, 'destroy'])->name('pengeluarankas.destroy');
+
+        Route::get('/penerimaankas', [PenerimaanKasController::class, 'index'])->name('penerimaankas.index');
+        Route::post('/penerimaankas', [PenerimaanKasController::class, 'store'])->name('penerimaankas.store');
+        Route::get('/penerimaankas/create', [PenerimaanKasController::class, 'create'])->name('penerimaankas.create');
+        Route::get('/penerimaankas/{fkasmtno}/view', [PenerimaanKasController::class, 'view'])->name('penerimaankas.view');
+        Route::get('/penerimaankas/{fkasmtno}/edit', [PenerimaanKasController::class, 'edit'])->name('penerimaankas.edit');
+        Route::get('/penerimaankas/{fkasmtno}/delete', [PenerimaanKasController::class, 'delete'])->name('penerimaankas.delete');
+        Route::get('/penerimaankas/{fkasmtno}/print', [PenerimaanKasController::class, 'print'])->name('penerimaankas.print');
+        Route::patch('/penerimaankas/{fkasmtno}', [PenerimaanKasController::class, 'update'])->name('penerimaankas.update');
+        Route::delete('/penerimaankas/{fkasmtno}', [PenerimaanKasController::class, 'destroy'])->name('penerimaankas.destroy');
 
         Route::get('/account', [AccountController::class, 'index'])->name('account.index');
         Route::post('/account', [AccountController::class, 'store'])->name('account.store');
@@ -449,6 +461,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/reportingfakturpembelian', [ReportingFakturPembelianController::class, 'index'])->name('reportingfakturpembelian.index');
         Route::get('/reportingfakturpembelian/exportExcel', [ReportingFakturPembelianController::class, 'exportExcel'])->name('reportingfakturpembelian.exportExcel');
         Route::get('/reportingfakturpembelian/print', [ReportingFakturPembelianController::class, 'printFakturPembelian'])->name('reportingfakturpembelian.printFakturPembelian');
+
+        Route::get('/reportingkas/pengeluaran', [ReportingKasController::class, 'pengeluaranKasIndex'])->name('reportingkas.pengeluaran.index');
+        Route::get('/reportingkas/pengeluaran/print', [ReportingKasController::class, 'printPengeluaranKas'])->name('reportingkas.pengeluaran.print');
+        Route::get('/reportingkas/penerimaan', [ReportingKasController::class, 'penerimaanKasIndex'])->name('reportingkas.penerimaan.index');
+        Route::get('/reportingkas/penerimaan/print', [ReportingKasController::class, 'printPenerimaanKas'])->name('reportingkas.penerimaan.print');
 
         Route::get('/reportingadjstock', [ReportingAdjStockController::class, 'index'])->name('reportingadjstock.index');
         Route::get('/reportingadjstock/exportExcel', [ReportingAdjStockController::class, 'exportExcel'])->name('reportingadjstock.exportExcel');
