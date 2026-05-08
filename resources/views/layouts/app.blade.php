@@ -981,66 +981,89 @@
             }, true);
         })();
     </script>
+    <script>
+        (() => {
+            if (window.showTransactionErrorModal) {
+                return;
+            }
+
+            function escapeHtml(value) {
+                return String(value ?? '').replace(/[&<>"']/g, (char) => ({
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#39;'
+                }[char]));
+            }
+
+            function inferReason(items) {
+                const text = items.join(' ').toLowerCase();
+
+                if (text.includes('balance') || text.includes('debit') || text.includes('kredit')) {
+                    return 'Nilai transaksi masih belum seimbang atau belum sesuai aturan jurnal.';
+                }
+
+                if (text.includes('minimal satu item') || text.includes('data items') || text.includes('detail')) {
+                    return 'Detail item transaksi masih belum lengkap atau belum valid.';
+                }
+
+                if (text.includes('qty') || text.includes('quantity')) {
+                    return 'Qty yang diinput belum sesuai batas atau format yang diperbolehkan.';
+                }
+
+                if (text.includes('supplier') || text.includes('customer') || text.includes('salesman') || text.includes('gudang') || text.includes('akun')) {
+                    return 'Data referensi transaksi masih ada yang kosong atau tidak cocok.';
+                }
+
+                if (text.includes('close') || text.includes('referensi')) {
+                    return 'Status transaksi belum bisa diproses karena syarat referensinya belum terpenuhi.';
+                }
+
+                return 'Masih ada data yang belum valid, jadi sistem menolak proses simpan.';
+            }
+
+            window.showTransactionErrorModal = function(messages, options = {}) {
+                const normalizedMessages = (Array.isArray(messages) ? messages : [messages])
+                    .map((message) => String(message ?? '').trim())
+                    .filter(Boolean);
+
+                if (normalizedMessages.length === 0) {
+                    normalizedMessages.push('Terjadi kesalahan validasi yang tidak diketahui.');
+                }
+
+                const listHtml = normalizedMessages.map((message) =>
+                    `<li style="margin-bottom:8px;">${escapeHtml(message)}</li>`
+                ).join('');
+
+                Swal.fire({
+                    icon: 'error',
+                    title: options.title || 'Transaksi Belum Bisa Disimpan',
+                    html: `
+                        <div style="text-align:left; font-size:14px; line-height:1.6;">
+                            <p style="margin:0 0 10px 0;"><strong>Alasan:</strong> ${escapeHtml(options.reason || inferReason(normalizedMessages))}</p>
+                            <p style="margin:0 0 8px 0;">Sistem menemukan masalah berikut:</p>
+                            <ul style="margin:0 0 12px 18px; padding:0;">${listHtml}</ul>
+                            <p style="margin:0; color:#6b7280;">Silakan perbaiki data di atas, lalu coba simpan kembali.</p>
+                        </div>
+                    `,
+                    confirmButtonText: 'Tutup',
+                    confirmButtonColor: '#dc2626',
+                    width: 640
+                });
+            };
+        })();
+    </script>
     @if ($transactionErrorMessages->isNotEmpty())
         <script>
             (() => {
                 const messages = @json($transactionErrorMessages);
 
-                function escapeHtml(value) {
-                    return String(value ?? '').replace(/[&<>"']/g, (char) => ({
-                        '&': '&amp;',
-                        '<': '&lt;',
-                        '>': '&gt;',
-                        '"': '&quot;',
-                        "'": '&#39;'
-                    }[char]));
-                }
-
-                function inferReason(items) {
-                    const text = items.join(' ').toLowerCase();
-
-                    if (text.includes('minimal satu item') || text.includes('data items') || text.includes('detail')) {
-                        return 'Detail item transaksi masih belum lengkap atau belum valid.';
-                    }
-
-                    if (text.includes('qty') || text.includes('quantity')) {
-                        return 'Qty yang diinput belum sesuai batas atau format yang diperbolehkan.';
-                    }
-
-                    if (text.includes('supplier') || text.includes('customer') || text.includes('salesman') || text.includes('gudang')) {
-                        return 'Data referensi transaksi masih ada yang kosong atau tidak cocok.';
-                    }
-
-                    if (text.includes('close') || text.includes('referensi')) {
-                        return 'Status transaksi belum bisa diproses karena syarat referensinya belum terpenuhi.';
-                    }
-
-                    return 'Masih ada data yang belum valid, jadi sistem menolak proses simpan.';
-                }
-
                 document.addEventListener('DOMContentLoaded', () => {
                     document.querySelectorAll('.alert.alert-danger[role="alert"], .border-red-200.bg-red-50[role="alert"]')
                         .forEach((element) => element.remove());
 
-                    const listHtml = messages.map((message) =>
-                        `<li style="margin-bottom:8px;">${escapeHtml(message)}</li>`
-                    ).join('');
-
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Transaksi Belum Bisa Disimpan',
-                        html: `
-                            <div style="text-align:left; font-size:14px; line-height:1.6;">
-                                <p style="margin:0 0 10px 0;"><strong>Alasan:</strong> ${escapeHtml(inferReason(messages))}</p>
-                                <p style="margin:0 0 8px 0;">Sistem menemukan masalah berikut:</p>
-                                <ul style="margin:0 0 12px 18px; padding:0;">${listHtml}</ul>
-                                <p style="margin:0; color:#6b7280;">Silakan perbaiki data di atas, lalu coba simpan kembali.</p>
-                            </div>
-                        `,
-                        confirmButtonText: 'Tutup',
-                        confirmButtonColor: '#dc2626',
-                        width: 640
-                    });
+                    window.showTransactionErrorModal(messages);
                 });
             })();
         </script>

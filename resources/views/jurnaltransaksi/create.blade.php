@@ -545,8 +545,14 @@
                 addIfComplete() {
                     const r = this.draft;
                     this.normalizeAmount(r);
-                    if (!r.faccount) return alert('Pilih akun terlebih dahulu.');
-                    if (!r.fdk) return alert('Pilih Debit atau Kredit.');
+                    if (!r.faccount) {
+                        window.showTransactionErrorModal('Pilih akun terlebih dahulu.');
+                        return;
+                    }
+                    if (!r.fdk) {
+                        window.showTransactionErrorModal('Pilih Debit atau Kredit.');
+                        return;
+                    }
                     if (!(Number(r.famount) > 0)) return this.$refs.draftAmt?.focus();
 
                     this.savedItems.push({
@@ -582,8 +588,14 @@
                 applyEdit() {
                     const r = this.editRow;
                     this.normalizeAmount(r);
-                    if (!r.faccount) return alert('Pilih akun terlebih dahulu.');
-                    if (!r.fdk) return alert('Pilih Debit atau Kredit.');
+                    if (!r.faccount) {
+                        window.showTransactionErrorModal('Pilih akun terlebih dahulu.');
+                        return;
+                    }
+                    if (!r.fdk) {
+                        window.showTransactionErrorModal('Pilih Debit atau Kredit.');
+                        return;
+                    }
                     if (!(Number(r.famount) > 0)) return this.$refs.editAmt?.focus();
 
                     this.savedItems.splice(this.editingIndex, 1, {
@@ -608,14 +620,18 @@
                 onSubmit($event) {
                     if (this.savedItems.length === 0) {
                         $event.preventDefault();
-                        this.showNoItems = true;
+                        window.showTransactionErrorModal('Tambahkan minimal satu baris jurnal sebelum menyimpan.');
                         return;
                     }
                     if (!this.isBalanced) {
                         $event.preventDefault();
-                        alert(
-                            `Jurnal tidak balance!\nDebit: ${this.fmt(this.totalDebit)}\nKredit: ${this.fmt(this.totalKredit)}`
-                        );
+                        window.showTransactionErrorModal([
+                            'Jurnal tidak balance.',
+                            `Total Debit: ${this.fmt(this.totalDebit)}`,
+                            `Total Kredit: ${this.fmt(this.totalKredit)}`
+                        ], {
+                            reason: 'Nilai transaksi masih belum seimbang atau belum sesuai aturan jurnal.'
+                        });
                     }
                 },
 
