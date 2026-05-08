@@ -3,6 +3,11 @@
 @section('title', $action === 'delete' ? 'Hapus Retur Pembelian' : 'Edit Retur Pembelian')
 
 @section('content')
+    @php
+        $permissions = explode(',', session('user_restricted_permissions', ''));
+        $canEditPermission = in_array('updateReturPembelian', $permissions, true);
+        $canDeletePermission = in_array('deleteReturPembelian', $permissions, true);
+    @endphp
     <style>
         input:focus,
         select:focus,
@@ -1657,11 +1662,13 @@
                     </div>
 
                     <div class="mt-8 flex justify-center gap-4 allow-action">
-                        <button type="submit"
-                            @if ($usageLocked) disabled @endif
-                            class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center disabled:opacity-60 disabled:cursor-not-allowed">
-                            <x-heroicon-o-check class="w-5 h-5 mr-2" /> Simpan
-                        </button>
+                        @if ($canEditPermission)
+                            <button type="submit"
+                                @if ($usageLocked) disabled @endif
+                                class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center disabled:opacity-60 disabled:cursor-not-allowed">
+                                <x-heroicon-o-check class="w-5 h-5 mr-2" /> Simpan
+                            </button>
+                        @endif
                         <button type="button" @click="window.location.href='{{ route('tr_poh.index') }}'"
                             class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
                             <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" /> Keluar
@@ -1675,7 +1682,7 @@
     {{-- ============================================ --}}
     {{-- MODAL & TOAST (HANYA UNTUK MODE DELETE)     --}}
     {{-- ============================================ --}}
-    @if ($action === 'delete')
+    @if ($action === 'delete' && $canDeletePermission)
         {{-- Modal Delete --}}
         <div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6 allow-action">

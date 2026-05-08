@@ -63,6 +63,20 @@
             display: none !important
         }
 
+        .fpb-ket-biaya {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+            align-items: start;
+        }
+
+        @media (min-width: 768px) {
+            .fpb-ket-biaya {
+                grid-template-columns: minmax(0, 72%) minmax(280px, 28%);
+                gap: 1.5rem;
+            }
+        }
+
         /* select supplier tanpa caret */
         #supplierSelect,
         #supplierSelect:disabled {
@@ -429,7 +443,10 @@
                             @enderror
                         </div>
 
-                        <div class="lg:col-span-12">
+                    </div>
+
+                    <div class="fpb-ket-biaya mt-4">
+                        <div class="min-w-0">
                             <label class="block text-sm font-medium">Keterangan</label>
                             <textarea name="fket" rows="3" readonly disabled
                                 class="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed text-gray-700 @error('fket') border-red-500 @enderror"
@@ -437,6 +454,21 @@
                             @error('fket')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                             @enderror
+                        </div>
+
+                        <div class="min-w-0 overflow-hidden">
+                            <label class="block text-sm font-medium mb-2">Hitung Biaya</label>
+                            <div
+                                class="hpp-box h-full min-h-[96px] bg-gray-50 p-3 rounded-lg border border-gray-200 shadow-sm flex flex-col justify-center gap-3">
+                                <input type="number" x-model.number="biayaGlobal" readonly disabled
+                                    placeholder="Masukkan Total Ongkir"
+                                    class="w-full border rounded px-3 py-2 text-right font-mono bg-gray-100 cursor-not-allowed text-gray-700">
+
+                                <button type="button" @click.prevent disabled
+                                    class="w-full bg-blue-300 text-white font-medium py-2 px-4 rounded transition flex items-center justify-center gap-2 cursor-not-allowed opacity-70">
+                                    Hitung
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -498,23 +530,6 @@
                     </script>
 
                     <div x-data="itemsTable()" x-init="init()" class="mt-6 space-y-2">
-                        <div class="flex justify-end mt-6">
-                            <div
-                                class="hpp-box bg-gray-50 p-3 rounded-lg border border-gray-200 shadow-sm flex items-center gap-4">
-                                <label class="text-sm font-semibold text-gray-700 whitespace-nowrap">Hitung
-                                    Biaya</label>
-                                <div class="flex items-center gap-2">
-                                    <input type="number" x-model.number="biayaGlobal" readonly disabled
-                                        placeholder="Masukkan Total Ongkir"
-                                        class="w-40 border rounded px-3 py-2 text-right font-mono bg-gray-100 cursor-not-allowed text-gray-700">
-
-                                    <button type="button" @click.prevent disabled
-                                        class="bg-blue-300 text-white font-medium py-2 px-4 rounded transition flex items-center gap-2 cursor-not-allowed opacity-70">
-                                        Hitung
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
                         {{-- DETAIL ITEM (tabel input) --}}
                         <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
 
@@ -1109,7 +1124,10 @@
                                 @enderror
                             </div>
 
-                            <div class="lg:col-span-12">
+                        </div>
+
+                        <div class="fpb-ket-biaya mt-4">
+                            <div class="min-w-0">
                                 <label class="block text-sm font-medium">Keterangan</label>
                                 <textarea name="fket" rows="3"
                                     class="w-full border rounded px-3 py-2 @error('fket') border-red-500 @enderror"
@@ -1117,6 +1135,21 @@
                                 @error('fket')
                                     <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                                 @enderror
+                            </div>
+
+                            <div class="min-w-0 overflow-hidden">
+                                <label class="block text-sm font-medium mb-2">Hitung Biaya</label>
+                                <div
+                                    class="hpp-box h-full min-h-[96px] bg-gray-50 p-3 rounded-lg border border-gray-200 shadow-sm flex flex-col justify-center gap-3">
+                                    <input type="number" x-model.number="biayaGlobal"
+                                        placeholder="Masukkan Total Ongkir"
+                                        class="w-full border rounded px-3 py-2 text-right font-mono bg-white">
+
+                                    <button type="button" @click="alokasiBiaya()"
+                                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded transition flex items-center justify-center gap-2">
+                                        Hitung
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
@@ -1178,23 +1211,6 @@
                         </script>
 
                         <div id="itemsTableRoot" x-data="itemsTable()" x-init="init()" class="mt-6 space-y-2">
-                            <div class="flex justify-end mt-6">
-                                <div
-                                    class="hpp-box bg-gray-50 p-3 rounded-lg border border-gray-200 shadow-sm flex items-center gap-4">
-                                    <label class="text-sm font-semibold text-gray-700 whitespace-nowrap">Hitung
-                                        Biaya</label>
-                                    <div class="flex items-center gap-2">
-                                        <input type="number" x-model.number="biayaGlobal"
-                                            placeholder="Masukkan Total Ongkir"
-                                            class="w-40 border rounded px-3 py-2 text-right font-mono bg-white">
-
-                                        <button type="button" @click="alokasiBiaya()"
-                                            class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded transition flex items-center gap-2">
-                                            Hitung
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
                             {{-- DETAIL ITEM (tabel input) --}}
                             <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
 

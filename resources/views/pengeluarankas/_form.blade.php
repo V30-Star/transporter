@@ -32,11 +32,6 @@
 </style>
 
 <div x-data="pengeluaranKasForm(@js($isReadOnly), @js(old('fkasmtno', $pengeluaranKas->fkasmtno ?? '')))" x-init="init()" class="bg-white rounded shadow p-6 md:p-8 max-w-7xl mx-auto">
-    @if (!empty($pageTitle))
-        <div class="mb-6">
-            <h1 class="text-xl font-semibold text-gray-800">{{ $pageTitle }}</h1>
-        </div>
-    @endif
 
     @if ($isDeleteMode)
         <div class="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-700">

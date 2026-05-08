@@ -3,6 +3,11 @@
 @section('title', $action === 'delete' ? "Hapus" . ' ' . "Retur Penjualan" : "Edit" . ' ' . "Retur Penjualan")
 
 @section('content')
+    @php
+        $permissions = explode(',', session('user_restricted_permissions', ''));
+        $canEditPermission = in_array('updateReturPenjualan', $permissions, true);
+        $canDeletePermission = in_array('deleteReturPenjualan', $permissions, true);
+    @endphp
     <style>
         input:focus,
         select:focus,
@@ -1781,16 +1786,18 @@
                             </div>
 
                             <div class="mt-8 flex justify-center gap-4">
-                                @if ($usageLocked)
-                                    <button type="button" disabled title="{{ $usageLockMessage }}"
-                                        class="bg-blue-300 text-white px-6 py-2 rounded flex items-center cursor-not-allowed opacity-70">
-                                        <x-heroicon-o-lock-closed class="w-5 h-5 mr-2" /> Simpan
-                                    </button>
-                                @else
-                                    <button type="submit"
-                                        class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
-                                        <x-heroicon-o-check class="w-5 h-5 mr-2" /> Simpan
-                                    </button>
+                                @if ($canEditPermission)
+                                    @if ($usageLocked)
+                                        <button type="button" disabled title="{{ $usageLockMessage }}"
+                                            class="bg-blue-300 text-white px-6 py-2 rounded flex items-center cursor-not-allowed opacity-70">
+                                            <x-heroicon-o-lock-closed class="w-5 h-5 mr-2" /> Simpan
+                                        </button>
+                                    @else
+                                        <button type="submit"
+                                            class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
+                                            <x-heroicon-o-check class="w-5 h-5 mr-2" /> Simpan
+                                        </button>
+                                    @endif
                                 @endif
                                 <button type="button" @click="window.location.href='{{ route('returpenjualan.index') }}'"
                                     class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
@@ -1805,7 +1812,7 @@
     {{-- ============================================ --}}
     {{-- MODAL & TOAST (HANYA UNTUK MODE DELETE)     --}}
     {{-- ============================================ --}}
-    @if ($action === 'delete')
+    @if ($action === 'delete' && $canDeletePermission)
         {{-- Modal Delete --}}
         <div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">

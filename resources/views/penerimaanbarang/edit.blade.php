@@ -3,6 +3,11 @@
 @section('title', $action === 'delete' ? 'Hapus Penerimaan Barang' : 'Edit Penerimaan Barang')
 
 @section('content')
+    @php
+        $permissions = explode(',', session('user_restricted_permissions', ''));
+        $canEditPermission = in_array('updatePenerimaanBarang', $permissions, true);
+        $canDeletePermission = in_array('deletePenerimaanBarang', $permissions, true);
+    @endphp
     <style>
         input:focus,
         select:focus,
@@ -770,32 +775,36 @@
             {{-- TOMBOL AKSI --}}
             <div class="mt-8 flex justify-center gap-4">
                 @if ($action === 'delete')
-                    @if ($usageLocked)
-                        <button type="button" disabled title="{{ $usageLockMessage }}"
-                            class="bg-red-300 text-white px-6 py-2 rounded flex items-center cursor-not-allowed opacity-70">
-                            <x-heroicon-o-lock-closed class="w-5 h-5 mr-2" /> Hapus
-                        </button>
-                    @else
-                        <button type="button" onclick="showDeleteModal()"
-                            class="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700 flex items-center">
-                            <x-heroicon-o-trash class="w-5 h-5 mr-2" /> Hapus
-                        </button>
+                    @if ($canDeletePermission)
+                        @if ($usageLocked)
+                            <button type="button" disabled title="{{ $usageLockMessage }}"
+                                class="bg-red-300 text-white px-6 py-2 rounded flex items-center cursor-not-allowed opacity-70">
+                                <x-heroicon-o-lock-closed class="w-5 h-5 mr-2" /> Hapus
+                            </button>
+                        @else
+                            <button type="button" onclick="showDeleteModal()"
+                                class="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700 flex items-center">
+                                <x-heroicon-o-trash class="w-5 h-5 mr-2" /> Hapus
+                            </button>
+                        @endif
                     @endif
                     <button type="button" onclick="window.location.href='{{ route('penerimaanbarang.index') }}'"
                         class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
                         <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" /> Kembali
                     </button>
                 @else
-                    @if ($usageLocked)
-                        <button type="button" disabled title="{{ $usageLockMessage }}"
-                            class="bg-blue-300 text-white px-6 py-2 rounded flex items-center cursor-not-allowed opacity-70">
-                            <x-heroicon-o-lock-closed class="w-5 h-5 mr-2" /> Simpan
-                        </button>
-                    @else
-                        <button type="submit"
-                            class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
-                            <x-heroicon-o-check class="w-5 h-5 mr-2" /> Simpan
-                        </button>
+                    @if ($canEditPermission)
+                        @if ($usageLocked)
+                            <button type="button" disabled title="{{ $usageLockMessage }}"
+                                class="bg-blue-300 text-white px-6 py-2 rounded flex items-center cursor-not-allowed opacity-70">
+                                <x-heroicon-o-lock-closed class="w-5 h-5 mr-2" /> Simpan
+                            </button>
+                        @else
+                            <button type="submit"
+                                class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 flex items-center">
+                                <x-heroicon-o-check class="w-5 h-5 mr-2" /> Simpan
+                            </button>
+                        @endif
                     @endif
                     <button type="button" onclick="window.location.href='{{ route('penerimaanbarang.index') }}'"
                         class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
@@ -807,7 +816,7 @@
     </div>
 
     {{-- MODAL KONFIRMASI HAPUS --}}
-    @if ($action === 'delete')
+    @if ($action === 'delete' && $canDeletePermission)
         <div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
                 <h3 class="text-lg font-semibold mb-4">Konfirmasi Hapus Penerimaan Barang ini?</h3>
