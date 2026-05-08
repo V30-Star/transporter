@@ -1287,7 +1287,9 @@ class FakturpembelianController extends Controller
                 'fbiaya' => (float) ($d->fbiaya ?? 0),
                 'ftotprice' => (float) ($d->ftotprice ?? 0),
                 'ftotal' => (float) ($d->ftotprice ?? 0),
-                'fdesc' => is_array($d->fdesc) ? implode(', ', $d->fdesc) : ($d->fdesc ?? ''),
+                'fdesc' => is_array($d->fdesc)
+                    ? implode(', ', $d->fdesc)
+                    : (trim((string) ($d->fdesc ?? '')) !== '' ? $d->fdesc : ($d->fketdt ?? '')),
                 'fketdt' => $d->fketdt ?? '',
                 'maxqty' => $maxFromSource,
                 'units' => [],
@@ -1298,6 +1300,9 @@ class FakturpembelianController extends Controller
 
         $products = $this->browseProducts();
         $productMap = $this->browseProductMap($products);
+        $biayaGlobal = (float) $savedItems->sum(function ($item) {
+            return ((float) ($item['fbiaya'] ?? 0)) * ((float) ($item['fqty'] ?? 0));
+        });
 
         return view('fakturpembelian.edit', [
             'suppliers' => $suppliers,
@@ -1313,6 +1318,7 @@ class FakturpembelianController extends Controller
             'currentAccountName' => $currentAccountName,
             'fakturpembelian' => $fakturpembelian,
             'savedItems' => $savedItems,
+            'biayaGlobal' => $biayaGlobal,
             'ppnAmount' => (float) ($fakturpembelian->famountpopajak ?? 0),
             'famountponet' => (float) ($fakturpembelian->famountponet ?? 0),
             'famountpo' => (float) ($fakturpembelian->famountpo ?? 0),
@@ -1399,7 +1405,9 @@ class FakturpembelianController extends Controller
                 'fbiaya' => (float) ($d->fbiaya ?? 0),
                 'ftotprice' => (float) ($d->ftotprice ?? 0),
                 'ftotal' => (float) ($d->ftotprice ?? 0),
-                'fdesc' => is_array($d->fdesc) ? implode(', ', $d->fdesc) : ($d->fdesc ?? ''),
+                'fdesc' => is_array($d->fdesc)
+                    ? implode(', ', $d->fdesc)
+                    : (trim((string) ($d->fdesc ?? '')) !== '' ? $d->fdesc : ($d->fketdt ?? '')),
                 'fketdt' => $d->fketdt ?? '',
                 'units' => [],
             ];
@@ -1409,6 +1417,9 @@ class FakturpembelianController extends Controller
 
         $products = $this->browseProducts();
         $productMap = $this->browseProductMap($products);
+        $biayaGlobal = (float) $savedItems->sum(function ($item) {
+            return ((float) ($item['fbiaya'] ?? 0)) * ((float) ($item['fqty'] ?? 0));
+        });
 
         return view('fakturpembelian.view', [
             'suppliers' => $suppliers,
@@ -1424,6 +1435,7 @@ class FakturpembelianController extends Controller
             'currentAccountName' => $currentAccountName,
             'fakturpembelian' => $fakturpembelian,
             'savedItems' => $savedItems,
+            'biayaGlobal' => $biayaGlobal,
             'ppnAmount' => (float) ($fakturpembelian->famountpopajak ?? 0),
             'famountponet' => (float) ($fakturpembelian->famountponet ?? 0),
             'famountpo' => (float) ($fakturpembelian->famountpo ?? 0),
@@ -1652,6 +1664,7 @@ class FakturpembelianController extends Controller
                     'ftotprice_rp' => $amount * $frate,
                     'fuserupdate' => (Auth::user()->fname ?? 'system'),
                     'fdatetime' => $now,
+                    'fdesc' => $desc ?: null,
                     'fketdt' => $desc ?: null,
                     'fcode' => $sourceType === 'PO' ? 'P' : 'T',
                     'fdiscpersen' => (string) $discP,
@@ -1850,7 +1863,9 @@ class FakturpembelianController extends Controller
                 'fbiaya' => (float) ($d->fbiaya ?? 0),
                 'ftotprice' => (float) ($d->ftotprice ?? 0),
                 'ftotal' => (float) ($d->ftotprice ?? 0),
-                'fdesc' => is_array($d->fdesc) ? implode(', ', $d->fdesc) : ($d->fdesc ?? ''),
+                'fdesc' => is_array($d->fdesc)
+                    ? implode(', ', $d->fdesc)
+                    : (trim((string) ($d->fdesc ?? '')) !== '' ? $d->fdesc : ($d->fketdt ?? '')),
                 'fketdt' => $d->fketdt ?? '',
                 'units' => [],
             ];
@@ -1860,6 +1875,9 @@ class FakturpembelianController extends Controller
 
         $products = $this->browseProducts();
         $productMap = $this->browseProductMap($products);
+        $biayaGlobal = (float) $savedItems->sum(function ($item) {
+            return ((float) ($item['fbiaya'] ?? 0)) * ((float) ($item['fqty'] ?? 0));
+        });
 
         return view('fakturpembelian.edit', [
             'suppliers' => $suppliers,
@@ -1875,6 +1893,7 @@ class FakturpembelianController extends Controller
             'currentAccountName' => $currentAccountName,
             'fakturpembelian' => $fakturpembelian,
             'savedItems' => $savedItems,
+            'biayaGlobal' => $biayaGlobal,
             'ppnAmount' => (float) ($fakturpembelian->famountpopajak ?? 0),
             'famountponet' => (float) ($fakturpembelian->famountponet ?? 0),
             'famountpo' => (float) ($fakturpembelian->famountpo ?? 0),

@@ -410,16 +410,15 @@
 
                 <div x-data="itemsTable()" x-init="init()" class="mt-6 space-y-2">
                     <div class="flex justify-end mt-6">
-                        <div
-                            class="hpp-box bg-gray-50 p-3 rounded-lg border border-gray-200 shadow-sm flex items-center gap-4">
-                            <label class="text-sm font-semibold text-gray-700 whitespace-nowrap">Hitung Biaya</label>
-                            <div class="flex items-center gap-2">
-                                <input disabled type="number" x-model.number="biayaGlobal"
-                                    placeholder="Masukkan Total Ongkir"
-                                    class="w-40 border rounded px-3 py-2 text-right font-mono bg-white">
+                        <div class="min-w-0 overflow-hidden w-full max-w-xs">
+                            <label class="block text-sm font-medium mb-2">Hitung Biaya</label>
+                            <div
+                                class="hpp-box h-full min-h-[96px] bg-gray-50 p-3 rounded-lg border border-gray-200 shadow-sm flex flex-col justify-center gap-3">
+                                <input type="text" :value="rupiah(biayaGlobal)" readonly disabled
+                                    class="w-full border rounded px-3 py-2 text-right font-mono bg-gray-100 cursor-not-allowed text-gray-700">
 
-                                <button disabled type="button" @click="alokasiBiaya()"
-                                    class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded transition flex items-center gap-2">
+                                <button type="button" @click.prevent disabled
+                                    class="w-full bg-blue-300 text-white font-medium py-2 px-4 rounded transition flex items-center justify-center gap-2 cursor-not-allowed opacity-70">
                                     Hitung
                                 </button>
                             </div>
@@ -1013,7 +1012,7 @@
                     editingIndex: null,
                     editRow: newRow(),
 
-                    biayaGlobal: 0,
+                    biayaGlobal: @json((float) ($biayaGlobal ?? 0)),
                     totalHarga: 0,
                     ppnRate: 11,
 

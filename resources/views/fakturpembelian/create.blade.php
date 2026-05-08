@@ -548,6 +548,11 @@
                                                 <input type="text"
                                                     class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
                                                     :value="it.fitemname" disabled>
+                                                <div x-show="it.fdesc" class="mt-1 text-xs">
+                                                    <span
+                                                        class="inline-block px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 mr-2">Deskripsi</span>
+                                                    <span class="align-middle text-gray-600" x-text="it.fdesc"></span>
+                                                </div>
                                             </td>
 
                                             <!-- No Refrensi -->
@@ -599,7 +604,7 @@
                                                 <input type="number" class="border rounded px-2 py-1 w-20 text-right text-sm"
                                                     min="0" step="0.01" x-model.number="it.fprice"
                                                     :id="'price_saved_' + i" @focus="activeRow = it.uid; $event.target.select()"
-                                                    @blur="activeRow = null" @input="recalc(it)" @change="recalc(it)"
+                                                    @blur="activeRow = null; normalizeMoneyInput($event, it, 'fprice')" @input="recalc(it)" @change="recalc(it)"
                                                     @keydown.enter.prevent="$refs['biaya_saved_' + i]?.focus()">
                                             </td>
 
@@ -608,7 +613,7 @@
                                                 <input type="number" class="border rounded px-2 py-1 w-20 text-right text-sm"
                                                     min="0" step="0.01" x-model.number="it.fbiaya"
                                                     :id="'biaya_saved_' + i" @focus="activeRow = it.uid; $event.target.select()"
-                                                    @blur="activeRow = null" @input="recalc(it)" @change="recalc(it)"
+                                                    @blur="activeRow = null; normalizeMoneyInput($event, it, 'fbiaya')" @input="recalc(it)" @change="recalc(it)"
                                                     @keydown.enter.prevent="$refs['disc_saved_' + i]?.focus()">
                                             </td>
 
@@ -741,6 +746,7 @@
                                             <input type="number" class="border rounded px-2 py-1 w-[4rem] text-right"
                                                 min="0" step="0.01" x-ref="draftPrice"
                                                 x-model.number="draft.fprice" @input="recalc(draft)"
+                                                @blur="normalizeMoneyInput($event, draft, 'fprice')"
                                                 @keydown.enter.prevent="$refs.draftDisc?.focus()">
                                         </td>
 
@@ -749,6 +755,7 @@
                                             <input type="number" class="border rounded px-2 py-1 w-[4rem] text-right"
                                                 min="0" step="0.01" x-ref="draftBiaya"
                                                 x-model.number="draft.fbiaya" @input="recalc(draft)" default="0"
+                                                @blur="normalizeMoneyInput($event, draft, 'fbiaya')"
                                                 @keydown.enter.prevent="$refs.draftBiaya?.focus()">
                                         </td>
 
@@ -1343,6 +1350,21 @@
                 return this.fmt(value);
             },
 
+            normalizeMoneyInput(event, row, field) {
+                const rawValue = row && field ? row[field] : event?.target?.value;
+                const normalized = Math.max(0, Number(rawValue || 0));
+                const rounded = Number(normalized.toFixed(2));
+
+                if (row && field) {
+                    row[field] = rounded;
+                    this.recalc(row);
+                }
+
+                if (event?.target) {
+                    event.target.value = rounded.toFixed(2);
+                }
+            },
+
             recalc(row) {
                 row.fqty = Math.max(1, +row.fqty || 1);
                 row.fprice = Math.max(0, +row.fprice || 0);
@@ -1647,6 +1669,8 @@
 
                 this.savedItems.push({
                     ...r,
+                    fdesc: (r.fdesc ?? '').toString(),
+                    fketdt: (r.fketdt ?? '').toString(),
                     frefnoacak: this.normalizeRefNoAcak(r.frefnoacak),
                     uid: cryptoRandom()
                 });

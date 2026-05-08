@@ -457,11 +457,10 @@
                         </div>
 
                         <div class="min-w-0 overflow-hidden">
-                            <label class="block text-sm font-medium mb-2">Hitung Biaya</label>
+                                <label class="block text-sm font-medium mb-2">Hitung Biaya</label>
                             <div
                                 class="hpp-box h-full min-h-[96px] bg-gray-50 p-3 rounded-lg border border-gray-200 shadow-sm flex flex-col justify-center gap-3">
-                                <input type="number" x-model.number="biayaGlobal" readonly disabled
-                                    placeholder="Masukkan Total Ongkir"
+                                <input type="text" value="{{ number_format((float) ($biayaGlobal ?? 0), 2, ',', '.') }}" readonly disabled
                                     class="w-full border rounded px-3 py-2 text-right font-mono bg-gray-100 cursor-not-allowed text-gray-700">
 
                                 <button type="button" @click.prevent disabled
@@ -1141,11 +1140,12 @@
                                 <label class="block text-sm font-medium mb-2">Hitung Biaya</label>
                                 <div
                                     class="hpp-box h-full min-h-[96px] bg-gray-50 p-3 rounded-lg border border-gray-200 shadow-sm flex flex-col justify-center gap-3">
-                                    <input type="number" x-model.number="biayaGlobal"
+                                    <input type="number" id="editBiayaGlobalInput"
+                                        value="{{ number_format((float) ($biayaGlobal ?? 0), 2, '.', '') }}"
                                         placeholder="Masukkan Total Ongkir"
                                         class="w-full border rounded px-3 py-2 text-right font-mono bg-white">
 
-                                    <button type="button" @click="alokasiBiaya()"
+                                    <button type="button" onclick="window.applyFpbBiayaGlobalFromHeader?.()"
                                         class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded transition flex items-center justify-center gap-2">
                                         Hitung
                                     </button>
@@ -1207,8 +1207,36 @@
 
                                 // Initial calculation
                                 calculateDueDate();
-                            });
-                        </script>
+                        });
+                    </script>
+
+                    <script>
+                        window.getFpbItemsTableComponent = function() {
+                            const root = document.getElementById('itemsTableRoot');
+                            return root && Array.isArray(root._x_dataStack) ? root._x_dataStack[0] : null;
+                        };
+
+                        window.syncFpbBiayaGlobalHeader = function() {
+                            const component = window.getFpbItemsTableComponent?.();
+                            const input = document.getElementById('editBiayaGlobalInput');
+
+                            if (!component || !input) return;
+
+                            const current = Number(component.biayaGlobal || 0);
+                            input.value = current.toFixed(2);
+                        };
+
+                        window.applyFpbBiayaGlobalFromHeader = function() {
+                            const component = window.getFpbItemsTableComponent?.();
+                            const input = document.getElementById('editBiayaGlobalInput');
+
+                            if (!component || !input) return;
+
+                            component.biayaGlobal = Math.max(0, Number(input.value || 0));
+                            component.alokasiBiaya();
+                            input.value = Number(component.biayaGlobal || 0).toFixed(2);
+                        };
+                    </script>
 
                         <div id="itemsTableRoot" x-data="itemsTable()" x-init="init()" class="mt-6 space-y-2">
                             {{-- DETAIL ITEM (tabel input) --}}
@@ -1309,7 +1337,7 @@
                                                         class="border rounded px-2 py-1 w-full text-right" min="0"
                                                         step="0.01" x-model.number="it.fprice"
                                                         @focus="activeRow = it.uid; $event.target.select()"
-                                                        @blur="activeRow = null" @input="recalc(it)"
+                                                        @blur="activeRow = null; normalizeMoneyInput($event, it, 'fprice')" @input="recalc(it)"
                                                         @change="recalc(it)">
                                                 </td>
                                                 <td class="p-2 text-right">
@@ -1317,7 +1345,7 @@
                                                         class="border rounded px-2 py-1 w-full text-right" min="0"
                                                         step="0.01" x-model.number="it.fbiaya"
                                                         @focus="activeRow = it.uid; $event.target.select()"
-                                                        @blur="activeRow = null" @input="recalc(it)"
+                                                        @blur="activeRow = null; normalizeMoneyInput($event, it, 'fbiaya')" @input="recalc(it)"
                                                         @change="recalc(it)">
                                                 </td>
                                                 <td class="p-2 text-right">
@@ -1448,6 +1476,7 @@
                                                 <input type="number" class="border rounded px-2 py-1 w-28 text-right"
                                                     min="0" step="0.01" x-ref="draftPrice"
                                                     x-model.number="draft.fprice" @input="recalc(draft)"
+                                                    @blur="normalizeMoneyInput($event, draft, 'fprice')"
                                                     @keydown.enter.prevent="$refs.draftDisc?.focus()">
                                             </td>
 
@@ -1456,6 +1485,7 @@
                                                 <input type="number" class="border rounded px-2 py-1 w-28 text-right"
                                                     min="0" step="0.01" x-ref="draftBiaya"
                                                     x-model.number="draft.fbiaya" @input="recalc(draft)" default="0"
+                                                    @blur="normalizeMoneyInput($event, draft, 'fbiaya')"
                                                     @keydown.enter.prevent="$refs.draftBiaya?.focus()">
                                             </td>
 
@@ -2134,7 +2164,7 @@
                 activeRow: null,
                 browseIndex: null,
 
-                biayaGlobal: 0,
+                biayaGlobal: @json((float) ($biayaGlobal ?? 0)),
                 totalHarga: 0,
                 ppnRate: 11,
 
@@ -2187,6 +2217,21 @@
                     return this.fmt(value);
                 },
 
+                normalizeMoneyInput(event, row, field) {
+                    const rawValue = row && field ? row[field] : event?.target?.value;
+                    const normalized = Math.max(0, Number(rawValue || 0));
+                    const rounded = Number(normalized.toFixed(2));
+
+                    if (row && field) {
+                        row[field] = rounded;
+                        this.recalc(row);
+                    }
+
+                    if (event?.target) {
+                        event.target.value = rounded.toFixed(2);
+                    }
+                },
+
                 recalc(row) {
                     row.fqty = Math.max(1, +row.fqty || 1);
                     row.fprice = Math.max(0, +row.fprice || 0);
@@ -2212,6 +2257,7 @@
                 recalcTotals() {
                     this.totalHarga = this.savedItems.reduce((sum, item) => sum + (item.ftotprice || 0), 0);
                     this.biayaGlobal = this.savedItems.reduce((sum, item) => sum + (item.fbiaya * item.fqty || 0), 0);
+                    window.syncFpbBiayaGlobalHeader?.();
                 },
 
 
@@ -2505,6 +2551,8 @@
 
                     this.savedItems.push({
                         ...r,
+                        fdesc: (r.fdesc ?? '').toString(),
+                        fketdt: (r.fketdt ?? '').toString(),
                         frefnoacak: this.normalizeRefNoAcak(r.frefnoacak),
                         uid: cryptoRandom()
                     });
@@ -2636,6 +2684,7 @@
                     this.$watch('includePPN', () => this.recalcTotals());
                     this.$watch('fapplyppn', () => this.recalcTotals());
                     this.$watch('ppnRate', () => this.recalcTotals());
+                    this.$nextTick(() => window.syncFpbBiayaGlobalHeader?.());
 
                     // Listen for PO and PB picked
                     window.getCurrentItemKeys = () => this.getCurrentItemKeys();

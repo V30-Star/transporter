@@ -261,11 +261,11 @@
                                 @unless ($isReadOnly)
                                     <td class="detail-action-cell border px-1.5 py-1 text-center align-top">
                                         <button type="button" @click="addRow()"
-                                            class="detail-add-btn inline-flex items-center bg-blue-600 text-white px-2.5 py-1 rounded hover:bg-blue-700 whitespace-nowrap">
+                                            class="detail-add-btn inline-flex min-w-[7.5rem] items-center justify-center bg-blue-600 text-white px-2.5 py-1 rounded hover:bg-blue-700 whitespace-nowrap">
                                             <x-heroicon-o-plus class="w-4 h-4 mr-1" /> {{ "Tambah Detail" }}
                                         </button>
                                         <button type="button" @click="removeRow($event)"
-                                            class="detail-delete-btn inline-flex items-center bg-red-600 text-white px-2.5 py-1 rounded hover:bg-red-700 whitespace-nowrap">
+                                            class="detail-delete-btn inline-flex min-w-[7.5rem] items-center justify-center bg-red-600 text-white px-2.5 py-1 rounded hover:bg-red-700 whitespace-nowrap">
                                             <x-heroicon-o-trash class="w-4 h-4 mr-1" /> {{ "Hapus" }}
                                         </button>
                                     </td>
@@ -461,4 +461,3 @@
         </script>
     @endpush
 @endunless
-
