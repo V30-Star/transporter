@@ -18,22 +18,23 @@
         }
     }" class="bg-white rounded shadow p-4" @open-delete.window="openDelete($event.detail)">
 
-        {{-- @php
-            $canCreate = in_array('createTr_prh', explode(',', session('user_restricted_permissions', '')));
-            $canEdit = in_array('updateTr_prh', explode(',', session('user_restricted_permissions', '')));
-            $canDelete = in_array('deleteTr_prh', explode(',', session('user_restricted_permissions', '')));
+        @php
+            $permissions = array_filter(array_map('trim', explode(',', session('user_restricted_permissions', ''))));
+            $canCreate = in_array('createPemakaianbarang', $permissions, true);
+            $canEdit = in_array('updatePemakaianBarang', $permissions, true);
+            $canDelete = in_array('deletePemakaianBarang', $permissions, true);
             $showActionsColumn = $canEdit || $canDelete;
-        @endphp --}}
+        @endphp
 
         <div class="flex justify-end items-center mb-4">
             <div></div>
 
-            {{-- @if ($canCreate) --}}
-            <a href="{{ route('pemakaianbarang.create') }}"
-                class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                <x-heroicon-o-plus class="w-4 h-4 mr-1" /> Tambah Baru
-            </a>
-            {{-- @endif --}}
+            @if ($canCreate)
+                <a href="{{ route('pemakaianbarang.create') }}"
+                    class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                    <x-heroicon-o-plus class="w-4 h-4 mr-1" /> Tambah Baru
+                </a>
+            @endif
         </div>
 
         <div id="statusFilterTemplate" class="hidden">
@@ -53,9 +54,9 @@
                     <th class="border px-2 py-1">No. Pemakaian Barang</th>
                     <th class="border px-2 py-1">Tanggal</th>
 
-                    {{-- @if ($showActionsColumn) --}}
-                    <th class="border px-2 py-1 col-aksi">Aksi</th>
-                    {{-- @endif --}}
+                    @if ($showActionsColumn)
+                        <th class="border px-2 py-1 col-aksi">Aksi</th>
+                    @endif
                 </tr>
             </thead>
             <tbody>
@@ -177,11 +178,13 @@
 
             // 2. Tambah Kolom Aksi (jika ada izin)
             // if (hasActions) {
-            columns.push({
-                data: 'actions', // data dari 'actions'
-                orderable: false, // tidak bisa di-sort
-                searchable: false // tidak bisa di-search
-            });
+            if (hasActions) {
+                columns.push({
+                    data: 'actions',
+                    orderable: false,
+                    searchable: false
+                });
+            }
             // }
 
             // 3. Inisialisasi DataTables

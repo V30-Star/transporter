@@ -1,4 +1,25 @@
 {{-- Hapus x-data, :class, dan styling lain dari sini karena sudah dihandle oleh parent (app.blade.php) --}}
+@php
+    $sidebarPermissions = array_filter(array_map('trim', explode(',', (string) session('user_restricted_permissions', ''))));
+    $hasSidebarPermission = function (...$requiredPermissions) use ($sidebarPermissions) {
+        foreach ($requiredPermissions as $permission) {
+            if (is_array($permission)) {
+                foreach ($permission as $nestedPermission) {
+                    if (in_array($nestedPermission, $sidebarPermissions, true)) {
+                        return true;
+                    }
+                }
+                continue;
+            }
+
+            if (in_array($permission, $sidebarPermissions, true)) {
+                return true;
+            }
+        }
+
+        return false;
+    };
+@endphp
 <div>
     <!-- Header -->
     <div class="p-4 border-b border-white/10 flex items-center justify-between">
@@ -75,7 +96,7 @@
                 <ul x-show="open && openSidebar" x-transition class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3"
                     x-cloak>
 
-                    @if (in_array('viewAccount', explode(',', session('user_restricted_permissions', ''))))
+                    @if ($hasSidebarPermission('viewAccount'))
                         <li>
                             <a href="{{ route('account.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -85,7 +106,7 @@
                         </li>
                     @endif
 
-                    @if (in_array('viewSubAccount', explode(',', session('user_restricted_permissions', ''))))
+                    @if ($hasSidebarPermission('viewSubAccount'))
                         <li>
                             <a href="{{ route('subaccount.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -95,7 +116,7 @@
                         </li>
                     @endif
 
-                    @if (in_array('viewRekening', explode(',', session('user_restricted_permissions', ''))))
+                    @if ($hasSidebarPermission('viewRekening'))
                         <li>
                             <a href="{{ route('rekening.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -105,14 +126,14 @@
                         </li>
                     @endif
 
-                    {{-- @if (in_array('viewCurrency', explode(',', session('user_restricted_permissions', '')))) --}}
-                    <li>
-                        <a href="{{ route('currency.index') }}" class="flex items-center p-2 rounded hover:bg-gray-700">
-                            <x-heroicon-o-credit-card class="w-5 h-5" />
-                            <span class="ml-3">{{ "Currency" }}</span>
-                        </a>
-                    </li>
-                    {{-- @endif --}}
+                    @if ($hasSidebarPermission('viewCurrency', 'createCurrency', 'updateCurrency', 'deleteCurrency'))
+                        <li>
+                            <a href="{{ route('currency.index') }}" class="flex items-center p-2 rounded hover:bg-gray-700">
+                                <x-heroicon-o-credit-card class="w-5 h-5" />
+                                <span class="ml-3">{{ "Currency" }}</span>
+                            </a>
+                        </li>
+                    @endif
                 </ul>
             </li>
 
@@ -134,7 +155,7 @@
                 <ul x-show="open && openSidebar" x-transition class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3"
                     x-cloak>
 
-                    @if (in_array('viewGroupProduct', explode(',', session('user_restricted_permissions', ''))))
+                    @if ($hasSidebarPermission('viewProduct', 'createProduct', 'updateProduct', 'deleteProduct'))
                         <li>
                             <a href="{{ route('product.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -144,7 +165,7 @@
                         </li>
                     @endif
 
-                    @if (in_array('viewGroupProduct', explode(',', session('user_restricted_permissions', ''))))
+                    @if ($hasSidebarPermission('viewGroupProduct'))
                         <li>
                             <a href="{{ route('groupproduct.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -154,7 +175,7 @@
                         </li>
                     @endif
 
-                    @if (in_array('viewMerek', explode(',', session('user_restricted_permissions', ''))))
+                    @if ($hasSidebarPermission('viewMerek'))
                         <li>
                             <a href="{{ route('merek.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -164,7 +185,7 @@
                         </li>
                     @endif
 
-                    @if (in_array('viewSatuan', explode(',', session('user_restricted_permissions', ''))))
+                    @if ($hasSidebarPermission('viewSatuan'))
                         <li>
                             <a href="{{ route('satuan.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -195,7 +216,7 @@
                 <ul x-show="open && openSidebar" x-transition class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3"
                     x-cloak>
 
-                    @if (in_array('viewGroupCustomer', explode(',', session('user_restricted_permissions', ''))))
+                    @if ($hasSidebarPermission('viewGroupCustomer'))
                         <li>
                             <a href="{{ route('groupcustomer.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -205,7 +226,7 @@
                         </li>
                     @endif
 
-                    @if (in_array('viewCustomer', explode(',', session('user_restricted_permissions', ''))))
+                    @if ($hasSidebarPermission('viewCustomer'))
                         <li>
                             <a href="{{ route('customer.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -215,7 +236,7 @@
                         </li>
                     @endif
 
-                    @if (in_array('viewWilayah', explode(',', session('user_restricted_permissions', ''))))
+                    @if ($hasSidebarPermission('viewWilayah'))
                         <li>
                             <a href="{{ route('wilayah.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -225,7 +246,7 @@
                         </li>
                     @endif
 
-                    @if (in_array('viewSalesman', explode(',', session('user_restricted_permissions', ''))))
+                    @if ($hasSidebarPermission('viewSalesman'))
                         <li>
                             <a href="{{ route('salesman.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -256,7 +277,7 @@
                 <ul x-show="open && openSidebar" x-transition
                     class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
 
-                    @if (in_array('viewGudang', explode(',', session('user_restricted_permissions', ''))))
+                    @if ($hasSidebarPermission('viewGudang'))
                         <li>
                             <a href="{{ route('gudang.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -266,7 +287,7 @@
                         </li>
                     @endif
 
-                    @if (in_array('viewSupplier', explode(',', session('user_restricted_permissions', ''))))
+                    @if ($hasSidebarPermission('viewSupplier'))
                         <li>
                             <a href="{{ route('supplier.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -298,15 +319,15 @@
                 <ul x-show="open && openSidebar" x-transition
                     class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
 
-                    {{-- @if (in_array('viewCurrency', explode(',', session('user_restricted_permissions', '')))) --}}
-                    <li>
-                        <a href="{{ route('jurnaltransaksi.index') }}"
-                            class="flex items-center p-2 rounded hover:bg-gray-700">
-                            <x-heroicon-o-credit-card class="w-5 h-5" />
-                            <span class="ml-3">{{ "Jurnal Transaksi" }}</span>
-                        </a>
-                    </li>
-                    {{-- @endif --}}
+                    @if ($hasSidebarPermission('createjurnaltransaksi', 'updatejurnaltransaksi', 'deletejurnaltransaksi'))
+                        <li>
+                            <a href="{{ route('jurnaltransaksi.index') }}"
+                                class="flex items-center p-2 rounded hover:bg-gray-700">
+                                <x-heroicon-o-credit-card class="w-5 h-5" />
+                                <span class="ml-3">{{ "Jurnal Transaksi" }}</span>
+                            </a>
+                        </li>
+                    @endif
                 </ul>
             </li>
 
@@ -329,7 +350,7 @@
                 <ul x-show="open && openSidebar" x-transition
                     class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
 
-                    @if (in_array('viewSysuser', explode(',', session('user_restricted_permissions', ''))))
+                    @if ($hasSidebarPermission('viewTr_poh', 'createTr_poh', 'updateTr_poh', 'deleteTr_poh'))
                         <li>
                             <a href="{{ route('salesorder.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -344,7 +365,7 @@
                 <ul x-show="open && openSidebar" x-transition
                     class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
 
-                    @if (in_array('viewSysuser', explode(',', session('user_restricted_permissions', ''))))
+                    @if ($hasSidebarPermission('createSuratJalan', 'updateSuratJalan', 'deleteSuratJalan'))
                         <li>
                             <a href="{{ route('suratjalan.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -359,7 +380,7 @@
                 <ul x-show="open && openSidebar" x-transition
                     class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
 
-                    @if (in_array('viewSysuser', explode(',', session('user_restricted_permissions', ''))))
+                    @if ($hasSidebarPermission('createInvoice', 'updateInvoice', 'deleteInvoice'))
                         <li>
                             <a href="{{ route('invoice.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -374,7 +395,7 @@
                 <ul x-show="open && openSidebar" x-transition
                     class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
 
-                    @if (in_array('viewSysuser', explode(',', session('user_restricted_permissions', ''))))
+                    @if ($hasSidebarPermission('createReturPenjualan', 'updateReturPenjualan', 'deleteReturPenjualan'))
                         <li>
                             <a href="{{ route('returpenjualan.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -403,7 +424,7 @@
 
                 <ul x-show="open && openSidebar" x-transition
                     class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
-                    @if (in_array('viewTr_prh', explode(',', session('user_restricted_permissions', ''))))
+                    @if ($hasSidebarPermission('viewTr_prh', 'createTr_prh', 'updateTr_prh', 'deleteTr_prh'))
                         <li>
                             <a href="{{ route('tr_prh.index') }}"
                                 class="flex items-center p-2 rounded-lg hover:bg-gray-700">
@@ -412,27 +433,33 @@
                             </a>
                         </li>
                     @endif
-                    <li>
-                        <a href="{{ route('tr_poh.index') }}"
-                            class="flex items-center p-2 rounded-lg hover:bg-gray-700">
-                            <x-heroicon-o-banknotes class="w-5 h-5" />
-                            <span class="ml-3">{{ "Order Pembelian" }}</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('penerimaanbarang.index') }}"
-                            class="flex items-center p-2 rounded-lg hover:bg-gray-700">
-                            <x-heroicon-o-banknotes class="w-5 h-5" />
-                            <span class="ml-3">{{ "Penerimaan Barang" }}</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ route('fakturpembelian.index') }}"
-                            class="flex items-center p-2 rounded-lg hover:bg-gray-700">
-                            <x-heroicon-o-banknotes class="w-5 h-5" />
-                            <span class="ml-3">{{ "Faktur Pembelian" }}</span>
-                        </a>
-                    </li>
+                    @if ($hasSidebarPermission('viewTr_poh', 'createTr_poh', 'updateTr_poh', 'deleteTr_poh'))
+                        <li>
+                            <a href="{{ route('tr_poh.index') }}"
+                                class="flex items-center p-2 rounded-lg hover:bg-gray-700">
+                                <x-heroicon-o-banknotes class="w-5 h-5" />
+                                <span class="ml-3">{{ "Order Pembelian" }}</span>
+                            </a>
+                        </li>
+                    @endif
+                    @if ($hasSidebarPermission('createPenerimaanBarang', 'updatePenerimaanBarang', 'deletePenerimaanBarang'))
+                        <li>
+                            <a href="{{ route('penerimaanbarang.index') }}"
+                                class="flex items-center p-2 rounded-lg hover:bg-gray-700">
+                                <x-heroicon-o-banknotes class="w-5 h-5" />
+                                <span class="ml-3">{{ "Penerimaan Barang" }}</span>
+                            </a>
+                        </li>
+                    @endif
+                    @if ($hasSidebarPermission('createFakturPembelian', 'updateFakturPembelian', 'deleteFakturPembelian', 'printFakturPembelian'))
+                        <li>
+                            <a href="{{ route('fakturpembelian.index') }}"
+                                class="flex items-center p-2 rounded-lg hover:bg-gray-700">
+                                <x-heroicon-o-banknotes class="w-5 h-5" />
+                                <span class="ml-3">{{ "Faktur Pembelian" }}</span>
+                            </a>
+                        </li>
+                    @endif
                 </ul>
             </li>
 
@@ -455,7 +482,7 @@
                 <ul x-show="open && openSidebar" x-transition
                     class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
 
-                    @if (in_array('viewSysuser', explode(',', session('user_restricted_permissions', ''))))
+                    @if ($hasSidebarPermission('createPenerimaanBarang', 'updatePenerimaanBarang', 'deletePenerimaanBarang'))
                         <li>
                             <a href="{{ route('adjstock.index') }}"
                                 class="flex items-center p-2 rounded-lg hover:bg-gray-700">
@@ -463,6 +490,8 @@
                                 <span class="ml-3">{{ "Adjustment Stock" }}</span>
                             </a>
                         </li>
+                    @endif
+                    @if ($hasSidebarPermission('createPenerimaanBarang', 'updatePenerimaanBarang', 'deletePenerimaanBarang'))
                         <li>
                             <a href="{{ route('mutasi.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -470,6 +499,8 @@
                                 <span class="ml-3">{{ "Mutasi" }}</span>
                             </a>
                         </li>
+                    @endif
+                    @if ($hasSidebarPermission('createPemakaianbarang', 'updatePemakaianBarang', 'deletePemakaianBarang'))
                         <li>
                             <a href="{{ route('pemakaianbarang.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -477,6 +508,8 @@
                                 <span class="ml-3">{{ "Pemakaian Barang" }}</span>
                             </a>
                         </li>
+                    @endif
+                    @if ($hasSidebarPermission('createReturPembelian', 'updateReturPembelian', 'deleteReturPembelian', 'printReturPembelian'))
                         <li>
                             <a href="{{ route('returpembelian.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -484,6 +517,8 @@
                                 <span class="ml-3">{{ "Retur Pembelian" }}</span>
                             </a>
                         </li>
+                    @endif
+                    @if ($hasSidebarPermission('createAssembling', 'updateAssembling', 'deleteAssembling'))
                         <li>
                             <a href="{{ route('assembling.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -513,55 +548,55 @@
                 <ul x-show="open && openSidebar" x-transition
                     class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
 
-                    {{-- @if (in_array('viewCurrency', explode(',', session('user_restricted_permissions', '')))) --}}
-                    <li>
-                        <a href="{{ route('reportingaccount.index') }}"
-                            class="flex items-center p-2 rounded hover:bg-gray-700">
-                            <x-heroicon-o-credit-card class="w-5 h-5" />
-                            <span class="ml-3">{{ "Chart of Account" }}</span>
-                        </a>
-                    </li>
-                    {{-- @endif --}}
+                    @if ($hasSidebarPermission('viewAccount'))
+                        <li>
+                            <a href="{{ route('reportingaccount.index') }}"
+                                class="flex items-center p-2 rounded hover:bg-gray-700">
+                                <x-heroicon-o-credit-card class="w-5 h-5" />
+                                <span class="ml-3">{{ "Chart of Account" }}</span>
+                            </a>
+                        </li>
+                    @endif
 
-                    {{-- @if (in_array('viewCurrency', explode(',', session('user_restricted_permissions', '')))) --}}
-                    <li>
-                        <a href="{{ route('reportingsubaccount.index') }}"
-                            class="flex items-center p-2 rounded hover:bg-gray-700">
-                            <x-heroicon-o-credit-card class="w-5 h-5" />
-                            <span class="ml-3">{{ "Sub Account" }}</span>
-                        </a>
-                    </li>
-                    {{-- @endif --}}
+                    @if ($hasSidebarPermission('viewSubAccount'))
+                        <li>
+                            <a href="{{ route('reportingsubaccount.index') }}"
+                                class="flex items-center p-2 rounded hover:bg-gray-700">
+                                <x-heroicon-o-credit-card class="w-5 h-5" />
+                                <span class="ml-3">{{ "Sub Account" }}</span>
+                            </a>
+                        </li>
+                    @endif
 
-                    {{-- @if (in_array('viewCurrency', explode(',', session('user_restricted_permissions', '')))) --}}
-                    <li>
-                        <a href="{{ route('reportingcustomer.index') }}"
-                            class="flex items-center p-2 rounded hover:bg-gray-700">
-                            <x-heroicon-o-credit-card class="w-5 h-5" />
-                            <span class="ml-3">{{ "Customer" }}</span>
-                        </a>
-                    </li>
-                    {{-- @endif --}}
+                    @if ($hasSidebarPermission('viewCustomer'))
+                        <li>
+                            <a href="{{ route('reportingcustomer.index') }}"
+                                class="flex items-center p-2 rounded hover:bg-gray-700">
+                                <x-heroicon-o-credit-card class="w-5 h-5" />
+                                <span class="ml-3">{{ "Customer" }}</span>
+                            </a>
+                        </li>
+                    @endif
 
-                    {{-- @if (in_array('viewCurrency', explode(',', session('user_restricted_permissions', '')))) --}}
-                    <li>
-                        <a href="{{ route('reportingsupplier.index') }}"
-                            class="flex items-center p-2 rounded hover:bg-gray-700">
-                            <x-heroicon-o-credit-card class="w-5 h-5" />
-                            <span class="ml-3">{{ "Supplier" }}</span>
-                        </a>
-                    </li>
-                    {{-- @endif --}}
+                    @if ($hasSidebarPermission('viewSupplier'))
+                        <li>
+                            <a href="{{ route('reportingsupplier.index') }}"
+                                class="flex items-center p-2 rounded hover:bg-gray-700">
+                                <x-heroicon-o-credit-card class="w-5 h-5" />
+                                <span class="ml-3">{{ "Supplier" }}</span>
+                            </a>
+                        </li>
+                    @endif
 
-                    {{-- @if (in_array('viewCurrency', explode(',', session('user_restricted_permissions', '')))) --}}
-                    <li>
-                        <a href="{{ route('reportingproduct.index') }}"
-                            class="flex items-center p-2 rounded hover:bg-gray-700">
-                            <x-heroicon-o-credit-card class="w-5 h-5" />
-                            <span class="ml-3">{{ "Product" }}</span>
-                        </a>
-                    </li>
-                    {{-- @endif --}}
+                    @if ($hasSidebarPermission('viewProduct'))
+                        <li>
+                            <a href="{{ route('reportingproduct.index') }}"
+                                class="flex items-center p-2 rounded hover:bg-gray-700">
+                                <x-heroicon-o-credit-card class="w-5 h-5" />
+                                <span class="ml-3">{{ "Product" }}</span>
+                            </a>
+                        </li>
+                    @endif
 
                 </ul>
             </li>
@@ -582,7 +617,7 @@
 
                 <ul x-show="open && openSidebar" x-transition
                     class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
-                    @if (in_array('viewSysuser', explode(',', session('user_restricted_permissions', ''))))
+                    @if ($hasSidebarPermission('viewTr_poh', 'createTr_poh', 'updateTr_poh', 'deleteTr_poh'))
                         <li>
                             <a href="{{ route('listingso.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -595,7 +630,7 @@
 
                 <ul x-show="open && openSidebar" x-transition
                     class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
-                    @if (in_array('viewSysuser', explode(',', session('user_restricted_permissions', ''))))
+                    @if ($hasSidebarPermission('viewTr_poh', 'createTr_poh', 'updateTr_poh', 'deleteTr_poh'))
                         <li>
                             <a href="{{ route('listingsobelum.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -608,7 +643,7 @@
 
                 <ul x-show="open && openSidebar" x-transition
                     class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
-                    @if (in_array('viewSysuser', explode(',', session('user_restricted_permissions', ''))))
+                    @if ($hasSidebarPermission('createInvoice', 'updateInvoice', 'deleteInvoice'))
                         <li>
                             <a href="{{ route('listingpenjualan.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -621,7 +656,7 @@
 
                 <!-- <ul x-show="open && openSidebar" x-transition
                     class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
-                    @if (in_array('viewSysuser', explode(',', session('user_restricted_permissions', ''))))
+                    @if ($hasSidebarPermission('viewTr_prh', 'createTr_prh', 'updateTr_prh', 'deleteTr_prh'))
                         <li>
                             <a href="{{ route('listingpr.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -634,7 +669,7 @@
 
                 <ul x-show="open && openSidebar" x-transition
                     class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
-                    @if (in_array('viewSysuser', explode(',', session('user_restricted_permissions', ''))))
+                    @if ($hasSidebarPermission('viewTr_prh', 'createTr_prh', 'updateTr_prh', 'deleteTr_prh'))
                         <li>
                             <a href="{{ route('listingpo.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -647,7 +682,7 @@
 
                 <ul x-show="open && openSidebar" x-transition
                     class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
-                    @if (in_array('viewSysuser', explode(',', session('user_restricted_permissions', ''))))
+                    @if ($hasSidebarPermission('viewTr_poh', 'createTr_poh', 'updateTr_poh', 'deleteTr_poh'))
                         <li>
                             <a href="{{ route('listingpenerimaanbarang.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -660,7 +695,7 @@
 
                 <ul x-show="open && openSidebar" x-transition
                     class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
-                    @if (in_array('viewSysuser', explode(',', session('user_restricted_permissions', ''))))
+                    @if ($hasSidebarPermission('createPenerimaanBarang', 'updatePenerimaanBarang', 'deletePenerimaanBarang'))
                         <li>
                             <a href="{{ route('listingfakturpembelian.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -689,7 +724,7 @@
                 <!-- Reporting -->
                 <ul x-show="open && openSidebar" x-transition
                     class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
-                    @if (in_array('viewSysuser', explode(',', session('user_restricted_permissions', ''))))
+                    @if ($hasSidebarPermission('viewTr_prh', 'createTr_prh', 'updateTr_prh', 'deleteTr_prh'))
                         <li>
                             <a href="{{ route('listingpr.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -699,7 +734,7 @@
                         </li>
                     @endif
 
-                    @if (in_array('viewSysuser', explode(',', session('user_restricted_permissions', ''))))
+                    @if ($hasSidebarPermission('viewTr_poh', 'createTr_poh', 'updateTr_poh', 'deleteTr_poh'))
                         <li>
                             <a href="{{ route('listingpo.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -709,7 +744,7 @@
                         </li>
                     @endif
 
-                    @if (in_array('viewSysuser', explode(',', session('user_restricted_permissions', ''))))
+                    @if ($hasSidebarPermission('createPenerimaanBarang', 'updatePenerimaanBarang', 'deletePenerimaanBarang'))
                         <li>
                             <a href="{{ route('listingpenerimaanbarang.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -719,7 +754,7 @@
                         </li>
                     @endif
 
-                    @if (in_array('viewSysuser', explode(',', session('user_restricted_permissions', ''))))
+                    @if ($hasSidebarPermission('createFakturPembelian', 'updateFakturPembelian', 'deleteFakturPembelian', 'printFakturPembelian'))
                         <li>
                             <a href="{{ route('listingfakturpembelian.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -748,7 +783,7 @@
                 <!-- Reporting -->
                 <ul x-show="open && openSidebar" x-transition
                     class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
-                    @if (in_array('viewSysuser', explode(',', session('user_restricted_permissions', ''))))
+                    @if ($hasSidebarPermission('createPenerimaanBarang', 'updatePenerimaanBarang', 'deletePenerimaanBarang'))
                         <li>
                             <a href="{{ route('reportingadjstock.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -758,7 +793,7 @@
                         </li>
                     @endif
 
-                    @if (in_array('viewSysuser', explode(',', session('user_restricted_permissions', ''))))
+                    @if ($hasSidebarPermission('createPemakaianbarang', 'updatePemakaianBarang', 'deletePemakaianBarang'))
                         <li>
                             <a href="{{ route('reportingpemakaianbarang.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -768,7 +803,7 @@
                         </li>
                     @endif
 
-                    @if (in_array('viewSysuser', explode(',', session('user_restricted_permissions', ''))))
+                    @if ($hasSidebarPermission('createAssembling', 'updateAssembling', 'deleteAssembling'))
                         <li>
                             <a href="{{ route('reportingassembling.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -778,21 +813,25 @@
                         </li>
                     @endif
 
-                    <li>
-                        <a href="{{ route('reportingkas.pengeluaran.index') }}"
-                            class="flex items-center p-2 rounded hover:bg-gray-700">
-                            <x-heroicon-o-banknotes class="w-5 h-5" />
-                            <span class="ml-3">{{ "Laporan Pengeluaran Kas" }}</span>
-                        </a>
-                    </li>
+                    @if ($hasSidebarPermission('createPengeluaranKas', 'updatePengeluaranKas', 'deletePengeluaranKas'))
+                        <li>
+                            <a href="{{ route('reportingkas.pengeluaran.index') }}"
+                                class="flex items-center p-2 rounded hover:bg-gray-700">
+                                <x-heroicon-o-banknotes class="w-5 h-5" />
+                                <span class="ml-3">{{ "Laporan Pengeluaran Kas" }}</span>
+                            </a>
+                        </li>
+                    @endif
 
-                    <!-- <li>
-                        <a href="{{ route('reportingkas.penerimaan.index') }}"
-                            class="flex items-center p-2 rounded hover:bg-gray-700">
-                            <x-heroicon-o-banknotes class="w-5 h-5" />
-                            <span class="ml-3">{{ "Laporan Penerimaan Kas" }}</span>
-                        </a>
-                    </li> -->
+                    @if ($hasSidebarPermission('createPenerimaanKas', 'updatePenerimaanKas', 'deletePenerimaanKas'))
+                        <li>
+                            <a href="{{ route('reportingkas.penerimaan.index') }}"
+                                class="flex items-center p-2 rounded hover:bg-gray-700">
+                                <x-heroicon-o-banknotes class="w-5 h-5" />
+                                <span class="ml-3">{{ "Laporan Penerimaan Kas" }}</span>
+                            </a>
+                        </li>
+                    @endif
                 </ul>
             </li>
 
@@ -811,20 +850,24 @@
 
                 <ul x-show="open && openSidebar" x-transition
                     class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
-                    <li>
-                        <a href="{{ route('pengeluarankas.index') }}"
-                            class="flex items-center p-2 rounded hover:bg-gray-700">
-                            <x-heroicon-o-banknotes class="w-5 h-5" />
-                            <span class="ml-3">{{ "Pengeluaran Kas" }}</span>
-                        </a>
-                    </li>
-                    <!-- <li>
-                        <a href="{{ route('penerimaankas.index') }}"
-                            class="flex items-center p-2 rounded hover:bg-gray-700">
-                            <x-heroicon-o-banknotes class="w-5 h-5" />
-                            <span class="ml-3">{{ "Penerimaan Kas" }}</span>
-                        </a>
-                    </li> -->
+                    @if ($hasSidebarPermission('createPengeluaranKas', 'updatePengeluaranKas', 'deletePengeluaranKas'))
+                        <li>
+                            <a href="{{ route('pengeluarankas.index') }}"
+                                class="flex items-center p-2 rounded hover:bg-gray-700">
+                                <x-heroicon-o-banknotes class="w-5 h-5" />
+                                <span class="ml-3">{{ "Pengeluaran Kas" }}</span>
+                            </a>
+                        </li>
+                    @endif
+                    @if ($hasSidebarPermission('createPenerimaanKas', 'updatePenerimaanKas', 'deletePenerimaanKas'))
+                        <li>
+                            <a href="{{ route('penerimaankas.index') }}"
+                                class="flex items-center p-2 rounded hover:bg-gray-700">
+                                <x-heroicon-o-banknotes class="w-5 h-5" />
+                                <span class="ml-3">{{ "Penerimaan Kas" }}</span>
+                            </a>
+                        </li>
+                    @endif
                 </ul>
             </li>
 
@@ -847,7 +890,7 @@
                 <ul x-show="open && openSidebar" x-transition
                     class="ml-9 mt-1 space-y-1 border-l border-white/10 pl-3" x-cloak>
 
-                    @if (in_array('viewSysuser', explode(',', session('user_restricted_permissions', ''))))
+                    @if ($hasSidebarPermission('viewSysuser', 'createSysuser', 'updateSysuser', 'deleteSysuser', 'roleaccess'))
                         <li>
                             <a href="{{ route('sysuser.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
@@ -861,4 +904,3 @@
         </ul>
     </nav>
 </div>
-

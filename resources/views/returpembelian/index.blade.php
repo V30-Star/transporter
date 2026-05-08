@@ -5,22 +5,24 @@
 @section('content')
     <div x-data class="bg-white rounded shadow p-4">
 
-        {{-- @php
-            $canCreate = in_array('createTr_prh', explode(',', session('user_restricted_permissions', '')));
-            $canEdit = in_array('updateTr_prh', explode(',', session('user_restricted_permissions', '')));
-            $canDelete = in_array('deleteTr_prh', explode(',', session('user_restricted_permissions', '')));
-            $showActionsColumn = $canEdit || $canDelete;
-        @endphp --}}
+        @php
+            $permissions = array_filter(array_map('trim', explode(',', session('user_restricted_permissions', ''))));
+            $canCreate = in_array('createReturPembelian', $permissions, true);
+            $canEdit = in_array('updateReturPembelian', $permissions, true);
+            $canDelete = in_array('deleteReturPembelian', $permissions, true);
+            $canPrint = in_array('printReturPembelian', $permissions, true);
+            $showActionsColumn = $canEdit || $canDelete || $canPrint;
+        @endphp
 
         <div class="flex justify-end items-center mb-4">
             <div></div>
 
-            {{-- @if ($canCreate) --}}
-            <a href="{{ route('returpembelian.create') }}"
-                class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                <x-heroicon-o-plus class="w-4 h-4 mr-1" /> Tambah Baru
-            </a>
-            {{-- @endif --}}
+            @if ($canCreate)
+                <a href="{{ route('returpembelian.create') }}"
+                    class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                    <x-heroicon-o-plus class="w-4 h-4 mr-1" /> Tambah Baru
+                </a>
+            @endif
         </div>
         {{-- 
         <div id="statusFilterTemplate" class="hidden">
@@ -78,9 +80,9 @@
                     <th class="border px-2 py-1">Tanggal</th>
                     <th class="border px-2 py-1">Tipe Beli</th>
 
-                    {{-- @if ($showActionsColumn) --}}
-                    <th class="border px-2 py-1 col-aksi">Aksi</th>
-                    {{-- @endif --}}
+                    @if ($showActionsColumn)
+                        <th class="border px-2 py-1 col-aksi">Aksi</th>
+                    @endif
                 </tr>
             </thead>
             <tbody>
@@ -287,10 +289,7 @@
         });
 
         $(function() {
-            // const hasActions = {{ $showActionsColumn ? 'true' : 'false' }};
-            // const canEdit = {{ $canEdit ? 'true' : 'false' }};
-            // const canDelete = {{ $canDelete ? 'true' : 'false' }};
-            // const canPrint = {{ $canPrint ? 'true' : 'false' }};
+            const hasActions = {{ $showActionsColumn ? 'true' : 'false' }};
 
             // 1. Definisi Kolom - HARUS SELALU ADA 4 KOLOM (sesuai dengan <th> di HTML)
             const columns = [{
@@ -305,21 +304,23 @@
                     data: 'ftypebuy',
                     name: 'ftypebuy'
                 },
+                @if ($showActionsColumn)
                 {
                     data: 'actions',
                     name: 'actions',
                     orderable: false,
                     searchable: false
                 }
+                @endif
             ];
 
             // 2. Definisi columnDefs
-            const columnDefs = [{
+            const columnDefs = @if ($showActionsColumn) [{
                 targets: -1,
                 orderable: false,
                 searchable: false,
                 width: '280px'
-            }];
+            }] @else [] @endif;
 
             // 3. Inisialisasi DataTables
             $('#returpembelianTable').DataTable({

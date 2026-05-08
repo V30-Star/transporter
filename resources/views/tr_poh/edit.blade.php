@@ -95,6 +95,11 @@
             </div>
         </div>
     @endif
+    @php
+        $permissions = explode(',', session('user_restricted_permissions', ''));
+        $canEditPermission = in_array('updateTr_poh', $permissions, true);
+        $canDeletePermission = in_array('deleteTr_poh', $permissions, true);
+    @endphp
     {{-- ═══════════════════════════════════════════════════════════════════
      MODAL BLOCKED BY PENERIMAAN BARANG (QTY TERIMA)
 ════════════════════════════════════════════════════════════════════ --}}
@@ -916,7 +921,7 @@
         </div>
 
         <div class="mt-8 flex justify-center gap-4">
-            @if ($isEdit)
+            @if ($isEdit && $canEditPermission)
                 @if (!empty($blockedByTerima) && $blockedByTerima)
                     {{-- Simpan di-disable karena ada penerimaan barang --}}
                     <button type="button" disabled title="Tidak dapat disimpan karena sudah ada penerimaan barang"
@@ -935,7 +940,7 @@
                         <x-heroicon-o-lock-closed class="w-5 h-5 mr-2" /> Close
                     </button>
                 @endif
-            @else
+            @elseif (!$isEdit && $canDeletePermission)
                 @if (!empty($blockedByTerima) && $blockedByTerima)
                     {{-- Hapus di-disable karena ada penerimaan barang --}}
                     <button type="button" disabled title="Tidak dapat dihapus karena sudah ada penerimaan barang"
@@ -996,7 +1001,7 @@
     </div>
 
     {{-- Modal Konfirmasi Hapus (delete only) --}}
-    @if ($isDelete)
+    @if ($isDelete && $canDeletePermission)
         <div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
                 <h3 class="text-lg font-semibold mb-2">Konfirmasi Hapus</h3>

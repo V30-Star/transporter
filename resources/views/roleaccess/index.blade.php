@@ -9,6 +9,11 @@
 
             <form action="{{ route('roleaccess.store') }}" method="POST">
                 @csrf <!-- CSRF Token for security -->
+                @php
+                    $selectedPermissions = isset($roleAccess) && filled($roleAccess->fpermission)
+                        ? array_filter(array_map('trim', explode(',', $roleAccess->fpermission)))
+                        : [];
+                @endphp
 
                 <!-- Display fsysuserid (readonly) -->
                 <div class="form-group mb-4 flex justify-between items-center">
@@ -370,6 +375,249 @@
                                 <td class="text-center">
                                     <input type="checkbox" name="permission[]" value="deleteTr_prh"
                                         {{ isset($roleAccess) && in_array('deleteTr_prh', explode(',', $roleAccess->fpermission)) ? 'checked' : '' }}>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td class="px-3 py-2 font-semibold">Currency</td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="viewCurrency"
+                                        {{ in_array('viewCurrency', $selectedPermissions) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="createCurrency"
+                                        {{ in_array('createCurrency', $selectedPermissions) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="updateCurrency"
+                                        {{ in_array('updateCurrency', $selectedPermissions) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="deleteCurrency"
+                                        {{ in_array('deleteCurrency', $selectedPermissions) ? 'checked' : '' }}>
+                                </td>
+                            </tr>
+
+                            <tr class="bg-gray-50">
+                                <td class="px-3 py-2 font-semibold">Order Pembelian / Sales Order (PO / SO)</td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="viewTr_poh"
+                                        {{ in_array('viewTr_poh', $selectedPermissions) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="createTr_poh"
+                                        {{ in_array('createTr_poh', $selectedPermissions) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="updateTr_poh"
+                                        {{ in_array('updateTr_poh', $selectedPermissions) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="deleteTr_poh"
+                                        {{ in_array('deleteTr_poh', $selectedPermissions) ? 'checked' : '' }}>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td class="px-3 py-2 font-semibold">Penerimaan Barang / Adj. Stock / Mutasi</td>
+                                <td class="text-center text-gray-400">-</td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="createPenerimaanBarang"
+                                        {{ in_array('createPenerimaanBarang', $selectedPermissions) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="updatePenerimaanBarang"
+                                        {{ in_array('updatePenerimaanBarang', $selectedPermissions) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="deletePenerimaanBarang"
+                                        {{ in_array('deletePenerimaanBarang', $selectedPermissions) ? 'checked' : '' }}>
+                                </td>
+                            </tr>
+
+                            <tr class="bg-gray-50">
+                                <td class="px-3 py-2 font-semibold">Surat Jalan</td>
+                                <td class="text-center text-gray-400">-</td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="createSuratJalan"
+                                        {{ in_array('createSuratJalan', $selectedPermissions) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="updateSuratJalan"
+                                        {{ in_array('updateSuratJalan', $selectedPermissions) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="deleteSuratJalan"
+                                        {{ in_array('deleteSuratJalan', $selectedPermissions) ? 'checked' : '' }}>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td class="px-3 py-2 font-semibold">Faktur Penjualan</td>
+                                <td class="text-center text-gray-400">-</td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="createInvoice"
+                                        {{ in_array('createInvoice', $selectedPermissions) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="updateInvoice"
+                                        {{ in_array('updateInvoice', $selectedPermissions) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="deleteInvoice"
+                                        {{ in_array('deleteInvoice', $selectedPermissions) ? 'checked' : '' }}>
+                                </td>
+                            </tr>
+
+                            <tr class="bg-gray-50">
+                                <td class="px-3 py-2 font-semibold">Retur Penjualan</td>
+                                <td class="text-center text-gray-400">-</td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="createReturPenjualan"
+                                        {{ in_array('createReturPenjualan', $selectedPermissions) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="updateReturPenjualan"
+                                        {{ in_array('updateReturPenjualan', $selectedPermissions) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="deleteReturPenjualan"
+                                        {{ in_array('deleteReturPenjualan', $selectedPermissions) ? 'checked' : '' }}>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td class="px-3 py-2 font-semibold">Faktur Pembelian</td>
+                                <td class="text-center text-gray-400">-</td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="createFakturPembelian"
+                                        {{ in_array('createFakturPembelian', $selectedPermissions) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="updateFakturPembelian"
+                                        {{ in_array('updateFakturPembelian', $selectedPermissions) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="deleteFakturPembelian"
+                                        {{ in_array('deleteFakturPembelian', $selectedPermissions) ? 'checked' : '' }}>
+                                </td>
+                            </tr>
+
+                            <tr class="bg-gray-50">
+                                <td class="px-3 py-2 font-semibold">Print Faktur Pembelian</td>
+                                <td class="text-center" colspan="4">
+                                    <input type="checkbox" name="permission[]" value="printFakturPembelian"
+                                        {{ in_array('printFakturPembelian', $selectedPermissions) ? 'checked' : '' }}>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td class="px-3 py-2 font-semibold">Retur Pembelian</td>
+                                <td class="text-center text-gray-400">-</td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="createReturPembelian"
+                                        {{ in_array('createReturPembelian', $selectedPermissions) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="updateReturPembelian"
+                                        {{ in_array('updateReturPembelian', $selectedPermissions) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="deleteReturPembelian"
+                                        {{ in_array('deleteReturPembelian', $selectedPermissions) ? 'checked' : '' }}>
+                                </td>
+                            </tr>
+
+                            <tr class="bg-gray-50">
+                                <td class="px-3 py-2 font-semibold">Print Retur Pembelian</td>
+                                <td class="text-center" colspan="4">
+                                    <input type="checkbox" name="permission[]" value="printReturPembelian"
+                                        {{ in_array('printReturPembelian', $selectedPermissions) ? 'checked' : '' }}>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td class="px-3 py-2 font-semibold">Assembling</td>
+                                <td class="text-center text-gray-400">-</td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="createAssembling"
+                                        {{ in_array('createAssembling', $selectedPermissions) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="updateAssembling"
+                                        {{ in_array('updateAssembling', $selectedPermissions) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="deleteAssembling"
+                                        {{ in_array('deleteAssembling', $selectedPermissions) ? 'checked' : '' }}>
+                                </td>
+                            </tr>
+
+                            <tr class="bg-gray-50">
+                                <td class="px-3 py-2 font-semibold">Pemakaian Barang</td>
+                                <td class="text-center text-gray-400">-</td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="createPemakaianbarang"
+                                        {{ in_array('createPemakaianbarang', $selectedPermissions) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="updatePemakaianBarang"
+                                        {{ in_array('updatePemakaianBarang', $selectedPermissions) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="deletePemakaianBarang"
+                                        {{ in_array('deletePemakaianBarang', $selectedPermissions) ? 'checked' : '' }}>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td class="px-3 py-2 font-semibold">Jurnal Transaksi</td>
+                                <td class="text-center text-gray-400">-</td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="createjurnaltransaksi"
+                                        {{ in_array('createjurnaltransaksi', $selectedPermissions) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="updatejurnaltransaksi"
+                                        {{ in_array('updatejurnaltransaksi', $selectedPermissions) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="deletejurnaltransaksi"
+                                        {{ in_array('deletejurnaltransaksi', $selectedPermissions) ? 'checked' : '' }}>
+                                </td>
+                            </tr>
+
+                            <tr class="bg-gray-50">
+                                <td class="px-3 py-2 font-semibold">Pengeluaran Kas</td>
+                                <td class="text-center text-gray-400">-</td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="createPengeluaranKas"
+                                        {{ in_array('createPengeluaranKas', $selectedPermissions) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="updatePengeluaranKas"
+                                        {{ in_array('updatePengeluaranKas', $selectedPermissions) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="deletePengeluaranKas"
+                                        {{ in_array('deletePengeluaranKas', $selectedPermissions) ? 'checked' : '' }}>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td class="px-3 py-2 font-semibold">Penerimaan Kas</td>
+                                <td class="text-center text-gray-400">-</td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="createPenerimaanKas"
+                                        {{ in_array('createPenerimaanKas', $selectedPermissions) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="updatePenerimaanKas"
+                                        {{ in_array('updatePenerimaanKas', $selectedPermissions) ? 'checked' : '' }}>
+                                </td>
+                                <td class="text-center">
+                                    <input type="checkbox" name="permission[]" value="deletePenerimaanKas"
+                                        {{ in_array('deletePenerimaanKas', $selectedPermissions) ? 'checked' : '' }}>
                                 </td>
                             </tr>
 

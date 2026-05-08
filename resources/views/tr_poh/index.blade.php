@@ -6,21 +6,22 @@
     <div x-data class="bg-white rounded shadow p-4">
 
         @php
-            $canCreate = in_array('createTr_poh', explode(',', session('user_restricted_permissions', '')));
-            $canView = in_array('viewTr_poh', explode(',', session('user_restricted_permissions', '')));
-            $canEdit = in_array('updateTr_poh', explode(',', session('user_restricted_permissions', '')));
-            $canDelete = in_array('deleteTr_poh', explode(',', session('user_restricted_permissions', '')));
-            $showActionsColumn = $canEdit || $canDelete;
+            $permissions = explode(',', session('user_restricted_permissions', ''));
+            $canCreate = in_array('createTr_poh', $permissions, true);
+            $canEdit = in_array('updateTr_poh', $permissions, true);
+            $canDelete = in_array('deleteTr_poh', $permissions, true);
+            $canView = in_array('viewTr_poh', $permissions, true) || $canCreate || $canEdit || $canDelete;
+            $showActionsColumn = $canView || $canEdit || $canDelete;
         @endphp
 
         <div class="flex justify-end items-center mb-4">
             <div></div>
-            {{-- @if ($canCreate) --}}
-            <a href="{{ route('tr_poh.create') }}"
-                class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                <x-heroicon-o-plus class="w-4 h-4 mr-1" /> Tambah Baru
-            </a>
-            {{-- @endif --}}
+            @if ($canCreate)
+                <a href="{{ route('tr_poh.create') }}"
+                    class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                    <x-heroicon-o-plus class="w-4 h-4 mr-1" /> Tambah Baru
+                </a>
+            @endif
         </div>
 
         <div id="statusFilterTemplate" class="hidden">
@@ -79,7 +80,9 @@
                     <th class="border px-2 py-1">Ref.PR</th>
                     <th class="border px-2 py-1">Status</th>
                     <th class="border px-2 py-1">Approved</th>
-                    <th class="border px-2 py-1 col-aksi">Aksi</th>
+                    @if ($showActionsColumn)
+                        <th class="border px-2 py-1 col-aksi">Aksi</th>
+                    @endif
                 </tr>
             </thead>
             <tbody>
@@ -285,10 +288,10 @@
         });
 
         $(function() {
-            // const hasActions = {{ $showActionsColumn ? 'true' : 'false' }};
-            // const canView = {{ $canView ? 'true' : 'false' }};
-            // const canEdit = {{ $canEdit ? 'true' : 'false' }};
-            // const canDelete = {{ $canDelete ? 'true' : 'false' }};
+            const hasActions = {{ $showActionsColumn ? 'true' : 'false' }};
+            const canView = {{ $canView ? 'true' : 'false' }};
+            const canEdit = {{ $canEdit ? 'true' : 'false' }};
+            const canDelete = {{ $canDelete ? 'true' : 'false' }};
 
             // 1. Definisi Kolom
             const columns = [{
@@ -321,66 +324,63 @@
                 }
             ];
 
-            // Tambahkan kolom actions jika ada permission
-            // if (hasActions) {
-            columns.push({
-                data: 'fpohid',
-                name: 'actions',
-                orderable: false,
-                searchable: false,
-                render: function(data, type, row) {
-                    let html = '<div class="flex gap-2">';
+            if (hasActions) {
+                columns.push({
+                    data: 'fpohid',
+                    name: 'actions',
+                    orderable: false,
+                    searchable: false,
+                    render: function(data) {
+                        let html = '<div class="flex gap-2">';
 
-                    // if (canView) {
-                    html += `<a href="tr_poh/${data}/view">
-                        <button class="inline-flex items-center bg-slate-500 text-white px-4 py-2 rounded hover:bg-slate-600">
-                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                            </svg>
-                            View
-                        </button>
-                    </a>`;
-                    // }
-
-                    // Edit Button
-                    // if (canEdit) {
-                    html += `<a href="tr_poh/${data}/edit" class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
-                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                            </svg>
-                            Edit
-                        </a>`;
-                    // }
-
-                    // Delete Button
-                    // if (canDelete) {
-                    let deleteUrl = '{{ route('tr_poh.index') }}/' + data + '/delete';
-                    html += `<a href="${deleteUrl}">
-                                <button class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                        if (canView) {
+                            html += `<a href="tr_poh/${data}/view">
+                                <button class="inline-flex items-center bg-slate-500 text-white px-4 py-2 rounded hover:bg-slate-600">
                                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                                     </svg>
-                                    Hapus
+                                    View
                                 </button>
                             </a>`;
-                    // }
+                        }
 
-                    html += '</div>';
-                    return html;
-                }
-            });
-            // }
+                        if (canEdit) {
+                            html += `<a href="tr_poh/${data}/edit" class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                    </svg>
+                                    Edit
+                                </a>`;
+                        }
+
+                        if (canDelete) {
+                            let deleteUrl = '{{ route('tr_poh.index') }}/' + data + '/delete';
+                            html += `<a href="${deleteUrl}">
+                                        <button class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                            </svg>
+                                            Hapus
+                                        </button>
+                                    </a>`;
+                        }
+
+                        html += '</div>';
+                        return html;
+                    }
+                });
+            }
 
             // 2. Definisi columnDefs
             const columnDefs = [];
-            // if (hasActions) {
-            columnDefs.push({
-                targets: -1,
-                orderable: false,
-                searchable: false,
-                width: '280px'
-            });
-            // }
+            if (hasActions) {
+                columnDefs.push({
+                    targets: -1,
+                    orderable: false,
+                    searchable: false,
+                    width: '280px'
+                });
+            }
 
             // 3. Inisialisasi DataTables
             $('#tr_pohTable').DataTable({

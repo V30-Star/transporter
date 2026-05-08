@@ -109,6 +109,11 @@
         </div>
     @endif
     @php
+        $permissions = explode(',', session('user_restricted_permissions', ''));
+        $canEditPermission = in_array('updateTr_prh', $permissions, true);
+        $canDeletePermission = in_array('deleteTr_prh', $permissions, true);
+    @endphp
+    @php
         $isUsageLocked = !empty($blockedByPO) && $blockedByPO;
         $canClosePr = $action === 'edit' && $tr_prh->fclose != '1' && $isUsageLocked && (string) ($tr_prh->fprdin ?? '') === '0';
     @endphp
@@ -287,17 +292,19 @@
                     </div>
 
                     <div class="mt-6 flex justify-center space-x-4">
-                        @if (!empty($blockedByPO) && $blockedByPO)
-                            <button type="button" disabled
-                                class="bg-red-300 text-white px-6 py-2 rounded cursor-not-allowed flex items-center gap-2">
-                                <x-heroicon-o-lock-closed class="w-5 h-5" />
-                                Hapus (Terkunci)
-                            </button>
-                        @else
-                            <button type="button" onclick="showDeleteModal()"
-                                class="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700 flex items-center">
-                                <x-heroicon-o-trash class="w-5 h-5 mr-2" /> Hapus
-                            </button>
+                        @if ($canDeletePermission)
+                            @if (!empty($blockedByPO) && $blockedByPO)
+                                <button type="button" disabled
+                                    class="bg-red-300 text-white px-6 py-2 rounded cursor-not-allowed flex items-center gap-2">
+                                    <x-heroicon-o-lock-closed class="w-5 h-5" />
+                                    Hapus (Terkunci)
+                                </button>
+                            @else
+                                <button type="button" onclick="showDeleteModal()"
+                                    class="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700 flex items-center">
+                                    <x-heroicon-o-trash class="w-5 h-5 mr-2" /> Hapus
+                                </button>
+                            @endif
                         @endif
                         <button type="button" onclick="window.location.href='{{ route('tr_prh.index') }}'"
                             class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center">
@@ -307,31 +314,33 @@
                 </div>
 
                 {{-- Modal Konfirmasi Delete --}}
-                <div id="deleteModal"
-                    class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
-                        <h3 class="text-lg font-semibold mb-4">Konfirmasi hapus Permintaan Pembelian ini?</h3>
-                        <form action="{{ route('tr_prh.destroy', $tr_prh->fprhid) }}" method="POST">
-                            @csrf
-                            @method('DELETE')
-                            <div class="flex justify-end space-x-2">
-                                <button onclick="closeDeleteModal()" type="button"
-                                    class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Tidak</button>
-                                <button type="submit"
-                                    class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Ya, Hapus</button>
-                            </div>
-                        </form>
+                @if ($canDeletePermission)
+                    <div id="deleteModal"
+                        class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                        <div class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
+                            <h3 class="text-lg font-semibold mb-4">Konfirmasi hapus Permintaan Pembelian ini?</h3>
+                            <form action="{{ route('tr_prh.destroy', $tr_prh->fprhid) }}" method="POST">
+                                @csrf
+                                @method('DELETE')
+                                <div class="flex justify-end space-x-2">
+                                    <button onclick="closeDeleteModal()" type="button"
+                                        class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Tidak</button>
+                                    <button type="submit"
+                                        class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Ya, Hapus</button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
-                </div>
-                <script>
-                    function showDeleteModal() {
-                        document.getElementById('deleteModal')?.classList.remove('hidden');
-                    }
+                    <script>
+                        function showDeleteModal() {
+                            document.getElementById('deleteModal')?.classList.remove('hidden');
+                        }
 
-                    function closeDeleteModal() {
-                        document.getElementById('deleteModal')?.classList.add('hidden');
-                    }
-                </script>
+                        function closeDeleteModal() {
+                            document.getElementById('deleteModal')?.classList.add('hidden');
+                        }
+                    </script>
+                @endif
             @else
                 {{-- MODE EDIT --}}
                 <form action="{{ route('tr_prh.update', $tr_prh->fprhid) }}" method="POST" x-data="{ showNoItems: false, blockedByPO: {{ $blockedByPO ? 'true' : 'false' }} }"
@@ -586,23 +595,25 @@
                     </div>
 
                     <div class="mt-8 flex justify-center gap-4">
-                        @if ($isUsageLocked)
-                            <button type="button" disabled
-                                class="bg-blue-300 text-white px-8 py-2.5 rounded shadow flex items-center transition cursor-not-allowed opacity-70"
-                                title="{{ $usageLockMessage ?? 'Data ini sudah digunakan.' }}">
-                                <x-heroicon-o-lock-closed class="w-5 h-5 mr-2" /> Simpan Perubahan
-                            </button>
-                        @else
-                            <button type="submit"
-                                class="bg-blue-600 text-white px-8 py-2.5 rounded shadow hover:bg-blue-700 flex items-center transition">
-                                <x-heroicon-o-check class="w-5 h-5 mr-2" /> Simpan Perubahan
-                            </button>
-                        @endif
-                        @if ($canClosePr)
-                            <button type="button" onclick="showClosePrModal()"
-                                class="bg-amber-500 text-white px-8 py-2.5 rounded shadow hover:bg-amber-600 flex items-center transition">
-                                <x-heroicon-o-lock-closed class="w-5 h-5 mr-2" /> Close
-                            </button>
+                        @if ($canEditPermission)
+                            @if ($isUsageLocked)
+                                <button type="button" disabled
+                                    class="bg-blue-300 text-white px-8 py-2.5 rounded shadow flex items-center transition cursor-not-allowed opacity-70"
+                                    title="{{ $usageLockMessage ?? 'Data ini sudah digunakan.' }}">
+                                    <x-heroicon-o-lock-closed class="w-5 h-5 mr-2" /> Simpan Perubahan
+                                </button>
+                            @else
+                                <button type="submit"
+                                    class="bg-blue-600 text-white px-8 py-2.5 rounded shadow hover:bg-blue-700 flex items-center transition">
+                                    <x-heroicon-o-check class="w-5 h-5 mr-2" /> Simpan Perubahan
+                                </button>
+                            @endif
+                            @if ($canClosePr)
+                                <button type="button" onclick="showClosePrModal()"
+                                    class="bg-amber-500 text-white px-8 py-2.5 rounded shadow hover:bg-amber-600 flex items-center transition">
+                                    <x-heroicon-o-lock-closed class="w-5 h-5 mr-2" /> Close
+                                </button>
+                            @endif
                         @endif
                         <button type="button" @click="window.location.href='{{ route('tr_prh.index') }}'"
                             class="bg-gray-500 text-white px-8 py-2.5 rounded shadow hover:bg-gray-600 flex items-center transition">

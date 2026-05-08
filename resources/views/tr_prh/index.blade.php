@@ -6,11 +6,12 @@
     <div x-data class="bg-white rounded shadow p-4">
 
         @php
-            $canCreate = in_array('createTr_prh', explode(',', session('user_restricted_permissions', '')));
-            $canView = in_array('viewTr_prh', explode(',', session('user_restricted_permissions', '')));
-            $canEdit = in_array('updateTr_prh', explode(',', session('user_restricted_permissions', '')));
-            $canDelete = in_array('deleteTr_prh', explode(',', session('user_restricted_permissions', '')));
-            $showActionsColumn = $canEdit || $canDelete;
+            $permissions = explode(',', session('user_restricted_permissions', ''));
+            $canCreate = in_array('createTr_prh', $permissions, true);
+            $canEdit = in_array('updateTr_prh', $permissions, true);
+            $canDelete = in_array('deleteTr_prh', $permissions, true);
+            $canView = in_array('viewTr_prh', $permissions, true) || $canCreate || $canEdit || $canDelete;
+            $showActionsColumn = $canView || $canEdit || $canDelete;
         @endphp
 
         <div class="flex justify-end items-center mb-4">
@@ -68,7 +69,9 @@
                     <th>Nama Supplier</th>
                     <th>User-id</th>
                     <th>Status</th>
-                    <th class="border px-2 py-2 col-aksi">Aksi</th>
+                    @if ($showActionsColumn)
+                        <th class="border px-2 py-2 col-aksi">Aksi</th>
+                    @endif
                 </tr>
             </thead>
             <tbody>
