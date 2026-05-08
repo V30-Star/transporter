@@ -400,7 +400,7 @@
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium">Jatuh Tempo</label>
+                            <label class="block text-sm font-medium">Jatuh Tempo (Hari)</label>
                             <input type="number" readonly
                                 class="w-full border rounded px-3 py-2 bg-gray-100 @error('ftempo') is-invalid @enderror"
                                 name="ftempo" id="ftempo" value="{{ old('ftempo', $customer->ftempo) }}"
