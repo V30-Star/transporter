@@ -45,10 +45,17 @@
                 </div>
             @endif
 
+            @php
+                $productSatuan = array_values(array_filter([
+                    $product->fsatuankecil ?? null,
+                    $product->fsatuanbesar ?? null,
+                    $product->fsatuanbesar2 ?? null,
+                ], fn ($value) => filled($value)));
+            @endphp
             <div class="grid grid-cols-3 gap-4">
                 <div class="text-sm font-medium text-gray-500">Satuan</div>
                 <div class="col-span-2 text-sm font-semibold text-gray-900">
-                    {{ $product->fsatuankecil ?? '-' }} / {{ $product->fsatuanbesar ?? '-' }}
+                    {{ count($productSatuan) > 0 ? implode(' / ', $productSatuan) : '-' }}
                 </div>
             </div>
 

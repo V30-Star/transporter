@@ -720,7 +720,7 @@
             .text(satuan3 || '-');
 
         // --- Tampilkan/sembunyikan block Satuan 2 ---
-        if (satuanKecil !== '' && satuanKecil !== null) {
+        if (satuan2 !== '' && satuan2 !== null) {
             $('#satuan2-block').show();
             $('#hj-level1-block').show();
         } else {
@@ -729,7 +729,7 @@
         }
 
         // --- Tampilkan/sembunyikan block Satuan 3 ---
-        if (satuan2 !== '' && satuan2 !== null && satuanKecil !== '') {
+        if (satuan3 !== '' && satuan3 !== null) {
             $('#satuan3-block').show();
             $('#hj-level2-block').show();
         } else {

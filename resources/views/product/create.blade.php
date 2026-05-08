@@ -1147,7 +1147,6 @@
         });
 
         // Initialize AutoNumeric
-        let fhpp = new AutoNumeric('#fhpp', 'commaDecimalCharDotSeparator');
         // let fhargasatuankecillevel1 = new AutoNumeric('#fhargasatuankecillevel1',
         //     'commaDecimalCharDotSeparator');
         // let hargasatuankecillevel2 = new AutoNumeric('#fhargasatuankecillevel2',

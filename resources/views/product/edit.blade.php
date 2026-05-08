@@ -1933,7 +1933,7 @@
             allowClear: true
         });
 
-        let fhpp = new AutoNumeric('#fhpp', 'commaDecimalCharDotSeparator');
+        
         // let fhargasatuankecillevel1 = new AutoNumeric('#fhargasatuankecillevel1',
         //     'commaDecimalCharDotSeparator');
         // let hargasatuankecillevel2 = new AutoNumeric('#fhargasatuankecillevel2',
@@ -2431,6 +2431,7 @@
      * Dipanggil saat ada perubahan pada Satuan Kecil atau Satuan 2.
      */
     let isUpdating = false;
+    let isInitialSatuanRender = true;
 
     function isUsageLockedField(field) {
         return field?.dataset?.usageLocked === '1';
@@ -2482,8 +2483,10 @@
         const largeSatuan1Value = largeSatuan1 ? largeSatuan1.value : '';
         const largeSatuan2Value = largeSatuan2 ? largeSatuan2.value : '';
 
+        const shouldShowSatuan2 = isInitialSatuanRender ? !!largeSatuan1Value : !!smallSatuanValue;
+
         // --- 2. Logika Satuan 2 & Satuan Kecil Display ---
-        if (smallSatuanValue) {
+        if (shouldShowSatuan2) {
             // Tampilkan block Satuan 2 dan elemen <br>
             if (block2) block2.style.display = 'block';
             if (br2) br2.style.display = 'block';
@@ -2556,8 +2559,9 @@
         // --- 4. Logika Satuan 3 ---
         // Satuan 3 muncul jika Satuan 2 sedang terlihat DAN Satuan 2 memiliki nilai yang dipilih
         const isSatuan2Visible = block2 ? block2.style.display !== 'none' : false;
+        const shouldShowSatuan3 = isInitialSatuanRender ? !!largeSatuan2Value : (isSatuan2Visible && !!largeSatuan1Value);
 
-        if (isSatuan2Visible && largeSatuan1Value) {
+        if (shouldShowSatuan3) {
             // Tampilkan block Satuan 3
             if (block3) block3.style.display = 'block';
 
@@ -2602,7 +2606,7 @@
             }
         }
 
-        if (satuanKecil !== "" && satuanKecil !== null) {
+        if (!isInitialSatuanRender && satuanKecil !== "" && satuanKecil !== null) {
             $('#satuan2-block').show();
             $('#hj-level1-block').show();
             if (!isUsageLockedField(document.getElementById('fsatuanbesar'))) {
@@ -2625,7 +2629,7 @@
         }
 
         // --- LOGIKA SATUAN 2 ---
-        if (satuan2 !== "" && satuan2 !== null && satuanKecil !== "") {
+        if (!isInitialSatuanRender && satuan2 !== "" && satuan2 !== null && satuanKecil !== "") {
             $('#satuan3-block').show();
             $('#hj-level2-block').show();
             if (!isUsageLockedField(document.getElementById('fsatuanbesar2'))) {
@@ -2662,6 +2666,7 @@
             }
         }
 
+        isInitialSatuanRender = false;
         isUpdating = false;
     }
 
