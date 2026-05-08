@@ -841,6 +841,7 @@ class FakturpembelianController extends Controller
 
         $accounts = DB::table('account')
             ->select('faccid', 'faccount', 'faccname', 'fnonactive')
+            ->where('fend', 1)
             ->where('fnonactive', '0')
             ->orderBy('faccount')
             ->get();
@@ -1179,6 +1180,8 @@ class FakturpembelianController extends Controller
 
         $accounts = DB::table('account')
             ->select('faccid', 'faccount', 'faccname', 'fnonactive')
+            ->where('fend', 1)
+            ->where('fnonactive', '0')
             ->orderBy('faccount')
             ->get();
 
@@ -1345,6 +1348,8 @@ class FakturpembelianController extends Controller
         // 3. UBAH QUERY INI: Gunakan $savedAccountCode
         $accounts = DB::table('account')
             ->select('faccid', 'faccount', 'faccname', 'fnonactive')
+            ->where('fend', 1)
+            ->where('fnonactive', '0')
             ->orderBy('faccount') // <-- Perbaikan nama kolom
             ->get();
 
@@ -1794,6 +1799,8 @@ class FakturpembelianController extends Controller
         // 3. UBAH QUERY INI: Gunakan $savedAccountCode
         $accounts = DB::table('account')
             ->select('faccid', 'faccount', 'faccname', 'fnonactive')
+            ->where('fend', 1)
+            ->where('fnonactive', '0')
             ->orderBy('faccount') // <-- Perbaikan nama kolom
             ->get();
 

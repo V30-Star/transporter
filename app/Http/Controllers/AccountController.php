@@ -320,12 +320,16 @@ class AccountController extends Controller
 
     public function browse(Request $request)
     {
+        $fend = $request->filled('fend') ? (int) $request->input('fend') : 0;
+
         // Base query
-        $query = Account::query();
+        $query = Account::query()
+            ->where('fend', $fend)
+            ->where('fnonactive', '0');
 
-        $query->where('fend', 0);
-
-        $recordsTotal = Account::where('fend', 0)->count();
+        $recordsTotal = Account::where('fend', $fend)
+            ->where('fnonactive', '0')
+            ->count();
 
         // Search
         if ($request->filled('search') && $request->search != '') {
