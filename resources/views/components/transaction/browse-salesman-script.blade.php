@@ -9,19 +9,19 @@
 <script>
     function salesmanBrowser() {
         const dataTableLanguage = {
-            processing: @json(__('ui.load_data')),
-            search: @json(__('ui.search') . ':'),
-            lengthMenu: @json(__('ui.show_menu')),
-            info: @json(__('ui.showing_data')),
-            infoEmpty: @json(__('ui.no_data')),
-            infoFiltered: @json(__('ui.filtered_from_total')),
-            zeroRecords: @json(__('ui.no_data_found')),
-            emptyTable: @json(__('ui.no_data_available')),
+            processing: @json("Memuat data..."),
+            search: @json("Search" . ':'),
+            lengthMenu: @json("Tampilkan _MENU_"),
+            info: @json("Menampilkan _START_ - _END_ dari _TOTAL_ data"),
+            infoEmpty: @json("Tidak ada data"),
+            infoFiltered: @json("(disaring dari _MAX_ total data)"),
+            zeroRecords: @json("Tidak ada data yang ditemukan"),
+            emptyTable: @json("Tidak ada data tersedia"),
             paginate: {
-                first: @json(__('ui.first')),
-                last: @json(__('ui.last')),
-                next: @json(__('ui.next')),
-                previous: @json(__('ui.previous'))
+                first: @json("Pertama"),
+                last: @json("Terakhir"),
+                next: @json("Selanjutnya"),
+                previous: @json("Sebelumnya")
             }
         };
 
@@ -72,7 +72,7 @@
                             className: 'text-center',
                             width: '15%',
                             render: function() {
-                                return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">' + @json(__('ui.choose')) + '</button>';
+                                return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">' + @json("Pilih") + '</button>';
                             }
                         }
                     ],
@@ -183,3 +183,4 @@
         };
     }
 </script>
+

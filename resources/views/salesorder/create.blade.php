@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', __('ui.sales_order'))
+@section('title', "Sales Order")
 
 @section('content')
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
@@ -76,7 +76,7 @@
             {{-- Header Strip --}}
             <div class="d-flex align-items-center px-4 py-3" style="background-color: #c0392b;">
                 <i class="bi bi-exclamation-triangle-fill text-white me-2 fs-5"></i>
-                <strong class="text-white fs-6">{{ __('ui.save_failed') }}</strong>
+                <strong class="text-white fs-6">{{ "Gagal Menyimpan Data!" }}</strong>
                 <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="alert"
                     aria-label="Close"></button>
             </div>
@@ -85,7 +85,7 @@
             <div class="px-4 py-3" style="background-color: #fdeded; border-left: 5px solid #c0392b;">
                 <p class="mb-2 text-danger fw-semibold">
                     <i class="bi bi-info-circle me-1"></i>
-                    {{ __('ui.review_before_save') }}
+                    {{ "Periksa kembali data berikut sebelum menyimpan:" }}
                 </p>
                 <ul class="mb-0 ps-3">
                     @foreach ($errors->all() as $error)
@@ -108,9 +108,9 @@
                         if (count < 1) {
                             Swal.fire({
                                 icon: 'warning',
-                                title: @json(__('ui.no_items_title')),
-                                text: @json(__('ui.add_min_one_item')),
-                                confirmButtonText: @json(__('ui.ok')),
+                                title: @json("Tidak Ada Item"),
+                                text: @json("Silakan tambahkan minimal 1 item terlebih dahulu."),
+                                confirmButtonText: @json("OK"),
                                 customClass: {
                                     confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700'
                                 }
@@ -126,7 +126,7 @@
                     {{-- HEADER FORM --}}
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-bold">{{ __('ui.branch') }}</label>
+                            <label class="block text-sm font-bold">{{ "Cabang" }}</label>
                             <input type="text" class="w-full border rounded px-3 py-2 bg-gray-200 cursor-not-allowed"
                                 value="{{ $fcabang }}" disabled>
                             <input type="hidden" name="fbranchcode" value="{{ $fbranchcode }}">
@@ -140,13 +140,13 @@
                                     :class="autoCode ? 'bg-gray-200 cursor-not-allowed' : 'bg-white'">
                                 <label class="inline-flex items-center select-none">
                                     <input type="checkbox" x-model="autoCode" checked>
-                                    <span class="ml-2 text-sm text-gray-700">{{ __('ui.auto') }}</span>
+                                    <span class="ml-2 text-sm text-gray-700">{{ "Auto" }}</span>
                                 </label>
                             </div>
                         </div>
 
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-bold">{{ __('ui.date') }}</label>
+                            <label class="block text-sm font-bold">{{ "Tanggal" }}</label>
                             <input type="date" name="fsodate" value="{{ old('fsodate') ?? date('Y-m-d') }}"
                                 class="w-full border rounded px-3 py-2 @error('fsodate') border-red-500 @enderror">
                             @error('fsodate')
@@ -156,7 +156,7 @@
 
                         {{-- Customer --}}
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-bold mb-1">{{ __('ui.customer') }}</label>
+                            <label class="block text-sm font-bold mb-1">{{ "Customer" }}</label>
                             <div class="flex">
                                 <div class="relative flex-1" for="modal_filter_customer_id">
                                     <select id="modal_filter_customer_id" name="filter_customer_id"
@@ -193,7 +193,7 @@
 
                         {{-- Salesman --}}
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-bold mb-1">{{ __('ui.salesman') }}</label>
+                            <label class="block text-sm font-bold mb-1">{{ "Salesman" }}</label>
                             <div class="flex">
                                 <div class="relative flex-1" for="modal_filter_salesman_id">
                                     <select id="modal_filter_salesman_id" name="filter_salesman_id"
@@ -230,11 +230,11 @@
                         </div>
 
                         <div class="lg:col-span-4">
-                            <label class="block text-sm font-bold mb-1">{{ __('ui.tempo') }}</label>
+                            <label class="block text-sm font-bold mb-1">{{ "Tempo" }}</label>
                             <div class="flex items-center">
                                 <input type="number" id="ftempohr" name="ftempohr" value="{{ old('ftempohr', 0) }}"
                                     class="w-full border rounded px-3 py-2 @error('ftempohr') border-red-500 @enderror">
-                                <span class="ml-2">{{ __('ui.days') }}</span>
+                                <span class="ml-2">{{ "Hari" }}</span>
                             </div>
                             @error('ftempohr')
                                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -266,7 +266,7 @@
                                         value="{{ old('falamatkirim') }}">
 
                                     <div class="flex items-center gap-2">
-                                        <label class="text-sm font-bold text-gray-700 mr-2">{{ __('ui.ship_to') }}
+                                        <label class="text-sm font-bold text-gray-700 mr-2">{{ "Kirim ke" }}
                                             :</label>
 
                                         <div class="inline-flex rounded-md shadow-sm" role="group">
@@ -274,19 +274,19 @@
                                                 :class="tab === 1 ? 'bg-blue-600 text-white z-10 ring-2 ring-blue-300' :
                                                     'bg-white text-gray-700 hover:bg-gray-50'"
                                                 class="px-4 py-1.5 text-xs font-semibold border border-gray-300 rounded-l-md transition-all">
-                                                {{ __('ui.address_1') }}
+                                                {{ "Alamat 1" }}
                                             </button>
                                             <button type="button" @click="tab = 2"
                                                 :class="tab === 2 ? 'bg-blue-600 text-white z-10 ring-2 ring-blue-300' :
                                                     'bg-white text-gray-700 hover:bg-gray-50'"
                                                 class="px-4 py-1.5 text-xs font-semibold border-t border-b border-r border-gray-300 transition-all">
-                                                {{ __('ui.address_2') }}
+                                                {{ "Alamat 2" }}
                                             </button>
                                             <button type="button" @click="tab = 3"
                                                 :class="tab === 3 ? 'bg-blue-600 text-white z-10 ring-2 ring-blue-300' :
                                                     'bg-white text-gray-700 hover:bg-gray-50'"
                                                 class="px-4 py-1.5 text-xs font-semibold border-t border-b border-r border-gray-300 rounded-r-md transition-all">
-                                                {{ __('ui.address_3') }}
+                                                {{ "Alamat 3" }}
                                             </button>
                                         </div>
                                     </div>
@@ -294,15 +294,15 @@
                                     <div class="w-full">
                                         <textarea x-show="tab === 1" x-model="addr1"
                                             class="w-full p-2 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 min-h-[80px]"
-                                            placeholder="{{ __('ui.address_1') }}..."></textarea>
+                                            placeholder="{{ "Alamat 1" }}..."></textarea>
 
                                         <textarea x-show="tab === 2" x-model="addr2"
                                             class="w-full p-2 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 min-h-[80px]"
-                                            placeholder="{{ __('ui.address_2') }}..."></textarea>
+                                            placeholder="{{ "Alamat 2" }}..."></textarea>
 
                                         <textarea x-show="tab === 3" x-model="addr3"
                                             class="w-full p-2 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 min-h-[80px]"
-                                            placeholder="{{ __('ui.address_3') }}..."></textarea>
+                                            placeholder="{{ "Alamat 3" }}..."></textarea>
                                     </div>
 
                                     <p class="text-[10px] text-gray-500 italic">*Klik tombol Alamat 1/2/3 untuk memilih
@@ -311,7 +311,7 @@
 
                                 <div class="flex flex-col">
                                     <label
-                                        class="block text-sm font-bold text-gray-700 mb-2">{{ __('ui.description') }}</label>
+                                        class="block text-sm font-bold text-gray-700 mb-2">{{ "Keterangan" }}</label>
                                     <div
                                         class="flex-1 border-2 border-gray-200 rounded-xl p-3 bg-white min-h-[150px] focus-within:border-blue-400">
                                         <textarea name="fket" class="w-full h-full border-none focus:ring-0 p-0 text-sm resize-none"
@@ -326,7 +326,7 @@
                         </div>
 
                         <div class="lg:col-span-12">
-                            <label class="block text-sm font-bold">{{ __('ui.internal_note') }}</label>
+                            <label class="block text-sm font-bold">{{ "Catatan Internal" }}</label>
                             <textarea name="fketinternal" rows="3"
                                 class="w-full border rounded px-3 py-2 @error('fketinternal') border-red-500 @enderror"
                                 placeholder="Tulis Catatan Internal tambahan di sini...">{{ old('fketinternal') }}</textarea>
@@ -992,7 +992,7 @@
                 );
 
                 if (dupe) {
-                    this.showToast(@json(__('ui.same_item_exists')), 'warning');
+                    this.showToast(@json("Item sama sudah ada di daftar"), 'warning');
                     return;
                 }
 
@@ -1199,10 +1199,10 @@
             const payload = await response.json();
             if (!response.ok) {
                 const message = payload?.message || Object.values(payload?.errors || {}).flat().join('\n') ||
-                    @json(__('ui.customer_check_failed_message'));
+                    @json("Gagal cek limit customer.");
                 await Swal.fire({
                     icon: 'error',
-                    title: @json(__('ui.check_customer_failed')),
+                    title: @json("Cek Customer Gagal"),
                     text: message
                 });
                 return false;
@@ -1217,19 +1217,19 @@
             if (limitCheck.enabled && limitCheck.exceeded) {
                 const confirmed = await Swal.fire({
                     icon: 'warning',
-                    title: @json(__('ui.receivable_limit_exceeded')),
+                    title: @json("Limit Piutang Terlampaui"),
                     html: `
                         <div class="text-left text-sm">
-                            <div>${@json(__('ui.running_receivables_total'))}: <strong>${Number(limitCheck.outstanding_total || 0).toLocaleString('id-ID')}</strong></div>
-                            <div>${@json(__('ui.current_transaction_value'))}: <strong>${Number(limitCheck.transaction_amount || 0).toLocaleString('id-ID')}</strong></div>
-                            <div>${@json(__('ui.customer_limit'))}: <strong>${Number(limitCheck.limit || 0).toLocaleString('id-ID')}</strong></div>
-                            <div>${@json(__('ui.total_after_transaction'))}: <strong>${Number(limitCheck.projected_total || 0).toLocaleString('id-ID')}</strong></div>
-                            <div class="mt-3">${@json(__('ui.sales_order_needs_approval'))}</div>
+                            <div>${@json("Total piutang berjalan")}: <strong>${Number(limitCheck.outstanding_total || 0).toLocaleString('id-ID')}</strong></div>
+                            <div>${@json("Nilai transaksi ini")}: <strong>${Number(limitCheck.transaction_amount || 0).toLocaleString('id-ID')}</strong></div>
+                            <div>${@json("Limit customer")}: <strong>${Number(limitCheck.limit || 0).toLocaleString('id-ID')}</strong></div>
+                            <div>${@json("Total setelah transaksi")}: <strong>${Number(limitCheck.projected_total || 0).toLocaleString('id-ID')}</strong></div>
+                            <div class="mt-3">${@json("Sales Order ini butuh ACC. Lanjutkan?")}</div>
                         </div>
                     `,
                     showCancelButton: true,
-                    confirmButtonText: @json(__('ui.yes')),
-                    cancelButtonText: @json(__('ui.no'))
+                    confirmButtonText: @json("Ya"),
+                    cancelButtonText: @json("Tidak")
                 });
 
                 if (!confirmed.isConfirmed) {
@@ -1240,8 +1240,8 @@
                 if (!canApprove) {
                     await Swal.fire({
                         icon: 'error',
-                        title: @json(__('ui.approval_rejected')),
-                        text: @json(__('ui.approval_rejected_limit'))
+                        title: @json("ACC Ditolak"),
+                        text: @json("User login tidak punya wewenang ACC untuk limit piutang.")
                     });
                     return false;
                 }
@@ -1258,17 +1258,17 @@
 
                 const confirmed = await Swal.fire({
                     icon: 'warning',
-                    title: @json(__('ui.overdue_invoice_exists')),
+                    title: @json("Ada Nota Lewat Jatuh Tempo"),
                     html: `
                         <div class="text-left text-sm">
-                            <div>${@json(__('ui.customer_has_overdue_invoice'))} <strong>${overdueCheck.max_tempo || 0}</strong> ${@json(__('ui.day_unit_suffix'))}</div>
+                            <div>${@json("Customer punya nota yang lewat jatuh tempo lebih dari")} <strong>${overdueCheck.max_tempo || 0}</strong> ${@json("hari.")}</div>
                             <ul class="mt-3 list-disc pl-5">${overdueHtml}</ul>
-                            <div class="mt-3">${@json(__('ui.sales_order_needs_approval'))}</div>
+                            <div class="mt-3">${@json("Sales Order ini butuh ACC. Lanjutkan?")}</div>
                         </div>
                     `,
                     showCancelButton: true,
-                    confirmButtonText: @json(__('ui.yes')),
-                    cancelButtonText: @json(__('ui.no'))
+                    confirmButtonText: @json("Ya"),
+                    cancelButtonText: @json("Tidak")
                 });
 
                 if (!confirmed.isConfirmed) {
@@ -1279,8 +1279,8 @@
                 if (!canApprove) {
                     await Swal.fire({
                         icon: 'error',
-                        title: @json(__('ui.approval_rejected')),
-                        text: @json(__('ui.approval_rejected_overdue'))
+                        title: @json("ACC Ditolak"),
+                        text: @json("User login tidak punya wewenang ACC untuk nota lewat jatuh tempo.")
                     });
                     return false;
                 }
@@ -1293,8 +1293,8 @@
         } catch (error) {
             await Swal.fire({
                 icon: 'error',
-                title: @json(__('ui.check_customer_failed')),
-                text: @json(__('ui.customer_receivable_check_error'))
+                title: @json("Cek Customer Gagal"),
+                text: @json("Terjadi kesalahan saat mengecek limit piutang customer.")
             });
             return false;
         }
@@ -1346,3 +1346,4 @@
         });
     </script>
 @endpush
+

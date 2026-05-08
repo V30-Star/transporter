@@ -4,7 +4,7 @@
     $formAction = $formAction ?? '#';
     $isEditMode = strtoupper($formMethod) === 'PATCH';
     $isDeleteMode = strtoupper($formMethod) === 'DELETE';
-    $submitLabel = $isEditMode ? __('ui.update') : __('ui.save');
+    $submitLabel = $isEditMode ? "Update" : "Simpan";
     $detailsOld = old('details');
     $detailRows = is_array($detailsOld)
         ? collect($detailsOld)->map(fn ($row) => (object) $row)
@@ -38,8 +38,8 @@
 
     @if ($isDeleteMode)
         <div class="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-700">
-            <p class="font-semibold">{{ __('ui.delete_cash_disbursement_title') }}</p>
-            <p class="mt-1 text-sm">{{ __('ui.delete_cash_disbursement_desc') }}</p>
+            <p class="font-semibold">{{ "Konfirmasi Hapus Pengeluaran Kas" }}</p>
+            <p class="mt-1 text-sm">{{ "Data akan dihapus permanen. Pastikan data yang ditampilkan sudah benar sebelum melanjutkan." }}</p>
         </div>
     @endif
 
@@ -51,7 +51,7 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-                <label class="block text-sm font-medium mb-1">{{ __('ui.voucher_no') }}</label>
+                <label class="block text-sm font-medium mb-1">{{ "Voucher No." }}</label>
                 @if ($isReadOnly)
                     <input type="text" name="fkasmtno" value="{{ old('fkasmtno', $pengeluaranKas->fkasmtno ?? '') }}"
                         class="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed" readonly>
@@ -60,10 +60,10 @@
                         <input type="text" name="fkasmtno" x-model="voucherNo" :disabled="autoCode"
                             class="w-full border rounded px-3 py-2"
                             :class="autoCode ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'"
-                            placeholder="{{ __('ui.empty_for_auto_number') }}">
+                            placeholder="{{ "Kosongkan untuk auto number" }}">
                         <label class="inline-flex items-center select-none">
                             <input type="checkbox" x-model="autoCode">
-                            <span class="ml-2 text-sm text-gray-700">{{ __('ui.auto') }}</span>
+                            <span class="ml-2 text-sm text-gray-700">{{ "Auto" }}</span>
                         </label>
                     </div>
                 @endif
@@ -73,7 +73,7 @@
             </div>
 
             <div>
-                <label class="block text-sm font-medium mb-1">{{ __('ui.date') }}</label>
+                <label class="block text-sm font-medium mb-1">{{ "Tanggal" }}</label>
                 <input type="date" name="fkasmtdate"
                     value="{{ old('fkasmtdate', optional($pengeluaranKas->fkasmtdate)->format('Y-m-d') ?? $pengeluaranKas->fkasmtdate) }}"
                     class="w-full border rounded px-3 py-2 {{ $isReadOnly ? 'bg-gray-100' : '' }}"
@@ -84,7 +84,7 @@
             </div>
 
             <div>
-                <label class="block text-sm font-medium mb-1">{{ __('ui.check_no') }}</label>
+                <label class="block text-sm font-medium mb-1">{{ "No.Giro/Cek" }}</label>
                 <input type="text" name="fnogiro" value="{{ old('fnogiro', $pengeluaranKas->fnogiro) }}"
                     class="w-full border rounded px-3 py-2 {{ $isReadOnly ? 'bg-gray-100' : '' }}"
                     {{ $isReadOnly ? 'readonly' : '' }}>
@@ -94,14 +94,14 @@
             </div>
 
             <div>
-                <label class="block text-sm font-medium mb-1">{{ __('ui.cash_bank_account') }}</label>
+                <label class="block text-sm font-medium mb-1">{{ "Cash / Bank Account" }}</label>
                 @if ($isReadOnly)
                     <input type="text" value="{{ $selectedHeaderLabel }}"
                         class="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed" readonly>
                 @else
                     <div class="flex">
                         <select name="faccountheader" class="w-full border rounded-l px-3 py-2">
-                            <option value="">{{ __('ui.choose_account') }}</option>
+                            <option value="">{{ "Pilih account" }}</option>
                             @foreach ($accounts as $account)
                                 <option value="{{ $account->faccount }}" {{ (string) $selectedHeader === (string) $account->faccount ? 'selected' : '' }}>
                                     {{ $account->faccount }} - {{ $account->faccname }}
@@ -110,7 +110,7 @@
                         </select>
                         <a href="{{ route('account.create') }}" target="_blank" rel="noopener"
                             class="border border-l-0 rounded-r px-3 py-2 bg-white hover:bg-gray-50 inline-flex items-center"
-                            title="{{ __('ui.add_new') }} {{ __('ui.account') }}">
+                            title="{{ "Tambah Baru" }} {{ "Account" }}">
                             <x-heroicon-o-plus class="w-5 h-5" />
                         </a>
                     </div>
@@ -124,7 +124,7 @@
             </div>
 
             <div class="md:col-span-2">
-                <label class="block text-sm font-medium mb-1">{{ __('ui.recipient') }}</label>
+                <label class="block text-sm font-medium mb-1">{{ "Penerima" }}</label>
                 <input type="text" name="fwhom" value="{{ old('fwhom', $pengeluaranKas->fwhom) }}"
                     class="w-full border rounded px-3 py-2 {{ $isReadOnly ? 'bg-gray-100' : '' }}"
                     {{ $isReadOnly ? 'readonly' : '' }}>
@@ -134,7 +134,7 @@
             </div>
 
             <div class="md:col-span-2">
-                <label class="block text-sm font-medium mb-1">{{ __('ui.description') }}</label>
+                <label class="block text-sm font-medium mb-1">{{ "Keterangan" }}</label>
                 <textarea name="fket" rows="3" class="w-full border rounded px-3 py-2 {{ $isReadOnly ? 'bg-gray-100' : '' }}"
                     {{ $isReadOnly ? 'readonly' : '' }}>{{ old('fket', $pengeluaranKas->fket) }}</textarea>
                 @error('fket')
@@ -145,7 +145,7 @@
 
         <div class="mt-6">
             <div class="flex items-center justify-between mb-3">
-                <h3 class="text-base font-semibold text-gray-800">{{ __('ui.detail_item') }}</h3>
+                <h3 class="text-base font-semibold text-gray-800">{{ "Detail Item" }}</h3>
             </div>
 
             <div class="overflow-auto border rounded-lg">
@@ -168,13 +168,13 @@
                     </colgroup>
                     <thead class="bg-gray-100">
                         <tr>
-                            <th class="border px-1.5 py-1 whitespace-nowrap">{{ __('ui.number') }}</th>
-                            <th class="border px-1.5 py-1 whitespace-nowrap">{{ __('ui.account') }}</th>
-                            <th class="border px-1.5 py-1 whitespace-nowrap">{{ __('ui.sub_account') }}</th>
-                            <th class="border px-1.5 py-1 whitespace-nowrap">{{ __('ui.notes') }}</th>
-                            <th class="border px-1.5 py-1 text-right whitespace-nowrap">{{ __('ui.payment_amount') }}</th>
+                            <th class="border px-1.5 py-1 whitespace-nowrap">{{ "No" }}</th>
+                            <th class="border px-1.5 py-1 whitespace-nowrap">{{ "Account" }}</th>
+                            <th class="border px-1.5 py-1 whitespace-nowrap">{{ "Sub Account" }}</th>
+                            <th class="border px-1.5 py-1 whitespace-nowrap">{{ "Uraian" }}</th>
+                            <th class="border px-1.5 py-1 text-right whitespace-nowrap">{{ "Nilai Bayar" }}</th>
                             @unless ($isReadOnly)
-                                <th class="border px-1.5 py-1 text-center whitespace-nowrap">{{ __('ui.action') }}</th>
+                                <th class="border px-1.5 py-1 text-center whitespace-nowrap">{{ "Aksi" }}</th>
                             @endunless
                         </tr>
                     </thead>
@@ -197,7 +197,7 @@
                                     @else
                                         <select name="details[{{ $index }}][faccount]"
                                             class="w-full border rounded px-1.5 py-1">
-                                            <option value="">{{ __('ui.choose_account') }}</option>
+                                            <option value="">{{ "Pilih account" }}</option>
                                             @foreach ($accounts as $account)
                                                 <option value="{{ $account->faccount }}"
                                                     {{ $detailAccountCode === (string) $account->faccount ? 'selected' : '' }}>
@@ -228,7 +228,7 @@
                                     @else
                                         <select name="details[{{ $index }}][fsubaccount]"
                                             class="w-full border rounded px-1.5 py-1">
-                                            <option value="">{{ __('ui.choose_sub_account') }}</option>
+                                            <option value="">{{ "Pilih sub account" }}</option>
                                             @foreach ($subaccounts as $subaccount)
                                                 <option value="{{ $subaccount->fsubaccountcode }}"
                                                     {{ $detailSubaccountCode === (string) $subaccount->fsubaccountcode ? 'selected' : '' }}>
@@ -265,11 +265,11 @@
                                     <td class="detail-action-cell border px-1.5 py-1 text-center align-top">
                                         <button type="button" @click="addRow()"
                                             class="detail-add-btn inline-flex items-center bg-blue-600 text-white px-2.5 py-1 rounded hover:bg-blue-700 whitespace-nowrap">
-                                            <x-heroicon-o-plus class="w-4 h-4 mr-1" /> {{ __('ui.add_detail') }}
+                                            <x-heroicon-o-plus class="w-4 h-4 mr-1" /> {{ "Tambah Detail" }}
                                         </button>
                                         <button type="button" @click="removeRow($event)"
                                             class="detail-delete-btn inline-flex items-center bg-red-600 text-white px-2.5 py-1 rounded hover:bg-red-700 whitespace-nowrap">
-                                            <x-heroicon-o-trash class="w-4 h-4 mr-1" /> {{ __('ui.delete') }}
+                                            <x-heroicon-o-trash class="w-4 h-4 mr-1" /> {{ "Hapus" }}
                                         </button>
                                     </td>
                                 @endunless
@@ -291,7 +291,7 @@
                 <div class="w-full max-w-md">
                     <div class="rounded-lg border bg-gray-50 p-3">
                         <div class="flex items-center justify-between">
-                            <span class="text-sm font-semibold text-gray-800">{{ __('ui.total') }}</span>
+                            <span class="text-sm font-semibold text-gray-800">{{ "Total" }}</span>
                             <input type="text" id="detailTotal"
                                 value="{{ number_format($totalAmount, 2, '.', ',') }}"
                                 class="w-48 border rounded px-1.5 py-1 text-right bg-gray-100 font-semibold" readonly>
@@ -310,14 +310,14 @@
                             d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m10 0v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5m10 0v5H7v-5">
                         </path>
                     </svg>
-                    {{ __('ui.print') }}
+                    {{ "Print" }}
                 </a>
             @endif
 
             @if ($isDeleteMode)
                 <button type="submit"
                     class="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700 inline-flex items-center">
-                    <x-heroicon-o-trash class="w-5 h-5 mr-2" /> {{ __('ui.delete') }}
+                    <x-heroicon-o-trash class="w-5 h-5 mr-2" /> {{ "Hapus" }}
                 </button>
             @elseif (! $isReadOnly)
                 <button type="submit"
@@ -328,7 +328,7 @@
 
             <a href="{{ route('pengeluarankas.index') }}"
                 class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 inline-flex items-center">
-                <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" /> {{ __('ui.back') }}
+                <x-heroicon-o-arrow-left class="w-5 h-5 mr-2" /> {{ "Kembali" }}
             </a>
         </div>
     </form>
@@ -464,3 +464,4 @@
         </script>
     @endpush
 @endunless
+

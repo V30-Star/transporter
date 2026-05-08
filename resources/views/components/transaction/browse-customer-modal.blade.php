@@ -13,12 +13,12 @@
         <div
             class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
             <div>
-                <h3 class="text-xl font-bold text-gray-800">{{ __('ui.browse_customer') }}</h3>
-                <p class="text-sm text-gray-500 mt-0.5">{{ __('ui.select_customer_prompt') }}</p>
+                <h3 class="text-xl font-bold text-gray-800">{{ "Browse Customer" }}</h3>
+                <p class="text-sm text-gray-500 mt-0.5">{{ "Pilih customer yang diinginkan" }}</p>
             </div>
             <button type="button" @click="close()"
                 class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">
-                {{ __('ui.close') }}
+                {{ "Tutup" }}
             </button>
         </div>
 
@@ -27,11 +27,11 @@
                 <table id="{{ $tableId }}" class="min-w-full text-sm display nowrap stripe hover" style="width:100%">
                     <thead class="sticky top-0 z-10">
                         <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
-                            <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">{{ __('ui.code') }}</th>
-                            <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">{{ __('ui.customer_name') }}</th>
-                            <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">{{ __('ui.address') }}</th>
-                            <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">{{ __('ui.phone') }}</th>
-                            <th class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">{{ __('ui.action') }}</th>
+                            <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">{{ "Kode" }}</th>
+                            <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">{{ "Nama Customer" }}</th>
+                            <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">{{ "Alamat" }}</th>
+                            <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">{{ "Telepon" }}</th>
+                            <th class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">{{ "Aksi" }}</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -44,3 +44,4 @@
         </div>
     </div>
 </div>
+

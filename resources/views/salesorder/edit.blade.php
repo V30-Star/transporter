@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', $action === 'delete' ? __('ui.delete') . ' ' . __('ui.sales_order') : __('ui.edit') . ' ' . __('ui.sales_order'))
+@section('title', $action === 'delete' ? "Hapus" . ' ' . "Sales Order" : "Edit" . ' ' . "Sales Order")
 
 @section('content')
     <style>
@@ -74,7 +74,7 @@
             {{-- Header Strip --}}
             <div class="d-flex align-items-center px-4 py-3" style="background-color: #c0392b;">
                 <i class="bi bi-exclamation-triangle-fill text-white me-2 fs-5"></i>
-                <strong class="text-white fs-6">{{ __('ui.save_failed') }}</strong>
+                <strong class="text-white fs-6">{{ "Gagal Menyimpan Data!" }}</strong>
                 <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="alert"
                     aria-label="Close"></button>
             </div>
@@ -83,7 +83,7 @@
             <div class="px-4 py-3" style="background-color: #fdeded; border-left: 5px solid #c0392b;">
                 <p class="mb-2 text-danger fw-semibold">
                     <i class="bi bi-info-circle me-1"></i>
-                    {{ __('ui.review_before_save') }}
+                    {{ "Periksa kembali data berikut sebelum menyimpan:" }}
                 </p>
                 <ul class="mb-0 ps-3">
                     @foreach ($errors->all() as $error)
@@ -115,13 +115,13 @@
                     </div>
                     <div class="flex-1">
                         <h3 class="text-base font-bold text-orange-700">
-                            {{ __('ui.sales_order') }} {{ $action === 'delete' ? __('ui.cannot_delete') : __('ui.cannot_edit') }}
+                            {{ "Sales Order" }} {{ $action === 'delete' ? "Tidak Dapat Dihapus" : "Tidak Dapat Diedit" }}
                         </h3>
                         <p class="text-sm text-orange-500 mt-0.5">{{ $usageLockMessage }}</p>
                     </div>
                     <button type="button" @click="open = false"
                         class="flex-shrink-0 w-8 h-8 rounded-full bg-orange-100 hover:bg-orange-200 flex items-center justify-center transition-colors"
-                        title="{{ __('ui.close') }}">
+                        title="{{ "Tutup" }}">
                         <x-heroicon-o-x-mark class="w-4 h-4 text-orange-600" />
                     </button>
                 </div>
@@ -129,7 +129,7 @@
                     <button type="button" @click="open = false"
                         class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center gap-2">
                         <x-heroicon-o-arrow-left class="w-5 h-5" />
-                        {{ __('ui.close') }}
+                        {{ "Tutup" }}
                     </button>
                 </div>
             </div>
@@ -724,9 +724,9 @@
     if (count < 1) {
         Swal.fire({
             icon: 'warning',
-            title: @json(__('ui.no_items_title')),
-            text: @json(__('ui.add_min_one_item')),
-            confirmButtonText: @json(__('ui.ok')),
+            title: @json("Tidak Ada Item"),
+            text: @json("Silakan tambahkan minimal 1 item terlebih dahulu."),
+            confirmButtonText: @json("OK"),
             customClass: {
                 confirmButton: 'bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700'
             }
@@ -1839,7 +1839,7 @@
                 );
 
                 if (dupe) {
-                    this.showToast(@json(__('ui.same_item_exists')), 'warning');
+                    this.showToast(@json("Item sama sudah ada di daftar"), 'warning');
                     return;
                 }
 
@@ -2122,10 +2122,10 @@
 
             const payload = await response.json();
             if (!response.ok) {
-                const message = payload?.message || Object.values(payload?.errors || {}).flat().join('\n') || @json(__('ui.customer_check_failed_message'));
+                const message = payload?.message || Object.values(payload?.errors || {}).flat().join('\n') || @json("Gagal cek limit customer.");
                 await Swal.fire({
                     icon: 'error',
-                    title: @json(__('ui.check_customer_failed')),
+                    title: @json("Cek Customer Gagal"),
                     text: message
                 });
                 return false;
@@ -2140,19 +2140,19 @@
             if (limitCheck.enabled && limitCheck.exceeded) {
                 const confirmed = await Swal.fire({
                     icon: 'warning',
-                    title: @json(__('ui.receivable_limit_exceeded')),
+                    title: @json("Limit Piutang Terlampaui"),
                     html: `
                         <div class="text-left text-sm">
-                            <div>${@json(__('ui.running_receivables_total'))}: <strong>${Number(limitCheck.outstanding_total || 0).toLocaleString('id-ID')}</strong></div>
-                            <div>${@json(__('ui.current_transaction_value'))}: <strong>${Number(limitCheck.transaction_amount || 0).toLocaleString('id-ID')}</strong></div>
-                            <div>${@json(__('ui.customer_limit'))}: <strong>${Number(limitCheck.limit || 0).toLocaleString('id-ID')}</strong></div>
-                            <div>${@json(__('ui.total_after_transaction'))}: <strong>${Number(limitCheck.projected_total || 0).toLocaleString('id-ID')}</strong></div>
-                            <div class="mt-3">${@json(__('ui.sales_order_needs_approval'))}</div>
+                            <div>${@json("Total piutang berjalan")}: <strong>${Number(limitCheck.outstanding_total || 0).toLocaleString('id-ID')}</strong></div>
+                            <div>${@json("Nilai transaksi ini")}: <strong>${Number(limitCheck.transaction_amount || 0).toLocaleString('id-ID')}</strong></div>
+                            <div>${@json("Limit customer")}: <strong>${Number(limitCheck.limit || 0).toLocaleString('id-ID')}</strong></div>
+                            <div>${@json("Total setelah transaksi")}: <strong>${Number(limitCheck.projected_total || 0).toLocaleString('id-ID')}</strong></div>
+                            <div class="mt-3">${@json("Sales Order ini butuh ACC. Lanjutkan?")}</div>
                         </div>
                     `,
                     showCancelButton: true,
-                    confirmButtonText: @json(__('ui.yes')),
-                    cancelButtonText: @json(__('ui.no'))
+                    confirmButtonText: @json("Ya"),
+                    cancelButtonText: @json("Tidak")
                 });
 
                 if (!confirmed.isConfirmed) {
@@ -2163,8 +2163,8 @@
                 if (!canApprove) {
                     await Swal.fire({
                         icon: 'error',
-                        title: @json(__('ui.approval_rejected')),
-                        text: @json(__('ui.approval_rejected_limit'))
+                        title: @json("ACC Ditolak"),
+                        text: @json("User login tidak punya wewenang ACC untuk limit piutang.")
                     });
                     return false;
                 }
@@ -2181,17 +2181,17 @@
 
                 const confirmed = await Swal.fire({
                     icon: 'warning',
-                    title: @json(__('ui.overdue_invoice_exists')),
+                    title: @json("Ada Nota Lewat Jatuh Tempo"),
                     html: `
                         <div class="text-left text-sm">
-                            <div>${@json(__('ui.customer_has_overdue_invoice'))} <strong>${overdueCheck.max_tempo || 0}</strong> ${@json(__('ui.day_unit_suffix'))}</div>
+                            <div>${@json("Customer punya nota yang lewat jatuh tempo lebih dari")} <strong>${overdueCheck.max_tempo || 0}</strong> ${@json("hari.")}</div>
                             <ul class="mt-3 list-disc pl-5">${overdueHtml}</ul>
-                            <div class="mt-3">${@json(__('ui.sales_order_needs_approval'))}</div>
+                            <div class="mt-3">${@json("Sales Order ini butuh ACC. Lanjutkan?")}</div>
                         </div>
                     `,
                     showCancelButton: true,
-                    confirmButtonText: @json(__('ui.yes')),
-                    cancelButtonText: @json(__('ui.no'))
+                    confirmButtonText: @json("Ya"),
+                    cancelButtonText: @json("Tidak")
                 });
 
                 if (!confirmed.isConfirmed) {
@@ -2202,8 +2202,8 @@
                 if (!canApprove) {
                     await Swal.fire({
                         icon: 'error',
-                        title: @json(__('ui.approval_rejected')),
-                        text: @json(__('ui.approval_rejected_overdue'))
+                        title: @json("ACC Ditolak"),
+                        text: @json("User login tidak punya wewenang ACC untuk nota lewat jatuh tempo.")
                     });
                     return false;
                 }
@@ -2216,8 +2216,8 @@
         } catch (error) {
             await Swal.fire({
                 icon: 'error',
-                title: @json(__('ui.check_customer_failed')),
-                text: @json(__('ui.customer_receivable_check_error'))
+                title: @json("Cek Customer Gagal"),
+                text: @json("Terjadi kesalahan saat mengecek limit piutang customer.")
             });
             return false;
         }
@@ -2263,4 +2263,5 @@
         });
     </script>
 @endpush
+
 

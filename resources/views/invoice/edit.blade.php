@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', $action === 'delete' ? __('ui.delete') . ' ' . __('ui.invoice') : __('ui.edit') . ' ' . __('ui.invoice'))
+@section('title', $action === 'delete' ? "Hapus" . ' ' . "Faktur Penjualan" : "Edit" . ' ' . "Faktur Penjualan")
 
 @section('content')
     <style>
@@ -74,7 +74,7 @@
             {{-- Header Strip --}}
             <div class="d-flex align-items-center px-4 py-3" style="background-color: #c0392b;">
                 <i class="bi bi-exclamation-triangle-fill text-white me-2 fs-5"></i>
-                <strong class="text-white fs-6">{{ __('ui.save_failed') }}</strong>
+                <strong class="text-white fs-6">{{ "Gagal Menyimpan Data!" }}</strong>
                 <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="alert"
                     aria-label="Close"></button>
             </div>
@@ -83,7 +83,7 @@
             <div class="px-4 py-3" style="background-color: #fdeded; border-left: 5px solid #c0392b;">
                 <p class="mb-2 text-danger fw-semibold">
                     <i class="bi bi-info-circle me-1"></i>
-                    {{ __('ui.review_before_save') }}
+                    {{ "Periksa kembali data berikut sebelum menyimpan:" }}
                 </p>
                 <ul class="mb-0 ps-3">
                     @foreach ($errors->all() as $error)
@@ -110,13 +110,13 @@
                     </div>
                     <div class="flex-1">
                         <h3 class="text-base font-bold text-orange-700">
-                            {{ __('ui.invoice') }} {{ $action === 'delete' ? __('ui.cannot_delete') : __('ui.cannot_edit') }}
+                            {{ "Faktur Penjualan" }} {{ $action === 'delete' ? "Tidak Dapat Dihapus" : "Tidak Dapat Diedit" }}
                         </h3>
                         <p class="text-sm text-orange-500 mt-0.5">{{ $usageLockMessage }}</p>
                     </div>
                     <button type="button" @click="open = false"
                         class="flex-shrink-0 w-8 h-8 rounded-full bg-orange-100 hover:bg-orange-200 flex items-center justify-center transition-colors"
-                        title="{{ __('ui.close') }}">
+                        title="{{ "Tutup" }}">
                         <x-heroicon-o-x-mark class="w-4 h-4 text-orange-600" />
                     </button>
                 </div>
@@ -124,7 +124,7 @@
                     <button type="button" @click="open = false"
                         class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center gap-2">
                         <x-heroicon-o-arrow-left class="w-5 h-5" />
-                        {{ __('ui.close') }}
+                        {{ "Tutup" }}
                     </button>
                 </div>
             </div>
@@ -616,7 +616,7 @@
                                 x-transition.scale>
                                 <div class="px-5 py-4 border-b flex items-center">
                                     <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-red-500 mr-2" />
-                                    <h3 class="text-lg font-semibold text-gray-800">{{ __('ui.no_items_title') }}</h3>
+                                    <h3 class="text-lg font-semibold text-gray-800">{{ "Tidak Ada Item" }}</h3>
                                 </div>
 
                                 <div class="px-5 py-4">
@@ -1199,11 +1199,11 @@
                                                 <div
                                                     class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-indigo-50 to-white">
                                                     <div>
-                                                        <h3 class="text-xl font-bold text-gray-800">{{ __('ui.select_delivery_order') }}</h3>
+                                                        <h3 class="text-xl font-bold text-gray-800">{{ "Pilih Surat Jalan" }}</h3>
                                                     </div>
                                                     <button type="button" @click="closeSrjModal()"
                                                         class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-bold text-gray-700 text-sm">
-                                                        {{ __('ui.close') }}
+                                                        {{ "Tutup" }}
                                                     </button>
                                                 </div>
 
@@ -1220,19 +1220,19 @@
                                                                 <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
                                                                     <th
                                                                         class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                        {{ __('ui.transaction_no') }}</th>
+                                                                        {{ "No.Transaksi" }}</th>
                                                                     <th
                                                                         class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                        {{ __('ui.reference_no') }}</th>
+                                                                        {{ "No.Ref" }}</th>
                                                                     <th
                                                                         class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                        {{ __('ui.date') }}</th>
+                                                                        {{ "Tanggal" }}</th>
                                                                     <th
                                                                         class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                        {{ __('ui.customer') }}</th>
+                                                                        {{ "Customer" }}</th>
                                                                     <th
                                                                         class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                        {{ __('ui.action') }}</th>
+                                                                        {{ "Aksi" }}</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody></tbody>
@@ -1252,11 +1252,11 @@
                                             <div
                                                 class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden">
                                                 <div class="px-5 py-4 border-b flex items-center gap-2 bg-amber-50">
-                                                    <h3 class="text-lg font-semibold text-gray-800">{{ __('ui.duplicate_delivery_order_items') }}</h3>
+                                                    <h3 class="text-lg font-semibold text-gray-800">{{ "Item Duplikat Surat Jalan" }}</h3>
                                                 </div>
                                                 <div class="px-5 py-4">
                                                     <p class="text-sm text-gray-700 mb-3">
-                                                        {{ Str::before(__('ui.duplicate_item_found', ['count' => '__COUNT__']), '__COUNT__') }}<span x-text="dupCount" class="font-bold"></span>{{ Str::after(__('ui.duplicate_item_found', ['count' => '__COUNT__']), '__COUNT__') }}
+                                                        {{ Str::before("Ditemukan :count item yang sudah ada dalam daftar. Hanya item unik yang akan ditambahkan.", '__COUNT__') }}<span x-text="dupCount" class="font-bold"></span>{{ Str::after("Ditemukan :count item yang sudah ada dalam daftar. Hanya item unik yang akan ditambahkan.", '__COUNT__') }}
                                                     </p>
                                                     <div
                                                         class="rounded-lg border border-amber-200 bg-amber-50 max-h-40 overflow-auto">
@@ -1270,9 +1270,9 @@
                                                 </div>
                                                 <div class="px-5 py-3 border-t bg-gray-50 flex justify-end gap-2">
                                                     <button type="button" @click="closeDupModal()"
-                                                        class="px-4 py-2 border rounded-lg">{{ __('ui.cancel') }}</button>
+                                                        class="px-4 py-2 border rounded-lg">{{ "Batal" }}</button>
                                                     <button type="button" @click="confirmAddUniques()"
-                                                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg">{{ __('ui.add_remaining_items') }}</button>
+                                                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg">{{ "Tambahkan Sisa Item" }}</button>
                                                 </div>
                                             </div>
                                         </div>
@@ -1286,7 +1286,7 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                                     d="M12 4.5v15m7.5-7.5h-15" />
                                             </svg>
-                                            {{ __('ui.add_sales_order') }}
+                                            {{ "Tambah SO" }}
                                         </button>
 
                                         <div x-show="show" x-cloak x-transition.opacity
@@ -1300,12 +1300,12 @@
                                                 <div
                                                     class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-teal-50 to-white">
                                                     <div>
-                                                        <h3 class="text-xl font-bold text-gray-800">{{ __('ui.select_sales_order') }}</h3>
-                                                        <p class="text-sm text-gray-500 mt-0.5">{{ __('ui.select_sales_order_prompt') }}</p>
+                                                        <h3 class="text-xl font-bold text-gray-800">{{ "Pilih Sales Order" }}</h3>
+                                                        <p class="text-sm text-gray-500 mt-0.5">{{ "Pilih Sales Order yang diinginkan" }}</p>
                                                     </div>
                                                     <button type="button" @click="closeModal()"
                                                         class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-bold text-gray-700 text-sm">
-                                                        {{ __('ui.close') }}
+                                                        {{ "Tutup" }}
                                                     </button>
                                                 </div>
 
@@ -1322,16 +1322,16 @@
                                                                 <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
                                                                     <th
                                                                         class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                        {{ __('ui.sales_order_no') }}</th>
+                                                                        {{ "No.SO" }}</th>
                                                                     <th
                                                                         class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                        {{ __('ui.reference_no') }}</th>
+                                                                        {{ "No.Ref" }}</th>
                                                                     <th
                                                                         class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                        {{ __('ui.date') }}</th>
+                                                                        {{ "Tanggal" }}</th>
                                                                     <th
                                                                         class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">
-                                                                        {{ __('ui.action') }}</th>
+                                                                        {{ "Aksi" }}</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody></tbody>
@@ -1358,7 +1358,7 @@
                                                             stroke-width="2"
                                                             d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                                                     </svg>
-                                                    <h3 class="text-lg font-semibold text-gray-800">{{ __('ui.duplicate_item_detected') }}</h3>
+                                                    <h3 class="text-lg font-semibold text-gray-800">{{ "Item Duplikat Ditemukan" }}</h3>
                                                 </div>
 
                                                 <div class="px-5 py-4 space-y-3">
@@ -1373,7 +1373,7 @@
                                                     <div class="rounded-lg border border-amber-200 bg-amber-50">
                                                         <div
                                                             class="px-3 py-2 border-b border-amber-200 text-sm font-bold text-gray-800">
-                                                            {{ __('ui.duplicate_item_preview') }}
+                                                            {{ "Preview Item Duplikat" }}
                                                         </div>
                                                         <ul class="max-h-40 overflow-auto divide-y divide-amber-100">
                                                             <template x-for="d in dupSample"
@@ -1391,7 +1391,7 @@
                                                             </template>
                                                             <template x-if="dupCount === 0">
                                                                 <li class="px-3 py-2 text-sm text-gray-500 text-center">
-                                                                    {{ __('ui.no_duplicate_example') }}</li>
+                                                                    {{ "Tidak ada contoh." }}</li>
                                                             </template>
                                                         </ul>
                                                     </div>
@@ -1401,7 +1401,7 @@
                                                     class="px-5 py-3 border-t bg-gray-50 flex items-center justify-end gap-2">
                                                     <button type="button" @click="closeDupModal()"
                                                         class="h-9 px-4 rounded-lg border-2 border-gray-300 text-gray-700 text-sm font-bold hover:bg-gray-100 transition-colors">
-                                                        {{ __('ui.cancel') }}
+                                                        {{ "Batal" }}
                                                     </button>
                                                 </div>
                                             </div>
@@ -1539,7 +1539,7 @@
                                     x-transition.scale>
                                     <div class="px-5 py-4 border-b flex items-center">
                                         <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-red-500 mr-2" />
-                                        <h3 class="text-lg font-semibold text-gray-800">{{ __('ui.no_items_title') }}</h3>
+                                        <h3 class="text-lg font-semibold text-gray-800">{{ "Tidak Ada Item" }}</h3>
                                     </div>
 
                                     <div class="px-5 py-4">
@@ -1555,7 +1555,7 @@
                                     <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
                                         <button type="button" @click="showNoItems=false"
                                             class="h-9 px-4 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
-                                            {{ __('ui.ok') }}
+                                            {{ "OK" }}
                                         </button>
                                     </div>
                                 </div>
@@ -1850,10 +1850,10 @@
 
             const payload = await response.json();
             if (!response.ok) {
-                const message = payload?.message || Object.values(payload?.errors || {}).flat().join('\n') || @json(__('ui.customer_check_failed_message'));
+                const message = payload?.message || Object.values(payload?.errors || {}).flat().join('\n') || @json("Gagal cek limit customer.");
                 await Swal.fire({
                     icon: 'error',
-                    title: @json(__('ui.check_customer_failed')),
+                    title: @json("Cek Customer Gagal"),
                     text: message
                 });
                 return false;
@@ -1868,19 +1868,19 @@
             if (limitCheck.enabled && limitCheck.exceeded) {
                 const confirmed = await Swal.fire({
                     icon: 'warning',
-                    title: @json(__('ui.receivable_limit_exceeded')),
+                    title: @json("Limit Piutang Terlampaui"),
                     html: `
                         <div class="text-left text-sm">
-                            <div>${@json(__('ui.running_receivables_total'))}: <strong>${Number(limitCheck.outstanding_total || 0).toLocaleString('id-ID')}</strong></div>
-                            <div>${@json(__('ui.current_transaction_value'))}: <strong>${Number(limitCheck.transaction_amount || 0).toLocaleString('id-ID')}</strong></div>
-                            <div>${@json(__('ui.customer_limit'))}: <strong>${Number(limitCheck.limit || 0).toLocaleString('id-ID')}</strong></div>
-                            <div>${@json(__('ui.total_after_transaction'))}: <strong>${Number(limitCheck.projected_total || 0).toLocaleString('id-ID')}</strong></div>
-                            <div class="mt-3">${@json(__('ui.transaction_needs_approval'))}</div>
+                            <div>${@json("Total piutang berjalan")}: <strong>${Number(limitCheck.outstanding_total || 0).toLocaleString('id-ID')}</strong></div>
+                            <div>${@json("Nilai transaksi ini")}: <strong>${Number(limitCheck.transaction_amount || 0).toLocaleString('id-ID')}</strong></div>
+                            <div>${@json("Limit customer")}: <strong>${Number(limitCheck.limit || 0).toLocaleString('id-ID')}</strong></div>
+                            <div>${@json("Total setelah transaksi")}: <strong>${Number(limitCheck.projected_total || 0).toLocaleString('id-ID')}</strong></div>
+                            <div class="mt-3">${@json("Transaksi ini butuh ACC. Lanjutkan?")}</div>
                         </div>
                     `,
                     showCancelButton: true,
-                    confirmButtonText: @json(__('ui.yes')),
-                    cancelButtonText: @json(__('ui.no'))
+                    confirmButtonText: @json("Ya"),
+                    cancelButtonText: @json("Tidak")
                 });
 
                 if (!confirmed.isConfirmed) {
@@ -1891,8 +1891,8 @@
                 if (!canApprove) {
                     await Swal.fire({
                         icon: 'error',
-                        title: @json(__('ui.approval_rejected')),
-                        text: @json(__('ui.approval_rejected_limit'))
+                        title: @json("ACC Ditolak"),
+                        text: @json("User login tidak punya wewenang ACC untuk limit piutang.")
                     });
                     return false;
                 }
@@ -1909,17 +1909,17 @@
 
                 const confirmed = await Swal.fire({
                     icon: 'warning',
-                    title: @json(__('ui.overdue_invoice_exists')),
+                    title: @json("Ada Nota Lewat Jatuh Tempo"),
                     html: `
                         <div class="text-left text-sm">
-                            <div>${@json(__('ui.customer_has_overdue_invoice'))} <strong>${overdueCheck.max_tempo || 0}</strong> ${@json(__('ui.day_unit_suffix'))}</div>
+                            <div>${@json("Customer punya nota yang lewat jatuh tempo lebih dari")} <strong>${overdueCheck.max_tempo || 0}</strong> ${@json("hari.")}</div>
                             <ul class="mt-3 list-disc pl-5">${overdueHtml}</ul>
-                            <div class="mt-3">${@json(__('ui.transaction_needs_approval'))}</div>
+                            <div class="mt-3">${@json("Transaksi ini butuh ACC. Lanjutkan?")}</div>
                         </div>
                     `,
                     showCancelButton: true,
-                    confirmButtonText: @json(__('ui.yes')),
-                    cancelButtonText: @json(__('ui.no'))
+                    confirmButtonText: @json("Ya"),
+                    cancelButtonText: @json("Tidak")
                 });
 
                 if (!confirmed.isConfirmed) {
@@ -1930,8 +1930,8 @@
                 if (!canApprove) {
                     await Swal.fire({
                         icon: 'error',
-                        title: @json(__('ui.approval_rejected')),
-                        text: @json(__('ui.approval_rejected_overdue'))
+                        title: @json("ACC Ditolak"),
+                        text: @json("User login tidak punya wewenang ACC untuk nota lewat jatuh tempo.")
                     });
                     return false;
                 }
@@ -1944,8 +1944,8 @@
         } catch (error) {
             await Swal.fire({
                 icon: 'error',
-                title: @json(__('ui.check_customer_failed')),
-                text: @json(__('ui.customer_receivable_check_error'))
+                title: @json("Cek Customer Gagal"),
+                text: @json("Terjadi kesalahan saat mengecek limit piutang customer.")
             });
             return false;
         }
@@ -2343,7 +2343,7 @@
                     added++;
                 });
 
-                if (added > 0) window.toast?.success(@json(__('ui.items_added_success', ['count' => '__COUNT__'])).replace('__COUNT__', added));
+                if (added > 0) window.toast?.success(@json("Berhasil menambahkan :count item").replace('__COUNT__', added));
                 this.recalcTotals();
             },
 
@@ -2625,7 +2625,7 @@
                             className: 'text-center',
                             render: function(data, type, row) {
                                 // Menggunakan styling yang lebih seragam
-                                return '<button type="button" class="btn-pick px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">{{ __('ui.choose') }}</button>';
+                                return '<button type="button" class="btn-pick px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">{{ "Pilih" }}</button>';
                             }
                         }
                     ],
@@ -2638,19 +2638,19 @@
                     dom: '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip',
 
                     language: {
-                        processing: @json(__('ui.load_data')),
-                        search: @json(__('ui.search') . ':'),
-                        lengthMenu: @json(__('ui.show_menu')),
-                        info: @json(__('ui.showing_data')),
-                        infoEmpty: @json(__('ui.no_data')),
-                        infoFiltered: @json(__('ui.filtered_from_total')),
-                        zeroRecords: @json(__('ui.no_data_found')),
-                        emptyTable: @json(__('ui.no_data_available')),
+                        processing: @json("Memuat data..."),
+                        search: @json("Search" . ':'),
+                        lengthMenu: @json("Tampilkan _MENU_"),
+                        info: @json("Menampilkan _START_ - _END_ dari _TOTAL_ data"),
+                        infoEmpty: @json("Tidak ada data"),
+                        infoFiltered: @json("(disaring dari _MAX_ total data)"),
+                        zeroRecords: @json("Tidak ada data yang ditemukan"),
+                        emptyTable: @json("Tidak ada data tersedia"),
                         paginate: {
-                            first: @json(__('ui.first')),
-                            last: @json(__('ui.last')),
-                            next: @json(__('ui.next')),
-                            previous: @json(__('ui.previous'))
+                            first: @json("Pertama"),
+                            last: @json("Terakhir"),
+                            next: @json("Selanjutnya"),
+                            previous: @json("Sebelumnya")
                         }
                     },
                     order: [
@@ -2757,7 +2757,7 @@
                     console.error(e);
                     // Menggunakan custom alert/modal, bukan alert() bawaan browser
                     // Idealnya: tampilkan notifikasi di UI
-                    console.log(@json(__('ui.failed_fetch_pr_detail')));
+                    console.log(@json("Gagal mengambil detail PR. Lihat konsol untuk detail."));
                 }
             }
         };
@@ -2799,4 +2799,5 @@
         });
     </script>
 @endpush
+
 

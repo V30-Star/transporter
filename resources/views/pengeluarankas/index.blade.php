@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', __('ui.pengeluaran_kas'))
+@section('title', "Pengeluaran Kas")
 
 @section('content')
         <div class="bg-white rounded shadow p-4">
@@ -8,20 +8,20 @@
             <div></div>
             <a href="{{ route('pengeluarankas.create') }}"
                 class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                <x-heroicon-o-plus class="w-4 h-4 mr-1" /> {{ __('ui.add_new') }}
+                <x-heroicon-o-plus class="w-4 h-4 mr-1" /> {{ "Tambah Baru" }}
             </a>
         </div>
 
         <table id="pengeluaranKasTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
-                    <th class="border px-2 py-2">{{ __('ui.voucher_no') }}</th>
-                    <th class="border px-2 py-2">{{ __('ui.date') }}</th>
-                    <th class="border px-2 py-2">{{ __('ui.check_no') }}</th>
-                    <th class="border px-2 py-2">{{ __('ui.account') }}</th>
-                    <th class="border px-2 py-2">{{ __('ui.description') }}</th>
-                    <th class="border px-2 py-2 text-right">{{ __('ui.payment_amount') }}</th>
-                    <th class="border px-2 py-2 no-sort">{{ __('ui.action') }}</th>
+                    <th class="border px-2 py-2">{{ "Voucher No." }}</th>
+                    <th class="border px-2 py-2">{{ "Tanggal" }}</th>
+                    <th class="border px-2 py-2">{{ "No.Giro/Cek" }}</th>
+                    <th class="border px-2 py-2">{{ "Account" }}</th>
+                    <th class="border px-2 py-2">{{ "Keterangan" }}</th>
+                    <th class="border px-2 py-2 text-right">{{ "Nilai Bayar" }}</th>
+                    <th class="border px-2 py-2 no-sort">{{ "Aksi" }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -39,15 +39,15 @@
                             <div class="flex items-center justify-center gap-2 flex-wrap">
                                 <a href="{{ route('pengeluarankas.view', $record->fkasmtno) }}"
                                     class="inline-flex items-center bg-slate-500 text-white px-4 py-2 rounded hover:bg-slate-600">
-                                    <x-heroicon-o-eye class="w-4 h-4 mr-1" /> {{ __('ui.view') }}
+                                    <x-heroicon-o-eye class="w-4 h-4 mr-1" /> {{ "View" }}
                                 </a>
                                 <a href="{{ route('pengeluarankas.edit', $record->fkasmtno) }}"
                                     class="inline-flex items-center bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
-                                    <x-heroicon-o-pencil-square class="w-4 h-4 mr-1" /> {{ __('ui.edit') }}
+                                    <x-heroicon-o-pencil-square class="w-4 h-4 mr-1" /> {{ "Edit" }}
                                 </a>
                                 <a href="{{ route('pengeluarankas.delete', $record->fkasmtno) }}"
                                     class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
-                                    <x-heroicon-o-trash class="w-4 h-4 mr-1" /> {{ __('ui.delete') }}
+                                    <x-heroicon-o-trash class="w-4 h-4 mr-1" /> {{ "Hapus" }}
                                 </a>
                             </div>
                         </td>
@@ -124,3 +124,4 @@
         });
     </script>
 @endpush
+

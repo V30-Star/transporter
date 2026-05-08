@@ -11,19 +11,19 @@
 <script>
     function supplierBrowser() {
         const dataTableLanguage = {
-            processing: @json(__('ui.load_data')),
-            search: @json(__('ui.search') . ':'),
-            lengthMenu: @json(__('ui.show_menu')),
-            info: @json(__('ui.showing_data')),
-            infoEmpty: @json(__('ui.no_data')),
-            infoFiltered: @json(__('ui.filtered_from_total')),
-            zeroRecords: @json(__('ui.no_data_found')),
-            emptyTable: @json(__('ui.no_data_available')),
+            processing: @json("Memuat data..."),
+            search: @json("Search" . ':'),
+            lengthMenu: @json("Tampilkan _MENU_"),
+            info: @json("Menampilkan _START_ - _END_ dari _TOTAL_ data"),
+            infoEmpty: @json("Tidak ada data"),
+            infoFiltered: @json("(disaring dari _MAX_ total data)"),
+            zeroRecords: @json("Tidak ada data yang ditemukan"),
+            emptyTable: @json("Tidak ada data tersedia"),
             paginate: {
-                first: @json(__('ui.first')),
-                last: @json(__('ui.last')),
-                next: @json(__('ui.next')),
-                previous: @json(__('ui.previous'))
+                first: @json("Pertama"),
+                last: @json("Terakhir"),
+                next: @json("Selanjutnya"),
+                previous: @json("Sebelumnya")
             }
         };
 
@@ -90,7 +90,7 @@
                             className: 'text-center',
                             width: '15%',
                             render: function() {
-                                return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">' + @json(__('ui.choose')) + '</button>';
+                                return '<button type="button" class="btn-choose px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">' + @json("Pilih") + '</button>';
                             }
                         }
                     ],
@@ -224,12 +224,12 @@
         <div
             class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
             <div>
-                <h3 class="text-xl font-bold text-gray-800">{{ __('ui.browse_supplier') }}</h3>
-                <p class="text-sm text-gray-500 mt-0.5">{{ __('ui.select_supplier_prompt') }}</p>
+                <h3 class="text-xl font-bold text-gray-800">{{ "Browse Supplier" }}</h3>
+                <p class="text-sm text-gray-500 mt-0.5">{{ "Pilih supplier yang diinginkan" }}</p>
             </div>
             <button type="button" @click="close()"
                 class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">
-                {{ __('ui.close') }}
+                {{ "Tutup" }}
             </button>
         </div>
 
@@ -243,11 +243,11 @@
                     style="width:100%">
                     <thead class="sticky top-0 z-10">
                         <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
-                            <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">{{ __('ui.code') }}</th>
-                            <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">{{ __('ui.supplier_name') }}</th>
-                            <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">{{ __('ui.address') }}</th>
-                            <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">{{ __('ui.phone') }}</th>
-                            <th class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">{{ __('ui.action') }}</th>
+                            <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">{{ "Kode" }}</th>
+                            <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">{{ "Nama Supplier" }}</th>
+                            <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">{{ "Alamat" }}</th>
+                            <th class="text-left p-3 font-semibold text-gray-700 border-b-2 border-gray-200">{{ "Telepon" }}</th>
+                            <th class="text-center p-3 font-semibold text-gray-700 border-b-2 border-gray-200">{{ "Aksi" }}</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -260,3 +260,4 @@
         </div>
     </div>
 </div>
+

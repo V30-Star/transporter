@@ -3,11 +3,11 @@
     <!-- Header -->
     <div class="p-4 border-b border-white/10 flex items-center justify-between">
         <!-- Brand / Title -->
-        <h2 class="text-xl font-semibold truncate" x-show="openSidebar" x-transition.opacity.duration.200>{{ __('ui.app_name') }}</h2>
+        <h2 class="text-xl font-semibold truncate" x-show="openSidebar" x-transition.opacity.duration.200>{{ "Laravel" }}</h2>
         <!-- Titik-tiga button -->
         <button @click="openSidebar = !openSidebar"
             class="ml-auto inline-flex items-center justify-center w-8 h-8 rounded-lg hover:bg-white/10 focus:outline-none group"
-            :aria-label="openSidebar ? @js(__('ui.close_sidebar')) : @js(__('ui.open_sidebar'))">
+            :aria-label="openSidebar ? @js("Tutup sidebar") : @js("Buka sidebar")">
             <!-- tiga titik -->
             <span class="relative flex items-center justify-between w-5">
                 <span class="h-1 w-1 rounded-full bg-white transition-transform duration-300"
@@ -53,7 +53,7 @@
             <li>
                 <a href="{{ route('dashboard') }}" class="flex items-center p-2 rounded-lg hover:bg-gray-700">
                     <x-heroicon-o-home class="w-5 h-5 flex-shrink-0" />
-                    <span class="ml-3" x-show="openSidebar" x-transition.opacity.duration.150>{{ __('ui.dashboard') }}</span>
+                    <span class="ml-3" x-show="openSidebar" x-transition.opacity.duration.150>{{ "Dashboard" }}</span>
                 </a>
             </li>
 
@@ -63,7 +63,7 @@
                     class="flex items-center w-full p-2 rounded-lg hover:bg-gray-700 focus:outline-none">
                     <x-heroicon-o-folder class="w-5 h-5 flex-shrink-0" />
                     <span class="ml-3 flex-1 text-left" x-show="openSidebar" x-transition.opacity.duration.150>
-                        {{ __('ui.master_accounting') }}
+                        {{ "Master Accounting" }}
                     </span>
                     <svg x-show="openSidebar" :class="{ 'rotate-180': open }"
                         class="w-4 h-4 transition-transform ml-auto" fill="none" stroke="currentColor"
@@ -80,7 +80,7 @@
                             <a href="{{ route('account.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
                                 <x-heroicon-o-banknotes class="w-5 h-5" />
-                                <span class="ml-3">{{ __('ui.account') }}</span>
+                                <span class="ml-3">{{ "Account" }}</span>
                             </a>
                         </li>
                     @endif
@@ -90,7 +90,7 @@
                             <a href="{{ route('subaccount.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
                                 <x-heroicon-o-document-duplicate class="w-5 h-5" />
-                                <span class="ml-3">{{ __('ui.sub_account') }}</span>
+                                <span class="ml-3">{{ "Sub Account" }}</span>
                             </a>
                         </li>
                     @endif
@@ -100,7 +100,7 @@
                             <a href="{{ route('rekening.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
                                 <x-heroicon-o-credit-card class="w-5 h-5" />
-                                <span class="ml-3">{{ __('ui.rekening') }}</span>
+                                <span class="ml-3">{{ "Rekening" }}</span>
                             </a>
                         </li>
                     @endif
@@ -109,7 +109,7 @@
                     <li>
                         <a href="{{ route('currency.index') }}" class="flex items-center p-2 rounded hover:bg-gray-700">
                             <x-heroicon-o-credit-card class="w-5 h-5" />
-                            <span class="ml-3">{{ __('ui.currency') }}</span>
+                            <span class="ml-3">{{ "Currency" }}</span>
                         </a>
                     </li>
                     {{-- @endif --}}
@@ -122,7 +122,7 @@
                     class="flex items-center w-full p-2 rounded-lg hover:bg-gray-700 focus:outline-none">
                     <x-heroicon-o-folder class="w-5 h-5 flex-shrink-0" />
                     <span class="ml-3 flex-1 text-left" x-show="openSidebar" x-transition.opacity.duration.150>
-                        {{ __('ui.master_barang') }}
+                        {{ "Master Barang" }}
                     </span>
                     <svg x-show="openSidebar" :class="{ 'rotate-180': open }"
                         class="w-4 h-4 transition-transform ml-auto" fill="none" stroke="currentColor"
@@ -139,7 +139,7 @@
                             <a href="{{ route('product.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
                                 <x-heroicon-o-cube class="w-5 h-5" />
-                                <span class="ml-3">{{ __('ui.product') }}</span>
+                                <span class="ml-3">{{ "Product" }}</span>
                             </a>
                         </li>
                     @endif
@@ -149,7 +149,7 @@
                             <a href="{{ route('groupproduct.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
                                 <x-heroicon-o-squares-2x2 class="w-5 h-5" />
-                                <span class="ml-3">{{ __('ui.group_produk') }}</span>
+                                <span class="ml-3">{{ "Group Produk" }}</span>
                             </a>
                         </li>
                     @endif
@@ -159,7 +159,7 @@
                             <a href="{{ route('merek.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
                                 <x-heroicon-o-tag class="w-5 h-5" />
-                                <span class="ml-3">{{ __('ui.merek') }}</span>
+                                <span class="ml-3">{{ "Merek" }}</span>
                             </a>
                         </li>
                     @endif
@@ -169,7 +169,7 @@
                             <a href="{{ route('satuan.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
                                 <x-heroicon-o-scale class="w-5 h-5" />
-                                <span class="ml-3">{{ __('ui.satuan') }}</span>
+                                <span class="ml-3">{{ "Satuan" }}</span>
                             </a>
                         </li>
                     @endif
@@ -183,7 +183,7 @@
                     class="flex items-center w-full p-2 rounded-lg hover:bg-gray-700 focus:outline-none">
                     <x-heroicon-o-folder class="w-5 h-5 flex-shrink-0" />
                     <span class="ml-3 flex-1 text-left" x-show="openSidebar" x-transition.opacity.duration.150>
-                        {{ __('ui.master_penjualan') }}
+                        {{ "Master Penjualan" }}
                     </span>
                     <svg x-show="openSidebar" :class="{ 'rotate-180': open }"
                         class="w-4 h-4 transition-transform ml-auto" fill="none" stroke="currentColor"
@@ -200,7 +200,7 @@
                             <a href="{{ route('groupcustomer.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
                                 <x-heroicon-o-squares-2x2 class="w-5 h-5" />
-                                <span class="ml-3">{{ __('ui.group_customer') }}</span>
+                                <span class="ml-3">{{ "Group Customer" }}</span>
                             </a>
                         </li>
                     @endif
@@ -210,7 +210,7 @@
                             <a href="{{ route('customer.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
                                 <x-heroicon-o-user-group class="w-5 h-5" />
-                                <span class="ml-3">{{ __('ui.customer') }}</span>
+                                <span class="ml-3">{{ "Customer" }}</span>
                             </a>
                         </li>
                     @endif
@@ -220,7 +220,7 @@
                             <a href="{{ route('wilayah.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
                                 <x-heroicon-o-globe-alt class="w-5 h-5" />
-                                <span class="ml-3">{{ __('ui.wilayah') }}</span>
+                                <span class="ml-3">{{ "Wilayah" }}</span>
                             </a>
                         </li>
                     @endif
@@ -230,7 +230,7 @@
                             <a href="{{ route('salesman.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
                                 <x-heroicon-o-briefcase class="w-5 h-5" />
-                                <span class="ml-3">{{ __('ui.salesman') }}</span>
+                                <span class="ml-3">{{ "Salesman" }}</span>
                             </a>
                         </li>
                     @endif
@@ -244,7 +244,7 @@
                     class="flex items-center w-full p-2 rounded-lg hover:bg-gray-700 focus:outline-none">
                     <x-heroicon-o-folder class="w-5 h-5 flex-shrink-0" />
                     <span class="ml-3 flex-1 text-left" x-show="openSidebar" x-transition.opacity.duration.150>
-                        {{ __('ui.master_pembelian') }}
+                        {{ "Master Pembelian" }}
                     </span>
                     <svg x-show="openSidebar" :class="{ 'rotate-180': open }"
                         class="w-4 h-4 transition-transform ml-auto" fill="none" stroke="currentColor"
@@ -261,7 +261,7 @@
                             <a href="{{ route('gudang.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
                                 <x-heroicon-o-archive-box class="w-5 h-5" />
-                                <span class="ml-3">{{ __('ui.gudang') }}</span>
+                                <span class="ml-3">{{ "Gudang" }}</span>
                             </a>
                         </li>
                     @endif
@@ -271,7 +271,7 @@
                             <a href="{{ route('supplier.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
                                 <x-heroicon-o-truck class="w-5 h-5" />
-                                <span class="ml-3">{{ __('ui.supplier') }}</span>
+                                <span class="ml-3">{{ "Supplier" }}</span>
                             </a>
                         </li>
                     @endif
@@ -285,7 +285,7 @@
                     class="flex items-center w-full p-2 rounded-lg hover:bg-gray-700 focus:outline-none">
                     <x-heroicon-o-folder class="w-5 h-5 flex-shrink-0" />
                     <span class="ml-3 flex-1 text-left" x-show="openSidebar"
-                        x-transition.opacity.duration.150>{{ __('ui.transaksi_accounting') }}</span>
+                        x-transition.opacity.duration.150>{{ "Transaksi Accounting" }}</span>
                     <!-- caret -->
                     <svg x-show="openSidebar" :class="{ 'rotate-180': open }"
                         class="w-4 h-4 transition-transform ml-auto" fill="none" stroke="currentColor"
@@ -303,7 +303,7 @@
                         <a href="{{ route('jurnaltransaksi.index') }}"
                             class="flex items-center p-2 rounded hover:bg-gray-700">
                             <x-heroicon-o-credit-card class="w-5 h-5" />
-                            <span class="ml-3">{{ __('ui.jurnal_transaksi') }}</span>
+                            <span class="ml-3">{{ "Jurnal Transaksi" }}</span>
                         </a>
                     </li>
                     {{-- @endif --}}
@@ -316,7 +316,7 @@
                     class="flex items-center w-full p-2 rounded-lg hover:bg-gray-700 focus:outline-none">
                     <x-heroicon-o-folder class="w-5 h-5 flex-shrink-0" />
                     <span class="ml-3 flex-1 text-left" x-show="openSidebar"
-                        x-transition.opacity.duration.150>{{ __('ui.transaksi_penjualan') }}</span>
+                        x-transition.opacity.duration.150>{{ "Transaksi Penjualan" }}</span>
                     <!-- caret -->
                     <svg x-show="openSidebar" :class="{ 'rotate-180': open }"
                         class="w-4 h-4 transition-transform ml-auto" fill="none" stroke="currentColor"
@@ -334,7 +334,7 @@
                             <a href="{{ route('salesorder.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
                                 <x-heroicon-o-user-circle class="w-5 h-5" />
-                                <span class="ml-3">{{ __('ui.sales_order') }}</span>
+                                <span class="ml-3">{{ "Sales Order" }}</span>
                             </a>
                         </li>
                     @endif
@@ -349,7 +349,7 @@
                             <a href="{{ route('suratjalan.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
                                 <x-heroicon-o-user-circle class="w-5 h-5" />
-                                <span class="ml-3">{{ __('ui.surat_jalan') }}</span>
+                                <span class="ml-3">{{ "Surat Jalan" }}</span>
                             </a>
                         </li>
                     @endif
@@ -364,7 +364,7 @@
                             <a href="{{ route('invoice.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
                                 <x-heroicon-o-user-circle class="w-5 h-5" />
-                                <span class="ml-3">{{ __('ui.invoice') }}</span>
+                                <span class="ml-3">{{ "Faktur Penjualan" }}</span>
                             </a>
                         </li>
                     @endif
@@ -379,7 +379,7 @@
                             <a href="{{ route('returpenjualan.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
                                 <x-heroicon-o-user-circle class="w-5 h-5" />
-                                <span class="ml-3">{{ __('ui.retur_penjualan') }}</span>
+                                <span class="ml-3">{{ "Retur Penjualan" }}</span>
                             </a>
                         </li>
                     @endif
@@ -392,7 +392,7 @@
                     class="flex items-center w-full p-2 rounded-lg hover:bg-gray-700 focus:outline-none">
                     <x-heroicon-o-folder class="w-5 h-5 flex-shrink-0" />
                     <span class="ml-3 flex-1 text-left" x-show="openSidebar" x-transition.opacity.duration.150>
-                        {{ __('ui.transaksi_pembelian') }}
+                        {{ "Transaksi Pembelian" }}
                     </span>
                     <svg x-show="openSidebar" :class="{ 'rotate-180': open }"
                         class="w-4 h-4 transition-transform ml-auto" fill="none" stroke="currentColor"
@@ -408,7 +408,7 @@
                             <a href="{{ route('tr_prh.index') }}"
                                 class="flex items-center p-2 rounded-lg hover:bg-gray-700">
                                 <x-heroicon-o-banknotes class="w-5 h-5" />
-                                <span class="ml-3">{{ __('ui.permintaan_pembelian') }}</span>
+                                <span class="ml-3">{{ "Permintaan Pembelian" }}</span>
                             </a>
                         </li>
                     @endif
@@ -416,21 +416,21 @@
                         <a href="{{ route('tr_poh.index') }}"
                             class="flex items-center p-2 rounded-lg hover:bg-gray-700">
                             <x-heroicon-o-banknotes class="w-5 h-5" />
-                            <span class="ml-3">{{ __('ui.order_pembelian') }}</span>
+                            <span class="ml-3">{{ "Order Pembelian" }}</span>
                         </a>
                     </li>
                     <li>
                         <a href="{{ route('penerimaanbarang.index') }}"
                             class="flex items-center p-2 rounded-lg hover:bg-gray-700">
                             <x-heroicon-o-banknotes class="w-5 h-5" />
-                            <span class="ml-3">{{ __('ui.penerimaan_barang') }}</span>
+                            <span class="ml-3">{{ "Penerimaan Barang" }}</span>
                         </a>
                     </li>
                     <li>
                         <a href="{{ route('fakturpembelian.index') }}"
                             class="flex items-center p-2 rounded-lg hover:bg-gray-700">
                             <x-heroicon-o-banknotes class="w-5 h-5" />
-                            <span class="ml-3">{{ __('ui.faktur_pembelian') }}</span>
+                            <span class="ml-3">{{ "Faktur Pembelian" }}</span>
                         </a>
                     </li>
                 </ul>
@@ -442,7 +442,7 @@
                     class="flex items-center w-full p-2 rounded-lg hover:bg-gray-700 focus:outline-none">
                     <x-heroicon-o-folder class="w-5 h-5 flex-shrink-0" />
                     <span class="ml-3 flex-1 text-left" x-show="openSidebar"
-                        x-transition.opacity.duration.150">{{ __('ui.transaksi_stock') }}</span>
+                        x-transition.opacity.duration.150">{{ "Transaksi Stock" }}</span>
                     <!-- caret -->
                     <svg x-show="openSidebar" :class="{ 'rotate-180': open }"
                         class="w-4 h-4 transition-transform ml-auto" fill="none" stroke="currentColor"
@@ -460,35 +460,35 @@
                             <a href="{{ route('adjstock.index') }}"
                                 class="flex items-center p-2 rounded-lg hover:bg-gray-700">
                                 <x-heroicon-o-banknotes class="w-5 h-5" />
-                                <span class="ml-3">{{ __('ui.adj_stock') }}</span>
+                                <span class="ml-3">{{ "Adjustment Stock" }}</span>
                             </a>
                         </li>
                         <li>
                             <a href="{{ route('mutasi.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
                                 <x-heroicon-o-user-circle class="w-5 h-5" />
-                                <span class="ml-3">{{ __('ui.mutasi') }}</span>
+                                <span class="ml-3">{{ "Mutasi" }}</span>
                             </a>
                         </li>
                         <li>
                             <a href="{{ route('pemakaianbarang.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
                                 <x-heroicon-o-user-circle class="w-5 h-5" />
-                                <span class="ml-3">{{ __('ui.pemakaian_barang') }}</span>
+                                <span class="ml-3">{{ "Pemakaian Barang" }}</span>
                             </a>
                         </li>
                         <li>
                             <a href="{{ route('returpembelian.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
                                 <x-heroicon-o-user-circle class="w-5 h-5" />
-                                <span class="ml-3">{{ __('ui.retur_pembelian') }}</span>
+                                <span class="ml-3">{{ "Retur Pembelian" }}</span>
                             </a>
                         </li>
                         <li>
                             <a href="{{ route('assembling.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
                                 <x-heroicon-o-user-circle class="w-5 h-5" />
-                                <span class="ml-3">{{ __('ui.assembling') }}</span>
+                                <span class="ml-3">{{ "Assembling" }}</span>
                             </a>
                         </li>
                     @endif
@@ -500,7 +500,7 @@
                 <button @click="open = !open"
                     class="flex items-center w-full p-2 rounded-lg hover:bg-gray-700 focus:outline-none">
                     <x-heroicon-o-folder class="w-5 h-5 flex-shrink-0" />
-                    <span class="ml-3 flex-1 text-left" x-show="openSidebar" x-transition.opacity.duration.150">{{ __('ui.laporan_master') }}</span>
+                    <span class="ml-3 flex-1 text-left" x-show="openSidebar" x-transition.opacity.duration.150">{{ "Laporan Master" }}</span>
                     <!-- caret -->
                     <svg x-show="openSidebar" :class="{ 'rotate-180': open }"
                         class="w-4 h-4 transition-transform ml-auto" fill="none" stroke="currentColor"
@@ -518,7 +518,7 @@
                         <a href="{{ route('reportingaccount.index') }}"
                             class="flex items-center p-2 rounded hover:bg-gray-700">
                             <x-heroicon-o-credit-card class="w-5 h-5" />
-                            <span class="ml-3">{{ __('ui.chart_of_account') }}</span>
+                            <span class="ml-3">{{ "Chart of Account" }}</span>
                         </a>
                     </li>
                     {{-- @endif --}}
@@ -528,7 +528,7 @@
                         <a href="{{ route('reportingsubaccount.index') }}"
                             class="flex items-center p-2 rounded hover:bg-gray-700">
                             <x-heroicon-o-credit-card class="w-5 h-5" />
-                            <span class="ml-3">{{ __('ui.sub_account') }}</span>
+                            <span class="ml-3">{{ "Sub Account" }}</span>
                         </a>
                     </li>
                     {{-- @endif --}}
@@ -538,7 +538,7 @@
                         <a href="{{ route('reportingcustomer.index') }}"
                             class="flex items-center p-2 rounded hover:bg-gray-700">
                             <x-heroicon-o-credit-card class="w-5 h-5" />
-                            <span class="ml-3">{{ __('ui.customer') }}</span>
+                            <span class="ml-3">{{ "Customer" }}</span>
                         </a>
                     </li>
                     {{-- @endif --}}
@@ -548,7 +548,7 @@
                         <a href="{{ route('reportingsupplier.index') }}"
                             class="flex items-center p-2 rounded hover:bg-gray-700">
                             <x-heroicon-o-credit-card class="w-5 h-5" />
-                            <span class="ml-3">{{ __('ui.supplier') }}</span>
+                            <span class="ml-3">{{ "Supplier" }}</span>
                         </a>
                     </li>
                     {{-- @endif --}}
@@ -558,7 +558,7 @@
                         <a href="{{ route('reportingproduct.index') }}"
                             class="flex items-center p-2 rounded hover:bg-gray-700">
                             <x-heroicon-o-credit-card class="w-5 h-5" />
-                            <span class="ml-3">{{ __('ui.product') }}</span>
+                            <span class="ml-3">{{ "Product" }}</span>
                         </a>
                     </li>
                     {{-- @endif --}}
@@ -571,7 +571,7 @@
                 <button @click="open = !open"
                     class="flex items-center w-full p-2 rounded-lg hover:bg-gray-700 focus:outline-none">
                     <x-heroicon-o-folder class="w-5 h-5 flex-shrink-0" />
-                    <span class="ml-3 flex-1 text-left" x-show="openSidebar" x-transition.opacity.duration.150">{{ __('ui.laporan_penjualan') }}</span>
+                    <span class="ml-3 flex-1 text-left" x-show="openSidebar" x-transition.opacity.duration.150">{{ "Laporan Penjualan" }}</span>
                     <!-- caret -->
                     <svg x-show="openSidebar" :class="{ 'rotate-180': open }"
                         class="w-4 h-4 transition-transform ml-auto" fill="none" stroke="currentColor"
@@ -587,7 +587,7 @@
                             <a href="{{ route('listingso.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
                                 <x-heroicon-o-user-circle class="w-5 h-5" />
-                                <span class="ml-3">{{ __('ui.listing_so') }}</span>
+                                <span class="ml-3">{{ "Listing Sales Order (SO)" }}</span>
                             </a>
                         </li>
                     @endif
@@ -600,7 +600,7 @@
                             <a href="{{ route('listingsobelum.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
                                 <x-heroicon-o-user-circle class="w-5 h-5" />
-                                <span class="ml-3">{{ __('ui.so_belum_terkirim') }}</span>
+                                <span class="ml-3">{{ "SO Yang Belum Terkirim" }}</span>
                             </a>
                         </li>
                     @endif
@@ -613,7 +613,7 @@
                             <a href="{{ route('listingpenjualan.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
                                 <x-heroicon-o-user-circle class="w-5 h-5" />
-                                <span class="ml-3">{{ __('ui.listing_penjualan') }}</span>
+                                <span class="ml-3">{{ "Listing Penjualan" }}</span>
                             </a>
                         </li>
                     @endif
@@ -677,7 +677,7 @@
                 <button @click="open = !open"
                     class="flex items-center w-full p-2 rounded-lg hover:bg-gray-700 focus:outline-none">
                     <x-heroicon-o-folder class="w-5 h-5 flex-shrink-0" />
-                    <span class="ml-3 flex-1 text-left" x-show="openSidebar" x-transition.opacity.duration.150">{{ __('ui.laporan_pembelian') }}</span>
+                    <span class="ml-3 flex-1 text-left" x-show="openSidebar" x-transition.opacity.duration.150">{{ "Laporan Pembelian" }}</span>
                     <!-- caret -->
                     <svg x-show="openSidebar" :class="{ 'rotate-180': open }"
                         class="w-4 h-4 transition-transform ml-auto" fill="none" stroke="currentColor"
@@ -694,7 +694,7 @@
                             <a href="{{ route('listingpr.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
                                 <x-heroicon-o-user-circle class="w-5 h-5" />
-                                <span class="ml-3">{{ __('ui.listing_pr') }}</span>
+                                <span class="ml-3">{{ "Listing Permintaan Pembelian (PR)" }}</span>
                             </a>
                         </li>
                     @endif
@@ -704,7 +704,7 @@
                             <a href="{{ route('listingpo.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
                                 <x-heroicon-o-user-circle class="w-5 h-5" />
-                                <span class="ml-3">{{ __('ui.listing_po') }}</span>
+                                <span class="ml-3">{{ "Listing Order Pembelian (PO)" }}</span>
                             </a>
                         </li>
                     @endif
@@ -714,7 +714,7 @@
                             <a href="{{ route('listingpenerimaanbarang.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
                                 <x-heroicon-o-user-circle class="w-5 h-5" />
-                                <span class="ml-3">{{ __('ui.listing_pb') }}</span>
+                                <span class="ml-3">{{ "Listing Penerimaan Barang" }}</span>
                             </a>
                         </li>
                     @endif
@@ -724,7 +724,7 @@
                             <a href="{{ route('listingfakturpembelian.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
                                 <x-heroicon-o-user-circle class="w-5 h-5" />
-                                <span class="ml-3">{{ __('ui.listing_fpb') }}</span>
+                                <span class="ml-3">{{ "Listing Faktur Pembelian" }}</span>
                             </a>
                         </li>
                     @endif
@@ -736,7 +736,7 @@
                 <button @click="open = !open"
                     class="flex items-center w-full p-2 rounded-lg hover:bg-gray-700 focus:outline-none">
                     <x-heroicon-o-folder class="w-5 h-5 flex-shrink-0" />
-                    <span class="ml-3 flex-1 text-left" x-show="openSidebar" x-transition.opacity.duration.150">{{ __('ui.laporan_stock') }}</span>
+                    <span class="ml-3 flex-1 text-left" x-show="openSidebar" x-transition.opacity.duration.150">{{ "Laporan Stock" }}</span>
                     <!-- caret -->
                     <svg x-show="openSidebar" :class="{ 'rotate-180': open }"
                         class="w-4 h-4 transition-transform ml-auto" fill="none" stroke="currentColor"
@@ -753,7 +753,7 @@
                             <a href="{{ route('reportingadjstock.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
                                 <x-heroicon-o-user-circle class="w-5 h-5" />
-                                <span class="ml-3">{{ __('ui.listing_adjstock') }}</span>
+                                <span class="ml-3">{{ "Listing Adjustment Stock" }}</span>
                             </a>
                         </li>
                     @endif
@@ -763,7 +763,7 @@
                             <a href="{{ route('reportingpemakaianbarang.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
                                 <x-heroicon-o-user-circle class="w-5 h-5" />
-                                <span class="ml-3">{{ __('ui.listing_pemakaian') }}</span>
+                                <span class="ml-3">{{ "Listing Pemakaian Barang" }}</span>
                             </a>
                         </li>
                     @endif
@@ -773,7 +773,7 @@
                             <a href="{{ route('reportingassembling.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
                                 <x-heroicon-o-user-circle class="w-5 h-5" />
-                                <span class="ml-3">{{ __('ui.listing_assembling') }}</span>
+                                <span class="ml-3">{{ "Listing Assembling" }}</span>
                             </a>
                         </li>
                     @endif
@@ -785,7 +785,7 @@
                 <button @click="open = !open"
                     class="flex items-center w-full p-2 rounded-lg hover:bg-gray-700 focus:outline-none">
                     <x-heroicon-o-folder class="w-5 h-5 flex-shrink-0" />
-                    <span class="ml-3 flex-1 text-left" x-show="openSidebar" x-transition.opacity.duration.150">{{ __('ui.laporan_pengeluaran') }}</span>
+                    <span class="ml-3 flex-1 text-left" x-show="openSidebar" x-transition.opacity.duration.150">{{ "Laporan Pengeluaran" }}</span>
                     <svg x-show="openSidebar" :class="{ 'rotate-180': open }"
                         class="w-4 h-4 transition-transform ml-auto" fill="none" stroke="currentColor"
                         viewBox="0 0 24 24">
@@ -799,7 +799,7 @@
                         <a href="{{ route('pengeluarankas.index') }}"
                             class="flex items-center p-2 rounded hover:bg-gray-700">
                             <x-heroicon-o-banknotes class="w-5 h-5" />
-                            <span class="ml-3">{{ __('ui.pengeluaran_kas') }}</span>
+                            <span class="ml-3">{{ "Pengeluaran Kas" }}</span>
                         </a>
                     </li>
                 </ul>
@@ -811,7 +811,7 @@
                     class="flex items-center w-full p-2 rounded-lg hover:bg-gray-700 focus:outline-none">
                     <x-heroicon-o-folder class="w-5 h-5 flex-shrink-0" />
                     <span class="ml-3 flex-1 text-left" x-show="openSidebar"
-                        x-transition.opacity.duration.150>{{ __('ui.utility') }}</span>
+                        x-transition.opacity.duration.150>{{ "Utility" }}</span>
                     <!-- caret -->
                     <svg x-show="openSidebar" :class="{ 'rotate-180': open }"
                         class="w-4 h-4 transition-transform ml-auto" fill="none" stroke="currentColor"
@@ -829,7 +829,7 @@
                             <a href="{{ route('sysuser.index') }}"
                                 class="flex items-center p-2 rounded hover:bg-gray-700">
                                 <x-heroicon-o-user-circle class="w-5 h-5" />
-                                <span class="ml-3">{{ __('ui.wewenang_user') }}</span>
+                                <span class="ml-3">{{ "Wewenang User" }}</span>
                             </a>
                         </li>
                     @endif
@@ -838,3 +838,4 @@
         </ul>
     </nav>
 </div>
+

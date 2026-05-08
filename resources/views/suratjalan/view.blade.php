@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', __('ui.surat_jalan'))
+@section('title', "Surat Jalan")
 
 @section('content')
     <style>
@@ -132,7 +132,7 @@
                                             </option>
                                         @endforeach
                                     </select>
-                                    <div class="absolute inset-0" role="button" aria-label="{{ __('ui.browse_customer') }}"
+                                    <div class="absolute inset-0" role="button" aria-label="{{ "Browse Customer" }}"
                                         @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))">
                                     </div>
                                 </div>
@@ -163,7 +163,7 @@
                                     </select>
 
                                     {{-- Overlay untuk buka browser gudang --}}
-                                    <div class="absolute inset-0" role="button" aria-label="{{ __('ui.browse_warehouse') }}"
+                                    <div class="absolute inset-0" role="button" aria-label="{{ "Browse Gudang" }}"
                                         @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"></div>
                                 </div>
                                 <input type="hidden" name="ffrom" id="warehouseCodeHidden"
@@ -602,7 +602,7 @@
                 applyEdit() {
                     const r = this.editRow;
                     if (!this.isComplete(r)) {
-                        alert(@json(__('ui.incomplete_item_data')));
+                        alert(@json("Lengkapi data item."));
                         return;
                     }
 
@@ -790,4 +790,5 @@
             });
         </script>
     @endpush
+
 

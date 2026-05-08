@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', __('ui.surat_jalan'))
+@section('title', "Surat Jalan")
 
 @section('content')
     <div x-data class="bg-white rounded shadow p-4">
@@ -19,27 +19,27 @@
             {{-- @if ($canCreate) --}}
             <a href="{{ route('suratjalan.create') }}"
                 class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                <x-heroicon-o-plus class="w-4 h-4 mr-1" /> {{ __('ui.add_new') }}
+                <x-heroicon-o-plus class="w-4 h-4 mr-1" /> {{ "Tambah Baru" }}
             </a>
             {{-- @endif --}}
         </div>
 
         <div id="statusFilterTemplate" class="hidden">
             <div class="flex items-center gap-2" id="statusFilterWrap">
-                <span class="text-sm text-gray-700">{{ __('ui.close_status') }}</span>
+                <span class="text-sm text-gray-700">{{ "Close" }}</span>
                 <select data-role="status-filter" class="border rounded px-2 py-1">
-                    <option value="all">{{ __('ui.all') }}</option>
+                    <option value="all">{{ "Semua" }}</option>
                     <option value="active" selected>Active</option>
-                    <option value="nonactive">{{ __('ui.non_active') }}</option>
+                    <option value="nonactive">{{ "Non Active" }}</option>
                 </select>
             </div>
         </div>
 
         <div id="yearFilterTemplate" class="hidden">
             <div class="flex items-center gap-2" id="yearFilterWrap">
-                <span class="text-sm text-gray-700">{{ __('ui.year') }}</span>
+                <span class="text-sm text-gray-700">{{ "Tahun" }}</span>
                 <select data-role="year-filter" class="border rounded px-2 py-1 w-24">
-                    <option value="">{{ __('ui.all') }}</option>
+                    <option value="">{{ "Semua" }}</option>
                     @foreach ($availableYears as $yr)
                         <option value="{{ $yr }}" {{ $year == $yr ? 'selected' : '' }}>{{ $yr }}
                         </option>
@@ -51,21 +51,21 @@
         {{-- Template untuk filter Bulan --}}
         <div id="monthFilterTemplate" class="hidden">
             <div class="flex items-center gap-2" id="monthFilterWrap">
-                <span class="text-sm text-gray-700">{{ __('ui.month') }}</span>
+                <span class="text-sm text-gray-700">{{ "Bulan" }}</span>
                 <select data-role="month-filter" class="border rounded px-2 py-1">
-                    <option value="">{{ __('ui.all') }}</option>
-                    <option value="1" {{ $month == '1' ? 'selected' : '' }}>{{ __('ui.january') }}</option>
-                    <option value="2" {{ $month == '2' ? 'selected' : '' }}>{{ __('ui.february') }}</option>
-                    <option value="3" {{ $month == '3' ? 'selected' : '' }}>{{ __('ui.march') }}</option>
-                    <option value="4" {{ $month == '4' ? 'selected' : '' }}>{{ __('ui.april') }}</option>
-                    <option value="5" {{ $month == '5' ? 'selected' : '' }}>{{ __('ui.may') }}</option>
-                    <option value="6" {{ $month == '6' ? 'selected' : '' }}>{{ __('ui.june') }}</option>
-                    <option value="7" {{ $month == '7' ? 'selected' : '' }}>{{ __('ui.july') }}</option>
-                    <option value="8" {{ $month == '8' ? 'selected' : '' }}>{{ __('ui.august') }}</option>
-                    <option value="9" {{ $month == '9' ? 'selected' : '' }}>{{ __('ui.september') }}</option>
-                    <option value="10" {{ $month == '10' ? 'selected' : '' }}>{{ __('ui.october') }}</option>
-                    <option value="11" {{ $month == '11' ? 'selected' : '' }}>{{ __('ui.november') }}</option>
-                    <option value="12" {{ $month == '12' ? 'selected' : '' }}>{{ __('ui.december') }}</option>
+                    <option value="">{{ "Semua" }}</option>
+                    <option value="1" {{ $month == '1' ? 'selected' : '' }}>{{ "Januari" }}</option>
+                    <option value="2" {{ $month == '2' ? 'selected' : '' }}>{{ "Februari" }}</option>
+                    <option value="3" {{ $month == '3' ? 'selected' : '' }}>{{ "Maret" }}</option>
+                    <option value="4" {{ $month == '4' ? 'selected' : '' }}>{{ "April" }}</option>
+                    <option value="5" {{ $month == '5' ? 'selected' : '' }}>{{ "Mei" }}</option>
+                    <option value="6" {{ $month == '6' ? 'selected' : '' }}>{{ "Juni" }}</option>
+                    <option value="7" {{ $month == '7' ? 'selected' : '' }}>{{ "Juli" }}</option>
+                    <option value="8" {{ $month == '8' ? 'selected' : '' }}>{{ "Agustus" }}</option>
+                    <option value="9" {{ $month == '9' ? 'selected' : '' }}>{{ "September" }}</option>
+                    <option value="10" {{ $month == '10' ? 'selected' : '' }}>{{ "Oktober" }}</option>
+                    <option value="11" {{ $month == '11' ? 'selected' : '' }}>{{ "November" }}</option>
+                    <option value="12" {{ $month == '12' ? 'selected' : '' }}>{{ "Desember" }}</option>
                 </select>
             </div>
         </div>
@@ -73,11 +73,11 @@
         <table id="penerimaanbarangTable" class="min-w-full border text-sm">
             <thead class="bg-gray-100">
                 <tr>
-                    <th class="border px-2 py-1">{{ __('ui.transaction_no') }}</th>
-                    <th class="border px-2 py-1">{{ __('ui.date') }}</th>
+                    <th class="border px-2 py-1">{{ "No.Transaksi" }}</th>
+                    <th class="border px-2 py-1">{{ "Tanggal" }}</th>
 
                     {{-- @if ($showActionsColumn) --}}
-                    <th class="border px-2 py-1 col-aksi">{{ __('ui.action') }}</th>
+                    <th class="border px-2 py-1 col-aksi">{{ "Aksi" }}</th>
                     {{-- @endif --}}
                 </tr>
             </thead>
@@ -91,19 +91,19 @@
             class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" x-transition>
             <div @click.away="!$store.penerimaanbarangStore.isDeleting && $store.penerimaanbarangStore.closeDelete()"
                 class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
-                <h3 class="text-lg font-semibold mb-4">{{ __('ui.confirm_delete') }}</h3>
-                <p class="mb-6">{{ __('ui.delete_question') }}</p>
+                <h3 class="text-lg font-semibold mb-4">{{ "Konfirmasi Hapus" }}</h3>
+                <p class="mb-6">{{ "Apakah Anda yakin ingin menghapus data ini?" }}</p>
                 <div class="flex justify-end space-x-2">
                     <button @click="$store.penerimaanbarangStore.closeDelete()"
                         class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
                         :disabled="$store.penerimaanbarangStore.isDeleting">
-                        {{ __('ui.cancel') }}
+                        {{ "Batal" }}
                     </button>
                     <button @click="$store.penerimaanbarangStore.confirmDelete()"
                         class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
                         :disabled="$store.penerimaanbarangStore.isDeleting">
-                        <span x-show="!$store.penerimaanbarangStore.isDeleting">{{ __('ui.delete') }}</span>
-                        <span x-show="$store.penerimaanbarangStore.isDeleting">{{ __('ui.deleting') }}</span>
+                        <span x-show="!$store.penerimaanbarangStore.isDeleting">{{ "Hapus" }}</span>
+                        <span x-show="$store.penerimaanbarangStore.isDeleting">{{ "Menghapus..." }}</span>
                     </button>
                 </div>
             </div>
@@ -447,3 +447,4 @@
         });
     </script>
 @endpush
+

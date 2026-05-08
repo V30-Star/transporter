@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', $action === 'delete' ? __('ui.delete') . ' ' . __('ui.surat_jalan') : __('ui.edit') . ' ' . __('ui.surat_jalan'))
+@section('title', $action === 'delete' ? "Hapus" . ' ' . "Surat Jalan" : "Edit" . ' ' . "Surat Jalan")
 
 @section('content')
     <style>
@@ -88,7 +88,7 @@
             {{-- Header Strip --}}
             <div class="d-flex align-items-center px-4 py-3" style="background-color: #c0392b;">
                 <i class="bi bi-exclamation-triangle-fill text-white me-2 fs-5"></i>
-                <strong class="text-white fs-6">{{ __('ui.save_failed') }}</strong>
+                <strong class="text-white fs-6">{{ "Gagal Menyimpan Data!" }}</strong>
                 <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="alert"
                     aria-label="Close"></button>
             </div>
@@ -97,7 +97,7 @@
             <div class="px-4 py-3" style="background-color: #fdeded; border-left: 5px solid #c0392b;">
                 <p class="mb-2 text-danger fw-semibold">
                     <i class="bi bi-info-circle me-1"></i>
-                    {{ __('ui.review_before_save') }}
+                    {{ "Periksa kembali data berikut sebelum menyimpan:" }}
                 </p>
                 <ul class="mb-0 ps-3">
                     @foreach ($errors->all() as $error)
@@ -124,13 +124,13 @@
                     </div>
                     <div class="flex-1">
                         <h3 class="text-base font-bold text-orange-700">
-                            {{ __('ui.surat_jalan') }} {{ $action === 'delete' ? __('ui.cannot_delete') : __('ui.cannot_edit') }}
+                            {{ "Surat Jalan" }} {{ $action === 'delete' ? "Tidak Dapat Dihapus" : "Tidak Dapat Diedit" }}
                         </h3>
                         <p class="text-sm text-orange-500 mt-0.5">{{ $usageLockMessage }}</p>
                     </div>
                     <button type="button" @click="open = false"
                         class="flex-shrink-0 w-8 h-8 rounded-full bg-orange-100 hover:bg-orange-200 flex items-center justify-center transition-colors"
-                        title="{{ __('ui.close') }}">
+                        title="{{ "Tutup" }}">
                         <x-heroicon-o-x-mark class="w-4 h-4 text-orange-600" />
                     </button>
                 </div>
@@ -138,7 +138,7 @@
                     <button type="button" @click="open = false"
                         class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center gap-2">
                         <x-heroicon-o-arrow-left class="w-5 h-5" />
-                        {{ __('ui.close') }}
+                        {{ "Tutup" }}
                     </button>
                 </div>
             </div>
@@ -198,7 +198,7 @@
                                                 </option>
                                             @endforeach
                                         </select>
-                                        <div class="absolute inset-0" role="button" aria-label="{{ __('ui.browse_customer') }}"
+                                        <div class="absolute inset-0" role="button" aria-label="{{ "Browse Customer" }}"
                                             @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))">
                                         </div>
                                     </div>
@@ -229,7 +229,7 @@
                                         </select>
 
                                         {{-- Overlay untuk buka browser gudang --}}
-                                        <div class="absolute inset-0" role="button" aria-label="{{ __('ui.browse_warehouse') }}"
+                                        <div class="absolute inset-0" role="button" aria-label="{{ "Browse Gudang" }}"
                                             @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"></div>
                                     </div>
                                     <input type="hidden" name="ffrom" id="warehouseCodeHidden"
@@ -483,7 +483,7 @@
                                                     </option>
                                                 @endforeach
                                             </select>
-                                            <div class="absolute inset-0" role="button" aria-label="{{ __('ui.browse_customer') }}"
+                                            <div class="absolute inset-0" role="button" aria-label="{{ "Browse Customer" }}"
                                                 @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))">
                                             </div>
                                         </div>
@@ -492,7 +492,7 @@
                                         <button type="button"
                                             @click="window.dispatchEvent(new CustomEvent('customer-browse-open'))"
                                             class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
-                                            title="{{ __('ui.browse_customer') }}">
+                                            title="{{ "Browse Customer" }}">
                                             <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                                         </button>
                                         <a href="{{ route('customer.create') }}" target="_blank" rel="noopener"
@@ -526,7 +526,7 @@
                                             </select>
 
                                             {{-- Overlay untuk buka browser gudang --}}
-                                            <div class="absolute inset-0" role="button" aria-label="{{ __('ui.browse_warehouse') }}"
+                                            <div class="absolute inset-0" role="button" aria-label="{{ "Browse Gudang" }}"
                                                 @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))">
                                             </div>
                                         </div>
@@ -539,7 +539,7 @@
                                         <button type="button"
                                             @click="window.dispatchEvent(new CustomEvent('warehouse-browse-open'))"
                                             class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
-                                            title="{{ __('ui.browse_warehouse') }}">
+                                            title="{{ "Browse Gudang" }}">
                                             <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                                         </button>
                                         <a href="{{ route('supplier.create') }}" target="_blank" rel="noopener"
@@ -785,11 +785,11 @@
                                                 class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-teal-50 to-white">
                                                 <div>
                                                     <h3 class="text-xl font-bold text-gray-800">Add SO</h3>
-                                                    <p class="text-sm text-gray-500 mt-0.5">{{ __('ui.select_purchase_order') }}</p>
+                                                    <p class="text-sm text-gray-500 mt-0.5">{{ "Pilih Purchase Order (PO)" }}</p>
                                                 </div>
                                                 <button type="button" @click="closeModal()"
                                                     class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-bold text-gray-700 text-sm">
-                                                    {{ __('ui.close') }}
+                                                    {{ "Tutup" }}
                                                 </button>
                                             </div>
 
@@ -899,7 +899,7 @@
                                             <div class="px-5 py-3 border-t bg-gray-50 flex items-center justify-end gap-2">
                                                 <button type="button" @click="closeDupModal()"
                                                     class="h-9 px-4 rounded-lg border-2 border-gray-300 text-gray-700 text-sm font-bold hover:bg-gray-100 transition-colors">
-                                                    {{ __('ui.cancel') }}
+                                                    {{ "Batal" }}
                                                 </button>
                                             </div>
                                         </div>
@@ -927,7 +927,7 @@
                                         <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
                                             <button type="button" @click="closeDesc()"
                                                 class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-bold hover:bg-gray-200">
-                                                {{ __('ui.cancel') }}
+                                                {{ "Batal" }}
                                             </button>
                                             <button type="button" @click="applyDesc()"
                                                 class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700">
@@ -960,7 +960,7 @@
                                         <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
                                             <button type="button" @click="closeDesc()"
                                                 class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-bold hover:bg-gray-200">
-                                                {{ __('ui.cancel') }}
+                                                {{ "Batal" }}
                                             </button>
                                             <button type="button" @click="applyDesc()"
                                                 class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700">
@@ -982,7 +982,7 @@
                                     x-transition.scale>
                                     <div class="px-5 py-4 border-b flex items-center">
                                         <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-red-500 mr-2" />
-                                        <h3 class="text-lg font-semibold text-gray-800">{{ __('ui.no_items_title') }}</h3>
+                                        <h3 class="text-lg font-semibold text-gray-800">{{ "Tidak Ada Item" }}</h3>
                                     </div>
 
                                     <div class="px-5 py-4">
@@ -1038,7 +1038,7 @@
         {{-- Modal Delete --}}
         <div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
-                <h3 class="text-lg font-semibold mb-4">{{ __('ui.confirm_delete') }}</h3>
+                <h3 class="text-lg font-semibold mb-4">{{ "Konfirmasi Hapus" }}</h3>
                 <form id="deleteForm" action="{{ route('suratjalan.destroy', $suratjalan->fstockmtid) }}"
                     method="POST">
                     @csrf
@@ -1567,7 +1567,7 @@
             applyEdit() {
                 const r = this.editRow;
                 if (!this.isComplete(r)) {
-                    window.toast?.error(@json(__('ui.incomplete_item_data')));
+                    window.toast?.error(@json("Lengkapi data item."));
                     return;
                 }
 
@@ -1600,7 +1600,7 @@
             applyEdit() {
                 const r = this.editRow;
                 if (!this.isComplete(r)) {
-                    alert(@json(__('ui.incomplete_item_data')));
+                    alert(@json("Lengkapi data item."));
                     return;
                 }
 
@@ -1849,4 +1849,5 @@
         });
     </script>
 @endpush
+
 

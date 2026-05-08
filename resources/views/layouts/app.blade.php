@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', __('ui.dashboard'))</title>
+    <title>@yield('title', "Dashboard")</title>
     <script>
         (() => {
             const savedTheme = localStorage.getItem('app-theme');
@@ -633,47 +633,30 @@
                             class="user-dropdown-panel absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg z-20" x-cloak>
                             <div class="px-4 py-3 border-b border-gray-200">
                                 <div class="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">
-                                    {{ __('ui.theme') }}
+                                    {{ "Tema Tampilan" }}
                                 </div>
                                 <div class="grid grid-cols-2 gap-2">
                                     <button type="button" onclick="window.appTheme.set('light')"
                                         class="theme-toggle-button justify-center w-full !px-3 !py-2 !text-xs"
                                         id="theme-light-option">
-                                        {{ __('ui.light') }}
+                                        {{ "Terang" }}
                                     </button>
                                     <button type="button" onclick="window.appTheme.set('dark')"
                                         class="theme-toggle-button justify-center w-full !px-3 !py-2 !text-xs"
                                         id="theme-dark-option">
-                                        {{ __('ui.dark') }}
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="px-4 py-3 border-b border-gray-200">
-                                <div class="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">
-                                    {{ __('ui.language') }}
-                                </div>
-                                <div class="grid grid-cols-2 gap-2">
-                                    <button type="button" onclick="window.appLanguage.set('id')"
-                                        class="theme-toggle-button justify-center w-full !px-3 !py-2 !text-xs"
-                                        id="language-id-option">
-                                        {{ __('ui.indonesian') }}
-                                    </button>
-                                    <button type="button" onclick="window.appLanguage.set('en')"
-                                        class="theme-toggle-button justify-center w-full !px-3 !py-2 !text-xs"
-                                        id="language-en-option">
-                                        {{ __('ui.english') }}
+                                        {{ "Gelap" }}
                                     </button>
                                 </div>
                             </div>
                             <a href="{{ route('settings') }}"
                                 class="user-dropdown-link block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                {{ __('ui.settings') }}
+                                {{ "Pengaturan" }}
                             </a>
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
                                 <button type="submit"
                                     class="user-dropdown-link w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                    {{ __('ui.logout') }}
+                                    {{ "Logout" }}
                                 </button>
                             </form>
                         </div>
@@ -759,55 +742,6 @@
 
             document.addEventListener('DOMContentLoaded', () => {
                 applyTheme(window.appTheme.get());
-            });
-        })();
-    </script>
-    <script>
-        (() => {
-            function applyLanguageSelection(locale) {
-                const idOption = document.getElementById('language-id-option');
-                const enOption = document.getElementById('language-en-option');
-
-                if (idOption) {
-                    idOption.classList.toggle('ring-2', locale === 'id');
-                    idOption.classList.toggle('ring-blue-300', locale === 'id');
-                    idOption.classList.toggle('border-blue-500', locale === 'id');
-                }
-
-                if (enOption) {
-                    enOption.classList.toggle('ring-2', locale === 'en');
-                    enOption.classList.toggle('ring-blue-300', locale === 'en');
-                    enOption.classList.toggle('border-blue-500', locale === 'en');
-                }
-            }
-
-            window.appLanguage = {
-                current: @json(app()->getLocale()),
-                async set(locale) {
-                    const response = await fetch(@json(route('language.set')), {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                        },
-                        body: JSON.stringify({
-                            locale
-                        }),
-                    });
-
-                    if (!response.ok) {
-                        return;
-                    }
-
-                    this.current = locale;
-                    applyLanguageSelection(locale);
-                    window.location.reload();
-                }
-            };
-
-            document.addEventListener('DOMContentLoaded', () => {
-                applyLanguageSelection(window.appLanguage.current);
             });
         })();
     </script>
@@ -1513,3 +1447,4 @@
 </body>
 
 </html>
+
