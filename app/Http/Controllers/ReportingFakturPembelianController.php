@@ -19,7 +19,7 @@ class ReportingFakturPembelianController extends Controller
         // Mengambil parameter filter
         $filterDateFrom = $request->query('filter_date_from');
         $filterDateTo = $request->query('filter_date_to');
-        $filterSupplierId = $request->query('filter_supplier_id'); // Parameter Supplier baru
+        $filterSupplierId = $request->query('filter_supplier_id'); // berisi supplier code
 
         $query = PenerimaanPembelianHeader::query();
 
@@ -67,7 +67,7 @@ class ReportingFakturPembelianController extends Controller
         // Hanya ambil data jika ada filter
         $prdData = $hasFilter
           ? $this->getFakturPembelianQuery($request)
-              ->with('supplier:fsupplierid,fsuppliername')
+              ->with('supplier:fsuppliercode,fsuppliername')
               ->get([
                   'fpohid',
                   'fpono',
@@ -82,7 +82,7 @@ class ReportingFakturPembelianController extends Controller
 
         // Ambil SEMUA Supplier untuk dropdown filter
         $suppliers = Supplier::orderBy('fsuppliername', 'asc')
-            ->get(['fsupplierid', 'fsuppliername']);
+            ->get(['fsuppliercode', 'fsuppliername']);
 
         return view('reportingfakturpembelian.index', [
             'prdData' => $prdData,
@@ -142,7 +142,7 @@ class ReportingFakturPembelianController extends Controller
             $fakturpembelian->famountremain = $fakturpembelian->details->sum('famountmt');
 
             $supplier = DB::table('mssupplier')
-                ->where('fsupplierid', $fakturpembelian->fsupplier)
+                ->where('fsuppliercode', $fakturpembelian->fsupplier)
                 ->first();
             $fakturpembelian->supplier_name = $supplier->fsuppliername ?? $fakturpembelian->fsupplier;
 
@@ -171,6 +171,7 @@ class ReportingFakturPembelianController extends Controller
         $activeSupplierName = null;
         if (! empty($filterSupplierId)) {
             $supplier = Supplier::where('fsupplierid', $filterSupplierId)
+                ->orWhere('fsuppliercode', $filterSupplierId)
                 ->select('fsuppliername')
                 ->first();
             $activeSupplierName = $supplier ? $supplier->fsuppliername : 'N/A';
@@ -260,7 +261,7 @@ class ReportingFakturPembelianController extends Controller
             $gtPPN += $faktur->famountpajak ?? 0;
             $gtTotalFaktur += $faktur->famountmt ?? 0;
 
-            $supplier = DB::table('mssupplier')->where('fsupplierid', $faktur->fsupplier)->first();
+            $supplier = DB::table('mssupplier')->where('fsuppliercode', $faktur->fsupplier)->first();
             $supplier_name = $supplier->fsuppliername ?? $faktur->fsupplier;
 
             $typeLabel = '-';

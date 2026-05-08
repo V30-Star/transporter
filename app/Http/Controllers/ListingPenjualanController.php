@@ -27,9 +27,9 @@ class ListingPenjualanController extends Controller
     {
         $query = DB::table('tranmt as m')
             ->join('trandt as d', 'm.fsono', '=', 'd.fsono')
-            ->join('mscustomer as c', 'm.fcustno', '=', 'c.fcustomerid')
+            ->join('mscustomer as c', 'm.fcustno', '=', 'c.fcustomercode')
             ->join('msprd as p', 'd.fprdcode', '=', 'p.fprdcode')
-            ->join('mssalesman as s', 'm.fsalesman', '=', 's.fsalesmanid')
+            ->join('mssalesman as s', 'm.fsalesman', '=', 's.fsalesmancode')
             ->select(
                 'm.fsono',
                 'm.ftaxno',
@@ -49,6 +49,7 @@ class ListingPenjualanController extends Controller
                 'm.fdiscount',
                 'd.fprdcode',
                 'd.fqty',
+                'd.fqtydeliver',
                 'd.fsalesnet as fprice',
                 'd.fdisc',
                 'd.fsatuan',
@@ -66,7 +67,7 @@ class ListingPenjualanController extends Controller
             $query->where('m.fsodate', '>=', $request->date_from);
         }
         if ($request->date_to) {
-            $query->where('m.fsodate', '<=', $request->date_to);
+            $query->where('m.fsodate', '<=', $request->date_to.' 23:59:59');
         }
         if ($request->prd_from) {
             $query->where('d.fprdcode', '>=', $request->prd_from);
@@ -75,10 +76,10 @@ class ListingPenjualanController extends Controller
             $query->where('d.fprdcode', '<=', $request->prd_to);
         }
         if ($request->cust_from) {
-            $query->where('m.fcustno', '>=', $request->cust_from);
+            $query->where('c.fcustomercode', '>=', $request->cust_from);
         }
         if ($request->cust_to) {
-            $query->where('m.fcustno', '<=', $request->cust_to);
+            $query->where('c.fcustomercode', '<=', $request->cust_to);
         }
         if ($request->group_code) {
             $query->where('p.fgroupcode', $request->group_code);
@@ -205,6 +206,7 @@ class ListingPenjualanController extends Controller
                         $d->fprdcode,
                         $d->fprdname,
                         $d->frefso ?? '-',
+                        (float) ($d->fqtydeliver ?? 0),
                         (float) $d->fqty,
                         (float) $d->fprice,
                         $d->fdisc,

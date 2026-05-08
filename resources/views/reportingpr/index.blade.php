@@ -53,9 +53,9 @@
                                         disabled>
                                         <option value=""></option>
                                         @foreach ($suppliers as $supplier)
-                                            <option value="{{ $supplier->fsupplierid }}"
-                                                {{ $filterSupplierId == $supplier->fsupplierid ? 'selected' : '' }}>
-                                                {{ $supplier->fsuppliername }} ({{ $supplier->fsupplierid }})
+                                            <option value="{{ $supplier->fsuppliercode }}"
+                                                {{ $filterSupplierId == $supplier->fsuppliercode ? 'selected' : '' }}>
+                                                {{ $supplier->fsuppliername }} ({{ $supplier->fsuppliercode }})
                                             </option>
                                         @endforeach
                                     </select>

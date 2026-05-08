@@ -20,7 +20,7 @@ class ReportingAssemblingController extends Controller
         // Mengambil parameter filter
         $filterDateFrom = $request->query('filter_date_from');
         $filterDateTo = $request->query('filter_date_to');
-        $filterSupplierId = $request->query('filter_supplier_id'); // Parameter Supplier baru
+        $filterSupplierId = $request->query('filter_supplier_id'); // berisi supplier code
 
         $query = PenerimaanPembelianHeader::query();
 
@@ -68,7 +68,7 @@ class ReportingAssemblingController extends Controller
         // Hanya ambil data jika ada filter
         $prdData = $hasFilter
           ? $this->getAssemblingQuery($request)
-              ->with('supplier:fsupplierid,fsuppliername')
+              ->with('supplier:fsuppliercode,fsuppliername')
               ->get([
                   'fpohid',
                   'fpono',
@@ -83,7 +83,7 @@ class ReportingAssemblingController extends Controller
 
         // Ambil SEMUA Supplier untuk dropdown filter
         $suppliers = Supplier::orderBy('fsuppliername', 'asc')
-            ->get(['fsupplierid', 'fsuppliername']);
+            ->get(['fsuppliercode', 'fsuppliername']);
 
         return view('reportingassembling.index', [
             'prdData' => $prdData,
@@ -106,7 +106,7 @@ class ReportingAssemblingController extends Controller
 
         $query = DB::table('trstockmt')
             ->select('trstockmt.*', 'mswh.fwhname')
-            ->leftJoin('mswh', 'trstockmt.ffrom', '=', 'mswh.fwhid')
+            ->leftJoin('mswh', 'trstockmt.ffrom', '=', 'mswh.fwhcode')
             ->where('fstockmtcode', 'LHP');
 
         // Filter berdasarkan tanggal jika ada
@@ -138,13 +138,17 @@ class ReportingAssemblingController extends Controller
                 ->get();
 
             $supplier = DB::table('mssupplier')
-                ->where('fsupplierid', $penerimaanbarang->fsupplier)
+                ->where('fsuppliercode', $penerimaanbarang->fsupplier)
                 ->first();
             $penerimaanbarang->supplier_name = $supplier->fsuppliername ?? $penerimaanbarang->fsupplier;
 
             foreach ($penerimaanbarang->details as $detail) {
                 $product = DB::table('msprd')
-                    ->where('fprdid', $detail->fprdcode)
+                    ->when(
+                        ! empty($detail->fprdcodeid),
+                        fn ($q) => $q->where('fprdid', $detail->fprdcodeid),
+                        fn ($q) => $q->where('fprdcode', $detail->fprdcode)
+                    )
                     ->first();
                 $detail->product_name = $product->fprdname ?? $detail->fprdcode;
                 $fhpp = $product->fhpp ?? 0;
@@ -167,7 +171,7 @@ class ReportingAssemblingController extends Controller
 
         $activeSupplierName = null;
         if (! empty($filterSupplierId)) {
-            $supplier = Supplier::where('fsupplierid', $filterSupplierId)
+            $supplier = Supplier::where('fsuppliercode', $filterSupplierId)
                 ->select('fsuppliername')
                 ->first();
             $activeSupplierName = $supplier ? $supplier->fsuppliername : 'N/A';
@@ -243,7 +247,7 @@ class ReportingAssemblingController extends Controller
 
         foreach ($dataToExport as $assembling) {
             // Ambil nama gudang (Join manual jika tidak ada di getAssemblingQuery)
-            $warehouse = DB::table('mswh')->where('fwhid', $assembling->ffrom)->first();
+            $warehouse = DB::table('mswh')->where('fwhcode', $assembling->ffrom)->first();
             $wh_name = $warehouse->fwhname ?? '-';
 
             // Ambil Details
@@ -252,7 +256,13 @@ class ReportingAssemblingController extends Controller
                 ->get();
 
             foreach ($details as $detail) {
-                $product = DB::table('msprd')->where('fprdid', $detail->fprdcode)->first();
+                $product = DB::table('msprd')
+                    ->when(
+                        ! empty($detail->fprdcodeid),
+                        fn ($q) => $q->where('fprdid', $detail->fprdcodeid),
+                        fn ($q) => $q->where('fprdcode', $detail->fprdcode)
+                    )
+                    ->first();
 
                 $product_name = $product->fprdname ?? $detail->fprdcode;
                 $hpp = (float) ($product->fhpp ?? 0);

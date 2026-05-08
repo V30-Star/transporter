@@ -163,7 +163,7 @@ class ListingPOController extends Controller
 
         $query = DB::table('tr_poh as h')
             ->leftJoin('tr_pod as d', 'h.fpohid', '=', 'd.fpohid')
-            ->leftJoin('mssupplier as s', 'h.fsupplier', '=', 's.fsupplierid')
+            ->leftJoin('mssupplier as s', 'h.fsupplier', '=', 's.fsuppliercode')
             ->leftJoin('msprd as p', 'd.fprdid', '=', 'p.fprdid')
             ->leftJoinSub($subTerima, 'ter', function ($join) {
                 $join->on('h.fpohid', '=', 'ter.frefdtid')

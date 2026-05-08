@@ -19,7 +19,7 @@ class ReportingPemakaianBarangController extends Controller
         // Mengambil parameter filter
         $filterDateFrom = $request->query('filter_date_from');
         $filterDateTo = $request->query('filter_date_to');
-        $filterSupplierId = $request->query('filter_supplier_id'); // Parameter Supplier baru
+        $filterSupplierId = $request->query('filter_supplier_id'); // berisi supplier code
 
         $query = PenerimaanPembelianHeader::query();
 
@@ -67,7 +67,7 @@ class ReportingPemakaianBarangController extends Controller
         // Hanya ambil data jika ada filter
         $prdData = $hasFilter
           ? $this->getPemakaianBarangQuery($request)
-              ->with('supplier:fsupplierid,fsuppliername')
+              ->with('supplier:fsuppliercode,fsuppliername')
               ->get([
                   'fpohid',
                   'fpono',
@@ -82,7 +82,7 @@ class ReportingPemakaianBarangController extends Controller
 
         // Ambil SEMUA Supplier untuk dropdown filter
         $suppliers = Supplier::orderBy('fsuppliername', 'asc')
-            ->get(['fsupplierid', 'fsuppliername']);
+            ->get(['fsuppliercode', 'fsuppliername']);
 
         return view('reportingpemakaianbarang.index', [
             'prdData' => $prdData,
@@ -106,7 +106,7 @@ class ReportingPemakaianBarangController extends Controller
         $query = DB::table('trstockmt')
             ->select('trstockmt.*', 'account.faccname', 'mswh.fwhname')
             ->leftJoin('account', 'trstockmt.fto', '=', 'account.faccid')
-            ->leftJoin('mswh', 'trstockmt.ffrom', '=', 'mswh.fwhid')
+            ->leftJoin('mswh', 'trstockmt.ffrom', '=', 'mswh.fwhcode')
             ->where('fstockmtcode', 'PBR');
 
         // Filter berdasarkan tanggal jika ada
@@ -150,14 +150,18 @@ class ReportingPemakaianBarangController extends Controller
 
             // 2. Ambil data Supplier
             $supplier = DB::table('mssupplier')
-                ->where('fsupplierid', $fakturpembelian->fsupplier)
+                ->where('fsuppliercode', $fakturpembelian->fsupplier)
                 ->first();
             $fakturpembelian->supplier_name = $supplier->fsuppliername ?? $fakturpembelian->fsupplier;
 
             foreach ($fakturpembelian->details as $detail) {
                 // 3. Ambil data Product
                 $product = DB::table('msprd')
-                    ->where('fprdid', $detail->fprdcode)
+                    ->when(
+                        ! empty($detail->fprdcodeid),
+                        fn ($q) => $q->where('fprdid', $detail->fprdcodeid),
+                        fn ($q) => $q->where('fprdcode', $detail->fprdcode)
+                    )
                     ->first();
 
                 $grandTotalQty += $detail->fqty ?? 0;
@@ -181,7 +185,7 @@ class ReportingPemakaianBarangController extends Controller
 
         $activeSupplierName = null;
         if (! empty($filterSupplierId)) {
-            $supplier = Supplier::where('fsupplierid', $filterSupplierId)
+            $supplier = Supplier::where('fsuppliercode', $filterSupplierId)
                 ->select('fsuppliername')
                 ->first();
             $activeSupplierName = $supplier ? $supplier->fsuppliername : 'N/A';
@@ -208,7 +212,7 @@ class ReportingPemakaianBarangController extends Controller
     {
         // 1. Ambil data Header menggunakan join account (sesuai query Anda)
         $dataToExport = $this->getPemakaianBarangQuery($request)
-            ->leftJoin('mswh', 'trstockmt.ffrom', '=', 'mswh.fwhid')
+            ->leftJoin('mswh', 'trstockmt.ffrom', '=', 'mswh.fwhcode')
             ->where('fstockmtcode', 'PBR')
             ->get();
 
@@ -272,7 +276,13 @@ class ReportingPemakaianBarangController extends Controller
             if ($details->isNotEmpty()) {
                 foreach ($details as $detail) {
                     // Ambil Nama Produk (Manual Join)
-                    $product = DB::table('msprd')->where('fprdid', $detail->fprdcode)->first();
+                    $product = DB::table('msprd')
+                        ->when(
+                            ! empty($detail->fprdcodeid),
+                            fn ($q) => $q->where('fprdid', $detail->fprdcodeid),
+                            fn ($q) => $q->where('fprdcode', $detail->fprdcode)
+                        )
+                        ->first();
                     $product_name = $product->fprdname ?? $detail->fprdcode;
 
                     // Akumulasi Grand Total Detail

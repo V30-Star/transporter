@@ -23,8 +23,8 @@ class ListingSOController extends Controller
     public function print(Request $request)
     {
         $query = DB::table('public.trsomt as mt')
-            ->leftJoin('public.mscustomer as cust', 'mt.fcustno', '=', 'cust.fcustomerid')
-            ->leftJoin('public.mssalesman as sls', 'mt.fsalesman', '=', 'sls.fsalesmanid')
+            ->leftJoin('public.mscustomer as cust', 'mt.fcustno', '=', 'cust.fcustomercode')
+            ->leftJoin('public.mssalesman as sls', 'mt.fsalesman', '=', 'sls.fsalesmancode')
             ->select('mt.*', 'cust.fcustomercode', 'cust.fcustomername', 'sls.fsalesmanname');
 
         if ($request->date_from) {
@@ -72,8 +72,8 @@ class ListingSOController extends Controller
     public function exportExcel(Request $request)
     {
         $query = DB::table('public.trsomt as mt')
-            ->leftJoin('public.mscustomer as cust', 'mt.fcustno', '=', 'cust.fcustomerid')
-            ->leftJoin('public.mssalesman as sls', 'mt.fsalesman', '=', 'sls.fsalesmanid')
+            ->leftJoin('public.mscustomer as cust', 'mt.fcustno', '=', 'cust.fcustomercode')
+            ->leftJoin('public.mssalesman as sls', 'mt.fsalesman', '=', 'sls.fsalesmancode')
             ->select('mt.*', 'cust.fcustomercode', 'cust.fcustomername', 'sls.fsalesmanname');
 
         if ($request->date_from) {

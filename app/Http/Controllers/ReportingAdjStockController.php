@@ -20,7 +20,7 @@ class ReportingAdjStockController extends Controller
         // Mengambil parameter filter
         $filterDateFrom = $request->query('filter_date_from');
         $filterDateTo = $request->query('filter_date_to');
-        $filterSupplierId = $request->query('filter_supplier_id'); // Parameter Supplier baru
+        $filterSupplierId = $request->query('filter_supplier_id'); // berisi supplier code
 
         $query = PenerimaanPembelianHeader::query();
 
@@ -68,7 +68,7 @@ class ReportingAdjStockController extends Controller
         // Hanya ambil data jika ada filter
         $prdData = $hasFilter
           ? $this->getAdjStockQuery($request)
-              ->with('supplier:fsupplierid,fsuppliername')
+              ->with('supplier:fsuppliercode,fsuppliername')
               ->get([
                   'fpohid',
                   'fpono',
@@ -83,7 +83,7 @@ class ReportingAdjStockController extends Controller
 
         // Ambil SEMUA Supplier untuk dropdown filter
         $suppliers = Supplier::orderBy('fsuppliername', 'asc')
-            ->get(['fsupplierid', 'fsuppliername']);
+            ->get(['fsuppliercode', 'fsuppliername']);
 
         return view('reportingadjstock.index', [
             'prdData' => $prdData,
@@ -144,13 +144,17 @@ class ReportingAdjStockController extends Controller
             $fakturpembelian->famountremain = $fakturpembelian->details->sum('famountmt');
 
             $supplier = DB::table('mssupplier')
-                ->where('fsupplierid', $fakturpembelian->fsupplier)
+                ->where('fsuppliercode', $fakturpembelian->fsupplier)
                 ->first();
             $fakturpembelian->supplier_name = $supplier->fsuppliername ?? $fakturpembelian->fsupplier;
 
             foreach ($fakturpembelian->details as $detail) {
                 $product = DB::table('msprd')
-                    ->where('fprdid', $detail->fprdcode)
+                    ->when(
+                        ! empty($detail->fprdcodeid),
+                        fn ($q) => $q->where('fprdid', $detail->fprdcodeid),
+                        fn ($q) => $q->where('fprdcode', $detail->fprdcode)
+                    )
                     ->first();
 
                 $grandTotalQty += $detail->fqty ?? 0;
@@ -172,7 +176,7 @@ class ReportingAdjStockController extends Controller
 
         $activeSupplierName = null;
         if (! empty($filterSupplierId)) {
-            $supplier = Supplier::where('fsupplierid', $filterSupplierId)
+            $supplier = Supplier::where('fsuppliercode', $filterSupplierId)
                 ->select('fsuppliername')
                 ->first();
             $activeSupplierName = $supplier ? $supplier->fsuppliername : 'N/A';
@@ -270,7 +274,13 @@ class ReportingAdjStockController extends Controller
 
             if ($details->isNotEmpty()) {
                 foreach ($details as $detail) {
-                    $product = DB::table('msprd')->where('fprdid', $detail->fprdcode)->first();
+                    $product = DB::table('msprd')
+                        ->when(
+                            ! empty($detail->fprdcodeid),
+                            fn ($q) => $q->where('fprdid', $detail->fprdcodeid),
+                            fn ($q) => $q->where('fprdcode', $detail->fprdcode)
+                        )
+                        ->first();
                     $product_name = $product->fprdname ?? $detail->fprdcode;
 
                     // Akumulasi Detail

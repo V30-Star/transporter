@@ -22,7 +22,7 @@
                         class="text-gray-500 hover:text-gray-800 text-xl font-bold">&times;</button>
                 </div>
 
-                <form method="GET" action="{{ route('reportingpenerimaanbarang.printPenerimaanBarang') }}">
+                <form method="GET" action="{{ route('reportingassembling.printAssembling') }}">
                     <div class="grid grid-cols-2 gap-4">
                         {{-- Filter Tanggal Dari --}}
                         <div>
@@ -52,9 +52,9 @@
                                         disabled>
                                         <option value=""></option>
                                         @foreach ($suppliers as $supplier)
-                                            <option value="{{ $supplier->fsupplierid }}"
-                                                {{ $filterSupplierId == $supplier->fsupplierid ? 'selected' : '' }}>
-                                                {{ $supplier->fsuppliername }} ({{ $supplier->fsupplierid }})
+                                            <option value="{{ $supplier->fsuppliercode }}"
+                                                {{ $filterSupplierId == $supplier->fsuppliercode ? 'selected' : '' }}>
+                                                {{ $supplier->fsuppliername }} ({{ $supplier->fsuppliercode }})
                                             </option>
                                         @endforeach
                                     </select>
@@ -304,7 +304,7 @@
                                     const telp = (row.ftelp || '').replace(/'/g, "\\'");
 
                                     return `<button type="button" 
-                                onclick="window.chooseSupplier('${row.fsupplierid}', '${code}', '${name}', '${address}', '${telp}')" 
+                                onclick="window.chooseSupplier('${code}', '${code}', '${name}', '${address}', '${telp}')" 
                                 class="px-3 py-1 rounded text-xs bg-emerald-600 hover:bg-emerald-700 text-white">
                                 Pilih
                             </button>`;
@@ -375,11 +375,11 @@
                             return;
                         }
 
-                        let opt = [...sel.options].find(o => o.value == String(id));
+                        let opt = [...sel.options].find(o => o.value == String(code));
                         const label = `${name} (${code})`;
 
                         if (!opt) {
-                            opt = new Option(label, id, true, true);
+                            opt = new Option(label, code, true, true);
                             sel.add(opt);
                         } else {
                             opt.text = label;
@@ -387,7 +387,7 @@
                         }
 
                         sel.dispatchEvent(new Event('change'));
-                        if (hid) hid.value = id;
+                        if (hid) hid.value = code;
                         this.close();
                     };
 

@@ -150,7 +150,7 @@ class ListingPRController extends Controller
 
         $query = DB::table('tr_prh as h')
             ->leftJoin('tr_prd as d', 'h.fprno', '=', 'd.fprno')
-            ->leftJoin('mssupplier as s', 'h.fsupplier', '=', 's.fsupplierid')
+            ->leftJoin('mssupplier as s', 'h.fsupplier', '=', 's.fsuppliercode')
             ->leftJoin('msprd as p', 'd.fprdid', '=', 'p.fprdid')
             ->leftJoinSub($subPO, 'o', function ($join) {
                 $join->on('o.frefdtid', '=', 'h.fprhid')
