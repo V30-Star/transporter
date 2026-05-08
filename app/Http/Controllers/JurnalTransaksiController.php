@@ -16,6 +16,45 @@ use Illuminate\Support\Facades\DB; // sekalian biar aman untuk tanggal
 
 class JurnalTransaksiController extends Controller
 {
+    private function normalizeDecimal($value, int $scale = 2): float
+    {
+        if (is_numeric($value)) {
+            return round((float) $value, $scale);
+        }
+
+        $normalized = trim((string) $value);
+        if ($normalized === '') {
+            return 0.0;
+        }
+
+        $normalized = preg_replace('/\s+/', '', $normalized);
+
+        $commaPos = strrpos($normalized, ',');
+        $dotPos = strrpos($normalized, '.');
+
+        if ($commaPos !== false && $dotPos !== false) {
+            if ($commaPos > $dotPos) {
+                $normalized = str_replace('.', '', $normalized);
+                $normalized = str_replace(',', '.', $normalized);
+            } else {
+                $normalized = str_replace(',', '', $normalized);
+            }
+        } elseif ($commaPos !== false) {
+            $normalized = str_replace('.', '', $normalized);
+            $normalized = str_replace(',', '.', $normalized);
+        } else {
+            $normalized = str_replace(',', '', $normalized);
+        }
+
+        $normalized = preg_replace('/[^0-9.\-]/', '', $normalized);
+
+        if ($normalized === '' || $normalized === '-' || $normalized === '.') {
+            return 0.0;
+        }
+
+        return round((float) $normalized, $scale);
+    }
+
     public function index(Request $request)
     {
         $canCreate = in_array('createjurnaltransaksi', explode(',', session('user_restricted_permissions', '')));
@@ -446,8 +485,8 @@ class JurnalTransaksiController extends Controller
             $fdk = strtoupper(trim((string) ($dks[$i] ?? '')));
             $fnote = trim((string) ($notes[$i] ?? '')) ?: null;
             $frefno = trim((string) ($refnos[$i] ?? '')) ?: null;
-            $famount = round((float) ($amounts[$i] ?? 0), 2);
-            $frate = round((float) ($rates[$i] ?? 1), 4);
+            $famount = $this->normalizeDecimal($amounts[$i] ?? 0, 2);
+            $frate = $this->normalizeDecimal($rates[$i] ?? 1, 4);
             if ($frate <= 0) {
                 $frate = 1;
             }

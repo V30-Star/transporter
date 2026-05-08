@@ -247,9 +247,10 @@
 
                                     {{-- famount --}}
                                     <td class="p-2 text-right">
-                                        <input type="number" class="border rounded px-2 py-1 w-full text-right"
-                                            min="0" step="0.01" x-ref="editAmt"
-                                            x-model.number="editRow.famount" @input="recalcTotals()">
+                                        <input type="text" class="border rounded px-2 py-1 w-full text-right"
+                                            inputmode="decimal" x-ref="editAmt"
+                                            x-model="editRow.famountInput" @blur="normalizeAmount(editRow)"
+                                            @keydown.enter.prevent="applyEdit()">
                                     </td>
 
                                     {{-- Aksi --}}
@@ -331,9 +332,9 @@
 
                                     {{-- famount --}}
                                     <td class="p-2 text-right">
-                                        <input type="number" class="border rounded px-2 py-1 w-full text-right"
-                                            min="0" step="0.01" x-ref="draftAmt"
-                                            x-model.number="draft.famount" @input="recalcTotals()"
+                                        <input type="text" class="border rounded px-2 py-1 w-full text-right"
+                                            inputmode="decimal" x-ref="draftAmt"
+                                            x-model="draft.famountInput" @blur="normalizeAmount(draft)"
                                             @keydown.enter.prevent="addIfComplete()">
                                     </td>
 
@@ -451,11 +452,54 @@
                 // ── Format angka ──
                 fmt(n) {
                     const v = Number(n);
-                    if (!isFinite(v) || n === '' || n === null) return '0';
+                    if (!isFinite(v) || n === '' || n === null) return '0,00';
                     return v.toLocaleString('id-ID', {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2
                     });
+                },
+
+                parseDecimal(value) {
+                    if (typeof value === 'number') {
+                        return Number.isFinite(value) ? value : 0;
+                    }
+
+                    let normalized = String(value ?? '').trim();
+                    if (!normalized) return 0;
+
+                    normalized = normalized.replace(/\s+/g, '');
+
+                    const commaPos = normalized.lastIndexOf(',');
+                    const dotPos = normalized.lastIndexOf('.');
+
+                    if (commaPos !== -1 && dotPos !== -1) {
+                        if (commaPos > dotPos) {
+                            normalized = normalized.replace(/\./g, '').replace(',', '.');
+                        } else {
+                            normalized = normalized.replace(/,/g, '');
+                        }
+                    } else if (commaPos !== -1) {
+                        normalized = normalized.replace(/\./g, '').replace(',', '.');
+                    } else {
+                        normalized = normalized.replace(/,/g, '');
+                    }
+
+                    normalized = normalized.replace(/[^0-9.\-]/g, '');
+                    const parsed = Number.parseFloat(normalized);
+                    return Number.isFinite(parsed) ? parsed : 0;
+                },
+
+                formatDecimalInput(value) {
+                    return this.parseDecimal(value).toLocaleString('id-ID', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
+                },
+
+                normalizeAmount(row) {
+                    row.famount = Number(this.parseDecimal(row.famountInput).toFixed(2));
+                    row.famountInput = this.formatDecimalInput(row.famount);
+                    this.recalcTotals();
                 },
 
                 // ── Update Account → set faccount, faccname, fhavesubaccount ──
@@ -500,6 +544,7 @@
                 // ── Tambah baris draft ke savedItems ──
                 addIfComplete() {
                     const r = this.draft;
+                    this.normalizeAmount(r);
                     if (!r.faccount) return alert('Pilih akun terlebih dahulu.');
                     if (!r.fdk) return alert('Pilih Debit atau Kredit.');
                     if (!(Number(r.famount) > 0)) return this.$refs.draftAmt?.focus();
@@ -522,7 +567,8 @@
                 edit(i) {
                     this.editingIndex = i;
                     this.editRow = {
-                        ...this.savedItems[i]
+                        ...this.savedItems[i],
+                        famountInput: this.formatDecimalInput(this.savedItems[i].famount),
                     };
                     this.$nextTick(() => {
                         // Sync select2 edit ke nilai editRow
@@ -535,6 +581,7 @@
 
                 applyEdit() {
                     const r = this.editRow;
+                    this.normalizeAmount(r);
                     if (!r.faccount) return alert('Pilih akun terlebih dahulu.');
                     if (!r.fdk) return alert('Pilih Debit atau Kredit.');
                     if (!(Number(r.famount) > 0)) return this.$refs.editAmt?.focus();
@@ -573,7 +620,7 @@
                 },
 
                 init() {
-                    // nothing extra needed
+                    this.normalizeAmount(this.draft);
                 },
             };
 
@@ -593,6 +640,7 @@
                     faccountnote: '', // keterangan baris
                     frefno: '', // referensi nomor
                     famount: 0, // jumlah
+                    famountInput: '0,00', // tampilan jumlah
                     frate: 1, // rate (default 1)
                 };
             }

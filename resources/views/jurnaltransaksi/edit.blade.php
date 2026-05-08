@@ -16,7 +16,8 @@
             deleteUrl: @js(route('jurnaltransaksi.destroy', $jurnaltransaksi->fjurnalmtid)),
             indexUrl: @js(route('jurnaltransaksi.index')),
             csrfToken: @js(csrf_token()),
-        })">
+        })"
+        x-init="init()">
 
         @if ($isDelete)
             <div class="space-y-6">
@@ -228,9 +229,10 @@
                                                 :name="'frefno[]'" x-model="item.frefno" placeholder="No referensi">
                                         </td>
                                         <td class="p-2">
-                                            <input type="number" min="0" step="0.01"
+                                            <input type="text" inputmode="decimal"
                                                 class="w-full border rounded px-2 py-1 text-right"
-                                                :name="'famount[]'" x-model.number="item.famount">
+                                                x-model="item.famountInput" @blur="normalizeItemAmount(item)">
+                                            <input type="hidden" :name="'famount[]'" :value="item.famount">
                                             <input type="hidden" :name="'frate[]'" x-model="item.frate">
                                         </td>
                                         <td class="p-2 text-right">
@@ -332,6 +334,7 @@
                         faccountnote: '',
                         frefno: '',
                         famount: 0,
+                        famountInput: '0,00',
                         frate: 1,
                     });
                 },
@@ -359,6 +362,48 @@
                     });
                 },
 
+                parseDecimal(value) {
+                    if (typeof value === 'number') {
+                        return Number.isFinite(value) ? value : 0;
+                    }
+
+                    let normalized = String(value ?? '').trim();
+                    if (!normalized) return 0;
+
+                    normalized = normalized.replace(/\s+/g, '');
+
+                    const commaPos = normalized.lastIndexOf(',');
+                    const dotPos = normalized.lastIndexOf('.');
+
+                    if (commaPos !== -1 && dotPos !== -1) {
+                        if (commaPos > dotPos) {
+                            normalized = normalized.replace(/\./g, '').replace(',', '.');
+                        } else {
+                            normalized = normalized.replace(/,/g, '');
+                        }
+                    } else if (commaPos !== -1) {
+                        normalized = normalized.replace(/\./g, '').replace(',', '.');
+                    } else {
+                        normalized = normalized.replace(/,/g, '');
+                    }
+
+                    normalized = normalized.replace(/[^0-9.\-]/g, '');
+                    const parsed = Number.parseFloat(normalized);
+                    return Number.isFinite(parsed) ? parsed : 0;
+                },
+
+                formatDecimalInput(value) {
+                    return this.parseDecimal(value).toLocaleString('id-ID', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                    });
+                },
+
+                normalizeItemAmount(item) {
+                    item.famount = Number(this.parseDecimal(item.famountInput).toFixed(2));
+                    item.famountInput = this.formatDecimalInput(item.famount);
+                },
+
                 accountName(code) {
                     const match = this.accounts.find((account) => String(account.faccount) === String(code));
                     return match ? match.faccname : '';
@@ -374,6 +419,15 @@
                     if (form) {
                         form.submit();
                     }
+                },
+
+                init() {
+                    this.items = this.items.map((item, index) => ({
+                        ...item,
+                        uid: item.uid ?? index + 1,
+                        famount: Number(this.parseDecimal(item.famount).toFixed(2)),
+                        famountInput: this.formatDecimalInput(item.famount),
+                    }));
                 }
             };
         }
