@@ -1399,7 +1399,7 @@
 
                                             <!-- @ Harga -->
                                             <td class="p-2 text-right">
-                                                <input type="number" class="border rounded px-2 py-1 w-28 text-right"
+                                                <input type="number" class="border rounded px-2 py-1 w-full text-right"
                                                     min="0" step="0.01" x-ref="draftPrice"
                                                     x-model.number="draft.fprice" @input="recalc(draft)"
                                                     @blur="normalizeMoneyInput($event, draft, 'fprice')"
@@ -1408,7 +1408,7 @@
 
                                             <!-- @ Biaya -->
                                             <td class="p-2 text-right">
-                                                <input type="number" class="border rounded px-2 py-1 w-28 text-right"
+                                                <input type="number" class="border rounded px-2 py-1 w-full text-right"
                                                     min="0" step="0.01" x-ref="draftBiaya"
                                                     x-model.number="draft.fbiaya" @input="recalc(draft)" default="0"
                                                     @blur="normalizeMoneyInput($event, draft, 'fbiaya')"
@@ -1417,7 +1417,7 @@
 
                                             <!-- Disc.% -->
                                             <td class="p-2 text-right">
-                                                <input type="number" class="border rounded px-2 py-1 w-24 text-right"
+                                                <input type="number" class="border rounded px-2 py-1 w-16 text-right"
                                                     min="0" max="100" step="0.01" x-ref="draftDisc"
                                                     x-model.number="draft.fdiscpersen" @input="recalc(draft)"
                                                     @keydown.enter.prevent="addIfComplete()">
