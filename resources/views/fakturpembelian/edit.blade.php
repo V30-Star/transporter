@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', $action === 'delete' ? "Hapus" . ' ' . "Faktur Pembelian" : "Edit" . ' ' . "Faktur Pembelian")
+@section('title', $action === 'delete' ? 'Hapus' . ' ' . 'Faktur Pembelian' : 'Edit' . ' ' . 'Faktur Pembelian')
 
 @section('content')
     @php
@@ -117,7 +117,7 @@
             {{-- Header Strip --}}
             <div class="d-flex align-items-center px-4 py-3" style="background-color: #c0392b;">
                 <i class="bi bi-exclamation-triangle-fill text-white me-2 fs-5"></i>
-                <strong class="text-white fs-6">{{ "Gagal Menyimpan Data!" }}</strong>
+                <strong class="text-white fs-6">{{ 'Gagal Menyimpan Data!' }}</strong>
                 <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="alert"
                     aria-label="Close"></button>
             </div>
@@ -126,7 +126,7 @@
             <div class="px-4 py-3" style="background-color: #fdeded; border-left: 5px solid #c0392b;">
                 <p class="mb-2 text-danger fw-semibold">
                     <i class="bi bi-info-circle me-1"></i>
-                    {{ "Periksa kembali data berikut sebelum menyimpan:" }}
+                    {{ 'Periksa kembali data berikut sebelum menyimpan:' }}
                 </p>
                 <ul class="mb-0 ps-3">
                     @foreach ($errors->all() as $error)
@@ -163,13 +163,14 @@
                     </div>
                     <div class="flex-1">
                         <h3 class="text-base font-bold text-red-700">
-                            {{ "Faktur Pembelian" }} {{ $action === 'delete' ? "Tidak Dapat Dihapus" : "Tidak Dapat Diedit" }}
+                            {{ 'Faktur Pembelian' }}
+                            {{ $action === 'delete' ? 'Tidak Dapat Dihapus' : 'Tidak Dapat Diedit' }}
                         </h3>
                         <p class="text-sm text-red-500 mt-0.5">{{ $usageLockMessage }}</p>
                     </div>
                     <button type="button" @click="open = false"
                         class="flex-shrink-0 w-8 h-8 rounded-full bg-red-100 hover:bg-red-200 flex items-center justify-center transition-colors"
-                        title="{{ "Tutup" }}">
+                        title="{{ 'Tutup' }}">
                         <x-heroicon-o-x-mark class="w-4 h-4 text-red-600" />
                     </button>
                 </div>
@@ -177,7 +178,7 @@
                     <button type="button" @click="open = false"
                         class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 flex items-center gap-2">
                         <x-heroicon-o-arrow-left class="w-5 h-5" />
-                        {{ "Tutup" }}
+                        {{ 'Tutup' }}
                     </button>
                 </div>
             </div>
@@ -323,7 +324,8 @@
 
                                     {{-- Overlay untuk buka browser gudang --}}
                                     <div class="absolute inset-0" role="button" aria-label="Browse warehouse"
-                                        @click="window.dispatchEvent(new CustomEvent('faktur-pembelian-warehouse-browse-open'))"></div>
+                                        @click="window.dispatchEvent(new CustomEvent('faktur-pembelian-warehouse-browse-open'))">
+                                    </div>
                                 </div>
                                 <input type="hidden" name="ffrom" id="warehouseCodeHidden"
                                     value="{{ old('ffrom', $fakturpembelian->ffrom) }}">
@@ -457,10 +459,12 @@
                         </div>
 
                         <div class="min-w-0 overflow-hidden">
-                                <label class="block text-sm font-medium mb-2">Hitung Biaya</label>
+                            <label class="block text-sm font-medium mb-2">Hitung Biaya</label>
                             <div
                                 class="hpp-box h-full min-h-[96px] bg-gray-50 p-3 rounded-lg border border-gray-200 shadow-sm flex flex-col justify-center gap-3">
-                                <input type="text" value="{{ number_format((float) ($biayaGlobal ?? 0), 2, ',', '.') }}" readonly disabled
+                                <input type="text"
+                                    value="{{ number_format((float) ($biayaGlobal ?? 0), 2, ',', '.') }}" readonly
+                                    disabled
                                     class="w-full border rounded px-3 py-2 text-right font-mono bg-gray-100 cursor-not-allowed text-gray-700">
 
                                 <button type="button" @click.prevent disabled
@@ -533,48 +537,46 @@
                         <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
 
                         <div class="overflow-x-auto border rounded">
-                            <table class="min-w-full text-sm balanced-detail-table fpb-detail-table" data-skip-auto-detail-style="true">
-                                   <colgroup>
-                                        <col style="width:3%;">
-                                        <col style="width:17%;">
-                                        <col style="width:20%;">
-                                        <col style="width:14%;">
-                                        <col style="width:6%;">
-                                        <col style="width:6%;">
-                                        <col style="width:9%;">
-                                        <col style="width:6%;">
-                                        <col style="width:6%;">
-                                        <col style="width:9%;">
-                                        <col style="width:6%;">
-                                    </colgroup>
+                            <table class="min-w-full text-sm balanced-detail-table fpb-detail-table"
+                                data-skip-auto-detail-style="true">
+                                <colgroup>
+                                    <col style="width:3%;">
+                                    <col style="width:17%;">
+                                    <col style="width:20%;">
+                                    <col style="width:14%;">
+                                    <col style="width:6%;">
+                                    <col style="width:6%;">
+                                    <col style="width:9%;">
+                                    <col style="width:6%;">
+                                    <col style="width:6%;">
+                                    <col style="width:9%;">
+                                    <col style="width:6%;">
+                                </colgroup>
                                 <thead class="bg-gray-100">
                                     <tr>
-                                        <th class="p-2 text-left w-10">#</th>
-                                        <th class="p-2 text-left">Kode Produk</th>
-                                        <th class="p-2 text-left">Nama Produk</th>
-                                        <th class="p-2 text-left">No Refrensi</th>
-                                        <th class="p-2 text-left">Satuan</th>
-                                        <th class="p-2 text-right whitespace-nowrap">Qty.</th>
-                                        <th class="p-2 text-right whitespace-nowrap">@ Harga</th>
-                                        <th class="p-2 text-right whitespace-nowrap">@ Biaya</th>
-                                        <th class="p-2 text-right whitespace-nowrap">Disc. %</th>
-                                        <th class="p-2 text-right whitespace-nowrap">Total Harga</th>
+                                        <th class="px-2 py-1 text-left w-10">#</th>
+                                        <th class="px-2 py-1 text-left">Kode Produk</th>
+                                        <th class="px-2 py-1 text-left">Nama Produk</th>
+                                        <th class="px-2 py-1 text-left">No Refrensi</th>
+                                        <th class="px-2 py-1 text-left">Satuan</th>
+                                        <th class="px-2 py-1 text-right whitespace-nowrap">Qty.</th>
+                                        <th class="px-2 py-1 text-right whitespace-nowrap">@ Harga</th>
+                                        <th class="px-2 py-1 text-right whitespace-nowrap">@ Biaya</th>
+                                        <th class="px-2 py-1 text-right whitespace-nowrap">Disc. %</th>
+                                        <th class="px-2 py-1 text-right whitespace-nowrap">Total Harga</th>
                                     </tr>
                                 </thead>
 
-                                <tbody>
-                                    <template x-for="(it, i) in savedItems" :key="it.uid">
+                                <template x-for="(it, i) in savedItems" :key="it.uid">
+                                    <tbody>
                                         <!-- ROW UTAMA -->
                                         <tr class="border-t align-top">
                                             <td class="p-2" x-text="i + 1"></td>
                                             <td class="p-2 font-mono" x-text="it.fitemcode"></td>
-                                            <td class="p-2 text-gray-800">
-                                                <div x-text="it.fitemname"></div>
-                                                <div x-show="it.fdesc" class="mt-1 text-xs">
-                                                    <span
-                                                        class="inline-block px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 mr-2">Deskripsi</span>
-                                                    <span class="align-middle text-gray-600" x-text="it.fdesc"></span>
-                                                </div>
+                                            <td class="p-2">
+                                                <input type="text"
+                                                    class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
+                                                    :value="it.fitemname" disabled>
                                             </td>
                                             <td class="p-2 text-left" x-text="it.frefdtno"></td>
                                             <td class="p-2 text-left" x-text="it.fsatuan"></td>
@@ -585,7 +587,7 @@
                                             <td class="p-2 text-right" x-text="fmt(it.ftotprice)"></td>
 
                                             <!-- hidden inputs -->
-                                            <td class="hidden">
+                                            <td class="p-2 text-center hidden">
                                                 <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
                                                 <input type="hidden" name="fitemname[]" :value="it.fitemname">
                                                 <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
@@ -602,13 +604,13 @@
                                                 <input type="hidden" name="fketdt[]" :value="it.fketdt">
                                             </td>
                                         </tr>
-
-                                        <!-- ROW DESC (di bawah Nama Produk) -->
-                                        <tr class="border-b">
+                                        <tr class="border-b bg-gray-50/60">
                                             <td class="p-0"></td>
                                             <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
+                                            <td class="p-2" colspan="3">
+                                                <textarea x-model="it.fdesc" rows="2" class="w-full border rounded px-4 py-1 text-xs text-gray-600"
+                                                    placeholder="Deskripsi (opsional)" @focus="activeRow = it.uid" @blur="activeRow = null"></textarea>
+                                            </td>
                                             <td class="p-0"></td>
                                             <td class="p-0"></td>
                                             <td class="p-0"></td>
@@ -616,7 +618,10 @@
                                             <td class="p-0"></td>
                                             <td class="p-0"></td>
                                         </tr>
-                                    </template>
+                                    </tbody>
+                                </template>
+
+                                <tbody>
 
                                     <!-- ROW EDIT UTAMA -->
                                     <tr x-show="editingIndex !== null" class="border-t align-top" x-cloak>
@@ -721,6 +726,11 @@
                                     <tr x-show="editingIndex !== null" class="border-b" x-cloak>
                                         <td class="p-0"></td>
                                         <td class="p-0"></td>
+                                        <td class="p-2" colspan="3">
+                                            <textarea x-model="editRow.fdesc" rows="2" class="w-full border rounded px-4 py-1 text-xs text-gray-600"
+                                                placeholder="Deskripsi (opsional)"></textarea>
+                                        </td>
+                                        <td class="p-0"></td>
                                         <td class="p-0"></td>
                                         <td class="p-0"></td>
                                         <td class="p-0"></td>
@@ -783,8 +793,9 @@
 
                                         <!-- Input Rate + Nominal (kanan) -->
                                         <div class="flex items-center gap-2 pointer-events-none">
-                                            <input disabled readonly type="number" min="0" max="100" step="0.01"
-                                                x-model.number="ppnRate" :disabled="!(includePPN || fapplyppn)"
+                                            <input disabled readonly type="number" min="0" max="100"
+                                                step="0.01" x-model.number="ppnRate"
+                                                :disabled="!(includePPN || fapplyppn)"
                                                 class="w-20 h-9 px-2 text-sm leading-tight text-right border rounded transition-opacity
                                                             [appearance:textfield]
                                                             [&::-webkit-outer-spin-button]:appearance-none
@@ -1004,7 +1015,8 @@
 
                                         {{-- Overlay untuk buka browser gudang --}}
                                         <div class="absolute inset-0" role="button" aria-label="Browse warehouse"
-                                            @click="window.dispatchEvent(new CustomEvent('faktur-pembelian-warehouse-browse-open'))"></div>
+                                            @click="window.dispatchEvent(new CustomEvent('faktur-pembelian-warehouse-browse-open'))">
+                                        </div>
                                     </div>
                                     <input type="hidden" name="ffrom" id="warehouseCodeHidden"
                                         value="{{ old('ffrom', $fakturpembelian->ffrom) }}">
@@ -1207,44 +1219,45 @@
 
                                 // Initial calculation
                                 calculateDueDate();
-                        });
-                    </script>
+                            });
+                        </script>
 
-                    <script>
-                        window.getFpbItemsTableComponent = function() {
-                            const root = document.getElementById('itemsTableRoot');
-                            return root && Array.isArray(root._x_dataStack) ? root._x_dataStack[0] : null;
-                        };
+                        <script>
+                            window.getFpbItemsTableComponent = function() {
+                                const root = document.getElementById('itemsTableRoot');
+                                return root && Array.isArray(root._x_dataStack) ? root._x_dataStack[0] : null;
+                            };
 
-                        window.syncFpbBiayaGlobalHeader = function() {
-                            const component = window.getFpbItemsTableComponent?.();
-                            const input = document.getElementById('editBiayaGlobalInput');
+                            window.syncFpbBiayaGlobalHeader = function() {
+                                const component = window.getFpbItemsTableComponent?.();
+                                const input = document.getElementById('editBiayaGlobalInput');
 
-                            if (!component || !input) return;
+                                if (!component || !input) return;
 
-                            const current = Number(component.biayaGlobal || 0);
-                            input.value = current.toFixed(2);
-                        };
+                                const current = Number(component.biayaGlobal || 0);
+                                input.value = current.toFixed(2);
+                            };
 
-                        window.applyFpbBiayaGlobalFromHeader = function() {
-                            const component = window.getFpbItemsTableComponent?.();
-                            const input = document.getElementById('editBiayaGlobalInput');
+                            window.applyFpbBiayaGlobalFromHeader = function() {
+                                const component = window.getFpbItemsTableComponent?.();
+                                const input = document.getElementById('editBiayaGlobalInput');
 
-                            if (!component || !input) return;
+                                if (!component || !input) return;
 
-                            component.biayaGlobal = Math.max(0, Number(input.value || 0));
-                            component.alokasiBiaya();
-                            input.value = Number(component.biayaGlobal || 0).toFixed(2);
-                        };
-                    </script>
+                                component.biayaGlobal = Math.max(0, Number(input.value || 0));
+                                component.alokasiBiaya();
+                                input.value = Number(component.biayaGlobal || 0).toFixed(2);
+                            };
+                        </script>
 
                         <div id="itemsTableRoot" x-data="itemsTable()" x-init="init()" class="mt-6 space-y-2">
                             {{-- DETAIL ITEM (tabel input) --}}
                             <h3 class="text-base font-semibold text-gray-800">Detail Item</h3>
 
                             <div class="overflow-x-auto border rounded">
-                                <table class="min-w-full text-sm balanced-detail-table fpb-detail-table" data-skip-auto-detail-style="true">
-                                      <colgroup>
+                                <table class="min-w-full text-sm balanced-detail-table fpb-detail-table"
+                                    data-skip-auto-detail-style="true">
+                                    <colgroup>
                                         <col style="width:3%;">
                                         <col style="width:17%;">
                                         <col style="width:20%;">
@@ -1259,22 +1272,22 @@
                                     </colgroup>
                                     <thead class="bg-gray-100">
                                         <tr>
-                                            <th class="p-2 text-left w-10">#</th>
-                                            <th class="p-2 text-left">Kode Produk</th>
-                                            <th class="p-2 text-left">Nama Produk</th>
-                                            <th class="p-2 text-left">No Refrensi</th>
-                                            <th class="p-2 text-left">Satuan</th>
-                                            <th class="p-2 text-right whitespace-nowrap">Qty.</th>
-                                            <th class="p-2 text-right whitespace-nowrap">@ Harga</th>
-                                            <th class="p-2 text-right whitespace-nowrap">@ Biaya</th>
-                                            <th class="p-2 text-right whitespace-nowrap">Disc. %</th>
-                                            <th class="p-2 text-right whitespace-nowrap">Total Harga</th>
-                                            <th class="p-2 text-center">Aksi</th>
+                                            <th class="px-2 py-1 text-left w-10">#</th>
+                                            <th class="px-2 py-1 text-left">Kode Produk</th>
+                                            <th class="px-2 py-1 text-left">Nama Produk</th>
+                                            <th class="px-2 py-1 text-left">No Refrensi</th>
+                                            <th class="px-2 py-1 text-left">Satuan</th>
+                                            <th class="px-2 py-1 text-right whitespace-nowrap">Qty.</th>
+                                            <th class="px-2 py-1 text-right whitespace-nowrap">@ Harga</th>
+                                            <th class="px-2 py-1 text-right whitespace-nowrap">@ Biaya</th>
+                                            <th class="px-2 py-1 text-right whitespace-nowrap">Disc. %</th>
+                                            <th class="px-2 py-1 text-right whitespace-nowrap">Total Harga</th>
+                                            <th class="px-2 py-1 text-center">Aksi</th>
                                         </tr>
                                     </thead>
 
-                                    <tbody>
-                                        <template x-for="(it, i) in savedItems" :key="it.uid">
+                                    <template x-for="(it, i) in savedItems" :key="it.uid">
+                                        <tbody>
                                             <!-- ROW UTAMA -->
                                             <tr class="border-t align-top transition-colors"
                                                 :class="activeRow === it.uid ? 'bg-amber-50' : 'hover:bg-gray-50'">
@@ -1293,7 +1306,7 @@
                                                 </td>
                                                 <td class="p-2">
                                                     <input type="text"
-                                                        class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
+                                                        class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
                                                         :value="it.fitemname" disabled>
                                                 </td>
                                                 <td class="p-2">
@@ -1319,8 +1332,7 @@
                                                 </td>
                                                 <td class="p-2 text-right">
                                                     <input type="number"
-                                                        class="border rounded px-2 py-1 w-full text-right"
-                                                        min="0"
+                                                        class="border rounded px-2 py-1 w-full text-right" min="0"
                                                         x-model.number="it.fqty"
                                                         @focus="activeRow = it.uid; $event.target.select()"
                                                         @blur="activeRow = null; enforceQtyRow(it); recalc(it);"
@@ -1330,23 +1342,24 @@
                                                         x-show="it.fsource === 'PO' || it.fsource === 'PB'"
                                                         x-text="formatSourceSummary(it)"></div>
                                                     <div class="text-[10px] text-orange-600 mt-0.5" x-show="it.fitemcode"
-                                                        x-html="formatStockLimit(it.fitemcode, it.fqty, it.fsatuan, it.fsource, it.maxqty, it.hideQtyLimitHint)"></div>
+                                                        x-html="formatStockLimit(it.fitemcode, it.fqty, it.fsatuan, it.fsource, it.maxqty, it.hideQtyLimitHint)">
+                                                    </div>
                                                 </td>
                                                 <td class="p-2 text-right">
                                                     <input type="number"
                                                         class="border rounded px-2 py-1 w-full text-right" min="0"
                                                         step="0.01" x-model.number="it.fprice"
                                                         @focus="activeRow = it.uid; $event.target.select()"
-                                                        @blur="activeRow = null; normalizeMoneyInput($event, it, 'fprice')" @input="recalc(it)"
-                                                        @change="recalc(it)">
+                                                        @blur="activeRow = null; normalizeMoneyInput($event, it, 'fprice')"
+                                                        @input="recalc(it)" @change="recalc(it)">
                                                 </td>
                                                 <td class="p-2 text-right">
                                                     <input type="number"
                                                         class="border rounded px-2 py-1 w-full text-right" min="0"
                                                         step="0.01" x-model.number="it.fbiaya"
                                                         @focus="activeRow = it.uid; $event.target.select()"
-                                                        @blur="activeRow = null; normalizeMoneyInput($event, it, 'fbiaya')" @input="recalc(it)"
-                                                        @change="recalc(it)">
+                                                        @blur="activeRow = null; normalizeMoneyInput($event, it, 'fbiaya')"
+                                                        @input="recalc(it)" @change="recalc(it)">
                                                 </td>
                                                 <td class="p-2 text-right">
                                                     <input type="number"
@@ -1362,34 +1375,32 @@
                                                 <td class="p-2 text-center">
                                                     <button type="button" @click="removeSaved(i)"
                                                         class="px-3 py-1 rounded text-xs bg-red-100 text-red-600 hover:bg-red-200">Hapus</button>
-                                                </td>
-
-                                                <!-- hidden inputs -->
-                                                <td class="hidden">
-                                                    <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
-                                                    <input type="hidden" name="fitemname[]" :value="it.fitemname">
-                                                    <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
-                                                    <input type="hidden" name="frefdtid[]" :value="it.frefdtid">
-                                                    <input type="hidden" name="frefnoacak[]" :value="it.frefnoacak">
-                                                    <input type="hidden" name="fsource[]" :value="it.fsource">
-                                                    <input type="hidden" name="fnouref[]" :value="it.fnouref">
-                                                    <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
-                                                    <input type="hidden" name="fqty[]" :value="it.fqty">
-                                                    <input type="hidden" name="fprice[]" :value="it.fprice">
-                                                    <input type="hidden" name="fbiaya[]" :value="it.fbiaya">
-                                                    <input type="hidden" name="fdiscpersen[]" :value="it.fdiscpersen">
-                                                    <input type="hidden" name="ftotprice[]" :value="it.ftotprice">
-                                                    <input type="hidden" name="fdesc[]" :value="it.fdesc">
-                                                    <input type="hidden" name="fketdt[]" :value="it.fketdt">
+                                                    <div class="hidden">
+                                                        <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
+                                                        <input type="hidden" name="fitemname[]" :value="it.fitemname">
+                                                        <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
+                                                        <input type="hidden" name="frefdtid[]" :value="it.frefdtid">
+                                                        <input type="hidden" name="frefnoacak[]" :value="it.frefnoacak">
+                                                        <input type="hidden" name="fsource[]" :value="it.fsource">
+                                                        <input type="hidden" name="fnouref[]" :value="it.fnouref">
+                                                        <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
+                                                        <input type="hidden" name="fqty[]" :value="it.fqty">
+                                                        <input type="hidden" name="fprice[]" :value="it.fprice">
+                                                        <input type="hidden" name="fbiaya[]" :value="it.fbiaya">
+                                                        <input type="hidden" name="fdiscpersen[]"
+                                                            :value="it.fdiscpersen">
+                                                        <input type="hidden" name="ftotprice[]" :value="it.ftotprice">
+                                                        <input type="hidden" name="fdesc[]" :value="it.fdesc">
+                                                        <input type="hidden" name="fketdt[]" :value="it.fketdt">
+                                                    </div>
                                                 </td>
                                             </tr>
-                                            <tr class="border-b">
+                                            <tr class="border-b bg-gray-50/60">
                                                 <td class="p-0"></td>
                                                 <td class="p-0"></td>
                                                 <td class="p-2" colspan="3">
-                                                    <textarea x-model="it.fdesc" rows="2"
-                                                        class="w-full border rounded px-4 py-1 text-xs"
-                                                        placeholder="Deskripsi..." @focus="activeRow = it.uid" @blur="activeRow = null"></textarea>
+                                                    <textarea x-model="it.fdesc" rows="2" class="w-full border rounded px-4 py-1"
+                                                        placeholder="Deskripsi (opsional)" @focus="activeRow = it.uid" @blur="activeRow = null"></textarea>
                                                 </td>
                                                 <td class="p-0"></td>
                                                 <td class="p-0"></td>
@@ -1398,8 +1409,10 @@
                                                 <td class="p-0"></td>
                                                 <td class="p-0"></td>
                                             </tr>
-                                        </template>
+                                        </tbody>
+                                    </template>
 
+                                    <tbody>
                                         <!-- ROW DRAFT UTAMA -->
                                         <tr class="border-t align-top">
                                             <!-- # -->
@@ -1524,6 +1537,7 @@
                                             <td class="p-0"></td>
                                             <td class="p-0"></td>
                                             <td class="p-0"></td>
+                                            <td class="p-0"></td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -1556,9 +1570,10 @@
                                                     style="height: 600px;">
                                                     <div
                                                         class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-emerald-50 to-white">
-                                                            <h3 class="text-xl font-bold text-gray-800">{{ "Pilih Purchase Order (PO)" }}</h3>
+                                                        <h3 class="text-xl font-bold text-gray-800">
+                                                            {{ 'Pilih Purchase Order (PO)' }}</h3>
                                                         <button type="button" @click="closeModal()"
-                                                            class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">{{ "Tutup" }}</button>
+                                                            class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">{{ 'Tutup' }}</button>
                                                     </div>
                                                     <div class="flex-1 overflow-auto p-6" style="min-height: 0;">
                                                         <table id="poTable"
@@ -1567,84 +1582,14 @@
                                                             <thead class="sticky top-0 z-10">
                                                                 <tr class="bg-gray-50 border-b-2 border-gray-200">
                                                                     <th class="p-3 text-left font-semibold text-gray-700">
-                                                                        {{ "PO No" }}</th>
+                                                                        {{ 'PO No' }}</th>
                                                                     <th class="p-3 text-left font-semibold text-gray-700">
-                                                                        {{ "Supplier" }}</th>
+                                                                        {{ 'Supplier' }}</th>
                                                                     <th class="p-3 text-left font-semibold text-gray-700">
-                                                                        {{ "Tanggal" }}</th>
+                                                                        {{ 'Tanggal' }}</th>
                                                                     <th
                                                                         class="p-3 text-center font-semibold text-gray-700">
-                                                                        {{ "Aksi" }}</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody></tbody>
-                                                        </table>
-                                                    </div>
-                                                    <div
-                                                        class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <!-- Duplicate modal -->
-                                            <div x-show="showDupModal" x-cloak x-transition.opacity
-                                                class="fixed inset-0 z-[60] flex items-center justify-center p-4">
-                                                <div class="absolute inset-0 bg-black/40" @click="closeDupModal()"></div>
-                                                <div class="relative bg-white rounded-xl shadow-xl max-w-2xl w-full p-6">
-                                                    <h3 class="text-lg font-semibold mb-4">{{ "Peringatan Duplikasi" }}</h3>
-                                                    <p class="mb-4">{{ Str::before("Ditemukan :count item yang sudah ada dalam daftar. Hanya item unik yang akan ditambahkan.", '__COUNT__') }}<strong x-text="dupCount"></strong>{{ Str::after("Ditemukan :count item yang sudah ada dalam daftar. Hanya item unik yang akan ditambahkan.", '__COUNT__') }}</p>
-                                                    <div class="flex justify-end gap-2">
-                                                        <button type="button" @click="closeDupModal()"
-                                                            class="rounded bg-gray-200 px-4 py-2 text-sm font-medium hover:bg-gray-300">{{ "Batal" }}</button>
-                                                        <button type="button" @click="confirmAddUniques()"
-                                                            class="rounded bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700">{{ "Tambahkan Item Unik" }}</button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Trigger: Add PB -->
-                                    <div x-data="pbFormModal()">
-                                        <button type="button" @click="openModal()"
-                                            class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
-                                                viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                                    d="M12 4.5v15m7.5-7.5h-15" />
-                                            </svg>
-                                            Add TER
-                                        </button>
-
-                                        <!-- PB Modal -->
-                                        <div x-show="show" x-transition.opacity class="fixed inset-0 z-40 bg-black/50"
-                                            @keydown.escape.window="closeModal()"></div>
-                                        <div>
-                                            <div x-show="show" x-cloak x-transition.opacity
-                                                class="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8"
-                                                aria-modal="true" role="dialog">
-                                                <div class="relative w-full max-w-5xl rounded-xl bg-white shadow-2xl flex flex-col"
-                                                    style="height: 600px;">
-                                                    <div
-                                                        class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
-                                                        <h3 class="text-xl font-bold text-gray-800">{{ "Pilih Penerimaan Barang" }}</h3>
-                                                        <button type="button" @click="closeModal()"
-                                                            class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">{{ "Tutup" }}</button>
-                                                    </div>
-                                                    <div class="flex-1 overflow-auto p-6" style="min-height: 0;">
-                                                        <table id="pbTable"
-                                                            class="min-w-full text-sm display nowrap stripe hover"
-                                                            style="width:100%">
-                                                            <thead class="sticky top-0 z-10">
-                                                                <tr class="bg-gray-50 border-b-2 border-gray-200">
-                                                                    <th class="p-3 text-left font-semibold text-gray-700">
-                                                                        {{ "No.Transaksi" }}</th>
-                                                                    <th class="p-3 text-left font-semibold text-gray-700">
-                                                                        {{ "Supplier" }}</th>
-                                                                    <th class="p-3 text-left font-semibold text-gray-700">
-                                                                        {{ "Tanggal" }}</th>
-                                                                    <th
-                                                                        class="p-3 text-center font-semibold text-gray-700">
-                                                                        {{ "Aksi" }}</th>
+                                                                        {{ 'Aksi' }}</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody></tbody>
@@ -1661,13 +1606,93 @@
                                                 <div class="absolute inset-0 bg-black/40" @click="closeDupModal()">
                                                 </div>
                                                 <div class="relative bg-white rounded-xl shadow-xl max-w-2xl w-full p-6">
-                                                    <h3 class="text-lg font-semibold mb-4">{{ "Peringatan Duplikasi" }}</h3>
-                                                    <p class="mb-4">{{ Str::before("Ditemukan :count item yang sudah ada dalam daftar. Hanya item unik yang akan ditambahkan.", '__COUNT__') }}<strong x-text="dupCount"></strong>{{ Str::after("Ditemukan :count item yang sudah ada dalam daftar. Hanya item unik yang akan ditambahkan.", '__COUNT__') }}</p>
+                                                    <h3 class="text-lg font-semibold mb-4">{{ 'Peringatan Duplikasi' }}
+                                                    </h3>
+                                                    <p class="mb-4">
+                                                        {{ Str::before('Ditemukan :count item yang sudah ada dalam daftar. Hanya item unik yang akan ditambahkan.', '__COUNT__') }}<strong
+                                                            x-text="dupCount"></strong>{{ Str::after('Ditemukan :count item yang sudah ada dalam daftar. Hanya item unik yang akan ditambahkan.', '__COUNT__') }}
+                                                    </p>
                                                     <div class="flex justify-end gap-2">
                                                         <button type="button" @click="closeDupModal()"
-                                                            class="rounded bg-gray-200 px-4 py-2 text-sm font-medium hover:bg-gray-300">{{ "Batal" }}</button>
+                                                            class="rounded bg-gray-200 px-4 py-2 text-sm font-medium hover:bg-gray-300">{{ 'Batal' }}</button>
                                                         <button type="button" @click="confirmAddUniques()"
-                                                            class="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">{{ "Tambahkan Item Unik" }}</button>
+                                                            class="rounded bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700">{{ 'Tambahkan Item Unik' }}</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Trigger: Add PB -->
+                                    <div x-data="pbFormModal()">
+                                        <button type="button" @click="openModal()"
+                                            class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                                viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                    stroke-width="1.5" d="M12 4.5v15m7.5-7.5h-15" />
+                                            </svg>
+                                            Add TER
+                                        </button>
+
+                                        <!-- PB Modal -->
+                                        <div x-show="show" x-transition.opacity class="fixed inset-0 z-40 bg-black/50"
+                                            @keydown.escape.window="closeModal()"></div>
+                                        <div>
+                                            <div x-show="show" x-cloak x-transition.opacity
+                                                class="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8"
+                                                aria-modal="true" role="dialog">
+                                                <div class="relative w-full max-w-5xl rounded-xl bg-white shadow-2xl flex flex-col"
+                                                    style="height: 600px;">
+                                                    <div
+                                                        class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
+                                                        <h3 class="text-xl font-bold text-gray-800">
+                                                            {{ 'Pilih Penerimaan Barang' }}</h3>
+                                                        <button type="button" @click="closeModal()"
+                                                            class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">{{ 'Tutup' }}</button>
+                                                    </div>
+                                                    <div class="flex-1 overflow-auto p-6" style="min-height: 0;">
+                                                        <table id="pbTable"
+                                                            class="min-w-full text-sm display nowrap stripe hover"
+                                                            style="width:100%">
+                                                            <thead class="sticky top-0 z-10">
+                                                                <tr class="bg-gray-50 border-b-2 border-gray-200">
+                                                                    <th class="p-3 text-left font-semibold text-gray-700">
+                                                                        {{ 'No.Transaksi' }}</th>
+                                                                    <th class="p-3 text-left font-semibold text-gray-700">
+                                                                        {{ 'Supplier' }}</th>
+                                                                    <th class="p-3 text-left font-semibold text-gray-700">
+                                                                        {{ 'Tanggal' }}</th>
+                                                                    <th
+                                                                        class="p-3 text-center font-semibold text-gray-700">
+                                                                        {{ 'Aksi' }}</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody></tbody>
+                                                        </table>
+                                                    </div>
+                                                    <div
+                                                        class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!-- Duplicate modal -->
+                                            <div x-show="showDupModal" x-cloak x-transition.opacity
+                                                class="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                                                <div class="absolute inset-0 bg-black/40" @click="closeDupModal()">
+                                                </div>
+                                                <div class="relative bg-white rounded-xl shadow-xl max-w-2xl w-full p-6">
+                                                    <h3 class="text-lg font-semibold mb-4">{{ 'Peringatan Duplikasi' }}
+                                                    </h3>
+                                                    <p class="mb-4">
+                                                        {{ Str::before('Ditemukan :count item yang sudah ada dalam daftar. Hanya item unik yang akan ditambahkan.', '__COUNT__') }}<strong
+                                                            x-text="dupCount"></strong>{{ Str::after('Ditemukan :count item yang sudah ada dalam daftar. Hanya item unik yang akan ditambahkan.', '__COUNT__') }}
+                                                    </p>
+                                                    <div class="flex justify-end gap-2">
+                                                        <button type="button" @click="closeDupModal()"
+                                                            class="rounded bg-gray-200 px-4 py-2 text-sm font-medium hover:bg-gray-300">{{ 'Batal' }}</button>
+                                                        <button type="button" @click="confirmAddUniques()"
+                                                            class="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">{{ 'Tambahkan Item Unik' }}</button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -2286,7 +2311,11 @@
                 qtyToKecil(code, qty, satuan) {
                     const meta = this.productMeta(code);
                     const units = meta?.units || [];
-                    const ratios = meta?.unit_ratios || { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 };
+                    const ratios = meta?.unit_ratios || {
+                        satuankecil: 1,
+                        satuanbesar: 1,
+                        satuanbesar2: 1
+                    };
                     const satKecil = units[0] || '';
                     const satBesar = units[1] || '';
                     const satBesar2 = units[2] || '';
@@ -2308,7 +2337,11 @@
                 kecilToUnit(code, qtyKecil, satuan) {
                     const meta = this.productMeta(code);
                     const units = meta?.units || [];
-                    const ratios = meta?.unit_ratios || { satuankecil: 1, satuanbesar: 1, satuanbesar2: 1 };
+                    const ratios = meta?.unit_ratios || {
+                        satuankecil: 1,
+                        satuanbesar: 1,
+                        satuanbesar2: 1
+                    };
                     const satKecil = units[0] || '';
                     const satBesar = units[1] || '';
                     const satBesar2 = units[2] || '';
@@ -2441,7 +2474,8 @@
                 },
 
                 normalizeRefNoAcak(value) {
-                    const parts = String(value ?? '').split(',').map(part => part.trim()).filter(part => /^\d{3}$/.test(part));
+                    const parts = String(value ?? '').split(',').map(part => part.trim()).filter(part => /^\d{3}$/.test(
+                        part));
                     return [...new Set(parts)].join(',');
                 },
 
@@ -2461,7 +2495,8 @@
                         }
 
                         const sourceQty = Math.max(0, +(src.fqty ?? 0) || 0);
-                        const sourceQtyKecil = Math.max(0, +(src.fqtykecil ?? src.fqtyremain ?? src.fqty ?? 0) || 0);
+                        const sourceQtyKecil = Math.max(0, +(src.fqtykecil ?? src.fqtyremain ?? src.fqty ?? 0) ||
+                        0);
                         const sourceLimit = sourceQty > 0 ? sourceQty : sourceQtyKecil;
 
                         const row = {
@@ -2481,7 +2516,8 @@
 
                             // Data quantity
                             fqty: (src.fqtykecil !== null && src.fqtykecil !== undefined) ?
-                                Number(src.fqtykecil) : ((src.fqty !== null && src.fqty !== undefined) ? Number(src.fqty) : 0),
+                                Number(src.fqtykecil) : ((src.fqty !== null && src.fqty !== undefined) ? Number(
+                                    src.fqty) : 0),
                             maxqty: sourceLimit,
                             lockQty: false,
 
@@ -2733,7 +2769,8 @@
                     window.dispatchEvent(new CustomEvent('browse-open', {
                         detail: {
                             forEdit: where !== 'draft',
-                            productCodeFilter: document.querySelector('select[name="ftypebuy"]')?.value === '2' ? 'UM' : ''
+                            productCodeFilter: document.querySelector('select[name="ftypebuy"]')?.value ===
+                                '2' ? 'UM' : ''
                         }
                     }));
                 },
@@ -2858,7 +2895,7 @@
                                 searchable: false,
                                 className: 'text-center',
                                 render: function(data, type, row) {
-                                    return '<button type="button" class="btn-pick px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">{{ "Pilih" }}</button>';
+                                    return '<button type="button" class="btn-pick px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">{{ 'Pilih' }}</button>';
                                 }
                             }
                         ],
@@ -2892,11 +2929,11 @@
                     if (this.table) this.table.search('').draw();
                 },
                 openDupModal(header, duplicates, uniques) {
-                window.transactionReferenceModalHelper.openDupModal(this, header, duplicates, uniques);
-            },
+                    window.transactionReferenceModalHelper.openDupModal(this, header, duplicates, uniques);
+                },
                 closeDupModal() {
-                window.transactionReferenceModalHelper.closeDupModal(this);
-            },
+                    window.transactionReferenceModalHelper.closeDupModal(this);
+                },
                 confirmAddUniques() {
                     window.transactionReferenceModalHelper.confirmAddUniques(this, 'po-picked');
                 },
@@ -2938,7 +2975,7 @@
                         this.closeModal();
                     } catch (e) {
                         console.error(e);
-                        console.log(@json("Gagal mengambil detail PO. Lihat konsol untuk detail."));
+                        console.log(@json('Gagal mengambil detail PO. Lihat konsol untuk detail.'));
                     }
                 }
             };
@@ -3007,7 +3044,7 @@
                                 searchable: false,
                                 className: 'text-center',
                                 render: function() {
-                                    return '<button type="button" class="btn-pick px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">{{ "Pilih" }}</button>';
+                                    return '<button type="button" class="btn-pick px-4 py-1.5 rounded-md text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150">{{ 'Pilih' }}</button>';
                                 }
                             }
                         ],
@@ -3087,7 +3124,7 @@
                         this.closeModal();
                     } catch (e) {
                         console.error(e);
-                        console.log(@json("Gagal mengambil detail PB. Lihat konsol untuk detail."));
+                        console.log(@json('Gagal mengambil detail PB. Lihat konsol untuk detail.'));
                     }
                 }
             };
@@ -3110,7 +3147,9 @@
         // Helper: update field saat warehouse-picked
         document.addEventListener('DOMContentLoaded', () => {
             window.addEventListener('warehouse-picked', (ev) => {
-                const { fwhcode } = ev.detail || {};
+                const {
+                    fwhcode
+                } = ev.detail || {};
                 const sel = document.getElementById('warehouseSelect');
                 const hid = document.getElementById('warehouseCodeHidden');
                 if (sel) {
@@ -3128,8 +3167,14 @@
         <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
         <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
 
-        @include('components.transaction.browse-warehouse-script', ['eventName' => 'faktur-pembelian-warehouse-browse-open'])
-        @include('components.transaction.browse-product-script', ['showControls' => true, 'showPagination' => true, 'supportsForEdit' => true])
+        @include('components.transaction.browse-warehouse-script', [
+            'eventName' => 'faktur-pembelian-warehouse-browse-open',
+        ])
+        @include('components.transaction.browse-product-script', [
+            'showControls' => true,
+            'showPagination' => true,
+            'supportsForEdit' => true,
+        ])
         <script>
             document.addEventListener('alpine:init', () => {
                 Alpine.store('prh', {
@@ -3212,4 +3257,3 @@
             });
         </script>
     @endpush
-

@@ -444,32 +444,26 @@
                                     </colgroup>
                             <thead class="bg-gray-100">
                                 <tr>
-                                    <th class="p-2 text-left w-10">#</th>
-                                    <th class="p-2 text-left">Kode Produk</th>
-                                    <th class="p-2 text-left">Nama Produk</th>
-                                    <th class="p-2 text-left">No Refrensi</th>
-                                    <th class="p-2 text-left">Satuan</th>
-                                    <th class="p-2 text-right whitespace-nowrap">Qty.</th>
-                                    <th class="p-2 text-right whitespace-nowrap">@ Harga</th>
-                                    <th class="p-2 text-right whitespace-nowrap">@ Biaya</th>
-                                    <th class="p-2 text-right whitespace-nowrap">Disc. %</th>
-                                    <th class="p-2 text-right whitespace-nowrap">Total Harga</th>
+                                    <th class="px-2 py-1 text-left w-10">#</th>
+                                    <th class="px-2 py-1 text-left">Kode Produk</th>
+                                    <th class="px-2 py-1 text-left">Nama Produk</th>
+                                    <th class="px-2 py-1 text-left">No Refrensi</th>
+                                    <th class="px-2 py-1 text-left">Satuan</th>
+                                    <th class="px-2 py-1 text-right whitespace-nowrap">Qty.</th>
+                                    <th class="px-2 py-1 text-right whitespace-nowrap">@ Harga</th>
+                                    <th class="px-2 py-1 text-right whitespace-nowrap">@ Biaya</th>
+                                    <th class="px-2 py-1 text-right whitespace-nowrap">Disc. %</th>
+                                    <th class="px-2 py-1 text-right whitespace-nowrap">Total Harga</th>
                                 </tr>
                             </thead>
 
-                            <tbody>
-                                <template x-for="(it, i) in savedItems" :key="it.uid">
-                                    <!-- ROW UTAMA -->
+                            <template x-for="(it, i) in savedItems" :key="it.uid">
+                                <tbody>
                                     <tr class="border-t align-top">
                                         <td class="p-2" x-text="i + 1"></td>
                                         <td class="p-2 font-mono" x-text="it.fitemcode"></td>
                                         <td class="p-2 text-gray-800">
                                             <div x-text="it.fitemname"></div>
-                                            <div x-show="it.fdesc" class="mt-1 text-xs">
-                                                <span
-                                                    class="inline-block px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 mr-2">Deskripsi</span>
-                                                <span class="align-middle text-gray-600" x-text="it.fdesc"></span>
-                                            </div>
                                         </td>
                                         <td class="p-2" x-text="it.frefdtno"></td>
                                         <td class="p-2" x-text="it.fsatuan"></td>
@@ -480,8 +474,19 @@
                                         <td class="p-2 text-right" x-text="fmt(it.fbiaya)"></td>
                                         <td class="p-2 text-right" x-text="fmt(it.fdiscpersen)"></td>
                                         <td class="p-2 text-right" x-text="fmt(it.ftotprice)"></td>
-
-                                        <!-- hidden inputs -->
+                                    </tr>
+                                    <tr class="border-b bg-gray-50/60">
+                                        <td class="p-0"></td>
+                                        <td class="p-0"></td>
+                                        <td class="p-2" colspan="3">
+                                            <textarea x-model="it.fdesc" rows="2"
+                                                class="block w-full border rounded px-4 py-1 bg-white"
+                                                placeholder="Deskripsi (opsional)"></textarea>
+                                        </td>
+                                        <td class="p-0"></td>
+                                        <td class="p-0"></td>
+                                        <td class="p-0"></td>
+                                        <td class="p-0"></td>
                                         <td class="hidden">
                                             <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
                                             <input type="hidden" name="fitemname[]" :value="it.fitemname">
@@ -496,21 +501,10 @@
                                             <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
                                         </td>
                                     </tr>
+                                </tbody>
+                            </template>
 
-                                    <!-- ROW DESC (di bawah Nama Produk) -->
-                                    <tr class="border-b">
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                    </tr>
-                                </template>
+                            <tbody>
 
                                 <!-- ROW EDIT UTAMA -->
                                 <tr x-show="editingIndex !== null" class="border-t align-top" x-cloak>
@@ -2132,4 +2126,3 @@
                 }
             </script>
         @endpush
-

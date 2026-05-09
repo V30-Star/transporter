@@ -507,22 +507,22 @@
                                     </colgroup>
                                 <thead class="bg-gray-100">
                                     <tr>
-                                        <th class="p-2 text-left w-10">#</th>
-                                        <th class="p-2 text-left">Kode Produk</th>
-                                        <th class="p-2 text-left">Nama Produk</th>
-                                        <th class="p-2 text-left">No Refrensi</th>
-                                        <th class="p-2 text-left">Satuan</th>
-                                        <th class="p-2 text-right whitespace-nowrap">Qty.</th>
-                                        <th class="p-2 text-right whitespace-nowrap">@ Harga</th>
-                                        <th class="p-2 text-right whitespace-nowrap">@ Biaya</th>
-                                        <th class="p-2 text-right whitespace-nowrap">Disc. %</th>
-                                        <th class="p-2 text-right whitespace-nowrap">Total Harga</th>
-                                        <th class="p-2 text-center">Aksi</th>
+                                        <th class="px-2 py-1 text-left w-10">#</th>
+                                        <th class="px-2 py-1 text-left">Kode Produk</th>
+                                        <th class="px-2 py-1 text-left">Nama Produk</th>
+                                        <th class="px-2 py-1 text-left">No Refrensi</th>
+                                        <th class="px-2 py-1 text-left">Satuan</th>
+                                        <th class="px-2 py-1 text-right whitespace-nowrap">Qty.</th>
+                                        <th class="px-2 py-1 text-right whitespace-nowrap">@ Harga</th>
+                                        <th class="px-2 py-1 text-right whitespace-nowrap">@ Biaya</th>
+                                        <th class="px-2 py-1 text-right whitespace-nowrap">Disc. %</th>
+                                        <th class="px-2 py-1 text-right whitespace-nowrap">Total Harga</th>
+                                        <th class="px-2 py-1 text-center">Aksi</th>
                                     </tr>
                                 </thead>
 
-                                <tbody>
                                     <template x-for="(it, i) in savedItems" :key="it.uid">
+                                        <tbody>
                                         <!-- ROW UTAMA -->
                                         <tr class="border-t align-top transition-colors" :class="activeRow === it.uid ? 'bg-amber-50' : 'hover:bg-gray-50'">
                                             <td class="p-2 text-gray-500" x-text="i + 1"></td>
@@ -548,11 +548,6 @@
                                                 <input type="text"
                                                     class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
                                                     :value="it.fitemname" disabled>
-                                                <div x-show="it.fdesc" class="mt-1 text-xs">
-                                                    <span
-                                                        class="inline-block px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 mr-2">Deskripsi</span>
-                                                    <span class="align-middle text-gray-600" x-text="it.fdesc"></span>
-                                                </div>
                                             </td>
 
                                             <!-- No Refrensi -->
@@ -634,34 +629,32 @@
                                                     class="px-3 py-1 rounded text-xs bg-red-100 text-red-600 hover:bg-red-200 whitespace-nowrap">
                                                     Hapus
                                                 </button>
-                                            </td>
-
-                                            <!-- hidden inputs -->
-                                            <td class="hidden">
-                                                <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
-                                                <input type="hidden" name="fitemname[]" :value="it.fitemname">
-                                                <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
-                                                <input type="hidden" name="fqty[]" :value="it.fqty">
-                                                <input type="hidden" name="fprice[]" :value="it.fprice">
-                                                <input type="hidden" name="fbiaya[]" :value="it.fbiaya">
-                                                <input type="hidden" name="fdiscpersen[]" :value="it.fdiscpersen">
-                                                <input type="hidden" name="ftotprice[]" :value="it.ftotprice">
-                                                <input type="hidden" name="fdesc[]" :value="it.fdesc">
-                                                <input type="hidden" name="fketdt[]" :value="it.fketdt">
-                                                <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
-                                                <input type="hidden" name="frefdtid[]" :value="it.frefdtid">
-                                                <input type="hidden" name="frefnoacak[]" :value="it.frefnoacak">
-                                                <input type="hidden" name="fsource[]" :value="it.fsource">
-                                                <input type="hidden" name="fnouref[]" :value="it.fnouref">
-                                                <input type="hidden" name="frefpr[]" :value="it.frefpr">
+                                                <div class="hidden">
+                                                    <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
+                                                    <input type="hidden" name="fitemname[]" :value="it.fitemname">
+                                                    <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
+                                                    <input type="hidden" name="fqty[]" :value="it.fqty">
+                                                    <input type="hidden" name="fprice[]" :value="it.fprice">
+                                                    <input type="hidden" name="fbiaya[]" :value="it.fbiaya">
+                                                    <input type="hidden" name="fdiscpersen[]" :value="it.fdiscpersen">
+                                                    <input type="hidden" name="ftotprice[]" :value="it.ftotprice">
+                                                    <input type="hidden" name="fdesc[]" :value="it.fdesc">
+                                                    <input type="hidden" name="fketdt[]" :value="it.fketdt">
+                                                    <input type="hidden" name="frefdtno[]" :value="it.frefdtno">
+                                                    <input type="hidden" name="frefdtid[]" :value="it.frefdtid">
+                                                    <input type="hidden" name="frefnoacak[]" :value="it.frefnoacak">
+                                                    <input type="hidden" name="fsource[]" :value="it.fsource">
+                                                    <input type="hidden" name="fnouref[]" :value="it.fnouref">
+                                                    <input type="hidden" name="frefpr[]" :value="it.frefpr">
+                                                </div>
                                             </td>
                                         </tr>
-                                        <tr class="border-b">
+                                        <tr class="border-b bg-gray-50/60">
                                             <td class="p-0"></td>
                                             <td class="p-0"></td>
                                             <td class="p-2" colspan="3">
                                                 <textarea x-model="it.fdesc" rows="2"
-                                                    class="w-full border rounded px-4 py-1 text-xs text-gray-600"
+                                                    class="block w-full border rounded px-4 py-1 bg-white"
                                                     placeholder="Deskripsi (opsional)" @focus="activeRow = it.uid"
                                                     @blur="activeRow = null"></textarea>
                                             </td>
@@ -670,9 +663,12 @@
                                             <td class="p-0"></td>
                                             <td class="p-0"></td>
                                             <td class="p-0"></td>
+                                            <td class="p-0"></td>
                                         </tr>
+                                        </tbody>
                                     </template>
 
+                                <tbody>
                                     <!-- ROW DRAFT UTAMA -->
                                     <tr class="border-t align-top">
                                         <!-- # -->
@@ -787,6 +783,7 @@
                                             <textarea x-model="draft.fdesc" rows="2" class="w-full border rounded px-4 py-1"
                                                 placeholder="Deskripsi (opsional)"></textarea>
                                         </td>
+                                        <td class="p-0"></td>
                                         <td class="p-0"></td>
                                         <td class="p-0"></td>
                                         <td class="p-0"></td>
