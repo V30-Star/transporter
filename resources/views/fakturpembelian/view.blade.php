@@ -428,12 +428,12 @@
                         <div class="min-w-0 overflow-hidden">
                             <label class="block text-sm font-medium mb-2">Hitung Biaya</label>
                             <div
-                                class="hpp-box min-h-[96px] bg-gray-50 p-3 rounded-lg border border-gray-200 shadow-sm flex flex-col justify-center gap-3">
+                                class="hpp-box min-h-[96px] bg-gray-50 p-3 rounded-lg border border-gray-200 shadow-sm flex items-center gap-3">
                                 <input type="text" :value="rupiah(biayaGlobal)" readonly disabled
-                                    class="w-full border rounded px-3 py-2 text-right font-mono bg-gray-100 cursor-not-allowed text-gray-700">
+                                    class="flex-1 border rounded px-3 py-2 text-right font-mono bg-gray-100 cursor-not-allowed text-gray-700">
 
                                 <button type="button" @click.prevent disabled
-                                    class="w-full bg-blue-300 text-white font-medium py-2 px-4 rounded transition flex items-center justify-center gap-2 cursor-not-allowed opacity-70">
+                                    class="shrink-0 min-w-[120px] bg-blue-300 text-white font-medium py-2 px-4 rounded transition flex items-center justify-center gap-2 cursor-not-allowed opacity-70">
                                     Hitung
                                 </button>
                             </div>
@@ -478,7 +478,15 @@
                                         <td class="p-2" x-text="i + 1"></td>
                                         <td class="p-2 font-mono" x-text="it.fitemcode"></td>
                                         <td class="p-2 text-gray-800">
-                                            <div x-text="it.fitemname"></div>
+                                            <div class="flex w-full max-w-full">
+                                                <div class="min-w-0 flex-1 rounded border border-gray-200 bg-gray-100 px-2 py-1 text-sm text-gray-700"
+                                                    x-text="it.fitemname"></div>
+                                                <button type="button" @click="openDesc('saved', i, true)"
+                                                    class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100"
+                                                    title="Deskripsi">
+                                                    <x-heroicon-o-document-text class="w-4 h-4" />
+                                                </button>
+                                            </div>
                                         </td>
                                         <td class="p-2" x-text="it.frefdtno"></td>
                                         <td class="p-2" x-text="it.fsatuan"></td>
@@ -490,19 +498,8 @@
                                         <td class="p-2 text-right" x-text="fmt(it.fdiscpersen)"></td>
                                         <td class="p-2 text-right" x-text="fmt(it.ftotprice)"></td>
                                     </tr>
-                                    <tr class="border-b bg-gray-50/60">
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-2" colspan="3">
-                                            <textarea x-model="it.fdesc" rows="2"
-                                                class="block w-full border rounded px-4 py-1 bg-white"
-                                                placeholder="Deskripsi (opsional)"></textarea>
-                                        </td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="hidden">
+                                    <tr class="hidden">
+                                        <td>
                                             <input type="hidden" name="fitemcode[]" :value="it.fitemcode">
                                             <input type="hidden" name="fitemname[]" :value="it.fitemname">
                                             <input type="hidden" name="fsatuan[]" :value="it.fsatuan">
@@ -804,6 +801,32 @@
                                 <span class="slider"></span>
                             </label>
                         @endif
+                    </div>
+
+                    <div x-show="showDescModal" x-cloak class="fixed inset-0 z-[95] flex items-center justify-center"
+                        x-transition.opacity>
+                        <div class="absolute inset-0 bg-black/50" @click="closeDesc()"></div>
+
+                        <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
+                            x-transition.scale>
+                            <div class="px-5 py-4 border-b flex items-center">
+                                <x-heroicon-o-document-text class="w-6 h-6 text-blue-600 mr-2" />
+                                <h3 class="text-lg font-semibold text-gray-800">Deskripsi Item</h3>
+                            </div>
+
+                            <div class="px-5 py-4 space-y-2">
+                                <label class="block text-sm text-gray-700">Deskripsi</label>
+                                <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2" readonly
+                                    placeholder="Belum ada deskripsi."></textarea>
+                            </div>
+
+                            <div class="px-5 py-3 border-t flex items-center justify-end">
+                                <button type="button" @click="closeDesc()"
+                                    class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
+                                    Tutup
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1290,9 +1313,24 @@
                     descTarget: 'draft',
                     descSavedIndex: null,
                     descValue: '',
-                    openDesc() {},
-                    closeDesc() {},
-                    applyDesc() {},
+                    descReadonly: false,
+                    openDesc(target = 'saved', index = null, readonly = true) {
+                        this.descTarget = target;
+                        this.descSavedIndex = index;
+                        this.descReadonly = readonly;
+                        this.descValue = target === 'saved' && index !== null ? (this.savedItems[index]?.fdesc || '') : '';
+                        this.showDescModal = true;
+                    },
+                    closeDesc() {
+                        this.showDescModal = false;
+                        this.descTarget = 'draft';
+                        this.descSavedIndex = null;
+                        this.descValue = '';
+                        this.descReadonly = false;
+                    },
+                    applyDesc() {
+                        this.closeDesc();
+                    },
 
                     itemKey(it) {
                         return `${(it.fitemcode ?? '').toString().trim()}::${(it.frefdtno ?? '').toString().trim()}`;

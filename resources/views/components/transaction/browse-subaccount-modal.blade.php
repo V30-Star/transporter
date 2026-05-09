@@ -1,14 +1,13 @@
 @props([
-    'tableId' => 'accountTable',
+    'tableId' => 'subaccountTable',
     'showControls' => false,
-    'controlsId' => 'accountTableControls',
+    'controlsId' => 'subaccountTableControls',
     'showPagination' => false,
-    'paginationId' => 'accountTablePagination',
-    'routeName' => 'accounts.browse',
-    'eventName' => 'account-browse-open',
+    'paginationId' => 'subaccountTablePagination',
+    'routeName' => 'subaccounts.browse',
+    'eventName' => 'subaccount-browse-open',
     'openDelay' => 0,
-    'fend' => null,
-    'title' => 'Pilih Account',
+    'title' => 'Pilih Sub Account',
     'description' => '',
     'closeButtonClass' => 'px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm',
 ])
@@ -69,7 +68,7 @@
 </style>
 
 <script>
-    function accountBrowser() {
+    function subaccountBrowser() {
         return {
             open: false,
             table: null,
@@ -80,7 +79,7 @@
                     this.table = null;
                 }
 
-                $('#{{ $tableId }}').off('click.accpick');
+                $('#{{ $tableId }}').off('click.subpick');
                 this.table = $('#{{ $tableId }}').DataTable({
                     processing: true,
                     serverSide: true,
@@ -94,19 +93,18 @@
                                 length: d.length,
                                 search: d.search.value,
                                 order_column: d.columns[d.order[0].column].data,
-                                order_dir: d.order[0].dir,
-                                fend: @json($fend)
+                                order_dir: d.order[0].dir
                             };
                         }
                     },
                     columns: [{
-                            data: 'faccount',
-                            name: 'faccount',
+                            data: 'fsubaccountcode',
+                            name: 'fsubaccountcode',
                             className: 'font-mono text-sm'
                         },
                         {
-                            data: 'faccname',
-                            name: 'faccname',
+                            data: 'fsubaccountname',
+                            name: 'fsubaccountname',
                             className: 'text-sm'
                         },
                         {
@@ -125,7 +123,7 @@
                         [10, 25, 50, 100],
                         [10, 25, 50, 100]
                     ],
-                    dom: @json($showControls || $showPagination ? '<"account-browser-top"fl>rt<"account-browser-bottom"ip>' : '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip'),
+                    dom: @json($showControls || $showPagination ? '<"subaccount-browser-top"fl>rt<"subaccount-browser-bottom"ip>' : '<"flex justify-between items-center mb-4"f<"ml-auto"l>>rtip'),
                     language: {
                         processing: "Memuat data...",
                         search: "Cari:",
@@ -247,7 +245,7 @@
                     }
                 });
 
-                $('#{{ $tableId }}').on('click.accpick', '.btn-choose', (e) => {
+                $('#{{ $tableId }}').on('click.subpick', '.btn-choose', (e) => {
                     const data = this.table.row($(e.target).closest('tr')).data();
                     if (data) this.choose(data);
                 });
@@ -274,11 +272,11 @@
             },
 
             choose(row) {
-                window.dispatchEvent(new CustomEvent('account-picked', {
+                window.dispatchEvent(new CustomEvent('subaccount-picked', {
                     detail: {
-                        faccid: row.faccid,
-                        faccount: row.faccount,
-                        faccname: row.faccname
+                        fsubaccountid: row.fsubaccountid,
+                        fsubaccountcode: row.fsubaccountcode,
+                        fsubaccountname: row.fsubaccountname
                     }
                 }));
                 this.close();
@@ -293,7 +291,7 @@
     }
 </script>
 
-<div x-data="accountBrowser()">
+<div x-data="subaccountBrowser()">
     <div x-show="open" x-transition.opacity class="fixed inset-0 z-40 bg-black/50" @click="close()"></div>
 
     <div x-show="open" x-cloak x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8"
@@ -310,8 +308,8 @@
                 <table id="{{ $tableId }}" class="min-w-full text-sm display nowrap stripe hover" style="width:100%">
                     <thead class="sticky top-0 z-10">
                         <tr class="bg-gray-50 border-b-2 border-gray-200">
-                            <th class="p-3 text-left font-semibold text-gray-700 border-r border-gray-200">{{ "Account Kode" }}</th>
-                            <th class="p-3 text-left font-semibold text-gray-700 border-r border-gray-200">{{ "Account Nama" }}</th>
+                            <th class="p-3 text-left font-semibold text-gray-700 border-r border-gray-200">{{ "Sub Account Kode" }}</th>
+                            <th class="p-3 text-left font-semibold text-gray-700 border-r border-gray-200">{{ "Sub Account Nama" }}</th>
                             <th class="p-3 text-center font-semibold text-gray-700">{{ "Aksi" }}</th>
                         </tr>
                     </thead>

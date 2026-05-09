@@ -86,7 +86,7 @@ class PengeluaranKasController extends Controller
             $headerAccount = $this->resolveHeaderAccount($payload['faccountheader'] ?? null);
             $voucherNo = $voucherNoInput !== ''
                 ? $voucherNoInput
-                : $this->generateVoucherNo(Carbon::parse($payload['fkasmtdate']));
+                : $this->generateVoucherNo(Carbon::parse($payload['fkasmtdate']), $headerAccount);
             $headerId = $this->nextIntegerId('trkasmt', 'fkasmtid');
             $savedHeaderId = $headerId;
 
@@ -402,7 +402,7 @@ class PengeluaranKasController extends Controller
 
         return Account::query()
             ->where('faccount', $accountCode)
-            ->first(['faccid', 'faccount', 'faccname']);
+            ->first(['faccid', 'faccount', 'faccname', 'finitjurnal']);
     }
 
     private function resolveHeaderDk(float $amount): string
@@ -422,15 +422,69 @@ class PengeluaranKasController extends Controller
             ->firstOrFail();
     }
 
-    private function generateVoucherNo(Carbon $date): string
+    private function generateVoucherNo(Carbon $date, ?Account $headerAccount = null): string
     {
-        $prefix = 'PK.'.$date->format('ym').'.';
+        $branchCode = $this->resolveBranchCode();
+        $bankType = $this->resolveBankType($headerAccount);
+        $prefix = sprintf('%s.%s.%s%s', self::TRAN_CODE, $branchCode, $date->format('ym'), $bankType);
+
         $lastNumber = DB::table('trkasmt')
+            ->where('ftrancode', self::TRAN_CODE)
             ->where('fkasmtno', 'like', $prefix.'%')
-            ->selectRaw("MAX(CAST(split_part(fkasmtno, '.', 3) AS integer)) as last_no")
+            ->selectRaw("
+                MAX(
+                    CASE
+                        WHEN RIGHT(fkasmtno, 4) ~ '^[0-9]{4}$'
+                        THEN CAST(RIGHT(fkasmtno, 4) AS integer)
+                        ELSE NULL
+                    END
+                ) as last_no
+            ")
             ->value('last_no');
 
         return $prefix.str_pad((string) (((int) $lastNumber) + 1), 4, '0', STR_PAD_LEFT);
+    }
+
+    private function resolveBankType(?Account $headerAccount = null): string
+    {
+        $bankType = trim((string) ($headerAccount?->finitjurnal ?? ''));
+
+        return $bankType !== '' ? $bankType : '00';
+    }
+
+    private function resolveBranchCode(): string
+    {
+        $branch = Auth::guard('sysuser')->user()?->fcabang
+            ?? Auth::user()?->fcabang
+            ?? session('fcabang');
+
+        if ($branch !== null) {
+            $needle = trim((string) $branch);
+
+            if ($needle !== '') {
+                if (is_numeric($needle)) {
+                    $kodeCabang = DB::table('mscabang')
+                        ->where('fcabangid', (int) $needle)
+                        ->value('fcabangkode');
+                } else {
+                    $kodeCabang = DB::table('mscabang')
+                        ->whereRaw('LOWER(fcabangkode) = LOWER(?)', [$needle])
+                        ->value('fcabangkode');
+
+                    if (! $kodeCabang) {
+                        $kodeCabang = DB::table('mscabang')
+                            ->whereRaw('LOWER(fcabangname) = LOWER(?)', [$needle])
+                            ->value('fcabangkode');
+                    }
+                }
+
+                if (! empty($kodeCabang)) {
+                    return trim((string) $kodeCabang);
+                }
+            }
+        }
+
+        return 'NA';
     }
 
     private function nextIntegerId(string $table, string $column): int

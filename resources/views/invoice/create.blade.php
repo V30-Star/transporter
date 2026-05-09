@@ -1015,6 +1015,34 @@
                         </div>
                     </div>
 
+                    <div x-show="showCustomerRequired" x-cloak class="fixed inset-0 z-[94] flex items-center justify-center"
+                        x-transition.opacity>
+                        <div class="absolute inset-0 bg-black/50" @click="showCustomerRequired = false"></div>
+
+                        <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden"
+                            x-transition.scale>
+                            <div class="px-5 py-4 border-b flex items-center">
+                                <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-amber-500 mr-2" />
+                                <h3 class="text-lg font-semibold text-gray-800">{{ "Pilih Customer Dulu" }}</h3>
+                            </div>
+
+                            <div class="px-5 py-4">
+                                <p class="text-sm text-gray-700">
+                                    Customer wajib dipilih sebelum input produk manual. Untuk Tambah SO atau Add SRJ,
+                                    customer tidak wajib dipilih terlebih dahulu.
+                                </p>
+                            </div>
+
+                            <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
+                                <button type="button"
+                                    @click="showCustomerRequired = false; document.getElementById('modal_filter_customer_id')?.focus()"
+                                    class="h-9 px-4 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
+                                    {{ "OK" }}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
                     <input type="hidden" id="itemsCount" :value="savedItems.length">
                 </div>
 
@@ -1609,7 +1637,22 @@
             },
 
             onCodeTypedRow(row) {
+                if ((row.fitemcode || '').toString().trim() !== '' && !this.requireCustomerBeforeManualProduct()) {
+                    row.fitemcode = '';
+                    this.hydrateRowFromMeta(row, null);
+                    return;
+                }
                 this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
+            },
+
+            getSelectedCustomerCode() {
+                return (document.getElementById('customerCodeHidden')?.value || document.getElementById('modal_filter_customer_id')?.value || '').trim();
+            },
+
+            requireCustomerBeforeManualProduct() {
+                if (this.getSelectedCustomerCode()) return true;
+                this.showCustomerRequired = true;
+                return false;
             },
 
             isComplete(row) {
@@ -1714,6 +1757,10 @@
             },
 
             addIfComplete() {
+                if (!this.requireCustomerBeforeManualProduct()) {
+                    return;
+                }
+
                 const r = this.draft;
 
                 if (r.fitemcode === 'UM' && this.ftypesales === 0) {
@@ -1831,6 +1878,9 @@
             },
 
             handleEnterOnCode(where) {
+                if (!this.requireCustomerBeforeManualProduct()) {
+                    return;
+                }
                 if (where === 'edit') {
                     if (this.editRow.units.length > 1) this.$refs.editUnit?.focus();
                     else this.$refs.editQty?.focus();
@@ -1844,6 +1894,7 @@
             descTarget: 'draft',
             descSavedIndex: null,
             descValue: '',
+            showCustomerRequired: false,
             openDesc() {},
             closeDesc() {},
             applyDesc() {},
@@ -1939,6 +1990,9 @@
 
             browseTarget: 'draft',
             openBrowseFor(where) {
+                if (!this.requireCustomerBeforeManualProduct()) {
+                    return;
+                }
                 this.browseTarget = (where === 'edit' ? 'edit' : 'draft');
                 window.dispatchEvent(new CustomEvent('browse-open', {
                     detail: {
@@ -2208,5 +2262,4 @@
         });
     </script>
 @endpush
-
 

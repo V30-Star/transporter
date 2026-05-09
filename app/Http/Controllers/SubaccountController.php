@@ -155,4 +155,48 @@ class SubaccountController extends Controller
             ], 500);
         }
     }
+
+    public function browse(Request $request)
+    {
+        $query = Subaccount::query()
+            ->where('fnonactive', '0');
+
+        $recordsTotal = Subaccount::query()
+            ->where('fnonactive', '0')
+            ->count();
+
+        if ($request->filled('search') && $request->search !== '') {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('fsubaccountcode', 'ilike', "%{$search}%")
+                    ->orWhere('fsubaccountname', 'ilike', "%{$search}%");
+            });
+        }
+
+        $recordsFiltered = $query->count();
+
+        $orderColumn = $request->input('order_column', 'fsubaccountname');
+        $orderDir = $request->input('order_dir', 'asc');
+        $allowedColumns = ['fsubaccountcode', 'fsubaccountname'];
+
+        if (in_array($orderColumn, $allowedColumns, true)) {
+            $query->orderBy($orderColumn, $orderDir);
+        } else {
+            $query->orderBy('fsubaccountname', 'asc');
+        }
+
+        $start = (int) $request->input('start', 0);
+        $length = (int) $request->input('length', 10);
+
+        $data = $query->skip($start)
+            ->take($length)
+            ->get(['fsubaccountid', 'fsubaccountcode', 'fsubaccountname']);
+
+        return response()->json([
+            'draw' => (int) $request->input('draw', 1),
+            'recordsTotal' => (int) $recordsTotal,
+            'recordsFiltered' => (int) $recordsFiltered,
+            'data' => $data,
+        ]);
+    }
 }

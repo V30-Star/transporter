@@ -191,20 +191,22 @@
                                         <input type="text" value="{{ $detailAccountLabel }}"
                                             class="w-full border rounded px-1.5 py-1 bg-gray-100 cursor-not-allowed"
                                             readonly>
-                                    @else
-                                        <select name="details[{{ $index }}][faccount]"
-                                            class="w-full border rounded px-1.5 py-1">
-                                            <option value="">{{ "Pilih account" }}</option>
-                                            @foreach ($accounts as $account)
-                                                <option value="{{ $account->faccount }}"
-                                                    {{ $detailAccountCode === (string) $account->faccount ? 'selected' : '' }}>
-                                                    {{ $account->faccount }} - {{ $account->faccname }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    @endif
-                                    @if ($isReadOnly)
                                         <input type="hidden" name="details[{{ $index }}][faccount]" value="{{ $detailAccountCode }}">
+                                    @else
+                                        <div class="flex items-center gap-1">
+                                            <div class="flex-1 min-w-0">
+                                                <input type="text"
+                                                    class="detail-account-display w-full border rounded px-1.5 py-1 bg-gray-100 cursor-not-allowed"
+                                                    value="{{ $detailAccountLabel }}" readonly data-role="account-display">
+                                                <input type="hidden" name="details[{{ $index }}][faccount]"
+                                                    value="{{ $detailAccountCode }}">
+                                            </div>
+                                            <button type="button" @click="openAccountBrowse($event)"
+                                                class="border rounded px-2 py-1 bg-white hover:bg-gray-50 shrink-0"
+                                                title="Cari Account">
+                                                <x-heroicon-o-magnifying-glass class="w-4 h-4" />
+                                            </button>
+                                        </div>
                                     @endif
                                     @error("details.$index.faccount")
                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -222,20 +224,22 @@
                                         <input type="text" value="{{ $detailSubaccountLabel }}"
                                             class="w-full border rounded px-1.5 py-1 bg-gray-100 cursor-not-allowed"
                                             readonly>
-                                    @else
-                                        <select name="details[{{ $index }}][fsubaccount]"
-                                            class="w-full border rounded px-1.5 py-1">
-                                            <option value="">{{ "Pilih sub account" }}</option>
-                                            @foreach ($subaccounts as $subaccount)
-                                                <option value="{{ $subaccount->fsubaccountcode }}"
-                                                    {{ $detailSubaccountCode === (string) $subaccount->fsubaccountcode ? 'selected' : '' }}>
-                                                    {{ $subaccount->fsubaccountcode }} - {{ $subaccount->fsubaccountname }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    @endif
-                                    @if ($isReadOnly)
                                         <input type="hidden" name="details[{{ $index }}][fsubaccount]" value="{{ $detailSubaccountCode }}">
+                                    @else
+                                        <div class="flex items-center gap-1">
+                                            <div class="flex-1 min-w-0">
+                                                <input type="text"
+                                                    class="detail-subaccount-display w-full border rounded px-1.5 py-1 bg-gray-100 cursor-not-allowed"
+                                                    value="{{ $detailSubaccountLabel }}" readonly data-role="subaccount-display">
+                                                <input type="hidden" name="details[{{ $index }}][fsubaccount]"
+                                                    value="{{ $detailSubaccountCode }}">
+                                            </div>
+                                            <button type="button" @click="openSubaccountBrowse($event)"
+                                                class="border rounded px-2 py-1 bg-white hover:bg-gray-50 shrink-0"
+                                                title="Cari Sub Account">
+                                                <x-heroicon-o-magnifying-glass class="w-4 h-4" />
+                                            </button>
+                                        </div>
                                     @endif
                                     @error("details.$index.fsubaccount")
                                         <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
@@ -332,6 +336,9 @@
 </div>
 
 @unless ($isReadOnly)
+    <x-transaction.browse-account-modal :fend="1" show-controls="true" show-pagination="true" />
+    <x-transaction.browse-subaccount-modal show-controls="true" show-pagination="true" />
+
     @push('scripts')
         <script>
             function pengeluaranKasForm(isReadOnly, initialVoucherNo) {
@@ -339,11 +346,69 @@
                     isReadOnly,
                     voucherNo: initialVoucherNo || '',
                     autoCode: !initialVoucherNo,
+                    activeLookupRow: null,
+                    activeLookupType: null,
 
                     init() {
                         if (this.isReadOnly && this.voucherNo) {
                             this.autoCode = false;
                         }
+
+                        window.addEventListener('account-picked', (event) => {
+                            if (this.activeLookupType !== 'account' || !this.activeLookupRow) {
+                                return;
+                            }
+
+                            const code = (event.detail?.faccount || '').toString().trim();
+                            const name = (event.detail?.faccname || '').toString().trim();
+                            this.applyLookupValue(this.activeLookupRow, 'faccount', 'account-display', code, code && name ? `${code} - ${name}` : code);
+                        });
+
+                        window.addEventListener('subaccount-picked', (event) => {
+                            if (this.activeLookupType !== 'subaccount' || !this.activeLookupRow) {
+                                return;
+                            }
+
+                            const code = (event.detail?.fsubaccountcode || '').toString().trim();
+                            const name = (event.detail?.fsubaccountname || '').toString().trim();
+                            this.applyLookupValue(this.activeLookupRow, 'fsubaccount', 'subaccount-display', code, code && name ? `${code} - ${name}` : code);
+                        });
+                    },
+
+                    openAccountBrowse(event) {
+                        if (this.isReadOnly) return;
+
+                        this.activeLookupRow = event.currentTarget.closest('tr.detail-row');
+                        this.activeLookupType = 'account';
+                        window.dispatchEvent(new CustomEvent('account-browse-open'));
+                    },
+
+                    openSubaccountBrowse(event) {
+                        if (this.isReadOnly) return;
+
+                        this.activeLookupRow = event.currentTarget.closest('tr.detail-row');
+                        this.activeLookupType = 'subaccount';
+                        window.dispatchEvent(new CustomEvent('subaccount-browse-open'));
+                    },
+
+                    applyLookupValue(row, fieldName, displayRole, code, label) {
+                        if (!row) {
+                            return;
+                        }
+
+                        const hiddenField = row.querySelector(`input[name$="[${fieldName}]"]`);
+                        const displayField = row.querySelector(`[data-role="${displayRole}"]`);
+
+                        if (hiddenField) {
+                            hiddenField.value = code || '';
+                        }
+
+                        if (displayField) {
+                            displayField.value = label || '';
+                        }
+
+                        this.activeLookupRow = null;
+                        this.activeLookupType = null;
                     },
 
                     addRow() {

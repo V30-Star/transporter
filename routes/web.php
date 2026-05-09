@@ -543,6 +543,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/product/browse', [ProductController::class, 'browse'])->name('product.browse');
         Route::get('/wh/browse', [WhController::class, 'browse'])->name('wh.browse');
         Route::get('/account/browse', [AccountController::class, 'browse'])->name('account.browse');
+        Route::get('/subaccount/browse', [SubaccountController::class, 'browse'])->name('subaccounts.browse');
         Route::get('/group/browse', [GroupproductController::class, 'browse'])->name('group.browse');
         Route::get('/merek/browse', [MerekController::class, 'browse'])->name('merek.browse');
 

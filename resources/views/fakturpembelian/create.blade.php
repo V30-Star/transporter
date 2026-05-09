@@ -474,13 +474,13 @@
                             <div class="min-w-0 overflow-hidden">
                                 <label class="block text-sm font-medium mb-2">Hitung Biaya</label>
                                 <div
-                                    class="hpp-box min-h-[96px] bg-gray-50 p-3 rounded-lg border border-gray-200 shadow-sm flex flex-col justify-center gap-3">
+                                    class="hpp-box min-h-[96px] bg-gray-50 p-3 rounded-lg border border-gray-200 shadow-sm flex items-center gap-3">
                                     <input type="number" x-model.number="biayaGlobal"
                                         placeholder="Masukkan Total Ongkir"
-                                        class="w-full border rounded px-3 py-2 text-right font-mono bg-white">
+                                        class="flex-1 border rounded px-3 py-2 text-right font-mono bg-white">
 
                                     <button type="button" @click="alokasiBiaya()"
-                                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded transition flex items-center justify-center gap-2">
+                                        class="shrink-0 min-w-[120px] bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded transition flex items-center justify-center gap-2">
                                         Hitung
                                     </button>
                                 </div>
@@ -545,9 +545,16 @@
 
                                             <!-- Nama Produk -->
                                             <td class="p-2">
-                                                <input type="text"
-                                                    class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
-                                                    :value="it.fitemname" disabled>
+                                                <div class="flex w-full max-w-full">
+                                                    <input type="text"
+                                                        class="min-w-0 flex-1 border rounded-l px-2 py-1 bg-gray-100 text-gray-600 text-sm"
+                                                        :value="it.fitemname" disabled>
+                                                    <button type="button" @click="openDesc('saved', i)"
+                                                        class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100"
+                                                        title="Deskripsi">
+                                                        <x-heroicon-o-document-text class="w-4 h-4" />
+                                                    </button>
+                                                </div>
                                             </td>
 
                                             <!-- No Refrensi -->
@@ -577,7 +584,7 @@
 
                                             <!-- Qty -->
                                             <td class="p-2 text-right">
-                                                <input type="number" class="border rounded px-2 py-1 w-20 text-right text-sm"
+                                                <input type="number" class="border rounded px-2 py-1 w-full text-right"
                                                     x-model.number="it.fqty" :id="'qty_saved_' + i"
                                                     @focus="activeRow = it.uid; $event.target.select()" @blur="activeRow = null; enforceQtyRow(it);"
                                                     @input="
@@ -596,7 +603,7 @@
 
                                             <!-- @ Harga -->
                                             <td class="p-2 text-right">
-                                                <input type="number" class="border rounded px-2 py-1 w-20 text-right text-sm"
+                                                <input type="number" class="border rounded px-2 py-1 w-full text-right"
                                                     min="0" step="0.01" x-model.number="it.fprice"
                                                     :id="'price_saved_' + i" @focus="activeRow = it.uid; $event.target.select()"
                                                     @blur="activeRow = null; normalizeMoneyInput($event, it, 'fprice')" @input="recalc(it)" @change="recalc(it)"
@@ -605,7 +612,7 @@
 
                                             <!-- @ Biaya -->
                                             <td class="p-2 text-right">
-                                                <input type="number" class="border rounded px-2 py-1 w-20 text-right text-sm"
+                                                <input type="number" class="border rounded px-2 py-1 w-full text-right"
                                                     min="0" step="0.01" x-model.number="it.fbiaya"
                                                     :id="'biaya_saved_' + i" @focus="activeRow = it.uid; $event.target.select()"
                                                     @blur="activeRow = null; normalizeMoneyInput($event, it, 'fbiaya')" @input="recalc(it)" @change="recalc(it)"
@@ -649,22 +656,6 @@
                                                 </div>
                                             </td>
                                         </tr>
-                                        <tr class="border-b bg-gray-50/60">
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-2" colspan="3">
-                                                <textarea x-model="it.fdesc" rows="2"
-                                                    class="block w-full border rounded px-4 py-1 bg-white"
-                                                    placeholder="Deskripsi (opsional)" @focus="activeRow = it.uid"
-                                                    @blur="activeRow = null"></textarea>
-                                            </td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                        </tr>
                                         </tbody>
                                     </template>
 
@@ -691,9 +682,16 @@
 
                                         <!-- Nama Produk (readonly) -->
                                         <td class="p-2">
-                                            <input type="text"
-                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
-                                                :value="draft.fitemname" disabled>
+                                            <div class="flex w-full max-w-full">
+                                                <input type="text"
+                                                    class="min-w-0 flex-1 border rounded-l px-2 py-1 bg-gray-100 text-gray-600"
+                                                    :value="draft.fitemname" disabled>
+                                                <button type="button" @click="openDesc('draft')"
+                                                    class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100"
+                                                    title="Deskripsi">
+                                                    <x-heroicon-o-document-text class="w-4 h-4" />
+                                                </button>
+                                            </div>
                                         </td>
 
                                         <!-- Ref.PR# -->
@@ -775,21 +773,6 @@
                                         </td>
                                     </tr>
 
-                                    <!-- ROW DRAFT DESC -->
-                                    <tr class="border-b">
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-2" colspan="3">
-                                            <textarea x-model="draft.fdesc" rows="2" class="w-full border rounded px-4 py-1"
-                                                placeholder="Deskripsi (opsional)"></textarea>
-                                        </td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                    </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -1006,6 +989,7 @@
                                 <div class="px-5 py-4 space-y-2">
                                     <label class="block text-sm text-gray-700">Deskripsi</label>
                                     <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2"
+                                        :readonly="descReadonly"
                                         placeholder="Tulis deskripsi item di sini..."></textarea>
                                 </div>
 
@@ -1014,9 +998,37 @@
                                         class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
                                         Batal
                                     </button>
-                                    <button type="button" @click="applyDesc()"
+                                    <button x-show="!descReadonly" type="button" @click="applyDesc()"
                                         class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
                                         Simpan
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div x-show="showSupplierRequired" x-cloak class="fixed inset-0 z-[94] flex items-center justify-center"
+                            x-transition.opacity>
+                            <div class="absolute inset-0 bg-black/50" @click="showSupplierRequired = false"></div>
+
+                            <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden"
+                                x-transition.scale>
+                                <div class="px-5 py-4 border-b flex items-center">
+                                    <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-amber-500 mr-2" />
+                                    <h3 class="text-lg font-semibold text-gray-800">Pilih Supplier Dulu</h3>
+                                </div>
+
+                                <div class="px-5 py-4">
+                                    <p class="text-sm text-gray-700">
+                                        Supplier wajib dipilih sebelum input produk manual. Untuk Add PO atau Add TER,
+                                        supplier tidak wajib dipilih terlebih dahulu.
+                                    </p>
+                                </div>
+
+                                <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
+                                    <button type="button"
+                                        @click="showSupplierRequired = false; document.getElementById('modal_filter_supplier_id')?.focus()"
+                                        class="h-9 px-4 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
+                                        OK
                                     </button>
                                 </div>
                             </div>
@@ -1515,7 +1527,22 @@
                 }
             },
 
+            getSelectedSupplierCode() {
+                return (document.getElementById('supplierCodeHidden')?.value || document.getElementById('modal_filter_supplier_id')?.value || '').trim();
+            },
+
+            requireSupplierBeforeManualProduct() {
+                if (this.getSelectedSupplierCode()) return true;
+                this.showSupplierRequired = true;
+                return false;
+            },
+
             onCodeTypedRow(row) {
+                if ((row.fitemcode || '').toString().trim() !== '' && !this.requireSupplierBeforeManualProduct()) {
+                    row.fitemcode = '';
+                    this.hydrateRowFromMeta(row, null);
+                    return;
+                }
                 this.hydrateRowFromMeta(row, this.productMeta(row.fitemcode));
             },
 
@@ -1638,6 +1665,10 @@
             },
 
             addIfComplete() {
+                if (!this.requireSupplierBeforeManualProduct()) {
+                    return;
+                }
+
                 const r = this.draft;
                 if (!this.isComplete(r)) {
                     if (!r.fitemcode) {
@@ -1699,6 +1730,9 @@
             },
 
             handleEnterOnCode() {
+                if (!this.requireSupplierBeforeManualProduct()) {
+                    return;
+                }
                 if (this.draft.units.length > 1) this.$refs.draftUnit?.focus();
                 else this.$refs.draftQty?.focus();
             },
@@ -1707,9 +1741,37 @@
             descTarget: 'draft',
             descSavedIndex: null,
             descValue: '',
-            openDesc() {},
-            closeDesc() {},
-            applyDesc() {},
+            descReadonly: false,
+            showSupplierRequired: false,
+            openDesc(target = 'draft', index = null, readonly = false) {
+                this.descTarget = target;
+                this.descSavedIndex = index;
+                this.descReadonly = readonly;
+
+                if (target === 'saved' && index !== null) {
+                    this.descValue = this.savedItems[index]?.fdesc || '';
+                } else {
+                    this.descValue = this.draft?.fdesc || '';
+                }
+
+                this.showDescModal = true;
+            },
+            closeDesc() {
+                this.showDescModal = false;
+                this.descTarget = 'draft';
+                this.descSavedIndex = null;
+                this.descValue = '';
+                this.descReadonly = false;
+            },
+            applyDesc() {
+                if (this.descTarget === 'saved' && this.descSavedIndex !== null) {
+                    this.savedItems[this.descSavedIndex].fdesc = this.descValue;
+                } else {
+                    this.draft.fdesc = this.descValue;
+                }
+
+                this.closeDesc();
+            },
 
             itemKey(it) {
                 const code = (it.fitemcode ?? '').toString().trim();
@@ -1800,6 +1862,9 @@
 
             browseTarget: 'draft',
             openBrowseFor(where) {
+                if (!this.requireSupplierBeforeManualProduct()) {
+                    return;
+                }
                 this.browseTarget = (where === 'edit' ? 'edit' : 'draft');
                 window.dispatchEvent(new CustomEvent('browse-open', {
                     detail: {
