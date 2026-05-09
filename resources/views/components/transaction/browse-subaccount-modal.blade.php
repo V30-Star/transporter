@@ -371,9 +371,9 @@
 <div x-data="subaccountBrowser()">
     <div x-show="open" x-transition.opacity class="fixed inset-0 z-40 bg-black/50" @click="close()"></div>
 
-    <div x-show="open" x-cloak x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8"
+    <div x-show="open" x-cloak x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center overflow-hidden p-3 md:p-6"
         aria-modal="true" role="dialog">
-        <div class="relative w-full max-w-5xl rounded-xl bg-white shadow-2xl flex flex-col" style="height: 600px;">
+        <div class="relative w-full max-w-7xl rounded-xl bg-white shadow-2xl flex flex-col overflow-hidden" style="height: min(760px, calc(100vh - 1.5rem));">
             <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
                 <h3 class="text-xl font-bold text-gray-800">{{ $title }}</h3>
                 <button type="button" @click="close()" class="{{ $closeButtonClass }}">
@@ -387,7 +387,7 @@
                 </div>
             @endif
 
-            <div class="flex-1 overflow-auto p-6" style="min-height: 0;">
+            <div class="flex-1 overflow-hidden p-6" style="min-height: 0;">
                 <table id="{{ $tableId }}" class="min-w-full text-sm display nowrap stripe hover" style="width:100%">
                     <thead class="sticky top-0 z-10">
                         <tr class="bg-gray-50 border-b-2 border-gray-200">

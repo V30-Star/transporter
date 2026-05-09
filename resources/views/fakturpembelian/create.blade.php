@@ -268,18 +268,18 @@
                                             </option>
                                         @endforeach
                                     </select>
-                                    <div class="absolute inset-0" role="button" aria-label="Browse supplier"
+                                    <div id="supplierBrowseOverlay" class="absolute inset-0" role="button" aria-label="Browse supplier"
                                         @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"></div>
                                 </div>
                                 <input type="hidden" name="fsupplier" id="supplierCodeHidden"
                                     value="{{ old('fsupplier') }}">
-                                <button type="button"
+                                <button type="button" id="supplierBrowseButton"
                                     @click="window.dispatchEvent(new CustomEvent('supplier-browse-open'))"
                                     class="border -ml-px px-3 py-2 bg-white hover:bg-gray-50 rounded-r-none"
                                     title="Browse Supplier">
                                     <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                                 </button>
-                                <a href="{{ route('supplier.create') }}" target="_blank" rel="noopener"
+                                <a href="{{ route('supplier.create') }}" target="_blank" rel="noopener" id="supplierCreateButton"
                                     class="border -ml-px rounded-r px-3 py-2 bg-white hover:bg-gray-50"
                                     title="Tambah Supplier">
                                     <x-heroicon-o-plus class="w-5 h-5" />
@@ -799,13 +799,13 @@
                                         <!-- PO Modal -->
                                         <div x-show="show" x-transition.opacity class="fixed inset-0 z-40 bg-black/50" @keydown.escape.window="closeModal()"></div>
                                         <div>
-                                            <div x-show="show" x-cloak x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8" aria-modal="true" role="dialog">
-                                                <div class="relative w-full max-w-5xl rounded-xl bg-white shadow-2xl flex flex-col" style="height: 600px;">
+                                            <div x-show="show" x-cloak x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center overflow-hidden p-3 md:p-6" aria-modal="true" role="dialog">
+                                                <div class="relative w-full max-w-7xl rounded-xl bg-white shadow-2xl flex flex-col overflow-hidden" style="height: min(760px, calc(100vh - 1.5rem));">
                                                     <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-emerald-50 to-white">
                                                         <h3 class="text-xl font-bold text-gray-800">{{ "Pilih Purchase Order (PO)" }}</h3>
                                                         <button type="button" @click="closeModal()" class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">{{ "Tutup" }}</button>
                                                     </div>
-                                                    <div class="flex-1 overflow-auto p-6" style="min-height: 0;">
+                                                    <div class="flex-1 overflow-hidden p-6" style="min-height: 0;">
                                                         <table id="poTable" class="min-w-full text-sm display nowrap stripe hover" style="width:100%">
                                                             <thead class="sticky top-0 z-10">
                                                                 <tr class="bg-gray-50 border-b-2 border-gray-200">
@@ -853,13 +853,13 @@
                                         <!-- PB Modal -->
                                         <div x-show="show" x-transition.opacity class="fixed inset-0 z-40 bg-black/50" @keydown.escape.window="closeModal()"></div>
                                         <div>
-                                            <div x-show="show" x-cloak x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8" aria-modal="true" role="dialog">
-                                                <div class="relative w-full max-w-5xl rounded-xl bg-white shadow-2xl flex flex-col" style="height: 600px;">
+                                            <div x-show="show" x-cloak x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center overflow-hidden p-3 md:p-6" aria-modal="true" role="dialog">
+                                                <div class="relative w-full max-w-7xl rounded-xl bg-white shadow-2xl flex flex-col overflow-hidden" style="height: min(760px, calc(100vh - 1.5rem));">
                                                     <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
                                                         <h3 class="text-xl font-bold text-gray-800">{{ "Pilih Penerimaan Barang" }}</h3>
                                                         <button type="button" @click="closeModal()" class="px-4 py-2 rounded-lg border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 font-medium text-gray-700 text-sm">{{ "Tutup" }}</button>
                                                     </div>
-                                                    <div class="flex-1 overflow-auto p-6" style="min-height: 0;">
+                                                    <div class="flex-1 overflow-hidden p-6" style="min-height: 0;">
                                                         <table id="pbTable" class="min-w-full text-sm display nowrap stripe hover" style="width:100%">
                                                             <thead class="sticky top-0 z-10">
                                                                 <tr class="bg-gray-50 border-b-2 border-gray-200">
@@ -1608,6 +1608,33 @@
                     }
                 }
             },
+            hasSourceLockedSupplier() {
+                return (this.savedItems || []).some(item => ['PO', 'PB'].includes((item?.fsource || '').toString().trim().toUpperCase()));
+            },
+            syncSupplierLockState() {
+                const locked = this.hasSourceLockedSupplier();
+                window.fpbSupplierBrowseLocked = locked;
+
+                const overlay = document.getElementById('supplierBrowseOverlay');
+                const browseButton = document.getElementById('supplierBrowseButton');
+                const createButton = document.getElementById('supplierCreateButton');
+                const selectInput = document.getElementById('modal_filter_supplier_id');
+
+                if (overlay) overlay.style.pointerEvents = locked ? 'none' : 'auto';
+                if (selectInput) selectInput.dataset.lockedBySource = locked ? '1' : '0';
+
+                if (browseButton) {
+                    browseButton.disabled = locked;
+                    browseButton.classList.toggle('opacity-50', locked);
+                    browseButton.classList.toggle('cursor-not-allowed', locked);
+                }
+
+                if (createButton) {
+                    createButton.style.pointerEvents = locked ? 'none' : 'auto';
+                    createButton.classList.toggle('opacity-50', locked);
+                    createButton.classList.toggle('cursor-not-allowed', locked);
+                }
+            },
 
             onCodeTypedRow(row) {
                 if ((row.fitemcode || '').toString().trim() !== '' && !this.requireSupplierBeforeManualProduct()) {
@@ -1736,6 +1763,7 @@
                 });
 
                 this.recalcTotals();
+                this.syncSupplierLockState();
             },
 
             addIfComplete() {
@@ -1783,12 +1811,14 @@
                 this.showNoItems = false;
 
                 this.recalcTotals();
+                this.syncSupplierLockState();
             },
 
             removeSaved(i) {
                 this.savedItems.splice(i, 1);
                 this.syncDescList?.();
                 this.recalcTotals();
+                this.syncSupplierLockState();
             },
 
             resetDraft() {
@@ -1948,6 +1978,7 @@
                     return row;
                 });
                 this.recalcTotals();
+                this.syncSupplierLockState();
 
                 // Listen for PO and PB picked
                 window.getCurrentItemKeys = () => this.getCurrentItemKeys();
@@ -2079,7 +2110,7 @@
                     processing: true,
                     serverSide: true,
                     destroy: true,
-                    scrollX: true,
+                    scrollX: false,
                     scrollCollapse: true,
                     ajax: {
                         url: "{{ route('fakturpembelian.pickablePO') }}",
@@ -2217,7 +2248,7 @@
                     processing: true,
                     serverSide: true,
                     destroy: true,
-                    scrollX: true,
+                    scrollX: false,
                     scrollCollapse: true,
                     ajax: {
                         url: "{{ route('fakturpembelian.pickablePB') }}",

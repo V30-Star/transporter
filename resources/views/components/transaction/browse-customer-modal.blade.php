@@ -5,11 +5,11 @@
 @endphp
 
 <div x-data="customerBrowser()" x-init="init()" x-show="open" x-cloak x-transition.opacity
-    class="fixed inset-0 z-50 flex items-center justify-center p-4">
+    class="fixed inset-0 z-50 flex items-center justify-center overflow-hidden p-3 md:p-6">
     <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
 
-    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-6xl flex flex-col overflow-hidden"
-        style="height: 650px;">
+    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-7xl flex flex-col overflow-hidden"
+        style="height: min(760px, calc(100vh - 1.5rem));">
         <div
             class="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-blue-50 to-white">
             <div>
@@ -22,7 +22,7 @@
             </button>
         </div>
 
-        <div class="flex-1 overflow-y-auto px-6" style="min-height: 0;">
+        <div class="flex-1 overflow-hidden px-6" style="min-height: 0;">
             <div class="bg-white">
                 <table id="{{ $tableId }}" class="min-w-full text-sm display nowrap stripe hover" style="width:100%">
                     <thead class="sticky top-0 z-10">
@@ -44,4 +44,3 @@
         </div>
     </div>
 </div>
-
