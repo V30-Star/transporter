@@ -155,7 +155,8 @@ class FakturpembelianController extends Controller
                 'tr_poh.fpono',
                 'mssupplier.fsuppliername',
                 'tr_poh.fpodate',
-            ]);
+            ])
+            ->where('tr_poh.fprdin', '0');
 
         $recordsTotal = (clone $query)->count();
 
@@ -193,7 +194,9 @@ class FakturpembelianController extends Controller
 
     public function itemsPO($id)
     {
-        $header = Tr_poh::where('fpohid', $id)->firstOrFail();
+        $header = Tr_poh::where('fpohid', $id)
+            ->where('fprdin', '0')
+            ->firstOrFail();
         $terSub = DB::table('trstockdt')
             ->selectRaw('fprdcode, frefdtno, SUM(COALESCE(fqtykecil, 0)) AS fqtyterima')
             ->where(function ($q) {
@@ -278,7 +281,8 @@ class FakturpembelianController extends Controller
                 'mssupplier.fsuppliername',
                 'trstockmt.fstockmtdate',
             ])
-            ->where('trstockmt.fstockmtcode', 'TER');
+            ->where('trstockmt.fstockmtcode', 'TER')
+            ->where('trstockmt.fprdout', '0');
 
         $recordsTotal = (clone $query)->count();
 
@@ -316,7 +320,10 @@ class FakturpembelianController extends Controller
 
     public function itemsPB($id)
     {
-        $header = PenerimaanPembelianHeader::where('fstockmtid', $id)->firstOrFail();
+        $header = PenerimaanPembelianHeader::where('fstockmtid', $id)
+            ->where('fstockmtcode', 'TER')
+            ->where('fprdout', '0')
+            ->firstOrFail();
         $buySub = DB::table('trstockdt')
             ->selectRaw('frefdtno, fprdcode, SUM(COALESCE(fqtykecil, 0)) AS fqtybuy')
             ->where('fstockmtcode', 'BUY')
