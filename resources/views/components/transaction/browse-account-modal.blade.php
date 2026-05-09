@@ -66,6 +66,67 @@
         flex-wrap: nowrap !important;
         margin: 0 !important;
     }
+
+    #{{ $tableId }}_wrapper .dataTables_paginate,
+    #{{ $tableId }}_wrapper .dt-paging,
+    #{{ $paginationId }} .dataTables_paginate,
+    #{{ $paginationId }} .dt-paging {
+        gap: 6px !important;
+    }
+
+    #{{ $tableId }}_wrapper .dataTables_paginate .paginate_button,
+    #{{ $tableId }}_wrapper .dt-paging .dt-paging-button,
+    #{{ $paginationId }} .dataTables_paginate .paginate_button,
+    #{{ $paginationId }} .dt-paging .dt-paging-button {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        min-width: 38px !important;
+        height: 38px !important;
+        padding: 0 14px !important;
+        border: 1px solid #d1d5db !important;
+        border-radius: 10px !important;
+        background: #ffffff !important;
+        color: #374151 !important;
+        font-size: 14px !important;
+        font-weight: 500 !important;
+        line-height: 1 !important;
+        margin: 0 !important;
+        box-shadow: none !important;
+    }
+
+    #{{ $tableId }}_wrapper .dataTables_paginate .paginate_button.current,
+    #{{ $tableId }}_wrapper .dataTables_paginate .paginate_button.current:hover,
+    #{{ $tableId }}_wrapper .dt-paging .dt-paging-button.current,
+    #{{ $paginationId }} .dataTables_paginate .paginate_button.current,
+    #{{ $paginationId }} .dataTables_paginate .paginate_button.current:hover,
+    #{{ $paginationId }} .dt-paging .dt-paging-button.current {
+        background: #2563eb !important;
+        border-color: #2563eb !important;
+        color: #ffffff !important;
+    }
+
+    #{{ $tableId }}_wrapper .dataTables_paginate .paginate_button:hover,
+    #{{ $tableId }}_wrapper .dt-paging .dt-paging-button:hover,
+    #{{ $paginationId }} .dataTables_paginate .paginate_button:hover,
+    #{{ $paginationId }} .dt-paging .dt-paging-button:hover {
+        background: #eff6ff !important;
+        border-color: #93c5fd !important;
+        color: #1d4ed8 !important;
+    }
+
+    #{{ $tableId }}_wrapper .dataTables_paginate .paginate_button.disabled,
+    #{{ $tableId }}_wrapper .dataTables_paginate .paginate_button.disabled:hover,
+    #{{ $tableId }}_wrapper .dt-paging .dt-paging-button.disabled,
+    #{{ $paginationId }} .dataTables_paginate .paginate_button.disabled,
+    #{{ $paginationId }} .dataTables_paginate .paginate_button.disabled:hover,
+    #{{ $paginationId }} .dt-paging .dt-paging-button.disabled {
+        background: #f9fafb !important;
+        border-color: #e5e7eb !important;
+        color: #9ca3af !important;
+        cursor: not-allowed !important;
+        opacity: 1 !important;
+    }
 </style>
 
 <script>
@@ -186,13 +247,13 @@
 
                             if (controls) {
                                 controls.innerHTML = '';
-                                controls.className = 'flex items-center justify-between gap-4 flex-nowrap';
-                                controls.setAttribute('style', 'display:flex !important; align-items:center !important; justify-content:space-between !important; gap:16px !important; flex-wrap:nowrap !important; width:100% !important;');
+                                controls.className = 'grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 w-full';
+                                controls.setAttribute('style', 'display:grid !important; grid-template-columns:minmax(0,1fr) auto !important; align-items:center !important; column-gap:16px !important; width:100% !important;');
                                 if ($filter.length) {
                                     $filter.addClass('order-1 shrink-0 whitespace-nowrap').appendTo(controls);
                                 }
                                 if ($length.length) {
-                                    $length.addClass('order-2 ml-auto shrink-0 whitespace-nowrap').appendTo(controls);
+                                    $length.addClass('order-2 shrink-0 whitespace-nowrap').appendTo(controls);
                                 }
                                 controls.querySelectorAll('.dataTables_filter, .dt-search, .dataTables_length, .dt-length')
                                     .forEach((el) => {
@@ -202,6 +263,18 @@
                                         el.style.whiteSpace = 'nowrap';
                                         el.style.flexWrap = 'nowrap';
                                         el.style.width = 'auto';
+                                    });
+                                controls.querySelectorAll('.dataTables_filter, .dt-search').forEach((el) => {
+                                        el.style.flex = '1 1 auto';
+                                        el.style.justifyContent = 'flex-start';
+                                        el.style.minWidth = '0';
+                                        el.style.width = '100%';
+                                    });
+                                controls.querySelectorAll('.dataTables_length, .dt-length').forEach((el) => {
+                                        el.style.flex = '0 0 auto';
+                                        el.style.justifyContent = 'flex-end';
+                                        el.style.justifySelf = 'end';
+                                        el.style.marginLeft = '0';
                                     });
                                 controls.querySelectorAll('label').forEach((label) => {
                                         label.style.display = 'inline-flex';
@@ -215,6 +288,10 @@
                                     .forEach((field) => {
                                         field.style.display = 'inline-block';
                                         field.style.verticalAlign = 'middle';
+                                    });
+                                controls.querySelectorAll('.dataTables_filter input, .dt-search .dt-input').forEach((field) => {
+                                        field.style.width = '100%';
+                                        field.style.maxWidth = '300px';
                                     });
                             }
                         @endif
@@ -305,6 +382,12 @@
                     {{ "Tutup" }}
                 </button>
             </div>
+
+            @if ($showControls)
+                <div class="px-6 pt-4 pb-2 flex-shrink-0 border-b border-gray-100">
+                    <div id="{{ $controlsId }}"></div>
+                </div>
+            @endif
 
             <div class="flex-1 overflow-auto p-6" style="min-height: 0;">
                 <table id="{{ $tableId }}" class="min-w-full text-sm display nowrap stripe hover" style="width:100%">
