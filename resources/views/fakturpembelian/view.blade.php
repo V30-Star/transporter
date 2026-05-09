@@ -62,6 +62,20 @@
             display: none !important
         }
 
+        .fpb-ket-biaya {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+            align-items: start;
+        }
+
+        @media (min-width: 768px) {
+            .fpb-ket-biaya {
+                grid-template-columns: minmax(0, 72%) minmax(280px, 28%);
+                gap: 1.5rem;
+            }
+        }
+
         /* select supplier tanpa caret */
         #supplierSelect,
         #supplierSelect:disabled {
@@ -340,15 +354,6 @@
                         @enderror
                     </div>
 
-                    <div class="lg:col-span-12">
-                        <label class="block text-sm font-medium">Keterangan</label>
-                        <textarea readonly name="fket" rows="3"
-                            class="w-full border rounded px-3 py-2 text-gray-700 @error('fket') border-red-500 @enderror"
-                            placeholder="Tulis keterangan tambahan di sini...">{{ old('fket', $fakturpembelian->fket) }}</textarea>
-                        @error('fket')
-                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
                 </div>
 
                 <script>
@@ -409,11 +414,21 @@
                 </script>
 
                 <div x-data="itemsTable()" x-init="init()" class="mt-6 space-y-2">
-                    <div class="flex justify-end mt-6">
-                        <div class="min-w-0 overflow-hidden w-full max-w-xs">
+                    <div class="fpb-ket-biaya">
+                        <div class="min-w-0">
+                            <label class="block text-sm font-medium">Keterangan</label>
+                            <textarea name="fket" rows="3" readonly disabled
+                                class="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed text-gray-700 @error('fket') border-red-500 @enderror"
+                                placeholder="Tulis keterangan tambahan di sini...">{{ old('fket', $fakturpembelian->fket) }}</textarea>
+                            @error('fket')
+                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div class="min-w-0 overflow-hidden">
                             <label class="block text-sm font-medium mb-2">Hitung Biaya</label>
                             <div
-                                class="hpp-box h-full min-h-[96px] bg-gray-50 p-3 rounded-lg border border-gray-200 shadow-sm flex flex-col justify-center gap-3">
+                                class="hpp-box min-h-[96px] bg-gray-50 p-3 rounded-lg border border-gray-200 shadow-sm flex flex-col justify-center gap-3">
                                 <input type="text" :value="rupiah(biayaGlobal)" readonly disabled
                                     class="w-full border rounded px-3 py-2 text-right font-mono bg-gray-100 cursor-not-allowed text-gray-700">
 
