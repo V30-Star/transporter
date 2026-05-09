@@ -345,7 +345,18 @@
                                     <tr class="border-t align-top">
                                         <td class="p-2" x-text="i + 1"></td>
                                         <td class="p-2 font-mono text-xs" x-text="it.fitemcode"></td>
-                                        <td class="p-2 text-gray-800 text-sm" x-text="it.fitemname"></td>
+                                        <td class="p-2">
+                                            <div class="flex w-full max-w-full">
+                                                <input type="text"
+                                                    class="min-w-0 flex-1 border rounded-l px-2 py-1 bg-gray-100 text-gray-600 text-sm"
+                                                    :value="it.fitemname" disabled>
+                                                <button type="button" @click="openDesc(it)"
+                                                    class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100"
+                                                    title="Deskripsi">
+                                                    <x-heroicon-o-document-text class="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </td>
                                         <td class="p-2">
                                             <template x-if="it.units && it.units.length > 1">
                                                 <select class="w-full border rounded px-1 py-0.5 text-xs"
@@ -425,17 +436,6 @@
                                         </td>
                                     </tr>
 
-                                    <!-- ROW DESC (di bawah Nama Produk - RESTRICTED WIDTH) -->
-                                    <tr class="border-b">
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-2" colspan="3">
-                                            <textarea x-model="it.fdesc" rows="3" class="w-full border rounded px-2 py-1 text-xs"
-                                                placeholder="Deskripsi item (opsional)"></textarea>
-                                        </td>
-                                        <td class="p-0" colspan="5"></td>
-                                    </tr>
-                                    <!-- Removed inner tbody closing -->
                                 </template>
 
 
@@ -461,9 +461,16 @@
 
                                     <!-- Nama Produk (readonly) -->
                                     <td class="p-2">
-                                        <input type="text"
-                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
-                                            :value="draft.fitemname" disabled>
+                                        <div class="flex w-full max-w-full">
+                                            <input type="text"
+                                                class="min-w-0 flex-1 border rounded-l px-2 py-1 bg-gray-100 text-gray-600 text-sm"
+                                                :value="draft.fitemname" disabled>
+                                            <button type="button" @click="openDesc(draft)"
+                                                class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100"
+                                                title="Deskripsi">
+                                                <x-heroicon-o-document-text class="w-4 h-4" />
+                                            </button>
+                                        </div>
                                     </td>
 
                                     <!-- Satuan -->
@@ -523,7 +530,7 @@
                                         <input type="text"
                                             class="border rounded px-2 py-1 w-20 text-right text-sm focus:ring-1 focus:ring-blue-500"
                                             x-ref="draftDisc" x-model="draft.fdisc" @input="recalc(draft)"
-                                            @keydown.enter.prevent="$refs.draftDesc?.focus()">
+                                            @keydown.enter.prevent="addIfComplete()">
                                     </td>
 
                                     <td class="p-2 text-right text-sm font-medium" x-text="fmt(draft.ftotal)"></td>
@@ -535,17 +542,6 @@
                                     </td>
                                 </tr>
 
-                                <!-- ROW DRAFT DESC RESTRICTED -->
-                                <tr class="border-b bg-blue-50/30">
-                                    <td class="p-0"></td>
-                                    <td class="p-0"></td>
-                                    <td class="p-2" colspan="3">
-                                        <textarea x-model="draft.fdesc" x-ref="draftDesc" rows="3"
-                                            class="w-full border rounded px-2 py-1 text-xs focus:ring-1 focus:ring-blue-500"
-                                            placeholder="Deskripsi item (opsional)" @keydown.enter.prevent="addIfComplete()"></textarea>
-                                    </td>
-                                    <td class="p-0" colspan="5"></td>
-                                </tr>
                             </tbody>
                         </table>
                     </div>
@@ -1895,9 +1891,22 @@
             descSavedIndex: null,
             descValue: '',
             showCustomerRequired: false,
-            openDesc() {},
-            closeDesc() {},
-            applyDesc() {},
+            openDesc(row) {
+                this.descTarget = row;
+                this.descValue = row?.fdesc || '';
+                this.showDescModal = true;
+            },
+            closeDesc() {
+                this.showDescModal = false;
+                this.descTarget = null;
+                this.descValue = '';
+            },
+            applyDesc() {
+                if (this.descTarget) {
+                    this.descTarget.fdesc = this.descValue;
+                }
+                this.closeDesc();
+            },
 
             itemKey(it) {
                 return `${(it.fitemcode ?? '').toString().trim()}::${(it.frefdtno ?? '').toString().trim()}`;
@@ -2262,4 +2271,3 @@
         });
     </script>
 @endpush
-

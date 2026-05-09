@@ -305,12 +305,14 @@
                                             <td class="p-2" x-text="i + 1"></td>
                                             <td class="p-2 font-mono" x-text="it.fitemcode"></td>
                                             <td class="p-2 text-gray-800">
-                                                <div x-text="it.fitemname"></div>
-                                                <!-- Tampilkan deskripsi yang sudah tersimpan (READ ONLY) -->
-                                                <div x-show="it.fdesc" class="mt-1 text-xs">
-                                                    <span
-                                                        class="inline-block px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 mr-2">Deskripsi</span>
-                                                    <span class="align-middle text-gray-600" x-text="it.fdesc"></span>
+                                                <div class="flex items-center gap-2">
+                                                    <div class="flex-1 min-w-0" x-text="it.fitemname"></div>
+                                                    <button type="button" @click="openDesc(it)"
+                                                        class="inline-flex h-9 w-9 items-center justify-center rounded border transition"
+                                                        :class="it.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
+                                                        title="Deskripsi item">
+                                                        <x-heroicon-o-document-text class="h-4 w-4" />
+                                                    </button>
                                                 </div>
                                             </td>
                                             <td class="p-2" x-text="it.fsatuan"></td>
@@ -534,18 +536,15 @@
 
                                     <div class="px-5 py-4 space-y-2">
                                         <label class="block text-sm text-gray-700">Deskripsi</label>
-                                        <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2"
-                                            placeholder="Tulis deskripsi item di sini..."></textarea>
+                                        <textarea x-model="descValue" rows="5"
+                                            class="w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed text-gray-600"
+                                            readonly></textarea>
                                     </div>
 
                                     <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
                                         <button type="button" @click="closeDesc()"
                                             class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
-                                            Batal
-                                        </button>
-                                        <button type="button" @click="applyDesc()"
-                                            class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
-                                            Simpan
+                                            Tutup
                                         </button>
                                     </div>
                                 </div>
@@ -1042,9 +1041,19 @@
                     descTarget: 'draft',
                     descSavedIndex: null,
                     descValue: '',
-                    openDesc() {},
-                    closeDesc() {},
-                    applyDesc() {},
+                    _descTarget: null,
+                    openDesc(targetRow) {
+                        this._descTarget = targetRow;
+                        this.descValue = targetRow?.fdesc || '';
+                        this.showDescModal = true;
+                    },
+                    closeDesc() {
+                        this.showDescModal = false;
+                        this._descTarget = null;
+                    },
+                    applyDesc() {
+                        this.closeDesc();
+                    },
 
                     itemKey(it) {
                         return `${(it.fitemcode ?? '').toString().trim()}::${(it.frefcode ?? '').toString().trim()}`;

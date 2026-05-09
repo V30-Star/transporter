@@ -399,7 +399,18 @@
                                             <tr class="border-t align-top">
                                                 <td class="p-2" x-text="i + 1"></td>
                                                 <td class="p-2 font-mono" x-text="it.fprdcode"></td>
-                                                <td class="p-2 text-gray-800" x-text="it.fitemname"></td>
+                                                <td class="p-2">
+                                                    <div class="flex w-full max-w-full">
+                                                        <input type="text"
+                                                            class="min-w-0 flex-1 border rounded-l px-2 py-1 bg-gray-100 text-gray-600 text-sm"
+                                                            :value="it.fitemname" disabled>
+                                                        <button type="button" @click="openDesc('saved', i, true)"
+                                                            class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100"
+                                                            title="Deskripsi">
+                                                            <x-heroicon-o-document-text class="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                </td>
                                                 <td class="p-2">
                                                     <template x-if="it.units && it.units.length > 1">
                                                         <select class="w-full border rounded px-2 py-1 text-xs bg-gray-100 text-gray-600"
@@ -435,17 +446,6 @@
                                                     <button type="button" disabled
                                                         class="px-3 py-1 rounded text-xs bg-gray-100 text-gray-400 cursor-not-allowed">Hapus</button>
                                                 </td>
-                                            </tr>
-
-                                            <!-- ROW DESC -->
-                                            <tr class="border-b">
-                                                <td class="p-0"></td>
-                                                <td class="p-0"></td>
-                                                <td class="p-2" colspan="2">
-                                                    <textarea x-model="it.fdesc" rows="1" readonly class="w-full border rounded px-2 py-1 text-xs bg-gray-100 text-gray-600"
-                                                        placeholder="Deskripsi item (opsional)"></textarea>
-                                                </td>
-                                                <td class="p-0" colspan="6"></td>
                                             </tr>
 
                                             <!-- Hidden inputs row -->
@@ -655,6 +655,7 @@
                                         <div class="px-5 py-4 space-y-2">
                                             <label class="block text-sm text-gray-700">Deskripsi</label>
                                             <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2"
+                                                :readonly="descReadonly"
                                                 placeholder="Tulis deskripsi item di sini..."></textarea>
                                         </div>
 
@@ -663,7 +664,7 @@
                                                 class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
                                                 Batal
                                             </button>
-                                            <button type="button" @click="applyDesc()"
+                                            <button x-show="!descReadonly" type="button" @click="applyDesc()"
                                                 class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
                                                 Simpan
                                             </button>
@@ -1033,7 +1034,18 @@
                                                     <tr class="border-t align-top">
                                                         <td class="p-2" x-text="i + 1"></td>
                                                         <td class="p-2 font-mono" x-text="it.fprdcode"></td>
-                                                        <td class="p-2 text-gray-800" x-text="it.fitemname"></td>
+                                                        <td class="p-2">
+                                                            <div class="flex w-full max-w-full">
+                                                                <input type="text"
+                                                                    class="min-w-0 flex-1 border rounded-l px-2 py-1 bg-gray-100 text-gray-600 text-sm"
+                                                                    :value="it.fitemname" disabled>
+                                                                <button type="button" @click="openDesc('saved', i)"
+                                                                    class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100"
+                                                                    title="Deskripsi">
+                                                                    <x-heroicon-o-document-text class="w-4 h-4" />
+                                                                </button>
+                                                            </div>
+                                                        </td>
                                                         <td class="p-2">
                                                             <template x-if="it.units && it.units.length > 1">
                                                                 <select class="w-full border rounded px-2 py-1 text-xs"
@@ -1094,18 +1106,6 @@
                                                         </td>
                                                     </tr>
 
-                                                    <!-- ROW DESC RESTRICTED -->
-                                                    <tr class="border-b">
-                                                        <td class="p-0"></td>
-                                                        <td class="p-0"></td>
-                                                        <td class="p-0"></td>
-                                                        <td class="p-2" colspan="2">
-                                                            <textarea x-model="it.fdesc" rows="1" class="w-full border rounded px-2 py-1 text-xs"
-                                                                placeholder="Deskripsi item (opsional)"></textarea>
-                                                        </td>
-                                                        <td class="p-0" colspan="5"></td>
-                                                    </tr>
-
                                                     <!-- TIDAK ADA TEXTAREA DI SINI! -->
                                                 </tbody>
                                             </template>
@@ -1136,9 +1136,16 @@
 
                                                     <!-- Nama Produk (readonly) -->
                                                     <td class="p-2">
-                                                        <input type="text"
-                                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
-                                                            :value="draft.fitemname" disabled>
+                                                        <div class="flex w-full max-w-full">
+                                                            <input type="text"
+                                                                class="min-w-0 flex-1 border rounded-l px-2 py-1 bg-gray-100 text-gray-600"
+                                                                :value="draft.fitemname" disabled>
+                                                            <button type="button" @click="openDesc('draft')"
+                                                                class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100"
+                                                                title="Deskripsi">
+                                                                <x-heroicon-o-document-text class="w-4 h-4" />
+                                                            </button>
+                                                        </div>
                                                     </td>
 
                                                     <td class="p-2">
@@ -1189,7 +1196,7 @@
                                                             class="border rounded px-2 py-1 w-24 text-right"
                                                             x-ref="draftDisc" x-model="draft.fdisc"
                                                             @input="recalc(draft)"
-                                                            @keydown.enter.prevent="$refs.draftDesc?.focus()"
+                                                            @keydown.enter.prevent="addIfComplete()"
                                                             placeholder="10+2">
                                                     </td>
 
@@ -1205,17 +1212,6 @@
                                                     </td>
                                                 </tr>
 
-                                                <!-- ROW DRAFT DESC RESTRICTED -->
-                                                <tr class="border-b">
-                                                    <td class="p-0"></td>
-                                                    <td class="p-0"></td>
-                                                    <td class="p-0"></td>
-                                                    <td class="p-2" colspan="2">
-                                                        <textarea x-model="draft.fdesc" x-ref="draftDesc" rows="2" class="w-full border rounded px-4 py-1"
-                                                            placeholder="Deskripsi (opsional)" @keydown.enter.prevent="addIfComplete()"></textarea>
-                                                    </td>
-                                                    <td class="p-0" colspan="6"></td>
-                                                </tr>
                                             </tbody>
                                         </table>
                                     </div>
@@ -1310,6 +1306,7 @@
                                             <div class="px-5 py-4 space-y-2">
                                                 <label class="block text-sm text-gray-700">Deskripsi</label>
                                                 <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2"
+                                                    :readonly="descReadonly"
                                                     placeholder="Tulis deskripsi item di sini..."></textarea>
                                             </div>
 
@@ -1318,7 +1315,7 @@
                                                     class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
                                                     Batal
                                                 </button>
-                                                <button type="button" @click="applyDesc()"
+                                                <button x-show="!descReadonly" type="button" @click="applyDesc()"
                                                     class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
                                                     Simpan
                                                 </button>
@@ -1885,9 +1882,39 @@
             descTarget: 'draft',
             descSavedIndex: null,
             descValue: '',
-            openDesc() {},
-            closeDesc() {},
-            applyDesc() {},
+            descReadonly: false,
+            openDesc(target = 'draft', index = null, readonly = false) {
+                this.descTarget = target;
+                this.descSavedIndex = index;
+                this.descReadonly = readonly;
+
+                if (target === 'saved' && index !== null) {
+                    this.descValue = this.savedItems[index]?.fdesc || '';
+                } else if (target === 'edit') {
+                    this.descValue = this.editRow?.fdesc || '';
+                } else {
+                    this.descValue = this.draft?.fdesc || '';
+                }
+
+                this.showDescModal = true;
+            },
+            closeDesc() {
+                this.showDescModal = false;
+                this.descTarget = 'draft';
+                this.descSavedIndex = null;
+                this.descValue = '';
+                this.descReadonly = false;
+            },
+            applyDesc() {
+                if (this.descTarget === 'saved' && this.descSavedIndex !== null) {
+                    this.savedItems[this.descSavedIndex].fdesc = this.descValue;
+                } else if (this.descTarget === 'edit') {
+                    this.editRow.fdesc = this.descValue;
+                } else {
+                    this.draft.fdesc = this.descValue;
+                }
+                this.closeDesc();
+            },
 
             itemKey(it) {
                 return `${(it.fprdcode ?? '').toString().trim()}::${(it.frefdtno ?? '').toString().trim()}`;
@@ -2270,5 +2297,3 @@
         });
     </script>
 @endpush
-
-

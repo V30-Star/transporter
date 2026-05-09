@@ -261,7 +261,17 @@
                                         <tr class="border-t align-top">
                                             <td class="p-2" x-text="i + 1"></td>
                                             <td class="p-2 font-mono" x-text="it.fitemcode"></td>
-                                            <td class="p-2 text-gray-800" x-text="it.fitemname"></td>
+                                            <td class="p-2 text-gray-800">
+                                                <div class="flex items-center gap-2">
+                                                    <div class="flex-1 min-w-0" x-text="it.fitemname"></div>
+                                                    <button type="button" @click="openDesc(it)"
+                                                        class="inline-flex h-9 w-9 items-center justify-center rounded border transition"
+                                                        :class="it.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
+                                                        title="Deskripsi item">
+                                                        <x-heroicon-o-document-text class="h-4 w-4" />
+                                                    </button>
+                                                </div>
+                                            </td>
                                             <td class="p-2 text-left" x-text="it.fsatuan"></td>
                                             <td class="p-2 text-right">
                                                 <input type="number" class="border rounded px-2 py-1 w-24 text-right bg-white"
@@ -285,6 +295,7 @@
                                                 <input type="hidden" name="frefso[]" :value="it.frefso">
                                                 <input type="hidden" name="frefsoid[]" :value="it.frefsoid">
                                                 <input type="hidden" name="fqty[]" :value="it.fqty">
+                                                <input type="hidden" name="fdesc[]" :value="it.fdesc">
                                                 <input type="hidden" name="fketdt[]" :value="it.fketdt">
                                             </td>
                                         </tr>
@@ -314,11 +325,19 @@
                                         </td>
 
                                         <!-- Nama Produk (readonly) -->
-                                        <td class="p-2">
-                                            <input type="text"
-                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
-                                                :value="draft.fitemname" disabled>
-                                        </td>
+                                            <td class="p-2">
+                                                <div class="flex items-center gap-2">
+                                                    <input type="text"
+                                                        class="w-full flex-1 min-w-0 border rounded px-2 py-1 bg-gray-100 text-gray-600"
+                                                        :value="draft.fitemname" disabled>
+                                                    <button type="button" @click="openDesc(draft)"
+                                                        class="inline-flex h-9 w-9 items-center justify-center rounded border transition"
+                                                        :class="draft.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
+                                                        title="Deskripsi item">
+                                                        <x-heroicon-o-document-text class="h-4 w-4" />
+                                                    </button>
+                                                </div>
+                                            </td>
 
                                         <!-- Satuan -->
                                         <td class="p-2">
@@ -509,7 +528,7 @@
                     </div>
 
                     <!-- MODAL DESC (di dalam itemsTable) -->
-                    {{-- <div x-show="showDescModal" x-cloak class="fixed inset-0 z-[95] flex items-center justify-center"
+                    <div x-show="showDescModal" x-cloak class="fixed inset-0 z-[95] flex items-center justify-center"
                         x-transition.opacity>
                         <div class="absolute inset-0 bg-black/50" @click="closeDesc()"></div>
 
@@ -537,7 +556,7 @@
                                 </button>
                             </div>
                         </div>
-                    </div> --}}
+                    </div>
 
                     <input type="hidden" id="itemsCount" :value="savedItems.length">
 
@@ -1097,9 +1116,20 @@
             descTarget: 'draft',
             descSavedIndex: null,
             descValue: '',
-            openDesc() {},
-            closeDesc() {},
-            applyDesc() {},
+            _descTarget: null,
+            openDesc(targetRow) {
+                this._descTarget = targetRow;
+                this.descValue = targetRow?.fdesc || '';
+                this.showDescModal = true;
+            },
+            closeDesc() {
+                this.showDescModal = false;
+                this._descTarget = null;
+            },
+            applyDesc() {
+                if (this._descTarget) this._descTarget.fdesc = this.descValue;
+                this.closeDesc();
+            },
 
             itemKey(it) {
                 return `${(it.fitemcode ?? '').toString().trim()}::${(it.frefdtno ?? '').toString().trim()}`;

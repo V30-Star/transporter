@@ -338,15 +338,19 @@
                                     </td>
 
                                     {{-- Nama Produk + Deskripsi --}}
-                                    <td class="p-2 relative overflow-visible">
-                                        <input type="text"
-                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
-                                            :value="it.fitemname" disabled>
-                                        <textarea x-model="it.fdesc" rows="2"
-                                            class="border rounded px-2 py-1 text-xs text-gray-600 mt-1 relative z-10
-                                                {{ $action === 'delete' ? 'bg-gray-100 cursor-not-allowed' : '' }}"
-                                            style="width: calc(100% + 8rem);" placeholder="Deskripsi (opsional)" @focus="activeRow = it.uid"
-                                            @blur="activeRow = null" {{ $action === 'delete' ? 'disabled' : '' }}></textarea>
+                                    <td class="p-2">
+                                        <div class="flex items-center gap-2">
+                                            <input type="text"
+                                                class="flex-1 border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm min-w-0"
+                                                :value="it.fitemname" disabled>
+                                            <button type="button"
+                                                @click="openDesc(it, {{ $action === 'delete' ? 'true' : 'false' }})"
+                                                class="inline-flex h-9 w-9 items-center justify-center rounded border transition"
+                                                :class="it.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
+                                                title="Deskripsi item">
+                                                <x-heroicon-o-document-text class="h-4 w-4" />
+                                            </button>
+                                        </div>
                                     </td>
 
                                     {{-- Satuan --}}
@@ -472,13 +476,18 @@
                                         </div>
                                     </td>
 
-                                    <td class="p-2 relative overflow-visible">
-                                        <input type="text"
-                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
-                                            :value="draft.fitemname" disabled>
-                                        <textarea x-model="draft.fdesc" rows="2"
-                                            class="border rounded px-2 py-1 text-xs text-gray-600 mt-1 relative z-10" style="width: calc(100% + 8rem);"
-                                            placeholder="Deskripsi (opsional)"></textarea>
+                                    <td class="p-2">
+                                        <div class="flex items-center gap-2">
+                                            <input type="text"
+                                                class="flex-1 border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm min-w-0"
+                                                :value="draft.fitemname" disabled>
+                                            <button type="button" @click="openDesc(draft)"
+                                                class="inline-flex h-9 w-9 items-center justify-center rounded border transition"
+                                                :class="draft.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
+                                                title="Deskripsi item">
+                                                <x-heroicon-o-document-text class="h-4 w-4" />
+                                            </button>
+                                        </div>
                                     </td>
 
                                     {{-- Satuan Draft --}}
@@ -677,14 +686,16 @@
                         <div class="px-5 py-4 space-y-2">
                             <label class="block text-sm text-gray-700">Deskripsi</label>
                             <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2"
+                                :readonly="descReadonly"
+                                :class="descReadonly ? 'bg-gray-100 cursor-not-allowed text-gray-600' : ''"
                                 placeholder="Tulis deskripsi item di sini..."></textarea>
                         </div>
                         <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
                             <button type="button" @click="closeDesc()"
                                 class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
-                                Batal
+                                Tutup
                             </button>
-                            <button type="button" @click="applyDesc()"
+                            <button x-show="!descReadonly" type="button" @click="applyDesc()"
                                 class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
                                 Simpan
                             </button>
@@ -964,6 +975,7 @@
                 dupItemSatuan: '',
                 showDescModal: false,
                 descValue: '',
+                descReadonly: false,
                 _descTarget: null,
 
                 get totalHarga() {
@@ -1151,14 +1163,16 @@
                     });
                 },
 
-                openDesc(targetRow) {
+                openDesc(targetRow, readonly = false) {
                     this._descTarget = targetRow;
                     this.descValue = targetRow.fdesc || '';
+                    this.descReadonly = readonly;
                     this.showDescModal = true;
                 },
                 closeDesc() {
                     this.showDescModal = false;
                     this._descTarget = null;
+                    this.descReadonly = false;
                 },
                 applyDesc() {
                     if (this._descTarget) this._descTarget.fdesc = this.descValue;

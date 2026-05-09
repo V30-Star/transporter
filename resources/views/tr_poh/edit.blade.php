@@ -485,20 +485,27 @@
                                                         :value="it.fsatuan || '-'" disabled>
                                                 </div>
                                             </div>
-                                            <textarea x-model="it.fdesc" rows="2"
-                                                class="w-full border rounded px-2 py-1 text-xs text-gray-600 resize-none"
-                                                placeholder="Deskripsi (opsional)" @focus="activeRow = it.uid"
-                                                @blur="activeRow = null"></textarea>
+                                            <div class="flex justify-end">
+                                                <button type="button" @click="openDesc(it, {{ $isEdit ? 'false' : 'true' }})"
+                                                    class="inline-flex h-9 w-9 items-center justify-center rounded border transition"
+                                                    :class="it.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
+                                                    title="Deskripsi item">
+                                                    <x-heroicon-o-document-text class="h-4 w-4" />
+                                                </button>
+                                            </div>
                                         </div>
                                     @else
                                         <div class="flex items-start gap-2">
                                             <div class="min-w-0 flex-1 text-sm text-gray-800" x-text="it.fitemname"></div>
                                             <span class="w-20 shrink-0 text-sm" x-text="it.fsatuan || '-'"></span>
                                         </div>
-                                        <div x-show="it.fdesc" class="mt-1 text-xs">
-                                            <span
-                                                class="inline-block px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 mr-1">Deskripsi</span>
-                                            <span class="text-gray-600" x-text="it.fdesc"></span>
+                                        <div class="mt-1 flex justify-end">
+                                            <button type="button" @click="openDesc(it, true)"
+                                                class="inline-flex h-9 w-9 items-center justify-center rounded border transition"
+                                                :class="it.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
+                                                title="Deskripsi item">
+                                                <x-heroicon-o-document-text class="h-4 w-4" />
+                                            </button>
                                         </div>
                                     @endif
                                 </td>
@@ -635,9 +642,14 @@
                                                     :value="draft.fsatuan || '-'" disabled>
                                             </div>
                                         </div>
-                                        <textarea x-model="draft.fdesc" rows="2"
-                                            class="w-full border rounded px-2 py-1 text-xs text-gray-600 resize-none"
-                                            placeholder="Deskripsi (opsional)"></textarea>
+                                        <div class="flex justify-end">
+                                            <button type="button" @click="openDesc(draft)"
+                                                class="inline-flex h-9 w-9 items-center justify-center rounded border transition"
+                                                :class="draft.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
+                                                title="Deskripsi item">
+                                                <x-heroicon-o-document-text class="h-4 w-4" />
+                                            </button>
+                                        </div>
                                     </div>
                                 </td>
 
@@ -691,6 +703,35 @@
                         @endif
                     </tbody>
                 </table>
+            </div>
+
+            <div x-show="showDescModal" x-cloak class="fixed inset-0 z-[95] flex items-center justify-center"
+                x-transition.opacity>
+                <div class="absolute inset-0 bg-black/50" @click="closeDesc()"></div>
+                <div class="relative bg-white w-[92vw] max-w-lg rounded-2xl shadow-2xl overflow-hidden"
+                    x-transition.scale>
+                    <div class="px-5 py-4 border-b flex items-center">
+                        <x-heroicon-o-document-text class="w-6 h-6 text-blue-600 mr-2" />
+                        <h3 class="text-lg font-semibold text-gray-800" x-text="descReadonly ? 'Deskripsi Item' : 'Isi Deskripsi Item'"></h3>
+                    </div>
+                    <div class="px-5 py-4 space-y-2">
+                        <label class="block text-sm text-gray-700">Deskripsi</label>
+                        <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2"
+                            :readonly="descReadonly"
+                            :class="descReadonly ? 'bg-gray-100 cursor-not-allowed text-gray-600' : ''"
+                            placeholder="Tulis deskripsi item di sini..."></textarea>
+                    </div>
+                    <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
+                        <button type="button" @click="closeDesc()"
+                            class="h-9 px-4 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
+                            Tutup
+                        </button>
+                        <button x-show="!descReadonly" type="button" @click="applyDesc()"
+                            class="h-9 px-4 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
+                            Simpan
+                        </button>
+                    </div>
+                </div>
             </div>
 
             {{-- Add PR + Panel Totals --}}
@@ -1195,6 +1236,10 @@
             showDupItemModal: false,
             dupItemName: '',
             dupItemSatuan: '',
+            showDescModal: false,
+            descValue: '',
+            descReadonly: false,
+            _descTarget: null,
 
             normalizeNoAcak(value) {
                 return (value || '').toString().replace(/\D/g, '').slice(0, 3);
@@ -1259,6 +1304,21 @@
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
                 });
+            },
+            openDesc(targetRow, readonly = false) {
+                this._descTarget = targetRow;
+                this.descValue = targetRow?.fdesc || '';
+                this.descReadonly = readonly;
+                this.showDescModal = true;
+            },
+            closeDesc() {
+                this.showDescModal = false;
+                this._descTarget = null;
+                this.descReadonly = false;
+            },
+            applyDesc() {
+                if (this._descTarget) this._descTarget.fdesc = this.descValue;
+                this.closeDesc();
             },
 
             onCurrencyChange() {

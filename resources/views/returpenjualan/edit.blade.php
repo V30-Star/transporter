@@ -401,10 +401,15 @@
                                             <tr class="border-b transition-colors hover:bg-gray-50">
                                                 <td class="p-0"></td>
                                                 <td class="p-0"></td>
-                                                <td class="p-2" colspan="2">
-                                                    <textarea x-model="it.fdesc" rows="3" class="w-full border rounded px-2 py-1 text-xs"
-                                                        placeholder="Deskripsi item (opsional)"></textarea>
+                                                <td class="p-2">
+                                                    <button type="button" @click="openDesc(it)"
+                                                        class="inline-flex h-9 w-9 items-center justify-center rounded border transition"
+                                                        :class="it.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
+                                                        title="Deskripsi item">
+                                                        <x-heroicon-o-document-text class="h-4 w-4" />
+                                                    </button>
                                                 </td>
+                                                <td class="p-0"></td>
                                                 <td class="p-1" colspan="6"></td>
                                             </tr>
                                         </template>
@@ -426,8 +431,16 @@
                                                 </div>
                                             </td>
                                             <td class="p-2">
-                                                <input type="text" class="w-full border rounded px-2 py-1 bg-gray-100"
-                                                    :value="draft.fitemname" disabled>
+                                                <div class="flex items-center gap-2">
+                                                    <input type="text" class="flex-1 border rounded px-2 py-1 bg-gray-100 min-w-0"
+                                                        :value="draft.fitemname" disabled>
+                                                    <button type="button" @click="openDesc(draft)"
+                                                        class="inline-flex h-9 w-9 items-center justify-center rounded border transition"
+                                                        :class="draft.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
+                                                        title="Deskripsi item">
+                                                        <x-heroicon-o-document-text class="h-4 w-4" />
+                                                    </button>
+                                                </div>
                                             </td>
                                             <td class="p-2">
                                                 <template x-if="draft.units.length > 1">
@@ -476,10 +489,13 @@
                                         <tr class="border-b">
                                             <td class="p-0"></td>
                                             <td class="p-0"></td>
-                                            <td class="p-2" colspan="7">
-                                                <textarea x-model="draft.fdesc" rows="1" class="w-full border rounded px-2 py-1 text-xs"
-                                                    placeholder="Deskripsi draft (opsional)"></textarea>
-                                            </td>
+                                            <td class="p-0"></td>
+                                            <td class="p-0"></td>
+                                            <td class="p-0"></td>
+                                            <td class="p-0"></td>
+                                            <td class="p-0"></td>
+                                            <td class="p-0"></td>
+                                            <td class="p-0"></td>
                                             <td class="p-0"></td>
                                         </tr>
                                     </tbody>
@@ -2930,9 +2946,20 @@
             descTarget: 'draft',
             descSavedIndex: null,
             descValue: '',
-            openDesc() {},
-            closeDesc() {},
-            applyDesc() {},
+            _descTarget: null,
+            openDesc(targetRow) {
+                this._descTarget = targetRow;
+                this.descValue = targetRow?.fdesc || '';
+                this.showDescModal = true;
+            },
+            closeDesc() {
+                this.showDescModal = false;
+                this._descTarget = null;
+            },
+            applyDesc() {
+                if (this._descTarget) this._descTarget.fdesc = this.descValue;
+                this.closeDesc();
+            },
 
             itemKey(it) {
                 return `${(it.fitemcode ?? '').toString().trim()}::${(it.frefdtno ?? '').toString().trim()}`;
@@ -3959,5 +3986,4 @@
         });
     </script>
 @endpush
-
 
