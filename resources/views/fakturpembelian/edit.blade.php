@@ -579,7 +579,8 @@
                                                         class="min-w-0 flex-1 border rounded-l px-2 py-1 bg-gray-100 text-gray-600 text-sm"
                                                         :value="it.fitemname" disabled>
                                                     <button type="button" @click="openDesc('saved', i, true)"
-                                                        class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100"
+                                                        class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
+                                                        :class="descButtonClass(it.fdesc)"
                                                         title="Deskripsi">
                                                         <x-heroicon-o-document-text class="w-4 h-4" />
                                                     </button>
@@ -737,7 +738,25 @@
                                     <h3 class="text-lg font-semibold text-gray-800">Deskripsi Item</h3>
                                 </div>
 
-                                <div class="px-5 py-4 space-y-2">
+                                <div class="px-5 py-4 space-y-4">
+                                    <div class="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+                                        <div class="flex items-start justify-between gap-3">
+                                            <div class="space-y-2 text-sm text-slate-700">
+                                                <div>
+                                                    <span class="font-medium text-slate-900">Kode Produk:</span>
+                                                    <span x-text="descItemCode || '-'"></span>
+                                                </div>
+                                                <div>
+                                                    <span class="font-medium text-slate-900">Nama Produk:</span>
+                                                    <span x-text="descItemName || '-'"></span>
+                                                </div>
+                                            </div>
+                                            <button type="button" @click="copyDescPayload()"
+                                                class="inline-flex h-9 items-center rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 hover:bg-slate-100">
+                                                <span x-text="descCopied ? 'Tersalin' : 'Copy'"></span>
+                                            </button>
+                                        </div>
+                                    </div>
                                     <label class="block text-sm text-gray-700">Deskripsi</label>
                                     <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2" readonly
                                         placeholder="Belum ada deskripsi."></textarea>
@@ -1202,7 +1221,8 @@
                                                             class="min-w-0 flex-1 border rounded-l px-2 py-1 bg-gray-100 text-gray-600 text-sm"
                                                             :value="it.fitemname" disabled>
                                                         <button type="button" @click="openDesc('saved', i)"
-                                                            class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100"
+                                                            class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
+                                                            :class="descButtonClass(it.fdesc)"
                                                             title="Deskripsi">
                                                             <x-heroicon-o-document-text class="w-4 h-4" />
                                                         </button>
@@ -1327,7 +1347,8 @@
                                                         class="min-w-0 flex-1 border rounded-l px-2 py-1 bg-gray-100 text-gray-600"
                                                         :value="draft.fitemname" disabled>
                                                     <button type="button" @click="openDesc('draft')"
-                                                        class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100"
+                                                        class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
+                                                        :class="descButtonClass(draft.fdesc)"
                                                         title="Deskripsi">
                                                         <x-heroicon-o-document-text class="w-4 h-4" />
                                                     </button>
@@ -1715,7 +1736,25 @@
                                         <h3 class="text-lg font-semibold text-gray-800">Isi Deskripsi Item</h3>
                                     </div>
 
-                                    <div class="px-5 py-4 space-y-2">
+                                    <div class="px-5 py-4 space-y-4">
+                                        <div class="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3">
+                                            <div class="flex items-start justify-between gap-3">
+                                                <div class="space-y-2 text-sm text-slate-700">
+                                                    <div>
+                                                        <span class="font-medium text-slate-900">Kode Produk:</span>
+                                                        <span x-text="descItemCode || '-'"></span>
+                                                    </div>
+                                                    <div>
+                                                        <span class="font-medium text-slate-900">Nama Produk:</span>
+                                                        <span x-text="descItemName || '-'"></span>
+                                                    </div>
+                                                </div>
+                                                <button type="button" @click="copyDescPayload()"
+                                                    class="inline-flex h-9 items-center rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 hover:bg-slate-100">
+                                                    <span x-text="descCopied ? 'Tersalin' : 'Copy'"></span>
+                                                </button>
+                                            </div>
+                                        </div>
                                         <label class="block text-sm text-gray-700">Deskripsi</label>
                                         <textarea x-model="descValue" rows="5" class="w-full border rounded px-3 py-2"
                                             :readonly="descReadonly"
@@ -1756,6 +1795,33 @@
                                     <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
                                         <button type="button"
                                             @click="showSupplierRequired = false; document.getElementById('modal_filter_supplier_id')?.focus()"
+                                            class="h-9 px-4 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
+                                            OK
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div x-show="showDescCodeRequired" x-cloak
+                                class="fixed inset-0 z-[94] flex items-center justify-center" x-transition.opacity>
+                                <div class="absolute inset-0 bg-black/50" @click="showDescCodeRequired = false"></div>
+
+                                <div class="relative bg-white w-[92vw] max-w-md rounded-2xl shadow-2xl overflow-hidden"
+                                    x-transition.scale>
+                                    <div class="px-5 py-4 border-b flex items-center">
+                                        <x-heroicon-o-exclamation-triangle class="w-6 h-6 text-amber-500 mr-2" />
+                                        <h3 class="text-lg font-semibold text-gray-800">Isi Kode Produk Dulu</h3>
+                                    </div>
+
+                                    <div class="px-5 py-4">
+                                        <p class="text-sm text-gray-700">
+                                            Isi atau pilih kode produk terlebih dahulu sebelum mengisi deskripsi item.
+                                        </p>
+                                    </div>
+
+                                    <div class="px-5 py-3 border-t flex items-center justify-end gap-2">
+                                        <button type="button"
+                                            @click="showDescCodeRequired = false; $refs.draftCode?.focus()"
                                             class="h-9 px-4 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
                                             OK
                                         </button>
@@ -2354,6 +2420,31 @@
                     return false;
                 },
 
+                setSupplierFromReferenceHeader(header) {
+                    const supplierCode = (header?.fsupplier || header?.fsuppliercode || '').toString().trim();
+                    if (!supplierCode) return;
+
+                    const hiddenInput = document.getElementById('supplierCodeHidden');
+                    const selectInput = document.getElementById('modal_filter_supplier_id');
+                    const tempoInput = document.getElementById('ftempohr');
+
+                    if (hiddenInput) {
+                        hiddenInput.value = supplierCode;
+                    }
+
+                    if (selectInput) {
+                        selectInput.value = supplierCode;
+                        selectInput.dispatchEvent(new Event('change', { bubbles: true }));
+
+                        const option = Array.from(selectInput.options || []).find(opt => (opt.value || '').trim() === supplierCode);
+                        const tempo = Number(option?.getAttribute('data-tempo') || 0);
+                        if (tempoInput && Number.isFinite(tempo)) {
+                            tempoInput.value = tempo;
+                            tempoInput.dispatchEvent(new Event('input', { bubbles: true }));
+                        }
+                    }
+                },
+
                 onCodeTypedRow(row) {
                     if ((row.fitemcode || '').toString().trim() !== '' && !this.requireSupplierBeforeManualProduct()) {
                         row.fitemcode = '';
@@ -2374,6 +2465,7 @@
                     } = e.detail || {};
                     if (!items || !Array.isArray(items)) return;
 
+                    this.setSupplierFromReferenceHeader(header);
                     this.resetDraft();
                     this.addManyFromSource(header, items, 'PO');
                 },
@@ -2385,6 +2477,7 @@
                     } = e.detail || {};
                     if (!items || !Array.isArray(items)) return;
 
+                    this.setSupplierFromReferenceHeader(header);
                     this.resetDraft();
                     this.addManyFromSource(header, items, 'PB');
                 },
@@ -2563,18 +2656,42 @@
                 descValue: '',
                 descReadonly: false,
                 showSupplierRequired: false,
+                showDescCodeRequired: false,
+                descItemCode: '',
+                descItemName: '',
+                descCopied: false,
+                hasDesc(value) {
+                    return String(value ?? '').trim() !== '';
+                },
+                descButtonClass(value) {
+                    return this.hasDesc(value)
+                        ? 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                        : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100';
+                },
+                getDescRow(target = 'draft', index = null) {
+                    if (target === 'saved' && index !== null) {
+                        return this.savedItems[index] || null;
+                    }
+
+                    return this.draft || null;
+                },
                 openDesc(target = 'draft', index = null, readonly = false) {
+                    const row = this.getDescRow(target, index);
+                    const itemCode = (row?.fitemcode || '').toString().trim();
+
+                    if (!itemCode) {
+                        this.showDescCodeRequired = true;
+                        return;
+                    }
+
                     this.descTarget = target;
                     this.descSavedIndex = index;
                     this.descReadonly = readonly;
+                    this.descItemCode = itemCode;
+                    this.descItemName = (row?.fitemname || '').toString().trim();
+                    this.descCopied = false;
 
-                    if (target === 'saved' && index !== null) {
-                        this.descValue = this.savedItems[index]?.fdesc || '';
-                    } else if (target === 'edit') {
-                        this.descValue = this.editRow?.fdesc || '';
-                    } else {
-                        this.descValue = this.draft?.fdesc || '';
-                    }
+                    this.descValue = (row?.fdesc || '').toString();
 
                     this.showDescModal = true;
                 },
@@ -2584,12 +2701,39 @@
                     this.descSavedIndex = null;
                     this.descValue = '';
                     this.descReadonly = false;
+                    this.descItemCode = '';
+                    this.descItemName = '';
+                    this.descCopied = false;
+                },
+                async copyDescPayload() {
+                    const text = [
+                        `Kode Produk: ${this.descItemCode || '-'}`,
+                        `Nama Produk: ${this.descItemName || '-'}`,
+                        `Deskripsi: ${this.descValue || '-'}`
+                    ].join('\n');
+
+                    try {
+                        if (navigator?.clipboard?.writeText) {
+                            await navigator.clipboard.writeText(text);
+                        } else {
+                            const temp = document.createElement('textarea');
+                            temp.value = text;
+                            document.body.appendChild(temp);
+                            temp.select();
+                            document.execCommand('copy');
+                            temp.remove();
+                        }
+                        this.descCopied = true;
+                        setTimeout(() => {
+                            this.descCopied = false;
+                        }, 1500);
+                    } catch (error) {
+                        console.error(error);
+                    }
                 },
                 applyDesc() {
                     if (this.descTarget === 'saved' && this.descSavedIndex !== null) {
                         this.savedItems[this.descSavedIndex].fdesc = this.descValue;
-                    } else if (this.descTarget === 'edit') {
-                        this.editRow.fdesc = this.descValue;
                     } else {
                         this.draft.fdesc = this.descValue;
                     }
@@ -2924,14 +3068,16 @@
                         const duplicates = items.filter(src => currentKeys.has(keyOf(src)));
                         const uniques = items.filter(src => !currentKeys.has(keyOf(src)));
 
+                        const header = json.header || row;
+
                         if (duplicates.length > 0) {
-                            this.openDupModal(row, duplicates, uniques);
+                            this.openDupModal(header, duplicates, uniques);
                             return;
                         }
 
                         window.dispatchEvent(new CustomEvent('po-picked', {
                             detail: {
-                                header: row,
+                                header,
                                 items
                             }
                         }));
@@ -3073,14 +3219,16 @@
                         const duplicates = items.filter(src => currentKeys.has(keyOf(src)));
                         const uniques = items.filter(src => !currentKeys.has(keyOf(src)));
 
+                        const header = json.header || row;
+
                         if (duplicates.length > 0) {
-                            this.openDupModal(row, duplicates, uniques);
+                            this.openDupModal(header, duplicates, uniques);
                             return;
                         }
 
                         window.dispatchEvent(new CustomEvent('pb-picked', {
                             detail: {
-                                header: row,
+                                header,
                                 items
                             }
                         }));
