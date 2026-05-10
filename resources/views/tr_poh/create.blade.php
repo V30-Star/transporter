@@ -354,9 +354,9 @@
                                     <td class="p-2 align-top overflow-visible" colspan="2">
                                         <div class="flex min-w-0 flex-col gap-1 overflow-visible">
                                             <div class="flex items-start gap-2">
-                                                <textarea rows="2"
-                                                    class="min-w-0 flex-1 border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm resize-none leading-5"
-                                                    x-model="it.fitemname" disabled></textarea>
+                                                <div
+                                                    class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                    x-text="it.fitemname"></div>
                                                 <div class="w-20 shrink-0">
                                                     <select class="w-full border rounded px-2 py-1 text-sm"
                                                         x-show="it.units.length > 1" :id="'unit_saved_' + i"
@@ -438,8 +438,16 @@
                                     </td>
 
                                     {{-- Total Harga --}}
-                                    <td class="p-2 text-right text-sm font-medium" x-text="fmtCurr(it.ftotal)"></td>
-                                    <td class="p-2 text-right text-sm font-medium" x-text="rupiah(itemTotalRp(it.ftotal))"></td>
+                                    <td class="p-2">
+                                        <input type="text"
+                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm text-right"
+                                            :value="fmtCurr(it.ftotal)" disabled>
+                                    </td>
+                                    <td class="p-2">
+                                        <input type="text"
+                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm text-right"
+                                            :value="rupiah(itemTotalRp(it.ftotal))" disabled>
+                                    </td>
 
                                     {{-- Aksi --}}
                                     <td class="p-2 text-center">
@@ -492,9 +500,9 @@
                                 <td class="p-2 align-top overflow-visible" colspan="2">
                                     <div class="flex min-w-0 flex-col gap-1 overflow-visible">
                                         <div class="flex items-start gap-2">
-                                            <textarea rows="2"
-                                                class="min-w-0 flex-1 border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm resize-none leading-5"
-                                                x-model="draft.fitemname" disabled></textarea>
+                                            <div
+                                                class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                x-text="draft.fitemname"></div>
                                             <div class="w-20 shrink-0">
                                                 <select id="draftUnitSelect" class="w-full border rounded px-2 py-1 text-sm"
                                                     x-show="draft.units.length > 1" @keydown.enter.prevent="$refs.draftQty?.focus()">
@@ -543,8 +551,16 @@
                                         @keydown.enter.prevent="addIfComplete()">
                                 </td>
 
-                                <td class="p-2 text-right text-sm font-medium" x-text="fmtCurr(draft.ftotal)"></td>
-                                <td class="p-2 text-right text-sm font-medium" x-text="rupiah(itemTotalRp(draft.ftotal))"></td>
+                                <td class="p-2">
+                                    <input type="text"
+                                        class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm text-right"
+                                        :value="fmtCurr(draft.ftotal)" disabled>
+                                </td>
+                                <td class="p-2">
+                                    <input type="text"
+                                        class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm text-right"
+                                        :value="rupiah(itemTotalRp(draft.ftotal))" disabled>
+                                </td>
 
                                 <td class="p-2 text-center">
                                     <button type="button" @click="addIfComplete()"
@@ -1781,4 +1797,8 @@
         });
     </script>
 @endpush
+
+
+
+
 

@@ -347,9 +347,9 @@
                                         <td class="p-2 font-mono text-xs" x-text="it.fitemcode"></td>
                                         <td class="p-2">
                                             <div class="flex w-full max-w-full">
-                                                <textarea rows="2"
-                                                    class="min-w-0 flex-1 border rounded-l px-2 py-1 bg-gray-100 text-gray-600 text-sm resize-none leading-5"
-                                                    x-model="it.fitemname" disabled></textarea>
+                                                <div
+                                                    class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                    x-text="it.fitemname"></div>
                                                 <button type="button" @click="openDesc(it)"
                                                     class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100"
                                                     title="Deskripsi">
@@ -403,7 +403,11 @@
                                                 x-model="it.fdisc" @input="recalc(it)">
                                         </td>
 
-                                        <td class="p-2 text-right text-sm font-medium" x-text="fmt(it.ftotal)"></td>
+                                        <td class="p-2">
+                                            <input type="text"
+                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm text-right"
+                                                :value="fmt(it.ftotal)" disabled>
+                                        </td>
 
                                         <td class="p-2 text-center text-xs">
                                             <button type="button" @click="removeSaved(i)"
@@ -462,9 +466,9 @@
                                     <!-- Nama Produk (readonly) -->
                                     <td class="p-2">
                                         <div class="flex w-full max-w-full">
-                                            <textarea rows="2"
-                                                class="min-w-0 flex-1 border rounded-l px-2 py-1 bg-gray-100 text-gray-600 text-sm resize-none leading-5"
-                                                x-model="draft.fitemname" disabled></textarea>
+                                            <div
+                                                class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                x-text="draft.fitemname"></div>
                                             <button type="button" @click="openDesc(draft)"
                                                 class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100"
                                                 title="Deskripsi">
@@ -533,7 +537,11 @@
                                             @keydown.enter.prevent="addIfComplete()">
                                     </td>
 
-                                    <td class="p-2 text-right text-sm font-medium" x-text="fmt(draft.ftotal)"></td>
+                                    <td class="p-2">
+                                        <input type="text"
+                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm text-right"
+                                            :value="fmt(draft.ftotal)" disabled>
+                                    </td>
 
                                     <!-- Aksi -->
                                     <td class="p-2 text-center text-xs">
@@ -2271,4 +2279,8 @@
         });
     </script>
 @endpush
+
+
+
+
 

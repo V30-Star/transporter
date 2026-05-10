@@ -339,14 +339,14 @@
 
                                     {{-- Nama Produk + Deskripsi --}}
                                     <td class="p-2">
-                                        <div class="flex items-center gap-2">
-                                            <textarea rows="2"
-                                                class="flex-1 border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm min-w-0 resize-none leading-5"
-                                                x-model="it.fitemname" disabled></textarea>
+                                        <div class="flex w-full max-w-full">
+                                            <div
+                                                class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                x-text="it.fitemname"></div>
                                             <button type="button"
                                                 @click="openDesc(it, {{ $action === 'delete' ? 'true' : 'false' }})"
-                                                class="inline-flex h-9 w-9 items-center justify-center rounded border transition"
-                                                :class="it.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
+                                                class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
+                                                :class="it.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'bg-white text-gray-500 hover:bg-gray-50'"
                                                 title="Deskripsi item">
                                                 <x-heroicon-o-document-text class="h-4 w-4" />
                                             </button>
@@ -420,7 +420,11 @@
                                     </td>
 
                                     {{-- Total Harga --}}
-                                    <td class="p-2 text-right text-sm font-medium" x-text="formatTransactionAmount(it.ftotal)"></td>
+                                    <td class="p-2">
+                                        <input type="text"
+                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm text-right"
+                                            :value="formatTransactionAmount(it.ftotal)" disabled>
+                                    </td>
 
                                     {{-- Aksi --}}
                                     <td class="p-2 text-center {{ $action === 'delete' ? 'hidden' : '' }}">
@@ -477,13 +481,13 @@
                                     </td>
 
                                     <td class="p-2">
-                                        <div class="flex items-center gap-2">
-                                            <textarea rows="2"
-                                                class="flex-1 border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm min-w-0 resize-none leading-5"
-                                                x-model="draft.fitemname" disabled></textarea>
+                                        <div class="flex w-full max-w-full">
+                                            <div
+                                                class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                x-text="draft.fitemname"></div>
                                             <button type="button" @click="openDesc(draft)"
-                                                class="inline-flex h-9 w-9 items-center justify-center rounded border transition"
-                                                :class="draft.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
+                                                class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
+                                                :class="draft.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'bg-white text-gray-500 hover:bg-gray-50'"
                                                 title="Deskripsi item">
                                                 <x-heroicon-o-document-text class="h-4 w-4" />
                                             </button>
@@ -525,7 +529,11 @@
                                             @keydown.enter.prevent="$refs.draftDisc?.focus()">
                                     </td>
 
-                                    <td class="p-2 text-right text-sm font-medium" x-text="formatTransactionAmount(draft.ftotal)"></td>
+                                    <td class="p-2">
+                                        <input type="text"
+                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm text-right"
+                                            :value="formatTransactionAmount(draft.ftotal)" disabled>
+                                    </td>
 
                                     <td class="p-2 text-center">
                                         <button type="button" @click="addIfComplete()"
@@ -1723,4 +1731,7 @@
         });
     </script>
 @endpush
+
+
+
 

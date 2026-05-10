@@ -245,7 +245,7 @@
                                             <td class="p-2" x-text="i + 1"></td>
                                             <td class="p-2 font-mono" x-text="it.fitemcode"></td>
                                             <td class="p-2 text-gray-800">
-                                                <div x-text="it.fitemname"></div>
+                                                <div class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm leading-5 whitespace-normal break-words" x-text="it.fitemname"></div>
                                                 <div x-show="it.fdesc" class="mt-1 text-xs">
                                                     <span
                                                         class="inline-block px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 mr-2">Deskripsi</span>
@@ -322,9 +322,9 @@
 
                                         <!-- Nama Produk (readonly) -->
                                         <td class="p-2">
-                                            <textarea rows="2"
-                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 resize-none leading-5"
-                                                x-model="editRow.fitemname" disabled></textarea>
+                                            <div
+                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm leading-5 whitespace-normal break-words"
+                                                x-text="editRow.fitemname"></div>
                                         </td>
 
                                         <!-- Ref.PR# -->
@@ -418,9 +418,9 @@
 
                                         <!-- Nama Produk (readonly) -->
                                         <td class="p-2">
-                                            <textarea rows="2"
-                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 resize-none leading-5"
-                                                x-model="draft.fitemname" disabled></textarea>
+                                            <div
+                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm leading-5 whitespace-normal break-words"
+                                                x-text="draft.fitemname"></div>
                                         </td>
 
                                         <!-- Ref.PR# -->
@@ -2028,4 +2028,8 @@
         }
     </script>
 @endpush
+
+
+
+
 

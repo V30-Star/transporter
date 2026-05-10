@@ -282,11 +282,11 @@
                                             <td class="p-2" x-text="i + 1"></td>
                                             <td class="p-2 font-mono" x-text="it.fitemcode"></td>
                                             <td class="p-2 text-gray-800">
-                                                <div class="flex items-center gap-2">
-                                                    <div class="flex-1 min-w-0" x-text="it.fitemname"></div>
+                                                <div class="flex w-full max-w-full">
+                                                    <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words" x-text="it.fitemname"></div>
                                                     <button type="button" @click="openDesc(it)"
-                                                        class="inline-flex h-9 w-9 items-center justify-center rounded border transition"
-                                                        :class="it.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
+                                                        class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
+                                                        :class="it.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'bg-white text-gray-500 hover:bg-gray-50'"
                                                         title="Deskripsi item">
                                                         <x-heroicon-o-document-text class="h-4 w-4" />
                                                     </button>
@@ -303,7 +303,11 @@
                                             </td>
                                             <td class="p-2 text-right" x-text="fmt(it.fprice)"></td>
                                             <td class="p-2 text-right" x-text="it.fdisc"></td>
-                                            <td class="p-2 text-right" x-text="fmt(it.ftotal)"></td>
+                                            <td class="p-2">
+                                                <input type="text"
+                                                    class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm text-right"
+                                                    :value="fmt(it.ftotal)" disabled>
+                                            </td>
                                         </tr>
 
                                         <!-- Hidden inputs row -->
@@ -345,9 +349,9 @@
 
                                     <!-- Nama Produk (readonly) -->
                                     <td class="p-2">
-                                        <textarea rows="2"
-                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 resize-none leading-5"
-                                            x-model="editRow.fitemname" disabled></textarea>
+                                        <div
+                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm leading-5 whitespace-normal break-words"
+                                            x-text="editRow.fitemname"></div>
                                     </td>
 
                                     <!-- Satuan -->
@@ -1983,4 +1987,8 @@
                 });
             </script>
         @endpush
+
+
+
+
 

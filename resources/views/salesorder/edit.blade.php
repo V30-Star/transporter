@@ -401,9 +401,9 @@
                                                 <td class="p-2 font-mono" x-text="it.fprdcode"></td>
                                                 <td class="p-2">
                                                     <div class="flex w-full max-w-full">
-                                                        <textarea rows="2"
-                                                            class="min-w-0 flex-1 border rounded-l px-2 py-1 bg-gray-100 text-gray-600 text-sm resize-none leading-5"
-                                                            x-model="it.fitemname" disabled></textarea>
+                                                        <div
+                                                            class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                            x-text="it.fitemname"></div>
                                                         <button type="button" @click="openDesc('saved', i, true)"
                                                             class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100"
                                                             title="Deskripsi">
@@ -441,7 +441,11 @@
                                                         class="w-full border rounded px-2 py-1 text-right bg-gray-100 text-gray-600"
                                                         x-model="it.fdisc" disabled>
                                                 </td>
-                                                <td class="p-2 text-right font-semibold" x-text="fmt(it.ftotal)"></td>
+                                                <td class="p-2">
+                                                    <input type="text"
+                                                        class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm text-right"
+                                                        :value="fmt(it.ftotal)" disabled>
+                                                </td>
                                                 <td class="p-2 text-center">
                                                     <button type="button" disabled
                                                         class="px-3 py-1 rounded text-xs bg-gray-100 text-gray-400 cursor-not-allowed">Hapus</button>
@@ -490,9 +494,9 @@
 
                                         <!-- Nama Produk (readonly) -->
                                         <td class="p-2">
-                                            <textarea rows="2"
-                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 resize-none leading-5"
-                                                x-model="editRow.fitemname" disabled></textarea>
+                                            <div
+                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm leading-5 whitespace-normal break-words"
+                                                x-text="editRow.fitemname"></div>
                                         </td>
 
                                         <!-- Satuan -->
@@ -1036,9 +1040,9 @@
                                                         <td class="p-2 font-mono" x-text="it.fprdcode"></td>
                                                         <td class="p-2">
                                                             <div class="flex w-full max-w-full">
-                                                                <textarea rows="2"
-                                                                    class="min-w-0 flex-1 border rounded-l px-2 py-1 bg-gray-100 text-gray-600 text-sm resize-none leading-5"
-                                                                    x-model="it.fitemname" disabled></textarea>
+                                                                <div
+                                                                    class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                                    x-text="it.fitemname"></div>
                                                                 <button type="button" @click="openDesc('saved', i)"
                                                                     class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100"
                                                                     title="Deskripsi">
@@ -1082,7 +1086,10 @@
                                                                 class="w-full border rounded px-2 py-1 text-right"
                                                                 x-model="it.fdisc" @input="recalc(it)">
                                                         </td>
-                                                        <td class="p-2 text-right font-semibold" x-text="fmt(it.ftotal)">
+                                                        <td class="p-2">
+                                                            <input type="text"
+                                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm text-right"
+                                                                :value="fmt(it.ftotal)" disabled>
                                                         </td>
                                                         <td class="p-2 text-center">
                                                             <button type="button" @click="removeSaved(i)"
@@ -1137,9 +1144,9 @@
                                                     <!-- Nama Produk (readonly) -->
                                                     <td class="p-2">
                                                         <div class="flex w-full max-w-full">
-                                                            <textarea rows="2"
-                                                                class="min-w-0 flex-1 border rounded-l px-2 py-1 bg-gray-100 text-gray-600 resize-none leading-5"
-                                                                x-model="draft.fitemname" disabled></textarea>
+                                                            <div
+                                                                class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                                x-text="draft.fitemname"></div>
                                                             <button type="button" @click="openDesc('draft')"
                                                                 class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100"
                                                                 title="Deskripsi">
@@ -2297,4 +2304,8 @@
         });
     </script>
 @endpush
+
+
+
+
 

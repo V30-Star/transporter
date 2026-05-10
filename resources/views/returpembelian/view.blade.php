@@ -253,7 +253,7 @@
                                         <td class="p-2" x-text="i + 1"></td>
                                         <td class="p-2 font-mono" x-text="it.fitemcode"></td>
                                         <td class="p-2 text-gray-800">
-                                            <div x-text="it.fitemname"></div>
+                                            <div class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm leading-5 whitespace-normal break-words" x-text="it.fitemname"></div>
                                             <div x-show="it.fdesc" class="mt-1 text-xs">
                                                 <span
                                                     class="inline-block px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 mr-2">Deskripsi</span>
@@ -264,7 +264,11 @@
                                         <td class="p-2 text-right" x-text="it.fsatuan"></td>
                                         <td class="p-2 text-right" x-text="fmt(it.fqty)"></td>
                                         <td class="p-2 text-right" x-text="fmt(it.fprice)"></td>
-                                        <td class="p-2 text-right" x-text="fmt(it.ftotprice)"></td>
+                                            <td class="p-2">
+                                                <input type="text"
+                                                    class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm text-right"
+                                                    :value="fmt(it.ftotprice)" disabled>
+                                            </td>
 
                                         <!-- hidden inputs -->
                                         <td class="hidden">

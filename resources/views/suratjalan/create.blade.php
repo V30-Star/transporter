@@ -281,7 +281,7 @@
                                             <td class="p-2" x-text="i + 1"></td>
                                             <td class="p-2 font-mono" x-text="it.fitemcode"></td>
                                             <td class="p-2 text-gray-800">
-                                                <div x-text="it.fitemname" class="font-semibold"></div>
+                                                <div class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm leading-5 whitespace-normal break-words" x-text="it.fitemname"></div>
                                             </td>
                                             <td class="p-2">
                                                 <div x-text="it.frefno_display || it.frefdtno || '-'"
@@ -370,9 +370,9 @@
 
                                         <!-- Nama Produk (readonly) -->
                                         <td class="p-2">
-                                            <textarea rows="2"
-                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm resize-none leading-5"
-                                                x-model="draft.fitemname" disabled></textarea>
+                                            <div
+                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm leading-5 whitespace-normal break-words"
+                                                x-text="draft.fitemname"></div>
                                         </td>
 
                                         <!-- Ref.PR# -->
@@ -1361,6 +1361,10 @@
         });
     </script>
 @endpush
+
+
+
+
 
 
 

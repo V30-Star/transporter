@@ -563,9 +563,9 @@
                                             <td class="p-2 font-mono" x-text="it.fitemcode"></td>
                                             <td class="p-2">
                                                 <div class="flex w-full max-w-full">
-                                                    <textarea rows="2"
-                                                        class="min-w-0 flex-1 border rounded-l px-2 py-1 bg-gray-100 text-gray-600 text-sm resize-none leading-5"
-                                                        x-model="it.fitemname" disabled></textarea>
+                                                    <div
+                                                        class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                        x-text="it.fitemname"></div>
                                                     <button type="button" @click="openDesc('saved', i, true)"
                                                         class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
                                                         :class="descButtonClass(it.fdesc)"
@@ -580,7 +580,11 @@
                                             <td class="p-2 text-right" x-text="fmt(it.fprice)"></td>
                                             <td class="p-2 text-right" x-text="fmt(it.fbiaya)"></td>
                                             <td class="p-2 text-right" x-text="fmt(it.fdiscpersen)"></td>
-                                            <td class="p-2 text-right" x-text="fmt(it.ftotprice)"></td>
+                                            <td class="p-2">
+                                                <input type="text"
+                                                    class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm text-right"
+                                                    :value="fmt(it.ftotprice)" disabled>
+                                            </td>
 
                                             <!-- hidden inputs -->
                                             <td class="p-2 text-center hidden">
@@ -1177,9 +1181,9 @@
                                                 </td>
                                                 <td class="p-2">
                                                     <div class="flex w-full max-w-full">
-                                                        <textarea rows="2"
-                                                            class="min-w-0 flex-1 border rounded-l px-2 py-1 bg-gray-100 text-gray-600 text-sm resize-none leading-5"
-                                                            x-model="it.fitemname" disabled></textarea>
+                                                        <div
+                                                            class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                            x-text="it.fitemname"></div>
                                                         <button type="button" @click="openDesc('saved', i)"
                                                             class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
                                                             :class="descButtonClass(it.fdesc)"
@@ -1248,8 +1252,10 @@
                                                         @blur="activeRow = null" @input="recalc(it)"
                                                         @change="recalc(it)">
                                                 </td>
-                                                <td class="p-2 text-right">
-                                                    <span x-text="fmt(it.ftotprice)"></span>
+                                                <td class="p-2">
+                                                    <input type="text"
+                                                        class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm text-right"
+                                                        :value="fmt(it.ftotprice)" disabled>
                                                 </td>
                                                 <td class="p-2 text-center">
                                                     <button type="button" @click="removeSaved(i)"
@@ -1300,16 +1306,16 @@
                                                 </div>
                                             </td>
 
-                                            <!-- Nama Produk (readonly) -->
-                                            <td class="p-2">
-                                                <div class="flex w-full max-w-full">
-                                                    <textarea rows="2"
-                                                        class="min-w-0 flex-1 border rounded-l px-2 py-1 bg-gray-100 text-gray-600 resize-none leading-5"
-                                                        x-model="draft.fitemname" disabled></textarea>
-                                                    <button type="button" @click="openDesc('draft')"
-                                                        class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
-                                                        :class="descButtonClass(draft.fdesc)"
-                                                        title="Deskripsi">
+                                        <!-- Nama Produk (readonly) -->
+                                        <td class="p-2">
+                                            <div class="flex w-full max-w-full">
+                                                <div
+                                                    class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                    x-text="draft.fitemname"></div>
+                                                <button type="button" @click="openDesc('draft')"
+                                                    class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
+                                                    :class="descButtonClass(draft.fdesc)"
+                                                    title="Deskripsi">
                                                         <x-heroicon-o-document-text class="w-4 h-4" />
                                                     </button>
                                                 </div>
@@ -1384,8 +1390,10 @@
                                             </td>
 
                                             <!-- Total Harga (readonly) -->
-                                            <td class="p-2 text-right" x-text="fmt(draft.ftotprice)"
-                                                @input="recalc(draft)">
+                                            <td class="p-2">
+                                                <input type="text"
+                                                    class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm text-right"
+                                                    :value="fmt(draft.ftotprice)" disabled>
                                             </td>
 
                                             <!-- Aksi -->
@@ -3348,4 +3356,3 @@
             });
         </script>
     @endpush
-

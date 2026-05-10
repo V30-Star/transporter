@@ -254,9 +254,9 @@
                                         </td>
 
                                         <td class="p-2">
-                                            <textarea rows="2"
-                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm resize-none leading-5"
-                                                x-model="it.fitemname" disabled></textarea>
+                                                <div
+                                                    class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm leading-5 whitespace-normal break-words"
+                                                    x-text="it.fitemname"></div>
                                             <textarea x-model="it.fdesc" rows="2" class="w-full border rounded px-2 py-1 text-xs text-gray-600 mt-1"
                                                 placeholder="Deskripsi (opsional)" @focus="activeRow = it.uid" @blur="activeRow = null"></textarea>
                                         </td>
@@ -338,9 +338,9 @@
                                     </td>
 
                                     <td class="p-2">
-                                        <textarea rows="2"
-                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm resize-none leading-5"
-                                            x-model="draft.fitemname" disabled></textarea>
+                                            <div
+                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm leading-5 whitespace-normal break-words"
+                                                x-text="draft.fitemname"></div>
                                         <textarea x-model="draft.fdesc" rows="2" class="w-full border rounded px-2 py-1 text-xs text-gray-600 mt-1"
                                             placeholder="Deskripsi (opsional)"></textarea>
                                     </td>
@@ -1198,4 +1198,8 @@
         }
     </script>
 @endpush
+
+
+
+
 

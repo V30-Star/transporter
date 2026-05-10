@@ -285,7 +285,9 @@
                                         <tr class="border-t align-top transition-colors hover:bg-gray-50">
                                             <td class="p-2" x-text="i + 1"></td>
                                             <td class="p-2 font-mono" x-text="it.fitemcode"></td>
-                                            <td class="p-2 text-gray-800" x-text="it.fitemname"></td>
+                                            <td class="p-2">
+                                                <div class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm leading-5 whitespace-normal break-words" x-text="it.fitemname"></div>
+                                            </td>
                                             <td class="p-2">
                                                 <template x-if="it.units && it.units.length > 1">
                                                     <select class="w-full border rounded px-2 py-1 text-xs"
@@ -320,7 +322,11 @@
                                                 <input type="text" class="w-full border rounded px-2 py-1 text-right"
                                                     x-model="it.fdisc" @input="recalc(it)">
                                             </td>
-                                            <td class="p-2 text-right font-semibold" x-text="fmt(it.ftotal)"></td>
+                                            <td class="p-2">
+                                                <input type="text"
+                                                    class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm text-right"
+                                                    :value="fmt(it.ftotal)" disabled>
+                                            </td>
                                             <td class="p-2 text-center">
                                                 <button type="button" @click="removeSaved(i)"
                                                     class="px-3 py-1 rounded text-xs bg-red-100 text-red-600 hover:bg-red-200">Hapus</button>
@@ -390,9 +396,9 @@
                                         <!-- Nama Produk (readonly) -->
                                         <td class="p-2">
                                             <div class="flex items-center gap-2">
-                                                <textarea rows="2"
-                                                    class="flex-1 border rounded px-2 py-1 bg-gray-100 text-gray-600 min-w-0 resize-none leading-5"
-                                                    x-model="draft.fitemname" disabled></textarea>
+                                                <div
+                                                    class="border rounded flex-1 px-2 py-1 bg-gray-100 text-gray-600 min-w-0 leading-5 whitespace-normal break-words"
+                                                    x-text="draft.fitemname"></div>
                                                 <button type="button" @click="openDesc(draft)"
                                                     class="inline-flex h-9 w-9 items-center justify-center rounded border transition"
                                                     :class="draft.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
@@ -3190,5 +3196,8 @@
         });
     </script>
 @endpush
+
+
+
 
 

@@ -334,7 +334,9 @@
                                             <tr class="border-t align-top transition-colors hover:bg-gray-50">
                                                 <td class="p-2" x-text="i + 1"></td>
                                                 <td class="p-2 font-mono" x-text="it.fitemcode"></td>
-                                                <td class="p-2 text-gray-800" x-text="it.fitemname"></td>
+                                            <td class="p-2">
+                                                <div class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm leading-5 whitespace-normal break-words" x-text="it.fitemname"></div>
+                                            </td>
                                                 <td class="p-2">
                                                     <template x-if="it.units && it.units.length > 1">
                                                         <select class="w-full border rounded px-2 py-1 text-xs"
@@ -370,7 +372,11 @@
                                                         class="w-full border rounded px-2 py-1 text-right"
                                                         x-model="it.fdisc" @input="recalc(it)">
                                                 </td>
-                                                <td class="p-2 text-right font-semibold" x-text="fmt(it.ftotal)"></td>
+                                                <td class="p-2">
+                                                    <input type="text"
+                                                        class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm text-right"
+                                                        :value="fmt(it.ftotal)" disabled>
+                                                </td>
                                                 <td class="p-2 text-center">
                                                     <button type="button" @click="removeSaved(i)"
                                                         class="px-3 py-1 rounded text-xs bg-red-100 text-red-600 hover:bg-red-200">Hapus</button>
@@ -478,7 +484,11 @@
                                                 <input type="text" class="border rounded px-2 py-1 w-24 text-right"
                                                     x-model="draft.fdisc" @input="recalc(draft)" x-ref="draftDisc">
                                             </td>
-                                            <td class="p-2 text-right font-semibold" x-text="fmt(draft.ftotal)"></td>
+                                            <td class="p-2">
+                                                <input type="text"
+                                                    class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm text-right"
+                                                    :value="fmt(draft.ftotal)" disabled>
+                                            </td>
                                             <td class="p-2 text-center">
                                                 <button type="button" @click="addIfComplete()"
                                                     class="px-3 py-1 rounded text-xs bg-emerald-600 text-white">Tambah</button>
@@ -890,7 +900,9 @@
                                                 <tr class="border-t align-top transition-colors hover:bg-gray-50">
                                                     <td class="p-2" x-text="i + 1"></td>
                                                     <td class="p-2 font-mono" x-text="it.fitemcode"></td>
-                                                    <td class="p-2 text-gray-800" x-text="it.fitemname"></td>
+                                                    <td class="p-2">
+                                                        <div class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm leading-5 whitespace-normal break-words" x-text="it.fitemname"></div>
+                                                    </td>
                                                     <td class="p-2">
                                                         <template x-if="it.units && it.units.length > 1">
                                                             <select class="w-full border rounded px-2 py-1 text-xs"
@@ -927,7 +939,11 @@
                                                             class="w-full border rounded px-2 py-1 text-right"
                                                             x-model="it.fdisc" @input="recalc(it)">
                                                     </td>
-                                                    <td class="p-2 text-right font-semibold" x-text="fmt(it.ftotal)"></td>
+                                                    <td class="p-2">
+                                                        <input type="text"
+                                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm text-right"
+                                                            :value="fmt(it.ftotal)" disabled>
+                                                    </td>
                                                     <td class="p-2 text-center">
                                                         <button type="button" @click="removeSaved(i)"
                                                             class="px-3 py-1 rounded text-xs bg-red-100 text-red-600 hover:bg-red-200">Hapus</button>
@@ -984,9 +1000,9 @@
                                                     </div>
                                                 </td>
                                                 <td class="p-2">
-                                                    <textarea rows="2"
-                                                        class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 resize-none leading-5"
-                                                        x-model="draft.fitemname" disabled></textarea>
+                                                    <div
+                                                        class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm leading-5 whitespace-normal break-words"
+                                                        x-text="draft.fitemname"></div>
                                                 </td>
                                                 <td class="p-2">
                                                     <template x-if="draft.units.length > 1">
@@ -3986,5 +4002,9 @@
         });
     </script>
 @endpush
+
+
+
+
 
 
