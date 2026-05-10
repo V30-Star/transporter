@@ -470,9 +470,9 @@
                                                 </div>
                                             </td>
                                             <td class="p-2">
-                                                <input type="text"
-                                                    class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 mb-1"
-                                                    :value="it.fitemname" disabled>
+                                                <textarea rows="2"
+                                                    class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 mb-1 resize-none leading-5"
+                                                    x-model="it.fitemname" disabled></textarea>
                                                 <textarea x-model="it.fdesc" rows="1" class="w-full border rounded px-2 py-1 text-xs"
                                                     placeholder="Deskripsi deskripsi..." :disabled="blockedByPO" @focus="activeRow = it.uid"
                                                     @blur="activeRow = null"></textarea>
@@ -550,9 +550,9 @@
                                             </div>
                                         </td>
                                         <td class="p-2">
-                                            <input type="text"
-                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 mb-1"
-                                                :value="draft.fitemname" disabled>
+                                            <textarea rows="2"
+                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 mb-1 resize-none leading-5"
+                                                x-model="draft.fitemname" disabled></textarea>
                                             <textarea x-model="draft.fdesc" rows="1" class="w-full border rounded px-2 py-1 text-xs"
                                                 placeholder="Deskripsi draft..."></textarea>
                                         </td>
@@ -1302,3 +1302,4 @@
         }
     </script>
 @endpush
+

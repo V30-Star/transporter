@@ -453,9 +453,9 @@
                                     @if ($isEdit)
                                         <div class="flex min-w-0 flex-col gap-1 overflow-visible">
                                             <div class="flex items-start gap-2">
-                                                <input type="text"
-                                                    class="min-w-0 flex-1 border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
-                                                    :value="it.fitemname" disabled>
+                                                <textarea rows="2"
+                                                    class="min-w-0 flex-1 border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm resize-none leading-5"
+                                                    x-model="it.fitemname" disabled></textarea>
                                                 <div class="w-20 shrink-0">
                                                     <template x-if="it.units.length > 1">
                                                         <select class="w-full border rounded px-2 py-1 text-sm" :id="'unit_saved_' + i"
@@ -630,9 +630,9 @@
                                 <td class="p-2 align-top overflow-visible" colspan="2">
                                     <div class="flex min-w-0 flex-col gap-1 overflow-visible">
                                         <div class="flex items-start gap-2">
-                                            <input type="text"
-                                                class="min-w-0 flex-1 border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
-                                                :value="draft.fitemname" disabled>
+                                            <textarea rows="2"
+                                                class="min-w-0 flex-1 border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm resize-none leading-5"
+                                                x-model="draft.fitemname" disabled></textarea>
                                             <div class="w-20 shrink-0">
                                                 <select id="draftUnitSelect" class="w-full border rounded px-2 py-1 text-sm"
                                                     x-show="draft.units.length > 1" @keydown.enter.prevent="$refs.draftQty?.focus()">
@@ -1976,3 +1976,4 @@
         @include('components.transaction.browse-product-script')
     @endif
 @endpush
+

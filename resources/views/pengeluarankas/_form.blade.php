@@ -237,6 +237,7 @@
                                         $detailAccountName = $detailAccount
                                             ? trim($detailAccount->faccname)
                                             : (string) ($detail->account_name ?? '');
+                                        $detailHasSubaccount = (string) ($detailAccount->fhavesubaccount ?? '0') === '1';
                                     @endphp
                                     @if ($isReadOnly)
                                         <input type="text" value="{{ $detailAccountCode }}"
@@ -253,6 +254,8 @@
                                                     data-role="account-code-display">
                                                 <input type="hidden" name="details[{{ $index }}][faccount]"
                                                     value="{{ $detailAccountCode }}">
+                                                <input type="hidden" value="{{ $detailHasSubaccount ? '1' : '0' }}"
+                                                    data-role="account-has-subaccount">
                                             </div>
                                             <button type="button" @click="openAccountBrowse($event)"
                                                 class="border rounded px-2 py-1 bg-white hover:bg-gray-50 shrink-0"
@@ -306,7 +309,7 @@
                                                     value="{{ $detailSubaccountCode }}">
                                             </div>
                                             <button type="button" @click="openSubaccountBrowse($event)"
-                                                class="border rounded px-2 py-1 bg-white hover:bg-gray-50 shrink-0"
+                                                class="detail-subaccount-btn border rounded px-2 py-1 bg-white hover:bg-gray-50 shrink-0"
                                                 title="Cari Sub Account">
                                                 <x-heroicon-o-magnifying-glass class="w-4 h-4" />
                                             </button>
@@ -338,7 +341,7 @@
                                     <td class="detail-action-cell border px-1.5 py-1 text-center align-top">
                                         <button type="button" @click="addRow()"
                                             class="detail-add-btn inline-flex min-w-[7.5rem] items-center justify-center bg-blue-600 text-white px-2.5 py-1 rounded hover:bg-blue-700 whitespace-nowrap">
-                                            <x-heroicon-o-plus class="w-4 h-4 mr-1" /> {{ 'Tambah Detail' }}
+                                            <x-heroicon-o-plus class="w-4 h-4 mr-1" /> {{ 'Tambah' }}
                                         </button>
                                         <button type="button" @click="removeRow($event)"
                                             class="detail-delete-btn inline-flex min-w-[7.5rem] items-center justify-center bg-red-600 text-white px-2.5 py-1 rounded hover:bg-red-700 whitespace-nowrap">
@@ -434,7 +437,8 @@
 
                             const code = (event.detail?.faccount || '').toString().trim();
                             const name = (event.detail?.faccname || '').toString().trim();
-                            this.applyAccountLookupValue(this.activeLookupRow, code, name);
+                            const hasSubaccount = String(event.detail?.fhavesubaccount ?? '0') === '1';
+                            this.applyAccountLookupValue(this.activeLookupRow, code, name, hasSubaccount);
                         });
 
                         window.addEventListener('subaccount-picked', (event) => {
@@ -461,6 +465,9 @@
                         if (this.isReadOnly) return;
 
                         this.activeLookupRow = event.currentTarget.closest('tr.detail-row');
+                        if (!this.rowHasSubaccountEnabled(this.activeLookupRow)) {
+                            return;
+                        }
                         this.activeLookupType = 'subaccount';
                         window.dispatchEvent(new CustomEvent('subaccount-browse-open'));
                     },
@@ -485,7 +492,7 @@
                         this.activeLookupType = null;
                     },
 
-                    applyAccountLookupValue(row, code, name) {
+                    applyAccountLookupValue(row, code, name, hasSubaccount) {
                         if (!row) {
                             return;
                         }
@@ -493,6 +500,7 @@
                         const hiddenField = row.querySelector('input[name$="[faccount]"]');
                         const codeField = row.querySelector('[data-role="account-code-display"]');
                         const nameField = row.querySelector('[data-role="account-name-display"]');
+                        const hasSubaccountField = row.querySelector('[data-role="account-has-subaccount"]');
 
                         if (hiddenField) {
                             hiddenField.value = code || '';
@@ -506,8 +514,50 @@
                             nameField.value = name || '';
                         }
 
+                        if (hasSubaccountField) {
+                            hasSubaccountField.value = hasSubaccount ? '1' : '0';
+                        }
+
+                        this.syncSubaccountState(row, hasSubaccount);
                         this.activeLookupRow = null;
                         this.activeLookupType = null;
+                    },
+
+                    rowHasSubaccountEnabled(row) {
+                        const field = row?.querySelector('[data-role="account-has-subaccount"]');
+                        return String(field?.value || '0') === '1';
+                    },
+
+                    syncSubaccountState(row, forceEnabled = null) {
+                        if (!row) {
+                            return;
+                        }
+
+                        const enabled = forceEnabled ?? this.rowHasSubaccountEnabled(row);
+                        const displayField = row.querySelector('[data-role="subaccount-display"]');
+                        const hiddenField = row.querySelector('input[name$="[fsubaccount]"]');
+                        const browseButton = row.querySelector('.detail-subaccount-btn');
+                        const hint = row.querySelector('.detail-subaccount-hint');
+
+                        if (!enabled) {
+                            if (displayField) {
+                                displayField.value = '';
+                            }
+
+                            if (hiddenField) {
+                                hiddenField.value = '';
+                            }
+                        }
+
+                        if (browseButton) {
+                            browseButton.disabled = !enabled;
+                            browseButton.classList.toggle('opacity-50', !enabled);
+                            browseButton.classList.toggle('cursor-not-allowed', !enabled);
+                        }
+
+                        if (hint) {
+                            hint.classList.toggle('hidden', !!enabled);
+                        }
                     },
 
                     addRow() {
@@ -523,6 +573,7 @@
                         clone.querySelectorAll('select').forEach((field) => field.selectedIndex = 0);
                         tbody.appendChild(clone);
                         this.renumberRows();
+                        this.syncSubaccountState(clone, false);
                         this.updateTotal();
                     },
 
@@ -555,6 +606,7 @@
                         });
 
                         this.updateActionButtons();
+                        rows.forEach((row) => this.syncSubaccountState(row));
                     },
 
                     updateTotal() {
@@ -620,6 +672,23 @@
 
                     deleteButtons.forEach((button, index) => {
                         button.style.display = index === totalRows - 1 ? 'none' : 'inline-flex';
+                    });
+
+                    rows.forEach((row) => {
+                        const field = row.querySelector('[data-role="account-has-subaccount"]');
+                        const enabled = String(field?.value || '0') === '1';
+                        const browseButton = row.querySelector('.detail-subaccount-btn');
+                        const hint = row.querySelector('.detail-subaccount-hint');
+
+                        if (browseButton) {
+                            browseButton.disabled = !enabled;
+                            browseButton.classList.toggle('opacity-50', !enabled);
+                            browseButton.classList.toggle('cursor-not-allowed', !enabled);
+                        }
+
+                        if (hint) {
+                            hint.classList.toggle('hidden', enabled);
+                        }
                     });
                 }
             });

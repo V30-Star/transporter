@@ -1056,9 +1056,9 @@
 
                                         <!-- Nama Produk (readonly) -->
                                         <td class="p-2">
-                                            <input type="text"
-                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
-                                                :value="editRow.fitemname" disabled>
+                                            <textarea rows="2"
+                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 resize-none leading-5"
+                                                x-model="editRow.fitemname" disabled></textarea>
                                         </td>
 
                                         <!-- Ref.PR# -->
@@ -1154,9 +1154,9 @@
 
                                         <!-- Nama Produk (readonly) -->
                                         <td class="p-2">
-                                            <input type="text"
-                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600"
-                                                :value="draft.fitemname" disabled>
+                                            <textarea rows="2"
+                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 resize-none leading-5"
+                                                x-model="draft.fitemname" disabled></textarea>
                                         </td>
 
                                         <!-- Ref.PR# -->
@@ -2866,3 +2866,4 @@
         }
     </script>
 @endpush
+

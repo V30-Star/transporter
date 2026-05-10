@@ -347,9 +347,9 @@
                                         <td class="p-2 font-mono text-xs" x-text="it.fitemcode"></td>
                                         <td class="p-2">
                                             <div class="flex w-full max-w-full">
-                                                <input type="text"
-                                                    class="min-w-0 flex-1 border rounded-l px-2 py-1 bg-gray-100 text-gray-600 text-sm"
-                                                    :value="it.fitemname" disabled>
+                                                <textarea rows="2"
+                                                    class="min-w-0 flex-1 border rounded-l px-2 py-1 bg-gray-100 text-gray-600 text-sm resize-none leading-5"
+                                                    x-model="it.fitemname" disabled></textarea>
                                                 <button type="button" @click="openDesc(it)"
                                                     class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100"
                                                     title="Deskripsi">
@@ -462,9 +462,9 @@
                                     <!-- Nama Produk (readonly) -->
                                     <td class="p-2">
                                         <div class="flex w-full max-w-full">
-                                            <input type="text"
-                                                class="min-w-0 flex-1 border rounded-l px-2 py-1 bg-gray-100 text-gray-600 text-sm"
-                                                :value="draft.fitemname" disabled>
+                                            <textarea rows="2"
+                                                class="min-w-0 flex-1 border rounded-l px-2 py-1 bg-gray-100 text-gray-600 text-sm resize-none leading-5"
+                                                x-model="draft.fitemname" disabled></textarea>
                                             <button type="button" @click="openDesc(draft)"
                                                 class="shrink-0 inline-flex items-center border border-l-0 rounded-r bg-slate-50 px-2 py-1 text-slate-700 hover:bg-slate-100"
                                                 title="Deskripsi">
@@ -2271,3 +2271,4 @@
         });
     </script>
 @endpush
+

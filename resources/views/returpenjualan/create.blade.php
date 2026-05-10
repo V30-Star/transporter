@@ -390,9 +390,9 @@
                                         <!-- Nama Produk (readonly) -->
                                         <td class="p-2">
                                             <div class="flex items-center gap-2">
-                                                <input type="text"
-                                                    class="flex-1 border rounded px-2 py-1 bg-gray-100 text-gray-600 min-w-0"
-                                                    :value="draft.fitemname" disabled>
+                                                <textarea rows="2"
+                                                    class="flex-1 border rounded px-2 py-1 bg-gray-100 text-gray-600 min-w-0 resize-none leading-5"
+                                                    x-model="draft.fitemname" disabled></textarea>
                                                 <button type="button" @click="openDesc(draft)"
                                                     class="inline-flex h-9 w-9 items-center justify-center rounded border transition"
                                                     :class="draft.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
@@ -3190,4 +3190,5 @@
         });
     </script>
 @endpush
+
 

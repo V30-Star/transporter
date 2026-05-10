@@ -254,9 +254,9 @@
                                         </td>
 
                                         <td class="p-2">
-                                            <input type="text"
-                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
-                                                :value="it.fitemname" disabled>
+                                            <textarea rows="2"
+                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm resize-none leading-5"
+                                                x-model="it.fitemname" disabled></textarea>
                                             <textarea x-model="it.fdesc" rows="2" class="w-full border rounded px-2 py-1 text-xs text-gray-600 mt-1"
                                                 placeholder="Deskripsi (opsional)" @focus="activeRow = it.uid" @blur="activeRow = null"></textarea>
                                         </td>
@@ -338,9 +338,9 @@
                                     </td>
 
                                     <td class="p-2">
-                                        <input type="text"
-                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm"
-                                            :value="draft.fitemname" disabled>
+                                        <textarea rows="2"
+                                            class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm resize-none leading-5"
+                                            x-model="draft.fitemname" disabled></textarea>
                                         <textarea x-model="draft.fdesc" rows="2" class="w-full border rounded px-2 py-1 text-xs text-gray-600 mt-1"
                                             placeholder="Deskripsi (opsional)"></textarea>
                                     </td>
@@ -1198,3 +1198,4 @@
         }
     </script>
 @endpush
+

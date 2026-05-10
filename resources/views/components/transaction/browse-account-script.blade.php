@@ -141,7 +141,8 @@
                     detail: {
                         faccid: row.faccid,
                         faccount: row.faccount,
-                        faccname: row.faccname
+                        faccname: row.faccname,
+                        fhavesubaccount: row.fhavesubaccount
                     }
                 }));
                 this.close();

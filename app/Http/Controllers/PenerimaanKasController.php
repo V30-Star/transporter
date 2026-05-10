@@ -12,6 +12,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class PenerimaanKasController extends Controller
 {
@@ -336,7 +337,7 @@ class PenerimaanKasController extends Controller
                 ->where('fend', 1)
                 ->where('fnonactive', '0')
                 ->orderBy('faccount')
-                ->get(['faccid', 'faccount', 'faccname']),
+                ->get(['faccid', 'faccount', 'faccname', 'fhavesubaccount']),
             'subaccounts' => Subaccount::query()
                 ->where('fnonactive', '0')
                 ->orderBy('fsubaccountcode')
@@ -401,7 +402,39 @@ class PenerimaanKasController extends Controller
             $payload['faccountheader'] = $giroAccount;
         }
 
+        $this->validateDetailSubaccountAccess($payload['details']);
+
         return $payload;
+    }
+
+    private function validateDetailSubaccountAccess(array $details): void
+    {
+        $accounts = Account::query()
+            ->whereIn('faccount', collect($details)->pluck('faccount')->filter()->all())
+            ->get(['faccount', 'fhavesubaccount'])
+            ->keyBy('faccount');
+
+        $errors = [];
+
+        foreach ($details as $index => $detail) {
+            $accountCode = trim((string) ($detail['faccount'] ?? ''));
+            $subaccountCode = trim((string) ($detail['fsubaccount'] ?? ''));
+
+            if ($accountCode === '' || $subaccountCode === '') {
+                continue;
+            }
+
+            $account = $accounts->get($accountCode);
+            $hasSubaccount = (string) ($account?->fhavesubaccount ?? '0') === '1';
+
+            if (! $hasSubaccount) {
+                $errors["details.$index.fsubaccount"] = 'Sub Account hanya boleh diisi untuk account yang memiliki sub account.';
+            }
+        }
+
+        if (! empty($errors)) {
+            throw ValidationException::withMessages($errors);
+        }
     }
 
     private function filterEmptyDetailRows(array $details): array
