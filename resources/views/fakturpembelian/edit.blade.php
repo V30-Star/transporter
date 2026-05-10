@@ -635,17 +635,6 @@
                                             </label>
                                         </div>
 
-                                        <!-- Dropdown Include / Exclude (tengah) -->
-                                        <div class="flex items-center gap-2 pointer-events-none">
-                                            <select disabled id="includePPN" name="includePPN" x-model.number="fapplyppn"
-                                                x-init="fapplyppn = 0" :disabled="!(includePPN || fapplyppn)"
-                                                class="w-28 h-9 px-2 text-sm leading-tight border rounded transition-opacity appearance-none
-                                                           disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
-                                                <option value="0">Exclude</option>
-                                                <option value="1">Include</option>
-                                            </select>
-                                        </div>
-
                                         <!-- Input Rate + Nominal (kanan) -->
                                         <div class="flex items-center gap-2 pointer-events-none">
                                             <input disabled readonly type="number" min="0" max="100"
@@ -671,12 +660,6 @@
                                             x-text="rupiah(grandTotal)"></span>
                                     </div>
 
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-sm font-semibold text-gray-800">Grand Total (RP)</span>
-                                        <span class="min-w-[140px] text-right text-lg font-semibold"
-                                            x-text="rupiah(grandTotal)"></span>
-                                    </div>
-
                                     <div class="flex items-center justify-between bg-blue-50 p-2 rounded">
                                         <span class="text-sm font-bold text-blue-700">Total Biaya (HPP)</span>
                                         <span class="min-w-[140px] text-right font-bold text-blue-700"
@@ -688,6 +671,7 @@
                                 <input type="hidden" name="famount" :value="totalHarga">
                                 <input type="hidden" name="famountpajak" :value="ppnAmount">
                                 <input type="hidden" name="famountmt" :value="grandTotal">
+                                <input type="hidden" name="fincludeppn" value="0">
                                 <input type="hidden" name="famountpopajak" :value="ppnRate">
                             </div>
                         </div>
@@ -1600,17 +1584,6 @@
                                                 </label>
                                             </div>
 
-                                            <!-- Dropdown Include / Exclude (tengah) -->
-                                            <div class="flex items-center gap-2">
-                                                <select id="ppnMode" name="fincludeppn" x-model.number="ppnMode"
-                                                    :disabled="!includePPN"
-                                                    class="w-28 h-9 px-2 text-sm leading-tight border rounded transition-opacity appearance-none
-                                                           disabled:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed">
-                                                    <option value="0">Exclude</option>
-                                                    <option value="1">Include</option>
-                                                </select>
-                                            </div>
-
                                             <!-- Input Rate + Nominal (kanan) -->
                                             <div class="flex items-center gap-2">
                                                 <input type="number" min="0" max="100" step="0.01"
@@ -1635,12 +1608,6 @@
                                                 x-text="rupiah(grandTotal)"></span>
                                         </div>
 
-                                        <div class="flex items-center justify-between">
-                                            <span class="text-sm font-semibold text-gray-800">Grand Total (RP)</span>
-                                            <span class="min-w-[140px] text-right text-lg font-semibold"
-                                                x-text="rupiah(grandTotal)"></span>
-                                        </div>
-
                                         <div class="flex items-center justify-between bg-blue-50 p-2 rounded">
                                             <span class="text-sm font-bold text-blue-700">Total Biaya (HPP)</span>
                                             <span class="min-w-[140px] text-right font-bold text-blue-700"
@@ -1652,6 +1619,7 @@
                                     <input type="hidden" name="famount" :value="totalHarga">
                                     <input type="hidden" name="famountpajak" :value="ppnAmount">
                                     <input type="hidden" name="famountmt" :value="grandTotal">
+                                    <input type="hidden" name="fincludeppn" value="0">
                                     <input type="hidden" name="famountpopajak" :value="ppnRate">
                                 </div>
                             </div>
