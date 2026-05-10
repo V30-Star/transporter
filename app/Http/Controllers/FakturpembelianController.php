@@ -133,6 +133,7 @@ class FakturpembelianController extends Controller
     public function pickablePO(Request $request)
     {
         $search = trim((string) $request->get('search', ''));
+        $supplierCode = trim((string) $request->get('supplier_code', ''));
         $perPage = max(1, (int) $request->get('length', $request->get('per_page', 10)));
         $start = max(0, (int) $request->get('start', 0));
         $draw = (int) $request->get('draw', 0);
@@ -157,6 +158,10 @@ class FakturpembelianController extends Controller
                 'tr_poh.fpodate',
             ])
             ->where('tr_poh.fprdin', '0');
+
+        if ($supplierCode !== '') {
+            $query->where('tr_poh.fsupplier', $supplierCode);
+        }
 
         $recordsTotal = (clone $query)->count();
 
@@ -264,6 +269,7 @@ class FakturpembelianController extends Controller
     public function pickablePB(Request $request)
     {
         $search = trim((string) $request->get('search', ''));
+        $supplierCode = trim((string) $request->get('supplier_code', ''));
         $perPage = max(1, (int) $request->get('length', $request->get('per_page', 10)));
         $start = max(0, (int) $request->get('start', 0));
         $draw = (int) $request->get('draw', 0);
@@ -283,6 +289,10 @@ class FakturpembelianController extends Controller
             ])
             ->where('trstockmt.fstockmtcode', 'TER')
             ->where('trstockmt.fprdout', '0');
+
+        if ($supplierCode !== '') {
+            $query->where('trstockmt.fsupplier', $supplierCode);
+        }
 
         $recordsTotal = (clone $query)->count();
 

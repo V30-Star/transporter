@@ -2098,6 +2098,7 @@
                         type: 'GET',
                         data: function(d) {
                             return {
+                                supplier_code: (document.getElementById('supplierCodeHidden')?.value || document.getElementById('modal_filter_supplier_id')?.value || '').trim(),
                                 draw: d.draw,
                                 start: d.start,
                                 length: d.length,
@@ -2236,6 +2237,7 @@
                         type: 'GET',
                         data: function(d) {
                             return {
+                                supplier_code: (document.getElementById('supplierCodeHidden')?.value || document.getElementById('modal_filter_supplier_id')?.value || '').trim(),
                                 draw: d.draw,
                                 start: d.start,
                                 length: d.length,
