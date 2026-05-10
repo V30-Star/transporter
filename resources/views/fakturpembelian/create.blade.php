@@ -393,18 +393,7 @@
                             </div>
                         </div>
 
-                        <div class="lg:col-span-4">
-                            <label class="block text-sm font-medium mb-1">{{ "Faktur Pajak#" }}</label>
-                            <div class="flex items-center">
-                                <input type="text" id="frefpo" name="frefpo"
-                                    class="w-full border rounded px-3 py-2 @error('frefpo') border-red-500 @enderror">
-                            </div>
-                            @error('frefpo')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <div class="lg:col-span-4">
+                        <div class="lg:col-span-2">
                             <label class="block text-sm font-medium">TOP (Hari)</label>
                             <input type="number" id="ftempohr" name="ftempohr" value="{{ old('ftempohr', '0') }}"
                                 class="w-full border rounded px-3 py-2 @error('ftempohr') border-red-500 @enderror"
@@ -414,7 +403,7 @@
                             @enderror
                         </div>
 
-                        <div class="lg:col-span-4">
+                        <div class="lg:col-span-2">
                             <label class="block text-sm font-medium">Tgl. Jatuh Tempo</label>
                             <input type="date" id="fjatuhtempo" name="fjatuhtempo"
                                 value="{{ old('fjatuhtempo') ?? date('Y-m-d') }}" readonly

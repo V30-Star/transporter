@@ -322,19 +322,7 @@
                         </div>
                     </div>
 
-                    <div class="lg:col-span-4">
-                        <label class="block text-sm font-medium mb-1">Faktur Pajak#</label>
-                        <div class="flex items-center">
-                            <input disabled type="text" id="frefpo" name="frefpo"
-                                class="w-full border rounded px-3 py-2 text-gray-700"
-                                value="{{ old('frefpo', $fakturpembelian->frefpo) }}">
-                        </div>
-                        @error('frefpo')
-                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div class="lg:col-span-4">
+                    <div class="lg:col-span-2">
                         <label class="block text-sm font-medium">TOP (Hari)</label>
                         <input disabled type="number" id="ftempohr" name="ftempohr"
                             class="w-full border rounded px-3 py-2 text-gray-700" {{-- Hapus 'value' yang duplikat. Cukup satu baris ini: --}}
@@ -344,7 +332,7 @@
                         @enderror
                     </div>
 
-                    <div class="lg:col-span-4">
+                    <div class="lg:col-span-2">
                         <label class="block text-sm font-medium">Tgl. Jatuh Tempo</label>
                         <input disabled type="date" id="fjatuhtempo" name="fjatuhtempo"
                             value="{{ old('fjatuhtempo', '') }}" readonly
