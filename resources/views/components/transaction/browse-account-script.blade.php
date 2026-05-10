@@ -83,6 +83,8 @@
                         [0, 'asc']
                     ],
                     autoWidth: false,
+                    scrollX: true,
+                    scrollCollapse: true,
                     initComplete: function() {
                         const $c = $(this.api().table().container());
                         $c.find('.dt-search .dt-input, .dataTables_filter input').css({
@@ -97,6 +99,13 @@
                             border: '2px solid #e5e7eb',
                             borderRadius: '8px',
                             fontSize: '14px'
+                        });
+                        $c.find('.dataTables_scroll').css({
+                            width: '100%'
+                        });
+                        $c.find('.dataTables_scrollBody').css({
+                            overflowX: 'auto',
+                            overflowY: 'auto'
                         });
                     }
                 });

@@ -205,6 +205,8 @@
                         [0, 'asc']
                     ],
                     autoWidth: false,
+                    scrollX: true,
+                    scrollCollapse: true,
                     createdRow: function(row) {
                         $(row).addClass('bg-white');
                         $(row).find('td').addClass('p-3 text-sm text-gray-700 border-b border-r border-gray-200 align-middle');
@@ -236,6 +238,15 @@
                             border: '2px solid #e5e7eb',
                             borderRadius: '8px',
                             fontSize: '14px'
+                        });
+
+                        $c.find('.dataTables_scroll').css({
+                            width: '100%'
+                        });
+
+                        $c.find('.dataTables_scrollBody').css({
+                            overflowX: 'auto',
+                            overflowY: 'auto'
                         });
 
                         @if ($showControls)
@@ -387,7 +398,8 @@
                 </div>
             @endif
 
-            <div class="flex-1 overflow-hidden p-6" style="min-height: 0;">
+            <div class="flex-1 overflow-auto p-6" style="min-height: 0;">
+                <div class="min-w-max">
                 <table id="{{ $tableId }}" class="min-w-full text-sm display nowrap stripe hover" style="width:100%">
                     <thead class="sticky top-0 z-10">
                         <tr class="bg-gray-50 border-b-2 border-gray-200">
@@ -398,6 +410,7 @@
                     </thead>
                     <tbody></tbody>
                 </table>
+                </div>
             </div>
 
             <div class="px-6 py-3 border-t border-gray-200 flex-shrink-0 bg-gray-50">

@@ -105,6 +105,8 @@
                         [1, 'asc']
                     ],
                     autoWidth: false,
+                    scrollX: true,
+                    scrollCollapse: true,
                     initComplete: function() {
                         const api = this.api();
                         const $container = $(api.table().container());
@@ -122,6 +124,15 @@
                             border: '2px solid #e5e7eb',
                             borderRadius: '8px',
                             fontSize: '14px'
+                        });
+
+                        $container.find('.dataTables_scroll').css({
+                            width: '100%'
+                        });
+
+                        $container.find('.dataTables_scrollBody').css({
+                            overflowX: 'auto',
+                            overflowY: 'auto'
                         });
 
                         const $filter = $container.find('.dataTables_filter, .dt-search');
@@ -242,8 +253,8 @@
             <div id="supplierTableControls" class="flex items-center justify-between gap-4 w-full"></div>
         </div>
 
-        <div class="flex-1 overflow-hidden px-6" style="min-height: 0;">
-            <div class="bg-white">
+        <div class="flex-1 overflow-auto px-6" style="min-height: 0;">
+            <div class="bg-white min-w-max">
                 <table id="supplierBrowseTable" class="min-w-full text-sm display nowrap stripe hover"
                     style="width:100%">
                     <thead class="sticky top-0 z-10">

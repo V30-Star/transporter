@@ -82,6 +82,8 @@
                         [2, 'desc']
                     ],
                     autoWidth: false,
+                    scrollX: true,
+                    scrollCollapse: true,
                     initComplete: function() {
                         const api = this.api();
                         const $container = $(api.table().container());
@@ -106,6 +108,13 @@
                             minWidth: '80px'
                         }).addClass('focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500');
 
+                        $container.find('.dataTables_scroll').css({
+                            width: '100%'
+                        });
+                        $container.find('.dataTables_scrollBody').css({
+                            overflowX: 'auto',
+                            overflowY: 'auto'
+                        });
                         $container.find('#srjFooter').addClass('flex items-center justify-between mt-4');
                     }
                 });

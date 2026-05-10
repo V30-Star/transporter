@@ -32,8 +32,8 @@
             </div>
         @endif
 
-        <div class="flex-1 overflow-hidden px-6" style="min-height: 0;">
-            <div class="bg-white">
+        <div class="flex-1 overflow-auto px-6" style="min-height: 0;">
+            <div class="bg-white min-w-max">
                 <table id="{{ $tableId }}" class="min-w-full text-sm display nowrap stripe hover" style="width:100%">
                     <thead class="sticky top-0 z-10">
                         <tr class="bg-gradient-to-r from-gray-50 to-gray-100">

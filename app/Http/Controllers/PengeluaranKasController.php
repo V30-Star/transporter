@@ -16,6 +16,8 @@ use Illuminate\Validation\Rule;
 class PengeluaranKasController extends Controller
 {
     private const TRAN_CODE = 'BKK';
+    private const HEADER_ACCOUNT_NAMES = ['KASBANKHEADER', 'UANGMUKAPEMBELIAN', 'UANGMUKAPENJUALAN'];
+    private const GIRO_MUNDUR_ACCOUNT_NAME = 'HUTANGGIRO';
 
     public function index()
     {
@@ -82,8 +84,11 @@ class PengeluaranKasController extends Controller
             $details = $this->normalizeDetails($payload['details']);
             $totalAmount = $details->sum(fn (array $detail) => (float) $detail['fkasdtvalue']);
             $voucherNoInput = trim((string) ($payload['fkasmtno'] ?? ''));
+            $isGiroMundur = ($payload['fgiromundur'] ?? '0') === '1';
 
-            $headerAccount = $this->resolveHeaderAccount($payload['faccountheader'] ?? null);
+            $headerAccount = $this->resolveHeaderAccount(
+                $isGiroMundur ? $this->resolveSetAccountCode(self::GIRO_MUNDUR_ACCOUNT_NAME) : ($payload['faccountheader'] ?? null)
+            );
             $voucherNo = $voucherNoInput !== ''
                 ? $voucherNoInput
                 : $this->generateVoucherNo(Carbon::parse($payload['fkasmtdate']), $headerAccount);
@@ -105,8 +110,9 @@ class PengeluaranKasController extends Controller
                 'famountpay_rp' => $totalAmount,
                 'fuserid' => $this->currentUserId(),
                 'fdatetime' => $now,
-                'fgiromundur' => '0',
+                'fgiromundur' => $isGiroMundur ? '1' : '0',
                 'fnogiro' => $payload['fnogiro'] ?? null,
+                'ftgljatuhtempo' => ! empty($payload['ftgljatuhtempo']) ? Carbon::parse($payload['ftgljatuhtempo'])->startOfDay() : null,
                 'faccountno' => $headerAccount?->faccount,
                 'faccountnoid' => $headerAccount?->faccid,
                 'fstatusgiro' => '0',
@@ -192,7 +198,10 @@ class PengeluaranKasController extends Controller
             $now = now();
             $details = $this->normalizeDetails($payload['details']);
             $totalAmount = $details->sum(fn (array $detail) => (float) $detail['fkasdtvalue']);
-            $headerAccount = $this->resolveHeaderAccount($payload['faccountheader'] ?? null);
+            $isGiroMundur = ($payload['fgiromundur'] ?? '0') === '1';
+            $headerAccount = $this->resolveHeaderAccount(
+                $isGiroMundur ? $this->resolveSetAccountCode(self::GIRO_MUNDUR_ACCOUNT_NAME) : ($payload['faccountheader'] ?? null)
+            );
             $voucherNoInput = trim((string) ($payload['fkasmtno'] ?? ''));
 
             $header->update([
@@ -206,6 +215,8 @@ class PengeluaranKasController extends Controller
                 'fdkheader' => $this->resolveHeaderDk($totalAmount),
                 'fket' => $payload['fket'] ?? null,
                 'fnogiro' => $payload['fnogiro'] ?? null,
+                'fgiromundur' => $isGiroMundur ? '1' : '0',
+                'ftgljatuhtempo' => ! empty($payload['ftgljatuhtempo']) ? Carbon::parse($payload['ftgljatuhtempo'])->startOfDay() : null,
                 'famountpay' => $totalAmount,
                 'famountpay_rp' => $totalAmount,
                 'fuserid' => $this->currentUserId(),
@@ -310,9 +321,15 @@ class PengeluaranKasController extends Controller
 
     private function formViewData(Trkasmt $header, Collection $details, array $overrides = []): array
     {
+        $headerAccounts = $this->resolveHeaderAccounts();
+
         return array_merge([
             'pengeluaranKas' => $header,
             'details' => $details->isNotEmpty() ? $details : collect([new Trkasdt]),
+            'giroMundurHeaderAccount' => ($giroCode = $this->resolveSetAccountCode(self::GIRO_MUNDUR_ACCOUNT_NAME))
+                ? Account::query()->where('faccount', $giroCode)->first(['faccid', 'faccount', 'faccname'])
+                : null,
+            'headerAccounts' => $headerAccounts,
             'accounts' => Account::query()
                 ->where('fend', 1)
                 ->where('fnonactive', '0')
@@ -327,8 +344,18 @@ class PengeluaranKasController extends Controller
 
     private function validatePayload(Request $request, ?Trkasmt $header = null): array
     {
+        $allowedHeaderAccounts = $this->resolveHeaderAccounts()
+            ->pluck('faccount')
+            ->filter()
+            ->map(fn ($value) => trim((string) $value))
+            ->values()
+            ->all();
+        $giroAccount = trim((string) $this->resolveSetAccountCode(self::GIRO_MUNDUR_ACCOUNT_NAME));
+        $isGiroMundur = $request->boolean('fgiromundur');
+
         $request->merge([
             'details' => $this->filterEmptyDetailRows($request->input('details', [])),
+            'fgiromundur' => $isGiroMundur ? '1' : '0',
         ]);
 
         $payload = $request->validate([
@@ -339,9 +366,17 @@ class PengeluaranKasController extends Controller
                 Rule::unique('trkasmt', 'fkasmtno')->ignore($header?->fkasmtno, 'fkasmtno'),
             ],
             'fkasmtdate' => ['required', 'date'],
-            'fnogiro' => ['nullable', 'string', 'max:35'],
+            'fnogiro' => ['nullable', 'string', 'max:35', Rule::unique('trkasmt', 'fnogiro')->ignore($header?->fkasmtid, 'fkasmtid')],
             'fwhom' => ['nullable', 'string', 'max:40'],
-            'faccountheader' => ['nullable', 'string', 'max:15', Rule::exists('account', 'faccount')],
+            'fgiromundur' => ['nullable', 'in:0,1'],
+            'ftgljatuhtempo' => ['nullable', 'date', Rule::requiredIf($isGiroMundur), 'before_or_equal:fkasmtdate'],
+            'faccountheader' => [
+                'nullable',
+                'string',
+                'max:15',
+                Rule::in($isGiroMundur ? array_values(array_filter([$giroAccount])) : $allowedHeaderAccounts),
+                Rule::exists('account', 'faccount'),
+            ],
             'fket' => ['nullable', 'string', 'max:50'],
             'details' => ['required', 'array', 'min:1'],
             'details.*.faccount' => ['required', 'string', 'max:10', Rule::exists('account', 'faccount')],
@@ -350,11 +385,19 @@ class PengeluaranKasController extends Controller
             'details.*.fkasdtvalue' => ['required', 'numeric', 'not_in:0'],
         ], [
             'fkasmtdate.required' => 'Tanggal wajib diisi.',
+            'fnogiro.unique' => 'No.Giro/Cek sudah digunakan.',
+            'ftgljatuhtempo.required' => 'Tgl.Jatuh Tempo wajib diisi saat Giro Mundur dicentang.',
+            'ftgljatuhtempo.before_or_equal' => 'Tgl.Jatuh Tempo tidak boleh melebihi Tanggal.',
+            'faccountheader.in' => 'Cash / Bank Account tidak valid.',
             'details.required' => 'Minimal harus ada satu detail pengeluaran.',
             'details.*.faccount.required' => 'Account detail wajib diisi.',
             'details.*.fkasdtvalue.required' => 'Jumlah bayar wajib diisi.',
             'details.*.fkasdtvalue.not_in' => 'Jumlah bayar tidak boleh 0.',
         ]);
+
+        if ($isGiroMundur) {
+            $payload['faccountheader'] = $giroAccount;
+        }
 
         return $payload;
     }
@@ -403,6 +446,55 @@ class PengeluaranKasController extends Controller
         return Account::query()
             ->where('faccount', $accountCode)
             ->first(['faccid', 'faccount', 'faccname', 'finitjurnal']);
+    }
+
+    private function resolveSetAccountCode(string $accountName): ?string
+    {
+        $accountCode = DB::table('set_account')
+            ->where('faccount_name', $accountName)
+            ->value('faccount');
+
+        $accountCode = trim((string) $accountCode);
+
+        return $accountCode !== '' ? $accountCode : null;
+    }
+
+    private function resolveSetAccountCodes(array $accountNames): array
+    {
+        return DB::table('set_account')
+            ->whereIn('faccount_name', $accountNames)
+            ->pluck('faccount')
+            ->filter()
+            ->map(fn ($value) => trim((string) $value))
+            ->filter(fn ($value) => $value !== '')
+            ->values()
+            ->all();
+    }
+
+    private function resolveHeaderAccounts(): Collection
+    {
+        $kasBankHeaderCode = $this->resolveSetAccountCode('KASBANKHEADER');
+        $uangMukaCodes = $this->resolveSetAccountCodes(['UANGMUKAPEMBELIAN', 'UANGMUKAPENJUALAN']);
+
+        return Account::query()
+            ->where('fend', 1)
+            ->where('fnonactive', '0')
+            ->where(function ($query) use ($kasBankHeaderCode, $uangMukaCodes) {
+                if (! empty($kasBankHeaderCode)) {
+                    $query->orWhere('faccupline', $kasBankHeaderCode);
+                }
+
+                if (! empty($uangMukaCodes)) {
+                    $query->orWhereIn('faccount', $uangMukaCodes);
+                }
+            })
+            ->orderBy('faccount')
+            ->get([
+                'faccid',
+                'faccount',
+                'faccname',
+                'faccupline',
+            ]);
     }
 
     private function resolveHeaderDk(float $amount): string

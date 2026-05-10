@@ -111,6 +111,8 @@
                         [1, 'asc']
                     ],
                     autoWidth: false,
+                    scrollX: true,
+                    scrollCollapse: true,
                     initComplete: function() {
                         const api = this.api();
                         const $container = $(api.table().container());
@@ -128,6 +130,15 @@
                             border: '2px solid #e5e7eb',
                             borderRadius: '8px',
                             fontSize: '14px'
+                        });
+
+                        $container.find('.dataTables_scroll').css({
+                            width: '100%'
+                        });
+
+                        $container.find('.dataTables_scrollBody').css({
+                            overflowX: 'auto',
+                            overflowY: 'auto'
                         });
 
                     }
@@ -215,4 +226,3 @@
         };
     }
 </script>
-
