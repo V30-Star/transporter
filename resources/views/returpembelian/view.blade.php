@@ -290,36 +290,8 @@
                                         </td>
                                     </tr>
 
-                                    <!-- ROW DESC (di bawah Nama Produk) -->
-                                    <tr class="border-b">
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                        <td class="p-0"></td>
-                                    </tr>
                                 </template>
 
-                                <!-- ROW EDIT DESC -->
-                                <tr x-show="editingIndex !== null" class="border-b" x-cloak>
-                                    <td class="p-0"></td>
-                                    <td class="p-0"></td>
-                                    <td class="p-0"></td>
-                                    <td class="p-0"></td>
-                                    <td class="p-0"></td>
-                                </tr>
-
-                                <!-- ROW DRAFT DESC -->
-                                <tr class="border-b">
-                                    <td class="p-0"></td>
-                                    <td class="p-0"></td>
-                                    <td class="p-0"></td>
-                                    <td class="p-0"></td>
-                                    <td class="p-0"></td>
-                                </tr>
                             </tbody>
                         </table>
                     </div>

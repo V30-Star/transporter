@@ -271,9 +271,17 @@
                                         </td>
 
                                         <td class="p-2">
-                                            <div
-                                                class="w-full border rounded px-2 py-1 bg-gray-100 text-gray-600 text-sm leading-5 whitespace-normal break-words"
-                                                x-text="editRow.fitemname"></div>
+                                            <div class="flex w-full max-w-full">
+                                                <div
+                                                    class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                    x-text="editRow.fitemname"></div>
+                                                <button type="button" @click="openDesc(editRow)"
+                                                    class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
+                                                    :class="editRow.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
+                                                    title="Deskripsi item">
+                                                    <x-heroicon-o-document-text class="h-4 w-4" />
+                                                </button>
+                                            </div>
                                         </td>
 
                                         <td class="p-2">
@@ -810,7 +818,6 @@
             });
         </script>
     @endpush
-
 
 
 

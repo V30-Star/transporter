@@ -289,10 +289,11 @@
                                                 <td class="p-2" x-text="i + 1"></td>
                                                 <td class="p-2 font-mono" x-text="it.fitemcode"></td>
                                                 <td class="p-2 text-gray-800">
-                                                    <div class="flex items-center gap-2">
-                                                        <div class="flex-1 min-w-0" x-text="it.fitemname"></div>
+                                                    <div class="flex w-full max-w-full">
+                                                        <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                            x-text="it.fitemname"></div>
                                                         <button type="button" @click="openDesc(it, true)"
-                                                            class="inline-flex h-9 w-9 items-center justify-center rounded border transition"
+                                                            class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
                                                             :class="it.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
                                                             title="Deskripsi item">
                                                             <x-heroicon-o-document-text class="h-4 w-4" />
@@ -317,24 +318,8 @@
                                                 </td>
                                             </tr>
 
-                                            <tr class="border-b">
-                                                <td class="p-0"></td>
-                                                <td class="p-0"></td>
-                                                <td class="p-0"></td>
-                                                <td class="p-0"></td>
-                                                <td class="p-0"></td>
-                                            </tr>
                                         </template>
 
-                                        <!-- ROW EDIT DESC -->
-                                        <tr x-show="editingIndex !== null && editingTab === activeTab"
-                                            class="bg-amber-50 border-b" x-cloak>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                        </tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -1050,10 +1035,11 @@
                                                 <td class="p-2" x-text="i + 1"></td>
                                                 <td class="p-2 font-mono" x-text="it.fitemcode"></td>
                                                 <td class="p-2 text-gray-800">
-                                                    <div class="flex items-center gap-2">
-                                                        <div class="flex-1 min-w-0" x-text="it.fitemname"></div>
+                                                    <div class="flex w-full max-w-full">
+                                                        <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                            x-text="it.fitemname"></div>
                                                         <button type="button" @click="openDesc(it)"
-                                                            class="inline-flex h-9 w-9 items-center justify-center rounded border transition"
+                                                            class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
                                                             :class="it.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
                                                             title="Deskripsi item">
                                                             <x-heroicon-o-document-text class="h-4 w-4" />
@@ -1086,14 +1072,6 @@
                                                 </td>
                                             </tr>
 
-                                            <tr class="border-b">
-                                                <td class="p-0"></td>
-                                                <td class="p-0"></td>
-                                                <td class="p-0"></td>
-                                                <td class="p-0"></td>
-                                                <td class="p-0"></td>
-                                                <td class="p-0"></td>
-                                            </tr>
                                         </template>
 
                                         <!-- ROW EDIT UTAMA -->
@@ -1119,12 +1097,11 @@
 
                                             <!-- Nama Produk (readonly) -->
                                             <td class="p-2">
-                                                <div class="flex items-center gap-2">
-                                                    <input type="text"
-                                                        class="w-full flex-1 min-w-0 border rounded px-2 py-1 bg-gray-100 text-gray-600"
-                                                        :value="editRow.fitemname" disabled>
+                                                <div class="flex w-full max-w-full">
+                                                    <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                        x-text="editRow.fitemname"></div>
                                                     <button type="button" @click="openDesc(editRow)"
-                                                        class="inline-flex h-9 w-9 items-center justify-center rounded border transition"
+                                                        class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
                                                         :class="editRow.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
                                                         title="Deskripsi item">
                                                         <x-heroicon-o-document-text class="h-4 w-4" />
@@ -1169,17 +1146,6 @@
                                             </td>
                                         </tr>
 
-                                        <!-- ROW EDIT DESC -->
-                                        <tr x-show="editingIndex !== null && editingTab === activeTab"
-                                            class="bg-amber-50 border-b" x-cloak>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                        </tr>
-
                                         <!-- ROW DRAFT UTAMA -->
                                         <tr class="border-t align-top">
                                             <td class="p-2" x-text="getItemsByTab(activeTab).length + 1"></td>
@@ -1202,12 +1168,11 @@
 
                                             <!-- Nama Produk (readonly) -->
                                             <td class="p-2">
-                                                <div class="flex items-center gap-2">
-                                                    <input type="text"
-                                                        class="w-full flex-1 min-w-0 border rounded px-2 py-1 bg-gray-100 text-gray-600"
-                                                        :value="draft.fitemname" disabled>
+                                                <div class="flex w-full max-w-full">
+                                                    <div class="min-w-0 flex-1 rounded-l border bg-gray-100 px-2 py-1 text-sm leading-5 text-gray-600 whitespace-normal break-words"
+                                                        x-text="draft.fitemname"></div>
                                                     <button type="button" @click="openDesc(draft)"
-                                                        class="inline-flex h-9 w-9 items-center justify-center rounded border transition"
+                                                        class="shrink-0 inline-flex items-center border border-l-0 rounded-r px-2 py-1 transition-colors"
                                                         :class="draft.fdesc ? 'border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'"
                                                         title="Deskripsi item">
                                                         <x-heroicon-o-document-text class="h-4 w-4" />
@@ -1248,16 +1213,6 @@
                                             </td>
                                         </tr>
 
-                                        <!-- ROW DRAFT DESC -->
-                                        <tr :class="activeTab === 'bahan_baku' ? 'bg-green-50' : 'bg-blue-50'"
-                                            class="border-b">
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                            <td class="p-0"></td>
-                                        </tr>
                                     </tbody>
                                 </table>
                             </div>
