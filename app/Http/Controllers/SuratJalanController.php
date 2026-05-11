@@ -530,7 +530,7 @@ class SuratJalanController extends Controller
                 'frefso' => $frefso[$i] ?? null,
                 'frefsoid' => isset($frefsoid[$i]) ? (int) $frefsoid[$i] : null,
                 'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
-                'frefnoacak' => isset($frefsoid[$i]) && (int) $frefsoid[$i] > 0
+                'frefnoacak' => trim((string) ($frefso[$i] ?? '')) !== ''
                     ? $this->normalizeReferenceRandomNumber($frefnoacaks[$i] ?? null)
                     : null,
                 'fdesc' => $desc,
@@ -1213,7 +1213,7 @@ class SuratJalanController extends Controller
                 'frefso' => $frefso[$i] ?? null,
                 'frefsoid' => isset($frefsoid[$i]) ? (int) $frefsoid[$i] : null,
                 'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
-                'frefnoacak' => isset($frefsoid[$i]) && (int) $frefsoid[$i] > 0
+                'frefnoacak' => trim((string) ($frefso[$i] ?? '')) !== ''
                     ? $this->normalizeReferenceRandomNumber($frefnoacaks[$i] ?? null)
                     : null,
                 'fdesc' => $desc,

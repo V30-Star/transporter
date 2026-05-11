@@ -769,9 +769,10 @@ class InvoiceController extends Controller
         $prices = $request->input('fprice', []);
         $discs = $request->input('fdisc', []);
 
+        $frefso = $request->input('frefso', []);
+        $frefsrj = $request->input('frefsrj', []);
         $frefso_ids = $request->input('frefsoid', []);
         $frefsrjid_ids = $request->input('frefsrjid', []);
-        $frefpr_codes = $request->input('frefpr', []);
         $fnoacaks = $request->input('fnoacak', []);
         $frefnoacaks = $request->input('frefnoacak', []);
 
@@ -801,10 +802,13 @@ class InvoiceController extends Controller
                 continue;
             }
 
+            $refSoNo = trim((string) ($frefso[$i] ?? ''));
+            $refSrjNo = trim((string) ($frefsrj[$i] ?? ''));
+
             $refCode = '';
-            if (! empty($frefso_ids[$i])) {
+            if ($refSoNo !== '') {
                 $refCode = 'S';
-            } elseif (! empty($frefsrjid_ids[$i])) {
+            } elseif ($refSrjNo !== '') {
                 $refCode = 'R';
             }
 
@@ -844,10 +848,8 @@ class InvoiceController extends Controller
                 'fuserid' => $userid,
                 'fdatetime' => $now,
                 'frefcode' => $refCode,
-                'frefso' => ! empty($frefso_ids[$i]) ? ($frefpr_codes[$i] ?? '') : '',
-                'frefsoid' => ! empty($frefso_ids[$i]) ? (int) $frefso_ids[$i] : null,
-                'frefsrj' => ! empty($frefsrjid_ids[$i]) ? ($frefpr_codes[$i] ?? '') : '',
-                'frefsrjid' => ! empty($frefsrjid_ids[$i]) ? (int) $frefsrjid_ids[$i] : null,
+                'frefso' => trim((string) ($frefso[$i] ?? '')),
+                'frefsrj' => trim((string) ($frefsrj[$i] ?? '')),
             ], $this->buildReferenceRandomNumberColumns($refCode, $frefnoacaks[$i] ?? null));
         }
 
@@ -1187,6 +1189,58 @@ class InvoiceController extends Controller
         return [$soUsage, $srjUsage];
     }
 
+    private function buildInvoiceReferenceRestoreMaps(string $fsono): array
+    {
+        $rows = DB::table('trandt as d')
+            ->where('d.fsono', $fsono)
+            ->get([
+                'd.frefcode',
+                'd.frefso',
+                'd.frefsrj',
+                'd.fprdcode',
+                'd.frefnosoacak',
+                'd.frefnosrjacak',
+                'd.fqtykecil',
+            ]);
+
+        $soRestore = [];
+        $srjRestore = [];
+
+        foreach ($rows as $row) {
+            $qtyKecil = (float) ($row->fqtykecil ?? 0);
+            if ($qtyKecil <= 0) {
+                continue;
+            }
+
+            $productCode = trim((string) ($row->fprdcode ?? ''));
+            $refCode = strtoupper(trim((string) ($row->frefcode ?? '')));
+
+            if (trim((string) ($row->frefso ?? '')) !== '') {
+                $key = $this->buildReferenceUsageKey(
+                    trim((string) ($row->frefso ?? '')),
+                    $productCode,
+                    $this->normalizeReferenceRandomNumbers($row->frefnosoacak ?? null) ?? ''
+                );
+                $soRestore[$key] = ($soRestore[$key] ?? 0) + $qtyKecil;
+            }
+
+            if (trim((string) ($row->frefsrj ?? '')) !== '') {
+                $key = $this->buildReferenceUsageKey(
+                    trim((string) ($row->frefsrj ?? '')),
+                    $productCode,
+                    $this->normalizeReferenceRandomNumbers($row->frefnosrjacak ?? null) ?? ''
+                );
+                $srjRestore[$key] = ($srjRestore[$key] ?? 0) + $qtyKecil;
+            }
+
+            if ($refCode === 'UM' && trim((string) ($row->frefso ?? '')) === '' && trim((string) ($row->frefsrj ?? '')) === '') {
+                continue;
+            }
+        }
+
+        return [$soRestore, $srjRestore];
+    }
+
     private function getInvoiceReferenceStats(string $type, array $docNos, ?string $exceptFsono = null): array
     {
         $docNos = collect($docNos)
@@ -1291,6 +1345,63 @@ class InvoiceController extends Controller
         }
 
         return $stats;
+    }
+
+    private function restoreInvoiceReferenceUsage(array $soRestoreByReference, array $srjRestoreByReference): void
+    {
+        if (! empty($soRestoreByReference)) {
+            $docNos = $this->extractReferenceDocsFromUsageKeys(array_keys($soRestoreByReference));
+            $sourceRows = DB::table('trsodt as d')
+                ->whereIn('d.fsono', $docNos)
+                ->selectRaw("
+                    d.ftrsodtid,
+                    TRIM(d.fsono) as ref_doc,
+                    TRIM(d.fprdcode) as product_code,
+                    COALESCE(d.frefnosoacak::text, d.fnoacak::text, '') as ref_noacak
+                ")
+                ->get();
+
+            foreach ($sourceRows as $row) {
+                $key = $this->buildReferenceUsageKey($row->ref_doc ?? '', $row->product_code ?? '', $row->ref_noacak ?? '');
+                $qtyKecil = (float) ($soRestoreByReference[$key] ?? 0);
+                if ($qtyKecil <= 0) {
+                    continue;
+                }
+
+                DB::table('trsodt')
+                    ->where('ftrsodtid', $row->ftrsodtid)
+                    ->update([
+                        'fqtykecil' => DB::raw('COALESCE(fqtykecil,0) + '.$qtyKecil),
+                    ]);
+            }
+        }
+
+        if (! empty($srjRestoreByReference)) {
+            $docNos = $this->extractReferenceDocsFromUsageKeys(array_keys($srjRestoreByReference));
+            $sourceRows = DB::table('trstockdt as d')
+                ->whereIn('d.fstockmtno', $docNos)
+                ->selectRaw("
+                    d.fstockdtid,
+                    TRIM(d.fstockmtno) as ref_doc,
+                    TRIM(d.fprdcode) as product_code,
+                    COALESCE(d.frefnoacak::text, d.fnoacak::text, '') as ref_noacak
+                ")
+                ->get();
+
+            foreach ($sourceRows as $row) {
+                $key = $this->buildReferenceUsageKey($row->ref_doc ?? '', $row->product_code ?? '', $row->ref_noacak ?? '');
+                $qtyKecil = (float) ($srjRestoreByReference[$key] ?? 0);
+                if ($qtyKecil <= 0) {
+                    continue;
+                }
+
+                DB::table('trstockdt')
+                    ->where('fstockdtid', $row->fstockdtid)
+                    ->update([
+                        'fqtyremain' => DB::raw('COALESCE(fqtyremain,0) + '.$qtyKecil),
+                    ]);
+            }
+        }
     }
 
     private function convertQtyKecilToUnit(float $qtyKecil, string $unit, $productRow): float
@@ -1627,9 +1738,10 @@ class InvoiceController extends Controller
         $prices = $request->input('fprice', []);
         $discs = $request->input('fdisc', []);
         $frefcodes = $request->input('frefcode', []);
+        $frefso = $request->input('frefso', []);
+        $frefsrj = $request->input('frefsrj', []);
         $frefso_ids = $request->input('frefsoid', []);
         $frefsrjid_ids = $request->input('frefsrjid', []);
-        $frefpr_codes = $request->input('frefpr', []);
         $fnoacaks = $request->input('fnoacak', []);
         $frefnoacaks = $request->input('frefnoacak', []);
 
@@ -1660,16 +1772,17 @@ class InvoiceController extends Controller
                 continue;
             }
 
+            $refSoNo = trim((string) ($frefso[$i] ?? ''));
+            $refSrjNo = trim((string) ($frefsrj[$i] ?? ''));
+
             $refCode = '';
-            if (! empty($frefso_ids[$i])) {
+            if ($refSoNo !== '') {
                 $refCode = 'SO';
-            } elseif (! empty($frefsrjid_ids[$i])) {
+            } elseif ($refSrjNo !== '') {
                 $refCode = 'SRJ';
             } elseif (is_array($frefcodes) && ! empty($frefcodes[$i])) {
                 $refCode = $frefcodes[$i];
             }
-
-            $refPr = $frefpr_codes[$i] ?? '';
             $product = $products->get($code);
 
             if (! $product) {
@@ -1716,43 +1829,14 @@ class InvoiceController extends Controller
                 'fuserid' => $userid,
                 'fdatetime' => $now,
                 'frefcode' => $refCode,
-                'frefso' => ! empty($frefso_ids[$i]) ? $refPr : '',
-                'frefsoid' => ! empty($frefso_ids[$i]) ? (int) $frefso_ids[$i] : null,
-                'frefsrj' => ! empty($frefsrjid_ids[$i]) ? $refPr : '',
-                'frefsrjid' => ! empty($frefsrjid_ids[$i]) ? (int) $frefsrjid_ids[$i] : null,
+                'frefso' => $refSoNo,
+                'frefsrj' => $refSrjNo,
             ], $this->buildReferenceRandomNumberColumns($refCode, $frefnoacaks[$i] ?? null));
 
             $detailRows[] = $rowData;
         }
 
-        $oldSoUsageRows = DB::table('trandt')
-            ->where('fsono', $header->fsono)
-            ->whereNotNull('frefsoid')
-            ->select('frefsoid', DB::raw('SUM(COALESCE(fqtykecil, 0)) as used_qty_kecil'))
-            ->groupBy('frefsoid')
-            ->get();
-        $oldSrjUsageRows = DB::table('trandt')
-            ->where('fsono', $header->fsono)
-            ->whereNotNull('frefsrjid')
-            ->select('frefsrjid', DB::raw('SUM(COALESCE(fqtykecil, 0)) as used_qty_kecil'))
-            ->groupBy('frefsrjid')
-            ->get();
-        $oldSoUsageByDetailId = [];
-        $oldSrjUsageByDetailId = [];
-        foreach ($oldSoUsageRows as $row) {
-            $detailId = (int) ($row->frefsoid ?? 0);
-            $qtyKecil = (float) ($row->used_qty_kecil ?? 0);
-            if ($detailId > 0 && $qtyKecil > 0) {
-                $oldSoUsageByDetailId[$detailId] = $qtyKecil;
-            }
-        }
-        foreach ($oldSrjUsageRows as $row) {
-            $detailId = (int) ($row->frefsrjid ?? 0);
-            $qtyKecil = (float) ($row->used_qty_kecil ?? 0);
-            if ($detailId > 0 && $qtyKecil > 0) {
-                $oldSrjUsageByDetailId[$detailId] = $qtyKecil;
-            }
-        }
+        [$oldSoRestoreByReference, $oldSrjRestoreByReference] = $this->buildInvoiceReferenceRestoreMaps($header->fsono);
 
         [$soUsageByReference, $srjUsageByReference] = $this->buildInvoiceReferenceUsageMaps($detailRows);
 
@@ -1791,8 +1875,8 @@ class InvoiceController extends Controller
                 $userid,
                 $now,
                 $detailRows,
-                $oldSoUsageByDetailId,
-                $oldSrjUsageByDetailId,
+                $oldSoRestoreByReference,
+                $oldSrjRestoreByReference,
                 $totalGross,
                 $totalDisc,
                 $amountNet,
@@ -1836,16 +1920,7 @@ class InvoiceController extends Controller
                 // Hapus detail lama
                 DB::table('trandt')->where('fsono', $header->fsono)->delete();
 
-                foreach ($oldSoUsageByDetailId as $detailId => $oldQty) {
-                    DB::table('trsodt')->where('ftrsodtid', $detailId)->update([
-                        'fqtykecil' => DB::raw('COALESCE(fqtykecil,0) + '.(float) $oldQty),
-                    ]);
-                }
-                foreach ($oldSrjUsageByDetailId as $detailId => $oldQty) {
-                    DB::table('trstockdt')->where('fstockdtid', $detailId)->update([
-                        'fqtyremain' => DB::raw('COALESCE(fqtyremain,0) + '.(float) $oldQty),
-                    ]);
-                }
+                $this->restoreInvoiceReferenceUsage($oldSoRestoreByReference, $oldSrjRestoreByReference);
 
                 // Insert detail baru
                 if (! empty($detailRows)) {
@@ -1995,47 +2070,8 @@ class InvoiceController extends Controller
             }
 
             DB::transaction(function () use ($invoice) {
-                $oldSoUsageRows = DB::table('trandt')
-                    ->where('fsono', $invoice->fsono)
-                    ->whereNotNull('frefsoid')
-                    ->select('frefsoid', DB::raw('SUM(COALESCE(fqtykecil, 0)) as used_qty_kecil'))
-                    ->groupBy('frefsoid')
-                    ->get();
-
-                $oldSrjUsageRows = DB::table('trandt')
-                    ->where('fsono', $invoice->fsono)
-                    ->whereNotNull('frefsrjid')
-                    ->select('frefsrjid', DB::raw('SUM(COALESCE(fqtykecil, 0)) as used_qty_kecil'))
-                    ->groupBy('frefsrjid')
-                    ->get();
-
-                foreach ($oldSoUsageRows as $row) {
-                    $detailId = (int) ($row->frefsoid ?? 0);
-                    $qtyKecil = (float) ($row->used_qty_kecil ?? 0);
-                    if ($detailId <= 0 || $qtyKecil <= 0) {
-                        continue;
-                    }
-
-                    DB::table('trsodt')
-                        ->where('ftrsodtid', $detailId)
-                        ->update([
-                            'fqtykecil' => DB::raw('COALESCE(fqtykecil,0) + '.$qtyKecil),
-                        ]);
-                }
-
-                foreach ($oldSrjUsageRows as $row) {
-                    $detailId = (int) ($row->frefsrjid ?? 0);
-                    $qtyKecil = (float) ($row->used_qty_kecil ?? 0);
-                    if ($detailId <= 0 || $qtyKecil <= 0) {
-                        continue;
-                    }
-
-                    DB::table('trstockdt')
-                        ->where('fstockdtid', $detailId)
-                        ->update([
-                            'fqtyremain' => DB::raw('COALESCE(fqtyremain,0) + '.$qtyKecil),
-                        ]);
-                }
+                [$oldSoRestoreByReference, $oldSrjRestoreByReference] = $this->buildInvoiceReferenceRestoreMaps($invoice->fsono);
+                $this->restoreInvoiceReferenceUsage($oldSoRestoreByReference, $oldSrjRestoreByReference);
 
                 DB::table('trandt')
                     ->where('fsono', $invoice->fsono)

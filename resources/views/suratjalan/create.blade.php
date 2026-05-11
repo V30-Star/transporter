@@ -807,8 +807,8 @@
             },
 
             validateSoQtyRow(row, showToast = true) {
-                const soDetailId = Number(row?.frefsoid ?? 0);
-                if (!(soDetailId > 0)) return true;
+                const soRef = String(row?.frefso ?? '').trim();
+                if (!soRef) return true;
 
                 const limit = this.getRowQtyLimit(row);
                 if (limit <= 0) {
@@ -1374,7 +1374,6 @@
         });
     </script>
 @endpush
-
 
 
 

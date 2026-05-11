@@ -1908,9 +1908,7 @@
 
             validateReferenceQty(row, showToast = true) {
                 const hasRef = String(row?.frefso ?? '').trim() !== '' ||
-                    String(row?.frefsrj ?? '').trim() !== '' ||
-                    Number(row?.frefsoid ?? 0) > 0 ||
-                    Number(row?.frefsrjid ?? 0) > 0;
+                    String(row?.frefsrj ?? '').trim() !== '';
                 if (!hasRef) return true;
 
                 const limit = this.getRowQtyLimit(row);

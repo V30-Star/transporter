@@ -341,6 +341,7 @@
                                                     <input type="hidden" name="frefpr[]" :value="it.frefpr">
                                                     <input type="hidden" name="frefso[]" :value="it.frefso">
                                                     <input type="hidden" name="frefsoid[]" :value="it.frefsoid">
+                                                    <input type="hidden" name="frefnoacak[]" :value="it.frefnoacak">
                                                     <input type="hidden" name="fqty[]" :value="it.fqty">
                                                     <input type="hidden" name="fdesc[]" :value="it.fdesc">
                                                     <input type="hidden" name="fketdt[]" :value="it.fketdt">
@@ -899,6 +900,7 @@
                                                     <input type="hidden" name="frefpr[]" :value="it.frefpr">
                                                     <input type="hidden" name="frefso[]" :value="it.frefso">
                                                     <input type="hidden" name="frefsoid[]" :value="it.frefsoid">
+                                                    <input type="hidden" name="frefnoacak[]" :value="it.frefnoacak">
                                                     <input type="hidden" name="fqty[]" :value="it.fqty">
                                                     <input type="hidden" name="fdesc[]" :value="it.fdesc">
                                                     <input type="hidden" name="fketdt[]" :value="it.fketdt">
@@ -1697,6 +1699,7 @@
                         frefpr: src.frefpr ?? (header?.fprno ?? header?.fpono ?? ''),
                         frefso: header?.fprno ?? header?.fpono ?? '',
                         frefsoid: header?.fprhid ?? header?.fpohid ?? '',
+                        frefnoacak: src.frefnoacak ?? '',
                         fqty: (src.fqty !== null && src.fqty !== undefined && (@json((string) env('STOCKBOLEHMINUS', '0') === '1') ? Number(src.fqty) !== 0 : Number(src.fqty) > 0)) ?
                             Number(src.fqty) : 1,
                         fprice: Number(src.fprice ?? src.fharga ?? 0),
@@ -1906,6 +1909,7 @@
                 frefpr: '',
                 frefso: '',
                 frefsoid: '',
+                frefnoacak: '',
                 fqty: 0,
                 fprice: 0,
                 fdesc: '',

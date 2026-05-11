@@ -412,6 +412,8 @@ class MutasiController extends Controller
                 'frefso.*' => ['nullable', 'string', 'max:100'],
                 'frefsoid' => ['nullable', 'array'],
                 'frefsoid.*' => ['nullable', 'integer'],
+                'frefnoacak' => ['nullable', 'array'],
+                'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
             ]);
 
             // =========================
@@ -448,6 +450,7 @@ class MutasiController extends Controller
             $refdtno = $request->input('frefdtno', []);
             $frefso = $request->input('frefso', []);
             $frefsoid = $request->input('frefsoid', []);
+            $frefnoacaks = $request->input('frefnoacak', []);
             $qtys = $request->input('fqty', []);
             $prices = $request->input('fprice', []);
             $descs = $request->input('fdesc', []);
@@ -493,6 +496,7 @@ class MutasiController extends Controller
                     'fcode' => '0',
                     'frefso' => trim((string) ($frefso[$i] ?? '')) ?: null,
                     'frefsoid' => isset($frefsoid[$i]) && $frefsoid[$i] !== '' ? (int) $frefsoid[$i] : null,
+                    'frefnoacak' => $this->normalizeReferenceRandomNumber($frefnoacaks[$i] ?? null),
                     'fdesc' => $descs[$i] ?? '',
                     'fsatuan' => mb_substr($sat, 0, 5),
                     'fclosedt' => '0',
@@ -658,6 +662,7 @@ class MutasiController extends Controller
                 'frefdtno' => $d->frefdtno ?? null,
                 'frefso' => trim((string) ($d->frefso ?? '')),
                 'frefsoid' => $d->frefsoid !== null && $d->frefsoid !== '' ? (string) (int) $d->frefsoid : '',
+                'frefnoacak' => trim((string) ($d->frefnoacak ?? '')),
                 'fqty' => (float) ($d->fqty ?? 0),
                 'fterima' => (float) ($d->fterima ?? 0),
                 'fprice' => (float) ($d->fprice ?? 0),
@@ -762,6 +767,7 @@ class MutasiController extends Controller
                 'frefdtno' => $d->frefdtno ?? null,
                 'frefso' => trim((string) ($d->frefso ?? '')),
                 'frefsoid' => $d->frefsoid !== null && $d->frefsoid !== '' ? (string) (int) $d->frefsoid : '',
+                'frefnoacak' => trim((string) ($d->frefnoacak ?? '')),
                 'fqty' => (float) ($d->fqty ?? 0),
                 'fterima' => (float) ($d->fterima ?? 0),
                 'fprice' => (float) ($d->fprice ?? 0),
@@ -852,6 +858,8 @@ class MutasiController extends Controller
                 'frefso.*' => ['nullable', 'string', 'max:100'],
                 'frefsoid' => ['nullable', 'array'],
                 'frefsoid.*' => ['nullable', 'integer'],
+                'frefnoacak' => ['nullable', 'array'],
+                'frefnoacak.*' => ['nullable', 'regex:/^\d{3}$/'],
             ]);
 
             // =========================
@@ -889,6 +897,7 @@ class MutasiController extends Controller
             $refdtno = $request->input('frefdtno', []);
             $frefso = $request->input('frefso', []);
             $frefsoid = $request->input('frefsoid', []);
+            $frefnoacaks = $request->input('frefnoacak', []);
             $qtys = $request->input('fqty', []);
             $prices = $request->input('fprice', []);
             $descs = $request->input('fdesc', []);
@@ -949,6 +958,7 @@ class MutasiController extends Controller
                     'fcode' => '0',
                     'frefso' => $refSo !== '' ? mb_substr($refSo, 0, 100) : null,
                     'frefsoid' => $refSoId,
+                    'frefnoacak' => $this->normalizeReferenceRandomNumber($frefnoacaks[$i] ?? null),
                     'fdesc' => $desc,
                     'fsatuan' => $sat,
                     'fclosedt' => '0',
@@ -1066,6 +1076,7 @@ class MutasiController extends Controller
                 'frefdtno' => $d->frefdtno ?? null,
                 'frefso' => trim((string) ($d->frefso ?? '')),
                 'frefsoid' => $d->frefsoid !== null && $d->frefsoid !== '' ? (string) (int) $d->frefsoid : '',
+                'frefnoacak' => trim((string) ($d->frefnoacak ?? '')),
                 'fqty' => (float) ($d->fqty ?? 0),
                 'fterima' => (float) ($d->fterima ?? 0),
                 'fprice' => (float) ($d->fprice ?? 0),
@@ -1205,38 +1216,74 @@ class MutasiController extends Controller
         return 'Mutasi Stock '.$header->fstockmtno.' tidak dapat diubah atau dihapus karena sudah digunakan pada transaksi lain: '.$usedBy->implode(', ').'.';
     }
 
+    private function buildMutasiReferenceUsageKey(?string $docNo, ?string $productCode, ?string $refNoAcak = null): string
+    {
+        return implode('|', [
+            trim((string) ($docNo ?? '')),
+            trim((string) ($productCode ?? '')),
+            trim((string) ($refNoAcak ?? '')),
+        ]);
+    }
+
+    private function buildMutasiReferenceUsageMap(array $rowsDt): array
+    {
+        $usage = [];
+
+        foreach ($rowsDt as $row) {
+            $docNo = trim((string) ($row['frefso'] ?? ''));
+            $productCode = trim((string) ($row['fprdcode'] ?? ''));
+            $refNoAcak = trim((string) ($row['frefnoacak'] ?? ''));
+
+            if ($docNo === '' || $productCode === '') {
+                continue;
+            }
+
+            $key = $this->buildMutasiReferenceUsageKey($docNo, $productCode, $refNoAcak);
+            $usage[$key] = [
+                'doc_no' => $docNo,
+                'product_code' => $productCode,
+                'ref_noacak' => $refNoAcak,
+            ];
+        }
+
+        return $usage;
+    }
+
     private function validateUniqueReferenceUsage(array $rowsDt, ?string $exceptStockMtNo = null): ?string
     {
-        $soDetailIds = collect($rowsDt)
-            ->pluck('frefsoid')
-            ->map(fn ($id) => (int) $id)
-            ->filter(fn ($id) => $id > 0)
+        $referenceUsage = $this->buildMutasiReferenceUsageMap($rowsDt);
+        $referenceDocNos = collect($referenceUsage)
+            ->pluck('doc_no')
+            ->filter()
             ->unique()
             ->values()
             ->all();
 
-        if (! empty($soDetailIds)) {
-            $query = DB::table('trstockdt as d')
+        if (! empty($referenceDocNos)) {
+            $existingRows = DB::table('trstockdt as d')
                 ->join('trstockmt as h', 'h.fstockmtno', '=', 'd.fstockmtno')
-                ->leftJoin('trsodt as so_d', 'so_d.ftrsodtid', '=', 'd.frefsoid')
-                ->leftJoin('trsomt as so_h', 'so_h.fsono', '=', 'so_d.fsono')
                 ->where('h.fstockmtcode', 'MUT')
-                ->whereIn('d.frefsoid', $soDetailIds);
-
-            if (! empty($exceptStockMtNo)) {
-                $query->where('h.fstockmtno', '<>', $exceptStockMtNo);
-            }
-
-            $existing = $query
+                ->whereIn('d.frefso', $referenceDocNos)
+                ->when(! empty($exceptStockMtNo), fn ($query) => $query->where('h.fstockmtno', '<>', $exceptStockMtNo))
+                ->selectRaw("
+                    h.fstockmtno as transaction_no,
+                    TRIM(COALESCE(d.frefso, '')) as ref_no,
+                    TRIM(COALESCE(d.fprdcode::text, '')) as product_code,
+                    TRIM(COALESCE(d.frefnoacak::text, '')) as ref_noacak
+                ")
                 ->orderBy('h.fstockmtno')
-                ->select(
-                    'h.fstockmtno as transaction_no',
-                    DB::raw("COALESCE(NULLIF(TRIM(so_h.fsono), ''), NULLIF(TRIM(d.frefso), '')) as ref_no")
-                )
-                ->first();
+                ->get();
 
-            if ($existing) {
-                return 'Nomor referensi '.trim((string) ($existing->ref_no ?? '')).' sudah pernah dibuat di transaksi nomor '.trim((string) ($existing->transaction_no ?? '')).'.';
+            foreach ($existingRows as $existing) {
+                $key = $this->buildMutasiReferenceUsageKey(
+                    $existing->ref_no ?? '',
+                    $existing->product_code ?? '',
+                    $existing->ref_noacak ?? ''
+                );
+
+                if (isset($referenceUsage[$key])) {
+                    return 'Nomor referensi '.trim((string) ($existing->ref_no ?? '')).' sudah pernah dibuat di transaksi nomor '.trim((string) ($existing->transaction_no ?? '')).'.';
+                }
             }
         }
 

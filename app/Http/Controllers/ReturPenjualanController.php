@@ -448,11 +448,10 @@ class ReturPenjualanController extends Controller
 
         // FREFCODE & REFERENCES
         $frefcodes = $request->input('frefcode', []);
-        $frefso_codes = $request->input('frefso', []);
+        $frefso = $request->input('frefso', []);
         $frefso_ids = $request->input('frefsoid', []);
-        $frefsrj_codes = $request->input('frefsrj', []);
+        $frefsrj = $request->input('frefsrj', []);
         $frefsrjid_ids = $request->input('frefsrjid', []);
-        $frefpr_codes = $request->input('frefpr', []);
         $fnoacaks = $request->input('fnoacak', []);
         $frefnoacaks = $request->input('frefnoacak', []);
 
@@ -534,10 +533,8 @@ class ReturPenjualanController extends Controller
                 'fuserid' => $userid,
                 'fdatetime' => $now,
                 'frefcode' => $frefcode ?? '',
-                'frefso' => $frefso_ids[$i] ? ($frefpr_codes[$i] ?? '') : '',
-                'frefsoid' => $frefso_ids[$i] ?? null,
-                'frefsrj' => $frefsrjid_ids[$i] ? ($frefpr_codes[$i] ?? '') : '',
-                'frefsrjid' => $frefsrjid_ids[$i] ?? null,
+                'frefso' => trim((string) ($frefso[$i] ?? '')),
+                'frefsrj' => trim((string) ($frefsrj[$i] ?? '')),
                 'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
             ], $this->buildReferenceRandomNumberColumns($frefcode ?? '', $frefnoacaks[$i] ?? null));
 
@@ -949,6 +946,44 @@ class ReturPenjualanController extends Controller
         return [$soUsage, $srjUsage];
     }
 
+    private function buildReturReferenceRestoreMaps(string $fsono): array
+    {
+        $rows = DB::table('trandt as d')
+            ->where('d.fsono', $fsono)
+            ->get([
+                'd.frefso',
+                'd.frefsrj',
+                'd.fprdcode',
+                'd.frefnoacak',
+                'd.fqtykecil',
+            ]);
+
+        $soRestore = [];
+        $srjRestore = [];
+
+        foreach ($rows as $row) {
+            $qtyKecil = (float) ($row->fqtykecil ?? 0);
+            if ($qtyKecil <= 0) {
+                continue;
+            }
+
+            $productCode = trim((string) ($row->fprdcode ?? ''));
+            $refNoAcak = $this->normalizeReferenceRandomNumbers($row->frefnoacak ?? null) ?? '';
+
+            if (trim((string) ($row->frefso ?? '')) !== '') {
+                $key = $this->buildReferenceUsageKey(trim((string) ($row->frefso ?? '')), $productCode, $refNoAcak);
+                $soRestore[$key] = ($soRestore[$key] ?? 0) + $qtyKecil;
+            }
+
+            if (trim((string) ($row->frefsrj ?? '')) !== '') {
+                $key = $this->buildReferenceUsageKey(trim((string) ($row->frefsrj ?? '')), $productCode, $refNoAcak);
+                $srjRestore[$key] = ($srjRestore[$key] ?? 0) + $qtyKecil;
+            }
+        }
+
+        return [$soRestore, $srjRestore];
+    }
+
     private function getReturReferenceStats(string $type, array $docNos, ?string $exceptFsono = null): array
     {
         $docNos = collect($docNos)
@@ -1055,6 +1090,63 @@ class ReturPenjualanController extends Controller
         }
 
         return $stats;
+    }
+
+    private function restoreReturReferenceUsage(array $soRestoreByReference, array $srjRestoreByReference): void
+    {
+        if (! empty($soRestoreByReference)) {
+            $docNos = $this->extractReferenceDocsFromUsageKeys(array_keys($soRestoreByReference));
+            $sourceRows = DB::table('trsodt as d')
+                ->whereIn('d.fsono', $docNos)
+                ->selectRaw("
+                    d.ftrsodtid,
+                    TRIM(d.fsono) as ref_doc,
+                    TRIM(d.fprdcode) as product_code,
+                    COALESCE(d.frefnosoacak::text, d.fnoacak::text, '') as ref_noacak
+                ")
+                ->get();
+
+            foreach ($sourceRows as $row) {
+                $key = $this->buildReferenceUsageKey($row->ref_doc ?? '', $row->product_code ?? '', $row->ref_noacak ?? '');
+                $qtyKecil = (float) ($soRestoreByReference[$key] ?? 0);
+                if ($qtyKecil <= 0) {
+                    continue;
+                }
+
+                DB::table('trsodt')
+                    ->where('ftrsodtid', $row->ftrsodtid)
+                    ->update([
+                        'fqtykecil' => DB::raw('COALESCE(fqtykecil,0) + '.$qtyKecil),
+                    ]);
+            }
+        }
+
+        if (! empty($srjRestoreByReference)) {
+            $docNos = $this->extractReferenceDocsFromUsageKeys(array_keys($srjRestoreByReference));
+            $sourceRows = DB::table('trstockdt as d')
+                ->whereIn('d.fstockmtno', $docNos)
+                ->selectRaw("
+                    d.fstockdtid,
+                    TRIM(d.fstockmtno) as ref_doc,
+                    TRIM(d.fprdcode) as product_code,
+                    COALESCE(d.frefnoacak::text, d.fnoacak::text, '') as ref_noacak
+                ")
+                ->get();
+
+            foreach ($sourceRows as $row) {
+                $key = $this->buildReferenceUsageKey($row->ref_doc ?? '', $row->product_code ?? '', $row->ref_noacak ?? '');
+                $qtyKecil = (float) ($srjRestoreByReference[$key] ?? 0);
+                if ($qtyKecil <= 0) {
+                    continue;
+                }
+
+                DB::table('trstockdt')
+                    ->where('fstockdtid', $row->fstockdtid)
+                    ->update([
+                        'fqtyremain' => DB::raw('COALESCE(fqtyremain,0) + '.$qtyKecil),
+                    ]);
+            }
+        }
     }
 
     private function convertQtyKecilToUnit(float $qtyKecil, string $unit, $productRow): float
@@ -1393,8 +1485,9 @@ class ReturPenjualanController extends Controller
         $discs = $request->input('fdisc', []);
 
         $frefcodes = $request->input('frefcode', []);   // per baris, jika array
-        $frefpr_codes = $request->input('frefpr', []);
+        $frefso = $request->input('frefso', []);
         $frefso_ids = $request->input('frefsoid', []);
+        $frefsrj = $request->input('frefsrj', []);
         $frefsrjid_ids = $request->input('frefsrjid', []);
         $fnoacaks = $request->input('fnoacak', []);
         $frefnoacaks = $request->input('frefnoacak', []);
@@ -1475,10 +1568,8 @@ class ReturPenjualanController extends Controller
                 'fuserid' => $userid,
                 'fdatetime' => $now,
                 'frefcode' => $frefcode ?? '',
-                'frefsoid' => (! empty($request->frefsoid[$i])) ? (int) $request->frefsoid[$i] : null,
-                'frefsrjid' => (! empty($request->frefsrjid[$i])) ? (int) $request->frefsrjid[$i] : null,
-                'frefso' => $frefso_ids[$i] ? ($frefpr_codes[$i] ?? '') : '',
-                'frefsrj' => $frefsrjid_ids[$i] ? ($frefpr_codes[$i] ?? '') : '',
+                'frefso' => trim((string) ($frefso[$i] ?? '')),
+                'frefsrj' => trim((string) ($frefsrj[$i] ?? '')),
                 'fnoacak' => $this->normalizeRandomNumber($fnoacaks[$i] ?? null, $usedNoAcaks),
             ], $this->buildReferenceRandomNumberColumns($frefcode ?? '', $frefnoacaks[$i] ?? null));
 
@@ -1498,34 +1589,7 @@ class ReturPenjualanController extends Controller
             ];
         }
 
-        $oldSoUsageRows = DB::table('trandt')
-            ->where('fsono', $header->fsono)
-            ->whereNotNull('frefsoid')
-            ->select('frefsoid', DB::raw('SUM(COALESCE(fqtykecil, 0)) as used_qty_kecil'))
-            ->groupBy('frefsoid')
-            ->get();
-        $oldSrjUsageRows = DB::table('trandt')
-            ->where('fsono', $header->fsono)
-            ->whereNotNull('frefsrjid')
-            ->select('frefsrjid', DB::raw('SUM(COALESCE(fqtykecil, 0)) as used_qty_kecil'))
-            ->groupBy('frefsrjid')
-            ->get();
-        $oldSoUsageByDetailId = [];
-        $oldSrjUsageByDetailId = [];
-        foreach ($oldSoUsageRows as $row) {
-            $detailId = (int) ($row->frefsoid ?? 0);
-            $qtyKecil = (float) ($row->used_qty_kecil ?? 0);
-            if ($detailId > 0 && $qtyKecil > 0) {
-                $oldSoUsageByDetailId[$detailId] = $qtyKecil;
-            }
-        }
-        foreach ($oldSrjUsageRows as $row) {
-            $detailId = (int) ($row->frefsrjid ?? 0);
-            $qtyKecil = (float) ($row->used_qty_kecil ?? 0);
-            if ($detailId > 0 && $qtyKecil > 0) {
-                $oldSrjUsageByDetailId[$detailId] = $qtyKecil;
-            }
-        }
+        [$oldSoRestoreByReference, $oldSrjRestoreByReference] = $this->buildReturReferenceRestoreMaps($header->fsono);
 
         [$soUsageByReference, $srjUsageByReference] = $this->buildReturReferenceUsageMaps($detailRows);
 
@@ -1581,8 +1645,8 @@ class ReturPenjualanController extends Controller
                 $ftypesales,
                 $detailRows,
                 $stockDetailRows,
-                $oldSoUsageByDetailId,
-                $oldSrjUsageByDetailId,
+                $oldSoRestoreByReference,
+                $oldSrjRestoreByReference,
                 $totalGross,
                 $totalDisc,
                 $amountNet,
@@ -1620,16 +1684,7 @@ class ReturPenjualanController extends Controller
                 // Delete detail lama agar tidak duplikat saat update
                 DB::table('trandt')->where('fsono', $header->fsono)->delete();
 
-                foreach ($oldSoUsageByDetailId as $detailId => $oldQty) {
-                    DB::table('trsodt')->where('ftrsodtid', $detailId)->update([
-                        'fqtykecil' => DB::raw('COALESCE(fqtykecil,0) + '.(float) $oldQty),
-                    ]);
-                }
-                foreach ($oldSrjUsageByDetailId as $detailId => $oldQty) {
-                    DB::table('trstockdt')->where('fstockdtid', $detailId)->update([
-                        'fqtyremain' => DB::raw('COALESCE(fqtyremain,0) + '.(float) $oldQty),
-                    ]);
-                }
+                $this->restoreReturReferenceUsage($oldSoRestoreByReference, $oldSrjRestoreByReference);
 
                 // Insert detail baru
                 if (! empty($detailRows)) {
@@ -1818,47 +1873,8 @@ class ReturPenjualanController extends Controller
 
                 $fsono = $returpenjualan->fsono;
 
-                $oldSoUsageRows = DB::table('trandt')
-                    ->where('fsono', $fsono)
-                    ->whereNotNull('frefsoid')
-                    ->select('frefsoid', DB::raw('SUM(COALESCE(fqtykecil, 0)) as used_qty_kecil'))
-                    ->groupBy('frefsoid')
-                    ->get();
-
-                $oldSrjUsageRows = DB::table('trandt')
-                    ->where('fsono', $fsono)
-                    ->whereNotNull('frefsrjid')
-                    ->select('frefsrjid', DB::raw('SUM(COALESCE(fqtykecil, 0)) as used_qty_kecil'))
-                    ->groupBy('frefsrjid')
-                    ->get();
-
-                foreach ($oldSoUsageRows as $row) {
-                    $detailId = (int) ($row->frefsoid ?? 0);
-                    $qtyKecil = (float) ($row->used_qty_kecil ?? 0);
-                    if ($detailId <= 0 || $qtyKecil <= 0) {
-                        continue;
-                    }
-
-                    DB::table('trsodt')
-                        ->where('ftrsodtid', $detailId)
-                        ->update([
-                            'fqtykecil' => DB::raw('COALESCE(fqtykecil,0) + '.$qtyKecil),
-                        ]);
-                }
-
-                foreach ($oldSrjUsageRows as $row) {
-                    $detailId = (int) ($row->frefsrjid ?? 0);
-                    $qtyKecil = (float) ($row->used_qty_kecil ?? 0);
-                    if ($detailId <= 0 || $qtyKecil <= 0) {
-                        continue;
-                    }
-
-                    DB::table('trstockdt')
-                        ->where('fstockdtid', $detailId)
-                        ->update([
-                            'fqtyremain' => DB::raw('COALESCE(fqtyremain,0) + '.$qtyKecil),
-                        ]);
-                }
+                [$oldSoRestoreByReference, $oldSrjRestoreByReference] = $this->buildReturReferenceRestoreMaps($fsono);
+                $this->restoreReturReferenceUsage($oldSoRestoreByReference, $oldSrjRestoreByReference);
 
                 // 1. Delete details (trandt)
                 DB::table('trandt')
